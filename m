@@ -1,38 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 13:33:51 -0700
-Message-ID: <201107262032.p6QKWm4U007269@imap1.linux-foundation.org>
+Subject: [merged] x86-olpc-add-xo-1-sci-driver-and-power-button-control.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 13:33:54 -0700
+Message-ID: <201107262032.p6QKWpXU007281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38998 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753839Ab1GZUdI (ORCPT
+	by vger.kernel.org with ESMTP id S1753853Ab1GZUdJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 16:33:08 -0400
+	Tue, 26 Jul 2011 16:33:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dsd@laptop.org, dilinger@queued.net, grant.likely@secretlab.ca, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86, olpc: rename olpc-xo1 to olpc-xo1-pm
+     x86, olpc: add XO-1 SCI driver and power button control
 has been removed from the -mm tree.  Its filename was
-     x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm.patch
+     x86-olpc-add-xo-1-sci-driver-and-power-button-control.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, olpc: rename olpc-xo1 to olpc-xo1-pm
+Subject: x86, olpc: add XO-1 SCI driver and power button control
 From: Daniel Drake <dsd@laptop.org>
 
-Based on earlier review comments, we'll no longer try to stick all of our
-XO-1 goodies in a single driver.  We'll split it into a power management
-driver, and an EC/SCI driver.
+The System Control Interrupt is used in the OLPC XO-1 to control various
+features of the laptop.  Add the driver base and the power button
+functionality.
 
-As a first step, rename olpc-xo1 to olpc-xo1-pm, and make it builtin
-instead of modular.
+This driver can't be built as a module, because functionality added in
+future patches means that some drivers need to know at boot-time whether
+SCI-based functionality is available.
 
 Signed-off-by: Daniel Drake <dsd@laptop.org>
 Acked-by: Andres Salomon <dilinger@queued.net>
@@ -43,46 +44,45 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                     |    7 -
- arch/x86/platform/olpc/Makefile      |    2 
- arch/x86/platform/olpc/olpc-xo1-pm.c |  123 ++++++++++++++++++++++
- arch/x86/platform/olpc/olpc-xo1.c    |  136 -------------------------
- 4 files changed, 128 insertions(+), 140 deletions(-)
+ arch/x86/Kconfig                      |    9 +
+ arch/x86/platform/olpc/Makefile       |    1 
+ arch/x86/platform/olpc/olpc-xo1-sci.c |  191 ++++++++++++++++++++++++
+ include/linux/cs5535.h                |    8 +
+ 4 files changed, 209 insertions(+)
 
-diff -puN arch/x86/Kconfig~x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm
+diff -puN arch/x86/Kconfig~x86-olpc-add-xo-1-sci-driver-and-power-button-control arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-olpc-add-xo-1-sci-driver-and-power-button-control
 +++ a/arch/x86/Kconfig
-@@ -2025,11 +2025,12 @@ config OLPC
- 	  Add support for detecting the unique features of the OLPC
- 	  XO hardware.
+@@ -2046,6 +2046,15 @@ config ALIX
  
--config OLPC_XO1
--	tristate "OLPC XO-1 support"
-+config OLPC_XO1_PM
-+	bool "OLPC XO-1 Power Management"
- 	depends on OLPC && MFD_CS5535
+ 	  Note: You have to set alix.force=1 for boards with Award BIOS.
+ 
++config OLPC_XO1_SCI
++	bool "OLPC XO-1 SCI extras"
++	depends on OLPC && OLPC_XO1_PM
++	select GPIO_CS5535
 +	select MFD_CORE
- 	---help---
--	  Add support for non-essential features of the OLPC XO-1 laptop.
-+	  Add support for poweroff of the OLPC XO-1 laptop.
++	---help---
++	  Add support for SCI-based features of the OLPC XO-1 laptop:
++	   - Power button
++
+ endif # X86_32
  
- config ALIX
- 	bool "PCEngines ALIX System Support (LED setup)"
-diff -puN arch/x86/platform/olpc/Makefile~x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm arch/x86/platform/olpc/Makefile
---- a/arch/x86/platform/olpc/Makefile~x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm
+ config AMD_NB
+diff -puN arch/x86/platform/olpc/Makefile~x86-olpc-add-xo-1-sci-driver-and-power-button-control arch/x86/platform/olpc/Makefile
+--- a/arch/x86/platform/olpc/Makefile~x86-olpc-add-xo-1-sci-driver-and-power-button-control
 +++ a/arch/x86/platform/olpc/Makefile
-@@ -1,2 +1,2 @@
+@@ -1,2 +1,3 @@
  obj-$(CONFIG_OLPC)		+= olpc.o olpc_ofw.o olpc_dt.o
--obj-$(CONFIG_OLPC_XO1)		+= olpc-xo1.o
-+obj-$(CONFIG_OLPC_XO1_PM)		+= olpc-xo1-pm.o
-diff -puN /dev/null arch/x86/platform/olpc/olpc-xo1-pm.c
+ obj-$(CONFIG_OLPC_XO1_PM)		+= olpc-xo1-pm.o xo1-wakeup.o
++obj-$(CONFIG_OLPC_XO1_SCI)	+= olpc-xo1-sci.o
+diff -puN /dev/null arch/x86/platform/olpc/olpc-xo1-sci.c
 --- /dev/null
-+++ a/arch/x86/platform/olpc/olpc-xo1-pm.c
-@@ -0,0 +1,123 @@
++++ a/arch/x86/platform/olpc/olpc-xo1-sci.c
+@@ -0,0 +1,191 @@
 +/*
-+ * Support for power management features of the OLPC XO-1 laptop
++ * Support for OLPC XO-1 System Control Interrupts (SCI)
 + *
-+ * Copyright (C) 2010 Andres Salomon <dilinger@queued.net>
 + * Copyright (C) 2010 One Laptop per Child
 + * Copyright (C) 2006 Red Hat, Inc.
 + * Copyright (C) 2006 Advanced Micro Devices, Inc.
@@ -94,248 +94,212 @@ diff -puN /dev/null arch/x86/platform/olpc/olpc-xo1-pm.c
 + */
 +
 +#include <linux/cs5535.h>
++#include <linux/input.h>
++#include <linux/interrupt.h>
 +#include <linux/platform_device.h>
 +#include <linux/pm.h>
 +#include <linux/mfd/core.h>
++#include <linux/suspend.h>
 +
 +#include <asm/io.h>
++#include <asm/msr.h>
 +#include <asm/olpc.h>
 +
-+#define DRV_NAME "olpc-xo1-pm"
++#define DRV_NAME	"olpc-xo1-sci"
++#define PFX		DRV_NAME ": "
 +
 +static unsigned long acpi_base;
-+static unsigned long pms_base;
++static struct input_dev *power_button_idev;
++static int sci_irq;
 +
-+static void xo1_power_off(void)
++static irqreturn_t xo1_sci_intr(int irq, void *dev_id)
 +{
-+	printk(KERN_INFO "OLPC XO-1 power off sequence...\n");
++	struct platform_device *pdev = dev_id;
++	u32 sts;
++	u32 gpe;
 +
-+	/* Enable all of these controls with 0 delay */
-+	outl(0x40000000, pms_base + CS5536_PM_SCLK);
-+	outl(0x40000000, pms_base + CS5536_PM_IN_SLPCTL);
-+	outl(0x40000000, pms_base + CS5536_PM_WKXD);
-+	outl(0x40000000, pms_base + CS5536_PM_WKD);
++	sts = inl(acpi_base + CS5536_PM1_STS);
++	outl(sts | 0xffff, acpi_base + CS5536_PM1_STS);
 +
-+	/* Clear status bits (possibly unnecessary) */
-+	outl(0x0002ffff, pms_base  + CS5536_PM_SSC);
++	gpe = inl(acpi_base + CS5536_PM_GPE0_STS);
 +	outl(0xffffffff, acpi_base + CS5536_PM_GPE0_STS);
 +
-+	/* Write SLP_EN bit to start the machinery */
-+	outl(0x00002000, acpi_base + CS5536_PM1_CNT);
++	dev_dbg(&pdev->dev, "sts %x gpe %x\n", sts, gpe);
++
++	if (sts & CS5536_PWRBTN_FLAG && !(sts & CS5536_WAK_FLAG)) {
++		input_report_key(power_button_idev, KEY_POWER, 1);
++		input_sync(power_button_idev);
++		input_report_key(power_button_idev, KEY_POWER, 0);
++		input_sync(power_button_idev);
++	}
++
++	return IRQ_HANDLED;
 +}
 +
-+static int __devinit xo1_pm_probe(struct platform_device *pdev)
++static int xo1_sci_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	if (device_may_wakeup(&power_button_idev->dev))
++		olpc_xo1_pm_wakeup_set(CS5536_PM_PWRBTN);
++	else
++		olpc_xo1_pm_wakeup_clear(CS5536_PM_PWRBTN);
++	return 0;
++}
++
++static int __devinit setup_sci_interrupt(struct platform_device *pdev)
++{
++	u32 lo, hi;
++	u32 sts;
++	int r;
++
++	rdmsr(0x51400020, lo, hi);
++	sci_irq = (lo >> 20) & 15;
++
++	if (sci_irq) {
++		dev_info(&pdev->dev, "SCI is mapped to IRQ %d\n", sci_irq);
++	} else {
++		/* Zero means masked */
++		dev_info(&pdev->dev, "SCI unmapped. Mapping to IRQ 3\n");
++		sci_irq = 3;
++		lo |= 0x00300000;
++		wrmsrl(0x51400020, lo);
++	}
++
++	/* Select level triggered in PIC */
++	if (sci_irq < 8) {
++		lo = inb(CS5536_PIC_INT_SEL1);
++		lo |= 1 << sci_irq;
++		outb(lo, CS5536_PIC_INT_SEL1);
++	} else {
++		lo = inb(CS5536_PIC_INT_SEL2);
++		lo |= 1 << (sci_irq - 8);
++		outb(lo, CS5536_PIC_INT_SEL2);
++	}
++
++	/* Enable SCI from power button, and clear pending interrupts */
++	sts = inl(acpi_base + CS5536_PM1_STS);
++	outl((CS5536_PM_PWRBTN << 16) | 0xffff, acpi_base + CS5536_PM1_STS);
++
++	r = request_irq(sci_irq, xo1_sci_intr, 0, DRV_NAME, pdev);
++	if (r)
++		dev_err(&pdev->dev, "can't request interrupt\n");
++
++	return r;
++}
++
++static int __devinit setup_power_button(struct platform_device *pdev)
++{
++	int r;
++
++	power_button_idev = input_allocate_device();
++	if (!power_button_idev)
++		return -ENOMEM;
++
++	power_button_idev->name = "Power Button";
++	power_button_idev->phys = DRV_NAME "/input0";
++	set_bit(EV_KEY, power_button_idev->evbit);
++	set_bit(KEY_POWER, power_button_idev->keybit);
++
++	power_button_idev->dev.parent = &pdev->dev;
++	device_init_wakeup(&power_button_idev->dev, 1);
++
++	r = input_register_device(power_button_idev);
++	if (r) {
++		dev_err(&pdev->dev, "failed to register power button: %d\n", r);
++		input_free_device(power_button_idev);
++	}
++
++	return r;
++}
++
++static void free_power_button(void)
++{
++	input_unregister_device(power_button_idev);
++	input_free_device(power_button_idev);
++}
++
++static int __devinit xo1_sci_probe(struct platform_device *pdev)
 +{
 +	struct resource *res;
-+	int err;
++	int r;
 +
 +	/* don't run on non-XOs */
 +	if (!machine_is_olpc())
 +		return -ENODEV;
 +
-+	err = mfd_cell_enable(pdev);
-+	if (err)
-+		return err;
++	r = mfd_cell_enable(pdev);
++	if (r)
++		return r;
 +
 +	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
 +	if (!res) {
 +		dev_err(&pdev->dev, "can't fetch device resource info\n");
 +		return -EIO;
 +	}
-+	if (strcmp(pdev->name, "cs5535-pms") == 0)
-+		pms_base = res->start;
-+	else if (strcmp(pdev->name, "olpc-xo1-pm-acpi") == 0)
-+		acpi_base = res->start;
++	acpi_base = res->start;
 +
-+	/* If we have both addresses, we can override the poweroff hook */
-+	if (pms_base && acpi_base) {
-+		pm_power_off = xo1_power_off;
-+		printk(KERN_INFO "OLPC XO-1 support registered\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int __devexit xo1_pm_remove(struct platform_device *pdev)
-+{
-+	mfd_cell_disable(pdev);
-+
-+	if (strcmp(pdev->name, "cs5535-pms") == 0)
-+		pms_base = 0;
-+	else if (strcmp(pdev->name, "olpc-xo1-pm-acpi") == 0)
-+		acpi_base = 0;
-+
-+	pm_power_off = NULL;
-+	return 0;
-+}
-+
-+static struct platform_driver cs5535_pms_driver = {
-+	.driver = {
-+		.name = "cs5535-pms",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = xo1_pm_probe,
-+	.remove = __devexit_p(xo1_pm_remove),
-+};
-+
-+static struct platform_driver cs5535_acpi_driver = {
-+	.driver = {
-+		.name = "olpc-xo1-pm-acpi",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = xo1_pm_probe,
-+	.remove = __devexit_p(xo1_pm_remove),
-+};
-+
-+static int __init xo1_pm_init(void)
-+{
-+	int r;
-+
-+	r = platform_driver_register(&cs5535_pms_driver);
++	r = setup_power_button(pdev);
 +	if (r)
 +		return r;
 +
-+	r = platform_driver_register(&cs5535_acpi_driver);
++	r = setup_sci_interrupt(pdev);
 +	if (r)
-+		platform_driver_unregister(&cs5535_pms_driver);
++		free_power_button();
 +
 +	return r;
 +}
-+arch_initcall(xo1_pm_init);
-diff -puN arch/x86/platform/olpc/olpc-xo1.c~x86-olpc-rename-olpc-xo1-to-olpc-xo1-pm /dev/null
---- a/arch/x86/platform/olpc/olpc-xo1.c
-+++ /dev/null
-@@ -1,136 +0,0 @@
--/*
-- * Support for features of the OLPC XO-1 laptop
-- *
-- * Copyright (C) 2010 Andres Salomon <dilinger@queued.net>
-- * Copyright (C) 2010 One Laptop per Child
-- * Copyright (C) 2006 Red Hat, Inc.
-- * Copyright (C) 2006 Advanced Micro Devices, Inc.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
--
--#include <linux/cs5535.h>
--#include <linux/module.h>
--#include <linux/platform_device.h>
--#include <linux/pm.h>
--#include <linux/mfd/core.h>
--
--#include <asm/io.h>
--#include <asm/olpc.h>
--
--#define DRV_NAME "olpc-xo1"
--
--static unsigned long acpi_base;
--static unsigned long pms_base;
--
--static void xo1_power_off(void)
--{
--	printk(KERN_INFO "OLPC XO-1 power off sequence...\n");
--
--	/* Enable all of these controls with 0 delay */
--	outl(0x40000000, pms_base + CS5536_PM_SCLK);
--	outl(0x40000000, pms_base + CS5536_PM_IN_SLPCTL);
--	outl(0x40000000, pms_base + CS5536_PM_WKXD);
--	outl(0x40000000, pms_base + CS5536_PM_WKD);
--
--	/* Clear status bits (possibly unnecessary) */
--	outl(0x0002ffff, pms_base  + CS5536_PM_SSC);
--	outl(0xffffffff, acpi_base + CS5536_PM_GPE0_STS);
--
--	/* Write SLP_EN bit to start the machinery */
--	outl(0x00002000, acpi_base + CS5536_PM1_CNT);
--}
--
--static int __devinit olpc_xo1_probe(struct platform_device *pdev)
--{
--	struct resource *res;
--	int err;
--
--	/* don't run on non-XOs */
--	if (!machine_is_olpc())
--		return -ENODEV;
--
--	err = mfd_cell_enable(pdev);
--	if (err)
--		return err;
--
--	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	if (!res) {
--		dev_err(&pdev->dev, "can't fetch device resource info\n");
--		return -EIO;
--	}
--	if (strcmp(pdev->name, "cs5535-pms") == 0)
--		pms_base = res->start;
--	else if (strcmp(pdev->name, "olpc-xo1-pm-acpi") == 0)
--		acpi_base = res->start;
--
--	/* If we have both addresses, we can override the poweroff hook */
--	if (pms_base && acpi_base) {
--		pm_power_off = xo1_power_off;
--		printk(KERN_INFO "OLPC XO-1 support registered\n");
--	}
--
--	return 0;
--}
--
--static int __devexit olpc_xo1_remove(struct platform_device *pdev)
--{
--	mfd_cell_disable(pdev);
--
--	if (strcmp(pdev->name, "cs5535-pms") == 0)
--		pms_base = 0;
--	else if (strcmp(pdev->name, "olpc-xo1-pm-acpi") == 0)
--		acpi_base = 0;
--
--	pm_power_off = NULL;
--	return 0;
--}
--
--static struct platform_driver cs5535_pms_drv = {
--	.driver = {
--		.name = "cs5535-pms",
--		.owner = THIS_MODULE,
--	},
--	.probe = olpc_xo1_probe,
--	.remove = __devexit_p(olpc_xo1_remove),
--};
--
--static struct platform_driver cs5535_acpi_drv = {
--	.driver = {
--		.name = "olpc-xo1-pm-acpi",
--		.owner = THIS_MODULE,
--	},
--	.probe = olpc_xo1_probe,
--	.remove = __devexit_p(olpc_xo1_remove),
--};
--
--static int __init olpc_xo1_init(void)
--{
--	int r;
--
--	r = platform_driver_register(&cs5535_pms_drv);
--	if (r)
--		return r;
--
--	r = platform_driver_register(&cs5535_acpi_drv);
--	if (r)
--		platform_driver_unregister(&cs5535_pms_drv);
--
--	return r;
--}
--
--static void __exit olpc_xo1_exit(void)
--{
--	platform_driver_unregister(&cs5535_acpi_drv);
--	platform_driver_unregister(&cs5535_pms_drv);
--}
--
--MODULE_AUTHOR("Daniel Drake <dsd@laptop.org>");
--MODULE_LICENSE("GPL");
--MODULE_ALIAS("platform:cs5535-pms");
++
++static int __devexit xo1_sci_remove(struct platform_device *pdev)
++{
++	mfd_cell_disable(pdev);
++	free_irq(sci_irq, pdev);
++	free_power_button();
++	acpi_base = 0;
++	return 0;
++}
++
++static struct platform_driver xo1_sci_driver = {
++	.driver = {
++		.name = "olpc-xo1-sci-acpi",
++	},
++	.probe = xo1_sci_probe,
++	.remove = __devexit_p(xo1_sci_remove),
++	.suspend = xo1_sci_suspend,
++};
++
++static int __init xo1_sci_init(void)
++{
++	return platform_driver_register(&xo1_sci_driver);
++}
++arch_initcall(xo1_sci_init);
+diff -puN include/linux/cs5535.h~x86-olpc-add-xo-1-sci-driver-and-power-button-control include/linux/cs5535.h
+--- a/include/linux/cs5535.h~x86-olpc-add-xo-1-sci-driver-and-power-button-control
++++ a/include/linux/cs5535.h
+@@ -43,6 +43,10 @@
+ #define MSR_GX_GLD_MSR_CONFIG	0xC0002001
+ #define MSR_GX_MSR_PADSEL	0xC0002011
+ 
++/* PIC registers */
++#define CS5536_PIC_INT_SEL1	0x4d0
++#define CS5536_PIC_INT_SEL2	0x4d1
++
+ /* resource sizes */
+ #define LBAR_GPIO_SIZE		0xFF
+ #define LBAR_MFGPT_SIZE		0x40
+@@ -70,6 +74,10 @@
+ #define CS5536_PM1_CNT		0x08
+ #define CS5536_PM_GPE0_STS	0x18
+ 
++/* CS5536_PM1_STS bits */
++#define CS5536_WAK_FLAG		(1 << 15)
++#define CS5536_PWRBTN_FLAG	(1 << 8)
++
+ /* CS5536_PM1_EN bits */
+ #define CS5536_PM_PWRBTN	(1 << 8)
+ 
+_
+
+Patches currently in -mm which might be from dsd@laptop.org are
+
+origin.patch
+linux-next.patch
+
