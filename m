@@ -1,103 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-disable-scan_elf_aux-on-x86_64.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:54:45 -0700
-Message-ID: <201107260753.p6Q7rm8f003266@imap1.linux-foundation.org>
+Subject: [merged] um-set-__have_arch_gate_area-for-i386.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:54:47 -0700
+Message-ID: <201107260753.p6Q7roSv003270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751539Ab1GZHyn (ORCPT
+	by vger.kernel.org with ESMTP id S1751539Ab1GZHyo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:54:43 -0400
+	Tue, 26 Jul 2011 03:54:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     um: disable scan_elf_aux() on x86_64
+     um: Set __HAVE_ARCH_GATE_AREA for i386
 has been removed from the -mm tree.  Its filename was
-     um-disable-scan_elf_aux-on-x86_64.patch
+     um-set-__have_arch_gate_area-for-i386.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: disable scan_elf_aux() on x86_64
+Subject: um: Set __HAVE_ARCH_GATE_AREA for i386
 From: Richard Weinberger <richard@nod.at>
 
-Reusing the host's vDSO makes only sense on x86_32.
+When UML is unable to reuse the host's vDSO FIXADDR_USER_START is zero. 
+To handle this special case correclty we have to implement custom gate
+area helper methods.
 
 Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/Makefile  |    4 +++-
- arch/um/os-Linux/elf_aux.c |    7 +------
- arch/um/os-Linux/main.c    |    4 ++++
- 3 files changed, 8 insertions(+), 7 deletions(-)
+ arch/um/sys-i386/Makefile  |    2 -
+ arch/um/sys-i386/asm/elf.h |    2 +
+ arch/um/sys-i386/mem.c     |   62 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 65 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/os-Linux/Makefile~um-disable-scan_elf_aux-on-x86_64 arch/um/os-Linux/Makefile
---- a/arch/um/os-Linux/Makefile~um-disable-scan_elf_aux-on-x86_64
-+++ a/arch/um/os-Linux/Makefile
-@@ -3,10 +3,12 @@
- # Licensed under the GPL
- #
+diff -puN arch/um/sys-i386/Makefile~um-set-__have_arch_gate_area-for-i386 arch/um/sys-i386/Makefile
+--- a/arch/um/sys-i386/Makefile~um-set-__have_arch_gate_area-for-i386
++++ a/arch/um/sys-i386/Makefile
+@@ -4,7 +4,7 @@
  
--obj-y = aio.o elf_aux.o execvp.o file.o helper.o irq.o main.o mem.o process.o \
-+obj-y = aio.o execvp.o file.o helper.o irq.o main.o mem.o process.o \
- 	registers.o sigio.o signal.o start_up.o time.o tty.o uaccess.o \
- 	umid.o tls.o user_syms.o util.o drivers/ sys-$(SUBARCH)/ skas/
+ obj-y = bug.o bugs.o checksum.o delay.o fault.o ksyms.o ldt.o ptrace.o \
+ 	ptrace_user.o setjmp.o signal.o stub.o stub_segv.o syscalls.o sysrq.o \
+-	sys_call_table.o tls.o atomic64_cx8_32.o
++	sys_call_table.o tls.o atomic64_cx8_32.o mem.o
  
-+obj-$(CONFIG_ARCH_REUSE_HOST_VSYSCALL_AREA) += elf_aux.o
+ obj-$(CONFIG_BINFMT_ELF) += elfcore.o
+ 
+diff -puN arch/um/sys-i386/asm/elf.h~um-set-__have_arch_gate_area-for-i386 arch/um/sys-i386/asm/elf.h
+--- a/arch/um/sys-i386/asm/elf.h~um-set-__have_arch_gate_area-for-i386
++++ a/arch/um/sys-i386/asm/elf.h
+@@ -105,6 +105,8 @@ extern unsigned long __kernel_vsyscall;
+ #define FIXADDR_USER_START      VSYSCALL_BASE
+ #define FIXADDR_USER_END        VSYSCALL_END
+ 
++#define __HAVE_ARCH_GATE_AREA 1
 +
- USER_OBJS := $(user-objs-y) aio.o elf_aux.o execvp.o file.o helper.o irq.o \
- 	main.o mem.o process.o registers.o sigio.o signal.o start_up.o time.o \
- 	tty.o tls.o uaccess.o umid.o util.o
-diff -puN arch/um/os-Linux/elf_aux.c~um-disable-scan_elf_aux-on-x86_64 arch/um/os-Linux/elf_aux.c
---- a/arch/um/os-Linux/elf_aux.c~um-disable-scan_elf_aux-on-x86_64
-+++ a/arch/um/os-Linux/elf_aux.c
-@@ -14,16 +14,11 @@
- #include "mem_user.h"
- #include <kern_constants.h>
- 
--/* Use the one from the kernel - the host may miss it, if having old headers. */
--#if UM_ELF_CLASS == UM_ELFCLASS32
- typedef Elf32_auxv_t elf_auxv_t;
--#else
--typedef Elf64_auxv_t elf_auxv_t;
--#endif
- 
- /* These are initialized very early in boot and never changed */
- char * elf_aux_platform;
--long elf_aux_hwcap;
-+extern long elf_aux_hwcap;
- unsigned long vsyscall_ehdr;
- unsigned long vsyscall_end;
- unsigned long __kernel_vsyscall;
-diff -puN arch/um/os-Linux/main.c~um-disable-scan_elf_aux-on-x86_64 arch/um/os-Linux/main.c
---- a/arch/um/os-Linux/main.c~um-disable-scan_elf_aux-on-x86_64
-+++ a/arch/um/os-Linux/main.c
-@@ -21,6 +21,8 @@
- #define STACKSIZE (8 * 1024 * 1024)
- #define THREAD_NAME_LEN (256)
- 
-+long elf_aux_hwcap;
+ /*
+  * Architecture-neutral AT_ values in 0-17, leave some room
+  * for more of them, start the x86-specific ones at 32.
+diff -puN /dev/null arch/um/sys-i386/mem.c
+--- /dev/null
++++ a/arch/um/sys-i386/mem.c
+@@ -0,0 +1,62 @@
++/*
++ * Copyright (C) 2011 Richard Weinberger <richrd@nod.at>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
- static void set_stklim(void)
- {
- 	struct rlimit lim;
-@@ -143,7 +145,9 @@ int __init main(int argc, char **argv, c
- 	install_fatal_handler(SIGINT);
- 	install_fatal_handler(SIGTERM);
- 
-+#ifdef CONFIG_ARCH_REUSE_HOST_VSYSCALL_AREA
- 	scan_elf_aux(envp);
-+#endif
- 
- 	do_uml_initcalls();
- 	ret = linux_main(argc, argv);
++#include <linux/mm.h>
++#include <asm/page.h>
++#include <asm/mman.h>
++
++static struct vm_area_struct gate_vma;
++
++static int __init gate_vma_init(void)
++{
++	if (!FIXADDR_USER_START)
++		return 0;
++
++	gate_vma.vm_mm = NULL;
++	gate_vma.vm_start = FIXADDR_USER_START;
++	gate_vma.vm_end = FIXADDR_USER_END;
++	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
++	gate_vma.vm_page_prot = __P101;
++
++	/*
++	 * Make sure the vDSO gets into every core dump.
++	 * Dumping its contents makes post-mortem fully interpretable later
++	 * without matching up the same kernel and hardware config to see
++	 * what PC values meant.
++	 */
++	gate_vma.vm_flags |= VM_ALWAYSDUMP;
++
++	return 0;
++}
++__initcall(gate_vma_init);
++
++struct vm_area_struct *get_gate_vma(struct mm_struct *mm)
++{
++	return FIXADDR_USER_START ? &gate_vma : NULL;
++}
++
++int in_gate_area_no_mm(unsigned long addr)
++{
++	if (!FIXADDR_USER_START)
++		return 0;
++
++	if ((addr >= FIXADDR_USER_START) && (addr < FIXADDR_USER_END))
++		return 1;
++
++	return 0;
++}
++
++int in_gate_area(struct mm_struct *mm, unsigned long addr)
++{
++	struct vm_area_struct *vma = get_gate_vma(mm);
++
++	if (!vma)
++		return 0;
++
++	return (addr >= vma->vm_start) && (addr < vma->vm_end);
++}
 _
 
 Patches currently in -mm which might be from richard@nod.at are
