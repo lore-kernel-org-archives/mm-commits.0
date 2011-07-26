@@ -1,75 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-make-deprecated-use-of-oom_adj-more-verbose.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:53:03 -0700
-Message-ID: <201107260752.p6Q7q6Kd003087@imap1.linux-foundation.org>
+Subject: [merged] oom-remove-references-to-old-badness-function.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:52:58 -0700
+Message-ID: <201107260752.p6Q7q1Wd003009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
 	by vger.kernel.org with ESMTP id S1752692Ab1GZHwh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 26 Jul 2011 03:52:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: make deprecated use of oom_adj more verbose
+     oom: remove references to old badness() function
 has been removed from the -mm tree.  Its filename was
-     oom-make-deprecated-use-of-oom_adj-more-verbose.patch
+     oom-remove-references-to-old-badness-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: make deprecated use of oom_adj more verbose
+Subject: oom: remove references to old badness() function
 From: David Rientjes <rientjes@google.com>
 
-/proc/pid/oom_adj is deprecated and scheduled for removal in August 2012
-according to Documentation/feature-removal-schedule.txt.
+The badness() function in the oom killer was renamed to oom_badness() in
+a63d83f427fb ("oom: badness heuristic rewrite") since it is a globally
+exported function for clarity.
 
-This patch makes the warning more verbose by making it appear as a more
-serious problem (the presence of a stack trace and being multiline should
-attract more attention) so that applications still using the old interface
-can get fixed.
+The prototype for the old function still existed in linux/oom.h, so remove
+it.  There are no existing users.
 
-Very popular users of the old interface have been converted since the oom
-killer rewrite has been introduced.  udevd switched to the
-/proc/pid/oom_score_adj interface for v162, kde switched in 4.6.1, and
-opensshd switched in 5.7p1.
-
-At the start of 2012, this should be changed into a WARN() to emit all
-such incidents and then finally remove the tunable in August 2012 as
-scheduled.
+Also fixes documentation and comment references to badness() and adjusts
+them accordingly.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ Documentation/ABI/obsolete/proc-pid-oom_adj |    2 +-
+ Documentation/feature-removal-schedule.txt  |    2 +-
+ include/linux/oom.h                         |    4 ----
+ mm/oom_kill.c                               |    2 +-
+ 4 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/base.c~oom-make-deprecated-use-of-oom_adj-more-verbose fs/proc/base.c
---- a/fs/proc/base.c~oom-make-deprecated-use-of-oom_adj-more-verbose
-+++ a/fs/proc/base.c
-@@ -1118,10 +1118,9 @@ static ssize_t oom_adjust_write(struct f
- 	 * Warn that /proc/pid/oom_adj is deprecated, see
- 	 * Documentation/feature-removal-schedule.txt.
- 	 */
--	printk_once(KERN_WARNING "%s (%d): /proc/%d/oom_adj is deprecated, "
--			"please use /proc/%d/oom_score_adj instead.\n",
--			current->comm, task_pid_nr(current),
--			task_pid_nr(task), task_pid_nr(task));
-+	WARN_ONCE(1, "%s (%d): /proc/%d/oom_adj is deprecated, please use /proc/%d/oom_score_adj instead.\n",
-+		  current->comm, task_pid_nr(current), task_pid_nr(task),
-+		  task_pid_nr(task));
- 	task->signal->oom_adj = oom_adjust;
+diff -puN Documentation/ABI/obsolete/proc-pid-oom_adj~oom-remove-references-to-old-badness-function Documentation/ABI/obsolete/proc-pid-oom_adj
+--- a/Documentation/ABI/obsolete/proc-pid-oom_adj~oom-remove-references-to-old-badness-function
++++ a/Documentation/ABI/obsolete/proc-pid-oom_adj
+@@ -14,7 +14,7 @@ Why:	/proc/<pid>/oom_adj allows userspac
+ 
+ 	A much more powerful interface, /proc/<pid>/oom_score_adj, was
+ 	introduced with the oom killer rewrite that allows users to increase or
+-	decrease the badness() score linearly.  This interface will replace
++	decrease the badness score linearly.  This interface will replace
+ 	/proc/<pid>/oom_adj.
+ 
+ 	A warning will be emitted to the kernel log if an application uses this
+diff -puN Documentation/feature-removal-schedule.txt~oom-remove-references-to-old-badness-function Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~oom-remove-references-to-old-badness-function
++++ a/Documentation/feature-removal-schedule.txt
+@@ -184,7 +184,7 @@ Why:	/proc/<pid>/oom_adj allows userspac
+ 
+ 	A much more powerful interface, /proc/<pid>/oom_score_adj, was
+ 	introduced with the oom killer rewrite that allows users to increase or
+-	decrease the badness() score linearly.  This interface will replace
++	decrease the badness score linearly.  This interface will replace
+ 	/proc/<pid>/oom_adj.
+ 
+ 	A warning will be emitted to the kernel log if an application uses this
+diff -puN include/linux/oom.h~oom-remove-references-to-old-badness-function include/linux/oom.h
+--- a/include/linux/oom.h~oom-remove-references-to-old-badness-function
++++ a/include/linux/oom.h
+@@ -64,10 +64,6 @@ static inline void oom_killer_enable(voi
+ 	oom_killer_disabled = false;
+ }
+ 
+-/* The badness from the OOM killer */
+-extern unsigned long badness(struct task_struct *p, struct mem_cgroup *mem,
+-		      const nodemask_t *nodemask, unsigned long uptime);
+-
+ extern struct task_struct *find_lock_task_mm(struct task_struct *p);
+ 
+ /* sysctls */
+diff -puN mm/oom_kill.c~oom-remove-references-to-old-badness-function mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-remove-references-to-old-badness-function
++++ a/mm/oom_kill.c
+@@ -487,7 +487,7 @@ static int oom_kill_process(struct task_
+ 
  	/*
- 	 * Scale /proc/pid/oom_score_adj appropriately ensuring that a maximum
+ 	 * If any of p's children has a different mm and is eligible for kill,
+-	 * the one with the highest badness() score is sacrificed for its
++	 * the one with the highest oom_badness() score is sacrificed for its
+ 	 * parent.  This attempts to lose the minimal amount of work done while
+ 	 * still freeing memory.
+ 	 */
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
