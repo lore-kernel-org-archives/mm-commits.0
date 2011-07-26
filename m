@@ -1,57 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:47:14 -0700
-Message-ID: <201107260746.p6Q7kHvC002671@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:47:23 -0700
+Message-ID: <201107260746.p6Q7kRRr002684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44064 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752599Ab1GZHqT (ORCPT
+	by vger.kernel.org with ESMTP id S1751848Ab1GZHq2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:46:19 -0400
+	Tue, 26 Jul 2011 03:46:28 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p6Q7kIwm013731
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p6Q7kR68013756
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2011 00:46:18 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2011 00:46:27 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     linux-next-rejects
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     linux-next-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: linux-next-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lguest/i386_head.S |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/xtensa/include/asm/uaccess.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/lguest/i386_head.S~linux-next-git-rejects arch/x86/lguest/i386_head.S
---- a/arch/x86/lguest/i386_head.S~linux-next-git-rejects
-+++ a/arch/x86/lguest/i386_head.S
-@@ -21,11 +21,7 @@
-  * assigned number), then it calls us here.
-  *
-  * WARNING: be very careful here!  We're running at addresses equal to physical
--<<<<<<< HEAD
-  * addresses (around 0), not above PAGE_OFFSET as most code expects
--=======
-- * addesses (around 0), not above PAGE_OFFSET as most code expects
-->>>>>>> quilt/rr
-  * (eg. 0xC0000000).  Jumps are relative, so they're OK, but we can't touch any
-  * data without remembering to subtract __PAGE_OFFSET!
-  *
+diff -puN arch/xtensa/include/asm/uaccess.h~linux-next-rejects arch/xtensa/include/asm/uaccess.h
+--- a/arch/xtensa/include/asm/uaccess.h~linux-next-rejects
++++ a/arch/xtensa/include/asm/uaccess.h
+@@ -18,6 +18,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/prefetch.h>
++#include <asm/types.h>
+ 
+ #define VERIFY_READ    0
+ #define VERIFY_WRITE   1
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +56,6 @@ origin.patch
 headers_check-is-broken.patch
 samples-hidraw-is-busted.patch
 linux-next.patch
-linux-next-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
