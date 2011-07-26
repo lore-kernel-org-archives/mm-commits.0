@@ -1,173 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:56:18 -0700
-Message-ID: <201107260755.p6Q7tLgE003452@imap1.linux-foundation.org>
+Subject: [merged] init-skip-calibration-delay-if-previously-done.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:56:20 -0700
+Message-ID: <201107260755.p6Q7tNwt003461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753081Ab1GZH4R (ORCPT
+	by vger.kernel.org with ESMTP id S1753081Ab1GZH4U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:56:17 -0400
+	Tue, 26 Jul 2011 03:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agust@denx.de, grant.likely@secretlab.ca, jic23@cam.ac.uk, mm-commits@vger.kernel.org
+To: snanda@chromium.org, amworsley@gmail.com, ddaney@caviumnetworks.com, ext-phil.2.carmody@nokia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misc/eeprom: add eeprom access driver for digsy_mtc board
+     init: skip calibration delay if previously done
 has been removed from the -mm tree.  Its filename was
-     misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board.patch
+     init-skip-calibration-delay-if-previously-done.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc/eeprom: add eeprom access driver for digsy_mtc board
-From: Anatolij Gustschin <agust@denx.de>
+Subject: init: skip calibration delay if previously done
+From: Sameer Nanda <snanda@chromium.org>
 
-Both displays on digsy_mtc board obtain their configuration from microwire
-EEPROMs which are connected to the SoC over GPIO lines.  We need an easy
-way to access the EEPROMs to write the needed display configuration or to
-read out the currently programmed configuration.  The generic
-eeprom_93xx46 SPI driver added by previous patch allows EEPROM access over
-sysfs.  Using the simple driver added by this patch we provide used GPIO
-interface and access control description on the board for generic
-eeprom_93xx46 driver and spi_gpio driver.
+For each CPU, do the calibration delay only once.  For subsequent calls,
+use the cached per-CPU value of loops_per_jiffy.
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+This saves about 200ms of resume time on dual core Intel Atom N5xx based
+systems.  This helps bring down the kernel resume time on such systems
+from about 500ms to about 300ms.
+
+[akpm@linux-foundation.org: make cpu_loops_per_jiffy static]
+[akpm@linux-foundation.org: clean up message text]
+[akpm@linux-foundation.org: fix things up after upstream rmk changes]
+Signed-off-by: Sameer Nanda <snanda@chromium.org>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Andrew Worsley <amworsley@gmail.com>
+Cc: David Daney <ddaney@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/eeprom/Kconfig            |   12 +++
- drivers/misc/eeprom/Makefile           |    1 
- drivers/misc/eeprom/digsy_mtc_eeprom.c |   85 +++++++++++++++++++++++
- 3 files changed, 98 insertions(+)
+ init/calibrate.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/eeprom/Kconfig~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board drivers/misc/eeprom/Kconfig
---- a/drivers/misc/eeprom/Kconfig~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board
-+++ a/drivers/misc/eeprom/Kconfig
-@@ -83,4 +83,16 @@ config EEPROM_93XX46
+diff -puN init/calibrate.c~init-skip-calibration-delay-if-previously-done init/calibrate.c
+--- a/init/calibrate.c~init-skip-calibration-delay-if-previously-done
++++ a/init/calibrate.c
+@@ -9,6 +9,7 @@
+ #include <linux/init.h>
+ #include <linux/timex.h>
+ #include <linux/smp.h>
++#include <linux/percpu.h>
  
- 	  If unsure, say N.
+ unsigned long lpj_fine;
+ unsigned long preset_lpj;
+@@ -243,12 +244,19 @@ recalibrate:
+ 	return lpj;
+ }
  
-+config EEPROM_DIGSY_MTC_CFG
-+	bool "DigsyMTC display configuration EEPROMs device"
-+	depends on PPC_MPC5200_GPIO && GPIOLIB && SPI_GPIO
-+	help
-+	  This option enables access to display configuration EEPROMs
-+	  on digsy_mtc board. You have to additionally select Microwire
-+	  EEPROM 93XX46 driver. sysfs entries will be created for that
-+	  EEPROM allowing to read/write the configuration data or to
-+	  erase the whole EEPROM.
++static DEFINE_PER_CPU(unsigned long, cpu_loops_per_jiffy) = { 0 };
 +
-+	  If unsure, say N.
-+
- endmenu
-diff -puN drivers/misc/eeprom/Makefile~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board drivers/misc/eeprom/Makefile
---- a/drivers/misc/eeprom/Makefile~misc-eeprom-add-eeprom-access-driver-for-digsy_mtc-board
-+++ a/drivers/misc/eeprom/Makefile
-@@ -4,3 +4,4 @@ obj-$(CONFIG_EEPROM_LEGACY)	+= eeprom.o
- obj-$(CONFIG_EEPROM_MAX6875)	+= max6875.o
- obj-$(CONFIG_EEPROM_93CX6)	+= eeprom_93cx6.o
- obj-$(CONFIG_EEPROM_93XX46)	+= eeprom_93xx46.o
-+obj-$(CONFIG_EEPROM_DIGSY_MTC_CFG) += digsy_mtc_eeprom.o
-diff -puN /dev/null drivers/misc/eeprom/digsy_mtc_eeprom.c
---- /dev/null
-+++ a/drivers/misc/eeprom/digsy_mtc_eeprom.c
-@@ -0,0 +1,85 @@
-+/*
-+ * EEPROMs access control driver for display configuration EEPROMs
-+ * on DigsyMTC board.
-+ *
-+ * (C) 2011 DENX Software Engineering, Anatolij Gustschin <agust@denx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/gpio.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/spi_gpio.h>
-+#include <linux/eeprom_93xx46.h>
-+
-+#define GPIO_EEPROM_CLK		216
-+#define GPIO_EEPROM_CS		210
-+#define GPIO_EEPROM_DI		217
-+#define GPIO_EEPROM_DO		249
-+#define GPIO_EEPROM_OE		255
-+#define EE_SPI_BUS_NUM	1
-+
-+static void digsy_mtc_op_prepare(void *p)
-+{
-+	/* enable */
-+	gpio_set_value(GPIO_EEPROM_OE, 0);
-+}
-+
-+static void digsy_mtc_op_finish(void *p)
-+{
-+	/* disable */
-+	gpio_set_value(GPIO_EEPROM_OE, 1);
-+}
-+
-+struct eeprom_93xx46_platform_data digsy_mtc_eeprom_data = {
-+	.flags		= EE_ADDR8,
-+	.prepare	= digsy_mtc_op_prepare,
-+	.finish		= digsy_mtc_op_finish,
-+};
-+
-+static struct spi_gpio_platform_data eeprom_spi_gpio_data = {
-+	.sck		= GPIO_EEPROM_CLK,
-+	.mosi		= GPIO_EEPROM_DI,
-+	.miso		= GPIO_EEPROM_DO,
-+	.num_chipselect	= 1,
-+};
-+
-+static struct platform_device digsy_mtc_eeprom = {
-+	.name	= "spi_gpio",
-+	.id	= EE_SPI_BUS_NUM,
-+	.dev	= {
-+		.platform_data	= &eeprom_spi_gpio_data,
-+	},
-+};
-+
-+static struct spi_board_info digsy_mtc_eeprom_info[] __initdata = {
-+	{
-+		.modalias		= "93xx46",
-+		.max_speed_hz		= 1000000,
-+		.bus_num		= EE_SPI_BUS_NUM,
-+		.chip_select		= 0,
-+		.mode			= SPI_MODE_0,
-+		.controller_data	= (void *)GPIO_EEPROM_CS,
-+		.platform_data		= &digsy_mtc_eeprom_data,
-+	},
-+};
-+
-+static int __init digsy_mtc_eeprom_devices_init(void)
-+{
-+	int ret;
-+
-+	ret = gpio_request_one(GPIO_EEPROM_OE, GPIOF_OUT_INIT_HIGH,
-+				"93xx46 EEPROMs OE");
-+	if (ret) {
-+		pr_err("can't request gpio %d\n", GPIO_EEPROM_OE);
-+		return ret;
-+	}
-+	spi_register_board_info(digsy_mtc_eeprom_info,
-+				ARRAY_SIZE(digsy_mtc_eeprom_info));
-+	return platform_device_register(&digsy_mtc_eeprom);
-+}
-+device_initcall(digsy_mtc_eeprom_devices_init);
+ void __cpuinit calibrate_delay(void)
+ {
+ 	unsigned long lpj;
+ 	static bool printed;
++	int this_cpu = smp_processor_id();
+ 
+-	if (preset_lpj) {
++	if (per_cpu(cpu_loops_per_jiffy, this_cpu)) {
++		lpj = per_cpu(cpu_loops_per_jiffy, this_cpu);
++		pr_info("Calibrating delay loop (skipped) "
++				"already calibrated this CPU");
++	} else if (preset_lpj) {
+ 		lpj = preset_lpj;
+ 		if (!printed)
+ 			pr_info("Calibrating delay loop (skipped) "
+@@ -266,6 +274,7 @@ void __cpuinit calibrate_delay(void)
+ 			pr_info("Calibrating delay loop... ");
+ 		lpj = calibrate_delay_converge();
+ 	}
++	per_cpu(cpu_loops_per_jiffy, this_cpu) = lpj;
+ 	if (!printed)
+ 		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
+ 			lpj/(500000/HZ),
 _
 
-Patches currently in -mm which might be from agust@denx.de are
+Patches currently in -mm which might be from snanda@chromium.org are
 
 origin.patch
-linux-next.patch
 
