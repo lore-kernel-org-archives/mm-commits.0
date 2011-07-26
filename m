@@ -1,79 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:52:37 -0700
-Message-ID: <201107260751.p6Q7peU5002971@imap1.linux-foundation.org>
+Subject: [merged] oom-make-deprecated-use-of-oom_adj-more-verbose.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:53:03 -0700
+Message-ID: <201107260752.p6Q7q6Kd003087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752382Ab1GZHwY (ORCPT
+	by vger.kernel.org with ESMTP id S1752692Ab1GZHwh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:52:24 -0400
+	Tue, 26 Jul 2011 03:52:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, aarcange@redhat.com, kamezawa.hiroyuki@gmail.com, mpm@selenic.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pagewalk: fix walk_page_range() don't check find_vma() result properly
+     oom: make deprecated use of oom_adj more verbose
 has been removed from the -mm tree.  Its filename was
-     pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly.patch
+     oom-make-deprecated-use-of-oom_adj-more-verbose.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pagewalk: fix walk_page_range() don't check find_vma() result properly
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: oom: make deprecated use of oom_adj more verbose
+From: David Rientjes <rientjes@google.com>
 
-The doc of find_vma() says,
+/proc/pid/oom_adj is deprecated and scheduled for removal in August 2012
+according to Documentation/feature-removal-schedule.txt.
 
-    /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */
-    struct vm_area_struct *find_vma(struct mm_struct *mm, unsigned long addr)
-    {
-     (snip)
+This patch makes the warning more verbose by making it appear as a more
+serious problem (the presence of a stack trace and being multiline should
+attract more attention) so that applications still using the old interface
+can get fixed.
 
-Thus, caller should confirm whether the returned vma matches a desired one.
+Very popular users of the old interface have been converted since the oom
+killer rewrite has been introduced.  udevd switched to the
+/proc/pid/oom_score_adj interface for v162, kde switched in 4.6.1, and
+opensshd switched in 5.7p1.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hiroyuki Kamezawa <kamezawa.hiroyuki@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matt Mackall <mpm@selenic.com>
+At the start of 2012, this should be changed into a WARN() to emit all
+such incidents and then finally remove the tunable in August 2012 as
+scheduled.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/base.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/pagewalk.c~pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly mm/pagewalk.c
---- a/mm/pagewalk.c~pagewalk-fix-walk_page_range-dont-check-find_vma-result-properly
-+++ a/mm/pagewalk.c
-@@ -176,7 +176,7 @@ int walk_page_range(unsigned long addr, 
- 		 * we can't handled it in the same manner as non-huge pages.
- 		 */
- 		vma = find_vma(walk->mm, addr);
--		if (vma && is_vm_hugetlb_page(vma)) {
-+		if (vma && vma->vm_start <= addr && is_vm_hugetlb_page(vma)) {
- 			if (vma->vm_end < next)
- 				next = vma->vm_end;
- 			/*
+diff -puN fs/proc/base.c~oom-make-deprecated-use-of-oom_adj-more-verbose fs/proc/base.c
+--- a/fs/proc/base.c~oom-make-deprecated-use-of-oom_adj-more-verbose
++++ a/fs/proc/base.c
+@@ -1118,10 +1118,9 @@ static ssize_t oom_adjust_write(struct f
+ 	 * Warn that /proc/pid/oom_adj is deprecated, see
+ 	 * Documentation/feature-removal-schedule.txt.
+ 	 */
+-	printk_once(KERN_WARNING "%s (%d): /proc/%d/oom_adj is deprecated, "
+-			"please use /proc/%d/oom_score_adj instead.\n",
+-			current->comm, task_pid_nr(current),
+-			task_pid_nr(task), task_pid_nr(task));
++	WARN_ONCE(1, "%s (%d): /proc/%d/oom_adj is deprecated, please use /proc/%d/oom_score_adj instead.\n",
++		  current->comm, task_pid_nr(current), task_pid_nr(task),
++		  task_pid_nr(task));
+ 	task->signal->oom_adj = oom_adjust;
+ 	/*
+ 	 * Scale /proc/pid/oom_score_adj appropriately ensuring that a maximum
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
-slab-use-numa_no_node.patch
-memcg-export-memory-cgroups-swappiness-with-mem_cgroup_swappiness.patch
+acpi-remove-nid_inval.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
 cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
 proc-pid-fdinfo-add-cloexec-information.patch
 proc-pid-fdinfo-add-cloexec-information-fix.patch
-cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
-cpumask-alloc_cpumask_var-use-numa_no_node.patch
-cpumask-add-cpumask_var_t-documentation.patch
-kexec-remove-kmsg_dump_kexec.patch
 
