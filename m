@@ -1,120 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-the-leftovers-of-noswapaccount.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:52:45 -0700
-Message-ID: <201107260751.p6Q7pmFs002985@imap1.linux-foundation.org>
+Subject: [merged] mm-memoryc-remove-zap_block_size.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:52:55 -0700
+Message-ID: <201107260751.p6Q7pwVB003006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752382Ab1GZHwa (ORCPT
+	by vger.kernel.org with ESMTP id S1752692Ab1GZHwc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:52:30 -0400
+	Tue, 26 Jul 2011 03:52:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove the leftovers of noswapaccount
+     mm/memory.c: remove ZAP_BLOCK_SIZE
 has been removed from the -mm tree.  Its filename was
-     mm-remove-the-leftovers-of-noswapaccount.patch
+     mm-memoryc-remove-zap_block_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove the leftovers of noswapaccount
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: mm/memory.c: remove ZAP_BLOCK_SIZE
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In commit a2c8990aed5ab ("memsw: remove noswapaccount kernel parameter"),
-Michal forgot to remove some left pieces of noswapaccount in the tree,
-this patch removes them all.
+ZAP_BLOCK_SIZE became unused in the preemptible-mmu_gather work ("mm:
+Remove i_mmap_lock lockbreak").  So zap it.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   16 ----------------
- init/Kconfig                               |    4 ++--
- mm/page_cgroup.c                           |    2 +-
- 3 files changed, 3 insertions(+), 19 deletions(-)
+ mm/memory.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~mm-remove-the-leftovers-of-noswapaccount Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~mm-remove-the-leftovers-of-noswapaccount
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -518,22 +518,6 @@ Files:	net/netfilter/xt_connlimit.c
- 
- ----------------------------
- 
--What:	noswapaccount kernel command line parameter
--When:	2.6.40
--Why:	The original implementation of memsw feature enabled by
--	CONFIG_CGROUP_MEM_RES_CTLR_SWAP could be disabled by the noswapaccount
--	kernel parameter (introduced in 2.6.29-rc1). Later on, this decision
--	turned out to be not ideal because we cannot have the feature compiled
--	in and disabled by default and let only interested to enable it
--	(e.g. general distribution kernels might need it). Therefore we have
--	added swapaccount[=0|1] parameter (introduced in 2.6.37) which provides
--	the both possibilities. If we remove noswapaccount we will have
--	less command line parameters with the same functionality and we
--	can also cleanup the parameter handling a bit ().
--Who:	Michal Hocko <mhocko@suse.cz>
--
------------------------------
--
- What:	ipt_addrtype match include file
- When:	2012
- Why:	superseded by xt_addrtype
-diff -puN init/Kconfig~mm-remove-the-leftovers-of-noswapaccount init/Kconfig
---- a/init/Kconfig~mm-remove-the-leftovers-of-noswapaccount
-+++ a/init/Kconfig
-@@ -673,7 +673,7 @@ config CGROUP_MEM_RES_CTLR_SWAP
- 	  be careful about enabling this. When memory resource controller
- 	  is disabled by boot option, this will be automatically disabled and
- 	  there will be no overhead from this. Even when you set this config=y,
--	  if boot option "noswapaccount" is set, swap will not be accounted.
-+	  if boot option "swapaccount=0" is set, swap will not be accounted.
- 	  Now, memory usage of swap_cgroup is 2 bytes per entry. If swap page
- 	  size is 4096bytes, 512k per 1Gbytes of swap.
- config CGROUP_MEM_RES_CTLR_SWAP_ENABLED
-@@ -688,7 +688,7 @@ config CGROUP_MEM_RES_CTLR_SWAP_ENABLED
- 	  parameter should have this option unselected.
- 	  For those who want to have the feature enabled by default should
- 	  select this option (if, for some reason, they need to disable it
--	  then noswapaccount does the trick).
-+	  then swapaccount=0 does the trick).
- 
- config CGROUP_PERF
- 	bool "Enable perf_event per-cpu per-container group (cgroup) monitoring"
-diff -puN mm/page_cgroup.c~mm-remove-the-leftovers-of-noswapaccount mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-remove-the-leftovers-of-noswapaccount
-+++ a/mm/page_cgroup.c
-@@ -537,7 +537,7 @@ int swap_cgroup_swapon(int type, unsigne
- nomem:
- 	printk(KERN_INFO "couldn't allocate enough memory for swap_cgroup.\n");
- 	printk(KERN_INFO
--		"swap_cgroup can be disabled by noswapaccount boot option\n");
-+		"swap_cgroup can be disabled by swapaccount=0 boot option\n");
- 	return -ENOMEM;
+diff -puN mm/memory.c~mm-memoryc-remove-zap_block_size mm/memory.c
+--- a/mm/memory.c~mm-memoryc-remove-zap_block_size
++++ a/mm/memory.c
+@@ -1290,13 +1290,6 @@ static unsigned long unmap_page_range(st
+ 	return addr;
  }
  
+-#ifdef CONFIG_PREEMPT
+-# define ZAP_BLOCK_SIZE	(8 * PAGE_SIZE)
+-#else
+-/* No preempt: go for improved straight-line efficiency */
+-# define ZAP_BLOCK_SIZE	(1024 * PAGE_SIZE)
+-#endif
+-
+ /**
+  * unmap_vmas - unmap a range of memory covered by a list of vma's
+  * @tlb: address of the caller's struct mmu_gather
+@@ -1310,10 +1303,6 @@ static unsigned long unmap_page_range(st
+  *
+  * Unmap all pages in the vma list.
+  *
+- * We aim to not hold locks for too long (for scheduling latency reasons).
+- * So zap pages in ZAP_BLOCK_SIZE bytecounts.  This means we need to
+- * return the ending mmu_gather to the caller.
+- *
+  * Only addresses between `start' and `end' will be unmapped.
+  *
+  * The VMA list must be sorted in ascending virtual address order.
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
 linux-next.patch
-cris-fix-a-build-error-in-kernel-forkc.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
 cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-cris-fix-a-build-error-in-sync_serial_open.patch
-cris-fix-the-prototype-of-sync_serial_ioctl.patch
-cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
-gcov-disable-constructors-for-uml.patch
-include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
+drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
+ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
 kexec-remove-kmsg_dump_kexec.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
+vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue-fix.patch
 ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-ramoops-add-new-line-to-each-print.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
