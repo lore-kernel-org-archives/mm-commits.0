@@ -1,146 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch removed from -mm tree
-Date: Mon, 25 Jul 2011 17:03:31 -0700
-Message-ID: <201107260003.p6Q03WkM006689@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:47:14 -0700
+Message-ID: <201107260746.p6Q7kHvC002671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752062Ab1GZADv (ORCPT
+	by vger.kernel.org with ESMTP id S1752599Ab1GZHqT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 20:03:51 -0400
+	Tue, 26 Jul 2011 03:46:19 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p6Q7kIwm013731
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 26 Jul 2011 00:46:18 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, aghayal@codeaurora.org, ashayj@codeaurora.org, mcuos.com@gmail.com, sameo@linux.intel.com, sboyd@codeaurora.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
+Subject: linux-next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-cosmetic tweaks
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Anirudh Ghayal <aghayal@codeaurora.org>
-Cc: Ashay Jaiswal <ashayj@codeaurora.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Wan ZongShun <mcuos.com@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pm8xxx.c |   20 ++++++--------------
- 1 file changed, 6 insertions(+), 14 deletions(-)
+ arch/x86/lguest/i386_head.S |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-pm8xxx.c~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix drivers/rtc/rtc-pm8xxx.c
---- a/drivers/rtc/rtc-pm8xxx.c~drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix
-+++ a/drivers/rtc/rtc-pm8xxx.c
-@@ -15,7 +15,7 @@
- #include <linux/rtc.h>
- #include <linux/pm.h>
- #include <linux/slab.h>
--#include<linux/spinlock.h>
-+#include <linux/spinlock.h>
- 
- #include <linux/mfd/pm8xxx/core.h>
- #include <linux/mfd/pm8xxx/rtc.h>
-@@ -46,7 +46,6 @@
-  * @rtc_dev:		device structure.
-  * @ctrl_reg_lock:	spinlock protecting access to ctrl_reg.
-  */
--
- struct pm8xxx_rtc {
- 	struct rtc_device *rtc;
- 	int rtc_alarm_irq;
-@@ -63,7 +62,6 @@ struct pm8xxx_rtc {
-  * The RTC registers need to be read/written one byte at a time. This is a
-  * hardware limitation.
-  */
--
- static int pm8xxx_read_wrapper(struct pm8xxx_rtc *rtc_dd, u8 *rtc_val,
- 		int base, int count)
- {
-@@ -105,8 +103,7 @@ static int pm8xxx_write_wrapper(struct p
-  * 3. Write Byte[1], Byte[2], Byte[3] then Byte[0].
-  * 4. Enable alarm if disabled in step 1.
-  */
--static int
--pm8xxx_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+static int pm8xxx_rtc_set_time(struct device *dev, struct rtc_time *tm)
- {
- 	int rc, i;
- 	unsigned long secs, irq_flags;
-@@ -181,8 +178,7 @@ rtc_rw_fail:
- 	return rc;
- }
- 
--static int
--pm8xxx_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+static int pm8xxx_rtc_read_time(struct device *dev, struct rtc_time *tm)
- {
- 	int rc;
- 	u8 value[NUM_8_BIT_RTC_REGS], reg;
-@@ -232,8 +228,7 @@ pm8xxx_rtc_read_time(struct device *dev,
- 	return 0;
- }
- 
--static int
--pm8xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+static int pm8xxx_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
- {
- 	int rc, i;
- 	u8 value[NUM_8_BIT_RTC_REGS], ctrl_reg;
-@@ -277,8 +272,7 @@ rtc_rw_fail:
- 	return rc;
- }
- 
--static int
--pm8xxx_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
-+static int pm8xxx_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
- {
- 	int rc;
- 	u8 value[NUM_8_BIT_RTC_REGS];
-@@ -310,9 +304,7 @@ pm8xxx_rtc_read_alarm(struct device *dev
- 	return 0;
- }
- 
--
--static int
--pm8xxx_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
-+static int pm8xxx_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
- {
- 	int rc;
- 	unsigned long irq_flags;
+diff -puN arch/x86/lguest/i386_head.S~linux-next-git-rejects arch/x86/lguest/i386_head.S
+--- a/arch/x86/lguest/i386_head.S~linux-next-git-rejects
++++ a/arch/x86/lguest/i386_head.S
+@@ -21,11 +21,7 @@
+  * assigned number), then it calls us here.
+  *
+  * WARNING: be very careful here!  We're running at addresses equal to physical
+-<<<<<<< HEAD
+  * addresses (around 0), not above PAGE_OFFSET as most code expects
+-=======
+- * addesses (around 0), not above PAGE_OFFSET as most code expects
+->>>>>>> quilt/rr
+  * (eg. 0xC0000000).  Jumps are relative, so they're OK, but we can't touch any
+  * data without remembering to subtract __PAGE_OFFSET!
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
-mm-make-some-struct-pages-const.patch
-mm-use-const-struct-page-for-r-o-page-flag-accessor-methods.patch
-xtensa-prevent-arbitrary-read-in-ptrace.patch
-mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines.patch
-pagewalk-add-locking-rule-comments.patch
-mm-memoryc-remove-zap_block_size.patch
-mm-memblockc-avoid-abuse-of-red_inactive.patch
-mm-preallocate-page-before-lock_page-at-filemap-cow.patch
-mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young.patch
-drivers-misc-add-support-the-fsa9480-usb-switch.patch
-lib-make-_tolower-public.patch
-checkpatch-suggest-using-min_t-or-max_t-v2.patch
-checkpatch-add-a-prefer-__aligned-check.patch
-init-skip-calibration-delay-if-previously-done.patch
-drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc.patch
-drivers-connector-cn_procc-remove-unused-local.patch
-drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+linux-next.patch
+linux-next-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
+drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
+pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
+drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
+cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
+ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue-fix.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
