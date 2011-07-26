@@ -1,62 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:52:21 -0700
-Message-ID: <201107260751.p6Q7pOE0002944@imap1.linux-foundation.org>
+Subject: [merged] drivers-misc-pch_phubc-dont-oops-if-dmi_get_system_info-returns-null.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:52:12 -0700
+Message-ID: <201107260751.p6Q7pF20002935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751386Ab1GZHvx (ORCPT
+	by vger.kernel.org with ESMTP id S1752357Ab1GZHv6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:51:53 -0400
+	Tue, 26 Jul 2011 03:51:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: alexander.stein@systec-electronic.com, gregkh@suse.de, tomoya-linux@dsn.okisemi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/backlight/adp8860_bl.c: remove a redundant assignment for max_brightness
+     drivers/misc/pch_phub.c: don't oops if dmi_get_system_info returns NULL
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness.patch
+     drivers-misc-pch_phubc-dont-oops-if-dmi_get_system_info-returns-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/adp8860_bl.c: remove a redundant assignment for max_brightness
-From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/misc/pch_phub.c: don't oops if dmi_get_system_info returns NULL
+From: Alexander Stein <alexander.stein@systec-electronic.com>
 
-We have set props.max_brightness before registering backlight device.
+If dmi_get_system_info() returns NULL, pch_phub_probe() will dereferencea
+a zero pointer.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
+This oops was observed on an Atom based board which has no BIOS, but a
+bootloder which doesn't privde DMI data.
+
+Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
+Cc: Tomoya MORINAGA <tomoya-linux@dsn.okisemi.com>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8860_bl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/misc/pch_phub.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness drivers/video/backlight/adp8860_bl.c
---- a/drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp8860_blc-remove-a-redundant-assignment-for-max_brightness
-+++ a/drivers/video/backlight/adp8860_bl.c
-@@ -722,8 +722,7 @@ static int __devinit adp8860_probe(struc
- 		goto out2;
+diff -puN drivers/misc/pch_phub.c~drivers-misc-pch_phubc-dont-oops-if-dmi_get_system_info-returns-null drivers/misc/pch_phub.c
+--- a/drivers/misc/pch_phub.c~drivers-misc-pch_phubc-dont-oops-if-dmi_get_system_info-returns-null
++++ a/drivers/misc/pch_phub.c
+@@ -686,6 +686,8 @@ static int __devinit pch_phub_probe(stru
  	}
  
--	bl->props.max_brightness =
--		bl->props.brightness = ADP8860_MAX_BRIGHTNESS;
-+	bl->props.brightness = ADP8860_MAX_BRIGHTNESS;
+ 	if (id->driver_data == 1) { /* EG20T PCH */
++		const char *board_name;
++
+ 		retval = sysfs_create_file(&pdev->dev.kobj,
+ 					   &dev_attr_pch_mac.attr);
+ 		if (retval)
+@@ -701,7 +703,8 @@ static int __devinit pch_phub_probe(stru
+ 					       CLKCFG_CANCLK_MASK);
  
- 	data->bl = bl;
- 
+ 		/* quirk for CM-iTC board */
+-		if (strstr(dmi_get_system_info(DMI_BOARD_NAME), "CM-iTC"))
++		board_name = dmi_get_system_info(DMI_BOARD_NAME);
++		if (board_name && strstr(board_name, "CM-iTC"))
+ 			pch_phub_read_modify_write_reg(chip,
+ 						(unsigned int)CLKCFG_REG_OFFSET,
+ 						CLKCFG_UART_48MHZ | CLKCFG_BAUDDIV |
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from alexander.stein@systec-electronic.com are
 
 origin.patch
 linux-next.patch
-drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register.patch
-drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch
-drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
 
