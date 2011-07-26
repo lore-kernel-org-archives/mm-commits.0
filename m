@@ -1,94 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:55:45 -0700
-Message-ID: <201107260754.p6Q7smVC003385@imap1.linux-foundation.org>
+Subject: [merged] drivers-firmware-sigmac-needs-module_license.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:55:59 -0700
+Message-ID: <201107260755.p6Q7t2pK003411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753237Ab1GZHzr (ORCPT
+	by vger.kernel.org with ESMTP id S1753252Ab1GZHzw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:55:47 -0400
+	Tue, 26 Jul 2011 03:55:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, stable@kernel.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/leds/leds-sunfire.c: fix sunfire_led_generic_probe() error handling
+     drivers/firmware/sigma.c needs MODULE_LICENSE
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling.patch
+     drivers-firmware-sigmac-needs-module_license.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/leds-sunfire.c: fix sunfire_led_generic_probe() error handling
-From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/firmware/sigma.c needs MODULE_LICENSE
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-- return -ENOMEM if kzalloc fails, rather than the current -EINVAL
+Fix module tainting message:
+sigma: module license 'unspecified' taints kernel.
 
-- fix a memory leak in the case of goto out_unregister_led_cdevs
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-sunfire.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/firmware/sigma.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/leds/leds-sunfire.c~drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling drivers/leds/leds-sunfire.c
---- a/drivers/leds/leds-sunfire.c~drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling
-+++ a/drivers/leds/leds-sunfire.c
-@@ -127,17 +127,19 @@ static int __devinit sunfire_led_generic
- 					       struct led_type *types)
- {
- 	struct sunfire_drvdata *p;
--	int i, err = -EINVAL;
-+	int i, err;
+diff -puN drivers/firmware/sigma.c~drivers-firmware-sigmac-needs-module_license drivers/firmware/sigma.c
+--- a/drivers/firmware/sigma.c~drivers-firmware-sigmac-needs-module_license
++++ a/drivers/firmware/sigma.c
+@@ -11,6 +11,7 @@
+ #include <linux/firmware.h>
+ #include <linux/kernel.h>
+ #include <linux/i2c.h>
++#include <linux/module.h>
+ #include <linux/sigma.h>
  
- 	if (pdev->num_resources != 1) {
- 		printk(KERN_ERR PFX "Wrong number of resources %d, should be 1\n",
- 		       pdev->num_resources);
-+		err = -EINVAL;
- 		goto out;
- 	}
- 
- 	p = kzalloc(sizeof(*p), GFP_KERNEL);
- 	if (!p) {
- 		printk(KERN_ERR PFX "Could not allocate struct sunfire_drvdata\n");
-+		err = -ENOMEM;
- 		goto out;
- 	}
- 
-@@ -160,14 +162,14 @@ static int __devinit sunfire_led_generic
- 
- 	dev_set_drvdata(&pdev->dev, p);
- 
--	err = 0;
--out:
--	return err;
-+	return 0;
- 
- out_unregister_led_cdevs:
- 	for (i--; i >= 0; i--)
- 		led_classdev_unregister(&p->leds[i].led_cdev);
--	goto out;
-+	kfree(p);
-+out:
-+	return err;
+ /* Return: 0==OK, <0==error, =1 ==no more actions */
+@@ -113,3 +114,5 @@ int process_sigma_firmware(struct i2c_cl
+ 	return ret;
  }
- 
- static int __devexit sunfire_led_generic_remove(struct platform_device *pdev)
+ EXPORT_SYMBOL(process_sigma_firmware);
++
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
 linux-next.patch
-drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register.patch
-drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch
-drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ipc-introduce-shm_rmid_forced-sysctl.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+documentation-add-pointer-to-name_to_dev_t-for-root=-values.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
