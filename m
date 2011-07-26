@@ -1,264 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-olpc-ec-sci-wakeup-mask-functionality.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 13:33:56 -0700
-Message-ID: <201107262032.p6QKWrui007287@imap1.linux-foundation.org>
+Subject: [merged] x86-olpc-add-xo-1-rtc-driver.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 13:34:04 -0700
+Message-ID: <201107262033.p6QKX1vQ007307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753643Ab1GZUdO (ORCPT
+	by vger.kernel.org with ESMTP id S1753860Ab1GZUdS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 16:33:14 -0400
+	Tue, 26 Jul 2011 16:33:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dsd@laptop.org, dilinger@queued.net, grant.likely@secretlab.ca, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dsd@laptop.org, bigeasy@linutronix.de, dilinger@queued.net, grant.likely@secretlab.ca, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86, olpc: EC SCI wakeup mask functionality
+     x86, olpc: add XO-1 RTC driver
 has been removed from the -mm tree.  Its filename was
-     x86-olpc-ec-sci-wakeup-mask-functionality.patch
+     x86-olpc-add-xo-1-rtc-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, olpc: EC SCI wakeup mask functionality
+Subject: x86, olpc: add XO-1 RTC driver
 From: Daniel Drake <dsd@laptop.org>
 
-Update the EC SCI masks with recent additions.
+Add a driver to configure the XO-1 RTC via CS5536 MSRs, to be used as a
+system wakeup source via olpc-xo1-pm.
 
-Add functions to query SCI events and set the wakeup mask, to be used by
-followup patches.
-
-Add functions to tweak an event mask used to select certain EC events as a
-system wakeup source.  Also add a function to determine if EC wakeup
-functionality is available, as this depends on child drivers (different
-for each laptop model) to configure the SCI interrupt.
+Device detection is based on finding the relevant device tree node.
 
 Signed-off-by: Daniel Drake <dsd@laptop.org>
 Acked-by: Andres Salomon <dilinger@queued.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/olpc.h   |   31 +++++++++--
- arch/x86/platform/olpc/olpc.c |   86 ++++++++++++++++++++++++++++++++
- 2 files changed, 111 insertions(+), 6 deletions(-)
+ Documentation/devicetree/bindings/rtc/olpc-xo1-rtc.txt |    5 
+ arch/x86/Kconfig                                       |    7 
+ arch/x86/platform/olpc/Makefile                        |    1 
+ arch/x86/platform/olpc/olpc-xo1-rtc.c                  |   82 ++++++++++
+ include/linux/cs5535.h                                 |    5 
+ 5 files changed, 100 insertions(+)
 
-diff -puN arch/x86/include/asm/olpc.h~x86-olpc-ec-sci-wakeup-mask-functionality arch/x86/include/asm/olpc.h
---- a/arch/x86/include/asm/olpc.h~x86-olpc-ec-sci-wakeup-mask-functionality
-+++ a/arch/x86/include/asm/olpc.h
-@@ -13,6 +13,7 @@ struct olpc_platform_t {
- 
- #define OLPC_F_PRESENT		0x01
- #define OLPC_F_DCON		0x02
-+#define OLPC_F_EC_WIDE_SCI	0x04
- 
- #ifdef CONFIG_OLPC
- 
-@@ -62,6 +63,13 @@ static inline int olpc_board_at_least(ui
- 	return olpc_platform_info.boardrev >= rev;
- }
- 
-+extern void olpc_ec_wakeup_set(u16 value);
-+extern void olpc_ec_wakeup_clear(u16 value);
-+extern bool olpc_ec_wakeup_available(void);
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/olpc-xo1-rtc.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/rtc/olpc-xo1-rtc.txt
+@@ -0,0 +1,5 @@
++OLPC XO-1 RTC
++~~~~~~~~~~~~~
 +
-+extern int olpc_ec_mask_write(u16 bits);
-+extern int olpc_ec_sci_query(u16 *sci_value);
++Required properties:
++ - compatible : "olpc,xo1-rtc"
+diff -puN arch/x86/Kconfig~x86-olpc-add-xo-1-rtc-driver arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-olpc-add-xo-1-rtc-driver
++++ a/arch/x86/Kconfig
+@@ -2046,6 +2046,13 @@ config ALIX
+ 
+ 	  Note: You have to set alix.force=1 for boards with Award BIOS.
+ 
++config OLPC_XO1_RTC
++	bool "OLPC XO-1 Real Time Clock"
++	depends on OLPC_XO1_PM && RTC_DRV_CMOS
++	---help---
++	  Add support for the XO-1 real time clock, which can be used as a
++	  programmable wakeup source.
 +
- #else
- 
- static inline int machine_is_olpc(void)
-@@ -74,6 +82,14 @@ static inline int olpc_has_dcon(void)
- 	return 0;
- }
- 
-+static inline void olpc_ec_wakeup_set(u16 value) { }
-+static inline void olpc_ec_wakeup_clear(u16 value) { }
-+
-+static inline bool olpc_ec_wakeup_available(void)
-+{
-+	return false;
-+}
-+
- #endif
- 
- #ifdef CONFIG_OLPC_XO1_PM
-@@ -89,17 +105,18 @@ extern int pci_olpc_init(void);
- extern int olpc_ec_cmd(unsigned char cmd, unsigned char *inbuf, size_t inlen,
- 		unsigned char *outbuf, size_t outlen);
- 
--extern int olpc_ec_mask_set(uint8_t bits);
--extern int olpc_ec_mask_unset(uint8_t bits);
--
- /* EC commands */
- 
- #define EC_FIRMWARE_REV			0x08
-+#define EC_WRITE_SCI_MASK		0x1b
- #define EC_WAKE_UP_WLAN			0x24
- #define EC_WLAN_LEAVE_RESET		0x25
- #define EC_SET_SCI_INHIBIT		0x32
- #define EC_SET_SCI_INHIBIT_RELEASE	0x34
- #define EC_WLAN_ENTER_RESET		0x35
-+#define EC_WRITE_EXT_SCI_MASK		0x38
-+#define EC_SCI_QUERY			0x84
-+#define EC_EXT_SCI_QUERY		0x85
- 
- /* SCI source values */
- 
-@@ -108,10 +125,12 @@ extern int olpc_ec_mask_unset(uint8_t bi
- #define EC_SCI_SRC_BATTERY	0x02
- #define EC_SCI_SRC_BATSOC	0x04
- #define EC_SCI_SRC_BATERR	0x08
--#define EC_SCI_SRC_EBOOK	0x10
--#define EC_SCI_SRC_WLAN		0x20
-+#define EC_SCI_SRC_EBOOK	0x10	/* XO-1 only */
-+#define EC_SCI_SRC_WLAN		0x20	/* XO-1 only */
- #define EC_SCI_SRC_ACPWR	0x40
--#define EC_SCI_SRC_ALL		0x7F
-+#define EC_SCI_SRC_BATCRIT	0x80
-+#define EC_SCI_SRC_GPWAKE	0x100	/* XO-1.5 only */
-+#define EC_SCI_SRC_ALL		0x1FF
- 
- /* GPIO assignments */
- 
-diff -puN arch/x86/platform/olpc/olpc.c~x86-olpc-ec-sci-wakeup-mask-functionality arch/x86/platform/olpc/olpc.c
---- a/arch/x86/platform/olpc/olpc.c~x86-olpc-ec-sci-wakeup-mask-functionality
-+++ a/arch/x86/platform/olpc/olpc.c
-@@ -19,6 +19,7 @@
- #include <linux/string.h>
- #include <linux/platform_device.h>
- #include <linux/of.h>
-+#include <linux/syscore_ops.h>
- 
- #include <asm/geode.h>
- #include <asm/setup.h>
-@@ -30,6 +31,9 @@ EXPORT_SYMBOL_GPL(olpc_platform_info);
- 
- static DEFINE_SPINLOCK(ec_lock);
- 
-+/* EC event mask to be applied during suspend (defining wakeup sources). */
-+static u16 ec_wakeup_mask;
-+
- /* what the timeout *should* be (in ms) */
- #define EC_BASE_TIMEOUT 20
- 
-@@ -188,6 +192,79 @@ err:
- }
- EXPORT_SYMBOL_GPL(olpc_ec_cmd);
- 
-+void olpc_ec_wakeup_set(u16 value)
-+{
-+	ec_wakeup_mask |= value;
-+}
-+EXPORT_SYMBOL_GPL(olpc_ec_wakeup_set);
-+
-+void olpc_ec_wakeup_clear(u16 value)
-+{
-+	ec_wakeup_mask &= ~value;
-+}
-+EXPORT_SYMBOL_GPL(olpc_ec_wakeup_clear);
-+
+ config OLPC_XO1_SCI
+ 	bool "OLPC XO-1 SCI extras"
+ 	depends on OLPC && OLPC_XO1_PM && POWER_SUPPLY
+diff -puN arch/x86/platform/olpc/Makefile~x86-olpc-add-xo-1-rtc-driver arch/x86/platform/olpc/Makefile
+--- a/arch/x86/platform/olpc/Makefile~x86-olpc-add-xo-1-rtc-driver
++++ a/arch/x86/platform/olpc/Makefile
+@@ -1,3 +1,4 @@
+ obj-$(CONFIG_OLPC)		+= olpc.o olpc_ofw.o olpc_dt.o
+ obj-$(CONFIG_OLPC_XO1_PM)		+= olpc-xo1-pm.o xo1-wakeup.o
++obj-$(CONFIG_OLPC_XO1_RTC)	+= olpc-xo1-rtc.o
+ obj-$(CONFIG_OLPC_XO1_SCI)	+= olpc-xo1-sci.o
+diff -puN /dev/null arch/x86/platform/olpc/olpc-xo1-rtc.c
+--- /dev/null
++++ a/arch/x86/platform/olpc/olpc-xo1-rtc.c
+@@ -0,0 +1,82 @@
 +/*
-+ * Returns true if the compile and runtime configurations allow for EC events
-+ * to wake the system.
++ * Support for OLPC XO-1 Real Time Clock (RTC)
++ *
++ * Copyright (C) 2011 One Laptop per Child
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + */
-+bool olpc_ec_wakeup_available(void)
++
++#include <linux/mc146818rtc.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/of.h>
++
++#include <asm/msr.h>
++#include <asm/olpc.h>
++
++static void rtc_wake_on(struct device *dev)
 +{
-+	if (!machine_is_olpc())
-+		return false;
-+
-+	/*
-+	 * XO-1 EC wakeups are available when olpc-xo1-sci driver is
-+	 * compiled in
-+	 */
-+#ifdef CONFIG_OLPC_XO1_SCI
-+	if (olpc_platform_info.boardrev < olpc_board_pre(0xd0)) /* XO-1 */
-+		return true;
-+#endif
-+
-+	return false;
++	olpc_xo1_pm_wakeup_set(CS5536_PM_RTC);
 +}
-+EXPORT_SYMBOL_GPL(olpc_ec_wakeup_available);
 +
-+int olpc_ec_mask_write(u16 bits)
++static void rtc_wake_off(struct device *dev)
 +{
-+	if (olpc_platform_info.flags & OLPC_F_EC_WIDE_SCI) {
-+		__be16 ec_word = cpu_to_be16(bits);
-+		return olpc_ec_cmd(EC_WRITE_EXT_SCI_MASK, (void *) &ec_word, 2,
-+				   NULL, 0);
-+	} else {
-+		unsigned char ec_byte = bits & 0xff;
-+		return olpc_ec_cmd(EC_WRITE_SCI_MASK, &ec_byte, 1, NULL, 0);
++	olpc_xo1_pm_wakeup_clear(CS5536_PM_RTC);
++}
++
++static struct resource rtc_platform_resource[] = {
++	[0] = {
++		.start	= RTC_PORT(0),
++		.end	= RTC_PORT(1),
++		.flags	= IORESOURCE_IO,
++	},
++	[1] = {
++		.start	= RTC_IRQ,
++		.end	= RTC_IRQ,
++		.flags	= IORESOURCE_IRQ,
 +	}
-+}
-+EXPORT_SYMBOL_GPL(olpc_ec_mask_write);
-+
-+int olpc_ec_sci_query(u16 *sci_value)
-+{
-+	int ret;
-+
-+	if (olpc_platform_info.flags & OLPC_F_EC_WIDE_SCI) {
-+		__be16 ec_word;
-+		ret = olpc_ec_cmd(EC_EXT_SCI_QUERY,
-+			NULL, 0, (void *) &ec_word, 2);
-+		if (ret == 0)
-+			*sci_value = be16_to_cpu(ec_word);
-+	} else {
-+		unsigned char ec_byte;
-+		ret = olpc_ec_cmd(EC_SCI_QUERY, NULL, 0, &ec_byte, 1);
-+		if (ret == 0)
-+			*sci_value = ec_byte;
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(olpc_ec_sci_query);
-+
-+static int olpc_ec_suspend(void)
-+{
-+	return olpc_ec_mask_write(ec_wakeup_mask);
-+}
-+
- static bool __init check_ofw_architecture(struct device_node *root)
- {
- 	const char *olpc_arch;
-@@ -242,6 +319,10 @@ static int __init add_xo1_platform_devic
- 	return 0;
- }
- 
-+static struct syscore_ops olpc_syscore_ops = {
-+	.suspend = olpc_ec_suspend,
 +};
 +
- static int __init olpc_init(void)
- {
- 	int r = 0;
-@@ -266,6 +347,9 @@ static int __init olpc_init(void)
- 			!cs5535_has_vsa2())
- 		x86_init.pci.arch_init = pci_olpc_init;
- #endif
-+	/* EC version 0x5f adds support for wide SCI mask */
-+	if (olpc_platform_info.ecver >= 0x5f)
-+		olpc_platform_info.flags |= OLPC_F_EC_WIDE_SCI;
- 
- 	printk(KERN_INFO "OLPC board revision %s%X (EC=%x)\n",
- 			((olpc_platform_info.boardrev & 0xf) < 8) ? "pre" : "",
-@@ -278,6 +362,8 @@ static int __init olpc_init(void)
- 			return r;
- 	}
- 
-+	register_syscore_ops(&olpc_syscore_ops);
++static struct cmos_rtc_board_info rtc_info = {
++	.rtc_day_alarm = 0,
++	.rtc_mon_alarm = 0,
++	.rtc_century = 0,
++	.wake_on = rtc_wake_on,
++	.wake_off = rtc_wake_off,
++};
 +
- 	return 0;
- }
++static struct platform_device xo1_rtc_device = {
++	.name = "rtc_cmos",
++	.id = -1,
++	.num_resources = ARRAY_SIZE(rtc_platform_resource),
++	.dev.platform_data = &rtc_info,
++	.resource = rtc_platform_resource,
++};
++
++static int __init xo1_rtc_init(void)
++{
++	int r;
++	struct device_node *node;
++
++	node = of_find_compatible_node(NULL, NULL, "olpc,xo1-rtc");
++	if (!node)
++		return 0;
++	of_node_put(node);
++
++	pr_info("olpc-xo1-rtc: Initializing OLPC XO-1 RTC\n");
++	rdmsrl(MSR_RTC_DOMA_OFFSET, rtc_info.rtc_day_alarm);
++	rdmsrl(MSR_RTC_MONA_OFFSET, rtc_info.rtc_mon_alarm);
++	rdmsrl(MSR_RTC_CEN_OFFSET, rtc_info.rtc_century);
++
++	r = platform_device_register(&xo1_rtc_device);
++	if (r)
++		return r;
++
++	device_init_wakeup(&xo1_rtc_device.dev, 1);
++	return 0;
++}
++arch_initcall(xo1_rtc_init);
++
+diff -puN include/linux/cs5535.h~x86-olpc-add-xo-1-rtc-driver include/linux/cs5535.h
+--- a/include/linux/cs5535.h~x86-olpc-add-xo-1-rtc-driver
++++ a/include/linux/cs5535.h
+@@ -40,6 +40,10 @@
+ #define MSR_MFGPT_NR		0x51400029
+ #define MSR_MFGPT_SETUP		0x5140002B
  
++#define MSR_RTC_DOMA_OFFSET	0x51400055
++#define MSR_RTC_MONA_OFFSET	0x51400056
++#define MSR_RTC_CEN_OFFSET	0x51400057
++
+ #define MSR_LX_SPARE_MSR	0x80000011	/* DC-specific */
+ 
+ #define MSR_GX_GLD_MSR_CONFIG	0xC0002001
+@@ -95,6 +99,7 @@ static inline int cs5535_pic_unreqz_sele
+ 
+ /* CS5536_PM1_EN bits */
+ #define CS5536_PM_PWRBTN	(1 << 8)
++#define CS5536_PM_RTC		(1 << 10)
+ 
+ /* CS5536_PM_GPE0_STS bits */
+ #define CS5536_GPIOM7_PME_FLAG	(1 << 31)
 _
 
 Patches currently in -mm which might be from dsd@laptop.org are
