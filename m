@@ -1,64 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-hugetlbfs-inodec-fix-pgoff-alignment-checking-on-32-bit.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:51:58 -0700
-Message-ID: <201107260751.p6Q7p14V002907@imap1.linux-foundation.org>
+Subject: [merged] ipc-semc-fix-race-with-concurrent-semtimedop-timeouts-and-ipc_rmid.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:51:54 -0700
+Message-ID: <201107260750.p6Q7ovDW002904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751858Ab1GZHvc (ORCPT
+	by vger.kernel.org with ESMTP id S1751858Ab1GZHvk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:51:32 -0400
+	Tue, 26 Jul 2011 03:51:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: beckyb@kernel.crashing.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, eric.dumazet@gmail.com, kernel@dasr.de, stable@kernel.org, yuriy@ucoz.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/hugetlbfs/inode.c: fix pgoff alignment checking on 32-bit
+     ipc/sem.c: fix race with concurrent semtimedop() timeouts and IPC_RMID
 has been removed from the -mm tree.  Its filename was
-     fs-hugetlbfs-inodec-fix-pgoff-alignment-checking-on-32-bit.patch
+     ipc-semc-fix-race-with-concurrent-semtimedop-timeouts-and-ipc_rmid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/hugetlbfs/inode.c: fix pgoff alignment checking on 32-bit
-From: Becky Bruce <beckyb@kernel.crashing.org>
+Subject: ipc/sem.c: fix race with concurrent semtimedop() timeouts and IPC_RMID
+From: Manfred Spraul <manfred@colorfullife.com>
 
-This:
+If a semaphore array is removed and in parallel a sleeping task is woken
+up (signal or timeout, does not matter), then the woken up task does not
+wait until wake_up_sem_queue_do() is completed.  This will cause crashes,
+because wake_up_sem_queue_do() will read from a stale pointer.
 
-vma->vm_pgoff & ~(huge_page_mask(h) >> PAGE_SHIFT)
+The fix is simple: Regardless of anything, always call get_queue_result().
+This function waits until wake_up_sem_queue_do() has finished it's task.
 
-is incorrect on 32-bit.  It causes us to & the pgoff with something that
-looks like this (for a 4m hugepage): 0xfff003ff.  The mask should be
-flipped and *then* shifted, to give you 0x0000_03fff.
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=27142
 
-Signed-off-by: Becky Bruce <beckyb@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reported-by: Yuriy Yevtukhov <yuriy@ucoz.com>
+Reported-by: Harald Laabs <kernel@dasr.de>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: <stable@kernel.org>		[2.6.35+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/sem.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-fix-pgoff-alignment-checking-on-32-bit fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-fix-pgoff-alignment-checking-on-32-bit
-+++ a/fs/hugetlbfs/inode.c
-@@ -94,7 +94,7 @@ static int hugetlbfs_file_mmap(struct fi
- 	vma->vm_flags |= VM_HUGETLB | VM_RESERVED;
- 	vma->vm_ops = &hugetlb_vm_ops;
+diff -puN ipc/sem.c~ipc-semc-fix-race-with-concurrent-semtimedop-timeouts-and-ipc_rmid ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-fix-race-with-concurrent-semtimedop-timeouts-and-ipc_rmid
++++ a/ipc/sem.c
+@@ -1450,15 +1450,24 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
+ 	}
  
--	if (vma->vm_pgoff & ~(huge_page_mask(h) >> PAGE_SHIFT))
-+	if (vma->vm_pgoff & (~huge_page_mask(h) >> PAGE_SHIFT))
- 		return -EINVAL;
+ 	sma = sem_lock(ns, semid);
++
++	/*
++	 * Wait until it's guaranteed that no wakeup_sem_queue_do() is ongoing.
++	 */
++	error = get_queue_result(&queue);
++
++	/*
++	 * Array removed? If yes, leave without sem_unlock().
++	 */
+ 	if (IS_ERR(sma)) {
+ 		error = -EIDRM;
+ 		goto out_free;
+ 	}
  
- 	vma_len = (loff_t)(vma->vm_end - vma->vm_start);
+-	error = get_queue_result(&queue);
+ 
+ 	/*
+-	 * If queue.status != -EINTR we are woken up by another process
++	 * If queue.status != -EINTR we are woken up by another process.
++	 * Leave without unlink_queue(), but with sem_unlock().
+ 	 */
+ 
+ 	if (error != -EINTR) {
 _
 
-Patches currently in -mm which might be from beckyb@kernel.crashing.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 origin.patch
-linux-next.patch
+ipc-mqueue-refactor-failure-handling.patch
+ipc-mqueue-fix-mq_open-return-value.patch
+slab-leaks3-default-y.patch
 
