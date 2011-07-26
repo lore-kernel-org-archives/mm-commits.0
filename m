@@ -1,115 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-suggest-using-min_t-or-max_t-v2.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:56:01 -0700
-Message-ID: <201107260755.p6Q7t49k003415@imap1.linux-foundation.org>
+Subject: [merged] drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:55:45 -0700
+Message-ID: <201107260754.p6Q7smVC003385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752840Ab1GZHzw (ORCPT
+	by vger.kernel.org with ESMTP id S1753237Ab1GZHzr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:55:52 -0400
+	Tue, 26 Jul 2011 03:55:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: suggest using min_t or max_t
+     drivers/leds/leds-sunfire.c: fix sunfire_led_generic_probe() error handling
 has been removed from the -mm tree.  Its filename was
-     checkpatch-suggest-using-min_t-or-max_t-v2.patch
+     drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: suggest using min_t or max_t
-From: Joe Perches <joe@perches.com>
+Subject: drivers/leds/leds-sunfire.c: fix sunfire_led_generic_probe() error handling
+From: Axel Lin <axel.lin@gmail.com>
 
-A common issue with min() or max() is using a cast on one or both of the
-arguments when using min_t/max_t could be better.
+- return -ENOMEM if kzalloc fails, rather than the current -EINVAL
 
-Add cast detection to uses of min/max and suggest an appropriate use of
-min_t or max_t instead.
+- fix a memory leak in the case of goto out_unregister_led_cdevs
 
-Caveat:  This only works for min() or max() on a single line.
-         It does not find min() or max() split across multiple lines.
-
-This does find:
-	min((u32)foo, bar);
-But it does not find:
-	max((unsigned long)foo,
-	    bar);
-
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ drivers/leds/leds-sunfire.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t-v2 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-suggest-using-min_t-or-max_t-v2
-+++ a/scripts/checkpatch.pl
-@@ -268,6 +268,20 @@ sub build_types {
+diff -puN drivers/leds/leds-sunfire.c~drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling drivers/leds/leds-sunfire.c
+--- a/drivers/leds/leds-sunfire.c~drivers-leds-leds-sunfirec-fix-sunfire_led_generic_probe-error-handling
++++ a/drivers/leds/leds-sunfire.c
+@@ -127,17 +127,19 @@ static int __devinit sunfire_led_generic
+ 					       struct led_type *types)
+ {
+ 	struct sunfire_drvdata *p;
+-	int i, err = -EINVAL;
++	int i, err;
+ 
+ 	if (pdev->num_resources != 1) {
+ 		printk(KERN_ERR PFX "Wrong number of resources %d, should be 1\n",
+ 		       pdev->num_resources);
++		err = -EINVAL;
+ 		goto out;
+ 	}
+ 
+ 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+ 	if (!p) {
+ 		printk(KERN_ERR PFX "Could not allocate struct sunfire_drvdata\n");
++		err = -ENOMEM;
+ 		goto out;
+ 	}
+ 
+@@ -160,14 +162,14 @@ static int __devinit sunfire_led_generic
+ 
+ 	dev_set_drvdata(&pdev->dev, p);
+ 
+-	err = 0;
+-out:
+-	return err;
++	return 0;
+ 
+ out_unregister_led_cdevs:
+ 	for (i--; i >= 0; i--)
+ 		led_classdev_unregister(&p->leds[i].led_cdev);
+-	goto out;
++	kfree(p);
++out:
++	return err;
  }
- build_types();
  
-+our $match_balanced_parentheses = qr/(\((?:[^\(\)]+|(-1))*\))/;
-+
-+our $Typecast	= qr{\s*(\(\s*$NonptrType\s*\)){0,1}\s*};
-+our $LvalOrFunc	= qr{($Lval)\s*($match_balanced_parentheses{0,1})\s*};
-+
-+sub deparenthesize {
-+	my ($string) = @_;
-+	return "" if (!defined($string));
-+	$string =~ s@^\s*\(\s*@@g;
-+	$string =~ s@\s*\)\s*$@@g;
-+	$string =~ s@\s+@ @g;
-+	return $string;
-+}
-+
- $chk_signoff = 0 if ($file);
- 
- my @dep_includes = ();
-@@ -2290,6 +2304,27 @@ sub process {
- 			}
- 		}
- 
-+# typecasts on min/max could be min_t/max_t
-+		if ($line =~ /^\+(?:.*?)\b(min|max)\s*\($Typecast{0,1}($LvalOrFunc)\s*,\s*$Typecast{0,1}($LvalOrFunc)\s*\)/) {
-+			if (defined $2 || defined $8) {
-+				my $call = $1;
-+				my $cast1 = deparenthesize($2);
-+				my $arg1 = $3;
-+				my $cast2 = deparenthesize($8);
-+				my $arg2 = $9;
-+				my $cast;
-+
-+				if ($cast1 ne "" && $cast2 ne "") {
-+					$cast = "$cast1 or $cast2";
-+				} elsif ($cast1 ne "") {
-+					$cast = $cast1;
-+				} else {
-+					$cast = $cast2;
-+				}
-+				WARN("$call() should probably be ${call}_t($cast, $arg1, $arg2)\n" . $herecurr);
-+			}
-+		}
-+
- # Need a space before open parenthesis after if, while etc
- 		if ($line=~/\b(if|while|for|switch)\(/) {
- 			ERROR("space required before the open parenthesis '('\n" . $herecurr);
+ static int __devexit sunfire_led_generic_remove(struct platform_device *pdev)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 origin.patch
 linux-next.patch
-maintainers-orphan-framerelay-dlci.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-ramoops-add-new-line-to-each-print.patch
+drivers-video-backlight-aat2870_blc-fix-error-checking-for-backlight_device_register.patch
+drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch
+drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
 
