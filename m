@@ -1,63 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-prevent-arbitrary-read-in-ptrace.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:52:07 -0700
-Message-ID: <201107260751.p6Q7pA2n002928@imap1.linux-foundation.org>
+Subject: [merged] xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:52:10 -0700
+Message-ID: <201107260751.p6Q7pDTD002932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39724 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751858Ab1GZHvi (ORCPT
+	by vger.kernel.org with ESMTP id S1751858Ab1GZHvm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:51:38 -0400
+	Tue, 26 Jul 2011 03:51:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drosenberg@vsecurity.com, chris@zankel.net, oleg@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: prevent arbitrary read in ptrace
+     xtensa: fix a build error in arch/xtensa/include/asm/uaccess.h
 has been removed from the -mm tree.  Its filename was
-     xtensa-prevent-arbitrary-read-in-ptrace.patch
+     xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: prevent arbitrary read in ptrace
-From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: xtensa: fix a build error in arch/xtensa/include/asm/uaccess.h
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Prevent an arbitrary kernel read.  Check the user pointer with access_ok()
-before copying data in.
+Fix the following build error:
 
-[akpm@linux-foundation.org: s/EIO/EFAULT/]
-Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: Christian Zankel <chris@zankel.net>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@kernel.org>
+src/arch/xtensa/include/asm/uaccess.h:403: error: implicit declaration
+of function 'prefetch': 1 errors in 1 logs
+        v3.0-rc6/xtensa/xtensa-defconfig
+src/arch/xtensa/include/asm/uaccess.h:412: error: implicit declaration
+of function 'prefetchw': 1 errors in 1 logs
+        v3.0-rc6/xtensa/xtensa-defconfig
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/ptrace.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/xtensa/include/asm/uaccess.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/xtensa/kernel/ptrace.c~xtensa-prevent-arbitrary-read-in-ptrace arch/xtensa/kernel/ptrace.c
---- a/arch/xtensa/kernel/ptrace.c~xtensa-prevent-arbitrary-read-in-ptrace
-+++ a/arch/xtensa/kernel/ptrace.c
-@@ -147,6 +147,9 @@ int ptrace_setxregs(struct task_struct *
- 	elf_xtregs_t *xtregs = uregs;
- 	int ret = 0;
+diff -puN arch/xtensa/include/asm/uaccess.h~xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh arch/xtensa/include/asm/uaccess.h
+--- a/arch/xtensa/include/asm/uaccess.h~xtensa-fix-a-build-error-in-arch-xtensa-include-asm-uaccessh
++++ a/arch/xtensa/include/asm/uaccess.h
+@@ -17,6 +17,7 @@
+ #define _XTENSA_UACCESS_H
  
-+	if (!access_ok(VERIFY_READ, uregs, sizeof(elf_xtregs_t)))
-+		return -EFAULT;
-+
- #if XTENSA_HAVE_COPROCESSORS
- 	/* Flush all coprocessors before we overwrite them. */
- 	coprocessor_flush_all(ti);
+ #include <linux/errno.h>
++#include <linux/prefetch.h>
+ 
+ #define VERIFY_READ    0
+ #define VERIFY_WRITE   1
 _
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-drivers-scsi-pmcraid-reject-negative-request-size.patch
+linux-next.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+cris-fix-a-build-error-in-sync_serial_open.patch
+cris-fix-the-prototype-of-sync_serial_ioctl.patch
+cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
+gcov-disable-constructors-for-uml.patch
+include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+ramoops-add-new-line-to-each-print.patch
 
