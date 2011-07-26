@@ -1,64 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded] misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix.patch removed from -mm tree
-Date: Mon, 25 Jul 2011 17:01:29 -0700
-Message-ID: <201107260001.p6Q01Tew006537@imap1.linux-foundation.org>
+Subject: [folded] init-skip-calibration-delay-if-previously-done-fix.patch removed from -mm tree
+Date: Mon, 25 Jul 2011 17:01:59 -0700
+Message-ID: <201107260001.p6Q01x9p006553@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752169Ab1GZABf (ORCPT
+	by vger.kernel.org with ESMTP id S1752194Ab1GZACG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Jul 2011 20:01:35 -0400
+	Mon, 25 Jul 2011 20:02:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, agust@denx.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amworsley@gmail.com, ddaney@caviumnetworks.com, ext-phil.2.carmody@nokia.com, snanda@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix
+     init-skip-calibration-delay-if-previously-done-fix
 has been removed from the -mm tree.  Its filename was
-     misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix.patch
+     init-skip-calibration-delay-if-previously-done-fix.patch
 
-This patch was dropped because it was folded into misc-eeprom-add-driver-for-microwire-93xx46-eeproms.patch
+This patch was dropped because it was folded into init-skip-calibration-delay-if-previously-done.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: init-skip-calibration-delay-if-previously-done-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-fix printk format
+make cpu_loops_per_jiffy static
 
-drivers/misc/eeprom/eeprom_93xx46.c:95: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Anatolij Gustschin <agust@denx.de>
+Cc: Andrew Worsley <amworsley@gmail.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Cc: Sameer Nanda <snanda@chromium.org>
+Cc: David Daney <ddaney@caviumnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/eeprom/eeprom_93xx46.c |    2 +-
+ init/calibrate.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/eeprom/eeprom_93xx46.c~misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix drivers/misc/eeprom/eeprom_93xx46.c
---- a/drivers/misc/eeprom/eeprom_93xx46.c~misc-eeprom-add-driver-for-microwire-93xx46-eeprom-fix
-+++ a/drivers/misc/eeprom/eeprom_93xx46.c
-@@ -91,7 +91,7 @@ eeprom_93xx46_bin_read(struct file *filp
- 	/* have to wait at least Tcsl ns */
- 	ndelay(250);
- 	if (ret) {
--		dev_err(&edev->spi->dev, "read %d bytes at %d: err. %d\n",
-+		dev_err(&edev->spi->dev, "read %zu bytes at %d: err. %d\n",
- 			count, (int)off, ret);
- 	}
+diff -puN init/calibrate.c~init-skip-calibration-delay-if-previously-done-fix init/calibrate.c
+--- a/init/calibrate.c~init-skip-calibration-delay-if-previously-done-fix
++++ a/init/calibrate.c
+@@ -243,7 +243,7 @@ recalibrate:
+ 	return lpj;
+ }
  
+-DEFINE_PER_CPU(unsigned long, cpu_loops_per_jiffy) = { 0 };
++static DEFINE_PER_CPU(unsigned long, cpu_loops_per_jiffy) = { 0 };
+ 
+ void __cpuinit calibrate_delay(void)
+ {
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-um-clean-up-vm-flagsh.patch
-asm-generic-iomaph-add-stubs-for-pci-iomap-iounmap.patch
-kernel-configsc-include-module_-when-config_ikconfig_proc=n.patch
-drivers-firmware-sigmac-needs-module_license.patch
-misc-eeprom-add-driver-for-microwire-93xx46-eeproms.patch
+hugetlb-add-phys-addr-to-struct-huge_bootmem_page.patch
+mm-make-some-struct-pages-const.patch
+mm-use-const-struct-page-for-r-o-page-flag-accessor-methods.patch
+xtensa-prevent-arbitrary-read-in-ptrace.patch
+mm-extend-memory-hotplug-api-to-allow-memory-hotplug-in-virtual-machines.patch
+pagewalk-add-locking-rule-comments.patch
+mm-memoryc-remove-zap_block_size.patch
+mm-memblockc-avoid-abuse-of-red_inactive.patch
+mm-preallocate-page-before-lock_page-at-filemap-cow.patch
+mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young.patch
+drivers-misc-add-support-the-fsa9480-usb-switch.patch
+lib-make-_tolower-public.patch
+checkpatch-suggest-using-min_t-or-max_t-v2.patch
+checkpatch-add-a-prefer-__aligned-check.patch
+init-skip-calibration-delay-if-previously-done.patch
+init-skip-calibration-delay-if-previously-done-fix-fix.patch
+init-skip-calibration-delay-if-previously-done-4.patch
+drivers-rtc-add-support-for-qualcomm-pmic8xxx-rtc-fix.patch
+drivers-connector-cn_procc-remove-unused-local.patch
+drivers-staging-gma500-psb_intel_displayc-fix-bad-udelay.patch
 
