@@ -1,143 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memblockc-avoid-abuse-of-red_inactive.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:53:05 -0700
-Message-ID: <201107260752.p6Q7q8Zg003090@imap1.linux-foundation.org>
+Subject: [merged] mmap-fix-and-tidy-up-overcommit-page-arithmetic.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:53:07 -0700
+Message-ID: <201107260752.p6Q7qA7Z003093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752692Ab1GZHwk (ORCPT
+	by vger.kernel.org with ESMTP id S1752861Ab1GZHwr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:52:40 -0400
+	Tue, 26 Jul 2011 03:52:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hartleys@visionengravers.com, penberg@kernel.org, mm-commits@vger.kernel.org
+To: dmitry.fink@palm.com, hughd@google.com, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/memblock.c: avoid abuse of RED_INACTIVE
+     mmap: fix and tidy up overcommit page arithmetic
 has been removed from the -mm tree.  Its filename was
-     mm-memblockc-avoid-abuse-of-red_inactive.patch
+     mmap-fix-and-tidy-up-overcommit-page-arithmetic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/memblock.c: avoid abuse of RED_INACTIVE
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmap: fix and tidy up overcommit page arithmetic
+From: Dmitry Fink <dmitry.fink@palm.com>
 
-RED_INACTIVE is a slab thing, and reusing it for memblock was
-inappropriate, because memblock is dealing with phys_addr_t's which have a
-Kconfigurable sizeof().
+- shmem pages are not immediately available, but they are not
+  potentially available either, even if we swap them out, they will just
+  relocate from memory into swap, total amount of immediate and
+  potentially available memory is not going to be affected, so we
+  shouldn't count them as potentially free in the first place.
 
-Create a new poison type for this application.  Fixes the sparse warning
+- nr_free_pages() is not an expensive operation anymore, there is no
+  need to split the decision making in two halves and repeat code.
 
-	warning: cast truncates bits from constant value (9f911029d74e35b becomes 9d74e35b)
-	
-
-Reported-by: H Hartley Sweeten <hartleys@visionengravers.com>
-Tested-by: H Hartley Sweeten <hartleys@visionengravers.com>
-Acked-by: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Dmitry Fink <dmitry.fink@palm.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    6 ++++++
- mm/memblock.c          |    8 ++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ mm/mmap.c  |   34 +++++++++++++---------------------
+ mm/nommu.c |   34 +++++++++++++---------------------
+ 2 files changed, 26 insertions(+), 42 deletions(-)
 
-diff -puN include/linux/poison.h~mm-memblockc-avoid-abuse-of-red_inactive include/linux/poison.h
---- a/include/linux/poison.h~mm-memblockc-avoid-abuse-of-red_inactive
-+++ a/include/linux/poison.h
-@@ -40,6 +40,12 @@
- #define	RED_INACTIVE	0x09F911029D74E35BULL	/* when obj is inactive */
- #define	RED_ACTIVE	0xD84156C5635688C0ULL	/* when obj is active */
+diff -puN mm/mmap.c~mmap-fix-and-tidy-up-overcommit-page-arithmetic mm/mmap.c
+--- a/mm/mmap.c~mmap-fix-and-tidy-up-overcommit-page-arithmetic
++++ a/mm/mmap.c
+@@ -122,9 +122,17 @@ int __vm_enough_memory(struct mm_struct 
+ 		return 0;
  
-+#ifdef CONFIG_PHYS_ADDR_T_64BIT
-+#define MEMBLOCK_INACTIVE	0x3a84fb0144c9e71bULL
-+#else
-+#define MEMBLOCK_INACTIVE	0x44c9e71bUL
-+#endif
+ 	if (sysctl_overcommit_memory == OVERCOMMIT_GUESS) {
+-		unsigned long n;
++		free = global_page_state(NR_FREE_PAGES);
++		free += global_page_state(NR_FILE_PAGES);
 +
- #define SLUB_RED_INACTIVE	0xbb
- #define SLUB_RED_ACTIVE		0xcc
++		/*
++		 * shmem pages shouldn't be counted as free in this
++		 * case, they can't be purged, only swapped out, and
++		 * that won't affect the overall amount of available
++		 * memory in the system.
++		 */
++		free -= global_page_state(NR_SHMEM);
  
-diff -puN mm/memblock.c~mm-memblockc-avoid-abuse-of-red_inactive mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-avoid-abuse-of-red_inactive
-+++ a/mm/memblock.c
-@@ -758,9 +758,9 @@ void __init memblock_analyze(void)
+-		free = global_page_state(NR_FILE_PAGES);
+ 		free += nr_swap_pages;
  
- 	/* Check marker in the unused last array entry */
- 	WARN_ON(memblock_memory_init_regions[INIT_MEMBLOCK_REGIONS].base
--		!= (phys_addr_t)RED_INACTIVE);
-+		!= MEMBLOCK_INACTIVE);
- 	WARN_ON(memblock_reserved_init_regions[INIT_MEMBLOCK_REGIONS].base
--		!= (phys_addr_t)RED_INACTIVE);
-+		!= MEMBLOCK_INACTIVE);
+ 		/*
+@@ -136,34 +144,18 @@ int __vm_enough_memory(struct mm_struct 
+ 		free += global_page_state(NR_SLAB_RECLAIMABLE);
  
- 	memblock.memory_size = 0;
+ 		/*
+-		 * Leave the last 3% for root
+-		 */
+-		if (!cap_sys_admin)
+-			free -= free / 32;
+-
+-		if (free > pages)
+-			return 0;
+-
+-		/*
+-		 * nr_free_pages() is very expensive on large systems,
+-		 * only call if we're about to fail.
+-		 */
+-		n = nr_free_pages();
+-
+-		/*
+ 		 * Leave reserved pages. The pages are not for anonymous pages.
+ 		 */
+-		if (n <= totalreserve_pages)
++		if (free <= totalreserve_pages)
+ 			goto error;
+ 		else
+-			n -= totalreserve_pages;
++			free -= totalreserve_pages;
  
-@@ -786,8 +786,8 @@ void __init memblock_init(void)
- 	memblock.reserved.max	= INIT_MEMBLOCK_REGIONS;
+ 		/*
+ 		 * Leave the last 3% for root
+ 		 */
+ 		if (!cap_sys_admin)
+-			n -= n / 32;
+-		free += n;
++			free -= free / 32;
  
- 	/* Write a marker in the unused last array entry */
--	memblock.memory.regions[INIT_MEMBLOCK_REGIONS].base = (phys_addr_t)RED_INACTIVE;
--	memblock.reserved.regions[INIT_MEMBLOCK_REGIONS].base = (phys_addr_t)RED_INACTIVE;
-+	memblock.memory.regions[INIT_MEMBLOCK_REGIONS].base = MEMBLOCK_INACTIVE;
-+	memblock.reserved.regions[INIT_MEMBLOCK_REGIONS].base = MEMBLOCK_INACTIVE;
+ 		if (free > pages)
+ 			return 0;
+diff -puN mm/nommu.c~mmap-fix-and-tidy-up-overcommit-page-arithmetic mm/nommu.c
+--- a/mm/nommu.c~mmap-fix-and-tidy-up-overcommit-page-arithmetic
++++ a/mm/nommu.c
+@@ -1884,9 +1884,17 @@ int __vm_enough_memory(struct mm_struct 
+ 		return 0;
  
- 	/* Create a dummy zero size MEMBLOCK which will get coalesced away later.
- 	 * This simplifies the memblock_add() code below...
+ 	if (sysctl_overcommit_memory == OVERCOMMIT_GUESS) {
+-		unsigned long n;
++		free = global_page_state(NR_FREE_PAGES);
++		free += global_page_state(NR_FILE_PAGES);
++
++		/*
++		 * shmem pages shouldn't be counted as free in this
++		 * case, they can't be purged, only swapped out, and
++		 * that won't affect the overall amount of available
++		 * memory in the system.
++		 */
++		free -= global_page_state(NR_SHMEM);
+ 
+-		free = global_page_state(NR_FILE_PAGES);
+ 		free += nr_swap_pages;
+ 
+ 		/*
+@@ -1898,34 +1906,18 @@ int __vm_enough_memory(struct mm_struct 
+ 		free += global_page_state(NR_SLAB_RECLAIMABLE);
+ 
+ 		/*
+-		 * Leave the last 3% for root
+-		 */
+-		if (!cap_sys_admin)
+-			free -= free / 32;
+-
+-		if (free > pages)
+-			return 0;
+-
+-		/*
+-		 * nr_free_pages() is very expensive on large systems,
+-		 * only call if we're about to fail.
+-		 */
+-		n = nr_free_pages();
+-
+-		/*
+ 		 * Leave reserved pages. The pages are not for anonymous pages.
+ 		 */
+-		if (n <= totalreserve_pages)
++		if (free <= totalreserve_pages)
+ 			goto error;
+ 		else
+-			n -= totalreserve_pages;
++			free -= totalreserve_pages;
+ 
+ 		/*
+ 		 * Leave the last 3% for root
+ 		 */
+ 		if (!cap_sys_admin)
+-			n -= n / 32;
+-		free += n;
++			free -= free / 32;
+ 
+ 		if (free > pages)
+ 			return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dmitry.fink@palm.com are
 
 origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch
-drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
-drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-memcg-consolidates-memory-cgroup-lru-stat-functions-fix.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-fix-2.patch
-cpusets-randomize-node-rotor-used-in-cpuset_mem_spread_node-cpusets-initialize-spread-rotor-lazily-fix.patch
-h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
-proc-pid-fdinfo-add-cloexec-information-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-fix-2.patch
-ipc-introduce-shm_rmid_forced-sysctl-cleanup.patch
-ipc-introduce-shm_rmid_forced-sysctl-comments-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue-fix.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
