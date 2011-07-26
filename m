@@ -1,62 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-high-resolution-timers-patterns.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:55:40 -0700
-Message-ID: <201107260754.p6Q7shhV003377@imap1.linux-foundation.org>
+Subject: [merged] notifiers-pm-move-pm-notifiers-into-suspendh.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:55:30 -0700
+Message-ID: <201107260754.p6Q7sXQ4003362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48364 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753237Ab1GZHzj (ORCPT
+	by vger.kernel.org with ESMTP id S1752518Ab1GZHzg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:55:39 -0400
+	Tue, 26 Jul 2011 03:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: amwang@redhat.com, davem@davemloft.net, greg@kroah.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: update HIGH RESOLUTION TIMERS patterns
+     notifiers: pm: move pm notifiers into suspend.h
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-high-resolution-timers-patterns.patch
+     notifiers-pm-move-pm-notifiers-into-suspendh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: update HIGH RESOLUTION TIMERS patterns
-From: Joe Perches <joe@perches.com>
+Subject: notifiers: pm: move pm notifiers into suspend.h
+From: Amerigo Wang <amwang@redhat.com>
 
-clockchips.h was typoed as clockevents.h
+It is not necessary to share the same notifier.h.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: David Miller <davem@davemloft.net>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/core/core.c  |    1 +
+ include/linux/notifier.h |   10 ++--------
+ include/linux/suspend.h  |    8 ++++++++
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-high-resolution-timers-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-high-resolution-timers-patterns
-+++ a/MAINTAINERS
-@@ -3012,7 +3012,7 @@ F:	kernel/hrtimer.c
- F:	kernel/time/clockevents.c
- F:	kernel/time/tick*.*
- F:	kernel/time/timer_*.c
--F:	include/linux/clockevents.h
-+F:	include/linux/clockchips.h
- F:	include/linux/hrtimer.h
+diff -puN drivers/mmc/core/core.c~notifiers-pm-move-pm-notifiers-into-suspendh drivers/mmc/core/core.c
+--- a/drivers/mmc/core/core.c~notifiers-pm-move-pm-notifiers-into-suspendh
++++ a/drivers/mmc/core/core.c
+@@ -23,6 +23,7 @@
+ #include <linux/log2.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
++#include <linux/suspend.h>
  
- HIGH-SPEED SCC DRIVER FOR AX.25
+ #include <linux/mmc/card.h>
+ #include <linux/mmc/host.h>
+diff -puN include/linux/notifier.h~notifiers-pm-move-pm-notifiers-into-suspendh include/linux/notifier.h
+--- a/include/linux/notifier.h~notifiers-pm-move-pm-notifiers-into-suspendh
++++ a/include/linux/notifier.h
+@@ -191,15 +191,9 @@ static inline int notifier_to_errno(int 
+ 
+ /* reboot notifiers are defined in include/linux/reboot.h. */
+ 
+-#define NETLINK_URELEASE	0x0001	/* Unicast netlink socket released */
++/* Hibernation and suspend events are defined in include/linux/suspend.h. */
+ 
+-/* Hibernation and suspend events */
+-#define PM_HIBERNATION_PREPARE	0x0001 /* Going to hibernate */
+-#define PM_POST_HIBERNATION	0x0002 /* Hibernation finished */
+-#define PM_SUSPEND_PREPARE	0x0003 /* Going to suspend the system */
+-#define PM_POST_SUSPEND		0x0004 /* Suspend finished */
+-#define PM_RESTORE_PREPARE	0x0005 /* Going to restore a saved image */
+-#define PM_POST_RESTORE		0x0006 /* Restore failed */
++#define NETLINK_URELEASE	0x0001	/* Unicast netlink socket released */
+ 
+ /* Console keyboard events.
+  * Note: KBD_KEYCODE is always sent before KBD_UNBOUND_KEYCODE, KBD_UNICODE and
+diff -puN include/linux/suspend.h~notifiers-pm-move-pm-notifiers-into-suspendh include/linux/suspend.h
+--- a/include/linux/suspend.h~notifiers-pm-move-pm-notifiers-into-suspendh
++++ a/include/linux/suspend.h
+@@ -268,6 +268,14 @@ static inline int hibernate(void) { retu
+ static inline bool system_entering_hibernation(void) { return false; }
+ #endif /* CONFIG_HIBERNATION */
+ 
++/* Hibernation and suspend events */
++#define PM_HIBERNATION_PREPARE	0x0001 /* Going to hibernate */
++#define PM_POST_HIBERNATION	0x0002 /* Hibernation finished */
++#define PM_SUSPEND_PREPARE	0x0003 /* Going to suspend the system */
++#define PM_POST_SUSPEND		0x0004 /* Suspend finished */
++#define PM_RESTORE_PREPARE	0x0005 /* Going to restore a saved image */
++#define PM_POST_RESTORE		0x0006 /* Restore failed */
++
+ #ifdef CONFIG_PM_SLEEP
+ void save_processor_state(void);
+ void restore_processor_state(void);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from amwang@redhat.com are
 
 origin.patch
 linux-next.patch
-maintainers-orphan-framerelay-dlci.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
-ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
-ramoops-add-new-line-to-each-print.patch
 
