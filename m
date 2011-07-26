@@ -1,89 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-fix-race-with-concurrent-semtimedop-timeouts-and-ipc_rmid.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:51:54 -0700
-Message-ID: <201107260750.p6Q7ovDW002904@imap1.linux-foundation.org>
+Subject: [merged] xtensa-prevent-arbitrary-read-in-ptrace.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:52:07 -0700
+Message-ID: <201107260751.p6Q7pA2n002928@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751858Ab1GZHvk (ORCPT
+	by vger.kernel.org with ESMTP id S1751858Ab1GZHvi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:51:40 -0400
+	Tue, 26 Jul 2011 03:51:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, eric.dumazet@gmail.com, kernel@dasr.de, stable@kernel.org, yuriy@ucoz.com, mm-commits@vger.kernel.org
+To: drosenberg@vsecurity.com, chris@zankel.net, oleg@redhat.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/sem.c: fix race with concurrent semtimedop() timeouts and IPC_RMID
+     xtensa: prevent arbitrary read in ptrace
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-fix-race-with-concurrent-semtimedop-timeouts-and-ipc_rmid.patch
+     xtensa-prevent-arbitrary-read-in-ptrace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/sem.c: fix race with concurrent semtimedop() timeouts and IPC_RMID
-From: Manfred Spraul <manfred@colorfullife.com>
+Subject: xtensa: prevent arbitrary read in ptrace
+From: Dan Rosenberg <drosenberg@vsecurity.com>
 
-If a semaphore array is removed and in parallel a sleeping task is woken
-up (signal or timeout, does not matter), then the woken up task does not
-wait until wake_up_sem_queue_do() is completed.  This will cause crashes,
-because wake_up_sem_queue_do() will read from a stale pointer.
+Prevent an arbitrary kernel read.  Check the user pointer with access_ok()
+before copying data in.
 
-The fix is simple: Regardless of anything, always call get_queue_result().
-This function waits until wake_up_sem_queue_do() has finished it's task.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=27142
-
-Reported-by: Yuriy Yevtukhov <yuriy@ucoz.com>
-Reported-by: Harald Laabs <kernel@dasr.de>
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: <stable@kernel.org>		[2.6.35+]
+[akpm@linux-foundation.org: s/EIO/EFAULT/]
+Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Christian Zankel <chris@zankel.net>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ arch/xtensa/kernel/ptrace.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN ipc/sem.c~ipc-semc-fix-race-with-concurrent-semtimedop-timeouts-and-ipc_rmid ipc/sem.c
---- a/ipc/sem.c~ipc-semc-fix-race-with-concurrent-semtimedop-timeouts-and-ipc_rmid
-+++ a/ipc/sem.c
-@@ -1450,15 +1450,24 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 	}
+diff -puN arch/xtensa/kernel/ptrace.c~xtensa-prevent-arbitrary-read-in-ptrace arch/xtensa/kernel/ptrace.c
+--- a/arch/xtensa/kernel/ptrace.c~xtensa-prevent-arbitrary-read-in-ptrace
++++ a/arch/xtensa/kernel/ptrace.c
+@@ -147,6 +147,9 @@ int ptrace_setxregs(struct task_struct *
+ 	elf_xtregs_t *xtregs = uregs;
+ 	int ret = 0;
  
- 	sma = sem_lock(ns, semid);
++	if (!access_ok(VERIFY_READ, uregs, sizeof(elf_xtregs_t)))
++		return -EFAULT;
 +
-+	/*
-+	 * Wait until it's guaranteed that no wakeup_sem_queue_do() is ongoing.
-+	 */
-+	error = get_queue_result(&queue);
-+
-+	/*
-+	 * Array removed? If yes, leave without sem_unlock().
-+	 */
- 	if (IS_ERR(sma)) {
- 		error = -EIDRM;
- 		goto out_free;
- 	}
- 
--	error = get_queue_result(&queue);
- 
- 	/*
--	 * If queue.status != -EINTR we are woken up by another process
-+	 * If queue.status != -EINTR we are woken up by another process.
-+	 * Leave without unlink_queue(), but with sem_unlock().
- 	 */
- 
- 	if (error != -EINTR) {
+ #if XTENSA_HAVE_COPROCESSORS
+ 	/* Flush all coprocessors before we overwrite them. */
+ 	coprocessor_flush_all(ti);
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
 origin.patch
-ipc-mqueue-refactor-failure-handling.patch
-ipc-mqueue-fix-mq_open-return-value.patch
-slab-leaks3-default-y.patch
+drivers-scsi-pmcraid-reject-negative-request-size.patch
 
