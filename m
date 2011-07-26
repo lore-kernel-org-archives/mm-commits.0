@@ -1,35 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-olpc-xo1-sci-propagate-power-supply-battery-events.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 13:34:02 -0700
-Message-ID: <201107262032.p6QKWxlv007302@imap1.linux-foundation.org>
+Subject: [merged] x86-olpc-ec-sci-wakeup-mask-functionality.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 13:33:56 -0700
+Message-ID: <201107262032.p6QKWrui007287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49209 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753862Ab1GZUdS (ORCPT
+	by vger.kernel.org with ESMTP id S1753643Ab1GZUdO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 16:33:18 -0400
+	Tue, 26 Jul 2011 16:33:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dsd@laptop.org, dilinger@queued.net, grant.likely@secretlab.ca, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86, olpc-xo1-sci: propagate power supply/battery events
+     x86, olpc: EC SCI wakeup mask functionality
 has been removed from the -mm tree.  Its filename was
-     x86-olpc-xo1-sci-propagate-power-supply-battery-events.patch
+     x86-olpc-ec-sci-wakeup-mask-functionality.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86, olpc-xo1-sci: propagate power supply/battery events
+Subject: x86, olpc: EC SCI wakeup mask functionality
 From: Daniel Drake <dsd@laptop.org>
 
-EC events indicate change in AC power connectivity, battery state of
-charge, battery error, battery presence, etc.  Send notifications to the
-power supply subsystem when changes are detected.
+Update the EC SCI masks with recent additions.
+
+Add functions to query SCI events and set the wakeup mask, to be used by
+followup patches.
+
+Add functions to tweak an event mask used to select certain EC events as a
+system wakeup source.  Also add a function to determine if EC wakeup
+functionality is available, as this depends on child drivers (different
+for each laptop model) to configure the SCI interrupt.
 
 Signed-off-by: Daniel Drake <dsd@laptop.org>
 Acked-by: Andres Salomon <dilinger@queued.net>
@@ -40,96 +46,216 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                      |    4 +-
- arch/x86/platform/olpc/olpc-xo1-sci.c |   37 ++++++++++++++++++++++++
- 2 files changed, 40 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/olpc.h   |   31 +++++++++--
+ arch/x86/platform/olpc/olpc.c |   86 ++++++++++++++++++++++++++++++++
+ 2 files changed, 111 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-olpc-xo1-sci-propagate-power-supply-battery-events arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-olpc-xo1-sci-propagate-power-supply-battery-events
-+++ a/arch/x86/Kconfig
-@@ -2048,7 +2048,7 @@ config ALIX
+diff -puN arch/x86/include/asm/olpc.h~x86-olpc-ec-sci-wakeup-mask-functionality arch/x86/include/asm/olpc.h
+--- a/arch/x86/include/asm/olpc.h~x86-olpc-ec-sci-wakeup-mask-functionality
++++ a/arch/x86/include/asm/olpc.h
+@@ -13,6 +13,7 @@ struct olpc_platform_t {
  
- config OLPC_XO1_SCI
- 	bool "OLPC XO-1 SCI extras"
--	depends on OLPC && OLPC_XO1_PM
-+	depends on OLPC && OLPC_XO1_PM && POWER_SUPPLY
- 	select GPIO_CS5535
- 	select MFD_CORE
- 	---help---
-@@ -2057,6 +2057,8 @@ config OLPC_XO1_SCI
- 	   - Power button
- 	   - Ebook switch
- 	   - Lid switch
-+	   - AC adapter status updates
-+	   - Battery status updates
+ #define OLPC_F_PRESENT		0x01
+ #define OLPC_F_DCON		0x02
++#define OLPC_F_EC_WIDE_SCI	0x04
  
- endif # X86_32
+ #ifdef CONFIG_OLPC
  
-diff -puN arch/x86/platform/olpc/olpc-xo1-sci.c~x86-olpc-xo1-sci-propagate-power-supply-battery-events arch/x86/platform/olpc/olpc-xo1-sci.c
---- a/arch/x86/platform/olpc/olpc-xo1-sci.c~x86-olpc-xo1-sci-propagate-power-supply-battery-events
-+++ a/arch/x86/platform/olpc/olpc-xo1-sci.c
+@@ -62,6 +63,13 @@ static inline int olpc_board_at_least(ui
+ 	return olpc_platform_info.boardrev >= rev;
+ }
+ 
++extern void olpc_ec_wakeup_set(u16 value);
++extern void olpc_ec_wakeup_clear(u16 value);
++extern bool olpc_ec_wakeup_available(void);
++
++extern int olpc_ec_mask_write(u16 bits);
++extern int olpc_ec_sci_query(u16 *sci_value);
++
+ #else
+ 
+ static inline int machine_is_olpc(void)
+@@ -74,6 +82,14 @@ static inline int olpc_has_dcon(void)
+ 	return 0;
+ }
+ 
++static inline void olpc_ec_wakeup_set(u16 value) { }
++static inline void olpc_ec_wakeup_clear(u16 value) { }
++
++static inline bool olpc_ec_wakeup_available(void)
++{
++	return false;
++}
++
+ #endif
+ 
+ #ifdef CONFIG_OLPC_XO1_PM
+@@ -89,17 +105,18 @@ extern int pci_olpc_init(void);
+ extern int olpc_ec_cmd(unsigned char cmd, unsigned char *inbuf, size_t inlen,
+ 		unsigned char *outbuf, size_t outlen);
+ 
+-extern int olpc_ec_mask_set(uint8_t bits);
+-extern int olpc_ec_mask_unset(uint8_t bits);
+-
+ /* EC commands */
+ 
+ #define EC_FIRMWARE_REV			0x08
++#define EC_WRITE_SCI_MASK		0x1b
+ #define EC_WAKE_UP_WLAN			0x24
+ #define EC_WLAN_LEAVE_RESET		0x25
+ #define EC_SET_SCI_INHIBIT		0x32
+ #define EC_SET_SCI_INHIBIT_RELEASE	0x34
+ #define EC_WLAN_ENTER_RESET		0x35
++#define EC_WRITE_EXT_SCI_MASK		0x38
++#define EC_SCI_QUERY			0x84
++#define EC_EXT_SCI_QUERY		0x85
+ 
+ /* SCI source values */
+ 
+@@ -108,10 +125,12 @@ extern int olpc_ec_mask_unset(uint8_t bi
+ #define EC_SCI_SRC_BATTERY	0x02
+ #define EC_SCI_SRC_BATSOC	0x04
+ #define EC_SCI_SRC_BATERR	0x08
+-#define EC_SCI_SRC_EBOOK	0x10
+-#define EC_SCI_SRC_WLAN		0x20
++#define EC_SCI_SRC_EBOOK	0x10	/* XO-1 only */
++#define EC_SCI_SRC_WLAN		0x20	/* XO-1 only */
+ #define EC_SCI_SRC_ACPWR	0x40
+-#define EC_SCI_SRC_ALL		0x7F
++#define EC_SCI_SRC_BATCRIT	0x80
++#define EC_SCI_SRC_GPWAKE	0x100	/* XO-1.5 only */
++#define EC_SCI_SRC_ALL		0x1FF
+ 
+ /* GPIO assignments */
+ 
+diff -puN arch/x86/platform/olpc/olpc.c~x86-olpc-ec-sci-wakeup-mask-functionality arch/x86/platform/olpc/olpc.c
+--- a/arch/x86/platform/olpc/olpc.c~x86-olpc-ec-sci-wakeup-mask-functionality
++++ a/arch/x86/platform/olpc/olpc.c
 @@ -19,6 +19,7 @@
+ #include <linux/string.h>
  #include <linux/platform_device.h>
- #include <linux/pm.h>
- #include <linux/mfd/core.h>
-+#include <linux/power_supply.h>
- #include <linux/suspend.h>
- #include <linux/workqueue.h>
+ #include <linux/of.h>
++#include <linux/syscore_ops.h>
  
-@@ -52,6 +53,26 @@ static const char * const lid_wake_mode_
- 	[LID_WAKE_CLOSE] = "close",
- };
+ #include <asm/geode.h>
+ #include <asm/setup.h>
+@@ -30,6 +31,9 @@ EXPORT_SYMBOL_GPL(olpc_platform_info);
  
-+static void battery_status_changed(void)
-+{
-+	struct power_supply *psy = power_supply_get_by_name("olpc-battery");
+ static DEFINE_SPINLOCK(ec_lock);
+ 
++/* EC event mask to be applied during suspend (defining wakeup sources). */
++static u16 ec_wakeup_mask;
 +
-+	if (psy) {
-+		power_supply_changed(psy);
-+		put_device(psy->dev);
+ /* what the timeout *should* be (in ms) */
+ #define EC_BASE_TIMEOUT 20
+ 
+@@ -188,6 +192,79 @@ err:
+ }
+ EXPORT_SYMBOL_GPL(olpc_ec_cmd);
+ 
++void olpc_ec_wakeup_set(u16 value)
++{
++	ec_wakeup_mask |= value;
++}
++EXPORT_SYMBOL_GPL(olpc_ec_wakeup_set);
++
++void olpc_ec_wakeup_clear(u16 value)
++{
++	ec_wakeup_mask &= ~value;
++}
++EXPORT_SYMBOL_GPL(olpc_ec_wakeup_clear);
++
++/*
++ * Returns true if the compile and runtime configurations allow for EC events
++ * to wake the system.
++ */
++bool olpc_ec_wakeup_available(void)
++{
++	if (!machine_is_olpc())
++		return false;
++
++	/*
++	 * XO-1 EC wakeups are available when olpc-xo1-sci driver is
++	 * compiled in
++	 */
++#ifdef CONFIG_OLPC_XO1_SCI
++	if (olpc_platform_info.boardrev < olpc_board_pre(0xd0)) /* XO-1 */
++		return true;
++#endif
++
++	return false;
++}
++EXPORT_SYMBOL_GPL(olpc_ec_wakeup_available);
++
++int olpc_ec_mask_write(u16 bits)
++{
++	if (olpc_platform_info.flags & OLPC_F_EC_WIDE_SCI) {
++		__be16 ec_word = cpu_to_be16(bits);
++		return olpc_ec_cmd(EC_WRITE_EXT_SCI_MASK, (void *) &ec_word, 2,
++				   NULL, 0);
++	} else {
++		unsigned char ec_byte = bits & 0xff;
++		return olpc_ec_cmd(EC_WRITE_SCI_MASK, &ec_byte, 1, NULL, 0);
 +	}
 +}
++EXPORT_SYMBOL_GPL(olpc_ec_mask_write);
 +
-+static void ac_status_changed(void)
++int olpc_ec_sci_query(u16 *sci_value)
 +{
-+	struct power_supply *psy = power_supply_get_by_name("olpc-ac");
++	int ret;
 +
-+	if (psy) {
-+		power_supply_changed(psy);
-+		put_device(psy->dev);
++	if (olpc_platform_info.flags & OLPC_F_EC_WIDE_SCI) {
++		__be16 ec_word;
++		ret = olpc_ec_cmd(EC_EXT_SCI_QUERY,
++			NULL, 0, (void *) &ec_word, 2);
++		if (ret == 0)
++			*sci_value = be16_to_cpu(ec_word);
++	} else {
++		unsigned char ec_byte;
++		ret = olpc_ec_cmd(EC_SCI_QUERY, NULL, 0, &ec_byte, 1);
++		if (ret == 0)
++			*sci_value = ec_byte;
 +	}
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(olpc_ec_sci_query);
++
++static int olpc_ec_suspend(void)
++{
++	return olpc_ec_mask_write(ec_wakeup_mask);
 +}
 +
- /* Report current ebook switch state through input layer */
- static void send_ebook_state(void)
+ static bool __init check_ofw_architecture(struct device_node *root)
  {
-@@ -151,6 +172,18 @@ static void process_sci_queue(bool propa
+ 	const char *olpc_arch;
+@@ -242,6 +319,10 @@ static int __init add_xo1_platform_devic
+ 	return 0;
+ }
  
- 		pr_debug(PFX "SCI 0x%x received\n", data);
- 
-+		switch (data) {
-+		case EC_SCI_SRC_BATERR:
-+		case EC_SCI_SRC_BATSOC:
-+		case EC_SCI_SRC_BATTERY:
-+		case EC_SCI_SRC_BATCRIT:
-+			battery_status_changed();
-+			break;
-+		case EC_SCI_SRC_ACPWR:
-+			ac_status_changed();
-+			break;
-+		}
++static struct syscore_ops olpc_syscore_ops = {
++	.suspend = olpc_ec_suspend,
++};
 +
- 		if (data == EC_SCI_SRC_EBOOK && propagate_events)
- 			send_ebook_state();
- 	} while (data);
-@@ -240,6 +273,10 @@ static int xo1_sci_resume(struct platfor
+ static int __init olpc_init(void)
+ {
+ 	int r = 0;
+@@ -266,6 +347,9 @@ static int __init olpc_init(void)
+ 			!cs5535_has_vsa2())
+ 		x86_init.pci.arch_init = pci_olpc_init;
+ #endif
++	/* EC version 0x5f adds support for wide SCI mask */
++	if (olpc_platform_info.ecver >= 0x5f)
++		olpc_platform_info.flags |= OLPC_F_EC_WIDE_SCI;
  
- 	/* Enable all EC events */
- 	olpc_ec_mask_write(EC_SCI_SRC_ALL);
+ 	printk(KERN_INFO "OLPC board revision %s%X (EC=%x)\n",
+ 			((olpc_platform_info.boardrev & 0xf) < 8) ? "pre" : "",
+@@ -278,6 +362,8 @@ static int __init olpc_init(void)
+ 			return r;
+ 	}
+ 
++	register_syscore_ops(&olpc_syscore_ops);
 +
-+	/* Power/battery status might have changed too */
-+	battery_status_changed();
-+	ac_status_changed();
  	return 0;
  }
  
