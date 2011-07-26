@@ -1,167 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-make-_tolower-public.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:55:57 -0700
-Message-ID: <201107260755.p6Q7t07M003405@imap1.linux-foundation.org>
+Subject: [merged] leds-lm3530-calibrate-als-input-voltage.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:55:49 -0700
+Message-ID: <201107260754.p6Q7sqR2003391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41252 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752840Ab1GZHzu (ORCPT
+	by vger.kernel.org with ESMTP id S1753252Ab1GZHz4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:55:50 -0400
+	Tue, 26 Jul 2011 03:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: shreshthakumar.sahu@stericsson.com, lee.jones@linaro.org, linus.walleij@linaro.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib: make _tolower() public
+     arch/arm/mach-ux500/board-u5500.c: calibrate ALS input voltage
 has been removed from the -mm tree.  Its filename was
-     lib-make-_tolower-public.patch
+     leds-lm3530-calibrate-als-input-voltage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: make _tolower() public
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: arch/arm/mach-ux500/board-u5500.c: calibrate ALS input voltage
+From: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
 
-This function is required by *printf and kstrto* functions that are
-located in the different modules.  This patch makes _tolower() public. 
-However, it's good idea to not use the helper outside of mentioned
-functions.
+Provide the support for auto calibration of ALS Zone boundaries based on
+min/max ALS input voltage.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ctype.h |    9 +++++++++
- lib/kstrtox.c         |    5 -----
- lib/vsprintf.c        |   23 ++++++++++-------------
- 3 files changed, 19 insertions(+), 18 deletions(-)
+ drivers/leds/leds-lm3530.c |   67 +++++++++++++++++++++++++++--------
+ include/linux/led-lm3530.h |    5 ++
+ 2 files changed, 58 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/ctype.h~lib-make-_tolower-public include/linux/ctype.h
---- a/include/linux/ctype.h~lib-make-_tolower-public
-+++ a/include/linux/ctype.h
-@@ -52,4 +52,13 @@ static inline unsigned char __toupper(un
- #define tolower(c) __tolower(c)
- #define toupper(c) __toupper(c)
+diff -puN drivers/leds/leds-lm3530.c~leds-lm3530-calibrate-als-input-voltage drivers/leds/leds-lm3530.c
+--- a/drivers/leds/leds-lm3530.c~leds-lm3530-calibrate-als-input-voltage
++++ a/drivers/leds/leds-lm3530.c
+@@ -68,17 +68,16 @@
+ #define LM3530_ALS2_IMP_SHIFT		(4)
  
-+/*
-+ * Fast implementation of tolower() for internal usage. Do not use in your
-+ * code.
-+ */
-+static inline char _tolower(const char c)
-+{
-+	return c | 0x20;
-+}
+ /* Zone Boundary Register defaults */
+-#define LM3530_DEF_ZB_0			(0x33)
+-#define LM3530_DEF_ZB_1			(0x66)
+-#define LM3530_DEF_ZB_2			(0x99)
+-#define LM3530_DEF_ZB_3			(0xCC)
++#define LM3530_ALS_ZB_MAX		(4)
++#define LM3530_ALS_WINDOW_mV		(1000)
++#define LM3530_ALS_OFFSET_mV		(4)
+ 
+ /* Zone Target Register defaults */
+-#define LM3530_DEF_ZT_0			(0x19)
+-#define LM3530_DEF_ZT_1			(0x33)
++#define LM3530_DEF_ZT_0			(0x7F)
++#define LM3530_DEF_ZT_1			(0x66)
+ #define LM3530_DEF_ZT_2			(0x4C)
+-#define LM3530_DEF_ZT_3			(0x66)
+-#define LM3530_DEF_ZT_4			(0x7F)
++#define LM3530_DEF_ZT_3			(0x33)
++#define LM3530_DEF_ZT_4			(0x19)
+ 
+ struct lm3530_mode_map {
+ 	const char *mode;
+@@ -150,6 +149,8 @@ static int lm3530_init_registers(struct 
+ 	u8 als_imp_sel = 0;
+ 	u8 brightness;
+ 	u8 reg_val[LM3530_REG_MAX];
++	u8 zones[LM3530_ALS_ZB_MAX];
++	u32 als_vmin, als_vmax, als_vstep;
+ 	struct lm3530_platform_data *pltfm = drvdata->pdata;
+ 	struct i2c_client *client = drvdata->client;
+ 
+@@ -161,6 +162,26 @@ static int lm3530_init_registers(struct 
+ 		gen_config |= (LM3530_ENABLE_I2C);
+ 
+ 	if (drvdata->mode == LM3530_BL_MODE_ALS) {
++		if (pltfm->als_vmax == 0) {
++			pltfm->als_vmin = als_vmin = 0;
++			pltfm->als_vmin = als_vmax = LM3530_ALS_WINDOW_mV;
++		}
 +
- #endif
-diff -puN lib/kstrtox.c~lib-make-_tolower-public lib/kstrtox.c
---- a/lib/kstrtox.c~lib-make-_tolower-public
-+++ a/lib/kstrtox.c
-@@ -19,11 +19,6 @@
- #include <linux/types.h>
- #include <asm/uaccess.h>
++		als_vmin = pltfm->als_vmin;
++		als_vmax = pltfm->als_vmax;
++
++		if ((als_vmax - als_vmin) > LM3530_ALS_WINDOW_mV)
++			pltfm->als_vmax = als_vmax =
++				als_vmin + LM3530_ALS_WINDOW_mV;
++
++		/* n zone boundary makes n+1 zones */
++		als_vstep = (als_vmax - als_vmin) / (LM3530_ALS_ZB_MAX + 1);
++
++		for (i = 0; i < LM3530_ALS_ZB_MAX; i++)
++			zones[i] = (((als_vmin + LM3530_ALS_OFFSET_mV) +
++					als_vstep + (i * als_vstep)) * LED_FULL)
++					/ 1000;
++
+ 		als_config =
+ 			(pltfm->als_avrg_time << LM3530_ALS_AVG_TIME_SHIFT) |
+ 			(LM3530_ENABLE_ALS) |
+@@ -169,6 +190,7 @@ static int lm3530_init_registers(struct 
+ 		als_imp_sel =
+ 			(pltfm->als1_resistor_sel << LM3530_ALS1_IMP_SHIFT) |
+ 			(pltfm->als2_resistor_sel << LM3530_ALS2_IMP_SHIFT);
++
+ 	}
  
--static inline char _tolower(const char c)
--{
--	return c | 0x20;
--}
+ 	if (drvdata->mode == LM3530_BL_MODE_PWM)
+@@ -190,10 +212,10 @@ static int lm3530_init_registers(struct 
+ 	reg_val[3] = 0x00;		/* LM3530_ALS_ZONE_REG */
+ 	reg_val[4] = als_imp_sel;	/* LM3530_ALS_IMP_SELECT */
+ 	reg_val[5] = brightness;	/* LM3530_BRT_CTRL_REG */
+-	reg_val[6] = LM3530_DEF_ZB_0;	/* LM3530_ALS_ZB0_REG */
+-	reg_val[7] = LM3530_DEF_ZB_1;	/* LM3530_ALS_ZB1_REG */
+-	reg_val[8] = LM3530_DEF_ZB_2;	/* LM3530_ALS_ZB2_REG */
+-	reg_val[9] = LM3530_DEF_ZB_3;	/* LM3530_ALS_ZB3_REG */
++	reg_val[6] = zones[0];		/* LM3530_ALS_ZB0_REG */
++	reg_val[7] = zones[1];		/* LM3530_ALS_ZB1_REG */
++	reg_val[8] = zones[2];		/* LM3530_ALS_ZB2_REG */
++	reg_val[9] = zones[3];		/* LM3530_ALS_ZB3_REG */
+ 	reg_val[10] = LM3530_DEF_ZT_0;	/* LM3530_ALS_Z0T_REG */
+ 	reg_val[11] = LM3530_DEF_ZT_1;	/* LM3530_ALS_Z1T_REG */
+ 	reg_val[12] = LM3530_DEF_ZT_2;	/* LM3530_ALS_Z2T_REG */
+@@ -265,6 +287,24 @@ static void lm3530_brightness_set(struct
+ 	}
+ }
+ 
++static ssize_t lm3530_mode_get(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = container_of(
++					dev->parent, struct i2c_client, dev);
++	struct lm3530_data *drvdata = i2c_get_clientdata(client);
++	int i, len = 0;
++
++	for (i = 0; i < ARRAY_SIZE(mode_map); i++)
++		if (drvdata->mode == mode_map[i].mode_val)
++			len += sprintf(buf + len, "[%s] ", mode_map[i].mode);
++		else
++			len += sprintf(buf + len, "%s ", mode_map[i].mode);
++
++	len += sprintf(buf + len, "\n");
++
++	return len;
++}
+ 
+ static ssize_t lm3530_mode_set(struct device *dev, struct device_attribute
+ 				   *attr, const char *buf, size_t size)
+@@ -298,8 +338,7 @@ static ssize_t lm3530_mode_set(struct de
+ 
+ 	return sizeof(drvdata->mode);
+ }
 -
- static int _kstrtoull(const char *s, unsigned int base, unsigned long long *res)
- {
- 	unsigned long long acc;
-diff -puN lib/vsprintf.c~lib-make-_tolower-public lib/vsprintf.c
---- a/lib/vsprintf.c~lib-make-_tolower-public
-+++ a/lib/vsprintf.c
-@@ -31,13 +31,10 @@
- #include <asm/div64.h>
- #include <asm/sections.h>	/* for dereference_function_descriptor() */
+-static DEVICE_ATTR(mode, 0644, NULL, lm3530_mode_set);
++static DEVICE_ATTR(mode, 0644, lm3530_mode_get, lm3530_mode_set);
  
--/* Works only for digits and letters, but small and fast */
--#define TOLOWER(x) ((x) | 0x20)
--
- static unsigned int simple_guess_base(const char *cp)
- {
- 	if (cp[0] == '0') {
--		if (TOLOWER(cp[1]) == 'x' && isxdigit(cp[2]))
-+		if (_tolower(cp[1]) == 'x' && isxdigit(cp[2]))
- 			return 16;
- 		else
- 			return 8;
-@@ -59,13 +56,13 @@ unsigned long long simple_strtoull(const
- 	if (!base)
- 		base = simple_guess_base(cp);
+ static int __devinit lm3530_probe(struct i2c_client *client,
+ 			   const struct i2c_device_id *id)
+diff -puN include/linux/led-lm3530.h~leds-lm3530-calibrate-als-input-voltage include/linux/led-lm3530.h
+--- a/include/linux/led-lm3530.h~leds-lm3530-calibrate-als-input-voltage
++++ a/include/linux/led-lm3530.h
+@@ -84,6 +84,8 @@ enum lm3530_als_mode {
+  * @brt_ramp_rise: rate of rise of led current
+  * @als1_resistor_sel: internal resistance from ALS1 input to ground
+  * @als2_resistor_sel: internal resistance from ALS2 input to ground
++ * @als_vmin: als input voltage calibrated for max brightness in mV
++ * @als_vmax: als input voltage calibrated for min brightness in mV
+  * @brt_val: brightness value (0-255)
+  */
+ struct lm3530_platform_data {
+@@ -101,6 +103,9 @@ struct lm3530_platform_data {
+ 	u8 als1_resistor_sel;
+ 	u8 als2_resistor_sel;
  
--	if (base == 16 && cp[0] == '0' && TOLOWER(cp[1]) == 'x')
-+	if (base == 16 && cp[0] == '0' && _tolower(cp[1]) == 'x')
- 		cp += 2;
++	u32 als_vmin;
++	u32 als_vmax;
++
+ 	u8 brt_val;
+ };
  
- 	while (isxdigit(*cp)) {
- 		unsigned int value;
- 
--		value = isdigit(*cp) ? *cp - '0' : TOLOWER(*cp) - 'a' + 10;
-+		value = isdigit(*cp) ? *cp - '0' : _tolower(*cp) - 'a' + 10;
- 		if (value >= base)
- 			break;
- 		result = result * base + value;
-@@ -1036,8 +1033,8 @@ precision:
- qualifier:
- 	/* get the conversion qualifier */
- 	spec->qualifier = -1;
--	if (*fmt == 'h' || TOLOWER(*fmt) == 'l' ||
--	    TOLOWER(*fmt) == 'z' || *fmt == 't') {
-+	if (*fmt == 'h' || _tolower(*fmt) == 'l' ||
-+	    _tolower(*fmt) == 'z' || *fmt == 't') {
- 		spec->qualifier = *fmt++;
- 		if (unlikely(spec->qualifier == *fmt)) {
- 			if (spec->qualifier == 'l') {
-@@ -1104,7 +1101,7 @@ qualifier:
- 			spec->type = FORMAT_TYPE_LONG;
- 		else
- 			spec->type = FORMAT_TYPE_ULONG;
--	} else if (TOLOWER(spec->qualifier) == 'z') {
-+	} else if (_tolower(spec->qualifier) == 'z') {
- 		spec->type = FORMAT_TYPE_SIZE_T;
- 	} else if (spec->qualifier == 't') {
- 		spec->type = FORMAT_TYPE_PTRDIFF;
-@@ -1263,7 +1260,7 @@ int vsnprintf(char *buf, size_t size, co
- 			if (qualifier == 'l') {
- 				long *ip = va_arg(args, long *);
- 				*ip = (str - buf);
--			} else if (TOLOWER(qualifier) == 'z') {
-+			} else if (_tolower(qualifier) == 'z') {
- 				size_t *ip = va_arg(args, size_t *);
- 				*ip = (str - buf);
- 			} else {
-@@ -1550,7 +1547,7 @@ do {									\
- 			void *skip_arg;
- 			if (qualifier == 'l')
- 				skip_arg = va_arg(args, long *);
--			else if (TOLOWER(qualifier) == 'z')
-+			else if (_tolower(qualifier) == 'z')
- 				skip_arg = va_arg(args, size_t *);
- 			else
- 				skip_arg = va_arg(args, int *);
-@@ -1856,8 +1853,8 @@ int vsscanf(const char *buf, const char 
- 
- 		/* get conversion qualifier */
- 		qualifier = -1;
--		if (*fmt == 'h' || TOLOWER(*fmt) == 'l' ||
--		    TOLOWER(*fmt) == 'z') {
-+		if (*fmt == 'h' || _tolower(*fmt) == 'l' ||
-+		    _tolower(*fmt) == 'z') {
- 			qualifier = *fmt++;
- 			if (unlikely(qualifier == *fmt)) {
- 				if (qualifier == 'h') {
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from shreshthakumar.sahu@stericsson.com are
 
 origin.patch
-selinuxfs-remove-custome-hex_to_bin.patch
+linux-next.patch
 
