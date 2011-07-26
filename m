@@ -1,238 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-pass-gfp-to-shmem_getpage_gfp.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:53:45 -0700
-Message-ID: <201107260752.p6Q7qmij003160@imap1.linux-foundation.org>
+Subject: [merged] tmpfs-simplify-unuse-and-writepage.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:53:53 -0700
+Message-ID: <201107260752.p6Q7quFG003181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36045 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753137Ab1GZHxV (ORCPT
+	by vger.kernel.org with ESMTP id S1753115Ab1GZHx0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:53:21 -0400
+	Tue, 26 Jul 2011 03:53:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org
+To: hughd@google.com, ezk@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: pass gfp to shmem_getpage_gfp
+     tmpfs: simplify unuse and writepage
 has been removed from the -mm tree.  Its filename was
-     tmpfs-pass-gfp-to-shmem_getpage_gfp.patch
+     tmpfs-simplify-unuse-and-writepage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: pass gfp to shmem_getpage_gfp
+Subject: tmpfs: simplify unuse and writepage
 From: Hugh Dickins <hughd@google.com>
 
-Make shmem_getpage() a wrapper, passing mapping_gfp_mask() down to
-shmem_getpage_gfp(), which in turn passes gfp down to shmem_swp_alloc().
+shmem_unuse_inode() and shmem_writepage() contain a little code to cope
+with pages inserted independently into the filecache, probably by a
+filesystem stacked on top of tmpfs, then fed to its ->readpage() or
+->writepage().
 
-Change shmem_read_mapping_page_gfp() to use shmem_getpage_gfp() in the
-CONFIG_SHMEM case; but leave tiny !SHMEM using read_cache_page_gfp().
+Unionfs was indeed experimenting with working in that way three years ago,
+but I find no current examples: nowadays the stacking filesystems use vfs
+interfaces to the lower filesystem.
 
-Add a BUG_ON() in case anyone happens to call this on a non-shmem mapping;
-though we might later want to let that case route to read_cache_page_gfp().
-
-It annoys me to have these two almost-redundant args, gfp and fault_type:
-I can't find a better way; but initialize fault_type only in shmem_fault().
-
-Note that before, read_cache_page_gfp() was allocating i915_gem's pages
-with __GFP_NORETRY as intended; but the corresponding swap vector pages
-got allocated without it, leaving a small possibility of OOM.
+It's now illegal: remove most of that code, adding some WARN_ON_ONCEs.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Erez Zadok <ezk@fsl.cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   67 +++++++++++++++++++++++++++++++++------------------
- 1 file changed, 44 insertions(+), 23 deletions(-)
+ mm/shmem.c |   50 ++++++++++++++++----------------------------------
+ 1 file changed, 16 insertions(+), 34 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-pass-gfp-to-shmem_getpage_gfp mm/shmem.c
---- a/mm/shmem.c~tmpfs-pass-gfp-to-shmem_getpage_gfp
+diff -puN mm/shmem.c~tmpfs-simplify-unuse-and-writepage mm/shmem.c
+--- a/mm/shmem.c~tmpfs-simplify-unuse-and-writepage
 +++ a/mm/shmem.c
-@@ -127,8 +127,15 @@ static unsigned long shmem_default_max_i
- }
- #endif
+@@ -972,20 +972,7 @@ found:
+ 	error = add_to_page_cache_locked(page, mapping, idx, GFP_NOWAIT);
+ 	/* which does mem_cgroup_uncharge_cache_page on error */
  
--static int shmem_getpage(struct inode *inode, unsigned long idx,
--			 struct page **pagep, enum sgp_type sgp, int *type);
-+static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
-+	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type);
-+
-+static inline int shmem_getpage(struct inode *inode, pgoff_t index,
-+	struct page **pagep, enum sgp_type sgp, int *fault_type)
-+{
-+	return shmem_getpage_gfp(inode, index, pagep, sgp,
-+			mapping_gfp_mask(inode->i_mapping), fault_type);
-+}
- 
- static inline struct page *shmem_dir_alloc(gfp_t gfp_mask)
- {
-@@ -404,10 +411,12 @@ static void shmem_swp_set(struct shmem_i
-  * @info:	info structure for the inode
-  * @index:	index of the page to find
-  * @sgp:	check and recheck i_size? skip allocation?
-+ * @gfp:	gfp mask to use for any page allocation
-  *
-  * If the entry does not exist, allocate it.
-  */
--static swp_entry_t *shmem_swp_alloc(struct shmem_inode_info *info, unsigned long index, enum sgp_type sgp)
-+static swp_entry_t *shmem_swp_alloc(struct shmem_inode_info *info,
-+			unsigned long index, enum sgp_type sgp, gfp_t gfp)
- {
- 	struct inode *inode = &info->vfs_inode;
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-@@ -435,7 +444,7 @@ static swp_entry_t *shmem_swp_alloc(stru
- 		}
- 
- 		spin_unlock(&info->lock);
--		page = shmem_dir_alloc(mapping_gfp_mask(inode->i_mapping));
-+		page = shmem_dir_alloc(gfp);
- 		spin_lock(&info->lock);
- 
- 		if (!page) {
-@@ -1225,14 +1234,14 @@ static inline struct mempolicy *shmem_ge
- #endif
- 
- /*
-- * shmem_getpage - either get the page from swap or allocate a new one
-+ * shmem_getpage_gfp - find page in cache, or get from swap, or allocate
-  *
-  * If we allocate a new one we do not mark it dirty. That's up to the
-  * vm. If we swap it in we mark it dirty since we also free the swap
-  * entry since a page cannot live in both the swap and page cache
-  */
--static int shmem_getpage(struct inode *inode, unsigned long idx,
--			struct page **pagep, enum sgp_type sgp, int *type)
-+static int shmem_getpage_gfp(struct inode *inode, pgoff_t idx,
-+	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-@@ -1242,15 +1251,11 @@ static int shmem_getpage(struct inode *i
- 	struct page *prealloc_page = NULL;
- 	swp_entry_t *entry;
- 	swp_entry_t swap;
--	gfp_t gfp;
- 	int error;
- 
- 	if (idx >= SHMEM_MAX_INDEX)
- 		return -EFBIG;
- 
--	if (type)
--		*type = 0;
--
+-	if (error == -EEXIST) {
+-		struct page *filepage = find_get_page(mapping, idx);
+-		error = 1;
+-		if (filepage) {
+-			/*
+-			 * There might be a more uptodate page coming down
+-			 * from a stacked writepage: forget our swappage if so.
+-			 */
+-			if (PageUptodate(filepage))
+-				error = 0;
+-			page_cache_release(filepage);
+-		}
+-	}
+-	if (!error) {
++	if (error != -ENOMEM) {
+ 		delete_from_swap_cache(page);
+ 		set_page_dirty(page);
+ 		info->flags |= SHMEM_PAGEIN;
+@@ -1072,16 +1059,17 @@ static int shmem_writepage(struct page *
  	/*
- 	 * Normally, filepage is NULL on entry, and either found
- 	 * uptodate immediately, or allocated and zeroed, or read
-@@ -1264,13 +1269,12 @@ repeat:
- 		filepage = find_lock_page(mapping, idx);
- 	if (filepage && PageUptodate(filepage))
- 		goto done;
--	gfp = mapping_gfp_mask(mapping);
- 	if (!filepage) {
- 		/*
- 		 * Try to preload while we can wait, to not make a habit of
- 		 * draining atomic reserves; but don't latch on to this cpu.
- 		 */
--		error = radix_tree_preload(gfp & ~__GFP_HIGHMEM);
-+		error = radix_tree_preload(gfp & GFP_RECLAIM_MASK);
- 		if (error)
- 			goto failed;
- 		radix_tree_preload_end();
-@@ -1290,7 +1294,7 @@ repeat:
+ 	 * shmem_backing_dev_info's capabilities prevent regular writeback or
+ 	 * sync from ever calling shmem_writepage; but a stacking filesystem
+-	 * may use the ->writepage of its underlying filesystem, in which case
++	 * might use ->writepage of its underlying filesystem, in which case
+ 	 * tmpfs should write out to swap only in response to memory pressure,
+-	 * and not for the writeback threads or sync.  However, in those cases,
+-	 * we do still want to check if there's a redundant swappage to be
+-	 * discarded.
++	 * and not for the writeback threads or sync.
+ 	 */
+-	if (wbc->for_reclaim)
+-		swap = get_swap_page();
+-	else
+-		swap.val = 0;
++	if (!wbc->for_reclaim) {
++		WARN_ON_ONCE(1);	/* Still happens? Tell us about it! */
++		goto redirty;
++	}
++	swap = get_swap_page();
++	if (!swap.val)
++		goto redirty;
+ 
+ 	/*
+ 	 * Add inode to shmem_unuse()'s list of swapped-out inodes,
+@@ -1092,15 +1080,12 @@ static int shmem_writepage(struct page *
+ 	 * we've taken the spinlock, because shmem_unuse_inode() will
+ 	 * prune a !swapped inode from the swaplist under both locks.
+ 	 */
+-	if (swap.val) {
+-		mutex_lock(&shmem_swaplist_mutex);
+-		if (list_empty(&info->swaplist))
+-			list_add_tail(&info->swaplist, &shmem_swaplist);
+-	}
++	mutex_lock(&shmem_swaplist_mutex);
++	if (list_empty(&info->swaplist))
++		list_add_tail(&info->swaplist, &shmem_swaplist);
  
  	spin_lock(&info->lock);
- 	shmem_recalc_inode(inode);
--	entry = shmem_swp_alloc(info, idx, sgp);
-+	entry = shmem_swp_alloc(info, idx, sgp, gfp);
- 	if (IS_ERR(entry)) {
- 		spin_unlock(&info->lock);
- 		error = PTR_ERR(entry);
-@@ -1305,12 +1309,12 @@ repeat:
- 			shmem_swp_unmap(entry);
- 			spin_unlock(&info->lock);
- 			/* here we actually do the io */
--			if (type)
--				*type |= VM_FAULT_MAJOR;
-+			if (fault_type)
-+				*fault_type |= VM_FAULT_MAJOR;
- 			swappage = shmem_swapin(swap, gfp, info, idx);
- 			if (!swappage) {
- 				spin_lock(&info->lock);
--				entry = shmem_swp_alloc(info, idx, sgp);
-+				entry = shmem_swp_alloc(info, idx, sgp, gfp);
- 				if (IS_ERR(entry))
- 					error = PTR_ERR(entry);
- 				else {
-@@ -1461,7 +1465,7 @@ repeat:
- 				SetPageSwapBacked(filepage);
- 			}
+-	if (swap.val)
+-		mutex_unlock(&shmem_swaplist_mutex);
++	mutex_unlock(&shmem_swaplist_mutex);
  
--			entry = shmem_swp_alloc(info, idx, sgp);
-+			entry = shmem_swp_alloc(info, idx, sgp, gfp);
- 			if (IS_ERR(entry))
- 				error = PTR_ERR(entry);
- 			else {
-@@ -1539,7 +1543,7 @@ static int shmem_fault(struct vm_area_st
- {
- 	struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
- 	int error;
--	int ret;
-+	int ret = VM_FAULT_LOCKED;
- 
- 	if (((loff_t)vmf->pgoff << PAGE_CACHE_SHIFT) >= i_size_read(inode))
- 		return VM_FAULT_SIGBUS;
-@@ -1547,11 +1551,12 @@ static int shmem_fault(struct vm_area_st
- 	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
-+
- 	if (ret & VM_FAULT_MAJOR) {
- 		count_vm_event(PGMAJFAULT);
- 		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+ 	if (index >= info->next_index) {
+ 		BUG_ON(!(info->flags & SHMEM_TRUNCATE));
+@@ -1108,16 +1093,13 @@ static int shmem_writepage(struct page *
  	}
--	return ret | VM_FAULT_LOCKED;
-+	return ret;
- }
+ 	entry = shmem_swp_entry(info, index, NULL);
+ 	if (entry->val) {
+-		/*
+-		 * The more uptodate page coming down from a stacked
+-		 * writepage should replace our old swappage.
+-		 */
++		WARN_ON_ONCE(1);	/* Still happens? Tell us about it! */
+ 		free_swap_and_cache(*entry);
+ 		shmem_swp_set(info, entry, 0);
+ 	}
+ 	shmem_recalc_inode(inode);
  
- #ifdef CONFIG_NUMA
-@@ -3162,13 +3167,29 @@ int shmem_zero_setup(struct vm_area_stru
-  * suit tmpfs, since it may have pages in swapcache, and needs to find those
-  * for itself; although drivers/gpu/drm i915 and ttm rely upon this support.
-  *
-- * Provide a stub for those callers to start using now, then later
-- * flesh it out to call shmem_getpage() with additional gfp mask, when
-- * shmem_file_splice_read() is added and shmem_readpage() is removed.
-+ * i915_gem_object_get_pages_gtt() mixes __GFP_NORETRY | __GFP_NOWARN in
-+ * with the mapping_gfp_mask(), to avoid OOMing the machine unnecessarily.
-  */
- struct page *shmem_read_mapping_page_gfp(struct address_space *mapping,
- 					 pgoff_t index, gfp_t gfp)
- {
-+#ifdef CONFIG_SHMEM
-+	struct inode *inode = mapping->host;
-+	struct page *page = NULL;
-+	int error;
-+
-+	BUG_ON(mapping->a_ops != &shmem_aops);
-+	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE, gfp, NULL);
-+	if (error)
-+		page = ERR_PTR(error);
-+	else
-+		unlock_page(page);
-+	return page;
-+#else
-+	/*
-+	 * The tiny !SHMEM case uses ramfs without swap
-+	 */
- 	return read_cache_page_gfp(mapping, index, gfp);
-+#endif
- }
- EXPORT_SYMBOL_GPL(shmem_read_mapping_page_gfp);
+-	if (swap.val && add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
++	if (add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
+ 		delete_from_page_cache(page);
+ 		shmem_swp_set(info, entry, swap.val);
+ 		shmem_swp_unmap(entry);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
