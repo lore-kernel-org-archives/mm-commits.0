@@ -1,184 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-simplify-prealloc_page.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:53:49 -0700
-Message-ID: <201107260752.p6Q7qqsT003172@imap1.linux-foundation.org>
+Subject: [merged] mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:53:38 -0700
+Message-ID: <201107260752.p6Q7qfjX003151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753115Ab1GZHxX (ORCPT
+	by vger.kernel.org with ESMTP id S1753137Ab1GZHx1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:53:23 -0400
+	Tue, 26 Jul 2011 03:53:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, shaohua.li@intel.com, tim.c.chen@linux.intel.com, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, David.Laight@ACULAB.COM, a.p.zijlstra@chello.nl, darren.hart@intel.com, haishan.bai@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: simplify prealloc_page
+     mm/futex: fix futex writes on archs with SW tracking of dirty & young
 has been removed from the -mm tree.  Its filename was
-     tmpfs-simplify-prealloc_page.patch
+     mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: simplify prealloc_page
-From: Hugh Dickins <hughd@google.com>
+Subject: mm/futex: fix futex writes on archs with SW tracking of dirty & young
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-The prealloc_page handling in shmem_getpage_gfp() is unnecessarily
-complicated: first simplify that before going on to filepage/swappage.
+I haven't reproduced it myself but the fail scenario is that on such
+machines (notably ARM and some embedded powerpc), if you manage to hit
+that futex path on a writable page whose dirty bit has gone from the PTE,
+you'll livelock inside the kernel from what I can tell.
 
-That's right, don't report ENOMEM when the preallocation fails: we may or
-may not need the page.  But simply report ENOMEM once we find we do need
-it, instead of dropping lock, repeating allocation, unwinding on failure
-etc.  And leave the out label on the fast path, don't goto.
+It will go in a loop of trying the atomic access, failing, trying gup to
+"fix it up", getting succcess from gup, go back to the atomic access,
+failing again because dirty wasn't fixed etc...
 
-Fix something that looks like a bug but turns out not to be: set
-PageSwapBacked on prealloc_page before its mem_cgroup_cache_charge(), as
-the removed case was doing.  That's important before adding to LRU
-(determines which LRU the page goes on), and does affect which path it
-takes through memcontrol.c, but in the end MEM_CGROUP_CHANGE_TYPE_ SHMEM
-is handled no differently from CACHE.
+So I think you essentially hang in the kernel.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Shaohua Li <shaohua.li@intel.com>
-Cc: "Zhang, Yanmin" <yanmin.zhang@intel.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
+The scenario is probably rare'ish because affected architecture are
+embedded and tend to not swap much (if at all) so we probably rarely hit
+the case where dirty is missing or young is missing, but I think Shan has
+a piece of SW that can reliably reproduce it using a shared writable
+mapping & fork or something like that.
+
+
+
+On archs who use SW tracking of dirty & young, a page without dirty is
+effectively mapped read-only and a page without young unaccessible in the
+PTE.
+
+Additionally, some architectures might lazily flush the TLB when relaxing
+write protection (by doing only a local flush), and expect a fault to
+invalidate the stale entry if it's still present on another processor.
+
+The futex code assumes that if the "in_atomic()" access -EFAULT's, it can
+"fix it up" by causing get_user_pages() which would then be equivalent to
+taking the fault.
+
+However that isn't the case.  get_user_pages() will not call
+handle_mm_fault() in the case where the PTE seems to have the right
+permissions, regardless of the dirty and young state.  It will eventually
+update those bits ...  in the struct page, but not in the PTE.  
+
+Additionally, it will not handle the lazy TLB flushing that can be
+required by some architectures in the fault case.
+
+Basically, gup is the wrong interface for the job.  The patch provides a
+more appropriate one which boils down to just calling handle_mm_fault()
+since what we are trying to do is simulate a real page fault.
+
+
+
+The futex code currently attempts to write to user memory within a
+pagefault disabled section, and if that fails, tries to fix it up using
+get_user_pages().
+
+This doesn't work on archs where the dirty and young bits are maintained
+by software, since they will gate access permission in the TLB, and will
+not be updated by gup().
+
+In addition, there's an expectation on some archs that a spurious write
+fault triggers a local TLB flush, and that is missing from the picture as
+well.
+
+I decided that adding those "features" to gup() would be too much for this
+already too complex function, and instead added a new simpler
+fixup_user_fault() which is essentially a wrapper around handle_mm_fault()
+which the futex code can call.
+
+[akpm@linux-foundation.org: coding-style fixes]
+[akpm@linux-foundation.org: fix some nits Darren saw, fiddle comment layout]
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reported-by: Shan Hai <haishan.bai@gmail.com>
+Tested-by: Shan Hai <haishan.bai@gmail.com>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Darren Hart <darren.hart@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   60 +++++++++++++--------------------------------------
- 1 file changed, 16 insertions(+), 44 deletions(-)
+ include/linux/mm.h |    2 +
+ kernel/futex.c     |    4 +-
+ mm/memory.c        |   58 ++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 61 insertions(+), 3 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-simplify-prealloc_page mm/shmem.c
---- a/mm/shmem.c~tmpfs-simplify-prealloc_page
-+++ a/mm/shmem.c
-@@ -1269,9 +1269,9 @@ repeat:
- 			goto failed;
- 		radix_tree_preload_end();
- 		if (sgp != SGP_READ && !prealloc_page) {
--			/* We don't care if this fails */
- 			prealloc_page = shmem_alloc_page(gfp, info, idx);
- 			if (prealloc_page) {
-+				SetPageSwapBacked(prealloc_page);
- 				if (mem_cgroup_cache_charge(prealloc_page,
- 						current->mm, GFP_KERNEL)) {
- 					page_cache_release(prealloc_page);
-@@ -1403,7 +1403,8 @@ repeat:
- 			goto repeat;
- 		}
- 		spin_unlock(&info->lock);
--	} else {
-+
-+	} else if (prealloc_page) {
- 		shmem_swp_unmap(entry);
- 		sbinfo = SHMEM_SB(inode->i_sb);
- 		if (sbinfo->max_blocks) {
-@@ -1419,41 +1420,8 @@ repeat:
- 		if (!filepage) {
- 			int ret;
+diff -puN include/linux/mm.h~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young include/linux/mm.h
+--- a/include/linux/mm.h~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young
++++ a/include/linux/mm.h
+@@ -988,6 +988,8 @@ int get_user_pages(struct task_struct *t
+ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			struct page **pages);
+ struct page *get_dump_page(unsigned long addr);
++extern int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
++			    unsigned long address, unsigned int fault_flags);
  
--			if (!prealloc_page) {
--				spin_unlock(&info->lock);
--				filepage = shmem_alloc_page(gfp, info, idx);
--				if (!filepage) {
--					spin_lock(&info->lock);
--					shmem_unacct_blocks(info->flags, 1);
--					shmem_free_blocks(inode, 1);
--					spin_unlock(&info->lock);
--					error = -ENOMEM;
--					goto failed;
--				}
--				SetPageSwapBacked(filepage);
--
--				/*
--				 * Precharge page while we can wait, compensate
--				 * after
--				 */
--				error = mem_cgroup_cache_charge(filepage,
--					current->mm, GFP_KERNEL);
--				if (error) {
--					page_cache_release(filepage);
--					spin_lock(&info->lock);
--					shmem_unacct_blocks(info->flags, 1);
--					shmem_free_blocks(inode, 1);
--					spin_unlock(&info->lock);
--					filepage = NULL;
--					goto failed;
--				}
--
--				spin_lock(&info->lock);
--			} else {
--				filepage = prealloc_page;
--				prealloc_page = NULL;
--				SetPageSwapBacked(filepage);
--			}
-+			filepage = prealloc_page;
-+			prealloc_page = NULL;
+ extern int try_to_release_page(struct page * page, gfp_t gfp_mask);
+ extern void do_invalidatepage(struct page *page, unsigned long offset);
+diff -puN kernel/futex.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young kernel/futex.c
+--- a/kernel/futex.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young
++++ a/kernel/futex.c
+@@ -355,8 +355,8 @@ static int fault_in_user_writeable(u32 _
+ 	int ret;
  
- 			entry = shmem_swp_alloc(info, idx, sgp, gfp);
- 			if (IS_ERR(entry))
-@@ -1492,11 +1460,20 @@ repeat:
- 		SetPageUptodate(filepage);
- 		if (sgp == SGP_DIRTY)
- 			set_page_dirty(filepage);
-+	} else {
-+		spin_unlock(&info->lock);
-+		error = -ENOMEM;
-+		goto out;
- 	}
- done:
- 	*pagep = filepage;
- 	error = 0;
--	goto out;
-+out:
-+	if (prealloc_page) {
-+		mem_cgroup_uncharge_cache_page(prealloc_page);
-+		page_cache_release(prealloc_page);
-+	}
-+	return error;
+ 	down_read(&mm->mmap_sem);
+-	ret = get_user_pages(current, mm, (unsigned long)uaddr,
+-			     1, 1, 0, NULL, NULL);
++	ret = fixup_user_fault(current, mm, (unsigned long)uaddr,
++			       FAULT_FLAG_WRITE);
+ 	up_read(&mm->mmap_sem);
  
- nospace:
- 	/*
-@@ -1520,12 +1497,7 @@ failed:
- 		unlock_page(filepage);
- 		page_cache_release(filepage);
- 	}
--out:
--	if (prealloc_page) {
--		mem_cgroup_uncharge_cache_page(prealloc_page);
--		page_cache_release(prealloc_page);
--	}
--	return error;
-+	goto out;
+ 	return ret < 0 ? ret : 0;
+diff -puN mm/memory.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young mm/memory.c
+--- a/mm/memory.c~mm-futex-fix-futex-writes-on-archs-with-sw-tracking-of-dirty-young
++++ a/mm/memory.c
+@@ -1805,7 +1805,63 @@ next_page:
  }
+ EXPORT_SYMBOL(__get_user_pages);
  
- static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+-/**
++/*
++ * fixup_user_fault() - manually resolve a user page fault
++ * @tsk:	the task_struct to use for page fault accounting, or
++ *		NULL if faults are not to be recorded.
++ * @mm:		mm_struct of target mm
++ * @address:	user address
++ * @fault_flags:flags to pass down to handle_mm_fault()
++ *
++ * This is meant to be called in the specific scenario where for locking reasons
++ * we try to access user memory in atomic context (within a pagefault_disable()
++ * section), this returns -EFAULT, and we want to resolve the user fault before
++ * trying again.
++ *
++ * Typically this is meant to be used by the futex code.
++ *
++ * The main difference with get_user_pages() is that this function will
++ * unconditionally call handle_mm_fault() which will in turn perform all the
++ * necessary SW fixup of the dirty and young bits in the PTE, while
++ * handle_mm_fault() only guarantees to update these in the struct page.
++ *
++ * This is important for some architectures where those bits also gate the
++ * access permission to the page because they are maintained in software.  On
++ * such architectures, gup() will not be enough to make a subsequent access
++ * succeed.
++ *
++ * This should be called with the mm_sem held for read.
++ */
++int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
++		     unsigned long address, unsigned int fault_flags)
++{
++	struct vm_area_struct *vma;
++	int ret;
++
++	vma = find_extend_vma(mm, address);
++	if (!vma || address < vma->vm_start)
++		return -EFAULT;
++
++	ret = handle_mm_fault(mm, vma, address, fault_flags);
++	if (ret & VM_FAULT_ERROR) {
++		if (ret & VM_FAULT_OOM)
++			return -ENOMEM;
++		if (ret & (VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE))
++			return -EHWPOISON;
++		if (ret & VM_FAULT_SIGBUS)
++			return -EFAULT;
++		BUG();
++	}
++	if (tsk) {
++		if (ret & VM_FAULT_MAJOR)
++			tsk->maj_flt++;
++		else
++			tsk->min_flt++;
++	}
++	return 0;
++}
++
++/*
+  * get_user_pages() - pin user pages in memory
+  * @tsk:	the task_struct to use for page fault accounting, or
+  *		NULL if faults are not to be recorded.
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
 linux-next.patch
-slub-partly-fix-freeze-in-__slab_free.patch
-radix_tree-exceptional-entries-and-indices.patch
-mm-let-swap-use-exceptional-entries.patch
-tmpfs-demolish-old-swap-vector-support.patch
-tmpfs-miscellaneous-trivial-cleanups.patch
-tmpfs-copy-truncate_inode_pages_range.patch
-tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
-tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
-tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
-tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
-tmpfs-convert-shmem_writepage-and-enable-swap.patch
-tmpfs-use-kmemdup-for-short-symlinks.patch
-mm-a-few-small-updates-for-radix-swap.patch
-mm-a-few-small-updates-for-radix-swap-fix.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-panic-panic=-1-for-immediate-reboot.patch
-panic-vt-do-not-force-oops-output-when-panic_timeout-0.patch
-prio_tree-debugging-patch.patch
+cross-memory-attach-v3.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
