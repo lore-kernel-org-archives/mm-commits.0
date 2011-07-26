@@ -1,254 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-refine-shmem_file_splice_read.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:53:43 -0700
-Message-ID: <201107260752.p6Q7qkuP003157@imap1.linux-foundation.org>
+Subject: [merged] tmpfs-simplify-prealloc_page.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:53:49 -0700
+Message-ID: <201107260752.p6Q7qqsT003172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39812 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753124Ab1GZHxR (ORCPT
+	by vger.kernel.org with ESMTP id S1753115Ab1GZHxX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:53:17 -0400
+	Tue, 26 Jul 2011 03:53:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org
+To: hughd@google.com, shaohua.li@intel.com, tim.c.chen@linux.intel.com, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: refine shmem_file_splice_read
+     tmpfs: simplify prealloc_page
 has been removed from the -mm tree.  Its filename was
-     tmpfs-refine-shmem_file_splice_read.patch
+     tmpfs-simplify-prealloc_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: refine shmem_file_splice_read
+Subject: tmpfs: simplify prealloc_page
 From: Hugh Dickins <hughd@google.com>
 
-Tidy up shmem_file_splice_read():
+The prealloc_page handling in shmem_getpage_gfp() is unnecessarily
+complicated: first simplify that before going on to filepage/swappage.
 
-Remove readahead: okay, we could implement shmem readahead on swap,
-but have never done so before, swap being the slow exceptional path.
+That's right, don't report ENOMEM when the preallocation fails: we may or
+may not need the page.  But simply report ENOMEM once we find we do need
+it, instead of dropping lock, repeating allocation, unwinding on failure
+etc.  And leave the out label on the fast path, don't goto.
 
-Use shmem_getpage() instead of find_or_create_page() plus ->readpage().
-
-Remove several comments: sorry, I found them more distracting than
-helpful, and this will not be the reference version of splice_read().
+Fix something that looks like a bug but turns out not to be: set
+PageSwapBacked on prealloc_page before its mem_cgroup_cache_charge(), as
+the removed case was doing.  That's important before adding to LRU
+(determines which LRU the page goes on), and does affect which path it
+takes through memcontrol.c, but in the end MEM_CGROUP_CHANGE_TYPE_ SHMEM
+is handled no differently from CACHE.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Shaohua Li <shaohua.li@intel.com>
+Cc: "Zhang, Yanmin" <yanmin.zhang@intel.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  138 +++++++--------------------------------------------
- 1 file changed, 19 insertions(+), 119 deletions(-)
+ mm/shmem.c |   60 +++++++++++++--------------------------------------
+ 1 file changed, 16 insertions(+), 44 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-refine-shmem_file_splice_read mm/shmem.c
---- a/mm/shmem.c~tmpfs-refine-shmem_file_splice_read
+diff -puN mm/shmem.c~tmpfs-simplify-prealloc_page mm/shmem.c
+--- a/mm/shmem.c~tmpfs-simplify-prealloc_page
 +++ a/mm/shmem.c
-@@ -1850,6 +1850,7 @@ static ssize_t shmem_file_splice_read(st
- 				unsigned int flags)
- {
- 	struct address_space *mapping = in->f_mapping;
-+	struct inode *inode = mapping->host;
- 	unsigned int loff, nr_pages, req_pages;
- 	struct page *pages[PIPE_DEF_BUFFERS];
- 	struct partial_page partial[PIPE_DEF_BUFFERS];
-@@ -1865,7 +1866,7 @@ static ssize_t shmem_file_splice_read(st
- 		.spd_release = spd_release_page,
- 	};
- 
--	isize = i_size_read(in->f_mapping->host);
-+	isize = i_size_read(inode);
- 	if (unlikely(*ppos >= isize))
- 		return 0;
- 
-@@ -1881,153 +1882,57 @@ static ssize_t shmem_file_splice_read(st
- 	req_pages = (len + loff + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
- 	nr_pages = min(req_pages, pipe->buffers);
- 
--	/*
--	 * Lookup the (hopefully) full range of pages we need.
--	 */
- 	spd.nr_pages = find_get_pages_contig(mapping, index,
- 						nr_pages, spd.pages);
- 	index += spd.nr_pages;
--
--	/*
--	 * If find_get_pages_contig() returned fewer pages than we needed,
--	 * readahead/allocate the rest and fill in the holes.
--	 */
--	if (spd.nr_pages < nr_pages)
--		page_cache_sync_readahead(mapping, &in->f_ra, in,
--				index, req_pages - spd.nr_pages);
--
- 	error = 0;
--	while (spd.nr_pages < nr_pages) {
--		/*
--		 * Page could be there, find_get_pages_contig() breaks on
--		 * the first hole.
--		 */
--		page = find_get_page(mapping, index);
--		if (!page) {
--			/*
--			 * page didn't exist, allocate one.
--			 */
--			page = page_cache_alloc_cold(mapping);
--			if (!page)
--				break;
--
--			error = add_to_page_cache_lru(page, mapping, index,
--						GFP_KERNEL);
--			if (unlikely(error)) {
--				page_cache_release(page);
--				if (error == -EEXIST)
--					continue;
--				break;
--			}
--			/*
--			 * add_to_page_cache() locks the page, unlock it
--			 * to avoid convoluting the logic below even more.
--			 */
--			unlock_page(page);
--		}
- 
-+	while (spd.nr_pages < nr_pages) {
-+		page = NULL;
-+		error = shmem_getpage(inode, index, &page, SGP_CACHE, NULL);
-+		if (error)
-+			break;
-+		unlock_page(page);
- 		spd.pages[spd.nr_pages++] = page;
- 		index++;
- 	}
- 
--	/*
--	 * Now loop over the map and see if we need to start IO on any
--	 * pages, fill in the partial map, etc.
--	 */
- 	index = *ppos >> PAGE_CACHE_SHIFT;
- 	nr_pages = spd.nr_pages;
- 	spd.nr_pages = 0;
+@@ -1269,9 +1269,9 @@ repeat:
+ 			goto failed;
+ 		radix_tree_preload_end();
+ 		if (sgp != SGP_READ && !prealloc_page) {
+-			/* We don't care if this fails */
+ 			prealloc_page = shmem_alloc_page(gfp, info, idx);
+ 			if (prealloc_page) {
++				SetPageSwapBacked(prealloc_page);
+ 				if (mem_cgroup_cache_charge(prealloc_page,
+ 						current->mm, GFP_KERNEL)) {
+ 					page_cache_release(prealloc_page);
+@@ -1403,7 +1403,8 @@ repeat:
+ 			goto repeat;
+ 		}
+ 		spin_unlock(&info->lock);
+-	} else {
 +
- 	for (page_nr = 0; page_nr < nr_pages; page_nr++) {
- 		unsigned int this_len;
++	} else if (prealloc_page) {
+ 		shmem_swp_unmap(entry);
+ 		sbinfo = SHMEM_SB(inode->i_sb);
+ 		if (sbinfo->max_blocks) {
+@@ -1419,41 +1420,8 @@ repeat:
+ 		if (!filepage) {
+ 			int ret;
  
- 		if (!len)
- 			break;
- 
--		/*
--		 * this_len is the max we'll use from this page
--		 */
- 		this_len = min_t(unsigned long, len, PAGE_CACHE_SIZE - loff);
- 		page = spd.pages[page_nr];
- 
--		if (PageReadahead(page))
--			page_cache_async_readahead(mapping, &in->f_ra, in,
--					page, index, req_pages - page_nr);
--
--		/*
--		 * If the page isn't uptodate, we may need to start io on it
--		 */
--		if (!PageUptodate(page)) {
--			lock_page(page);
--
--			/*
--			 * Page was truncated, or invalidated by the
--			 * filesystem.  Redo the find/create, but this time the
--			 * page is kept locked, so there's no chance of another
--			 * race with truncate/invalidate.
--			 */
--			if (!page->mapping) {
--				unlock_page(page);
--				page = find_or_create_page(mapping, index,
--						mapping_gfp_mask(mapping));
--
--				if (!page) {
+-			if (!prealloc_page) {
+-				spin_unlock(&info->lock);
+-				filepage = shmem_alloc_page(gfp, info, idx);
+-				if (!filepage) {
+-					spin_lock(&info->lock);
+-					shmem_unacct_blocks(info->flags, 1);
+-					shmem_free_blocks(inode, 1);
+-					spin_unlock(&info->lock);
 -					error = -ENOMEM;
--					break;
+-					goto failed;
 -				}
--				page_cache_release(spd.pages[page_nr]);
--				spd.pages[page_nr] = page;
--			}
--			/*
--			 * page was already under io and is now done, great
--			 */
--			if (PageUptodate(page)) {
--				unlock_page(page);
--				goto fill_it;
--			}
+-				SetPageSwapBacked(filepage);
 -
--			/*
--			 * need to read in the page
--			 */
--			error = mapping->a_ops->readpage(in, page);
--			if (unlikely(error)) {
 -				/*
--				 * We really should re-lookup the page here,
--				 * but it complicates things a lot. Instead
--				 * lets just do what we already stored, and
--				 * we'll get it the next time we are called.
+-				 * Precharge page while we can wait, compensate
+-				 * after
 -				 */
--				if (error == AOP_TRUNCATED_PAGE)
--					error = 0;
+-				error = mem_cgroup_cache_charge(filepage,
+-					current->mm, GFP_KERNEL);
+-				if (error) {
+-					page_cache_release(filepage);
+-					spin_lock(&info->lock);
+-					shmem_unacct_blocks(info->flags, 1);
+-					shmem_free_blocks(inode, 1);
+-					spin_unlock(&info->lock);
+-					filepage = NULL;
+-					goto failed;
+-				}
 -
-+		if (!PageUptodate(page) || page->mapping != mapping) {
-+			page = NULL;
-+			error = shmem_getpage(inode, index, &page,
-+							SGP_CACHE, NULL);
-+			if (error)
- 				break;
+-				spin_lock(&info->lock);
+-			} else {
+-				filepage = prealloc_page;
+-				prealloc_page = NULL;
+-				SetPageSwapBacked(filepage);
 -			}
-+			unlock_page(page);
-+			page_cache_release(spd.pages[page_nr]);
-+			spd.pages[page_nr] = page;
- 		}
--fill_it:
--		/*
--		 * i_size must be checked after PageUptodate.
--		 */
--		isize = i_size_read(mapping->host);
-+
-+		isize = i_size_read(inode);
- 		end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
- 		if (unlikely(!isize || index > end_index))
- 			break;
++			filepage = prealloc_page;
++			prealloc_page = NULL;
  
--		/*
--		 * if this is the last page, see if we need to shrink
--		 * the length and stop
--		 */
- 		if (end_index == index) {
- 			unsigned int plen;
- 
--			/*
--			 * max good bytes in this page
--			 */
- 			plen = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
- 			if (plen <= loff)
- 				break;
- 
--			/*
--			 * force quit after adding this page
--			 */
- 			this_len = min(this_len, plen - loff);
- 			len = this_len;
- 		}
-@@ -2040,13 +1945,8 @@ fill_it:
- 		index++;
+ 			entry = shmem_swp_alloc(info, idx, sgp, gfp);
+ 			if (IS_ERR(entry))
+@@ -1492,11 +1460,20 @@ repeat:
+ 		SetPageUptodate(filepage);
+ 		if (sgp == SGP_DIRTY)
+ 			set_page_dirty(filepage);
++	} else {
++		spin_unlock(&info->lock);
++		error = -ENOMEM;
++		goto out;
  	}
+ done:
+ 	*pagep = filepage;
+ 	error = 0;
+-	goto out;
++out:
++	if (prealloc_page) {
++		mem_cgroup_uncharge_cache_page(prealloc_page);
++		page_cache_release(prealloc_page);
++	}
++	return error;
  
--	/*
--	 * Release any pages at the end, if we quit early. 'page_nr' is how far
--	 * we got, 'nr_pages' is how many pages are in the map.
--	 */
- 	while (page_nr < nr_pages)
- 		page_cache_release(spd.pages[page_nr++]);
--	in->f_ra.prev_pos = (loff_t)index << PAGE_CACHE_SHIFT;
+ nospace:
+ 	/*
+@@ -1520,12 +1497,7 @@ failed:
+ 		unlock_page(filepage);
+ 		page_cache_release(filepage);
+ 	}
+-out:
+-	if (prealloc_page) {
+-		mem_cgroup_uncharge_cache_page(prealloc_page);
+-		page_cache_release(prealloc_page);
+-	}
+-	return error;
++	goto out;
+ }
  
- 	if (spd.nr_pages)
- 		error = splice_to_pipe(pipe, &spd);
+ static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
