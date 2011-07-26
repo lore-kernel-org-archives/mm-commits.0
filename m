@@ -1,75 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] asm-generic-systemh-drop-useless-__kernel__.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:54:59 -0700
-Message-ID: <201107260754.p6Q7s291003308@imap1.linux-foundation.org>
+Subject: [merged] include-linux-kernelh-fix-a-headers_check-warning.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:55:08 -0700
+Message-ID: <201107260754.p6Q7sBkS003330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51983 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752491Ab1GZHy5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753229Ab1GZHy6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:54:57 -0400
+	Tue, 26 Jul 2011 03:54:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, arnd@arndb.de, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asm-generic/system.h: drop useless __KERNEL__
+     include/linux/kernel.h: fix a headers_check warning
 has been removed from the -mm tree.  Its filename was
-     asm-generic-systemh-drop-useless-__kernel__.patch
+     include-linux-kernelh-fix-a-headers_check-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic/system.h: drop useless __KERNEL__
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: include/linux/kernel.h: fix a headers_check warning
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-This header isn't exported to user-space, and even if it was, the
-__KERNEL__ check covers the entire file, so we'd get a useless stub in the
-first place.  So punt it.
+Fix the warning:
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+usr/include/linux/kernel.h:65: userspace cannot reference
+function or variable defined in the kernel
+
+As Michal noted, BUILD_BUG_ON stuffs should be moved
+under #ifdef __KERNEL__.
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/system.h |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/kernel.h |   47 +++++++++++++++++++--------------------
+ 1 file changed, 24 insertions(+), 23 deletions(-)
 
-diff -puN include/asm-generic/system.h~asm-generic-systemh-drop-useless-__kernel__ include/asm-generic/system.h
---- a/include/asm-generic/system.h~asm-generic-systemh-drop-useless-__kernel__
-+++ a/include/asm-generic/system.h
-@@ -14,7 +14,6 @@
- #ifndef __ASM_GENERIC_SYSTEM_H
- #define __ASM_GENERIC_SYSTEM_H
+diff -puN include/linux/kernel.h~include-linux-kernelh-fix-a-headers_check-warning include/linux/kernel.h
+--- a/include/linux/kernel.h~include-linux-kernelh-fix-a-headers_check-warning
++++ a/include/linux/kernel.h
+@@ -646,29 +646,6 @@ static inline void ftrace_dump(enum ftra
+ 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+ 	(type *)( (char *)__mptr - offsetof(type,member) );})
  
--#ifdef __KERNEL__
- #ifndef __ASSEMBLY__
- 
- #include <linux/types.h>
-@@ -139,5 +138,4 @@ unsigned long __xchg(unsigned long x, vo
- 
- #endif /* !__ASSEMBLY__ */
- 
+-struct sysinfo;
+-extern int do_sysinfo(struct sysinfo *info);
+-
 -#endif /* __KERNEL__ */
- #endif /* __ASM_GENERIC_SYSTEM_H */
+-
+-#define SI_LOAD_SHIFT	16
+-struct sysinfo {
+-	long uptime;			/* Seconds since boot */
+-	unsigned long loads[3];		/* 1, 5, and 15 minute load averages */
+-	unsigned long totalram;		/* Total usable main memory size */
+-	unsigned long freeram;		/* Available memory size */
+-	unsigned long sharedram;	/* Amount of shared memory */
+-	unsigned long bufferram;	/* Memory used by buffers */
+-	unsigned long totalswap;	/* Total swap space size */
+-	unsigned long freeswap;		/* swap space still available */
+-	unsigned short procs;		/* Number of current processes */
+-	unsigned short pad;		/* explicit padding for m68k */
+-	unsigned long totalhigh;	/* Total high memory size */
+-	unsigned long freehigh;		/* Available high memory size */
+-	unsigned int mem_unit;		/* Memory unit size in bytes */
+-	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
+-};
+-
+ #ifdef __CHECKER__
+ #define BUILD_BUG_ON_NOT_POWER_OF_2(n)
+ #define BUILD_BUG_ON_ZERO(e) (0)
+@@ -714,6 +691,30 @@ extern int __build_bug_on_failed;
+ #endif
+ #endif	/* __CHECKER__ */
+ 
++
++struct sysinfo;
++extern int do_sysinfo(struct sysinfo *info);
++
++#endif /* __KERNEL__ */
++
++#define SI_LOAD_SHIFT	16
++struct sysinfo {
++	long uptime;			/* Seconds since boot */
++	unsigned long loads[3];		/* 1, 5, and 15 minute load averages */
++	unsigned long totalram;		/* Total usable main memory size */
++	unsigned long freeram;		/* Available memory size */
++	unsigned long sharedram;	/* Amount of shared memory */
++	unsigned long bufferram;	/* Memory used by buffers */
++	unsigned long totalswap;	/* Total swap space size */
++	unsigned long freeswap;		/* swap space still available */
++	unsigned short procs;		/* Number of current processes */
++	unsigned short pad;		/* explicit padding for m68k */
++	unsigned long totalhigh;	/* Total high memory size */
++	unsigned long freehigh;		/* Available high memory size */
++	unsigned int mem_unit;		/* Memory unit size in bytes */
++	char _f[20-2*sizeof(long)-sizeof(int)];	/* Padding: libc5 uses this.. */
++};
++
+ /* Trap pasters of __FUNCTION__ at compile-time */
+ #define __FUNCTION__ (__func__)
+ 
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
 linux-next.patch
-ptrace-unify-show_regs-prototype.patch
-ptrace-unify-show_regs-prototype-fix.patch
-atomic-use-linux-atomich.patch
-atomic-move-atomic_add_unless-to-generic-code.patch
-atomic-cleanup-asm-generic-atomich-inclusion.patch
-atomic-update-comments-in-atomich.patch
-asm-generic-atomich-simplify-inc-dec-test-helpers.patch
-asm-generic-atomich-fix-type-used-in-atomic_clear_mask.patch
-asm-generic-atomich-add-atomic_set_mask-helper.patch
-asm-generic-atomich-allow-smp-peeps-to-leverage-this.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+cris-fix-a-build-error-in-kernel-forkc-checkpatch-fixes.patch
+cris-fix-a-build-error-in-sync_serial_open.patch
+cris-fix-the-prototype-of-sync_serial_ioctl.patch
+cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
+gcov-disable-constructors-for-uml.patch
+include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
+kexec-remove-kmsg_dump_kexec.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+ramoops-add-new-line-to-each-print.patch
 
