@@ -1,149 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mach-ux500-add-lm3530-als-platform-data-for-u5500.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:55:52 -0700
-Message-ID: <201107260754.p6Q7stUM003394@imap1.linux-foundation.org>
+Subject: [merged] checkpatch-validate-signature-styles-and-to-and-cc-lines.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:56:05 -0700
+Message-ID: <201107260755.p6Q7t81Z003430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39065 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753117Ab1GZH4E (ORCPT
+	by vger.kernel.org with ESMTP id S1753085Ab1GZH4C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:56:04 -0400
+	Tue, 26 Jul 2011 03:56:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linus.walleij@stericsson.com, lee.jones@linaro.org, linus.walleij@linaro.org, linux@arm.linux.org.uk, rpurdie@rpsys.net, shreshthakumar.sahu@stericsson.com, mm-commits@vger.kernel.org
+To: joe@perches.com, anish198519851985@gmail.com, nbowler@elliptictech.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mach-ux500: add lm3530 ALS platform data for U5500
+     checkpatch: validate signature styles and To: and Cc: lines
 has been removed from the -mm tree.  Its filename was
-     mach-ux500-add-lm3530-als-platform-data-for-u5500.patch
+     checkpatch-validate-signature-styles-and-to-and-cc-lines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mach-ux500: add lm3530 ALS platform data for U5500
-From: Linus Walleij <linus.walleij@stericsson.com>
+Subject: checkpatch: validate signature styles and To: and Cc: lines
+From: Joe Perches <joe@perches.com>
 
+Signatures have many forms and can sometimes cause problems if not in the
+correct format when using git send-email or quilt.
 
-platform data for simple backlight driver for LM3530
-in the u5500 platform
+Try to verify the signature tags and email addresses to use the generally
+accepted "Signed-off-by: Full Name <email@domain.tld>" form.
 
-Signed-off-by: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Lee Jones <lee.jones@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>
+Original idea by Anish Kumar <anish198519851985@gmail.com>
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Anish Kumar <anish198519851985@gmail.com>
+Cc: Nick Bowler <nbowler@elliptictech.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-ux500/board-u5500.c |   84 +++++++++++++++++++++++++++-
- 1 file changed, 83 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |  125 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 116 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm/mach-ux500/board-u5500.c~mach-ux500-add-lm3530-als-platform-data-for-u5500 arch/arm/mach-ux500/board-u5500.c
---- a/arch/arm/mach-ux500/board-u5500.c~mach-ux500-add-lm3530-als-platform-data-for-u5500
-+++ a/arch/arm/mach-ux500/board-u5500.c
-@@ -10,16 +10,97 @@
- #include <linux/amba/bus.h>
- #include <linux/gpio.h>
- #include <linux/irq.h>
-+#include <linux/i2c.h>
+diff -puN scripts/checkpatch.pl~checkpatch-validate-signature-styles-and-to-and-cc-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-validate-signature-styles-and-to-and-cc-lines
++++ a/scripts/checkpatch.pl
+@@ -217,6 +217,16 @@ our $logFunctions = qr{(?x:
+ 	MODULE_[A-Z_]+
+ )};
  
- #include <asm/mach/arch.h>
- #include <asm/mach-types.h>
++our $signature_tags = qr{(?xi:
++	Signed-off-by:|
++	Acked-by:|
++	Tested-by:|
++	Reviewed-by:|
++	Reported-by:|
++	To:|
++	Cc:
++)};
++
+ our @typeList = (
+ 	qr{void},
+ 	qr{(?:unsigned\s+)?char},
+@@ -356,6 +366,76 @@ sub top_of_kernel_tree {
+ 	return 1;
+ }
  
-+#include <plat/pincfg.h>
-+#include <plat/i2c.h>
++sub parse_email {
++	my ($formatted_email) = @_;
 +
- #include <mach/hardware.h>
- #include <mach/devices.h>
- #include <mach/setup.h>
- 
-+#include "pins-db5500.h"
- #include "devices-db5500.h"
-+#include <linux/led-lm3530.h>
++	my $name = "";
++	my $address = "";
++	my $comment = "";
 +
-+/*
-+ * GPIO
-+ */
++	if ($formatted_email =~ /^(.*)<(\S+\@\S+)>(.*)$/) {
++		$name = $1;
++		$address = $2;
++		$comment = $3 if defined $3;
++	} elsif ($formatted_email =~ /^\s*<(\S+\@\S+)>(.*)$/) {
++		$address = $1;
++		$comment = $2 if defined $2;
++	} elsif ($formatted_email =~ /(\S+\@\S+)(.*)$/) {
++		$address = $1;
++		$comment = $2 if defined $2;
++		$formatted_email =~ s/$address.*$//;
++		$name = $formatted_email;
++		$name =~ s/^\s+|\s+$//g;
++		$name =~ s/^\"|\"$//g;
++		# If there's a name left after stripping spaces and
++		# leading quotes, and the address doesn't have both
++		# leading and trailing angle brackets, the address
++		# is invalid. ie:
++		#   "joe smith joe@smith.com" bad
++		#   "joe smith <joe@smith.com" bad
++		if ($name ne "" && $address !~ /^<[^>]+>$/) {
++			$name = "";
++			$address = "";
++			$comment = "";
++		}
++	}
 +
-+static pin_cfg_t u5500_pins[] = {
-+	/* I2C */
-+	GPIO218_I2C2_SCL        | PIN_INPUT_PULLUP,
-+	GPIO219_I2C2_SDA        | PIN_INPUT_PULLUP,
++	$name =~ s/^\s+|\s+$//g;
++	$name =~ s/^\"|\"$//g;
++	$address =~ s/^\s+|\s+$//g;
++	$address =~ s/^\<|\>$//g;
 +
-+	/* DISPLAY_ENABLE */
-+	GPIO226_GPIO        | PIN_OUTPUT_LOW,
++	if ($name =~ /[^\w \-]/i) { ##has "must quote" chars
++		$name =~ s/(?<!\\)"/\\"/g; ##escape quotes
++		$name = "\"$name\"";
++	}
 +
-+	/* Backlight Enbale */
-+	GPIO224_GPIO        | PIN_OUTPUT_HIGH,
-+};
-+/*
-+ * I2C
-+ */
-+
-+#define U5500_I2C_CONTROLLER(id, _slsu, _tft, _rft, clk, _sm) \
-+static struct nmk_i2c_controller u5500_i2c##id##_data = { \
-+	/*				\
-+	 * slave data setup time, which is	\
-+	 * 250 ns,100ns,10ns which is 14,6,2	\
-+	 * respectively for a 48 Mhz	\
-+	 * i2c clock			\
-+	 */				\
-+	.slsu		= _slsu,	\
-+	/* Tx FIFO threshold */		\
-+	.tft		= _tft,		\
-+	/* Rx FIFO threshold */		\
-+	.rft		= _rft,		\
-+	/* std. mode operation */	\
-+	.clk_freq	= clk,		\
-+	.sm		= _sm,		\
++	return ($name, $address, $comment);
 +}
-+/*
-+ * The board uses TODO <3> i2c controllers, initialize all of
-+ * them with slave data setup time of 250 ns,
-+ * Tx & Rx FIFO threshold values as 1 and standard
-+ * mode of operation
-+ */
 +
-+U5500_I2C_CONTROLLER(2,	0xe, 1, 1, 400000, I2C_FREQ_MODE_FAST);
++sub format_email {
++	my ($name, $address) = @_;
 +
-+static struct lm3530_platform_data u5500_als_platform_data = {
-+	.mode = LM3530_BL_MODE_MANUAL,
-+	.als_input_mode = LM3530_INPUT_ALS1,
-+	.max_current = LM3530_FS_CURR_26mA,
-+	.pwm_pol_hi = true,
-+	.als_avrg_time = LM3530_ALS_AVRG_TIME_512ms,
-+	.brt_ramp_law = 1,      /* Linear */
-+	.brt_ramp_fall = LM3530_RAMP_TIME_8s,
-+	.brt_ramp_rise = LM3530_RAMP_TIME_8s,
-+	.als1_resistor_sel = LM3530_ALS_IMPD_13_53kOhm,
-+	.als2_resistor_sel = LM3530_ALS_IMPD_Z,
-+	.als_vmin = 730,	/* mV */
-+	.als_vmax = 1020,	/* mV */
-+	.brt_val = 0x7F,	/* Max brightness */
-+};
++	my $formatted_email;
 +
++	$name =~ s/^\s+|\s+$//g;
++	$name =~ s/^\"|\"$//g;
++	$address =~ s/^\s+|\s+$//g;
 +
-+static struct i2c_board_info __initdata u5500_i2c2_devices[] = {
-+	{
-+		/* Backlight */
-+		I2C_BOARD_INFO("lm3530-led", 0x36),
-+		.platform_data = &u5500_als_platform_data,
-+	},
-+};
- 
-+static void __init u5500_i2c_init(void)
-+{
-+	db5500_add_i2c2(&u5500_i2c2_data);
-+	i2c_register_board_info(2, ARRAY_AND_SIZE(u5500_i2c2_devices));
++	if ($name =~ /[^\w \-]/i) { ##has "must quote" chars
++		$name =~ s/(?<!\\)"/\\"/g; ##escape quotes
++		$name = "\"$name\"";
++	}
++
++	if ("$name" eq "") {
++		$formatted_email = "$address";
++	} else {
++		$formatted_email = "$name <$address>";
++	}
++
++	return $formatted_email;
 +}
- static void __init u5500_uart_init(void)
- {
- 	db5500_add_uart0(NULL);
-@@ -30,7 +111,8 @@ static void __init u5500_uart_init(void)
- static void __init u5500_init_machine(void)
- {
- 	u5500_init_devices();
++
+ sub expand_tabs {
+ 	my ($str) = @_;
+ 
+@@ -1380,17 +1460,44 @@ sub process {
+ 			}
+ 		}
+ 
+-#check the patch for a signoff:
++# Check the patch for a signoff:
+ 		if ($line =~ /^\s*signed-off-by:/i) {
+-			# This is a signoff, if ugly, so do not double report.
+ 			$signoff++;
+-			if (!($line =~ /^\s*Signed-off-by:/)) {
+-				WARN("Signed-off-by: is the preferred form\n" .
+-					$herecurr);
+-			}
+-			if ($line =~ /^\s*signed-off-by:\S/i) {
+-				WARN("space required after Signed-off-by:\n" .
+-					$herecurr);
++		}
++
++# Check signature styles
++		if ($line =~ /^(\s*)($signature_tags)(\s*)(.*)/) {
++			my $space_before = $1;
++			my $sign_off = $2;
++			my $space_after = $3;
++			my $email = $4;
++			my $ucfirst_sign_off = ucfirst(lc($sign_off));
++
++			if (defined $space_before && $space_before ne "") {
++				WARN("Do not use whitespace before $ucfirst_sign_off\n" . $herecurr);
++			}
++			if ($sign_off =~ /-by:$/i && $sign_off ne $ucfirst_sign_off) {
++				WARN("'$ucfirst_sign_off' is the preferred signature form\n" . $herecurr);
++			}
++			if (!defined $space_after || $space_after ne " ") {
++				WARN("Use a single space after $ucfirst_sign_off\n" . $herecurr);
++			}
++
++			my ($email_name, $email_address, $comment) = parse_email($email);
++			my $suggested_email = format_email(($email_name, $email_address));
++			if ($suggested_email eq "") {
++				ERROR("Unrecognized email address: '$email'\n" . $herecurr);
++			} else {
++				my $dequoted = $suggested_email;
++				$dequoted =~ s/^"//;
++				$dequoted =~ s/" </ </;
++				# Don't force email to have quotes
++				# Allow just an angle bracketed address
++				if ("$dequoted$comment" ne $email &&
++				    "<$email_address>$comment" ne $email &&
++				    "$suggested_email$comment" ne $email) {
++					WARN("email address '$email' might be better as '$suggested_email$comment'\n" . $herecurr);
++				}
+ 			}
+ 		}
+ 
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+origin.patch
+linux-next.patch
+maintainers-orphan-framerelay-dlci.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available.patch
+ramoops-use-module-parameters-instead-of-platform-data-if-not-available-checkpatch-fixes.patch
+ramoops-add-new-line-to-each-print.patch
+
