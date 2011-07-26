@@ -1,55 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-truncate-functions-are-in-truncatec.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 00:53:19 -0700
-Message-ID: <201107260752.p6Q7qMCG003121@imap1.linux-foundation.org>
+Subject: [merged] mm-pincer-in-truncate_inode_pages_range.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 00:53:25 -0700
+Message-ID: <201107260752.p6Q7qSSQ003132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49351 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752947Ab1GZHwx (ORCPT
+	by vger.kernel.org with ESMTP id S1752920Ab1GZHw5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 03:52:53 -0400
+	Tue, 26 Jul 2011 03:52:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: truncate functions are in truncate.c
+     mm: pincer in truncate_inode_pages_range
 has been removed from the -mm tree.  Its filename was
-     mm-truncate-functions-are-in-truncatec.patch
+     mm-pincer-in-truncate_inode_pages_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: truncate functions are in truncate.c
+Subject: mm: pincer in truncate_inode_pages_range
 From: Hugh Dickins <hughd@google.com>
 
-Correct comment on truncate_inode_pages*() in linux/mm.h; and remove
-declaration of page_unuse(), it didn't exist even in 2.2.26 or 2.4.0!
+truncate_inode_pages_range()'s final loop has a nice pincer property,
+bringing start and end together, squeezing out the last pages.  But the
+range handling missed out on that, just sliding up the range, perhaps
+letting pages come in behind it.  Add one more test to give it the same
+pincer effect.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/truncate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-truncate-functions-are-in-truncatec include/linux/mm.h
---- a/include/linux/mm.h~mm-truncate-functions-are-in-truncatec
-+++ a/include/linux/mm.h
-@@ -1411,8 +1411,7 @@ extern int do_munmap(struct mm_struct *,
- 
- extern unsigned long do_brk(unsigned long, unsigned long);
- 
--/* filemap.c */
--extern unsigned long page_unuse(struct page *);
-+/* truncate.c */
- extern void truncate_inode_pages(struct address_space *, loff_t);
- extern void truncate_inode_pages_range(struct address_space *,
- 				       loff_t lstart, loff_t lend);
+diff -puN mm/truncate.c~mm-pincer-in-truncate_inode_pages_range mm/truncate.c
+--- a/mm/truncate.c~mm-pincer-in-truncate_inode_pages_range
++++ a/mm/truncate.c
+@@ -269,7 +269,7 @@ void truncate_inode_pages_range(struct a
+ 			index = start;
+ 			continue;
+ 		}
+-		if (pvec.pages[0]->index > end) {
++		if (index == start && pvec.pages[0]->index > end) {
+ 			pagevec_release(&pvec);
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
