@@ -1,128 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] frv-hook-up-gpiolib-support.patch removed from -mm tree
-Date: Tue, 26 Jul 2011 14:13:51 -0700
-Message-ID: <201107262113.p6QLDqFF009336@imap1.linux-foundation.org>
+Subject: [to-be-updated] proc-pid-fdinfo-add-cloexec-information.patch removed from -mm tree
+Date: Tue, 26 Jul 2011 14:20:19 -0700
+Message-ID: <201107262120.p6QLKJPk009696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753112Ab1GZVOB (ORCPT
+	by vger.kernel.org with ESMTP id S1753112Ab1GZVU3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Jul 2011 17:14:01 -0400
+	Tue, 26 Jul 2011 17:20:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, dhowells@redhat.com, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: drepper@gmail.com, adobriyan@gmail.com, kosaki.motohiro@jp.fujitsu.com, mtk.manpages@gmail.com, rientjes@google.com, viro@zeniv.linux.org.uk, wilsons@start.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: hook up gpiolib support
+     /proc/pid/fdinfo: add cloexec information
 has been removed from the -mm tree.  Its filename was
-     frv-hook-up-gpiolib-support.patch
+     proc-pid-fdinfo-add-cloexec-information.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: hook up gpiolib support
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: /proc/pid/fdinfo: add cloexec information
+From: Ulrich Drepper <drepper@gmail.com>
 
-Allow people to use gpiolib on FRV, mostly for build coverage as it seems
-more useful to standardise the API than handle making it optional.
+There is one piece of information about a file descriptor which is
+currently not visible from the outside: the close-on-exec flag.  The
+/proc/PID/fdinfo/* files have the mode information but this is missing. 
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Howells <dhowells@redhat.com>
+This is needed so that Linux can re-implement the Solaris pfiles program.
+
+Signed-off-by: Ulrich Drepper <drepper@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Stephen Wilson <wilsons@start.ca>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/Kconfig            |    4 ++
- arch/frv/include/asm/gpio.h |   55 ++++++++++++++++++++++++++++++++++
- 2 files changed, 59 insertions(+)
+ fs/proc/base.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN arch/frv/Kconfig~frv-hook-up-gpiolib-support arch/frv/Kconfig
---- a/arch/frv/Kconfig~frv-hook-up-gpiolib-support
-+++ a/arch/frv/Kconfig
-@@ -2,6 +2,7 @@ config FRV
- 	bool
- 	default y
- 	select HAVE_IDE
-+	select ARCH_WANT_OPTIONAL_GPIO
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_IRQ_WORK
- 	select HAVE_PERF_EVENTS
-@@ -28,6 +29,9 @@ config GENERIC_CALIBRATE_DELAY
- 	bool
- 	default n
- 
-+config GENERIC_GPIO
-+	def_bool y
+diff -puN fs/proc/base.c~proc-pid-fdinfo-add-cloexec-information fs/proc/base.c
+--- a/fs/proc/base.c~proc-pid-fdinfo-add-cloexec-information
++++ a/fs/proc/base.c
+@@ -1923,12 +1923,23 @@ static int proc_fd_info(struct inode *in
+ 				*path = file->f_path;
+ 				path_get(&file->f_path);
+ 			}
+-			if (info)
++			if (info) {
++				int cloexec;
++				struct fdtable *fdt;
 +
- config TIME_LOW_RES
- 	bool
- 	default y
-diff -puN /dev/null arch/frv/include/asm/gpio.h
---- /dev/null
-+++ a/arch/frv/include/asm/gpio.h
-@@ -0,0 +1,55 @@
-+/*
-+ * Generic GPIO API implementation for FRV.
-+ *
-+ * A stright copy of that for PowerPC which was:
-+ *
-+ * Copyright (c) 2007-2008  MontaVista Software, Inc.
-+ *
-+ * Author: Anton Vorontsov <avorontsov@ru.mvista.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
++				rcu_read_lock();
++				fdt = files_fdtable(files);
++				cloexec = FD_ISSET(fd, fdt->close_on_exec);
++				rcu_read_unlock();
 +
-+#ifndef _ASM_FRV_GPIO_H
-+#define _ASM_FRV_GPIO_H
-+
-+#include <linux/errno.h>
-+#include <asm-generic/gpio.h>
-+
-+#ifdef CONFIG_GPIOLIB
-+
-+/*
-+ * We don't (yet) implement inlined/rapid versions for on-chip gpios.
-+ * Just call gpiolib.
-+ */
-+static inline int gpio_get_value(unsigned int gpio)
-+{
-+	return __gpio_get_value(gpio);
-+}
-+
-+static inline void gpio_set_value(unsigned int gpio, int value)
-+{
-+	__gpio_set_value(gpio, value);
-+}
-+
-+static inline int gpio_cansleep(unsigned int gpio)
-+{
-+	return __gpio_cansleep(gpio);
-+}
-+
-+static inline int gpio_to_irq(unsigned int gpio)
-+{
-+	return __gpio_to_irq(gpio);
-+}
-+
-+static inline int irq_to_gpio(unsigned int irq)
-+{
-+	return -EINVAL;
-+}
-+
-+#endif /* CONFIG_GPIOLIB */
-+
-+#endif /* _ASM_FRV_GPIO_H */
+ 				snprintf(info, PROC_FDINFO_MAX,
+ 					 "pos:\t%lli\n"
+-					 "flags:\t0%o\n",
++					 "flags:\t0%o\n"
++					 "cloexec: %d\n",
+ 					 (long long) file->f_pos,
+-					 file->f_flags);
++					 file->f_flags,
++					 cloexec);
++			}
+ 			spin_unlock(&files->file_lock);
+ 			put_files_struct(files);
+ 			return 0;
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from drepper@gmail.com are
 
-origin.patch
+h8300-m68k-xtensa-__fd_isset-should-return-0-1.patch
+proc-pid-fdinfo-add-cloexec-information-fix.patch
 
