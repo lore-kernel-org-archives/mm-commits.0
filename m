@@ -1,149 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-unify-sync-and-async-per-cpu-charge-cache-draining.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:28:18 -0700
-Message-ID: <201107271927.p6RJR4AK003181@imap1.linux-foundation.org>
+Subject: [merged] memcg-fix-behavior-of-mem_cgroup_resize_limit.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:28:12 -0700
+Message-ID: <201107271926.p6RJQwk7003160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36076 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754890Ab1G0T1L (ORCPT
+	by vger.kernel.org with ESMTP id S1754595Ab1G0T1J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:27:11 -0400
+	Wed, 27 Jul 2011 15:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: nishimura@mxp.nes.nec.co.jp, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, stable@kernel.org, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: unify sync and async per-cpu charge cache draining
+     memcg: fix behavior of mem_cgroup_resize_limit()
 has been removed from the -mm tree.  Its filename was
-     memcg-unify-sync-and-async-per-cpu-charge-cache-draining.patch
+     memcg-fix-behavior-of-mem_cgroup_resize_limit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: unify sync and async per-cpu charge cache draining
-From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: fix behavior of mem_cgroup_resize_limit()
+From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 
-Currently we have two ways how to drain per-CPU caches for charges. 
-drain_all_stock_sync will synchronously drain all caches while
-drain_all_stock_async will asynchronously drain only those that refer to a
-given memory cgroup or its subtree in hierarchy.  Targeted async draining
-has been introduced by 26fe6168 (memcg: fix percpu cached charge draining
-frequency) to reduce the cpu workers number.
+22a668d7 ("memcg: fix behavior under memory.limit equals to memsw.limit")
+introduced "memsw_is_minimum" flag, which becomes true when mem_limit ==
+memsw_limit.  The flag is checked at the beginning of reclaim, and
+"noswap" is set if the flag is true, because using swap is meaningless in
+this case.
 
-sync draining is currently triggered only from mem_cgroup_force_empty
-which is triggered only by userspace (mem_cgroup_force_empty_write) or
-when a cgroup is removed (mem_cgroup_pre_destroy).  Although these are not
-usually frequent operations it still makes some sense to do targeted
-draining as well, especially if the box has many CPUs.
+This works well in most cases, but when we try to shrink mem_limit, which
+is the same as memsw_limit now, we might fail to shrink mem_limit because
+swap doesn't used.
 
-This patch unifies both methods to use the single code (drain_all_stock)
-which relies on the original async implementation and just adds flush_work
-to wait on all caches that are still under work for the sync mode.  We are
-using FLUSHING_CACHED_CHARGE bit check to prevent from waiting on a work
-that we haven't triggered.  Please note that both sync and async functions
-are currently protected by percpu_charge_mutex so we cannot race with
-other drainers.
+This patch fixes this behavior by:
+- check MEM_CGROUP_RECLAIM_SHRINK at the begining of reclaim
+- If it is set, don't set "noswap" flag even if memsw_is_minimum is true.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <bsingharora@gmail.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Ying Han <yinghan@google.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   48 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 34 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-unify-sync-and-async-per-cpu-charge-cache-draining mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-unify-sync-and-async-per-cpu-charge-cache-draining
+diff -puN mm/memcontrol.c~memcg-fix-behavior-of-mem_cgroup_resize_limit mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-behavior-of-mem_cgroup_resize_limit
 +++ a/mm/memcontrol.c
-@@ -2154,19 +2154,14 @@ static void refill_stock(struct mem_cgro
- }
+@@ -1653,7 +1653,7 @@ static int mem_cgroup_hierarchical_recla
+ 	excess = res_counter_soft_limit_excess(&root_mem->res) >> PAGE_SHIFT;
  
- /*
-- * Tries to drain stocked charges in other cpus. This function is asynchronous
-- * and just put a work per cpu for draining localy on each cpu. Caller can
-- * expects some charges will be back to res_counter later but cannot wait for
-- * it.
-+ * Drains all per-CPU charge caches for given root_mem resp. subtree
-+ * of the hierarchy under it. sync flag says whether we should block
-+ * until the work is done.
-  */
--static void drain_all_stock_async(struct mem_cgroup *root_mem)
-+static void drain_all_stock(struct mem_cgroup *root_mem, bool sync)
- {
- 	int cpu, curcpu;
--	/*
--	 * If someone calls draining, avoid adding more kworker runs.
--	 */
--	if (!mutex_trylock(&percpu_charge_mutex))
--		return;
-+
- 	/* Notify other cpus that system-wide "drain" is running */
- 	get_online_cpus();
- 	/*
-@@ -2197,17 +2192,42 @@ static void drain_all_stock_async(struct
- 				schedule_work_on(cpu, &stock->work);
- 		}
- 	}
-+
-+	if (!sync)
-+		goto out;
-+
-+	for_each_online_cpu(cpu) {
-+		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
-+		if (test_bit(FLUSHING_CACHED_CHARGE, &stock->flags))
-+			flush_work(&stock->work);
-+	}
-+out:
-  	put_online_cpus();
-+}
-+
-+/*
-+ * Tries to drain stocked charges in other cpus. This function is asynchronous
-+ * and just put a work per cpu for draining localy on each cpu. Caller can
-+ * expects some charges will be back to res_counter later but cannot wait for
-+ * it.
-+ */
-+static void drain_all_stock_async(struct mem_cgroup *root_mem)
-+{
-+	/*
-+	 * If someone calls draining, avoid adding more kworker runs.
-+	 */
-+	if (!mutex_trylock(&percpu_charge_mutex))
-+		return;
-+	drain_all_stock(root_mem, false);
- 	mutex_unlock(&percpu_charge_mutex);
--	/* We don't wait for flush_work */
- }
+ 	/* If memsw_is_minimum==1, swap-out is of-no-use. */
+-	if (!check_soft && root_mem->memsw_is_minimum)
++	if (!check_soft && !shrink && root_mem->memsw_is_minimum)
+ 		noswap = true;
  
- /* This is a synchronous drain interface. */
--static void drain_all_stock_sync(void)
-+static void drain_all_stock_sync(struct mem_cgroup *root_mem)
- {
- 	/* called when force_empty is called */
- 	mutex_lock(&percpu_charge_mutex);
--	schedule_on_each_cpu(drain_local_stock);
-+	drain_all_stock(root_mem, true);
- 	mutex_unlock(&percpu_charge_mutex);
- }
- 
-@@ -3856,7 +3876,7 @@ move_account:
- 			goto out;
- 		/* This is for making all *used* pages to be on LRU. */
- 		lru_add_drain_all();
--		drain_all_stock_sync();
-+		drain_all_stock_sync(mem);
- 		ret = 0;
- 		mem_cgroup_start_move(mem);
- 		for_each_node_state(node, N_HIGH_MEMORY) {
+ 	while (1) {
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
 
 origin.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
 
