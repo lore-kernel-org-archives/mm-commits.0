@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-trivial-clean-up-in-acct_isolated.patch added to -mm tree
-Date: Wed, 27 Jul 2011 13:12:16 -0700
-Message-ID: <201107272012.p6RKCGCT005380@imap1.linux-foundation.org>
+Subject: + mm-compaction-make-isolate_lru_page-filter-aware.patch added to -mm tree
+Date: Wed, 27 Jul 2011 13:12:22 -0700
+Message-ID: <201107272012.p6RKCMxT005390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56782 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753103Ab1G0UMc (ORCPT
+	by vger.kernel.org with ESMTP id S1752380Ab1G0UMi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 16:12:32 -0400
+	Wed, 27 Jul 2011 16:12:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: minchan.kim@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, kamezawa.hir
 
 
 The patch titled
-     mm: compaction: trivial clean up in acct_isolated()
+     mm: compaction: make isolate_lru_page() filter-aware
 has been added to the -mm tree.  Its filename is
-     mm-compaction-trivial-clean-up-in-acct_isolated.patch
+     mm-compaction-make-isolate_lru_page-filter-aware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: compaction: trivial clean up in acct_isolated()
+Subject: mm: compaction: make isolate_lru_page() filter-aware
 From: Minchan Kim <minchan.kim@gmail.com>
 
-acct_isolated of compaction uses page_lru_base_type which returns only
-base type of LRU list so it never returns LRU_ACTIVE_ANON or
-LRU_ACTIVE_FILE.  In addtion, cc->nr_[anon|file] is used in only
-acct_isolated so it doesn't have fields in conpact_control.
+In async mode, compaction doesn't migrate dirty or writeback pages.  So,
+it's meaningless to pick the page and re-add it to lru list.
 
-This patch removes fields from compact_control and makes clear function of
-acct_issolated which counts the number of anon|file pages isolated.
+Of course, when we isolate the page in compaction, the page might be dirty
+or writeback but when we try to migrate the page, the page would be not
+dirty, writeback.  So it could be migrated.  But it's very unlikely as
+isolate and migration cycle is much faster than writeout.
+
+So, this patch helps cpu overhead and prevent unnecessary LRU churning.
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -56,46 +58,62 @@ Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ include/linux/mmzone.h |    3 ++-
+ mm/compaction.c        |    7 +++++--
+ mm/vmscan.c            |    3 +++
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-trivial-clean-up-in-acct_isolated mm/compaction.c
---- a/mm/compaction.c~mm-compaction-trivial-clean-up-in-acct_isolated
-+++ a/mm/compaction.c
-@@ -35,10 +35,6 @@ struct compact_control {
- 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
- 	bool sync;			/* Synchronous migration */
- 
--	/* Account for isolated anon and file pages */
--	unsigned long nr_anon;
--	unsigned long nr_file;
+diff -puN include/linux/mmzone.h~mm-compaction-make-isolate_lru_page-filter-aware include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-compaction-make-isolate_lru_page-filter-aware
++++ a/include/linux/mmzone.h
+@@ -168,7 +168,8 @@ static inline int is_unevictable_lru(enu
+ #define ISOLATE_INACTIVE	((__force fmode_t)0x1)
+ /* Isolate active pages */
+ #define ISOLATE_ACTIVE		((__force fmode_t)0x2)
 -
- 	unsigned int order;		/* order a direct compactor needs */
- 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
- 	struct zone *zone;
-@@ -223,17 +219,13 @@ static void isolate_freepages(struct zon
- static void acct_isolated(struct zone *zone, struct compact_control *cc)
- {
- 	struct page *page;
--	unsigned int count[NR_LRU_LISTS] = { 0, };
-+	unsigned int count[2] = { 0, };
++/* Isolate clean file */
++#define ISOLATE_CLEAN		((__force fmode_t)0x4)
+ /* LRU Isolation modes. */
+ typedef unsigned __bitwise__ isolate_mode_t;
  
--	list_for_each_entry(page, &cc->migratepages, lru) {
--		int lru = page_lru_base_type(page);
--		count[lru]++;
--	}
-+	list_for_each_entry(page, &cc->migratepages, lru)
-+		count[!!page_is_file_cache(page)]++;
+diff -puN mm/compaction.c~mm-compaction-make-isolate_lru_page-filter-aware mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-make-isolate_lru_page-filter-aware
++++ a/mm/compaction.c
+@@ -261,6 +261,7 @@ static isolate_migrate_t isolate_migrate
+ 	unsigned long last_pageblock_nr = 0, pageblock_nr;
+ 	unsigned long nr_scanned = 0, nr_isolated = 0;
+ 	struct list_head *migratelist = &cc->migratepages;
++	isolate_mode_t mode = ISOLATE_ACTIVE|ISOLATE_INACTIVE;
  
--	cc->nr_anon = count[LRU_ACTIVE_ANON] + count[LRU_INACTIVE_ANON];
--	cc->nr_file = count[LRU_ACTIVE_FILE] + count[LRU_INACTIVE_FILE];
--	__mod_zone_page_state(zone, NR_ISOLATED_ANON, cc->nr_anon);
--	__mod_zone_page_state(zone, NR_ISOLATED_FILE, cc->nr_file);
-+	__mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
-+	__mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
- }
+ 	/* Do not scan outside zone boundaries */
+ 	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
+@@ -348,9 +349,11 @@ static isolate_migrate_t isolate_migrate
+ 			continue;
+ 		}
  
- /* Similar to reclaim, but different enough that they don't share logic */
++		if (!cc->sync)
++			mode |= ISOLATE_CLEAN;
++
+ 		/* Try isolate the page */
+-		if (__isolate_lru_page(page,
+-				ISOLATE_ACTIVE|ISOLATE_INACTIVE, 0) != 0)
++		if (__isolate_lru_page(page, mode, 0) != 0)
+ 			continue;
+ 
+ 		VM_BUG_ON(PageTransCompound(page));
+diff -puN mm/vmscan.c~mm-compaction-make-isolate_lru_page-filter-aware mm/vmscan.c
+--- a/mm/vmscan.c~mm-compaction-make-isolate_lru_page-filter-aware
++++ a/mm/vmscan.c
+@@ -1046,6 +1046,9 @@ int __isolate_lru_page(struct page *page
+ 
+ 	ret = -EBUSY;
+ 
++	if ((mode & ISOLATE_CLEAN) && (PageDirty(page) || PageWriteback(page)))
++		return ret;
++
+ 	if (likely(get_page_unless_zero(page))) {
+ 		/*
+ 		 * Be careful not to clear PageLRU until after we're
 _
 
 Patches currently in -mm which might be from minchan.kim@gmail.com are
