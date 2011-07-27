@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-add-block-plug-for-page-reclaim.patch added to -mm tree
-Date: Wed, 27 Jul 2011 16:45:33 -0700
-Message-ID: <201107272345.p6RNjXrg015644@imap1.linux-foundation.org>
+Subject: + drivers-watchdog-shwdtc-fix-usage-of-mod_timer.patch added to -mm tree
+Date: Wed, 27 Jul 2011 16:53:27 -0700
+Message-ID: <201107272353.p6RNrRU0015896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754144Ab1G0Xph (ORCPT
+	by vger.kernel.org with ESMTP id S1751435Ab1G0XyQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 19:45:37 -0400
+	Wed, 27 Jul 2011 19:54:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, axboe@kernel.dk, minchan.kim@gmail.com
+Cc: david.engraf@sysgo.com, lethal@linux-sh.org, stable@kernel.org, wim@iguana.be
 
 
 The patch titled
-     vmscan: add block plug for page reclaim
+     drivers/watchdog/shwdt.c: fix usage of mod_timer
 has been added to the -mm tree.  Its filename is
-     vmscan-add-block-plug-for-page-reclaim.patch
+     drivers-watchdog-shwdtc-fix-usage-of-mod_timer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: add block plug for page reclaim
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: drivers/watchdog/shwdt.c: fix usage of mod_timer
+From: David Engraf <david.engraf@sysgo.com>
 
-per-task block plug can reduce block queue lock contention and increase
-request merge.  Currently page reclaim doesn't support it.  I originally
-thought page reclaim doesn't need it, because kswapd thread count is
-limited and file cache write is done at flusher mostly.
+Fix the usage of mod_timer() and make the driver usable.  mod_timer() must
+be called with an absolute timeout in jiffies.  The old implementation
+used a relative timeout thus the hardware watchdog was never triggered.
 
-When I test a workload with heavy swap in a 4-node machine, each CPU is
-doing direct page reclaim and swap.  This causes block queue lock
-contention.  In my test, without below patch, the CPU utilization is about
-2% ~ 7%.  With the patch, the CPU utilization is about 1% ~ 3%.  Disk
-throughput isn't changed.  This should improve normal kswapd write and
-file cache write too (increase request merge for example), but might not
-be so obvious as I explain above.
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: David Engraf <david.engraf@sysgo.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/watchdog/shwdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-add-block-plug-for-page-reclaim mm/vmscan.c
---- a/mm/vmscan.c~vmscan-add-block-plug-for-page-reclaim
-+++ a/mm/vmscan.c
-@@ -2022,12 +2022,14 @@ static void shrink_zone(int priority, st
- 	enum lru_list l;
- 	unsigned long nr_reclaimed, nr_scanned;
- 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
-+	struct blk_plug plug;
+diff -puN drivers/watchdog/shwdt.c~drivers-watchdog-shwdtc-fix-usage-of-mod_timer drivers/watchdog/shwdt.c
+--- a/drivers/watchdog/shwdt.c~drivers-watchdog-shwdtc-fix-usage-of-mod_timer
++++ a/drivers/watchdog/shwdt.c
+@@ -64,7 +64,7 @@
+  * misses its deadline, the kernel timer will allow the WDT to overflow.
+  */
+ static int clock_division_ratio = WTCSR_CKS_4096;
+-#define next_ping_period(cks)	msecs_to_jiffies(cks - 4)
++#define next_ping_period(cks)	(jiffies + msecs_to_jiffies(cks - 4))
  
- restart:
- 	nr_reclaimed = 0;
- 	nr_scanned = sc->nr_scanned;
- 	get_scan_count(zone, sc, nr, priority);
- 
-+	blk_start_plug(&plug);
- 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
- 					nr[LRU_INACTIVE_FILE]) {
- 		for_each_evictable_lru(l) {
-@@ -2051,6 +2053,7 @@ restart:
- 		if (nr_reclaimed >= nr_to_reclaim && priority < DEF_PRIORITY)
- 			break;
- 	}
-+	blk_finish_plug(&plug);
- 	sc->nr_reclaimed += nr_reclaimed;
- 
- 	/*
+ static const struct watchdog_info sh_wdt_info;
+ static struct platform_device *sh_wdt_dev;
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from david.engraf@sysgo.com are
 
-origin.patch
-linux-next.patch
-acpi-add-missing-_osi-strings-resend.patch
-vmscan-add-block-plug-for-page-reclaim.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+drivers-watchdog-shwdtc-fix-usage-of-mod_timer.patch
 
