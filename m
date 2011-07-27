@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clarify-the-radix_tree-exceptional-cases.patch added to -mm tree
-Date: Wed, 27 Jul 2011 16:30:02 -0700
-Message-ID: <201107272330.p6RNU2PW014992@imap1.linux-foundation.org>
+Subject: + vmscan-add-block-plug-for-page-reclaim.patch added to -mm tree
+Date: Wed, 27 Jul 2011 16:45:33 -0700
+Message-ID: <201107272345.p6RNjXrg015644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48078 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753425Ab1G0Xae (ORCPT
+	by vger.kernel.org with ESMTP id S1754144Ab1G0Xph (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 19:30:34 -0400
+	Wed, 27 Jul 2011 19:45:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com
+Cc: shaohua.li@intel.com, axboe@kernel.dk, minchan.kim@gmail.com
 
 
 The patch titled
-     mm: clarify the radix_tree exceptional cases
+     vmscan: add block plug for page reclaim
 has been added to the -mm tree.  Its filename is
-     mm-clarify-the-radix_tree-exceptional-cases.patch
+     vmscan-add-block-plug-for-page-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,189 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: clarify the radix_tree exceptional cases
-From: Hugh Dickins <hughd@google.com>
+Subject: vmscan: add block plug for page reclaim
+From: Shaohua Li <shaohua.li@intel.com>
 
-Make the radix_tree exceptional cases, mostly in filemap.c, clearer.
+per-task block plug can reduce block queue lock contention and increase
+request merge.  Currently page reclaim doesn't support it.  I originally
+thought page reclaim doesn't need it, because kswapd thread count is
+limited and file cache write is done at flusher mostly.
 
-It's hard to devise a suitable snappy name that illuminates the use by
-shmem/tmpfs for swap, while keeping filemap/pagecache/radix_tree
-generality.  And akpm points out that /* radix_tree_deref_retry(page) */
-comments look like calls that have been commented out for unknown reason.
+When I test a workload with heavy swap in a 4-node machine, each CPU is
+doing direct page reclaim and swap.  This causes block queue lock
+contention.  In my test, without below patch, the CPU utilization is about
+2% ~ 7%.  With the patch, the CPU utilization is about 1% ~ 3%.  Disk
+throughput isn't changed.  This should improve normal kswapd write and
+file cache write too (increase request merge for example), but might not
+be so obvious as I explain above.
 
-Skirt the naming difficulty by rearranging these blocks to handle the
-transient radix_tree_deref_retry(page) case first; then just explain the
-remaining shmem/tmpfs swap case in a comment.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   66 ++++++++++++++++++++++++++++++++-----------------
- mm/mincore.c |    1 
- mm/shmem.c   |   12 +++++---
- 3 files changed, 53 insertions(+), 26 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/filemap.c~mm-clarify-the-radix_tree-exceptional-cases mm/filemap.c
---- a/mm/filemap.c~mm-clarify-the-radix_tree-exceptional-cases
-+++ a/mm/filemap.c
-@@ -700,10 +700,14 @@ repeat:
- 		if (unlikely(!page))
- 			goto out;
- 		if (radix_tree_exception(page)) {
--			if (radix_tree_exceptional_entry(page))
--				goto out;
--			/* radix_tree_deref_retry(page) */
--			goto repeat;
-+			if (radix_tree_deref_retry(page))
-+				goto repeat;
-+			/*
-+			 * Otherwise, shmem/tmpfs must be storing a swap entry
-+			 * here as an exceptional entry: so return it without
-+			 * attempting to raise page count.
-+			 */
-+			goto out;
- 		}
- 		if (!page_cache_get_speculative(page))
- 			goto repeat;
-@@ -838,15 +842,21 @@ repeat:
- 			continue;
+diff -puN mm/vmscan.c~vmscan-add-block-plug-for-page-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-add-block-plug-for-page-reclaim
++++ a/mm/vmscan.c
+@@ -2022,12 +2022,14 @@ static void shrink_zone(int priority, st
+ 	enum lru_list l;
+ 	unsigned long nr_reclaimed, nr_scanned;
+ 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
++	struct blk_plug plug;
  
- 		if (radix_tree_exception(page)) {
--			if (radix_tree_exceptional_entry(page))
--				continue;
-+			if (radix_tree_deref_retry(page)) {
-+				/*
-+				 * Transient condition which can only trigger
-+				 * when entry at index 0 moves out of or back
-+				 * to root: none yet gotten, safe to restart.
-+				 */
-+				WARN_ON(start | i);
-+				goto restart;
-+			}
- 			/*
--			 * radix_tree_deref_retry(page):
--			 * can only trigger when entry at index 0 moves out of
--			 * or back to root: none yet gotten, safe to restart.
-+			 * Otherwise, shmem/tmpfs must be storing a swap entry
-+			 * here as an exceptional entry: so skip over it -
-+			 * we only reach this from invalidate_mapping_pages().
- 			 */
--			WARN_ON(start | i);
--			goto restart;
-+			continue;
- 		}
+ restart:
+ 	nr_reclaimed = 0;
+ 	nr_scanned = sc->nr_scanned;
+ 	get_scan_count(zone, sc, nr, priority);
  
- 		if (!page_cache_get_speculative(page))
-@@ -904,14 +914,20 @@ repeat:
- 			continue;
++	blk_start_plug(&plug);
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+ 					nr[LRU_INACTIVE_FILE]) {
+ 		for_each_evictable_lru(l) {
+@@ -2051,6 +2053,7 @@ restart:
+ 		if (nr_reclaimed >= nr_to_reclaim && priority < DEF_PRIORITY)
+ 			break;
+ 	}
++	blk_finish_plug(&plug);
+ 	sc->nr_reclaimed += nr_reclaimed;
  
- 		if (radix_tree_exception(page)) {
--			if (radix_tree_exceptional_entry(page))
--				break;
-+			if (radix_tree_deref_retry(page)) {
-+				/*
-+				 * Transient condition which can only trigger
-+				 * when entry at index 0 moves out of or back
-+				 * to root: none yet gotten, safe to restart.
-+				 */
-+				goto restart;
-+			}
- 			/*
--			 * radix_tree_deref_retry(page):
--			 * can only trigger when entry at index 0 moves out of
--			 * or back to root: none yet gotten, safe to restart.
-+			 * Otherwise, shmem/tmpfs must be storing a swap entry
-+			 * here as an exceptional entry: so stop looking for
-+			 * contiguous pages.
- 			 */
--			goto restart;
-+			break;
- 		}
- 
- 		if (!page_cache_get_speculative(page))
-@@ -973,13 +989,19 @@ repeat:
- 			continue;
- 
- 		if (radix_tree_exception(page)) {
--			BUG_ON(radix_tree_exceptional_entry(page));
-+			if (radix_tree_deref_retry(page)) {
-+				/*
-+				 * Transient condition which can only trigger
-+				 * when entry at index 0 moves out of or back
-+				 * to root: none yet gotten, safe to restart.
-+				 */
-+				goto restart;
-+			}
- 			/*
--			 * radix_tree_deref_retry(page):
--			 * can only trigger when entry at index 0 moves out of
--			 * or back to root: none yet gotten, safe to restart.
-+			 * This function is never used on a shmem/tmpfs
-+			 * mapping, so a swap entry won't be found here.
- 			 */
--			goto restart;
-+			BUG();
- 		}
- 
- 		if (!page_cache_get_speculative(page))
-diff -puN mm/mincore.c~mm-clarify-the-radix_tree-exceptional-cases mm/mincore.c
---- a/mm/mincore.c~mm-clarify-the-radix_tree-exceptional-cases
-+++ a/mm/mincore.c
-@@ -72,6 +72,7 @@ static unsigned char mincore_page(struct
- 	 */
- 	page = find_get_page(mapping, pgoff);
- #ifdef CONFIG_SWAP
-+	/* shmem/tmpfs may return swap: account for swapcache page too. */
- 	if (radix_tree_exceptional_entry(page)) {
- 		swp_entry_t swap = radix_to_swp_entry(page);
- 		page = find_get_page(&swapper_space, swap.val);
-diff -puN mm/shmem.c~mm-clarify-the-radix_tree-exceptional-cases mm/shmem.c
---- a/mm/shmem.c~mm-clarify-the-radix_tree-exceptional-cases
-+++ a/mm/shmem.c
-@@ -332,10 +332,14 @@ repeat:
- 		if (unlikely(!page))
- 			continue;
- 		if (radix_tree_exception(page)) {
--			if (radix_tree_exceptional_entry(page))
--				goto export;
--			/* radix_tree_deref_retry(page) */
--			goto restart;
-+			if (radix_tree_deref_retry(page))
-+				goto restart;
-+			/*
-+			 * Otherwise, we must be storing a swap entry
-+			 * here as an exceptional entry: so return it
-+			 * without attempting to raise page count.
-+			 */
-+			goto export;
- 		}
- 		if (!page_cache_get_speculative(page))
- 			goto repeat;
+ 	/*
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
 linux-next.patch
-slub-partly-fix-freeze-in-__slab_free.patch
-radix_tree-clean-away-saw_unset_tag-leftovers.patch
-radix_tree-exceptional-entries-and-indices.patch
-mm-let-swap-use-exceptional-entries.patch
-tmpfs-demolish-old-swap-vector-support.patch
-tmpfs-miscellaneous-trivial-cleanups.patch
-tmpfs-copy-truncate_inode_pages_range.patch
-tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
-tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
-tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
-tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
-tmpfs-convert-shmem_writepage-and-enable-swap.patch
-tmpfs-use-kmemdup-for-short-symlinks.patch
-mm-a-few-small-updates-for-radix-swap.patch
-mm-a-few-small-updates-for-radix-swap-fix.patch
-tmpfs-radix_tree-locate_item-to-speed-up-swapoff.patch
-mm-clarify-the-radix_tree-exceptional-cases.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-prio_tree-debugging-patch.patch
+acpi-add-missing-_osi-strings-resend.patch
+vmscan-add-block-plug-for-page-reclaim.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
