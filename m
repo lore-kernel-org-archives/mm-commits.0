@@ -1,131 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ramoops-add-new-line-to-each-print.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:29:28 -0700
-Message-ID: <201107271928.p6RJSFpu003290@imap1.linux-foundation.org>
+Subject: [merged] panic-vt-do-not-force-oops-output-when-panic_timeout-0.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:29:18 -0700
+Message-ID: <201107271928.p6RJS4rG003275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754984Ab1G0T2j (ORCPT
+	by vger.kernel.org with ESMTP id S1754984Ab1G0T2h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:28:39 -0400
+	Wed, 27 Jul 2011 15:28:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marco.stornelli@gmail.com, joe@perches.com, kyungmin.park@samsung.com, stevie.trujillo@gmail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: msb@chromium.org, airlied@gmail.com, ak@linux.intel.com, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, hughd@google.com, jbarnes@virtuousgeek.org, olaf@aepfle.de, ying.huang@intel.com, mm
 
 
 The patch titled
-     ramoops: add new line to each print
+     panic, vt: do not force oops output when panic_timeout < 0
 has been removed from the -mm tree.  Its filename was
-     ramoops-add-new-line-to-each-print.patch
+     panic-vt-do-not-force-oops-output-when-panic_timeout-0.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ramoops: add new line to each print
-=46rom: Marco Stornelli <marco.stornelli@gmail.com>
+Subject: panic, vt: do not force oops output when panic_timeout < 0
+From: Mandeep Singh Baines <msb@chromium.org>
 
-Add new line to each print.
+Don't force output if you intend to reboot immediately.
 
-Signed-off-by: Marco Stornelli <marco.stornelli@gmail.com>
-Reported-by: Stevie Trujillo <stevie.trujillo@gmail.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Am=E9rico Wang <xiyou.wangcong@gmail.com>
-Cc: Joe Perches <joe@perches.com>
+In this patch, I'm disabling the functionality enabled by
+vc->vc_panic_force_write if panic_timeout < 0 (i.e.  no timeout). 
+vc_panic_force_write is only enabled for fb video consoles if the
+FBINFO_CAN_FORCE_OUTPUT flag is set.
+
+For our application, we're using ram_oops to preserved the panic in
+memory.  We want to reliably, and as fast as possible, machine_restart. 
+The vc_panic_force_write flag results in a bunch of graphics driver code
+to be invoked which slows down restart and decreases reliability.  Since
+we're already storing the panic in RAM and are going to reboot
+immediately, there is no benefit in mode switching back to the vc in order
+to display the panic output.  The log buffer will get flushed by the
+console_unblank() call so remote management consoles should see all
+output.
+
+Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Olaf Hering <olaf@aepfle.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ramoops.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/vt_kern.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ramoops.c~ramoops-add-new-line-to-each-print dri=
-vers/char/ramoops.c
---- a/drivers/char/ramoops.c~ramoops-add-new-line-to-each-print
-+++ a/drivers/char/ramoops.c
-@@ -19,6 +19,8 @@
-  *
-  */
-=20
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/kmsg_dump.h>
-@@ -111,14 +113,14 @@ static int __init ramoops_probe(struct p
- 	int err =3D -EINVAL;
-=20
- 	if (!pdata->mem_size) {
--		printk(KERN_ERR "ramoops: invalid size specification");
-+		pr_err("invalid size specification\n");
- 		goto fail3;
- 	}
-=20
- 	rounddown_pow_of_two(pdata->mem_size);
-=20
- 	if (pdata->mem_size < RECORD_SIZE) {
--		printk(KERN_ERR "ramoops: size too small");
-+		pr_err("size too small\n");
- 		goto fail3;
- 	}
-=20
-@@ -128,21 +130,21 @@ static int __init ramoops_probe(struct p
- 	cxt->phys_addr =3D pdata->mem_address;
-=20
- 	if (!request_mem_region(cxt->phys_addr, cxt->size, "ramoops")) {
--		printk(KERN_ERR "ramoops: request mem region failed");
-+		pr_err("request mem region failed\n");
- 		err =3D -EINVAL;
- 		goto fail3;
- 	}
-=20
- 	cxt->virt_addr =3D ioremap(cxt->phys_addr,  cxt->size);
- 	if (!cxt->virt_addr) {
--		printk(KERN_ERR "ramoops: ioremap failed");
-+		pr_err("ioremap failed\n");
- 		goto fail2;
- 	}
-=20
- 	cxt->dump.dump =3D ramoops_do_dump;
- 	err =3D kmsg_dump_register(&cxt->dump);
- 	if (err) {
--		printk(KERN_ERR "ramoops: registering kmsg dumper failed");
-+		pr_err("registering kmsg dumper failed\n");
- 		goto fail1;
- 	}
-=20
-@@ -161,7 +163,7 @@ static int __exit ramoops_remove(struct=20
- 	struct ramoops_context *cxt =3D &oops_cxt;
-=20
- 	if (kmsg_dump_unregister(&cxt->dump) < 0)
--		printk(KERN_WARNING "ramoops: could not unregister kmsg_dumper");
-+		pr_warn("could not unregister kmsg_dumper\n");
-=20
- 	iounmap(cxt->virt_addr);
- 	release_mem_region(cxt->phys_addr, cxt->size);
-@@ -185,6 +187,7 @@ static int __init ramoops_init(void)
- 		 * If we didn't find a platform device, we use module parameters
- 		 * building platform data on the fly.
- 		 */
-+		pr_info("platform device not found, using module parameters\n");
- 		dummy_data =3D kzalloc(sizeof(struct ramoops_platform_data),
- 				     GFP_KERNEL);
- 		if (!dummy_data)
+diff -puN include/linux/vt_kern.h~panic-vt-do-not-force-oops-output-when-panic_timeout-0 include/linux/vt_kern.h
+--- a/include/linux/vt_kern.h~panic-vt-do-not-force-oops-output-when-panic_timeout-0
++++ a/include/linux/vt_kern.h
+@@ -137,7 +137,7 @@ int vty_init(const struct file_operation
+ 
+ static inline bool vt_force_oops_output(struct vc_data *vc)
+ {
+-	if (oops_in_progress && vc->vc_panic_force_write)
++	if (oops_in_progress && vc->vc_panic_force_write  && panic_timeout >= 0)
+ 		return true;
+ 	return false;
+ }
 _
 
-Patches currently in -mm which might be from marco.stornelli@gmail.com =
-are
+Patches currently in -mm which might be from msb@chromium.org are
 
 origin.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
