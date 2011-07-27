@@ -1,140 +1,327 @@
 From: akpm@linux-foundation.org
-Subject: [merged] asm-generic-atomich-allow-smp-peeps-to-leverage-this.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:30:08 -0700
-Message-ID: <201107271928.p6RJSssj003351@imap1.linux-foundation.org>
+Subject: [merged] atomic-cleanup-asm-generic-atomich-inclusion.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:29:58 -0700
+Message-ID: <201107271928.p6RJSjYe003331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754885Ab1G0T3S (ORCPT
+	by vger.kernel.org with ESMTP id S1754571Ab1G0T3U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:29:18 -0400
+	Wed, 27 Jul 2011 15:29:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, arnd@arndb.de, asharma@fb.com, mm-commits@vger.kernel.org
+To: asharma@fb.com, davem@davemloft.net, eric.dumazet@gmail.com, mingo@elte.hu, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asm-generic/atomic.h: allow SMP peeps to leverage this
+     atomic: cleanup asm-generic atomic*.h inclusion
 has been removed from the -mm tree.  Its filename was
-     asm-generic-atomich-allow-smp-peeps-to-leverage-this.patch
+     atomic-cleanup-asm-generic-atomich-inclusion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic/atomic.h: allow SMP peeps to leverage this
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: atomic: cleanup asm-generic atomic*.h inclusion
+From: Arun Sharma <asharma@fb.com>
 
-Only a few core funcs need to be implemented for SMP systems, so allow the
-arches to override them while getting the rest for free.
+After changing all consumers of atomics to include
+<linux/atomic.h>, we ran into some compile time errors
+due to this dependency chain:
 
-At least, this is enough to allow the Blackfin SMP port to use things.
+linux/atomic.h
+  -> asm/atomic.h
+    -> asm-generic/atomic-long.h
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: Arun Sharma <asharma@fb.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+where atomic-long.h could use funcs defined later in
+linux/atomic.h without a prototype. This patches moves
+the code that includes asm-generic/atomic*.h to
+linux/atomic.h.
+
+Archs that need <asm-generic/atomic64.h> need to select
+CONFIG_GENERIC_ATOMIC64 from now on (some of them used
+to include it unconditionally).
+
+Compile tested on i386 and x86_64 with allnoconfig.
+
+Signed-off-by: Arun Sharma <asharma@fb.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Miller <davem@davemloft.net>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/atomic.h |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ arch/alpha/include/asm/atomic.h    |    1 -
+ arch/arm/include/asm/atomic.h      |    5 +----
+ arch/avr32/include/asm/atomic.h    |    2 --
+ arch/blackfin/include/asm/atomic.h |    3 ---
+ arch/cris/include/asm/atomic.h     |    1 -
+ arch/frv/include/asm/atomic.h      |    1 -
+ arch/h8300/include/asm/atomic.h    |    1 -
+ arch/ia64/include/asm/atomic.h     |    1 -
+ arch/m32r/include/asm/atomic.h     |    1 -
+ arch/m68k/include/asm/atomic.h     |    2 --
+ arch/mips/include/asm/atomic.h     |    6 ------
+ arch/mn10300/include/asm/atomic.h  |    2 --
+ arch/parisc/include/asm/atomic.h   |    5 -----
+ arch/powerpc/include/asm/atomic.h  |    4 ----
+ arch/s390/include/asm/atomic.h     |    2 --
+ arch/sh/include/asm/atomic.h       |    3 ---
+ arch/sparc/include/asm/atomic_32.h |    1 -
+ arch/sparc/include/asm/atomic_64.h |    1 -
+ arch/tile/include/asm/atomic.h     |    5 -----
+ arch/x86/include/asm/atomic.h      |    1 -
+ arch/xtensa/include/asm/atomic.h   |    1 -
+ include/asm-generic/atomic.h       |    2 --
+ include/linux/atomic.h             |    4 ++++
+ 23 files changed, 5 insertions(+), 50 deletions(-)
 
-diff -puN include/asm-generic/atomic.h~asm-generic-atomich-allow-smp-peeps-to-leverage-this include/asm-generic/atomic.h
---- a/include/asm-generic/atomic.h~asm-generic-atomich-allow-smp-peeps-to-leverage-this
-+++ a/include/asm-generic/atomic.h
-@@ -16,7 +16,11 @@
- #define __ASM_GENERIC_ATOMIC_H
+diff -puN arch/alpha/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/alpha/include/asm/atomic.h
+--- a/arch/alpha/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/alpha/include/asm/atomic.h
+@@ -255,5 +255,4 @@ static __inline__ int atomic64_add_unles
+ #define smp_mb__before_atomic_inc()	smp_mb()
+ #define smp_mb__after_atomic_inc()	smp_mb()
  
- #ifdef CONFIG_SMP
--#error not SMP safe
-+/* Force people to define core atomics */
-+# if !defined(atomic_add_return) || !defined(atomic_sub_return) || \
-+     !defined(atomic_clear_mask) || !defined(atomic_set_mask)
-+#  error "SMP requires a little arch-specific magic"
-+# endif
+-#include <asm-generic/atomic-long.h>
+ #endif /* _ALPHA_ATOMIC_H */
+diff -puN arch/arm/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/arm/include/asm/atomic.h
+--- a/arch/arm/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/arm/include/asm/atomic.h
+@@ -459,9 +459,6 @@ static inline int atomic64_add_unless(at
+ #define atomic64_dec_and_test(v)	(atomic64_dec_return((v)) == 0)
+ #define atomic64_inc_not_zero(v)	atomic64_add_unless((v), 1LL, 0LL)
+ 
+-#else /* !CONFIG_GENERIC_ATOMIC64 */
+-#include <asm-generic/atomic64.h>
+-#endif
+-#include <asm-generic/atomic-long.h>
++#endif /* !CONFIG_GENERIC_ATOMIC64 */
+ #endif
+ #endif
+diff -puN arch/avr32/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/avr32/include/asm/atomic.h
+--- a/arch/avr32/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/avr32/include/asm/atomic.h
+@@ -188,6 +188,4 @@ static inline int atomic_sub_if_positive
+ #define smp_mb__before_atomic_inc()	barrier()
+ #define smp_mb__after_atomic_inc()	barrier()
+ 
+-#include <asm-generic/atomic-long.h>
+-
+ #endif /*  __ASM_AVR32_ATOMIC_H */
+diff -puN arch/blackfin/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/blackfin/include/asm/atomic.h
+--- a/arch/blackfin/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/blackfin/include/asm/atomic.h
+@@ -111,10 +111,7 @@ static inline void atomic_set_mask(int m
+ #define atomic_sub_and_test(i,v) (atomic_sub_return((i), (v)) == 0)
+ #define atomic_dec_and_test(v) (atomic_sub_return(1, (v)) == 0)
+ 
+-#include <asm-generic/atomic-long.h>
+ 
  #endif
  
+-#include <asm-generic/atomic64.h>
+-
+ #endif
+diff -puN arch/cris/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/cris/include/asm/atomic.h
+--- a/arch/cris/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/cris/include/asm/atomic.h
+@@ -157,5 +157,4 @@ static inline int __atomic_add_unless(at
+ #define smp_mb__before_atomic_inc()    barrier()
+ #define smp_mb__after_atomic_inc()     barrier()
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif
+diff -puN arch/frv/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/frv/include/asm/atomic.h
+--- a/arch/frv/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/frv/include/asm/atomic.h
+@@ -257,5 +257,4 @@ static __inline__ int __atomic_add_unles
+ }
+ 
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif /* _ASM_ATOMIC_H */
+diff -puN arch/h8300/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/h8300/include/asm/atomic.h
+--- a/arch/h8300/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/h8300/include/asm/atomic.h
+@@ -145,5 +145,4 @@ static __inline__ void atomic_set_mask(u
+ #define smp_mb__before_atomic_inc()    barrier()
+ #define smp_mb__after_atomic_inc() barrier()
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif /* __ARCH_H8300_ATOMIC __ */
+diff -puN arch/ia64/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/ia64/include/asm/atomic.h
+--- a/arch/ia64/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/ia64/include/asm/atomic.h
+@@ -215,5 +215,4 @@ atomic64_add_negative (__s64 i, atomic64
+ #define smp_mb__before_atomic_inc()	barrier()
+ #define smp_mb__after_atomic_inc()	barrier()
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif /* _ASM_IA64_ATOMIC_H */
+diff -puN arch/m32r/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/m32r/include/asm/atomic.h
+--- a/arch/m32r/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/m32r/include/asm/atomic.h
+@@ -313,5 +313,4 @@ static __inline__ void atomic_set_mask(u
+ #define smp_mb__before_atomic_inc()	barrier()
+ #define smp_mb__after_atomic_inc()	barrier()
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif	/* _ASM_M32R_ATOMIC_H */
+diff -puN arch/m68k/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/m68k/include/asm/atomic.h
+--- a/arch/m68k/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/m68k/include/asm/atomic.h
+@@ -205,6 +205,4 @@ static __inline__ int __atomic_add_unles
+ #define smp_mb__before_atomic_inc()	barrier()
+ #define smp_mb__after_atomic_inc()	barrier()
+ 
+-#include <asm-generic/atomic-long.h>
+-#include <asm-generic/atomic64.h>
+ #endif /* __ARCH_M68K_ATOMIC __ */
+diff -puN arch/mips/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/mips/include/asm/atomic.h
+--- a/arch/mips/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/mips/include/asm/atomic.h
+@@ -765,10 +765,6 @@ static __inline__ int atomic64_add_unles
+  */
+ #define atomic64_add_negative(i, v) (atomic64_add_return(i, (v)) < 0)
+ 
+-#else /* !CONFIG_64BIT */
+-
+-#include <asm-generic/atomic64.h>
+-
+ #endif /* CONFIG_64BIT */
+ 
  /*
-@@ -34,7 +38,9 @@
-  *
-  * Atomically reads the value of @v.
-  */
-+#ifndef atomic_read
- #define atomic_read(v)	(*(volatile int *)&(v)->counter)
-+#endif
+@@ -780,6 +776,4 @@ static __inline__ int atomic64_add_unles
+ #define smp_mb__before_atomic_inc()	smp_mb__before_llsc()
+ #define smp_mb__after_atomic_inc()	smp_llsc_mb()
  
- /**
-  * atomic_set - set atomic variable
-@@ -55,6 +61,7 @@
-  *
-  * Atomically adds @i to @v and returns the result
-  */
-+#ifndef atomic_add_return
- static inline int atomic_add_return(int i, atomic_t *v)
- {
- 	unsigned long flags;
-@@ -68,6 +75,7 @@ static inline int atomic_add_return(int 
+-#include <asm-generic/atomic-long.h>
+-
+ #endif /* _ASM_ATOMIC_H */
+diff -puN arch/mn10300/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/mn10300/include/asm/atomic.h
+--- a/arch/mn10300/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/mn10300/include/asm/atomic.h
+@@ -343,8 +343,6 @@ static inline void atomic_set_mask(unsig
+ #define smp_mb__before_atomic_inc()	barrier()
+ #define smp_mb__after_atomic_inc()	barrier()
  
- 	return temp;
- }
-+#endif
+-#include <asm-generic/atomic-long.h>
+-
+ #endif /* __KERNEL__ */
+ #endif /* CONFIG_SMP */
+ #endif /* _ASM_ATOMIC_H */
+diff -puN arch/parisc/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/parisc/include/asm/atomic.h
+--- a/arch/parisc/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/parisc/include/asm/atomic.h
+@@ -335,12 +335,7 @@ static __inline__ int atomic64_add_unles
  
- /**
-  * atomic_sub_return - subtract integer from atomic variable
-@@ -76,6 +84,7 @@ static inline int atomic_add_return(int 
-  *
-  * Atomically subtracts @i from @v and returns the result
-  */
-+#ifndef atomic_sub_return
- static inline int atomic_sub_return(int i, atomic_t *v)
- {
- 	unsigned long flags;
-@@ -89,6 +98,7 @@ static inline int atomic_sub_return(int 
+ #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
  
- 	return temp;
- }
-+#endif
+-#else /* CONFIG_64BIT */
+-
+-#include <asm-generic/atomic64.h>
+-
+ #endif /* !CONFIG_64BIT */
  
- static inline int atomic_add_negative(int i, atomic_t *v)
- {
-@@ -147,6 +157,7 @@ static inline int __atomic_add_unless(at
-  *
-  * Atomically clears the bits set in @mask from @v
-  */
-+#ifndef atomic_clear_mask
- static inline void atomic_clear_mask(unsigned long mask, atomic_t *v)
- {
- 	unsigned long flags;
-@@ -156,6 +167,7 @@ static inline void atomic_clear_mask(uns
- 	v->counter &= mask;
- 	raw_local_irq_restore(flags);
- }
-+#endif
+-#include <asm-generic/atomic-long.h>
  
- /**
-  * atomic_set_mask - Atomically set bits in atomic variable
-@@ -164,6 +176,7 @@ static inline void atomic_clear_mask(uns
-  *
-  * Atomically sets the bits set in @mask in @v
-  */
-+#ifndef atomic_set_mask
- static inline void atomic_set_mask(unsigned int mask, atomic_t *v)
- {
- 	unsigned long flags;
-@@ -172,6 +185,7 @@ static inline void atomic_set_mask(unsig
- 	v->counter |= mask;
- 	raw_local_irq_restore(flags);
- }
-+#endif
+ #endif /* _ASM_PARISC_ATOMIC_H_ */
+diff -puN arch/powerpc/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/powerpc/include/asm/atomic.h
+--- a/arch/powerpc/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/powerpc/include/asm/atomic.h
+@@ -469,11 +469,7 @@ static __inline__ int atomic64_add_unles
  
- /* Assume that atomic operations are already serializing */
- #define smp_mb__before_atomic_dec()	barrier()
-_
-
-Patches currently in -mm which might be from vapier@gentoo.org are
-
-origin.patch
-linux-next.patch
-
+ #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
+ 
+-#else  /* __powerpc64__ */
+-#include <asm-generic/atomic64.h>
+-
+ #endif /* __powerpc64__ */
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_POWERPC_ATOMIC_H_ */
+diff -puN arch/s390/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/s390/include/asm/atomic.h
+--- a/arch/s390/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/s390/include/asm/atomic.h
+@@ -331,6 +331,4 @@ static inline long long atomic64_dec_if_
+ #define smp_mb__before_atomic_inc()	smp_mb()
+ #define smp_mb__after_atomic_inc()	smp_mb()
+ 
+-#include <asm-generic/atomic-long.h>
+-
+ #endif /* __ARCH_S390_ATOMIC__  */
+diff -puN arch/sh/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/sh/include/asm/atomic.h
+--- a/arch/sh/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/sh/include/asm/atomic.h
+@@ -67,7 +67,4 @@ static inline int __atomic_add_unless(at
+ #define smp_mb__before_atomic_inc()	smp_mb()
+ #define smp_mb__after_atomic_inc()	smp_mb()
+ 
+-#include <asm-generic/atomic-long.h>
+-#include <asm-generic/atomic64.h>
+-
+ #endif /* __ASM_SH_ATOMIC_H */
+diff -puN arch/sparc/include/asm/atomic_32.h~atomic-cleanup-asm-generic-atomich-inclusion arch/sparc/include/asm/atomic_32.h
+--- a/arch/sparc/include/asm/atomic_32.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/sparc/include/asm/atomic_32.h
+@@ -160,5 +160,4 @@ static inline int __atomic24_sub(int i, 
+ 
+ #endif /* !(__KERNEL__) */
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif /* !(__ARCH_SPARC_ATOMIC__) */
+diff -puN arch/sparc/include/asm/atomic_64.h~atomic-cleanup-asm-generic-atomich-inclusion arch/sparc/include/asm/atomic_64.h
+--- a/arch/sparc/include/asm/atomic_64.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/sparc/include/asm/atomic_64.h
+@@ -113,5 +113,4 @@ static inline long atomic64_add_unless(a
+ #define smp_mb__before_atomic_inc()	barrier()
+ #define smp_mb__after_atomic_inc()	barrier()
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif /* !(__ARCH_SPARC64_ATOMIC__) */
+diff -puN arch/tile/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/tile/include/asm/atomic.h
+--- a/arch/tile/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/tile/include/asm/atomic.h
+@@ -177,9 +177,4 @@ extern unsigned long __cmpxchg_called_wi
+ #include <asm/atomic_64.h>
+ #endif
+ 
+-/* Provide the appropriate atomic_long_t definitions. */
+-#ifndef __ASSEMBLY__
+-#include <asm-generic/atomic-long.h>
+-#endif
+-
+ #endif /* _ASM_TILE_ATOMIC_H */
+diff -puN arch/x86/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/x86/include/asm/atomic.h
+--- a/arch/x86/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/x86/include/asm/atomic.h
+@@ -318,5 +318,4 @@ static inline void atomic_or_long(unsign
+ # include "atomic64_64.h"
+ #endif
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif /* _ASM_X86_ATOMIC_H */
+diff -puN arch/xtensa/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion arch/xtensa/include/asm/atomic.h
+--- a/arch/xtensa/include/asm/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/arch/xtensa/include/asm/atomic.h
+@@ -291,7 +291,6 @@ static inline void atomic_set_mask(unsig
+ #define smp_mb__before_atomic_inc()	barrier()
+ #define smp_mb__after_atomic_inc()	barrier()
+ 
+-#include <asm-generic/atomic-long.h>
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _XTENSA_ATOMIC_H */
+diff -puN include/asm-generic/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion include/asm-generic/atomic.h
+--- a/include/asm-generic/atomic.h~atomic-cleanup-asm-generic-atomich-inclusion
++++ a/include/asm-generic/atomic.h
+@@ -154,7 +154,5 @@ static inline void atomic_clear_mask(uns
+ #define smp_mb__before_atomic_inc()	barrier()
+ #define smp_mb__after_atomic_inc()	barrier()
+ 
+-#include <asm-generic/atomic-long.h>
