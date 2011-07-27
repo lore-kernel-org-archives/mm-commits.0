@@ -1,82 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-rename-atomic_add_unless.patch added to -mm tree
-Date: Tue, 26 Jul 2011 23:02:43 -0700
-Message-ID: <201107270601.p6R61adj000857@imap1.linux-foundation.org>
+Subject: [merged] frv-exec-remove-redundant-set_fsuser_ds.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:27:46 -0700
+Message-ID: <201107271926.p6RJQX02003127@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751210Ab1G0GBt (ORCPT
+	by vger.kernel.org with ESMTP id S1751974Ab1G0T0k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 02:01:49 -0400
+	Wed, 27 Jul 2011 15:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, asharma@fb.com, davem@davemloft.net, hans-christian.egtvedt@atmel.com
+To: minipli@googlemail.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc: rename atomic_add_unless
-has been added to the -mm tree.  Its filename is
-     sparc-rename-atomic_add_unless.patch
+     frv, exec: remove redundant set_fs(USER_DS)
+has been removed from the -mm tree.  Its filename was
+     frv-exec-remove-redundant-set_fsuser_ds.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc: rename atomic_add_unless
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: frv, exec: remove redundant set_fs(USER_DS)
+From: Mathias Krause <minipli@googlemail.com>
 
-Should have been done in commit 1af08a1407f4 ("This is in preparation for
-more generic atomic").
+The address limit is already set in flush_old_exec() so those calls to
+set_fs(USER_DS) are redundant.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Arun Sharma <asharma@fb.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: "Hans-Christian Egtvedt" <hans-christian.egtvedt@atmel.com>
+Also removed the dead code in flush_thread().
+
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/lib/atomic32.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/frv/include/asm/processor.h |    1 -
+ arch/frv/kernel/process.c        |    5 +----
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/sparc/lib/atomic32.c~sparc-rename-atomic_add_unless arch/sparc/lib/atomic32.c
---- a/arch/sparc/lib/atomic32.c~sparc-rename-atomic_add_unless
-+++ a/arch/sparc/lib/atomic32.c
-@@ -55,7 +55,7 @@ int atomic_cmpxchg(atomic_t *v, int old,
- }
- EXPORT_SYMBOL(atomic_cmpxchg);
+diff -puN arch/frv/include/asm/processor.h~frv-exec-remove-redundant-set_fsuser_ds arch/frv/include/asm/processor.h
+--- a/arch/frv/include/asm/processor.h~frv-exec-remove-redundant-set_fsuser_ds
++++ a/arch/frv/include/asm/processor.h
+@@ -97,7 +97,6 @@ extern struct task_struct *__kernel_curr
+  */
+ #define start_thread(_regs, _pc, _usp)			\
+ do {							\
+-	set_fs(USER_DS); /* reads from user space */	\
+ 	__frame = __kernel_frame0_ptr;			\
+ 	__frame->pc	= (_pc);			\
+ 	__frame->psr	&= ~PSR_S;			\
+diff -puN arch/frv/kernel/process.c~frv-exec-remove-redundant-set_fsuser_ds arch/frv/kernel/process.c
+--- a/arch/frv/kernel/process.c~frv-exec-remove-redundant-set_fsuser_ds
++++ a/arch/frv/kernel/process.c
+@@ -143,10 +143,7 @@ void machine_power_off(void)
  
--int atomic_add_unless(atomic_t *v, int a, int u)
-+int __atomic_add_unless(atomic_t *v, int a, int u)
+ void flush_thread(void)
  {
- 	int ret;
- 	unsigned long flags;
-@@ -67,7 +67,7 @@ int atomic_add_unless(atomic_t *v, int a
- 	spin_unlock_irqrestore(ATOMIC_HASH(v), flags);
- 	return ret != u;
+-#if 0 //ndef NO_FPU
+-	unsigned long zero = 0;
+-#endif
+-	set_fs(USER_DS);
++	/* nothing */
  }
--EXPORT_SYMBOL(atomic_add_unless);
-+EXPORT_SYMBOL(__atomic_add_unless);
  
- /* Atomic operations are already serializing */
- void atomic_set(atomic_t *v, int i)
+ inline unsigned long user_stack(const struct pt_regs *regs)
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from minipli@googlemail.com are
 
 origin.patch
-sparc-rename-atomic_add_unless.patch
 linux-next.patch
-consolidate-config_debug_strict_user_copy_checks.patch
+arm-exec-remove-redundant-set_fsuser_ds.patch
+ia64-exec-remove-redundant-set_fsuser_ds.patch
+unicore32-exec-remove-redundant-set_fsuser_ds.patch
+parisc-exec-remove-redundant-set_fsuser_ds.patch
+s390-exec-remove-redundant-set_fsuser_ds.patch
+sparc-exec-remove-redundant-addr_limit-assignment.patch
 
