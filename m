@@ -1,299 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] asm-generic-add-another-generic-ext2-atomic-bitops.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:29:51 -0700
-Message-ID: <201107271928.p6RJScpa003320@imap1.linux-foundation.org>
+Subject: [merged] asm-generic-atomich-simplify-inc-dec-test-helpers.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:30:02 -0700
+Message-ID: <201107271928.p6RJSmfm003338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755052Ab1G0T3C (ORCPT
+	by vger.kernel.org with ESMTP id S1755052Ab1G0T3J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:29:02 -0400
+	Wed, 27 Jul 2011 15:29:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, adilger@dilger.ca, arnd@arndb.de, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, asharma@fb.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     asm-generic: add another generic ext2 atomic bitops
+     asm-generic/atomic.h: simplify inc/dec test helpers
 has been removed from the -mm tree.  Its filename was
-     asm-generic-add-another-generic-ext2-atomic-bitops.patch
+     asm-generic-atomich-simplify-inc-dec-test-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic: add another generic ext2 atomic bitops
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: asm-generic/atomic.h: simplify inc/dec test helpers
+From: Mike Frysinger <vapier@gentoo.org>
 
-The majority of architectures implement ext2 atomic bitops as
-test_and_{set,clear}_bit() without spinlock.
+We already declared inc/dec helpers, so we don't need to call the
+atomic_{add,sub}_return funcs directly.
 
-This adds this type of generic implementation in ext2-atomic-setbit.h and
-use it wherever possible.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Suggested-by: Andreas Dilger <adilger@dilger.ca>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Arun Sharma <asharma@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/bitops.h                 |    3 +--
- arch/arm/include/asm/bitops.h                   |    5 +----
- arch/cris/include/asm/bitops.h                  |    3 +--
- arch/frv/include/asm/bitops.h                   |    3 +--
- arch/ia64/include/asm/bitops.h                  |    3 +--
- arch/mn10300/include/asm/bitops.h               |    7 +------
- arch/parisc/include/asm/bitops.h                |    9 +--------
- arch/powerpc/include/asm/bitops.h               |    5 +----
- arch/s390/include/asm/bitops.h                  |    5 +----
- arch/sparc/include/asm/bitops_64.h              |    5 +----
- arch/tile/include/asm/bitops_64.h               |    5 +----
- arch/x86/include/asm/bitops.h                   |    5 +----
- arch/xtensa/include/asm/bitops.h                |   14 +-------------
- include/asm-generic/bitops/ext2-atomic-setbit.h |   11 +++++++++++
- include/asm-generic/bitops/ext2-atomic.h        |    4 ++++
- 15 files changed, 28 insertions(+), 59 deletions(-)
+ include/asm-generic/atomic.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/alpha/include/asm/bitops.h
---- a/arch/alpha/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/alpha/include/asm/bitops.h
-@@ -456,8 +456,7 @@ sched_find_first_bit(const unsigned long
+diff -puN include/asm-generic/atomic.h~asm-generic-atomich-simplify-inc-dec-test-helpers include/asm-generic/atomic.h
+--- a/include/asm-generic/atomic.h~asm-generic-atomich-simplify-inc-dec-test-helpers
++++ a/include/asm-generic/atomic.h
+@@ -119,8 +119,8 @@ static inline void atomic_dec(atomic_t *
+ #define atomic_inc_return(v)		atomic_add_return(1, (v))
  
- #include <asm-generic/bitops/le.h>
+ #define atomic_sub_and_test(i, v)	(atomic_sub_return((i), (v)) == 0)
+-#define atomic_dec_and_test(v)		(atomic_sub_return(1, (v)) == 0)
+-#define atomic_inc_and_test(v)		(atomic_add_return(1, (v)) == 0)
++#define atomic_dec_and_test(v)		(atomic_dec_return(v) == 0)
++#define atomic_inc_and_test(v)		(atomic_inc_return(v) == 0)
  
--#define ext2_set_bit_atomic(l,n,a)   test_and_set_bit(n,a)
--#define ext2_clear_bit_atomic(l,n,a) test_and_clear_bit(n,a)
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #endif /* __KERNEL__ */
- 
-diff -puN arch/arm/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/arm/include/asm/bitops.h
---- a/arch/arm/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/arm/include/asm/bitops.h
-@@ -310,10 +310,7 @@ static inline int find_next_bit_le(const
- /*
-  * Ext2 is defined to use little-endian byte ordering.
-  */
--#define ext2_set_bit_atomic(lock, nr, p)	\
--		test_and_set_bit_le(nr, p)
--#define ext2_clear_bit_atomic(lock, nr, p)	\
--		test_and_clear_bit_le(nr, p)
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #endif /* __KERNEL__ */
- 
-diff -puN arch/cris/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/cris/include/asm/bitops.h
---- a/arch/cris/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/cris/include/asm/bitops.h
-@@ -156,8 +156,7 @@ static inline int test_and_change_bit(in
- 
- #include <asm-generic/bitops/le.h>
- 
--#define ext2_set_bit_atomic(l,n,a)   test_and_set_bit(n,a)
--#define ext2_clear_bit_atomic(l,n,a) test_and_clear_bit(n,a)
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #include <asm-generic/bitops/sched.h>
- 
-diff -puN arch/frv/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/frv/include/asm/bitops.h
---- a/arch/frv/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/frv/include/asm/bitops.h
-@@ -403,8 +403,7 @@ int __ilog2_u64(u64 n)
- 
- #include <asm-generic/bitops/le.h>
- 
--#define ext2_set_bit_atomic(lock,nr,addr)	test_and_set_bit  ((nr) ^ 0x18, (addr))
--#define ext2_clear_bit_atomic(lock,nr,addr)	test_and_clear_bit((nr) ^ 0x18, (addr))
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #endif /* __KERNEL__ */
- 
-diff -puN arch/ia64/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/ia64/include/asm/bitops.h
---- a/arch/ia64/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/ia64/include/asm/bitops.h
-@@ -458,8 +458,7 @@ static __inline__ unsigned long __arch_h
- 
- #include <asm-generic/bitops/le.h>
- 
--#define ext2_set_bit_atomic(l,n,a)	test_and_set_bit(n,a)
--#define ext2_clear_bit_atomic(l,n,a)	test_and_clear_bit(n,a)
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #include <asm-generic/bitops/sched.h>
- 
-diff -puN arch/mn10300/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/mn10300/include/asm/bitops.h
---- a/arch/mn10300/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/mn10300/include/asm/bitops.h
-@@ -227,12 +227,7 @@ int ffs(int x)
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
--
--#define ext2_set_bit_atomic(lock, nr, addr) \
--	test_and_set_bit((nr), (addr))
--#define ext2_clear_bit_atomic(lock, nr, addr) \
--	test_and_clear_bit((nr), (addr))
--
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- #include <asm-generic/bitops/le.h>
- 
- #endif /* __KERNEL__ */
-diff -puN arch/parisc/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/parisc/include/asm/bitops.h
---- a/arch/parisc/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/parisc/include/asm/bitops.h
-@@ -223,14 +223,7 @@ static __inline__ int fls(int x)
- #ifdef __KERNEL__
- 
- #include <asm-generic/bitops/le.h>
--
--/* '3' is bits per byte */
--#define LE_BYTE_ADDR ((sizeof(unsigned long) - 1) << 3)
--
--#define ext2_set_bit_atomic(l,nr,addr) \
--		test_and_set_bit((nr)   ^ LE_BYTE_ADDR, (unsigned long *)addr)
--#define ext2_clear_bit_atomic(l,nr,addr) \
--		test_and_clear_bit( (nr) ^ LE_BYTE_ADDR, (unsigned long *)addr)
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #endif	/* __KERNEL__ */
- 
-diff -puN arch/powerpc/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/powerpc/include/asm/bitops.h
---- a/arch/powerpc/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/powerpc/include/asm/bitops.h
-@@ -327,10 +327,7 @@ unsigned long find_next_bit_le(const voi
- 				    unsigned long size, unsigned long offset);
- /* Bitmap functions for the ext2 filesystem */
- 
--#define ext2_set_bit_atomic(lock, nr, addr) \
--	test_and_set_bit_le((nr), (unsigned long*)addr)
--#define ext2_clear_bit_atomic(lock, nr, addr) \
--	test_and_clear_bit_le((nr), (unsigned long*)addr)
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #include <asm-generic/bitops/sched.h>
- 
-diff -puN arch/s390/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/s390/include/asm/bitops.h
---- a/arch/s390/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/s390/include/asm/bitops.h
-@@ -832,10 +832,7 @@ static inline int find_next_bit_le(void 
- 
- #include <asm-generic/bitops/le.h>
- 
--#define ext2_set_bit_atomic(lock, nr, addr)	\
--	test_and_set_bit_le(nr, addr)
--#define ext2_clear_bit_atomic(lock, nr, addr)	\
--	test_and_clear_bit_le(nr, addr)
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- 
- #endif /* __KERNEL__ */
-diff -puN arch/sparc/include/asm/bitops_64.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/sparc/include/asm/bitops_64.h
---- a/arch/sparc/include/asm/bitops_64.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/sparc/include/asm/bitops_64.h
-@@ -91,10 +91,7 @@ static inline unsigned int __arch_hweigh
- 
- #include <asm-generic/bitops/le.h>
- 
--#define ext2_set_bit_atomic(lock,nr,addr) \
--	test_and_set_bit((nr) ^ 0x38,(unsigned long *)(addr))
--#define ext2_clear_bit_atomic(lock,nr,addr) \
--	test_and_clear_bit((nr) ^ 0x38,(unsigned long *)(addr))
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #endif /* __KERNEL__ */
- 
-diff -puN arch/tile/include/asm/bitops_64.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/tile/include/asm/bitops_64.h
---- a/arch/tile/include/asm/bitops_64.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/tile/include/asm/bitops_64.h
-@@ -97,9 +97,6 @@ static inline int test_and_change_bit(un
- 	return (oldval & mask) != 0;
- }
- 
--#define ext2_set_bit_atomic(lock, nr, addr)			\
--	test_and_set_bit((nr), (unsigned long *)(addr))
--#define ext2_clear_bit_atomic(lock, nr, addr)			\
--	test_and_clear_bit((nr), (unsigned long *)(addr))
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #endif /* _ASM_TILE_BITOPS_64_H */
-diff -puN arch/x86/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/x86/include/asm/bitops.h
---- a/arch/x86/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/x86/include/asm/bitops.h
-@@ -458,10 +458,7 @@ static inline int fls(int x)
- 
- #include <asm-generic/bitops/le.h>
- 
--#define ext2_set_bit_atomic(lock, nr, addr)			\
--	test_and_set_bit((nr), (unsigned long *)(addr))
--#define ext2_clear_bit_atomic(lock, nr, addr)			\
--	test_and_clear_bit((nr), (unsigned long *)(addr))
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #endif /* __KERNEL__ */
- #endif /* _ASM_X86_BITOPS_H */
-diff -puN arch/xtensa/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops arch/xtensa/include/asm/bitops.h
---- a/arch/xtensa/include/asm/bitops.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/arch/xtensa/include/asm/bitops.h
-@@ -108,19 +108,7 @@ static inline unsigned long __fls(unsign
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/le.h>
- 
--#ifdef __XTENSA_EL__
--# define ext2_set_bit_atomic(lock,nr,addr)				\
--	test_and_set_bit((nr), (unsigned long*)(addr))
--# define ext2_clear_bit_atomic(lock,nr,addr)				\
--	test_and_clear_bit((nr), (unsigned long*)(addr))
--#elif defined(__XTENSA_EB__)
--# define ext2_set_bit_atomic(lock,nr,addr)				\
--	test_and_set_bit((nr) ^ 0x18, (unsigned long*)(addr))
--# define ext2_clear_bit_atomic(lock,nr,addr)				\
--	test_and_clear_bit((nr) ^ 0x18, (unsigned long*)(addr))
--#else
--# error processor byte order undefined!
--#endif
-+#include <asm-generic/bitops/ext2-atomic-setbit.h>
- 
- #include <asm-generic/bitops/hweight.h>
- #include <asm-generic/bitops/lock.h>
-diff -puN /dev/null include/asm-generic/bitops/ext2-atomic-setbit.h
---- /dev/null
-+++ a/include/asm-generic/bitops/ext2-atomic-setbit.h
-@@ -0,0 +1,11 @@
-+#ifndef _ASM_GENERIC_BITOPS_EXT2_ATOMIC_SETBIT_H_
-+#define _ASM_GENERIC_BITOPS_EXT2_ATOMIC_SETBIT_H_
-+
-+/*
-+ * Atomic bitops based version of ext2 atomic bitops
-+ */
-+
-+#define ext2_set_bit_atomic(l, nr, addr)	test_and_set_bit_le(nr, addr)
-+#define ext2_clear_bit_atomic(l, nr, addr)	test_and_clear_bit_le(nr, addr)
-+
-+#endif /* _ASM_GENERIC_BITOPS_EXT2_ATOMIC_SETBIT_H_ */
-diff -puN include/asm-generic/bitops/ext2-atomic.h~asm-generic-add-another-generic-ext2-atomic-bitops include/asm-generic/bitops/ext2-atomic.h
---- a/include/asm-generic/bitops/ext2-atomic.h~asm-generic-add-another-generic-ext2-atomic-bitops
-+++ a/include/asm-generic/bitops/ext2-atomic.h
-@@ -1,6 +1,10 @@
- #ifndef _ASM_GENERIC_BITOPS_EXT2_ATOMIC_H_
- #define _ASM_GENERIC_BITOPS_EXT2_ATOMIC_H_
- 
-+/*
-+ * Spinlock based version of ext2 atomic bitops
-+ */
-+
- #define ext2_set_bit_atomic(lock, nr, addr)		\
- 	({						\
- 		int ret;				\
+ #define atomic_xchg(ptr, v)		(xchg(&(ptr)->counter, (v)))
+ #define atomic_cmpxchg(v, old, new)	(cmpxchg(&((v)->counter), (old), (new)))
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-fault-injection-add-ability-to-export-fault_attr-in-arbitrary-directory.patch
 linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
 
