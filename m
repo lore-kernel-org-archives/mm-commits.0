@@ -1,167 +1,410 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-fix-hrtimer-deadlock.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:27:59 -0700
-Message-ID: <201107271926.p6RJQjjO003142@imap1.linux-foundation.org>
+Subject: [merged] memcg-consolidates-memory-cgroup-lru-stat-functions.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:28:04 -0700
+Message-ID: <201107271926.p6RJQohO003148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34614 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754217Ab1G0T1E (ORCPT
+	by vger.kernel.org with ESMTP id S1754247Ab1G0T1E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 27 Jul 2011 15:27:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, greearb@candelatech.com, john.stultz@linaro.org, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, bsingharora@gmail.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: fix hrtimer deadlock
+     memcg: consolidate memory cgroup lru stat functions
 has been removed from the -mm tree.  Its filename was
-     rtc-fix-hrtimer-deadlock.patch
+     memcg-consolidates-memory-cgroup-lru-stat-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: fix hrtimer deadlock
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: memcg: consolidate memory cgroup lru stat functions
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Ben reported a lockup related to rtc. The lockup happens due to:
+In mm/memcontrol.c, there are many lru stat functions as..
 
-CPU0                                        CPU1
+mem_cgroup_zone_nr_lru_pages
+mem_cgroup_node_nr_file_lru_pages
+mem_cgroup_nr_file_lru_pages
+mem_cgroup_node_nr_anon_lru_pages
+mem_cgroup_nr_anon_lru_pages
+mem_cgroup_node_nr_unevictable_lru_pages
+mem_cgroup_nr_unevictable_lru_pages
+mem_cgroup_node_nr_lru_pages
+mem_cgroup_nr_lru_pages
+mem_cgroup_get_local_zonestat
 
-rtc_irq_set_state()			    __run_hrtimer()
-  spin_lock_irqsave(&rtc->irq_task_lock)    rtc_handle_legacy_irq();
-					      spin_lock(&rtc->irq_task_lock);
-  hrtimer_cancel()
-    while (callback_running);
+Some of them are under #ifdef MAX_NUMNODES >1 and others are not.
+This seems bad. This patch consolidates all functions into
 
-So the running callback never finishes as it's blocked on
-rtc->irq_task_lock.
+mem_cgroup_zone_nr_lru_pages()
+mem_cgroup_node_nr_lru_pages()
+mem_cgroup_nr_lru_pages()
 
-Use hrtimer_try_to_cancel() instead and drop rtc->irq_task_lock while
-waiting for the callback.  Fix this for both rtc_irq_set_state() and
-rtc_irq_set_freq().
+For these functions, "which LRU?" information is passed by a mask.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Reported-by: Ben Greear <greearb@candelatech.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+example)
+mem_cgroup_nr_lru_pages(mem, BIT(LRU_ACTIVE_ANON))
+
+And I added some macro as ALL_LRU, ALL_LRU_FILE, ALL_LRU_ANON.
+example)
+mem_cgroup_nr_lru_pages(mem, ALL_LRU)
+
+BTW, considering layout of NUMA memory placement of counters, this patch seems
+to be better.
+
+Now, when we gather all LRU information, we scan in following orer
+    for_each_lru -> for_each_node -> for_each_zone.
+
+This means we'll touch cache lines in different node in turn.
+
+After patch, we'll scan
+    for_each_node -> for_each_zone -> for_each_lru(mask)
+
+Then, we'll gather information in the same cacheline at once.
+
+[akpm@linux-foundation.org: fix warnigns, build error]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |   56 +++++++++++++++++++++++++-------------
- 1 file changed, 37 insertions(+), 19 deletions(-)
+ include/linux/memcontrol.h |    7 -
+ include/linux/mmzone.h     |    6 +
+ mm/memcontrol.c            |  176 +++++++++--------------------------
+ mm/vmscan.c                |    3 
+ 4 files changed, 60 insertions(+), 132 deletions(-)
 
-diff -puN drivers/rtc/interface.c~rtc-fix-hrtimer-deadlock drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-fix-hrtimer-deadlock
-+++ a/drivers/rtc/interface.c
-@@ -636,6 +636,29 @@ void rtc_irq_unregister(struct rtc_devic
+diff -puN include/linux/memcontrol.h~memcg-consolidates-memory-cgroup-lru-stat-functions include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-consolidates-memory-cgroup-lru-stat-functions
++++ a/include/linux/memcontrol.h
+@@ -111,8 +111,7 @@ int mem_cgroup_inactive_anon_is_low(stru
+ int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg);
+ int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
+ unsigned long mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg,
+-						struct zone *zone,
+-						enum lru_list lru);
++					int nid, int zid, unsigned int lrumask);
+ struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
+ 						      struct zone *zone);
+ struct zone_reclaim_stat*
+@@ -313,8 +312,8 @@ mem_cgroup_inactive_file_is_low(struct m
  }
- EXPORT_SYMBOL_GPL(rtc_irq_unregister);
  
-+static int rtc_update_hrtimer(struct rtc_device *rtc, int enabled)
-+{
-+	/*
-+	 * We unconditionally cancel the timer here, because otherwise
-+	 * we could run into BUG_ON(timer->state != HRTIMER_STATE_CALLBACK);
-+	 * when we manage to start the timer before the callback
-+	 * returns HRTIMER_RESTART.
-+	 *
-+	 * We cannot use hrtimer_cancel() here as a running callback
-+	 * could be blocked on rtc->irq_task_lock and hrtimer_cancel()
-+	 * would spin forever.
-+	 */
-+	if (hrtimer_try_to_cancel(&rtc->pie_timer) < 0)
-+		return -1;
+ static inline unsigned long
+-mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, struct zone *zone,
+-			     enum lru_list lru)
++mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, int nid, int zid,
++				unsigned int lru_mask)
+ {
+ 	return 0;
+ }
+diff -puN include/linux/mmzone.h~memcg-consolidates-memory-cgroup-lru-stat-functions include/linux/mmzone.h
+--- a/include/linux/mmzone.h~memcg-consolidates-memory-cgroup-lru-stat-functions
++++ a/include/linux/mmzone.h
+@@ -158,6 +158,12 @@ static inline int is_unevictable_lru(enu
+ 	return (l == LRU_UNEVICTABLE);
+ }
+ 
++/* Mask used at gathering information at once (see memcontrol.c) */
++#define LRU_ALL_FILE (BIT(LRU_INACTIVE_FILE) | BIT(LRU_ACTIVE_FILE))
++#define LRU_ALL_ANON (BIT(LRU_INACTIVE_ANON) | BIT(LRU_ACTIVE_ANON))
++#define LRU_ALL_EVICTABLE (LRU_ALL_FILE | LRU_ALL_ANON)
++#define LRU_ALL	     ((1 << NR_LRU_LISTS) - 1)
 +
-+	if (enabled) {
-+		ktime_t period = ktime_set(0, NSEC_PER_SEC / rtc->irq_freq);
+ enum zone_watermarks {
+ 	WMARK_MIN,
+ 	WMARK_LOW,
+diff -puN mm/memcontrol.c~memcg-consolidates-memory-cgroup-lru-stat-functions mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-consolidates-memory-cgroup-lru-stat-functions
++++ a/mm/memcontrol.c
+@@ -636,27 +636,44 @@ static void mem_cgroup_charge_statistics
+ 	preempt_enable();
+ }
+ 
+-static unsigned long
+-mem_cgroup_get_zonestat_node(struct mem_cgroup *mem, int nid, enum lru_list idx)
++unsigned long
++mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *mem, int nid, int zid,
++			unsigned int lru_mask)
+ {
+ 	struct mem_cgroup_per_zone *mz;
++	enum lru_list l;
++	unsigned long ret = 0;
 +
-+		hrtimer_start(&rtc->pie_timer, period, HRTIMER_MODE_REL);
++	mz = mem_cgroup_zoneinfo(mem, nid, zid);
++
++	for_each_lru(l) {
++		if (BIT(l) & lru_mask)
++			ret += MEM_CGROUP_ZSTAT(mz, l);
 +	}
-+	return 0;
++	return ret;
 +}
 +
- /**
-  * rtc_irq_set_state - enable/disable 2^N Hz periodic IRQs
-  * @rtc: the rtc device
-@@ -651,24 +674,21 @@ int rtc_irq_set_state(struct rtc_device 
- 	int err = 0;
- 	unsigned long flags;
++static unsigned long
++mem_cgroup_node_nr_lru_pages(struct mem_cgroup *mem,
++			int nid, unsigned int lru_mask)
++{
+ 	u64 total = 0;
+ 	int zid;
  
-+retry:
- 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
- 	if (rtc->irq_task != NULL && task == NULL)
- 		err = -EBUSY;
- 	if (rtc->irq_task != task)
- 		err = -EACCES;
--	if (err)
--		goto out;
--
--	if (enabled) {
--		ktime_t period = ktime_set(0, NSEC_PER_SEC/rtc->irq_freq);
--		hrtimer_start(&rtc->pie_timer, period, HRTIMER_MODE_REL);
--	} else {
--		hrtimer_cancel(&rtc->pie_timer);
-+	if (!err) {
-+		if (rtc_update_hrtimer(rtc, enabled) < 0) {
-+			spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
-+			cpu_relax();
-+			goto retry;
-+		}
-+		rtc->pie_enabled = enabled;
- 	}
--	rtc->pie_enabled = enabled;
--out:
- 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
--
- 	return err;
+-	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+-		mz = mem_cgroup_zoneinfo(mem, nid, zid);
+-		total += MEM_CGROUP_ZSTAT(mz, idx);
+-	}
++	for (zid = 0; zid < MAX_NR_ZONES; zid++)
++		total += mem_cgroup_zone_nr_lru_pages(mem, nid, zid, lru_mask);
++
+ 	return total;
  }
- EXPORT_SYMBOL_GPL(rtc_irq_set_state);
-@@ -690,20 +710,18 @@ int rtc_irq_set_freq(struct rtc_device *
+-static unsigned long mem_cgroup_get_local_zonestat(struct mem_cgroup *mem,
+-					enum lru_list idx)
++
++static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *mem,
++			unsigned int lru_mask)
+ {
+ 	int nid;
+ 	u64 total = 0;
  
- 	if (freq <= 0 || freq > 5000)
- 		return -EINVAL;
+-	for_each_online_node(nid)
+-		total += mem_cgroup_get_zonestat_node(mem, nid, idx);
++	for_each_node_state(nid, N_HIGH_MEMORY)
++		total += mem_cgroup_node_nr_lru_pages(mem, nid, lru_mask);
+ 	return total;
+ }
+ 
+@@ -1077,8 +1094,8 @@ static int calc_inactive_ratio(struct me
+ 	unsigned long gb;
+ 	unsigned long inactive_ratio;
+ 
+-	inactive = mem_cgroup_get_local_zonestat(memcg, LRU_INACTIVE_ANON);
+-	active = mem_cgroup_get_local_zonestat(memcg, LRU_ACTIVE_ANON);
++	inactive = mem_cgroup_nr_lru_pages(memcg, BIT(LRU_INACTIVE_ANON));
++	active = mem_cgroup_nr_lru_pages(memcg, BIT(LRU_ACTIVE_ANON));
+ 
+ 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
+ 	if (gb)
+@@ -1117,109 +1134,12 @@ int mem_cgroup_inactive_file_is_low(stru
+ 	unsigned long active;
+ 	unsigned long inactive;
+ 
+-	inactive = mem_cgroup_get_local_zonestat(memcg, LRU_INACTIVE_FILE);
+-	active = mem_cgroup_get_local_zonestat(memcg, LRU_ACTIVE_FILE);
++	inactive = mem_cgroup_nr_lru_pages(memcg, BIT(LRU_INACTIVE_FILE));
++	active = mem_cgroup_nr_lru_pages(memcg, BIT(LRU_ACTIVE_FILE));
+ 
+ 	return (active > inactive);
+ }
+ 
+-unsigned long mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg,
+-						struct zone *zone,
+-						enum lru_list lru)
+-{
+-	int nid = zone_to_nid(zone);
+-	int zid = zone_idx(zone);
+-	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(memcg, nid, zid);
 -
-+retry:
- 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
- 	if (rtc->irq_task != NULL && task == NULL)
- 		err = -EBUSY;
- 	if (rtc->irq_task != task)
- 		err = -EACCES;
--	if (err == 0) {
-+	if (!err) {
- 		rtc->irq_freq = freq;
--		if (rtc->pie_enabled) {
--			ktime_t period;
--			hrtimer_cancel(&rtc->pie_timer);
--			period = ktime_set(0, NSEC_PER_SEC/rtc->irq_freq);
--			hrtimer_start(&rtc->pie_timer, period,
--					HRTIMER_MODE_REL);
-+		if (rtc->pie_enabled && rtc_update_hrtimer(rtc, 1) < 0) {
-+			spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
-+			cpu_relax();
-+			goto retry;
- 		}
+-	return MEM_CGROUP_ZSTAT(mz, lru);
+-}
+-
+-static unsigned long mem_cgroup_node_nr_file_lru_pages(struct mem_cgroup *memcg,
+-							int nid)
+-{
+-	unsigned long ret;
+-
+-	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_FILE) +
+-		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_FILE);
+-
+-	return ret;
+-}
+-
+-static unsigned long mem_cgroup_node_nr_anon_lru_pages(struct mem_cgroup *memcg,
+-							int nid)
+-{
+-	unsigned long ret;
+-
+-	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_ANON) +
+-		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_ANON);
+-	return ret;
+-}
+-
+-#if MAX_NUMNODES > 1
+-static unsigned long mem_cgroup_nr_file_lru_pages(struct mem_cgroup *memcg)
+-{
+-	u64 total = 0;
+-	int nid;
+-
+-	for_each_node_state(nid, N_HIGH_MEMORY)
+-		total += mem_cgroup_node_nr_file_lru_pages(memcg, nid);
+-
+-	return total;
+-}
+-
+-static unsigned long mem_cgroup_nr_anon_lru_pages(struct mem_cgroup *memcg)
+-{
+-	u64 total = 0;
+-	int nid;
+-
+-	for_each_node_state(nid, N_HIGH_MEMORY)
+-		total += mem_cgroup_node_nr_anon_lru_pages(memcg, nid);
+-
+-	return total;
+-}
+-
+-static unsigned long
+-mem_cgroup_node_nr_unevictable_lru_pages(struct mem_cgroup *memcg, int nid)
+-{
+-	return mem_cgroup_get_zonestat_node(memcg, nid, LRU_UNEVICTABLE);
+-}
+-
+-static unsigned long
+-mem_cgroup_nr_unevictable_lru_pages(struct mem_cgroup *memcg)
+-{
+-	u64 total = 0;
+-	int nid;
+-
+-	for_each_node_state(nid, N_HIGH_MEMORY)
+-		total += mem_cgroup_node_nr_unevictable_lru_pages(memcg, nid);
+-
+-	return total;
+-}
+-
+-static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+-							int nid)
+-{
+-	enum lru_list l;
+-	u64 total = 0;
+-
+-	for_each_lru(l)
+-		total += mem_cgroup_get_zonestat_node(memcg, nid, l);
+-
+-	return total;
+-}
+-
+-static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg)
+-{
+-	u64 total = 0;
+-	int nid;
+-
+-	for_each_node_state(nid, N_HIGH_MEMORY)
+-		total += mem_cgroup_node_nr_lru_pages(memcg, nid);
+-
+-	return total;
+-}
+-#endif /* CONFIG_NUMA */
+-
+ struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
+ 						      struct zone *zone)
+ {
+@@ -1576,11 +1496,11 @@ mem_cgroup_select_victim(struct mem_cgro
+ static bool test_mem_cgroup_node_reclaimable(struct mem_cgroup *mem,
+ 		int nid, bool noswap)
+ {
+-	if (mem_cgroup_node_nr_file_lru_pages(mem, nid))
++	if (mem_cgroup_node_nr_lru_pages(mem, nid, LRU_ALL_FILE))
+ 		return true;
+ 	if (noswap || !total_swap_pages)
+ 		return false;
+-	if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))
++	if (mem_cgroup_node_nr_lru_pages(mem, nid, LRU_ALL_ANON))
+ 		return true;
+ 	return false;
+ 
+@@ -4151,15 +4071,15 @@ mem_cgroup_get_local_stat(struct mem_cgr
+ 	s->stat[MCS_PGMAJFAULT] += val;
+ 
+ 	/* per zone stat */
+-	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
++	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_INACTIVE_ANON));
+ 	s->stat[MCS_INACTIVE_ANON] += val * PAGE_SIZE;
+-	val = mem_cgroup_get_local_zonestat(mem, LRU_ACTIVE_ANON);
++	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_ACTIVE_ANON));
+ 	s->stat[MCS_ACTIVE_ANON] += val * PAGE_SIZE;
+-	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_FILE);
++	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_INACTIVE_FILE));
+ 	s->stat[MCS_INACTIVE_FILE] += val * PAGE_SIZE;
+-	val = mem_cgroup_get_local_zonestat(mem, LRU_ACTIVE_FILE);
++	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_ACTIVE_FILE));
+ 	s->stat[MCS_ACTIVE_FILE] += val * PAGE_SIZE;
+-	val = mem_cgroup_get_local_zonestat(mem, LRU_UNEVICTABLE);
++	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_UNEVICTABLE));
+ 	s->stat[MCS_UNEVICTABLE] += val * PAGE_SIZE;
+ }
+ 
+@@ -4181,35 +4101,37 @@ static int mem_control_numa_stat_show(st
+ 	struct cgroup *cont = m->private;
+ 	struct mem_cgroup *mem_cont = mem_cgroup_from_cont(cont);
+ 
+-	total_nr = mem_cgroup_nr_lru_pages(mem_cont);
++	total_nr = mem_cgroup_nr_lru_pages(mem_cont, LRU_ALL);
+ 	seq_printf(m, "total=%lu", total_nr);
+ 	for_each_node_state(nid, N_HIGH_MEMORY) {
+-		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid);
++		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid, LRU_ALL);
+ 		seq_printf(m, " N%d=%lu", nid, node_nr);
  	}
- 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
+ 	seq_putc(m, '\n');
+ 
+-	file_nr = mem_cgroup_nr_file_lru_pages(mem_cont);
++	file_nr = mem_cgroup_nr_lru_pages(mem_cont, LRU_ALL_FILE);
+ 	seq_printf(m, "file=%lu", file_nr);
+ 	for_each_node_state(nid, N_HIGH_MEMORY) {
+-		node_nr = mem_cgroup_node_nr_file_lru_pages(mem_cont, nid);
++		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid,
++				LRU_ALL_FILE);
+ 		seq_printf(m, " N%d=%lu", nid, node_nr);
+ 	}
+ 	seq_putc(m, '\n');
+ 
+-	anon_nr = mem_cgroup_nr_anon_lru_pages(mem_cont);
++	anon_nr = mem_cgroup_nr_lru_pages(mem_cont, LRU_ALL_ANON);
+ 	seq_printf(m, "anon=%lu", anon_nr);
+ 	for_each_node_state(nid, N_HIGH_MEMORY) {
+-		node_nr = mem_cgroup_node_nr_anon_lru_pages(mem_cont, nid);
++		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid,
++				LRU_ALL_ANON);
+ 		seq_printf(m, " N%d=%lu", nid, node_nr);
+ 	}
+ 	seq_putc(m, '\n');
+ 
+-	unevictable_nr = mem_cgroup_nr_unevictable_lru_pages(mem_cont);
++	unevictable_nr = mem_cgroup_nr_lru_pages(mem_cont, BIT(LRU_UNEVICTABLE));
+ 	seq_printf(m, "unevictable=%lu", unevictable_nr);
+ 	for_each_node_state(nid, N_HIGH_MEMORY) {
+-		node_nr = mem_cgroup_node_nr_unevictable_lru_pages(mem_cont,
+-									nid);
++		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid,
++				BIT(LRU_UNEVICTABLE));
+ 		seq_printf(m, " N%d=%lu", nid, node_nr);
+ 	}
+ 	seq_putc(m, '\n');
+diff -puN mm/vmscan.c~memcg-consolidates-memory-cgroup-lru-stat-functions mm/vmscan.c
+--- a/mm/vmscan.c~memcg-consolidates-memory-cgroup-lru-stat-functions
++++ a/mm/vmscan.c
+@@ -171,7 +171,8 @@ static unsigned long zone_nr_lru_pages(s
+ 				struct scan_control *sc, enum lru_list lru)
+ {
+ 	if (!scanning_global_lru(sc))
+-		return mem_cgroup_zone_nr_lru_pages(sc->mem_cgroup, zone, lru);
++		return mem_cgroup_zone_nr_lru_pages(sc->mem_cgroup,
++				zone_to_nid(zone), zone_idx(zone), BIT(lru));
+ 
+ 	return zone_page_state(zone, NR_LRU_BASE + lru);
+ }
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long-fix.patch
-x86-fix-mmap-random-address-range.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface.patch
-arch-x86-kernel-e820c-eliminate-bubble-sort-from-sanitize_e820_map.patch
-genirq-fix-missing-parenthesises-in-generic-chip.patch
-cross-memory-attach-v3.patch
-hpet-factor-timer-allocate-from-open.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-mempolicyc-make-copy_from_user-provably-correct.patch
+memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
 
