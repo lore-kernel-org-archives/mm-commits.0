@@ -1,183 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-mqueue-refactor-failure-handling.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:28:58 -0700
-Message-ID: <201107271927.p6RJRijS003237@imap1.linux-foundation.org>
+Subject: [merged] vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:29:23 -0700
+Message-ID: <201107271928.p6RJS9r3003284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59585 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754946Ab1G0T20 (ORCPT
+	by vger.kernel.org with ESMTP id S1754972Ab1G0T2c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:28:26 -0400
+	Wed, 27 Jul 2011 15:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: dtor@vmware.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/mqueue.c: refactor failure handling
+     Vmware balloon: switch to using sysem-wide freezable workqueue
 has been removed from the -mm tree.  Its filename was
-     ipc-mqueue-refactor-failure-handling.patch
+     vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/mqueue.c: refactor failure handling
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: Vmware balloon: switch to using sysem-wide freezable workqueue
+From: Dmitry Torokhov <dtor@vmware.com>
 
-If new_inode fails to allocate an inode we need only to return with NULL. 
-But now we test the opposite and have all the work in a nested block.  So
-do the opposite to save one indentation level (and remove unnecessary line
-breaks).
+With the arrival of concurrency-managed workqueues there is no need for
+our driver to use dedicated workqueue; system-wide one should suffice just
+fine.
 
-This is only a preparation/cleanup for the next patch where we fix up
-return values from mqueue_get_inode.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+[akpm@linux-foundation.org: fix comment layout & grammar]
+Signed-off-by: Dmitry Torokhov <dtor@vmware.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |  113 ++++++++++++++++++++++++-------------------------
- 1 file changed, 57 insertions(+), 56 deletions(-)
+ drivers/misc/vmw_balloon.c |   31 +++++++++++--------------------
+ 1 file changed, 11 insertions(+), 20 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-refactor-failure-handling ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-refactor-failure-handling
-+++ a/ipc/mqueue.c
-@@ -115,69 +115,70 @@ static struct inode *mqueue_get_inode(st
- 	struct inode *inode;
+diff -puN drivers/misc/vmw_balloon.c~vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue drivers/misc/vmw_balloon.c
+--- a/drivers/misc/vmw_balloon.c~vmware-balloon-switch-to-using-sysem-wide-freezable-workqueue
++++ a/drivers/misc/vmw_balloon.c
+@@ -45,7 +45,7 @@
  
- 	inode = new_inode(sb);
--	if (inode) {
--		inode->i_ino = get_next_ino();
--		inode->i_mode = mode;
--		inode->i_uid = current_fsuid();
--		inode->i_gid = current_fsgid();
--		inode->i_mtime = inode->i_ctime = inode->i_atime =
--				CURRENT_TIME;
-+	if (!inode)
-+		goto err;
+ MODULE_AUTHOR("VMware, Inc.");
+ MODULE_DESCRIPTION("VMware Memory Control (Balloon) Driver");
+-MODULE_VERSION("1.2.1.2-k");
++MODULE_VERSION("1.2.1.3-k");
+ MODULE_ALIAS("dmi:*:svnVMware*:*");
+ MODULE_ALIAS("vmware_vmmemctl");
+ MODULE_LICENSE("GPL");
+@@ -215,7 +215,6 @@ struct vmballoon {
+ };
  
--		if (S_ISREG(mode)) {
--			struct mqueue_inode_info *info;
--			struct task_struct *p = current;
--			unsigned long mq_bytes, mq_msg_tblsz;
--
--			inode->i_fop = &mqueue_file_operations;
--			inode->i_size = FILENT_SIZE;
--			/* mqueue specific info */
--			info = MQUEUE_I(inode);
--			spin_lock_init(&info->lock);
--			init_waitqueue_head(&info->wait_q);
--			INIT_LIST_HEAD(&info->e_wait_q[0].list);
--			INIT_LIST_HEAD(&info->e_wait_q[1].list);
--			info->notify_owner = NULL;
--			info->qsize = 0;
--			info->user = NULL;	/* set when all is ok */
--			memset(&info->attr, 0, sizeof(info->attr));
--			info->attr.mq_maxmsg = ipc_ns->mq_msg_max;
--			info->attr.mq_msgsize = ipc_ns->mq_msgsize_max;
--			if (attr) {
--				info->attr.mq_maxmsg = attr->mq_maxmsg;
--				info->attr.mq_msgsize = attr->mq_msgsize;
--			}
--			mq_msg_tblsz = info->attr.mq_maxmsg * sizeof(struct msg_msg *);
--			info->messages = kmalloc(mq_msg_tblsz, GFP_KERNEL);
--			if (!info->messages)
--				goto out_inode;
--
--			mq_bytes = (mq_msg_tblsz +
--				(info->attr.mq_maxmsg * info->attr.mq_msgsize));
--
--			spin_lock(&mq_lock);
--			if (u->mq_bytes + mq_bytes < u->mq_bytes ||
--		 	    u->mq_bytes + mq_bytes >
--			    task_rlimit(p, RLIMIT_MSGQUEUE)) {
--				spin_unlock(&mq_lock);
--				/* mqueue_evict_inode() releases info->messages */
--				goto out_inode;
--			}
--			u->mq_bytes += mq_bytes;
--			spin_unlock(&mq_lock);
-+	inode->i_ino = get_next_ino();
-+	inode->i_mode = mode;
-+	inode->i_uid = current_fsuid();
-+	inode->i_gid = current_fsgid();
-+	inode->i_mtime = inode->i_ctime = inode->i_atime = CURRENT_TIME;
-+
-+	if (S_ISREG(mode)) {
-+		struct mqueue_inode_info *info;
-+		struct task_struct *p = current;
-+		unsigned long mq_bytes, mq_msg_tblsz;
-+
-+		inode->i_fop = &mqueue_file_operations;
-+		inode->i_size = FILENT_SIZE;
-+		/* mqueue specific info */
-+		info = MQUEUE_I(inode);
-+		spin_lock_init(&info->lock);
-+		init_waitqueue_head(&info->wait_q);
-+		INIT_LIST_HEAD(&info->e_wait_q[0].list);
-+		INIT_LIST_HEAD(&info->e_wait_q[1].list);
-+		info->notify_owner = NULL;
-+		info->qsize = 0;
-+		info->user = NULL;	/* set when all is ok */
-+		memset(&info->attr, 0, sizeof(info->attr));
-+		info->attr.mq_maxmsg = ipc_ns->mq_msg_max;
-+		info->attr.mq_msgsize = ipc_ns->mq_msgsize_max;
-+		if (attr) {
-+			info->attr.mq_maxmsg = attr->mq_maxmsg;
-+			info->attr.mq_msgsize = attr->mq_msgsize;
-+		}
-+		mq_msg_tblsz = info->attr.mq_maxmsg * sizeof(struct msg_msg *);
-+		info->messages = kmalloc(mq_msg_tblsz, GFP_KERNEL);
-+		if (!info->messages)
-+			goto out_inode;
+ static struct vmballoon balloon;
+-static struct workqueue_struct *vmballoon_wq;
  
--			/* all is ok */
--			info->user = get_uid(u);
--		} else if (S_ISDIR(mode)) {
--			inc_nlink(inode);
--			/* Some things misbehave if size == 0 on a directory */
--			inode->i_size = 2 * DIRENT_SIZE;
--			inode->i_op = &mqueue_dir_inode_operations;
--			inode->i_fop = &simple_dir_operations;
-+		mq_bytes = (mq_msg_tblsz +
-+			(info->attr.mq_maxmsg * info->attr.mq_msgsize));
-+
-+		spin_lock(&mq_lock);
-+		if (u->mq_bytes + mq_bytes < u->mq_bytes ||
-+		    u->mq_bytes + mq_bytes > task_rlimit(p, RLIMIT_MSGQUEUE)) {
-+			spin_unlock(&mq_lock);
-+			/* mqueue_evict_inode() releases info->messages */
-+			goto out_inode;
- 		}
-+		u->mq_bytes += mq_bytes;
-+		spin_unlock(&mq_lock);
-+
-+		/* all is ok */
-+		info->user = get_uid(u);
-+	} else if (S_ISDIR(mode)) {
-+		inc_nlink(inode);
-+		/* Some things misbehave if size == 0 on a directory */
-+		inode->i_size = 2 * DIRENT_SIZE;
-+		inode->i_op = &mqueue_dir_inode_operations;
-+		inode->i_fop = &simple_dir_operations;
+ /*
+  * Send "start" command to the host, communicating supported version
+@@ -674,7 +673,12 @@ static void vmballoon_work(struct work_s
+ 			vmballoon_deflate(b);
  	}
-+
- 	return inode;
- out_inode:
- 	iput(inode);
-+err:
- 	return NULL;
+ 
+-	queue_delayed_work(vmballoon_wq, dwork, round_jiffies_relative(HZ));
++	/*
++	 * We are using a freezable workqueue so that balloon operations are
++	 * stopped while the system transitions to/from sleep/hibernation.
++	 */
++	queue_delayed_work(system_freezable_wq,
++			   dwork, round_jiffies_relative(HZ));
  }
  
-_
-
-Patches currently in -mm which might be from jslaby@suse.cz are
-
-origin.patch
-linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-
+ /*
+@@ -785,12 +789,6 @@ static int __init vmballoon_init(void)
+ 	if (x86_hyper != &x86_hyper_vmware)
+ 		return -ENODEV;
+ 
+-	vmballoon_wq = create_freezable_workqueue("vmmemctl");
+-	if (!vmballoon_wq) {
+-		pr_err("failed to create workqueue\n");
+-		return -ENOMEM;
+-	}
+-
+ 	INIT_LIST_HEAD(&balloon.pages);
+ 	INIT_LIST_HEAD(&balloon.refused_pages);
+ 
+@@ -805,34 +803,27 @@ static int __init vmballoon_init(void)
+ 	 */
+ 	if (!vmballoon_send_start(&balloon)) {
+ 		pr_err("failed to send start command to the host\n");
+-		error = -EIO;
+-		goto fail;
++		return -EIO;
+ 	}
+ 
+ 	if (!vmballoon_send_guest_id(&balloon)) {
+ 		pr_err("failed to send guest ID to the host\n");
+-		error = -EIO;
+-		goto fail;
++		return -EIO;
+ 	}
+ 
+ 	error = vmballoon_debugfs_init(&balloon);
+ 	if (error)
+-		goto fail;
++		return error;
+ 
+-	queue_delayed_work(vmballoon_wq, &balloon.dwork, 0);
++	queue_delayed_work(system_freezable_wq, &balloon.dwork, 0);
+ 
+ 	return 0;
