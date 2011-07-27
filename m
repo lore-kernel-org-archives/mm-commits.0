@@ -1,112 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fault-injection-cleanup-simple-attribute-of-stacktrace_depth.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:29:40 -0700
-Message-ID: <201107271928.p6RJSRM5003305@imap1.linux-foundation.org>
+Subject: [merged] ramoops-move-dump_oops-into-platform-data.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:29:31 -0700
+Message-ID: <201107271928.p6RJSIT0003293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49124 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755025Ab1G0T2r (ORCPT
+	by vger.kernel.org with ESMTP id S1754114Ab1G0T2o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:28:47 -0400
+	Wed, 27 Jul 2011 15:28:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: sergiu@chromium.org, Artem.Bityutskiy@nokia.com, darwish.07@gmail.com, kyungmin.park@samsung.com, marco.stornelli@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fault-injection: cleanup simple attribute of stacktrace_depth
+     ramoops: move dump_oops into platform data
 has been removed from the -mm tree.  Its filename was
-     fault-injection-cleanup-simple-attribute-of-stacktrace_depth.patch
+     ramoops-move-dump_oops-into-platform-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fault-injection: cleanup simple attribute of stacktrace_depth
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: ramoops: move dump_oops into platform data
+From: Sergiu Iordache <sergiu@chromium.org>
 
-Minor cosmetic changes for simple attribute of stacktrace_depth:
+The platform driver currently allows setting the mem_size and mem_address.
+ Since dump_oops is also a module parameter it would be more consistent if
+it could be set through platform data as well.
 
- - use min_t()
- - reduce #ifdef by moving a function
- - do not use partly capitalized function name
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Sergiu Iordache <sergiu@chromium.org>
+Acked-by: Marco Stornelli <marco.stornelli@gmail.com>
+Cc: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/fault-inject.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/char/ramoops.c  |    5 ++++-
+ include/linux/ramoops.h |    1 +
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN lib/fault-inject.c~fault-injection-cleanup-simple-attribute-of-stacktrace_depth lib/fault-inject.c
---- a/lib/fault-inject.c~fault-injection-cleanup-simple-attribute-of-stacktrace_depth
-+++ a/lib/fault-inject.c
-@@ -139,16 +139,6 @@ static int debugfs_ul_set(void *data, u6
- 	return 0;
- }
+diff -puN drivers/char/ramoops.c~ramoops-move-dump_oops-into-platform-data drivers/char/ramoops.c
+--- a/drivers/char/ramoops.c~ramoops-move-dump_oops-into-platform-data
++++ a/drivers/char/ramoops.c
+@@ -55,6 +55,7 @@ static struct ramoops_context {
+ 	void *virt_addr;
+ 	phys_addr_t phys_addr;
+ 	unsigned long size;
++	int dump_oops;
+ 	int count;
+ 	int max_count;
+ } oops_cxt;
+@@ -80,7 +81,7 @@ static void ramoops_do_dump(struct kmsg_
+ 		return;
  
--#ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
--static int debugfs_ul_set_MAX_STACK_TRACE_DEPTH(void *data, u64 val)
--{
--	*(unsigned long *)data =
--		val < MAX_STACK_TRACE_DEPTH ?
--		val : MAX_STACK_TRACE_DEPTH;
--	return 0;
--}
--#endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
--
- static int debugfs_ul_get(void *data, u64 *val)
- {
- 	*val = *(unsigned long *)data;
-@@ -164,16 +154,26 @@ static struct dentry *debugfs_create_ul(
- }
+ 	/* Only dump oopses if dump_oops is set */
+-	if (reason == KMSG_DUMP_OOPS && !dump_oops)
++	if (reason == KMSG_DUMP_OOPS && !cxt->dump_oops)
+ 		return;
  
- #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
--DEFINE_SIMPLE_ATTRIBUTE(fops_ul_MAX_STACK_TRACE_DEPTH, debugfs_ul_get,
--			debugfs_ul_set_MAX_STACK_TRACE_DEPTH, "%llu\n");
+ 	buf = cxt->virt_addr + (cxt->count * RECORD_SIZE);
+@@ -128,6 +129,7 @@ static int __init ramoops_probe(struct p
+ 	cxt->count = 0;
+ 	cxt->size = pdata->mem_size;
+ 	cxt->phys_addr = pdata->mem_address;
++	cxt->dump_oops = pdata->dump_oops;
  
--static struct dentry *debugfs_create_ul_MAX_STACK_TRACE_DEPTH(
-+static int debugfs_stacktrace_depth_set(void *data, u64 val)
-+{
-+	*(unsigned long *)data =
-+		min_t(unsigned long, val, MAX_STACK_TRACE_DEPTH);
-+
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(fops_stacktrace_depth, debugfs_ul_get,
-+			debugfs_stacktrace_depth_set, "%llu\n");
-+
-+static struct dentry *debugfs_create_stacktrace_depth(
- 	const char *name, mode_t mode,
- 	struct dentry *parent, unsigned long *value)
- {
- 	return debugfs_create_file(name, mode, parent, value,
--				   &fops_ul_MAX_STACK_TRACE_DEPTH);
-+				   &fops_stacktrace_depth);
- }
-+
- #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ 	if (!request_mem_region(cxt->phys_addr, cxt->size, "ramoops")) {
+ 		pr_err("request mem region failed\n");
+@@ -194,6 +196,7 @@ static int __init ramoops_init(void)
+ 			return -ENOMEM;
+ 		dummy_data->mem_size = mem_size;
+ 		dummy_data->mem_address = mem_address;
++		dummy_data->dump_oops = dump_oops;
+ 		dummy = platform_create_bundle(&ramoops_driver, ramoops_probe,
+ 			NULL, 0, dummy_data,
+ 			sizeof(struct ramoops_platform_data));
+diff -puN include/linux/ramoops.h~ramoops-move-dump_oops-into-platform-data include/linux/ramoops.h
+--- a/include/linux/ramoops.h~ramoops-move-dump_oops-into-platform-data
++++ a/include/linux/ramoops.h
+@@ -10,6 +10,7 @@
+ struct ramoops_platform_data {
+ 	unsigned long	mem_size;
+ 	unsigned long	mem_address;
++	int		dump_oops;
+ };
  
- static int debugfs_atomic_t_set(void *data, u64 val)
-@@ -281,7 +281,7 @@ int init_fault_attr_dentries(struct faul
- #ifdef CONFIG_FAULT_INJECTION_STACKTRACE_FILTER
- 
- 	attr->dentries.stacktrace_depth_file =
--		debugfs_create_ul_MAX_STACK_TRACE_DEPTH(
-+		debugfs_create_stacktrace_depth(
- 			"stacktrace-depth", mode, dir, &attr->stacktrace_depth);
- 
- 	attr->dentries.require_start_file =
+ #endif
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from sergiu@chromium.org are
 
 origin.patch
-fault-injection-add-ability-to-export-fault_attr-in-arbitrary-directory.patch
-linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
 
