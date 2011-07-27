@@ -1,81 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:29:20 -0700
-Message-ID: <201107271928.p6RJS6fa003279@imap1.linux-foundation.org>
+Subject: [merged] panic-panic=-1-for-immediate-reboot.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:29:15 -0700
+Message-ID: <201107271928.p6RJS1MR003264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754981Ab1G0T2f (ORCPT
+	by vger.kernel.org with ESMTP id S1754972Ab1G0T2e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:28:35 -0400
+	Wed, 27 Jul 2011 15:28:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: christian.glindkamp@taskit.de, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: hughd@chromium.org, airlied@gmail.com, ak@linux.intel.com, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, hughd@google.com, jbarnes@virtuousgeek.org, msb@chromium.org, olaf@aepfle.de, ying
 
 
 The patch titled
-     drivers/w1/slaves/w1_therm.c: add support for DS28EA00
+     panic: panic=-1 for immediate reboot
 has been removed from the -mm tree.  Its filename was
-     drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00.patch
+     panic-panic=-1-for-immediate-reboot.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/w1/slaves/w1_therm.c: add support for DS28EA00
-From: Christian Glindkamp <christian.glindkamp@taskit.de>
+Subject: panic: panic=-1 for immediate reboot
+From: Hugh Dickins <hughd@chromium.org>
 
-Signed-off-by: Christian Glindkamp <christian.glindkamp@taskit.de>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+When kernel BUG or oops occurs, ChromeOS intends to panic and immediately
+reboot, with stacktrace and other messages preserved in RAM across reboot.
+ But the longer we delay, the more likely the user is to poweroff and lose
+the info.
+
+panic_timeout (seconds before rebooting) is set by panic= boot option or
+sysctl or /proc/sys/kernel/panic; but 0 means wait forever, so at present
+we have to delay at least 1 second.
+
+Let a negative number mean reboot immediately (with the small cosmetic
+benefit of suppressing that newline-less "Rebooting in %d seconds.."
+message).
+
+Signed-off-by: Hugh Dickins <hughd@chromium.org>
+Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Olaf Hering <olaf@aepfle.de>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_therm.c |    9 +++++++++
- drivers/w1/w1_family.h       |    1 +
- 2 files changed, 10 insertions(+)
+ Documentation/kernel-parameters.txt |    4 +++-
+ kernel/panic.c                      |    2 ++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/slaves/w1_therm.c~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00 drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -86,6 +86,11 @@ static struct w1_family w1_therm_family_
- 	.fops = &w1_therm_fops,
- };
+diff -puN Documentation/kernel-parameters.txt~panic-panic=-1-for-immediate-reboot Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~panic-panic=-1-for-immediate-reboot
++++ a/Documentation/kernel-parameters.txt
+@@ -1846,7 +1846,9 @@ bytes respectively. Such letter suffixes
+ 			See Documentation/sound/oss/oss-parameters.txt
  
-+static struct w1_family w1_therm_family_DS28EA00 = {
-+	.fid = W1_THERM_DS28EA00,
-+	.fops = &w1_therm_fops,
-+};
-+
- struct w1_therm_family_converter
- {
- 	u8			broken;
-@@ -111,6 +116,10 @@ static struct w1_therm_family_converter 
- 		.f		= &w1_therm_family_DS18B20,
- 		.convert 	= w1_DS18B20_convert_temp
- 	},
-+	{
-+		.f		= &w1_therm_family_DS28EA00,
-+		.convert	= w1_DS18B20_convert_temp
-+	},
- };
+ 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
+-			seconds before rebooting
++			timeout > 0: seconds before rebooting
++			timeout = 0: wait forever
++			timeout < 0: reboot immediately
+ 			Format: <timeout>
  
- static inline int w1_DS18B20_convert_temp(u8 rom[9])
-diff -puN drivers/w1/w1_family.h~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00 drivers/w1/w1_family.h
---- a/drivers/w1/w1_family.h~drivers-w1-slaves-w1_thermc-add-support-for-ds28ea00
-+++ a/drivers/w1/w1_family.h
-@@ -38,6 +38,7 @@
- #define W1_EEPROM_DS2431	0x2D
- #define W1_FAMILY_DS2760	0x30
- #define W1_FAMILY_DS2780	0x32
-+#define W1_THERM_DS28EA00	0x42
- 
- #define MAXNAMELEN		32
- 
+ 	parkbd.port=	[HW] Parallel port number the keyboard adapter is
+diff -puN kernel/panic.c~panic-panic=-1-for-immediate-reboot kernel/panic.c
+--- a/kernel/panic.c~panic-panic=-1-for-immediate-reboot
++++ a/kernel/panic.c
+@@ -119,6 +119,8 @@ NORET_TYPE void panic(const char * fmt, 
+ 			}
+ 			mdelay(PANIC_TIMER_STEP);
+ 		}
++	}
++	if (panic_timeout != 0) {
+ 		/*
+ 		 * This will not be a clean reboot, with everything
+ 		 * shutting down.  But if there is a chance of
 _
 
-Patches currently in -mm which might be from christian.glindkamp@taskit.de are
+Patches currently in -mm which might be from hughd@chromium.org are
 
 origin.patch
 
