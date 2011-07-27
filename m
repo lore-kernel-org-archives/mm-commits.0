@@ -1,410 +1,304 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-consolidates-memory-cgroup-lru-stat-functions.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:28:04 -0700
-Message-ID: <201107271926.p6RJQohO003148@imap1.linux-foundation.org>
+Subject: [merged] memcg-make-oom_lock-0-and-1-based-rather-than-counter.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:28:06 -0700
+Message-ID: <201107271926.p6RJQqci003151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34614 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37247 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754247Ab1G0T1E (ORCPT
+	by vger.kernel.org with ESMTP id S1754114Ab1G0T1F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:27:04 -0400
+	Wed, 27 Jul 2011 15:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, bsingharora@gmail.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: consolidate memory cgroup lru stat functions
+     memcg: make oom_lock 0 and 1 based rather than counter
 has been removed from the -mm tree.  Its filename was
-     memcg-consolidates-memory-cgroup-lru-stat-functions.patch
+     memcg-make-oom_lock-0-and-1-based-rather-than-counter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: consolidate memory cgroup lru stat functions
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: make oom_lock 0 and 1 based rather than counter
+From: Michal Hocko <mhocko@suse.cz>
 
-In mm/memcontrol.c, there are many lru stat functions as..
+867578cb ("memcg: fix oom kill behavior") introduced oom_lock counter
+which is incremented by mem_cgroup_oom_lock when we are about to handle
+memcg OOM situation.  mem_cgroup_handle_oom falls back to a sleep if
+oom_lock > 1 to prevent from multiple oom kills at the same time.  The
+counter is then decremented by mem_cgroup_oom_unlock called from the same
+function.
 
-mem_cgroup_zone_nr_lru_pages
-mem_cgroup_node_nr_file_lru_pages
-mem_cgroup_nr_file_lru_pages
-mem_cgroup_node_nr_anon_lru_pages
-mem_cgroup_nr_anon_lru_pages
-mem_cgroup_node_nr_unevictable_lru_pages
-mem_cgroup_nr_unevictable_lru_pages
-mem_cgroup_node_nr_lru_pages
-mem_cgroup_nr_lru_pages
-mem_cgroup_get_local_zonestat
+This works correctly but it can lead to serious starvations when we have
+many processes triggering OOM and many CPUs available for them (I have
+tested with 16 CPUs).
 
-Some of them are under #ifdef MAX_NUMNODES >1 and others are not.
-This seems bad. This patch consolidates all functions into
+Consider a process (call it A) which gets the oom_lock (the first one that
+got to mem_cgroup_handle_oom and grabbed memcg_oom_mutex) and other
+processes that are blocked on the mutex.  While A releases the mutex and
+calls mem_cgroup_out_of_memory others will wake up (one after another) and
+increase the counter and fall into sleep (memcg_oom_waitq).
 
-mem_cgroup_zone_nr_lru_pages()
-mem_cgroup_node_nr_lru_pages()
-mem_cgroup_nr_lru_pages()
+Once A finishes mem_cgroup_out_of_memory it takes the mutex again and
+decreases oom_lock and wakes other tasks (if releasing memory by somebody
+else - e.g.  killed process - hasn't done it yet).
 
-For these functions, "which LRU?" information is passed by a mask.
+Testcase would look like:
+ Assume malloc XXX is a program allocating XXX Megabytes of memory
+ which touches all allocated pages in a tight loop
+ # swapoff SWAP_DEVICE
+ # cgcreate -g memory:A
+ # cgset -r memory.oom_control=0   A
+ # cgset -r memory.limit_in_bytes= 200M
+ # for i in `seq 100`
+ # do
+ #     cgexec -g memory:A   malloc 10 &
+ # done
 
-example)
-mem_cgroup_nr_lru_pages(mem, BIT(LRU_ACTIVE_ANON))
+The main problem here is that all processes still race for the mutex and
+there is no guarantee that we will get counter back to 0 for those that
+got back to mem_cgroup_handle_oom.  In the end the whole convoy
+in/decreases the counter but we do not get to 1 that would enable killing
+so nothing useful can be done.  The time is basically unbounded because it
+highly depends on scheduling and ordering on mutex (I have seen this
+taking hours...).
 
-And I added some macro as ALL_LRU, ALL_LRU_FILE, ALL_LRU_ANON.
-example)
-mem_cgroup_nr_lru_pages(mem, ALL_LRU)
+This patch replaces the counter by a simple {un}lock semantic.  As
+mem_cgroup_oom_{un}lock works on the a subtree of a hierarchy we have to
+make sure that nobody else races with us which is guaranteed by the
+memcg_oom_mutex.
 
-BTW, considering layout of NUMA memory placement of counters, this patch seems
-to be better.
+We have to be careful while locking subtrees because we can encounter a
+subtree which is already locked: hierarchy:
 
-Now, when we gather all LRU information, we scan in following orer
-    for_each_lru -> for_each_node -> for_each_zone.
+          A
+        /   \
+       B     \
+      /\      \
+     C  D     E
 
-This means we'll touch cache lines in different node in turn.
+B - C - D tree might be already locked.  While we want to enable locking E
+subtree because OOM situations cannot influence each other we definitely
+do not want to allow locking A.
 
-After patch, we'll scan
-    for_each_node -> for_each_zone -> for_each_lru(mask)
+Therefore we have to refuse lock if any subtree is already locked and
+clear up the lock for all nodes that have been set up to the failure
+point.
 
-Then, we'll gather information in the same cacheline at once.
+On the other hand we have to make sure that the rest of the world will
+recognize that a group is under OOM even though it doesn't have a lock. 
+Therefore we have to introduce under_oom variable which is incremented and
+decremented for the whole subtree when we enter resp.  leave
+mem_cgroup_handle_oom.  under_oom, unlike oom_lock, doesn't need be
+updated under memcg_oom_mutex because its users only check a single group
+and they use atomic operations for that.
 
-[akpm@linux-foundation.org: fix warnigns, build error]
+This can be checked easily by the following test case:
+
+ # cgcreate -g memory:A
+ # cgset -r memory.use_hierarchy=1 A
+ # cgset -r memory.oom_control=1   A
+ # cgset -r memory.limit_in_bytes= 100M
+ # cgset -r memory.memsw.limit_in_bytes= 100M
+ # cgcreate -g memory:A/B
+ # cgset -r memory.oom_control=1 A/B
+ # cgset -r memory.limit_in_bytes=20M
+ # cgset -r memory.memsw.limit_in_bytes=20M
+ # cgexec -g memory:A/B malloc 30  &    #->this will be blocked by OOM of group B
+ # cgexec -g memory:A   malloc 80  &    #->this will be blocked by OOM of group A
+
+While B gets oom_lock A will not get it.  Both of them go into sleep and
+wait for an external action.  We can make the limit higher for A to
+enforce waking it up
+
+ # cgset -r memory.memsw.limit_in_bytes=300M A
+ # cgset -r memory.limit_in_bytes=300M A
+
+malloc in A has to wake up even though it doesn't have oom_lock.
+
+Finally, the unlock path is very easy because we always unlock only the
+subtree we have locked previously while we always decrement under_oom.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 -
- include/linux/mmzone.h     |    6 +
- mm/memcontrol.c            |  176 +++++++++--------------------------
- mm/vmscan.c                |    3 
- 4 files changed, 60 insertions(+), 132 deletions(-)
+ mm/memcontrol.c |   88 +++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 71 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-consolidates-memory-cgroup-lru-stat-functions include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-consolidates-memory-cgroup-lru-stat-functions
-+++ a/include/linux/memcontrol.h
-@@ -111,8 +111,7 @@ int mem_cgroup_inactive_anon_is_low(stru
- int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg);
- int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
- unsigned long mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg,
--						struct zone *zone,
--						enum lru_list lru);
-+					int nid, int zid, unsigned int lrumask);
- struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
- 						      struct zone *zone);
- struct zone_reclaim_stat*
-@@ -313,8 +312,8 @@ mem_cgroup_inactive_file_is_low(struct m
- }
- 
- static inline unsigned long
--mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, struct zone *zone,
--			     enum lru_list lru)
-+mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, int nid, int zid,
-+				unsigned int lru_mask)
- {
- 	return 0;
- }
-diff -puN include/linux/mmzone.h~memcg-consolidates-memory-cgroup-lru-stat-functions include/linux/mmzone.h
---- a/include/linux/mmzone.h~memcg-consolidates-memory-cgroup-lru-stat-functions
-+++ a/include/linux/mmzone.h
-@@ -158,6 +158,12 @@ static inline int is_unevictable_lru(enu
- 	return (l == LRU_UNEVICTABLE);
- }
- 
-+/* Mask used at gathering information at once (see memcontrol.c) */
-+#define LRU_ALL_FILE (BIT(LRU_INACTIVE_FILE) | BIT(LRU_ACTIVE_FILE))
-+#define LRU_ALL_ANON (BIT(LRU_INACTIVE_ANON) | BIT(LRU_ACTIVE_ANON))
-+#define LRU_ALL_EVICTABLE (LRU_ALL_FILE | LRU_ALL_ANON)
-+#define LRU_ALL	     ((1 << NR_LRU_LISTS) - 1)
-+
- enum zone_watermarks {
- 	WMARK_MIN,
- 	WMARK_LOW,
-diff -puN mm/memcontrol.c~memcg-consolidates-memory-cgroup-lru-stat-functions mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-consolidates-memory-cgroup-lru-stat-functions
+diff -puN mm/memcontrol.c~memcg-make-oom_lock-0-and-1-based-rather-than-counter mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-oom_lock-0-and-1-based-rather-than-counter
 +++ a/mm/memcontrol.c
-@@ -636,27 +636,44 @@ static void mem_cgroup_charge_statistics
- 	preempt_enable();
+@@ -246,7 +246,10 @@ struct mem_cgroup {
+ 	 * Should the accounting and control be hierarchical, per subtree?
+ 	 */
+ 	bool use_hierarchy;
+-	atomic_t	oom_lock;
++
++	bool		oom_lock;
++	atomic_t	under_oom;
++
+ 	atomic_t	refcnt;
+ 
+ 	int	swappiness;
+@@ -1722,37 +1725,83 @@ static int mem_cgroup_hierarchical_recla
+ /*
+  * Check OOM-Killer is already running under our hierarchy.
+  * If someone is running, return false.
++ * Has to be called with memcg_oom_mutex
+  */
+ static bool mem_cgroup_oom_lock(struct mem_cgroup *mem)
+ {
+-	int x, lock_count = 0;
+-	struct mem_cgroup *iter;
+-
+-	for_each_mem_cgroup_tree(iter, mem) {
+-		x = atomic_inc_return(&iter->oom_lock);
+-		lock_count = max(x, lock_count);
++	int lock_count = -1;
++	struct mem_cgroup *iter, *failed = NULL;
++	bool cond = true;
++
++	for_each_mem_cgroup_tree_cond(iter, mem, cond) {
++		bool locked = iter->oom_lock;
++
++		iter->oom_lock = true;
++		if (lock_count == -1)
++			lock_count = iter->oom_lock;
++		else if (lock_count != locked) {
++			/*
++			 * this subtree of our hierarchy is already locked
++			 * so we cannot give a lock.
++			 */
++			lock_count = 0;
++			failed = iter;
++			cond = false;
++		}
+ 	}
+ 
+-	if (lock_count == 1)
+-		return true;
+-	return false;
++	if (!failed)
++		goto done;
++
++	/*
++	 * OK, we failed to lock the whole subtree so we have to clean up
++	 * what we set up to the failing subtree
++	 */
++	cond = true;
++	for_each_mem_cgroup_tree_cond(iter, mem, cond) {
++		if (iter == failed) {
++			cond = false;
++			continue;
++		}
++		iter->oom_lock = false;
++	}
++done:
++	return lock_count;
  }
  
--static unsigned long
--mem_cgroup_get_zonestat_node(struct mem_cgroup *mem, int nid, enum lru_list idx)
-+unsigned long
-+mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *mem, int nid, int zid,
-+			unsigned int lru_mask)
++/*
++ * Has to be called with memcg_oom_mutex
++ */
+ static int mem_cgroup_oom_unlock(struct mem_cgroup *mem)
  {
- 	struct mem_cgroup_per_zone *mz;
-+	enum lru_list l;
-+	unsigned long ret = 0;
-+
-+	mz = mem_cgroup_zoneinfo(mem, nid, zid);
-+
-+	for_each_lru(l) {
-+		if (BIT(l) & lru_mask)
-+			ret += MEM_CGROUP_ZSTAT(mz, l);
-+	}
-+	return ret;
+ 	struct mem_cgroup *iter;
+ 
++	for_each_mem_cgroup_tree(iter, mem)
++		iter->oom_lock = false;
++	return 0;
 +}
 +
-+static unsigned long
-+mem_cgroup_node_nr_lru_pages(struct mem_cgroup *mem,
-+			int nid, unsigned int lru_mask)
++static void mem_cgroup_mark_under_oom(struct mem_cgroup *mem)
 +{
- 	u64 total = 0;
- 	int zid;
- 
--	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
--		mz = mem_cgroup_zoneinfo(mem, nid, zid);
--		total += MEM_CGROUP_ZSTAT(mz, idx);
--	}
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++)
-+		total += mem_cgroup_zone_nr_lru_pages(mem, nid, zid, lru_mask);
++	struct mem_cgroup *iter;
 +
- 	return total;
- }
--static unsigned long mem_cgroup_get_local_zonestat(struct mem_cgroup *mem,
--					enum lru_list idx)
++	for_each_mem_cgroup_tree(iter, mem)
++		atomic_inc(&iter->under_oom);
++}
 +
-+static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *mem,
-+			unsigned int lru_mask)
- {
- 	int nid;
- 	u64 total = 0;
- 
--	for_each_online_node(nid)
--		total += mem_cgroup_get_zonestat_node(mem, nid, idx);
-+	for_each_node_state(nid, N_HIGH_MEMORY)
-+		total += mem_cgroup_node_nr_lru_pages(mem, nid, lru_mask);
- 	return total;
++static void mem_cgroup_unmark_under_oom(struct mem_cgroup *mem)
++{
++	struct mem_cgroup *iter;
++
+ 	/*
+ 	 * When a new child is created while the hierarchy is under oom,
+ 	 * mem_cgroup_oom_lock() may not be called. We have to use
+ 	 * atomic_add_unless() here.
+ 	 */
+ 	for_each_mem_cgroup_tree(iter, mem)
+-		atomic_add_unless(&iter->oom_lock, -1, 0);
+-	return 0;
++		atomic_add_unless(&iter->under_oom, -1, 0);
  }
  
-@@ -1077,8 +1094,8 @@ static int calc_inactive_ratio(struct me
- 	unsigned long gb;
- 	unsigned long inactive_ratio;
+-
+ static DEFINE_MUTEX(memcg_oom_mutex);
+ static DECLARE_WAIT_QUEUE_HEAD(memcg_oom_waitq);
  
--	inactive = mem_cgroup_get_local_zonestat(memcg, LRU_INACTIVE_ANON);
--	active = mem_cgroup_get_local_zonestat(memcg, LRU_ACTIVE_ANON);
-+	inactive = mem_cgroup_nr_lru_pages(memcg, BIT(LRU_INACTIVE_ANON));
-+	active = mem_cgroup_nr_lru_pages(memcg, BIT(LRU_ACTIVE_ANON));
+@@ -1794,7 +1843,7 @@ static void memcg_wakeup_oom(struct mem_
  
- 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
- 	if (gb)
-@@ -1117,109 +1134,12 @@ int mem_cgroup_inactive_file_is_low(stru
- 	unsigned long active;
- 	unsigned long inactive;
- 
--	inactive = mem_cgroup_get_local_zonestat(memcg, LRU_INACTIVE_FILE);
--	active = mem_cgroup_get_local_zonestat(memcg, LRU_ACTIVE_FILE);
-+	inactive = mem_cgroup_nr_lru_pages(memcg, BIT(LRU_INACTIVE_FILE));
-+	active = mem_cgroup_nr_lru_pages(memcg, BIT(LRU_ACTIVE_FILE));
- 
- 	return (active > inactive);
+ static void memcg_oom_recover(struct mem_cgroup *mem)
+ {
+-	if (mem && atomic_read(&mem->oom_lock))
++	if (mem && atomic_read(&mem->under_oom))
+ 		memcg_wakeup_oom(mem);
  }
  
--unsigned long mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg,
--						struct zone *zone,
--						enum lru_list lru)
--{
--	int nid = zone_to_nid(zone);
--	int zid = zone_idx(zone);
--	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(memcg, nid, zid);
--
--	return MEM_CGROUP_ZSTAT(mz, lru);
--}
--
--static unsigned long mem_cgroup_node_nr_file_lru_pages(struct mem_cgroup *memcg,
--							int nid)
--{
--	unsigned long ret;
--
--	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_FILE) +
--		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_FILE);
--
--	return ret;
--}
--
--static unsigned long mem_cgroup_node_nr_anon_lru_pages(struct mem_cgroup *memcg,
--							int nid)
--{
--	unsigned long ret;
--
--	ret = mem_cgroup_get_zonestat_node(memcg, nid, LRU_INACTIVE_ANON) +
--		mem_cgroup_get_zonestat_node(memcg, nid, LRU_ACTIVE_ANON);
--	return ret;
--}
--
--#if MAX_NUMNODES > 1
--static unsigned long mem_cgroup_nr_file_lru_pages(struct mem_cgroup *memcg)
--{
--	u64 total = 0;
--	int nid;
--
--	for_each_node_state(nid, N_HIGH_MEMORY)
--		total += mem_cgroup_node_nr_file_lru_pages(memcg, nid);
--
--	return total;
--}
--
--static unsigned long mem_cgroup_nr_anon_lru_pages(struct mem_cgroup *memcg)
--{
--	u64 total = 0;
--	int nid;
--
--	for_each_node_state(nid, N_HIGH_MEMORY)
--		total += mem_cgroup_node_nr_anon_lru_pages(memcg, nid);
--
--	return total;
--}
--
--static unsigned long
--mem_cgroup_node_nr_unevictable_lru_pages(struct mem_cgroup *memcg, int nid)
--{
--	return mem_cgroup_get_zonestat_node(memcg, nid, LRU_UNEVICTABLE);
--}
--
--static unsigned long
--mem_cgroup_nr_unevictable_lru_pages(struct mem_cgroup *memcg)
--{
--	u64 total = 0;
--	int nid;
--
--	for_each_node_state(nid, N_HIGH_MEMORY)
--		total += mem_cgroup_node_nr_unevictable_lru_pages(memcg, nid);
--
--	return total;
--}
--
--static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
--							int nid)
--{
--	enum lru_list l;
--	u64 total = 0;
--
--	for_each_lru(l)
--		total += mem_cgroup_get_zonestat_node(memcg, nid, l);
--
--	return total;
--}
--
--static unsigned long mem_cgroup_nr_lru_pages(struct mem_cgroup *memcg)
--{
--	u64 total = 0;
--	int nid;
--
--	for_each_node_state(nid, N_HIGH_MEMORY)
--		total += mem_cgroup_node_nr_lru_pages(memcg, nid);
--
--	return total;
--}
--#endif /* CONFIG_NUMA */
--
- struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
- 						      struct zone *zone)
- {
-@@ -1576,11 +1496,11 @@ mem_cgroup_select_victim(struct mem_cgro
- static bool test_mem_cgroup_node_reclaimable(struct mem_cgroup *mem,
- 		int nid, bool noswap)
- {
--	if (mem_cgroup_node_nr_file_lru_pages(mem, nid))
-+	if (mem_cgroup_node_nr_lru_pages(mem, nid, LRU_ALL_FILE))
- 		return true;
- 	if (noswap || !total_swap_pages)
+@@ -1812,6 +1861,8 @@ bool mem_cgroup_handle_oom(struct mem_cg
+ 	owait.wait.private = current;
+ 	INIT_LIST_HEAD(&owait.wait.task_list);
+ 	need_to_kill = true;
++	mem_cgroup_mark_under_oom(mem);
++
+ 	/* At first, try to OOM lock hierarchy under mem.*/
+ 	mutex_lock(&memcg_oom_mutex);
+ 	locked = mem_cgroup_oom_lock(mem);
+@@ -1835,10 +1886,13 @@ bool mem_cgroup_handle_oom(struct mem_cg
+ 		finish_wait(&memcg_oom_waitq, &owait.wait);
+ 	}
+ 	mutex_lock(&memcg_oom_mutex);
+-	mem_cgroup_oom_unlock(mem);
++	if (locked)
++		mem_cgroup_oom_unlock(mem);
+ 	memcg_wakeup_oom(mem);
+ 	mutex_unlock(&memcg_oom_mutex);
+ 
++	mem_cgroup_unmark_under_oom(mem);
++
+ 	if (test_thread_flag(TIF_MEMDIE) || fatal_signal_pending(current))
  		return false;
--	if (mem_cgroup_node_nr_anon_lru_pages(mem, nid))
-+	if (mem_cgroup_node_nr_lru_pages(mem, nid, LRU_ALL_ANON))
- 		return true;
- 	return false;
+ 	/* Give chance to dying process */
+@@ -4505,7 +4559,7 @@ static int mem_cgroup_oom_register_event
+ 	list_add(&event->list, &memcg->oom_notify);
  
-@@ -4151,15 +4071,15 @@ mem_cgroup_get_local_stat(struct mem_cgr
- 	s->stat[MCS_PGMAJFAULT] += val;
+ 	/* already in OOM ? */
+-	if (atomic_read(&memcg->oom_lock))
++	if (atomic_read(&memcg->under_oom))
+ 		eventfd_signal(eventfd, 1);
+ 	mutex_unlock(&memcg_oom_mutex);
  
- 	/* per zone stat */
--	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_ANON);
-+	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_INACTIVE_ANON));
- 	s->stat[MCS_INACTIVE_ANON] += val * PAGE_SIZE;
--	val = mem_cgroup_get_local_zonestat(mem, LRU_ACTIVE_ANON);
-+	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_ACTIVE_ANON));
- 	s->stat[MCS_ACTIVE_ANON] += val * PAGE_SIZE;
--	val = mem_cgroup_get_local_zonestat(mem, LRU_INACTIVE_FILE);
-+	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_INACTIVE_FILE));
- 	s->stat[MCS_INACTIVE_FILE] += val * PAGE_SIZE;
--	val = mem_cgroup_get_local_zonestat(mem, LRU_ACTIVE_FILE);
-+	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_ACTIVE_FILE));
- 	s->stat[MCS_ACTIVE_FILE] += val * PAGE_SIZE;
--	val = mem_cgroup_get_local_zonestat(mem, LRU_UNEVICTABLE);
-+	val = mem_cgroup_nr_lru_pages(mem, BIT(LRU_UNEVICTABLE));
- 	s->stat[MCS_UNEVICTABLE] += val * PAGE_SIZE;
- }
+@@ -4540,7 +4594,7 @@ static int mem_cgroup_oom_control_read(s
  
-@@ -4181,35 +4101,37 @@ static int mem_control_numa_stat_show(st
- 	struct cgroup *cont = m->private;
- 	struct mem_cgroup *mem_cont = mem_cgroup_from_cont(cont);
+ 	cb->fill(cb, "oom_kill_disable", mem->oom_kill_disable);
  
--	total_nr = mem_cgroup_nr_lru_pages(mem_cont);
-+	total_nr = mem_cgroup_nr_lru_pages(mem_cont, LRU_ALL);
- 	seq_printf(m, "total=%lu", total_nr);
- 	for_each_node_state(nid, N_HIGH_MEMORY) {
--		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid);
-+		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid, LRU_ALL);
- 		seq_printf(m, " N%d=%lu", nid, node_nr);
- 	}
- 	seq_putc(m, '\n');
- 
--	file_nr = mem_cgroup_nr_file_lru_pages(mem_cont);
-+	file_nr = mem_cgroup_nr_lru_pages(mem_cont, LRU_ALL_FILE);
- 	seq_printf(m, "file=%lu", file_nr);
- 	for_each_node_state(nid, N_HIGH_MEMORY) {
--		node_nr = mem_cgroup_node_nr_file_lru_pages(mem_cont, nid);
-+		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid,
-+				LRU_ALL_FILE);
- 		seq_printf(m, " N%d=%lu", nid, node_nr);
- 	}
- 	seq_putc(m, '\n');
- 
--	anon_nr = mem_cgroup_nr_anon_lru_pages(mem_cont);
-+	anon_nr = mem_cgroup_nr_lru_pages(mem_cont, LRU_ALL_ANON);
- 	seq_printf(m, "anon=%lu", anon_nr);
- 	for_each_node_state(nid, N_HIGH_MEMORY) {
--		node_nr = mem_cgroup_node_nr_anon_lru_pages(mem_cont, nid);
-+		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid,
-+				LRU_ALL_ANON);
- 		seq_printf(m, " N%d=%lu", nid, node_nr);
- 	}
- 	seq_putc(m, '\n');
- 
--	unevictable_nr = mem_cgroup_nr_unevictable_lru_pages(mem_cont);
-+	unevictable_nr = mem_cgroup_nr_lru_pages(mem_cont, BIT(LRU_UNEVICTABLE));
- 	seq_printf(m, "unevictable=%lu", unevictable_nr);
- 	for_each_node_state(nid, N_HIGH_MEMORY) {
--		node_nr = mem_cgroup_node_nr_unevictable_lru_pages(mem_cont,
--									nid);
-+		node_nr = mem_cgroup_node_nr_lru_pages(mem_cont, nid,
-+				BIT(LRU_UNEVICTABLE));
- 		seq_printf(m, " N%d=%lu", nid, node_nr);
- 	}
- 	seq_putc(m, '\n');
-diff -puN mm/vmscan.c~memcg-consolidates-memory-cgroup-lru-stat-functions mm/vmscan.c
---- a/mm/vmscan.c~memcg-consolidates-memory-cgroup-lru-stat-functions
-+++ a/mm/vmscan.c
-@@ -171,7 +171,8 @@ static unsigned long zone_nr_lru_pages(s
- 				struct scan_control *sc, enum lru_list lru)
- {
- 	if (!scanning_global_lru(sc))
--		return mem_cgroup_zone_nr_lru_pages(sc->mem_cgroup, zone, lru);
-+		return mem_cgroup_zone_nr_lru_pages(sc->mem_cgroup,
-+				zone_to_nid(zone), zone_idx(zone), BIT(lru));
- 
- 	return zone_page_state(zone, NR_LRU_BASE + lru);
- }
+-	if (atomic_read(&mem->oom_lock))
++	if (atomic_read(&mem->under_oom))
+ 		cb->fill(cb, "under_oom", 1);
+ 	else
+ 		cb->fill(cb, "under_oom", 0);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-mm-mempolicyc-make-copy_from_user-provably-correct.patch
 memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
 
