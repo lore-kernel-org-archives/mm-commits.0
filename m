@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch added to -mm tree
-Date: Wed, 27 Jul 2011 14:32:33 -0700
-Message-ID: <201107272132.p6RLWXdl009259@imap1.linux-foundation.org>
+Subject: + minix-describe-usage-of-different-magic-numbers.patch added to -mm tree
+Date: Wed, 27 Jul 2011 14:35:17 -0700
+Message-ID: <201107272135.p6RLZHXF009407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53018 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755259Ab1G0VdN (ORCPT
+	by vger.kernel.org with ESMTP id S1755312Ab1G0Vfz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 17:33:13 -0400
+	Wed, 27 Jul 2011 17:35:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cschan@codeaurora.org, john.stultz@linaro.org, tglx@linutronix.de
+Cc: kerolasa@iki.fi
 
 
 The patch titled
-     kernel/timer.c: use debugobjects to catch deletion of uninitialized timers
+     minix: describe usage of different magic numbers
 has been added to the -mm tree.  Its filename is
-     kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+     minix-describe-usage-of-different-magic-numbers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/timer.c: use debugobjects to catch deletion of uninitialized timers
-From: Christine Chan <cschan@codeaurora.org>
+Subject: minix: describe usage of different magic numbers
+From: Sami Kerola <kerolasa@iki.fi>
 
-del_timer_sync() calls debug_object_assert_init() to assert that a timer
-has been initialized before calling lock_timer_base().  lock_timer_base()
-would spin forever on a NULL(uninit-ed) base.  The check is added to
-del_timer() to prevent silent failure, even though it would not get stuck
-in an infinite loop.
+One can get this information from minix/inode.c, but adding the
+explanations at the definition sites is more appropriate.
 
-Signed-off-by: Christine Chan <cschan@codeaurora.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Sami Kerola <kerolasa@iki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |   54 ++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 49 insertions(+), 5 deletions(-)
+ include/linux/magic.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/timer.c~kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers kernel/timer.c
---- a/kernel/timer.c~kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers
-+++ a/kernel/timer.c
-@@ -480,12 +480,41 @@ static int timer_fixup_free(void *addr, 
- 	}
- }
+diff -puN include/linux/magic.h~minix-describe-usage-of-different-magic-numbers include/linux/magic.h
+--- a/include/linux/magic.h~minix-describe-usage-of-different-magic-numbers
++++ a/include/linux/magic.h
+@@ -30,11 +30,11 @@
+ #define ANON_INODE_FS_MAGIC	0x09041934
+ #define PSTOREFS_MAGIC		0x6165676C
  
-+/*
-+ * fixup_assert_init is called when:
-+ * - an untracked/uninit-ed object is found
-+ */
-+static int timer_fixup_assert_init(void *addr, enum debug_obj_state state)
-+{
-+	struct timer_list *timer = addr;
-+
-+	switch (state) {
-+	case ODEBUG_STATE_NOTAVAILABLE:
-+		if (timer->entry.prev == TIMER_ENTRY_STATIC) {
-+			/*
-+			 * This is not really a fixup. The timer was
-+			 * statically initialized. We just make sure that it
-+			 * is tracked in the object tracker.
-+			 */
-+			debug_object_init(timer, &timer_debug_descr);
-+			return 0;
-+		} else {
-+			WARN_ON(1);
-+			init_timer(timer);
-+			return 1;
-+		}
-+	default:
-+		return 0;
-+	}
-+}
-+
- static struct debug_obj_descr timer_debug_descr = {
--	.name		= "timer_list",
--	.debug_hint	= timer_debug_hint,
--	.fixup_init	= timer_fixup_init,
--	.fixup_activate	= timer_fixup_activate,
--	.fixup_free	= timer_fixup_free,
-+	.name			= "timer_list",
-+	.debug_hint		= timer_debug_hint,
-+	.fixup_init		= timer_fixup_init,
-+	.fixup_activate		= timer_fixup_activate,
-+	.fixup_free		= timer_fixup_free,
-+	.fixup_assert_init	= timer_fixup_assert_init,
- };
+-#define MINIX_SUPER_MAGIC	0x137F		/* original minix fs */
+-#define MINIX_SUPER_MAGIC2	0x138F		/* minix fs, 30 char names */
+-#define MINIX2_SUPER_MAGIC	0x2468		/* minix V2 fs */
+-#define MINIX2_SUPER_MAGIC2	0x2478		/* minix V2 fs, 30 char names */
+-#define MINIX3_SUPER_MAGIC	0x4d5a		/* minix V3 fs */
++#define MINIX_SUPER_MAGIC	0x137F		/* minix v1 fs, 14 char names */
++#define MINIX_SUPER_MAGIC2	0x138F		/* minix v1 fs, 30 char names */
++#define MINIX2_SUPER_MAGIC	0x2468		/* minix v2 fs, 14 char names */
++#define MINIX2_SUPER_MAGIC2	0x2478		/* minix v2 fs, 30 char names */
++#define MINIX3_SUPER_MAGIC	0x4d5a		/* minix v3 fs, 60 char names */
  
- static inline void debug_timer_init(struct timer_list *timer)
-@@ -508,6 +537,11 @@ static inline void debug_timer_free(stru
- 	debug_object_free(timer, &timer_debug_descr);
- }
- 
-+static inline void debug_timer_assert_init(struct timer_list *timer)
-+{
-+	debug_object_assert_init(timer, &timer_debug_descr);
-+}
-+
- static void __init_timer(struct timer_list *timer,
- 			 const char *name,
- 			 struct lock_class_key *key);
-@@ -531,6 +565,7 @@ EXPORT_SYMBOL_GPL(destroy_timer_on_stack
- static inline void debug_timer_init(struct timer_list *timer) { }
- static inline void debug_timer_activate(struct timer_list *timer) { }
- static inline void debug_timer_deactivate(struct timer_list *timer) { }
-+static inline void debug_timer_assert_init(struct timer_list *timer) { }
- #endif
- 
- static inline void debug_init(struct timer_list *timer)
-@@ -552,6 +587,11 @@ static inline void debug_deactivate(stru
- 	trace_timer_cancel(timer);
- }
- 
-+static inline void debug_assert_init(struct timer_list *timer)
-+{
-+	debug_timer_assert_init(timer);
-+}
-+
- static void __init_timer(struct timer_list *timer,
- 			 const char *name,
- 			 struct lock_class_key *key)
-@@ -902,6 +942,8 @@ int del_timer(struct timer_list *timer)
- 	unsigned long flags;
- 	int ret = 0;
- 
-+	debug_assert_init(timer);
-+
- 	timer_stats_timer_clear_start_info(timer);
- 	if (timer_pending(timer)) {
- 		base = lock_timer_base(timer, &flags);
-@@ -932,6 +974,8 @@ int try_to_del_timer_sync(struct timer_l
- 	unsigned long flags;
- 	int ret = -1;
- 
-+	debug_assert_init(timer);
-+
- 	base = lock_timer_base(timer, &flags);
- 
- 	if (base->running_timer == timer)
+ #define MSDOS_SUPER_MAGIC	0x4d44		/* MD */
+ #define NCP_SUPER_MAGIC		0x564c		/* Guess, what 0x564c is :-) */
 _
 
-Patches currently in -mm which might be from cschan@codeaurora.org are
+Patches currently in -mm which might be from kerolasa@iki.fi are
 
-debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized.patch
-kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+minix-describe-usage-of-different-magic-numbers.patch
 
