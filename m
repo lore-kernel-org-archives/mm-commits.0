@@ -1,68 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:29:06 -0700
-Message-ID: <201107271927.p6RJRqUq003251@imap1.linux-foundation.org>
+Subject: [merged] exec-do-not-call-request_module-twice-from-search_binary_handler.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:28:46 -0700
+Message-ID: <201107271927.p6RJRWMS003219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754167Ab1G0T2R (ORCPT
+	by vger.kernel.org with ESMTP id S1754359Ab1G0T2N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:28:17 -0400
+	Wed, 27 Jul 2011 15:28:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Kai.Jiang@freescale.com, Shaohui.Xie@freescale.com, avorontsov@mvista.com, davem@davemloft.net, galak@kernel.crashing.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, richard@nod.at, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/edac/mpc85xx_edac.c: correct offset_in_page mask bits in edac_mc_handle_ce()
+     exec: do not call request_module() twice from search_binary_handler()
 has been removed from the -mm tree.  Its filename was
-     drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce.patch
+     exec-do-not-call-request_module-twice-from-search_binary_handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/edac/mpc85xx_edac.c: correct offset_in_page mask bits in edac_mc_handle_ce()
-From: Kai.Jiang <Kai.Jiang@freescale.com>
+Subject: exec: do not call request_module() twice from search_binary_handler()
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 
-Parameter offset_in_page in edac_mc_handle_ce() should mask the higher
-bits above the page size, not the lower bits.  The original input
-sometimes causes a crash.
+Currently, search_binary_handler() tries to load binary loader module
+using request_module() if a loader for the requested program is not yet
+loaded.  But second attempt of request_module() does not affect the result
+of search_binary_handler().
 
-Signed-off-by: Kai.Jiang <Kai.Jiang@freescale.com>
-Signed-off-by: Shaohui Xie <Shaohui.Xie@freescale.com>
-Cc: Anton Vorontsov <avorontsov@mvista.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Kumar Gala <galak@kernel.crashing.org>
+If request_module() triggered recursion, calling request_module() twice
+causes 2 to the power of MAX_KMOD_CONCURRENT (= 50) repetitions.  It is
+not an infinite loop but is sufficient for users to consider as a hang up.
+
+Therefore, this patch changes not to call request_module() twice, making 1
+to the power of MAX_KMOD_CONCURRENT repetitions in case of recursion.
+
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: Richard Weinberger <richard@nod.at>
+Tested-by: Richard Weinberger <richard@nod.at>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/mpc85xx_edac.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/exec.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/edac/mpc85xx_edac.c~drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce drivers/edac/mpc85xx_edac.c
---- a/drivers/edac/mpc85xx_edac.c~drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce
-+++ a/drivers/edac/mpc85xx_edac.c
-@@ -854,11 +854,11 @@ static void mpc85xx_mc_check(struct mem_
- 		mpc85xx_mc_printk(mci, KERN_ERR, "PFN out of range!\n");
- 
- 	if (err_detect & DDR_EDE_SBE)
--		edac_mc_handle_ce(mci, pfn, err_addr & PAGE_MASK,
-+		edac_mc_handle_ce(mci, pfn, err_addr & ~PAGE_MASK,
- 				  syndrome, row_index, 0, mci->ctl_name);
- 
- 	if (err_detect & DDR_EDE_MBE)
--		edac_mc_handle_ue(mci, pfn, err_addr & PAGE_MASK,
-+		edac_mc_handle_ue(mci, pfn, err_addr & ~PAGE_MASK,
- 				  row_index, mci->ctl_name);
- 
- 	out_be32(pdata->mc_vbase + MPC85XX_MC_ERR_DETECT, err_detect);
+diff -puN fs/exec.c~exec-do-not-call-request_module-twice-from-search_binary_handler fs/exec.c
+--- a/fs/exec.c~exec-do-not-call-request_module-twice-from-search_binary_handler
++++ a/fs/exec.c
+@@ -1440,6 +1440,8 @@ int search_binary_handler(struct linux_b
+ 			    printable(bprm->buf[2]) &&
+ 			    printable(bprm->buf[3]))
+ 				break; /* -ENOEXEC */
++			if (try)
++				break; /* -ENOEXEC */
+ 			request_module("binfmt-%04x", *(unsigned short *)(&bprm->buf[2]));
+ #endif
+ 		}
 _
 
-Patches currently in -mm which might be from Kai.Jiang@freescale.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
 origin.patch
+linux-next.patch
 
