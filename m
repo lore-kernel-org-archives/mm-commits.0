@@ -1,685 +1,311 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-add-memoryvmscan_stat.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:28:14 -0700
-Message-ID: <201107271927.p6RJR0ii003163@imap1.linux-foundation.org>
+Subject: [merged] ptrace-unify-show_regs-prototype.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:28:27 -0700
+Message-ID: <201107271927.p6RJRESc003193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751974Ab1G0T1Q (ORCPT
+	by vger.kernel.org with ESMTP id S1751974Ab1G0T1i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:27:16 -0400
+	Wed, 27 Jul 2011 15:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, abrestic@google.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, oleg@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: add memory.vmscan_stat
+     ptrace: unify show_regs() prototype
 has been removed from the -mm tree.  Its filename was
-     memcg-add-memoryvmscan_stat.patch
+     ptrace-unify-show_regs-prototype.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: add memory.vmscan_stat
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: ptrace: unify show_regs() prototype
+From: Mike Frysinger <vapier@gentoo.org>
 
-The commit log of 0ae5e89 ("memcg: count the soft_limit reclaim in...")
-says it adds scanning stats to memory.stat file.  But it doesn't because
-we considered we needed to make a concensus for such new APIs.
-
-This patch is a trial to add memory.scan_stat. This shows
-  - the number of scanned pages(total, anon, file)
-  - the number of rotated pages(total, anon, file)
-  - the number of freed pages(total, anon, file)
-  - the number of elaplsed time (including sleep/pause time)
-
-  for both of direct/soft reclaim.
-
-The biggest difference with oringinal Ying's one is that this file
-can be reset by some write, as
-
-  # echo 0 ...../memory.scan_stat
-
-Example of output is here. This is a result after make -j 6 kernel
-under 300M limit.
-
-[kamezawa@bluextal ~]$ cat /cgroup/memory/A/memory.scan_stat
-[kamezawa@bluextal ~]$ cat /cgroup/memory/A/memory.vmscan_stat
-scanned_pages_by_limit 9471864
-scanned_anon_pages_by_limit 6640629
-scanned_file_pages_by_limit 2831235
-rotated_pages_by_limit 4243974
-rotated_anon_pages_by_limit 3971968
-rotated_file_pages_by_limit 272006
-freed_pages_by_limit 2318492
-freed_anon_pages_by_limit 962052
-freed_file_pages_by_limit 1356440
-elapsed_ns_by_limit 351386416101
-scanned_pages_by_system 0
-scanned_anon_pages_by_system 0
-scanned_file_pages_by_system 0
-rotated_pages_by_system 0
-rotated_anon_pages_by_system 0
-rotated_file_pages_by_system 0
-freed_pages_by_system 0
-freed_anon_pages_by_system 0
-freed_file_pages_by_system 0
-elapsed_ns_by_system 0
-scanned_pages_by_limit_under_hierarchy 9471864
-scanned_anon_pages_by_limit_under_hierarchy 6640629
-scanned_file_pages_by_limit_under_hierarchy 2831235
-rotated_pages_by_limit_under_hierarchy 4243974
-rotated_anon_pages_by_limit_under_hierarchy 3971968
-rotated_file_pages_by_limit_under_hierarchy 272006
-freed_pages_by_limit_under_hierarchy 2318492
-freed_anon_pages_by_limit_under_hierarchy 962052
-freed_file_pages_by_limit_under_hierarchy 1356440
-elapsed_ns_by_limit_under_hierarchy 351386416101
-scanned_pages_by_system_under_hierarchy 0
-scanned_anon_pages_by_system_under_hierarchy 0
-scanned_file_pages_by_system_under_hierarchy 0
-rotated_pages_by_system_under_hierarchy 0
-rotated_anon_pages_by_system_under_hierarchy 0
-rotated_file_pages_by_system_under_hierarchy 0
-freed_pages_by_system_under_hierarchy 0
-freed_anon_pages_by_system_under_hierarchy 0
-freed_file_pages_by_system_under_hierarchy 0
-elapsed_ns_by_system_under_hierarchy 0
-
-total_xxxx is for hierarchy management.
-
-This will be useful for further memcg developments and need to be
-developped before we do some complicated rework on LRU/softlimit
-management.
-
-This patch adds a new struct memcg_scanrecord into scan_control struct.
-sc->nr_scanned at el is not designed for exporting information. For example,
-nr_scanned is reset frequentrly and incremented +2 at scanning mapped pages.
-
-To avoid complexity, I added a new param in scan_control which is for
-exporting scanning score.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
-Cc: Andrew Bresticker <abrestic@google.com>
+poleg@redhat.com: no need to declare show_regs() in ptrace.h, sched.h does this]
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   85 ++++++++++++++
- include/linux/memcontrol.h       |   19 +++
- include/linux/swap.h             |    6 -
- mm/memcontrol.c                  |  172 +++++++++++++++++++++++++++--
- mm/vmscan.c                      |   39 +++++-
- 5 files changed, 303 insertions(+), 18 deletions(-)
+ arch/alpha/include/asm/ptrace.h          |    1 -
+ arch/avr32/include/asm/ptrace.h          |    2 --
+ arch/blackfin/include/asm/ptrace.h       |    1 -
+ arch/cris/include/arch-v10/arch/ptrace.h |    1 -
+ arch/cris/include/arch-v32/arch/ptrace.h |    1 -
+ arch/frv/include/asm/ptrace.h            |    1 -
+ arch/h8300/include/asm/ptrace.h          |    1 -
+ arch/ia64/include/asm/ptrace.h           |    1 -
+ arch/m32r/include/asm/ptrace.h           |    2 --
+ arch/m68k/include/asm/ptrace.h           |    1 -
+ arch/microblaze/include/asm/ptrace.h     |    2 --
+ arch/mn10300/include/asm/ptrace.h        |    1 -
+ arch/parisc/include/asm/ptrace.h         |    1 -
+ arch/powerpc/include/asm/system.h        |    1 -
+ arch/s390/include/asm/ptrace.h           |    1 -
+ arch/sh/include/asm/ptrace.h             |    2 --
+ arch/sparc/include/asm/ptrace.h          |    2 --
+ arch/tile/include/asm/ptrace.h           |    2 --
+ arch/um/include/asm/ptrace-generic.h     |    2 --
+ arch/x86/include/asm/kdebug.h            |    1 -
+ arch/xtensa/include/asm/ptrace.h         |    1 -
+ 21 files changed, 28 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-add-memoryvmscan_stat Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-add-memoryvmscan_stat
-+++ a/Documentation/cgroups/memory.txt
-@@ -380,7 +380,7 @@ will be charged as a new owner of it.
+diff -puN arch/alpha/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/alpha/include/asm/ptrace.h
+--- a/arch/alpha/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/alpha/include/asm/ptrace.h
+@@ -72,7 +72,6 @@ struct switch_stack {
+ #define user_mode(regs) (((regs)->ps & 8) != 0)
+ #define instruction_pointer(regs) ((regs)->pc)
+ #define profile_pc(regs) instruction_pointer(regs)
+-extern void show_regs(struct pt_regs *);
  
- 5.2 stat file
+ #define task_pt_regs(task) \
+   ((struct pt_regs *) (task_stack_page(task) + 2*PAGE_SIZE) - 1)
+diff -puN arch/avr32/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/avr32/include/asm/ptrace.h
+--- a/arch/avr32/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/avr32/include/asm/ptrace.h
+@@ -132,8 +132,6 @@ struct pt_regs {
+ #define instruction_pointer(regs)       ((regs)->pc)
+ #define profile_pc(regs)                instruction_pointer(regs)
  
--memory.stat file includes following statistics
-+5.2.1 memory.stat file includes following statistics
- 
- # per-memory cgroup local status
- cache		- # of bytes of page cache memory.
-@@ -438,6 +438,89 @@ Note:
- 	 file_mapped is accounted only when the memory cgroup is owner of page
- 	 cache.)
- 
-+5.2.2 memory.vmscan_stat
-+
-+memory.vmscan_stat includes statistics information for memory scanning and
-+freeing, reclaiming. The statistics shows memory scanning information since
-+memory cgroup creation and can be reset to 0 by writing 0 as
-+
-+ #echo 0 > ../memory.vmscan_stat
-+
-+This file contains following statistics.
-+
-+[param]_[file_or_anon]_pages_by_[reason]_[under_heararchy]
-+[param]_elapsed_ns_by_[reason]_[under_hierarchy]
-+
-+For example,
-+
-+  scanned_file_pages_by_limit indicates the number of scanned
-+  file pages at vmscan.
-+
-+Now, 3 parameters are supported
-+
-+  scanned - the number of pages scanned by vmscan
-+  rotated - the number of pages activated at vmscan
-+  freed   - the number of pages freed by vmscan
-+
-+If "rotated" is high against scanned/freed, the memcg seems busy.
-+
-+Now, 2 reason are supported
-+
-+  limit - the memory cgroup's limit
-+  system - global memory pressure + softlimit
-+           (global memory pressure not under softlimit is not handled now)
-+
-+When under_hierarchy is added in the tail, the number indicates the
-+total memcg scan of its children and itself.
-+
-+elapsed_ns is a elapsed time in nanosecond. This may include sleep time
-+and not indicates CPU usage. So, please take this as just showing
-+latency.
-+
-+Here is an example.
-+
-+# cat /cgroup/memory/A/memory.vmscan_stat
-+scanned_pages_by_limit 9471864
-+scanned_anon_pages_by_limit 6640629
-+scanned_file_pages_by_limit 2831235
-+rotated_pages_by_limit 4243974
-+rotated_anon_pages_by_limit 3971968
-+rotated_file_pages_by_limit 272006
-+freed_pages_by_limit 2318492
-+freed_anon_pages_by_limit 962052
-+freed_file_pages_by_limit 1356440
-+elapsed_ns_by_limit 351386416101
-+scanned_pages_by_system 0
-+scanned_anon_pages_by_system 0
-+scanned_file_pages_by_system 0
-+rotated_pages_by_system 0
-+rotated_anon_pages_by_system 0
-+rotated_file_pages_by_system 0
-+freed_pages_by_system 0
-+freed_anon_pages_by_system 0
-+freed_file_pages_by_system 0
-+elapsed_ns_by_system 0
-+scanned_pages_by_limit_under_hierarchy 9471864
-+scanned_anon_pages_by_limit_under_hierarchy 6640629
-+scanned_file_pages_by_limit_under_hierarchy 2831235
-+rotated_pages_by_limit_under_hierarchy 4243974
-+rotated_anon_pages_by_limit_under_hierarchy 3971968
-+rotated_file_pages_by_limit_under_hierarchy 272006
-+freed_pages_by_limit_under_hierarchy 2318492
-+freed_anon_pages_by_limit_under_hierarchy 962052
-+freed_file_pages_by_limit_under_hierarchy 1356440
-+elapsed_ns_by_limit_under_hierarchy 351386416101
-+scanned_pages_by_system_under_hierarchy 0
-+scanned_anon_pages_by_system_under_hierarchy 0
-+scanned_file_pages_by_system_under_hierarchy 0
-+rotated_pages_by_system_under_hierarchy 0
-+rotated_anon_pages_by_system_under_hierarchy 0
-+rotated_file_pages_by_system_under_hierarchy 0
-+freed_pages_by_system_under_hierarchy 0
-+freed_anon_pages_by_system_under_hierarchy 0
-+freed_file_pages_by_system_under_hierarchy 0
-+elapsed_ns_by_system_under_hierarchy 0
-+
- 5.3 swappiness
- 
- Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
-diff -puN include/linux/memcontrol.h~memcg-add-memoryvmscan_stat include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-memoryvmscan_stat
-+++ a/include/linux/memcontrol.h
-@@ -39,6 +39,16 @@ extern unsigned long mem_cgroup_isolate_
- 					struct mem_cgroup *mem_cont,
- 					int active, int file);
- 
-+struct memcg_scanrecord {
-+	struct mem_cgroup *mem; /* scanend memory cgroup */
-+	struct mem_cgroup *root; /* scan target hierarchy root */
-+	int context;		/* scanning context (see memcontrol.c) */
-+	unsigned long nr_scanned[2]; /* the number of scanned pages */
-+	unsigned long nr_rotated[2]; /* the number of rotated pages */
-+	unsigned long nr_freed[2]; /* the number of freed pages */
-+	unsigned long elapsed; /* nsec of time elapsed while scanning */
-+};
-+
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- /*
-  * All "charge" functions with gfp_mask should use GFP_KERNEL or
-@@ -119,6 +129,15 @@ mem_cgroup_get_reclaim_stat_from_page(st
- extern void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
- 					struct task_struct *p);
- 
-+extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
-+						  gfp_t gfp_mask, bool noswap,
-+						  struct memcg_scanrecord *rec);
-+extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
-+						gfp_t gfp_mask, bool noswap,
-+						struct zone *zone,
-+						struct memcg_scanrecord *rec,
-+						unsigned long *nr_scanned);
-+
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- extern int do_swap_account;
- #endif
-diff -puN include/linux/swap.h~memcg-add-memoryvmscan_stat include/linux/swap.h
---- a/include/linux/swap.h~memcg-add-memoryvmscan_stat
-+++ a/include/linux/swap.h
-@@ -251,12 +251,6 @@ static inline void lru_cache_add_file(st
- /* linux/mm/vmscan.c */
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
--extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
--						  gfp_t gfp_mask, bool noswap);
--extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
--						gfp_t gfp_mask, bool noswap,
--						struct zone *zone,
--						unsigned long *nr_scanned);
- extern int __isolate_lru_page(struct page *page, int mode, int file);
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
-diff -puN mm/memcontrol.c~memcg-add-memoryvmscan_stat mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-memoryvmscan_stat
-+++ a/mm/memcontrol.c
-@@ -205,6 +205,50 @@ struct mem_cgroup_eventfd_list {
- static void mem_cgroup_threshold(struct mem_cgroup *mem);
- static void mem_cgroup_oom_notify(struct mem_cgroup *mem);
- 
-+enum {
-+	SCAN_BY_LIMIT,
-+	SCAN_BY_SYSTEM,
-+	NR_SCAN_CONTEXT,
-+	SCAN_BY_SHRINK,	/* not recorded now */
-+};
-+
-+enum {
-+	SCAN,
-+	SCAN_ANON,
-+	SCAN_FILE,
-+	ROTATE,
-+	ROTATE_ANON,
-+	ROTATE_FILE,
-+	FREED,
-+	FREED_ANON,
-+	FREED_FILE,
-+	ELAPSED,
-+	NR_SCANSTATS,
-+};
-+
-+struct scanstat {
-+	spinlock_t	lock;
-+	unsigned long	stats[NR_SCAN_CONTEXT][NR_SCANSTATS];
-+	unsigned long	rootstats[NR_SCAN_CONTEXT][NR_SCANSTATS];
-+};
-+
-+const char *scanstat_string[NR_SCANSTATS] = {
-+	"scanned_pages",
-+	"scanned_anon_pages",
-+	"scanned_file_pages",
-+	"rotated_pages",
-+	"rotated_anon_pages",
-+	"rotated_file_pages",
-+	"freed_pages",
-+	"freed_anon_pages",
-+	"freed_file_pages",
-+	"elapsed_ns",
-+};
-+#define SCANSTAT_WORD_LIMIT	"_by_limit"
-+#define SCANSTAT_WORD_SYSTEM	"_by_system"
-+#define SCANSTAT_WORD_HIERARCHY	"_under_hierarchy"
-+
-+
- /*
-  * The memory controller data structure. The memory controller controls both
-  * page cache and RSS per cgroup. We would eventually like to provide
-@@ -270,7 +314,8 @@ struct mem_cgroup {
- 
- 	/* For oom notifier event fd */
- 	struct list_head oom_notify;
+-extern void show_regs (struct pt_regs *);
 -
-+	/* For recording LRU-scan statistics */
-+	struct scanstat scanstat;
+ static __inline__ int valid_user_regs(struct pt_regs *regs)
+ {
  	/*
- 	 * Should we move charges of a task when a task is moved into this
- 	 * mem_cgroup ? And what type of charges should we move ?
-@@ -1623,6 +1668,44 @@ bool mem_cgroup_reclaimable(struct mem_c
- }
+diff -puN arch/blackfin/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/blackfin/include/asm/ptrace.h
+--- a/arch/blackfin/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/blackfin/include/asm/ptrace.h
+@@ -102,7 +102,6 @@ struct pt_regs {
+ /* user_mode returns true if only one bit is set in IPEND, other than the
+    master interrupt enable.  */
+ #define user_mode(regs) (!(((regs)->ipend & ~0x10) & (((regs)->ipend & ~0x10) - 1)))
+-extern void show_regs(struct pt_regs *);
+ 
+ #define arch_has_single_step()	(1)
+ /* common code demands this function */
+diff -puN arch/cris/include/arch-v10/arch/ptrace.h~ptrace-unify-show_regs-prototype arch/cris/include/arch-v10/arch/ptrace.h
+--- a/arch/cris/include/arch-v10/arch/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/cris/include/arch-v10/arch/ptrace.h
+@@ -112,7 +112,6 @@ struct switch_stack {
+ #define user_mode(regs) (((regs)->dccr & 0x100) != 0)
+ #define instruction_pointer(regs) ((regs)->irp)
+ #define profile_pc(regs) instruction_pointer(regs)
+-extern void show_regs(struct pt_regs *);
+ 
+ #endif  /*  __KERNEL__  */
+ 
+diff -puN arch/cris/include/arch-v32/arch/ptrace.h~ptrace-unify-show_regs-prototype arch/cris/include/arch-v32/arch/ptrace.h
+--- a/arch/cris/include/arch-v32/arch/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/cris/include/arch-v32/arch/ptrace.h
+@@ -111,7 +111,6 @@ struct switch_stack {
+ #define arch_has_single_step() (1)
+ #define user_mode(regs) (((regs)->ccs & (1 << (U_CCS_BITNR + CCS_SHIFT))) != 0)
+ #define instruction_pointer(regs) ((regs)->erp)
+-extern void show_regs(struct pt_regs *);
+ #define profile_pc(regs) instruction_pointer(regs)
+ 
+ #endif  /*  __KERNEL__  */
+diff -puN arch/frv/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/frv/include/asm/ptrace.h
+--- a/arch/frv/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/frv/include/asm/ptrace.h
+@@ -78,7 +78,6 @@ register struct pt_regs *__frame asm("gr
+ #define user_stack_pointer(regs)	((regs)->sp)
+ 
+ extern unsigned long user_stack(const struct pt_regs *);
+-extern void show_regs(struct pt_regs *);
+ #define profile_pc(regs) ((regs)->pc)
+ 
+ #define task_pt_regs(task) ((task)->thread.frame0)
+diff -puN arch/h8300/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/h8300/include/asm/ptrace.h
+--- a/arch/h8300/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/h8300/include/asm/ptrace.h
+@@ -60,7 +60,6 @@ struct pt_regs {
+ #define user_mode(regs) (!((regs)->ccr & PS_S))
+ #define instruction_pointer(regs) ((regs)->pc)
+ #define profile_pc(regs) instruction_pointer(regs)
+-extern void show_regs(struct pt_regs *);
+ #endif /* __KERNEL__ */
+ #endif /* __ASSEMBLY__ */
+ #endif /* _H8300_PTRACE_H */
+diff -puN arch/ia64/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/ia64/include/asm/ptrace.h
+--- a/arch/ia64/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/ia64/include/asm/ptrace.h
+@@ -286,7 +286,6 @@ static inline unsigned long user_stack_p
+   struct task_struct;			/* forward decl */
+   struct unw_frame_info;		/* forward decl */
+ 
+-  extern void show_regs (struct pt_regs *);
+   extern void ia64_do_show_stack (struct unw_frame_info *, void *);
+   extern unsigned long ia64_get_user_rbs_end (struct task_struct *, struct pt_regs *,
+ 					      unsigned long *);
+diff -puN arch/m32r/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/m32r/include/asm/ptrace.h
+--- a/arch/m32r/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/m32r/include/asm/ptrace.h
+@@ -138,8 +138,6 @@ extern void init_debug_traps(struct task
+ #define instruction_pointer(regs) ((regs)->bpc)
+ #define profile_pc(regs) instruction_pointer(regs)
+ 
+-extern void show_regs(struct pt_regs *);
+-
+ extern void withdraw_debug_trap(struct pt_regs *regs);
+ 
+ #define task_pt_regs(task) \
+diff -puN arch/m68k/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/m68k/include/asm/ptrace.h
+--- a/arch/m68k/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/m68k/include/asm/ptrace.h
+@@ -85,7 +85,6 @@ struct switch_stack {
+ #define user_mode(regs) (!((regs)->sr & PS_S))
+ #define instruction_pointer(regs) ((regs)->pc)
+ #define profile_pc(regs) instruction_pointer(regs)
+-extern void show_regs(struct pt_regs *);
+ 
+ #define arch_has_single_step()	(1)
+ 
+diff -puN arch/microblaze/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/microblaze/include/asm/ptrace.h
+--- a/arch/microblaze/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/microblaze/include/asm/ptrace.h
+@@ -61,8 +61,6 @@ struct pt_regs {
+ #define instruction_pointer(regs)	((regs)->pc)
+ #define profile_pc(regs)		instruction_pointer(regs)
+ 
+-void show_regs(struct pt_regs *);
+-
+ #else /* __KERNEL__ */
+ 
+ /* pt_regs offsets used by gdbserver etc in ptrace syscalls */
+diff -puN arch/mn10300/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/mn10300/include/asm/ptrace.h
+--- a/arch/mn10300/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/mn10300/include/asm/ptrace.h
+@@ -89,7 +89,6 @@ struct pt_regs {
+ #define user_mode(regs)			(((regs)->epsw & EPSW_nSL) == EPSW_nSL)
+ #define instruction_pointer(regs)	((regs)->pc)
+ #define user_stack_pointer(regs)	((regs)->sp)
+-extern void show_regs(struct pt_regs *);
+ 
+ #define arch_has_single_step()	(1)
+ 
+diff -puN arch/parisc/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/parisc/include/asm/ptrace.h
+--- a/arch/parisc/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/parisc/include/asm/ptrace.h
+@@ -56,7 +56,6 @@ struct pt_regs {
+ #define instruction_pointer(regs)	((regs)->iaoq[0] & ~3)
+ #define user_stack_pointer(regs)	((regs)->gr[30])
+ unsigned long profile_pc(struct pt_regs *);
+-extern void show_regs(struct pt_regs *);
+ 
+ 
+ #endif /* __KERNEL__ */
+diff -puN arch/powerpc/include/asm/system.h~ptrace-unify-show_regs-prototype arch/powerpc/include/asm/system.h
+--- a/arch/powerpc/include/asm/system.h~ptrace-unify-show_regs-prototype
++++ a/arch/powerpc/include/asm/system.h
+@@ -120,7 +120,6 @@ extern void do_dabr(struct pt_regs *regs
+ 		    unsigned long error_code);
  #endif
+ extern void print_backtrace(unsigned long *);
+-extern void show_regs(struct pt_regs * regs);
+ extern void flush_instruction_cache(void);
+ extern void hard_reset_now(void);
+ extern void poweroff_now(void);
+diff -puN arch/s390/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/s390/include/asm/ptrace.h
+--- a/arch/s390/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/s390/include/asm/ptrace.h
+@@ -539,7 +539,6 @@ struct user_regs_struct
+  * These are defined as per linux/ptrace.h, which see.
+  */
+ #define arch_has_single_step()	(1)
+-extern void show_regs(struct pt_regs * regs);
  
-+static void __mem_cgroup_record_scanstat(unsigned long *stats,
-+			   struct memcg_scanrecord *rec)
-+{
-+
-+	stats[SCAN] += rec->nr_scanned[0] + rec->nr_scanned[1];
-+	stats[SCAN_ANON] += rec->nr_scanned[0];
-+	stats[SCAN_FILE] += rec->nr_scanned[1];
-+
-+	stats[ROTATE] += rec->nr_rotated[0] + rec->nr_rotated[1];
-+	stats[ROTATE_ANON] += rec->nr_rotated[0];
-+	stats[ROTATE_FILE] += rec->nr_rotated[1];
-+
-+	stats[FREED] += rec->nr_freed[0] + rec->nr_freed[1];
-+	stats[FREED_ANON] += rec->nr_freed[0];
-+	stats[FREED_FILE] += rec->nr_freed[1];
-+
-+	stats[ELAPSED] += rec->elapsed;
-+}
-+
-+static void mem_cgroup_record_scanstat(struct memcg_scanrecord *rec)
-+{
-+	struct mem_cgroup *mem;
-+	int context = rec->context;
-+
-+	if (context >= NR_SCAN_CONTEXT)
-+		return;
-+
-+	mem = rec->mem;
-+	spin_lock(&mem->scanstat.lock);
-+	__mem_cgroup_record_scanstat(mem->scanstat.stats[context], rec);
-+	spin_unlock(&mem->scanstat.lock);
-+
-+	mem = rec->root;
-+	spin_lock(&mem->scanstat.lock);
-+	__mem_cgroup_record_scanstat(mem->scanstat.rootstats[context], rec);
-+	spin_unlock(&mem->scanstat.lock);
-+}
-+
- /*
-  * Scan the hierarchy if needed to reclaim memory. We remember the last child
-  * we reclaimed from, so that we don't end up penalizing one child extensively
-@@ -1647,8 +1730,9 @@ static int mem_cgroup_hierarchical_recla
- 	bool noswap = reclaim_options & MEM_CGROUP_RECLAIM_NOSWAP;
- 	bool shrink = reclaim_options & MEM_CGROUP_RECLAIM_SHRINK;
- 	bool check_soft = reclaim_options & MEM_CGROUP_RECLAIM_SOFT;
-+	struct memcg_scanrecord rec;
- 	unsigned long excess;
--	unsigned long nr_scanned;
-+	unsigned long scanned;
+ #define user_mode(regs) (((regs)->psw.mask & PSW_MASK_PSTATE) != 0)
+ #define instruction_pointer(regs) ((regs)->psw.addr & PSW_ADDR_INSN)
+diff -puN arch/sh/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/sh/include/asm/ptrace.h
+--- a/arch/sh/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/sh/include/asm/ptrace.h
+@@ -45,8 +45,6 @@
+ #define GET_FP(regs)	((regs)->regs[14])
+ #define GET_USP(regs)	((regs)->regs[15])
  
- 	excess = res_counter_soft_limit_excess(&root_mem->res) >> PAGE_SHIFT;
- 
-@@ -1656,6 +1740,15 @@ static int mem_cgroup_hierarchical_recla
- 	if (!check_soft && !shrink && root_mem->memsw_is_minimum)
- 		noswap = true;
- 
-+	if (shrink)
-+		rec.context = SCAN_BY_SHRINK;
-+	else if (check_soft)
-+		rec.context = SCAN_BY_SYSTEM;
-+	else
-+		rec.context = SCAN_BY_LIMIT;
-+
-+	rec.root = root_mem;
-+
- 	while (1) {
- 		victim = mem_cgroup_select_victim(root_mem);
- 		if (victim == root_mem) {
-@@ -1696,14 +1789,23 @@ static int mem_cgroup_hierarchical_recla
- 			css_put(&victim->css);
- 			continue;
- 		}
-+		rec.mem = victim;
-+		rec.nr_scanned[0] = 0;
-+		rec.nr_scanned[1] = 0;
-+		rec.nr_rotated[0] = 0;
-+		rec.nr_rotated[1] = 0;
-+		rec.nr_freed[0] = 0;
-+		rec.nr_freed[1] = 0;
-+		rec.elapsed = 0;
- 		/* we use swappiness of local cgroup */
- 		if (check_soft) {
- 			ret = mem_cgroup_shrink_node_zone(victim, gfp_mask,
--				noswap, zone, &nr_scanned);
--			*total_scanned += nr_scanned;
-+				noswap, zone, &rec, &scanned);
-+			*total_scanned += scanned;
- 		} else
- 			ret = try_to_free_mem_cgroup_pages(victim, gfp_mask,
--						noswap);
-+						noswap, &rec);
-+		mem_cgroup_record_scanstat(&rec);
- 		css_put(&victim->css);
- 		/*
- 		 * At shrinking usage, we can't check we should stop here or
-@@ -3792,14 +3894,18 @@ try_to_free:
- 	/* try to free all pages in this cgroup */
- 	shrink = 1;
- 	while (nr_retries && mem->res.usage > 0) {
-+		struct memcg_scanrecord rec;
- 		int progress;
- 
- 		if (signal_pending(current)) {
- 			ret = -EINTR;
- 			goto out;
- 		}
-+		rec.context = SCAN_BY_SHRINK;
-+		rec.mem = mem;
-+		rec.root = mem;
- 		progress = try_to_free_mem_cgroup_pages(mem, GFP_KERNEL,
--						false);
-+						false, &rec);
- 		if (!progress) {
- 			nr_retries--;
- 			/* maybe some writeback is necessary */
-@@ -4643,6 +4749,54 @@ static int mem_control_numa_stat_open(st
- }
- #endif /* CONFIG_NUMA */
- 
-+static int mem_cgroup_vmscan_stat_read(struct cgroup *cgrp,
-+				struct cftype *cft,
-+				struct cgroup_map_cb *cb)
-+{
-+	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
-+	char string[64];
-+	int i;
-+
-+	for (i = 0; i < NR_SCANSTATS; i++) {
-+		strcpy(string, scanstat_string[i]);
-+		strcat(string, SCANSTAT_WORD_LIMIT);
-+		cb->fill(cb, string,  mem->scanstat.stats[SCAN_BY_LIMIT][i]);
-+	}
-+
-+	for (i = 0; i < NR_SCANSTATS; i++) {
-+		strcpy(string, scanstat_string[i]);
-+		strcat(string, SCANSTAT_WORD_SYSTEM);
-+		cb->fill(cb, string,  mem->scanstat.stats[SCAN_BY_SYSTEM][i]);
-+	}
-+
-+	for (i = 0; i < NR_SCANSTATS; i++) {
-+		strcpy(string, scanstat_string[i]);
-+		strcat(string, SCANSTAT_WORD_LIMIT);
-+		strcat(string, SCANSTAT_WORD_HIERARCHY);
-+		cb->fill(cb, string,  mem->scanstat.rootstats[SCAN_BY_LIMIT][i]);
-+	}
-+	for (i = 0; i < NR_SCANSTATS; i++) {
-+		strcpy(string, scanstat_string[i]);
-+		strcat(string, SCANSTAT_WORD_SYSTEM);
-+		strcat(string, SCANSTAT_WORD_HIERARCHY);
-+		cb->fill(cb, string,  mem->scanstat.rootstats[SCAN_BY_SYSTEM][i]);
-+	}
-+	return 0;
-+}
-+
-+static int mem_cgroup_reset_vmscan_stat(struct cgroup *cgrp,
-+				unsigned int event)
-+{
-+	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
-+
-+	spin_lock(&mem->scanstat.lock);
-+	memset(&mem->scanstat.stats, 0, sizeof(mem->scanstat.stats));
-+	memset(&mem->scanstat.rootstats, 0, sizeof(mem->scanstat.rootstats));
-+	spin_unlock(&mem->scanstat.lock);
-+	return 0;
-+}
-+
-+
- static struct cftype mem_cgroup_files[] = {
- 	{
- 		.name = "usage_in_bytes",
-@@ -4713,6 +4867,11 @@ static struct cftype mem_cgroup_files[] 
- 		.mode = S_IRUGO,
- 	},
- #endif
-+	{
-+		.name = "vmscan_stat",
-+		.read_map = mem_cgroup_vmscan_stat_read,
-+		.trigger = mem_cgroup_reset_vmscan_stat,
-+	},
- };
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
-@@ -4976,6 +5135,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 	atomic_set(&mem->refcnt, 1);
- 	mem->move_charge_at_immigrate = 0;
- 	mutex_init(&mem->thresholds_lock);
-+	spin_lock_init(&mem->scanstat.lock);
- 	return &mem->css;
- free_out:
- 	__mem_cgroup_free(mem);
-diff -puN mm/vmscan.c~memcg-add-memoryvmscan_stat mm/vmscan.c
---- a/mm/vmscan.c~memcg-add-memoryvmscan_stat
-+++ a/mm/vmscan.c
-@@ -105,6 +105,7 @@ struct scan_control {
- 
- 	/* Which cgroup do we reclaim from */
- 	struct mem_cgroup *mem_cgroup;
-+	struct memcg_scanrecord *memcg_record;
- 
- 	/*
- 	 * Nodemask of nodes allowed by the caller. If NULL, all nodes
-@@ -1348,6 +1349,8 @@ putback_lru_pages(struct zone *zone, str
- 			int file = is_file_lru(lru);
- 			int numpages = hpage_nr_pages(page);
- 			reclaim_stat->recent_rotated[file] += numpages;
-+			if (!scanning_global_lru(sc))
-+				sc->memcg_record->nr_rotated[file] += numpages;
- 		}
- 		if (!pagevec_add(&pvec, page)) {
- 			spin_unlock_irq(&zone->lru_lock);
-@@ -1391,6 +1394,10 @@ static noinline_for_stack void update_is
- 
- 	reclaim_stat->recent_scanned[0] += *nr_anon;
- 	reclaim_stat->recent_scanned[1] += *nr_file;
-+	if (!scanning_global_lru(sc)) {
-+		sc->memcg_record->nr_scanned[0] += *nr_anon;
-+		sc->memcg_record->nr_scanned[1] += *nr_file;
-+	}
- }
+-extern void show_regs(struct pt_regs *);
+-
+ #define arch_has_single_step()	(1)
  
  /*
-@@ -1504,6 +1511,9 @@ shrink_inactive_list(unsigned long nr_to
- 		nr_reclaimed += shrink_page_list(&page_list, zone, sc);
- 	}
+diff -puN arch/sparc/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/sparc/include/asm/ptrace.h
+--- a/arch/sparc/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/sparc/include/asm/ptrace.h
+@@ -213,7 +213,6 @@ extern unsigned long profile_pc(struct p
+ #else
+ #define profile_pc(regs) instruction_pointer(regs)
+ #endif
+-extern void show_regs(struct pt_regs *);
+ #endif /* (__KERNEL__) */
  
-+	if (!scanning_global_lru(sc))
-+		sc->memcg_record->nr_freed[file] += nr_reclaimed;
-+
- 	local_irq_disable();
- 	if (current_is_kswapd())
- 		__count_vm_events(KSWAPD_STEAL, nr_reclaimed);
-@@ -1603,6 +1613,8 @@ static void shrink_active_list(unsigned 
- 	}
+ #else /* __ASSEMBLY__ */
+@@ -257,7 +256,6 @@ static inline bool pt_regs_clear_syscall
+ #define instruction_pointer(regs) ((regs)->pc)
+ #define user_stack_pointer(regs) ((regs)->u_regs[UREG_FP])
+ unsigned long profile_pc(struct pt_regs *);
+-extern void show_regs(struct pt_regs *);
+ #endif /* (__KERNEL__) */
  
- 	reclaim_stat->recent_scanned[file] += nr_taken;
-+	if (!scanning_global_lru(sc))
-+		sc->memcg_record->nr_scanned[file] += nr_taken;
+ #else /* (!__ASSEMBLY__) */
+diff -puN arch/tile/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/tile/include/asm/ptrace.h
+--- a/arch/tile/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/tile/include/asm/ptrace.h
+@@ -112,8 +112,6 @@ struct pt_regs *get_pt_regs(struct pt_re
+ /* Trace the current syscall. */
+ extern void do_syscall_trace(void);
  
- 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
- 	if (file)
-@@ -1654,6 +1666,8 @@ static void shrink_active_list(unsigned 
- 	 * get_scan_ratio.
- 	 */
- 	reclaim_stat->recent_rotated[file] += nr_rotated;
-+	if (!scanning_global_lru(sc))
-+		sc->memcg_record->nr_rotated[file] += nr_rotated;
+-extern void show_regs(struct pt_regs *);
+-
+ #define arch_has_single_step()	(1)
  
- 	move_active_pages_to_lru(zone, &l_active,
- 						LRU_ACTIVE + file * LRU_FILE);
-@@ -2254,9 +2268,10 @@ unsigned long try_to_free_pages(struct z
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ /*
+diff -puN arch/um/include/asm/ptrace-generic.h~ptrace-unify-show_regs-prototype arch/um/include/asm/ptrace-generic.h
+--- a/arch/um/include/asm/ptrace-generic.h~ptrace-unify-show_regs-prototype
++++ a/arch/um/include/asm/ptrace-generic.h
+@@ -47,8 +47,6 @@ extern int get_fpregs(struct user_i387_s
+ extern int set_fpregs(struct user_i387_struct __user *buf,
+ 		      struct task_struct *child);
  
- unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
--						gfp_t gfp_mask, bool noswap,
--						struct zone *zone,
--						unsigned long *nr_scanned)
-+					gfp_t gfp_mask, bool noswap,
-+					struct zone *zone,
-+					struct memcg_scanrecord *rec,
-+					unsigned long *scanned)
- {
- 	struct scan_control sc = {
- 		.nr_scanned = 0,
-@@ -2266,7 +2281,9 @@ unsigned long mem_cgroup_shrink_node_zon
- 		.may_swap = !noswap,
- 		.order = 0,
- 		.mem_cgroup = mem,
-+		.memcg_record = rec,
- 	};
-+	unsigned long start, end;
+-extern void show_regs(struct pt_regs *regs);
+-
+ extern int arch_copy_tls(struct task_struct *new);
+ extern void clear_flushed_tls(struct task_struct *task);
  
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
-@@ -2275,6 +2292,7 @@ unsigned long mem_cgroup_shrink_node_zon
- 						      sc.may_writepage,
- 						      sc.gfp_mask);
+diff -puN arch/x86/include/asm/kdebug.h~ptrace-unify-show_regs-prototype arch/x86/include/asm/kdebug.h
+--- a/arch/x86/include/asm/kdebug.h~ptrace-unify-show_regs-prototype
++++ a/arch/x86/include/asm/kdebug.h
+@@ -28,7 +28,6 @@ extern void show_registers(struct pt_reg
+ extern void show_trace(struct task_struct *t, struct pt_regs *regs,
+ 		       unsigned long *sp, unsigned long bp);
+ extern void __show_regs(struct pt_regs *regs, int all);
+-extern void show_regs(struct pt_regs *regs);
+ extern unsigned long oops_begin(void);
+ extern void oops_end(unsigned long, struct pt_regs *, int signr);
+ #ifdef CONFIG_KEXEC
+diff -puN arch/xtensa/include/asm/ptrace.h~ptrace-unify-show_regs-prototype arch/xtensa/include/asm/ptrace.h
+--- a/arch/xtensa/include/asm/ptrace.h~ptrace-unify-show_regs-prototype
++++ a/arch/xtensa/include/asm/ptrace.h
+@@ -120,7 +120,6 @@ struct pt_regs {
+   (task_stack_page(tsk) + KERNEL_STACK_SIZE - (XCHAL_NUM_AREGS-16)*4) - 1)
+ # define user_mode(regs) (((regs)->ps & 0x00000020)!=0)
+ # define instruction_pointer(regs) ((regs)->pc)
+-extern void show_regs(struct pt_regs *);
  
-+	start = sched_clock();
- 	/*
- 	 * NOTE: Although we can get the priority field, using it
- 	 * here is not a good idea, since it limits the pages we can scan.
-@@ -2283,19 +2301,25 @@ unsigned long mem_cgroup_shrink_node_zon
- 	 * the priority and make it zero.
- 	 */
- 	shrink_zone(0, zone, &sc);
-+	end = sched_clock();
-+
-+	if (rec)
-+		rec->elapsed += end - start;
-+	*scanned = sc.nr_scanned;
- 
- 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
- 
--	*nr_scanned = sc.nr_scanned;
- 	return sc.nr_reclaimed;
- }
- 
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
- 					   gfp_t gfp_mask,
--					   bool noswap)
-+					   bool noswap,
-+					   struct memcg_scanrecord *rec)
- {
- 	struct zonelist *zonelist;
- 	unsigned long nr_reclaimed;
-+	unsigned long start, end;
- 	int nid;
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
-@@ -2304,6 +2328,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
-+		.memcg_record = rec,
- 		.nodemask = NULL, /* we don't care the placement */
- 		.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 				(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK),
-@@ -2312,6 +2337,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.gfp_mask = sc.gfp_mask,
- 	};
- 
-+	start = sched_clock();
- 	/*
- 	 * Unlike direct reclaim via alloc_pages(), memcg's reclaim doesn't
- 	 * take care of from where we get pages. So the node where we start the
-@@ -2326,6 +2352,9 @@ unsigned long try_to_free_mem_cgroup_pag
- 					    sc.gfp_mask);
- 
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc, &shrink);
-+	end = sched_clock();
-+	if (rec)
-+		rec->elapsed += end - start;
- 
- 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
- 
+ # ifndef CONFIG_SMP
+ #  define profile_pc(regs) instruction_pointer(regs)
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-mm-mempolicyc-make-copy_from_user-provably-correct.patch
-memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+linux-next.patch
 
