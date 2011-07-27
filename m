@@ -1,253 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-forkc-fix-a-few-coding-style-issues.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:28:41 -0700
-Message-ID: <201107271927.p6RJRRhq003213@imap1.linux-foundation.org>
+Subject: [merged] cpumask-convert-for_each_cpumask-with-for_each_cpu.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:28:52 -0700
+Message-ID: <201107271927.p6RJRcMg003228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754359Ab1G0T2B (ORCPT
+	by vger.kernel.org with ESMTP id S1754247Ab1G0T16 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:28:01 -0400
+	Wed, 27 Jul 2011 15:27:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: psykon@gmail.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/fork.c: fix a few coding style issues
+     cpumask: convert for_each_cpumask() with for_each_cpu()
 has been removed from the -mm tree.  Its filename was
-     kernel-forkc-fix-a-few-coding-style-issues.patch
+     cpumask-convert-for_each_cpumask-with-for_each_cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/fork.c: fix a few coding style issues
-From: Daniel Rebelo de Oliveira <psykon@gmail.com>
+Subject: cpumask: convert for_each_cpumask() with for_each_cpu()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Signed-off-by: Daniel Rebelo de Oliveira <psykon@gmail.com>
+Adapt new API fashion.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   83 +++++++++++++++++++++++++++---------------------
- 1 file changed, 48 insertions(+), 35 deletions(-)
+ lib/cpumask.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~kernel-forkc-fix-a-few-coding-style-issues kernel/fork.c
---- a/kernel/fork.c~kernel-forkc-fix-a-few-coding-style-issues
-+++ a/kernel/fork.c
-@@ -80,7 +80,7 @@
-  * Protected counters by write_lock_irq(&tasklist_lock)
-  */
- unsigned long total_forks;	/* Handle normal Linux uptimes. */
--int nr_threads; 		/* The idle threads do not count.. */
-+int nr_threads;			/* The idle threads do not count.. */
+diff -puN lib/cpumask.c~cpumask-convert-for_each_cpumask-with-for_each_cpu lib/cpumask.c
+--- a/lib/cpumask.c~cpumask-convert-for_each_cpumask-with-for_each_cpu
++++ a/lib/cpumask.c
+@@ -30,7 +30,7 @@ int __any_online_cpu(const cpumask_t *ma
+ {
+ 	int cpu;
  
- int max_threads;		/* tunable limit on nr_threads */
- 
-@@ -232,7 +232,7 @@ void __init fork_init(unsigned long memp
- 	/*
- 	 * we need to allow at least 20 threads to boot a system
- 	 */
--	if(max_threads < 20)
-+	if (max_threads < 20)
- 		max_threads = 20;
- 
- 	init_task.signal->rlim[RLIMIT_NPROC].rlim_cur = max_threads/2;
-@@ -268,7 +268,7 @@ static struct task_struct *dup_task_stru
- 		return NULL;
+-	for_each_cpu_mask(cpu, *mask) {
++	for_each_cpu(cpu, mask) {
+ 		if (cpu_online(cpu))
+ 			break;
  	}
- 
-- 	err = arch_dup_task_struct(tsk, orig);
-+	err = arch_dup_task_struct(tsk, orig);
- 	if (err)
- 		goto out;
- 
-@@ -288,8 +288,11 @@ static struct task_struct *dup_task_stru
- 	tsk->stack_canary = get_random_int();
- #endif
- 
--	/* One for us, one for whoever does the "release_task()" (usually parent) */
--	atomic_set(&tsk->usage,2);
-+	/*
-+	 * One for us, one for whoever does the "release_task()" (usually
-+	 * parent)
-+	 */
-+	atomic_set(&tsk->usage, 2);
- #ifdef CONFIG_BLK_DEV_IO_TRACE
- 	tsk->btrace_seq = 0;
- #endif
-@@ -437,7 +440,7 @@ fail_nomem:
- 	goto out;
- }
- 
--static inline int mm_alloc_pgd(struct mm_struct * mm)
-+static inline int mm_alloc_pgd(struct mm_struct *mm)
- {
- 	mm->pgd = pgd_alloc(mm);
- 	if (unlikely(!mm->pgd))
-@@ -445,7 +448,7 @@ static inline int mm_alloc_pgd(struct mm
- 	return 0;
- }
- 
--static inline void mm_free_pgd(struct mm_struct * mm)
-+static inline void mm_free_pgd(struct mm_struct *mm)
- {
- 	pgd_free(mm, mm->pgd);
- }
-@@ -482,7 +485,7 @@ static void mm_init_aio(struct mm_struct
- #endif
- }
- 
--static struct mm_struct * mm_init(struct mm_struct * mm, struct task_struct *p)
-+static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p)
- {
- 	atomic_set(&mm->mm_users, 1);
- 	atomic_set(&mm->mm_count, 1);
-@@ -513,9 +516,9 @@ static struct mm_struct * mm_init(struct
- /*
-  * Allocate and initialize an mm_struct.
-  */
--struct mm_struct * mm_alloc(void)
-+struct mm_struct *mm_alloc(void)
- {
--	struct mm_struct * mm;
-+	struct mm_struct *mm;
- 
- 	mm = allocate_mm();
- 	if (!mm)
-@@ -583,7 +586,7 @@ void added_exe_file_vma(struct mm_struct
- void removed_exe_file_vma(struct mm_struct *mm)
- {
- 	mm->num_exe_file_vmas--;
--	if ((mm->num_exe_file_vmas == 0) && mm->exe_file){
-+	if ((mm->num_exe_file_vmas == 0) && mm->exe_file) {
- 		fput(mm->exe_file);
- 		mm->exe_file = NULL;
- 	}
-@@ -775,9 +778,9 @@ fail_nocontext:
- 	return NULL;
- }
- 
--static int copy_mm(unsigned long clone_flags, struct task_struct * tsk)
-+static int copy_mm(unsigned long clone_flags, struct task_struct *tsk)
- {
--	struct mm_struct * mm, *oldmm;
-+	struct mm_struct *mm, *oldmm;
- 	int retval;
- 
- 	tsk->min_flt = tsk->maj_flt = 0;
-@@ -844,7 +847,7 @@ static int copy_fs(unsigned long clone_f
- 	return 0;
- }
- 
--static int copy_files(unsigned long clone_flags, struct task_struct * tsk)
-+static int copy_files(unsigned long clone_flags, struct task_struct *tsk)
- {
- 	struct files_struct *oldf, *newf;
- 	int error = 0;
-@@ -1166,11 +1169,11 @@ static struct task_struct *copy_process(
- 	cgroup_fork(p);
- #ifdef CONFIG_NUMA
- 	p->mempolicy = mpol_dup(p->mempolicy);
-- 	if (IS_ERR(p->mempolicy)) {
-- 		retval = PTR_ERR(p->mempolicy);
-- 		p->mempolicy = NULL;
-- 		goto bad_fork_cleanup_cgroup;
-- 	}
-+	if (IS_ERR(p->mempolicy)) {
-+		retval = PTR_ERR(p->mempolicy);
-+		p->mempolicy = NULL;
-+		goto bad_fork_cleanup_cgroup;
-+	}
- 	mpol_fix_fork_child_flag(p);
- #endif
- #ifdef CONFIG_CPUSETS
-@@ -1216,25 +1219,33 @@ static struct task_struct *copy_process(
- 	retval = perf_event_init_task(p);
- 	if (retval)
- 		goto bad_fork_cleanup_policy;
--
--	if ((retval = audit_alloc(p)))
-+	retval = audit_alloc(p);
-+	if (retval)
- 		goto bad_fork_cleanup_policy;
- 	/* copy all the process information */
--	if ((retval = copy_semundo(clone_flags, p)))
-+	retval = copy_semundo(clone_flags, p);
-+	if (retval)
- 		goto bad_fork_cleanup_audit;
--	if ((retval = copy_files(clone_flags, p)))
-+	retval = copy_files(clone_flags, p);
-+	if (retval)
- 		goto bad_fork_cleanup_semundo;
--	if ((retval = copy_fs(clone_flags, p)))
-+	retval = copy_fs(clone_flags, p);
-+	if (retval)
- 		goto bad_fork_cleanup_files;
--	if ((retval = copy_sighand(clone_flags, p)))
-+	retval = copy_sighand(clone_flags, p);
-+	if (retval)
- 		goto bad_fork_cleanup_fs;
--	if ((retval = copy_signal(clone_flags, p)))
-+	retval = copy_signal(clone_flags, p);
-+	if (retval)
- 		goto bad_fork_cleanup_sighand;
--	if ((retval = copy_mm(clone_flags, p)))
-+	retval = copy_mm(clone_flags, p);
-+	if (retval)
- 		goto bad_fork_cleanup_signal;
--	if ((retval = copy_namespaces(clone_flags, p)))
-+	retval = copy_namespaces(clone_flags, p);
-+	if (retval)
- 		goto bad_fork_cleanup_mm;
--	if ((retval = copy_io(clone_flags, p)))
-+	retval = copy_io(clone_flags, p);
-+	if (retval)
- 		goto bad_fork_cleanup_namespaces;
- 	retval = copy_thread(clone_flags, stack_start, stack_size, p, regs);
- 	if (retval)
-@@ -1256,7 +1267,7 @@ static struct task_struct *copy_process(
- 	/*
- 	 * Clear TID on mm_release()?
- 	 */
--	p->clear_child_tid = (clone_flags & CLONE_CHILD_CLEARTID) ? child_tidptr: NULL;
-+	p->clear_child_tid = (clone_flags & CLONE_CHILD_CLEARTID) ? child_tidptr : NULL;
- #ifdef CONFIG_BLOCK
- 	p->plug = NULL;
- #endif
-@@ -1324,7 +1335,7 @@ static struct task_struct *copy_process(
- 	 * it's process group.
- 	 * A fatal signal pending means that current will exit, so the new
- 	 * thread can't slip out of an OOM kill (or normal SIGKILL).
-- 	 */
-+	*/
- 	recalc_sigpending();
- 	if (signal_pending(current)) {
- 		spin_unlock(&current->sighand->siglock);
-@@ -1685,12 +1696,14 @@ SYSCALL_DEFINE1(unshare, unsigned long, 
- 	 */
- 	if (unshare_flags & (CLONE_NEWIPC|CLONE_SYSVSEM))
- 		do_sysvsem = 1;
--	if ((err = unshare_fs(unshare_flags, &new_fs)))
-+	err = unshare_fs(unshare_flags, &new_fs);
-+	if (err)
- 		goto bad_unshare_out;
--	if ((err = unshare_fd(unshare_flags, &new_fd)))
-+	err = unshare_fd(unshare_flags, &new_fd);
-+	if (err)
- 		goto bad_unshare_cleanup_fs;
--	if ((err = unshare_nsproxy_namespaces(unshare_flags, &new_nsproxy,
--			new_fs)))
-+	err = unshare_nsproxy_namespaces(unshare_flags, &new_nsproxy, new_fs);
-+	if (err)
- 		goto bad_unshare_cleanup_fd;
- 
- 	if (new_fs || new_fd || do_sysvsem || new_nsproxy) {
 _
 
-Patches currently in -mm which might be from psykon@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
+linux-next.patch
+slab-use-numa_no_node.patch
+kexec-remove-kmsg_dump_kexec.patch
 
