@@ -1,106 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-fix-a-race-in-do_io_accounting.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:28:39 -0700
-Message-ID: <201107271927.p6RJRP63003211@imap1.linux-foundation.org>
+Subject: [merged] drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:29:06 -0700
+Message-ID: <201107271927.p6RJRqUq003251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754359Ab1G0T2J (ORCPT
+	by vger.kernel.org with ESMTP id S1754167Ab1G0T2R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:28:09 -0400
+	Wed, 27 Jul 2011 15:28:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, stable@kernel.org, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: Kai.Jiang@freescale.com, Shaohui.Xie@freescale.com, avorontsov@mvista.com, davem@davemloft.net, galak@kernel.crashing.org, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: fix a race in do_io_accounting()
+     drivers/edac/mpc85xx_edac.c: correct offset_in_page mask bits in edac_mc_handle_ce()
 has been removed from the -mm tree.  Its filename was
-     proc-fix-a-race-in-do_io_accounting.patch
+     drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: fix a race in do_io_accounting()
-From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: drivers/edac/mpc85xx_edac.c: correct offset_in_page mask bits in edac_mc_handle_ce()
+From: Kai.Jiang <Kai.Jiang@freescale.com>
 
-If an inode's mode permits opening /proc/PID/io and the resulting file
-descriptor is kept across execve() of a setuid or similar binary, the
-ptrace_may_access() check tries to prevent using this fd against the task
-with escalated privileges.
+Parameter offset_in_page in edac_mc_handle_ce() should mask the higher
+bits above the page size, not the lower bits.  The original input
+sometimes causes a crash.
 
-Unfortunately, there is a race in the check against execve().  If execve()
-is processed after the ptrace check, but before the actual io information
-gathering, io statistics will be gathered from the privileged process.  At
-least in theory this might lead to gathering sensible information (like
-ssh/ftp password length) that wouldn't be available otherwise.
-
-Holding task->signal->cred_guard_mutex while gathering the io information
-should protect against the race.
-
-The order of locking is similar to the one inside of ptrace_attach():
-first goes cred_guard_mutex, then lock_task_sighand().
-
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Kai.Jiang <Kai.Jiang@freescale.com>
+Signed-off-by: Shaohui Xie <Shaohui.Xie@freescale.com>
+Cc: Anton Vorontsov <avorontsov@mvista.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Kumar Gala <galak@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ drivers/edac/mpc85xx_edac.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~proc-fix-a-race-in-do_io_accounting fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-a-race-in-do_io_accounting
-+++ a/fs/proc/base.c
-@@ -2706,9 +2706,16 @@ static int do_io_accounting(struct task_
- {
- 	struct task_io_accounting acct = task->ioac;
- 	unsigned long flags;
-+	int result;
+diff -puN drivers/edac/mpc85xx_edac.c~drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce drivers/edac/mpc85xx_edac.c
+--- a/drivers/edac/mpc85xx_edac.c~drivers-edac-mpc85xx_edacc-correct-offset_in_page-mask-bits-in-edac_mc_handle_ce
++++ a/drivers/edac/mpc85xx_edac.c
+@@ -854,11 +854,11 @@ static void mpc85xx_mc_check(struct mem_
+ 		mpc85xx_mc_printk(mci, KERN_ERR, "PFN out of range!\n");
  
--	if (!ptrace_may_access(task, PTRACE_MODE_READ))
--		return -EACCES;
-+	result = mutex_lock_killable(&task->signal->cred_guard_mutex);
-+	if (result)
-+		return result;
-+
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ)) {
-+		result = -EACCES;
-+		goto out_unlock;
-+	}
+ 	if (err_detect & DDR_EDE_SBE)
+-		edac_mc_handle_ce(mci, pfn, err_addr & PAGE_MASK,
++		edac_mc_handle_ce(mci, pfn, err_addr & ~PAGE_MASK,
+ 				  syndrome, row_index, 0, mci->ctl_name);
  
- 	if (whole && lock_task_sighand(task, &flags)) {
- 		struct task_struct *t = task;
-@@ -2719,7 +2726,7 @@ static int do_io_accounting(struct task_
+ 	if (err_detect & DDR_EDE_MBE)
+-		edac_mc_handle_ue(mci, pfn, err_addr & PAGE_MASK,
++		edac_mc_handle_ue(mci, pfn, err_addr & ~PAGE_MASK,
+ 				  row_index, mci->ctl_name);
  
- 		unlock_task_sighand(task, &flags);
- 	}
--	return sprintf(buffer,
-+	result = sprintf(buffer,
- 			"rchar: %llu\n"
- 			"wchar: %llu\n"
- 			"syscr: %llu\n"
-@@ -2734,6 +2741,9 @@ static int do_io_accounting(struct task_
- 			(unsigned long long)acct.read_bytes,
- 			(unsigned long long)acct.write_bytes,
- 			(unsigned long long)acct.cancelled_write_bytes);
-+out_unlock:
-+	mutex_unlock(&task->signal->cred_guard_mutex);
-+	return result;
- }
- 
- static int proc_tid_io_accounting(struct task_struct *task, char *buffer)
+ 	out_be32(pdata->mc_vbase + MPC85XX_MC_ERR_DETECT, err_detect);
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from Kai.Jiang@freescale.com are
 
 origin.patch
-linux-next.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 
