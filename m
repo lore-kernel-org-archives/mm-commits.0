@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-omap-fix-initialization-of-control-register.patch added to -mm tree
-Date: Wed, 27 Jul 2011 14:19:15 -0700
-Message-ID: <201107272119.p6RLJFf9008734@imap1.linux-foundation.org>
+Subject: + debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized.patch added to -mm tree
+Date: Wed, 27 Jul 2011 14:32:30 -0700
+Message-ID: <201107272132.p6RLWUBX009256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45455 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755160Ab1G0VUN (ORCPT
+	by vger.kernel.org with ESMTP id S1755262Ab1G0VdN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 17:20:13 -0400
+	Wed, 27 Jul 2011 17:33:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dg@emlix.com, a.zummo@towertech.it
+Cc: cschan@codeaurora.org, john.stultz@linaro.org, tglx@linutronix.de
 
 
 The patch titled
-     rtc-omap: fix initialization of control register
+     debugobjects: extend debugobjects to assert that an object is initialized
 has been added to the -mm tree.  Its filename is
-     rtc-omap-fix-initialization-of-control-register.patch
+     debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,56 +26,189 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-omap: fix initialization of control register
-=46rom: Daniel Gl=F6ckner <dg@emlix.com>
+Subject: debugobjects: extend debugobjects to assert that an object is initialized
+From: Christine Chan <cschan@codeaurora.org>
 
-As the comment explains, the intention of the code is to clear the
-OMAP_RTC_CTRL_MODE_12_24 bit, but instead it only clears the
-OMAP_RTC_CTRL_SPLIT and OMAP_RTC_CTRL_AUTO_COMP bits, which should be
-kept. OMAP_RTC_CTRL_DISABLE, OMAP_RTC_CTRL_SET_32_COUNTER,
-OMAP_RTC_CTRL_TEST, and OMAP_RTC_CTRL_ROUND_30S are also better off
-being cleared.
+Add new check (assert_init) to make sure objects are initialized and
+tracked by debugobjects.
 
-Signed-off-by: Daniel Gl=F6ckner <dg@emlix.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Christine Chan <cschan@codeaurora.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/debugobjects.tmpl |   50 ++++++++++++++++++++++
+ include/linux/debugobjects.h            |    6 ++
+ lib/debugobjects.c                      |   33 ++++++++++++++
+ 3 files changed, 89 insertions(+)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-fix-initialization-of-control=
--register drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-fix-initialization-of-control-reg=
-ister
-+++ a/drivers/rtc/rtc-omap.c
-@@ -368,7 +368,7 @@ static int __init omap_rtc_probe(struct=20
- 		pr_info("%s: already running\n", pdev->name);
-=20
- 	/* force to 24 hour mode */
--	new_ctrl =3D reg & ~(OMAP_RTC_CTRL_SPLIT|OMAP_RTC_CTRL_AUTO_COMP);
-+	new_ctrl =3D reg & (OMAP_RTC_CTRL_SPLIT|OMAP_RTC_CTRL_AUTO_COMP);
- 	new_ctrl |=3D OMAP_RTC_CTRL_STOP;
-=20
- 	/* BOARD-SPECIFIC CUSTOMIZATION CAN GO HERE:
+diff -puN Documentation/DocBook/debugobjects.tmpl~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized Documentation/DocBook/debugobjects.tmpl
+--- a/Documentation/DocBook/debugobjects.tmpl~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized
++++ a/Documentation/DocBook/debugobjects.tmpl
+@@ -96,6 +96,7 @@
+ 	<listitem><para>debug_object_deactivate</para></listitem>
+ 	<listitem><para>debug_object_destroy</para></listitem>
+ 	<listitem><para>debug_object_free</para></listitem>
++	<listitem><para>debug_object_assert_init</para></listitem>
+       </itemizedlist>
+       Each of these functions takes the address of the real object and
+       a pointer to the object type specific debug description
+@@ -273,6 +274,26 @@
+ 	debug checks.
+       </para>
+     </sect1>
++
++    <sect1 id="debug_object_assert_init">
++      <title>debug_object_assert_init</title>
++      <para>
++	This function is called to assert that an object has been
++	initialized.
++      </para>
++      <para>
++	When the real object is not tracked by debugobjects, it calls
++	fixup_assert_init of the object type description structure
++	provided by the caller, with the hardcoded object state
++	ODEBUG_NOT_AVAILABLE. The fixup function can correct the problem
++	by calling debug_object_init and other specific initializing
++	functions.
++      </para>
++      <para>
++	When the real object is already tracked by debugobjects it is
++	ignored.
++      </para>
++    </sect1>
+   </chapter>
+   <chapter id="fixupfunctions">
+     <title>Fixup functions</title>
+@@ -381,6 +402,35 @@
+ 	statistics.
+       </para>
+     </sect1>
++    <sect1 id="fixup_assert_init">
++      <title>fixup_assert_init</title>
++      <para>
++	This function is called from the debug code whenever a problem
++	in debug_object_assert_init is detected.
++      </para>
++      <para>
++	Called from debug_object_assert_init() with a hardcoded state
++	ODEBUG_STATE_NOTAVAILABLE when the object is not found in the
++	debug bucket.
++      </para>
++      <para>
++	The function returns 1 when the fixup was successful,
++	otherwise 0. The return value is used to update the
++	statistics.
++      </para>
++      <para>
++	Note, this function should make sure debug_object_init() is
++	called before returning.
++      </para>
++      <para>
++	The handling of statically initialized objects is a special
++	case. The fixup function should check if this is a legitimate
++	case of a statically initialized object or not. In this case only
++	debug_object_init() should be called to make the object known to
++	the tracker. Then the function should return 0 because this is not
++	a real fixup.
++      </para>
++    </sect1>
+   </chapter>
+   <chapter id="bugs">
+     <title>Known Bugs And Assumptions</title>
+diff -puN include/linux/debugobjects.h~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized include/linux/debugobjects.h
+--- a/include/linux/debugobjects.h~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized
++++ a/include/linux/debugobjects.h
+@@ -46,6 +46,8 @@ struct debug_obj {
+  *			fails
+  * @fixup_free:		fixup function, which is called when the free check
+  *			fails
++ * @fixup_assert_init:  fixup function, which is called when the assert_init
++ *			check fails
+  */
+ struct debug_obj_descr {
+ 	const char		*name;
+@@ -54,6 +56,7 @@ struct debug_obj_descr {
+ 	int (*fixup_activate)	(void *addr, enum debug_obj_state state);
+ 	int (*fixup_destroy)	(void *addr, enum debug_obj_state state);
+ 	int (*fixup_free)	(void *addr, enum debug_obj_state state);
++	int (*fixup_assert_init)(void *addr, enum debug_obj_state state);
+ };
+ 
+ #ifdef CONFIG_DEBUG_OBJECTS
+@@ -64,6 +67,7 @@ extern void debug_object_activate  (void
+ extern void debug_object_deactivate(void *addr, struct debug_obj_descr *descr);
+ extern void debug_object_destroy   (void *addr, struct debug_obj_descr *descr);
+ extern void debug_object_free      (void *addr, struct debug_obj_descr *descr);
++extern void debug_object_assert_init(void *addr, struct debug_obj_descr *descr);
+ 
+ /*
+  * Active state:
+@@ -89,6 +93,8 @@ static inline void
+ debug_object_destroy   (void *addr, struct debug_obj_descr *descr) { }
+ static inline void
+ debug_object_free      (void *addr, struct debug_obj_descr *descr) { }
++static inline void
++debug_object_assert_init(void *addr, struct debug_obj_descr *descr) { }
+ 
+ static inline void debug_objects_early_init(void) { }
+ static inline void debug_objects_mem_init(void) { }
+diff -puN lib/debugobjects.c~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized
++++ a/lib/debugobjects.c
+@@ -563,6 +563,39 @@ out_unlock:
+ }
+ 
+ /**
++ * debug_object_assert_init - debug checks when object should be init-ed
++ * @addr:	address of the object
++ * @descr:	pointer to an object specific debug description structure
++ */
++void debug_object_assert_init(void *addr, struct debug_obj_descr *descr)
++{
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	unsigned long flags;
++
++	if (!debug_objects_enabled)
++		return;
++
++	db = get_bucket((unsigned long) addr);
++
++	raw_spin_lock_irqsave(&db->lock, flags);
++
++	obj = lookup_object(addr, db);
++	if (!obj) {
++		raw_spin_unlock_irqrestore(&db->lock, flags);
++		/*
++		 * Maybe the object is static.  Let the type specific
++		 * code decide what to do.
++		 */
++		debug_object_fixup(descr->fixup_assert_init, addr,
++				   ODEBUG_STATE_NOTAVAILABLE);
++		return;
++	}
++
++	raw_spin_unlock_irqrestore(&db->lock, flags);
++}
++
++/**
+  * debug_object_active_state - debug checks object usage state machine
+  * @addr:	address of the object
+  * @descr:	pointer to an object specific debug description structure
 _
 
-Patches currently in -mm which might be from dg@emlix.com are
+Patches currently in -mm which might be from cschan@codeaurora.org are
 
-rtc-omap-fix-initialization-of-control-register.patch
+debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
