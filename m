@@ -1,86 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch removed from -mm tree
-Date: Wed, 27 Jul 2011 12:29:11 -0700
-Message-ID: <201107271927.p6RJRvsY003257@imap1.linux-foundation.org>
+Subject: [merged] fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch removed from -mm tree
+Date: Wed, 27 Jul 2011 12:28:43 -0700
+Message-ID: <201107271927.p6RJRTYW003216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754553Ab1G0T2X (ORCPT
+	by vger.kernel.org with ESMTP id S1754942Ab1G0T2Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Jul 2011 15:28:23 -0400
+	Wed, 27 Jul 2011 15:28:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, fujita.tomonori@lab.ntt.co.jp, jslaby@suse.cz, vinod.koul@intel.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, mel@csn.ul.ie, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/dma-mapping.h: remove DMA_xxBIT_MASK macros
+     fs/exec.c: use BUILD_BUG_ON for VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP
 has been removed from the -mm tree.  Its filename was
-     include-linux-dma-mappingh-remove-dma_xxbit_mask-macros.patch
+     fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/dma-mapping.h: remove DMA_xxBIT_MASK macros
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: fs/exec.c: use BUILD_BUG_ON for VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP
+From: Michal Hocko <mhocko@suse.cz>
 
-git grep shows there are no users in tree, so we can remove them safely.
+a8bef8ff ("mm: migration: avoid race between shift_arg_pages() and
+rmap_walk() during migration by not migrating temporary stacks")
+introduced a BUG_ON() to ensure that VM_STACK_FLAGS and
+VM_STACK_INCOMPLETE_SETUP do not overlap.  The check is a compile time
+one, so BUILD_BUG_ON is more appropriate.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Acked-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Jiri Slaby <jslaby@suse.cz>
-Acked-by: Vinod Koul <vinod.koul@intel.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    7 ------
- include/linux/dma-mapping.h                |   21 -------------------
- 2 files changed, 28 deletions(-)
+ fs/exec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~include-linux-dma-mappingh-remove-dma_xxbit_mask-macros Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~include-linux-dma-mappingh-remove-dma_xxbit_mask-macros
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -460,13 +460,6 @@ Who:	FUJITA Tomonori <fujita.tomonori@la
- 
- ----------------------------
- 
--What: 	DMA_xxBIT_MASK macros
--When:	Jun 2011
--Why:	DMA_xxBIT_MASK macros were replaced with DMA_BIT_MASK() macros.
--Who:	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
--
------------------------------
--
- What:	iwlwifi disable_hw_scan module parameters
- When:	3.0
- Why:	Hareware scan is the prefer method for iwlwifi devices for
-diff -puN include/linux/dma-mapping.h~include-linux-dma-mappingh-remove-dma_xxbit_mask-macros include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~include-linux-dma-mappingh-remove-dma_xxbit_mask-macros
-+++ a/include/linux/dma-mapping.h
-@@ -46,27 +46,6 @@ struct dma_map_ops {
- 
- #define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
- 
--typedef u64 DMA_nnBIT_MASK __deprecated;
--
--/*
-- * NOTE: do not use the below macros in new code and do not add new definitions
-- * here.
-- *
-- * Instead, just open-code DMA_BIT_MASK(n) within your driver
-- */
--#define DMA_64BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(64)
--#define DMA_48BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(48)
--#define DMA_47BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(47)
--#define DMA_40BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(40)
--#define DMA_39BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(39)
--#define DMA_35BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(35)
--#define DMA_32BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(32)
--#define DMA_31BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(31)
--#define DMA_30BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(30)
--#define DMA_29BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(29)
--#define DMA_28BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(28)
--#define DMA_24BIT_MASK	(DMA_nnBIT_MASK)DMA_BIT_MASK(24)
+diff -puN fs/exec.c~fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup fs/exec.c
+--- a/fs/exec.c~fs-execc-use-build_bug_on-for-vm_stack_flags-vm_stack_incomplete_setup
++++ a/fs/exec.c
+@@ -277,7 +277,7 @@ static int __bprm_mm_init(struct linux_b
+ 	 * use STACK_TOP because that can depend on attributes which aren't
+ 	 * configured yet.
+ 	 */
+-	BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
++	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
+ 	vma->vm_end = STACK_TOP_MAX;
+ 	vma->vm_start = vma->vm_end - PAGE_SIZE;
+ 	vma->vm_flags = VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
+_
+
+Patches currently in -mm which might be from mhocko@suse.cz are
+
+origin.patch
+memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+
