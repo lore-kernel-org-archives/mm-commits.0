@@ -1,101 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver-fix.patch removed from -mm tree
-Date: Thu, 28 Jul 2011 13:48:55 -0700
-Message-ID: <201107282048.p6SKmtv8007600@imap1.linux-foundation.org>
+Subject: [withdrawn] pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch removed from -mm tree
+Date: Thu, 28 Jul 2011 13:57:09 -0700
+Message-ID: <201107282057.p6SKv97k008100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755329Ab1G1UtQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755413Ab1G1U5L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 16:49:16 -0400
+	Thu, 28 Jul 2011 16:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Sebastien.Hinderer@ens-lyon.org, lenb@kernel.org, mjg@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jbarnes@virtuousgeek.org, rajesh.shah@intel.com, tiejun.chen@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch-x86-platform-iris-irisc-register-a-platform-device-and-a-plat=
-form-driver-fix
+     pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix
 has been removed from the -mm tree.  Its filename was
-     arch-x86-platform-iris-irisc-register-a-platform-device-and-a-plat=
-form-driver-fix.patch
+     pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix.patch
 
-This patch was dropped because it was folded into arch-x86-platform-iri=
-s-irisc-register-a-platform-device-and-a-platform-driver.patch
+This patch was dropped because it was withdrawn
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-x86-platform-iris-irisc-register-a-platform-device-and-a-=
-platform-driver-fix
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- remove commented-out code
-- add missing space to printk
-- clean up code layout
+fix comment layout
 
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Sh=E9rab <Sebastien.Hinderer@ens-lyon.org>
+Cc: <rajesh.shah@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Tiejun Chen <tiejun.chen@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/iris/iris.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ drivers/pci/probe.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/platform/iris/iris.c~arch-x86-platform-iris-irisc-re=
-gister-a-platform-device-and-a-platform-driver-fix arch/x86/platform/ir=
-is/iris.c
---- a/arch/x86/platform/iris/iris.c~arch-x86-platform-iris-irisc-regist=
-er-a-platform-device-and-a-platform-driver-fix
-+++ a/arch/x86/platform/iris/iris.c
-@@ -65,14 +65,6 @@ static void iris_power_off(void)
-  */
- static int iris_probe(struct platform_device *pdev)
- {
--/*
--	unsigned char status =3D inb(IRIS_GIO_INPUT);
--	if (status =3D=3D IRIS_GIO_NODEV) {
--		printk(KERN_ERR "This machine does not seem to be an Iris. "
--			"Power off handler not installed.\n");
--		return -ENODEV;
--	}
--*/
- 	old_pm_power_off =3D pm_power_off;
- 	pm_power_off =3D &iris_power_off;
- 	printk(KERN_INFO "Iris power_off handler installed.\n");
-@@ -111,17 +103,17 @@ static int iris_init(void)
- 	int ret;
- 	if (force !=3D 1) {
- 		printk(KERN_ERR "The force parameter has not been set to 1."
--			"The Iris poweroff handler will not be installed.\n");
-+			" The Iris poweroff handler will not be installed.\n");
- 		return -ENODEV;
- 	}
- 	ret =3D platform_driver_register(&iris_driver);
- 	if (ret < 0) {
--		printk(KERN_ERR "Failed to register iris platform driver: "
--			"%d\n", ret);
-+		printk(KERN_ERR "Failed to register iris platform driver: %d\n",
-+			ret);
- 		return ret;
- 	}
--	iris_device =3D platform_device_register_simple(
--		"iris", (-1), iris_resources, ARRAY_SIZE(iris_resources));
-+	iris_device =3D platform_device_register_simple("iris", (-1),
-+				iris_resources, ARRAY_SIZE(iris_resources));
- 	if (IS_ERR(iris_device)) {
- 		printk(KERN_ERR "Failed to register iris platform device\n");
- 		platform_driver_unregister(&iris_driver);
+diff -puN drivers/pci/probe.c~pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-re-scanning-pci-fix
++++ a/drivers/pci/probe.c
+@@ -717,9 +717,11 @@ int __devinit pci_scan_bridge(struct pci
+ 		/* Clear errors */
+ 		pci_write_config_word(dev, PCI_STATUS, 0xffff);
+ 
+-		/* Prevent assigning a bus number that already exists.
+-		 * This can happen when a bridge is hot-plugged, so in
+-		 * this case we only re-scan this bus. */
++		/*
++		 * Prevent assigning a bus number that already exists.  This can
++		 * happen when a bridge is hot-plugged, so in this case we only
++		 * re-scan this bus.
++		 */
+ 		child = pci_find_bus(pci_domain_nr(bus), max+1);
+ 		if (!child) {
+ 			child = pci_add_new_bus(bus, dev, ++max);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 headers_check-is-broken.patch
@@ -105,16 +68,11 @@ linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cris-fix-a-build-error-in-kernel-forkc.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigne=
-d-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-=
-driver.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
-pci-enumerate-the-pci-device-only-removed-out-pci-hierarchy-of-os-when-=
-re-scanning-pci-fix.patch
 drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-corre=
-ct-error.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
 drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
 drivers-staging-solo6x10-corec-needs-slabh.patch
 drivers-staging-solo6x10-p2mc-needs-slabh.patch
@@ -138,8 +96,3 @@ put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
