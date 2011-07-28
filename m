@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch added to -mm tree
-Date: Thu, 28 Jul 2011 15:48:43 -0700
-Message-ID: <201107282248.p6SMmhI0013036@imap1.linux-foundation.org>
+Subject: + drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get.patch added to -mm tree
+Date: Thu, 28 Jul 2011 15:48:56 -0700
+Message-ID: <201107282248.p6SMmuqn013060@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755074Ab1G1WtF (ORCPT
+	by vger.kernel.org with ESMTP id S1755102Ab1G1WtO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 18:49:05 -0400
+	Thu, 28 Jul 2011 18:49:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jic23@cam.ac.uk, James.Bottomley@HansenPartnership.com, airlied@linux.ie, djwong@us.ibm.com, guenter.roeck@ericsson.com, rusty@rustcorp.com.au, thellstrom@vmware.com, tj@kernel.org, zbr@ioremap.net
+Cc: jic23@cam.ac.uk, a.zummo@towertech.it
 
 
 The patch titled
-     hwmon: convert idr to ida and use ida_simple interface
+     drivers/rtc/class.c: convert idr to ida and use ida_simple_get()
 has been added to the -mm tree.  Its filename is
-     hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch
+     drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: convert idr to ida and use ida_simple interface
+Subject: drivers/rtc/class.c: convert idr to ida and use ida_simple_get()
 From: Jonathan Cameron <jic23@cam.ac.uk>
 
-hwmon was using an idr with a NULL pointer, so convert to an
-ida which then allows use of Rusty's ida_simple_get.
+This is the one use of an ida that doesn't retry on receiving -EAGAIN.
+I'm assuming do so will cause no harm and may help on a rare occasion.
 
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/hwmon.c |   32 ++++++++------------------------
- 1 file changed, 8 insertions(+), 24 deletions(-)
+ drivers/rtc/class.c |   32 +++++++++-----------------------
+ 1 file changed, 9 insertions(+), 23 deletions(-)
 
-diff -puN drivers/hwmon/hwmon.c~hwmon-convert-idr-to-ida-and-use-ida_simple-interface drivers/hwmon/hwmon.c
---- a/drivers/hwmon/hwmon.c~hwmon-convert-idr-to-ida-and-use-ida_simple-interface
-+++ a/drivers/hwmon/hwmon.c
-@@ -27,8 +27,7 @@
+diff -puN drivers/rtc/class.c~drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get drivers/rtc/class.c
+--- a/drivers/rtc/class.c~drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get
++++ a/drivers/rtc/class.c
+@@ -21,16 +21,13 @@
+ #include "rtc-core.h"
  
- static struct class *hwmon_class;
  
--static DEFINE_IDR(hwmon_idr);
--static DEFINE_SPINLOCK(idr_lock);
-+static DEFINE_IDA(hwmon_ida);
+-static DEFINE_IDR(rtc_idr);
+-static DEFINE_MUTEX(idr_lock);
++static DEFINE_IDA(rtc_ida);
+ struct class *rtc_class;
  
- /**
-  * hwmon_device_register - register w/ hwmon
-@@ -42,30 +41,17 @@ static DEFINE_SPINLOCK(idr_lock);
- struct device *hwmon_device_register(struct device *dev)
+ static void rtc_device_release(struct device *dev)
  {
- 	struct device *hwdev;
--	int id, err;
-+	int id;
- 
--again:
--	if (unlikely(idr_pre_get(&hwmon_idr, GFP_KERNEL) == 0))
--		return ERR_PTR(-ENOMEM);
--
--	spin_lock(&idr_lock);
--	err = idr_get_new(&hwmon_idr, NULL, &id);
--	spin_unlock(&idr_lock);
--
--	if (unlikely(err == -EAGAIN))
--		goto again;
--	else if (unlikely(err))
--		return ERR_PTR(err);
-+	id = ida_simple_get(&hwmon_ida, 0, 0, GFP_KERNEL);
-+	if (id < 0)
-+		return ERR_PTR(id);
- 
--	id = id & MAX_ID_MASK;
- 	hwdev = device_create(hwmon_class, dev, MKDEV(0, 0), NULL,
- 			      HWMON_ID_FORMAT, id);
- 
--	if (IS_ERR(hwdev)) {
--		spin_lock(&idr_lock);
--		idr_remove(&hwmon_idr, id);
--		spin_unlock(&idr_lock);
--	}
-+	if (IS_ERR(hwdev))
-+		ida_simple_remove(&hwmon_ida, id);
- 
- 	return hwdev;
+ 	struct rtc_device *rtc = to_rtc_device(dev);
+-	mutex_lock(&idr_lock);
+-	idr_remove(&rtc_idr, rtc->id);
+-	mutex_unlock(&idr_lock);
++	ida_simple_remove(&rtc_ida, rtc->id);
+ 	kfree(rtc);
  }
-@@ -81,9 +67,7 @@ void hwmon_device_unregister(struct devi
  
- 	if (likely(sscanf(dev_name(dev), HWMON_ID_FORMAT, &id) == 1)) {
- 		device_unregister(dev);
--		spin_lock(&idr_lock);
--		idr_remove(&hwmon_idr, id);
--		spin_unlock(&idr_lock);
-+		ida_simple_remove(&hwmon_ida, id);
- 	} else
- 		dev_dbg(dev->parent,
- 			"hwmon_device_unregister() failed: bad class ID!\n");
+@@ -146,25 +143,16 @@ struct rtc_device *rtc_device_register(c
+ 	struct rtc_wkalrm alrm;
+ 	int id, err;
+ 
+-	if (idr_pre_get(&rtc_idr, GFP_KERNEL) == 0) {
+-		err = -ENOMEM;
++	id = ida_simple_get(&rtc_ida, 0, 0, GFP_KERNEL);
++	if (id < 0) {
++		err = id;
+ 		goto exit;
+ 	}
+ 
+-
+-	mutex_lock(&idr_lock);
+-	err = idr_get_new(&rtc_idr, NULL, &id);
+-	mutex_unlock(&idr_lock);
+-
+-	if (err < 0)
+-		goto exit;
+-
+-	id = id & MAX_ID_MASK;
+-
+ 	rtc = kzalloc(sizeof(struct rtc_device), GFP_KERNEL);
+ 	if (rtc == NULL) {
+ 		err = -ENOMEM;
+-		goto exit_idr;
++		goto exit_ida;
+ 	}
+ 
+ 	rtc->id = id;
+@@ -222,10 +210,8 @@ struct rtc_device *rtc_device_register(c
+ exit_kfree:
+ 	kfree(rtc);
+ 
+-exit_idr:
+-	mutex_lock(&idr_lock);
+-	idr_remove(&rtc_idr, id);
+-	mutex_unlock(&idr_lock);
++exit_ida:
++	ida_simple_remove(&rtc_ida, id);
+ 
+ exit:
+ 	dev_err(dev, "rtc core: unable to register %s, err = %d\n",
+@@ -276,7 +262,7 @@ static void __exit rtc_exit(void)
+ {
+ 	rtc_dev_exit();
+ 	class_destroy(rtc_class);
+-	idr_destroy(&rtc_idr);
++	ida_destroy(&rtc_ida);
+ }
+ 
+ subsys_initcall(rtc_init);
 _
 
 Patches currently in -mm which might be from jic23@cam.ac.uk are
