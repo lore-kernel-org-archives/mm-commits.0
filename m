@@ -1,109 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked.patch removed from -mm tree
-Date: Thu, 28 Jul 2011 13:01:22 -0700
-Message-ID: <201107281959.p6SJxvRm005318@imap1.linux-foundation.org>
+Subject: [merged] drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap.patch removed from -mm tree
+Date: Thu, 28 Jul 2011 13:01:27 -0700
+Message-ID: <201107282000.p6SK028D005355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754833Ab1G1UAC (ORCPT
+	by vger.kernel.org with ESMTP id S1754944Ab1G1UAI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 16:00:02 -0400
+	Thu, 28 Jul 2011 16:00:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, matt.fleming@linux.intel.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, James.Bottomley@HansenPartnership.com, brking@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: sys_ssetmask/sys_rt_sigsuspend should use set_current_blocked()
+     drivers/scsi/ipr.c: reorder error handling code to include iounmap
 has been removed from the -mm tree.  Its filename was
-     signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked.patch
+     drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: sys_ssetmask/sys_rt_sigsuspend should use set_current_blocked()
-From: Oleg Nesterov <oleg@redhat.com>
+Subject: drivers/scsi/ipr.c: reorder error handling code to include iounmap
+From: Julia Lawall <julia@diku.dk>
 
-sys_ssetmask(), sys_rt_sigsuspend() and compat_sys_rt_sigsuspend()
-change ->blocked directly. This is not correct, see the changelog in
-e6fa16ab "signal: sigprocmask() should do retarget_shared_pending()"
+The out_msi_disable label should be before cleanup_nomem to additionally
+benefit from the call to iounmap.  Subsequent gotos are adjusted to go to
+out_msi_disable instead of cleanup_nomem, which now follows it.  This is
+safe because pci_disable_msi does nothing if pci_enable_msi was not called.
 
-Change them to use set_current_blocked().
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Another change is that now we are doing ->saved_sigmask = ->blocked
-lockless, it doesn't make any sense to do this under ->siglock.
+// <smpl>
+@r@
+expression e1,e2;
+statement S;
+@@
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Matt Fleming <matt.fleming@linux.intel.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+e1 = pci_ioremap_bar(...);
+... when != e1 = e2
+    when != iounmap(e1)
+    when any
+(
+ if (<+...e1...+>) S
+|
+ if(...) { ... return 0; }
+|
+ if (...) { ... when != iounmap(e1)
+                when != if (...) { ... iounmap(e1) ... }
+* return ...;
+ } else S
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Brian King <brking@linux.vnet.ibm.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/compat.c |    5 +----
- kernel/signal.c |   17 +++++------------
- 2 files changed, 6 insertions(+), 16 deletions(-)
+ drivers/scsi/ipr.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/compat.c~signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked kernel/compat.c
---- a/kernel/compat.c~signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked
-+++ a/kernel/compat.c
-@@ -992,11 +992,8 @@ asmlinkage long compat_sys_rt_sigsuspend
- 	sigset_from_compat(&newset, &newset32);
- 	sigdelsetmask(&newset, sigmask(SIGKILL)|sigmask(SIGSTOP));
+diff -puN drivers/scsi/ipr.c~drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap drivers/scsi/ipr.c
+--- a/drivers/scsi/ipr.c~drivers-scsi-iprc-reorder-error-handling-code-to-include-iounmap
++++ a/drivers/scsi/ipr.c
+@@ -8778,14 +8778,14 @@ static int __devinit ipr_probe_ioa(struc
+ 	if (rc != PCIBIOS_SUCCESSFUL) {
+ 		dev_err(&pdev->dev, "Failed to save PCI config space\n");
+ 		rc = -EIO;
+-		goto cleanup_nomem;
++		goto out_msi_disable;
+ 	}
  
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
+ 	if ((rc = ipr_save_pcix_cmd_reg(ioa_cfg)))
+-		goto cleanup_nomem;
++		goto out_msi_disable;
  
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-diff -puN kernel/signal.c~signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked kernel/signal.c
---- a/kernel/signal.c~signals-sys_ssetmask-sys_rt_sigsuspend-should-use-set_current_blocked
-+++ a/kernel/signal.c
-@@ -3102,15 +3102,11 @@ SYSCALL_DEFINE0(sgetmask)
+ 	if ((rc = ipr_set_pcix_cmd_reg(ioa_cfg)))
+-		goto cleanup_nomem;
++		goto out_msi_disable;
  
- SYSCALL_DEFINE1(ssetmask, int, newmask)
- {
--	int old;
--
--	spin_lock_irq(&current->sighand->siglock);
--	old = current->blocked.sig[0];
-+	int old = current->blocked.sig[0];
-+	sigset_t newset;
+ 	if (ioa_cfg->sis64)
+ 		ioa_cfg->cfg_table_size = (sizeof(struct ipr_config_table_hdr64)
+@@ -8800,7 +8800,7 @@ static int __devinit ipr_probe_ioa(struc
+ 	if (rc < 0) {
+ 		dev_err(&pdev->dev,
+ 			"Couldn't allocate enough memory for device driver!\n");
+-		goto cleanup_nomem;
++		goto out_msi_disable;
+ 	}
  
--	siginitset(&current->blocked, newmask & ~(sigmask(SIGKILL)|
--						  sigmask(SIGSTOP)));
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	siginitset(&newset, newmask & ~(sigmask(SIGKILL) | sigmask(SIGSTOP)));
-+	set_current_blocked(&newset);
+ 	/*
+@@ -8845,10 +8845,10 @@ out:
  
- 	return old;
- }
-@@ -3167,11 +3163,8 @@ SYSCALL_DEFINE2(rt_sigsuspend, sigset_t 
- 		return -EFAULT;
- 	sigdelsetmask(&newset, sigmask(SIGKILL)|sigmask(SIGSTOP));
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
+ cleanup_nolog:
+ 	ipr_free_mem(ioa_cfg);
+-cleanup_nomem:
+-	iounmap(ipr_regs);
+ out_msi_disable:
+ 	pci_disable_msi(pdev);
++cleanup_nomem:
++	iounmap(ipr_regs);
+ out_release_regions:
+ 	pci_release_regions(pdev);
+ out_scsi_host_put:
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-proc_fork_connector-a-lockless-real_parent-usage-is-not-safe.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 
