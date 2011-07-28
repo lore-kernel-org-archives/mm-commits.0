@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch added to -mm tree
-Date: Thu, 28 Jul 2011 15:16:47 -0700
-Message-ID: <201107282216.p6SMGlbf011659@imap1.linux-foundation.org>
+Subject: + ida-simplified-functions-for-id-allocation.patch added to -mm tree
+Date: Thu, 28 Jul 2011 15:48:41 -0700
+Message-ID: <201107282248.p6SMmfPH013032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43449 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56607 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756091Ab1G1WSE (ORCPT
+	by vger.kernel.org with ESMTP id S1753498Ab1G1Wsv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 18:18:04 -0400
+	Thu, 28 Jul 2011 18:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eric.dumazet@gmail.com, fzago@systemfabricworks.com, roland@kernel.org, rpearson@systemfabricworks.com
+Cc: rusty@rustcorp.com.au, jic23@cam.ac.uk, tj@kernel.org
 
 
 The patch titled
-     lib-crc-add-slice-by-8-algorithm-to-crc32c-fix
+     ida: simplified functions for id allocation
 has been added to the -mm tree.  Its filename is
-     lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+     ida-simplified-functions-for-id-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-crc-add-slice-by-8-algorithm-to-crc32c-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ida: simplified functions for id allocation
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-don't include asm/msr.h
+The current hyper-optimized functions are overkill if you simply want to
+allocate an id for a device.  Create versions which use an internal lock.
 
-Cc: Bob Pearson <rpearson@systemfabricworks.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: frank zago <fzago@systemfabricworks.com>
+In followup patches, numerous drivers are converted to use this interface.
+
+Thanks to Tejun for feedback.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/idr.h |    4 ++
+ lib/idr.c           |   67 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 71 insertions(+)
 
-diff -puN lib/crc32.c~lib-crc-add-slice-by-8-algorithm-to-crc32c-fix lib/crc32.c
---- a/lib/crc32.c~lib-crc-add-slice-by-8-algorithm-to-crc32c-fix
-+++ a/lib/crc32.c
-@@ -32,8 +32,6 @@
- #include <linux/atomic.h>
- #include "crc32defs.h"
+diff -puN include/linux/idr.h~ida-simplified-functions-for-id-allocation include/linux/idr.h
+--- a/include/linux/idr.h~ida-simplified-functions-for-id-allocation
++++ a/include/linux/idr.h
+@@ -146,6 +146,10 @@ void ida_remove(struct ida *ida, int id)
+ void ida_destroy(struct ida *ida);
+ void ida_init(struct ida *ida);
  
--#include <asm/msr.h>
--
- #if CRC_LE_BITS > 8
- # define tole(x) (__force u32) __constant_cpu_to_le32(x)
- #else
++int ida_simple_get(struct ida *ida, unsigned int start, unsigned int end,
++		   gfp_t gfp_mask);
++void ida_simple_remove(struct ida *ida, unsigned int id);
++
+ void __init idr_init_cache(void);
+ 
+ #endif /* __IDR_H__ */
+diff -puN lib/idr.c~ida-simplified-functions-for-id-allocation lib/idr.c
+--- a/lib/idr.c~ida-simplified-functions-for-id-allocation
++++ a/lib/idr.c
+@@ -34,8 +34,10 @@
+ #include <linux/err.h>
+ #include <linux/string.h>
+ #include <linux/idr.h>
++#include <linux/spinlock.h>
+ 
+ static struct kmem_cache *idr_layer_cache;
++static DEFINE_SPINLOCK(simple_ida_lock);
+ 
+ static struct idr_layer *get_from_free_list(struct idr *idp)
+ {
+@@ -926,6 +928,71 @@ void ida_destroy(struct ida *ida)
+ EXPORT_SYMBOL(ida_destroy);
+ 
+ /**
++ * ida_simple_get - get a new id.
++ * @ida: the (initialized) ida.
++ * @start: the minimum id (inclusive, < 0x8000000)
++ * @end: the maximum id (exclusive, < 0x8000000 or 0)
++ * @gfp_mask: memory allocation flags
++ *
++ * Allocates an id in the range start <= id < end, or returns -ENOSPC.
++ * On memory allocation failure, returns -ENOMEM.
++ *
++ * Use ida_simple_remove() to get rid of an id.
++ */
++int ida_simple_get(struct ida *ida, unsigned int start, unsigned int end,
++		   gfp_t gfp_mask)
++{
++	int ret, id;
++	unsigned int max;
++
++	BUG_ON((int)start < 0);
++	BUG_ON((int)end < 0);
++
++	if (end == 0)
++		max = 0x80000000;
++	else {
++		BUG_ON(end < start);
++		max = end - 1;
++	}
++
++again:
++	if (!ida_pre_get(ida, gfp_mask))
++		return -ENOMEM;
++
++	spin_lock(&simple_ida_lock);
++	ret = ida_get_new_above(ida, start, &id);
++	if (!ret) {
++		if (id > max) {
++			ida_remove(ida, id);
++			ret = -ENOSPC;
++		} else {
++			ret = id;
++		}
++	}
++	spin_unlock(&simple_ida_lock);
++
++	if (unlikely(ret == -EAGAIN))
++		goto again;
++
++	return ret;
++}
++EXPORT_SYMBOL(ida_simple_get);
++
++/**
++ * ida_simple_remove - remove an allocated id.
++ * @ida: the (initialized) ida.
++ * @id: the id returned by ida_simple_get.
++ */
++void ida_simple_remove(struct ida *ida, unsigned int id)
++{
++	BUG_ON((int)id < 0);
++	spin_lock(&simple_ida_lock);
++	ida_remove(ida, id);
++	spin_unlock(&simple_ida_lock);
++}
++EXPORT_SYMBOL(ida_simple_remove);
++
++/**
+  * ida_init - initialize ida handle
+  * @ida:	ida handle
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
+ida-simplified-functions-for-id-allocation.patch
+hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch
+drivers-hwmon-hwmonc-convert-idr-to-ida-and-use-ida_simple_get.patch
+drivers-scsi-sdc-use-ida_simple_get-and-ida_simple_remove-in-place-of-boilerplate-code.patch
+drm-vmwgfx-use-ida_simple_get-for-id-allocation.patch
+drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cris-fix-a-build-error-in-kernel-forkc.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
-drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
-drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
-drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
-drivers-staging-solo6x10-corec-needs-slabh.patch
-drivers-staging-solo6x10-p2mc-needs-slabh.patch
-staging-more-missing-slabh-inclusions.patch
-slab-use-numa_no_node.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
