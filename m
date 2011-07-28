@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id.patch added to -mm tree
-Date: Thu, 28 Jul 2011 15:48:52 -0700
-Message-ID: <201107282248.p6SMmqjn013054@imap1.linux-foundation.org>
+Subject: + drm-vmwgfx-use-ida_simple_get-for-id-allocation.patch added to -mm tree
+Date: Thu, 28 Jul 2011 15:48:50 -0700
+Message-ID: <201107282248.p6SMmomg013051@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43084 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42115 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755074Ab1G1WtB (ORCPT
+	by vger.kernel.org with ESMTP id S1755074Ab1G1WtE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 18:49:01 -0400
+	Thu, 28 Jul 2011 18:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jic23@cam.ac.uk, James.Bottomley@HansenPartnership.com, bhalevy@panasas.com, bharrosh@panasas.com, rusty@rustcorp.com.au, tj@kernel.org
+Cc: jic23@cam.ac.uk, James.Bottomley@HansenPartnership.com, airlied@linux.ie, guenter.roeck@ericsson.com, rusty@rustcorp.com.au, thellstrom@vmware.com, tj@kernel.org
 
 
 The patch titled
-     drivers/scsi/osd/osd_uld.c: use ida_simple_get() to handle id
+     drm/vmwgfx: use ida_simple_get() for id allocation
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id.patch
+     drm-vmwgfx-use-ida_simple_get-for-id-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/osd/osd_uld.c: use ida_simple_get() to handle id
+Subject: drm/vmwgfx: use ida_simple_get() for id allocation
 From: Jonathan Cameron <jic23@cam.ac.uk>
 
-This does involve additional use of the spin lock in idr.c.  Is this an
-issue?
-
-Also, some error mangling was needed to keep the interface the same.  Does
-this matter or can we return -ENOSPC instead of -EBUSY?
+Some messing with error codes to return 0 on out id's and match
+current situation.  Is this necessary? Looks a touch 'interesting'.
 
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Benny Halevy <bhalevy@panasas.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osd/osd_uld.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c |   34 +++-------------
+ 1 file changed, 8 insertions(+), 26 deletions(-)
 
-diff -puN drivers/scsi/osd/osd_uld.c~drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id drivers/scsi/osd/osd_uld.c
---- a/drivers/scsi/osd/osd_uld.c~drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id
-+++ a/drivers/scsi/osd/osd_uld.c
-@@ -387,7 +387,7 @@ static void __remove(struct device *dev)
+diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c~drm-vmwgfx-use-ida_simple_get-for-id-allocation drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c~drm-vmwgfx-use-ida_simple_get-for-id-allocation
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
+@@ -37,7 +37,6 @@
+ #include <linux/kernel.h>
  
- 	if (oud->disk)
- 		put_disk(oud->disk);
--	ida_remove(&osd_minor_ida, oud->minor);
-+	ida_simple_remove(&osd_minor_ida, oud->minor);
+ struct vmwgfx_gmrid_man {
+-	spinlock_t lock;
+ 	struct ida gmr_ida;
+ 	uint32_t max_gmr_ids;
+ };
+@@ -49,34 +48,20 @@ static int vmw_gmrid_man_get_node(struct
+ {
+ 	struct vmwgfx_gmrid_man *gman =
+ 		(struct vmwgfx_gmrid_man *)man->priv;
+-	int ret;
+ 	int id;
  
- 	kfree(oud);
- }
-@@ -403,18 +403,12 @@ static int osd_probe(struct device *dev)
- 	if (scsi_device->type != TYPE_OSD)
- 		return -ENODEV;
+ 	mem->mm_node = NULL;
  
 -	do {
--		if (!ida_pre_get(&osd_minor_ida, GFP_KERNEL))
--			return -ENODEV;
+-		if (unlikely(ida_pre_get(&gman->gmr_ida, GFP_KERNEL) == 0))
+-			return -ENOMEM;
 -
--		error = ida_get_new(&osd_minor_ida, &minor);
--	} while (error == -EAGAIN);
+-		spin_lock(&gman->lock);
+-		ret = ida_get_new(&gman->gmr_ida, &id);
 -
--	if (error)
--		return error;
--	if (minor >= SCSI_OSD_MAX_MINOR) {
--		error = -EBUSY;
--		goto err_retract_minor;
-+	minor = ida_simple_get(&osd_minor_ida, 0,
-+			       SCSI_OSD_MAX_MINOR, GFP_KERNEL);
-+	if (minor < 0) {
-+		if (minor == -ENOSPC)
-+			return -EBUSY;
-+		return minor;
+-		if (unlikely(ret == 0 && id >= gman->max_gmr_ids)) {
+-			ida_remove(&gman->gmr_ida, id);
+-			spin_unlock(&gman->lock);
++	id = ida_simple_get(&gman->gmr_ida, 0, gman->max_gmr_ids, GFP_KERNEL);
++	if (id < 0) {
++		if (id == -ENOSPC)
+ 			return 0;
+-		}
+-
+-		spin_unlock(&gman->lock);
+-
+-	} while (ret == -EAGAIN);
+-
+-	if (likely(ret == 0)) {
+-		mem->mm_node = gman;
+-		mem->start = id;
++		return id;
  	}
++	mem->mm_node = gman;
++	mem->start = id;
  
- 	error = -ENOMEM;
-@@ -491,7 +485,7 @@ err_free_osd:
- 	dev_set_drvdata(dev, NULL);
- 	kfree(oud);
- err_retract_minor:
--	ida_remove(&osd_minor_ida, minor);
-+	ida_simple_remove(&osd_minor_ida, minor);
- 	return error;
+-	return ret;
++	return 0;
  }
  
+ static void vmw_gmrid_man_put_node(struct ttm_mem_type_manager *man,
+@@ -86,9 +71,7 @@ static void vmw_gmrid_man_put_node(struc
+ 		(struct vmwgfx_gmrid_man *)man->priv;
+ 
+ 	if (mem->mm_node) {
+-		spin_lock(&gman->lock);
+-		ida_remove(&gman->gmr_ida, mem->start);
+-		spin_unlock(&gman->lock);
++		ida_simple_remove(&gman->gmr_ida, mem->start);
+ 		mem->mm_node = NULL;
+ 	}
+ }
+@@ -102,7 +85,6 @@ static int vmw_gmrid_man_init(struct ttm
+ 	if (unlikely(gman == NULL))
+ 		return -ENOMEM;
+ 
+-	spin_lock_init(&gman->lock);
+ 	ida_init(&gman->gmr_ida);
+ 	gman->max_gmr_ids = p_size;
+ 	man->priv = (void *) gman;
 _
 
 Patches currently in -mm which might be from jic23@cam.ac.uk are
