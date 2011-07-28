@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-vmwgfx-use-ida_simple_get-for-id-allocation.patch added to -mm tree
-Date: Thu, 28 Jul 2011 15:48:50 -0700
-Message-ID: <201107282248.p6SMmomg013051@imap1.linux-foundation.org>
+Subject: + w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it.patch added to -mm tree
+Date: Thu, 28 Jul 2011 15:48:54 -0700
+Message-ID: <201107282248.p6SMmsiB013057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42115 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755074Ab1G1WtE (ORCPT
+	by vger.kernel.org with ESMTP id S1753498Ab1G1WtB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 18:49:04 -0400
+	Thu, 28 Jul 2011 18:49:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jic23@cam.ac.uk, James.Bottomley@HansenPartnership.com, airlied@linux.ie, guenter.roeck@ericsson.com, rusty@rustcorp.com.au, thellstrom@vmware.com, tj@kernel.org
+Cc: jic23@cam.ac.uk, zbr@ioremap.net
 
 
 The patch titled
-     drm/vmwgfx: use ida_simple_get() for id allocation
+     w1: ds2760 and ds2780, use ida for id and ida_simple_get() to get it
 has been added to the -mm tree.  Its filename is
-     drm-vmwgfx-use-ida_simple_get-for-id-allocation.patch
+     w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,205 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm/vmwgfx: use ida_simple_get() for id allocation
+Subject: w1: ds2760 and ds2780, use ida for id and ida_simple_get() to get it
 From: Jonathan Cameron <jic23@cam.ac.uk>
 
-Some messing with error codes to return 0 on out id's and match
-current situation.  Is this necessary? Looks a touch 'interesting'.
+Straightforward.  As an aside, the ida_init calls are not needed as far as
+I can see needed.  (DEFINE_IDA does the same already).
 
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Evgeniy Polyakov <zbr@ioremap.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c |   34 +++-------------
- 1 file changed, 8 insertions(+), 26 deletions(-)
+ drivers/w1/slaves/w1_ds2760.c |   48 ++++----------------------------
+ drivers/w1/slaves/w1_ds2780.c |   48 ++++----------------------------
+ 2 files changed, 12 insertions(+), 84 deletions(-)
 
-diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c~drm-vmwgfx-use-ida_simple_get-for-id-allocation drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c~drm-vmwgfx-use-ida_simple_get-for-id-allocation
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
-@@ -37,7 +37,6 @@
- #include <linux/kernel.h>
- 
- struct vmwgfx_gmrid_man {
--	spinlock_t lock;
- 	struct ida gmr_ida;
- 	uint32_t max_gmr_ids;
+diff -puN drivers/w1/slaves/w1_ds2760.c~w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it drivers/w1/slaves/w1_ds2760.c
+--- a/drivers/w1/slaves/w1_ds2760.c~w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it
++++ a/drivers/w1/slaves/w1_ds2760.c
+@@ -114,43 +114,7 @@ static struct bin_attribute w1_ds2760_bi
+ 	.read = w1_ds2760_read_bin,
  };
-@@ -49,34 +48,20 @@ static int vmw_gmrid_man_get_node(struct
- {
- 	struct vmwgfx_gmrid_man *gman =
- 		(struct vmwgfx_gmrid_man *)man->priv;
+ 
+-static DEFINE_IDR(bat_idr);
+-static DEFINE_MUTEX(bat_idr_lock);
+-
+-static int new_bat_id(void)
+-{
 -	int ret;
- 	int id;
- 
- 	mem->mm_node = NULL;
- 
--	do {
--		if (unlikely(ida_pre_get(&gman->gmr_ida, GFP_KERNEL) == 0))
+-
+-	while (1) {
+-		int id;
+-
+-		ret = idr_pre_get(&bat_idr, GFP_KERNEL);
+-		if (ret == 0)
 -			return -ENOMEM;
 -
--		spin_lock(&gman->lock);
--		ret = ida_get_new(&gman->gmr_ida, &id);
+-		mutex_lock(&bat_idr_lock);
+-		ret = idr_get_new(&bat_idr, NULL, &id);
+-		mutex_unlock(&bat_idr_lock);
 -
--		if (unlikely(ret == 0 && id >= gman->max_gmr_ids)) {
--			ida_remove(&gman->gmr_ida, id);
--			spin_unlock(&gman->lock);
-+	id = ida_simple_get(&gman->gmr_ida, 0, gman->max_gmr_ids, GFP_KERNEL);
-+	if (id < 0) {
-+		if (id == -ENOSPC)
- 			return 0;
+-		if (ret == 0) {
+-			ret = id & MAX_ID_MASK;
+-			break;
+-		} else if (ret == -EAGAIN) {
+-			continue;
+-		} else {
+-			break;
 -		}
+-	}
 -
--		spin_unlock(&gman->lock);
--
--	} while (ret == -EAGAIN);
--
--	if (likely(ret == 0)) {
--		mem->mm_node = gman;
--		mem->start = id;
-+		return id;
- 	}
-+	mem->mm_node = gman;
-+	mem->start = id;
- 
 -	return ret;
-+	return 0;
+-}
+-
+-static void release_bat_id(int id)
+-{
+-	mutex_lock(&bat_idr_lock);
+-	idr_remove(&bat_idr, id);
+-	mutex_unlock(&bat_idr_lock);
+-}
++static DEFINE_IDA(bat_ida);
+ 
+ static int w1_ds2760_add_slave(struct w1_slave *sl)
+ {
+@@ -158,7 +122,7 @@ static int w1_ds2760_add_slave(struct w1
+ 	int id;
+ 	struct platform_device *pdev;
+ 
+-	id = new_bat_id();
++	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
+ 	if (id < 0) {
+ 		ret = id;
+ 		goto noid;
+@@ -187,7 +151,7 @@ bin_attr_failed:
+ pdev_add_failed:
+ 	platform_device_unregister(pdev);
+ pdev_alloc_failed:
+-	release_bat_id(id);
++	ida_simple_remove(&bat_ida, id);
+ noid:
+ success:
+ 	return ret;
+@@ -199,7 +163,7 @@ static void w1_ds2760_remove_slave(struc
+ 	int id = pdev->id;
+ 
+ 	platform_device_unregister(pdev);
+-	release_bat_id(id);
++	ida_simple_remove(&bat_ida, id);
+ 	sysfs_remove_bin_file(&sl->dev.kobj, &w1_ds2760_bin_attr);
  }
  
- static void vmw_gmrid_man_put_node(struct ttm_mem_type_manager *man,
-@@ -86,9 +71,7 @@ static void vmw_gmrid_man_put_node(struc
- 		(struct vmwgfx_gmrid_man *)man->priv;
- 
- 	if (mem->mm_node) {
--		spin_lock(&gman->lock);
--		ida_remove(&gman->gmr_ida, mem->start);
--		spin_unlock(&gman->lock);
-+		ida_simple_remove(&gman->gmr_ida, mem->start);
- 		mem->mm_node = NULL;
- 	}
+@@ -217,14 +181,14 @@ static int __init w1_ds2760_init(void)
+ {
+ 	printk(KERN_INFO "1-Wire driver for the DS2760 battery monitor "
+ 	       " chip  - (c) 2004-2005, Szabolcs Gyurko\n");
+-	idr_init(&bat_idr);
++	ida_init(&bat_ida);
+ 	return w1_register_family(&w1_ds2760_family);
  }
-@@ -102,7 +85,6 @@ static int vmw_gmrid_man_init(struct ttm
- 	if (unlikely(gman == NULL))
- 		return -ENOMEM;
  
--	spin_lock_init(&gman->lock);
- 	ida_init(&gman->gmr_ida);
- 	gman->max_gmr_ids = p_size;
- 	man->priv = (void *) gman;
+ static void __exit w1_ds2760_exit(void)
+ {
+ 	w1_unregister_family(&w1_ds2760_family);
+-	idr_destroy(&bat_idr);
++	ida_destroy(&bat_ida);
+ }
+ 
+ EXPORT_SYMBOL(w1_ds2760_read);
+diff -puN drivers/w1/slaves/w1_ds2780.c~w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it drivers/w1/slaves/w1_ds2780.c
+--- a/drivers/w1/slaves/w1_ds2780.c~w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it
++++ a/drivers/w1/slaves/w1_ds2780.c
+@@ -99,43 +99,7 @@ static struct bin_attribute w1_ds2780_bi
+ 	.read = w1_ds2780_read_bin,
+ };
+ 
+-static DEFINE_IDR(bat_idr);
+-static DEFINE_MUTEX(bat_idr_lock);
+-
+-static int new_bat_id(void)
+-{
+-	int ret;
+-
+-	while (1) {
+-		int id;
+-
+-		ret = idr_pre_get(&bat_idr, GFP_KERNEL);
+-		if (ret == 0)
+-			return -ENOMEM;
+-
+-		mutex_lock(&bat_idr_lock);
+-		ret = idr_get_new(&bat_idr, NULL, &id);
+-		mutex_unlock(&bat_idr_lock);
+-
+-		if (ret == 0) {
+-			ret = id & MAX_ID_MASK;
+-			break;
+-		} else if (ret == -EAGAIN) {
+-			continue;
+-		} else {
+-			break;
+-		}
+-	}
+-
+-	return ret;
+-}
+-
+-static void release_bat_id(int id)
+-{
+-	mutex_lock(&bat_idr_lock);
+-	idr_remove(&bat_idr, id);
+-	mutex_unlock(&bat_idr_lock);
+-}
++static DEFINE_IDA(bat_ida);
+ 
+ static int w1_ds2780_add_slave(struct w1_slave *sl)
+ {
+@@ -143,7 +107,7 @@ static int w1_ds2780_add_slave(struct w1
+ 	int id;
+ 	struct platform_device *pdev;
+ 
+-	id = new_bat_id();
++	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
+ 	if (id < 0) {
+ 		ret = id;
+ 		goto noid;
+@@ -172,7 +136,7 @@ bin_attr_failed:
+ pdev_add_failed:
+ 	platform_device_unregister(pdev);
+ pdev_alloc_failed:
+-	release_bat_id(id);
++	ida_simple_remove(&bat_ida, id);
+ noid:
+ 	return ret;
+ }
+@@ -183,7 +147,7 @@ static void w1_ds2780_remove_slave(struc
+ 	int id = pdev->id;
+ 
+ 	platform_device_unregister(pdev);
+-	release_bat_id(id);
++	ida_simple_remove(&bat_ida, id);
+ 	sysfs_remove_bin_file(&sl->dev.kobj, &w1_ds2780_bin_attr);
+ }
+ 
+@@ -199,14 +163,14 @@ static struct w1_family w1_ds2780_family
+ 
+ static int __init w1_ds2780_init(void)
+ {
+-	idr_init(&bat_idr);
++	ida_init(&bat_ida);
+ 	return w1_register_family(&w1_ds2780_family);
+ }
+ 
+ static void __exit w1_ds2780_exit(void)
+ {
+ 	w1_unregister_family(&w1_ds2780_family);
+-	idr_destroy(&bat_idr);
++	ida_destroy(&bat_ida);
+ }
+ 
+ module_init(w1_ds2780_init);
 _
 
 Patches currently in -mm which might be from jic23@cam.ac.uk are
