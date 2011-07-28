@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + floppy-use-del_timer_sync-in-init-cleanup.patch added to -mm tree
-Date: Thu, 28 Jul 2011 16:30:04 -0700
-Message-ID: <201107282330.p6SNU4qv014838__8039.31114865026$1311895863$gmane$org@imap1.linux-foundation.org>
+Subject: + drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch added to -mm tree
+Date: Thu, 28 Jul 2011 16:53:07 -0700
+Message-ID: <201107282353.p6SNr7X8015800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41175 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752461Ab1G1Xax (ORCPT
+	by vger.kernel.org with ESMTP id S1756186Ab1G1XyD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 19:30:53 -0400
+	Thu, 28 Jul 2011 19:54:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: C.Emde@osadl.org, axboe@kernel.dk, stable@kernel.org, tglx@linutronix.de
+Cc: sboyd@codeaurora.org, James.Bottomley@HansenPartnership.com, dgilbert@interlog.com, dougg@torque.net
 
 
 The patch titled
-     floppy: use del_timer_sync() in init cleanup
+     drivers/scsi/sg.c: convert to kstrtoul_from_user()
 has been added to the -mm tree.  Its filename is
-     floppy-use-del_timer_sync-in-init-cleanup.patch
+     drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: use del_timer_sync() in init cleanup
-From: Carsten Emde <C.Emde@osadl.org>
+Subject: drivers/scsi/sg.c: convert to kstrtoul_from_user()
+From: Stephen Boyd <sboyd@codeaurora.org>
 
-When no floppy is found the module code can be released while a timer
-function is pending or about to be executed.
+Instead of open coding this function use kstrtoul_from_user() directly.
 
-CPU0                                  CPU1
-				      floppy_init()
-timer_softirq()
-   spin_lock_irq(&base->lock);
-   detach_timer();
-   spin_unlock_irq(&base->lock);
-   -> Interrupt
-					del_timer();
-				        return -ENODEV;
-                                      module_cleanup();
-   <- EOI
-   call_timer_fn();
-   OOPS
-
-Use del_timer_sync() to prevent this.
-
-Signed-off-by: Carsten Emde <C.Emde@osadl.org>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@kernel.org>
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Doug Gilbert <dgilbert@interlog.com>
+Cc: Douglas Gilbert <dougg@torque.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/sg.c |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-use-del_timer_sync-in-init-cleanup drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-use-del_timer_sync-in-init-cleanup
-+++ a/drivers/block/floppy.c
-@@ -4250,7 +4250,7 @@ static int __init floppy_init(void)
- 	use_virtual_dma = can_use_virtual_dma & 1;
- 	fdc_state[0].address = FDC1;
- 	if (fdc_state[0].address == -1) {
--		del_timer(&fd_timeout);
-+		del_timer_sync(&fd_timeout);
- 		err = -ENODEV;
- 		goto out_unreg_region;
- 	}
-@@ -4261,7 +4261,7 @@ static int __init floppy_init(void)
- 	fdc = 0;		/* reset fdc in case of unexpected interrupt */
- 	err = floppy_grab_irq_and_dma();
- 	if (err) {
--		del_timer(&fd_timeout);
-+		del_timer_sync(&fd_timeout);
- 		err = -EBUSY;
- 		goto out_unreg_region;
- 	}
-@@ -4318,7 +4318,7 @@ static int __init floppy_init(void)
- 		user_reset_fdc(-1, FD_RESET_ALWAYS, false);
- 	}
- 	fdc = 0;
--	del_timer(&fd_timeout);
-+	del_timer_sync(&fd_timeout);
- 	current_drive = 0;
- 	initialized = true;
- 	if (have_no_fdc) {
-@@ -4368,7 +4368,7 @@ out_unreg_blkdev:
- 	unregister_blkdev(FLOPPY_MAJOR, "fd");
- out_put_disk:
- 	while (dr--) {
--		del_timer(&motor_off_timer[dr]);
-+		del_timer_sync(&motor_off_timer[dr]);
- 		if (disks[dr]->queue)
- 			blk_cleanup_queue(disks[dr]->queue);
- 		put_disk(disks[dr]);
+diff -puN drivers/scsi/sg.c~drivers-scsi-sgc-convert-to-kstrtoul_from_user drivers/scsi/sg.c
+--- a/drivers/scsi/sg.c~drivers-scsi-sgc-convert-to-kstrtoul_from_user
++++ a/drivers/scsi/sg.c
+@@ -2367,16 +2367,15 @@ static ssize_t 
+ sg_proc_write_adio(struct file *filp, const char __user *buffer,
+ 		   size_t count, loff_t *off)
+ {
+-	int num;
+-	char buff[11];
++	int err;
++	unsigned long num;
+ 
+ 	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+ 		return -EACCES;
+-	num = (count < 10) ? count : 10;
+-	if (copy_from_user(buff, buffer, num))
+-		return -EFAULT;
+-	buff[num] = '\0';
+-	sg_allow_dio = simple_strtoul(buff, NULL, 10) ? 1 : 0;
++	err = kstrtoul_from_user(buffer, count, 0, &num);
++	if (err)
++		return err;
++	sg_allow_dio = num ? 1 : 0;
+ 	return count;
+ }
+ 
+@@ -2389,17 +2388,15 @@ static ssize_t 
+ sg_proc_write_dressz(struct file *filp, const char __user *buffer,
+ 		     size_t count, loff_t *off)
+ {
+-	int num;
++	int err;
+ 	unsigned long k = ULONG_MAX;
+-	char buff[11];
+ 
+ 	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+ 		return -EACCES;
+-	num = (count < 10) ? count : 10;
+-	if (copy_from_user(buff, buffer, num))
+-		return -EFAULT;
+-	buff[num] = '\0';
+-	k = simple_strtoul(buff, NULL, 10);
++
++	err = kstrtoul_from_user(buffer, count, 0, &k);
++	if (err)
++		return err;
+ 	if (k <= 1048576) {	/* limit "big buff" to 1 MB */
+ 		sg_big_buff = k;
+ 		return count;
 _
 
-Patches currently in -mm which might be from C.Emde@osadl.org are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-floppy-use-del_timer_sync-in-init-cleanup.patch
+origin.patch
+linux-next.patch
+drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch
+kprobes-silence-debug_strict_user_copy_checks=y-warning.patch
+x86-implement-strict-user-copy-checks-for-x86_64.patch
+consolidate-config_debug_strict_user_copy_checks.patch
 
