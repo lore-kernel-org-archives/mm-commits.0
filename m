@@ -1,62 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hpsa-do-not-attempt-to-read-from-a-write-only-register.patch removed from -mm tree
-Date: Thu, 28 Jul 2011 13:01:30 -0700
-Message-ID: <201107282000.p6SK05Ob005384@imap1.linux-foundation.org>
+Subject: [merged] drivers-scsi-pmcraid-reject-negative-request-size.patch removed from -mm tree
+Date: Thu, 28 Jul 2011 13:01:24 -0700
+Message-ID: <201107281959.p6SJxxUZ005327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59928 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755365Ab1G1UAO (ORCPT
+	by vger.kernel.org with ESMTP id S1754944Ab1G1UAP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 16:00:14 -0400
+	Thu, 28 Jul 2011 16:00:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: scameron@beardog.cce.hp.com, James.Bottomley@HansenPartnership.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: drosenberg@vsecurity.com, James.Bottomley@HansenPartnership.com, anil_ravindranath@pmc-sierra.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hpsa: do not attempt to read from a write-only register
+     drivers/scsi/pmcraid: reject negative request size
 has been removed from the -mm tree.  Its filename was
-     hpsa-do-not-attempt-to-read-from-a-write-only-register.patch
+     drivers-scsi-pmcraid-reject-negative-request-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hpsa: do not attempt to read from a write-only register
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Subject: drivers/scsi/pmcraid: reject negative request size
+From: Dan Rosenberg <drosenberg@vsecurity.com>
 
-Most smartarrays tolerate it, but a few new ones don't.
+There's a code path in pmcraid that can be reached via device ioctl that
+causes all sorts of ugliness, including heap corruption or triggering the
+OOM killer due to consecutive allocation of large numbers of pages.
 
-When the controller doesn't tolerate the bug, the firmware on it locks up.
- No interrupts are received, no commands complete.  I/o on that controller
-grinds to a halt.
+First, the user can call pmcraid_chr_ioctl(), with a type
+PMCRAID_PASSTHROUGH_IOCTL.  This calls through to
+pmcraid_ioctl_passthrough().  Next, a pmcraid_passthrough_ioctl_buffer is
+copied in, and the request_size variable is set to
+buffer->ioarcb.data_transfer_length, which is an arbitrary 32-bit signed
+value provided by the user.  If a negative value is provided here, bad
+things can happen.  For example, pmcraid_build_passthrough_ioadls() is
+called with this request_size, which immediately calls
+pmcraid_alloc_sglist() with a negative size.  The resulting math on
+allocating a scatter list can result in an overflow in the kzalloc() call
+(if num_elem is 0, the sglist will be smaller than expected), or if
+num_elem is unexpectedly large the subsequent loop will call alloc_pages()
+repeatedly, a high number of pages will be allocated and the OOM killer
+might be invoked.
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+It looks like preventing this value from being negative in
+pmcraid_ioctl_passthrough() would be sufficient.  Something like this
+might do:
+
+Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: Anil Ravindranath <anil_ravindranath@pmc-sierra.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/pmcraid.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/scsi/hpsa.h~hpsa-do-not-attempt-to-read-from-a-write-only-register drivers/scsi/hpsa.h
---- a/drivers/scsi/hpsa.h~hpsa-do-not-attempt-to-read-from-a-write-only-register
-+++ a/drivers/scsi/hpsa.h
-@@ -214,7 +214,7 @@ static void SA5_submit_command(struct ct
- 	dev_dbg(&h->pdev->dev, "Sending %x, tag = %x\n", c->busaddr,
- 		c->Header.Tag.lower);
- 	writel(c->busaddr, h->vaddr + SA5_REQUEST_PORT_OFFSET);
--	(void) readl(h->vaddr + SA5_REQUEST_PORT_OFFSET);
-+	(void) readl(h->vaddr + SA5_SCRATCHPAD_OFFSET);
- 	h->commands_outstanding++;
- 	if (h->commands_outstanding > h->max_outstanding)
- 		h->max_outstanding = h->commands_outstanding;
+diff -puN drivers/scsi/pmcraid.c~drivers-scsi-pmcraid-reject-negative-request-size drivers/scsi/pmcraid.c
+--- a/drivers/scsi/pmcraid.c~drivers-scsi-pmcraid-reject-negative-request-size
++++ a/drivers/scsi/pmcraid.c
+@@ -3871,6 +3871,9 @@ static long pmcraid_ioctl_passthrough(
+ 			pmcraid_err("couldn't build passthrough ioadls\n");
+ 			goto out_free_buffer;
+ 		}
++	} else if (request_size < 0) {
++		rc = -EINVAL;
++		goto out_free_buffer;
+ 	}
+ 
+ 	/* If data is being written into the device, copy the data from user
 _
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
 origin.patch
 linux-next.patch
