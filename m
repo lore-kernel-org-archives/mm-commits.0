@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get.patch added to -mm tree
-Date: Thu, 28 Jul 2011 15:48:56 -0700
-Message-ID: <201107282248.p6SMmuqn013060@imap1.linux-foundation.org>
+Subject: + pps-new-client-driver-using-gpio-fix.patch added to -mm tree
+Date: Thu, 28 Jul 2011 16:08:46 -0700
+Message-ID: <201107282308.p6SN8khn013893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755102Ab1G1WtO (ORCPT
+	by vger.kernel.org with ESMTP id S1752461Ab1G1XI6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 18:49:14 -0400
+	Thu, 28 Jul 2011 19:08:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jic23@cam.ac.uk, a.zummo@towertech.it
+Cc: akpm@linux-foundation.org, giometti@linux.it, jamesnuss@nanometrics.ca, lasaine@lvk.cs.msu.su, plyatov@gmail.com, rasm@fe.up.pt
 
 
 The patch titled
-     drivers/rtc/class.c: convert idr to ida and use ida_simple_get()
+     pps-new-client-driver-using-gpio-fix
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get.patch
+     pps-new-client-driver-using-gpio-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/class.c: convert idr to ida and use ida_simple_get()
-From: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: pps-new-client-driver-using-gpio-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This is the one use of an ida that doesn't retry on receiving -EAGAIN.
-I'm assuming do so will cause no harm and may help on a rare occasion.
+remove unneeded cast of void*
 
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Igor Plyatov <plyatov@gmail.com>
+Cc: James Nuss <jamesnuss@nanometrics.ca>
+Cc: Ricardo Martins <rasm@fe.up.pt>
+Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |   32 +++++++++-----------------------
- 1 file changed, 9 insertions(+), 23 deletions(-)
+ drivers/pps/clients/pps-gpio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/class.c~drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get drivers/rtc/class.c
---- a/drivers/rtc/class.c~drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get
-+++ a/drivers/rtc/class.c
-@@ -21,16 +21,13 @@
- #include "rtc-core.h"
+diff -puN drivers/pps/clients/pps-gpio.c~pps-new-client-driver-using-gpio-fix drivers/pps/clients/pps-gpio.c
+--- a/drivers/pps/clients/pps-gpio.c~pps-new-client-driver-using-gpio-fix
++++ a/drivers/pps/clients/pps-gpio.c
+@@ -55,7 +55,7 @@ static irqreturn_t pps_gpio_irq_handler(
+ 	/* Get the time stamp first */
+ 	pps_get_ts(&ts);
  
+-	info = (const struct pps_gpio_device_data *)data;
++	info = data;
  
--static DEFINE_IDR(rtc_idr);
--static DEFINE_MUTEX(idr_lock);
-+static DEFINE_IDA(rtc_ida);
- struct class *rtc_class;
- 
- static void rtc_device_release(struct device *dev)
- {
- 	struct rtc_device *rtc = to_rtc_device(dev);
--	mutex_lock(&idr_lock);
--	idr_remove(&rtc_idr, rtc->id);
--	mutex_unlock(&idr_lock);
-+	ida_simple_remove(&rtc_ida, rtc->id);
- 	kfree(rtc);
- }
- 
-@@ -146,25 +143,16 @@ struct rtc_device *rtc_device_register(c
- 	struct rtc_wkalrm alrm;
- 	int id, err;
- 
--	if (idr_pre_get(&rtc_idr, GFP_KERNEL) == 0) {
--		err = -ENOMEM;
-+	id = ida_simple_get(&rtc_ida, 0, 0, GFP_KERNEL);
-+	if (id < 0) {
-+		err = id;
- 		goto exit;
- 	}
- 
--
--	mutex_lock(&idr_lock);
--	err = idr_get_new(&rtc_idr, NULL, &id);
--	mutex_unlock(&idr_lock);
--
--	if (err < 0)
--		goto exit;
--
--	id = id & MAX_ID_MASK;
--
- 	rtc = kzalloc(sizeof(struct rtc_device), GFP_KERNEL);
- 	if (rtc == NULL) {
- 		err = -ENOMEM;
--		goto exit_idr;
-+		goto exit_ida;
- 	}
- 
- 	rtc->id = id;
-@@ -222,10 +210,8 @@ struct rtc_device *rtc_device_register(c
- exit_kfree:
- 	kfree(rtc);
- 
--exit_idr:
--	mutex_lock(&idr_lock);
--	idr_remove(&rtc_idr, id);
--	mutex_unlock(&idr_lock);
-+exit_ida:
-+	ida_simple_remove(&rtc_ida, id);
- 
- exit:
- 	dev_err(dev, "rtc core: unable to register %s, err = %d\n",
-@@ -276,7 +262,7 @@ static void __exit rtc_exit(void)
- {
- 	rtc_dev_exit();
- 	class_destroy(rtc_class);
--	idr_destroy(&rtc_idr);
-+	ida_destroy(&rtc_ida);
- }
- 
- subsys_initcall(rtc_init);
+ 	rising_edge = gpio_get_value(info->pdata->gpio_pin);
+ 	if ((rising_edge && !info->pdata->assert_falling_edge) ||
 _
 
-Patches currently in -mm which might be from jic23@cam.ac.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ida-simplified-functions-for-id-allocation.patch
-hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch
-drivers-hwmon-hwmonc-convert-idr-to-ida-and-use-ida_simple_get.patch
-drivers-scsi-sdc-use-ida_simple_get-and-ida_simple_remove-in-place-of-boilerplate-code.patch
-drm-vmwgfx-use-ida_simple_get-for-id-allocation.patch
-drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id.patch
-w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it.patch
-drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
 linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
+drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-dt3155v4l-dt3155v4lc-needs-slabh.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+slab-use-numa_no_node.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
