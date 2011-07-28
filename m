@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pps-new-client-driver-using-gpio.patch added to -mm tree
-Date: Thu, 28 Jul 2011 16:08:43 -0700
-Message-ID: <201107282308.p6SN8hpK013890@imap1.linux-foundation.org>
+Subject: + floppy-use-del_timer_sync-in-init-cleanup.patch added to -mm tree
+Date: Thu, 28 Jul 2011 16:30:04 -0700
+Message-ID: <201107282330.p6SNU4qv014838__8039.31114865026$1311895863$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754520Ab1G1XI7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752461Ab1G1Xax (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Jul 2011 19:08:59 -0400
+	Thu, 28 Jul 2011 19:30:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jamesnuss@nanometrics.ca, giometti@linux.it, lasaine@lvk.cs.msu.su, plyatov@gmail.com, rasm@fe.up.pt
+Cc: C.Emde@osadl.org, axboe@kernel.dk, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     pps: new client driver using GPIO
+     floppy: use del_timer_sync() in init cleanup
 has been added to the -mm tree.  Its filename is
-     pps-new-client-driver-using-gpio.patch
+     floppy-use-del_timer_sync-in-init-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,334 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pps: new client driver using GPIO
-From: James Nuss <jamesnuss@nanometrics.ca>
+Subject: floppy: use del_timer_sync() in init cleanup
+From: Carsten Emde <C.Emde@osadl.org>
 
-This client driver allows you to use a GPIO pin as a source for PPS
-signals.  Platform data [1] are used to specify the GPIO pin number,
-label, assert event edge type, and whether clear events are captured.
+When no floppy is found the module code can be released while a timer
+function is pending or about to be executed.
 
-This driver is based on the work by Ricardo Martins who submitted an
-initial implementation [2] of a PPS IRQ client driver to the linuxpps
-mailing-list on Dec 3 2010.
+CPU0                                  CPU1
+				      floppy_init()
+timer_softirq()
+   spin_lock_irq(&base->lock);
+   detach_timer();
+   spin_unlock_irq(&base->lock);
+   -> Interrupt
+					del_timer();
+				        return -ENODEV;
+                                      module_cleanup();
+   <- EOI
+   call_timer_fn();
+   OOPS
 
-[1] include/linux/pps-gpio.h
-[2] http://ml.enneenne.com/pipermail/linuxpps/2010-December/004155.html
+Use del_timer_sync() to prevent this.
 
-Signed-off-by: James Nuss <jamesnuss@nanometrics.ca>
-Cc: Ricardo Martins <rasm@fe.up.pt>
-Acked-by: Rodolfo Giometti <giometti@linux.it>
-Cc: Ricardo Martins <rasm@fe.up.pt>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Igor Plyatov <plyatov@gmail.com>
+Signed-off-by: Carsten Emde <C.Emde@osadl.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/Kconfig    |    9 +
- drivers/pps/clients/Makefile   |    1 
- drivers/pps/clients/pps-gpio.c |  227 +++++++++++++++++++++++++++++++
- include/linux/pps-gpio.h       |   32 ++++
- 4 files changed, 269 insertions(+)
+ drivers/block/floppy.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pps/clients/Kconfig~pps-new-client-driver-using-gpio drivers/pps/clients/Kconfig
---- a/drivers/pps/clients/Kconfig~pps-new-client-driver-using-gpio
-+++ a/drivers/pps/clients/Kconfig
-@@ -29,4 +29,13 @@ config PPS_CLIENT_PARPORT
- 	  If you say yes here you get support for a PPS source connected
- 	  with the interrupt pin of your parallel port.
- 
-+config PPS_CLIENT_GPIO
-+	tristate "PPS client using GPIO"
-+	depends on PPS
-+	help
-+	  If you say yes here you get support for a PPS source using
-+	  GPIO. To be useful you must also register a platform device
-+	  specifying the GPIO pin and other options, usually in your board
-+	  setup.
-+
- endif
-diff -puN drivers/pps/clients/Makefile~pps-new-client-driver-using-gpio drivers/pps/clients/Makefile
---- a/drivers/pps/clients/Makefile~pps-new-client-driver-using-gpio
-+++ a/drivers/pps/clients/Makefile
-@@ -5,5 +5,6 @@
- obj-$(CONFIG_PPS_CLIENT_KTIMER)	+= pps-ktimer.o
- obj-$(CONFIG_PPS_CLIENT_LDISC)	+= pps-ldisc.o
- obj-$(CONFIG_PPS_CLIENT_PARPORT) += pps_parport.o
-+obj-$(CONFIG_PPS_CLIENT_GPIO)	+= pps-gpio.o
- 
- ccflags-$(CONFIG_PPS_DEBUG) := -DDEBUG
-diff -puN /dev/null drivers/pps/clients/pps-gpio.c
---- /dev/null
-+++ a/drivers/pps/clients/pps-gpio.c
-@@ -0,0 +1,227 @@
-+/*
-+ * pps-gpio.c -- PPS client driver using GPIO
-+ *
-+ *
-+ * Copyright (C) 2010 Ricardo Martins <rasm@fe.up.pt>
-+ * Copyright (C) 2011 James Nuss <jamesnuss@nanometrics.ca>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#define PPS_GPIO_NAME "pps-gpio"
-+#define pr_fmt(fmt) PPS_GPIO_NAME ": " fmt
-+
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/pps_kernel.h>
-+#include <linux/pps-gpio.h>
-+#include <linux/gpio.h>
-+#include <linux/list.h>
-+
-+/* Info for each registered platform device */
-+struct pps_gpio_device_data {
-+	int irq;			/* IRQ used as PPS source */
-+	struct pps_device *pps;		/* PPS source device */
-+	struct pps_source_info info;	/* PPS source information */
-+	const struct pps_gpio_platform_data *pdata;
-+};
-+
-+/*
-+ * Report the PPS event
-+ */
-+
-+static irqreturn_t pps_gpio_irq_handler(int irq, void *data)
-+{
-+	const struct pps_gpio_device_data *info;
-+	struct pps_event_time ts;
-+	int rising_edge;
-+
-+	/* Get the time stamp first */
-+	pps_get_ts(&ts);
-+
-+	info = (const struct pps_gpio_device_data *)data;
-+
-+	rising_edge = gpio_get_value(info->pdata->gpio_pin);
-+	if ((rising_edge && !info->pdata->assert_falling_edge) ||
-+			(!rising_edge && info->pdata->assert_falling_edge))
-+		pps_event(info->pps, &ts, PPS_CAPTUREASSERT, NULL);
-+	else if (info->pdata->capture_clear &&
-+			((rising_edge && info->pdata->assert_falling_edge) ||
-+			 (!rising_edge && !info->pdata->assert_falling_edge)))
-+		pps_event(info->pps, &ts, PPS_CAPTURECLEAR, NULL);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int pps_gpio_setup(struct platform_device *pdev)
-+{
-+	int ret;
-+	const struct pps_gpio_platform_data *pdata = pdev->dev.platform_data;
-+
-+	ret = gpio_request(pdata->gpio_pin, pdata->gpio_label);
-+	if (ret) {
-+		pr_warning("failed to request GPIO %u\n", pdata->gpio_pin);
-+		return -EINVAL;
-+	}
-+
-+	ret = gpio_direction_input(pdata->gpio_pin);
-+	if (ret) {
-+		pr_warning("failed to set pin direction\n");
-+		gpio_free(pdata->gpio_pin);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static unsigned long
-+get_irqf_trigger_flags(const struct pps_gpio_platform_data *pdata)
-+{
-+	unsigned long flags = pdata->assert_falling_edge ?
-+		IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING;
-+
-+	if (pdata->capture_clear) {
-+		flags |= ((flags & IRQF_TRIGGER_RISING) ?
-+				IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING);
-+	}
-+
-+	return flags;
-+}
-+
-+static int pps_gpio_probe(struct platform_device *pdev)
-+{
-+	struct pps_gpio_device_data *data;
-+	int irq;
-+	int ret;
-+	int err;
-+	int pps_default_params;
-+	const struct pps_gpio_platform_data *pdata = pdev->dev.platform_data;
-+
-+
-+	/* GPIO setup */
-+	ret = pps_gpio_setup(pdev);
-+	if (ret)
-+		return -EINVAL;
-+
-+	/* IRQ setup */
-+	irq = gpio_to_irq(pdata->gpio_pin);
-+	if (irq < 0) {
-+		pr_err("failed to map GPIO to IRQ: %d\n", irq);
-+		err = -EINVAL;
-+		goto return_error;
-+	}
-+
-+	/* allocate space for device info */
-+	data = kzalloc(sizeof(struct pps_gpio_device_data), GFP_KERNEL);
-+	if (data == NULL) {
-+		err = -ENOMEM;
-+		goto return_error;
-+	}
-+
-+	/* initialize PPS specific parts of the bookkeeping data structure. */
-+	data->info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
-+		PPS_ECHOASSERT | PPS_CANWAIT | PPS_TSFMT_TSPEC;
-+	if (pdata->capture_clear)
-+		data->info.mode |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR |
-+			PPS_ECHOCLEAR;
-+	data->info.owner = THIS_MODULE;
-+	snprintf(data->info.name, PPS_MAX_NAME_LEN - 1, "%s.%d",
-+		 pdev->name, pdev->id);
-+
-+	/* register PPS source */
-+	pps_default_params = PPS_CAPTUREASSERT | PPS_OFFSETASSERT;
-+	if (pdata->capture_clear)
-+		pps_default_params |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR;
-+	data->pps = pps_register_source(&data->info, pps_default_params);
-+	if (data->pps == NULL) {
-+		kfree(data);
-+		pr_err("failed to register IRQ %d as PPS source\n", irq);
-+		err = -EINVAL;
-+		goto return_error;
-+	}
-+
-+	data->irq = irq;
-+	data->pdata = pdata;
-+
-+	/* register IRQ interrupt handler */
-+	ret = request_irq(irq, pps_gpio_irq_handler,
-+			get_irqf_trigger_flags(pdata), data->info.name, data);
-+	if (ret) {
-+		pps_unregister_source(data->pps);
-+		kfree(data);
-+		pr_err("failed to acquire IRQ %d\n", irq);
-+		err = -EINVAL;
-+		goto return_error;
-+	}
-+
-+	platform_set_drvdata(pdev, data);
-+	dev_info(data->pps->dev, "Registered IRQ %d as PPS source\n", irq);
-+
-+	return 0;
-+
-+return_error:
-+	gpio_free(pdata->gpio_pin);
-+	return err;
-+}
-+
-+static int pps_gpio_remove(struct platform_device *pdev)
-+{
-+	struct pps_gpio_device_data *data = platform_get_drvdata(pdev);
-+	const struct pps_gpio_platform_data *pdata = data->pdata;
-+
-+	platform_set_drvdata(pdev, NULL);
-+	free_irq(data->irq, data);
-+	gpio_free(pdata->gpio_pin);
-+	pps_unregister_source(data->pps);
-+	pr_info("removed IRQ %d as PPS source\n", data->irq);
-+	kfree(data);
-+	return 0;
-+}
-+
-+static struct platform_driver pps_gpio_driver = {
-+	.probe		= pps_gpio_probe,
-+	.remove		=  __devexit_p(pps_gpio_remove),
-+	.driver		= {
-+		.name	= PPS_GPIO_NAME,
-+		.owner	= THIS_MODULE
-+	},
-+};
-+
-+static int __init pps_gpio_init(void)
-+{
-+	int ret = platform_driver_register(&pps_gpio_driver);
-+	if (ret < 0)
-+		pr_err("failed to register platform driver\n");
-+	return ret;
-+}
-+
-+static void __exit pps_gpio_exit(void)
-+{
-+	platform_driver_unregister(&pps_gpio_driver);
-+	pr_debug("unregistered platform driver\n");
-+}
-+
-+module_init(pps_gpio_init);
-+module_exit(pps_gpio_exit);
-+
-+MODULE_AUTHOR("Ricardo Martins <rasm@fe.up.pt>");
-+MODULE_AUTHOR("James Nuss <jamesnuss@nanometrics.ca>");
-+MODULE_DESCRIPTION("Use GPIO pin as PPS source");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION("1.0.0");
-diff -puN /dev/null include/linux/pps-gpio.h
---- /dev/null
-+++ a/include/linux/pps-gpio.h
-@@ -0,0 +1,32 @@
-+/*
-+ * pps-gpio.h -- PPS client for GPIOs
-+ *
-+ *
-+ * Copyright (C) 2011 James Nuss <jamesnuss@nanometrics.ca>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef _PPS_GPIO_H
-+#define _PPS_GPIO_H
-+
-+struct pps_gpio_platform_data {
-+	bool assert_falling_edge;
-+	bool capture_clear;
-+	unsigned int gpio_pin;
-+	const char *gpio_label;
-+};
-+
-+#endif
+diff -puN drivers/block/floppy.c~floppy-use-del_timer_sync-in-init-cleanup drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-use-del_timer_sync-in-init-cleanup
++++ a/drivers/block/floppy.c
+@@ -4250,7 +4250,7 @@ static int __init floppy_init(void)
+ 	use_virtual_dma = can_use_virtual_dma & 1;
+ 	fdc_state[0].address = FDC1;
+ 	if (fdc_state[0].address == -1) {
+-		del_timer(&fd_timeout);
++		del_timer_sync(&fd_timeout);
+ 		err = -ENODEV;
+ 		goto out_unreg_region;
+ 	}
+@@ -4261,7 +4261,7 @@ static int __init floppy_init(void)
+ 	fdc = 0;		/* reset fdc in case of unexpected interrupt */
+ 	err = floppy_grab_irq_and_dma();
+ 	if (err) {
+-		del_timer(&fd_timeout);
++		del_timer_sync(&fd_timeout);
+ 		err = -EBUSY;
+ 		goto out_unreg_region;
+ 	}
+@@ -4318,7 +4318,7 @@ static int __init floppy_init(void)
+ 		user_reset_fdc(-1, FD_RESET_ALWAYS, false);
+ 	}
+ 	fdc = 0;
+-	del_timer(&fd_timeout);
++	del_timer_sync(&fd_timeout);
+ 	current_drive = 0;
+ 	initialized = true;
+ 	if (have_no_fdc) {
+@@ -4368,7 +4368,7 @@ out_unreg_blkdev:
+ 	unregister_blkdev(FLOPPY_MAJOR, "fd");
+ out_put_disk:
+ 	while (dr--) {
+-		del_timer(&motor_off_timer[dr]);
++		del_timer_sync(&motor_off_timer[dr]);
+ 		if (disks[dr]->queue)
+ 			blk_cleanup_queue(disks[dr]->queue);
+ 		put_disk(disks[dr]);
 _
 
-Patches currently in -mm which might be from jamesnuss@nanometrics.ca are
+Patches currently in -mm which might be from C.Emde@osadl.org are
 
-pps-default-echo-function.patch
-pps-new-client-driver-using-gpio.patch
-pps-new-client-driver-using-gpio-fix.patch
+floppy-use-del_timer_sync-in-init-cleanup.patch
 
