@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + config_hp_accel-fix-help-text.patch added to -mm tree
-Date: Mon, 01 Aug 2011 13:29:44 -0700
-Message-ID: <201108012029.p71KTjK6012311@imap1.linux-foundation.org>
+Subject: + lis3-add-support-for-hp-elitebook-8540w.patch added to -mm tree
+Date: Mon, 01 Aug 2011 13:29:40 -0700
+Message-ID: <201108012029.p71KTeEu012305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753396Ab1HAUad (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 16:30:33 -0400
+	by vger.kernel.org with ESMTP id S1753396Ab1HAUaf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 16:30:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +18,9 @@ Cc: eric.piel@tremplin-utc.net, cascardo@holoscopio.com, chunkeey@googlemail.com
 
 
 The patch titled
-     CONFIG_HP_ACCEL: fix help text
+     lis3: add support for HP EliteBook 8540w
 has been added to the -mm tree.  Its filename is
-     config_hp_accel-fix-help-text.patch
+     lis3-add-support-for-hp-elitebook-8540w.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,41 +38,38 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: CONFIG_HP_ACCEL: fix help text
+Subject: lis3: add support for HP EliteBook 8540w
 =46rom: =C9ric Piel <eric.piel@tremplin-utc.net>
 
-Adapt the help text for CONFIG_HP_ACCEL to the move of
-Documentation/hwmon/lis3lv02d to Documentation/misc-devices/ in
-ff606677f6a47c63329cf8e6c7cf978c29f2d736 ("Move lis3lv02d drivers to
-drivers/misc").
+Add axis correction for HP EliteBook 8540w.
 
-Signed-off-by: Malte Starostik <m-starostik@versanet.de>
+Reported-by: Lyall Pearce <lyall.pearce@hp.com>
 Signed-off-by: =C9ric Piel <eric.piel@tremplin-utc.net>
 Cc: Matthew Garrett <mjg@redhat.com>
 Cc: Witold Pilat <witold.pilat@gmail.com>
-Cc: Lyall Pearce <lyall.pearce@hp.com>
+Cc: Malte Starostik <m-starostik@versanet.de>
 Cc: Ilkka Koskinen <ilkka.koskinen@nokia.com>
 Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 Cc: Christian Lamparter <chunkeey@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/hp_accel.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/platform/x86/Kconfig~config_hp_accel-fix-help-text dr=
-ivers/platform/x86/Kconfig
---- a/drivers/platform/x86/Kconfig~config_hp_accel-fix-help-text
-+++ a/drivers/platform/x86/Kconfig
-@@ -164,7 +164,7 @@ config HP_ACCEL
-=20
- 	  Support for a led indicating disk protection will be provided as
- 	  hp::hddprotect. For more information on the feature, refer to
--	  Documentation/hwmon/lis3lv02d.
-+	  Documentation/misc-devices/lis3lv02d.
-=20
- 	  To compile this driver as a module, choose M here: the module will
- 	  be called hp_accel.
+diff -puN drivers/platform/x86/hp_accel.c~lis3-add-support-for-hp-elite=
+book-8540w drivers/platform/x86/hp_accel.c
+--- a/drivers/platform/x86/hp_accel.c~lis3-add-support-for-hp-elitebook=
+-8540w
++++ a/drivers/platform/x86/hp_accel.c
+@@ -209,6 +209,7 @@ static struct dmi_system_id lis3lv02d_dm
+ 	AXIS_DMI_MATCH("NC6715x", "HP Compaq 6715", y_inverted),
+ 	AXIS_DMI_MATCH("NC693xx", "HP EliteBook 693", xy_rotated_right),
+ 	AXIS_DMI_MATCH("NC693xx", "HP EliteBook 853", xy_swap),
++	AXIS_DMI_MATCH("NC854xx", "HP EliteBook 854", y_inverted),
+ 	AXIS_DMI_MATCH("NC273xx", "HP EliteBook 273", y_inverted),
+ 	/* Intel-based HP Pavilion dv5 */
+ 	AXIS_DMI_MATCH2("HPDV5_I",
 _
 
 Patches currently in -mm which might be from eric.piel@tremplin-utc.net=
