@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + init-add-root=partuuid=uuid-partnroff=%d-support-update.patch added to -mm tree
-Date: Mon, 01 Aug 2011 13:50:16 -0700
-Message-ID: <201108012050.p71KoGbU013678@imap1.linux-foundation.org>
+Subject: + ramoops-update-module-parameters.patch added to -mm tree
+Date: Mon, 01 Aug 2011 14:57:39 -0700
+Message-ID: <201108012157.p71LvdfX016949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50170 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753586Ab1HAUu6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 16:50:58 -0400
+	by vger.kernel.org with ESMTP id S1752473Ab1HAV6N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 17:58:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wad@chromium.org, Trond.Myklebust@netapp.com, axboe@kernel.dk, kay.sievers@vrfy.org, namhyung@gmail.com, rdunlap@xenotime.net
+Cc: sergiu@chromium.org, marco.stornelli@gmail.com, seiji.aguchi@hds.com
 
 
 The patch titled
-     init: clean up devt_from_partuuid syntax checking and logging
+     ramoops: update module parameters
 has been added to the -mm tree.  Its filename is
-     init-add-root=partuuid=uuid-partnroff=%d-support-update.patch
+     ramoops-update-module-parameters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init: clean up devt_from_partuuid syntax checking and logging
-From: Will Drewry <wad@chromium.org>
+Subject: ramoops: update module parameters
+From: Sergiu Iordache <sergiu@chromium.org>
 
-This patch makes two changes:
-- check for trailing characters after parsing PARTNROFF=%d
-- disable root_wait if a syntax error is seen
+Update the module parameters when platform data is used.  This means that
+they can be read from /sys/module/ramoops/parameters in order to parse the
+memory area.
 
-The former assures that bad input like
-  root=PARTUUID=<validuuid>/PARTNROFF=5abc
-properly fails by attempting to parse an extra character after the
-integer.  If the integer is missing, sscanf will fail, but if it is
-present, and there is a trailing non-nul character, then the extra
-field will be parsed and the error case will be hit.
-
-The latter assures that if rootwait has been specified, the error
-message isn't flooded to the screen during rootwait's loop.  Instead of
-adding printk ratelimiting, root_wait was disabled.  This stays true to
-the rootwait goal of support asynchronous device arrival while still
-providing users with helpful messages.  With ratelimiting or disabling
-logging on rootwait, a range of edge cases turn up where the user would
-not be informed of an error properly.
-
-Signed-off-by: Will Drewry <wad@chromium.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Namhyung Kim <namhyung@gmail.com>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Sergiu Iordache <sergiu@chromium.org>
+Cc: Marco Stornelli <marco.stornelli@gmail.com>
+Cc: Seiji Aguchi <seiji.aguchi@hds.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/char/ramoops.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN init/do_mounts.c~init-add-root=partuuid=uuid-partnroff=%d-support-update init/do_mounts.c
---- a/init/do_mounts.c~init-add-root=partuuid=uuid-partnroff=%d-support-update
-+++ a/init/do_mounts.c
-@@ -110,10 +110,16 @@ static dev_t devt_from_partuuid(char *uu
+diff -puN drivers/char/ramoops.c~ramoops-update-module-parameters drivers/char/ramoops.c
+--- a/drivers/char/ramoops.c~ramoops-update-module-parameters
++++ a/drivers/char/ramoops.c
+@@ -147,6 +147,14 @@ static int __init ramoops_probe(struct p
+ 	cxt->phys_addr = pdata->mem_address;
+ 	cxt->record_size = pdata->record_size;
+ 	cxt->dump_oops = pdata->dump_oops;
++	/*
++	 * Update the module parameter variables as well so they are visible
++	 * through /sys/module/ramoops/parameters/
++	 */
++	mem_size = pdata->mem_size;
++	mem_address = pdata->mem_address;
++	record_size = pdata->record_size;
++	dump_oops = pdata->dump_oops;
  
- 	/* Check for optional partition number offset attributes. */
- 	if (uuid_str[36]) {
-+		char c = 0;
- 		/* Explicitly fail on poor PARTUUID syntax. */
--		if (sscanf(&uuid_str[36], "/PARTNROFF=%d", &offset) != 1) {
-+		if (sscanf(&uuid_str[36],
-+			   "/PARTNROFF=%d%c", &offset, &c) != 1) {
- 			printk(KERN_ERR "VFS: PARTUUID= is invalid.\n"
- 			 "Expected PARTUUID=<valid-uuid-id>[/PARTNROFF=%%d]\n");
-+			if (root_wait)
-+				printk(KERN_ERR
-+				     "Disabling rootwait; root= is invalid.\n");
-+			root_wait = 0;
- 			goto done;
- 		}
- 	}
+ 	if (!request_mem_region(cxt->phys_addr, cxt->size, "ramoops")) {
+ 		pr_err("request mem region failed\n");
 _
 
-Patches currently in -mm which might be from wad@chromium.org are
+Patches currently in -mm which might be from sergiu@chromium.org are
 
-init-add-root=partuuid=uuid-partnroff=%d-support.patch
-init-add-root=partuuid=uuid-partnroff=%d-support-update.patch
-documentation-add-pointer-to-name_to_dev_t-for-root=-values.patch
+origin.patch
+ramoops-update-module-parameters.patch
 
