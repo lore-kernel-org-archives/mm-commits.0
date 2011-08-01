@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + lis3lv02d-avoid-divide-by-zero-due-to-unchecked.patch added to -mm tree
-Date: Mon, 01 Aug 2011 13:29:29 -0700
-Message-ID: <201108012029.p71KTUJo012296@imap1.linux-foundation.org>
+Subject: + lis3-update-maintainer-information.patch added to -mm tree
+Date: Mon, 01 Aug 2011 13:29:33 -0700
+Message-ID: <201108012029.p71KTYUZ012299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753080Ab1HAUa1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 16:30:27 -0400
+	by vger.kernel.org with ESMTP id S1753388Ab1HAUaa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 16:30:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +18,9 @@ Cc: eric.piel@tremplin-utc.net, cascardo@holoscopio.com, chunkeey@googlemail.com
 
 
 The patch titled
-     lis3lv02d: avoid divide by zero due to unchecked
+     lis3: update maintainer information
 has been added to the -mm tree.  Its filename is
-     lis3lv02d-avoid-divide-by-zero-due-to-unchecked.patch
+     lis3-update-maintainer-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,61 +38,14 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: lis3lv02d: avoid divide by zero due to unchecked
+Subject: lis3: update maintainer information
 =46rom: =C9ric Piel <eric.piel@tremplin-utc.net>
 
-After an "unexpected" reboot, I found this Oops in my logs:
+In the move of the lis3 driver, the hp_accel.c file got dropped from th=
+e
+MAINTAINER file. Make it explicit again that this file is tied to lis3
+again.
 
-divide error: 0000 [#1] PREEMPT SMP=3D20
-CPU 0=3D20
-Modules linked in: lis3lv02d hp_wmi input_polldev [...]
-Pid: 390, comm: modprobe Tainted: G         C  2.6.39-rc7-wl+=3D20
-RIP: 0010:[<ffffffffa014b427>]  [<ffffffffa014b427>]
-		 lis3lv02d_poweron+0x4e/0x94 [lis3lv02d]
-RSP: 0018:ffff8801d6407cf8  EFLAGS: 00010246
-RAX: 0000000000000bb8 RBX: ffffffffa014e000 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: ffffea00066e4708 RDI: ffff8801df002700
-RBP: ffff8801d6407d18 R08: ffffea00066c5a30 R09: ffffffff812498c9
-R10: ffff8801d7bfcea0 R11: ffff8801d7bfce10 R12: 0000000000000bb8
-R13: 00000000ffffffda R14: ffffffffa0154120 R15: ffffffffa0154030
-=3D46S:  00007fc0705db700(0000) GS:ffff8801dfa00000(0000) knlGS:0
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00007f33549174f0 CR3: 00000001d65c9000 CR4: 00000000000406f0
-Process modprobe (pid: 390, threadinfo ffff8801d6406000, task ffff8801d=
-6b40=3D
-000)
-Stack:
- ffffffffa0154120 62ffffffa0154030 ffffffffa014e000 00000000ffffffea
- ffff8801d6407d58 ffffffffa014bcc1 0000000000000000 0000000000000048
- ffff8801d8bae800 00000000ffffffea 00000000ffffffda ffffffffa0154120
-Call Trace:
- [<ffffffffa014bcc1>] lis3lv02d_init_device+0x1ce/0x496 [lis3lv02d]
- [<ffffffffa01522ff>] lis3lv02d_add+0x10f/0x17c [hp_accel]
- [<ffffffff81233e11>] acpi_device_probe+0x49/0x117
-[...]
-Code: 3a 75 06 80 4d ef 50 eb 04 80 4d ef 40 0f b6 55 ef be 21
-00 00 00 48 89 df ff 53 18 44 8b 63 6c e8 3e fc ff ff 89 c1 44
-89 e0 99 <f7> f9 89 c7 e8 93 82 ef e0 48 83 7b 30 00 74 2d 45
-31 e4 80 7b=3D20
-RIP  [<ffffffffa014b427>] lis3lv02d_poweron+0x4e/0x94 [lis3lv02d]
- RSP <ffff8801d6407cf8>
-
-From my POV, it looks like the hardware is not working as expected
-and returns a bogus data rate. The driver doesn't check the result
-and directly uses it as some sort of divisor in some places:
-
-msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-
-Under this circumstances, this could very well cause the
-"divide by zero" exception from above.
-
-=46or now, I fixed it the easiest and most obvious way:
-Check if the result is sane and if it isn't use a sane default
-instead. I went for "100" in the latter case, simply because
-/sys/devices/platform/lis3lv02d/rate returns it on a successful
-boot.
-
-Signed-off-by: Christian Lamparter <chunkeey@googlemail.com>
 Signed-off-by: =C9ric Piel <eric.piel@tremplin-utc.net>
 Cc: Matthew Garrett <mjg@redhat.com>
 Cc: Witold Pilat <witold.pilat@gmail.com>
@@ -104,127 +57,20 @@ Cc: Christian Lamparter <chunkeey@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d.c |   36 ++++++++++++++++++++++-----
- drivers/misc/lis3lv02d/lis3lv02d.h |    2 -
- drivers/platform/x86/hp_accel.c    |    3 --
- 3 files changed, 32 insertions(+), 9 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d.c~lis3lv02d-avoid-divide-by-=
-zero-due-to-unchecked drivers/misc/lis3lv02d/lis3lv02d.c
---- a/drivers/misc/lis3lv02d/lis3lv02d.c~lis3lv02d-avoid-divide-by-zero=
--due-to-unchecked
-+++ a/drivers/misc/lis3lv02d/lis3lv02d.c
-@@ -206,6 +206,18 @@ static int lis3lv02d_get_odr(void)
- 	return lis3_dev.odrs[(ctrl >> shift)];
- }
+diff -puN MAINTAINERS~lis3-update-maintainer-information MAINTAINERS
+--- a/MAINTAINERS~lis3-update-maintainer-information
++++ a/MAINTAINERS
+@@ -3965,6 +3965,7 @@ M:	Eric Piel <eric.piel@tremplin-utc.net
+ S:	Maintained
+ F:	Documentation/misc-devices/lis3lv02d
+ F:	drivers/misc/lis3lv02d/
++F:	drivers/platform/x86/hp_accel.c
 =20
-+static int lis3lv02d_get_pwron_wait(struct lis3lv02d *lis3)
-+{
-+	int div =3D lis3lv02d_get_odr();
-+
-+	if (WARN_ONCE(div =3D=3D 0, "device returned spurious data"))
-+		return -ENXIO;
-+
-+	/* LIS3 power on delay is quite long */
-+	msleep(lis3->pwron_delay / div);
-+	return 0;
-+}
-+
- static int lis3lv02d_set_odr(int rate)
- {
- 	u8 ctrl;
-@@ -266,7 +278,9 @@ static int lis3lv02d_selftest(struct lis
-=20
- 	lis3->read(lis3, ctlreg, &reg);
- 	lis3->write(lis3, ctlreg, (reg | selftest));
--	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-+	ret =3D lis3lv02d_get_pwron_wait(lis3);
-+	if (ret)
-+		goto fail;
-=20
- 	/* Read directly to avoid axis remap */
- 	x =3D lis3->read_data(lis3, OUTX);
-@@ -275,7 +289,9 @@ static int lis3lv02d_selftest(struct lis
-=20
- 	/* back to normal settings */
- 	lis3->write(lis3, ctlreg, reg);
--	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-+	ret =3D lis3lv02d_get_pwron_wait(lis3);
-+	if (ret)
-+		goto fail;
-=20
- 	results[0] =3D x - lis3->read_data(lis3, OUTX);
- 	results[1] =3D y - lis3->read_data(lis3, OUTY);
-@@ -363,8 +379,9 @@ void lis3lv02d_poweroff(struct lis3lv02d
- }
- EXPORT_SYMBOL_GPL(lis3lv02d_poweroff);
-=20
--void lis3lv02d_poweron(struct lis3lv02d *lis3)
-+int lis3lv02d_poweron(struct lis3lv02d *lis3)
- {
-+	int err;
- 	u8 reg;
-=20
- 	lis3->init(lis3);
-@@ -382,11 +399,14 @@ void lis3lv02d_poweron(struct lis3lv02d=20
- 		reg |=3D CTRL2_BOOT_8B;
- 	lis3->write(lis3, CTRL_REG2, reg);
-=20
--	/* LIS3 power on delay is quite long */
--	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-+	err =3D lis3lv02d_get_pwron_wait(lis3);
-+	if (err)
-+		return err;
-=20
- 	if (lis3->reg_ctrl)
- 		lis3_context_restore(lis3);
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
-=20
-@@ -926,7 +946,11 @@ int lis3lv02d_init_device(struct lis3lv0
- 	atomic_set(&dev->wake_thread, 0);
-=20
- 	lis3lv02d_add_fs(dev);
--	lis3lv02d_poweron(dev);
-+	err =3D lis3lv02d_poweron(dev);
-+	if (err) {
-+		lis3lv02d_remove_fs(dev);
-+		return err;
-+	}
-=20
- 	if (dev->pm_dev) {
- 		pm_runtime_set_active(dev->pm_dev);
-diff -puN drivers/misc/lis3lv02d/lis3lv02d.h~lis3lv02d-avoid-divide-by-=
-zero-due-to-unchecked drivers/misc/lis3lv02d/lis3lv02d.h
---- a/drivers/misc/lis3lv02d/lis3lv02d.h~lis3lv02d-avoid-divide-by-zero=
--due-to-unchecked
-+++ a/drivers/misc/lis3lv02d/lis3lv02d.h
-@@ -285,7 +285,7 @@ int lis3lv02d_init_device(struct lis3lv0
- int lis3lv02d_joystick_enable(void);
- void lis3lv02d_joystick_disable(void);
- void lis3lv02d_poweroff(struct lis3lv02d *lis3);
--void lis3lv02d_poweron(struct lis3lv02d *lis3);
-+int lis3lv02d_poweron(struct lis3lv02d *lis3);
- int lis3lv02d_remove_fs(struct lis3lv02d *lis3);
-=20
- extern struct lis3lv02d lis3_dev;
-diff -puN drivers/platform/x86/hp_accel.c~lis3lv02d-avoid-divide-by-zer=
-o-due-to-unchecked drivers/platform/x86/hp_accel.c
---- a/drivers/platform/x86/hp_accel.c~lis3lv02d-avoid-divide-by-zero-du=
-e-to-unchecked
-+++ a/drivers/platform/x86/hp_accel.c
-@@ -354,8 +354,7 @@ static int lis3lv02d_suspend(struct acpi
-=20
- static int lis3lv02d_resume(struct acpi_device *device)
- {
--	lis3lv02d_poweron(&lis3_dev);
--	return 0;
-+	return lis3lv02d_poweron(&lis3_dev);
- }
- #else
- #define lis3lv02d_suspend NULL
+ LLC (802.2)
+ M:	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 _
 
 Patches currently in -mm which might be from eric.piel@tremplin-utc.net=
