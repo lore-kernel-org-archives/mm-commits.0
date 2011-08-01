@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dcachec-fix-new-kernel-doc-warning.patch added to -mm tree
-Date: Mon, 01 Aug 2011 13:40:02 -0700
-Message-ID: <201108012040.p71Ke2gd013156@imap1.linux-foundation.org>
+Subject: + init-add-root=partuuid=uuid-partnroff=%d-support-update.patch added to -mm tree
+Date: Mon, 01 Aug 2011 13:50:16 -0700
+Message-ID: <201108012050.p71KoGbU013678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753349Ab1HAUke (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 16:40:34 -0400
+	by vger.kernel.org with ESMTP id S1753586Ab1HAUu6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 16:50:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, viro@zeniv.linux.org.uk
+Cc: wad@chromium.org, Trond.Myklebust@netapp.com, axboe@kernel.dk, kay.sievers@vrfy.org, namhyung@gmail.com, rdunlap@xenotime.net
 
 
 The patch titled
-     fs/dcache.c: fix new kernel-doc warning
+     init: clean up devt_from_partuuid syntax checking and logging
 has been added to the -mm tree.  Its filename is
-     fs-dcachec-fix-new-kernel-doc-warning.patch
+     init-add-root=partuuid=uuid-partnroff=%d-support-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/dcache.c: fix new kernel-doc warning
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: init: clean up devt_from_partuuid syntax checking and logging
+From: Will Drewry <wad@chromium.org>
 
-Fix new kernel-doc warning in fs/dcache.c:
+This patch makes two changes:
+- check for trailing characters after parsing PARTNROFF=%d
+- disable root_wait if a syntax error is seen
 
-Warning(fs/dcache.c:797): No description found for parameter 'sb'
+The former assures that bad input like
+  root=PARTUUID=<validuuid>/PARTNROFF=5abc
+properly fails by attempting to parse an extra character after the
+integer.  If the integer is missing, sscanf will fail, but if it is
+present, and there is a trailing non-nul character, then the extra
+field will be parsed and the error case will be hit.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The latter assures that if rootwait has been specified, the error
+message isn't flooded to the screen during rootwait's loop.  Instead of
+adding printk ratelimiting, root_wait was disabled.  This stays true to
+the rootwait goal of support asynchronous device arrival while still
+providing users with helpful messages.  With ratelimiting or disabling
+logging on rootwait, a range of edge cases turn up where the user would
+not be informed of an error properly.
+
+Signed-off-by: Will Drewry <wad@chromium.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    1 +
- 1 file changed, 1 insertion(+)
+ init/do_mounts.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/dcache.c~fs-dcachec-fix-new-kernel-doc-warning fs/dcache.c
---- a/fs/dcache.c~fs-dcachec-fix-new-kernel-doc-warning
-+++ a/fs/dcache.c
-@@ -784,6 +784,7 @@ relock:
+diff -puN init/do_mounts.c~init-add-root=partuuid=uuid-partnroff=%d-support-update init/do_mounts.c
+--- a/init/do_mounts.c~init-add-root=partuuid=uuid-partnroff=%d-support-update
++++ a/init/do_mounts.c
+@@ -110,10 +110,16 @@ static dev_t devt_from_partuuid(char *uu
  
- /**
-  * prune_dcache_sb - shrink the dcache
-+ * @sb: superblock
-  * @nr_to_scan: number of entries to try to free
-  *
-  * Attempt to shrink the superblock dcache LRU by @nr_to_scan entries. This is
+ 	/* Check for optional partition number offset attributes. */
+ 	if (uuid_str[36]) {
++		char c = 0;
+ 		/* Explicitly fail on poor PARTUUID syntax. */
+-		if (sscanf(&uuid_str[36], "/PARTNROFF=%d", &offset) != 1) {
++		if (sscanf(&uuid_str[36],
++			   "/PARTNROFF=%d%c", &offset, &c) != 1) {
+ 			printk(KERN_ERR "VFS: PARTUUID= is invalid.\n"
+ 			 "Expected PARTUUID=<valid-uuid-id>[/PARTNROFF=%%d]\n");
++			if (root_wait)
++				printk(KERN_ERR
++				     "Disabling rootwait; root= is invalid.\n");
++			root_wait = 0;
+ 			goto done;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from wad@chromium.org are
 
-origin.patch
-fs-dcachec-fix-new-kernel-doc-warning.patch
-linux-next.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 init-add-root=partuuid=uuid-partnroff=%d-support.patch
+init-add-root=partuuid=uuid-partnroff=%d-support-update.patch
 documentation-add-pointer-to-name_to_dev_t-for-root=-values.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
 
