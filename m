@@ -1,89 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: + oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch added to -mm tree
-Date: Mon, 01 Aug 2011 16:03:32 -0700
-Message-ID: <201108012303.p71N3WmQ019905@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 02 Aug 2011 13:10:50 -0700
+Message-ID: <201108022008.p72K8VCr010893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752243Ab1HAXDm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2011 19:03:42 -0400
+	by vger.kernel.org with ESMTP id S1755090Ab1HBUJE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2011 16:09:04 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p72K8Wl7020263
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 2 Aug 2011 13:08:32 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: avoid killing kthreads if they assume the oom killed thread's mm
-has been added to the -mm tree.  Its filename is
-     oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom: avoid killing kthreads if they assume the oom killed thread's mm
-From: David Rientjes <rientjes@google.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-After selecting a task to kill, the oom killer iterates all processes and
-kills all other threads that share the same mm_struct in different thread
-groups.  It would not otherwise be helpful to kill a thread if its memory
-would not be subsequently freed.
-
-A kernel thread, however, may assume a user thread's mm by using
-use_mm().  This is only temporary and should not result in sending a
-SIGKILL to that kthread.
-
-This patch ensures that only user threads and not kthreads are sent a
-SIGKILL if they share the same mm_struct as the oom killed task.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/arm/mach-msm/io.c         |   11 +----------
+ drivers/video/omap2/dss/rfbi.c |    3 ---
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm mm/oom_kill.c
---- a/mm/oom_kill.c~oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm
-+++ a/mm/oom_kill.c
-@@ -433,7 +433,7 @@ static int oom_kill_task(struct task_str
- 	task_unlock(p);
+diff -puN arch/arm/mach-msm/io.c~linux-next-git-rejects arch/arm/mach-msm/io.c
+--- a/arch/arm/mach-msm/io.c~linux-next-git-rejects
++++ a/arch/arm/mach-msm/io.c
+@@ -43,14 +43,11 @@
+ static struct map_desc msm_io_desc[] __initdata = {
+ 	MSM_DEVICE(VIC),
+ 	MSM_CHIP_DEVICE(CSR, MSM7X00),
+-<<<<<<< HEAD
+ 	MSM_DEVICE(DMOV),
+ 	MSM_CHIP_DEVICE(GPIO1, MSM7X00),
+ 	MSM_CHIP_DEVICE(GPIO2, MSM7X00),
+-=======
+ 	MSM_DEVICE(GPIO1),
+ 	MSM_DEVICE(GPIO2),
+->>>>>>> linux-next/akpm-end
+ 	MSM_DEVICE(CLK_CTL),
+ #ifdef CONFIG_MSM_DEBUG_UART
+ 	MSM_DEVICE(DEBUG_UART),
+@@ -81,14 +78,11 @@ void __init msm_map_common_io(void)
+ static struct map_desc qsd8x50_io_desc[] __initdata = {
+ 	MSM_DEVICE(VIC),
+ 	MSM_CHIP_DEVICE(CSR, QSD8X50),
+-<<<<<<< HEAD
+ 	MSM_DEVICE(DMOV),
+ 	MSM_CHIP_DEVICE(GPIO1, QSD8X50),
+ 	MSM_CHIP_DEVICE(GPIO2, QSD8X50),
+-=======
+ 	MSM_DEVICE(GPIO1),
+ 	MSM_DEVICE(GPIO2),
+->>>>>>> linux-next/akpm-end
+ 	MSM_DEVICE(CLK_CTL),
+ 	MSM_DEVICE(SIRC),
+ 	MSM_DEVICE(SCPLL),
+@@ -145,14 +139,11 @@ void __init msm_map_msm8960_io(void)
+ static struct map_desc msm7x30_io_desc[] __initdata = {
+ 	MSM_DEVICE(VIC),
+ 	MSM_CHIP_DEVICE(CSR, MSM7X30),
+-<<<<<<< HEAD
+ 	MSM_DEVICE(DMOV),
+ 	MSM_CHIP_DEVICE(GPIO1, MSM7X30),
+ 	MSM_CHIP_DEVICE(GPIO2, MSM7X30),
+-=======
+-	MSM_DEVICE(GPIO1),
+ 	MSM_DEVICE(GPIO2),
+->>>>>>> linux-next/akpm-end
++	MSM_DEVICE(GPIO1),
+ 	MSM_DEVICE(CLK_CTL),
+ 	MSM_DEVICE(CLK_CTL_SH2),
+ 	MSM_DEVICE(AD5),
+diff -puN drivers/video/omap2/dss/rfbi.c~linux-next-git-rejects drivers/video/omap2/dss/rfbi.c
+--- a/drivers/video/omap2/dss/rfbi.c~linux-next-git-rejects
++++ a/drivers/video/omap2/dss/rfbi.c
+@@ -33,12 +33,9 @@
+ #include <linux/hrtimer.h>
+ #include <linux/seq_file.h>
+ #include <linux/semaphore.h>
+-<<<<<<< HEAD
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+-=======
+ #include <linux/export.h>
+->>>>>>> linux-next/akpm-end
  
- 	/*
--	 * Kill all processes sharing p->mm in other thread groups, if any.
-+	 * Kill all user processes sharing p->mm in other thread groups, if any.
- 	 * They don't get access to memory reserves or a higher scheduler
- 	 * priority, though, to avoid depletion of all memory or task
- 	 * starvation.  This prevents mm->mmap_sem livelock when an oom killed
-@@ -443,7 +443,8 @@ static int oom_kill_task(struct task_str
- 	 * signal.
- 	 */
- 	for_each_process(q)
--		if (q->mm == mm && !same_thread_group(q, p)) {
-+		if (q->mm == mm && !same_thread_group(q, p) &&
-+		    !(q->flags & PF_KTHREAD)) {
- 			task_lock(q);	/* Protect ->comm from prctl() */
- 			pr_err("Kill process %d (%s) sharing same memory\n",
- 				task_pid_nr(q), q->comm);
+ #include <video/omapdss.h>
+ #include "dss.h"
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-acpi-remove-nid_inval.patch
-oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cris-fix-a-build-error-in-kernel-forkc.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
+drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
+drivers-staging-speakup-devsynthc-fix-buffer-size-is-not-provably-correct-error.patch
+drivers-staging-solo6x10-corec-needs-slabh.patch
+drivers-staging-solo6x10-p2mc-needs-slabh.patch
+staging-more-missing-slabh-inclusions.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
