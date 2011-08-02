@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cross-memory-attach-update.patch added to -mm tree
-Date: Tue, 02 Aug 2011 13:16:27 -0700
-Message-ID: <201108022016.p72KGSv9011413@imap1.linux-foundation.org>
+Subject: + shm-fix-a-race-between-shm_exit-and-shm_init.patch added to -mm tree
+Date: Tue, 02 Aug 2011 13:34:05 -0700
+Message-ID: <201108022034.p72KY5E4012378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58496 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754944Ab1HBUQx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2011 16:16:53 -0400
+	by vger.kernel.org with ESMTP id S1754944Ab1HBUes (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2011 16:34:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cyeoh@au1.ibm.com, hpa@zytor.com, mingo@elte.hu, rdunlap@xenotime.net, tglx@linutronix.de
+Cc: segoon@openwall.com, manuel.lauss@googlemail.com, marc.zyngier@arm.com, maz@misterjones.org, richard@nod.at
 
 
 The patch titled
-     cross-memory-attach-update
+     shm: fix a race between shm_exit() and shm_init()
 has been added to the -mm tree.  Its filename is
-     cross-memory-attach-update.patch
+     shm-fix-a-race-between-shm_exit-and-shm_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,474 +33,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cross-memory-attach-update
-From: Christopher Yeoh <cyeoh@au1.ibm.com>
+Subject: shm: fix a race between shm_exit() and shm_init()
+From: Vasiliy Kulikov <segoon@openwall.com>
 
-- Add x86_64 specific wire up
+On thread exit shm_exit_ns() is called, it uses shm_ids(ns).rw_mutex.  It
+is initialized in shm_init(), but it is not called yet at the moment of
+kernel threads exit.  Some kernel threads are created in
+do_pre_smp_initcalls(), and shm_init() is called in do_initcalls().
 
-- Change behaviour so process_vm_readv and process_vm_writev return
-  the number of bytes successfully read or written even if an error
-  occurs
+Static initialization of shm_ids(init_ipc_ns).rw_mutex fixes the race.
 
-- Add more kernel doc interface comments
+It fixes a kernel oops:
 
-- rename some internal functions (process_vm_rw_check_iovecs,
-  process_vm_rw) so they make more sense.
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+...
+[<c0320090>] (__down_write_nested+0x88/0xe0) from [<c015da08>] (exit_shm+0x28/0x48)
+[<c015da08>] (exit_shm+0x28/0x48) from [<c002e550>] (do_exit+0x59c/0x750)
+[<c002e550>] (do_exit+0x59c/0x750) from [<c003eaac>] (____call_usermodehelper+0x13c/0x154)
+[<c003eaac>] (____call_usermodehelper+0x13c/0x154) from [<c000f630>] (kernel_thread_exit+0x0/0x8)
+Code: 1afffffa e597c00c e58d0000 e587d00c (e58cd000)
 
-- Add licence message
-
-- Fix kernel-doc comment format
-
-Still need to do benchmarking to see if the optimisation for small copies
-using a local on-stack array in process_vm_rw_core is worth it.
-
-Signed-off-by: Chris Yeoh <cyeoh@au1.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Reported-by: Manuel Lauss <manuel.lauss@googlemail.com>
+Reported-by: Richard Weinberger <richard@nod.at>
+Reported-by: Marc Zyngier <maz@misterjones.org>
+Tested-by: Manuel Lauss <manuel.lauss@googlemail.com>
+Tested-by: Richard Weinberger <richard@nod.at>
+Tested-by: Marc Zyngier <marc.zyngier@arm.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S        |    2 
- arch/x86/include/asm/unistd_64.h |    4 
- kernel/sys_ni.c                  |    4 
- mm/process_vm_access.c           |  203 +++++++++++++++++------------
- 4 files changed, 132 insertions(+), 81 deletions(-)
+ ipc/msgutil.c |    6 ++++++
+ ipc/shm.c     |   11 ++++++++++-
+ ipc/util.c    |   30 +++++++++++++++++-------------
+ ipc/util.h    |    1 +
+ 4 files changed, 34 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~cross-memory-attach-update arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~cross-memory-attach-update
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -850,4 +850,6 @@ ia32_sys_call_table:
- 	.quad sys_syncfs
- 	.quad compat_sys_sendmmsg	/* 345 */
- 	.quad sys_setns
-+	.quad compat_sys_process_vm_readv
-+	.quad compat_sys_process_vm_writev
- ia32_syscall_end:
-diff -puN arch/x86/include/asm/unistd_64.h~cross-memory-attach-update arch/x86/include/asm/unistd_64.h
---- a/arch/x86/include/asm/unistd_64.h~cross-memory-attach-update
-+++ a/arch/x86/include/asm/unistd_64.h
-@@ -681,6 +681,10 @@ __SYSCALL(__NR_syncfs, sys_syncfs)
- __SYSCALL(__NR_sendmmsg, sys_sendmmsg)
- #define __NR_setns				308
- __SYSCALL(__NR_setns, sys_setns)
-+#define __NR_process_vm_readv			309
-+__SYSCALL(__NR_process_vm_readv, sys_process_vm_readv)
-+#define __NR_process_vm_writev			310
-+__SYSCALL(__NR_process_vm_writev, sys_process_vm_writev)
+diff -puN ipc/msgutil.c~shm-fix-a-race-between-shm_exit-and-shm_init ipc/msgutil.c
+--- a/ipc/msgutil.c~shm-fix-a-race-between-shm_exit-and-shm_init
++++ a/ipc/msgutil.c
+@@ -20,6 +20,9 @@
  
- #ifndef __NO_STUBS
- #define __ARCH_WANT_OLD_READDIR
-diff -puN kernel/sys_ni.c~cross-memory-attach-update kernel/sys_ni.c
---- a/kernel/sys_ni.c~cross-memory-attach-update
-+++ a/kernel/sys_ni.c
-@@ -146,6 +146,10 @@ cond_syscall(sys_io_submit);
- cond_syscall(sys_io_cancel);
- cond_syscall(sys_io_getevents);
- cond_syscall(sys_syslog);
-+cond_syscall(sys_process_vm_readv);
-+cond_syscall(sys_process_vm_writev);
-+cond_syscall(compat_sys_process_vm_readv);
-+cond_syscall(compat_sys_process_vm_writev);
+ DEFINE_SPINLOCK(mq_lock);
  
- /* arch-specific weak syscall entries */
- cond_syscall(sys_pciconfig_read);
-diff -puN mm/process_vm_access.c~cross-memory-attach-update mm/process_vm_access.c
---- a/mm/process_vm_access.c~cross-memory-attach-update
-+++ a/mm/process_vm_access.c
-@@ -1,7 +1,12 @@
- /*
-- *  linux/mm/process_vm_access.c
-+ * linux/mm/process_vm_access.c
-  *
-- *  Copyright (C) 2010-2011 Christopher Yeoh <cyeoh@au1.ibm.com>, IBM Corp.
-+ * Copyright (C) 2010-2011 Christopher Yeoh <cyeoh@au1.ibm.com>, IBM Corp.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-  */
- 
- #include <linux/mm.h>
-@@ -16,7 +21,7 @@
- #include <linux/compat.h>
- #endif
- 
--/*
-+/**
-  * process_vm_rw_pages - read/write pages from task specified
-  * @task: task to read/write from
-  * @mm: mm for task
-@@ -31,19 +36,22 @@
-  * @lvec_offset: offset in bytes from current iovec iov_base we are up to
-  * @vm_write: 0 means copy from, 1 means copy to
-  * @nr_pages_to_copy: number of pages to copy
-+ * @bytes_copied: returns number of bytes successfully copied
-+ * Returns 0 on success, error code otherwise
-  */
--static ssize_t process_vm_rw_pages(struct task_struct *task,
--				   struct mm_struct *mm,
--				   struct page **process_pages,
--				   unsigned long pa,
--				   unsigned long start_offset,
--				   unsigned long len,
--				   const struct iovec *lvec,
--				   unsigned long lvec_cnt,
--				   unsigned long *lvec_current,
--				   size_t *lvec_offset,
--				   int vm_write,
--				   unsigned int nr_pages_to_copy)
-+static int process_vm_rw_pages(struct task_struct *task,
-+			       struct mm_struct *mm,
-+			       struct page **process_pages,
-+			       unsigned long pa,
-+			       unsigned long start_offset,
-+			       unsigned long len,
-+			       const struct iovec *lvec,
-+			       unsigned long lvec_cnt,
-+			       unsigned long *lvec_current,
-+			       size_t *lvec_offset,
-+			       int vm_write,
-+			       unsigned int nr_pages_to_copy,
-+			       ssize_t *bytes_copied)
- {
- 	int pages_pinned;
- 	void *target_kaddr;
-@@ -51,8 +59,9 @@ static ssize_t process_vm_rw_pages(struc
- 	int j;
- 	int ret;
- 	ssize_t bytes_to_copy;
--	ssize_t bytes_copied = 0;
--	ssize_t rc = -EFAULT;
-+	ssize_t rc = 0;
++#define INIT_IPC_SHM_IDS(name) \
++	{ .rw_mutex = __RWSEM_INITIALIZER(name.rw_mutex), }
 +
-+	*bytes_copied = 0;
- 
- 	/* Get the pages we're interested in */
- 	down_read(&mm->mmap_sem);
-@@ -61,8 +70,10 @@ static ssize_t process_vm_rw_pages(struc
- 				      vm_write, 0, process_pages, NULL);
- 	up_read(&mm->mmap_sem);
- 
--	if (pages_pinned != nr_pages_to_copy)
-+	if (pages_pinned != nr_pages_to_copy) {
-+		rc = -EFAULT;
- 		goto end;
-+	}
- 
- 	/* Do the copy for each page */
- 	for (pgs_copied = 0;
-@@ -81,7 +92,7 @@ static ssize_t process_vm_rw_pages(struc
- 		 * - bytes remaining in destination iovec
- 		 */
- 		bytes_to_copy = min_t(ssize_t, PAGE_SIZE - start_offset,
--				      len - bytes_copied);
-+				      len - *bytes_copied);
- 		bytes_to_copy = min_t(ssize_t, bytes_to_copy,
- 				      lvec[*lvec_current].iov_len
- 				      - *lvec_offset);
-@@ -99,10 +110,12 @@ static ssize_t process_vm_rw_pages(struc
- 					   target_kaddr, bytes_to_copy);
- 		kunmap(process_pages[pgs_copied]);
- 		if (ret) {
-+			*bytes_copied += bytes_to_copy - ret;
- 			pgs_copied++;
-+			rc = -EFAULT;
- 			goto end;
- 		}
--		bytes_copied += bytes_to_copy;
-+		*bytes_copied += bytes_to_copy;
- 		*lvec_offset += bytes_to_copy;
- 		if (*lvec_offset == lvec[*lvec_current].iov_len) {
- 			/*
-@@ -120,8 +133,6 @@ static ssize_t process_vm_rw_pages(struc
- 		}
- 	}
- 
--	rc = bytes_copied;
--
- end:
- 	if (vm_write) {
- 		for (j = 0; j < pages_pinned; j++) {
-@@ -140,7 +151,7 @@ end:
- /* Maximum number of pages kmalloc'd to hold struct page's during copy */
- #define PVM_MAX_KMALLOC_PAGES (PAGE_SIZE * 2)
- 
--/*
-+/**
-  * process_vm_rw_single_vec - read/write pages from task specified
-  * @addr: start memory address of target process
-  * @len: size of area to copy to/from
-@@ -153,35 +164,38 @@ end:
-  * @mm: mm for task
-  * @task: task to read/write from
-  * @vm_write: 0 means copy from, 1 means copy to
-+ * @bytes_copied: returns number of bytes successfully copied
-+ * Returns 0 on success or on failure error code
+ /*
+  * The next 2 defines are here bc this is the only file
+  * compiled when either CONFIG_SYSVIPC and CONFIG_POSIX_MQUEUE
+@@ -27,6 +30,9 @@ DEFINE_SPINLOCK(mq_lock);
   */
--static ssize_t process_vm_rw_single_vec(unsigned long addr,
--					unsigned long len,
--					const struct iovec *lvec,
--					unsigned long lvec_cnt,
--					unsigned long *lvec_current,
--					size_t *lvec_offset,
--					struct page **process_pages,
--					struct mm_struct *mm,
--					struct task_struct *task,
--					int vm_write)
-+static int process_vm_rw_single_vec(unsigned long addr,
-+				    unsigned long len,
-+				    const struct iovec *lvec,
-+				    unsigned long lvec_cnt,
-+				    unsigned long *lvec_current,
-+				    size_t *lvec_offset,
-+				    struct page **process_pages,
-+				    struct mm_struct *mm,
-+				    struct task_struct *task,
-+				    int vm_write,
-+				    ssize_t *bytes_copied)
+ struct ipc_namespace init_ipc_ns = {
+ 	.count		= ATOMIC_INIT(1),
++	.ids	= {
++		[IPC_SHM_IDS] = INIT_IPC_SHM_IDS(init_ipc_ns.ids[IPC_SHM_IDS]),
++	},
+ #ifdef CONFIG_POSIX_MQUEUE
+ 	.mq_queues_max   = DFLT_QUEUESMAX,
+ 	.mq_msg_max      = DFLT_MSGMAX,
+diff -puN ipc/shm.c~shm-fix-a-race-between-shm_exit-and-shm_init ipc/shm.c
+--- a/ipc/shm.c~shm-fix-a-race-between-shm_exit-and-shm_init
++++ a/ipc/shm.c
+@@ -76,7 +76,16 @@ void shm_init_ns(struct ipc_namespace *n
+ 	ns->shm_ctlmni = SHMMNI;
+ 	ns->shm_rmid_forced = 0;
+ 	ns->shm_tot = 0;
+-	ipc_init_ids(&shm_ids(ns));
++
++	/*
++	 * For init_ipc_ns shm_ids().rw_mutex is statically initialized
++	 * as kernel threads should be able to use it in do_exit() before
++	 * shm_init(), which is called on do_initcall()
++	 */
++	if (ns == &init_ipc_ns)
++		__ipc_init_ids(&shm_ids(ns));
++	else
++		ipc_init_ids(&shm_ids(ns));
+ }
+ 
+ /*
+diff -puN ipc/util.c~shm-fix-a-race-between-shm_exit-and-shm_init ipc/util.c
+--- a/ipc/util.c~shm-fix-a-race-between-shm_exit-and-shm_init
++++ a/ipc/util.c
+@@ -108,31 +108,35 @@ static int __init ipc_init(void)
+ }
+ __initcall(ipc_init);
+ 
+-/**
+- *	ipc_init_ids		-	initialise IPC identifiers
+- *	@ids: Identifier set
+- *
+- *	Set up the sequence range to use for the ipc identifier range (limited
+- *	below IPCMNI) then initialise the ids idr.
+- */
+- 
+-void ipc_init_ids(struct ipc_ids *ids)
++void __ipc_init_ids(struct ipc_ids *ids)
  {
- 	unsigned long pa = addr & PAGE_MASK;
- 	unsigned long start_offset = addr - pa;
- 	unsigned long nr_pages;
--	ssize_t bytes_copied = 0;
--	ssize_t rc;
-+	ssize_t bytes_copied_loop;
-+	ssize_t rc = 0;
- 	unsigned long nr_pages_copied = 0;
- 	unsigned long nr_pages_to_copy;
- 	unsigned long max_pages_per_loop = PVM_MAX_KMALLOC_PAGES
- 		/ sizeof(struct pages *);
- 
-+	*bytes_copied = 0;
- 
- 	/* Work out address and page range required */
- 	if (len == 0)
- 		return 0;
- 	nr_pages = (addr + len - 1) / PAGE_SIZE - addr / PAGE_SIZE + 1;
- 
+-	init_rwsem(&ids->rw_mutex);
 -
- 	while ((nr_pages_copied < nr_pages) && (*lvec_current < lvec_cnt)) {
- 		nr_pages_to_copy = min(nr_pages - nr_pages_copied,
- 				       max_pages_per_loop);
-@@ -190,35 +204,49 @@ static ssize_t process_vm_rw_single_vec(
- 					 start_offset, len,
- 					 lvec, lvec_cnt,
- 					 lvec_current, lvec_offset,
--					 vm_write, nr_pages_to_copy);
-+					 vm_write, nr_pages_to_copy,
-+					 &bytes_copied_loop);
- 		start_offset = 0;
-+		*bytes_copied += bytes_copied_loop;
- 
--		if (rc < 0)
-+		if (rc < 0) {
- 			return rc;
--		else {
--			bytes_copied += rc;
--			len -= rc;
-+		} else {
-+			len -= bytes_copied_loop;
- 			nr_pages_copied += nr_pages_to_copy;
- 			pa += nr_pages_to_copy * PAGE_SIZE;
- 		}
+ 	ids->in_use = 0;
+ 	ids->seq = 0;
+ 	{
+ 		int seq_limit = INT_MAX/SEQ_MULTIPLIER;
+ 		if (seq_limit > USHRT_MAX)
+ 			ids->seq_max = USHRT_MAX;
+-		 else
+-		 	ids->seq_max = seq_limit;
++		else
++			ids->seq_max = seq_limit;
  	}
  
--	rc = bytes_copied;
- 	return rc;
+ 	idr_init(&ids->ipcs_idr);
  }
  
--static ssize_t process_vm_rw(pid_t pid, const struct iovec *lvec,
--			     unsigned long liovcnt,
--			     const struct iovec *rvec,
--			     unsigned long riovcnt,
--			     unsigned long flags, int vm_write)
 +/**
-+ * process_vm_rw_core - core of reading/writing pages from task specified
-+ * @pid: PID of process to read/write from/to
-+ * @lvec: iovec array specifying where to copy to/from locally
-+ * @liovcnt: size of lvec array
-+ * @rvec: iovec array specifying where to copy to/from in the other process
-+ * @riovcnt: size of rvec array
-+ * @flags: currently unused
-+ * @vm_write: 0 if reading from other process, 1 if writing to other process
-+ * Returns the number of bytes read/written or error code. May
-+ *  return less bytes than expected if an error occurs during the copying
-+ *  process.
++ *	ipc_init_ids		-	initialise IPC identifiers
++ *	@ids: Identifier set
++ *
++ *	Set up the sequence range to use for the ipc identifier range (limited
++ *	below IPCMNI) then initialise the ids idr.
 + */
-+static ssize_t process_vm_rw_core(pid_t pid, const struct iovec *lvec,
-+				  unsigned long liovcnt,
-+				  const struct iovec *rvec,
-+				  unsigned long riovcnt,
-+				  unsigned long flags, int vm_write)
- {
- 	struct task_struct *task;
- 	struct page **process_pages = NULL;
- 	struct mm_struct *mm;
- 	unsigned long i;
--	ssize_t rc;
--	ssize_t bytes_copied;
-+	ssize_t rc = 0;
-+	ssize_t bytes_copied_loop;
-+	ssize_t bytes_copied = 0;
- 	unsigned long nr_pages = 0;
- 	unsigned long nr_pages_iov;
- 	unsigned long iov_l_curr_idx = 0;
-@@ -279,38 +307,53 @@ static ssize_t process_vm_rw(pid_t pid, 
- 	atomic_inc(&mm->mm_users);
- 	task_unlock(task);
++
++void ipc_init_ids(struct ipc_ids *ids)
++{
++	init_rwsem(&ids->rw_mutex);
++	__ipc_init_ids(ids);
++}
++
+ #ifdef CONFIG_PROC_FS
+ static const struct file_operations sysvipc_proc_fops;
+ /**
+diff -puN ipc/util.h~shm-fix-a-race-between-shm_exit-and-shm_init ipc/util.h
+--- a/ipc/util.h~shm-fix-a-race-between-shm_exit-and-shm_init
++++ a/ipc/util.h
+@@ -80,6 +80,7 @@ struct seq_file;
+ struct ipc_ids;
  
--	rc = 0;
- 	for (i = 0; i < riovcnt && iov_l_curr_idx < liovcnt; i++) {
--		bytes_copied = process_vm_rw_single_vec(
-+		rc = process_vm_rw_single_vec(
- 			(unsigned long)rvec[i].iov_base, rvec[i].iov_len,
- 			lvec, liovcnt, &iov_l_curr_idx, &iov_l_curr_offset,
--			process_pages, mm, task, vm_write);
--		if (bytes_copied < 0) {
--			rc = bytes_copied;
-+			process_pages, mm, task, vm_write, &bytes_copied_loop);
-+		bytes_copied += bytes_copied_loop;
-+		if (rc != 0) {
-+			/* If we have managed to copy any data at all then
-+			   we return the number of bytes copied. Otherwise
-+			   we return the error code */
-+			if (bytes_copied)
-+				rc = bytes_copied;
- 			goto put_mm;
--		} else {
--			rc += bytes_copied;
- 		}
- 	}
- 
-+	rc = bytes_copied;
- put_mm:
- 	mmput(mm);
- 
- put_task_struct:
- 	put_task_struct(task);
- 
--
- free_proc_pages:
- 	kfree(process_pages);
- 	return rc;
- }
- 
--static ssize_t process_vm_rw_check_iovecs(pid_t pid,
--					  const struct iovec __user *lvec,
--					  unsigned long liovcnt,
--					  const struct iovec __user *rvec,
--					  unsigned long riovcnt,
--					  unsigned long flags, int vm_write)
-+/**
-+ * process_vm_rw - check iovecs before calling core routine
-+ * @pid: PID of process to read/write from/to
-+ * @lvec: iovec array specifying where to copy to/from locally
-+ * @liovcnt: size of lvec array
-+ * @rvec: iovec array specifying where to copy to/from in the other process
-+ * @riovcnt: size of rvec array
-+ * @flags: currently unused
-+ * @vm_write: 0 if reading from other process, 1 if writing to other process
-+ * Returns the number of bytes read/written or error code. May
-+ *  return less bytes than expected if an error occurs during the copying
-+ *  process.
-+ */
-+static ssize_t process_vm_rw(pid_t pid,
-+			     const struct iovec __user *lvec,
-+			     unsigned long liovcnt,
-+			     const struct iovec __user *rvec,
-+			     unsigned long riovcnt,
-+			     unsigned long flags, int vm_write)
- {
- 	struct iovec iovstack_l[UIO_FASTIOV];
- 	struct iovec iovstack_r[UIO_FASTIOV];
-@@ -336,8 +379,8 @@ static ssize_t process_vm_rw_check_iovec
- 	if (rc <= 0)
- 		goto free_iovecs;
- 
--	rc = process_vm_rw(pid, iov_l, liovcnt, iov_r, riovcnt, flags,
--			    vm_write);
-+	rc = process_vm_rw_core(pid, iov_l, liovcnt, iov_r, riovcnt, flags,
-+				vm_write);
- 
- free_iovecs:
- 	if (iov_r != iovstack_r)
-@@ -352,8 +395,7 @@ SYSCALL_DEFINE6(process_vm_readv, pid_t,
- 		unsigned long, liovcnt, const struct iovec __user *, rvec,
- 		unsigned long, riovcnt,	unsigned long, flags)
- {
--	return process_vm_rw_check_iovecs(pid, lvec, liovcnt, rvec, riovcnt,
--					  flags, 0);
-+	return process_vm_rw(pid, lvec, liovcnt, rvec, riovcnt, flags, 0);
- }
- 
- SYSCALL_DEFINE6(process_vm_writev, pid_t, pid,
-@@ -361,19 +403,18 @@ SYSCALL_DEFINE6(process_vm_writev, pid_t
- 		unsigned long, liovcnt, const struct iovec __user *, rvec,
- 		unsigned long, riovcnt,	unsigned long, flags)
- {
--	return process_vm_rw_check_iovecs(pid, lvec, liovcnt, rvec, riovcnt,
--					  flags, 1);
-+	return process_vm_rw(pid, lvec, liovcnt, rvec, riovcnt, flags, 1);
- }
- 
- #ifdef CONFIG_COMPAT
- 
- asmlinkage ssize_t
--compat_process_vm_rw_check_iovecs(compat_pid_t pid,
--				  const struct compat_iovec __user *lvec,
--				  unsigned long liovcnt,
--				  const struct compat_iovec __user *rvec,
--				  unsigned long riovcnt,
--				  unsigned long flags, int vm_write)
-+compat_process_vm_rw(compat_pid_t pid,
-+		     const struct compat_iovec __user *lvec,
-+		     unsigned long liovcnt,
-+		     const struct compat_iovec __user *rvec,
-+		     unsigned long riovcnt,
-+		     unsigned long flags, int vm_write)
- {
- 	struct iovec iovstack_l[UIO_FASTIOV];
- 	struct iovec iovstack_r[UIO_FASTIOV];
-@@ -406,8 +447,8 @@ compat_process_vm_rw_check_iovecs(compat
- 	if (rc <= 0)
- 		goto free_iovecs;
- 
--	rc = process_vm_rw(pid, iov_l, liovcnt, iov_r, riovcnt, flags,
--			    vm_write);
-+	rc = process_vm_rw_core(pid, iov_l, liovcnt, iov_r, riovcnt, flags,
-+			   vm_write);
- 
- free_iovecs:
- 	if (iov_r != iovstack_r)
-@@ -427,8 +468,8 @@ compat_sys_process_vm_readv(compat_pid_t
- 			    unsigned long riovcnt,
- 			    unsigned long flags)
- {
--	return compat_process_vm_rw_check_iovecs(pid, lvec, liovcnt, rvec,
--						 riovcnt, flags, 0);
-+	return compat_process_vm_rw(pid, lvec, liovcnt, rvec,
-+				    riovcnt, flags, 0);
- }
- 
- asmlinkage ssize_t
-@@ -439,8 +480,8 @@ compat_sys_process_vm_writev(compat_pid_
- 			     unsigned long riovcnt,
- 			     unsigned long flags)
- {
--	return compat_process_vm_rw_check_iovecs(pid, lvec, liovcnt, rvec,
--						 riovcnt, flags, 1);
-+	return compat_process_vm_rw(pid, lvec, liovcnt, rvec,
-+				    riovcnt, flags, 1);
- }
- 
- #endif
+ void ipc_init_ids(struct ipc_ids *);
++void __ipc_init_ids(struct ipc_ids *ids);
+ #ifdef CONFIG_PROC_FS
+ void __init ipc_init_proc_interface(const char *path, const char *header,
+ 		int ids, int (*show)(struct seq_file *, void *));
 _
 
-Patches currently in -mm which might be from cyeoh@au1.ibm.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
-cross-memory-attach-v3.patch
-cross-memory-attach-update.patch
+origin.patch
+taskstats-add_del_listener-shouldnt-use-the-wrong-node.patch
+taskstats-add_del_listener-should-ignore-valid-listeners.patch
+shm-fix-a-race-between-shm_exit-and-shm_init.patch
+linux-next.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 
