@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-platform-mrst-pmuc-needs-moduleh.patch added to -mm tree
-Date: Tue, 02 Aug 2011 16:05:15 -0700
-Message-ID: <201108022343.p72Nhd30021794@imap1.linux-foundation.org>
+Subject: + drivers-acpi-apei-ghesc-fix-32-bit-build.patch added to -mm tree
+Date: Tue, 02 Aug 2011 16:08:43 -0700
+Message-ID: <201108022347.p72Nl7cj022021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59198 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751547Ab1HBXnw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2011 19:43:52 -0400
+	by vger.kernel.org with ESMTP id S1753703Ab1HBXrK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2011 19:47:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, len.brown@intel.com, mingo@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, ak@linux.intel.com, lenb@kernel.org, ying.huang@intel.com
 
 
 The patch titled
-     arch/x86/platform/mrst/pmu.c needs module.h
+     drivers/acpi/apei/ghes.c: fix 32-bit build
 has been added to the -mm tree.  Its filename is
-     arch-x86-platform-mrst-pmuc-needs-moduleh.patch
+     drivers-acpi-apei-ghesc-fix-32-bit-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/platform/mrst/pmu.c needs module.h
+Subject: drivers/acpi/apei/ghes.c: fix 32-bit build
 From: Andrew Morton <akpm@linux-foundation.org>
 
 linux-next i386 allmodconfig:
 
-arch/x86/platform/mrst/pmu.c:739: warning: data definition has no type or storage class
-arch/x86/platform/mrst/pmu.c:739: warning: type defaults to 'int' in declaration of 'MODULE_DEVICE_TABLE'
-arch/x86/platform/mrst/pmu.c:739: warning: parameter names (without types) in function declaration
+drivers/built-in.o: In function `ghes_estatus_cache_add':
+ghes.c:(.text+0xa6d27): undefined reference to `__udivdi3'
 
-Cc: Len Brown <len.brown@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Remaining bugs are:
+
+drivers/acpi/apei/ghes.c: In function 'ghes_estatus_cached':
+drivers/acpi/apei/ghes.c:542: warning: integer overflow in expression
+drivers/acpi/apei/ghes.c: In function 'ghes_estatus_cache_add':
+drivers/acpi/apei/ghes.c:619: warning: integer overflow in expression
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/mrst/pmu.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/apei/ghes.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/platform/mrst/pmu.c~arch-x86-platform-mrst-pmuc-needs-moduleh arch/x86/platform/mrst/pmu.c
---- a/arch/x86/platform/mrst/pmu.c~arch-x86-platform-mrst-pmuc-needs-moduleh
-+++ a/arch/x86/platform/mrst/pmu.c
-@@ -21,6 +21,7 @@
- #include <linux/debugfs.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/module.h>
- #include <linux/pci.h>
- #include <linux/seq_file.h>
- #include <linux/sfi.h>
+diff -puN drivers/acpi/apei/ghes.c~drivers-acpi-apei-ghesc-fix-32-bit-build drivers/acpi/apei/ghes.c
+--- a/drivers/acpi/apei/ghes.c~drivers-acpi-apei-ghesc-fix-32-bit-build
++++ a/drivers/acpi/apei/ghes.c
+@@ -622,7 +622,8 @@ static void ghes_estatus_cache_add(
+ 			break;
+ 		}
+ 		count = atomic_read(&cache->count);
+-		period = duration / (count + 1);
++		period = duration;
++		do_div(period, count + 1);
+ 		if (period > max_period) {
+ 			max_period = period;
+ 			slot = i;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,4 +91,5 @@ hpet-factor-timer-allocate-from-open.patch
 lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
 ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 pps-new-client-driver-using-gpio-fix.patch
+drivers-acpi-apei-ghesc-fix-32-bit-build.patch
 
