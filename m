@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch added to -mm tree
-Date: Tue, 02 Aug 2011 14:18:27 -0700
-Message-ID: <201108022156.p72LuqLr016596@imap1.linux-foundation.org>
+Subject: + memstick-add-support-for-legacy-memorysticks-fix.patch added to -mm tree
+Date: Tue, 02 Aug 2011 14:32:56 -0700
+Message-ID: <201108022211.p72MBKqm017343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755442Ab1HBV5K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2011 17:57:10 -0400
+	by vger.kernel.org with ESMTP id S1755553Ab1HBWLu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2011 18:11:50 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p72MBKoG031900
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 2 Aug 2011 15:11:20 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, samuel.thibault@ens-lyon.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     leds-route-kbd-leds-through-the-generic-leds-layer-fix
+     memstick-add-support-for-legacy-memorysticks-fix
 has been added to the -mm tree.  Its filename is
-     leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+     memstick-add-support-for-legacy-memorysticks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +37,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-route-kbd-leds-through-the-generic-leds-layer-fix
+Subject: memstick-add-support-for-legacy-memorysticks-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allmodconfig:
 
-drivers/leds/leds-input.c:304: error: expected declaration specifiers or '...' before string constant
-drivers/leds/leds-input.c:304: warning: data definition has no type or storage class
-drivers/leds/leds-input.c:304: warning: type defaults to 'int' in declaration of 'MODULE_LICENSE'
-drivers/leds/leds-input.c:304: warning: function declaration isn't a prototype
-drivers/leds/leds-input.c:305: error: expected declaration specifiers or '...' before string constant
-drivers/leds/leds-input.c:305: warning: data definition has no type or storage class
-drivers/leds/leds-input.c:305: warning: type defaults to 'int' in declaration of 'MODULE_DESCRIPTION'
-drivers/leds/leds-input.c:305: warning: function declaration isn't a prototype
-drivers/leds/leds-input.c:306: error: expected declaration specifiers or '...' before string constant
-drivers/leds/leds-input.c:306: warning: data definition has no type or storage class
-drivers/leds/leds-input.c:306: warning: type defaults to 'int' in declaration of 'MODULE_AUTHOR'
-drivers/leds/leds-input.c:306: warning: function declaration isn't a prototype
 
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-input.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/memstick/core/ms_block.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/leds/leds-input.c~leds-route-kbd-leds-through-the-generic-leds-layer-fix drivers/leds/leds-input.c
---- a/drivers/leds/leds-input.c~leds-route-kbd-leds-through-the-generic-leds-layer-fix
-+++ a/drivers/leds/leds-input.c
-@@ -13,6 +13,7 @@
- #include <linux/slab.h>
- #include <linux/leds.h>
- #include <linux/input.h>
+diff -puN drivers/memstick/core/ms_block.c~memstick-add-support-for-legacy-memorysticks-fix drivers/memstick/core/ms_block.c
+--- a/drivers/memstick/core/ms_block.c~memstick-add-support-for-legacy-memorysticks-fix
++++ a/drivers/memstick/core/ms_block.c
+@@ -22,9 +22,11 @@
+ #include <linux/random.h>
+ #include <linux/memstick.h>
+ #include <linux/bitmap.h>
 +#include <linux/module.h>
+ #include <linux/scatterlist.h>
+ #include <linux/sched.h>
+ #include <linux/jiffies.h>
++
+ #include "ms_block.h"
  
- #include "leds.h"
- 
+ static int major;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +95,7 @@ ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 pps-new-client-driver-using-gpio-fix.patch
 scatterlist-new-helper-functions.patch
 scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
 kexec-remove-kmsg_dump_kexec.patch
 journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
