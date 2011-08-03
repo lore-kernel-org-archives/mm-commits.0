@@ -1,110 +1,273 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch removed from -mm tree
-Date: Wed, 03 Aug 2011 12:00:05 -0700
-Message-ID: <201108031857.p73IvYmC006744@imap1.linux-foundation.org>
+Subject: [merged] thermal-make-thermal_hwmon-implementation-fully-internal.patch removed from -mm tree
+Date: Wed, 03 Aug 2011 11:59:52 -0700
+Message-ID: <201108031857.p73IvLd3006729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53474 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49556 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755371Ab1HCS6I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2011 14:58:08 -0400
+	by vger.kernel.org with ESMTP id S1755360Ab1HCS6E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2011 14:58:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ale.goujon@gmail.com, axboe@kernel.dk, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, guenter.roeck@ericsson.com, len.brown@intel.com, rene.herman@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/cdrom/cdrom.c: relax check on dvd manufacturer value
+     thermal: make THERMAL_HWMON implementation fully internal
 has been removed from the -mm tree.  Its filename was
-     drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value.patch
+     thermal-make-thermal_hwmon-implementation-fully-internal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/cdrom/cdrom.c: relax check on dvd manufacturer value
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thermal: make THERMAL_HWMON implementation fully internal
+From: Jean Delvare <khali@linux-fr.org>
 
-The report has an ISO which has a very long manufacturer ID.  It seems
-that Linux is wrong, not the ISO maker.
+THERMAL_HWMON is implemented inside the thermal_sys driver and has no
+effect on drivers implementing thermal zones, so they shouldn't see
+anything related to it in <linux/thermal.h>.  Making the THERMAL_HWMON
+implementation fully internal has two advantages beyond the cleaner
+design:
 
-Relax the check for the length of this field: emit a warning and truncate
-the incoming data to 2048 bytes rather than rejecting the entire thing.
+* This avoids rebuilding all thermal drivers if the THERMAL_HWMON
+  implementation changes, or if CONFIG_THERMAL_HWMON gets enabled or
+  disabled.
 
-dvd_manufact.value isn't null-terminated.  I'm not even sure if it's a
-string.  The kernel doesn't apepar to use it anyway.
+* This avoids breaking the thermal kABI in these cases too, which should
+  make distributions happy.
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=39062
+The only drawback I can see is slightly higher memory fragmentation, as
+the number of kzalloc() calls will increase by one per thermal zone.  But
+I doubt it will be a problem in practice, as I've never seen a system with
+more than two thermal zones.
 
-Reported-by: <ale.goujon@gmail.com>
-Tested-by: <ale.goujon@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Rene Herman <rene.herman@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/thermal/thermal_sys.c |  117 +++++++++++++++++++++++++-------
+ include/linux/thermal.h       |   22 ------
+ 2 files changed, 92 insertions(+), 47 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~drivers-cdrom-cdromc-relax-check-on-dvd-manufacturer-value
-+++ a/drivers/cdrom/cdrom.c
-@@ -1929,11 +1929,17 @@ static int dvd_read_manufact(struct cdro
- 		goto out;
+diff -puN drivers/thermal/thermal_sys.c~thermal-make-thermal_hwmon-implementation-fully-internal drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-make-thermal_hwmon-implementation-fully-internal
++++ a/drivers/thermal/thermal_sys.c
+@@ -420,6 +420,29 @@ thermal_cooling_device_trip_point_show(s
  
- 	s->manufact.len = buf[0] << 8 | buf[1];
--	if (s->manufact.len < 0 || s->manufact.len > 2048) {
-+	if (s->manufact.len < 0) {
- 		cdinfo(CD_WARNING, "Received invalid manufacture info length"
- 				   " (%d)\n", s->manufact.len);
- 		ret = -EIO;
- 	} else {
-+		if (s->manufact.len > 2048) {
-+			cdinfo(CD_WARNING, "Received invalid manufacture info "
-+					"length (%d): truncating to 2048\n",
-+					s->manufact.len);
-+			s->manufact.len = 2048;
+ /* hwmon sys I/F */
+ #include <linux/hwmon.h>
++
++/* thermal zone devices with the same type share one hwmon device */
++struct thermal_hwmon_device {
++	char type[THERMAL_NAME_LENGTH];
++	struct device *device;
++	int count;
++	struct list_head tz_list;
++	struct list_head node;
++};
++
++struct thermal_hwmon_attr {
++	struct device_attribute attr;
++	char name[16];
++};
++
++/* one temperature input for each thermal zone */
++struct thermal_hwmon_temp {
++	struct list_head hwmon_node;
++	struct thermal_zone_device *tz;
++	struct thermal_hwmon_attr temp_input;	/* hwmon sys attr */
++	struct thermal_hwmon_attr temp_crit;	/* hwmon sys attr */
++};
++
+ static LIST_HEAD(thermal_hwmon_list);
+ 
+ static ssize_t
+@@ -437,9 +460,10 @@ temp_input_show(struct device *dev, stru
+ 	int ret;
+ 	struct thermal_hwmon_attr *hwmon_attr
+ 			= container_of(attr, struct thermal_hwmon_attr, attr);
+-	struct thermal_zone_device *tz
+-			= container_of(hwmon_attr, struct thermal_zone_device,
++	struct thermal_hwmon_temp *temp
++			= container_of(hwmon_attr, struct thermal_hwmon_temp,
+ 				       temp_input);
++	struct thermal_zone_device *tz = temp->tz;
+ 
+ 	ret = tz->ops->get_temp(tz, &temperature);
+ 
+@@ -455,9 +479,10 @@ temp_crit_show(struct device *dev, struc
+ {
+ 	struct thermal_hwmon_attr *hwmon_attr
+ 			= container_of(attr, struct thermal_hwmon_attr, attr);
+-	struct thermal_zone_device *tz
+-			= container_of(hwmon_attr, struct thermal_zone_device,
++	struct thermal_hwmon_temp *temp
++			= container_of(hwmon_attr, struct thermal_hwmon_temp,
+ 				       temp_crit);
++	struct thermal_zone_device *tz = temp->tz;
+ 	long temperature;
+ 	int ret;
+ 
+@@ -485,10 +510,29 @@ thermal_hwmon_lookup_by_type(const struc
+ 	return NULL;
+ }
+ 
++/* Find the temperature input matching a given thermal zone */
++static struct thermal_hwmon_temp *
++thermal_hwmon_lookup_temp(const struct thermal_hwmon_device *hwmon,
++			  const struct thermal_zone_device *tz)
++{
++	struct thermal_hwmon_temp *temp;
++
++	mutex_lock(&thermal_list_lock);
++	list_for_each_entry(temp, &hwmon->tz_list, hwmon_node)
++		if (temp->tz == tz) {
++			mutex_unlock(&thermal_list_lock);
++			return temp;
 +		}
- 		memcpy(s->manufact.value, &buf[4], s->manufact.len);
- 	}
++	mutex_unlock(&thermal_list_lock);
++
++	return NULL;
++}
++
+ static int
+ thermal_add_hwmon_sysfs(struct thermal_zone_device *tz)
+ {
+ 	struct thermal_hwmon_device *hwmon;
++	struct thermal_hwmon_temp *temp;
+ 	int new_hwmon_device = 1;
+ 	int result;
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-fault-injection-add-ability-to-export-fault_attr-in-arbitrary-directory-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-mrst-pmuc-needs-moduleh.patch
-cris-fix-a-build-error-in-kernel-forkc.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-drivers-video-backlight-aat2870_blc-make-it-buildable-as-a-module.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+@@ -515,30 +559,36 @@ thermal_add_hwmon_sysfs(struct thermal_z
+ 		goto free_mem;
+ 
+  register_sys_interface:
+-	tz->hwmon = hwmon;
++	temp = kzalloc(sizeof(struct thermal_hwmon_temp), GFP_KERNEL);
++	if (!temp) {
++		result = -ENOMEM;
++		goto unregister_name;
++	}
++
++	temp->tz = tz;
+ 	hwmon->count++;
+ 
+-	snprintf(tz->temp_input.name, THERMAL_NAME_LENGTH,
++	snprintf(temp->temp_input.name, THERMAL_NAME_LENGTH,
+ 		 "temp%d_input", hwmon->count);
+-	tz->temp_input.attr.attr.name = tz->temp_input.name;
+-	tz->temp_input.attr.attr.mode = 0444;
+-	tz->temp_input.attr.show = temp_input_show;
+-	sysfs_attr_init(&tz->temp_input.attr.attr);
+-	result = device_create_file(hwmon->device, &tz->temp_input.attr);
++	temp->temp_input.attr.attr.name = temp->temp_input.name;
++	temp->temp_input.attr.attr.mode = 0444;
++	temp->temp_input.attr.show = temp_input_show;
++	sysfs_attr_init(&temp->temp_input.attr.attr);
++	result = device_create_file(hwmon->device, &temp->temp_input.attr);
+ 	if (result)
+-		goto unregister_name;
++		goto free_temp_mem;
+ 
+ 	if (tz->ops->get_crit_temp) {
+ 		unsigned long temperature;
+ 		if (!tz->ops->get_crit_temp(tz, &temperature)) {
+-			snprintf(tz->temp_crit.name, THERMAL_NAME_LENGTH,
++			snprintf(temp->temp_crit.name, THERMAL_NAME_LENGTH,
+ 				"temp%d_crit", hwmon->count);
+-			tz->temp_crit.attr.attr.name = tz->temp_crit.name;
+-			tz->temp_crit.attr.attr.mode = 0444;
+-			tz->temp_crit.attr.show = temp_crit_show;
+-			sysfs_attr_init(&tz->temp_crit.attr.attr);
++			temp->temp_crit.attr.attr.name = temp->temp_crit.name;
++			temp->temp_crit.attr.attr.mode = 0444;
++			temp->temp_crit.attr.show = temp_crit_show;
++			sysfs_attr_init(&temp->temp_crit.attr.attr);
+ 			result = device_create_file(hwmon->device,
+-						    &tz->temp_crit.attr);
++						    &temp->temp_crit.attr);
+ 			if (result)
+ 				goto unregister_input;
+ 		}
+@@ -547,13 +597,15 @@ thermal_add_hwmon_sysfs(struct thermal_z
+ 	mutex_lock(&thermal_list_lock);
+ 	if (new_hwmon_device)
+ 		list_add_tail(&hwmon->node, &thermal_hwmon_list);
+-	list_add_tail(&tz->hwmon_node, &hwmon->tz_list);
++	list_add_tail(&temp->hwmon_node, &hwmon->tz_list);
+ 	mutex_unlock(&thermal_list_lock);
+ 
+ 	return 0;
+ 
+  unregister_input:
+-	device_remove_file(hwmon->device, &tz->temp_input.attr);
++	device_remove_file(hwmon->device, &temp->temp_input.attr);
++ free_temp_mem:
++	kfree(temp);
+  unregister_name:
+ 	if (new_hwmon_device) {
+ 		device_remove_file(hwmon->device, &dev_attr_name);
+@@ -569,15 +621,30 @@ thermal_add_hwmon_sysfs(struct thermal_z
+ static void
+ thermal_remove_hwmon_sysfs(struct thermal_zone_device *tz)
+ {
+-	struct thermal_hwmon_device *hwmon = tz->hwmon;
++	struct thermal_hwmon_device *hwmon;
++	struct thermal_hwmon_temp *temp;
++
++	hwmon = thermal_hwmon_lookup_by_type(tz);
++	if (unlikely(!hwmon)) {
++		/* Should never happen... */
++		dev_dbg(&tz->device, "hwmon device lookup failed!\n");
++		return;
++	}
++
++	temp = thermal_hwmon_lookup_temp(hwmon, tz);
++	if (unlikely(!temp)) {
++		/* Should never happen... */
++		dev_dbg(&tz->device, "temperature input lookup failed!\n");
++		return;
++	}
+ 
+-	tz->hwmon = NULL;
+-	device_remove_file(hwmon->device, &tz->temp_input.attr);
++	device_remove_file(hwmon->device, &temp->temp_input.attr);
+ 	if (tz->ops->get_crit_temp)
+-		device_remove_file(hwmon->device, &tz->temp_crit.attr);
++		device_remove_file(hwmon->device, &temp->temp_crit.attr);
+ 
+ 	mutex_lock(&thermal_list_lock);
+-	list_del(&tz->hwmon_node);
++	list_del(&temp->hwmon_node);
++	kfree(temp);
+ 	if (!list_empty(&hwmon->tz_list)) {
+ 		mutex_unlock(&thermal_list_lock);
+ 		return;
+diff -puN include/linux/thermal.h~thermal-make-thermal_hwmon-implementation-fully-internal include/linux/thermal.h
+--- a/include/linux/thermal.h~thermal-make-thermal_hwmon-implementation-fully-internal
++++ a/include/linux/thermal.h
+@@ -85,22 +85,6 @@ struct thermal_cooling_device {
+ 				((long)t-2732+5)/10 : ((long)t-2732-5)/10)
+ #define CELSIUS_TO_KELVIN(t)	((t)*10+2732)
+ 
+-#if defined(CONFIG_THERMAL_HWMON)
+-/* thermal zone devices with the same type share one hwmon device */
+-struct thermal_hwmon_device {
+-	char type[THERMAL_NAME_LENGTH];
+-	struct device *device;
+-	int count;
+-	struct list_head tz_list;
+-	struct list_head node;
+-};
+-
+-struct thermal_hwmon_attr {
+-	struct device_attribute attr;
+-	char name[16];
+-};
+-#endif
