@@ -1,82 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-a-few-small-updates-for-radix-swap-fix.patch removed from -mm tree
-Date: Wed, 03 Aug 2011 16:16:32 -0700
-Message-ID: <201108032316.p73NGWId021797@imap1.linux-foundation.org>
+Subject: [folded] tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch removed from -mm tree
+Date: Wed, 03 Aug 2011 16:16:51 -0700
+Message-ID: <201108032316.p73NGpN7021816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47795 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755773Ab1HCXQi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2011 19:16:38 -0400
+	by vger.kernel.org with ESMTP id S1755760Ab1HCXQ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2011 19:16:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, hughd@google.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: a few small updates for radix-swap fix
+     tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3
 has been removed from the -mm tree.  Its filename was
-     mm-a-few-small-updates-for-radix-swap-fix.patch
+     tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
 
-This patch was dropped because it was folded into mm-a-few-small-updates-for-radix-swap.patch
+This patch was dropped because it was folded into tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: a few small updates for radix-swap fix
-From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Fix NULL dereference I introduced in mincore_page().
+Expand the fs/Kconfig "help" info to clarify why you might need to select
+the TMPFS_POSIX_ACL config variable.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/Kconfig |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/mincore.c~mm-a-few-small-updates-for-radix-swap-fix mm/mincore.c
---- a/mm/mincore.c~mm-a-few-small-updates-for-radix-swap-fix
-+++ a/mm/mincore.c
-@@ -71,13 +71,13 @@ static unsigned char mincore_page(struct
- 	 * tmpfs's .fault). So swapped out tmpfs mappings are tested here.
- 	 */
- 	page = find_get_page(mapping, pgoff);
--	if (page) {
- #ifdef CONFIG_SWAP
--		if (radix_tree_exceptional_entry(page)) {
--			swp_entry_t swap = radix_to_swp_entry(page);
--			page = find_get_page(&swapper_space, swap.val);
--		}
-+	if (radix_tree_exceptional_entry(page)) {
-+		swp_entry_t swap = radix_to_swp_entry(page);
-+		page = find_get_page(&swapper_space, swap.val);
-+	}
- #endif
-+	if (page) {
- 		present = PageUptodate(page);
- 		page_cache_release(page);
- 	}
+diff -puN fs/Kconfig~tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3 fs/Kconfig
+--- a/fs/Kconfig~tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3
++++ a/fs/Kconfig
+@@ -132,11 +132,12 @@ config TMPFS_POSIX_ACL
+ 	  and this option selects support for ACLs specifically for tmpfs
+ 	  filesystems.
+ 
+-	  If you've selected TMPFS, you almost certainly want this option
+-	  as well since a number of user space features (e.g., ALSA sound)
+-	  require POSIX ACL support under /dev to work properly.  In other
+-	  words, if you're not sure and you have no *compelling* reason to
+-	  deselect this feature, say Y.
++	  If you've selected TMPFS, it's possible that you'll also need
++	  this option as there are a number of Linux distros that require
++	  POSIX ACL support under /dev for certain features to work properly.
++	  For example, some distros need this feature for ALSA-related /dev
++	  files for sound to work properly.  In short, if you're not sure,
++	  say Y.
+ 
+ 	  To learn more about Access Control Lists, visit the POSIX ACLs for
+ 	  Linux website <http://acl.bestbits.at/>.
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
-radix_tree-exceptional-entries-and-indices.patch
-mm-let-swap-use-exceptional-entries.patch
-tmpfs-demolish-old-swap-vector-support.patch
-tmpfs-miscellaneous-trivial-cleanups.patch
-tmpfs-copy-truncate_inode_pages_range.patch
-tmpfs-convert-shmem_truncate_range-to-radix-swap.patch
-tmpfs-convert-shmem_unuse_inode-to-radix-swap.patch
-tmpfs-convert-shmem_getpage_gfp-to-radix-swap.patch
-tmpfs-convert-mem_cgroup-shmem-to-radix-swap.patch
-tmpfs-convert-shmem_writepage-and-enable-swap.patch
-tmpfs-use-kmemdup-for-short-symlinks.patch
-mm-a-few-small-updates-for-radix-swap.patch
-tmpfs-radix_tree-locate_item-to-speed-up-swapoff.patch
-mm-clarify-the-radix_tree-exceptional-cases.patch
 tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
 
