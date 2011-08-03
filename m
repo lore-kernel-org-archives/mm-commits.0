@@ -1,58 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] acpi-remove-nid_inval.patch removed from -mm tree
-Date: Wed, 03 Aug 2011 11:59:54 -0700
-Message-ID: <201108031857.p73IvNBG006732@imap1.linux-foundation.org>
+Subject: [merged] acpi-add-missing-_osi-strings-resend.patch removed from -mm tree
+Date: Wed, 03 Aug 2011 11:59:56 -0700
+Message-ID: <201108031857.p73IvPw8006735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46654 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755282Ab1HCS55 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2011 14:57:57 -0400
+	by vger.kernel.org with ESMTP id S1755349Ab1HCS6B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2011 14:58:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, lenb@kernel.org, mjg@redhat.com, sebastian.jarosz@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: remove NID_INVAL
+     acpi: add missing _OSI strings
 has been removed from the -mm tree.  Its filename was
-     acpi-remove-nid_inval.patch
+     acpi-add-missing-_osi-strings-resend.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: remove NID_INVAL
-From: David Rientjes <rientjes@google.com>
+Subject: acpi: add missing _OSI strings
+From: Shaohua Li <shaohua.li@intel.com>
 
-b552a8c56db8 ("ACPI: remove NID_INVAL") removed the left over uses of
-NID_INVAL, but didn't actually remove the definition.  Remove it.
+Linux supports some optional features, but it should notify the BIOS about
+them via the _OSI method.  Currently Linux doesn't notify any, which might
+make such features not work because the BIOS doesn't know about them.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+Jarosz has a system which needs this to make ACPI processor aggregator
+device work.
+
+Reported-by: "Jarosz, Sebastian" <sebastian.jarosz@intel.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Matthew Garrett <mjg@redhat.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acpi.h |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/osl.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/acpi.h~acpi-remove-nid_inval include/linux/acpi.h
---- a/include/linux/acpi.h~acpi-remove-nid_inval
-+++ a/include/linux/acpi.h
-@@ -238,7 +238,6 @@ extern int acpi_paddr_to_node(u64 start_
- extern int pnpacpi_disabled;
+diff -puN drivers/acpi/osl.c~acpi-add-missing-_osi-strings-resend drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~acpi-add-missing-_osi-strings-resend
++++ a/drivers/acpi/osl.c
+@@ -1098,7 +1098,13 @@ struct osi_setup_entry {
+ 	bool enable;
+ };
  
- #define PXM_INVAL	(-1)
--#define NID_INVAL	(-1)
+-static struct osi_setup_entry __initdata osi_setup_entries[OSI_STRING_ENTRIES_MAX];
++static struct osi_setup_entry __initdata
++		osi_setup_entries[OSI_STRING_ENTRIES_MAX] = {
++	{"Module Device", true},
++	{"Processor Device", true},
++	{"3.0 _SCP Extensions", true},
++	{"Processor Aggregator Device", true},
++};
  
- int acpi_check_resource_conflict(const struct resource *res);
- 
+ void __init acpi_osi_setup(char *str)
+ {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
 linux-next.patch
-oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch
+vmscan-add-block-plug-for-page-reclaim.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
