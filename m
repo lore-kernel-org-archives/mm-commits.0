@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-vzalloc-instead-of-vmalloc.patch added to -mm tree
+Subject: + memcg-fix-oom-schedule_timeout.patch added to -mm tree
 Date: Tue, 16 Aug 2011 09:40:03 -0700
-Message-ID: <201108161637.p7GGbBQQ002958@imap1.linux-foundation.org>
+Message-ID: <201108161637.p7GGbADk002954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39217 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751526Ab1HPQhr (ORCPT
+	by vger.kernel.org with ESMTP id S1751295Ab1HPQhr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Aug 2011 12:37:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lliubbo@gmail.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     memcg: use vzalloc instead of vmalloc
+     memcg: fix oom schedule_timeout()
 has been added to the -mm tree.  Its filename is
-     memcg-use-vzalloc-instead-of-vmalloc.patch
+     memcg-fix-oom-schedule_timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: use vzalloc instead of vmalloc
-From: Bob Liu <lliubbo@gmail.com>
+Subject: memcg: fix oom schedule_timeout()
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Before calling schedule_timeout(), task state should be changed.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_cgroup.c~memcg-use-vzalloc-instead-of-vmalloc mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-use-vzalloc-instead-of-vmalloc
-+++ a/mm/page_cgroup.c
-@@ -513,11 +513,10 @@ int swap_cgroup_swapon(int type, unsigne
- 	length = DIV_ROUND_UP(max_pages, SC_PER_PAGE);
- 	array_size = length * sizeof(void *);
+diff -puN mm/memcontrol.c~memcg-fix-oom-schedule_timeout mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-oom-schedule_timeout
++++ a/mm/memcontrol.c
+@@ -1923,7 +1923,7 @@ bool mem_cgroup_handle_oom(struct mem_cg
+ 	if (test_thread_flag(TIF_MEMDIE) || fatal_signal_pending(current))
+ 		return false;
+ 	/* Give chance to dying process */
+-	schedule_timeout(1);
++	schedule_timeout_uninterruptible(1);
+ 	return true;
+ }
  
--	array = vmalloc(array_size);
-+	array = vzalloc(array_size);
- 	if (!array)
- 		goto nomem;
- 
--	memset(array, 0, array_size);
- 	ctrl = &swap_cgroup_ctrl[type];
- 	mutex_lock(&swap_cgroup_mutex);
- 	ctrl->length = length;
 _
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-memcg-use-vzalloc-instead-of-vmalloc.patch
+mm-mempolicyc-make-copy_from_user-provably-correct.patch
+mm-compaction-trivial-clean-up-in-acct_isolated.patch
+mm-change-isolate-mode-from-define-to-bitwise-type.patch
+mm-compaction-make-isolate_lru_page-filter-aware.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
+mm-migration-clean-up-unmap_and_move.patch
+memcg-fix-oom-schedule_timeout.patch
+memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
 
