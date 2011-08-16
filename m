@@ -1,67 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-dcachec-fix-new-kernel-doc-warning.patch removed from -mm tree
-Date: Tue, 16 Aug 2011 11:50:35 -0700
-Message-ID: <201108161847.p7GIlgxV015129@imap1.linux-foundation.org>
+Subject: [merged] drivers-base-regmap-regmapc-just-send-the-buffer-directly-for-single-register-writes.patch removed from -mm tree
+Date: Tue, 16 Aug 2011 11:51:39 -0700
+Message-ID: <201108161848.p7GImkOB015389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751892Ab1HPSxz (ORCPT
+	by vger.kernel.org with ESMTP id S1752550Ab1HPSy3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 14:53:55 -0400
+	Tue, 16 Aug 2011 14:54:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/dcache.c: fix new kernel-doc warning
+     drivers/base/regmap/regmap.c: just send the buffer directly for single register writes
 has been removed from the -mm tree.  Its filename was
-     fs-dcachec-fix-new-kernel-doc-warning.patch
+     drivers-base-regmap-regmapc-just-send-the-buffer-directly-for-single-register-writes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/dcache.c: fix new kernel-doc warning
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: drivers/base/regmap/regmap.c: just send the buffer directly for single register writes
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Fix new kernel-doc warning in fs/dcache.c:
+When doing a single register write we use work_buf for both the register
+and the value with the buffer formatted for sending directly to the device
+so we can just do a write() directly.  This saves allocating a temporary
+buffer if we can't do gather writes and is likely to be faster than doing
+a gather write.
 
-Warning(fs/dcache.c:797): No description found for parameter 'sb'
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/regmap/regmap.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN fs/dcache.c~fs-dcachec-fix-new-kernel-doc-warning fs/dcache.c
---- a/fs/dcache.c~fs-dcachec-fix-new-kernel-doc-warning
-+++ a/fs/dcache.c
-@@ -795,6 +795,7 @@ relock:
+diff -puN drivers/base/regmap/regmap.c~drivers-base-regmap-regmapc-just-send-the-buffer-directly-for-single-register-writes drivers/base/regmap/regmap.c
+--- a/drivers/base/regmap/regmap.c~drivers-base-regmap-regmapc-just-send-the-buffer-directly-for-single-register-writes
++++ a/drivers/base/regmap/regmap.c
+@@ -202,13 +202,20 @@ static int _regmap_raw_write(struct regm
  
- /**
-  * prune_dcache_sb - shrink the dcache
-+ * @sb: superblock
-  * @nr_to_scan: number of entries to try to free
-  *
-  * Attempt to shrink the superblock dcache LRU by @nr_to_scan entries. This is
+ 	map->format.format_reg(map->work_buf, reg);
+ 
+-	/* Try to do a gather write if we can */
+-	if (map->bus->gather_write)
++	/* If we're doing a single register write we can probably just
++	 * send the work_buf directly, otherwise try to do a gather
++	 * write.
++	 */
++	if (val == map->work_buf + map->format.reg_bytes)
++		ret = map->bus->write(map->dev, map->work_buf,
++				      map->format.reg_bytes +
++				      map->format.val_bytes);
++	else if (map->bus->gather_write)
+ 		ret = map->bus->gather_write(map->dev, map->work_buf,
+ 					     map->format.reg_bytes,
+ 					     val, val_len);
+ 
+-	/* Otherwise fall back on linearising by hand. */
++	/* If that didn't work fall back on linearising by hand. */
+ 	if (ret == -ENOTSUPP) {
+ 		len = map->format.reg_bytes + val_len;
+ 		buf = kmalloc(len, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
 origin.patch
 linux-next.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-cross-memory-attach-update.patch
-consolidate-config_debug_strict_user_copy_checks-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-init-add-root=partuuid=uuid-partnroff=%d-support.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
 
