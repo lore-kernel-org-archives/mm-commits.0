@@ -1,164 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-use-kmemdup-for-short-symlinks.patch removed from -mm tree
-Date: Tue, 16 Aug 2011 11:51:22 -0700
-Message-ID: <201108161848.p7GImTR0015326@imap1.linux-foundation.org>
+Subject: [merged] mm-a-few-small-updates-for-radix-swap.patch removed from -mm tree
+Date: Tue, 16 Aug 2011 11:51:24 -0700
+Message-ID: <201108161848.p7GImV4v015334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44236 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753129Ab1HPStF (ORCPT
+	by vger.kernel.org with ESMTP id S1753156Ab1HPStG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 14:49:05 -0400
+	Tue, 16 Aug 2011 14:49:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, penberg@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: hughd@google.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: use kmemdup for short symlinks
+     mm: a few small updates for radix-swap
 has been removed from the -mm tree.  Its filename was
-     tmpfs-use-kmemdup-for-short-symlinks.patch
+     mm-a-few-small-updates-for-radix-swap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: use kmemdup for short symlinks
+Subject: mm: a few small updates for radix-swap
 From: Hugh Dickins <hughd@google.com>
 
-But we've not yet removed the old swp_entry_t i_direct[16] from
-shmem_inode_info.  That's because it was still being shared with the
-inline symlink.  Remove it now (saving 64 or 128 bytes from shmem inode
-size), and use kmemdup() for short symlinks, say, those up to 128 bytes.
+Remove PageSwapBacked (!page_is_file_cache) cases from
+add_to_page_cache_locked() and add_to_page_cache_lru(): those pages now go
+through shmem_add_to_page_cache().
 
-I wonder why mpol_free_shared_policy() is done in shmem_destroy_inode()
-rather than shmem_evict_inode(), where we usually do such freeing?  I
-guess it doesn't matter, and I'm not into NUMA mpol testing right now.
+Remove a comment on maximum tmpfs size from fsstack_copy_inode_size(), and
+add a comment on swap entries to invalidate_mapping_pages().
+
+And mincore_page() uses find_get_page() on what might be shmem or a tmpfs
+file: allow for a radix_tree_exceptional_entry(), and proceed to
+find_get_page() on swapper_space if so (oh, swapper_space needs #ifdef).
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |   11 +++--------
- mm/shmem.c               |   31 ++++++++++++++++++-------------
- 2 files changed, 21 insertions(+), 21 deletions(-)
+ fs/stack.c    |    5 +----
+ mm/filemap.c  |   21 +++------------------
+ mm/mincore.c  |   10 ++++++----
+ mm/truncate.c |    8 ++++++++
+ 4 files changed, 18 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/shmem_fs.h~tmpfs-use-kmemdup-for-short-symlinks include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~tmpfs-use-kmemdup-for-short-symlinks
-+++ a/include/linux/shmem_fs.h
-@@ -8,20 +8,15 @@
+diff -puN fs/stack.c~mm-a-few-small-updates-for-radix-swap fs/stack.c
+--- a/fs/stack.c~mm-a-few-small-updates-for-radix-swap
++++ a/fs/stack.c
+@@ -29,10 +29,7 @@ void fsstack_copy_inode_size(struct inod
+ 	 *
+ 	 * We don't actually know what locking is used at the lower level;
+ 	 * but if it's a filesystem that supports quotas, it will be using
+-	 * i_lock as in inode_add_bytes().  tmpfs uses other locking, and
+-	 * its 32-bit is (just) able to exceed 2TB i_size with the aid of
+-	 * holes; but its i_blocks cannot carry into the upper long without
+-	 * almost 2TB swap - let's ignore that case.
++	 * i_lock as in inode_add_bytes().
+ 	 */
+ 	if (sizeof(i_blocks) > sizeof(long))
+ 		spin_lock(&src->i_lock);
+diff -puN mm/filemap.c~mm-a-few-small-updates-for-radix-swap mm/filemap.c
+--- a/mm/filemap.c~mm-a-few-small-updates-for-radix-swap
++++ a/mm/filemap.c
+@@ -33,7 +33,6 @@
+ #include <linux/cpuset.h>
+ #include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
+ #include <linux/memcontrol.h>
+-#include <linux/mm_inline.h> /* for page_is_file_cache() */
+ #include <linux/cleancache.h>
+ #include "internal.h"
  
- /* inode in-kernel data */
+@@ -462,6 +461,7 @@ int add_to_page_cache_locked(struct page
+ 	int error;
  
--#define SHMEM_NR_DIRECT 16
+ 	VM_BUG_ON(!PageLocked(page));
++	VM_BUG_ON(PageSwapBacked(page));
+ 
+ 	error = mem_cgroup_cache_charge(page, current->mm,
+ 					gfp_mask & GFP_RECLAIM_MASK);
+@@ -479,8 +479,6 @@ int add_to_page_cache_locked(struct page
+ 		if (likely(!error)) {
+ 			mapping->nrpages++;
+ 			__inc_zone_page_state(page, NR_FILE_PAGES);
+-			if (PageSwapBacked(page))
+-				__inc_zone_page_state(page, NR_SHMEM);
+ 			spin_unlock_irq(&mapping->tree_lock);
+ 		} else {
+ 			page->mapping = NULL;
+@@ -502,22 +500,9 @@ int add_to_page_cache_lru(struct page *p
+ {
+ 	int ret;
+ 
+-	/*
+-	 * Splice_read and readahead add shmem/tmpfs pages into the page cache
+-	 * before shmem_readpage has a chance to mark them as SwapBacked: they
+-	 * need to go on the anon lru below, and mem_cgroup_cache_charge
+-	 * (called in add_to_page_cache) needs to know where they're going too.
+-	 */
+-	if (mapping_cap_swap_backed(mapping))
+-		SetPageSwapBacked(page);
 -
--#define SHMEM_SYMLINK_INLINE_LEN (SHMEM_NR_DIRECT * sizeof(swp_entry_t))
--
- struct shmem_inode_info {
- 	spinlock_t		lock;
- 	unsigned long		flags;
- 	unsigned long		alloced;	/* data pages alloced to file */
--	unsigned long		swapped;	/* subtotal assigned to swap */
--	struct shared_policy	policy;		/* NUMA memory alloc policy */
- 	union {
--		swp_entry_t	i_direct[SHMEM_NR_DIRECT]; /* first blocks */
--		char		inline_symlink[SHMEM_SYMLINK_INLINE_LEN];
-+		unsigned long	swapped;	/* subtotal assigned to swap */
-+		char		*symlink;	/* unswappable short symlink */
- 	};
-+	struct shared_policy	policy;		/* NUMA memory alloc policy */
- 	struct list_head	swaplist;	/* chain of maybes on swap */
- 	struct list_head	xattr_list;	/* list of shmem_xattr */
- 	struct inode		vfs_inode;
-diff -puN mm/shmem.c~tmpfs-use-kmemdup-for-short-symlinks mm/shmem.c
---- a/mm/shmem.c~tmpfs-use-kmemdup-for-short-symlinks
-+++ a/mm/shmem.c
-@@ -73,6 +73,9 @@ static struct vfsmount *shm_mnt;
- /* Pretend that each entry is of this size in directory's i_size */
- #define BOGO_DIRENT_SIZE 20
+ 	ret = add_to_page_cache(page, mapping, offset, gfp_mask);
+-	if (ret == 0) {
+-		if (page_is_file_cache(page))
+-			lru_cache_add_file(page);
+-		else
+-			lru_cache_add_anon(page);
+-	}
++	if (ret == 0)
++		lru_cache_add_file(page);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(add_to_page_cache_lru);
+diff -puN mm/mincore.c~mm-a-few-small-updates-for-radix-swap mm/mincore.c
+--- a/mm/mincore.c~mm-a-few-small-updates-for-radix-swap
++++ a/mm/mincore.c
+@@ -69,12 +69,14 @@ static unsigned char mincore_page(struct
+ 	 * file will not get a swp_entry_t in its pte, but rather it is like
+ 	 * any other file mapping (ie. marked !present and faulted in with
+ 	 * tmpfs's .fault). So swapped out tmpfs mappings are tested here.
+-	 *
+-	 * However when tmpfs moves the page from pagecache and into swapcache,
+-	 * it is still in core, but the find_get_page below won't find it.
+-	 * No big deal, but make a note of it.
+ 	 */
+ 	page = find_get_page(mapping, pgoff);
++#ifdef CONFIG_SWAP
++	if (radix_tree_exceptional_entry(page)) {
++		swp_entry_t swap = radix_to_swp_entry(page);
++		page = find_get_page(&swapper_space, swap.val);
++	}
++#endif
+ 	if (page) {
+ 		present = PageUptodate(page);
+ 		page_cache_release(page);
+diff -puN mm/truncate.c~mm-a-few-small-updates-for-radix-swap mm/truncate.c
+--- a/mm/truncate.c~mm-a-few-small-updates-for-radix-swap
++++ a/mm/truncate.c
+@@ -336,6 +336,14 @@ unsigned long invalidate_mapping_pages(s
+ 	unsigned long count = 0;
+ 	int i;
  
-+/* Symlink up to this size is kmalloc'ed instead of using a swappable page */
-+#define SHORT_SYMLINK_LEN 128
++	/*
++	 * Note: this function may get called on a shmem/tmpfs mapping:
++	 * pagevec_lookup() might then return 0 prematurely (because it
++	 * got a gangful of swap entries); but it's hardly worth worrying
++	 * about - it can rarely have anything to free from such a mapping
++	 * (most pages are dirty), and already skips over any difficulties.
++	 */
 +
- struct shmem_xattr {
- 	struct list_head list;	/* anchored by shmem_inode_info->xattr_list */
- 	char *name;		/* xattr name */
-@@ -585,7 +588,8 @@ static void shmem_evict_inode(struct ino
- 			list_del_init(&info->swaplist);
- 			mutex_unlock(&shmem_swaplist_mutex);
- 		}
--	}
-+	} else
-+		kfree(info->symlink);
- 
- 	list_for_each_entry_safe(xattr, nxattr, &info->xattr_list, list) {
- 		kfree(xattr->name);
-@@ -1173,7 +1177,7 @@ static struct inode *shmem_get_inode(str
- 
- #ifdef CONFIG_TMPFS
- static const struct inode_operations shmem_symlink_inode_operations;
--static const struct inode_operations shmem_symlink_inline_operations;
-+static const struct inode_operations shmem_short_symlink_operations;
- 
- static int
- shmem_write_begin(struct file *file, struct address_space *mapping,
-@@ -1638,10 +1642,13 @@ static int shmem_symlink(struct inode *d
- 
- 	info = SHMEM_I(inode);
- 	inode->i_size = len-1;
--	if (len <= SHMEM_SYMLINK_INLINE_LEN) {
--		/* do it inline */
--		memcpy(info->inline_symlink, symname, len);
--		inode->i_op = &shmem_symlink_inline_operations;
-+	if (len <= SHORT_SYMLINK_LEN) {
-+		info->symlink = kmemdup(symname, len, GFP_KERNEL);
-+		if (!info->symlink) {
-+			iput(inode);
-+			return -ENOMEM;
-+		}
-+		inode->i_op = &shmem_short_symlink_operations;
- 	} else {
- 		error = shmem_getpage(inode, 0, &page, SGP_WRITE, NULL);
- 		if (error) {
-@@ -1664,9 +1671,9 @@ static int shmem_symlink(struct inode *d
- 	return 0;
- }
- 
--static void *shmem_follow_link_inline(struct dentry *dentry, struct nameidata *nd)
-+static void *shmem_follow_short_symlink(struct dentry *dentry, struct nameidata *nd)
- {
--	nd_set_link(nd, SHMEM_I(dentry->d_inode)->inline_symlink);
-+	nd_set_link(nd, SHMEM_I(dentry->d_inode)->symlink);
- 	return NULL;
- }
- 
-@@ -1914,9 +1921,9 @@ static ssize_t shmem_listxattr(struct de
- }
- #endif /* CONFIG_TMPFS_XATTR */
- 
--static const struct inode_operations shmem_symlink_inline_operations = {
-+static const struct inode_operations shmem_short_symlink_operations = {
- 	.readlink	= generic_readlink,
--	.follow_link	= shmem_follow_link_inline,
-+	.follow_link	= shmem_follow_short_symlink,
- #ifdef CONFIG_TMPFS_XATTR
- 	.setxattr	= shmem_setxattr,
- 	.getxattr	= shmem_getxattr,
-@@ -2259,10 +2266,8 @@ static void shmem_destroy_callback(struc
- 
- static void shmem_destroy_inode(struct inode *inode)
- {
--	if ((inode->i_mode & S_IFMT) == S_IFREG) {
--		/* only struct inode is valid if it's an inline symlink */
-+	if ((inode->i_mode & S_IFMT) == S_IFREG)
- 		mpol_free_shared_policy(&SHMEM_I(inode)->policy);
--	}
- 	call_rcu(&inode->i_rcu, shmem_destroy_callback);
- }
- 
+ 	pagevec_init(&pvec, 0);
+ 	while (index <= end && pagevec_lookup(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1)) {
 _
 
 Patches currently in -mm which might be from hughd@google.com are
