@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-output-a-list-of-loaded-modules-when-we-hit-bad_page.patch added to -mm tree
-Date: Tue, 16 Aug 2011 09:41:01 -0700
-Message-ID: <201108161638.p7GGc98G002985@imap1.linux-foundation.org>
+Subject: + nbd-some-trivial-improvements.patch added to -mm tree
+Date: Tue, 16 Aug 2011 09:41:02 -0700
+Message-ID: <201108161638.p7GGc9Ag002988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60517 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752153Ab1HPQil (ORCPT
+	by vger.kernel.org with ESMTP id S1752361Ab1HPQip (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 12:38:41 -0400
+	Tue, 16 Aug 2011 12:38:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com
+Cc: amwang@redhat.com, Paul.Clements@steeleye.com, gregkh@suse.de
 
 
 The patch titled
-     mm: output a list of loaded modules when we hit bad_page()
+     nbd: some trivial improvements
 has been added to the -mm tree.  Its filename is
-     mm-output-a-list-of-loaded-modules-when-we-hit-bad_page.patch
+     nbd-some-trivial-improvements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: output a list of loaded modules when we hit bad_page()
-From: Dave Jones <davej@redhat.com>
+Subject: nbd: some trivial improvements
+From: Amerigo Wang <amwang@redhat.com>
 
-When we get a bad_page bug report, it's useful to see what modules the
-user had loaded.
+1) use task_pid_nr(current) to get the pid of current process,
 
-Signed-off-by: Dave Jones <davej@redhat.com>
+2) replace sysfs_create_file() with device_create_file()
+
+3) lower the loglevel of an error message.
+
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Paul Clements <Paul.Clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/nbd.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-output-a-list-of-loaded-modules-when-we-hit-bad_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-output-a-list-of-loaded-modules-when-we-hit-bad_page
-+++ a/mm/page_alloc.c
-@@ -318,6 +318,7 @@ static void bad_page(struct page *page)
- 		current->comm, page_to_pfn(page));
- 	dump_page(page);
+diff -puN drivers/block/nbd.c~nbd-some-trivial-improvements drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-some-trivial-improvements
++++ a/drivers/block/nbd.c
+@@ -405,10 +405,10 @@ static int nbd_do_it(struct nbd_device *
  
-+	print_modules();
- 	dump_stack();
- out:
- 	/* Leave bad fields for debug, except PageBuddy could make trouble */
+ 	BUG_ON(lo->magic != LO_MAGIC);
+ 
+-	lo->pid = current->pid;
+-	ret = sysfs_create_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
++	lo->pid = task_pid_nr(current);
++	ret = device_create_file(disk_to_dev(lo->disk), &pid_attr);
+ 	if (ret) {
+-		printk(KERN_ERR "nbd: sysfs_create_file failed!");
++		printk(KERN_ERR "nbd: device_create_file failed!");
+ 		lo->pid = 0;
+ 		return ret;
+ 	}
+@@ -416,7 +416,7 @@ static int nbd_do_it(struct nbd_device *
+ 	while ((req = nbd_read_stat(lo)) != NULL)
+ 		nbd_end_request(req);
+ 
+-	sysfs_remove_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
++	device_remove_file(disk_to_dev(lo->disk), &pid_attr);
+ 	lo->pid = 0;
+ 	return 0;
+ }
+@@ -745,7 +745,7 @@ static int __init nbd_init(void)
+ 	BUILD_BUG_ON(sizeof(struct nbd_request) != 28);
+ 
+ 	if (max_part < 0) {
+-		printk(KERN_CRIT "nbd: max_part must be >= 0\n");
++		printk(KERN_ERR "nbd: max_part must be >= 0\n");
+ 		return -EINVAL;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from amwang@redhat.com are
 
 origin.patch
 linux-next.patch
-slab-add-taint-flag-outputting-to-debug-paths.patch
-slub-add-taint-flag-outputting-to-debug-paths.patch
-mm-output-a-list-of-loaded-modules-when-we-hit-bad_page.patch
+drm-add-missing-header-file-linuc-typesh.patch
+nbd-some-trivial-improvements.patch
 
