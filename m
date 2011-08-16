@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + email-clients-add-better-thunderbird-information.patch added to -mm tree
-Date: Tue, 16 Aug 2011 09:40:02 -0700
-Message-ID: <201108161637.p7GGbAiF002951@imap1.linux-foundation.org>
+Subject: + memcg-use-vzalloc-instead-of-vmalloc.patch added to -mm tree
+Date: Tue, 16 Aug 2011 09:40:03 -0700
+Message-ID: <201108161637.p7GGbBQQ002958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751295Ab1HPQhq (ORCPT
+	by vger.kernel.org with ESMTP id S1751526Ab1HPQhr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 12:37:46 -0400
+	Tue, 16 Aug 2011 12:37:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmcquad@gmail.com
+Cc: lliubbo@gmail.com
 
 
 The patch titled
-     Email-clients: add better Thunderbird information
+     memcg: use vzalloc instead of vmalloc
 has been added to the -mm tree.  Its filename is
-     email-clients-add-better-thunderbird-information.patch
+     memcg-use-vzalloc-instead-of-vmalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Email-clients: add better Thunderbird information
-From: Paul Mcquade <paulmcquad@gmail.com>
+Subject: memcg: use vzalloc instead of vmalloc
+From: Bob Liu <lliubbo@gmail.com>
 
-Add Thunderbird Registry instructions to:
-Enable UTF8 & Preformat mode
-Disable HTML mode
-
-Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/email-clients.txt |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/page_cgroup.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/email-clients.txt~email-clients-add-better-thunderbird-information Documentation/email-clients.txt
---- a/Documentation/email-clients.txt~email-clients-add-better-thunderbird-information
-+++ a/Documentation/email-clients.txt
-@@ -199,18 +199,16 @@ to coerce it into behaving.
+diff -puN mm/page_cgroup.c~memcg-use-vzalloc-instead-of-vmalloc mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-use-vzalloc-instead-of-vmalloc
++++ a/mm/page_cgroup.c
+@@ -513,11 +513,10 @@ int swap_cgroup_swapon(int type, unsigne
+ 	length = DIV_ROUND_UP(max_pages, SC_PER_PAGE);
+ 	array_size = length * sizeof(void *);
  
- To beat some sense out of the internal editor, do this:
+-	array = vmalloc(array_size);
++	array = vzalloc(array_size);
+ 	if (!array)
+ 		goto nomem;
  
--- Under account settings, composition and addressing, uncheck "Compose
--  messages in HTML format".
+-	memset(array, 0, array_size);
+ 	ctrl = &swap_cgroup_ctrl[type];
+ 	mutex_lock(&swap_cgroup_mutex);
+ 	ctrl->length = length;
+_
+
+Patches currently in -mm which might be from lliubbo@gmail.com are
+
+origin.patch
+memcg-use-vzalloc-instead-of-vmalloc.patch
+
