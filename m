@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-add-missing-header-file-linuc-typesh.patch added to -mm tree
+Subject: + email-clients-add-better-thunderbird-information.patch added to -mm tree
 Date: Tue, 16 Aug 2011 09:40:02 -0700
-Message-ID: <201108161637.p7GGb9Pq002948@imap1.linux-foundation.org>
+Message-ID: <201108161637.p7GGbAiF002951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48478 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751500Ab1HPQho (ORCPT
+	by vger.kernel.org with ESMTP id S1751295Ab1HPQhq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 12:37:44 -0400
+	Tue, 16 Aug 2011 12:37:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, airlied@linux.ie
+Cc: paulmcquad@gmail.com
 
 
 The patch titled
-     drm: add missing header file <linuc/types.h>
+     Email-clients: add better Thunderbird information
 has been added to the -mm tree.  Its filename is
-     drm-add-missing-header-file-linuc-typesh.patch
+     email-clients-add-better-thunderbird-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: add missing header file <linuc/types.h>
-From: Amerigo Wang <amwang@redhat.com>
+Subject: Email-clients: add better Thunderbird information
+From: Paul Mcquade <paulmcquad@gmail.com>
 
-This patch fixes the following 'make headers_check' errors:
+Add Thunderbird Registry instructions to:
+Enable UTF8 & Preformat mode
+Disable HTML mode
 
-linux-2.6/usr/include/drm/drm_mode.h:85: found __[us]{8,16,32,64} type without #include <linux/types.h>
-linux-2.6/usr/include/drm/i915_drm.h:120: found __[us]{8,16,32,64} type without #include <linux/types.h>
-linux-2.6/usr/include/drm/mga_drm.h:260: found __[us]{8,16,32,64} type without #include <linux/types.h>
-linux-2.6/usr/include/drm/radeon_drm.h:758: found __[us]{8,16,32,64} type without #include <linux/types.h>
-linux-2.6/usr/include/drm/via_drm.h:117: found __[us]{8,16,32,64} type without #include <linux/types.h>
-
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Paul McQuade <paulmcquad@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/drm/drm_mode.h   |    2 ++
- include/drm/i915_drm.h   |    1 +
- include/drm/mga_drm.h    |    1 +
- include/drm/radeon_drm.h |    1 +
- include/drm/via_drm.h    |    1 +
- 5 files changed, 6 insertions(+)
+ Documentation/email-clients.txt |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN include/drm/drm_mode.h~drm-add-missing-header-file-linuc-typesh include/drm/drm_mode.h
---- a/include/drm/drm_mode.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/drm_mode.h
-@@ -81,6 +81,8 @@
- #define DRM_MODE_DIRTY_ON       1
- #define DRM_MODE_DIRTY_ANNOTATE 2
+diff -puN Documentation/email-clients.txt~email-clients-add-better-thunderbird-information Documentation/email-clients.txt
+--- a/Documentation/email-clients.txt~email-clients-add-better-thunderbird-information
++++ a/Documentation/email-clients.txt
+@@ -199,18 +199,16 @@ to coerce it into behaving.
  
-+#include <linux/types.h>
-+
- struct drm_mode_modeinfo {
- 	__u32 clock;
- 	__u16 hdisplay, hsync_start, hsync_end, htotal, hskew;
-diff -puN include/drm/i915_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/i915_drm.h
---- a/include/drm/i915_drm.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/i915_drm.h
-@@ -27,6 +27,7 @@
- #ifndef _I915_DRM_H_
- #define _I915_DRM_H_
+ To beat some sense out of the internal editor, do this:
  
-+#include <linux/types.h>
- #include "drm.h"
- 
- /* Please note that modifications to all structs defined here are
-diff -puN include/drm/mga_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/mga_drm.h
---- a/include/drm/mga_drm.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/mga_drm.h
-@@ -35,6 +35,7 @@
- #ifndef __MGA_DRM_H__
- #define __MGA_DRM_H__
- 
-+#include <linux/types.h>
- #include "drm.h"
- 
- /* WARNING: If you change any of these defines, make sure to change the
-diff -puN include/drm/radeon_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/radeon_drm.h
---- a/include/drm/radeon_drm.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/radeon_drm.h
-@@ -33,6 +33,7 @@
- #ifndef __RADEON_DRM_H__
- #define __RADEON_DRM_H__
- 
-+#include <linux/types.h>
- #include "drm.h"
- 
- /* WARNING: If you change any of these defines, make sure to change the
-diff -puN include/drm/via_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/via_drm.h
---- a/include/drm/via_drm.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/via_drm.h
-@@ -24,6 +24,7 @@
- #ifndef _VIA_DRM_H_
- #define _VIA_DRM_H_
- 
-+#include <linux/types.h>
- #include "drm.h"
- 
- /* WARNING: These defines must be the same as what the Xserver uses.
-_
-
-Patches currently in -mm which might be from amwang@redhat.com are
-
-origin.patch
-linux-next.patch
-drm-add-missing-header-file-linuc-typesh.patch
-nbd-some-trivial-improvements.patch
-
+-- Under account settings, composition and addressing, uncheck "Compose
+-  messages in HTML format".
