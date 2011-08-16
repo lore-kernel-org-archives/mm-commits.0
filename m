@@ -1,92 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch removed from -mm tree
-Date: Tue, 16 Aug 2011 11:50:58 -0700
-Message-ID: <201108161848.p7GIm5fV015231@imap1.linux-foundation.org>
+Subject: [merged] tpm_tis-fix-build-when-acpi-is-not-enabled.patch removed from -mm tree
+Date: Tue, 16 Aug 2011 11:50:45 -0700
+Message-ID: <201108161847.p7GIlqJD015167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752947Ab1HPSyt (ORCPT
+	by vger.kernel.org with ESMTP id S1752544Ab1HPSys (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 14:54:49 -0400
+	Tue, 16 Aug 2011 14:54:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, jinyoungp@nvidia.com, rpurdie@rpsys.net, sameo@linux.intel.com, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, jmorris@namei.org, leendert@watson.ibm.com, mingo@elte.hu, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/backlight/aat2870_bl.c: fix setting max_current
+     tpm_tis: fix build when ACPI is not enabled
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-aat2870_blc-fix-setting-max_current.patch
+     tpm_tis-fix-build-when-acpi-is-not-enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/backlight/aat2870_bl.c: fix setting max_current
-From: Axel Lin <axel.lin@gmail.com>
+Subject: tpm_tis: fix build when ACPI is not enabled
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-- Current implementation tests wrong value for setting
-  aat2870_bl->max_current.
+Fix tpm_tis.c build when CONFIG_ACPI is not enabled by providing a stub
+function.  Fixes many build errors/warnings:
 
-- In the current implementation, we cannot differentiate between 2 cases:
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: warning: type defaults to 'int' in declaration of 'type name'
+drivers/char/tpm/tpm_tis.c:89: error: request for member 'list' in something not a structure or union
+drivers/char/tpm/tpm_tis.c:89: warning: type defaults to 'int' in declaration of '__mptr'
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: warning: type defaults to 'int' in declaration of 'type name'
+drivers/char/tpm/tpm_tis.c:89: error: request for member 'list' in something not a structure or union
+drivers/char/tpm/tpm_tis.c:89: warning: type defaults to 'int' in declaration of 'type name'
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: warning: type defaults to 'int' in declaration of 'type name'
+drivers/char/tpm/tpm_tis.c:89: error: request for member 'list' in something not a structure or union
+drivers/char/tpm/tpm_tis.c:89: warning: type defaults to 'int' in declaration of '__mptr'
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: error: dereferencing pointer to incomplete type
+drivers/char/tpm/tpm_tis.c:89: warning: type defaults to 'int' in declaration of 'type name'
+drivers/char/tpm/tpm_tis.c:89: error: request for member 'list' in something not a structure or union
+drivers/char/tpm/tpm_tis.c:89: warning: type defaults to 'int' in declaration of 'type name'
+drivers/char/tpm/tpm_tis.c:90: error: dereferencing pointer to incomplete type
 
-  a) if pdata->max_current is not set , or
-
-  b) pdata->max_current is set to AAT2870_CURRENT_0_45 (which is also 0).
-
-  Fix it by setting AAT2870_CURRENT_0_45 to be 1 and adjust the equation in
-  aat2870_brightness() accordingly.
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Tested-by: Jin Park <jinyoungp@nvidia.com>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Leendert van Doorn <leendert@watson.ibm.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/aat2870_bl.c |    4 ++--
- include/linux/mfd/aat2870.h          |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/tpm/tpm_tis.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/aat2870_bl.c~drivers-video-backlight-aat2870_blc-fix-setting-max_current drivers/video/backlight/aat2870_bl.c
---- a/drivers/video/backlight/aat2870_bl.c~drivers-video-backlight-aat2870_blc-fix-setting-max_current
-+++ a/drivers/video/backlight/aat2870_bl.c
-@@ -44,7 +44,7 @@ static inline int aat2870_brightness(str
- 	struct backlight_device *bd = aat2870_bl->bd;
- 	int val;
+diff -puN drivers/char/tpm/tpm_tis.c~tpm_tis-fix-build-when-acpi-is-not-enabled drivers/char/tpm/tpm_tis.c
+--- a/drivers/char/tpm/tpm_tis.c~tpm_tis-fix-build-when-acpi-is-not-enabled
++++ a/drivers/char/tpm/tpm_tis.c
+@@ -80,7 +80,7 @@ enum tis_defaults {
+ static LIST_HEAD(tis_chips);
+ static DEFINE_SPINLOCK(tis_lock);
  
--	val = brightness * aat2870_bl->max_current;
-+	val = brightness * (aat2870_bl->max_current - 1);
- 	val /= bd->props.max_brightness;
+-#ifdef CONFIG_PNP
++#if defined(CONFIG_PNP) && defined(CONFIG_ACPI)
+ static int is_itpm(struct pnp_dev *dev)
+ {
+ 	struct acpi_device *acpi = pnp_acpi_device(dev);
+@@ -93,6 +93,11 @@ static int is_itpm(struct pnp_dev *dev)
  
- 	return val;
-@@ -175,7 +175,7 @@ static int aat2870_bl_probe(struct platf
- 	else
- 		aat2870_bl->channels = AAT2870_BL_CH_ALL;
+ 	return 0;
+ }
++#else
++static inline int is_itpm(struct pnp_dev *dev)
++{
++	return 0;
++}
+ #endif
  
--	if (pdata->max_brightness > 0)
-+	if (pdata->max_current > 0)
- 		aat2870_bl->max_current = pdata->max_current;
- 	else
- 		aat2870_bl->max_current = AAT2870_CURRENT_27_9;
-diff -puN include/linux/mfd/aat2870.h~drivers-video-backlight-aat2870_blc-fix-setting-max_current include/linux/mfd/aat2870.h
---- a/include/linux/mfd/aat2870.h~drivers-video-backlight-aat2870_blc-fix-setting-max_current
-+++ a/include/linux/mfd/aat2870.h
-@@ -89,7 +89,7 @@ enum aat2870_id {
- 
- /* Backlight current magnitude (mA) */
- enum aat2870_current {
--	AAT2870_CURRENT_0_45,
-+	AAT2870_CURRENT_0_45 = 1,
- 	AAT2870_CURRENT_0_90,
- 	AAT2870_CURRENT_1_80,
- 	AAT2870_CURRENT_2_70,
+ static int check_locality(struct tpm_chip *chip, int l)
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
 linux-next.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+cross-memory-attach-update.patch
+consolidate-config_debug_strict_user_copy_checks-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
