@@ -1,68 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [folded] tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch removed from -mm tree
-Date: Wed, 03 Aug 2011 16:16:51 -0700
-Message-ID: <201108032316.p73NGpN7021816@imap1.linux-foundation.org>
+Subject: + drm-add-missing-header-file-linuc-typesh.patch added to -mm tree
+Date: Tue, 16 Aug 2011 09:40:02 -0700
+Message-ID: <201108161637.p7GGb9Pq002948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47795 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755760Ab1HCXQ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2011 19:16:57 -0400
+	by vger.kernel.org with ESMTP id S1751500Ab1HPQho (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 16 Aug 2011 12:37:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, hughd@google.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: amwang@redhat.com, airlied@linux.ie
 
 
 The patch titled
-     tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3
-has been removed from the -mm tree.  Its filename was
-     tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3.patch
+     drm: add missing header file <linuc/types.h>
+has been added to the -mm tree.  Its filename is
+     drm-add-missing-header-file-linuc-typesh.patch
 
-This patch was dropped because it was folded into tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: drm: add missing header file <linuc/types.h>
+From: Amerigo Wang <amwang@redhat.com>
 
-Expand the fs/Kconfig "help" info to clarify why you might need to select
-the TMPFS_POSIX_ACL config variable.
+This patch fixes the following 'make headers_check' errors:
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Hugh Dickins <hughd@google.com>
+linux-2.6/usr/include/drm/drm_mode.h:85: found __[us]{8,16,32,64} type without #include <linux/types.h>
+linux-2.6/usr/include/drm/i915_drm.h:120: found __[us]{8,16,32,64} type without #include <linux/types.h>
+linux-2.6/usr/include/drm/mga_drm.h:260: found __[us]{8,16,32,64} type without #include <linux/types.h>
+linux-2.6/usr/include/drm/radeon_drm.h:758: found __[us]{8,16,32,64} type without #include <linux/types.h>
+linux-2.6/usr/include/drm/via_drm.h:117: found __[us]{8,16,32,64} type without #include <linux/types.h>
+
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/drm/drm_mode.h   |    2 ++
+ include/drm/i915_drm.h   |    1 +
+ include/drm/mga_drm.h    |    1 +
+ include/drm/radeon_drm.h |    1 +
+ include/drm/via_drm.h    |    1 +
+ 5 files changed, 6 insertions(+)
 
-diff -puN fs/Kconfig~tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3 fs/Kconfig
---- a/fs/Kconfig~tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl-v3
-+++ a/fs/Kconfig
-@@ -132,11 +132,12 @@ config TMPFS_POSIX_ACL
- 	  and this option selects support for ACLs specifically for tmpfs
- 	  filesystems.
+diff -puN include/drm/drm_mode.h~drm-add-missing-header-file-linuc-typesh include/drm/drm_mode.h
+--- a/include/drm/drm_mode.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/drm_mode.h
+@@ -81,6 +81,8 @@
+ #define DRM_MODE_DIRTY_ON       1
+ #define DRM_MODE_DIRTY_ANNOTATE 2
  
--	  If you've selected TMPFS, you almost certainly want this option
--	  as well since a number of user space features (e.g., ALSA sound)
--	  require POSIX ACL support under /dev to work properly.  In other
--	  words, if you're not sure and you have no *compelling* reason to
--	  deselect this feature, say Y.
-+	  If you've selected TMPFS, it's possible that you'll also need
-+	  this option as there are a number of Linux distros that require
-+	  POSIX ACL support under /dev for certain features to work properly.
-+	  For example, some distros need this feature for ALSA-related /dev
-+	  files for sound to work properly.  In short, if you're not sure,
-+	  say Y.
++#include <linux/types.h>
++
+ struct drm_mode_modeinfo {
+ 	__u32 clock;
+ 	__u16 hdisplay, hsync_start, hsync_end, htotal, hskew;
+diff -puN include/drm/i915_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/i915_drm.h
+--- a/include/drm/i915_drm.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/i915_drm.h
+@@ -27,6 +27,7 @@
+ #ifndef _I915_DRM_H_
+ #define _I915_DRM_H_
  
- 	  To learn more about Access Control Lists, visit the POSIX ACLs for
- 	  Linux website <http://acl.bestbits.at/>.
++#include <linux/types.h>
+ #include "drm.h"
+ 
+ /* Please note that modifications to all structs defined here are
+diff -puN include/drm/mga_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/mga_drm.h
+--- a/include/drm/mga_drm.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/mga_drm.h
+@@ -35,6 +35,7 @@
+ #ifndef __MGA_DRM_H__
+ #define __MGA_DRM_H__
+ 
++#include <linux/types.h>
+ #include "drm.h"
+ 
+ /* WARNING: If you change any of these defines, make sure to change the
+diff -puN include/drm/radeon_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/radeon_drm.h
+--- a/include/drm/radeon_drm.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/radeon_drm.h
+@@ -33,6 +33,7 @@
+ #ifndef __RADEON_DRM_H__
+ #define __RADEON_DRM_H__
+ 
++#include <linux/types.h>
+ #include "drm.h"
+ 
+ /* WARNING: If you change any of these defines, make sure to change the
+diff -puN include/drm/via_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/via_drm.h
+--- a/include/drm/via_drm.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/via_drm.h
+@@ -24,6 +24,7 @@
+ #ifndef _VIA_DRM_H_
+ #define _VIA_DRM_H_
+ 
++#include <linux/types.h>
+ #include "drm.h"
+ 
+ /* WARNING: These defines must be the same as what the Xserver uses.
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from amwang@redhat.com are
 
 origin.patch
-tmpfs-expand-help-to-explain-value-of-tmpfs_posix_acl.patch
+linux-next.patch
+drm-add-missing-header-file-linuc-typesh.patch
+nbd-some-trivial-improvements.patch
 
