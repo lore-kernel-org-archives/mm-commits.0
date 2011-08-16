@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cris-fix-a-build-error-in-sync_serial_open.patch removed from -mm tree
-Date: Tue, 16 Aug 2011 11:50:50 -0700
-Message-ID: <201108161847.p7GIlv01015195@imap1.linux-foundation.org>
+Subject: [merged] cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch removed from -mm tree
+Date: Tue, 16 Aug 2011 11:50:54 -0700
+Message-ID: <201108161848.p7GIm1UM015208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50523 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753129Ab1HPSso (ORCPT
+	by vger.kernel.org with ESMTP id S1753129Ab1HPSsp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 14:48:44 -0400
+	Tue, 16 Aug 2011 14:48:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xiyou.wangcong@gmail.com, geert@linux-m68k.org, jesper.nilsson@axis.com, stable@kernel.org, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris: fix a build error in sync_serial_open()
+     cris: add missing declaration of kgdb_init() and breakpoint()
 has been removed from the -mm tree.  Its filename was
-     cris-fix-a-build-error-in-sync_serial_open.patch
+     cris-add-missing-declaration-of-kgdb_init-and-breakpoint.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: fix a build error in sync_serial_open()
+Subject: cris: add missing declaration of kgdb_init() and breakpoint()
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
-arch/cris/arch-v10/drivers/sync_serial.c:628: error: 'ret' undeclared (first use in this function)
+arch/cris/arch-v10/kernel/irq.c:239: error: implicit declaration of function 'kgdb_init'
+arch/cris/arch-v10/kernel/irq.c:240: error: implicit declaration of function 'breakpoint'
 
-'ret' should be 'err'.
+Declare these two functions.
 
 Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
@@ -39,26 +40,22 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/drivers/sync_serial.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/cris/arch-v10/kernel/irq.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/cris/arch-v10/drivers/sync_serial.c~cris-fix-a-build-error-in-sync_serial_open arch/cris/arch-v10/drivers/sync_serial.c
---- a/arch/cris/arch-v10/drivers/sync_serial.c~cris-fix-a-build-error-in-sync_serial_open
-+++ a/arch/cris/arch-v10/drivers/sync_serial.c
-@@ -625,11 +625,11 @@ static int sync_serial_open(struct inode
- 			*R_IRQ_MASK1_SET = 1 << port->data_avail_bit;
- 		DEBUG(printk(KERN_DEBUG "sser%d rec started\n", dev));
- 	}
--	ret = 0;
-+	err = 0;
- 	
- out:
- 	mutex_unlock(&sync_serial_mutex);
--	return ret;
-+	return err;
- }
+diff -puN arch/cris/arch-v10/kernel/irq.c~cris-add-missing-declaration-of-kgdb_init-and-breakpoint arch/cris/arch-v10/kernel/irq.c
+--- a/arch/cris/arch-v10/kernel/irq.c~cris-add-missing-declaration-of-kgdb_init-and-breakpoint
++++ a/arch/cris/arch-v10/kernel/irq.c
+@@ -20,6 +20,9 @@
+ #define crisv10_mask_irq(irq_nr) (*R_VECT_MASK_CLR = 1 << (irq_nr));
+ #define crisv10_unmask_irq(irq_nr) (*R_VECT_MASK_SET = 1 << (irq_nr));
  
- static int sync_serial_release(struct inode *inode, struct file *file)
++extern void kgdb_init(void);
++extern void breakpoint(void);
++
+ /* don't use set_int_vector, it bypasses the linux interrupt handlers. it is
+  * global just so that the kernel gdb can use it.
+  */
 _
 
 Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
