@@ -1,127 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: + stop_machine-build-unconditionally-if-smp.patch added to -mm tree
-Date: Tue, 16 Aug 2011 09:41:04 -0700
-Message-ID: <201108161638.p7GGcCwx003000@imap1.linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 16 Aug 2011 11:47:39 -0700
+Message-ID: <201108161844.p7GIikOI014783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751552Ab1HPQji (ORCPT
+	by vger.kernel.org with ESMTP id S1753084Ab1HPSpO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 12:39:38 -0400
+	Tue, 16 Aug 2011 14:45:14 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p7GIikrB018123
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 16 Aug 2011 11:44:47 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rabin@rab.in, tj@kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     stop_machine: build unconditionally if SMP
-has been added to the -mm tree.  Its filename is
-     stop_machine-build-unconditionally-if-smp.patch
+     linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: stop_machine: build unconditionally if SMP
-From: Rabin Vincent <rabin@rab.in>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-stop_machine() is built for "(SMP && MODULE_UNLOAD) || HOTPLUG_CPU", but
-is also used by the timekeeping code, the mm code, ftrace, and couple of
-things in arch/*.  Just build it if we're using SMP, like it's already
-the case on x86.
-
-Signed-off-by: Rabin Vincent <rabin@rab.in>
-Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig             |    1 -
- include/linux/stop_machine.h |    6 +++---
- init/Kconfig                 |    7 -------
- kernel/stop_machine.c        |    4 ----
- 4 files changed, 3 insertions(+), 15 deletions(-)
+ drivers/md/dm-kcopyd.c    |    7 -------
+ drivers/watchdog/nv_tco.c |    4 ----
+ include/linux/dm-kcopyd.h |    3 ---
+ 3 files changed, 14 deletions(-)
 
-diff -puN arch/x86/Kconfig~stop_machine-build-unconditionally-if-smp arch/x86/Kconfig
---- a/arch/x86/Kconfig~stop_machine-build-unconditionally-if-smp
-+++ a/arch/x86/Kconfig
-@@ -2146,7 +2146,6 @@ config HAVE_ATOMIC_IOMAP
+diff -puN drivers/md/dm-kcopyd.c~linux-next-git-rejects drivers/md/dm-kcopyd.c
+--- a/drivers/md/dm-kcopyd.c~linux-next-git-rejects
++++ a/drivers/md/dm-kcopyd.c
+@@ -603,9 +603,6 @@ int dm_kcopyd_copy(struct dm_kcopyd_clie
+ 	job->num_dests = num_dests;
+ 	memcpy(&job->dests, dests, sizeof(*dests) * num_dests);
  
- config HAVE_TEXT_POKE_SMP
- 	bool
--	select STOP_MACHINE if SMP
+-<<<<<<< HEAD
+-	job->pages = NULL;
+-=======
+ 	if (from) {
+ 		job->source = *from;
+ 		job->pages = NULL;
+@@ -616,7 +613,6 @@ int dm_kcopyd_copy(struct dm_kcopyd_clie
+ 		job->pages = &zero_page_list;
+ 		job->rw = WRITE;
+ 	}
+->>>>>>> linux-next/akpm-end
  
- source "net/Kconfig"
- 
-diff -puN include/linux/stop_machine.h~stop_machine-build-unconditionally-if-smp include/linux/stop_machine.h
---- a/include/linux/stop_machine.h~stop_machine-build-unconditionally-if-smp
-+++ a/include/linux/stop_machine.h
-@@ -97,7 +97,7 @@ static inline int try_stop_cpus(const st
-  * grabbing every spinlock (and more).  So the "read" side to such a
-  * lock is anything which disables preemption.
-  */
--#if defined(CONFIG_STOP_MACHINE) && defined(CONFIG_SMP)
-+#ifdef CONFIG_SMP
- 
- /**
-  * stop_machine: freeze the machine on all CPUs and run this function
-@@ -128,7 +128,7 @@ int __stop_machine(int (*fn)(void *), vo
- int stop_machine_from_inactive_cpu(int (*fn)(void *), void *data,
- 				   const struct cpumask *cpus);
- 
--#else	 /* CONFIG_STOP_MACHINE && CONFIG_SMP */
-+#else	 /* CONFIG_SMP */
- 
- static inline int __stop_machine(int (*fn)(void *), void *data,
- 				 const struct cpumask *cpus)
-@@ -153,5 +153,5 @@ static inline int stop_machine_from_inac
- 	return __stop_machine(fn, data, cpus);
+ 	job->fn = fn;
+ 	job->context = context;
+@@ -665,8 +661,6 @@ void dm_kcopyd_do_callback(void *j, int 
  }
+ EXPORT_SYMBOL(dm_kcopyd_do_callback);
  
--#endif	/* CONFIG_STOP_MACHINE && CONFIG_SMP */
-+#endif	/* CONFIG_SMP */
- #endif	/* _LINUX_STOP_MACHINE */
-diff -puN init/Kconfig~stop_machine-build-unconditionally-if-smp init/Kconfig
---- a/init/Kconfig~stop_machine-build-unconditionally-if-smp
-+++ a/init/Kconfig
-@@ -1382,13 +1382,6 @@ config INIT_ALL_POSSIBLE
- 	  it was better to provide this option than to break all the archs
- 	  and have several arch maintainers pursuing me down dark alleys.
- 
--config STOP_MACHINE
--	bool
--	default y
--	depends on (SMP && MODULE_UNLOAD) || HOTPLUG_CPU
--	help
--	  Need stop_machine() primitive.
--
- source "block/Kconfig"
- 
- config PREEMPT_NOTIFIERS
-diff -puN kernel/stop_machine.c~stop_machine-build-unconditionally-if-smp kernel/stop_machine.c
---- a/kernel/stop_machine.c~stop_machine-build-unconditionally-if-smp
-+++ a/kernel/stop_machine.c
-@@ -390,8 +390,6 @@ static int __init cpu_stop_init(void)
+-<<<<<<< HEAD
+-=======
+ int dm_kcopyd_zero(struct dm_kcopyd_client *kc,
+ 		   unsigned num_dests, struct dm_io_region *dests,
+ 		   unsigned flags, dm_kcopyd_notify_fn fn, void *context)
+@@ -675,7 +669,6 @@ int dm_kcopyd_zero(struct dm_kcopyd_clie
  }
- early_initcall(cpu_stop_init);
+ EXPORT_SYMBOL(dm_kcopyd_zero);
  
--#ifdef CONFIG_STOP_MACHINE
--
- /* This controls the threads on each CPU. */
- enum stopmachine_state {
- 	/* Dummy starting state for thread. */
-@@ -554,5 +552,3 @@ int stop_machine_from_inactive_cpu(int (
- 	mutex_unlock(&stop_cpus_mutex);
- 	return ret ?: done.ret;
- }
+->>>>>>> linux-next/akpm-end
+ /*
+  * Cancels a kcopyd job, eg. someone might be deactivating a
+  * mirror.
+diff -puN drivers/watchdog/nv_tco.c~linux-next-git-rejects drivers/watchdog/nv_tco.c
+--- a/drivers/watchdog/nv_tco.c~linux-next-git-rejects
++++ a/drivers/watchdog/nv_tco.c
+@@ -463,11 +463,7 @@ static void nv_tco_shutdown(struct platf
+ 	tco_timer_stop();
+ 
+ 	/* Some BIOSes fail the POST (once) if the NO_REBOOT flag is not
+-<<<<<<< HEAD
+ 	 * unset during shutdown. */
+-=======
+-	* unset during shutdown. */
+->>>>>>> linux-next/akpm-end
+ 	pci_read_config_dword(tco_pci, MCP51_SMBUS_SETUP_B, &val);
+ 	val &= ~MCP51_SMBUS_SETUP_B_TCO_REBOOT;
+ 	pci_write_config_dword(tco_pci, MCP51_SMBUS_SETUP_B, val);
+diff -puN include/linux/dm-kcopyd.h~linux-next-git-rejects include/linux/dm-kcopyd.h
+--- a/include/linux/dm-kcopyd.h~linux-next-git-rejects
++++ a/include/linux/dm-kcopyd.h
+@@ -57,12 +57,9 @@ void *dm_kcopyd_prepare_callback(struct 
+ 				 dm_kcopyd_notify_fn fn, void *context);
+ void dm_kcopyd_do_callback(void *job, int read_err, unsigned long write_err);
+ 
+-<<<<<<< HEAD
+-=======
+ int dm_kcopyd_zero(struct dm_kcopyd_client *kc,
+ 		   unsigned num_dests, struct dm_io_region *dests,
+ 		   unsigned flags, dm_kcopyd_notify_fn fn, void *context);
+ 
+->>>>>>> linux-next/akpm-end
+ #endif	/* __KERNEL__ */
+ #endif	/* _LINUX_DM_KCOPYD_H */
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-mrst-pmuc-needs-moduleh.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+mm.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
