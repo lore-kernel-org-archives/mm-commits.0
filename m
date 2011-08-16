@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slab-add-taint-flag-outputting-to-debug-paths.patch added to -mm tree
-Date: Tue, 16 Aug 2011 09:41:03 -0700
-Message-ID: <201108161638.p7GGcAau002991@imap1.linux-foundation.org>
+Subject: + mm-fix-fixup_user_fault-for-mmu=n.patch added to -mm tree
+Date: Tue, 16 Aug 2011 09:41:21 -0700
+Message-ID: <201108161638.p7GGcT73003009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33576 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752382Ab1HPQiu (ORCPT
+	by vger.kernel.org with ESMTP id S1751373Ab1HPQjZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 12:38:50 -0400
+	Tue, 16 Aug 2011 12:39:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@redhat.com, penberg@cs.helsinki.fi
+Cc: peterz@infradead.org, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, dhowells@redhat.com
 
 
 The patch titled
-     slab: add taint flag outputting to debug paths.
+     mm: fix fixup_user_fault() for MMU=n
 has been added to the -mm tree.  Its filename is
-     slab-add-taint-flag-outputting-to-debug-paths.patch
+     mm-fix-fixup_user_fault-for-mmu=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slab: add taint flag outputting to debug paths.
-From: Dave Jones <davej@redhat.com>
+Subject: mm: fix fixup_user_fault() for MMU=n
+From: Peter Zijlstra <peterz@infradead.org>
 
-When we get corruption reports, it's useful to see if the kernel was
-tainted, to rule out problems we can't do anything about.
+In commit 2efaca927 ("mm/futex: fix futex writes on archs with SW tracking
+of dirty & young") we forgot about MMU=n.  This patch fixes that.
 
-Signed-off-by: Dave Jones <davej@redhat.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/mm.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-add-taint-flag-outputting-to-debug-paths mm/slab.c
---- a/mm/slab.c~slab-add-taint-flag-outputting-to-debug-paths
-+++ a/mm/slab.c
-@@ -1887,8 +1887,8 @@ static void check_poison_obj(struct kmem
- 			/* Print header */
- 			if (lines == 0) {
- 				printk(KERN_ERR
--					"Slab corruption: %s start=%p, len=%d\n",
--					cachep->name, realobj, size);
-+					"Slab corruption (%s): %s start=%p, len=%d\n",
-+					print_tainted(), cachep->name, realobj, size);
- 				print_objinfo(cachep, objp, 0);
- 			}
- 			/* Hexdump the affected line */
-@@ -2987,8 +2987,8 @@ static void check_slabp(struct kmem_cach
- 	if (entries != cachep->num - slabp->inuse) {
- bad:
- 		printk(KERN_ERR "slab: Internal list corruption detected in "
--				"cache '%s'(%d), slabp %p(%d). Hexdump:\n",
--			cachep->name, cachep->num, slabp, slabp->inuse);
-+				"cache '%s'(%d), slabp %p(%d). Tainted(%s). Hexdump:\n",
-+			cachep->name, cachep->num, slabp, slabp->inuse, print_tainted());
- 		for (i = 0;
- 		     i < sizeof(*slabp) + cachep->num * sizeof(kmem_bufctl_t);
- 		     i++) {
+diff -puN include/linux/mm.h~mm-fix-fixup_user_fault-for-mmu=n include/linux/mm.h
+--- a/include/linux/mm.h~mm-fix-fixup_user_fault-for-mmu=n
++++ a/include/linux/mm.h
+@@ -962,6 +962,8 @@ int invalidate_inode_page(struct page *p
+ #ifdef CONFIG_MMU
+ extern int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, unsigned int flags);
++extern int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
++			    unsigned long address, unsigned int fault_flags);
+ #else
+ static inline int handle_mm_fault(struct mm_struct *mm,
+ 			struct vm_area_struct *vma, unsigned long address,
+@@ -971,6 +973,14 @@ static inline int handle_mm_fault(struct
+ 	BUG();
+ 	return VM_FAULT_SIGBUS;
+ }
++static inline int fixup_user_fault(struct task_struct *tsk,
++		struct mm_struct *mm, unsigned long address,
++		unsigned int fault_flags)
++{
++	/* should never happen if there's no MMU */
++	BUG();
++	return -EFAULT;
++}
+ #endif
+ 
+ extern int make_pages_present(unsigned long addr, unsigned long end);
+@@ -988,8 +998,6 @@ int get_user_pages(struct task_struct *t
+ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			struct page **pages);
+ struct page *get_dump_page(unsigned long addr);
+-extern int fixup_user_fault(struct task_struct *tsk, struct mm_struct *mm,
+-			    unsigned long address, unsigned int fault_flags);
+ 
+ extern int try_to_release_page(struct page * page, gfp_t gfp_mask);
+ extern void do_invalidatepage(struct page *page, unsigned long offset);
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from peterz@infradead.org are
 
 origin.patch
-linux-next.patch
-slab-add-taint-flag-outputting-to-debug-paths.patch
-slub-add-taint-flag-outputting-to-debug-paths.patch
-mm-output-a-list-of-loaded-modules-when-we-hit-bad_page.patch
+mm-fix-fixup_user_fault-for-mmu=n.patch
 
