@@ -1,219 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-radix_tree-locate_item-to-speed-up-swapoff.patch removed from -mm tree
-Date: Tue, 16 Aug 2011 11:51:26 -0700
-Message-ID: <201108161848.p7GImXuT015342@imap1.linux-foundation.org>
+Subject: [merged] fs-dcachec-fix-new-kernel-doc-warning.patch removed from -mm tree
+Date: Tue, 16 Aug 2011 11:50:35 -0700
+Message-ID: <201108161847.p7GIlgxV015129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751177Ab1HPSx3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751892Ab1HPSxz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 14:53:29 -0400
+	Tue, 16 Aug 2011 14:53:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs radix_tree: locate_item to speed up swapoff
+     fs/dcache.c: fix new kernel-doc warning
 has been removed from the -mm tree.  Its filename was
-     tmpfs-radix_tree-locate_item-to-speed-up-swapoff.patch
+     fs-dcachec-fix-new-kernel-doc-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs radix_tree: locate_item to speed up swapoff
-From: Hugh Dickins <hughd@google.com>
+Subject: fs/dcache.c: fix new kernel-doc warning
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-We have already acknowledged that swapoff of a tmpfs file is slower than
-it was before conversion to the generic radix_tree: a little slower there
-will be acceptable, if the hotter paths are faster.
+Fix new kernel-doc warning in fs/dcache.c:
 
-But it was a shock to find swapoff of a 500MB file 20 times slower on my
-laptop, taking 10 minutes; and at that rate it significantly slows down my
-testing.
+Warning(fs/dcache.c:797): No description found for parameter 'sb'
 
-Now, most of that turned out to be overhead from PROVE_LOCKING and
-PROVE_RCU: without those it was only 4 times slower than before; and more
-realistic tests on other machines don't fare as badly.
-
-I've tried a number of things to improve it, including tagging the swap
-entries, then doing lookup by tag: I'd expected that to halve the time,
-but in practice it's erratic, and often counter-productive.
-
-The only change I've so far found to make a consistent improvement, is to
-short-circuit the way we go back and forth, gang lookup packing entries
-into the array supplied, then shmem scanning that array for the target
-entry.  Scanning in place doubles the speed, so it's now only twice as
-slow as before (or three times slower when the PROVEs are on).
-
-So, add radix_tree_locate_item() as an expedient, once-off, single-caller
-hack to do the lookup directly in place.  #ifdef it on CONFIG_SHMEM and
-CONFIG_SWAP, as much to document its limited applicability as save space
-in other configurations.  And, sadly, #include sched.h for cond_resched().
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    1 
- lib/radix-tree.c           |   92 +++++++++++++++++++++++++++++++++++
- mm/shmem.c                 |   38 --------------
- 3 files changed, 94 insertions(+), 37 deletions(-)
+ fs/dcache.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/radix-tree.h~tmpfs-radix_tree-locate_item-to-speed-up-swapoff include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~tmpfs-radix_tree-locate_item-to-speed-up-swapoff
-+++ a/include/linux/radix-tree.h
-@@ -252,6 +252,7 @@ unsigned long radix_tree_range_tag_if_ta
- 		unsigned long nr_to_tag,
- 		unsigned int fromtag, unsigned int totag);
- int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
-+unsigned long radix_tree_locate_item(struct radix_tree_root *root, void *item);
- 
- static inline void radix_tree_preload_end(void)
- {
-diff -puN lib/radix-tree.c~tmpfs-radix_tree-locate_item-to-speed-up-swapoff lib/radix-tree.c
---- a/lib/radix-tree.c~tmpfs-radix_tree-locate_item-to-speed-up-swapoff
-+++ a/lib/radix-tree.c
-@@ -1203,6 +1203,98 @@ radix_tree_gang_lookup_tag_slot(struct r
- }
- EXPORT_SYMBOL(radix_tree_gang_lookup_tag_slot);
- 
-+#if defined(CONFIG_SHMEM) && defined(CONFIG_SWAP)
-+#include <linux/sched.h> /* for cond_resched() */
-+
-+/*
-+ * This linear search is at present only useful to shmem_unuse_inode().
-+ */
-+static unsigned long __locate(struct radix_tree_node *slot, void *item,
-+			      unsigned long index, unsigned long *found_index)
-+{
-+	unsigned int shift, height;
-+	unsigned long i;
-+
-+	height = slot->height;
-+	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
-+
-+	for ( ; height > 1; height--) {
-+		i = (index >> shift) & RADIX_TREE_MAP_MASK;
-+		for (;;) {
-+			if (slot->slots[i] != NULL)
-+				break;
-+			index &= ~((1UL << shift) - 1);
-+			index += 1UL << shift;
-+			if (index == 0)
-+				goto out;	/* 32-bit wraparound */
-+			i++;
-+			if (i == RADIX_TREE_MAP_SIZE)
-+				goto out;
-+		}
-+
-+		shift -= RADIX_TREE_MAP_SHIFT;
-+		slot = rcu_dereference_raw(slot->slots[i]);
-+		if (slot == NULL)
-+			goto out;
-+	}
-+
-+	/* Bottom level: check items */
-+	for (i = 0; i < RADIX_TREE_MAP_SIZE; i++) {
-+		if (slot->slots[i] == item) {
-+			*found_index = index + i;
-+			index = 0;
-+			goto out;
-+		}
-+	}
-+	index += RADIX_TREE_MAP_SIZE;
-+out:
-+	return index;
-+}
-+
-+/**
-+ *	radix_tree_locate_item - search through radix tree for item
-+ *	@root:		radix tree root
-+ *	@item:		item to be found
-+ *
-+ *	Returns index where item was found, or -1 if not found.
-+ *	Caller must hold no lock (since this time-consuming function needs
-+ *	to be preemptible), and must check afterwards if item is still there.
-+ */
-+unsigned long radix_tree_locate_item(struct radix_tree_root *root, void *item)
-+{
-+	struct radix_tree_node *node;
-+	unsigned long max_index;
-+	unsigned long cur_index = 0;
-+	unsigned long found_index = -1;
-+
-+	do {
-+		rcu_read_lock();
-+		node = rcu_dereference_raw(root->rnode);
-+		if (!radix_tree_is_indirect_ptr(node)) {
-+			rcu_read_unlock();
-+			if (node == item)
-+				found_index = 0;
-+			break;
-+		}
-+
-+		node = indirect_to_ptr(node);
-+		max_index = radix_tree_maxindex(node->height);
-+		if (cur_index > max_index)
-+			break;
-+
-+		cur_index = __locate(node, item, cur_index, &found_index);
-+		rcu_read_unlock();
-+		cond_resched();
-+	} while (cur_index != 0 && cur_index <= max_index);
-+
-+	return found_index;
-+}
-+#else
-+unsigned long radix_tree_locate_item(struct radix_tree_root *root, void *item)
-+{
-+	return -1;
-+}
-+#endif /* CONFIG_SHMEM && CONFIG_SWAP */
+diff -puN fs/dcache.c~fs-dcachec-fix-new-kernel-doc-warning fs/dcache.c
+--- a/fs/dcache.c~fs-dcachec-fix-new-kernel-doc-warning
++++ a/fs/dcache.c
+@@ -795,6 +795,7 @@ relock:
  
  /**
-  *	radix_tree_shrink    -    shrink height of a radix tree to minimal
-diff -puN mm/shmem.c~tmpfs-radix_tree-locate_item-to-speed-up-swapoff mm/shmem.c
---- a/mm/shmem.c~tmpfs-radix_tree-locate_item-to-speed-up-swapoff
-+++ a/mm/shmem.c
-@@ -357,42 +357,6 @@ export:
- }
- 
- /*
-- * Lockless lookup of swap entry in radix tree, avoiding refcount on pages.
-- */
--static pgoff_t shmem_find_swap(struct address_space *mapping, void *radswap)
--{
--	void  **slots[PAGEVEC_SIZE];
--	pgoff_t indices[PAGEVEC_SIZE];
--	unsigned int nr_found;
--
--restart:
--	nr_found = 1;
--	indices[0] = -1;
--	while (nr_found) {
--		pgoff_t index = indices[nr_found - 1] + 1;
--		unsigned int i;
--
--		rcu_read_lock();
--		nr_found = radix_tree_gang_lookup_slot(&mapping->page_tree,
--					slots, indices, index, PAGEVEC_SIZE);
--		for (i = 0; i < nr_found; i++) {
--			void *item = radix_tree_deref_slot(slots[i]);
--			if (radix_tree_deref_retry(item)) {
--				rcu_read_unlock();
--				goto restart;
--			}
--			if (item == radswap) {
--				rcu_read_unlock();
--				return indices[i];
--			}
--		}
--		rcu_read_unlock();
--		cond_resched();
--	}
--	return -1;
--}
+  * prune_dcache_sb - shrink the dcache
++ * @sb: superblock
+  * @nr_to_scan: number of entries to try to free
+  *
+  * Attempt to shrink the superblock dcache LRU by @nr_to_scan entries. This is
+_
+
+Patches currently in -mm which might be from rdunlap@xenotime.net are
+
+origin.patch
+linux-next.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+cross-memory-attach-update.patch
+consolidate-config_debug_strict_user_copy_checks-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
+
