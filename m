@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cris-fix-a-build-error-in-kernel-forkc.patch removed from -mm tree
-Date: Tue, 16 Aug 2011 11:50:48 -0700
-Message-ID: <201108161847.p7GIltv3015185@imap1.linux-foundation.org>
+Subject: [merged] lockdep-clear-whole-lockdep_map-on-initialization.patch removed from -mm tree
+Date: Tue, 16 Aug 2011 11:51:37 -0700
+Message-ID: <201108161848.p7GImibD015381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752197Ab1HPSyu (ORCPT
+	by vger.kernel.org with ESMTP id S1751629Ab1HPSzA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 14:54:50 -0400
+	Tue, 16 Aug 2011 14:55:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, geert@linux-m68k.org, jesper.nilsson@axis.com, stable@kernel.org, starvik@axis.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, a.p.zijlstra@chello.nl, casteyde.christian@free.fr, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris: fix a build error in kernel/fork.c
+     lockdep: clear whole lockdep_map on initialization
 has been removed from the -mm tree.  Its filename was
-     cris-fix-a-build-error-in-kernel-forkc.patch
+     lockdep-clear-whole-lockdep_map-on-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: fix a build error in kernel/fork.c
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: lockdep: clear whole lockdep_map on initialization
+From: Tejun Heo <tj@kernel.org>
 
-kernel/fork.c:267: error: implicit declaration of function
-'alloc_thread_info_node'
+lockdep_init_map() only initializes parts of lockdep_map and triggers
+kmemcheck warning when it is copied as a whole.  There isn't anything to
+be gained by clearing selectively.  memset() the whole structure and
+remove loop for ->class_cache[] clearing.
 
-This is due to renaming alloc_thread_info() to alloc_thread_info_node().
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=35532
 
-[akpm@linux-foundation.org: coding-style fixes]
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Christian Casteyde <casteyde.christian@free.fr>
+Tested-by: Christian Casteyde <casteyde.christian@free.fr>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/include/asm/thread_info.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/lockdep.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/cris/include/asm/thread_info.h~cris-fix-a-build-error-in-kernel-forkc arch/cris/include/asm/thread_info.h
---- a/arch/cris/include/asm/thread_info.h~cris-fix-a-build-error-in-kernel-forkc
-+++ a/arch/cris/include/asm/thread_info.h
-@@ -11,8 +11,6 @@
- 
- #ifdef __KERNEL__
- 
--#define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
+diff -puN kernel/lockdep.c~lockdep-clear-whole-lockdep_map-on-initialization kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-clear-whole-lockdep_map-on-initialization
++++ a/kernel/lockdep.c
+@@ -2872,10 +2872,7 @@ static int mark_lock(struct task_struct 
+ void lockdep_init_map(struct lockdep_map *lock, const char *name,
+ 		      struct lock_class_key *key, int subclass)
+ {
+-	int i;
