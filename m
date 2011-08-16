@@ -1,219 +1,242 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-convert-shmem_writepage-and-enable-swap.patch removed from -mm tree
-Date: Tue, 16 Aug 2011 11:51:20 -0700
-Message-ID: <201108161848.p7GImROl015318@imap1.linux-foundation.org>
+Subject: [merged] mm-let-swap-use-exceptional-entries.patch removed from -mm tree
+Date: Tue, 16 Aug 2011 11:51:04 -0700
+Message-ID: <201108161848.p7GImB14015251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752485Ab1HPSy2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751992Ab1HPSyd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 14:54:28 -0400
+	Tue, 16 Aug 2011 14:54:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmpfs: convert shmem_writepage and enable swap
+     mm: let swap use exceptional entries
 has been removed from the -mm tree.  Its filename was
-     tmpfs-convert-shmem_writepage-and-enable-swap.patch
+     mm-let-swap-use-exceptional-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmpfs: convert shmem_writepage and enable swap
+Subject: mm: let swap use exceptional entries
 From: Hugh Dickins <hughd@google.com>
 
-Convert shmem_writepage() to use shmem_delete_from_page_cache() to use
-shmem_radix_tree_replace() to substitute swap entry for page pointer
-atomically in the radix tree.
+If swap entries are to be stored along with struct page pointers in a
+radix tree, they need to be distinguished as exceptional entries.
 
-As with shmem_add_to_page_cache(), it's not entirely satisfactory to be
-copying such code from delete_from_swap_cache, but again judged easier to
-sell than making its other callers go through the extras.
+Most of the handling of swap entries in radix tree will be contained in
+shmem.c, but a few functions in filemap.c's common code need to check for
+their appearance: find_get_page(), find_lock_page(), find_get_pages() and
+find_get_pages_contig().
 
-Remove the toy implementation's shmem_put_swap() and shmem_get_swap(), now
-unreferenced, and the hack to disable swap: it's now good to go.
+So as not to slow their fast paths, tuck those checks inside the existing
+checks for unlikely radix_tree_deref_slot(); except for find_lock_page(),
+where it is an added test.  And make it a BUG in find_get_pages_tag(),
+which is not applied to tmpfs files.
 
-The way things have worked out, info->lock no longer helps to guard the
-shmem_swaplist: we increment swapped under shmem_swaplist_mutex only. 
-That global mutex exclusion between shmem_writepage() and shmem_unuse() is
-not pretty, and we ought to find another way; but it's been forced on us
-by recent race discoveries, not a consequence of this patchset.
+A part of the reason for eliminating shmem_readpage() earlier, was to
+minimize the places where common code would need to allow for swap
+entries.
 
-And what has become of the WARN_ON_ONCE(1) free_swap_and_cache() if a swap
-entry was found already present?  That's no longer possible, the (unknown)
-one inserting this page into filecache would hit the swap entry occupying
-that slot.
+The swp_entry_t known to swapfile.c must be massaged into a slightly
+different form when stored in the radix tree, just as it gets massaged
+into a pte_t when stored in page tables.
+
+In an i386 kernel this limits its information (type and page offset) to 30
+bits: given 32 "types" of swapfile and 4kB pagesize, that's a maximum
+swapfile size of 128GB.  Which is less than the 512GB we previously
+allowed with X86_PAE (where the swap entry can occupy the entire upper 32
+bits of a pte_t), but not a new limitation on 32-bit without PAE; and
+there's not a new limitation on 64-bit (where swap filesize is already
+limited to 16TB by a 32-bit page offset).  Thirty areas of 128GB is
+probably still enough swap for a 64GB 32-bit machine.
+
+Provide swp_to_radix_entry() and radix_to_swp_entry() conversions, and
+enforce filesize limit in read_swap_header(), just as for ptes.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   88 +++++++++++++++++++++------------------------------
- 1 file changed, 37 insertions(+), 51 deletions(-)
+ include/linux/swapops.h |   23 +++++++++++++++++
+ mm/filemap.c            |   49 ++++++++++++++++++++++++--------------
+ mm/swapfile.c           |   20 +++++++++------
+ 3 files changed, 66 insertions(+), 26 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-convert-shmem_writepage-and-enable-swap mm/shmem.c
---- a/mm/shmem.c~tmpfs-convert-shmem_writepage-and-enable-swap
-+++ a/mm/shmem.c
-@@ -6,7 +6,8 @@
-  *		 2000-2001 Christoph Rohland
-  *		 2000-2001 SAP AG
-  *		 2002 Red Hat Inc.
-- * Copyright (C) 2002-2005 Hugh Dickins.
-+ * Copyright (C) 2002-2011 Hugh Dickins.
-+ * Copyright (C) 2011 Google Inc.
-  * Copyright (C) 2002-2005 VERITAS Software Corporation.
-  * Copyright (C) 2004 Andi Kleen, SuSE Labs
-  *
-@@ -219,19 +220,6 @@ static void shmem_recalc_inode(struct in
- 	}
- }
- 
--static void shmem_put_swap(struct shmem_inode_info *info, pgoff_t index,
--			   swp_entry_t swap)
--{
--	if (index < SHMEM_NR_DIRECT)
--		info->i_direct[index] = swap;
--}
--
--static swp_entry_t shmem_get_swap(struct shmem_inode_info *info, pgoff_t index)
--{
--	return (index < SHMEM_NR_DIRECT) ?
--		info->i_direct[index] : (swp_entry_t){0};
--}
--
- /*
-  * Replace item expected in radix tree by a new item, while holding tree lock.
-  */
-@@ -300,6 +288,25 @@ static int shmem_add_to_page_cache(struc
- }
- 
- /*
-+ * Like delete_from_page_cache, but substitutes swap for page.
-+ */
-+static void shmem_delete_from_page_cache(struct page *page, void *radswap)
-+{
-+	struct address_space *mapping = page->mapping;
-+	int error;
+diff -puN include/linux/swapops.h~mm-let-swap-use-exceptional-entries include/linux/swapops.h
+--- a/include/linux/swapops.h~mm-let-swap-use-exceptional-entries
++++ a/include/linux/swapops.h
+@@ -1,3 +1,8 @@
++#ifndef _LINUX_SWAPOPS_H
++#define _LINUX_SWAPOPS_H
 +
-+	spin_lock_irq(&mapping->tree_lock);
-+	error = shmem_radix_tree_replace(mapping, page->index, page, radswap);
-+	page->mapping = NULL;
-+	mapping->nrpages--;
-+	__dec_zone_page_state(page, NR_FILE_PAGES);
-+	__dec_zone_page_state(page, NR_SHMEM);
-+	spin_unlock_irq(&mapping->tree_lock);
-+	page_cache_release(page);
-+	BUG_ON(error);
++#include <linux/radix-tree.h>
++
+ /*
+  * swapcache pages are stored in the swapper_space radix tree.  We want to
+  * get good packing density in that tree, so the index should be dense in
+@@ -76,6 +81,22 @@ static inline pte_t swp_entry_to_pte(swp
+ 	return __swp_entry_to_pte(arch_entry);
+ }
+ 
++static inline swp_entry_t radix_to_swp_entry(void *arg)
++{
++	swp_entry_t entry;
++
++	entry.val = (unsigned long)arg >> RADIX_TREE_EXCEPTIONAL_SHIFT;
++	return entry;
 +}
 +
-+/*
-  * Like find_get_pages, but collecting swap entries as well as pages.
-  */
- static unsigned shmem_find_get_pages_and_swap(struct address_space *mapping,
-@@ -664,14 +671,10 @@ int shmem_unuse(swp_entry_t swap, struct
- 	mutex_lock(&shmem_swaplist_mutex);
- 	list_for_each_safe(this, next, &shmem_swaplist) {
- 		info = list_entry(this, struct shmem_inode_info, swaplist);
--		if (!info->swapped) {
--			spin_lock(&info->lock);
--			if (!info->swapped)
--				list_del_init(&info->swaplist);
--			spin_unlock(&info->lock);
--		}
- 		if (info->swapped)
- 			found = shmem_unuse_inode(info, swap, page);
-+		else
-+			list_del_init(&info->swaplist);
- 		cond_resched();
- 		if (found)
- 			break;
-@@ -694,10 +697,10 @@ out:
- static int shmem_writepage(struct page *page, struct writeback_control *wbc)
++static inline void *swp_to_radix_entry(swp_entry_t entry)
++{
++	unsigned long value;
++
++	value = entry.val << RADIX_TREE_EXCEPTIONAL_SHIFT;
++	return (void *)(value | RADIX_TREE_EXCEPTIONAL_ENTRY);
++}
++
+ #ifdef CONFIG_MIGRATION
+ static inline swp_entry_t make_migration_entry(struct page *page, int write)
  {
- 	struct shmem_inode_info *info;
--	swp_entry_t swap, oswap;
- 	struct address_space *mapping;
--	pgoff_t index;
- 	struct inode *inode;
-+	swp_entry_t swap;
-+	pgoff_t index;
+@@ -169,3 +190,5 @@ static inline int non_swap_entry(swp_ent
+ 	return 0;
+ }
+ #endif
++
++#endif /* _LINUX_SWAPOPS_H */
+diff -puN mm/filemap.c~mm-let-swap-use-exceptional-entries mm/filemap.c
+--- a/mm/filemap.c~mm-let-swap-use-exceptional-entries
++++ a/mm/filemap.c
+@@ -714,9 +714,12 @@ repeat:
+ 		page = radix_tree_deref_slot(pagep);
+ 		if (unlikely(!page))
+ 			goto out;
+-		if (radix_tree_deref_retry(page))
++		if (radix_tree_exception(page)) {
++			if (radix_tree_exceptional_entry(page))
++				goto out;
++			/* radix_tree_deref_retry(page) */
+ 			goto repeat;
+-
++		}
+ 		if (!page_cache_get_speculative(page))
+ 			goto repeat;
  
- 	BUG_ON(!PageLocked(page));
- 	mapping = page->mapping;
-@@ -720,55 +723,38 @@ static int shmem_writepage(struct page *
- 		WARN_ON_ONCE(1);	/* Still happens? Tell us about it! */
- 		goto redirty;
- 	}
--
--	/*
--	 * Disable even the toy swapping implementation, while we convert
--	 * functions one by one to having swap entries in the radix tree.
--	 */
--	if (index < ULONG_MAX)
--		goto redirty;
--
- 	swap = get_swap_page();
- 	if (!swap.val)
- 		goto redirty;
+@@ -753,7 +756,7 @@ struct page *find_lock_page(struct addre
+ 
+ repeat:
+ 	page = find_get_page(mapping, offset);
+-	if (page) {
++	if (page && !radix_tree_exception(page)) {
+ 		lock_page(page);
+ 		/* Has the page been truncated? */
+ 		if (unlikely(page->mapping != mapping)) {
+@@ -849,11 +852,14 @@ repeat:
+ 		if (unlikely(!page))
+ 			continue;
+ 
+-		/*
+-		 * This can only trigger when the entry at index 0 moves out
+-		 * of or back to the root: none yet gotten, safe to restart.
+-		 */
+-		if (radix_tree_deref_retry(page)) {
++		if (radix_tree_exception(page)) {
++			if (radix_tree_exceptional_entry(page))
++				continue;
++			/*
++			 * radix_tree_deref_retry(page):
++			 * can only trigger when entry at index 0 moves out of
++			 * or back to root: none yet gotten, safe to restart.
++			 */
+ 			WARN_ON(start | i);
+ 			goto restart;
+ 		}
+@@ -912,12 +918,16 @@ repeat:
+ 		if (unlikely(!page))
+ 			continue;
+ 
+-		/*
+-		 * This can only trigger when the entry at index 0 moves out
+-		 * of or back to the root: none yet gotten, safe to restart.
+-		 */
+-		if (radix_tree_deref_retry(page))
++		if (radix_tree_exception(page)) {
++			if (radix_tree_exceptional_entry(page))
++				break;
++			/*
++			 * radix_tree_deref_retry(page):
++			 * can only trigger when entry at index 0 moves out of
++			 * or back to root: none yet gotten, safe to restart.
++			 */
+ 			goto restart;
++		}
+ 
+ 		if (!page_cache_get_speculative(page))
+ 			goto repeat;
+@@ -977,12 +987,15 @@ repeat:
+ 		if (unlikely(!page))
+ 			continue;
+ 
+-		/*
+-		 * This can only trigger when the entry at index 0 moves out
+-		 * of or back to the root: none yet gotten, safe to restart.
+-		 */
+-		if (radix_tree_deref_retry(page))
++		if (radix_tree_exception(page)) {
++			BUG_ON(radix_tree_exceptional_entry(page));
++			/*
++			 * radix_tree_deref_retry(page):
++			 * can only trigger when entry at index 0 moves out of
++			 * or back to root: none yet gotten, safe to restart.
++			 */
+ 			goto restart;
++		}
+ 
+ 		if (!page_cache_get_speculative(page))
+ 			goto repeat;
+diff -puN mm/swapfile.c~mm-let-swap-use-exceptional-entries mm/swapfile.c
+--- a/mm/swapfile.c~mm-let-swap-use-exceptional-entries
++++ a/mm/swapfile.c
+@@ -1924,20 +1924,24 @@ static unsigned long read_swap_header(st
  
  	/*
- 	 * Add inode to shmem_unuse()'s list of swapped-out inodes,
--	 * if it's not already there.  Do it now because we cannot take
--	 * mutex while holding spinlock, and must do so before the page
--	 * is moved to swap cache, when its pagelock no longer protects
-+	 * if it's not already there.  Do it now before the page is
-+	 * moved to swap cache, when its pagelock no longer protects
- 	 * the inode from eviction.  But don't unlock the mutex until
--	 * we've taken the spinlock, because shmem_unuse_inode() will
--	 * prune a !swapped inode from the swaplist under both locks.
-+	 * we've incremented swapped, because shmem_unuse_inode() will
-+	 * prune a !swapped inode from the swaplist under this mutex.
+ 	 * Find out how many pages are allowed for a single swap
+-	 * device. There are two limiting factors: 1) the number of
+-	 * bits for the swap offset in the swp_entry_t type and
+-	 * 2) the number of bits in the a swap pte as defined by
+-	 * the different architectures. In order to find the
+-	 * largest possible bit mask a swap entry with swap type 0
++	 * device. There are three limiting factors: 1) the number
++	 * of bits for the swap offset in the swp_entry_t type, and
++	 * 2) the number of bits in the swap pte as defined by the
++	 * the different architectures, and 3) the number of free bits
++	 * in an exceptional radix_tree entry. In order to find the
++	 * largest possible bit mask, a swap entry with swap type 0
+ 	 * and swap offset ~0UL is created, encoded to a swap pte,
+-	 * decoded to a swp_entry_t again and finally the swap
++	 * decoded to a swp_entry_t again, and finally the swap
+ 	 * offset is extracted. This will mask all the bits from
+ 	 * the initial ~0UL mask that can't be encoded in either
+ 	 * the swp_entry_t or the architecture definition of a
+-	 * swap pte.
++	 * swap pte.  Then the same is done for a radix_tree entry.
  	 */
- 	mutex_lock(&shmem_swaplist_mutex);
- 	if (list_empty(&info->swaplist))
- 		list_add_tail(&info->swaplist, &shmem_swaplist);
- 
--	spin_lock(&info->lock);
--	mutex_unlock(&shmem_swaplist_mutex);
--
--	oswap = shmem_get_swap(info, index);
--	if (oswap.val) {
--		WARN_ON_ONCE(1);	/* Still happens? Tell us about it! */
--		free_swap_and_cache(oswap);
--		shmem_put_swap(info, index, (swp_entry_t){0});
--		info->swapped--;
--	}
--	shmem_recalc_inode(inode);
--
- 	if (add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
--		delete_from_page_cache(page);
--		shmem_put_swap(info, index, swap);
--		info->swapped++;
- 		swap_shmem_alloc(swap);
-+		shmem_delete_from_page_cache(page, swp_to_radix_entry(swap));
+ 	maxpages = swp_offset(pte_to_swp_entry(
+-			swp_entry_to_pte(swp_entry(0, ~0UL)))) + 1;
++			swp_entry_to_pte(swp_entry(0, ~0UL))));
++	maxpages = swp_offset(radix_to_swp_entry(
++			swp_to_radix_entry(swp_entry(0, maxpages)))) + 1;
 +
-+		spin_lock(&info->lock);
-+		info->swapped++;
-+		shmem_recalc_inode(inode);
- 		spin_unlock(&info->lock);
-+
-+		mutex_unlock(&shmem_swaplist_mutex);
- 		BUG_ON(page_mapped(page));
- 		swap_writepage(page, wbc);
- 		return 0;
- 	}
- 
--	spin_unlock(&info->lock);
-+	mutex_unlock(&shmem_swaplist_mutex);
- 	swapcache_free(swap, NULL);
- redirty:
- 	set_page_dirty(page);
+ 	if (maxpages > swap_header->info.last_page) {
+ 		maxpages = swap_header->info.last_page + 1;
+ 		/* p->max is an unsigned int: don't overflow it */
 _
 
 Patches currently in -mm which might be from hughd@google.com are
