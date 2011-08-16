@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + init-add-root=partuuid=uuid-partnroff=%d-support-fix.patch added to -mm tree
-Date: Tue, 16 Aug 2011 13:47:21 -0700
-Message-ID: <201108162047.p7GKlLNb026117@imap1.linux-foundation.org>
+Subject: + drivers-misc-ptic-add-missing-includes.patch added to -mm tree
+Date: Tue, 16 Aug 2011 15:03:13 -0700
+Message-ID: <201108162203.p7GM3DAl031226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54266 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752542Ab1HPUr6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751816Ab1HPWDv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Aug 2011 16:47:58 -0400
+	Tue, 16 Aug 2011 18:03:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, wad@chromium.org
+Cc: slyfox@gentoo.org, gregkh@suse.de, james_p_freyensee@linux.intel.com, rocher.jeremy@gmail.com
 
 
 The patch titled
-     init-add-root=partuuid=uuid-partnroff=%d-support-fix
+     drivers/misc/pti.c: add missing includes
 has been added to the -mm tree.  Its filename is
-     init-add-root=partuuid=uuid-partnroff=%d-support-fix.patch
+     drivers-misc-ptic-add-missing-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init-add-root=partuuid=uuid-partnroff=%d-support-fix
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: drivers/misc/pti.c: add missing includes
+From: Sergei Trofimovich <slyfox@gentoo.org>
 
-After merging the akpm tree, today's linux-next build (lost of them)
-produced this warning:
+Found on allmodconfig build (ARCH=alpha)
 
-WARNING: init/mounts.o(.text+0x192): Section mismatch in reference from the function devt_from_partuuid() to the variable .init.data:root_wait
-The function devt_from_partuuid() references
-the variable __initdata root_wait.
-This is often because devt_from_partuuid lacks a __initdata
-annotation or the annotation of root_wait is wrong.
+    drivers/misc/pti.c: In function 'get_id':
+    drivers/misc/pti.c:249: error: implicit declaration of function 'kmalloc'
+    drivers/misc/pti.c: In function 'pti_char_write':
+    drivers/misc/pti.c:658: error: implicit declaration of function 'copy_from_user'
 
-Commit 185237e4cfab ("This patch makes two changes:"
-init-add-root=partuuid=uuid-partnroff=%d-support-update.patch) adds the
-reference to root_wait from the non-init function devt_from_partuuid().
-
-The easiest thing to do is to remove __init_date from root_wait.
-
-I have applied this patch as a merge fixup for today:
-
-Date: Wed, 10 Aug 2011 12:09:35 +1000
-Subject: [PATCH] do_mounts: remove __init_data from root_wait
-
-as it is now used from a non init routine.
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Will Drewry <wad@chromium.org>
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: J Freyensee <james_p_freyensee@linux.intel.com>
+Cc: Jeremy Rocher <rocher.jeremy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/pti.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN init/do_mounts.c~init-add-root=partuuid=uuid-partnroff=%d-support-fix init/do_mounts.c
---- a/init/do_mounts.c~init-add-root=partuuid=uuid-partnroff=%d-support-fix
-+++ a/init/do_mounts.c
-@@ -28,7 +28,7 @@ int __initdata rd_doload;	/* 1 = load RA
- int root_mountflags = MS_RDONLY | MS_SILENT;
- static char * __initdata root_device_name;
- static char __initdata saved_root_name[64];
--static int __initdata root_wait;
-+static int root_wait;
+diff -puN drivers/misc/pti.c~drivers-misc-ptic-add-missing-includes drivers/misc/pti.c
+--- a/drivers/misc/pti.c~drivers-misc-ptic-add-missing-includes
++++ a/drivers/misc/pti.c
+@@ -33,6 +33,8 @@
+ #include <linux/mutex.h>
+ #include <linux/miscdevice.h>
+ #include <linux/pti.h>
++#include <linux/slab.h>
++#include <linux/uaccess.h>
  
- dev_t ROOT_DEV;
- 
+ #define DRIVERNAME		"pti"
+ #define PCINAME			"pciPTI"
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
-origin.patch
-linux-next.patch
-consolidate-config_debug_strict_user_copy_checks.patch
-init-add-root=partuuid=uuid-partnroff=%d-support-fix.patch
+drivers-misc-ptic-add-missing-includes.patch
 
