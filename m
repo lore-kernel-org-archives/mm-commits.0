@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-fix-kconfig-unmet-dependency-warning.patch added to -mm tree
-Date: Wed, 17 Aug 2011 15:50:15 -0700
-Message-ID: <201108172250.p7HMoFtu001199@imap1.linux-foundation.org>
+Subject: + mm-distinguish-between-mlocked-and-pinned-pages.patch added to -mm tree
+Date: Wed, 17 Aug 2011 15:55:13 -0700
+Message-ID: <201108172255.p7HMtDN2001441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32940 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754315Ab1HQWuS (ORCPT
+	by vger.kernel.org with ESMTP id S1752974Ab1HQWzU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 18:50:18 -0400
+	Wed, 17 Aug 2011 18:55:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, airlied@linux.ie
+Cc: cl@linux.com, hughd@google.com, infinipath@qlogic.com, roland@kernel.org, sean.hefty@intel.com
 
 
 The patch titled
-     drm: fix kconfig unmet dependency warning
+     mm: distinguish between mlocked and pinned pages
 has been added to the -mm tree.  Its filename is
-     drm-fix-kconfig-unmet-dependency-warning.patch
+     mm-distinguish-between-mlocked-and-pinned-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,194 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: fix kconfig unmet dependency warning
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: mm: distinguish between mlocked and pinned pages
+From: Christoph Lameter <cl@linux.com>
 
-Fix kconfig unmet dependency warning.  BACKLIGHT_CLASS_DEVICE depends on
-BACKLIGHT_LCD_SUPPORT, so select the latter along with the former.
+Some kernel components pin user space memory (infiniband and perf) (by
+increasing the page count) and account that memory as "mlocked".
 
-warning: (DRM_RADEON_KMS && DRM_I915 && STUB_POULSBO && FB_BACKLIGHT && PANEL_SHARP_LS037V7DW01 && PANEL_ACX565AKM && USB_APPLEDISPLAY && FB_OLPC_DCON && ASUS_LAPTOP && SONY_LAPTOP && THINKPAD_ACPI && EEEPC_LAPTOP && ACPI_ASUS && ACPI_CMPC && SAMSUNG_Q10) selects BACKLIGHT_CLASS_DEVICE which has unmet direct dependencies (HAS_IOMEM && BACKLIGHT_LCD_SUPPORT)
+The difference between mlocking and pinning is:
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: David Airlie <airlied@linux.ie>
+A. mlocked pages are marked with PG_mlocked and are exempt from
+   swapping. Page migration may move them around though.
+   They are kept on a special LRU list.
+
+B. Pinned pages cannot be moved because something needs to
+   directly access physical memory. They may not be on any
+   LRU list.
+
+I recently saw an mlockalled process where mm->locked_vm became
+bigger than the virtual size of the process (!) because some
+memory was accounted for twice:
+
+Once when the page was mlocked and once when the Infiniband
+layer increased the refcount because it needt to pin the RDMA
+memory.
+
+This patch introduces a separate counter for pinned pages and
+accounts them seperately.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Mike Marciniszyn <infinipath@qlogic.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/umem.c                 |    6 +++---
+ drivers/infiniband/hw/ipath/ipath_user_pages.c |    6 +++---
+ drivers/infiniband/hw/qib/qib_user_pages.c     |    4 ++--
+ fs/proc/task_mmu.c                             |    2 ++
+ include/linux/mm_types.h                       |    2 +-
+ kernel/events/core.c                           |    6 +++---
+ 6 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN drivers/gpu/drm/Kconfig~drm-fix-kconfig-unmet-dependency-warning drivers/gpu/drm/Kconfig
---- a/drivers/gpu/drm/Kconfig~drm-fix-kconfig-unmet-dependency-warning
-+++ a/drivers/gpu/drm/Kconfig
-@@ -96,6 +96,7 @@ config DRM_I915
- 	select FB_CFB_IMAGEBLIT
- 	# i915 depends on ACPI_VIDEO when ACPI is enabled
- 	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
-+	select BACKLIGHT_LCD_SUPPORT if ACPI
- 	select BACKLIGHT_CLASS_DEVICE if ACPI
- 	select VIDEO_OUTPUT_CONTROL if ACPI
- 	select INPUT if ACPI
+diff -puN drivers/infiniband/core/umem.c~mm-distinguish-between-mlocked-and-pinned-pages drivers/infiniband/core/umem.c
+--- a/drivers/infiniband/core/umem.c~mm-distinguish-between-mlocked-and-pinned-pages
++++ a/drivers/infiniband/core/umem.c
+@@ -137,7 +137,7 @@ struct ib_umem *ib_umem_get(struct ib_uc
+ 
+ 	down_write(&current->mm->mmap_sem);
+ 
+-	locked     = npages + current->mm->locked_vm;
++	locked     = npages + current->mm->pinned_vm;
+ 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+ 
+ 	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
+@@ -207,7 +207,7 @@ out:
+ 		__ib_umem_release(context->device, umem, 0);
+ 		kfree(umem);
+ 	} else
+-		current->mm->locked_vm = locked;
++		current->mm->pinned_vm = locked;
+ 
+ 	up_write(&current->mm->mmap_sem);
+ 	if (vma_list)
+@@ -223,7 +223,7 @@ static void ib_umem_account(struct work_
+ 	struct ib_umem *umem = container_of(work, struct ib_umem, work);
+ 
+ 	down_write(&umem->mm->mmap_sem);
+-	umem->mm->locked_vm -= umem->diff;
++	umem->mm->pinned_vm -= umem->diff;
+ 	up_write(&umem->mm->mmap_sem);
+ 	mmput(umem->mm);
+ 	kfree(umem);
+diff -puN drivers/infiniband/hw/ipath/ipath_user_pages.c~mm-distinguish-between-mlocked-and-pinned-pages drivers/infiniband/hw/ipath/ipath_user_pages.c
+--- a/drivers/infiniband/hw/ipath/ipath_user_pages.c~mm-distinguish-between-mlocked-and-pinned-pages
++++ a/drivers/infiniband/hw/ipath/ipath_user_pages.c
+@@ -79,7 +79,7 @@ static int __ipath_get_user_pages(unsign
+ 			goto bail_release;
+ 	}
+ 
+-	current->mm->locked_vm += num_pages;
++	current->mm->pinned_vm += num_pages;
+ 
+ 	ret = 0;
+ 	goto bail;
+@@ -178,7 +178,7 @@ void ipath_release_user_pages(struct pag
+ 
+ 	__ipath_release_user_pages(p, num_pages, 1);
+ 
+-	current->mm->locked_vm -= num_pages;
++	current->mm->pinned_vm -= num_pages;
+ 
+ 	up_write(&current->mm->mmap_sem);
+ }
+@@ -195,7 +195,7 @@ static void user_pages_account(struct wo
+ 		container_of(_work, struct ipath_user_pages_work, work);
+ 
+ 	down_write(&work->mm->mmap_sem);
+-	work->mm->locked_vm -= work->num_pages;
++	work->mm->pinned_vm -= work->num_pages;
+ 	up_write(&work->mm->mmap_sem);
+ 	mmput(work->mm);
+ 	kfree(work);
+diff -puN drivers/infiniband/hw/qib/qib_user_pages.c~mm-distinguish-between-mlocked-and-pinned-pages drivers/infiniband/hw/qib/qib_user_pages.c
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c~mm-distinguish-between-mlocked-and-pinned-pages
++++ a/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -74,7 +74,7 @@ static int __qib_get_user_pages(unsigned
+ 			goto bail_release;
+ 	}
+ 
+-	current->mm->locked_vm += num_pages;
++	current->mm->pinned_vm += num_pages;
+ 
+ 	ret = 0;
+ 	goto bail;
+@@ -151,7 +151,7 @@ void qib_release_user_pages(struct page 
+ 	__qib_release_user_pages(p, num_pages, 1);
+ 
+ 	if (current->mm) {
+-		current->mm->locked_vm -= num_pages;
++		current->mm->pinned_vm -= num_pages;
+ 		up_write(&current->mm->mmap_sem);
+ 	}
+ }
+diff -puN fs/proc/task_mmu.c~mm-distinguish-between-mlocked-and-pinned-pages fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-distinguish-between-mlocked-and-pinned-pages
++++ a/fs/proc/task_mmu.c
+@@ -44,6 +44,7 @@ void task_mem(struct seq_file *m, struct
+ 		"VmPeak:\t%8lu kB\n"
+ 		"VmSize:\t%8lu kB\n"
+ 		"VmLck:\t%8lu kB\n"
++		"VmPin:\t%8lu kB\n"
+ 		"VmHWM:\t%8lu kB\n"
+ 		"VmRSS:\t%8lu kB\n"
+ 		"VmData:\t%8lu kB\n"
+@@ -55,6 +56,7 @@ void task_mem(struct seq_file *m, struct
+ 		hiwater_vm << (PAGE_SHIFT-10),
+ 		(total_vm - mm->reserved_vm) << (PAGE_SHIFT-10),
+ 		mm->locked_vm << (PAGE_SHIFT-10),
++		mm->pinned_vm << (PAGE_SHIFT-10),
+ 		hiwater_rss << (PAGE_SHIFT-10),
+ 		total_rss << (PAGE_SHIFT-10),
+ 		data << (PAGE_SHIFT-10),
+diff -puN include/linux/mm_types.h~mm-distinguish-between-mlocked-and-pinned-pages include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-distinguish-between-mlocked-and-pinned-pages
++++ a/include/linux/mm_types.h
+@@ -281,7 +281,7 @@ struct mm_struct {
+ 	unsigned long hiwater_rss;	/* High-watermark of RSS usage */
+ 	unsigned long hiwater_vm;	/* High-water virtual memory usage */
+ 
+-	unsigned long total_vm, locked_vm, shared_vm, exec_vm;
++	unsigned long total_vm, locked_vm, pinned_vm, shared_vm, exec_vm;
+ 	unsigned long stack_vm, reserved_vm, def_flags, nr_ptes;
+ 	unsigned long start_code, end_code, start_data, end_data;
+ 	unsigned long start_brk, brk, start_stack;
+diff -puN kernel/events/core.c~mm-distinguish-between-mlocked-and-pinned-pages kernel/events/core.c
+--- a/kernel/events/core.c~mm-distinguish-between-mlocked-and-pinned-pages
++++ a/kernel/events/core.c
+@@ -3501,7 +3501,7 @@ static void perf_mmap_close(struct vm_ar
+ 		struct ring_buffer *rb = event->rb;
+ 
+ 		atomic_long_sub((size >> PAGE_SHIFT) + 1, &user->locked_vm);
+-		vma->vm_mm->locked_vm -= event->mmap_locked;
++		vma->vm_mm->pinned_vm -= event->mmap_locked;
+ 		rcu_assign_pointer(event->rb, NULL);
+ 		mutex_unlock(&event->mmap_mutex);
+ 
+@@ -3582,7 +3582,7 @@ static int perf_mmap(struct file *file, 
+ 
+ 	lock_limit = rlimit(RLIMIT_MEMLOCK);
+ 	lock_limit >>= PAGE_SHIFT;
+-	locked = vma->vm_mm->locked_vm + extra;
++	locked = vma->vm_mm->pinned_vm + extra;
+ 
+ 	if ((locked > lock_limit) && perf_paranoid_tracepoint_raw() &&
+ 		!capable(CAP_IPC_LOCK)) {
+@@ -3608,7 +3608,7 @@ static int perf_mmap(struct file *file, 
+ 	atomic_long_add(user_extra, &user->locked_vm);
+ 	event->mmap_locked = extra;
+ 	event->mmap_user = get_current_user();
+-	vma->vm_mm->locked_vm += event->mmap_locked;
++	vma->vm_mm->pinned_vm += event->mmap_locked;
+ 
+ unlock:
+ 	if (!ret)
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from cl@linux.com are
 
-origin.patch
-linux-next.patch
-drm-fix-kconfig-unmet-dependency-warning.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-cross-memory-attach-update.patch
-consolidate-config_debug_strict_user_copy_checks-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-docs-sysfs-specify-abi-documentation-requirements.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-init-add-root=partuuid=uuid-partnroff=%d-support.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+mm-distinguish-between-mlocked-and-pinned-pages.patch
 
