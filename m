@@ -1,117 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] drm-add-missing-header-file-linuc-typesh.patch removed from -mm tree
-Date: Wed, 17 Aug 2011 14:09:02 -0700
-Message-ID: <201108172109.p7HL92Su028494@imap1.linux-foundation.org>
+Subject: + scripts-get_maintainerpl-update-linuss-git-repository.patch added to -mm tree
+Date: Wed, 17 Aug 2011 14:23:22 -0700
+Message-ID: <201108172123.p7HLNMM6029155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754428Ab1HQVJH (ORCPT
+	by vger.kernel.org with ESMTP id S1752630Ab1HQVX1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 17:09:07 -0400
+	Wed, 17 Aug 2011 17:23:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ralf.thielow@googlemail.com, joe@perches.com
 
 
 The patch titled
-     drm: add missing header file <linuc/types.h>
-has been removed from the -mm tree.  Its filename was
-     drm-add-missing-header-file-linuc-typesh.patch
+     scripts/get_maintainer.pl: update Linus's git repository
+has been added to the -mm tree.  Its filename is
+     scripts-get_maintainerpl-update-linuss-git-repository.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: add missing header file <linuc/types.h>
-From: Amerigo Wang <amwang@redhat.com>
+Subject: scripts/get_maintainer.pl: update Linus's git repository
+From: Ralf Thielow <ralf.thielow@googlemail.com>
 
-This patch fixes the following 'make headers_check' errors:
+Change to new git tree -
+(git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git).
 
-linux-2.6/usr/include/drm/drm_mode.h:85: found __[us]{8,16,32,64} type without #include <linux/types.h>
-linux-2.6/usr/include/drm/i915_drm.h:120: found __[us]{8,16,32,64} type without #include <linux/types.h>
-linux-2.6/usr/include/drm/mga_drm.h:260: found __[us]{8,16,32,64} type without #include <linux/types.h>
-linux-2.6/usr/include/drm/radeon_drm.h:758: found __[us]{8,16,32,64} type without #include <linux/types.h>
-linux-2.6/usr/include/drm/via_drm.h:117: found __[us]{8,16,32,64} type without #include <linux/types.h>
-
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Ralf Thielow <ralf.thielow@googlemail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/drm/drm_mode.h   |    2 ++
- include/drm/i915_drm.h   |    1 +
- include/drm/mga_drm.h    |    1 +
- include/drm/radeon_drm.h |    1 +
- include/drm/via_drm.h    |    1 +
- 5 files changed, 6 insertions(+)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/drm/drm_mode.h~drm-add-missing-header-file-linuc-typesh include/drm/drm_mode.h
---- a/include/drm/drm_mode.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/drm_mode.h
-@@ -81,6 +81,8 @@
- #define DRM_MODE_DIRTY_ON       1
- #define DRM_MODE_DIRTY_ANNOTATE 2
- 
-+#include <linux/types.h>
-+
- struct drm_mode_modeinfo {
- 	__u32 clock;
- 	__u16 hdisplay, hsync_start, hsync_end, htotal, hskew;
-diff -puN include/drm/i915_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/i915_drm.h
---- a/include/drm/i915_drm.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/i915_drm.h
-@@ -27,6 +27,7 @@
- #ifndef _I915_DRM_H_
- #define _I915_DRM_H_
- 
-+#include <linux/types.h>
- #include "drm.h"
- 
- /* Please note that modifications to all structs defined here are
-diff -puN include/drm/mga_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/mga_drm.h
---- a/include/drm/mga_drm.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/mga_drm.h
-@@ -35,6 +35,7 @@
- #ifndef __MGA_DRM_H__
- #define __MGA_DRM_H__
- 
-+#include <linux/types.h>
- #include "drm.h"
- 
- /* WARNING: If you change any of these defines, make sure to change the
-diff -puN include/drm/radeon_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/radeon_drm.h
---- a/include/drm/radeon_drm.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/radeon_drm.h
-@@ -33,6 +33,7 @@
- #ifndef __RADEON_DRM_H__
- #define __RADEON_DRM_H__
- 
-+#include <linux/types.h>
- #include "drm.h"
- 
- /* WARNING: If you change any of these defines, make sure to change the
-diff -puN include/drm/via_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/via_drm.h
---- a/include/drm/via_drm.h~drm-add-missing-header-file-linuc-typesh
-+++ a/include/drm/via_drm.h
-@@ -24,6 +24,7 @@
- #ifndef _VIA_DRM_H_
- #define _VIA_DRM_H_
- 
-+#include <linux/types.h>
- #include "drm.h"
- 
- /* WARNING: These defines must be the same as what the Xserver uses.
+diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-update-linuss-git-repository scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-update-linuss-git-repository
++++ a/scripts/get_maintainer.pl
+@@ -1389,7 +1389,7 @@ sub vcs_exists {
+ 	warn("$P: No supported VCS found.  Add --nogit to options?\n");
+ 	warn("Using a git repository produces better results.\n");
+ 	warn("Try Linus Torvalds' latest git repository using:\n");
+-	warn("git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git\n");
++	warn("git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git\n");
+ 	$printed_novcs = 1;
+     }
+     return 0;
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from ralf.thielow@googlemail.com are
 
-linux-next.patch
-nbd-use-task_pid_nr-to-get-current-pid.patch
-nbd-replace-sysfs_create_file-with-device_create_file.patch
-nbd-replace-printk-kern_err-with-dev_err.patch
-nbd-lower-the-loglevel-of-an-error-message.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+scripts-get_maintainerpl-update-linuss-git-repository.patch
 
