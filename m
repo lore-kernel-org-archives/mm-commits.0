@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-fix-force-scanning-small-targets-without-swap.patch added to -mm tree
-Date: Wed, 17 Aug 2011 15:22:45 -0700
-Message-ID: <201108172222.p7HMMjA3032348@imap1.linux-foundation.org>
+Subject: + mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch added to -mm tree
+Date: Wed, 17 Aug 2011 15:22:51 -0700
+Message-ID: <201108172222.p7HMMpiS032354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754638Ab1HQWYC (ORCPT
+	by vger.kernel.org with ESMTP id S1754466Ab1HQWYC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 17 Aug 2011 18:24:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jweiner@redhat.com, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: jweiner@redhat.com, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
 
 
 The patch titled
-     mm: vmscan: fix force-scanning small targets without swap
+     mm: vmscan: drop nr_force_scan[] from get_scan_count
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
+     mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: fix force-scanning small targets without swap
+Subject: mm: vmscan: drop nr_force_scan[] from get_scan_count
 From: Johannes Weiner <jweiner@redhat.com>
 
-Without swap, anonymous pages are not scanned.  As such, they should not
-count when considering force-scanning a small target if there is no swap.
+The nr_force_scan[] tuple holds the effective scan numbers for anon and
+file pages in case the situation called for a forced scan and the
+regularly calculated scan numbers turned out zero.
 
-Otherwise, targets are not force-scanned even when their effective scan
-number is zero and the other conditions--kswapd/memcg--apply.
+However, the effective scan number can always be assumed to be
+SWAP_CLUSTER_MAX right before the division into anon and file.  The
+numerators and denominator are properly set up for all cases, be it force
+scan for just file, just anon, or both, to do the right thing.
 
 Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Cc: Ying Han <yinghan@google.com>
@@ -51,66 +55,73 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Acked-by: Mel Gorman <mel@csn.ul.ie>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ mm/vmscan.c |   36 ++++++++++++------------------------
+ 1 file changed, 12 insertions(+), 24 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap
+diff -puN mm/vmscan.c~mm-vmscan-drop-nr_force_scan-from-get_scan_count mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-drop-nr_force_scan-from-get_scan_count
 +++ a/mm/vmscan.c
-@@ -1830,23 +1830,15 @@ static void get_scan_count(struct zone *
- 	u64 fraction[2], denominator;
+@@ -1831,12 +1831,19 @@ static void get_scan_count(struct zone *
  	enum lru_list l;
  	int noswap = 0;
--	int force_scan = 0;
-+	bool force_scan = false;
- 	unsigned long nr_force_scan[2];
+ 	bool force_scan = false;
+-	unsigned long nr_force_scan[2];
  
--
--	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
--		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
--	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
--		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
--
--	if (((anon + file) >> priority) < SWAP_CLUSTER_MAX) {
--		/* kswapd does zone balancing and need to scan this zone */
--		if (scanning_global_lru(sc) && current_is_kswapd())
--			force_scan = 1;
--		/* memcg may have small limit and need to avoid priority drop */
--		if (!scanning_global_lru(sc))
--			force_scan = 1;
--	}
-+	/* kswapd does zone balancing and need to scan this zone */
-+	if (scanning_global_lru(sc) && current_is_kswapd())
-+		force_scan = true;
-+	/* memcg may have small limit and need to avoid priority drop */
-+	if (!scanning_global_lru(sc))
-+		force_scan = true;
+-	/* kswapd does zone balancing and needs to scan this zone */
++	/*
++	 * If the zone or memcg is small, nr[l] can be 0.  This
++	 * results in no scanning on this priority and a potential
++	 * priority drop.  Global direct reclaim can go to the next
++	 * zone and tends to have no problems. Global kswapd is for
++	 * zone balancing and it needs to scan a minimum amount. When
++	 * reclaiming for a memcg, a priority drop can cause high
++	 * latencies, so it's better to scan a minimum amount there as
++	 * well.
++	 */
+ 	if (scanning_global_lru(sc) && current_is_kswapd())
+ 		force_scan = true;
+-	/* memcg may have small limit and need to avoid priority drop */
+ 	if (!scanning_global_lru(sc))
+ 		force_scan = true;
  
- 	/* If we have no swap space, do not bother scanning anon pages. */
- 	if (!sc->may_swap || (nr_swap_pages <= 0)) {
-@@ -1859,6 +1851,11 @@ static void get_scan_count(struct zone *
+@@ -1846,8 +1853,6 @@ static void get_scan_count(struct zone *
+ 		fraction[0] = 0;
+ 		fraction[1] = 1;
+ 		denominator = 1;
+-		nr_force_scan[0] = 0;
+-		nr_force_scan[1] = SWAP_CLUSTER_MAX;
  		goto out;
  	}
  
-+	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
-+		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
-+	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
-+		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
-+
- 	if (scanning_global_lru(sc)) {
- 		free  = zone_page_state(zone, NR_FREE_PAGES);
- 		/* If we have very few page cache pages,
-_
-
-Patches currently in -mm which might be from jweiner@redhat.com are
-
-memcg-pin-execution-to-current-cpu-while-draining-stock.patch
-linux-next.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
-
+@@ -1864,8 +1869,6 @@ static void get_scan_count(struct zone *
+ 			fraction[0] = 1;
+ 			fraction[1] = 0;
+ 			denominator = 1;
+-			nr_force_scan[0] = SWAP_CLUSTER_MAX;
+-			nr_force_scan[1] = 0;
+ 			goto out;
+ 		}
+ 	}
+@@ -1914,11 +1917,6 @@ static void get_scan_count(struct zone *
+ 	fraction[0] = ap;
+ 	fraction[1] = fp;
+ 	denominator = ap + fp + 1;
+-	if (force_scan) {
+-		unsigned long scan = SWAP_CLUSTER_MAX;
+-		nr_force_scan[0] = div64_u64(scan * ap, denominator);
+-		nr_force_scan[1] = div64_u64(scan * fp, denominator);
+-	}
+ out:
+ 	for_each_evictable_lru(l) {
+ 		int file = is_file_lru(l);
+@@ -1927,20 +1925,10 @@ out:
+ 		scan = zone_nr_lru_pages(zone, sc, l);
+ 		if (priority || noswap) {
+ 			scan >>= priority;
++			if (!scan && force_scan)
++				scan = SWAP_CLUSTER_MAX;
+ 			scan = div64_u64(scan * fraction[file], denominator);
+ 		}
