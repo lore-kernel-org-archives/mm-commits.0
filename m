@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-distinguish-between-mlocked-and-pinned-pages.patch added to -mm tree
-Date: Wed, 17 Aug 2011 15:55:13 -0700
-Message-ID: <201108172255.p7HMtDN2001441@imap1.linux-foundation.org>
+Subject: + memcg-replace-ss-id_lock-with-a-rwlock.patch added to -mm tree
+Date: Wed, 17 Aug 2011 15:59:17 -0700
+Message-ID: <201108172259.p7HMxHwf001630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34788 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752974Ab1HQWzU (ORCPT
+	by vger.kernel.org with ESMTP id S1753184Ab1HQW70 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 18:55:20 -0400
+	Wed, 17 Aug 2011 18:59:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cl@linux.com, hughd@google.com, infinipath@qlogic.com, roland@kernel.org, sean.hefty@intel.com
+Cc: abrestic@google.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@gmail.com, yinghan@google.com
 
 
 The patch titled
-     mm: distinguish between mlocked and pinned pages
+     memcg: replace ss->id_lock with a rwlock
 has been added to the -mm tree.  Its filename is
-     mm-distinguish-between-mlocked-and-pinned-pages.patch
+     memcg-replace-ss-id_lock-with-a-rwlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,194 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: distinguish between mlocked and pinned pages
-From: Christoph Lameter <cl@linux.com>
+Subject: memcg: replace ss->id_lock with a rwlock
+From: Andrew Bresticker <abrestic@google.com>
 
-Some kernel components pin user space memory (infiniband and perf) (by
-increasing the page count) and account that memory as "mlocked".
+While back-porting Johannes Weiner's patch "mm: memcg-aware global
+reclaim" for an internal effort, we noticed a significant performance
+regression during page-reclaim heavy workloads due to high contention of
+the ss->id_lock.  This lock protects idr map, and serializes calls to
+idr_get_next() in css_get_next() (which is used during the memcg hierarchy
+walk).  Since idr_get_next() is just doing a look up, we need only
+serialize it with respect to idr_remove()/idr_get_new().  By making the
+ss->id_lock a rwlock, contention is greatly reduced and performance
+improves.
 
-The difference between mlocking and pinning is:
+Tested: cat a 256m file from a ramdisk in a 128m container 50 times on
+each core (one file + container per core) in parallel on a NUMA machine. 
+Result is the time for the test to complete in 1 of the containers.  Both
+kernels included Johannes' memcg-aware global reclaim patches.
 
-A. mlocked pages are marked with PG_mlocked and are exempt from
-   swapping. Page migration may move them around though.
-   They are kept on a special LRU list.
+Before rwlock patch: 1710.778s
+After rwlock patch: 152.227s
 
-B. Pinned pages cannot be moved because something needs to
-   directly access physical memory. They may not be on any
-   LRU list.
-
-I recently saw an mlockalled process where mm->locked_vm became
-bigger than the virtual size of the process (!) because some
-memory was accounted for twice:
-
-Once when the page was mlocked and once when the Infiniband
-layer increased the refcount because it needt to pin the RDMA
-memory.
-
-This patch introduces a separate counter for pinned pages and
-accounts them seperately.
-
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Mike Marciniszyn <infinipath@qlogic.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Andrew Bresticker <abrestic@google.com>
+Cc: Paul Menage <menage@gmail.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/umem.c                 |    6 +++---
- drivers/infiniband/hw/ipath/ipath_user_pages.c |    6 +++---
- drivers/infiniband/hw/qib/qib_user_pages.c     |    4 ++--
- fs/proc/task_mmu.c                             |    2 ++
- include/linux/mm_types.h                       |    2 +-
- kernel/events/core.c                           |    6 +++---
- 6 files changed, 14 insertions(+), 12 deletions(-)
+ include/linux/cgroup.h |    2 +-
+ kernel/cgroup.c        |   18 +++++++++---------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/infiniband/core/umem.c~mm-distinguish-between-mlocked-and-pinned-pages drivers/infiniband/core/umem.c
---- a/drivers/infiniband/core/umem.c~mm-distinguish-between-mlocked-and-pinned-pages
-+++ a/drivers/infiniband/core/umem.c
-@@ -137,7 +137,7 @@ struct ib_umem *ib_umem_get(struct ib_uc
+diff -puN include/linux/cgroup.h~memcg-replace-ss-id_lock-with-a-rwlock include/linux/cgroup.h
+--- a/include/linux/cgroup.h~memcg-replace-ss-id_lock-with-a-rwlock
++++ a/include/linux/cgroup.h
+@@ -516,7 +516,7 @@ struct cgroup_subsys {
+ 	struct list_head sibling;
+ 	/* used when use_id == true */
+ 	struct idr idr;
+-	spinlock_t id_lock;
++	rwlock_t id_lock;
  
- 	down_write(&current->mm->mmap_sem);
+ 	/* should be defined only by modular subsystems */
+ 	struct module *module;
+diff -puN kernel/cgroup.c~memcg-replace-ss-id_lock-with-a-rwlock kernel/cgroup.c
+--- a/kernel/cgroup.c~memcg-replace-ss-id_lock-with-a-rwlock
++++ a/kernel/cgroup.c
+@@ -4880,9 +4880,9 @@ void free_css_id(struct cgroup_subsys *s
  
--	locked     = npages + current->mm->locked_vm;
-+	locked     = npages + current->mm->pinned_vm;
- 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
- 
- 	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
-@@ -207,7 +207,7 @@ out:
- 		__ib_umem_release(context->device, umem, 0);
- 		kfree(umem);
- 	} else
--		current->mm->locked_vm = locked;
-+		current->mm->pinned_vm = locked;
- 
- 	up_write(&current->mm->mmap_sem);
- 	if (vma_list)
-@@ -223,7 +223,7 @@ static void ib_umem_account(struct work_
- 	struct ib_umem *umem = container_of(work, struct ib_umem, work);
- 
- 	down_write(&umem->mm->mmap_sem);
--	umem->mm->locked_vm -= umem->diff;
-+	umem->mm->pinned_vm -= umem->diff;
- 	up_write(&umem->mm->mmap_sem);
- 	mmput(umem->mm);
- 	kfree(umem);
-diff -puN drivers/infiniband/hw/ipath/ipath_user_pages.c~mm-distinguish-between-mlocked-and-pinned-pages drivers/infiniband/hw/ipath/ipath_user_pages.c
---- a/drivers/infiniband/hw/ipath/ipath_user_pages.c~mm-distinguish-between-mlocked-and-pinned-pages
-+++ a/drivers/infiniband/hw/ipath/ipath_user_pages.c
-@@ -79,7 +79,7 @@ static int __ipath_get_user_pages(unsign
- 			goto bail_release;
- 	}
- 
--	current->mm->locked_vm += num_pages;
-+	current->mm->pinned_vm += num_pages;
- 
- 	ret = 0;
- 	goto bail;
-@@ -178,7 +178,7 @@ void ipath_release_user_pages(struct pag
- 
- 	__ipath_release_user_pages(p, num_pages, 1);
- 
--	current->mm->locked_vm -= num_pages;
-+	current->mm->pinned_vm -= num_pages;
- 
- 	up_write(&current->mm->mmap_sem);
+ 	rcu_assign_pointer(id->css, NULL);
+ 	rcu_assign_pointer(css->id, NULL);
+-	spin_lock(&ss->id_lock);
++	write_lock(&ss->id_lock);
+ 	idr_remove(&ss->idr, id->id);
+-	spin_unlock(&ss->id_lock);
++	write_unlock(&ss->id_lock);
+ 	kfree_rcu(id, rcu_head);
  }
-@@ -195,7 +195,7 @@ static void user_pages_account(struct wo
- 		container_of(_work, struct ipath_user_pages_work, work);
- 
- 	down_write(&work->mm->mmap_sem);
--	work->mm->locked_vm -= work->num_pages;
-+	work->mm->pinned_vm -= work->num_pages;
- 	up_write(&work->mm->mmap_sem);
- 	mmput(work->mm);
- 	kfree(work);
-diff -puN drivers/infiniband/hw/qib/qib_user_pages.c~mm-distinguish-between-mlocked-and-pinned-pages drivers/infiniband/hw/qib/qib_user_pages.c
---- a/drivers/infiniband/hw/qib/qib_user_pages.c~mm-distinguish-between-mlocked-and-pinned-pages
-+++ a/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -74,7 +74,7 @@ static int __qib_get_user_pages(unsigned
- 			goto bail_release;
+ EXPORT_SYMBOL_GPL(free_css_id);
+@@ -4908,10 +4908,10 @@ static struct css_id *get_new_cssid(stru
+ 		error = -ENOMEM;
+ 		goto err_out;
  	}
+-	spin_lock(&ss->id_lock);
++	write_lock(&ss->id_lock);
+ 	/* Don't use 0. allocates an ID of 1-65535 */
+ 	error = idr_get_new_above(&ss->idr, newid, 1, &myid);
+-	spin_unlock(&ss->id_lock);
++	write_unlock(&ss->id_lock);
  
--	current->mm->locked_vm += num_pages;
-+	current->mm->pinned_vm += num_pages;
+ 	/* Returns error when there are no free spaces for new ID.*/
+ 	if (error) {
+@@ -4926,9 +4926,9 @@ static struct css_id *get_new_cssid(stru
+ 	return newid;
+ remove_idr:
+ 	error = -ENOSPC;
+-	spin_lock(&ss->id_lock);
++	write_lock(&ss->id_lock);
+ 	idr_remove(&ss->idr, myid);
+-	spin_unlock(&ss->id_lock);
++	write_unlock(&ss->id_lock);
+ err_out:
+ 	kfree(newid);
+ 	return ERR_PTR(error);
+@@ -4940,7 +4940,7 @@ static int __init_or_module cgroup_init_
+ {
+ 	struct css_id *newid;
  
- 	ret = 0;
- 	goto bail;
-@@ -151,7 +151,7 @@ void qib_release_user_pages(struct page 
- 	__qib_release_user_pages(p, num_pages, 1);
+-	spin_lock_init(&ss->id_lock);
++	rwlock_init(&ss->id_lock);
+ 	idr_init(&ss->idr);
  
- 	if (current->mm) {
--		current->mm->locked_vm -= num_pages;
-+		current->mm->pinned_vm -= num_pages;
- 		up_write(&current->mm->mmap_sem);
- 	}
- }
-diff -puN fs/proc/task_mmu.c~mm-distinguish-between-mlocked-and-pinned-pages fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-distinguish-between-mlocked-and-pinned-pages
-+++ a/fs/proc/task_mmu.c
-@@ -44,6 +44,7 @@ void task_mem(struct seq_file *m, struct
- 		"VmPeak:\t%8lu kB\n"
- 		"VmSize:\t%8lu kB\n"
- 		"VmLck:\t%8lu kB\n"
-+		"VmPin:\t%8lu kB\n"
- 		"VmHWM:\t%8lu kB\n"
- 		"VmRSS:\t%8lu kB\n"
- 		"VmData:\t%8lu kB\n"
-@@ -55,6 +56,7 @@ void task_mem(struct seq_file *m, struct
- 		hiwater_vm << (PAGE_SHIFT-10),
- 		(total_vm - mm->reserved_vm) << (PAGE_SHIFT-10),
- 		mm->locked_vm << (PAGE_SHIFT-10),
-+		mm->pinned_vm << (PAGE_SHIFT-10),
- 		hiwater_rss << (PAGE_SHIFT-10),
- 		total_rss << (PAGE_SHIFT-10),
- 		data << (PAGE_SHIFT-10),
-diff -puN include/linux/mm_types.h~mm-distinguish-between-mlocked-and-pinned-pages include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-distinguish-between-mlocked-and-pinned-pages
-+++ a/include/linux/mm_types.h
-@@ -281,7 +281,7 @@ struct mm_struct {
- 	unsigned long hiwater_rss;	/* High-watermark of RSS usage */
- 	unsigned long hiwater_vm;	/* High-water virtual memory usage */
+ 	newid = get_new_cssid(ss, 0);
+@@ -5035,9 +5035,9 @@ css_get_next(struct cgroup_subsys *ss, i
+ 		 * scan next entry from bitmap(tree), tmpid is updated after
+ 		 * idr_get_next().
+ 		 */
+-		spin_lock(&ss->id_lock);
++		read_lock(&ss->id_lock);
+ 		tmp = idr_get_next(&ss->idr, &tmpid);
+-		spin_unlock(&ss->id_lock);
++		read_unlock(&ss->id_lock);
  
--	unsigned long total_vm, locked_vm, shared_vm, exec_vm;
-+	unsigned long total_vm, locked_vm, pinned_vm, shared_vm, exec_vm;
- 	unsigned long stack_vm, reserved_vm, def_flags, nr_ptes;
- 	unsigned long start_code, end_code, start_data, end_data;
- 	unsigned long start_brk, brk, start_stack;
-diff -puN kernel/events/core.c~mm-distinguish-between-mlocked-and-pinned-pages kernel/events/core.c
---- a/kernel/events/core.c~mm-distinguish-between-mlocked-and-pinned-pages
-+++ a/kernel/events/core.c
-@@ -3501,7 +3501,7 @@ static void perf_mmap_close(struct vm_ar
- 		struct ring_buffer *rb = event->rb;
- 
- 		atomic_long_sub((size >> PAGE_SHIFT) + 1, &user->locked_vm);
--		vma->vm_mm->locked_vm -= event->mmap_locked;
-+		vma->vm_mm->pinned_vm -= event->mmap_locked;
- 		rcu_assign_pointer(event->rb, NULL);
- 		mutex_unlock(&event->mmap_mutex);
- 
-@@ -3582,7 +3582,7 @@ static int perf_mmap(struct file *file, 
- 
- 	lock_limit = rlimit(RLIMIT_MEMLOCK);
- 	lock_limit >>= PAGE_SHIFT;
--	locked = vma->vm_mm->locked_vm + extra;
-+	locked = vma->vm_mm->pinned_vm + extra;
- 
- 	if ((locked > lock_limit) && perf_paranoid_tracepoint_raw() &&
- 		!capable(CAP_IPC_LOCK)) {
-@@ -3608,7 +3608,7 @@ static int perf_mmap(struct file *file, 
- 	atomic_long_add(user_extra, &user->locked_vm);
- 	event->mmap_locked = extra;
- 	event->mmap_user = get_current_user();
--	vma->vm_mm->locked_vm += event->mmap_locked;
-+	vma->vm_mm->pinned_vm += event->mmap_locked;
- 
- unlock:
- 	if (!ret)
+ 		if (!tmp)
+ 			break;
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from abrestic@google.com are
 
-mm-distinguish-between-mlocked-and-pinned-pages.patch
+memcg-replace-ss-id_lock-with-a-rwlock.patch
 
