@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch added to -mm tree
-Date: Wed, 17 Aug 2011 15:22:51 -0700
-Message-ID: <201108172222.p7HMMpiS032354@imap1.linux-foundation.org>
+Subject: + drm-fix-kconfig-unmet-dependency-warning.patch added to -mm tree
+Date: Wed, 17 Aug 2011 15:50:15 -0700
+Message-ID: <201108172250.p7HMoFtu001199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754466Ab1HQWYC (ORCPT
+	by vger.kernel.org with ESMTP id S1754315Ab1HQWuS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 18:24:02 -0400
+	Wed, 17 Aug 2011 18:50:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jweiner@redhat.com, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: rdunlap@xenotime.net, airlied@linux.ie
 
 
 The patch titled
-     mm: vmscan: drop nr_force_scan[] from get_scan_count
+     drm: fix kconfig unmet dependency warning
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
+     drm-fix-kconfig-unmet-dependency-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: drop nr_force_scan[] from get_scan_count
-From: Johannes Weiner <jweiner@redhat.com>
+Subject: drm: fix kconfig unmet dependency warning
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-The nr_force_scan[] tuple holds the effective scan numbers for anon and
-file pages in case the situation called for a forced scan and the
-regularly calculated scan numbers turned out zero.
+Fix kconfig unmet dependency warning.  BACKLIGHT_CLASS_DEVICE depends on
+BACKLIGHT_LCD_SUPPORT, so select the latter along with the former.
 
-However, the effective scan number can always be assumed to be
-SWAP_CLUSTER_MAX right before the division into anon and file.  The
-numerators and denominator are properly set up for all cases, be it force
-scan for just file, just anon, or both, to do the right thing.
+warning: (DRM_RADEON_KMS && DRM_I915 && STUB_POULSBO && FB_BACKLIGHT && PANEL_SHARP_LS037V7DW01 && PANEL_ACX565AKM && USB_APPLEDISPLAY && FB_OLPC_DCON && ASUS_LAPTOP && SONY_LAPTOP && THINKPAD_ACPI && EEEPC_LAPTOP && ACPI_ASUS && ACPI_CMPC && SAMSUNG_Q10) selects BACKLIGHT_CLASS_DEVICE which has unmet direct dependencies (HAS_IOMEM && BACKLIGHT_LCD_SUPPORT)
 
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   36 ++++++++++++------------------------
- 1 file changed, 12 insertions(+), 24 deletions(-)
+ drivers/gpu/drm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~mm-vmscan-drop-nr_force_scan-from-get_scan_count mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-drop-nr_force_scan-from-get_scan_count
-+++ a/mm/vmscan.c
-@@ -1831,12 +1831,19 @@ static void get_scan_count(struct zone *
- 	enum lru_list l;
- 	int noswap = 0;
- 	bool force_scan = false;
--	unsigned long nr_force_scan[2];
- 
--	/* kswapd does zone balancing and needs to scan this zone */
-+	/*
-+	 * If the zone or memcg is small, nr[l] can be 0.  This
-+	 * results in no scanning on this priority and a potential
-+	 * priority drop.  Global direct reclaim can go to the next
-+	 * zone and tends to have no problems. Global kswapd is for
-+	 * zone balancing and it needs to scan a minimum amount. When
-+	 * reclaiming for a memcg, a priority drop can cause high
-+	 * latencies, so it's better to scan a minimum amount there as
-+	 * well.
-+	 */
- 	if (scanning_global_lru(sc) && current_is_kswapd())
- 		force_scan = true;
--	/* memcg may have small limit and need to avoid priority drop */
- 	if (!scanning_global_lru(sc))
- 		force_scan = true;
- 
-@@ -1846,8 +1853,6 @@ static void get_scan_count(struct zone *
- 		fraction[0] = 0;
- 		fraction[1] = 1;
- 		denominator = 1;
--		nr_force_scan[0] = 0;
--		nr_force_scan[1] = SWAP_CLUSTER_MAX;
- 		goto out;
- 	}
- 
-@@ -1864,8 +1869,6 @@ static void get_scan_count(struct zone *
- 			fraction[0] = 1;
- 			fraction[1] = 0;
- 			denominator = 1;
--			nr_force_scan[0] = SWAP_CLUSTER_MAX;
--			nr_force_scan[1] = 0;
- 			goto out;
- 		}
- 	}
-@@ -1914,11 +1917,6 @@ static void get_scan_count(struct zone *
- 	fraction[0] = ap;
- 	fraction[1] = fp;
- 	denominator = ap + fp + 1;
--	if (force_scan) {
--		unsigned long scan = SWAP_CLUSTER_MAX;
--		nr_force_scan[0] = div64_u64(scan * ap, denominator);
--		nr_force_scan[1] = div64_u64(scan * fp, denominator);
--	}
- out:
- 	for_each_evictable_lru(l) {
- 		int file = is_file_lru(l);
-@@ -1927,20 +1925,10 @@ out:
- 		scan = zone_nr_lru_pages(zone, sc, l);
- 		if (priority || noswap) {
- 			scan >>= priority;
-+			if (!scan && force_scan)
-+				scan = SWAP_CLUSTER_MAX;
- 			scan = div64_u64(scan * fraction[file], denominator);
- 		}
+diff -puN drivers/gpu/drm/Kconfig~drm-fix-kconfig-unmet-dependency-warning drivers/gpu/drm/Kconfig
+--- a/drivers/gpu/drm/Kconfig~drm-fix-kconfig-unmet-dependency-warning
++++ a/drivers/gpu/drm/Kconfig
+@@ -96,6 +96,7 @@ config DRM_I915
+ 	select FB_CFB_IMAGEBLIT
+ 	# i915 depends on ACPI_VIDEO when ACPI is enabled
+ 	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
++	select BACKLIGHT_LCD_SUPPORT if ACPI
+ 	select BACKLIGHT_CLASS_DEVICE if ACPI
+ 	select VIDEO_OUTPUT_CONTROL if ACPI
+ 	select INPUT if ACPI
+_
+
+Patches currently in -mm which might be from rdunlap@xenotime.net are
+
+origin.patch
+linux-next.patch
+drm-fix-kconfig-unmet-dependency-warning.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+cross-memory-attach-update.patch
+consolidate-config_debug_strict_user_copy_checks-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+docs-sysfs-specify-abi-documentation-requirements.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
+
