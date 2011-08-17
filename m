@@ -1,88 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] nbd-some-trivial-improvements.patch removed from -mm tree
-Date: Wed, 17 Aug 2011 13:25:01 -0700
-Message-ID: <201108172025.p7HKP1Ew026117@imap1.linux-foundation.org>
+Subject: [obsolete] drm-add-missing-header-file-linuc-typesh.patch removed from -mm tree
+Date: Wed, 17 Aug 2011 14:09:02 -0700
+Message-ID: <201108172109.p7HL92Su028494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36187 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753730Ab1HQUZh (ORCPT
+	by vger.kernel.org with ESMTP id S1754428Ab1HQVJH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 16:25:37 -0400
+	Wed, 17 Aug 2011 17:09:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amwang@redhat.com, Paul.Clements@steeleye.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: amwang@redhat.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nbd: some trivial improvements
+     drm: add missing header file <linuc/types.h>
 has been removed from the -mm tree.  Its filename was
-     nbd-some-trivial-improvements.patch
+     drm-add-missing-header-file-linuc-typesh.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nbd: some trivial improvements
+Subject: drm: add missing header file <linuc/types.h>
 From: Amerigo Wang <amwang@redhat.com>
 
-1) use task_pid_nr(current) to get the pid of current process,
+This patch fixes the following 'make headers_check' errors:
 
-2) replace sysfs_create_file() with device_create_file()
-
-3) lower the loglevel of an error message.
+linux-2.6/usr/include/drm/drm_mode.h:85: found __[us]{8,16,32,64} type without #include <linux/types.h>
+linux-2.6/usr/include/drm/i915_drm.h:120: found __[us]{8,16,32,64} type without #include <linux/types.h>
+linux-2.6/usr/include/drm/mga_drm.h:260: found __[us]{8,16,32,64} type without #include <linux/types.h>
+linux-2.6/usr/include/drm/radeon_drm.h:758: found __[us]{8,16,32,64} type without #include <linux/types.h>
+linux-2.6/usr/include/drm/via_drm.h:117: found __[us]{8,16,32,64} type without #include <linux/types.h>
 
 Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Paul Clements <Paul.Clements@steeleye.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/drm/drm_mode.h   |    2 ++
+ include/drm/i915_drm.h   |    1 +
+ include/drm/mga_drm.h    |    1 +
+ include/drm/radeon_drm.h |    1 +
+ include/drm/via_drm.h    |    1 +
+ 5 files changed, 6 insertions(+)
 
-diff -puN drivers/block/nbd.c~nbd-some-trivial-improvements drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-some-trivial-improvements
-+++ a/drivers/block/nbd.c
-@@ -405,10 +405,10 @@ static int nbd_do_it(struct nbd_device *
+diff -puN include/drm/drm_mode.h~drm-add-missing-header-file-linuc-typesh include/drm/drm_mode.h
+--- a/include/drm/drm_mode.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/drm_mode.h
+@@ -81,6 +81,8 @@
+ #define DRM_MODE_DIRTY_ON       1
+ #define DRM_MODE_DIRTY_ANNOTATE 2
  
- 	BUG_ON(lo->magic != LO_MAGIC);
++#include <linux/types.h>
++
+ struct drm_mode_modeinfo {
+ 	__u32 clock;
+ 	__u16 hdisplay, hsync_start, hsync_end, htotal, hskew;
+diff -puN include/drm/i915_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/i915_drm.h
+--- a/include/drm/i915_drm.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/i915_drm.h
+@@ -27,6 +27,7 @@
+ #ifndef _I915_DRM_H_
+ #define _I915_DRM_H_
  
--	lo->pid = current->pid;
--	ret = sysfs_create_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
-+	lo->pid = task_pid_nr(current);
-+	ret = device_create_file(disk_to_dev(lo->disk), &pid_attr);
- 	if (ret) {
--		printk(KERN_ERR "nbd: sysfs_create_file failed!");
-+		printk(KERN_ERR "nbd: device_create_file failed!");
- 		lo->pid = 0;
- 		return ret;
- 	}
-@@ -416,7 +416,7 @@ static int nbd_do_it(struct nbd_device *
- 	while ((req = nbd_read_stat(lo)) != NULL)
- 		nbd_end_request(req);
++#include <linux/types.h>
+ #include "drm.h"
  
--	sysfs_remove_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
-+	device_remove_file(disk_to_dev(lo->disk), &pid_attr);
- 	lo->pid = 0;
- 	return 0;
- }
-@@ -745,7 +745,7 @@ static int __init nbd_init(void)
- 	BUILD_BUG_ON(sizeof(struct nbd_request) != 28);
+ /* Please note that modifications to all structs defined here are
+diff -puN include/drm/mga_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/mga_drm.h
+--- a/include/drm/mga_drm.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/mga_drm.h
+@@ -35,6 +35,7 @@
+ #ifndef __MGA_DRM_H__
+ #define __MGA_DRM_H__
  
- 	if (max_part < 0) {
--		printk(KERN_CRIT "nbd: max_part must be >= 0\n");
-+		printk(KERN_ERR "nbd: max_part must be >= 0\n");
- 		return -EINVAL;
- 	}
++#include <linux/types.h>
+ #include "drm.h"
  
+ /* WARNING: If you change any of these defines, make sure to change the
+diff -puN include/drm/radeon_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/radeon_drm.h
+--- a/include/drm/radeon_drm.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/radeon_drm.h
+@@ -33,6 +33,7 @@
+ #ifndef __RADEON_DRM_H__
+ #define __RADEON_DRM_H__
+ 
++#include <linux/types.h>
+ #include "drm.h"
+ 
+ /* WARNING: If you change any of these defines, make sure to change the
+diff -puN include/drm/via_drm.h~drm-add-missing-header-file-linuc-typesh include/drm/via_drm.h
+--- a/include/drm/via_drm.h~drm-add-missing-header-file-linuc-typesh
++++ a/include/drm/via_drm.h
+@@ -24,6 +24,7 @@
+ #ifndef _VIA_DRM_H_
+ #define _VIA_DRM_H_
+ 
++#include <linux/types.h>
+ #include "drm.h"
+ 
+ /* WARNING: These defines must be the same as what the Xserver uses.
 _
 
 Patches currently in -mm which might be from amwang@redhat.com are
 
 linux-next.patch
-drm-add-missing-header-file-linuc-typesh.patch
 nbd-use-task_pid_nr-to-get-current-pid.patch
 nbd-replace-sysfs_create_file-with-device_create_file.patch
 nbd-replace-printk-kern_err-with-dev_err.patch
