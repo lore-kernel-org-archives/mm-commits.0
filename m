@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-evgeniy-has-moved.patch added to -mm tree
-Date: Wed, 17 Aug 2011 12:23:54 -0700
-Message-ID: <201108171923.p7HJNsi1022927@imap1.linux-foundation.org>
+Subject: + memcg-pin-execution-to-current-cpu-while-draining-stock.patch added to -mm tree
+Date: Wed, 17 Aug 2011 13:03:40 -0700
+Message-ID: <201108172003.p7HK3e1Q025013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751868Ab1HQTY3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752446Ab1HQUE0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 15:24:29 -0400
+	Wed, 17 Aug 2011 16:04:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zbr@ioremap.net
+Cc: jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, stable@kernel.org
 
 
 The patch titled
-     MAINTAINERS: Evgeniy has moved
+     memcg: pin execution to current cpu while draining stock
 has been added to the -mm tree.  Its filename is
-     maintainers-evgeniy-has-moved.patch
+     memcg-pin-execution-to-current-cpu-while-draining-stock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,272 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Evgeniy has moved
-From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: memcg: pin execution to current cpu while draining stock
+From: Johannes Weiner <jweiner@redhat.com>
 
-Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
+Commit d1a05b6 ("memcg do not try to drain per-cpu caches without pages")
+added a drain_local_stock() call to a preemptible section.
+
+The draining task looks up the cpu-local stock twice to set the
+draining-flag, then to drain the stock and clear the flag again.  If the
+task is migrated to a different CPU in between, noone will clear the flag
+on the first stock and it will be forever undrainable.  Its charge can not
+be recovered and the cgroup can not be deleted anymore.
+
+Properly pin the task to the executing CPU while draining stocks.
+
+Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@kernel.org>		[3.0.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                    |    2 +-
- drivers/w1/masters/ds2490.c    |    4 ++--
- drivers/w1/masters/matrox_w1.c |    4 ++--
- drivers/w1/slaves/w1_smem.c    |    4 ++--
- drivers/w1/slaves/w1_therm.c   |    4 ++--
- drivers/w1/w1.c                |    4 ++--
- drivers/w1/w1.h                |    2 +-
- drivers/w1/w1_family.c         |    2 +-
- drivers/w1/w1_family.h         |    2 +-
- drivers/w1/w1_int.c            |    2 +-
- drivers/w1/w1_int.h            |    2 +-
- drivers/w1/w1_io.c             |    2 +-
- drivers/w1/w1_log.h            |    2 +-
- drivers/w1/w1_netlink.c        |    2 +-
- drivers/w1/w1_netlink.h        |    2 +-
- include/linux/connector.h      |    2 +-
- 16 files changed, 21 insertions(+), 21 deletions(-)
+ mm/memcontrol.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-evgeniy-has-moved MAINTAINERS
---- a/MAINTAINERS~maintainers-evgeniy-has-moved
-+++ a/MAINTAINERS
-@@ -7087,7 +7087,7 @@ S:	Supported
- F:	drivers/mmc/host/vub300.c
+diff -puN mm/memcontrol.c~memcg-pin-execution-to-current-cpu-while-draining-stock mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-pin-execution-to-current-cpu-while-draining-stock
++++ a/mm/memcontrol.c
+@@ -2169,13 +2169,7 @@ static void drain_all_stock(struct mem_c
  
- W1 DALLAS'S 1-WIRE BUS
--M:	Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+M:	Evgeniy Polyakov <zbr@ioremap.net>
- S:	Maintained
- F:	Documentation/w1/
- F:	drivers/w1/
-diff -puN drivers/w1/masters/ds2490.c~maintainers-evgeniy-has-moved drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/masters/ds2490.c
-@@ -1,7 +1,7 @@
- /*
-  *	dscore.c
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -1024,5 +1024,5 @@ module_init(ds_init);
- module_exit(ds_fini);
+ 	/* Notify other cpus that system-wide "drain" is running */
+ 	get_online_cpus();
+-	/*
+-	 * Get a hint for avoiding draining charges on the current cpu,
+-	 * which must be exhausted by our charging.  It is not required that
+-	 * this be a precise check, so we use raw_smp_processor_id() instead of
+-	 * getcpu()/putcpu().
+-	 */
+-	curcpu = raw_smp_processor_id();
++	curcpu = get_cpu();
+ 	for_each_online_cpu(cpu) {
+ 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
+ 		struct mem_cgroup *mem;
+@@ -2192,6 +2186,7 @@ static void drain_all_stock(struct mem_c
+ 				schedule_work_on(cpu, &stock->work);
+ 		}
+ 	}
++	put_cpu();
  
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
-+MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
- MODULE_DESCRIPTION("DS2490 USB <-> W1 bus master driver (DS9490*)");
-diff -puN drivers/w1/masters/matrox_w1.c~maintainers-evgeniy-has-moved drivers/w1/masters/matrox_w1.c
---- a/drivers/w1/masters/matrox_w1.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/masters/matrox_w1.c
-@@ -1,7 +1,7 @@
- /*
-  *	matrox_w1.c
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -39,7 +39,7 @@
- #include "../w1_log.h"
- 
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
-+MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
- MODULE_DESCRIPTION("Driver for transport(Dallas 1-wire prtocol) over VGA DDC(matrox gpio).");
- 
- static struct pci_device_id matrox_w1_tbl[] = {
-diff -puN drivers/w1/slaves/w1_smem.c~maintainers-evgeniy-has-moved drivers/w1/slaves/w1_smem.c
---- a/drivers/w1/slaves/w1_smem.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/slaves/w1_smem.c
-@@ -1,7 +1,7 @@
- /*
-  *	w1_smem.c
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -32,7 +32,7 @@
- #include "../w1_family.h"
- 
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
-+MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
- MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, 64bit memory family.");
- 
- static struct w1_family w1_smem_family_01 = {
-diff -puN drivers/w1/slaves/w1_therm.c~maintainers-evgeniy-has-moved drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -1,7 +1,7 @@
- /*
-  *	w1_therm.c
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -34,7 +34,7 @@
- #include "../w1_family.h"
- 
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
-+MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
- MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
- 
- /* Allow the strong pullup to be disabled, but default to enabled.
-diff -puN drivers/w1/w1.c~maintainers-evgeniy-has-moved drivers/w1/w1.c
---- a/drivers/w1/w1.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1.c
-@@ -1,7 +1,7 @@
- /*
-  *	w1.c
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -42,7 +42,7 @@
- #include "w1_netlink.h"
- 
- MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
-+MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
- MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol.");
- 
- static int w1_timeout = 10;
-diff -puN drivers/w1/w1.h~maintainers-evgeniy-has-moved drivers/w1/w1.h
---- a/drivers/w1/w1.h~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1.h
-@@ -1,7 +1,7 @@
- /*
-  *	w1.h
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN drivers/w1/w1_family.c~maintainers-evgeniy-has-moved drivers/w1/w1_family.c
---- a/drivers/w1/w1_family.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1_family.c
-@@ -1,7 +1,7 @@
- /*
-  *	w1_family.c
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN drivers/w1/w1_family.h~maintainers-evgeniy-has-moved drivers/w1/w1_family.h
---- a/drivers/w1/w1_family.h~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1_family.h
-@@ -1,7 +1,7 @@
- /*
-  *	w1_family.h
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN drivers/w1/w1_int.c~maintainers-evgeniy-has-moved drivers/w1/w1_int.c
---- a/drivers/w1/w1_int.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1_int.c
-@@ -1,7 +1,7 @@
- /*
-  *	w1_int.c
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN drivers/w1/w1_int.h~maintainers-evgeniy-has-moved drivers/w1/w1_int.h
---- a/drivers/w1/w1_int.h~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1_int.h
-@@ -1,7 +1,7 @@
- /*
-  *	w1_int.h
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN drivers/w1/w1_io.c~maintainers-evgeniy-has-moved drivers/w1/w1_io.c
---- a/drivers/w1/w1_io.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1_io.c
-@@ -1,7 +1,7 @@
- /*
-  *	w1_io.c
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN drivers/w1/w1_log.h~maintainers-evgeniy-has-moved drivers/w1/w1_log.h
---- a/drivers/w1/w1_log.h~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1_log.h
-@@ -1,7 +1,7 @@
- /*
-  *	w1_log.h
-  *
-- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN drivers/w1/w1_netlink.c~maintainers-evgeniy-has-moved drivers/w1/w1_netlink.c
---- a/drivers/w1/w1_netlink.c~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1_netlink.c
-@@ -1,7 +1,7 @@
- /*
-  * w1_netlink.c
-  *
-- * Copyright (c) 2003 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2003 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN drivers/w1/w1_netlink.h~maintainers-evgeniy-has-moved drivers/w1/w1_netlink.h
---- a/drivers/w1/w1_netlink.h~maintainers-evgeniy-has-moved
-+++ a/drivers/w1/w1_netlink.h
-@@ -1,7 +1,7 @@
- /*
-  * w1_netlink.h
-  *
-- * Copyright (c) 2003 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * Copyright (c) 2003 Evgeniy Polyakov <zbr@ioremap.net>
-  *
-  *
-  * This program is free software; you can redistribute it and/or modify
-diff -puN include/linux/connector.h~maintainers-evgeniy-has-moved include/linux/connector.h
---- a/include/linux/connector.h~maintainers-evgeniy-has-moved
-+++ a/include/linux/connector.h
-@@ -1,7 +1,7 @@
- /*
-  * 	connector.h
-  * 
-- * 2004-2005 Copyright (c) Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+ * 2004-2005 Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
-  * All rights reserved.
-  * 
-  * This program is free software; you can redistribute it and/or modify
+ 	if (!sync)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from zbr@ioremap.net are
+Patches currently in -mm which might be from jweiner@redhat.com are
 
-w1-fix-for-loop-in-w1_f29_remove_slave.patch
-maintainers-evgeniy-has-moved.patch
-hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch
-w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it.patch
+memcg-pin-execution-to-current-cpu-while-draining-stock.patch
+linux-next.patch
 
