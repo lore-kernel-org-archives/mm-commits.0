@@ -1,113 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 17 Aug 2011 13:24:51 -0700
-Message-ID: <201108172024.p7HKOq1A026077@imap1.linux-foundation.org>
+Subject: [alternative-merged] nbd-some-trivial-improvements.patch removed from -mm tree
+Date: Wed, 17 Aug 2011 13:25:01 -0700
+Message-ID: <201108172025.p7HKP1Ew026117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36170 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45718 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753730Ab1HQUZ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753730Ab1HQUZh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 16:25:26 -0400
+	Wed, 17 Aug 2011 16:25:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Paul.Clements@steeleye.com, amwang@redhat.com, axboe@kernel.dk
+To: amwang@redhat.com, Paul.Clements@steeleye.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+     nbd: some trivial improvements
+has been removed from the -mm tree.  Its filename was
+     nbd-some-trivial-improvements.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: nbd: some trivial improvements
+From: Amerigo Wang <amwang@redhat.com>
 
-ERROR: code indent should use tabs where possible
-#30: FILE: drivers/block/nbd.c:578:
-+^I        dev_info(disk_to_dev(lo->disk), "NBD_DISCONNECT\n");$
+1) use task_pid_nr(current) to get the pid of current process,
 
-total: 1 errors, 0 warnings, 35 lines checked
+2) replace sysfs_create_file() with device_create_file()
 
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
+3) lower the loglevel of an error message.
 
-./patches/nbd-replace-some-printk-with-dev_warn-and-dev_info.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Cc: Paul Clements <Paul.Clements@steeleye.com>
-Cc: WANG Cong <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/nbd.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/block/nbd.c~nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes
+diff -puN drivers/block/nbd.c~nbd-some-trivial-improvements drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-some-trivial-improvements
 +++ a/drivers/block/nbd.c
-@@ -575,7 +575,7 @@ static int __nbd_ioctl(struct block_devi
- 	case NBD_DISCONNECT: {
- 		struct request sreq;
+@@ -405,10 +405,10 @@ static int nbd_do_it(struct nbd_device *
  
--	        dev_info(disk_to_dev(lo->disk), "NBD_DISCONNECT\n");
-+		dev_info(disk_to_dev(lo->disk), "NBD_DISCONNECT\n");
+ 	BUG_ON(lo->magic != LO_MAGIC);
  
- 		blk_rq_init(NULL, &sreq);
- 		sreq.cmd_type = REQ_TYPE_SPECIAL;
+-	lo->pid = current->pid;
+-	ret = sysfs_create_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
++	lo->pid = task_pid_nr(current);
++	ret = device_create_file(disk_to_dev(lo->disk), &pid_attr);
+ 	if (ret) {
+-		printk(KERN_ERR "nbd: sysfs_create_file failed!");
++		printk(KERN_ERR "nbd: device_create_file failed!");
+ 		lo->pid = 0;
+ 		return ret;
+ 	}
+@@ -416,7 +416,7 @@ static int nbd_do_it(struct nbd_device *
+ 	while ((req = nbd_read_stat(lo)) != NULL)
+ 		nbd_end_request(req);
+ 
+-	sysfs_remove_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
++	device_remove_file(disk_to_dev(lo->disk), &pid_attr);
+ 	lo->pid = 0;
+ 	return 0;
+ }
+@@ -745,7 +745,7 @@ static int __init nbd_init(void)
+ 	BUILD_BUG_ON(sizeof(struct nbd_request) != 28);
+ 
+ 	if (max_part < 0) {
+-		printk(KERN_CRIT "nbd: max_part must be >= 0\n");
++		printk(KERN_ERR "nbd: max_part must be >= 0\n");
+ 		return -EINVAL;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from amwang@redhat.com are
 
-origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-mm.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+drm-add-missing-header-file-linuc-typesh.patch
+nbd-use-task_pid_nr-to-get-current-pid.patch
+nbd-replace-sysfs_create_file-with-device_create_file.patch
+nbd-replace-printk-kern_err-with-dev_err.patch
+nbd-lower-the-loglevel-of-an-error-message.patch
+nbd-replace-some-printk-with-dev_warn-and-dev_info.patch
 nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
