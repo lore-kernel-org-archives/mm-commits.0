@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-pin-execution-to-current-cpu-while-draining-stock.patch added to -mm tree
-Date: Wed, 17 Aug 2011 13:03:40 -0700
-Message-ID: <201108172003.p7HK3e1Q025013@imap1.linux-foundation.org>
+Subject: + nbd-replace-sysfs_create_file-with-device_create_file.patch added to -mm tree
+Date: Wed, 17 Aug 2011 13:23:13 -0700
+Message-ID: <201108172023.p7HKNDxi026016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752446Ab1HQUE0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751727Ab1HQUXu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 16:04:26 -0400
+	Wed, 17 Aug 2011 16:23:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, stable@kernel.org
+Cc: amwang@redhat.com, Paul.Clements@steeleye.com, axboe@kernel.dk
 
 
 The patch titled
-     memcg: pin execution to current cpu while draining stock
+     nbd: replace sysfs_create_file() with device_create_file()
 has been added to the -mm tree.  Its filename is
-     memcg-pin-execution-to-current-cpu-while-draining-stock.patch
+     nbd-replace-sysfs_create_file-with-device_create_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: pin execution to current cpu while draining stock
-From: Johannes Weiner <jweiner@redhat.com>
+Subject: nbd: replace sysfs_create_file() with device_create_file()
+From: WANG Cong <amwang@redhat.com>
 
-Commit d1a05b6 ("memcg do not try to drain per-cpu caches without pages")
-added a drain_local_stock() call to a preemptible section.
-
-The draining task looks up the cpu-local stock twice to set the
-draining-flag, then to drain the stock and clear the flag again.  If the
-task is migrated to a different CPU in between, noone will clear the flag
-on the first stock and it will be forever undrainable.  Its charge can not
-be recovered and the cgroup can not be deleted anymore.
-
-Properly pin the task to the executing CPU while draining stocks.
-
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@kernel.org>		[3.0.x]
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Paul Clements <Paul.Clements@steeleye.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/block/nbd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-pin-execution-to-current-cpu-while-draining-stock mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-pin-execution-to-current-cpu-while-draining-stock
-+++ a/mm/memcontrol.c
-@@ -2169,13 +2169,7 @@ static void drain_all_stock(struct mem_c
+diff -puN drivers/block/nbd.c~nbd-replace-sysfs_create_file-with-device_create_file drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-replace-sysfs_create_file-with-device_create_file
++++ a/drivers/block/nbd.c
+@@ -406,9 +406,9 @@ static int nbd_do_it(struct nbd_device *
+ 	BUG_ON(lo->magic != LO_MAGIC);
  
- 	/* Notify other cpus that system-wide "drain" is running */
- 	get_online_cpus();
--	/*
--	 * Get a hint for avoiding draining charges on the current cpu,
--	 * which must be exhausted by our charging.  It is not required that
--	 * this be a precise check, so we use raw_smp_processor_id() instead of
--	 * getcpu()/putcpu().
--	 */
--	curcpu = raw_smp_processor_id();
-+	curcpu = get_cpu();
- 	for_each_online_cpu(cpu) {
- 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
- 		struct mem_cgroup *mem;
-@@ -2192,6 +2186,7 @@ static void drain_all_stock(struct mem_c
- 				schedule_work_on(cpu, &stock->work);
- 		}
+ 	lo->pid = task_pid_nr(current);
+-	ret = sysfs_create_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
++	ret = device_create_file(disk_to_dev(lo->disk), &pid_attr);
+ 	if (ret) {
+-		printk(KERN_ERR "nbd: sysfs_create_file failed!");
++		printk(KERN_ERR "nbd: device_create_file failed!");
+ 		lo->pid = 0;
+ 		return ret;
  	}
-+	put_cpu();
+@@ -416,7 +416,7 @@ static int nbd_do_it(struct nbd_device *
+ 	while ((req = nbd_read_stat(lo)) != NULL)
+ 		nbd_end_request(req);
  
- 	if (!sync)
- 		goto out;
+-	sysfs_remove_file(&disk_to_dev(lo->disk)->kobj, &pid_attr.attr);
++	device_remove_file(disk_to_dev(lo->disk), &pid_attr);
+ 	lo->pid = 0;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from jweiner@redhat.com are
+Patches currently in -mm which might be from amwang@redhat.com are
 
-memcg-pin-execution-to-current-cpu-while-draining-stock.patch
 linux-next.patch
+drm-add-missing-header-file-linuc-typesh.patch
+nbd-use-task_pid_nr-to-get-current-pid.patch
+nbd-replace-sysfs_create_file-with-device_create_file.patch
+nbd-replace-printk-kern_err-with-dev_err.patch
+nbd-lower-the-loglevel-of-an-error-message.patch
+nbd-replace-some-printk-with-dev_warn-and-dev_info.patch
+nbd-some-trivial-improvements.patch
 
