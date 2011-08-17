@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch added to -mm tree
-Date: Wed, 17 Aug 2011 15:22:49 -0700
-Message-ID: <201108172222.p7HMMneH032351@imap1.linux-foundation.org>
+Subject: + mm-vmscan-fix-force-scanning-small-targets-without-swap.patch added to -mm tree
+Date: Wed, 17 Aug 2011 15:22:45 -0700
+Message-ID: <201108172222.p7HMMjA3032348@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754466Ab1HQWXV (ORCPT
+	by vger.kernel.org with ESMTP id S1754638Ab1HQWYC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 18:23:21 -0400
+	Wed, 17 Aug 2011 18:24:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jweiner@redhat.com
+Cc: jweiner@redhat.com, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
 
 
 The patch titled
-     mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
+     mm: vmscan: fix force-scanning small targets without swap
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+     mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: vmscan: fix force-scanning small targets without swap
+From: Johannes Weiner <jweiner@redhat.com>
 
-fix comment
+Without swap, anonymous pages are not scanned.  As such, they should not
+count when considering force-scanning a small target if there is no swap.
 
-Cc: Johannes Weiner <jweiner@redhat.com>
+Otherwise, targets are not force-scanned even when their effective scan
+number is zero and the other conditions--kswapd/memcg--apply.
+
+Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Ying Han <yinghan@google.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
+diff -puN mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap
 +++ a/mm/vmscan.c
-@@ -1833,7 +1833,7 @@ static void get_scan_count(struct zone *
- 	bool force_scan = false;
+@@ -1830,23 +1830,15 @@ static void get_scan_count(struct zone *
+ 	u64 fraction[2], denominator;
+ 	enum lru_list l;
+ 	int noswap = 0;
+-	int force_scan = 0;
++	bool force_scan = false;
  	unsigned long nr_force_scan[2];
  
--	/* kswapd does zone balancing and need to scan this zone */
-+	/* kswapd does zone balancing and needs to scan this zone */
- 	if (scanning_global_lru(sc) && current_is_kswapd())
- 		force_scan = true;
- 	/* memcg may have small limit and need to avoid priority drop */
+-
+-	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
+-		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
+-	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
+-		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
+-
+-	if (((anon + file) >> priority) < SWAP_CLUSTER_MAX) {
+-		/* kswapd does zone balancing and need to scan this zone */
+-		if (scanning_global_lru(sc) && current_is_kswapd())
+-			force_scan = 1;
+-		/* memcg may have small limit and need to avoid priority drop */
+-		if (!scanning_global_lru(sc))
+-			force_scan = 1;
+-	}
++	/* kswapd does zone balancing and need to scan this zone */
++	if (scanning_global_lru(sc) && current_is_kswapd())
++		force_scan = true;
++	/* memcg may have small limit and need to avoid priority drop */
++	if (!scanning_global_lru(sc))
++		force_scan = true;
+ 
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+ 	if (!sc->may_swap || (nr_swap_pages <= 0)) {
+@@ -1859,6 +1851,11 @@ static void get_scan_count(struct zone *
+ 		goto out;
+ 	}
+ 
++	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
++		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
++	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
++		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
++
+ 	if (scanning_global_lru(sc)) {
+ 		free  = zone_page_state(zone, NR_FREE_PAGES);
+ 		/* If we have very few page cache pages,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jweiner@redhat.com are
 
-origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
+memcg-pin-execution-to-current-cpu-while-draining-stock.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-mm.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
 mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
 
