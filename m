@@ -1,135 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-make-config_sysctl_syscall-default-to-n.patch added to -mm tree
-Date: Thu, 18 Aug 2011 14:48:59 -0700
-Message-ID: <201108182148.p7ILmxW9029582@imap1.linux-foundation.org>
+Subject: [to-be-updated] sysctl-add-proc_dointvec_bool-handler.patch removed from -mm tree
+Date: Thu, 18 Aug 2011 14:52:28 -0700
+Message-ID: <201108182152.p7ILqSVW029852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34542 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754313Ab1HRVtQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754516Ab1HRVwa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Aug 2011 17:49:16 -0400
+	Thu, 18 Aug 2011 17:52:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: amwang@redhat.com, adobriyan@gmail.com, andi@firstfloor.org, ebiederm@xmission.com
+To: hidave.darkstar@gmail.com, adobriyan@gmail.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: make CONFIG_SYSCTL_SYSCALL default to n
-has been added to the -mm tree.  Its filename is
-     sysctl-make-config_sysctl_syscall-default-to-n.patch
+     sysctl: add proc_dointvec_bool() handler
+has been removed from the -mm tree.  Its filename was
+     sysctl-add-proc_dointvec_bool-handler.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: make CONFIG_SYSCTL_SYSCALL default to n
-From: WANG Cong <amwang@redhat.com>
+Subject: sysctl: add proc_dointvec_bool() handler
+From: Dave Young <hidave.darkstar@gmail.com>
 
-When I tried to send a patch to remove it, Andi told me we still need to
-keep compabitlies for old libc, so we can't remove this completely.  Then
-just make it default to n and remove the doc from
-feature-removal-schedule.txt.
+Add a proc_dointvec_bool() sysctl handler for cases where the input value
+is limited to 0 and 1.
 
-Signed-off-by: WANG Cong <amwang@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   35 -------------------
- init/Kconfig                               |    4 +-
- 2 files changed, 2 insertions(+), 37 deletions(-)
+ include/linux/sysctl.h |    2 ++
+ kernel/sysctl.c        |   27 +++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+)
 
-diff -puN Documentation/feature-removal-schedule.txt~sysctl-make-config_sysctl_syscall-default-to-n Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~sysctl-make-config_sysctl_syscall-default-to-n
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -133,41 +133,6 @@ Who:	Pavel Machek <pavel@ucw.cz>
+diff -puN include/linux/sysctl.h~sysctl-add-proc_dointvec_bool-handler include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-add-proc_dointvec_bool-handler
++++ a/include/linux/sysctl.h
+@@ -971,6 +971,8 @@ extern int proc_dointvec(struct ctl_tabl
+ 			 void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_minmax(struct ctl_table *, int,
+ 				void __user *, size_t *, loff_t *);
++extern int proc_dointvec_bool(struct ctl_table *, int,
++				void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_jiffies(struct ctl_table *, int,
+ 				 void __user *, size_t *, loff_t *);
+ extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
+diff -puN kernel/sysctl.c~sysctl-add-proc_dointvec_bool-handler kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-add-proc_dointvec_bool-handler
++++ a/kernel/sysctl.c
+@@ -2477,6 +2477,33 @@ int proc_dointvec_minmax(struct ctl_tabl
+ 				do_proc_dointvec_minmax_conv, &param);
+ }
  
- ---------------------------
- 
--What:	sys_sysctl
--When:	September 2010
--Option: CONFIG_SYSCTL_SYSCALL
--Why:	The same information is available in a more convenient from
--	/proc/sys, and none of the sysctl variables appear to be
--	important performance wise.
--
--	Binary sysctls are a long standing source of subtle kernel
--	bugs and security issues.
--
--	When I looked several months ago all I could find after
--	searching several distributions were 5 user space programs and
--	glibc (which falls back to /proc/sys) using this syscall.
--
--	The man page for sysctl(2) documents it as unusable for user
--	space programs.
--
--	sysctl(2) is not generally ABI compatible to a 32bit user
--	space application on a 64bit and a 32bit kernel.
--
--	For the last several months the policy has been no new binary
--	sysctls and no one has put forward an argument to use them.
--
--	Binary sysctls issues seem to keep happening appearing so
--	properly deprecating them (with a warning to user space) and a
--	2 year grace warning period will mean eventually we can kill
--	them and end the pain.
--
--	In the mean time individual binary sysctls can be dealt with
--	in a piecewise fashion.
--
--Who:	Eric Biederman <ebiederm@xmission.com>
--
-----------------------------
--
- What:	/proc/<pid>/oom_adj
- When:	August 2012
- Why:	/proc/<pid>/oom_adj allows userspace to influence the oom killer's
-diff -puN init/Kconfig~sysctl-make-config_sysctl_syscall-default-to-n init/Kconfig
---- a/init/Kconfig~sysctl-make-config_sysctl_syscall-default-to-n
-+++ a/init/Kconfig
-@@ -935,7 +935,7 @@ config UID16
- config SYSCTL_SYSCALL
- 	bool "Sysctl syscall support" if EXPERT
- 	depends on PROC_SYSCTL
--	default y
-+	default n
- 	select SYSCTL
- 	---help---
- 	  sys_sysctl uses binary paths that have been found challenging
-@@ -947,7 +947,7 @@ config SYSCTL_SYSCALL
- 	  trying to save some space it is probably safe to disable this,
- 	  making your kernel marginally smaller.
- 
--	  If unsure say Y here.
-+	  If unsure say N here.
- 
- config KALLSYMS
- 	 bool "Load all symbols for debugging/ksymoops" if EXPERT
++/**
++ * proc_dointvec_bool - read a vector of integers with 0/1 values
++ * @table: the sysctl table
++ * @write: %TRUE if this is a write to the sysctl file
++ * @buffer: the user buffer
++ * @lenp: the size of the user buffer
++ * @ppos: file position
++ *
++ * Reads/writes up to table->maxlen/sizeof(unsigned int) integer
++ * values from/to the user buffer, treated as an ASCII string.
++ *
++ * This routine will ensure the values are either 0 or 1.
++ *
++ * Returns 0 on success.
++ */
++int proc_dointvec_bool(struct ctl_table *table, int write,
++		  void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	struct do_proc_dointvec_minmax_conv_param param = {
++		.min = &zero,
++		.max = &one,
++	};
++	return do_proc_dointvec(table, write, buffer, lenp, ppos,
++				do_proc_dointvec_minmax_conv, &param);
++}
++EXPORT_SYMBOL(proc_dointvec_bool);
++
+ static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int write,
+ 				     void __user *buffer,
+ 				     size_t *lenp, loff_t *ppos,
 _
 
-Patches currently in -mm which might be from amwang@redhat.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-linux-next.patch
-sched-fix-a-memory-leak-in-__sdt_free.patch
-sysctl-make-config_sysctl_syscall-default-to-n.patch
-nbd-use-task_pid_nr-to-get-current-pid.patch
-nbd-replace-sysfs_create_file-with-device_create_file.patch
-nbd-replace-printk-kern_err-with-dev_err.patch
-nbd-lower-the-loglevel-of-an-error-message.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+sysctl-use-proc_dointvec_bool-where-appropriate.patch
+sysctl-add-proc_dointvec_unsigned-handler.patch
+sysctl-add-proc_dointvec_unsigned-handler-update.patch
+sysctl-use-proc_dointvec_unsigned-where-appropriate.patch
 
