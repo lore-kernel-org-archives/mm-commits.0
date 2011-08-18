@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-a-vmscan-warning.patch added to -mm tree
-Date: Wed, 17 Aug 2011 17:38:48 -0700
-Message-ID: <201108180035.p7I0ZsJ1006074@imap1.linux-foundation.org>
+Subject: + drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected.patch added to -mm tree
+Date: Thu, 18 Aug 2011 11:47:34 -0700
+Message-ID: <201108181847.p7IIlZAr020798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751503Ab1HRAgZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750887Ab1HRSsM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Aug 2011 20:36:25 -0400
+	Thu, 18 Aug 2011 14:48:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: tdent48227@gmail.com, gregkh@suse.de, rdunlap@xenotime.net
 
 
 The patch titled
-     mm: fix a vmscan warning
+     drivers/misc/Kconfig: fix build error when PCI is not selected
 has been added to the -mm tree.  Its filename is
-     mm-fix-a-vmscan-warning.patch
+     drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix a vmscan warning
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: drivers/misc/Kconfig: fix build error when PCI is not selected
+From: Tracey Dent <tdent48227@gmail.com>
 
-I get below warnning:
-BUG: using smp_processor_id() in preemptible [00000000] code: bash/746
-caller is native_sched_clock+0x37/0x6e
-Pid: 746, comm: bash Tainted: G        W   3.0.0+ #254
-Call Trace:
- [<ffffffff813435c6>] debug_smp_processor_id+0xc2/0xdc
- [<ffffffff8104158d>] native_sched_clock+0x37/0x6e
- [<ffffffff81116219>] try_to_free_mem_cgroup_pages+0x7d/0x270
- [<ffffffff8114f1f8>] mem_cgroup_force_empty+0x24b/0x27a
- [<ffffffff8114ff21>] ? sys_close+0x38/0x138
- [<ffffffff8114ff21>] ? sys_close+0x38/0x138
- [<ffffffff8114f257>] mem_cgroup_force_empty_write+0x17/0x19
- [<ffffffff810c72fb>] cgroup_file_write+0xa8/0xba
- [<ffffffff811522d2>] vfs_write+0xb3/0x138
- [<ffffffff8115241a>] sys_write+0x4a/0x71
- [<ffffffff8114ffd9>] ? sys_close+0xf0/0x138
- [<ffffffff8176deab>] system_call_fastpath+0x16/0x1b
+When you try to build INTEL_MID_PTI without having PCI enabled.  It fails
+like this-
 
-sched_clock() can't be used with preempt enabled.  And we don't need fast
-approach to get clock here, so let's use ktime API.
+ CC [M]  drivers/misc/pti.o
+ drivers/misc/pti.c: In function `pti_pci_remove':
+ drivers/misc/pti.c:410: error: implicit declaration of function `pci_release_region'
+ drivers/misc/pti.c: In function `pti_pci_probe':
+ drivers/misc/pti.c:859: error: implicit declaration of function `pci_request_region'
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+So make INTEL_MID_PTI depend on PCI to fix build error.
+
+Signed-off-by: Tracey Dent <tdent48227@gmail.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~mm-fix-a-vmscan-warning mm/vmscan.c
---- a/mm/vmscan.c~mm-fix-a-vmscan-warning
-+++ a/mm/vmscan.c
-@@ -2283,7 +2283,7 @@ unsigned long mem_cgroup_shrink_node_zon
- 		.mem_cgroup = mem,
- 		.memcg_record = rec,
- 	};
--	unsigned long start, end;
-+	ktime_t start, end;
+diff -puN drivers/misc/Kconfig~drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected
++++ a/drivers/misc/Kconfig
+@@ -146,6 +146,7 @@ config PHANTOM
  
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
-@@ -2292,7 +2292,7 @@ unsigned long mem_cgroup_shrink_node_zon
- 						      sc.may_writepage,
- 						      sc.gfp_mask);
- 
--	start = sched_clock();
-+	start = ktime_get();
- 	/*
- 	 * NOTE: Although we can get the priority field, using it
- 	 * here is not a good idea, since it limits the pages we can scan.
-@@ -2301,10 +2301,10 @@ unsigned long mem_cgroup_shrink_node_zon
- 	 * the priority and make it zero.
- 	 */
- 	shrink_zone(0, zone, &sc);
--	end = sched_clock();
-+	end = ktime_get();
- 
- 	if (rec)
--		rec->elapsed += end - start;
-+		rec->elapsed += ktime_to_ns(ktime_sub(end, start));
- 	*scanned = sc.nr_scanned;
- 
- 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
-@@ -2319,7 +2319,7 @@ unsigned long try_to_free_mem_cgroup_pag
- {
- 	struct zonelist *zonelist;
- 	unsigned long nr_reclaimed;
--	unsigned long start, end;
-+	ktime_t start, end;
- 	int nid;
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
-@@ -2337,7 +2337,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.gfp_mask = sc.gfp_mask,
- 	};
- 
--	start = sched_clock();
-+	start = ktime_get();
- 	/*
- 	 * Unlike direct reclaim via alloc_pages(), memcg's reclaim doesn't
- 	 * take care of from where we get pages. So the node where we start the
-@@ -2352,9 +2352,9 @@ unsigned long try_to_free_mem_cgroup_pag
- 					    sc.gfp_mask);
- 
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc, &shrink);
--	end = sched_clock();
-+	end = ktime_get();
- 	if (rec)
--		rec->elapsed += end - start;
-+		rec->elapsed += ktime_to_ns(ktime_sub(end, start));
- 
- 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
- 
+ config INTEL_MID_PTI
+ 	tristate "Parallel Trace Interface for MIPI P1149.7 cJTAG standard"
++	depends on PCI
+ 	default n
+ 	help
+ 	  The PTI (Parallel Trace Interface) driver directs
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from tdent48227@gmail.com are
 
-mm-fix-a-vmscan-warning.patch
-linux-next.patch
-vmscan-add-block-plug-for-page-reclaim.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected.patch
 
