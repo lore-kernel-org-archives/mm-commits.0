@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch added to -mm tree
-Date: Thu, 18 Aug 2011 16:54:44 -0700
-Message-ID: <201108182354.p7INsi84002674@imap1.linux-foundation.org>
+Subject: + mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch added to -mm tree
+Date: Thu, 18 Aug 2011 16:54:47 -0700
+Message-ID: <201108182354.p7INsmgH002683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39039 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752512Ab1HRXzg (ORCPT
+	by vger.kernel.org with ESMTP id S1752249Ab1HRXzl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Aug 2011 19:55:36 -0400
+	Thu, 18 Aug 2011 19:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mgorman@suse.de, aelder@sgi.com, chris.mason@oracle.com, dave@linux.vnet.ibm
 
 
 The patch titled
-     mm: vmscan: remove dead code related to lumpy reclaim waiting on pages under writeback
+     mm: vmscan: do not writeback filesystem pages in kswapd except in high priority
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
+     mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: remove dead code related to lumpy reclaim waiting on pages under writeback
+Subject: mm: vmscan: do not writeback filesystem pages in kswapd except in high priority
 From: Mel Gorman <mgorman@suse.de>
 
-Lumpy reclaim worked with two passes - the first which queued pages for IO
-and the second which waited on writeback.  As direct reclaim can no longer
-write pages there is some dead code.  This patch removes it but direct
-reclaim will continue to wait on pages under writeback while in
-synchronous reclaim mode.
+It is preferable that no dirty pages are dispatched for cleaning from the
+page reclaim path.  At normal priorities, this patch prevents kswapd
+writing pages.
+
+However, page reclaim does have a requirement that pages be freed in a
+particular zone.  If it is failing to make sufficient progress (reclaiming
+< SWAP_CLUSTER_MAX at any priority priority), the priority is raised to
+scan more pages.  A priority of DEF_PRIORITY - 3 is considered to be the
+point where kswapd is getting into trouble reclaiming pages.  If this
+priority is reached, kswapd will dispatch pages for writing.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Johannes Weiner <jweiner@redhat.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Alex Elder <aelder@sgi.com>
@@ -59,54 +64,51 @@ Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <>
 ---
 
- mm/vmscan.c |   21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ mm/vmscan.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback
+diff -puN mm/vmscan.c~mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority
 +++ a/mm/vmscan.c
-@@ -496,15 +496,6 @@ static pageout_t pageout(struct page *pa
- 			return PAGE_ACTIVATE;
- 		}
+@@ -751,7 +751,8 @@ static noinline_for_stack void free_page
+  */
+ static unsigned long shrink_page_list(struct list_head *page_list,
+ 				      struct zone *zone,
+-				      struct scan_control *sc)
++				      struct scan_control *sc,
++				      int priority)
+ {
+ 	LIST_HEAD(ret_pages);
+ 	LIST_HEAD(free_pages);
+@@ -857,9 +858,11 @@ static unsigned long shrink_page_list(st
  
--		/*
--		 * Wait on writeback if requested to. This happens when
--		 * direct reclaiming a large contiguous area and the
--		 * first attempt to free a range of pages fails.
--		 */
--		if (PageWriteback(page) &&
--		    (sc->reclaim_mode & RECLAIM_MODE_SYNC))
--			wait_on_page_writeback(page);
--
- 		if (!PageWriteback(page)) {
- 			/* synchronous write or broken a_ops? */
- 			ClearPageReclaim(page);
-@@ -805,12 +796,10 @@ static unsigned long shrink_page_list(st
- 
- 		if (PageWriteback(page)) {
  			/*
--			 * Synchronous reclaim is performed in two passes,
--			 * first an asynchronous pass over the list to
--			 * start parallel writeback, and a second synchronous
--			 * pass to wait for the IO to complete.  Wait here
--			 * for any page for which writeback has already
--			 * started.
-+			 * Synchronous reclaim cannot queue pages for
-+			 * writeback due to the possibility of stack overflow
-+			 * but if it encounters a page under writeback, wait
-+			 * for the IO to complete.
+ 			 * Only kswapd can writeback filesystem pages to
+-			 * avoid risk of stack overflow
++			 * avoid risk of stack overflow but do not writeback
++			 * unless under significant pressure.
  			 */
- 			if ((sc->reclaim_mode & RECLAIM_MODE_SYNC) &&
- 			    may_enter_fs)
-@@ -1421,7 +1410,7 @@ static noinline_for_stack void update_is
- }
+-			if (page_is_file_cache(page) && !current_is_kswapd()) {
++			if (page_is_file_cache(page) &&
++					(!current_is_kswapd() || priority >= DEF_PRIORITY - 2)) {
+ 				inc_zone_page_state(page, NR_VMSCAN_WRITE_SKIP);
+ 				goto keep_locked;
+ 			}
+@@ -1516,12 +1519,12 @@ shrink_inactive_list(unsigned long nr_to
  
- /*
-- * Returns true if the caller should wait to clean dirty/writeback pages.
-+ * Returns true if a direct reclaim should wait on pages under writeback.
-  *
-  * If we are direct reclaiming for contiguous pages and we do not reclaim
-  * everything in the list, try again and wait for writeback IO to complete.
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
+-	nr_reclaimed = shrink_page_list(&page_list, zone, sc);
++	nr_reclaimed = shrink_page_list(&page_list, zone, sc, priority);
+ 
+ 	/* Check if we should syncronously wait for writeback */
+ 	if (should_reclaim_stall(nr_taken, nr_reclaimed, priority, sc)) {
+ 		set_reclaim_mode(priority, sc, true);
+-		nr_reclaimed += shrink_page_list(&page_list, zone, sc);
++		nr_reclaimed += shrink_page_list(&page_list, zone, sc, priority);
+ 	}
+ 
+ 	if (!scanning_global_lru(sc))
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
