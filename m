@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sysctl-add-proc_dointvec_unsigned-handler.patch removed from -mm tree
-Date: Thu, 18 Aug 2011 14:52:33 -0700
-Message-ID: <201108182152.p7ILqXjb029860@imap1.linux-foundation.org>
+Subject: [to-be-updated] sysctl-use-proc_dointvec_unsigned-where-appropriate.patch removed from -mm tree
+Date: Thu, 18 Aug 2011 14:52:38 -0700
+Message-ID: <201108182152.p7ILqcZK029870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56308 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754496Ab1HRVwe (ORCPT
+	by vger.kernel.org with ESMTP id S1754337Ab1HRVwl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Aug 2011 17:52:34 -0400
+	Thu, 18 Aug 2011 17:52:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hidave.darkstar@gmail.com, adobriyan@gmail.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: add proc_dointvec_unsigned() handler
+     sysctl: use proc_dointvec_unsigned() where appropriate
 has been removed from the -mm tree.  Its filename was
-     sysctl-add-proc_dointvec_unsigned-handler.patch
+     sysctl-use-proc_dointvec_unsigned-where-appropriate.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl: add proc_dointvec_unsigned() handler
+Subject: sysctl: use proc_dointvec_unsigned() where appropriate
 From: Dave Young <hidave.darkstar@gmail.com>
 
-Add a proc_dointvec_unsigned() sysctl handler for positive value cases.
+Use the new proc_do_intvec_unsigned() handler for various unsigned inputs.
 
 Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
@@ -35,62 +35,83 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 ++
- kernel/sysctl.c        |   26 ++++++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ kernel/sysctl.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/sysctl.h~sysctl-add-proc_dointvec_unsigned-handler include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-add-proc_dointvec_unsigned-handler
-+++ a/include/linux/sysctl.h
-@@ -973,6 +973,8 @@ extern int proc_dointvec_minmax(struct c
- 				void __user *, size_t *, loff_t *);
- extern int proc_dointvec_bool(struct ctl_table *, int,
- 				void __user *, size_t *, loff_t *);
-+extern int proc_dointvec_unsigned(struct ctl_table *, int,
-+				void __user *, size_t *, loff_t *);
- extern int proc_dointvec_jiffies(struct ctl_table *, int,
- 				 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_userhz_jiffies(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~sysctl-add-proc_dointvec_unsigned-handler kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-proc_dointvec_unsigned-handler
+diff -puN kernel/sysctl.c~sysctl-use-proc_dointvec_unsigned-where-appropriate kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-use-proc_dointvec_unsigned-where-appropriate
 +++ a/kernel/sysctl.c
-@@ -2490,6 +2490,32 @@ int proc_dointvec_bool(struct ctl_table 
- }
- EXPORT_SYMBOL(proc_dointvec_bool);
- 
-+/**
-+ * proc_dointvec_unsigned - read a vector of integers with positive values
-+ * @table: the sysctl table
-+ * @write: %TRUE if this is a write to the sysctl file
-+ * @buffer: the user buffer
-+ * @lenp: the size of the user buffer
-+ * @ppos: file position
-+ *
-+ * Reads/writes up to table->maxlen/sizeof(unsigned int) integer
-+ * values from/to the user buffer, treated as an ASCII string.
-+ *
-+ * This routine will ensure the values are positive.
-+ *
-+ * Returns 0 on success.
-+ */
-+int proc_dointvec_unsigned(struct ctl_table *table, int write,
-+		  void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct do_proc_dointvec_minmax_conv_param param = {
-+		.min = &zero,
-+	};
-+	return do_proc_dointvec(table, write, buffer, lenp, ppos,
-+				do_proc_dointvec_minmax_conv, &param);
-+}
-+EXPORT_SYMBOL(proc_dointvec_unsigned);
-+
- static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int write,
- 				     void __user *buffer,
- 				     size_t *lenp, loff_t *ppos,
+@@ -1194,8 +1194,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_max_map_count,
+ 		.maxlen		= sizeof(sysctl_max_map_count),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &zero,
++		.proc_handler	= proc_dointvec_unsigned,
+ 	},
+ #else
+ 	{
+@@ -1203,8 +1202,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_nr_trim_pages,
+ 		.maxlen		= sizeof(sysctl_nr_trim_pages),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &zero,
++		.proc_handler	= proc_dointvec_unsigned,
+ 	},
+ #endif
+ 	{
+@@ -1219,16 +1217,14 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &block_dump,
+ 		.maxlen		= sizeof(block_dump),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-		.extra1		= &zero,
++		.proc_handler	= proc_dointvec_unsigned,
+ 	},
+ 	{
+ 		.procname	= "vfs_cache_pressure",
+ 		.data		= &sysctl_vfs_cache_pressure,
+ 		.maxlen		= sizeof(sysctl_vfs_cache_pressure),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-		.extra1		= &zero,
++		.proc_handler	= proc_dointvec_unsigned,
+ 	},
+ #ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
+ 	{
+@@ -1236,8 +1232,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &sysctl_legacy_va_layout,
+ 		.maxlen		= sizeof(sysctl_legacy_va_layout),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-		.extra1		= &zero,
++		.proc_handler	= proc_dointvec_unsigned,
+ 	},
+ #endif
+ #ifdef CONFIG_NUMA
+@@ -1246,8 +1241,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &zone_reclaim_mode,
+ 		.maxlen		= sizeof(zone_reclaim_mode),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-		.extra1		= &zero,
++		.proc_handler	= proc_dointvec_unsigned,
+ 	},
+ 	{
+ 		.procname	= "min_unmapped_ratio",
+@@ -1302,8 +1296,7 @@ static struct ctl_table vm_table[] = {
+ 		.data		= &vdso_enabled,
+ 		.maxlen		= sizeof(vdso_enabled),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-		.extra1		= &zero,
++		.proc_handler	= proc_dointvec_unsigned,
+ 	},
+ #endif
+ #ifdef CONFIG_HIGHMEM
 _
 
 Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-sysctl-add-proc_dointvec_unsigned-handler-update.patch
-sysctl-use-proc_dointvec_unsigned-where-appropriate.patch
 
