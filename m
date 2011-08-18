@@ -1,54 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sysctl-add-proc_dointvec_unsigned-handler-update.patch removed from -mm tree
-Date: Thu, 18 Aug 2011 14:52:36 -0700
-Message-ID: <201108182152.p7ILqa83029866@imap1.linux-foundation.org>
+Subject: + maintainers-paul-menage-has-moved.patch added to -mm tree
+Date: Thu, 18 Aug 2011 14:58:42 -0700
+Message-ID: <201108182158.p7ILwgtB030162@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754320Ab1HRVwi (ORCPT
+	by vger.kernel.org with ESMTP id S1754744Ab1HRV7Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Aug 2011 17:52:38 -0400
+	Thu, 18 Aug 2011 17:59:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, adobriyan@gmail.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: gaowanlong@cn.fujitsu.com, paul@paulmenage.org
 
 
 The patch titled
-     sysctl-add-proc_dointvec_unsigned-handler-update
-has been removed from the -mm tree.  Its filename was
-     sysctl-add-proc_dointvec_unsigned-handler-update.patch
+     MAINTAINERS: Paul Menage has moved
+has been added to the -mm tree.  Its filename is
+     maintainers-paul-menage-has-moved.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysctl-add-proc_dointvec_unsigned-handler-update
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: MAINTAINERS: Paul Menage has moved
+From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Paul said: I left Google at the end of last week - if it's not bouncing
+already, menage@google.com isn't going to work for much longer.
+
+Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Acked-by: Paul Menage <paul@paulmenage.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-add-proc_dointvec_unsigned-handler-update kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-add-proc_dointvec_unsigned-handler-update
-+++ a/kernel/sysctl.c
-@@ -2510,6 +2510,7 @@ int proc_dointvec_unsigned(struct ctl_ta
- {
- 	struct do_proc_dointvec_minmax_conv_param param = {
- 		.min = &zero,
-+		.max = (int *) table->extra2,
- 	};
- 	return do_proc_dointvec(table, write, buffer, lenp, ppos,
- 				do_proc_dointvec_minmax_conv, &param);
+diff -puN MAINTAINERS~maintainers-paul-menage-has-moved MAINTAINERS
+--- a/MAINTAINERS~maintainers-paul-menage-has-moved
++++ a/MAINTAINERS
+@@ -1883,7 +1883,7 @@ S:	Maintained
+ F:	drivers/connector/
+ 
+ CONTROL GROUPS (CGROUPS)
+-M:	Paul Menage <menage@google.com>
++M:	Paul Menage <paul@paulmenage.org>
+ M:	Li Zefan <lizf@cn.fujitsu.com>
+ L:	containers@lists.linux-foundation.org
+ S:	Maintained
+@@ -1932,7 +1932,7 @@ S:	Maintained
+ F:	tools/power/cpupower
+ 
+ CPUSETS
+-M:	Paul Menage <menage@google.com>
++M:	Paul Menage <paul@paulmenage.org>
+ W:	http://www.bullopensource.org/cpuset/
+ W:	http://oss.sgi.com/projects/cpusets/
+ S:	Supported
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from gaowanlong@cn.fujitsu.com are
 
-sysctl-use-proc_dointvec_unsigned-where-appropriate.patch
+maintainers-paul-menage-has-moved.patch
+linux-next.patch
 
