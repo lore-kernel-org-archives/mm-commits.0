@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-fix-__page_to_pfn-for-a-const-struct-page-argument.patch added to -mm tree
-Date: Thu, 18 Aug 2011 14:19:05 -0700
-Message-ID: <201108182119.p7ILJ5VX028207@imap1.linux-foundation.org>
+Subject: + memcg-remove-unneeded-preempt_disable.patch added to -mm tree
+Date: Thu, 18 Aug 2011 14:47:26 -0700
+Message-ID: <201108182147.p7ILlQA4029541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38727 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753989Ab1HRVTM (ORCPT
+	by vger.kernel.org with ESMTP id S1753400Ab1HRVrg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Aug 2011 17:19:12 -0400
+	Thu, 18 Aug 2011 17:47:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ian.campbell@citrix.com, geert@linux-m68k.org
+Cc: gthelen@google.com, Valdis.Kletnieks@vt.edu, bsingharora@gmail.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     m68k: fix __page_to_pfn for a const struct page argument
+     memcg: remove unneeded preempt_disable
 has been added to the -mm tree.  Its filename is
-     m68k-fix-__page_to_pfn-for-a-const-struct-page-argument.patch
+     memcg-remove-unneeded-preempt_disable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k: fix __page_to_pfn for a const struct page argument
-From: Ian Campbell <ian.campbell@citrix.com>
+Subject: memcg: remove unneeded preempt_disable
+From: Greg Thelen <gthelen@google.com>
 
-Fixes fallout due to the removal of the cast in
-mm-fix-__page_to_pfn-for-a-const-struct-page-argument.patch
+Both mem_cgroup_charge_statistics() and mem_cgroup_move_account() were
+unnecessarily disabling preemption when adjusting per-cpu counters:
+    preempt_disable()
+    __this_cpu_xxx()
+    __this_cpu_yyy()
+    preempt_enable()
 
-Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+This change does not disable preemption and thus CPU switch is possible
+within these routines.  This does not cause a problem because the total
+of all cpu counters is summed when reporting stats.  Now both
+mem_cgroup_charge_statistics() and mem_cgroup_move_account() look like:
+    this_cpu_xxx()
+    this_cpu_yyy()
+
+akpm: this is an optimisation for x86 and a deoptimisation for non-x86. 
+The non-x86 situation will be fixed as architectures implement their
+atomic this_cpu_foo() operations.
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Reported-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/page_mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN arch/m68k/include/asm/page_mm.h~m68k-fix-__page_to_pfn-for-a-const-struct-page-argument arch/m68k/include/asm/page_mm.h
---- a/arch/m68k/include/asm/page_mm.h~m68k-fix-__page_to_pfn-for-a-const-struct-page-argument
-+++ a/arch/m68k/include/asm/page_mm.h
-@@ -162,7 +162,7 @@ static inline __attribute_const__ int __
- 	pgdat->node_mem_map + (__pfn - pgdat->node_start_pfn);		\
- })
- #define page_to_pfn(_page) ({						\
--	struct page *__p = (_page);					\
-+	const struct page *__p = (_page);				\
- 	struct pglist_data *pgdat;					\
- 	pgdat = &pg_data_map[page_to_nid(__p)];				\
- 	((__p) - pgdat->node_mem_map) + pgdat->node_start_pfn;		\
-_
-
-Patches currently in -mm which might be from ian.campbell@citrix.com are
-
-origin.patch
-m68k-fix-__page_to_pfn-for-a-const-struct-page-argument.patch
-
+diff -puN mm/memcontrol.c~memcg-remove-unneeded-preempt_disable mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-unneeded-preempt_disable
++++ a/mm/memcontrol.c
+@@ -664,26 +664,22 @@ static unsigned long mem_cgroup_read_eve
+ static void mem_cgroup_charge_statistics(struct mem_cgroup *memcg,
+ 					 bool file, int nr_pages)
+ {
+-	preempt_disable();
+-
+ 	if (file)
+-		__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_CACHE],
++		this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_CACHE],
+ 				nr_pages);
+ 	else
+-		__this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_RSS],
++		this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_RSS],
+ 				nr_pages);
+ 
+ 	/* pagein of a big page is an event. So, ignore page size */
+-	if (nr_pages > 0)
+-		__this_cpu_inc(memcg->stat->events[MEM_CGROUP_EVENTS_PGPGIN]);
+-	else {
+-		__this_cpu_inc(memcg->stat->events[MEM_CGROUP_EVENTS_PGPGOUT]);
++	if (nr_pages > 0) {
++		this_cpu_inc(memcg->stat->events[MEM_CGROUP_EVENTS_PGPGIN]);
++	} else {
++		this_cpu_inc(memcg->stat->events[MEM_CGROUP_EVENTS_PGPGOUT]);
+ 		nr_pages = -nr_pages; /* for event */
+ 	}
+ 
+-	__this_cpu_add(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT], nr_pages);
