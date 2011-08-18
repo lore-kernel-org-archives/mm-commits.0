@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-paul-menage-has-moved.patch added to -mm tree
-Date: Thu, 18 Aug 2011 14:58:42 -0700
-Message-ID: <201108182158.p7ILwgtB030162@imap1.linux-foundation.org>
+Subject: + mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch added to -mm tree
+Date: Thu, 18 Aug 2011 16:54:44 -0700
+Message-ID: <201108182354.p7INsi84002674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754744Ab1HRV7Q (ORCPT
+	by vger.kernel.org with ESMTP id S1752512Ab1HRXzg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Aug 2011 17:59:16 -0400
+	Thu, 18 Aug 2011 19:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gaowanlong@cn.fujitsu.com, paul@paulmenage.org
+Cc: mgorman@suse.de, aelder@sgi.com, chris.mason@oracle.com, dave@linux.vnet.ibm.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, jweiner@redhat.com, minchan.kim@gmail.com, riel@redhat.com, tytso@mit.edu
 
 
 The patch titled
-     MAINTAINERS: Paul Menage has moved
+     mm: vmscan: remove dead code related to lumpy reclaim waiting on pages under writeback
 has been added to the -mm tree.  Its filename is
-     maintainers-paul-menage-has-moved.patch
+     mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: Paul Menage has moved
-From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Subject: mm: vmscan: remove dead code related to lumpy reclaim waiting on pages under writeback
+From: Mel Gorman <mgorman@suse.de>
 
-Paul said: I left Google at the end of last week - if it's not bouncing
-already, menage@google.com isn't going to work for much longer.
+Lumpy reclaim worked with two passes - the first which queued pages for IO
+and the second which waited on writeback.  As direct reclaim can no longer
+write pages there is some dead code.  This patch removes it but direct
+reclaim will continue to wait on pages under writeback while in
+synchronous reclaim mode.
 
-Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Acked-by: Paul Menage <paul@paulmenage.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Alex Elder <aelder@sgi.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Andrew Morton <>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-paul-menage-has-moved MAINTAINERS
---- a/MAINTAINERS~maintainers-paul-menage-has-moved
-+++ a/MAINTAINERS
-@@ -1883,7 +1883,7 @@ S:	Maintained
- F:	drivers/connector/
+diff -puN mm/vmscan.c~mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback
++++ a/mm/vmscan.c
+@@ -496,15 +496,6 @@ static pageout_t pageout(struct page *pa
+ 			return PAGE_ACTIVATE;
+ 		}
  
- CONTROL GROUPS (CGROUPS)
--M:	Paul Menage <menage@google.com>
-+M:	Paul Menage <paul@paulmenage.org>
- M:	Li Zefan <lizf@cn.fujitsu.com>
- L:	containers@lists.linux-foundation.org
- S:	Maintained
-@@ -1932,7 +1932,7 @@ S:	Maintained
- F:	tools/power/cpupower
+-		/*
+-		 * Wait on writeback if requested to. This happens when
+-		 * direct reclaiming a large contiguous area and the
+-		 * first attempt to free a range of pages fails.
+-		 */
+-		if (PageWriteback(page) &&
+-		    (sc->reclaim_mode & RECLAIM_MODE_SYNC))
+-			wait_on_page_writeback(page);
+-
+ 		if (!PageWriteback(page)) {
+ 			/* synchronous write or broken a_ops? */
+ 			ClearPageReclaim(page);
+@@ -805,12 +796,10 @@ static unsigned long shrink_page_list(st
  
- CPUSETS
--M:	Paul Menage <menage@google.com>
-+M:	Paul Menage <paul@paulmenage.org>
- W:	http://www.bullopensource.org/cpuset/
- W:	http://oss.sgi.com/projects/cpusets/
- S:	Supported
+ 		if (PageWriteback(page)) {
+ 			/*
+-			 * Synchronous reclaim is performed in two passes,
+-			 * first an asynchronous pass over the list to
+-			 * start parallel writeback, and a second synchronous
+-			 * pass to wait for the IO to complete.  Wait here
+-			 * for any page for which writeback has already
+-			 * started.
++			 * Synchronous reclaim cannot queue pages for
++			 * writeback due to the possibility of stack overflow
++			 * but if it encounters a page under writeback, wait
++			 * for the IO to complete.
+ 			 */
+ 			if ((sc->reclaim_mode & RECLAIM_MODE_SYNC) &&
+ 			    may_enter_fs)
+@@ -1421,7 +1410,7 @@ static noinline_for_stack void update_is
+ }
+ 
+ /*
+- * Returns true if the caller should wait to clean dirty/writeback pages.
++ * Returns true if a direct reclaim should wait on pages under writeback.
+  *
+  * If we are direct reclaiming for contiguous pages and we do not reclaim
+  * everything in the list, try again and wait for writeback IO to complete.
 _
 
-Patches currently in -mm which might be from gaowanlong@cn.fujitsu.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-maintainers-paul-menage-has-moved.patch
-linux-next.patch
+mm-compaction-trivial-clean-up-in-acct_isolated.patch
+mm-change-isolate-mode-from-define-to-bitwise-type.patch
+mm-compaction-make-isolate_lru_page-filter-aware.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
+mm-migration-clean-up-unmap_and_move.patch
+mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
+xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
+mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
+mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
+hugepages-fix-race-between-hugetlbfs-umount-and-quota-update-checkpatch-fixes.patch
 
