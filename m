@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-add-kexec_crash_control_memory_limit.patch added to -mm tree
-Date: Fri, 19 Aug 2011 15:06:05 -0700
-Message-ID: <201108192206.p7JM66DX027687@imap1.linux-foundation.org>
+Subject: + vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch added to -mm tree
+Date: Fri, 19 Aug 2011 16:47:36 -0700
+Message-ID: <201108192347.p7JNla2n031821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53987 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45683 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753295Ab1HSWGz (ORCPT
+	by vger.kernel.org with ESMTP id S1751163Ab1HSXrn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Aug 2011 18:06:55 -0400
+	Fri, 19 Aug 2011 19:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holzheu@linux.vnet.ibm.com, schwidefsky@de.ibm.com, vgoyal@redhat.com
+Cc: shaohua.li@intel.com, mgorman@suse.de, minchan.kim@gmail.com
 
 
 The patch titled
-     kdump: add KEXEC_CRASH_CONTROL_MEMORY_LIMIT
+     vmscan: count pages into balanced for zone with good watermark
 has been added to the -mm tree.  Its filename is
-     kdump-add-kexec_crash_control_memory_limit.patch
+     vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kdump: add KEXEC_CRASH_CONTROL_MEMORY_LIMIT
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: vmscan: count pages into balanced for zone with good watermark
+From: Shaohua Li <shaohua.li@intel.com>
 
-On s390 there is a different KEXEC_CONTROL_MEMORY_LIMIT for the normal and
-the kdump kexec case. Therefore this patch introduces a new macro
-KEXEC_CRASH_CONTROL_MEMORY_LIMIT. This is set to
-KEXEC_CONTROL_MEMORY_LIMIT for all architectures that do not define
-KEXEC_CRASH_CONTROL_MEMORY_LIMIT.
+It's possible a zone watermark is ok when entering the balance_pgdat()
+loop, while the zone is within the requested classzone_idx.  Count pages
+from this zone into `balanced'.  In this way, we can skip shrinking zones
+too much for high order allocation.
 
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    4 ++++
- kernel/kexec.c        |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/kexec.h~kdump-add-kexec_crash_control_memory_limit include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-add-kexec_crash_control_memory_limit
-+++ a/include/linux/kexec.h
-@@ -33,6 +33,10 @@
- #error KEXEC_ARCH not defined
- #endif
+diff -puN mm/vmscan.c~vmscan-count-pages-into-balanced-for-zone-with-good-watermark mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-count-pages-into-balanced-for-zone-with-good-watermark
++++ a/mm/vmscan.c
+@@ -2758,6 +2758,8 @@ out:
  
-+#ifndef KEXEC_CRASH_CONTROL_MEMORY_LIMIT
-+#define KEXEC_CRASH_CONTROL_MEMORY_LIMIT KEXEC_CONTROL_MEMORY_LIMIT
-+#endif
-+
- #define KEXEC_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
- #define KEXEC_CORE_NOTE_NAME "CORE"
- #define KEXEC_CORE_NOTE_NAME_BYTES ALIGN(sizeof(KEXEC_CORE_NOTE_NAME), 4)
-diff -puN kernel/kexec.c~kdump-add-kexec_crash_control_memory_limit kernel/kexec.c
---- a/kernel/kexec.c~kdump-add-kexec_crash_control_memory_limit
-+++ a/kernel/kexec.c
-@@ -498,7 +498,7 @@ static struct page *kimage_alloc_crash_c
- 	while (hole_end <= crashk_res.end) {
- 		unsigned long i;
+ 			/* If balanced, clear the congested flag */
+ 			zone_clear_flag(zone, ZONE_CONGESTED);
++			if (i <= *classzone_idx)
++				balanced += zone->present_pages;
+ 		}
+ 	}
  
--		if (hole_end > KEXEC_CONTROL_MEMORY_LIMIT)
-+		if (hole_end > KEXEC_CRASH_CONTROL_MEMORY_LIMIT)
- 			break;
- 		if (hole_end > crashk_res.end)
- 			break;
 _
 
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-kdump-add-kexec_crash_control_memory_limit.patch
-kdump-add-size-to-elfcorehdr-kernel-parameter.patch
+origin.patch
+mm-fix-a-vmscan-warning.patch
+linux-next.patch
+vmscan-add-block-plug-for-page-reclaim.patch
+vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
