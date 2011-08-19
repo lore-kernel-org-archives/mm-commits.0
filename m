@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 19 Aug 2011 13:46:49 -0700
-Message-ID: <201108192043.p7JKhsck024083@imap1.linux-foundation.org>
+Subject: + kdump-add-size-to-elfcorehdr-kernel-parameter.patch added to -mm tree
+Date: Fri, 19 Aug 2011 15:06:08 -0700
+Message-ID: <201108192206.p7JM68E1027690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754710Ab1HSUn4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753295Ab1HSWGg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Aug 2011 16:43:56 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p7JKhtSG030182
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 19 Aug 2011 13:43:55 -0700
+	Fri, 19 Aug 2011 18:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: holzheu@linux.vnet.ibm.com, schwidefsky@de.ibm.com, vgoyal@redhat.com
 
 
 The patch titled
-     linux-next-git-rejects
+     kdump: add size to elfcorehdr kernel parameter
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     kdump-add-size-to-elfcorehdr-kernel-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,66 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kdump: add size to elfcorehdr kernel parameter
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 
+Currently only the address of the pre-allocated ELF header is passed with
+the elfcorehdr= kernel parameter.  In order to reserve memory for the
+header in the 2nd kernel also the size is required.  Current kdump
+architecture backends use different methods to do that, e.g.  x86 uses the
+memmap= kernel parameter.  On s390 there is no easy way to transfer this
+information.  Therefore the elfcorehdr kernel parameter is extended to
+also pass the size.  This now can also be used as standard mechanism by
+all future kdump architecture backends.
+
+The syntax of the kernel parameter is extended as follows:
+
+elfcorehdr=[size[KMG]@]offset[KMG]
+
+This change is backward compatible because elfcorehdr=size is still allowed.
+
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bsg-lib.c |    3 ---
- 1 file changed, 3 deletions(-)
+ Documentation/kernel-parameters.txt |    6 +++---
+ include/linux/crash_dump.h          |    1 +
+ kernel/crash_dump.c                 |   11 +++++++++++
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN block/bsg-lib.c~linux-next-git-rejects block/bsg-lib.c
---- a/block/bsg-lib.c~linux-next-git-rejects
-+++ a/block/bsg-lib.c
-@@ -25,11 +25,8 @@
- #include <linux/delay.h>
- #include <linux/scatterlist.h>
- #include <linux/bsg-lib.h>
--<<<<<<< HEAD
- #include <linux/module.h>
--=======
- #include <linux/export.h>
-->>>>>>> linux-next/akpm-end
- #include <scsi/scsi_cmnd.h>
+diff -puN Documentation/kernel-parameters.txt~kdump-add-size-to-elfcorehdr-kernel-parameter Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~kdump-add-size-to-elfcorehdr-kernel-parameter
++++ a/Documentation/kernel-parameters.txt
+@@ -741,10 +741,10 @@ bytes respectively. Such letter suffixes
+ 			See Documentation/block/as-iosched.txt and
+ 			Documentation/block/deadline-iosched.txt for details.
  
- /**
+-	elfcorehdr=	[IA-64,PPC,SH,X86]
++	elfcorehdr=[size[KMG]@]offset[KMG] [IA64,PPC,SH,X86,S390]
+ 			Specifies physical address of start of kernel core
+-			image elf header. Generally kexec loader will
+-			pass this option to capture kernel.
++			image elf header and optionally the size. Generally
++			kexec loader will pass this option to capture kernel.
+ 			See Documentation/kdump/kdump.txt for details.
+ 
+ 	enable_mtrr_cleanup [X86]
+diff -puN include/linux/crash_dump.h~kdump-add-size-to-elfcorehdr-kernel-parameter include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~kdump-add-size-to-elfcorehdr-kernel-parameter
++++ a/include/linux/crash_dump.h
+@@ -10,6 +10,7 @@
+ #define ELFCORE_ADDR_ERR	(-2ULL)
+ 
+ extern unsigned long long elfcorehdr_addr;
++extern unsigned long long elfcorehdr_size;
+ 
+ extern ssize_t copy_oldmem_page(unsigned long, char *, size_t,
+ 						unsigned long, int);
+diff -puN kernel/crash_dump.c~kdump-add-size-to-elfcorehdr-kernel-parameter kernel/crash_dump.c
+--- a/kernel/crash_dump.c~kdump-add-size-to-elfcorehdr-kernel-parameter
++++ a/kernel/crash_dump.c
+@@ -20,8 +20,15 @@ unsigned long saved_max_pfn;
+ unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+ 
+ /*
++ * stores the size of elf header of crash image
++ */
++unsigned long long elfcorehdr_size;
++
++/*
+  * elfcorehdr= specifies the location of elf core header stored by the crashed
+  * kernel. This option will be passed by kexec loader to the capture kernel.
++ *
++ * Syntax: elfcorehdr=[size[KMG]@]offset[KMG]
+  */
+ static int __init setup_elfcorehdr(char *arg)
+ {
+@@ -29,6 +36,10 @@ static int __init setup_elfcorehdr(char 
+ 	if (!arg)
+ 		return -EINVAL;
+ 	elfcorehdr_addr = memparse(arg, &end);
++	if (*end == '@') {
++		elfcorehdr_size = elfcorehdr_addr;
++		elfcorehdr_addr = memparse(end + 1, &end);
++	}
+ 	return end > arg ? 0 : -EINVAL;
+ }
+ early_param("elfcorehdr", setup_elfcorehdr);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
-origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-mm.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+kdump-add-kexec_crash_control_memory_limit.patch
+kdump-add-size-to-elfcorehdr-kernel-parameter.patch
 
