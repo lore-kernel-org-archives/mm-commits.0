@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-led-triggersc-fix-memory-leak.patch added to -mm tree
-Date: Fri, 19 Aug 2011 17:04:18 -0700
-Message-ID: <201108200004.p7K04IDj032583@imap1.linux-foundation.org>
+Subject: + kernel-printk-do-not-turn-off-bootconsole-in-printk_late_init-if-keep_bootcon.patch added to -mm tree
+Date: Fri, 19 Aug 2011 17:10:42 -0700
+Message-ID: <201108200010.p7K0AgAo000435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754662Ab1HTAE7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756680Ab1HTAL1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Aug 2011 20:04:59 -0400
+	Fri, 19 Aug 2011 20:11:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Masakazu.Mokuno@jp.sony.com, mokuno@sm.sony.co.jp, rpurdie@rpsys.net
+Cc: nacc@us.ibm.com, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, fdinitto@redhat.com, gregkh@suse.de, stable@kernel.org
 
 
 The patch titled
-     drivers/leds/led-triggers.c: fix memory leak
+     kernel/printk: do not turn off bootconsole in printk_late_init() if keep_bootcon
 has been added to the -mm tree.  Its filename is
-     drivers-leds-led-triggersc-fix-memory-leak.patch
+     kernel-printk-do-not-turn-off-bootconsole-in-printk_late_init-if-keep_bootcon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/leds/led-triggers.c: fix memory leak
-From: Masakazu Mokuno <Masakazu.Mokuno@jp.sony.com>
+Subject: kernel/printk: do not turn off bootconsole in printk_late_init() if keep_bootcon
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-The memory for struct led_trigger should be kfreed in the
-led_trigger_register() error path.  Also this function should return NULL
-on error.
+It seems that 7bf693951a8e ("console: allow to retain boot console via
+boot option keep_bootcon") doesn't always achieve what it aims, as when
+printk_late_init() runs it unconditionally turns off all boot consoles. 
+With this patch, I am able to see more messages on the boot console in KVM
+guests than I can without, when keep_bootcon is specified.
 
-Signed-off-by: Masakazu Mokuno <mokuno@sm.sony.co.jp>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg KH <gregkh@suse.de>
+Acked-by: Fabio M. Di Nitto <fdinitto@redhat.com>
+Cc: <stable@kernel.org>		[2.6.39.x, 3.0.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/led-triggers.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/led-triggers.c~drivers-leds-led-triggersc-fix-memory-leak drivers/leds/led-triggers.c
---- a/drivers/leds/led-triggers.c~drivers-leds-led-triggersc-fix-memory-leak
-+++ a/drivers/leds/led-triggers.c
-@@ -261,9 +261,12 @@ void led_trigger_register_simple(const c
- 	if (trigger) {
- 		trigger->name = name;
- 		err = led_trigger_register(trigger);
--		if (err < 0)
-+		if (err < 0) {
-+			kfree(trigger);
-+			trigger = NULL;
- 			printk(KERN_WARNING "LED trigger %s failed to register"
- 				" (%d)\n", name, err);
-+		}
- 	} else
- 		printk(KERN_WARNING "LED trigger %s failed to register"
- 			" (no memory)\n", name);
+diff -puN kernel/printk.c~kernel-printk-do-not-turn-off-bootconsole-in-printk_late_init-if-keep_bootcon kernel/printk.c
+--- a/kernel/printk.c~kernel-printk-do-not-turn-off-bootconsole-in-printk_late_init-if-keep_bootcon
++++ a/kernel/printk.c
+@@ -1604,7 +1604,7 @@ static int __init printk_late_init(void)
+ 	struct console *con;
+ 
+ 	for_each_console(con) {
+-		if (con->flags & CON_BOOT) {
++		if (!keep_bootcon && con->flags & CON_BOOT) {
+ 			printk(KERN_INFO "turn off boot console %s%d\n",
+ 				con->name, con->index);
+ 			unregister_console(con);
 _
 
-Patches currently in -mm which might be from Masakazu.Mokuno@jp.sony.com are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
-drivers-leds-led-triggersc-fix-memory-leak.patch
+kernel-printk-do-not-turn-off-bootconsole-in-printk_late_init-if-keep_bootcon.patch
 
