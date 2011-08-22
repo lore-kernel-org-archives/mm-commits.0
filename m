@@ -1,92 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 22 Aug 2011 12:38:51 -0700
-Message-ID: <201108221935.p7MJZtam000641@imap1.linux-foundation.org>
+Subject: + mm-debug-pageallocc-use-plain-__ratelimit-instead-of-printk_ratelimit.patch added to -mm tree
+Date: Mon, 22 Aug 2011 13:36:51 -0700
+Message-ID: <201108222036.p7MKapOT004994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753267Ab1HVTgZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753334Ab1HVUg4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Aug 2011 15:36:25 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p7MJZtGr012816
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 22 Aug 2011 12:35:55 -0700
+	Mon, 22 Aug 2011 16:36:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mm/debug-pagealloc.c: use plain __ratelimit() instead of printk_ratelimit()
+has been added to the -mm tree.  Its filename is
+     mm-debug-pageallocc-use-plain-__ratelimit-instead-of-printk_ratelimit.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/debug-pagealloc.c: use plain __ratelimit() instead of printk_ratelimit()
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
+printk_ratelimit() should not be used, because it shares ratelimiting
+state with all other unrelated printk_ratelimit() callsites.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bsg-lib.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/debug-pagealloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN block/bsg-lib.c~linux-next-git-rejects block/bsg-lib.c
---- a/block/bsg-lib.c~linux-next-git-rejects
-+++ a/block/bsg-lib.c
-@@ -25,11 +25,8 @@
- #include <linux/delay.h>
- #include <linux/scatterlist.h>
- #include <linux/bsg-lib.h>
--<<<<<<< HEAD
- #include <linux/module.h>
--=======
- #include <linux/export.h>
-->>>>>>> linux-next/akpm-end
- #include <scsi/scsi_cmnd.h>
+diff -puN mm/debug-pagealloc.c~mm-debug-pageallocc-use-plain-__ratelimit-instead-of-printk_ratelimit mm/debug-pagealloc.c
+--- a/mm/debug-pagealloc.c~mm-debug-pageallocc-use-plain-__ratelimit-instead-of-printk_ratelimit
++++ a/mm/debug-pagealloc.c
+@@ -2,6 +2,7 @@
+ #include <linux/mm.h>
+ #include <linux/page-debug-flags.h>
+ #include <linux/poison.h>
++#include <linux/ratelimit.h>
  
- /**
+ static inline void set_page_poison(struct page *page)
+ {
+@@ -59,6 +60,7 @@ static bool single_bit_flip(unsigned cha
+ 
+ static void check_poison_mem(unsigned char *mem, size_t bytes)
+ {
++	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
+ 	unsigned char *start;
+ 	unsigned char *end;
+ 
+@@ -74,7 +76,7 @@ static void check_poison_mem(unsigned ch
+ 			break;
+ 	}
+ 
+-	if (!printk_ratelimit())
++	if (!__ratelimit(&ratelimit))
+ 		return;
+ 	else if (start == end && single_bit_flip(*start, PAGE_POISON))
+ 		printk(KERN_ERR "pagealloc: single bit error\n");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-mm.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+ext4-use-proper-little-endian-bitops.patch
+ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
+mm-debug-pageallocc-use-plain-__ratelimit-instead-of-printk_ratelimit.patch
 
