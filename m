@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-missing-include-of-linux-moduleh.patch added to -mm tree
-Date: Mon, 22 Aug 2011 15:10:55 -0700
-Message-ID: <201108222210.p7MMAtmI009400@imap1.linux-foundation.org>
+Subject: + mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch added to -mm tree
+Date: Mon, 22 Aug 2011 15:25:19 -0700
+Message-ID: <201108222225.p7MMPJZo010039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35398 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752138Ab1HVWLR (ORCPT
+	by vger.kernel.org with ESMTP id S1753898Ab1HVWZ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Aug 2011 18:11:17 -0400
+	Mon, 22 Aug 2011 18:25:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, damm@opensource.se, kristoffer.ericson@gmail.com, noodles@earth.li, rpurdie@rpsys.net
+Cc: mitsuo.hayasaka.hu@hitachi.com, akpm@linux-foundation.org, jeremy.fitzhardinge@citrix.com, namhyung@gmail.com, paulmck@linux.vnet.ibm.com, rientjes@google.com, stable@kernel.org
 
 
 The patch titled
-     leds: add missing include of linux/module.h
+     mm: avoid null pointer access in vm_struct via /proc/vmallocinfo
 has been added to the -mm tree.  Its filename is
-     leds-add-missing-include-of-linux-moduleh.patch
+     mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,173 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: add missing include of linux/module.h
-From: Axel Lin <axel.lin@gmail.com>
+Subject: mm: avoid null pointer access in vm_struct via /proc/vmallocinfo
+From: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
 
-Add missing include of linux/module.h for drivers that use interfaces from
-linux/module.h.  This patch fixes build errors.
+The /proc/vmallocinfo shows information about vmalloc allocations in
+vmlist that is a linklist of vm_struct.  It, however, may access pages
+field of vm_struct where a page was not allocated.  This results in a null
+pointer access and leads to a kernel panic.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Jonathan McDowell <noodles@earth.li>
-Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com>
-Cc: Magnus Damm <damm@opensource.se>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Why this happens: In __vmalloc_node_range() called from vmalloc(), newly
+allocated vm_struct is added to vmlist at __get_vm_area_node() and then,
+some fields of vm_struct such as nr_pages and pages are set at
+__vmalloc_area_node().  In other words, it is added to vmlist before it is
+fully initialized.  At the same time, when the /proc/vmallocinfo is read,
+it accesses the pages field of vm_struct according to the nr_pages field
+at show_numa_info().  Thus, a null pointer access happens.
+
+The patch adds the newly allocated vm_struct to the vmlist *after* it is
+fully initialized.  So, it can avoid accessing the pages field with
+unallocated page when show_numa_info() is called.
+
+Signed-off-by: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-ams-delta.c |    1 +
- drivers/leds/leds-hp6xx.c     |    1 +
- 2 files changed, 2 insertions(+)
+ include/linux/vmalloc.h |    1 
+ mm/vmalloc.c            |   65 ++++++++++++++++++++++++++++----------
+ 2 files changed, 49 insertions(+), 17 deletions(-)
 
-diff -puN drivers/leds/leds-ams-delta.c~leds-add-missing-include-of-linux-moduleh drivers/leds/leds-ams-delta.c
---- a/drivers/leds/leds-ams-delta.c~leds-add-missing-include-of-linux-moduleh
-+++ a/drivers/leds/leds-ams-delta.c
-@@ -8,6 +8,7 @@
-  * published by the Free Software Foundation.
-  */
+diff -puN include/linux/vmalloc.h~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo
++++ a/include/linux/vmalloc.h
+@@ -13,6 +13,7 @@ struct vm_area_struct;		/* vma defining 
+ #define VM_MAP		0x00000004	/* vmap()ed pages */
+ #define VM_USERMAP	0x00000008	/* suitable for remap_vmalloc_range */
+ #define VM_VPAGES	0x00000010	/* buffer for pages was vmalloc'ed */
++#define VM_UNLIST	0x00000020	/* vm_struct is not listed in vmlist */
+ /* bits [20..32] reserved for arch specific ioremap internals */
  
-+#include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-diff -puN drivers/leds/leds-hp6xx.c~leds-add-missing-include-of-linux-moduleh drivers/leds/leds-hp6xx.c
---- a/drivers/leds/leds-hp6xx.c~leds-add-missing-include-of-linux-moduleh
-+++ a/drivers/leds/leds-hp6xx.c
-@@ -10,6 +10,7 @@
-  * published by the Free Software Foundation.
-  */
+ /*
+diff -puN mm/vmalloc.c~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo
++++ a/mm/vmalloc.c
+@@ -1253,18 +1253,22 @@ EXPORT_SYMBOL_GPL(map_vm_area);
+ DEFINE_RWLOCK(vmlist_lock);
+ struct vm_struct *vmlist;
  
-+#include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
+-static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
++static void setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
+ 			      unsigned long flags, void *caller)
+ {
+-	struct vm_struct *tmp, **p;
+-
+ 	vm->flags = flags;
+ 	vm->addr = (void *)va->va_start;
+ 	vm->size = va->va_end - va->va_start;
+ 	vm->caller = caller;
+ 	va->private = vm;
+ 	va->flags |= VM_VM_AREA;
++}
++
++static void insert_vmalloc_vmlist(struct vm_struct *vm)
++{
++	struct vm_struct *tmp, **p;
+ 
++	vm->flags &= ~VM_UNLIST;
+ 	write_lock(&vmlist_lock);
+ 	for (p = &vmlist; (tmp = *p) != NULL; p = &tmp->next) {
+ 		if (tmp->addr >= vm->addr)
+@@ -1275,6 +1279,13 @@ static void insert_vmalloc_vm(struct vm_
+ 	write_unlock(&vmlist_lock);
+ }
+ 
++static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
++			      unsigned long flags, void *caller)
++{
++	setup_vmalloc_vm(vm, va, flags, caller);
++	insert_vmalloc_vmlist(vm);
++}
++
+ static struct vm_struct *__get_vm_area_node(unsigned long size,
+ 		unsigned long align, unsigned long flags, unsigned long start,
+ 		unsigned long end, int node, gfp_t gfp_mask, void *caller)
+@@ -1313,7 +1324,18 @@ static struct vm_struct *__get_vm_area_n
+ 		return NULL;
+ 	}
+ 
+-	insert_vmalloc_vm(area, va, flags, caller);
++	/*
++	 * When this function is called from __vmalloc_node_range,
++	 * we do not add vm_struct to vmlist here to avoid
++	 * accessing uninitialized members of vm_struct such as
++	 * pages and nr_pages fields. They will be set later.
++	 * To distinguish it from others, we use a VM_UNLIST flag.
++	 */
++	if (flags & VM_UNLIST)
++		setup_vmalloc_vm(area, va, flags, caller);
++	else
++		insert_vmalloc_vm(area, va, flags, caller);
++
+ 	return area;
+ }
+ 
+@@ -1381,17 +1403,20 @@ struct vm_struct *remove_vm_area(const v
+ 	va = find_vmap_area((unsigned long)addr);
+ 	if (va && va->flags & VM_VM_AREA) {
+ 		struct vm_struct *vm = va->private;
+-		struct vm_struct *tmp, **p;
+-		/*
+-		 * remove from list and disallow access to this vm_struct
+-		 * before unmap. (address range confliction is maintained by
+-		 * vmap.)
+-		 */
+-		write_lock(&vmlist_lock);
+-		for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
+-			;
+-		*p = tmp->next;
+-		write_unlock(&vmlist_lock);
++
++		if (!(vm->flags & VM_UNLIST)) {
++			struct vm_struct *tmp, **p;
++			/*
++			 * remove from list and disallow access to
++			 * this vm_struct before unmap. (address range
++			 * confliction is maintained by vmap.)
++			 */
++			write_lock(&vmlist_lock);
++			for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
++				;
++			*p = tmp->next;
++			write_unlock(&vmlist_lock);
++		}
+ 
+ 		vmap_debug_free_range(va->va_start, va->va_end);
+ 		free_unmap_vmap_area(va);
+@@ -1602,8 +1627,8 @@ void *__vmalloc_node_range(unsigned long
+ 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
+ 		return NULL;
+ 
+-	area = __get_vm_area_node(size, align, VM_ALLOC, start, end, node,
+-				  gfp_mask, caller);
++	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNLIST,
++				  start, end, node, gfp_mask, caller);
+ 
+ 	if (!area)
+ 		return NULL;
+@@ -1611,6 +1636,12 @@ void *__vmalloc_node_range(unsigned long
+ 	addr = __vmalloc_area_node(area, gfp_mask, prot, node, caller);
+ 
+ 	/*
++	 * In this function, newly allocated vm_struct is not added
++	 * to vmlist at __get_vm_area_node(). so, it is added here.
++	 */
++	insert_vmalloc_vmlist(area);
++
++	/*
+ 	 * A ref_count = 3 is needed because the vm_struct and vmap_area
+ 	 * structures allocated in the __get_vm_area_node() function contain
+ 	 * references to the virtual address of the vmalloc'ed block.
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from mitsuo.hayasaka.hu@hitachi.com are
 
-origin.patch
-drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh.patch
-leds-add-missing-include-of-linux-moduleh.patch
-linux-next.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 
