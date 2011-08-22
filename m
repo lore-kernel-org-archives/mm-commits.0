@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-clear-zone_congested-for-zone-with-good-watermark-resend.patch added to -mm tree
-Date: Sun, 21 Aug 2011 20:28:56 -0700
-Message-ID: <201108220326.p7M3Q1ix020003@imap1.linux-foundation.org>
+Subject: + rapidio-fix-use-of-non-compatible-registers.patch added to -mm tree
+Date: Mon, 22 Aug 2011 12:28:38 -0700
+Message-ID: <201108221928.p7MJSeRt032489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35593 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751887Ab1HVD0H (ORCPT
+	by vger.kernel.org with ESMTP id S1753481Ab1HVT3l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 21 Aug 2011 23:26:07 -0400
+	Mon, 22 Aug 2011 15:29:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, mgorman@suse.de, minchan.kim@gmail.com
+Cc: alexandre.bounine@idt.com, chul.kim@idt.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org, stable@kernel.org, thomas.moll@sysgo.com
 
 
 The patch titled
-     vmscan: clear ZONE_CONGESTED for zone with good watermark -resend
+     rapidio: fix use of non-compatible registers
 has been added to the -mm tree.  Its filename is
-     vmscan-clear-zone_congested-for-zone-with-good-watermark-resend.patch
+     rapidio-fix-use-of-non-compatible-registers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: clear ZONE_CONGESTED for zone with good watermark -resend
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: rapidio: fix use of non-compatible registers
+From: Alexandre Bounine <alexandre.bounine@idt.com>
 
-ZONE_CONGESTED is only cleared in kswapd, but pages can be freed in any
-task.  It's possible ZONE_CONGESTED isn't cleared in some cases: 1.  the
-zone is already balanced just entering balance_pgdat() for order-0 because
-concurrent tasks free memory.  In this case, later check will skip the
-zone as it's balanced so the flag isn't cleared.  2.  high order balance
-fallbacks to order-0.  quote from Mel: At the end of balance_pgdat(),
-kswapd uses the following logic;
+Replace/remove use of RIO v.1.2 registers/bits that are not
+forward-compatible with newer versions of RapidIO specification.
 
- If reclaiming at high order {
-     for each zone {
-             if all_unreclaimable
-                     skip
-             if watermark is not met
-                     order = 0
-                     loop again
+RapidIO specification v.  1.3 removed Write Port CSR, Doorbell CSR,
+Mailbox CSR and Mailbox and Doorbell bits of the PEF CAR.
 
-             /* watermark is met */
-             clear congested
-     }
- }
-
-i.e.  it clears ZONE_CONGESTED if it the zone is balanced.  if not, it
-restarts balancing at order-0.  However, if the higher zones are balanced
-for order-0, kswapd will miss clearing ZONE_CONGESTED as that only happens
-after a zone is shrunk.  This can mean that wait_iff_congested() stalls
-unnecessarily.  This patch makes kswapd clear ZONE_CONGESTED during its
-initial highmem->dma scan for zones that are already balanced.
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Thomas Moll <thomas.moll@sysgo.com>
+Cc: Chul Kim <chul.kim@idt.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/net/rionet.c       |   23 ++++++++---------------
+ drivers/rapidio/rio-scan.c |    3 +--
+ include/linux/rio_regs.h   |   18 +++++++++---------
+ 3 files changed, 18 insertions(+), 26 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-clear-zone_congested-for-zone-with-good-watermark-resend mm/vmscan.c
---- a/mm/vmscan.c~vmscan-clear-zone_congested-for-zone-with-good-watermark-resend
-+++ a/mm/vmscan.c
-@@ -2529,6 +2529,9 @@ loop_again:
- 					high_wmark_pages(zone), 0, 0)) {
- 				end_zone = i;
- 				break;
-+			} else {
-+				/* If balanced, clear the congested flag */
-+				zone_clear_flag(zone, ZONE_CONGESTED);
- 			}
+diff -puN drivers/net/rionet.c~rapidio-fix-use-of-non-compatible-registers drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-fix-use-of-non-compatible-registers
++++ a/drivers/net/rionet.c
+@@ -80,13 +80,13 @@ static int rionet_capable = 1;
+  */
+ static struct rio_dev **rionet_active;
+ 
+-#define is_rionet_capable(pef, src_ops, dst_ops)		\
+-			((pef & RIO_PEF_INB_MBOX) &&		\
+-			 (pef & RIO_PEF_INB_DOORBELL) &&	\
++#define is_rionet_capable(src_ops, dst_ops)			\
++			((src_ops & RIO_SRC_OPS_DATA_MSG) &&	\
++			 (dst_ops & RIO_DST_OPS_DATA_MSG) &&	\
+ 			 (src_ops & RIO_SRC_OPS_DOORBELL) &&	\
+ 			 (dst_ops & RIO_DST_OPS_DOORBELL))
+ #define dev_rionet_capable(dev) \
+-	is_rionet_capable(dev->pef, dev->src_ops, dev->dst_ops)
++	is_rionet_capable(dev->src_ops, dev->dst_ops)
+ 
+ #define RIONET_MAC_MATCH(x)	(*(u32 *)x == 0x00010001)
+ #define RIONET_GET_DESTID(x)	(*(u16 *)(x + 4))
+@@ -282,7 +282,6 @@ static int rionet_open(struct net_device
+ {
+ 	int i, rc = 0;
+ 	struct rionet_peer *peer, *tmp;
+-	u32 pwdcsr;
+ 	struct rionet_private *rnet = netdev_priv(ndev);
+ 
+ 	if (netif_msg_ifup(rnet))
+@@ -332,13 +331,8 @@ static int rionet_open(struct net_device
+ 			continue;
  		}
- 		if (i < 0)
+ 
+-		/*
+-		 * If device has initialized inbound doorbells,
+-		 * send a join message
+-		 */
+-		rio_read_config_32(peer->rdev, RIO_WRITE_PORT_CSR, &pwdcsr);
+-		if (pwdcsr & RIO_DOORBELL_AVAIL)
+-			rio_send_doorbell(peer->rdev, RIONET_DOORBELL_JOIN);
++		/* Send a join message */
++		rio_send_doorbell(peer->rdev, RIONET_DOORBELL_JOIN);
+ 	}
+ 
+       out:
+@@ -492,7 +486,7 @@ static int rionet_setup_netdev(struct ri
+ static int rionet_probe(struct rio_dev *rdev, const struct rio_device_id *id)
+ {
+ 	int rc = -ENODEV;
+-	u32 lpef, lsrc_ops, ldst_ops;
++	u32 lsrc_ops, ldst_ops;
+ 	struct rionet_peer *peer;
+ 	struct net_device *ndev = NULL;
+ 
+@@ -515,12 +509,11 @@ static int rionet_probe(struct rio_dev *
+ 	 * on later probes
+ 	 */
+ 	if (!rionet_check) {
+-		rio_local_read_config_32(rdev->net->hport, RIO_PEF_CAR, &lpef);
+ 		rio_local_read_config_32(rdev->net->hport, RIO_SRC_OPS_CAR,
+ 					 &lsrc_ops);
+ 		rio_local_read_config_32(rdev->net->hport, RIO_DST_OPS_CAR,
+ 					 &ldst_ops);
+-		if (!is_rionet_capable(lpef, lsrc_ops, ldst_ops)) {
++		if (!is_rionet_capable(lsrc_ops, ldst_ops)) {
+ 			printk(KERN_ERR
+ 			       "%s: local device is not network capable\n",
+ 			       DRV_NAME);
+diff -puN drivers/rapidio/rio-scan.c~rapidio-fix-use-of-non-compatible-registers drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-fix-use-of-non-compatible-registers
++++ a/drivers/rapidio/rio-scan.c
+@@ -505,8 +505,7 @@ static struct rio_dev __devinit *rio_set
+ 	rdev->dev.dma_mask = &rdev->dma_mask;
+ 	rdev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
+ 
+-	if ((rdev->pef & RIO_PEF_INB_DOORBELL) &&
+-	    (rdev->dst_ops & RIO_DST_OPS_DOORBELL))
++	if (rdev->dst_ops & RIO_DST_OPS_DOORBELL)
+ 		rio_init_dbell_res(&rdev->riores[RIO_DOORBELL_RESOURCE],
+ 				   0, 0xffff);
+ 
+diff -puN include/linux/rio_regs.h~rapidio-fix-use-of-non-compatible-registers include/linux/rio_regs.h
+--- a/include/linux/rio_regs.h~rapidio-fix-use-of-non-compatible-registers
++++ a/include/linux/rio_regs.h
+@@ -36,12 +36,12 @@
+ #define  RIO_PEF_PROCESSOR		0x20000000	/* [I] Processor */
+ #define  RIO_PEF_SWITCH			0x10000000	/* [I] Switch */
+ #define  RIO_PEF_MULTIPORT		0x08000000	/* [VI, 2.1] Multiport */
+-#define  RIO_PEF_INB_MBOX		0x00f00000	/* [II] Mailboxes */
+-#define  RIO_PEF_INB_MBOX0		0x00800000	/* [II] Mailbox 0 */
+-#define  RIO_PEF_INB_MBOX1		0x00400000	/* [II] Mailbox 1 */
+-#define  RIO_PEF_INB_MBOX2		0x00200000	/* [II] Mailbox 2 */
+-#define  RIO_PEF_INB_MBOX3		0x00100000	/* [II] Mailbox 3 */
+-#define  RIO_PEF_INB_DOORBELL		0x00080000	/* [II] Doorbells */
++#define  RIO_PEF_INB_MBOX		0x00f00000	/* [II, <= 1.2] Mailboxes */
++#define  RIO_PEF_INB_MBOX0		0x00800000	/* [II, <= 1.2] Mailbox 0 */
++#define  RIO_PEF_INB_MBOX1		0x00400000	/* [II, <= 1.2] Mailbox 1 */
++#define  RIO_PEF_INB_MBOX2		0x00200000	/* [II, <= 1.2] Mailbox 2 */
++#define  RIO_PEF_INB_MBOX3		0x00100000	/* [II, <= 1.2] Mailbox 3 */
++#define  RIO_PEF_INB_DOORBELL		0x00080000	/* [II, <= 1.2] Doorbells */
+ #define  RIO_PEF_EXT_RT			0x00000200	/* [III, 1.3] Extended route table support */
+ #define  RIO_PEF_STD_RT			0x00000100	/* [III, 1.3] Standard route table support */
+ #define  RIO_PEF_CTLS			0x00000010	/* [III] CTLS */
+@@ -102,7 +102,7 @@
+ #define	RIO_SWITCH_RT_LIMIT	0x34	/* [III, 1.3] Switch Route Table Destination ID Limit CAR */
+ #define	 RIO_RT_MAX_DESTID		0x0000ffff
+ 
+-#define RIO_MBOX_CSR		0x40	/* [II] Mailbox CSR */
++#define RIO_MBOX_CSR		0x40	/* [II, <= 1.2] Mailbox CSR */
+ #define  RIO_MBOX0_AVAIL		0x80000000	/* [II] Mbox 0 avail */
+ #define  RIO_MBOX0_FULL			0x40000000	/* [II] Mbox 0 full */
+ #define  RIO_MBOX0_EMPTY		0x20000000	/* [II] Mbox 0 empty */
+@@ -128,8 +128,8 @@
+ #define  RIO_MBOX3_FAIL			0x00000008	/* [II] Mbox 3 fail */
+ #define  RIO_MBOX3_ERROR		0x00000004	/* [II] Mbox 3 error */
+ 
+-#define RIO_WRITE_PORT_CSR	0x44	/* [I] Write Port CSR */
+-#define RIO_DOORBELL_CSR	0x44	/* [II] Doorbell CSR */
++#define RIO_WRITE_PORT_CSR	0x44	/* [I, <= 1.2] Write Port CSR */
++#define RIO_DOORBELL_CSR	0x44	/* [II, <= 1.2] Doorbell CSR */
+ #define  RIO_DOORBELL_AVAIL		0x80000000	/* [II] Doorbell avail */
+ #define  RIO_DOORBELL_FULL		0x40000000	/* [II] Doorbell full */
+ #define  RIO_DOORBELL_EMPTY		0x20000000	/* [II] Doorbell empty */
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-origin.patch
-mm-fix-a-vmscan-warning.patch
-vmscan-clear-zone_congested-for-zone-with-good-watermark-resend.patch
-linux-next.patch
-vmscan-add-block-plug-for-page-reclaim.patch
-vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+rapidio-fix-use-of-non-compatible-registers.patch
+rapidio-add-mport-driver-for-tsi721-bridge.patch
 
