@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions.patch added to -mm tree
-Date: Mon, 22 Aug 2011 15:40:43 -0700
-Message-ID: <201108222240.p7MMehgA010838@imap1.linux-foundation.org>
+Subject: + epoll-fix-spurious-lockdep-warnings.patch added to -mm tree
+Date: Mon, 22 Aug 2011 15:45:11 -0700
+Message-ID: <201108222245.p7MMjBCm011065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60721 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753957Ab1HVWlO (ORCPT
+	by vger.kernel.org with ESMTP id S1753957Ab1HVWpt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Aug 2011 18:41:14 -0400
+	Mon, 22 Aug 2011 18:45:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com
+Cc: nelhage@nelhage.com, davej@redhat.com, davidel@xmailserver.org, pebolle@tiscali.nl, stable@kernel.org
 
 
 The patch titled
-     lib/kstrtox: common code between kstrto*() and simple_strto*() functions
+     epoll: fix spurious lockdep warnings
 has been added to the -mm tree.  Its filename is
-     lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions.patch
+     epoll-fix-spurious-lockdep-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,186 +34,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/kstrtox: common code between kstrto*() and simple_strto*() functions
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: epoll: fix spurious lockdep warnings
+From: Nelson Elhage <nelhage@nelhage.com>
 
-Currently termination logic (\0 or \n\0) is hardcoded in _kstrtoull(),
-avoid that for code reuse between kstrto*() and simple_strtoull(). 
-Essentially, make them different only in termination logic.
+epoll can acquire recursively acquire ep->mtx on multiple "struct
+eventpoll"s at once in the case where one epoll fd is monitoring another
+epoll fd.  This is perfectly OK, since we're careful about the lock
+ordering, but it causes spurious lockdep warnings.  Annotate the recursion
+using mutex_lock_nested, and add a comment explaining the nesting rules
+for good measure.
 
-simple_strtoull() (and scanf(), BTW) ignores integer overflow, that's a
-bug we currently don't have guts to fix, making KSTRTOX_OVERFLOW hack
-necessary.
+Recent versions of systemd are triggering this, and it can also be
+demonstrated with the following trivial test program:
 
-Almost forgot: patch shrinks code size by about ~80 bytes on x86_64.
+--------------------8<--------------------
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+int main(void) {
+   int e1, e2;
+   struct epoll_event evt = {
+       .events = EPOLLIN
+   };
+
+   e1 = epoll_create1(0);
+   e2 = epoll_create1(0);
+   epoll_ctl(e1, EPOLL_CTL_ADD, e2, &evt);
+   return 0;
+}
+--------------------8<--------------------
+
+Reported-by: Paul Bolle <pebolle@tiscali.nl>
+Tested-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Nelson Elhage <nelhage@nelhage.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c  |   75 +++++++++++++++++++++++++++++++++--------------
- lib/kstrtox.h  |    8 +++++
- lib/vsprintf.c |   33 ++++----------------
- 3 files changed, 68 insertions(+), 48 deletions(-)
+ fs/eventpoll.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
-diff -puN lib/kstrtox.c~lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions lib/kstrtox.c
---- a/lib/kstrtox.c~lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions
-+++ a/lib/kstrtox.c
-@@ -18,26 +18,40 @@
- #include <linux/module.h>
- #include <linux/types.h>
- #include <asm/uaccess.h>
-+#include "kstrtox.h"
- 
--static int _kstrtoull(const char *s, unsigned int base, unsigned long long *res)
-+const char *_parse_integer_fixup_radix(const char *s, unsigned int *base)
+diff -puN fs/eventpoll.c~epoll-fix-spurious-lockdep-warnings fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-fix-spurious-lockdep-warnings
++++ a/fs/eventpoll.c
+@@ -70,6 +70,15 @@
+  * simultaneous inserts (A into B and B into A) from racing and
+  * constructing a cycle without either insert observing that it is
+  * going to.
++ * It is necessary to acquire multiple "ep->mtx"es at once in the
++ * case when one epoll fd is added to another. In this case, we
++ * always acquire the locks in the order of nesting (i.e. after
++ * epoll_ctl(e1, EPOLL_CTL_ADD, e2), e1->mtx will always be acquired
++ * before e2->mtx). Since we disallow cycles of epoll file
++ * descriptors, this ensures that the mutexes are well-ordered. In
++ * order to communicate this nesting to lockdep, when walking a tree
++ * of epoll file descriptors, we use the current recursion depth as
++ * the lockdep subkey.
+  * It is possible to drop the "ep->mtx" and to use the global
+  * mutex "epmutex" (together with "ep->lock") to have it working,
+  * but having "ep->mtx" will make the interface more scalable.
+@@ -464,13 +473,15 @@ static void ep_unregister_pollwait(struc
+  * @ep: Pointer to the epoll private data structure.
+  * @sproc: Pointer to the scan callback.
+  * @priv: Private opaque data passed to the @sproc callback.
++ * @depth: The current depth of recursive f_op->poll calls.
+  *
+  * Returns: The same integer error code returned by the @sproc callback.
+  */
+ static int ep_scan_ready_list(struct eventpoll *ep,
+ 			      int (*sproc)(struct eventpoll *,
+ 					   struct list_head *, void *),
+-			      void *priv)
++			      void *priv,
++			      int depth)
  {
--	unsigned long long acc;
--	int ok;
--
--	if (base == 0) {
-+	if (*base == 0) {
- 		if (s[0] == '0') {
- 			if (_tolower(s[1]) == 'x' && isxdigit(s[2]))
--				base = 16;
-+				*base = 16;
- 			else
--				base = 8;
-+				*base = 8;
- 		} else
--			base = 10;
-+			*base = 10;
- 	}
--	if (base == 16 && s[0] == '0' && _tolower(s[1]) == 'x')
-+	if (*base == 16 && s[0] == '0' && _tolower(s[1]) == 'x')
- 		s += 2;
-+	return s;
-+}
+ 	int error, pwake = 0;
+ 	unsigned long flags;
+@@ -481,7 +492,7 @@ static int ep_scan_ready_list(struct eve
+ 	 * We need to lock this because we could be hit by
+ 	 * eventpoll_release_file() and epoll_ctl().
+ 	 */
+-	mutex_lock(&ep->mtx);
++	mutex_lock_nested(&ep->mtx, depth);
  
--	acc = 0;
--	ok = 0;
-+/*
-+ * Convert non-negative integer string representation in explicitly given radix
-+ * to an integer.
-+ * Return number of characters consumed maybe or-ed with overflow bit.
-+ * If overflow occurs, result integer (incorrect) is still returned.
-+ *
-+ * Don't you dare use this function.
-+ */
-+unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long *res)
-+{
-+	unsigned int rv;
-+	int overflow;
-+
-+	*res = 0;
-+	rv = 0;
-+	overflow = 0;
- 	while (*s) {
- 		unsigned int val;
+ 	/*
+ 	 * Steal the ready list, and re-init the original one to the
+@@ -670,7 +681,7 @@ static int ep_read_events_proc(struct ev
  
-@@ -45,23 +59,40 @@ static int _kstrtoull(const char *s, uns
- 			val = *s - '0';
- 		else if ('a' <= _tolower(*s) && _tolower(*s) <= 'f')
- 			val = _tolower(*s) - 'a' + 10;
--		else if (*s == '\n' && *(s + 1) == '\0')
--			break;
- 		else
--			return -EINVAL;
-+			break;
- 
- 		if (val >= base)
--			return -EINVAL;
--		if (acc > div_u64(ULLONG_MAX - val, base))
--			return -ERANGE;
--		acc = acc * base + val;
--		ok = 1;
--
-+			break;
-+		if (*res > div_u64(ULLONG_MAX - val, base))
-+			overflow = 1;
-+		*res = *res * base + val;
-+		rv++;
- 		s++;
- 	}
--	if (!ok)
-+	if (overflow)
-+		rv |= KSTRTOX_OVERFLOW;
-+	return rv;
-+}
-+
-+static int _kstrtoull(const char *s, unsigned int base, unsigned long long *res)
-+{
-+	unsigned long long _res;
-+	unsigned int rv;
-+
-+	s = _parse_integer_fixup_radix(s, &base);
-+	rv = _parse_integer(s, base, &_res);
-+	if (rv & KSTRTOX_OVERFLOW)
-+		return -ERANGE;
-+	rv &= ~KSTRTOX_OVERFLOW;
-+	if (rv == 0)
-+		return -EINVAL;
-+	s += rv;
-+	if (*s == '\n')
-+		s++;
-+	if (*s)
- 		return -EINVAL;
--	*res = acc;
-+	*res = _res;
- 	return 0;
+ static int ep_poll_readyevents_proc(void *priv, void *cookie, int call_nests)
+ {
+-	return ep_scan_ready_list(priv, ep_read_events_proc, NULL);
++	return ep_scan_ready_list(priv, ep_read_events_proc, NULL, call_nests + 1);
  }
  
-diff -puN /dev/null lib/kstrtox.h
---- /dev/null
-+++ a/lib/kstrtox.h
-@@ -0,0 +1,8 @@
-+#ifndef _LIB_KSTRTOX_H
-+#define _LIB_KSTRTOX_H
-+
-+#define KSTRTOX_OVERFLOW	(1U << 31)
-+const char *_parse_integer_fixup_radix(const char *s, unsigned int *base);
-+unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long *res);
-+
-+#endif
-diff -puN lib/vsprintf.c~lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions lib/vsprintf.c
---- a/lib/vsprintf.c~lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions
-+++ a/lib/vsprintf.c
-@@ -31,17 +31,7 @@
- #include <asm/div64.h>
- #include <asm/sections.h>	/* for dereference_function_descriptor() */
+ static unsigned int ep_eventpoll_poll(struct file *file, poll_table *wait)
+@@ -737,7 +748,7 @@ void eventpoll_release_file(struct file 
  
--static unsigned int simple_guess_base(const char *cp)
--{
--	if (cp[0] == '0') {
--		if (_tolower(cp[1]) == 'x' && isxdigit(cp[2]))
--			return 16;
--		else
--			return 8;
--	} else {
--		return 10;
--	}
--}
-+#include "kstrtox.h"
+ 		ep = epi->ep;
+ 		list_del_init(&epi->fllink);
+-		mutex_lock(&ep->mtx);
++		mutex_lock_nested(&ep->mtx, 0);
+ 		ep_remove(ep, epi);
+ 		mutex_unlock(&ep->mtx);
+ 	}
+@@ -1134,7 +1145,7 @@ static int ep_send_events(struct eventpo
+ 	esed.maxevents = maxevents;
+ 	esed.events = events;
  
- /**
-  * simple_strtoull - convert a string to an unsigned long long
-@@ -51,23 +41,14 @@ static unsigned int simple_guess_base(co
-  */
- unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base)
- {
--	unsigned long long result = 0;
-+	unsigned long long result;
-+	unsigned int rv;
+-	return ep_scan_ready_list(ep, ep_send_events_proc, &esed);
++	return ep_scan_ready_list(ep, ep_send_events_proc, &esed, 0);
+ }
  
--	if (!base)
--		base = simple_guess_base(cp);
-+	cp = _parse_integer_fixup_radix(cp, &base);
-+	rv = _parse_integer(cp, base, &result);
-+	/* FIXME */
-+	cp += (rv & ~KSTRTOX_OVERFLOW);
+ static inline struct timespec ep_set_mstimeout(long ms)
+@@ -1267,7 +1278,7 @@ static int ep_loop_check_proc(void *priv
+ 	struct rb_node *rbp;
+ 	struct epitem *epi;
  
--	if (base == 16 && cp[0] == '0' && _tolower(cp[1]) == 'x')
--		cp += 2;
--
--	while (isxdigit(*cp)) {
--		unsigned int value;
+-	mutex_lock(&ep->mtx);
++	mutex_lock_nested(&ep->mtx, call_nests + 1);
+ 	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 		if (unlikely(is_file_epoll(epi->ffd.file))) {
+@@ -1409,7 +1420,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 	}
+ 
+ 
+-	mutex_lock(&ep->mtx);
++	mutex_lock_nested(&ep->mtx, 0);
+ 
+ 	/*
+ 	 * Try to lookup the file inside our RB tree, Since we grabbed "mtx"
+_
+
+Patches currently in -mm which might be from nelhage@nelhage.com are
+
+epoll-fix-spurious-lockdep-warnings.patch
+
