@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-use-atomic-long-for-shrinker-batching.patch added to -mm tree
-Date: Mon, 22 Aug 2011 14:40:25 -0700
-Message-ID: <201108222140.p7MLePsq008012@imap1.linux-foundation.org>
+Subject: + vmscan-use-atomic-long-for-shrinker-batching-fix.patch added to -mm tree
+Date: Mon, 22 Aug 2011 14:40:27 -0700
+Message-ID: <201108222140.p7MLeR9C008015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39116 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751668Ab1HVVk4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751668Ab1HVVlB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Aug 2011 17:40:56 -0400
+	Mon, 22 Aug 2011 17:41:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, david@fromorbit.com
+Cc: akpm@linux-foundation.org, david@fromorbit.com, khlebnikov@openvz.org
 
 
 The patch titled
-     vmscan: use atomic-long for shrinker batching
+     vmscan-use-atomic-long-for-shrinker-batching-fix
 has been added to the -mm tree.  Its filename is
-     vmscan-use-atomic-long-for-shrinker-batching.patch
+     vmscan-use-atomic-long-for-shrinker-batching-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: use atomic-long for shrinker batching
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: vmscan-use-atomic-long-for-shrinker-batching-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use atomic-long operations instead of looping around cmpxchg().
+massage atomic.h inclusions
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |    2 +-
- mm/vmscan.c              |   17 +++++++----------
- 2 files changed, 8 insertions(+), 11 deletions(-)
+ include/linux/fs.h |    2 +-
+ include/linux/mm.h |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/shrinker.h~vmscan-use-atomic-long-for-shrinker-batching include/linux/shrinker.h
---- a/include/linux/shrinker.h~vmscan-use-atomic-long-for-shrinker-batching
-+++ a/include/linux/shrinker.h
-@@ -34,7 +34,7 @@ struct shrinker {
+diff -puN include/linux/fs.h~vmscan-use-atomic-long-for-shrinker-batching-fix include/linux/fs.h
+--- a/include/linux/fs.h~vmscan-use-atomic-long-for-shrinker-batching-fix
++++ a/include/linux/fs.h
+@@ -394,8 +394,8 @@ struct inodes_stat_t {
+ #include <linux/semaphore.h>
+ #include <linux/fiemap.h>
+ #include <linux/rculist_bl.h>
+-#include <linux/shrinker.h>
+ #include <linux/atomic.h>
++#include <linux/shrinker.h>
  
- 	/* These are for internal use */
- 	struct list_head list;
--	long nr;	/* objs pending delete */
-+	atomic_long_t nr_in_batch; /* objs pending delete */
- };
- #define DEFAULT_SEEKS 2 /* A good number if you don't know better. */
- extern void register_shrinker(struct shrinker *);
-diff -puN mm/vmscan.c~vmscan-use-atomic-long-for-shrinker-batching mm/vmscan.c
---- a/mm/vmscan.c~vmscan-use-atomic-long-for-shrinker-batching
-+++ a/mm/vmscan.c
-@@ -184,7 +184,7 @@ static unsigned long zone_nr_lru_pages(s
-  */
- void register_shrinker(struct shrinker *shrinker)
- {
--	shrinker->nr = 0;
-+	atomic_long_set(&shrinker->nr_in_batch, 0);
- 	down_write(&shrinker_rwsem);
- 	list_add_tail(&shrinker->list, &shrinker_list);
- 	up_write(&shrinker_rwsem);
-@@ -265,9 +265,7 @@ unsigned long shrink_slab(struct shrink_
- 		 * and zero it so that other concurrent shrinker invocations
- 		 * don't also do this scanning work.
- 		 */
--		do {
--			nr = shrinker->nr;
--		} while (cmpxchg(&shrinker->nr, nr, 0) != nr);
-+		nr = atomic_long_xchg(&shrinker->nr_in_batch, 0);
+ #include <asm/byteorder.h>
  
- 		total_scan = nr;
- 		delta = (4 * nr_pages_scanned) / shrinker->seeks;
-@@ -329,12 +327,11 @@ unsigned long shrink_slab(struct shrink_
- 		 * manner that handles concurrent updates. If we exhausted the
- 		 * scan, there is no need to do an update.
- 		 */
--		do {
--			nr = shrinker->nr;
--			new_nr = total_scan + nr;
--			if (total_scan <= 0)
--				break;
--		} while (cmpxchg(&shrinker->nr, nr, new_nr) != nr);
-+		if (total_scan > 0)
-+			new_nr = atomic_long_add_return(total_scan,
-+					&shrinker->nr_in_batch);
-+		else
-+			new_nr = atomic_long_read(&shrinker->nr_in_batch);
- 
- 		trace_mm_shrink_slab_end(shrinker, shrink_ret, nr, new_nr);
- 	}
+diff -puN include/linux/mm.h~vmscan-use-atomic-long-for-shrinker-batching-fix include/linux/mm.h
+--- a/include/linux/mm.h~vmscan-use-atomic-long-for-shrinker-batching-fix
++++ a/include/linux/mm.h
+@@ -10,6 +10,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/rbtree.h>
+ #include <linux/prio_tree.h>
++#include <linux/atomic.h>
+ #include <linux/debug_locks.h>
+ #include <linux/mm_types.h>
+ #include <linux/range.h>
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscan-fix-initial-shrinker-size-handling.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
+origin.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+mm.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
 vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
