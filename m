@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch added to -mm tree
-Date: Mon, 22 Aug 2011 15:25:19 -0700
-Message-ID: <201108222225.p7MMPJZo010039@imap1.linux-foundation.org>
+Subject: + lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions.patch added to -mm tree
+Date: Mon, 22 Aug 2011 15:40:43 -0700
+Message-ID: <201108222240.p7MMehgA010838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753898Ab1HVWZ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753957Ab1HVWlO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Aug 2011 18:25:59 -0400
+	Mon, 22 Aug 2011 18:41:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mitsuo.hayasaka.hu@hitachi.com, akpm@linux-foundation.org, jeremy.fitzhardinge@citrix.com, namhyung@gmail.com, paulmck@linux.vnet.ibm.com, rientjes@google.com, stable@kernel.org
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     mm: avoid null pointer access in vm_struct via /proc/vmallocinfo
+     lib/kstrtox: common code between kstrto*() and simple_strto*() functions
 has been added to the -mm tree.  Its filename is
-     mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+     lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,173 +34,186 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: avoid null pointer access in vm_struct via /proc/vmallocinfo
-From: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
+Subject: lib/kstrtox: common code between kstrto*() and simple_strto*() functions
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-The /proc/vmallocinfo shows information about vmalloc allocations in
-vmlist that is a linklist of vm_struct.  It, however, may access pages
-field of vm_struct where a page was not allocated.  This results in a null
-pointer access and leads to a kernel panic.
+Currently termination logic (\0 or \n\0) is hardcoded in _kstrtoull(),
+avoid that for code reuse between kstrto*() and simple_strtoull(). 
+Essentially, make them different only in termination logic.
 
-Why this happens: In __vmalloc_node_range() called from vmalloc(), newly
-allocated vm_struct is added to vmlist at __get_vm_area_node() and then,
-some fields of vm_struct such as nr_pages and pages are set at
-__vmalloc_area_node().  In other words, it is added to vmlist before it is
-fully initialized.  At the same time, when the /proc/vmallocinfo is read,
-it accesses the pages field of vm_struct according to the nr_pages field
-at show_numa_info().  Thus, a null pointer access happens.
+simple_strtoull() (and scanf(), BTW) ignores integer overflow, that's a
+bug we currently don't have guts to fix, making KSTRTOX_OVERFLOW hack
+necessary.
 
-The patch adds the newly allocated vm_struct to the vmlist *after* it is
-fully initialized.  So, it can avoid accessing the pages field with
-unallocated page when show_numa_info() is called.
+Almost forgot: patch shrinks code size by about ~80 bytes on x86_64.
 
-Signed-off-by: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Namhyung Kim <namhyung@gmail.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 
- mm/vmalloc.c            |   65 ++++++++++++++++++++++++++++----------
- 2 files changed, 49 insertions(+), 17 deletions(-)
+ lib/kstrtox.c  |   75 +++++++++++++++++++++++++++++++++--------------
+ lib/kstrtox.h  |    8 +++++
+ lib/vsprintf.c |   33 ++++----------------
+ 3 files changed, 68 insertions(+), 48 deletions(-)
 
-diff -puN include/linux/vmalloc.h~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo
-+++ a/include/linux/vmalloc.h
-@@ -13,6 +13,7 @@ struct vm_area_struct;		/* vma defining 
- #define VM_MAP		0x00000004	/* vmap()ed pages */
- #define VM_USERMAP	0x00000008	/* suitable for remap_vmalloc_range */
- #define VM_VPAGES	0x00000010	/* buffer for pages was vmalloc'ed */
-+#define VM_UNLIST	0x00000020	/* vm_struct is not listed in vmlist */
- /* bits [20..32] reserved for arch specific ioremap internals */
+diff -puN lib/kstrtox.c~lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions lib/kstrtox.c
+--- a/lib/kstrtox.c~lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions
++++ a/lib/kstrtox.c
+@@ -18,26 +18,40 @@
+ #include <linux/module.h>
+ #include <linux/types.h>
+ #include <asm/uaccess.h>
++#include "kstrtox.h"
  
- /*
-diff -puN mm/vmalloc.c~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo mm/vmalloc.c
---- a/mm/vmalloc.c~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo
-+++ a/mm/vmalloc.c
-@@ -1253,18 +1253,22 @@ EXPORT_SYMBOL_GPL(map_vm_area);
- DEFINE_RWLOCK(vmlist_lock);
- struct vm_struct *vmlist;
- 
--static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
-+static void setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
- 			      unsigned long flags, void *caller)
+-static int _kstrtoull(const char *s, unsigned int base, unsigned long long *res)
++const char *_parse_integer_fixup_radix(const char *s, unsigned int *base)
  {
--	struct vm_struct *tmp, **p;
+-	unsigned long long acc;
+-	int ok;
 -
- 	vm->flags = flags;
- 	vm->addr = (void *)va->va_start;
- 	vm->size = va->va_end - va->va_start;
- 	vm->caller = caller;
- 	va->private = vm;
- 	va->flags |= VM_VM_AREA;
-+}
-+
-+static void insert_vmalloc_vmlist(struct vm_struct *vm)
-+{
-+	struct vm_struct *tmp, **p;
- 
-+	vm->flags &= ~VM_UNLIST;
- 	write_lock(&vmlist_lock);
- 	for (p = &vmlist; (tmp = *p) != NULL; p = &tmp->next) {
- 		if (tmp->addr >= vm->addr)
-@@ -1275,6 +1279,13 @@ static void insert_vmalloc_vm(struct vm_
- 	write_unlock(&vmlist_lock);
- }
- 
-+static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
-+			      unsigned long flags, void *caller)
-+{
-+	setup_vmalloc_vm(vm, va, flags, caller);
-+	insert_vmalloc_vmlist(vm);
-+}
-+
- static struct vm_struct *__get_vm_area_node(unsigned long size,
- 		unsigned long align, unsigned long flags, unsigned long start,
- 		unsigned long end, int node, gfp_t gfp_mask, void *caller)
-@@ -1313,7 +1324,18 @@ static struct vm_struct *__get_vm_area_n
- 		return NULL;
+-	if (base == 0) {
++	if (*base == 0) {
+ 		if (s[0] == '0') {
+ 			if (_tolower(s[1]) == 'x' && isxdigit(s[2]))
+-				base = 16;
++				*base = 16;
+ 			else
+-				base = 8;
++				*base = 8;
+ 		} else
+-			base = 10;
++			*base = 10;
  	}
+-	if (base == 16 && s[0] == '0' && _tolower(s[1]) == 'x')
++	if (*base == 16 && s[0] == '0' && _tolower(s[1]) == 'x')
+ 		s += 2;
++	return s;
++}
  
--	insert_vmalloc_vm(area, va, flags, caller);
-+	/*
-+	 * When this function is called from __vmalloc_node_range,
-+	 * we do not add vm_struct to vmlist here to avoid
-+	 * accessing uninitialized members of vm_struct such as
-+	 * pages and nr_pages fields. They will be set later.
-+	 * To distinguish it from others, we use a VM_UNLIST flag.
-+	 */
-+	if (flags & VM_UNLIST)
-+		setup_vmalloc_vm(area, va, flags, caller);
-+	else
-+		insert_vmalloc_vm(area, va, flags, caller);
+-	acc = 0;
+-	ok = 0;
++/*
++ * Convert non-negative integer string representation in explicitly given radix
++ * to an integer.
++ * Return number of characters consumed maybe or-ed with overflow bit.
++ * If overflow occurs, result integer (incorrect) is still returned.
++ *
++ * Don't you dare use this function.
++ */
++unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long *res)
++{
++	unsigned int rv;
++	int overflow;
 +
- 	return area;
++	*res = 0;
++	rv = 0;
++	overflow = 0;
+ 	while (*s) {
+ 		unsigned int val;
+ 
+@@ -45,23 +59,40 @@ static int _kstrtoull(const char *s, uns
+ 			val = *s - '0';
+ 		else if ('a' <= _tolower(*s) && _tolower(*s) <= 'f')
+ 			val = _tolower(*s) - 'a' + 10;
+-		else if (*s == '\n' && *(s + 1) == '\0')
+-			break;
+ 		else
+-			return -EINVAL;
++			break;
+ 
+ 		if (val >= base)
+-			return -EINVAL;
+-		if (acc > div_u64(ULLONG_MAX - val, base))
+-			return -ERANGE;
+-		acc = acc * base + val;
+-		ok = 1;
+-
++			break;
++		if (*res > div_u64(ULLONG_MAX - val, base))
++			overflow = 1;
++		*res = *res * base + val;
++		rv++;
+ 		s++;
+ 	}
+-	if (!ok)
++	if (overflow)
++		rv |= KSTRTOX_OVERFLOW;
++	return rv;
++}
++
++static int _kstrtoull(const char *s, unsigned int base, unsigned long long *res)
++{
++	unsigned long long _res;
++	unsigned int rv;
++
++	s = _parse_integer_fixup_radix(s, &base);
++	rv = _parse_integer(s, base, &_res);
++	if (rv & KSTRTOX_OVERFLOW)
++		return -ERANGE;
++	rv &= ~KSTRTOX_OVERFLOW;
++	if (rv == 0)
++		return -EINVAL;
++	s += rv;
++	if (*s == '\n')
++		s++;
++	if (*s)
+ 		return -EINVAL;
+-	*res = acc;
++	*res = _res;
+ 	return 0;
  }
  
-@@ -1381,17 +1403,20 @@ struct vm_struct *remove_vm_area(const v
- 	va = find_vmap_area((unsigned long)addr);
- 	if (va && va->flags & VM_VM_AREA) {
- 		struct vm_struct *vm = va->private;
--		struct vm_struct *tmp, **p;
--		/*
--		 * remove from list and disallow access to this vm_struct
--		 * before unmap. (address range confliction is maintained by
--		 * vmap.)
--		 */
--		write_lock(&vmlist_lock);
--		for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
--			;
--		*p = tmp->next;
--		write_unlock(&vmlist_lock);
+diff -puN /dev/null lib/kstrtox.h
+--- /dev/null
++++ a/lib/kstrtox.h
+@@ -0,0 +1,8 @@
++#ifndef _LIB_KSTRTOX_H
++#define _LIB_KSTRTOX_H
 +
-+		if (!(vm->flags & VM_UNLIST)) {
-+			struct vm_struct *tmp, **p;
-+			/*
-+			 * remove from list and disallow access to
-+			 * this vm_struct before unmap. (address range
-+			 * confliction is maintained by vmap.)
-+			 */
-+			write_lock(&vmlist_lock);
-+			for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
-+				;
-+			*p = tmp->next;
-+			write_unlock(&vmlist_lock);
-+		}
- 
- 		vmap_debug_free_range(va->va_start, va->va_end);
- 		free_unmap_vmap_area(va);
-@@ -1602,8 +1627,8 @@ void *__vmalloc_node_range(unsigned long
- 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
- 		return NULL;
- 
--	area = __get_vm_area_node(size, align, VM_ALLOC, start, end, node,
--				  gfp_mask, caller);
-+	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNLIST,
-+				  start, end, node, gfp_mask, caller);
- 
- 	if (!area)
- 		return NULL;
-@@ -1611,6 +1636,12 @@ void *__vmalloc_node_range(unsigned long
- 	addr = __vmalloc_area_node(area, gfp_mask, prot, node, caller);
- 
- 	/*
-+	 * In this function, newly allocated vm_struct is not added
-+	 * to vmlist at __get_vm_area_node(). so, it is added here.
-+	 */
-+	insert_vmalloc_vmlist(area);
++#define KSTRTOX_OVERFLOW	(1U << 31)
++const char *_parse_integer_fixup_radix(const char *s, unsigned int *base);
++unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long *res);
 +
-+	/*
- 	 * A ref_count = 3 is needed because the vm_struct and vmap_area
- 	 * structures allocated in the __get_vm_area_node() function contain
- 	 * references to the virtual address of the vmalloc'ed block.
-_
-
-Patches currently in -mm which might be from mitsuo.hayasaka.hu@hitachi.com are
-
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-
++#endif
+diff -puN lib/vsprintf.c~lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-kstrtox-common-code-between-kstrto-and-simple_strto-functions
++++ a/lib/vsprintf.c
+@@ -31,17 +31,7 @@
+ #include <asm/div64.h>
+ #include <asm/sections.h>	/* for dereference_function_descriptor() */
+ 
+-static unsigned int simple_guess_base(const char *cp)
+-{
+-	if (cp[0] == '0') {
+-		if (_tolower(cp[1]) == 'x' && isxdigit(cp[2]))
+-			return 16;
+-		else
+-			return 8;
+-	} else {
+-		return 10;
+-	}
+-}
++#include "kstrtox.h"
+ 
+ /**
+  * simple_strtoull - convert a string to an unsigned long long
+@@ -51,23 +41,14 @@ static unsigned int simple_guess_base(co
+  */
+ unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base)
+ {
+-	unsigned long long result = 0;
++	unsigned long long result;
++	unsigned int rv;
+ 
+-	if (!base)
+-		base = simple_guess_base(cp);
++	cp = _parse_integer_fixup_radix(cp, &base);
++	rv = _parse_integer(cp, base, &result);
++	/* FIXME */
++	cp += (rv & ~KSTRTOX_OVERFLOW);
+ 
+-	if (base == 16 && cp[0] == '0' && _tolower(cp[1]) == 'x')
+-		cp += 2;
+-
+-	while (isxdigit(*cp)) {
+-		unsigned int value;
