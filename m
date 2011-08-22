@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-debug-pageallocc-use-memchr_inv.patch added to -mm tree
-Date: Mon, 22 Aug 2011 13:53:15 -0700
-Message-ID: <201108222053.p7MKrFWA005855@imap1.linux-foundation.org>
+Subject: + vmscan-fix-initial-shrinker-size-handling.patch added to -mm tree
+Date: Mon, 22 Aug 2011 14:31:52 -0700
+Message-ID: <201108222131.p7MLVqY6007667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50959 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752079Ab1HVUxQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751668Ab1HVVbz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Aug 2011 16:53:16 -0400
+	Mon, 22 Aug 2011 17:31:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: khlebnikov@openvz.org, david@fromorbit.com
 
 
 The patch titled
-     mm/debug-pagealloc.c: use memchr_inv
+     vmscan: fix initial shrinker size handling
 has been added to the -mm tree.  Its filename is
-     mm-debug-pageallocc-use-memchr_inv.patch
+     vmscan-fix-initial-shrinker-size-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/debug-pagealloc.c: use memchr_inv
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: vmscan: fix initial shrinker size handling
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-Use newly introduced memchr_inv() for page verification.
+A shrinker function can return -1, means that it cannot do anything
+without a risk of deadlock.  For example prune_super() does this if it
+cannot grab a superblock refrence, even if nr_to_scan=0.  Currently we
+interpret this -1 as a ULONG_MAX size shrinker and evaluate `total_scan'
+according to this.  So the next time around this shrinker can cause really
+big pressure.  Let's skip such shrinkers instead.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Also make total_scan signed, otherwise the check (total_scan < 0) below
+never works.
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug-pagealloc.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/debug-pagealloc.c~mm-debug-pageallocc-use-memchr_inv mm/debug-pagealloc.c
---- a/mm/debug-pagealloc.c~mm-debug-pageallocc-use-memchr_inv
-+++ a/mm/debug-pagealloc.c
-@@ -1,4 +1,5 @@
- #include <linux/kernel.h>
-+#include <linux/string.h>
- #include <linux/mm.h>
- #include <linux/page-debug-flags.h>
- #include <linux/poison.h>
-@@ -64,11 +65,8 @@ static void check_poison_mem(unsigned ch
- 	unsigned char *start;
- 	unsigned char *end;
+diff -puN mm/vmscan.c~vmscan-fix-initial-shrinker-size-handling mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-initial-shrinker-size-handling
++++ a/mm/vmscan.c
+@@ -248,14 +248,18 @@ unsigned long shrink_slab(struct shrink_
  
--	for (start = mem; start < mem + bytes; start++) {
--		if (*start != PAGE_POISON)
--			break;
--	}
--	if (start == mem + bytes)
-+	start = memchr_inv(mem, PAGE_POISON, bytes);
-+	if (!start)
- 		return;
+ 	list_for_each_entry(shrinker, &shrinker_list, list) {
+ 		unsigned long long delta;
+-		unsigned long total_scan;
+-		unsigned long max_pass;
++		long total_scan;
++		long max_pass;
+ 		int shrink_ret = 0;
+ 		long nr;
+ 		long new_nr;
+ 		long batch_size = shrinker->batch ? shrinker->batch
+ 						  : SHRINK_BATCH;
  
- 	for (end = mem + bytes - 1; end > start; end--) {
++		max_pass = do_shrinker_shrink(shrinker, shrink, 0);
++		if (max_pass <= 0)
++			continue;
++
+ 		/*
+ 		 * copy the current shrinker scan count into a local variable
+ 		 * and zero it so that other concurrent shrinker invocations
+@@ -266,7 +270,6 @@ unsigned long shrink_slab(struct shrink_
+ 		} while (cmpxchg(&shrinker->nr, nr, 0) != nr);
+ 
+ 		total_scan = nr;
+-		max_pass = do_shrinker_shrink(shrinker, shrink, 0);
+ 		delta = (4 * nr_pages_scanned) / shrinker->seeks;
+ 		delta *= max_pass;
+ 		do_div(delta, lru_pages + 1);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
-linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
-mm-debug-pageallocc-use-plain-__ratelimit-instead-of-printk_ratelimit.patch
-lib-stringc-introduce-memchr_inv.patch
-mm-debug-pageallocc-use-memchr_inv.patch
+vmscan-fix-initial-shrinker-size-handling.patch
 
