@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure.patch added to -mm tree
-Date: Tue, 23 Aug 2011 13:30:38 -0700
-Message-ID: <201108232030.p7NKUcEi004832@imap1.linux-foundation.org>
+Subject: + drivers-misc-ab8500-pwmc-fix-modalias.patch added to -mm tree
+Date: Tue, 23 Aug 2011 13:31:31 -0700
+Message-ID: <201108232031.p7NKVVRD004936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42986 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752130Ab1HWUbN (ORCPT
+	by vger.kernel.org with ESMTP id S1755797Ab1HWUcI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 16:31:13 -0400
+	Tue, 23 Aug 2011 16:32:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, dg77.kim@samsung.com, kyungmin.park@samsung.com, mk7.kang@samsung.com
+Cc: axel.lin@gmail.com, arun.murthy@stericsson.com, linus.walleij@stericsson.com
 
 
 The patch titled
-     drivers/misc/fsa9480.c: fix a leak of the IRQ during init failure
+     drivers/misc/ab8500-pwm.c: fix modalias
 has been added to the -mm tree.  Its filename is
-     drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure.patch
+     drivers-misc-ab8500-pwmc-fix-modalias.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/fsa9480.c: fix a leak of the IRQ during init failure
+Subject: drivers/misc/ab8500-pwm.c: fix modalias
 From: Axel Lin <axel.lin@gmail.com>
 
-Make sure we are passing the same cookie in all calls to
-request_threaded_irq() and free_irq().
+Since 43cc71eed1250 ("platform: prefix MODALIAS with "platform:""), the
+platform modalias is prefixed with "platform:".
+
+This patch changes the MODULE_ALIAS to "platform:ab8500-pwm".
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Donggeun Kim <dg77.kim@samsung.com>
-Cc: Minkyu Kang <mk7.kang@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Arun Murthy <arun.murthy@stericsson.com>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/fsa9480.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/ab8500-pwm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/fsa9480.c~drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure drivers/misc/fsa9480.c
---- a/drivers/misc/fsa9480.c~drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure
-+++ a/drivers/misc/fsa9480.c
-@@ -455,7 +455,7 @@ static int __devinit fsa9480_probe(struc
- 
- fail2:
- 	if (client->irq)
--		free_irq(client->irq, NULL);
-+		free_irq(client->irq, usbsw);
- fail1:
- 	i2c_set_clientdata(client, NULL);
- 	kfree(usbsw);
-@@ -466,7 +466,7 @@ static int __devexit fsa9480_remove(stru
- {
- 	struct fsa9480_usbsw *usbsw = i2c_get_clientdata(client);
- 	if (client->irq)
--		free_irq(client->irq, NULL);
-+		free_irq(client->irq, usbsw);
- 	i2c_set_clientdata(client, NULL);
- 
- 	sysfs_remove_group(&client->dev.kobj, &fsa9480_group);
+diff -puN drivers/misc/ab8500-pwm.c~drivers-misc-ab8500-pwmc-fix-modalias drivers/misc/ab8500-pwm.c
+--- a/drivers/misc/ab8500-pwm.c~drivers-misc-ab8500-pwmc-fix-modalias
++++ a/drivers/misc/ab8500-pwm.c
+@@ -165,5 +165,5 @@ subsys_initcall(ab8500_pwm_init);
+ module_exit(ab8500_pwm_exit);
+ MODULE_AUTHOR("Arun MURTHY <arun.murthy@stericsson.com>");
+ MODULE_DESCRIPTION("AB8500 Pulse Width Modulation Driver");
+-MODULE_ALIAS("AB8500 PWM driver");
++MODULE_ALIAS("platform:ab8500-pwm");
+ MODULE_LICENSE("GPL v2");
 _
 
 Patches currently in -mm which might be from axel.lin@gmail.com are
@@ -80,6 +70,7 @@ drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh.patch
 leds-add-missing-include-of-linux-moduleh.patch
 backlight-fix-module-alias-prefix-for-adp8870_bl.patch
 drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure.patch
+drivers-misc-ab8500-pwmc-fix-modalias.patch
 linux-next.patch
 leds-renesas-tpu-led-driver-v2-fix.patch
 
