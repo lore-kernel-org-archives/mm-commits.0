@@ -1,77 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kdump-add-kexec_crash_control_memory_limit.patch removed from -mm tree
-Date: Tue, 23 Aug 2011 12:18:29 -0700
-Message-ID: <201108231915.p7NJFSoX000986@imap1.linux-foundation.org>
+Subject: + mm-add-comments-to-explain-mm_struct-fields.patch added to -mm tree
+Date: Tue, 23 Aug 2011 13:25:59 -0700
+Message-ID: <201108232026.p7NKQ0ta004601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38882 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755681Ab1HWTPm (ORCPT
+	by vger.kernel.org with ESMTP id S1756136Ab1HWU0d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 15:15:42 -0400
+	Tue, 23 Aug 2011 16:26:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holzheu@linux.vnet.ibm.com, schwidefsky@de.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: cl@linux.com
 
 
 The patch titled
-     kdump: add KEXEC_CRASH_CONTROL_MEMORY_LIMIT
-has been removed from the -mm tree.  Its filename was
-     kdump-add-kexec_crash_control_memory_limit.patch
+     mm: add comments to explain mm_struct fields
+has been added to the -mm tree.  Its filename is
+     mm-add-comments-to-explain-mm_struct-fields.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kdump: add KEXEC_CRASH_CONTROL_MEMORY_LIMIT
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: mm: add comments to explain mm_struct fields
+From: Christoph Lameter <cl@linux.com>
 
-On s390 there is a different KEXEC_CONTROL_MEMORY_LIMIT for the normal and
-the kdump kexec case. Therefore this patch introduces a new macro
-KEXEC_CRASH_CONTROL_MEMORY_LIMIT. This is set to
-KEXEC_CONTROL_MEMORY_LIMIT for all architectures that do not define
-KEXEC_CRASH_CONTROL_MEMORY_LIMIT.
+Add comments to explain the page statistics field in the mm_struct.
 
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    4 ++++
- kernel/kexec.c        |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ include/linux/mm_types.h |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kexec.h~kdump-add-kexec_crash_control_memory_limit include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-add-kexec_crash_control_memory_limit
-+++ a/include/linux/kexec.h
-@@ -33,6 +33,10 @@
- #error KEXEC_ARCH not defined
- #endif
+diff -puN include/linux/mm_types.h~mm-add-comments-to-explain-mm_struct-fields include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-add-comments-to-explain-mm_struct-fields
++++ a/include/linux/mm_types.h
+@@ -281,8 +281,15 @@ struct mm_struct {
+ 	unsigned long hiwater_rss;	/* High-watermark of RSS usage */
+ 	unsigned long hiwater_vm;	/* High-water virtual memory usage */
  
-+#ifndef KEXEC_CRASH_CONTROL_MEMORY_LIMIT
-+#define KEXEC_CRASH_CONTROL_MEMORY_LIMIT KEXEC_CONTROL_MEMORY_LIMIT
-+#endif
-+
- #define KEXEC_NOTE_HEAD_BYTES ALIGN(sizeof(struct elf_note), 4)
- #define KEXEC_CORE_NOTE_NAME "CORE"
- #define KEXEC_CORE_NOTE_NAME_BYTES ALIGN(sizeof(KEXEC_CORE_NOTE_NAME), 4)
-diff -puN kernel/kexec.c~kdump-add-kexec_crash_control_memory_limit kernel/kexec.c
---- a/kernel/kexec.c~kdump-add-kexec_crash_control_memory_limit
-+++ a/kernel/kexec.c
-@@ -498,7 +498,7 @@ static struct page *kimage_alloc_crash_c
- 	while (hole_end <= crashk_res.end) {
- 		unsigned long i;
- 
--		if (hole_end > KEXEC_CONTROL_MEMORY_LIMIT)
-+		if (hole_end > KEXEC_CRASH_CONTROL_MEMORY_LIMIT)
- 			break;
- 		if (hole_end > crashk_res.end)
- 			break;
+-	unsigned long total_vm, locked_vm, pinned_vm, shared_vm, exec_vm;
+-	unsigned long stack_vm, reserved_vm, def_flags, nr_ptes;
++	unsigned long total_vm;		/* Total pages mapped */
++	unsigned long locked_vm		/* Pages that have PG_mlocked set */
++	unsigned long pinned_vm;	/* Refcount permanently increased */
++	unsigned long shared_vm;	/* Shared pages (files) */
++	unsigned long exec_vm;		/* VM_EXEC & ~VM_WRITE */
++	unsigned long stack_vm;		/* VM_GROWSUP/DOWN */
++	unsigned long reserved_vm;	/* VM_RESERVED|VM_IO pages */
++	unsigned long def_flags;
++	unsigned long nr_ptes;		/* Page table pages */
+ 	unsigned long start_code, end_code, start_data, end_data;
+ 	unsigned long start_brk, brk, start_stack;
+ 	unsigned long arg_start, arg_end, env_start, env_end;
 _
 
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+Patches currently in -mm which might be from cl@linux.com are
 
-linux-next.patch
+mm-distinguish-between-mlocked-and-pinned-pages.patch
+mm-add-comments-to-explain-mm_struct-fields.patch
 
