@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-comments-to-explain-mm_struct-fields.patch added to -mm tree
-Date: Tue, 23 Aug 2011 13:25:59 -0700
-Message-ID: <201108232026.p7NKQ0ta004601@imap1.linux-foundation.org>
+Subject: + drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure.patch added to -mm tree
+Date: Tue, 23 Aug 2011 13:30:38 -0700
+Message-ID: <201108232030.p7NKUcEi004832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42986 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756136Ab1HWU0d (ORCPT
+	by vger.kernel.org with ESMTP id S1752130Ab1HWUbN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 16:26:33 -0400
+	Tue, 23 Aug 2011 16:31:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cl@linux.com
+Cc: axel.lin@gmail.com, dg77.kim@samsung.com, kyungmin.park@samsung.com, mk7.kang@samsung.com
 
 
 The patch titled
-     mm: add comments to explain mm_struct fields
+     drivers/misc/fsa9480.c: fix a leak of the IRQ during init failure
 has been added to the -mm tree.  Its filename is
-     mm-add-comments-to-explain-mm_struct-fields.patch
+     drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add comments to explain mm_struct fields
-From: Christoph Lameter <cl@linux.com>
+Subject: drivers/misc/fsa9480.c: fix a leak of the IRQ during init failure
+From: Axel Lin <axel.lin@gmail.com>
 
-Add comments to explain the page statistics field in the mm_struct.
+Make sure we are passing the same cookie in all calls to
+request_threaded_irq() and free_irq().
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Donggeun Kim <dg77.kim@samsung.com>
+Cc: Minkyu Kang <mk7.kang@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/misc/fsa9480.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-add-comments-to-explain-mm_struct-fields include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-add-comments-to-explain-mm_struct-fields
-+++ a/include/linux/mm_types.h
-@@ -281,8 +281,15 @@ struct mm_struct {
- 	unsigned long hiwater_rss;	/* High-watermark of RSS usage */
- 	unsigned long hiwater_vm;	/* High-water virtual memory usage */
+diff -puN drivers/misc/fsa9480.c~drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure drivers/misc/fsa9480.c
+--- a/drivers/misc/fsa9480.c~drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure
++++ a/drivers/misc/fsa9480.c
+@@ -455,7 +455,7 @@ static int __devinit fsa9480_probe(struc
  
--	unsigned long total_vm, locked_vm, pinned_vm, shared_vm, exec_vm;
--	unsigned long stack_vm, reserved_vm, def_flags, nr_ptes;
-+	unsigned long total_vm;		/* Total pages mapped */
-+	unsigned long locked_vm		/* Pages that have PG_mlocked set */
-+	unsigned long pinned_vm;	/* Refcount permanently increased */
-+	unsigned long shared_vm;	/* Shared pages (files) */
-+	unsigned long exec_vm;		/* VM_EXEC & ~VM_WRITE */
-+	unsigned long stack_vm;		/* VM_GROWSUP/DOWN */
-+	unsigned long reserved_vm;	/* VM_RESERVED|VM_IO pages */
-+	unsigned long def_flags;
-+	unsigned long nr_ptes;		/* Page table pages */
- 	unsigned long start_code, end_code, start_data, end_data;
- 	unsigned long start_brk, brk, start_stack;
- 	unsigned long arg_start, arg_end, env_start, env_end;
+ fail2:
+ 	if (client->irq)
+-		free_irq(client->irq, NULL);
++		free_irq(client->irq, usbsw);
+ fail1:
+ 	i2c_set_clientdata(client, NULL);
+ 	kfree(usbsw);
+@@ -466,7 +466,7 @@ static int __devexit fsa9480_remove(stru
+ {
+ 	struct fsa9480_usbsw *usbsw = i2c_get_clientdata(client);
+ 	if (client->irq)
+-		free_irq(client->irq, NULL);
++		free_irq(client->irq, usbsw);
+ 	i2c_set_clientdata(client, NULL);
+ 
+ 	sysfs_remove_group(&client->dev.kobj, &fsa9480_group);
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-mm-distinguish-between-mlocked-and-pinned-pages.patch
-mm-add-comments-to-explain-mm_struct-fields.patch
+origin.patch
+drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh.patch
+leds-add-missing-include-of-linux-moduleh.patch
+backlight-fix-module-alias-prefix-for-adp8870_bl.patch
+drivers-misc-fsa9480-fix-a-leak-of-the-irq-during-init-failure.patch
+linux-next.patch
+leds-renesas-tpu-led-driver-v2-fix.patch
 
