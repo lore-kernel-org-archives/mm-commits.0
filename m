@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + thp-mremap-support-and-tlb-optimization.patch added to -mm tree
-Date: Tue, 23 Aug 2011 14:15:00 -0700
-Message-ID: <201108232115.p7NLF0DM007127@imap1.linux-foundation.org>
+Subject: + thp-mremap-support-and-tlb-optimization-fix.patch added to -mm tree
+Date: Tue, 23 Aug 2011 14:15:02 -0700
+Message-ID: <201108232115.p7NLF21i007139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56758 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753958Ab1HWVPG (ORCPT
+	by vger.kernel.org with ESMTP id S1753958Ab1HWVPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 17:15:06 -0400
+	Tue, 23 Aug 2011 17:15:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com
+Cc: akpm@linux-foundation.org, aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com
 
 
 The patch titled
-     thp: mremap support and TLB optimization
+     thp-mremap-support-and-tlb-optimization-fix
 has been added to the -mm tree.  Its filename is
-     thp-mremap-support-and-tlb-optimization.patch
+     thp-mremap-support-and-tlb-optimization-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,272 +34,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp: mremap support and TLB optimization
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp-mremap-support-and-tlb-optimization-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This adds THP support to mremap (decreases the number of split_huge_page()
-calls).
+coding-style nitpicking
 
-Here are also some benchmarks with a proggy like this:
-
-===
-#define _GNU_SOURCE
-#include <sys/mman.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/time.h>
-
-#define SIZE (5UL*1024*1024*1024)
-
-int main()
-{
-        static struct timeval oldstamp, newstamp;
-	long diffsec;
-	char *p, *p2, *p3, *p4;
-	if (posix_memalign((void **)&p, 2*1024*1024, SIZE))
-		perror("memalign"), exit(1);
-	if (posix_memalign((void **)&p2, 2*1024*1024, SIZE))
-		perror("memalign"), exit(1);
-	if (posix_memalign((void **)&p3, 2*1024*1024, 4096))
-		perror("memalign"), exit(1);
-
-	memset(p, 0xff, SIZE);
-	memset(p2, 0xff, SIZE);
-	memset(p3, 0x77, 4096);
-	gettimeofday(&oldstamp, NULL);
-	p4 = mremap(p, SIZE, SIZE, MREMAP_FIXED|MREMAP_MAYMOVE, p3);
-	gettimeofday(&newstamp, NULL);
-	diffsec = newstamp.tv_sec - oldstamp.tv_sec;
-	diffsec = newstamp.tv_usec - oldstamp.tv_usec + 1000000 * diffsec;
-	printf("usec %ld\n", diffsec);
-	if (p == MAP_FAILED || p4 != p3)
-	//if (p == MAP_FAILED)
-		perror("mremap"), exit(1);
-	if (memcmp(p4, p2, SIZE))
-		printf("mremap bug\n"), exit(1);
-	printf("ok\n");
-
-	return 0;
-}
-===
-
-THP on
-
- Performance counter stats for './largepage13' (3 runs):
-
-          69195836 dTLB-loads                 ( +-   3.546% )  (scaled from 50.30%)
-             60708 dTLB-load-misses           ( +-  11.776% )  (scaled from 52.62%)
-         676266476 dTLB-stores                ( +-   5.654% )  (scaled from 69.54%)
-             29856 dTLB-store-misses          ( +-   4.081% )  (scaled from 89.22%)
-        1055848782 iTLB-loads                 ( +-   4.526% )  (scaled from 80.18%)
-              8689 iTLB-load-misses           ( +-   2.987% )  (scaled from 58.20%)
-
-        7.314454164  seconds time elapsed   ( +-   0.023% )
-
-THP off
-
- Performance counter stats for './largepage13' (3 runs):
-
-        1967379311 dTLB-loads                 ( +-   0.506% )  (scaled from 60.59%)
-           9238687 dTLB-load-misses           ( +-  22.547% )  (scaled from 61.87%)
-        2014239444 dTLB-stores                ( +-   0.692% )  (scaled from 60.40%)
-           3312335 dTLB-store-misses          ( +-   7.304% )  (scaled from 67.60%)
-        6764372065 iTLB-loads                 ( +-   0.925% )  (scaled from 79.00%)
-              8202 iTLB-load-misses           ( +-   0.475% )  (scaled from 70.55%)
-
-        9.693655243  seconds time elapsed   ( +-   0.069% )
-
-grep thp /proc/vmstat
-thp_fault_alloc 35849
-thp_fault_fallback 0
-thp_collapse_alloc 3
-thp_collapse_alloc_failed 0
-thp_split 0
-
-thp_split 0 confirms no thp split despite plenty of hugepages allocated.
-
-The measurement of only the mremap time (so excluding the 3 long
-memset and final long 10GB memory accessing memcmp):
-
-THP on
-
-usec 14824
-usec 14862
-usec 14859
-
-THP off
-
-usec 256416
-usec 255981
-usec 255847
-
-With an older kernel without the mremap optimizations (the below patch
-optimizes the non THP version too).
-
-THP on
-
-usec 392107
-usec 390237
-usec 404124
-
-THP off
-
-usec 444294
-usec 445237
-usec 445820
-
-I guess with a threaded program that sends more IPI on large SMP it'd
-create an even larger difference.
-
-All debug options are off except DEBUG_VM to avoid skewing the
-results.
-
-The only problem for native 2M mremap like it happens above both the
-source and destination address must be 2M aligned or the hugepmd can't be
-moved without a split but that is an hardware limitation.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Johannes Weiner <jweiner@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    5 ++++
- mm/huge_memory.c        |   46 ++++++++++++++++++++++++++++++++++++++
- mm/mremap.c             |   22 ++++++++++++++----
- 3 files changed, 69 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    9 ++++-----
+ mm/mremap.c      |    6 +++---
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/huge_mm.h~thp-mremap-support-and-tlb-optimization include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-mremap-support-and-tlb-optimization
-+++ a/include/linux/huge_mm.h
-@@ -22,6 +22,11 @@ extern int zap_huge_pmd(struct mmu_gathe
- extern int mincore_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, unsigned long end,
- 			unsigned char *vec);
-+extern int move_huge_pmd(struct vm_area_struct *vma,
-+			 struct vm_area_struct *new_vma,
-+			 unsigned long old_addr,
-+			 unsigned long new_addr, unsigned long old_end,
-+			 pmd_t *old_pmd, pmd_t *new_pmd);
- extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, pgprot_t newprot);
- 
-diff -puN mm/huge_memory.c~thp-mremap-support-and-tlb-optimization mm/huge_memory.c
---- a/mm/huge_memory.c~thp-mremap-support-and-tlb-optimization
+diff -puN mm/huge_memory.c~thp-mremap-support-and-tlb-optimization-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-mremap-support-and-tlb-optimization-fix
 +++ a/mm/huge_memory.c
-@@ -1052,6 +1052,52 @@ int mincore_huge_pmd(struct vm_area_stru
+@@ -1065,15 +1065,14 @@ int move_huge_pmd(struct vm_area_struct 
+ 	if ((old_addr & ~HPAGE_PMD_MASK) ||
+ 	    (new_addr & ~HPAGE_PMD_MASK) ||
+ 	    (old_addr + HPAGE_PMD_SIZE) > old_end ||
+-	    new_vma->vm_flags & VM_NOHUGEPAGE)
++	    (new_vma->vm_flags & VM_NOHUGEPAGE))
+ 		goto out;
+ 
+ 	/*
+ 	 * The destination pmd shouldn't be established, free_pgtables()
+ 	 * should have release it.
+ 	 */
+-	if (!pmd_none(*new_pmd)) {
+-		WARN_ON(1);
++	if (!WARN_ON(pmd_none(*new_pmd))) {
+ 		VM_BUG_ON(pmd_trans_huge(*new_pmd));
+ 		goto out;
+ 	}
+@@ -1091,9 +1090,9 @@ int move_huge_pmd(struct vm_area_struct 
+ 			spin_unlock(&mm->page_table_lock);
+ 			ret = 1;
+ 		}
+-	} else
++	} else {
+ 		spin_unlock(&mm->page_table_lock);
+-
++	}
+ out:
  	return ret;
  }
- 
-+int move_huge_pmd(struct vm_area_struct *vma, struct vm_area_struct *new_vma,
-+		  unsigned long old_addr,
-+		  unsigned long new_addr, unsigned long old_end,
-+		  pmd_t *old_pmd, pmd_t *new_pmd)
-+{
-+	int ret = 0;
-+	pmd_t pmd;
-+
-+	struct mm_struct *mm = vma->vm_mm;
-+
-+	if ((old_addr & ~HPAGE_PMD_MASK) ||
-+	    (new_addr & ~HPAGE_PMD_MASK) ||
-+	    (old_addr + HPAGE_PMD_SIZE) > old_end ||
-+	    new_vma->vm_flags & VM_NOHUGEPAGE)
-+		goto out;
-+
-+	/*
-+	 * The destination pmd shouldn't be established, free_pgtables()
-+	 * should have release it.
-+	 */
-+	if (!pmd_none(*new_pmd)) {
-+		WARN_ON(1);
-+		VM_BUG_ON(pmd_trans_huge(*new_pmd));
-+		goto out;
-+	}
-+
-+	spin_lock(&mm->page_table_lock);
-+	if (likely(pmd_trans_huge(*old_pmd))) {
-+		if (pmd_trans_splitting(*old_pmd)) {
-+			spin_unlock(&mm->page_table_lock);
-+			wait_split_huge_page(vma->anon_vma, old_pmd);
-+			ret = -1;
-+		} else {
-+			pmd = pmdp_get_and_clear(mm, old_addr, old_pmd);
-+			VM_BUG_ON(!pmd_none(*new_pmd));
-+			set_pmd_at(mm, new_addr, new_pmd, pmd);
-+			spin_unlock(&mm->page_table_lock);
-+			ret = 1;
-+		}
-+	} else
-+		spin_unlock(&mm->page_table_lock);
-+
-+out:
-+	return ret;
-+}
-+
- int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 		unsigned long addr, pgprot_t newprot)
- {
-diff -puN mm/mremap.c~thp-mremap-support-and-tlb-optimization mm/mremap.c
---- a/mm/mremap.c~thp-mremap-support-and-tlb-optimization
+diff -puN mm/mremap.c~thp-mremap-support-and-tlb-optimization-fix mm/mremap.c
+--- a/mm/mremap.c~thp-mremap-support-and-tlb-optimization-fix
 +++ a/mm/mremap.c
-@@ -41,8 +41,7 @@ static pmd_t *get_old_pmd(struct mm_stru
- 		return NULL;
- 
- 	pmd = pmd_offset(pud, addr);
--	split_huge_page_pmd(mm, pmd);
--	if (pmd_none_or_clear_bad(pmd))
-+	if (pmd_none(*pmd))
- 		return NULL;
- 
- 	return pmd;
-@@ -65,8 +64,6 @@ static pmd_t *alloc_new_pmd(struct mm_st
- 		return NULL;
- 
- 	VM_BUG_ON(pmd_trans_huge(*pmd));
--	if (pmd_none(*pmd) && __pte_alloc(mm, vma, pmd, addr))
--		return NULL;
- 
- 	return pmd;
- }
-@@ -149,6 +146,23 @@ unsigned long move_page_tables(struct vm
- 		new_pmd = alloc_new_pmd(vma->vm_mm, vma, new_addr);
- 		if (!new_pmd)
+@@ -155,13 +155,13 @@ unsigned long move_page_tables(struct vm
+ 			if (err > 0) {
+ 				need_flush = true;
+ 				continue;
+-			} else if (!err)
++			} else if (!err) {
+ 				split_huge_page_pmd(vma->vm_mm, old_pmd);
++			}
+ 			VM_BUG_ON(pmd_trans_huge(*old_pmd));
+ 		}
+ 		if (pmd_none(*new_pmd) && __pte_alloc(new_vma->vm_mm, new_vma,
+-						      new_pmd,
+-						      new_addr))
++						      new_pmd, new_addr))
  			break;
-+		if (pmd_trans_huge(*old_pmd)) {
-+			int err = 0;
-+			if (extent == HPAGE_PMD_SIZE)
-+				err = move_huge_pmd(vma, new_vma, old_addr,
-+						    new_addr, old_end,
-+						    old_pmd, new_pmd);
-+			if (err > 0) {
-+				need_flush = true;
-+				continue;
-+			} else if (!err)
-+				split_huge_page_pmd(vma->vm_mm, old_pmd);
-+			VM_BUG_ON(pmd_trans_huge(*old_pmd));
-+		}
-+		if (pmd_none(*new_pmd) && __pte_alloc(new_vma->vm_mm, new_vma,
-+						      new_pmd,
-+						      new_addr))
-+			break;
  		next = (new_addr + PMD_SIZE) & PMD_MASK;
  		if (extent > next - new_addr)
- 			extent = next - new_addr;
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compaction-trivial-clean-up-in-acct_isolated.patch
-mm-change-isolate-mode-from-define-to-bitwise-type.patch
-mm-compaction-make-isolate_lru_page-filter-aware.patch
-mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
-mm-migration-clean-up-unmap_and_move.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+mm.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 thp-mremap-support-and-tlb-optimization-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
