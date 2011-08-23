@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rapidio-rio-scanc-use-discovered-bit-to-test-if-enumeration-is-complete.patch added to -mm tree
-Date: Mon, 22 Aug 2011 17:04:30 -0700
-Message-ID: <201108230004.p7N04Ui8015167@imap1.linux-foundation.org>
+Subject: + backlight-fix-module-alias-prefix-for-adp8870_bl.patch added to -mm tree
+Date: Mon, 22 Aug 2011 22:43:18 -0700
+Message-ID: <201108230540.p7N5eK5p029176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34389 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751663Ab1HWAFP (ORCPT
+	by vger.kernel.org with ESMTP id S1751094Ab1HWFlD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Aug 2011 20:05:15 -0400
+	Tue, 23 Aug 2011 01:41:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: b34182@freescale.com, Gang.Liu@freescale.com, alexandre.bounine@idt.com
+Cc: axel.lin@gmail.com, michael.hennerich@analog.com, rpurdie@rpsys.net
 
 
 The patch titled
-     drivers/rapidio/rio-scan.c: use discovered bit to test if enumeration is complete
+     backlight: fix module alias prefix for adp8870_bl
 has been added to the -mm tree.  Its filename is
-     drivers-rapidio-rio-scanc-use-discovered-bit-to-test-if-enumeration-is-complete.patch
+     backlight-fix-module-alias-prefix-for-adp8870_bl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rapidio/rio-scan.c: use discovered bit to test if enumeration is complete
-From: Liu Gang <b34182@freescale.com>
+Subject: backlight: fix module alias prefix for adp8870_bl
+From: Axel Lin <axel.lin@gmail.com>
 
-The discovered bit in PGCCSR register indicates if the device has been
-discovered by system host.  In Rapidio systems, some agent devices can also
-be master devices.  They can issue requests into the system.
+This is a i2c driver, not a platform driver, thus use "i2c" prefix for the
+module alias.
 
-Signed-off-by: Liu Gang <Gang.Liu@freescale.com>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/adp8870_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio-scan.c~drivers-rapidio-rio-scanc-use-discovered-bit-to-test-if-enumeration-is-complete drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~drivers-rapidio-rio-scanc-use-discovered-bit-to-test-if-enumeration-is-complete
-+++ a/drivers/rapidio/rio-scan.c
-@@ -923,7 +923,7 @@ static int __devinit rio_enum_peer(struc
-  * rio_enum_complete- Tests if enumeration of a network is complete
-  * @port: Master port to send transaction
-  *
-- * Tests the Component Tag CSR for non-zero value (enumeration
-+ * Tests the PGCCSR discovered bit for non-zero value (enumeration
-  * complete flag). Return %1 if enumeration is complete or %0 if
-  * enumeration is incomplete.
-  */
-@@ -933,7 +933,7 @@ static int rio_enum_complete(struct rio_
- 
- 	rio_local_read_config_32(port, port->phys_efptr + RIO_PORT_GEN_CTL_CSR,
- 				 &regval);
--	return (regval & RIO_PORT_GEN_MASTER) ? 1 : 0;
-+	return (regval & RIO_PORT_GEN_DISCOVERED) ? 1 : 0;
- }
- 
- /**
+diff -puN drivers/video/backlight/adp8870_bl.c~backlight-fix-module-alias-prefix-for-adp8870_bl drivers/video/backlight/adp8870_bl.c
+--- a/drivers/video/backlight/adp8870_bl.c~backlight-fix-module-alias-prefix-for-adp8870_bl
++++ a/drivers/video/backlight/adp8870_bl.c
+@@ -1009,4 +1009,4 @@ module_exit(adp8870_exit);
+ MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
+ MODULE_DESCRIPTION("ADP8870 Backlight driver");
+-MODULE_ALIAS("platform:adp8870-backlight");
++MODULE_ALIAS("i2c:adp8870-backlight");
 _
 
-Patches currently in -mm which might be from b34182@freescale.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-drivers-rapidio-rio-scanc-use-discovered-bit-to-test-if-enumeration-is-complete.patch
+origin.patch
+drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh.patch
+leds-add-missing-include-of-linux-moduleh.patch
+backlight-fix-module-alias-prefix-for-adp8870_bl.patch
+linux-next.patch
+leds-renesas-tpu-led-driver-v2-fix.patch
 
