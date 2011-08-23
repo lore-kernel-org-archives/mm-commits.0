@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-promote-shared-file-mapped-pages.patch added to -mm tree
-Date: Tue, 23 Aug 2011 13:57:06 -0700
-Message-ID: <201108232057.p7NKv6JL006157@imap1.linux-foundation.org>
+Subject: + memblock-add-no_bootmem-config-symbol.patch added to -mm tree
+Date: Tue, 23 Aug 2011 13:58:27 -0700
+Message-ID: <201108232058.p7NKwRoX006191@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752183Ab1HWU5x (ORCPT
+	by vger.kernel.org with ESMTP id S1751534Ab1HWU6n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 16:57:53 -0400
+	Tue, 23 Aug 2011 16:58:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, npiggin@kernel.dk, penberg@kernel.org, riel@redhat.com, shaohua.li@intel.com
+Cc: sam@ravnborg.org, hpa@zytor.com, tj@kernel.org, yinghai@kernel.org
 
 
 The patch titled
-     vmscan: promote shared file mapped pages
+     memblock: add NO_BOOTMEM config symbol
 has been added to the -mm tree.  Its filename is
-     vmscan-promote-shared-file-mapped-pages.patch
+     memblock-add-no_bootmem-config-symbol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: promote shared file mapped pages
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: memblock: add NO_BOOTMEM config symbol
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Commit 645747462435 ("vmscan: detect mapped file pages used only once")
-greatly decreases lifetime of single-used mapped file pages. 
-Unfortunately it also decreases life time of all shared mapped file pages.
-Because after commit bf3f3bc5e7347 ("mm: don't mark_page_accessed
-in fault path") page-fault handler does not mark page active or even
-referenced.
+With the NO_BOOTMEM symbol added architectures may now use the following
+syntax to tell that they do not need bootmem:
 
-Thus page_check_references() activates file page only if it was used twice
-while it stays in inactive list, meanwhile it activates anon pages after
-first access.  Inactive list can be small enough, this way reclaimer can
-accidentally throw away any widely used page if it wasn't used twice in
-short period.
+	select NO_BOOTMEM
 
-After this patch page_check_references() also activate file mapped page at
-first inactive list scan if this page is already used multiple times via
-several ptes.
+This is much more convinient than adding a new kconfig symbol which was
+otherwise required.
 
-I found this while trying to fix degragation in rhel6 (~2.6.32) from rhel5
-(~2.6.18).  There a complete mess with >100 web/mail/spam/ftp containers,
-they share all their files but there a lot of anonymous pages: ~500mb
-shared file mapped memory and 15-20Gb non-shared anonymous memory.  In
-this situation major-pagefaults are very costly, because all containers
-share the same page.  In my load kernel created a disproportionate
-pressure on the file memory, compared with the anonymous, they equaled
-only if I raise swappiness up to 150 =)
+Adding this symbol does not conflict with the architctures that already
+define their own symbol.
 
-These patches actually wasn't helped a lot in my problem, but I saw
-noticable (10-20 times) reduce in count and average time of
-major-pagefault in file-mapped areas.
-
-Actually both patches are fixes for commit v2.6.33-5448-g6457474, because
-it was aimed at one scenario (singly used pages), but it breaks the logic
-in other scenarios (shared and/or executable pages)
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Acked-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/vmscan.c~vmscan-promote-shared-file-mapped-pages mm/vmscan.c
---- a/mm/vmscan.c~vmscan-promote-shared-file-mapped-pages
-+++ a/mm/vmscan.c
-@@ -715,7 +715,7 @@ static enum page_references page_check_r
- 		 */
- 		SetPageReferenced(page);
+diff -puN mm/Kconfig~memblock-add-no_bootmem-config-symbol mm/Kconfig
+--- a/mm/Kconfig~memblock-add-no_bootmem-config-symbol
++++ a/mm/Kconfig
+@@ -131,6 +131,9 @@ config SPARSEMEM_VMEMMAP
+ config HAVE_MEMBLOCK
+ 	boolean
  
--		if (referenced_page)
-+		if (referenced_page || referenced_ptes > 1)
- 			return PAGEREF_ACTIVATE;
- 
- 		return PAGEREF_KEEP;
++config NO_BOOTMEM
++	boolean
++
+ # eventually, we can have this option just 'select SPARSEMEM'
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-vmscan-fix-initial-shrinker-size-handling.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
+linux-next.patch
+memblock-add-no_bootmem-config-symbol.patch
 
