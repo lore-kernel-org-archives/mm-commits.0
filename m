@@ -1,71 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-fix-module-alias-prefix-for-adp8870_bl.patch added to -mm tree
-Date: Mon, 22 Aug 2011 22:43:18 -0700
-Message-ID: <201108230540.p7N5eK5p029176@imap1.linux-foundation.org>
+Subject: [merged] drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected.patch removed from -mm tree
+Date: Tue, 23 Aug 2011 12:18:24 -0700
+Message-ID: <201108231915.p7NJFOdT000973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751094Ab1HWFlD (ORCPT
+	by vger.kernel.org with ESMTP id S1755681Ab1HWTPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 01:41:03 -0400
+	Tue, 23 Aug 2011 15:15:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, michael.hennerich@analog.com, rpurdie@rpsys.net
+To: tdent48227@gmail.com, gregkh@suse.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: fix module alias prefix for adp8870_bl
-has been added to the -mm tree.  Its filename is
-     backlight-fix-module-alias-prefix-for-adp8870_bl.patch
+     drivers/misc/Kconfig: fix build error when PCI is not selected
+has been removed from the -mm tree.  Its filename was
+     drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: fix module alias prefix for adp8870_bl
-From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/misc/Kconfig: fix build error when PCI is not selected
+From: Tracey Dent <tdent48227@gmail.com>
 
-This is a i2c driver, not a platform driver, thus use "i2c" prefix for the
-module alias.
+When you try to build INTEL_MID_PTI without having PCI enabled.  It fails
+like this-
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+ CC [M]  drivers/misc/pti.o
+ drivers/misc/pti.c: In function `pti_pci_remove':
+ drivers/misc/pti.c:410: error: implicit declaration of function `pci_release_region'
+ drivers/misc/pti.c: In function `pti_pci_probe':
+ drivers/misc/pti.c:859: error: implicit declaration of function `pci_request_region'
+
+So make INTEL_MID_PTI depend on PCI to fix build error.
+
+Signed-off-by: Tracey Dent <tdent48227@gmail.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Greg KH <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8870_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/backlight/adp8870_bl.c~backlight-fix-module-alias-prefix-for-adp8870_bl drivers/video/backlight/adp8870_bl.c
---- a/drivers/video/backlight/adp8870_bl.c~backlight-fix-module-alias-prefix-for-adp8870_bl
-+++ a/drivers/video/backlight/adp8870_bl.c
-@@ -1009,4 +1009,4 @@ module_exit(adp8870_exit);
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
- MODULE_DESCRIPTION("ADP8870 Backlight driver");
--MODULE_ALIAS("platform:adp8870-backlight");
-+MODULE_ALIAS("i2c:adp8870-backlight");
+diff -puN drivers/misc/Kconfig~drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~drivers-misc-kconfig-fix-build-error-when-pci-is-not-selected
++++ a/drivers/misc/Kconfig
+@@ -146,6 +146,7 @@ config PHANTOM
+ 
+ config INTEL_MID_PTI
+ 	tristate "Parallel Trace Interface for MIPI P1149.7 cJTAG standard"
++	depends on PCI
+ 	default n
+ 	help
+ 	  The PTI (Parallel Trace Interface) driver directs
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from tdent48227@gmail.com are
 
-origin.patch
-drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh.patch
-leds-add-missing-include-of-linux-moduleh.patch
-backlight-fix-module-alias-prefix-for-adp8870_bl.patch
 linux-next.patch
-leds-renesas-tpu-led-driver-v2-fix.patch
 
