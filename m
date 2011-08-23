@@ -1,73 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] docs-sysfs-specify-abi-documentation-requirements.patch removed from -mm tree
-Date: Tue, 23 Aug 2011 12:18:27 -0700
-Message-ID: <201108231915.p7NJFQhZ000980@imap1.linux-foundation.org>
+Subject: [merged] kdump-add-size-to-elfcorehdr-kernel-parameter.patch removed from -mm tree
+Date: Tue, 23 Aug 2011 12:18:31 -0700
+Message-ID: <201108231915.p7NJFUXB000993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755681Ab1HWTPb (ORCPT
+	by vger.kernel.org with ESMTP id S1755681Ab1HWTPi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 15:15:31 -0400
+	Tue, 23 Aug 2011 15:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bvanassche@acm.org, gregkh@suse.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: holzheu@linux.vnet.ibm.com, schwidefsky@de.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docs/sysfs: specify ABI documentation requirements
+     kdump: add size to elfcorehdr kernel parameter
 has been removed from the -mm tree.  Its filename was
-     docs-sysfs-specify-abi-documentation-requirements.patch
+     kdump-add-size-to-elfcorehdr-kernel-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docs/sysfs: specify ABI documentation requirements
-From: Bart Van Assche <bvanassche@acm.org>
+Subject: kdump: add size to elfcorehdr kernel parameter
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 
-Although it is expected nowadays that every new sysfs attribute is
-documented under Documentation/ABI, this is not yet mentioned in the
-kernel documentation.  This patch adds a note in the sysfs documentation
-about that requirement.
+Currently only the address of the pre-allocated ELF header is passed with
+the elfcorehdr= kernel parameter.  In order to reserve memory for the
+header in the 2nd kernel also the size is required.  Current kdump
+architecture backends use different methods to do that, e.g.  x86 uses the
+memmap= kernel parameter.  On s390 there is no easy way to transfer this
+information.  Therefore the elfcorehdr kernel parameter is extended to
+also pass the size.  This now can also be used as standard mechanism by
+all future kdump architecture backends.
 
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+The syntax of the kernel parameter is extended as follows:
+
+elfcorehdr=[size[KMG]@]offset[KMG]
+
+This change is backward compatible because elfcorehdr=size is still allowed.
+
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/sysfs.txt |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    6 +++---
+ include/linux/crash_dump.h          |    1 +
+ kernel/crash_dump.c                 |   11 +++++++++++
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/filesystems/sysfs.txt~docs-sysfs-specify-abi-documentation-requirements Documentation/filesystems/sysfs.txt
---- a/Documentation/filesystems/sysfs.txt~docs-sysfs-specify-abi-documentation-requirements
-+++ a/Documentation/filesystems/sysfs.txt
-@@ -4,7 +4,7 @@ sysfs - _The_ filesystem for exporting k
- Patrick Mochel	<mochel@osdl.org>
- Mike Murphy <mamurph@cs.clemson.edu>
+diff -puN Documentation/kernel-parameters.txt~kdump-add-size-to-elfcorehdr-kernel-parameter Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~kdump-add-size-to-elfcorehdr-kernel-parameter
++++ a/Documentation/kernel-parameters.txt
+@@ -741,10 +741,10 @@ bytes respectively. Such letter suffixes
+ 			See Documentation/block/as-iosched.txt and
+ 			Documentation/block/deadline-iosched.txt for details.
  
--Revised:    15 July 2010
-+Revised:    16 August 2011
- Original:   10 January 2003
+-	elfcorehdr=	[IA-64,PPC,SH,X86]
++	elfcorehdr=[size[KMG]@]offset[KMG] [IA64,PPC,SH,X86,S390]
+ 			Specifies physical address of start of kernel core
+-			image elf header. Generally kexec loader will
+-			pass this option to capture kernel.
++			image elf header and optionally the size. Generally
++			kexec loader will pass this option to capture kernel.
+ 			See Documentation/kdump/kdump.txt for details.
  
+ 	enable_mtrr_cleanup [X86]
+diff -puN include/linux/crash_dump.h~kdump-add-size-to-elfcorehdr-kernel-parameter include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~kdump-add-size-to-elfcorehdr-kernel-parameter
++++ a/include/linux/crash_dump.h
+@@ -10,6 +10,7 @@
+ #define ELFCORE_ADDR_ERR	(-2ULL)
  
-@@ -370,3 +370,11 @@ int driver_create_file(struct device_dri
- void driver_remove_file(struct device_driver *, const struct driver_attribute *);
+ extern unsigned long long elfcorehdr_addr;
++extern unsigned long long elfcorehdr_size;
  
+ extern ssize_t copy_oldmem_page(unsigned long, char *, size_t,
+ 						unsigned long, int);
+diff -puN kernel/crash_dump.c~kdump-add-size-to-elfcorehdr-kernel-parameter kernel/crash_dump.c
+--- a/kernel/crash_dump.c~kdump-add-size-to-elfcorehdr-kernel-parameter
++++ a/kernel/crash_dump.c
+@@ -20,8 +20,15 @@ unsigned long saved_max_pfn;
+ unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
  
-+Documentation
-+~~~~~~~~~~~~~
+ /*
++ * stores the size of elf header of crash image
++ */
++unsigned long long elfcorehdr_size;
 +
-+The sysfs directory structure and the attributes in each directory define an
-+ABI between the kernel and user space. As for any ABI, it is important that
-+this ABI is stable and properly documented. All new sysfs attributes must be
-+documented in Documentation/ABI. See also Documentation/ABI/README for more
-+information.
++/*
+  * elfcorehdr= specifies the location of elf core header stored by the crashed
+  * kernel. This option will be passed by kexec loader to the capture kernel.
++ *
++ * Syntax: elfcorehdr=[size[KMG]@]offset[KMG]
+  */
+ static int __init setup_elfcorehdr(char *arg)
+ {
+@@ -29,6 +36,10 @@ static int __init setup_elfcorehdr(char 
+ 	if (!arg)
+ 		return -EINVAL;
+ 	elfcorehdr_addr = memparse(arg, &end);
++	if (*end == '@') {
++		elfcorehdr_size = elfcorehdr_addr;
++		elfcorehdr_addr = memparse(end + 1, &end);
++	}
+ 	return end > arg ? 0 : -EINVAL;
+ }
+ early_param("elfcorehdr", setup_elfcorehdr);
 _
 
-Patches currently in -mm which might be from bvanassche@acm.org are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
 linux-next.patch
 
