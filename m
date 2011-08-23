@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-refrigerator-went-away.patch added to -mm tree
-Date: Tue, 23 Aug 2011 15:23:37 -0700
-Message-ID: <201108232302.p7NN2WK7012526@imap1.linux-foundation.org>
+Subject: + fs-xfs-xfs_iopsc-unbork.patch added to -mm tree
+Date: Tue, 23 Aug 2011 15:28:01 -0700
+Message-ID: <201108232306.p7NN6tWA012761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53178 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754432Ab1HWXCg (ORCPT
+	by vger.kernel.org with ESMTP id S1752730Ab1HWXH2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 19:02:36 -0400
+	Tue, 23 Aug 2011 19:07:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aelder@sgi.com, rjw@sisk.pl, tj@kernel.org
+Cc: akpm@linux-foundation.org, aelder@sgi.com
 
 
 The patch titled
-     xfs: refrigerator() went away
+     fs/xfs/xfs_iops.c: unbork
 has been added to the -mm tree.  Its filename is
-     xfs-refrigerator-went-away.patch
+     fs-xfs-xfs_iopsc-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: refrigerator() went away
+Subject: fs/xfs/xfs_iops.c: unbork
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Someone seems to have renamed refrigerator() to __refrigerator() and added an
-argument.
+fs/xfs/xfs_iops.c: In function 'xfs_init_security':
+fs/xfs/xfs_iops.c:116: warning: passing argument 4 of 'security_inode_init_security' from incompatible pointer type
+include/linux/security.h:1711: note: expected 'initxattrs' but argument is of type 'char **'
+fs/xfs/xfs_iops.c:116: error: too many arguments to function 'security_inode_ini
 
-As they couldn't be bothered documenting the argument to this global,
-exported-to-modules function, I just stuck something random in there.  Thanks,
-guys!
+Not sure what's going on here, but I can't be bothered fixing it.
 
 Cc: Alex Elder <aelder@sgi.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_buf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/xfs_iops.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/xfs/xfs_buf.c~xfs-refrigerator-went-away fs/xfs/xfs_buf.c
---- a/fs/xfs/xfs_buf.c~xfs-refrigerator-went-away
-+++ a/fs/xfs/xfs_buf.c
-@@ -1741,7 +1741,7 @@ xfsbufd(
+diff -puN fs/xfs/xfs_iops.c~fs-xfs-xfs_iopsc-unbork fs/xfs/xfs_iops.c
+--- a/fs/xfs/xfs_iops.c~fs-xfs-xfs_iopsc-unbork
++++ a/fs/xfs/xfs_iops.c
+@@ -112,6 +112,7 @@ xfs_init_security(
+ 	unsigned char	*name;
+ 	int		error;
  
- 		if (unlikely(freezing(current))) {
- 			set_bit(XBT_FORCE_SLEEP, &target->bt_flags);
--			refrigerator();
-+			try_to_freeze();
- 		} else {
- 			clear_bit(XBT_FORCE_SLEEP, &target->bt_flags);
- 		}
++#if 0
+ 	error = security_inode_init_security(inode, dir, qstr, (char **)&name,
+ 					     &value, &length);
+ 	if (error) {
+@@ -119,7 +120,7 @@ xfs_init_security(
+ 			return 0;
+ 		return -error;
+ 	}
+-
++#endif
+ 	error = xfs_attr_set(ip, name, value, length, ATTR_SECURE);
+ 
+ 	kfree(name);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +81,7 @@ alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
 linux-next.patch
 i-need-old-gcc.patch
 xfs-refrigerator-went-away.patch
+fs-xfs-xfs_iopsc-unbork.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
