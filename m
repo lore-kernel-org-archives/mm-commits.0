@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-report-eisdir-when-reading-sysctl-dirs-in-proc.patch added to -mm tree
-Date: Tue, 23 Aug 2011 14:19:28 -0700
-Message-ID: <201108232119.p7NLJSAd007379@imap1.linux-foundation.org>
+Subject: + cris-add-arch-cris-include-asm-serialh.patch added to -mm tree
+Date: Tue, 23 Aug 2011 14:32:09 -0700
+Message-ID: <201108232132.p7NLW9kB008072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39878 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755516Ab1HWVTb (ORCPT
+	by vger.kernel.org with ESMTP id S1752840Ab1HWVcR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 17:19:31 -0400
+	Tue, 23 Aug 2011 17:32:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xemul@openvz.org, adobriyan@gmail.com, gorcunov@openvz.org, viro@ZenIV.linux.org.uk
+Cc: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     procfs: report EISDIR when reading sysctl dirs in proc
+     cris: add arch/cris/include/asm/serial.h
 has been added to the -mm tree.  Its filename is
-     procfs-report-eisdir-when-reading-sysctl-dirs-in-proc.patch
+     cris-add-arch-cris-include-asm-serialh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: report EISDIR when reading sysctl dirs in proc
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: cris: add arch/cris/include/asm/serial.h
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-On reading sysctl dirs we should return -EISDIR instead of -EINVAL.
+Fix the following build errors:
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
+src/drivers/tty/serial/8250_early.c:160: error: 'BASE_BAUD' undeclared (first use in this function): 1 errors in 1 logs
+        v3.0/cris/cris-allyesconfig
+src/drivers/tty/serial/8250_early.c:160: error: (Each undeclared identifier is reported only once: 1 errors in 1 logs
+        v3.0/cris/cris-allyesconfig
+src/drivers/tty/serial/8250_early.c:160: error: for each function it appears in.): 1 errors in 1 logs
+        v3.0/cris/cris-allyesconfig
+src/drivers/tty/serial/8250_early.c:37:24: error: asm/serial.h: No such file or directory: 1 errors in 1 logs
+        v3.0/cris/cris-allyesconfig
+
+I am not sure if (1843200 / 16) is suitable for cris, but most other
+arch's define it as this value.
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/cris/include/asm/serial.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/proc/proc_sysctl.c~procfs-report-eisdir-when-reading-sysctl-dirs-in-proc fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~procfs-report-eisdir-when-reading-sysctl-dirs-in-proc
-+++ a/fs/proc/proc_sysctl.c
-@@ -360,6 +360,7 @@ static const struct file_operations proc
- };
- 
- static const struct file_operations proc_sys_dir_file_operations = {
-+	.read		= generic_read_dir,
- 	.readdir	= proc_sys_readdir,
- 	.llseek		= generic_file_llseek,
- };
+diff -puN /dev/null arch/cris/include/asm/serial.h
+--- /dev/null
++++ a/arch/cris/include/asm/serial.h
+@@ -0,0 +1,10 @@
++#ifndef _ASM_SERIAL_H
++#define _ASM_SERIAL_H
++
++/*
++ * This assumes you have a 1.8432 MHz clock for your UART.
++ */
++#define BASE_BAUD (1843200 / 16)
++
++#endif /* _ASM_SERIAL_H */
++
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-procfs-report-eisdir-when-reading-sysctl-dirs-in-proc.patch
+cris-add-arch-cris-include-asm-serialh.patch
+linux-next.patch
+kexec-remove-kmsg_dump_kexec.patch
 
