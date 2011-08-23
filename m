@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + xfs-refrigerator-went-away.patch added to -mm tree
-Date: Tue, 23 Aug 2011 15:18:58 -0700
-Message-ID: <201108232257.p7NMvqPV012299@imap1.linux-foundation.org>
+Date: Tue, 23 Aug 2011 15:23:37 -0700
+Message-ID: <201108232302.p7NN2WK7012526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754432Ab1HWW56 (ORCPT
+	by vger.kernel.org with ESMTP id S1754432Ab1HWXCg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Aug 2011 18:57:58 -0400
+	Tue, 23 Aug 2011 19:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -61,7 +61,7 @@ diff -puN fs/xfs/xfs_buf.c~xfs-refrigerator-went-away fs/xfs/xfs_buf.c
  		if (unlikely(freezing(current))) {
  			set_bit(XBT_FORCE_SLEEP, &target->bt_flags);
 -			refrigerator();
-+			__refrigerator(false);
++			try_to_freeze();
  		} else {
  			clear_bit(XBT_FORCE_SLEEP, &target->bt_flags);
  		}
