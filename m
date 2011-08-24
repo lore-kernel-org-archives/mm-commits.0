@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tick-fix-update_ts_time_stat-idle-accounting.patch added to -mm tree
-Date: Wed, 24 Aug 2011 11:59:55 -0700
-Message-ID: <201108241859.p7OIxu6W000456@imap1.linux-foundation.org>
+Subject: + proc-consider-no_hz-when-printing-idle-and-iowait-times.patch added to -mm tree
+Date: Wed, 24 Aug 2011 11:59:59 -0700
+Message-ID: <201108241859.p7OIxxM7000467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53802 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753796Ab1HXTAS (ORCPT
+	by vger.kernel.org with ESMTP id S1753796Ab1HXTAW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Aug 2011 15:00:18 -0400
+	Wed, 24 Aug 2011 15:00:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhocko@suse.cz, adobriyan@gmail.com, arnd@arndb.de, davej@redhat.com, tglx@l
 
 
 The patch titled
-     tick: fix update_ts_time_stat idle accounting
+     proc: consider NO_HZ when printing idle and iowait times
 has been added to the -mm tree.  Its filename is
-     tick-fix-update_ts_time_stat-idle-accounting.patch
+     proc-consider-no_hz-when-printing-idle-and-iowait-times.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tick: fix update_ts_time_stat idle accounting
+Subject: proc: consider NO_HZ when printing idle and iowait times
 From: Michal Hocko <mhocko@suse.cz>
 
-update_ts_time_stat currently updates idle time even if we are in iowait
-loop at the moment.  The only real users of the idle counter (via
-get_cpu_idle_time_us) are CPU governors and they expect to get cumulative
-time for both idle and iowait times.  The value (idle_sleeptime) is also
-printed to userspace by print_cpu but it prints both idle and iowait times
-so the idle part is misleading.
+show_stat handler of the /proc/stat file relies on kstat_cpu(cpu)
+statistics when priting information about idle and iowait times.  This is
+OK if we are not using tickless kernel (CONFIG_NO_HZ) because counters are
+updated periodically.
 
-Let's clean this up and fix update_ts_time_stat to account both counters
-properly and update consumers of idle to consider iowait time as well.  If
-we do this we might use get_cpu_{idle,iowait}_time_us from other contexts
-as well and we will get expected values.
+With NO_HZ things got more tricky because we are not doing idle/iowait
+accounting while we are tickless so the value might get outdated.  Users
+of /proc/stat will notice that by unchanged idle/iowait values which is
+then interpreted as 0% idle/iowait time.  From the user space POV this is
+an unexpected behavior and a change of the interface.
+
+Let's fix this by using get_cpu_{idle,iowait}_time_us which accounts the
+total idle/iowait time since boot and it doesn't rely on sampling or any
+other periodic activity.  Fall back to the previous behavior if NO_HZ is
+disabled or not configured.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Cc: Dave Jones <davej@redhat.com>
@@ -57,79 +61,85 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq_conservative.c |    4 +++-
- drivers/cpufreq/cpufreq_ondemand.c     |    4 +++-
- kernel/time/tick-sched.c               |    8 ++++----
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ fs/proc/stat.c |   41 ++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 34 insertions(+), 7 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq_conservative.c~tick-fix-update_ts_time_stat-idle-accounting drivers/cpufreq/cpufreq_conservative.c
---- a/drivers/cpufreq/cpufreq_conservative.c~tick-fix-update_ts_time_stat-idle-accounting
-+++ a/drivers/cpufreq/cpufreq_conservative.c
-@@ -120,10 +120,12 @@ static inline cputime64_t get_cpu_idle_t
+diff -puN fs/proc/stat.c~proc-consider-no_hz-when-printing-idle-and-iowait-times fs/proc/stat.c
+--- a/fs/proc/stat.c~proc-consider-no_hz-when-printing-idle-and-iowait-times
++++ a/fs/proc/stat.c
+@@ -10,6 +10,7 @@
+ #include <linux/time.h>
+ #include <linux/irqnr.h>
+ #include <asm/cputime.h>
++#include <linux/tick.h>
  
- static inline cputime64_t get_cpu_idle_time(unsigned int cpu, cputime64_t *wall)
- {
--	u64 idle_time = get_cpu_idle_time_us(cpu, wall);
+ #ifndef arch_irq_stat_cpu
+ #define arch_irq_stat_cpu(cpu) 0
+@@ -21,6 +22,35 @@
+ #define arch_idle_time(cpu) 0
+ #endif
+ 
++static cputime64_t get_idle_time(int cpu)
++{
 +	u64 idle_time = get_cpu_idle_time_us(cpu, NULL);
- 
- 	if (idle_time == -1ULL)
- 		return get_cpu_idle_time_jiffy(cpu, wall);
++	cputime64_t idle;
++
++	if (idle_time == -1ULL) {
++		/* !NO_HZ so we can rely on cpustat.idle */
++		idle = kstat_cpu(cpu).cpustat.idle;
++		idle = cputime64_add(idle, arch_idle_time(cpu));
++	} else
++		idle = usecs_to_cputime(idle_time);
++
++	return idle;
++}
++
++static cputime64_t get_iowait_time(int cpu)
++{
++	u64 iowait_time = get_cpu_iowait_time_us(cpu, NULL);
++	cputime64_t iowait;
++
++	if (iowait_time == -1ULL)
++		/* !NO_HZ so we can rely on cpustat.iowait */
++		iowait = kstat_cpu(cpu).cpustat.iowait;
 +	else
-+		idle_time += get_cpu_iowait_time_us(cpu, wall);
- 
- 	return idle_time;
- }
-diff -puN drivers/cpufreq/cpufreq_ondemand.c~tick-fix-update_ts_time_stat-idle-accounting drivers/cpufreq/cpufreq_ondemand.c
---- a/drivers/cpufreq/cpufreq_ondemand.c~tick-fix-update_ts_time_stat-idle-accounting
-+++ a/drivers/cpufreq/cpufreq_ondemand.c
-@@ -144,10 +144,12 @@ static inline cputime64_t get_cpu_idle_t
- 
- static inline cputime64_t get_cpu_idle_time(unsigned int cpu, cputime64_t *wall)
++		iowait = usecs_to_cputime(iowait_time);
++
++	return iowait;
++}
++
+ static int show_stat(struct seq_file *p, void *v)
  {
--	u64 idle_time = get_cpu_idle_time_us(cpu, wall);
-+	u64 idle_time = get_cpu_idle_time_us(cpu, NULL);
- 
- 	if (idle_time == -1ULL)
- 		return get_cpu_idle_time_jiffy(cpu, wall);
-+	else
-+		idle_time += get_cpu_iowait_time_us(cpu, wall);
- 
- 	return idle_time;
- }
-diff -puN kernel/time/tick-sched.c~tick-fix-update_ts_time_stat-idle-accounting kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~tick-fix-update_ts_time_stat-idle-accounting
-+++ a/kernel/time/tick-sched.c
-@@ -158,9 +158,10 @@ update_ts_time_stats(int cpu, struct tic
- 
- 	if (ts->idle_active) {
- 		delta = ktime_sub(now, ts->idle_entrytime);
--		ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
- 		if (nr_iowait_cpu(cpu) > 0)
- 			ts->iowait_sleeptime = ktime_add(ts->iowait_sleeptime, delta);
-+		else
-+			ts->idle_sleeptime = ktime_add(ts->idle_sleeptime, delta);
- 		ts->idle_entrytime = now;
- 	}
- 
-@@ -199,8 +200,7 @@ static ktime_t tick_nohz_start_idle(int 
-  * @last_update_time: variable to store update time in
-  *
-  * Return the cummulative idle time (since boot) for a given
-- * CPU, in microseconds. The idle time returned includes
-- * the iowait time (unlike what "top" and co report).
-+ * CPU, in microseconds.
-  *
-  * This time is measured via accounting rather than sampling,
-  * and is as accurate as ktime_get() is.
-@@ -220,7 +220,7 @@ u64 get_cpu_idle_time_us(int cpu, u64 *l
- }
- EXPORT_SYMBOL_GPL(get_cpu_idle_time_us);
- 
--/*
-+/**
-  * get_cpu_iowait_time_us - get the total iowait time of a cpu
-  * @cpu: CPU number to query
-  * @last_update_time: variable to store update time in
+ 	int i, j;
+@@ -42,9 +72,8 @@ static int show_stat(struct seq_file *p,
+ 		user = cputime64_add(user, kstat_cpu(i).cpustat.user);
+ 		nice = cputime64_add(nice, kstat_cpu(i).cpustat.nice);
+ 		system = cputime64_add(system, kstat_cpu(i).cpustat.system);
+-		idle = cputime64_add(idle, kstat_cpu(i).cpustat.idle);
+-		idle = cputime64_add(idle, arch_idle_time(i));
+-		iowait = cputime64_add(iowait, kstat_cpu(i).cpustat.iowait);
++		idle = cputime64_add(idle, get_idle_time(i));
++		iowait = cputime64_add(iowait, get_iowait_time(i));
+ 		irq = cputime64_add(irq, kstat_cpu(i).cpustat.irq);
+ 		softirq = cputime64_add(softirq, kstat_cpu(i).cpustat.softirq);
+ 		steal = cputime64_add(steal, kstat_cpu(i).cpustat.steal);
+@@ -76,14 +105,12 @@ static int show_stat(struct seq_file *p,
+ 		(unsigned long long)cputime64_to_clock_t(guest),
+ 		(unsigned long long)cputime64_to_clock_t(guest_nice));
+ 	for_each_online_cpu(i) {
+-
+ 		/* Copy values here to work around gcc-2.95.3, gcc-2.96 */
+ 		user = kstat_cpu(i).cpustat.user;
+ 		nice = kstat_cpu(i).cpustat.nice;
+ 		system = kstat_cpu(i).cpustat.system;
+-		idle = kstat_cpu(i).cpustat.idle;
+-		idle = cputime64_add(idle, arch_idle_time(i));
+-		iowait = kstat_cpu(i).cpustat.iowait;
++		idle = get_idle_time(i);
++		iowait = get_iowait_time(i);
+ 		irq = kstat_cpu(i).cpustat.irq;
+ 		softirq = kstat_cpu(i).cpustat.softirq;
+ 		steal = kstat_cpu(i).cpustat.steal;
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
