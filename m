@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nohz-do-not-update-idle-iowait-counters-from-get_cpu_idleiowait_time_us-if-not-asked.patch added to -mm tree
-Date: Wed, 24 Aug 2011 11:59:57 -0700
-Message-ID: <201108241859.p7OIxv0A000459@imap1.linux-foundation.org>
+Subject: + cputime-clean-up-cputime_to_usecs-and-usecs_to_cputime-macros.patch added to -mm tree
+Date: Wed, 24 Aug 2011 11:59:53 -0700
+Message-ID: <201108241859.p7OIxrhA000453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753796Ab1HXTAQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753796Ab1HXTAW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Aug 2011 15:00:16 -0400
+	Wed, 24 Aug 2011 15:00:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mhocko@suse.cz, adobriyan@gmail.com, arnd@arndb.de, davej@redhat.com, tglx@l
 
 
 The patch titled
-     nohz: do not update idle/iowait counters from get_cpu_{idle,iowait}_time_us if not asked
+     cputime: clean up cputime_to_usecs and usecs_to_cputime macros
 has been added to the -mm tree.  Its filename is
-     nohz-do-not-update-idle-iowait-counters-from-get_cpu_idleiowait_time_us-if-not-asked.patch
+     cputime-clean-up-cputime_to_usecs-and-usecs_to_cputime-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nohz: do not update idle/iowait counters from get_cpu_{idle,iowait}_time_us if not asked
+Subject: cputime: clean up cputime_to_usecs and usecs_to_cputime macros
 From: Michal Hocko <mhocko@suse.cz>
 
-get_cpu_{idle,iowait}_time_us update idle/iowait counters unconditionally
-if the given CPU is in the idle loop.  This doesn't work well outside of
-CPU governors which are singletons so nobody (except for IRQ) can race
-with them.
+This patchset aims at addressing /proc/stat issue which has been
+introduced with tickless kernel.  In short, show_stat (proc handler)
+relies on kstat_cpu(i).cpustat statistics which are updated periodically
+so those numbers are more or less accurate.
 
-We will need to use both functions from /proc/stat handler to properly
-handle nohz idle/iowait times.
+This is, however, not true with tickless kernel for idle and iowait
+counters because those are not updated while the cpu is in the tickless
+state.  As the time when CPU might be tickless is not bounded, we can see
+really outdated values.
 
-Let's update those counters only if the given last_update_time parameter
-is non-NULL which means that the caller is interested in updating.
+The biggest problem is that tools which read /proc/stat interpret
+unchanged idle/iowait numbers as 0% idle/iowait which might confuse those
+who rely on them.
+
+The first patch in this series is just a minor clean-up.
+
+The second one changes update_ts_time_stat semantic.  The current
+implementation updates idle counter regardless we are in iowait loop at
+the moment.  I see it as an optimization because cpufreq drivers, which
+are only users of those counters, care about busy vs.  non-busy states so
+idle+iowait makes perfect sense.  This, however, makes idle counter
+useless for others.
+
+I think that using get_cpu_idle_time_us + get_cpu_iowait_time_us should
+have the same meaning (at least this is what we do for jiffies variants).
+
+The third patch changes get_cpu_{idle,iowait}_time_us semantic.  Both
+functions call update_ts_time_stat so they update counters as a side
+effect.  This should be OK most of the time as governors (the only users)
+are singletons.  I can still see a potential problem because they might
+race with IRQ:
+
+irq_enter
+  tick_check_idle
+    tick_check_nohz
+      tick_nohz_stop_idle
+
+but this is a separate issue IMO.
+
+Anyway, we shouldn't update those counters from other contexts so let's
+make updating conditional based on the last_update_time parameter.
+
+The final patch is the actual fix.  It uses get_cpu_{idle,iowait}_time_us
+to get precise counters.  We still fall back to kstat_cpu if tickless
+kernel is disabled.
+
+The patchset is based on top of and gave it some testing (although I am
+still not sure about the cpufreq part and possible side effects).  My
+testing was quite trivial (8 CPU machine):
+
+mount -t cgroup -o cpuset none /mnt/cgroup
+mkdir /mnt/cgroup/a
+echo 0-5 >  /mnt/cgroup/a/cpuset.cpus
+echo 0 > /mnt/cgroup/a/cpuset.mems
+for i in `cat /mnt/cgroup/tasks`; do echo $i > /mnt/cgroup/a/tasks; done
+[only kernel threads will stay in the root cgroup]
+mkdir /mnt/cgroup/b
+echo 6,7 >  /mnt/cgroup/a/cpuset.cpus
+echo 0 > /mnt/cgroup/a/cpuset.mems
+[no task in that group so CPU6,7 should be idle most of the time]
+
+Without the last patch I can see unchanged values for CPU[67] taking up to
+several seconds.
+
+
+This patch:
+
+
+Get rid of semicolon so that those expressions can be used also somewhere
+else than just in an assignment.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Dave Jones <davej@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |   37 +++++++++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 6 deletions(-)
+ include/asm-generic/cputime.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/time/tick-sched.c~nohz-do-not-update-idle-iowait-counters-from-get_cpu_idleiowait_time_us-if-not-asked kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~nohz-do-not-update-idle-iowait-counters-from-get_cpu_idleiowait_time_us-if-not-asked
-+++ a/kernel/time/tick-sched.c
-@@ -197,7 +197,8 @@ static ktime_t tick_nohz_start_idle(int 
- /**
-  * get_cpu_idle_time_us - get the total idle time of a cpu
-  * @cpu: CPU number to query
-- * @last_update_time: variable to store update time in
-+ * @last_update_time: variable to store update time in. Do not update
-+ * counters if NULL.
-  *
-  * Return the cummulative idle time (since boot) for a given
-  * CPU, in microseconds.
-@@ -210,20 +211,33 @@ static ktime_t tick_nohz_start_idle(int 
- u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time)
- {
- 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+	ktime_t now, idle;
+diff -puN include/asm-generic/cputime.h~cputime-clean-up-cputime_to_usecs-and-usecs_to_cputime-macros include/asm-generic/cputime.h
+--- a/include/asm-generic/cputime.h~cputime-clean-up-cputime_to_usecs-and-usecs_to_cputime-macros
++++ a/include/asm-generic/cputime.h
+@@ -38,8 +38,8 @@ typedef u64 cputime64_t;
+ /*
+  * Convert cputime to microseconds and back.
+  */
+-#define cputime_to_usecs(__ct)		jiffies_to_usecs(__ct);
+-#define usecs_to_cputime(__msecs)	usecs_to_jiffies(__msecs);
++#define cputime_to_usecs(__ct)		jiffies_to_usecs(__ct)
++#define usecs_to_cputime(__msecs)	usecs_to_jiffies(__msecs)
  
- 	if (!tick_nohz_enabled)
- 		return -1;
- 
--	update_ts_time_stats(cpu, ts, ktime_get(), last_update_time);
-+	now = ktime_get();
-+	if (last_update_time) {
-+		update_ts_time_stats(cpu, ts, now, last_update_time);
-+		idle = ts->idle_sleeptime;
-+	} else {
-+		if (ts->idle_active && !nr_iowait_cpu(cpu)) {
-+			ktime_t delta = ktime_sub(now, ts->idle_entrytime);
-+			idle = ktime_add(ts->idle_sleeptime, delta);
-+		} else
-+			idle = ts->idle_sleeptime;
-+	}
-+
-+	return ktime_to_us(idle);
- 
--	return ktime_to_us(ts->idle_sleeptime);
- }
- EXPORT_SYMBOL_GPL(get_cpu_idle_time_us);
- 
- /**
-  * get_cpu_iowait_time_us - get the total iowait time of a cpu
-  * @cpu: CPU number to query
-- * @last_update_time: variable to store update time in
-+ * @last_update_time: variable to store update time in. Do not update
-+ * counters if NULL.
-  *
-  * Return the cummulative iowait time (since boot) for a given
-  * CPU, in microseconds.
-@@ -236,13 +250,24 @@ EXPORT_SYMBOL_GPL(get_cpu_idle_time_us);
- u64 get_cpu_iowait_time_us(int cpu, u64 *last_update_time)
- {
- 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
-+	ktime_t now, iowait;
- 
- 	if (!tick_nohz_enabled)
- 		return -1;
- 
--	update_ts_time_stats(cpu, ts, ktime_get(), last_update_time);
-+	now = ktime_get();
-+	if (last_update_time) {
-+		update_ts_time_stats(cpu, ts, now, last_update_time);
-+		iowait = ts->iowait_sleeptime;
-+	} else {
-+		if (ts->idle_active && nr_iowait_cpu(cpu) > 0) {
-+			ktime_t delta = ktime_sub(now, ts->idle_entrytime);
-+			iowait = ktime_add(ts->iowait_sleeptime, delta);
-+		} else
-+			iowait = ts->iowait_sleeptime;
-+	}
- 
--	return ktime_to_us(ts->iowait_sleeptime);
-+	return ktime_to_us(iowait);
- }
- EXPORT_SYMBOL_GPL(get_cpu_iowait_time_us);
- 
+ /*
+  * Convert cputime to seconds and back.
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
