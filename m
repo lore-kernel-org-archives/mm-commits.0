@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-rtmutexc-fix-warning-improve-coding-style.patch added to -mm tree
-Date: Wed, 24 Aug 2011 11:49:36 -0700
-Message-ID: <201108241928.p7OJSX0N001881@imap1.linux-foundation.org>
+Subject: + fs-nameic-remove-unused-getname_flags.patch added to -mm tree
+Date: Wed, 24 Aug 2011 11:51:19 -0700
+Message-ID: <201108241930.p7OJUElM001965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36889 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57602 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751172Ab1HXT32 (ORCPT
+	by vger.kernel.org with ESMTP id S1751194Ab1HXTad (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Aug 2011 15:29:28 -0400
+	Wed, 24 Aug 2011 15:30:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, paulmck@us.ibm.com
+Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     kernel/rtmutex.c: fix warning, improve coding-style
+     fs/namei.c: remove unused getname_flags()
 has been added to the -mm tree.  Its filename is
-     kernel-rtmutexc-fix-warning-improve-coding-style.patch
+     fs-nameic-remove-unused-getname_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/rtmutex.c: fix warning, improve coding-style
+Subject: fs/namei.c: remove unused getname_flags()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/rtmutex.c: In function '__rt_mutex_slowlock':
-kernel/rtmutex.c:605: warning: suggest parentheses around assignment used as tru
-
-Fixes "rcu: Permit rt_mutex_unlock() with irqs disabled".
-
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rtmutex.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/namei.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN kernel/rtmutex.c~kernel-rtmutexc-fix-warning-improve-coding-style kernel/rtmutex.c
---- a/kernel/rtmutex.c~kernel-rtmutexc-fix-warning-improve-coding-style
-+++ a/kernel/rtmutex.c
-@@ -602,7 +602,8 @@ __rt_mutex_slowlock(struct rt_mutex *loc
+diff -puN fs/namei.c~fs-nameic-remove-unused-getname_flags fs/namei.c
+--- a/fs/namei.c~fs-nameic-remove-unused-getname_flags
++++ a/fs/namei.c
+@@ -161,11 +161,6 @@ static char *getname_flags_empty(const c
+ 	return result;
+ }
  
- 		raw_spin_unlock(&lock->wait_lock);
- 
--		if (was_disabled = irqs_disabled())
-+		was_disabled = irqs_disabled();
-+		if (was_disabled)
- 			local_irq_enable();
- 
- 		debug_rt_mutex_print_deadlock(waiter);
+-static char *getname_flags(const char __user * filename, int flags)
+-{
+-	return getname_flags_empty(filename, flags, 0);
+-}
+-
+ char *getname(const char __user * filename)
+ {
+ 	return getname_flags_empty(filename, 0, 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,4 +104,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+fs-nameic-remove-unused-getname_flags.patch
 
