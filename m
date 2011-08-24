@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface.patch added to -mm tree
-Date: Wed, 24 Aug 2011 11:51:04 -0700
-Message-ID: <201108241851.p7OIp4Jg032563@imap1.linux-foundation.org>
+Subject: + drivers-power-ds2780_batteryc-fix-deadlock-upon-insertion-and-removal.patch added to -mm tree
+Date: Wed, 24 Aug 2011 11:51:06 -0700
+Message-ID: <201108241851.p7OIp67H032566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753798Ab1HXSvN (ORCPT
+	by vger.kernel.org with ESMTP id S1753752Ab1HXSvS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Aug 2011 14:51:13 -0400
+	Wed, 24 Aug 2011 14:51:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: cabarnes@indesign-llc.com, zbr@ioremap.net
 
 
 The patch titled
-     drivers/power/ds2780_battery.c: add a nolock function to w1 interface
+     drivers/power/ds2780_battery.c: fix deadlock upon insertion and removal
 has been added to the -mm tree.  Its filename is
-     drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface.patch
+     drivers-power-ds2780_batteryc-fix-deadlock-upon-insertion-and-removal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/power/ds2780_battery.c: add a nolock function to w1 interface
+Subject: drivers/power/ds2780_battery.c: fix deadlock upon insertion and removal
 From: Clifton Barnes <cabarnes@indesign-llc.com>
 
-Adds a nolock function to the w1 interface to avoid locking the
-mutex if needed.
+Fixes the deadlock when inserting and removing the ds2780.
 
 Signed-off-by: Clifton Barnes <cabarnes@indesign-llc.com>
 Cc: Evgeniy Polyakov <zbr@ioremap.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2780.c |   48 +++++++++++++++++++++++---------
- drivers/w1/slaves/w1_ds2780.h |    2 +
- 2 files changed, 37 insertions(+), 13 deletions(-)
+ drivers/power/ds2780_battery.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/w1/slaves/w1_ds2780.c~drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface drivers/w1/slaves/w1_ds2780.c
---- a/drivers/w1/slaves/w1_ds2780.c~drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface
-+++ a/drivers/w1/slaves/w1_ds2780.c
-@@ -26,20 +26,14 @@
- #include "../w1_family.h"
- #include "w1_ds2780.h"
+diff -puN drivers/power/ds2780_battery.c~drivers-power-ds2780_batteryc-fix-deadlock-upon-insertion-and-removal drivers/power/ds2780_battery.c
+--- a/drivers/power/ds2780_battery.c~drivers-power-ds2780_batteryc-fix-deadlock-upon-insertion-and-removal
++++ a/drivers/power/ds2780_battery.c
+@@ -39,6 +39,7 @@ struct ds2780_device_info {
+ 	struct device *dev;
+ 	struct power_supply bat;
+ 	struct device *w1_dev;
++	struct task_struct *mutex_holder;
+ };
  
--int w1_ds2780_io(struct device *dev, char *buf, int addr, size_t count,
--			int io)
-+static int w1_ds2780_do_io(struct device *dev, char *buf, int addr,
-+			size_t count, int io)
+ enum current_types {
+@@ -63,6 +64,9 @@ static inline struct power_supply *to_po
+ static inline int ds2780_battery_io(struct ds2780_device_info *dev_info,
+ 	char *buf, int addr, size_t count, int io)
  {
- 	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
++	if (dev_info->mutex_holder == current)
++		return w1_ds2780_io_nolock(dev_info->w1_dev, buf, addr, count, io);
++	else
+ 		return w1_ds2780_io(dev_info->w1_dev, buf, addr, count, io);
+ }
  
--	if (!dev)
--		return -ENODEV;
-+	if (addr > DS2780_DATA_SIZE || addr < 0)
-+		return 0;
+@@ -775,6 +779,7 @@ static int __devinit ds2780_battery_prob
+ 	dev_info->bat.properties	= ds2780_battery_props;
+ 	dev_info->bat.num_properties	= ARRAY_SIZE(ds2780_battery_props);
+ 	dev_info->bat.get_property	= ds2780_battery_get_property;
++	dev_info->mutex_holder		= current;
  
--	mutex_lock(&sl->master->mutex);
--
--	if (addr > DS2780_DATA_SIZE || addr < 0) {
--		count = 0;
--		goto out;
--	}
- 	count = min_t(int, count, DS2780_DATA_SIZE - addr);
- 
- 	if (w1_reset_select_slave(sl) == 0) {
-@@ -47,7 +41,6 @@ int w1_ds2780_io(struct device *dev, cha
- 			w1_write_8(sl->master, W1_DS2780_WRITE_DATA);
- 			w1_write_8(sl->master, addr);
- 			w1_write_block(sl->master, buf, count);
--			/* XXX w1_write_block returns void, not n_written */
- 		} else {
- 			w1_write_8(sl->master, W1_DS2780_READ_DATA);
- 			w1_write_8(sl->master, addr);
-@@ -55,13 +48,42 @@ int w1_ds2780_io(struct device *dev, cha
- 		}
+ 	ret = power_supply_register(&pdev->dev, &dev_info->bat);
+ 	if (ret) {
+@@ -804,6 +809,8 @@ static int __devinit ds2780_battery_prob
+ 		goto fail_remove_bin_file;
  	}
  
--out:
-+	return count;
-+}
++	dev_info->mutex_holder = NULL;
 +
-+int w1_ds2780_io(struct device *dev, char *buf, int addr, size_t count,
-+			int io)
-+{
-+	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-+	int ret;
-+
-+	if (!dev)
-+		return -ENODEV;
-+
-+	mutex_lock(&sl->master->mutex);
-+
-+	ret = w1_ds2780_do_io(dev, buf, addr, count, io);
-+
- 	mutex_unlock(&sl->master->mutex);
+ 	return 0;
  
--	return count;
-+	return ret;
- }
- EXPORT_SYMBOL(w1_ds2780_io);
- 
-+int w1_ds2780_io_nolock(struct device *dev, char *buf, int addr, size_t count,
-+			int io)
-+{
-+	int ret;
-+
-+	if (!dev)
-+		return -ENODEV;
-+
-+	ret = w1_ds2780_do_io(dev, buf, addr, count, io);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(w1_ds2780_io_nolock);
-+
- int w1_ds2780_eeprom_cmd(struct device *dev, int addr, int cmd)
+ fail_remove_bin_file:
+@@ -823,6 +830,8 @@ static int __devexit ds2780_battery_remo
  {
- 	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-diff -puN drivers/w1/slaves/w1_ds2780.h~drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface drivers/w1/slaves/w1_ds2780.h
---- a/drivers/w1/slaves/w1_ds2780.h~drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface
-+++ a/drivers/w1/slaves/w1_ds2780.h
-@@ -124,6 +124,8 @@
+ 	struct ds2780_device_info *dev_info = platform_get_drvdata(pdev);
  
- extern int w1_ds2780_io(struct device *dev, char *buf, int addr, size_t count,
- 			int io);
-+extern int w1_ds2780_io_nolock(struct device *dev, char *buf, int addr,
-+			size_t count, int io);
- extern int w1_ds2780_eeprom_cmd(struct device *dev, int addr, int cmd);
++	dev_info->mutex_holder = current;
++
+ 	/* remove attributes */
+ 	sysfs_remove_group(&dev_info->bat.dev->kobj, &ds2780_attr_group);
  
- #endif /* !_W1_DS2780_H */
 _
 
 Patches currently in -mm which might be from cabarnes@indesign-llc.com are
