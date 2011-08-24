@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-s3cc-correct-debug-messages.patch added to -mm tree
-Date: Wed, 24 Aug 2011 15:38:27 -0700
-Message-ID: <201108242238.p7OMcS3u011478@imap1.linux-foundation.org>
+Subject: + include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro.patch added to -mm tree
+Date: Wed, 24 Aug 2011 15:52:17 -0700
+Message-ID: <201108242252.p7OMqHFa012133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751378Ab1HXWjQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751470Ab1HXWxE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Aug 2011 18:39:16 -0400
+	Wed, 24 Aug 2011 18:53:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: myungjoo.ham@samsung.com, a.zummo@towertech.it, chaos.youn@samsung.com, kgene.kim@samsung.com, kyungmin.park@samsung.com
+Cc: sonic.zhang@analog.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com
 
 
 The patch titled
-     drivers/rtc/rtc-s3c.c: correct debug messages
+     include/asm-generic/page.h: calculate virt_to_page and page_to_virt via predefined macro
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-s3cc-correct-debug-messages.patch
+     include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-s3c.c: correct debug messages
-From: MyungJoo Ham <myungjoo.ham@samsung.com>
+Subject: include/asm-generic/page.h: calculate virt_to_page and page_to_virt via predefined macro
+From: Sonic Zhang <sonic.zhang@analog.com>
 
-RTC-S3C used to print out debug messages incorrectly.  This patch corrects
-incorrect outputs.  (undecoded bcd numbers, incorrectly decoded register
-values) This patch affects the pr-debug messages only.
+On NOMMU architectures, if physical memory doesn't start from 0,
+ARCH_PFN_OFFSET is defined to generate page index in mem_map array. 
+Because virtual address is equal to physical address, PAGE_OFFSET is
+always 0.  virt_to_page and page_to_virt should not index page by
+PAGE_OFFSET directly.
 
-Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Changhwan Youn <chaos.youn@samsung.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/asm-generic/page.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-correct-debug-messages drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-correct-debug-messages
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -152,10 +152,6 @@ static int s3c_rtc_gettime(struct device
- 		goto retry_get_time;
- 	}
+diff -puN include/asm-generic/page.h~include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro include/asm-generic/page.h
+--- a/include/asm-generic/page.h~include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro
++++ a/include/asm-generic/page.h
+@@ -79,8 +79,8 @@ extern unsigned long memory_end;
+ #define virt_to_pfn(kaddr)	(__pa(kaddr) >> PAGE_SHIFT)
+ #define pfn_to_virt(pfn)	__va((pfn) << PAGE_SHIFT)
  
--	pr_debug("read time %04d.%02d.%02d %02d:%02d:%02d\n",
--		 1900 + rtc_tm->tm_year, rtc_tm->tm_mon, rtc_tm->tm_mday,
--		 rtc_tm->tm_hour, rtc_tm->tm_min, rtc_tm->tm_sec);
--
- 	rtc_tm->tm_sec = bcd2bin(rtc_tm->tm_sec);
- 	rtc_tm->tm_min = bcd2bin(rtc_tm->tm_min);
- 	rtc_tm->tm_hour = bcd2bin(rtc_tm->tm_hour);
-@@ -164,6 +160,11 @@ static int s3c_rtc_gettime(struct device
- 	rtc_tm->tm_year = bcd2bin(rtc_tm->tm_year);
+-#define virt_to_page(addr)	(mem_map + (((unsigned long)(addr)-PAGE_OFFSET) >> PAGE_SHIFT))
+-#define page_to_virt(page)	((((page) - mem_map) << PAGE_SHIFT) + PAGE_OFFSET)
++#define virt_to_page(addr)	pfn_to_page(virt_to_pfn(addr))
++#define page_to_virt(page)	pfn_to_virt(page_to_pfn(page))
  
- 	rtc_tm->tm_year += 100;
-+
-+	pr_debug("read time %04d.%02d.%02d %02d:%02d:%02d\n",
-+		 1900 + rtc_tm->tm_year, rtc_tm->tm_mon, rtc_tm->tm_mday,
-+		 rtc_tm->tm_hour, rtc_tm->tm_min, rtc_tm->tm_sec);
-+
- 	rtc_tm->tm_mon -= 1;
- 
- 	clk_disable(rtc_clk);
-@@ -269,10 +270,9 @@ static int s3c_rtc_setalarm(struct devic
- 	clk_enable(rtc_clk);
- 	pr_debug("s3c_rtc_setalarm: %d, %04d.%02d.%02d %02d:%02d:%02d\n",
- 		 alrm->enabled,
--		 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
-+		 1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday,
- 		 tm->tm_hour, tm->tm_min, tm->tm_sec);
- 
+ #ifndef page_to_phys
+ #define page_to_phys(page)      ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
+_
+
+Patches currently in -mm which might be from sonic.zhang@analog.com are
+
+include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro.patch
+
