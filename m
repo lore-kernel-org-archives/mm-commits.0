@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nameic-remove-unused-getname_flags.patch added to -mm tree
-Date: Wed, 24 Aug 2011 11:51:19 -0700
-Message-ID: <201108241930.p7OJUElM001965@imap1.linux-foundation.org>
+Subject: + drivers-staging-rts5139-rts51x_scsic-needs-vmalloch.patch added to -mm tree
+Date: Wed, 24 Aug 2011 13:27:22 -0700
+Message-ID: <201108242106.p7OL6HTQ007185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751194Ab1HXTad (ORCPT
+	by vger.kernel.org with ESMTP id S1752116Ab1HXVGu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Aug 2011 15:30:33 -0400
+	Wed, 24 Aug 2011 17:06:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     fs/namei.c: remove unused getname_flags()
+     drivers/staging/rts5139/rts51x_scsi.c needs vmalloc.h
 has been added to the -mm tree.  Its filename is
-     fs-nameic-remove-unused-getname_flags.patch
+     drivers-staging-rts5139-rts51x_scsic-needs-vmalloch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/namei.c: remove unused getname_flags()
+Subject: drivers/staging/rts5139/rts51x_scsi.c needs vmalloc.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Unbreak the alpha build.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/staging/rts5139/rts51x_scsi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/namei.c~fs-nameic-remove-unused-getname_flags fs/namei.c
---- a/fs/namei.c~fs-nameic-remove-unused-getname_flags
-+++ a/fs/namei.c
-@@ -161,11 +161,6 @@ static char *getname_flags_empty(const c
- 	return result;
- }
+diff -puN drivers/staging/rts5139/rts51x_scsi.c~drivers-staging-rts5139-rts51x_scsic-needs-vmalloch drivers/staging/rts5139/rts51x_scsi.c
+--- a/drivers/staging/rts5139/rts51x_scsi.c~drivers-staging-rts5139-rts51x_scsic-needs-vmalloch
++++ a/drivers/staging/rts5139/rts51x_scsi.c
+@@ -26,6 +26,7 @@
+ #include <linux/blkdev.h>
+ #include <linux/kthread.h>
+ #include <linux/sched.h>
++#include <linux/vmalloc.h>
+ #include <linux/slab.h>
  
--static char *getname_flags(const char __user * filename, int flags)
--{
--	return getname_flags_empty(filename, flags, 0);
--}
--
- char *getname(const char __user * filename)
- {
- 	return getname_flags_empty(filename, 0, 0);
+ #include <scsi/scsi.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +83,7 @@ drivers-base-inodec-let-vmstat_text-be-optional-fix.patch
 include-linux-securityh-fix-security_inode_init_security-arg.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
+fs-nameic-remove-unused-getname_flags.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
 leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
@@ -104,5 +103,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-fs-nameic-remove-unused-getname_flags.patch
+drivers-staging-rts5139-rts51x_scsic-needs-vmalloch.patch
 
