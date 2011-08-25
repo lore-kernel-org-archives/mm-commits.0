@@ -1,10 +1,10 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-staging-rts5139-rts51x_scsic-needs-vmalloch.patch removed from -mm tree
-Date: Thu, 25 Aug 2011 13:03:13 -0700
-Message-ID: <201108252000.p7PK02e2004905@imap1.linux-foundation.org>
+Subject: [merged] drivers-staging-rts5139-msc-needs-vmalloch.patch removed from -mm tree
+Date: Thu, 25 Aug 2011 13:03:17 -0700
+Message-ID: <201108252000.p7PK05v8004930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
 	by vger.kernel.org with ESMTP id S1753216Ab1HYUAh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
@@ -15,38 +15,38 @@ To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/staging/rts5139/rts51x_scsi.c needs vmalloc.h
+     drivers/staging/rts5139/ms.c needs vmalloc.h
 has been removed from the -mm tree.  Its filename was
-     drivers-staging-rts5139-rts51x_scsic-needs-vmalloch.patch
+     drivers-staging-rts5139-msc-needs-vmalloch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/staging/rts5139/rts51x_scsi.c needs vmalloc.h
+Subject: drivers/staging/rts5139/ms.c needs vmalloc.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Unbreak the alpha build.
+Unbreak alpha build.
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rts5139/rts51x_scsi.c |    1 +
+ drivers/staging/rts5139/ms.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/staging/rts5139/rts51x_scsi.c~drivers-staging-rts5139-rts51x_scsic-needs-vmalloch drivers/staging/rts5139/rts51x_scsi.c
---- a/drivers/staging/rts5139/rts51x_scsi.c~drivers-staging-rts5139-rts51x_scsic-needs-vmalloch
-+++ a/drivers/staging/rts5139/rts51x_scsi.c
-@@ -26,6 +26,7 @@
+diff -puN drivers/staging/rts5139/ms.c~drivers-staging-rts5139-msc-needs-vmalloch drivers/staging/rts5139/ms.c
+--- a/drivers/staging/rts5139/ms.c~drivers-staging-rts5139-msc-needs-vmalloch
++++ a/drivers/staging/rts5139/ms.c
+@@ -25,6 +25,7 @@
+ 
  #include <linux/blkdev.h>
  #include <linux/kthread.h>
- #include <linux/sched.h>
 +#include <linux/vmalloc.h>
+ #include <linux/sched.h>
  #include <linux/slab.h>
  
- #include <scsi/scsi.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
