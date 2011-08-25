@@ -1,62 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix.patch added to -mm tree
-Date: Wed, 24 Aug 2011 23:28:06 -0700
-Message-ID: <201108250624.p7P6Owki031697@imap1.linux-foundation.org>
+Subject: [merged] drivers-staging-rts5139-xdc-needs-vmalloch.patch removed from -mm tree
+Date: Thu, 25 Aug 2011 13:03:15 -0700
+Message-ID: <201108252000.p7PK03gb004914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752532Ab1HYGY7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753216Ab1HYUAe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 02:24:59 -0400
+	Thu, 25 Aug 2011 16:00:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, yanmin_zhang@linux.intel.com
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix
-has been added to the -mm tree.  Its filename is
-     printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix.patch
+     drivers/staging/rts5139/xd.c needs vmalloc.h
+has been removed from the -mm tree.  Its filename was
+     drivers-staging-rts5139-xdc-needs-vmalloch.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix
+Subject: drivers/staging/rts5139/xd.c needs vmalloc.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Cc: Zhang Yanmin <yanmin_zhang@linux.intel.com>
+Unbreak alpha build.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/rts5139/xd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/printk.c~printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix kernel/printk.c
---- a/kernel/printk.c~printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix
-+++ a/kernel/printk.c
-@@ -24,7 +24,7 @@
- #include <linux/init.h>
- #include <linux/jiffies.h>
- #include <linux/nmi.h>
--#include <linux/export.h>
-+#include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/interrupt.h>			/* For in_interrupt() */
- #include <linux/delay.h>
+diff -puN drivers/staging/rts5139/xd.c~drivers-staging-rts5139-xdc-needs-vmalloch drivers/staging/rts5139/xd.c
+--- a/drivers/staging/rts5139/xd.c~drivers-staging-rts5139-xdc-needs-vmalloch
++++ a/drivers/staging/rts5139/xd.c
+@@ -25,6 +25,7 @@
+ 
+ #include <linux/blkdev.h>
+ #include <linux/kthread.h>
++#include <linux/vmalloc.h>
+ #include <linux/sched.h>
+ 
+ #include "debug.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,9 +62,6 @@ kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.pa
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
 kernel-rtmutexc-fix-warning-improve-coding-style.patch
-drivers-staging-rts5139-rts51x_scsic-needs-vmalloch.patch
-drivers-staging-rts5139-xdc-needs-vmalloch.patch
-drivers-staging-rts5139-msc-needs-vmalloch.patch
 mm.patch
 mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
 mm-add-comments-to-explain-mm_struct-fields-fix.patch
