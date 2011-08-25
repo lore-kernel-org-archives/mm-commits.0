@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-new-entry-for-ideapad-laptop.patch added to -mm tree
-Date: Thu, 25 Aug 2011 15:00:33 -0700
-Message-ID: <201108252200.p7PM0XBK013957@imap1.linux-foundation.org>
+Subject: + mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock.patch added to -mm tree
+Date: Thu, 25 Aug 2011 15:03:25 -0700
+Message-ID: <201108252203.p7PM3PqD014138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43145 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47440 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755573Ab1HYWBK (ORCPT
+	by vger.kernel.org with ESMTP id S1755568Ab1HYWDx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 18:01:10 -0400
+	Thu, 25 Aug 2011 18:03:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ike.pan@canonical.com, mjg@redhat.com
+Cc: khoroshilov@ispras.ru, kashyap.desai@lsi.com
 
 
 The patch titled
-     MAINTAINERS: add new entry for ideapad-laptop
+     drivers/scsi/mpt2sas/mpt2sas_base.c: fix mismatch in mpt2sas_base_hard_reset_handler() mutex lock-unlock
 has been added to the -mm tree.  Its filename is
-     maintainers-add-new-entry-for-ideapad-laptop.patch
+     mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add new entry for ideapad-laptop
-From: Ike Panhc <ike.pan@canonical.com>
+Subject: drivers/scsi/mpt2sas/mpt2sas_base.c: fix mismatch in mpt2sas_base_hard_reset_handler() mutex lock-unlock
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
 
-Signed-off-by: Ike Panhc <ike.pan@canonical.com>
-Cc: Matthew Garrett <mjg@redhat.com>
+If ioc->pci_error_recovery is set, goto out in
+mpt2sas_base_hard_reset_handler() leads to unlock unheld
+ioc->reset_in_progress_mutex.
+
+Fix the issue by jumping afer mutex_unlock() call.
+
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Kashyap Desai <kashyap.desai@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/scsi/mpt2sas/mpt2sas_base.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-new-entry-for-ideapad-laptop MAINTAINERS
---- a/MAINTAINERS~maintainers-add-new-entry-for-ideapad-laptop
-+++ a/MAINTAINERS
-@@ -3202,6 +3202,13 @@ F:	Documentation/ide/
- F:	drivers/ide/
- F:	include/linux/ide.h
+diff -puN drivers/scsi/mpt2sas/mpt2sas_base.c~mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock drivers/scsi/mpt2sas/mpt2sas_base.c
+--- a/drivers/scsi/mpt2sas/mpt2sas_base.c~mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock
++++ a/drivers/scsi/mpt2sas/mpt2sas_base.c
+@@ -4130,7 +4130,7 @@ mpt2sas_base_hard_reset_handler(struct M
+ 		printk(MPT2SAS_ERR_FMT "%s: pci error recovery reset\n",
+ 		    ioc->name, __func__);
+ 		r = 0;
+-		goto out;
++		goto out_unlocked;
+ 	}
  
-+IDEAPAD LAPTOP EXTRAS DRIVER
-+M:	Ike Panhc <ike.pan@canonical.com>
-+L:	platform-driver-x86@vger.kernel.org
-+W:	http://launchpad.net/ideapad-laptop
-+S:	Maintained
-+F:	drivers/platform/x86/ideapad-laptop.c
-+
- IDE/ATAPI DRIVERS
- M:	Borislav Petkov <petkovbb@gmail.com>
- L:	linux-ide@vger.kernel.org
+ 	if (mpt2sas_fwfault_debug)
+@@ -4186,6 +4186,7 @@ mpt2sas_base_hard_reset_handler(struct M
+ 	spin_unlock_irqrestore(&ioc->ioc_reset_in_progress_lock, flags);
+ 	mutex_unlock(&ioc->reset_in_progress_mutex);
+ 
++ out_unlocked:
+ 	dtmprintk(ioc, printk(MPT2SAS_INFO_FMT "%s: exit\n", ioc->name,
+ 	    __func__));
+ 	return r;
 _
 
-Patches currently in -mm which might be from ike.pan@canonical.com are
+Patches currently in -mm which might be from khoroshilov@ispras.ru are
 
-maintainers-add-new-entry-for-ideapad-laptop.patch
+linux-next.patch
+mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock.patch
 
