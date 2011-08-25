@@ -1,133 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [folded] alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 25 Aug 2011 15:40:14 -0700
-Message-ID: <201108252240.p7PMeEig017273@imap1.linux-foundation.org>
+Subject: [alternative-merged] drivers-base-inodec-let-vmstat_text-be-optional.patch removed from -mm tree
+Date: Thu, 25 Aug 2011 16:46:11 -0700
+Message-ID: <201108252346.p7PNkB2G020604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42750 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755722Ab1HYWkv (ORCPT
+	by vger.kernel.org with ESMTP id S1753617Ab1HYXqV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 18:40:51 -0400
+	Thu, 25 Aug 2011 19:46:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mcree@orcon.net.nz, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, amwang@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes
+     drivers/base/inode.c: let vmstat_text be optional
 has been removed from the -mm tree.  Its filename was
-     alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
+     drivers-base-inodec-let-vmstat_text-be-optional.patch
 
-This patch was dropped because it was folded into alpha-unbreak-osf_setsysinfossi_nvpairs.patch
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/base/inode.c: let vmstat_text be optional
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-WARNING: line over 80 characters
-#110: FILE: arch/alpha/kernel/osf_sys.c:637:
-+ 		w = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;
+vmstat_text is only available when PROC_FS or SYSFS is enabled.  This
+causes build errors in drivers/base/node.c when they are both disabled:
 
-ERROR: code indent should use tabs where possible
-#110: FILE: arch/alpha/kernel/osf_sys.c:637:
-+ ^I^Iw = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;$
+drivers/built-in.o: In function `node_read_vmstat':
+node.c:(.text+0x10e28f): undefined reference to `vmstat_text'
 
-WARNING: please, no space before tabs
-#110: FILE: arch/alpha/kernel/osf_sys.c:637:
-+ ^I^Iw = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;$
+Rather than litter drivers/base/node.c with #ifdef/#endif around the
+affected lines of code, add macros for optional sysdev attributes so that
+those lines of code will be ignored, without using #ifdef/#endif in the .c
+file(s).  I.e., the ifdeffery is done only in a header file with
+sysdev_create_file_optional() and sysdev_remove_file_optional().
 
-WARNING: please, no spaces at the start of a line
-#110: FILE: arch/alpha/kernel/osf_sys.c:637:
-+ ^I^Iw = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;$
-
-WARNING: line over 80 characters
-#121: FILE: arch/alpha/kernel/osf_sys.c:761:
-+				new = new | (w & UAC_BITMASK) << ALPHA_UAC_SHIFT;
-
-total: 1 errors, 4 warnings, 58 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/alpha-unbreak-osf_setsysinfossi_nvpairs.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michael Cree <mcree@orcon.net.nz>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Amerigo Wang <amwang@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/osf_sys.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/base/node.c    |    6 ++++--
+ include/linux/sysdev.h |   14 ++++++++++++++
+ include/linux/vmstat.h |    2 ++
+ 3 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/kernel/osf_sys.c~alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes arch/alpha/kernel/osf_sys.c
---- a/arch/alpha/kernel/osf_sys.c~alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes
-+++ a/arch/alpha/kernel/osf_sys.c
-@@ -634,9 +634,10 @@ SYSCALL_DEFINE5(osf_getsysinfo, unsigned
-  	case GSI_UACPROC:
- 		if (nbytes < sizeof(unsigned int))
- 			return -EINVAL;
-- 		w = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;
-- 		if (put_user(w, (unsigned int __user *)buffer))
-- 			return -EFAULT;
-+		w = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) &
-+			UAC_BITMASK;
-+		if (put_user(w, (unsigned int __user *)buffer))
-+			return -EFAULT;
-  		return 1;
+diff -puN drivers/base/node.c~drivers-base-inodec-let-vmstat_text-be-optional drivers/base/node.c
+--- a/drivers/base/node.c~drivers-base-inodec-let-vmstat_text-be-optional
++++ a/drivers/base/node.c
+@@ -176,6 +176,7 @@ static ssize_t node_read_numastat(struct
+ }
+ static SYSDEV_ATTR(numastat, S_IRUGO, node_read_numastat, NULL);
  
- 	case GSI_PROC_TYPE:
++#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS)
+ static ssize_t node_read_vmstat(struct sys_device *dev,
+ 				struct sysdev_attribute *attr, char *buf)
+ {
+@@ -190,6 +191,7 @@ static ssize_t node_read_vmstat(struct s
+ 	return n;
+ }
+ static SYSDEV_ATTR(vmstat, S_IRUGO, node_read_vmstat, NULL);
++#endif
+ 
+ static ssize_t node_read_distance(struct sys_device * dev,
+ 			struct sysdev_attribute *attr, char * buf)
+@@ -274,7 +276,7 @@ int register_node(struct node *node, int
+ 		sysdev_create_file(&node->sysdev, &attr_meminfo);
+ 		sysdev_create_file(&node->sysdev, &attr_numastat);
+ 		sysdev_create_file(&node->sysdev, &attr_distance);
+-		sysdev_create_file(&node->sysdev, &attr_vmstat);
++		sysdev_create_file_optional(&node->sysdev, &attr_vmstat);
+ 
+ 		scan_unevictable_register_node(node);
+ 
+@@ -299,7 +301,7 @@ void unregister_node(struct node *node)
+ 	sysdev_remove_file(&node->sysdev, &attr_meminfo);
+ 	sysdev_remove_file(&node->sysdev, &attr_numastat);
+ 	sysdev_remove_file(&node->sysdev, &attr_distance);
+-	sysdev_remove_file(&node->sysdev, &attr_vmstat);
++	sysdev_remove_file_optional(&node->sysdev, &attr_vmstat);
+ 
+ 	scan_unevictable_unregister_node(node);
+ 	hugetlb_unregister_node(node);		/* no-op, if memoryless node */
+diff -puN include/linux/sysdev.h~drivers-base-inodec-let-vmstat_text-be-optional include/linux/sysdev.h
+--- a/include/linux/sysdev.h~drivers-base-inodec-let-vmstat_text-be-optional
++++ a/include/linux/sysdev.h
+@@ -114,6 +114,20 @@ struct sysdev_attribute { 
+ extern int sysdev_create_file(struct sys_device *, struct sysdev_attribute *);
+ extern void sysdev_remove_file(struct sys_device *, struct sysdev_attribute *);
+ 
++#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS)
++#define sysdev_create_file_optional(sysdev, sysdevattr)	\
++	return sysdev_create_file(sysdev, sysdevattr);
++
++#define sysdev_remove_file_optional(sysdev, sysdevattr)	\
++		sysdev_remove_file(sysdev, sysdevattr);
++#else
++#define sysdev_create_file_optional(sysdev, sysdevattr)	\
++		(0)
++
++#define sysdev_remove_file_optional(sysdev, sysdevattr)	\
++		do {} while (0)
++#endif
++
+ /* Create/remove NULL terminated attribute list */
+ static inline int
+ sysdev_create_files(struct sys_device *d, struct sysdev_attribute **a)
+diff -puN include/linux/vmstat.h~drivers-base-inodec-let-vmstat_text-be-optional include/linux/vmstat.h
+--- a/include/linux/vmstat.h~drivers-base-inodec-let-vmstat_text-be-optional
++++ a/include/linux/vmstat.h
+@@ -258,6 +258,8 @@ static inline void refresh_zone_stat_thr
+ 
+ #endif		/* CONFIG_SMP */
+ 
++#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS)
+ extern const char * const vmstat_text[];
++#endif
+ 
+ #endif /* _LINUX_VMSTAT_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-alpha-unbreak-osf_setsysinfossi_nvpairs.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-kernel-rtmutexc-fix-warning-improve-coding-style.patch
-mm.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
+numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled.patch
+drm-fix-kconfig-unmet-dependency-warning.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+cross-memory-attach-update.patch
 drivers-base-inodec-let-vmstat_text-be-optional-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix.patch
-fs-nameic-remove-unused-getname_flags.patch
+consolidate-config_debug_strict_user_copy_checks-fix.patch
 leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+mutex-subsystem-synchro-test-module.patch
 mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
