@@ -1,82 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: + mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock.patch added to -mm tree
-Date: Thu, 25 Aug 2011 15:03:25 -0700
-Message-ID: <201108252203.p7PM3PqD014138@imap1.linux-foundation.org>
+Subject: [folded] alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 25 Aug 2011 15:40:14 -0700
+Message-ID: <201108252240.p7PMeEig017273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755568Ab1HYWDx (ORCPT
+	by vger.kernel.org with ESMTP id S1755722Ab1HYWkv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 18:03:53 -0400
+	Thu, 25 Aug 2011 18:40:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: khoroshilov@ispras.ru, kashyap.desai@lsi.com
+To: akpm@linux-foundation.org, mcree@orcon.net.nz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/mpt2sas/mpt2sas_base.c: fix mismatch in mpt2sas_base_hard_reset_handler() mutex lock-unlock
-has been added to the -mm tree.  Its filename is
-     mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock.patch
+     alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into alpha-unbreak-osf_setsysinfossi_nvpairs.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/mpt2sas/mpt2sas_base.c: fix mismatch in mpt2sas_base_hard_reset_handler() mutex lock-unlock
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Subject: alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If ioc->pci_error_recovery is set, goto out in
-mpt2sas_base_hard_reset_handler() leads to unlock unheld
-ioc->reset_in_progress_mutex.
+WARNING: line over 80 characters
+#110: FILE: arch/alpha/kernel/osf_sys.c:637:
++ 		w = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;
 
-Fix the issue by jumping afer mutex_unlock() call.
+ERROR: code indent should use tabs where possible
+#110: FILE: arch/alpha/kernel/osf_sys.c:637:
++ ^I^Iw = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;$
 
-Found by Linux Driver Verification project (linuxtesting.org).
+WARNING: please, no space before tabs
+#110: FILE: arch/alpha/kernel/osf_sys.c:637:
++ ^I^Iw = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;$
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Kashyap Desai <kashyap.desai@lsi.com>
+WARNING: please, no spaces at the start of a line
+#110: FILE: arch/alpha/kernel/osf_sys.c:637:
++ ^I^Iw = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;$
+
+WARNING: line over 80 characters
+#121: FILE: arch/alpha/kernel/osf_sys.c:761:
++				new = new | (w & UAC_BITMASK) << ALPHA_UAC_SHIFT;
+
+total: 1 errors, 4 warnings, 58 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/alpha-unbreak-osf_setsysinfossi_nvpairs.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michael Cree <mcree@orcon.net.nz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mpt2sas/mpt2sas_base.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/alpha/kernel/osf_sys.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/mpt2sas/mpt2sas_base.c~mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock drivers/scsi/mpt2sas/mpt2sas_base.c
---- a/drivers/scsi/mpt2sas/mpt2sas_base.c~mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock
-+++ a/drivers/scsi/mpt2sas/mpt2sas_base.c
-@@ -4130,7 +4130,7 @@ mpt2sas_base_hard_reset_handler(struct M
- 		printk(MPT2SAS_ERR_FMT "%s: pci error recovery reset\n",
- 		    ioc->name, __func__);
- 		r = 0;
--		goto out;
-+		goto out_unlocked;
- 	}
+diff -puN arch/alpha/kernel/osf_sys.c~alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~alpha-unbreak-osf_setsysinfossi_nvpairs-checkpatch-fixes
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -634,9 +634,10 @@ SYSCALL_DEFINE5(osf_getsysinfo, unsigned
+  	case GSI_UACPROC:
+ 		if (nbytes < sizeof(unsigned int))
+ 			return -EINVAL;
+- 		w = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) & UAC_BITMASK;
+- 		if (put_user(w, (unsigned int __user *)buffer))
+- 			return -EFAULT;
++		w = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) &
++			UAC_BITMASK;
++		if (put_user(w, (unsigned int __user *)buffer))
++			return -EFAULT;
+  		return 1;
  
- 	if (mpt2sas_fwfault_debug)
-@@ -4186,6 +4186,7 @@ mpt2sas_base_hard_reset_handler(struct M
- 	spin_unlock_irqrestore(&ioc->ioc_reset_in_progress_lock, flags);
- 	mutex_unlock(&ioc->reset_in_progress_mutex);
- 
-+ out_unlocked:
- 	dtmprintk(ioc, printk(MPT2SAS_INFO_FMT "%s: exit\n", ioc->name,
- 	    __func__));
- 	return r;
+ 	case GSI_PROC_TYPE:
 _
 
-Patches currently in -mm which might be from khoroshilov@ispras.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+alpha-unbreak-osf_setsysinfossi_nvpairs.patch
 linux-next.patch
-mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+kernel-rtmutexc-fix-warning-improve-coding-style.patch
+mm.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+drivers-base-inodec-let-vmstat_text-be-optional-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
