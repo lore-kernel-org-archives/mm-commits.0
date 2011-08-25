@@ -1,55 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] drivers-base-inodec-let-vmstat_text-be-optional-fix.patch removed from -mm tree
-Date: Thu, 25 Aug 2011 16:47:53 -0700
-Message-ID: <201108252347.p7PNlrXg020673@imap1.linux-foundation.org>
+Subject: + mm-neaten-warn_alloc_failed-fix.patch added to -mm tree
+Date: Thu, 25 Aug 2011 16:50:21 -0700
+Message-ID: <201108252350.p7PNoLgl020841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753314Ab1HYXsA (ORCPT
+	by vger.kernel.org with ESMTP id S1753980Ab1HYXuY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 19:48:00 -0400
+	Thu, 25 Aug 2011 19:50:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, amwang@redhat.com, greg@kroah.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, joe@perches.com
 
 
 The patch titled
-     drivers-base-inodec-let-vmstat_text-be-optional-fix
-has been removed from the -mm tree.  Its filename was
-     drivers-base-inodec-let-vmstat_text-be-optional-fix.patch
+     mm-neaten-warn_alloc_failed-fix
+has been added to the -mm tree.  Its filename is
+     mm-neaten-warn_alloc_failed-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-base-inodec-let-vmstat_text-be-optional-fix
+Subject: mm-neaten-warn_alloc_failed-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-reduce ifdeffery
+use the __printf() macro
 
-Cc: Amerigo Wang <amwang@redhat.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmstat.h~drivers-base-inodec-let-vmstat_text-be-optional-fix include/linux/vmstat.h
---- a/include/linux/vmstat.h~drivers-base-inodec-let-vmstat_text-be-optional-fix
-+++ a/include/linux/vmstat.h
-@@ -258,8 +258,6 @@ static inline void refresh_zone_stat_thr
+diff -puN include/linux/mm.h~mm-neaten-warn_alloc_failed-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-neaten-warn_alloc_failed-fix
++++ a/include/linux/mm.h
+@@ -1335,7 +1335,7 @@ extern void si_meminfo(struct sysinfo * 
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
+ extern int after_bootmem;
  
- #endif		/* CONFIG_SMP */
+-extern __attribute__((format (printf, 3, 4)))
++extern __printf(3, 4)
+ void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
  
--#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS)
- extern const char * const vmstat_text[];
--#endif
- 
- #endif /* _LINUX_VMSTAT_H */
+ extern void setup_per_cpu_pageset(void);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,6 +81,7 @@ vmscan-use-atomic-long-for-shrinker-batching-fix.patch
 mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 thp-mremap-support-and-tlb-optimization-fix.patch
 thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
 include-linux-securityh-fix-security_inode_init_security-arg.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
