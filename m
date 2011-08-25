@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-fix-ordering-of-calls-in-cgroup_attach_proc.patch added to -mm tree
-Date: Thu, 25 Aug 2011 13:44:36 -0700
-Message-ID: <201108252044.p7PKiaHd006997@imap1.linux-foundation.org>
+Subject: + maintainers-add-new-entry-for-ideapad-laptop.patch added to -mm tree
+Date: Thu, 25 Aug 2011 15:00:33 -0700
+Message-ID: <201108252200.p7PM0XBK013957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51381 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754334Ab1HYUot (ORCPT
+	by vger.kernel.org with ESMTP id S1755573Ab1HYWBK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 16:44:49 -0400
+	Thu, 25 Aug 2011 18:01:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bblum@andrew.cmu.edu, fweisbec@gmail.com, lizf@cn.fujitsu.com, oleg@redhat.com, paul@paulmenage.org, tj@kernel.org
+Cc: ike.pan@canonical.com, mjg@redhat.com
 
 
 The patch titled
-     cgroups: fix ordering of calls in cgroup_attach_proc
+     MAINTAINERS: add new entry for ideapad-laptop
 has been added to the -mm tree.  Its filename is
-     cgroups-fix-ordering-of-calls-in-cgroup_attach_proc.patch
+     maintainers-add-new-entry-for-ideapad-laptop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix ordering of calls in cgroup_attach_proc
-From: Ben Blum <bblum@andrew.cmu.edu>
+Subject: MAINTAINERS: add new entry for ideapad-laptop
+From: Ike Panhc <ike.pan@canonical.com>
 
-awaiting useful changelog...
-
-Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Paul Menage <paul@paulmenage.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Ike Panhc <ike.pan@canonical.com>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroups-fix-ordering-of-calls-in-cgroup_attach_proc kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-ordering-of-calls-in-cgroup_attach_proc
-+++ a/kernel/cgroup.c
-@@ -2135,14 +2135,17 @@ int cgroup_attach_proc(struct cgroup *cg
- 		oldcgrp = task_cgroup_from_root(tsk, root);
- 		if (cgrp == oldcgrp)
- 			continue;
--		/* attach each task to each subsystem */
--		for_each_subsys(root, ss) {
--			if (ss->attach_task)
--				ss->attach_task(cgrp, tsk);
--		}
- 		/* if the thread is PF_EXITING, it can just get skipped. */
- 		retval = cgroup_task_migrate(cgrp, oldcgrp, tsk, true);
--		BUG_ON(retval != 0 && retval != -ESRCH);
-+		if (retval == 0) {
-+			/* attach each task to each subsystem */
-+			for_each_subsys(root, ss) {
-+				if (ss->attach_task)
-+					ss->attach_task(cgrp, tsk);
-+			}
-+		} else {
-+			BUG_ON(retval != -ESRCH);
-+		}
- 	}
- 	/* nothing is sensitive to fork() after this point. */
+diff -puN MAINTAINERS~maintainers-add-new-entry-for-ideapad-laptop MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-new-entry-for-ideapad-laptop
++++ a/MAINTAINERS
+@@ -3202,6 +3202,13 @@ F:	Documentation/ide/
+ F:	drivers/ide/
+ F:	include/linux/ide.h
  
++IDEAPAD LAPTOP EXTRAS DRIVER
++M:	Ike Panhc <ike.pan@canonical.com>
++L:	platform-driver-x86@vger.kernel.org
++W:	http://launchpad.net/ideapad-laptop
++S:	Maintained
++F:	drivers/platform/x86/ideapad-laptop.c
++
+ IDE/ATAPI DRIVERS
+ M:	Borislav Petkov <petkovbb@gmail.com>
+ L:	linux-ide@vger.kernel.org
 _
 
-Patches currently in -mm which might be from bblum@andrew.cmu.edu are
+Patches currently in -mm which might be from ike.pan@canonical.com are
 
-cgroups-fix-ordering-of-calls-in-cgroup_attach_proc.patch
+maintainers-add-new-entry-for-ideapad-laptop.patch
 
