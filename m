@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + iov_iter-have-iov_iter_advance-decrement-nr_segs-appropriately.patch added to -mm tree
-Date: Thu, 25 Aug 2011 13:39:29 -0700
-Message-ID: <201108252039.p7PKdTKW006721@imap1.linux-foundation.org>
+Date: Thu, 25 Aug 2011 13:40:02 -0700
+Message-ID: <201108252040.p7PKe33E006791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754142Ab1HYUkK (ORCPT
+	by vger.kernel.org with ESMTP id S1754310Ab1HYUkj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 16:40:10 -0400
+	Thu, 25 Aug 2011 16:40:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -37,7 +37,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: mm: iov_iter: have iov_iter_advance() decrement nr_segs appropriately
 From: Jeff Layton <jlayton@redhat.com>
 
-Currently, when you call iov_iter_advance, then the pointer to the kvec
+Currently, when you call iov_iter_advance, then the pointer to the iovec
 array can be incremented, but it does not decrement the nr_segs value in
 the iov_iter struct.  The result is a iov_iter struct with a nr_segs value
 that goes beyond the end of the array.
@@ -48,7 +48,7 @@ were to trust the nr_segs value to be correct, then they could end up
 walking off the end of the array.
 
 Changing this might also provide some micro-optimization when dealing with
-the last kvec in an array.  Many of the other routines that deal with
+the last iovec in an array.  Many of the other routines that deal with
 iov_iter have optimized codepaths when nr_segs == 1.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
