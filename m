@@ -1,47 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: + numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch added to -mm tree
-Date: Thu, 25 Aug 2011 16:47:26 -0700
-Message-ID: <201108252347.p7PNlQFN020658@imap1.linux-foundation.org>
+Subject: [obsolete] drivers-base-inodec-let-vmstat_text-be-optional-fix.patch removed from -mm tree
+Date: Thu, 25 Aug 2011 16:47:53 -0700
+Message-ID: <201108252347.p7PNlrXg020673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752917Ab1HYXrf (ORCPT
+	by vger.kernel.org with ESMTP id S1753314Ab1HYXsA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 19:47:35 -0400
+	Thu, 25 Aug 2011 19:48:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, amwang@redhat.com, rdunlap@xenotime.net, rientjes@google.com
+To: akpm@linux-foundation.org, amwang@redhat.com, greg@kroah.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
-has been added to the -mm tree.  Its filename is
-     numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
+     drivers-base-inodec-let-vmstat_text-be-optional-fix
+has been removed from the -mm tree.  Its filename was
+     drivers-base-inodec-let-vmstat_text-be-optional-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
+Subject: drivers-base-inodec-let-vmstat_text-be-optional-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove unneeded ifdefs.  It'll convert a compile-time error into a
-link-time one, but the code is nicer.
+reduce ifdeffery
 
-Cc: Cong Wang <amwang@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Amerigo Wang <amwang@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -49,14 +38,14 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/vmstat.h |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN include/linux/vmstat.h~numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix include/linux/vmstat.h
---- a/include/linux/vmstat.h~numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
+diff -puN include/linux/vmstat.h~drivers-base-inodec-let-vmstat_text-be-optional-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~drivers-base-inodec-let-vmstat_text-be-optional-fix
 +++ a/include/linux/vmstat.h
 @@ -258,8 +258,6 @@ static inline void refresh_zone_stat_thr
  
  #endif		/* CONFIG_SMP */
  
--#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS) || defined(CONFIG_NUMA)
+-#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS)
  extern const char * const vmstat_text[];
 -#endif
  
@@ -84,7 +73,6 @@ vmscan-use-atomic-long-for-shrinker-batching-fix.patch
 mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 thp-mremap-support-and-tlb-optimization-fix.patch
 thp-mremap-support-and-tlb-optimization-fix-fix.patch
-drivers-base-inodec-let-vmstat_text-be-optional-fix.patch
 include-linux-securityh-fix-security_inode_init_security-arg.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
