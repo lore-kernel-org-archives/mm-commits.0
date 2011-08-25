@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printk-remove-bounds-checking-for-log_prefix.patch added to -mm tree
-Date: Thu, 25 Aug 2011 13:38:36 -0700
-Message-ID: <201108252038.p7PKcat2006636@imap1.linux-foundation.org>
+Subject: + iov_iter-have-iov_iter_advance-decrement-nr_segs-appropriately.patch added to -mm tree
+Date: Thu, 25 Aug 2011 13:39:29 -0700
+Message-ID: <201108252039.p7PKdTKW006721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42037 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754498Ab1HYUjH (ORCPT
+	by vger.kernel.org with ESMTP id S1754142Ab1HYUkK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 16:39:07 -0400
+	Thu, 25 Aug 2011 16:40:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: william.r.douglas@gmail.com, william.douglas@intel.com
+Cc: jlayton@redhat.com, npiggin@suse.de
 
 
 The patch titled
-     From: William Douglas <william.r.douglas@gmail.com>
+     mm: iov_iter: have iov_iter_advance() decrement nr_segs appropriately
 has been added to the -mm tree.  Its filename is
-     printk-remove-bounds-checking-for-log_prefix.patch
+     iov_iter-have-iov_iter_advance-decrement-nr_segs-appropriately.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: William Douglas <william.r.douglas@gmail.com>
+Subject: mm: iov_iter: have iov_iter_advance() decrement nr_segs appropriately
+From: Jeff Layton <jlayton@redhat.com>
 
+Currently, when you call iov_iter_advance, then the pointer to the kvec
+array can be incremented, but it does not decrement the nr_segs value in
+the iov_iter struct.  The result is a iov_iter struct with a nr_segs value
+that goes beyond the end of the array.
 
-Currently log_prefix is testing that the first character of the
-log level and facility is less than '0' and greater than '9' (which
-is always false).
+While I'm not aware of anything that's specifically broken by this, it
+seems odd and a bit dangerous not to decrement that value.  If someone
+were to trust the nr_segs value to be correct, then they could end up
+walking off the end of the array.
 
-Since the code being updated works because strtoul bombs out (endp isn't
-updated) and 0 is returned anyway just remove the check and don't change
-the behavior of the function.
-Signed-off-by: William Douglas <william.douglas@intel.com>
----
+Changing this might also provide some micro-optimization when dealing with
+the last kvec in an array.  Many of the other routines that deal with
+iov_iter have optimized codepaths when nr_segs == 1.
 
-index 37dff34..4a0d2ed 100644
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/filemap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/printk.c~printk-remove-bounds-checking-for-log_prefix kernel/printk.c
---- a/kernel/printk.c~printk-remove-bounds-checking-for-log_prefix
-+++ a/kernel/printk.c
-@@ -595,9 +595,6 @@ static size_t log_prefix(const char *p, 
- 		/* multi digit including the level and facility number */
- 		char *endp = NULL;
+diff -puN mm/filemap.c~iov_iter-have-iov_iter_advance-decrement-nr_segs-appropriately mm/filemap.c
+--- a/mm/filemap.c~iov_iter-have-iov_iter_advance-decrement-nr_segs-appropriately
++++ a/mm/filemap.c
+@@ -2113,6 +2113,7 @@ void iov_iter_advance(struct iov_iter *i
+ 	} else {
+ 		const struct iovec *iov = i->iov;
+ 		size_t base = i->iov_offset;
++		unsigned long nr_segs = i->nr_segs;
  
--		if (p[1] < '0' || p[1] > '9')
--			return 0;
+ 		/*
+ 		 * The !iov->iov_len check ensures we skip over unlikely
+@@ -2128,11 +2129,13 @@ void iov_iter_advance(struct iov_iter *i
+ 			base += copy;
+ 			if (iov->iov_len == base) {
+ 				iov++;
++				nr_segs--;
+ 				base = 0;
+ 			}
+ 		}
+ 		i->iov = iov;
+ 		i->iov_offset = base;
++		i->nr_segs = nr_segs;
+ 	}
+ }
+ EXPORT_SYMBOL(iov_iter_advance);
+_
+
+Patches currently in -mm which might be from jlayton@redhat.com are
+
+linux-next.patch
+iov_iter-have-iov_iter_advance-decrement-nr_segs-appropriately.patch
+
