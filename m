@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-free_hot_cold_page_list-helper.patch added to -mm tree
-Date: Fri, 26 Aug 2011 15:21:38 -0700
-Message-ID: <201108262221.p7QMLcjj015827@imap1.linux-foundation.org>
+Subject: + mm-memblock-small-function-definition-fixes.patch added to -mm tree
+Date: Fri, 26 Aug 2011 16:21:24 -0700
+Message-ID: <201108262321.p7QNLO9Y018508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751213Ab1HZWWI (ORCPT
+	by vger.kernel.org with ESMTP id S1752936Ab1HZXV2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 18:22:08 -0400
+	Fri, 26 Aug 2011 19:21:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com
+Cc: jhbird.choi@samsung.com
 
 
 The patch titled
-     mm: add free_hot_cold_page_list() helper
+     mm/memblock.c: small function definition fixes
 has been added to the -mm tree.  Its filename is
-     mm-add-free_hot_cold_page_list-helper.patch
+     mm-memblock-small-function-definition-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add free_hot_cold_page_list() helper
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm/memblock.c: small function definition fixes
+From: Jonghwan Choi <jhbird.choi@samsung.com>
 
-This patch adds helper free_hot_cold_page_list() to free list of 0-order
-pages.  It frees pages directly from list without temporary page-vector. 
-It also calls trace_mm_pagevec_free() to simulate pagevec_free()
-behaviour.
+warning: function 'memblock_memory_can_coalesce'
+with external linkage has definition.
 
-bloat-o-meter:
-
-add/remove: 1/1 grow/shrink: 1/3 up/down: 267/-295 (-28)
-function                                     old     new   delta
-free_hot_cold_page_list                        -     264    +264
-get_page_from_freelist                      2129    2132      +3
-__pagevec_free                               243     239      -4
-split_free_page                              380     373      -7
-release_pages                                606     510     -96
-free_page_list                               188       -    -188
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Jonghwan Choi <jhbird.choi@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    1 +
- mm/page_alloc.c     |   12 ++++++++++++
- mm/swap.c           |   14 +++-----------
- mm/vmscan.c         |   20 +-------------------
- 4 files changed, 17 insertions(+), 30 deletions(-)
+ mm/memblock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-add-free_hot_cold_page_list-helper include/linux/gfp.h
---- a/include/linux/gfp.h~mm-add-free_hot_cold_page_list-helper
-+++ a/include/linux/gfp.h
-@@ -358,6 +358,7 @@ void *alloc_pages_exact_nid(int nid, siz
- extern void __free_pages(struct page *page, unsigned int order);
- extern void free_pages(unsigned long addr, unsigned int order);
- extern void free_hot_cold_page(struct page *page, int cold);
-+extern void free_hot_cold_page_list(struct list_head *list, int cold);
- 
- #define __free_page(page) __free_pages((page), 0)
- #define free_page(addr) free_pages((addr), 0)
-diff -puN mm/page_alloc.c~mm-add-free_hot_cold_page_list-helper mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-free_hot_cold_page_list-helper
-+++ a/mm/page_alloc.c
-@@ -1210,6 +1210,18 @@ out:
- 	local_irq_restore(flags);
+diff -puN mm/memblock.c~mm-memblock-small-function-definition-fixes mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-small-function-definition-fixes
++++ a/mm/memblock.c
+@@ -267,7 +267,7 @@ static int __init_memblock memblock_doub
+ 	return 0;
  }
  
-+void free_hot_cold_page_list(struct list_head *list, int cold)
-+{
-+	struct page *page, *next;
-+
-+	list_for_each_entry_safe(page, next, list, lru) {
-+		trace_mm_pagevec_free(page, cold);
-+		free_hot_cold_page(page, cold);
-+	}
-+
-+	INIT_LIST_HEAD(list);
-+}
-+
- /*
-  * split_page takes a non-compound higher-order page, and splits it into
-  * n (1<<order) sub-pages: page[0..n]
-diff -puN mm/swap.c~mm-add-free_hot_cold_page_list-helper mm/swap.c
---- a/mm/swap.c~mm-add-free_hot_cold_page_list-helper
-+++ a/mm/swap.c
-@@ -562,11 +562,10 @@ int lru_add_drain_all(void)
- void release_pages(struct page **pages, int nr, int cold)
+-extern int __init_memblock __weak memblock_memory_can_coalesce(phys_addr_t addr1, phys_addr_t size1,
++int __init_memblock __weak memblock_memory_can_coalesce(phys_addr_t addr1, phys_addr_t size1,
+ 					  phys_addr_t addr2, phys_addr_t size2)
  {
- 	int i;
--	struct pagevec pages_to_free;
-+	LIST_HEAD(pages_to_free);
- 	struct zone *zone = NULL;
- 	unsigned long uninitialized_var(flags);
- 
--	pagevec_init(&pages_to_free, cold);
- 	for (i = 0; i < nr; i++) {
- 		struct page *page = pages[i];
- 
-@@ -597,19 +596,12 @@ void release_pages(struct page **pages, 
- 			del_page_from_lru(zone, page);
- 		}
- 
--		if (!pagevec_add(&pages_to_free, page)) {
--			if (zone) {
--				spin_unlock_irqrestore(&zone->lru_lock, flags);
--				zone = NULL;
--			}
--			__pagevec_free(&pages_to_free);
--			pagevec_reinit(&pages_to_free);
--  		}
-+		list_add_tail(&page->lru, &pages_to_free);
- 	}
- 	if (zone)
- 		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
--	pagevec_free(&pages_to_free);
-+	free_hot_cold_page_list(&pages_to_free, cold);
- }
- EXPORT_SYMBOL(release_pages);
- 
-diff -puN mm/vmscan.c~mm-add-free_hot_cold_page_list-helper mm/vmscan.c
---- a/mm/vmscan.c~mm-add-free_hot_cold_page_list-helper
-+++ a/mm/vmscan.c
-@@ -734,24 +734,6 @@ static enum page_references page_check_r
- 	return PAGEREF_RECLAIM;
- }
- 
--static noinline_for_stack void free_page_list(struct list_head *free_pages)
--{
--	struct pagevec freed_pvec;
--	struct page *page, *tmp;
--
--	pagevec_init(&freed_pvec, 1);
--
--	list_for_each_entry_safe(page, tmp, free_pages, lru) {
--		list_del(&page->lru);
--		if (!pagevec_add(&freed_pvec, page)) {
--			__pagevec_free(&freed_pvec);
--			pagevec_reinit(&freed_pvec);
--		}
--	}
--
--	pagevec_free(&freed_pvec);
--}
+ 	return 1;
+_
+
+Patches currently in -mm which might be from jhbird.choi@samsung.com are
+
+linux-next.patch
+mm-memblock-small-function-definition-fixes.patch
+
