@@ -1,58 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-fix-module-alias-prefix-for-adp8870_bl.patch removed from -mm tree
-Date: Fri, 26 Aug 2011 12:06:55 -0700
-Message-ID: <201108261903.p7QJ3d8I005710@imap1.linux-foundation.org>
+Subject: [merged] cris-add-arch-cris-include-asm-serialh.patch removed from -mm tree
+Date: Fri, 26 Aug 2011 12:07:02 -0700
+Message-ID: <201108261903.p7QJ3kBP005722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753302Ab1HZTET (ORCPT
+	by vger.kernel.org with ESMTP id S1753302Ab1HZTEW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 15:04:19 -0400
+	Fri, 26 Aug 2011 15:04:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, michael.hennerich@analog.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: fix module alias prefix for adp8870_bl
+     cris: add arch/cris/include/asm/serial.h
 has been removed from the -mm tree.  Its filename was
-     backlight-fix-module-alias-prefix-for-adp8870_bl.patch
+     cris-add-arch-cris-include-asm-serialh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: fix module alias prefix for adp8870_bl
-From: Axel Lin <axel.lin@gmail.com>
+Subject: cris: add arch/cris/include/asm/serial.h
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-This is a i2c driver, not a platform driver, thus use "i2c" prefix for the
-module alias.
+Fix the following build errors:
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Michael Hennerich <michael.hennerich@analog.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+src/drivers/tty/serial/8250_early.c:160: error: 'BASE_BAUD' undeclared (first use in this function): 1 errors in 1 logs
+        v3.0/cris/cris-allyesconfig
+src/drivers/tty/serial/8250_early.c:160: error: (Each undeclared identifier is reported only once: 1 errors in 1 logs
+        v3.0/cris/cris-allyesconfig
+src/drivers/tty/serial/8250_early.c:160: error: for each function it appears in.): 1 errors in 1 logs
+        v3.0/cris/cris-allyesconfig
+src/drivers/tty/serial/8250_early.c:37:24: error: asm/serial.h: No such file or directory: 1 errors in 1 logs
+        v3.0/cris/cris-allyesconfig
+
+I am not sure if (1843200 / 16) is suitable for cris, but most other
+arch's define it as this value.
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8870_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/cris/include/asm/serial.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/video/backlight/adp8870_bl.c~backlight-fix-module-alias-prefix-for-adp8870_bl drivers/video/backlight/adp8870_bl.c
---- a/drivers/video/backlight/adp8870_bl.c~backlight-fix-module-alias-prefix-for-adp8870_bl
-+++ a/drivers/video/backlight/adp8870_bl.c
-@@ -1009,4 +1009,4 @@ module_exit(adp8870_exit);
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
- MODULE_DESCRIPTION("ADP8870 Backlight driver");
--MODULE_ALIAS("platform:adp8870-backlight");
-+MODULE_ALIAS("i2c:adp8870-backlight");
+diff -puN /dev/null arch/cris/include/asm/serial.h
+--- /dev/null
++++ a/arch/cris/include/asm/serial.h
+@@ -0,0 +1,10 @@
++#ifndef _ASM_SERIAL_H
++#define _ASM_SERIAL_H
++
++/*
++ * This assumes you have a 1.8432 MHz clock for your UART.
++ */
++#define BASE_BAUD (1843200 / 16)
++
++#endif /* _ASM_SERIAL_H */
++
 _
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-linux-next.patch
-leds-renesas-tpu-led-driver-v2-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
 
