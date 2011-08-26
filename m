@@ -1,29 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kswapd-avoid-unnecessary-rebalance-after-an-unsuccessful-balancing.patch added to -mm tree
-Date: Fri, 26 Aug 2011 15:07:27 -0700
-Message-ID: <201108262207.p7QM7Rnf015203@imap1.linux-foundation.org>
+Subject: + mm-add-free_hot_cold_page_list-helper.patch added to -mm tree
+Date: Fri, 26 Aug 2011 15:21:38 -0700
+Message-ID: <201108262221.p7QMLcjj015827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750953Ab1HZWIR (ORCPT
+	by vger.kernel.org with ESMTP id S1751213Ab1HZWWI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 18:08:17 -0400
+	Fri, 26 Aug 2011 18:22:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alex.shi@intel.com, P@draigBrady.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com, tim.c.chen@linux.intel.com
+Cc: khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com
 
 
 The patch titled
-     kswapd: avoid unnecessary rebalance after an unsuccessful balancin=
-g
+     mm: add free_hot_cold_page_list() helper
 has been added to the -mm tree.  Its filename is
-     kswapd-avoid-unnecessary-rebalance-after-an-unsuccessful-balancing=
-=2Epatch
+     mm-add-free_hot_cold_page_list-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,117 +26,138 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kswapd: avoid unnecessary rebalance after an unsuccessful bala=
-ncing
-=46rom: "Alex,Shi" <alex.shi@intel.com>
+Subject: mm: add free_hot_cold_page_list() helper
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-In commit 215ddd66 ("mm: vmscan: only read new_classzone_idx from pgdat
-when reclaiming successfully") , Mel Gorman said kswapd is better to sl=
-eep
-after a unsuccessful balancing if there is tighter reclaim request pend=
-ing
-in the balancing.  But in the following scenario, kswapd do something t=
-hat
-is not matched our expectation.  The patch fixes this issue.
+This patch adds helper free_hot_cold_page_list() to free list of 0-order
+pages.  It frees pages directly from list without temporary page-vector. 
+It also calls trace_mm_pagevec_free() to simulate pagevec_free()
+behaviour.
 
-1, Read pgdat request A (classzone_idx, order =3D 3)
-2, balance_pgdat()
-3, During pgdat, a new pgdat request B (classzone_idx, order =3D 5) is =
-placed
-4, balance_pgdat() returns but failed since returned order =3D 0
-5, pgdat of request A assigned to balance_pgdat(), and do balancing aga=
-in.
-   While the expectation behavior of kswapd should try to sleep.
+bloat-o-meter:
 
-Signed-off-by: Alex Shi <alex.shi@intel.com>
-Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Tested-by: P=E1draig Brady <P@draigBrady.com>
-Cc: Rik van Riel <riel@redhat.com>
+add/remove: 1/1 grow/shrink: 1/3 up/down: 267/-295 (-28)
+function                                     old     new   delta
+free_hot_cold_page_list                        -     264    +264
+get_page_from_freelist                      2129    2132      +3
+__pagevec_free                               243     239      -4
+split_free_page                              380     373      -7
+release_pages                                606     510     -96
+free_page_list                               188       -    -188
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ include/linux/gfp.h |    1 +
+ mm/page_alloc.c     |   12 ++++++++++++
+ mm/swap.c           |   14 +++-----------
+ mm/vmscan.c         |   20 +-------------------
+ 4 files changed, 17 insertions(+), 30 deletions(-)
 
-diff -puN mm/vmscan.c~kswapd-avoid-unnecessary-rebalance-after-an-unsuc=
-cessful-balancing mm/vmscan.c
---- a/mm/vmscan.c~kswapd-avoid-unnecessary-rebalance-after-an-unsuccess=
-ful-balancing
-+++ a/mm/vmscan.c
-@@ -2842,7 +2842,9 @@ static void kswapd_try_to_sleep(pg_data_
- static int kswapd(void *p)
+diff -puN include/linux/gfp.h~mm-add-free_hot_cold_page_list-helper include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-add-free_hot_cold_page_list-helper
++++ a/include/linux/gfp.h
+@@ -358,6 +358,7 @@ void *alloc_pages_exact_nid(int nid, siz
+ extern void __free_pages(struct page *page, unsigned int order);
+ extern void free_pages(unsigned long addr, unsigned int order);
+ extern void free_hot_cold_page(struct page *page, int cold);
++extern void free_hot_cold_page_list(struct list_head *list, int cold);
+ 
+ #define __free_page(page) __free_pages((page), 0)
+ #define free_page(addr) free_pages((addr), 0)
+diff -puN mm/page_alloc.c~mm-add-free_hot_cold_page_list-helper mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-free_hot_cold_page_list-helper
++++ a/mm/page_alloc.c
+@@ -1210,6 +1210,18 @@ out:
+ 	local_irq_restore(flags);
+ }
+ 
++void free_hot_cold_page_list(struct list_head *list, int cold)
++{
++	struct page *page, *next;
++
++	list_for_each_entry_safe(page, next, list, lru) {
++		trace_mm_pagevec_free(page, cold);
++		free_hot_cold_page(page, cold);
++	}
++
++	INIT_LIST_HEAD(list);
++}
++
+ /*
+  * split_page takes a non-compound higher-order page, and splits it into
+  * n (1<<order) sub-pages: page[0..n]
+diff -puN mm/swap.c~mm-add-free_hot_cold_page_list-helper mm/swap.c
+--- a/mm/swap.c~mm-add-free_hot_cold_page_list-helper
++++ a/mm/swap.c
+@@ -562,11 +562,10 @@ int lru_add_drain_all(void)
+ void release_pages(struct page **pages, int nr, int cold)
  {
- 	unsigned long order, new_order;
-+	unsigned balanced_order;
- 	int classzone_idx, new_classzone_idx;
-+	int balanced_classzone_idx;
- 	pg_data_t *pgdat =3D (pg_data_t*)p;
- 	struct task_struct *tsk =3D current;
-=20
-@@ -2873,7 +2875,9 @@ static int kswapd(void *p)
- 	set_freezable();
-=20
- 	order =3D new_order =3D 0;
-+	balanced_order =3D 0;
- 	classzone_idx =3D new_classzone_idx =3D pgdat->nr_zones - 1;
-+	balanced_classzone_idx =3D classzone_idx;
- 	for ( ; ; ) {
- 		int ret;
-=20
-@@ -2882,7 +2886,8 @@ static int kswapd(void *p)
- 		 * new request of a similar or harder type will succeed soon
- 		 * so consider going to sleep on the basis we reclaimed at
- 		 */
--		if (classzone_idx >=3D new_classzone_idx && order =3D=3D new_order) =
-{
-+		if (balanced_classzone_idx >=3D new_classzone_idx &&
-+					balanced_order =3D=3D new_order) {
- 			new_order =3D pgdat->kswapd_max_order;
- 			new_classzone_idx =3D pgdat->classzone_idx;
- 			pgdat->kswapd_max_order =3D  0;
-@@ -2897,7 +2902,8 @@ static int kswapd(void *p)
- 			order =3D new_order;
- 			classzone_idx =3D new_classzone_idx;
- 		} else {
--			kswapd_try_to_sleep(pgdat, order, classzone_idx);
-+			kswapd_try_to_sleep(pgdat, balanced_order,
-+						balanced_classzone_idx);
- 			order =3D pgdat->kswapd_max_order;
- 			classzone_idx =3D pgdat->classzone_idx;
- 			pgdat->kswapd_max_order =3D 0;
-@@ -2914,7 +2920,9 @@ static int kswapd(void *p)
- 		 */
- 		if (!ret) {
- 			trace_mm_vmscan_kswapd_wake(pgdat->node_id, order);
--			order =3D balance_pgdat(pgdat, order, &classzone_idx);
-+			balanced_classzone_idx =3D classzone_idx;
-+			balanced_order =3D balance_pgdat(pgdat, order,
-+						&balanced_classzone_idx);
+ 	int i;
+-	struct pagevec pages_to_free;
++	LIST_HEAD(pages_to_free);
+ 	struct zone *zone = NULL;
+ 	unsigned long uninitialized_var(flags);
+ 
+-	pagevec_init(&pages_to_free, cold);
+ 	for (i = 0; i < nr; i++) {
+ 		struct page *page = pages[i];
+ 
+@@ -597,19 +596,12 @@ void release_pages(struct page **pages, 
+ 			del_page_from_lru(zone, page);
  		}
+ 
+-		if (!pagevec_add(&pages_to_free, page)) {
+-			if (zone) {
+-				spin_unlock_irqrestore(&zone->lru_lock, flags);
+-				zone = NULL;
+-			}
+-			__pagevec_free(&pages_to_free);
+-			pagevec_reinit(&pages_to_free);
+-  		}
++		list_add_tail(&page->lru, &pages_to_free);
  	}
- 	return 0;
-_
-
-Patches currently in -mm which might be from alex.shi@intel.com are
-
-linux-next.patch
-kswapd-avoid-unnecessary-rebalance-after-an-unsuccessful-balancing.patc=
-h
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	if (zone)
+ 		spin_unlock_irqrestore(&zone->lru_lock, flags);
+ 
+-	pagevec_free(&pages_to_free);
++	free_hot_cold_page_list(&pages_to_free, cold);
+ }
+ EXPORT_SYMBOL(release_pages);
+ 
+diff -puN mm/vmscan.c~mm-add-free_hot_cold_page_list-helper mm/vmscan.c
+--- a/mm/vmscan.c~mm-add-free_hot_cold_page_list-helper
++++ a/mm/vmscan.c
+@@ -734,24 +734,6 @@ static enum page_references page_check_r
+ 	return PAGEREF_RECLAIM;
+ }
+ 
+-static noinline_for_stack void free_page_list(struct list_head *free_pages)
+-{
+-	struct pagevec freed_pvec;
+-	struct page *page, *tmp;
+-
+-	pagevec_init(&freed_pvec, 1);
+-
+-	list_for_each_entry_safe(page, tmp, free_pages, lru) {
+-		list_del(&page->lru);
+-		if (!pagevec_add(&freed_pvec, page)) {
+-			__pagevec_free(&freed_pvec);
+-			pagevec_reinit(&freed_pvec);
+-		}
+-	}
+-
+-	pagevec_free(&freed_pvec);
+-}
