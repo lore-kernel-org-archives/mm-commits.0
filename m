@@ -1,67 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-char-msm_smd_pktc-dont-use-is_err.patch removed from -mm tree
-Date: Fri, 26 Aug 2011 12:06:30 -0700
-Message-ID: <201108261903.p7QJ3ElC005666@imap1.linux-foundation.org>
+Subject: [merged] drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh.patch removed from -mm tree
+Date: Fri, 26 Aug 2011 12:06:44 -0700
+Message-ID: <201108261903.p7QJ3Sli005698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42417 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753084Ab1HZTED (ORCPT
+	by vger.kernel.org with ESMTP id S1753144Ab1HZTEH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 15:04:03 -0400
+	Fri, 26 Aug 2011 15:04:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thomas@m3y3r.de, nvishwan@codeaurora.org, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, hsweeten@visionengravers.com, rmallon@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/msm_smd_pkt.c: don't use IS_ERR()
+     drivers/video/backlight/ep93xx_bl.c: add missing include of linux/module.h
 has been removed from the -mm tree.  Its filename was
-     drivers-char-msm_smd_pktc-dont-use-is_err.patch
+     drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/msm_smd_pkt.c: don't use IS_ERR()
-From: Thomas Meyer <thomas@m3y3r.de>
+Subject: drivers/video/backlight/ep93xx_bl.c: add missing include of linux/module.h
+From: Axel Lin <axel.lin@gmail.com>
 
-The various basic memory allocation function return NULL, not an ERR_PTR.
+ep93xx_bl.c uses interfaces from linux/module.h,
+so it should include that file. This patch fixes below build errors.
 
-The semantic patch that makes this change is available in
-scripts/coccinelle/null/eno.cocci.
+  CC [M]  drivers/video/backlight/ep93xx_bl.o
+drivers/video/backlight/ep93xx_bl.c:138: error: 'THIS_MODULE' undeclared here (not in a function)
+drivers/video/backlight/ep93xx_bl.c:158: error: expected declaration specifiers or '...' before string constant
+drivers/video/backlight/ep93xx_bl.c:158: warning: data definition has no type or storage class
+drivers/video/backlight/ep93xx_bl.c:158: warning: type defaults to 'int' in declaration of 'MODULE_DESCRIPTION'
+drivers/video/backlight/ep93xx_bl.c:158: warning: function declaration isn't a prototype
+drivers/video/backlight/ep93xx_bl.c:159: error: expected declaration specifiers or '...' before string constant
+drivers/video/backlight/ep93xx_bl.c:159: warning: data definition has no type or storage class
+drivers/video/backlight/ep93xx_bl.c:159: warning: type defaults to 'int' in declaration of 'MODULE_AUTHOR'
+drivers/video/backlight/ep93xx_bl.c:159: warning: function declaration isn't a prototype
+drivers/video/backlight/ep93xx_bl.c:160: error: expected declaration specifiers or '...' before string constant
+drivers/video/backlight/ep93xx_bl.c:160: warning: data definition has no type or storage class
+drivers/video/backlight/ep93xx_bl.c:160: warning: type defaults to 'int' in declaration of 'MODULE_LICENSE'
+drivers/video/backlight/ep93xx_bl.c:160: warning: function declaration isn't a prototype
+drivers/video/backlight/ep93xx_bl.c:161: error: expected declaration specifiers or '...' before string constant
+drivers/video/backlight/ep93xx_bl.c:161: warning: data definition has no type or storage class
+drivers/video/backlight/ep93xx_bl.c:161: warning: type defaults to 'int' in declaration of 'MODULE_ALIAS'
+drivers/video/backlight/ep93xx_bl.c:161: warning: function declaration isn't a prototype
 
-More information about semantic patching is available at
-http://coccinelle.lip6.fr/
-
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
-Cc: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Ryan Mallon <rmallon@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/msm_smd_pkt.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/video/backlight/ep93xx_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/msm_smd_pkt.c~drivers-char-msm_smd_pktc-dont-use-is_err drivers/char/msm_smd_pkt.c
---- a/drivers/char/msm_smd_pkt.c~drivers-char-msm_smd_pktc-dont-use-is_err
-+++ a/drivers/char/msm_smd_pkt.c
-@@ -379,9 +379,8 @@ static int __init smd_pkt_init(void)
- 	for (i = 0; i < NUM_SMD_PKT_PORTS; ++i) {
- 		smd_pkt_devp[i] = kzalloc(sizeof(struct smd_pkt_dev),
- 					  GFP_KERNEL);
--		if (IS_ERR(smd_pkt_devp[i])) {
--			r = PTR_ERR(smd_pkt_devp[i]);
--			pr_err("kmalloc() failed %d\n", r);
-+		if (!smd_pkt_devp[i]) {
-+			pr_err("kmalloc() failed\n");
- 			goto clean_cdevs;
- 		}
+diff -puN drivers/video/backlight/ep93xx_bl.c~drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh drivers/video/backlight/ep93xx_bl.c
+--- a/drivers/video/backlight/ep93xx_bl.c~drivers-video-backlight-ep93xx_blc-add-missing-include-of-linux-moduleh
++++ a/drivers/video/backlight/ep93xx_bl.c
+@@ -11,7 +11,7 @@
+  * BRIGHT, on the Cirrus EP9307, EP9312, and EP9315 processors.
+  */
  
-_
-
-Patches currently in -mm which might be from thomas@m3y3r.de are
-
-origin.patch
-linux-next.patch
-
