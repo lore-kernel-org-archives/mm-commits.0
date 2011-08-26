@@ -1,97 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-pin-execution-to-current-cpu-while-draining-stock.patch removed from -mm tree
-Date: Fri, 26 Aug 2011 12:06:24 -0700
-Message-ID: <201108261903.p7QJ38SA005657@imap1.linux-foundation.org>
+Subject: [merged] alpha-unbreak-osf_setsysinfossi_nvpairs.patch removed from -mm tree
+Date: Fri, 26 Aug 2011 12:06:15 -0700
+Message-ID: <201108261902.p7QJ2xAj005639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752467Ab1HZTDv (ORCPT
+	by vger.kernel.org with ESMTP id S1753144Ab1HZTD4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 15:03:51 -0400
+	Fri, 26 Aug 2011 15:03:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: slyfox@gentoo.org, ink@jurassic.park.msu.ru, mattst88@gmail.com, mcree@orcon.net.nz, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: pin execution to current cpu while draining stock
+     alpha: unbreak osf_setsysinfo(SSI_NVPAIRS, [SSIN_UACPROC, UAC_SIGBUS])
 has been removed from the -mm tree.  Its filename was
-     memcg-pin-execution-to-current-cpu-while-draining-stock.patch
+     alpha-unbreak-osf_setsysinfossi_nvpairs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: pin execution to current cpu while draining stock
-From: Johannes Weiner <jweiner@redhat.com>
+Subject: alpha: unbreak osf_setsysinfo(SSI_NVPAIRS, [SSIN_UACPROC, UAC_SIGBUS])
+From: Sergei Trofimovich <slyfox@gentoo.org>
 
-Commit d1a05b6 ("memcg do not try to drain per-cpu caches without pages")
-added a drain_local_stock() call to a preemptible section.
+The bug was accidentally found by the following program:
 
-The draining task looks up the cpu-local stock twice to set the
-draining-flag, then to drain the stock and clear the flag again.  If the
-task is migrated to a different CPU in between, noone will clear the flag
-on the first stock and it will be forever undrainable.  Its charge can not
-be recovered and the cgroup can not be deleted anymore.
+    #include <asm/sysinfo.h>
+    #include <asm/unistd.h>
+    #include <sys/syscall.h>
+    static int setsysinfo(unsigned long op, void *buffer, unsigned long size,
+                          int *start, void *arg, unsigned long flag) {
+        return syscall(__NR_osf_setsysinfo, op, buffer, size, start, arg, flag);
+    }
 
-Properly pin the task to the executing CPU while draining stocks.
+    int main(int argc, char **argv) {
+        short x[10];
+        unsigned int buf[2] = { SSIN_UACPROC, UAC_SIGBUS, };
+        setsysinfo(SSI_NVPAIRS, buf, 1, 0, 0, 0);
 
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com
-Acked-by: Michal Hocko <mhocko@suse.cz>
+        int  *y = (int*) (x+1);
+        *y = 0;
+        return 0;
+    }
+
+The program shoud fail on SIGBUS, but didn't.
+
+The patch is a second part of userspace flag fix:
+> commit 745dd2405e281d96c0a449103bdf6a895048f28c
+> Author: Michael Cree <mcree@orcon.net.nz>
+> Date:   Mon Nov 30 22:44:40 2009 -0500
+>
+>    Alpha: Rearrange thread info flags fixing two regressions
+>
+>    Both regressions fixed by (1) rearranging TIF_NOTIFY_RESUME flag to be
+>    in lower 8 bits of the thread info flags, and (2) making sure that
+>    ALPHA_UAC_SHIFT matches the rearrangement of the thread info flags.
+
+Deleted outdated out-of-sync 'UAC_SHIFT' (the cause of bug) in favour of
+'ALPHA_UAC_SHIFT'.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Acked-by: Michael Cree <mcree@orcon.net.nz>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ arch/alpha/include/asm/sysinfo.h     |    9 ---------
+ arch/alpha/include/asm/thread_info.h |    8 ++++----
+ arch/alpha/kernel/osf_sys.c          |   12 +++++++-----
+ 3 files changed, 11 insertions(+), 18 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-pin-execution-to-current-cpu-while-draining-stock mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-pin-execution-to-current-cpu-while-draining-stock
-+++ a/mm/memcontrol.c
-@@ -2169,13 +2169,7 @@ static void drain_all_stock(struct mem_c
+diff -puN arch/alpha/include/asm/sysinfo.h~alpha-unbreak-osf_setsysinfossi_nvpairs arch/alpha/include/asm/sysinfo.h
+--- a/arch/alpha/include/asm/sysinfo.h~alpha-unbreak-osf_setsysinfossi_nvpairs
++++ a/arch/alpha/include/asm/sysinfo.h
+@@ -27,13 +27,4 @@
+ #define UAC_NOFIX			2
+ #define UAC_SIGBUS			4
  
- 	/* Notify other cpus that system-wide "drain" is running */
- 	get_online_cpus();
--	/*
--	 * Get a hint for avoiding draining charges on the current cpu,
--	 * which must be exhausted by our charging.  It is not required that
--	 * this be a precise check, so we use raw_smp_processor_id() instead of
--	 * getcpu()/putcpu().
--	 */
--	curcpu = raw_smp_processor_id();
-+	curcpu = get_cpu();
- 	for_each_online_cpu(cpu) {
- 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
- 		struct mem_cgroup *mem;
-@@ -2192,6 +2186,7 @@ static void drain_all_stock(struct mem_c
- 				schedule_work_on(cpu, &stock->work);
- 		}
- 	}
-+	put_cpu();
+-
+-#ifdef __KERNEL__
+-
+-/* This is the shift that is applied to the UAC bits as stored in the
+-   per-thread flags.  See thread_info.h.  */
+-#define UAC_SHIFT			6
+-
+-#endif
+-
+ #endif /* __ASM_ALPHA_SYSINFO_H */
+diff -puN arch/alpha/include/asm/thread_info.h~alpha-unbreak-osf_setsysinfossi_nvpairs arch/alpha/include/asm/thread_info.h
+--- a/arch/alpha/include/asm/thread_info.h~alpha-unbreak-osf_setsysinfossi_nvpairs
++++ a/arch/alpha/include/asm/thread_info.h
+@@ -74,9 +74,9 @@ register struct thread_info *__current_t
+ #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
+ #define TIF_POLLING_NRFLAG	8	/* poll_idle is polling NEED_RESCHED */
+ #define TIF_DIE_IF_KERNEL	9	/* dik recursion lock */
+-#define TIF_UAC_NOPRINT		10	/* see sysinfo.h */
+-#define TIF_UAC_NOFIX		11
+-#define TIF_UAC_SIGBUS		12
++#define TIF_UAC_NOPRINT		10	/* ! Preserve sequence of following */
++#define TIF_UAC_NOFIX		11	/* ! flags as they match            */
++#define TIF_UAC_SIGBUS		12	/* ! userspace part of 'osf_sysinfo' */
+ #define TIF_MEMDIE		13	/* is terminating due to OOM killer */
+ #define TIF_RESTORE_SIGMASK	14	/* restore signal mask in do_signal */
+ #define TIF_FREEZE		16	/* is freezing for suspend */
+@@ -97,7 +97,7 @@ register struct thread_info *__current_t
+ #define _TIF_ALLWORK_MASK	(_TIF_WORK_MASK		\
+ 				 | _TIF_SYSCALL_TRACE)
  
- 	if (!sync)
- 		goto out;
+-#define ALPHA_UAC_SHIFT		10
++#define ALPHA_UAC_SHIFT		TIF_UAC_NOPRINT
+ #define ALPHA_UAC_MASK		(1 << TIF_UAC_NOPRINT | 1 << TIF_UAC_NOFIX | \
+ 				 1 << TIF_UAC_SIGBUS)
+ 
+diff -puN arch/alpha/kernel/osf_sys.c~alpha-unbreak-osf_setsysinfossi_nvpairs arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~alpha-unbreak-osf_setsysinfossi_nvpairs
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -42,6 +42,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
+ #include <asm/sysinfo.h>
++#include <asm/thread_info.h>
+ #include <asm/hwrpb.h>
+ #include <asm/processor.h>
+ 
+@@ -633,9 +634,10 @@ SYSCALL_DEFINE5(osf_getsysinfo, unsigned
+  	case GSI_UACPROC:
+ 		if (nbytes < sizeof(unsigned int))
+ 			return -EINVAL;
+- 		w = (current_thread_info()->flags >> UAC_SHIFT) & UAC_BITMASK;
+- 		if (put_user(w, (unsigned int __user *)buffer))
+- 			return -EFAULT;
++		w = (current_thread_info()->flags >> ALPHA_UAC_SHIFT) &
++			UAC_BITMASK;
++		if (put_user(w, (unsigned int __user *)buffer))
++			return -EFAULT;
+  		return 1;
+ 
+ 	case GSI_PROC_TYPE:
+@@ -756,8 +758,8 @@ SYSCALL_DEFINE5(osf_setsysinfo, unsigned
+  			case SSIN_UACPROC:
+ 			again:
+ 				old = current_thread_info()->flags;
+-				new = old & ~(UAC_BITMASK << UAC_SHIFT);
+-				new = new | (w & UAC_BITMASK) << UAC_SHIFT;
++				new = old & ~(UAC_BITMASK << ALPHA_UAC_SHIFT);
++				new = new | (w & UAC_BITMASK) << ALPHA_UAC_SHIFT;
+ 				if (cmpxchg(&current_thread_info()->flags,
+ 					    old, new) != old)
+ 					goto again;
 _
 
-Patches currently in -mm which might be from jweiner@redhat.com are
+Patches currently in -mm which might be from slyfox@gentoo.org are
 
 origin.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
-xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
-mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
-mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-memcg-remove-unneeded-preempt_disable.patch
+linux-next.patch
 
