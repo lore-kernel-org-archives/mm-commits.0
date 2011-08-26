@@ -1,65 +1,298 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-misc-ptic-add-missing-includes.patch removed from -mm tree
-Date: Fri, 26 Aug 2011 12:06:12 -0700
-Message-ID: <201108261902.p7QJ2uMM005634@imap1.linux-foundation.org>
+Subject: [merged] maintainers-evgeniy-has-moved.patch removed from -mm tree
+Date: Fri, 26 Aug 2011 12:06:22 -0700
+Message-ID: <201108261903.p7QJ36HF005654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57293 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45723 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750973Ab1HZTDd (ORCPT
+	by vger.kernel.org with ESMTP id S1750973Ab1HZTDi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 15:03:33 -0400
+	Fri, 26 Aug 2011 15:03:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: slyfox@gentoo.org, gregkh@suse.de, james_p_freyensee@linux.intel.com, rocher.jeremy@gmail.com, mm-commits@vger.kernel.org
+To: zbr@ioremap.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/misc/pti.c: add missing includes
+     MAINTAINERS: Evgeniy has moved
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-ptic-add-missing-includes.patch
+     maintainers-evgeniy-has-moved.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/pti.c: add missing includes
-From: Sergei Trofimovich <slyfox@gentoo.org>
+Subject: MAINTAINERS: Evgeniy has moved
+From: Evgeniy Polyakov <zbr@ioremap.net>
 
-Found on allmodconfig build (ARCH=alpha)
-
-    drivers/misc/pti.c: In function 'get_id':
-    drivers/misc/pti.c:249: error: implicit declaration of function 'kmalloc'
-    drivers/misc/pti.c: In function 'pti_char_write':
-    drivers/misc/pti.c:658: error: implicit declaration of function 'copy_from_user'
-
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: J Freyensee <james_p_freyensee@linux.intel.com>
-Cc: Jeremy Rocher <rocher.jeremy@gmail.com>
+Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/pti.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS                    |    2 +-
+ drivers/w1/masters/ds2490.c    |    4 ++--
+ drivers/w1/masters/matrox_w1.c |    4 ++--
+ drivers/w1/slaves/w1_smem.c    |    4 ++--
+ drivers/w1/slaves/w1_therm.c   |    4 ++--
+ drivers/w1/w1.c                |    4 ++--
+ drivers/w1/w1.h                |    2 +-
+ drivers/w1/w1_family.c         |    2 +-
+ drivers/w1/w1_family.h         |    2 +-
+ drivers/w1/w1_int.c            |    2 +-
+ drivers/w1/w1_int.h            |    2 +-
+ drivers/w1/w1_io.c             |    2 +-
+ drivers/w1/w1_log.h            |    2 +-
+ drivers/w1/w1_netlink.c        |    2 +-
+ drivers/w1/w1_netlink.h        |    2 +-
+ include/linux/connector.h      |    2 +-
+ 16 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN drivers/misc/pti.c~drivers-misc-ptic-add-missing-includes drivers/misc/pti.c
---- a/drivers/misc/pti.c~drivers-misc-ptic-add-missing-includes
-+++ a/drivers/misc/pti.c
-@@ -33,6 +33,8 @@
- #include <linux/mutex.h>
- #include <linux/miscdevice.h>
- #include <linux/pti.h>
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
+diff -puN MAINTAINERS~maintainers-evgeniy-has-moved MAINTAINERS
+--- a/MAINTAINERS~maintainers-evgeniy-has-moved
++++ a/MAINTAINERS
+@@ -7087,7 +7087,7 @@ S:	Supported
+ F:	drivers/mmc/host/vub300.c
  
- #define DRIVERNAME		"pti"
- #define PCINAME			"pciPTI"
+ W1 DALLAS'S 1-WIRE BUS
+-M:	Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++M:	Evgeniy Polyakov <zbr@ioremap.net>
+ S:	Maintained
+ F:	Documentation/w1/
+ F:	drivers/w1/
+diff -puN drivers/w1/masters/ds2490.c~maintainers-evgeniy-has-moved drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/masters/ds2490.c
+@@ -1,7 +1,7 @@
+ /*
+  *	dscore.c
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -1024,5 +1024,5 @@ module_init(ds_init);
+ module_exit(ds_fini);
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
++MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
+ MODULE_DESCRIPTION("DS2490 USB <-> W1 bus master driver (DS9490*)");
+diff -puN drivers/w1/masters/matrox_w1.c~maintainers-evgeniy-has-moved drivers/w1/masters/matrox_w1.c
+--- a/drivers/w1/masters/matrox_w1.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/masters/matrox_w1.c
+@@ -1,7 +1,7 @@
+ /*
+  *	matrox_w1.c
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -39,7 +39,7 @@
+ #include "../w1_log.h"
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
++MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
+ MODULE_DESCRIPTION("Driver for transport(Dallas 1-wire prtocol) over VGA DDC(matrox gpio).");
+ 
+ static struct pci_device_id matrox_w1_tbl[] = {
+diff -puN drivers/w1/slaves/w1_smem.c~maintainers-evgeniy-has-moved drivers/w1/slaves/w1_smem.c
+--- a/drivers/w1/slaves/w1_smem.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/slaves/w1_smem.c
+@@ -1,7 +1,7 @@
+ /*
+  *	w1_smem.c
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -32,7 +32,7 @@
+ #include "../w1_family.h"
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
++MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
+ MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, 64bit memory family.");
+ 
+ static struct w1_family w1_smem_family_01 = {
+diff -puN drivers/w1/slaves/w1_therm.c~maintainers-evgeniy-has-moved drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -1,7 +1,7 @@
+ /*
+  *	w1_therm.c
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -34,7 +34,7 @@
+ #include "../w1_family.h"
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
++MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
+ MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
+ 
+ /* Allow the strong pullup to be disabled, but default to enabled.
+diff -puN drivers/w1/w1.c~maintainers-evgeniy-has-moved drivers/w1/w1.c
+--- a/drivers/w1/w1.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1.c
+@@ -1,7 +1,7 @@
+ /*
+  *	w1.c
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -42,7 +42,7 @@
+ #include "w1_netlink.h"
+ 
+ MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
++MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
+ MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol.");
+ 
+ static int w1_timeout = 10;
+diff -puN drivers/w1/w1.h~maintainers-evgeniy-has-moved drivers/w1/w1.h
+--- a/drivers/w1/w1.h~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1.h
+@@ -1,7 +1,7 @@
+ /*
+  *	w1.h
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN drivers/w1/w1_family.c~maintainers-evgeniy-has-moved drivers/w1/w1_family.c
+--- a/drivers/w1/w1_family.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1_family.c
+@@ -1,7 +1,7 @@
+ /*
+  *	w1_family.c
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN drivers/w1/w1_family.h~maintainers-evgeniy-has-moved drivers/w1/w1_family.h
+--- a/drivers/w1/w1_family.h~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1_family.h
+@@ -1,7 +1,7 @@
+ /*
+  *	w1_family.h
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN drivers/w1/w1_int.c~maintainers-evgeniy-has-moved drivers/w1/w1_int.c
+--- a/drivers/w1/w1_int.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1_int.c
+@@ -1,7 +1,7 @@
+ /*
+  *	w1_int.c
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN drivers/w1/w1_int.h~maintainers-evgeniy-has-moved drivers/w1/w1_int.h
+--- a/drivers/w1/w1_int.h~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1_int.h
+@@ -1,7 +1,7 @@
+ /*
+  *	w1_int.h
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN drivers/w1/w1_io.c~maintainers-evgeniy-has-moved drivers/w1/w1_io.c
+--- a/drivers/w1/w1_io.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1_io.c
+@@ -1,7 +1,7 @@
+ /*
+  *	w1_io.c
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN drivers/w1/w1_log.h~maintainers-evgeniy-has-moved drivers/w1/w1_log.h
+--- a/drivers/w1/w1_log.h~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1_log.h
+@@ -1,7 +1,7 @@
+ /*
+  *	w1_log.h
+  *
+- * Copyright (c) 2004 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2004 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN drivers/w1/w1_netlink.c~maintainers-evgeniy-has-moved drivers/w1/w1_netlink.c
+--- a/drivers/w1/w1_netlink.c~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1_netlink.c
+@@ -1,7 +1,7 @@
+ /*
+  * w1_netlink.c
+  *
+- * Copyright (c) 2003 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2003 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN drivers/w1/w1_netlink.h~maintainers-evgeniy-has-moved drivers/w1/w1_netlink.h
+--- a/drivers/w1/w1_netlink.h~maintainers-evgeniy-has-moved
++++ a/drivers/w1/w1_netlink.h
+@@ -1,7 +1,7 @@
+ /*
+  * w1_netlink.h
+  *
+- * Copyright (c) 2003 Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * Copyright (c) 2003 Evgeniy Polyakov <zbr@ioremap.net>
+  *
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN include/linux/connector.h~maintainers-evgeniy-has-moved include/linux/connector.h
+--- a/include/linux/connector.h~maintainers-evgeniy-has-moved
++++ a/include/linux/connector.h
+@@ -1,7 +1,7 @@
+ /*
+  * 	connector.h
+  * 
+- * 2004-2005 Copyright (c) Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++ * 2004-2005 Copyright (c) Evgeniy Polyakov <zbr@ioremap.net>
+  * All rights reserved.
+  * 
+  * This program is free software; you can redistribute it and/or modify
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from zbr@ioremap.net are
 
 origin.patch
-linux-next.patch
+hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch
+w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it.patch
+drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface.patch
+drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface.patch
+drivers-power-ds2780_batteryc-fix-deadlock-upon-insertion-and-removal.patch
+drivers-w1-w1_intc-multiple-masters-used-same-init_name.patch
 
