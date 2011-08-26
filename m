@@ -1,101 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-add-a-callback-notify_after-for-backlight-control.patch removed from -mm tree
-Date: Fri, 26 Aug 2011 12:06:51 -0700
-Message-ID: <201108261903.p7QJ3ZQl005707@imap1.linux-foundation.org>
+Subject: [merged] drivers-leds-leds-bd2802c-bd2802_unregister_led_classdev-should-unregister-all-registered-leds.patch removed from -mm tree
+Date: Fri, 26 Aug 2011 12:07:04 -0700
+Message-ID: <201108261903.p7QJ3m7C005727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753532Ab1HZTEY (ORCPT
+	by vger.kernel.org with ESMTP id S1753552Ab1HZTE3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 15:04:24 -0400
+	Fri, 26 Aug 2011 15:04:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilee@nvidia.com, arun.murthy@stericsson.com, lethal@linux-sh.org, rmorell@nvidia.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: add a callback 'notify_after' for backlight control
+     drivers/leds/leds-bd2802.c: bd2802_unregister_led_classdev() should unregister all registered leds
 has been removed from the -mm tree.  Its filename was
-     backlight-add-a-callback-notify_after-for-backlight-control.patch
+     drivers-leds-leds-bd2802c-bd2802_unregister_led_classdev-should-unregister-all-registered-leds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: add a callback 'notify_after' for backlight control
-From: Dilan Lee <dilee@nvidia.com>
+Subject: drivers/leds/leds-bd2802.c: bd2802_unregister_led_classdev() should unregister all registered leds
+From: Axel Lin <axel.lin@gmail.com>
 
-We need a callback to do some things after pwm_enable, pwm_disable
-and pwm_config.
+bd2802_unregister_led_classdev() should unregister all registered
+instances of led_classdev class that had registered by
+bd2802_register_led_classdev().
 
-Signed-off-by: Dilan Lee <dilee@nvidia.com>
-Reviewed-by: Robert Morell <rmorell@nvidia.com>
-Reviewed-by: Arun Murthy <arun.murthy@stericsson.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Kim Kyuwon <q1.kim@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/pwm_bl.c |    9 +++++++++
- include/linux/pwm_backlight.h    |    1 +
- 2 files changed, 10 insertions(+)
+ drivers/leds/leds-bd2802.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/video/backlight/pwm_bl.c~backlight-add-a-callback-notify_after-for-backlight-control drivers/video/backlight/pwm_bl.c
---- a/drivers/video/backlight/pwm_bl.c~backlight-add-a-callback-notify_after-for-backlight-control
-+++ a/drivers/video/backlight/pwm_bl.c
-@@ -28,6 +28,8 @@ struct pwm_bl_data {
- 	unsigned int		lth_brightness;
- 	int			(*notify)(struct device *,
- 					  int brightness);
-+	void			(*notify_after)(struct device *,
-+					int brightness);
- 	int			(*check_fb)(struct device *, struct fb_info *);
- };
- 
-@@ -55,6 +57,10 @@ static int pwm_backlight_update_status(s
- 		pwm_config(pb->pwm, brightness, pb->period);
- 		pwm_enable(pb->pwm);
- 	}
-+
-+	if (pb->notify_after)
-+		pb->notify_after(pb->dev, brightness);
-+
- 	return 0;
+diff -puN drivers/leds/leds-bd2802.c~drivers-leds-leds-bd2802c-bd2802_unregister_led_classdev-should-unregister-all-registered-leds drivers/leds/leds-bd2802.c
+--- a/drivers/leds/leds-bd2802.c~drivers-leds-leds-bd2802c-bd2802_unregister_led_classdev-should-unregister-all-registered-leds
++++ a/drivers/leds/leds-bd2802.c
+@@ -662,6 +662,11 @@ failed_unregister_led1_R:
+ static void bd2802_unregister_led_classdev(struct bd2802_led *led)
+ {
+ 	cancel_work_sync(&led->work);
++	led_classdev_unregister(&led->cdev_led2b);
++	led_classdev_unregister(&led->cdev_led2g);
++	led_classdev_unregister(&led->cdev_led2r);
++	led_classdev_unregister(&led->cdev_led1b);
++	led_classdev_unregister(&led->cdev_led1g);
+ 	led_classdev_unregister(&led->cdev_led1r);
  }
  
-@@ -105,6 +111,7 @@ static int pwm_backlight_probe(struct pl
- 
- 	pb->period = data->pwm_period_ns;
- 	pb->notify = data->notify;
-+	pb->notify_after = data->notify_after;
- 	pb->check_fb = data->check_fb;
- 	pb->lth_brightness = data->lth_brightness *
- 		(data->pwm_period_ns / data->max_brightness);
-@@ -172,6 +179,8 @@ static int pwm_backlight_suspend(struct 
- 		pb->notify(pb->dev, 0);
- 	pwm_config(pb->pwm, 0, pb->period);
- 	pwm_disable(pb->pwm);
-+	if (pb->notify_after)
-+		pb->notify_after(pb->dev, 0);
- 	return 0;
- }
- 
-diff -puN include/linux/pwm_backlight.h~backlight-add-a-callback-notify_after-for-backlight-control include/linux/pwm_backlight.h
---- a/include/linux/pwm_backlight.h~backlight-add-a-callback-notify_after-for-backlight-control
-+++ a/include/linux/pwm_backlight.h
-@@ -14,6 +14,7 @@ struct platform_pwm_backlight_data {
- 	unsigned int pwm_period_ns;
- 	int (*init)(struct device *dev);
- 	int (*notify)(struct device *dev, int brightness);
-+	void (*notify_after)(struct device *dev, int brightness);
- 	void (*exit)(struct device *dev);
- 	int (*check_fb)(struct device *dev, struct fb_info *info);
- };
 _
 
-Patches currently in -mm which might be from dilee@nvidia.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 origin.patch
+linux-next.patch
+leds-renesas-tpu-led-driver-v2-fix.patch
 
