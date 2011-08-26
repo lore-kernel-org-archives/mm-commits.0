@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-mc13783-adc-convert-to-mc13xxx-api.patch added to -mm tree
-Date: Thu, 25 Aug 2011 17:15:16 -0700
-Message-ID: <201108260015.p7Q0FGhP021991@imap1.linux-foundation.org>
+Subject: + mm-neaten-warn_alloc_failed.patch added to -mm tree
+Date: Thu, 25 Aug 2011 17:18:51 -0700
+Message-ID: <201108260018.p7Q0IpY4022081@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753792Ab1HZAP4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753911Ab1HZASz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 20:15:56 -0400
+	Thu, 25 Aug 2011 20:18:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, david@protonic.nl, dmitry.torokhov@gmail.com, guenter.roeck@ericsson.com, khali@linux-fr.org, rpurdie@rpsys.net, s.hauer@pengutronix.de, sameo@linux.intel.com
+Cc: joe@perches.com
 
 
 The patch titled
-     hwmon/mc13783-adc: convert to mc13xxx API
+     mm: neaten warn_alloc_failed
 has been added to the -mm tree.  Its filename is
-     hwmon-mc13783-adc-convert-to-mc13xxx-api.patch
+     mm-neaten-warn_alloc_failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,98 +26,102 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon/mc13783-adc: convert to mc13xxx API
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: mm: neaten warn_alloc_failed
+From: Joe Perches <joe@perches.com>
 
-The mc13783_...  functions are going to be removed, so switch to the mo=
-re
-generic API.
+Add __attribute__((format (printf...) to the function to validate format
+and arguments.  Use vsprintf extension %pV to avoid any possible message
+interleaving.  Coalesce format string.  Convert printks/pr_warning to
+pr_warn.
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: David Jander <david@protonic.nl>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/mc13783-adc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/mm.h |    3 ++-
+ mm/page_alloc.c    |   16 +++++++++++-----
+ mm/vmalloc.c       |    4 ++--
+ 3 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN drivers/hwmon/mc13783-adc.c~hwmon-mc13783-adc-convert-to-mc13=
-xxx-api drivers/hwmon/mc13783-adc.c
---- a/drivers/hwmon/mc13783-adc.c~hwmon-mc13783-adc-convert-to-mc13xxx-=
-api
-+++ a/drivers/hwmon/mc13783-adc.c
-@@ -31,7 +31,7 @@
- #define MC13783_ADC_NAME	"mc13783-adc"
-=20
- struct mc13783_adc_priv {
--	struct mc13783 *mc13783;
-+	struct mc13xxx *mc13xxx;
- 	struct device *hwmon_dev;
- };
-=20
-@@ -51,8 +51,8 @@ static int mc13783_adc_read(struct devic
- 	unsigned int sample[4];
- 	int ret;
-=20
--	ret =3D mc13783_adc_do_conversion(priv->mc13783,
--			MC13783_ADC_MODE_MULT_CHAN,
-+	ret =3D mc13xxx_adc_do_conversion(priv->mc13xxx,
-+			MC13XXX_ADC_MODE_MULT_CHAN,
- 			channel, sample);
- 	if (ret)
- 		return ret;
-@@ -147,9 +147,9 @@ static const struct attribute_group mc13
- static int mc13783_adc_use_touchscreen(struct platform_device *pdev)
+diff -puN include/linux/mm.h~mm-neaten-warn_alloc_failed include/linux/mm.h
+--- a/include/linux/mm.h~mm-neaten-warn_alloc_failed
++++ a/include/linux/mm.h
+@@ -1335,7 +1335,8 @@ extern void si_meminfo(struct sysinfo * 
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
+ extern int after_bootmem;
+ 
+-extern void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
++extern __attribute__((format (printf, 3, 4)))
++void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
+ 
+ extern void setup_per_cpu_pageset(void);
+ 
+diff -puN mm/page_alloc.c~mm-neaten-warn_alloc_failed mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-neaten-warn_alloc_failed
++++ a/mm/page_alloc.c
+@@ -1754,7 +1754,6 @@ static DEFINE_RATELIMIT_STATE(nopage_rs,
+ 
+ void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...)
  {
- 	struct mc13783_adc_priv *priv =3D platform_get_drvdata(pdev);
--	unsigned flags =3D mc13783_get_flags(priv->mc13783);
-+	unsigned flags =3D mc13xxx_get_flags(priv->mc13xxx);
-=20
--	return flags & MC13783_USE_TOUCHSCREEN;
-+	return flags & MC13XXX_USE_TOUCHSCREEN;
- }
-=20
- static int __init mc13783_adc_probe(struct platform_device *pdev)
-@@ -161,7 +161,7 @@ static int __init mc13783_adc_probe(stru
- 	if (!priv)
- 		return -ENOMEM;
-=20
--	priv->mc13783 =3D dev_get_drvdata(pdev->dev.parent);
-+	priv->mc13xxx =3D dev_get_drvdata(pdev->dev.parent);
-=20
- 	platform_set_drvdata(pdev, priv);
-=20
+-	va_list args;
+ 	unsigned int filter = SHOW_MEM_FILTER_NODES;
+ 
+ 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
+@@ -1773,14 +1772,21 @@ void warn_alloc_failed(gfp_t gfp_mask, i
+ 		filter &= ~SHOW_MEM_FILTER_NODES;
+ 
+ 	if (fmt) {
+-		printk(KERN_WARNING);
++		struct va_format vaf;
++		va_list args;
++
+ 		va_start(args, fmt);
+-		vprintk(fmt, args);
++
++		vaf.fmt = fmt;
++		vaf.va = &args;
++
++		pr_warn("%pV", &vaf);
++
+ 		va_end(args);
+ 	}
+ 
+-	pr_warning("%s: page allocation failure: order:%d, mode:0x%x\n",
+-		   current->comm, order, gfp_mask);
++	pr_warn("%s: page allocation failure: order:%d, mode:0x%x\n",
++		current->comm, order, gfp_mask);
+ 
+ 	dump_stack();
+ 	if (!should_suppress_show_mem())
+diff -puN mm/vmalloc.c~mm-neaten-warn_alloc_failed mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-neaten-warn_alloc_failed
++++ a/mm/vmalloc.c
+@@ -1593,8 +1593,8 @@ static void *__vmalloc_area_node(struct 
+ 	return area->addr;
+ 
+ fail:
+-	warn_alloc_failed(gfp_mask, order, "vmalloc: allocation failure, "
+-			  "allocated %ld of %ld bytes\n",
++	warn_alloc_failed(gfp_mask, order,
++			  "vmalloc: allocation failure, allocated %ld of %ld bytes\n",
+ 			  (area->nr_pages*PAGE_SIZE), area->size);
+ 	vfree(area->addr);
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from joe@perches.com are
 
+scripts-get_maintainerpl-update-linuss-git-repository.patch
+checkpatch-add-missing-warn-argument-for-min_t-and-max_t-tests.patch
 linux-next.patch
-led-mc13783-convert-to-mc13xxx-mfd.patch
-mfd-mc13xxx-provide-a-generic-version-of-adc_do_conversion.patch
-input-mc13783-ts-convert-to-mc13xxx-api.patch
-arm-imx-use-mc13xxx-constants-instead-of-mc13783.patch
-hwmon-mc13783-adc-convert-to-mc13xxx-api.patch
-mfd-mc13xxx-remove-mc13783-api-functions-and-symbols.patch
+mm-neaten-warn_alloc_failed.patch
+mm-neaten-warn_alloc_failed-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
