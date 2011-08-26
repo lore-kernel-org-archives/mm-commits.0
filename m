@@ -1,92 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-clear-zone_congested-for-zone-with-good-watermark-resend.patch removed from -mm tree
-Date: Fri, 26 Aug 2011 12:06:39 -0700
-Message-ID: <201108261903.p7QJ3NGl005678@imap1.linux-foundation.org>
+Subject: [merged] drivers-char-msm_smd_pktc-dont-use-is_err.patch removed from -mm tree
+Date: Fri, 26 Aug 2011 12:06:30 -0700
+Message-ID: <201108261903.p7QJ3ElC005666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43158 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753085Ab1HZTD7 (ORCPT
+	by vger.kernel.org with ESMTP id S1753084Ab1HZTED (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 15:03:59 -0400
+	Fri, 26 Aug 2011 15:04:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, mgorman@suse.de, minchan.kim@gmail.com, mm-commits@vger.kernel.org
+To: thomas@m3y3r.de, nvishwan@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: clear ZONE_CONGESTED for zone with good watermark
+     drivers/char/msm_smd_pkt.c: don't use IS_ERR()
 has been removed from the -mm tree.  Its filename was
-     vmscan-clear-zone_congested-for-zone-with-good-watermark-resend.patch
+     drivers-char-msm_smd_pktc-dont-use-is_err.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: clear ZONE_CONGESTED for zone with good watermark
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: drivers/char/msm_smd_pkt.c: don't use IS_ERR()
+From: Thomas Meyer <thomas@m3y3r.de>
 
-ZONE_CONGESTED is only cleared in kswapd, but pages can be freed in any
-task.  It's possible ZONE_CONGESTED isn't cleared in some cases: 1.  the
-zone is already balanced just entering balance_pgdat() for order-0 because
-concurrent tasks free memory.  In this case, later check will skip the
-zone as it's balanced so the flag isn't cleared.  2.  high order balance
-fallbacks to order-0.  quote from Mel: At the end of balance_pgdat(),
-kswapd uses the following logic;
+The various basic memory allocation function return NULL, not an ERR_PTR.
 
- If reclaiming at high order {
-     for each zone {
-             if all_unreclaimable
-                     skip
-             if watermark is not met
-                     order = 0
-                     loop again
+The semantic patch that makes this change is available in
+scripts/coccinelle/null/eno.cocci.
 
-             /* watermark is met */
-             clear congested
-     }
- }
+More information about semantic patching is available at
+http://coccinelle.lip6.fr/
 
-i.e.  it clears ZONE_CONGESTED if it the zone is balanced.  if not, it
-restarts balancing at order-0.  However, if the higher zones are balanced
-for order-0, kswapd will miss clearing ZONE_CONGESTED as that only happens
-after a zone is shrunk.  This can mean that wait_iff_congested() stalls
-unnecessarily.  This patch makes kswapd clear ZONE_CONGESTED during its
-initial highmem->dma scan for zones that are already balanced.
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+Cc: Niranjana Vishwanathapura <nvishwan@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/char/msm_smd_pkt.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-clear-zone_congested-for-zone-with-good-watermark-resend mm/vmscan.c
---- a/mm/vmscan.c~vmscan-clear-zone_congested-for-zone-with-good-watermark-resend
-+++ a/mm/vmscan.c
-@@ -2529,6 +2529,9 @@ loop_again:
- 					high_wmark_pages(zone), 0, 0)) {
- 				end_zone = i;
- 				break;
-+			} else {
-+				/* If balanced, clear the congested flag */
-+				zone_clear_flag(zone, ZONE_CONGESTED);
- 			}
+diff -puN drivers/char/msm_smd_pkt.c~drivers-char-msm_smd_pktc-dont-use-is_err drivers/char/msm_smd_pkt.c
+--- a/drivers/char/msm_smd_pkt.c~drivers-char-msm_smd_pktc-dont-use-is_err
++++ a/drivers/char/msm_smd_pkt.c
+@@ -379,9 +379,8 @@ static int __init smd_pkt_init(void)
+ 	for (i = 0; i < NUM_SMD_PKT_PORTS; ++i) {
+ 		smd_pkt_devp[i] = kzalloc(sizeof(struct smd_pkt_dev),
+ 					  GFP_KERNEL);
+-		if (IS_ERR(smd_pkt_devp[i])) {
+-			r = PTR_ERR(smd_pkt_devp[i]);
+-			pr_err("kmalloc() failed %d\n", r);
++		if (!smd_pkt_devp[i]) {
++			pr_err("kmalloc() failed\n");
+ 			goto clean_cdevs;
  		}
- 		if (i < 0)
+ 
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from thomas@m3y3r.de are
 
 origin.patch
 linux-next.patch
-vmscan-add-block-plug-for-page-reclaim.patch
-vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
