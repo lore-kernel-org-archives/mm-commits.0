@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mfd-mc13xxx-remove-mc13783-api-functions-and-symbols.patch added to -mm tree
-Date: Thu, 25 Aug 2011 17:15:18 -0700
-Message-ID: <201108260015.p7Q0FIPu021994@imap1.linux-foundation.org>
+Subject: + hwmon-mc13783-adc-convert-to-mc13xxx-api.patch added to -mm tree
+Date: Thu, 25 Aug 2011 17:15:16 -0700
+Message-ID: <201108260015.p7Q0FGhP021991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753865Ab1HZAP6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753792Ab1HZAP4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 20:15:58 -0400
+	Thu, 25 Aug 2011 20:15:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: u.kleine-koenig@pengutronix.de, david@protonic.nl, dmitry.torokhov@gmail.com
 
 
 The patch titled
-     mfd/mc13xxx: remove mc13783 API functions and symbols
+     hwmon/mc13783-adc: convert to mc13xxx API
 has been added to the -mm tree.  Its filename is
-     mfd-mc13xxx-remove-mc13783-api-functions-and-symbols.patch
+     hwmon-mc13783-adc-convert-to-mc13xxx-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +39,12 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: mfd/mc13xxx: remove mc13783 API functions and symbols
+Subject: hwmon/mc13783-adc: convert to mc13xxx API
 =46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Now that all in-tree users are fixed to use the more general mc13xxx AP=
-I
-the obsolete stuff can go away.
+The mc13783_...  functions are going to be removed, so switch to the mo=
+re
+generic API.
 
 Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Cc: David Jander <david@protonic.nl>
@@ -53,167 +53,74 @@ Cc: Samuel Ortiz <sameo@linux.intel.com>
 Cc: Jean Delvare <khali@linux-fr.org>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/mc13xxx-core.c  |   12 ---
- include/linux/mfd/mc13783.h |  112 ----------------------------------
- 2 files changed, 124 deletions(-)
+ drivers/hwmon/mc13783-adc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/mfd/mc13xxx-core.c~mfd-mc13xxx-remove-mc13783-api-fun=
-ctions-and-symbols drivers/mfd/mc13xxx-core.c
---- a/drivers/mfd/mc13xxx-core.c~mfd-mc13xxx-remove-mc13783-api-functio=
-ns-and-symbols
-+++ a/drivers/mfd/mc13xxx-core.c
-@@ -30,16 +30,6 @@ struct mc13xxx {
- 	int adcflags;
+diff -puN drivers/hwmon/mc13783-adc.c~hwmon-mc13783-adc-convert-to-mc13=
+xxx-api drivers/hwmon/mc13783-adc.c
+--- a/drivers/hwmon/mc13783-adc.c~hwmon-mc13783-adc-convert-to-mc13xxx-=
+api
++++ a/drivers/hwmon/mc13783-adc.c
+@@ -31,7 +31,7 @@
+ #define MC13783_ADC_NAME	"mc13783-adc"
+=20
+ struct mc13783_adc_priv {
+-	struct mc13783 *mc13783;
++	struct mc13xxx *mc13xxx;
+ 	struct device *hwmon_dev;
  };
 =20
--struct mc13783 {
--	struct mc13xxx mc13xxx;
--};
--
--struct mc13xxx *mc13783_to_mc13xxx(struct mc13783 *mc13783)
--{
--	return &mc13783->mc13xxx;
--}
--EXPORT_SYMBOL(mc13783_to_mc13xxx);
--
- #define MC13XXX_IRQSTAT0	0
- #define MC13XXX_IRQSTAT0_ADCDONEI	(1 << 0)
- #define MC13XXX_IRQSTAT0_ADCBISDONEI	(1 << 1)
-@@ -558,8 +548,6 @@ static const char *mc13xxx_get_chipname(
- 	return mc13xxx_chipname[devid->driver_data];
+@@ -51,8 +51,8 @@ static int mc13783_adc_read(struct devic
+ 	unsigned int sample[4];
+ 	int ret;
+=20
+-	ret =3D mc13783_adc_do_conversion(priv->mc13783,
+-			MC13783_ADC_MODE_MULT_CHAN,
++	ret =3D mc13xxx_adc_do_conversion(priv->mc13xxx,
++			MC13XXX_ADC_MODE_MULT_CHAN,
+ 			channel, sample);
+ 	if (ret)
+ 		return ret;
+@@ -147,9 +147,9 @@ static const struct attribute_group mc13
+ static int mc13783_adc_use_touchscreen(struct platform_device *pdev)
+ {
+ 	struct mc13783_adc_priv *priv =3D platform_get_drvdata(pdev);
+-	unsigned flags =3D mc13783_get_flags(priv->mc13783);
++	unsigned flags =3D mc13xxx_get_flags(priv->mc13xxx);
+=20
+-	return flags & MC13783_USE_TOUCHSCREEN;
++	return flags & MC13XXX_USE_TOUCHSCREEN;
  }
 =20
--#include <linux/mfd/mc13783.h>
--
- int mc13xxx_get_flags(struct mc13xxx *mc13xxx)
- {
- 	struct mc13xxx_platform_data *pdata =3D
-diff -puN include/linux/mfd/mc13783.h~mfd-mc13xxx-remove-mc13783-api-fu=
-nctions-and-symbols include/linux/mfd/mc13783.h
---- a/include/linux/mfd/mc13783.h~mfd-mc13xxx-remove-mc13783-api-functi=
-ons-and-symbols
-+++ a/include/linux/mfd/mc13783.h
-@@ -12,118 +12,6 @@
+ static int __init mc13783_adc_probe(struct platform_device *pdev)
+@@ -161,7 +161,7 @@ static int __init mc13783_adc_probe(stru
+ 	if (!priv)
+ 		return -ENOMEM;
 =20
- #include <linux/mfd/mc13xxx.h>
+-	priv->mc13783 =3D dev_get_drvdata(pdev->dev.parent);
++	priv->mc13xxx =3D dev_get_drvdata(pdev->dev.parent);
 =20
--struct mc13783;
--
--struct mc13xxx *mc13783_to_mc13xxx(struct mc13783 *mc13783);
--
--static inline void mc13783_lock(struct mc13783 *mc13783)
--{
--	mc13xxx_lock(mc13783_to_mc13xxx(mc13783));
--}
--
--static inline void mc13783_unlock(struct mc13783 *mc13783)
--{
--	mc13xxx_unlock(mc13783_to_mc13xxx(mc13783));
--}
--
--static inline int mc13783_reg_read(struct mc13783 *mc13783,
--		unsigned int offset, u32 *val)
--{
--	return mc13xxx_reg_read(mc13783_to_mc13xxx(mc13783), offset, val);
--}
--
--static inline int mc13783_reg_write(struct mc13783 *mc13783,
--		unsigned int offset, u32 val)
--{
--	return mc13xxx_reg_write(mc13783_to_mc13xxx(mc13783), offset, val);
--}
--
--static inline int mc13783_reg_rmw(struct mc13783 *mc13783,
--		unsigned int offset, u32 mask, u32 val)
--{
--	return mc13xxx_reg_rmw(mc13783_to_mc13xxx(mc13783), offset, mask, val=
-);
--}
--
--static inline int mc13783_get_flags(struct mc13783 *mc13783)
--{
--	return mc13xxx_get_flags(mc13783_to_mc13xxx(mc13783));
--}
--
--static inline int mc13783_irq_request(struct mc13783 *mc13783, int irq=
-,
--		irq_handler_t handler, const char *name, void *dev)
--{
--	return mc13xxx_irq_request(mc13783_to_mc13xxx(mc13783), irq,
--			handler, name, dev);
--}
--
--static inline int mc13783_irq_request_nounmask(struct mc13783 *mc13783=
-, int irq,
--		irq_handler_t handler, const char *name, void *dev)
--{
--	return mc13xxx_irq_request_nounmask(mc13783_to_mc13xxx(mc13783), irq,
--			handler, name, dev);
--}
--
--static inline int mc13783_irq_free(struct mc13783 *mc13783, int irq, v=
-oid *dev)
--{
--	return mc13xxx_irq_free(mc13783_to_mc13xxx(mc13783), irq, dev);
--}
--
--static inline int mc13783_irq_mask(struct mc13783 *mc13783, int irq)
--{
--	return mc13xxx_irq_mask(mc13783_to_mc13xxx(mc13783), irq);
--}
--
--static inline int mc13783_irq_unmask(struct mc13783 *mc13783, int irq)
--{
--	return mc13xxx_irq_unmask(mc13783_to_mc13xxx(mc13783), irq);
--}
--static inline int mc13783_irq_status(struct mc13783 *mc13783, int irq,
--		int *enabled, int *pending)
--{
--	return mc13xxx_irq_status(mc13783_to_mc13xxx(mc13783),
--			irq, enabled, pending);
--}
--
--static inline int mc13783_irq_ack(struct mc13783 *mc13783, int irq)
--{
--	return mc13xxx_irq_ack(mc13783_to_mc13xxx(mc13783), irq);
--}
--
--#define MC13783_ADC0		MC13XXX_ADC0
--#define MC13783_ADC0_ADREFEN		MC13XXX_ADC0_ADREFEN
--#define MC13783_ADC0_TSMOD0		MC13XXX_ADC0_TSMOD0
--#define MC13783_ADC0_TSMOD1		MC13XXX_ADC0_TSMOD1
--#define MC13783_ADC0_TSMOD2		MC13XXX_ADC0_TSMOD2
--#define MC13783_ADC0_ADINC1		MC13XXX_ADC0_ADINC1
--#define MC13783_ADC0_ADINC2		MC13XXX_ADC0_ADINC2
--
--#define MC13783_ADC0_TSMOD_MASK		MC13XXX_ADC0_TSMOD_MASK
--
--#define mc13783_regulator_init_data mc13xxx_regulator_init_data
--#define mc13783_regulator_platform_data mc13xxx_regulator_platform_dat=
-a
--#define mc13783_led_platform_data mc13xxx_led_platform_data
--#define mc13783_leds_platform_data mc13xxx_leds_platform_data
--
--#define mc13783_platform_data mc13xxx_platform_data
--#define MC13783_USE_TOUCHSCREEN	MC13XXX_USE_TOUCHSCREEN
--#define MC13783_USE_CODEC	MC13XXX_USE_CODEC
--#define MC13783_USE_ADC		MC13XXX_USE_ADC
--#define MC13783_USE_RTC		MC13XXX_USE_RTC
--#define MC13783_USE_REGULATOR	MC13XXX_USE_REGULATOR
--#define MC13783_USE_LED		MC13XXX_USE_LED
--
--#define MC13783_ADC_MODE_TS		MC13XXX_ADC_MODE_TS
--#define MC13783_ADC_MODE_SINGLE_CHAN	MC13XXX_ADC_MODE_SINGLE_CHAN
--#define MC13783_ADC_MODE_MULT_CHAN	MC13XXX_ADC_MODE_MULT_CHAN
--
--static inline int mc13783_adc_do_conversion(struct mc13783 *mc13783,
--		unsigned int mode, unsigned int channel, unsigned int *sample)
--{
--	return mc13xxx_adc_do_conversion(mc13783_to_mc13xxx(mc13783), mode,
--			channel, sample);
--}
--
+ 	platform_set_drvdata(pdev, priv);
+=20
+_
+
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
+
+linux-next.patch
+led-mc13783-convert-to-mc13xxx-mfd.patch
+mfd-mc13xxx-provide-a-generic-version-of-adc_do_conversion.patch
+input-mc13783-ts-convert-to-mc13xxx-api.patch
+arm-imx-use-mc13xxx-constants-instead-of-mc13783.patch
+hwmon-mc13783-adc-convert-to-mc13xxx-api.patch
+mfd-mc13xxx-remove-mc13783-api-functions-and-symbols.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
