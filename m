@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-neaten-warn_alloc_failed.patch added to -mm tree
-Date: Thu, 25 Aug 2011 17:18:51 -0700
-Message-ID: <201108260018.p7Q0IpY4022081@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 26 Aug 2011 12:05:36 -0700
+Message-ID: <201108261902.p7QJ2Kaq005619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753911Ab1HZASz (ORCPT
+	by vger.kernel.org with ESMTP id S1750973Ab1HZTCv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Aug 2011 20:18:55 -0400
+	Fri, 26 Aug 2011 15:02:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id p7QJ2KBo031341
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 26 Aug 2011 12:02:20 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     mm: neaten warn_alloc_failed
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-neaten-warn_alloc_failed.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +38,369 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: neaten warn_alloc_failed
-From: Joe Perches <joe@perches.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add __attribute__((format (printf...) to the function to validate format
-and arguments.  Use vsprintf extension %pV to avoid any possible message
-interleaving.  Coalesce format string.  Convert printks/pr_warning to
-pr_warn.
-
-Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ++-
- mm/page_alloc.c    |   16 +++++++++++-----
- mm/vmalloc.c       |    4 ++--
- 3 files changed, 15 insertions(+), 8 deletions(-)
+ sound/pci/hda/patch_realtek.c |   25 ---
+ sound/soc/soc-io.c            |  230 --------------------------------
+ 2 files changed, 255 deletions(-)
 
-diff -puN include/linux/mm.h~mm-neaten-warn_alloc_failed include/linux/mm.h
---- a/include/linux/mm.h~mm-neaten-warn_alloc_failed
-+++ a/include/linux/mm.h
-@@ -1335,7 +1335,8 @@ extern void si_meminfo(struct sysinfo * 
- extern void si_meminfo_node(struct sysinfo *val, int nid);
- extern int after_bootmem;
+diff -puN sound/pci/hda/patch_realtek.c~linux-next-git-rejects sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~linux-next-git-rejects
++++ a/sound/pci/hda/patch_realtek.c
+@@ -584,11 +584,7 @@ static void alc_hp_automute(struct hda_c
+ 			     spec->autocfg.hp_pins);
+ 	if (!spec->automute)
+ 		return;
+-<<<<<<< HEAD
+-	update_speakers(codec);
+-=======
+ 	call_update_speakers(codec);
+->>>>>>> linux-next/akpm-end
+ }
  
--extern void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
-+extern __attribute__((format (printf, 3, 4)))
-+void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
+ /* standard line-out-automute helper */
+@@ -601,11 +597,7 @@ static void alc_line_automute(struct hda
+ 			     spec->autocfg.line_out_pins);
+ 	if (!spec->automute || !spec->detect_line)
+ 		return;
+-<<<<<<< HEAD
+-	update_speakers(codec);
+-=======
+ 	call_update_speakers(codec);
+->>>>>>> linux-next/akpm-end
+ }
  
- extern void setup_per_cpu_pageset(void);
- 
-diff -puN mm/page_alloc.c~mm-neaten-warn_alloc_failed mm/page_alloc.c
---- a/mm/page_alloc.c~mm-neaten-warn_alloc_failed
-+++ a/mm/page_alloc.c
-@@ -1754,7 +1754,6 @@ static DEFINE_RATELIMIT_STATE(nopage_rs,
- 
- void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...)
+ #define get_connection_index(codec, mux, nid) \
+@@ -3249,22 +3241,6 @@ static void alc_auto_init_multi_out(stru
+ static void alc_auto_init_extra_out(struct hda_codec *codec)
  {
--	va_list args;
- 	unsigned int filter = SHOW_MEM_FILTER_NODES;
+ 	struct alc_spec *spec = codec->spec;
+-<<<<<<< HEAD
+-	hda_nid_t pin, dac;
+-
+-	pin = spec->autocfg.hp_pins[0];
+-	if (pin) {
+-		dac = spec->multiout.hp_nid;
+-		if (!dac)
+-			dac = spec->multiout.dac_nids[0];
+-		alc_auto_set_output_and_unmute(codec, pin, PIN_HP, dac);
+-	}
+-	pin = spec->autocfg.speaker_pins[0];
+-	if (pin) {
+-		dac = spec->multiout.extra_out_nid[0];
+-		if (!dac)
+-			dac = spec->multiout.dac_nids[0];
+-=======
+ 	int i;
+ 	hda_nid_t pin, dac;
  
- 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
-@@ -1773,14 +1772,21 @@ void warn_alloc_failed(gfp_t gfp_mask, i
- 		filter &= ~SHOW_MEM_FILTER_NODES;
- 
- 	if (fmt) {
--		printk(KERN_WARNING);
-+		struct va_format vaf;
-+		va_list args;
-+
- 		va_start(args, fmt);
--		vprintk(fmt, args);
-+
-+		vaf.fmt = fmt;
-+		vaf.va = &args;
-+
-+		pr_warn("%pV", &vaf);
-+
- 		va_end(args);
+@@ -3292,7 +3268,6 @@ static void alc_auto_init_extra_out(stru
+ 			else
+ 				dac = spec->multiout.dac_nids[0];
+ 		}
+->>>>>>> linux-next/akpm-end
+ 		alc_auto_set_output_and_unmute(codec, pin, PIN_OUT, dac);
  	}
+ }
+diff -puN sound/soc/soc-io.c~linux-next-git-rejects sound/soc/soc-io.c
+--- a/sound/soc/soc-io.c~linux-next-git-rejects
++++ a/sound/soc/soc-io.c
+@@ -64,194 +64,6 @@ static unsigned int hw_read(struct snd_s
+ 	return val;
+ }
  
--	pr_warning("%s: page allocation failure: order:%d, mode:0x%x\n",
--		   current->comm, order, gfp_mask);
-+	pr_warn("%s: page allocation failure: order:%d, mode:0x%x\n",
-+		current->comm, order, gfp_mask);
+-<<<<<<< HEAD
+-static int snd_soc_4_12_write(struct snd_soc_codec *codec, unsigned int reg,
+-			      unsigned int value)
+-{
+-	u16 data;
+-
+-	data = cpu_to_be16((reg << 12) | (value & 0xffffff));
+-
+-	return do_hw_write(codec, reg, value, &data, 2);
+-}
+-
+-static int snd_soc_7_9_write(struct snd_soc_codec *codec, unsigned int reg,
+-			     unsigned int value)
+-{
+-	u16 data;
+-
+-	data = cpu_to_be16((reg << 9) | (value & 0x1ff));
+-
+-	return do_hw_write(codec, reg, value, &data, 2);
+-}
+-
+-static int snd_soc_8_8_write(struct snd_soc_codec *codec, unsigned int reg,
+-			     unsigned int value)
+-{
+-	u8 data[2];
+-
+-	reg &= 0xff;
+-	data[0] = reg;
+-	data[1] = value & 0xff;
+-
+-	return do_hw_write(codec, reg, value, data, 2);
+-}
+-
+-static int snd_soc_8_16_write(struct snd_soc_codec *codec, unsigned int reg,
+-			      unsigned int value)
+-{
+-	u8 data[3];
+-	u16 val = cpu_to_be16(value);
+-
+-	data[0] = reg;
+-	memcpy(&data[1], &val, sizeof(val));
+-
+-	return do_hw_write(codec, reg, value, data, 3);
+-}
+-
+-#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
+-static unsigned int do_i2c_read(struct snd_soc_codec *codec,
+-				void *reg, int reglen,
+-				void *data, int datalen)
+-{
+-	struct i2c_msg xfer[2];
+-	int ret;
+-	struct i2c_client *client = codec->control_data;
+-
+-	/* Write register */
+-	xfer[0].addr = client->addr;
+-	xfer[0].flags = 0;
+-	xfer[0].len = reglen;
+-	xfer[0].buf = reg;
+-
+-	/* Read data */
+-	xfer[1].addr = client->addr;
+-	xfer[1].flags = I2C_M_RD;
+-	xfer[1].len = datalen;
+-	xfer[1].buf = data;
+-
+-	ret = i2c_transfer(client->adapter, xfer, 2);
+-	if (ret == 2)
+-		return 0;
+-	else if (ret < 0)
+-		return ret;
+-	else
+-		return -EIO;
+-}
+-#endif
+-
+-#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
+-static unsigned int snd_soc_8_8_read_i2c(struct snd_soc_codec *codec,
+-					 unsigned int r)
+-{
+-	u8 reg = r;
+-	u8 data;
+-	int ret;
+-
+-	ret = do_i2c_read(codec, &reg, 1, &data, 1);
+-	if (ret < 0)
+-		return 0;
+-	return data;
+-}
+-#else
+-#define snd_soc_8_8_read_i2c NULL
+-#endif
+-
+-#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
+-static unsigned int snd_soc_8_16_read_i2c(struct snd_soc_codec *codec,
+-					  unsigned int r)
+-{
+-	u8 reg = r;
+-	u16 data;
+-	int ret;
+-
+-	ret = do_i2c_read(codec, &reg, 1, &data, 2);
+-	if (ret < 0)
+-		return 0;
+-	return (data >> 8) | ((data & 0xff) << 8);
+-}
+-#else
+-#define snd_soc_8_16_read_i2c NULL
+-#endif
+-
+-#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
+-static unsigned int snd_soc_16_8_read_i2c(struct snd_soc_codec *codec,
+-					  unsigned int r)
+-{
+-	u16 reg = r;
+-	u8 data;
+-	int ret;
+-
+-	ret = do_i2c_read(codec, &reg, 2, &data, 1);
+-	if (ret < 0)
+-		return 0;
+-	return data;
+-}
+-#else
+-#define snd_soc_16_8_read_i2c NULL
+-#endif
+-
+-#if defined(CONFIG_SPI_MASTER)
+-static unsigned int snd_soc_16_8_read_spi(struct snd_soc_codec *codec,
+-		                          unsigned int r)
+-{
+-	struct spi_device *spi = codec->control_data;
+-
+-	const u16 reg = cpu_to_be16(r | 0x100);
+-	u8 data;
+-	int ret;
+-
+-	ret = spi_write_then_read(spi, &reg, 2, &data, 1);
+-	if (ret < 0)
+-		return 0;
+-	return data;
+-}
+-#else
+-#define snd_soc_16_8_read_spi NULL
+-#endif
+-
+-static int snd_soc_16_8_write(struct snd_soc_codec *codec, unsigned int reg,
+-			      unsigned int value)
+-{
+-	u8 data[3];
+-	u16 rval = cpu_to_be16(reg);
+-
+-	memcpy(data, &rval, sizeof(rval));
+-	data[2] = value;
+-
+-	return do_hw_write(codec, reg, value, data, 3);
+-}
+-
+-#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
+-static unsigned int snd_soc_16_16_read_i2c(struct snd_soc_codec *codec,
+-					   unsigned int r)
+-{
+-	u16 reg = cpu_to_be16(r);
+-	u16 data;
+-	int ret;
+-
+-	ret = do_i2c_read(codec, &reg, 2, &data, 2);
+-	if (ret < 0)
+-		return 0;
+-	return be16_to_cpu(data);
+-}
+-#else
+-#define snd_soc_16_16_read_i2c NULL
+-#endif
+-
+-static int snd_soc_16_16_write(struct snd_soc_codec *codec, unsigned int reg,
+-			       unsigned int value)
+-{
+-	u16 data[2];
+-
+-	data[0] = cpu_to_be16(reg);
+-	data[1] = cpu_to_be16(value);
+-
+-	return do_hw_write(codec, reg, value, data, sizeof(data));
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-end
+ /* Primitive bulk write support for soc-cache.  The data pointed to by
+  * `data' needs to already be in the form the hardware expects.  Any
+  * data written through this function will not go through the cache as
+@@ -277,48 +89,6 @@ static int snd_soc_hw_bulk_write_raw(str
+ 	return regmap_raw_write(codec->control_data, reg, data, len);
+ }
  
- 	dump_stack();
- 	if (!should_suppress_show_mem())
-diff -puN mm/vmalloc.c~mm-neaten-warn_alloc_failed mm/vmalloc.c
---- a/mm/vmalloc.c~mm-neaten-warn_alloc_failed
-+++ a/mm/vmalloc.c
-@@ -1593,8 +1593,8 @@ static void *__vmalloc_area_node(struct 
- 	return area->addr;
- 
- fail:
--	warn_alloc_failed(gfp_mask, order, "vmalloc: allocation failure, "
--			  "allocated %ld of %ld bytes\n",
-+	warn_alloc_failed(gfp_mask, order,
-+			  "vmalloc: allocation failure, allocated %ld of %ld bytes\n",
- 			  (area->nr_pages*PAGE_SIZE), area->size);
- 	vfree(area->addr);
- 	return NULL;
+-<<<<<<< HEAD
+-static struct {
+-	int addr_bits;
+-	int data_bits;
+-	int (*write)(struct snd_soc_codec *codec, unsigned int, unsigned int);
+-	unsigned int (*read)(struct snd_soc_codec *, unsigned int);
+-	unsigned int (*i2c_read)(struct snd_soc_codec *, unsigned int);
+-	unsigned int (*spi_read)(struct snd_soc_codec *, unsigned int);
+-} io_types[] = {
+-	{
+-		.addr_bits = 4, .data_bits = 12,
+-		.write = snd_soc_4_12_write,
+-	},
+-	{
+-		.addr_bits = 7, .data_bits = 9,
+-		.write = snd_soc_7_9_write,
+-	},
+-	{
+-		.addr_bits = 8, .data_bits = 8,
+-		.write = snd_soc_8_8_write,
+-		.i2c_read = snd_soc_8_8_read_i2c,
+-	},
+-	{
+-		.addr_bits = 8, .data_bits = 16,
+-		.write = snd_soc_8_16_write,
+-		.i2c_read = snd_soc_8_16_read_i2c,
+-	},
+-	{
+-		.addr_bits = 16, .data_bits = 8,
+-		.write = snd_soc_16_8_write,
+-		.i2c_read = snd_soc_16_8_read_i2c,
+-		.spi_read = snd_soc_16_8_read_spi,
+-	},
+-	{
+-		.addr_bits = 16, .data_bits = 16,
+-		.write = snd_soc_16_16_write,
+-		.i2c_read = snd_soc_16_16_read_i2c,
+-	},
+-};
+-
+-=======
+->>>>>>> linux-next/akpm-end
+ /**
+  * snd_soc_codec_set_cache_io: Set up standard I/O functions.
+  *
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-get_maintainerpl-update-linuss-git-repository.patch
-checkpatch-add-missing-warn-argument-for-min_t-and-max_t-tests.patch
+origin.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
 linux-next.patch
-mm-neaten-warn_alloc_failed.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+kernel-rtmutexc-fix-warning-improve-coding-style.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
+mm.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
 mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
