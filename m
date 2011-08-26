@@ -1,99 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix.patch removed from -mm tree
-Date: Fri, 26 Aug 2011 12:07:14 -0700
-Message-ID: <201108261903.p7QJ3w7m005742@imap1.linux-foundation.org>
+Subject: [merged] backlight-add-a-callback-notify_after-for-backlight-control.patch removed from -mm tree
+Date: Fri, 26 Aug 2011 12:06:51 -0700
+Message-ID: <201108261903.p7QJ3ZQl005707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753532Ab1HZTE3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753532Ab1HZTEY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Aug 2011 15:04:29 -0400
+	Fri, 26 Aug 2011 15:04:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
+To: dilee@nvidia.com, arun.murthy@stericsson.com, lethal@linux-sh.org, rmorell@nvidia.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix
+     backlight: add a callback 'notify_after' for backlight control
 has been removed from the -mm tree.  Its filename was
-     printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix.patch
+     backlight-add-a-callback-notify_after-for-backlight-control.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: backlight: add a callback 'notify_after' for backlight control
+From: Dilan Lee <dilee@nvidia.com>
 
-Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Cc: Zhang Yanmin <yanmin_zhang@linux.intel.com>
+We need a callback to do some things after pwm_enable, pwm_disable
+and pwm_config.
+
+Signed-off-by: Dilan Lee <dilee@nvidia.com>
+Reviewed-by: Robert Morell <rmorell@nvidia.com>
+Reviewed-by: Arun Murthy <arun.murthy@stericsson.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/pwm_bl.c |    9 +++++++++
+ include/linux/pwm_backlight.h    |    1 +
+ 2 files changed, 10 insertions(+)
 
-diff -puN kernel/printk.c~printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix kernel/printk.c
---- a/kernel/printk.c~printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel-fix-fix
-+++ a/kernel/printk.c
-@@ -24,7 +24,7 @@
- #include <linux/init.h>
- #include <linux/jiffies.h>
- #include <linux/nmi.h>
--#include <linux/export.h>
-+#include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/interrupt.h>			/* For in_interrupt() */
- #include <linux/delay.h>
+diff -puN drivers/video/backlight/pwm_bl.c~backlight-add-a-callback-notify_after-for-backlight-control drivers/video/backlight/pwm_bl.c
+--- a/drivers/video/backlight/pwm_bl.c~backlight-add-a-callback-notify_after-for-backlight-control
++++ a/drivers/video/backlight/pwm_bl.c
+@@ -28,6 +28,8 @@ struct pwm_bl_data {
+ 	unsigned int		lth_brightness;
+ 	int			(*notify)(struct device *,
+ 					  int brightness);
++	void			(*notify_after)(struct device *,
++					int brightness);
+ 	int			(*check_fb)(struct device *, struct fb_info *);
+ };
+ 
+@@ -55,6 +57,10 @@ static int pwm_backlight_update_status(s
+ 		pwm_config(pb->pwm, brightness, pb->period);
+ 		pwm_enable(pb->pwm);
+ 	}
++
++	if (pb->notify_after)
++		pb->notify_after(pb->dev, brightness);
++
+ 	return 0;
+ }
+ 
+@@ -105,6 +111,7 @@ static int pwm_backlight_probe(struct pl
+ 
+ 	pb->period = data->pwm_period_ns;
+ 	pb->notify = data->notify;
++	pb->notify_after = data->notify_after;
+ 	pb->check_fb = data->check_fb;
+ 	pb->lth_brightness = data->lth_brightness *
+ 		(data->pwm_period_ns / data->max_brightness);
+@@ -172,6 +179,8 @@ static int pwm_backlight_suspend(struct 
+ 		pb->notify(pb->dev, 0);
+ 	pwm_config(pb->pwm, 0, pb->period);
+ 	pwm_disable(pb->pwm);
++	if (pb->notify_after)
++		pb->notify_after(pb->dev, 0);
+ 	return 0;
+ }
+ 
+diff -puN include/linux/pwm_backlight.h~backlight-add-a-callback-notify_after-for-backlight-control include/linux/pwm_backlight.h
+--- a/include/linux/pwm_backlight.h~backlight-add-a-callback-notify_after-for-backlight-control
++++ a/include/linux/pwm_backlight.h
+@@ -14,6 +14,7 @@ struct platform_pwm_backlight_data {
+ 	unsigned int pwm_period_ns;
+ 	int (*init)(struct device *dev);
+ 	int (*notify)(struct device *dev, int brightness);
++	void (*notify_after)(struct device *dev, int brightness);
+ 	void (*exit)(struct device *dev);
+ 	int (*check_fb)(struct device *dev, struct fb_info *info);
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dilee@nvidia.com are
 
 origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-kernel-rtmutexc-fix-warning-improve-coding-style.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
-mm.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
