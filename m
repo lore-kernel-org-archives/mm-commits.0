@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 29 Aug 2011 13:43:06 -0700
-Message-ID: <201108292043.p7TKh6Jt025342@imap1.linux-foundation.org>
+Subject: + mm-compaction-make-isolate_lru_page-filter-aware-fix.patch added to -mm tree
+Date: Mon, 29 Aug 2011 13:40:00 -0700
+Message-ID: <201108292040.p7TKe044024965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57050 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754038Ab1H2Uni (ORCPT
+	by vger.kernel.org with ESMTP id S1754718Ab1H2Uo7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Aug 2011 16:43:38 -0400
+	Mon, 29 Aug 2011 16:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, minchan.kim@gmail.com
+Cc: minchan.kim@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com
 
 
 The patch titled
-     mm-compaction-compact-unevictable-pages-checkpatch-fixes
+     mm-compaction-make-isolate_lru_page-filter-aware-fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+     mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-compaction-compact-unevictable-pages-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-compaction-make-isolate_lru_page-filter-aware-fix
+From: Minchan Kim <minchan.kim@gmail.com>
 
-ERROR: need consistent spacing around '|' (ctx:VxW)
-#67: FILE: mm/compaction.c:264:
-+	isolate_mode_t mode = ISOLATE_ACTIVE| ISOLATE_INACTIVE |
- 	                                    ^
-
-total: 1 errors, 0 warnings, 36 lines checked
-
-./patches/mm-compaction-compact-unevictable-pages.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
+ include/linux/mmzone.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-compact-unevictable-pages-checkpatch-fixes mm/compaction.c
---- a/mm/compaction.c~mm-compaction-compact-unevictable-pages-checkpatch-fixes
-+++ a/mm/compaction.c
-@@ -261,7 +261,7 @@ static isolate_migrate_t isolate_migrate
- 	unsigned long last_pageblock_nr = 0, pageblock_nr;
- 	unsigned long nr_scanned = 0, nr_isolated = 0;
- 	struct list_head *migratelist = &cc->migratepages;
--	isolate_mode_t mode = ISOLATE_ACTIVE| ISOLATE_INACTIVE |
-+	isolate_mode_t mode = ISOLATE_ACTIVE | ISOLATE_INACTIVE |
- 				ISOLATE_UNEVICTABLE;
+diff -puN include/linux/mmzone.h~mm-compaction-make-isolate_lru_page-filter-aware-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-compaction-make-isolate_lru_page-filter-aware-fix
++++ a/include/linux/mmzone.h
+@@ -169,7 +169,7 @@ static inline int is_unevictable_lru(enu
+ /* Isolate active pages */
+ #define ISOLATE_ACTIVE		((__force isolate_mode_t)0x2)
+ /* Isolate clean file */
+-#define ISOLATE_CLEAN		((__force fmode_t)0x4)
++#define ISOLATE_CLEAN		((__force isolate_mode_t)0x4)
  
- 	/* Do not scan outside zone boundaries */
+ /* LRU Isolation modes. */
+ typedef unsigned __bitwise__ isolate_mode_t;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
-mm.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-mempolicyc-fix-pgoff-in-mbind-vma-merge.patch
+mm-compaction-trivial-clean-up-in-acct_isolated.patch
+mm-change-isolate-mode-from-define-to-bitwise-type.patch
+mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
+mm-compaction-make-isolate_lru_page-filter-aware.patch
+mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
+mm-migration-clean-up-unmap_and_move.patch
+vmscan-add-block-plug-for-page-reclaim.patch
+mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
+xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
+mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
+mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
+vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+mm-add-free_hot_cold_page_list-helper.patch
 
