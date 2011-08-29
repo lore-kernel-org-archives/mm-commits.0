@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + um-clean-arch_ptrace-up-a-bit.patch added to -mm tree
-Date: Mon, 29 Aug 2011 14:35:50 -0700
-Message-ID: <201108292135.p7TLZpXU030290@imap1.linux-foundation.org>
+Subject: + block-document-blk-plug-fix.patch added to -mm tree
+Date: Mon, 29 Aug 2011 14:48:53 -0700
+Message-ID: <201108292148.p7TLmrRh031646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754667Ab1H2Vq1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755233Ab1H2Vtb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Aug 2011 17:46:27 -0400
+	Mon, 29 Aug 2011 17:49:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ftp.linux.org.uk, richard@nod.at, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, axboe@kernel.dk, corbet@lwn.net, shaohua.li@intel.com, sjayaraman@suse.de
 
 
 The patch titled
-     um: clean arch_ptrace() up a bit
+     block-document-blk-plug-fix
 has been added to the -mm tree.  Its filename is
-     um-clean-arch_ptrace-up-a-bit.patch
+     block-document-blk-plug-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,226 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: clean arch_ptrace() up a bit
-From: Al Viro <viro@ftp.linux.org.uk>
+Subject: block-document-blk-plug-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-1) take subarch-specific stuff to subarch_ptrace()
-2) PTRACE_{PEEK,POKE}{TEXT,DATA} is handled by ptrace_request() just fine...
+grammatical and spelling tweaks
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Suresh Jayaraman <sjayaraman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/ptrace-generic.h |    4 ---
- arch/um/kernel/ptrace.c              |   28 -------------------------
- arch/um/sys-i386/asm/ptrace.h        |    5 ----
- arch/um/sys-i386/ptrace.c            |   18 ++++++++++------
- arch/um/sys-x86_64/ptrace.c          |   22 ++++++++++++++++---
- 5 files changed, 31 insertions(+), 46 deletions(-)
+ block/blk-core.c       |    2 +-
+ include/linux/blkdev.h |   16 ++++++++--------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/um/include/asm/ptrace-generic.h~um-clean-arch_ptrace-up-a-bit arch/um/include/asm/ptrace-generic.h
---- a/arch/um/include/asm/ptrace-generic.h~um-clean-arch_ptrace-up-a-bit
-+++ a/arch/um/include/asm/ptrace-generic.h
-@@ -42,10 +42,6 @@ extern long subarch_ptrace(struct task_s
- 	unsigned long addr, unsigned long data);
- extern unsigned long getreg(struct task_struct *child, int regno);
- extern int putreg(struct task_struct *child, int regno, unsigned long value);
--extern int get_fpregs(struct user_i387_struct __user *buf,
--		      struct task_struct *child);
--extern int set_fpregs(struct user_i387_struct __user *buf,
--		      struct task_struct *child);
- 
- extern int arch_copy_tls(struct task_struct *new);
- extern void clear_flushed_tls(struct task_struct *task);
-diff -puN arch/um/kernel/ptrace.c~um-clean-arch_ptrace-up-a-bit arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~um-clean-arch_ptrace-up-a-bit
-+++ a/arch/um/kernel/ptrace.c
-@@ -50,23 +50,11 @@ long arch_ptrace(struct task_struct *chi
- 	void __user *vp = p;
- 
- 	switch (request) {
--	/* read word at location addr. */
--	case PTRACE_PEEKTEXT:
--	case PTRACE_PEEKDATA:
--		ret = generic_ptrace_peekdata(child, addr, data);
--		break;
--
- 	/* read the word at location addr in the USER area. */
- 	case PTRACE_PEEKUSR:
- 		ret = peek_user(child, addr, data);
- 		break;
- 
--	/* write the word at location addr. */
--	case PTRACE_POKETEXT:
--	case PTRACE_POKEDATA:
--		ret = generic_ptrace_pokedata(child, addr, data);
--		break;
--
- 	/* write the word at location addr in the USER area */
- 	case PTRACE_POKEUSR:
- 		ret = poke_user(child, addr, data);
-@@ -107,16 +95,6 @@ long arch_ptrace(struct task_struct *chi
- 		break;
- 	}
- #endif
--#ifdef PTRACE_GETFPREGS
--	case PTRACE_GETFPREGS: /* Get the child FPU state. */
--		ret = get_fpregs(vp, child);
--		break;
--#endif
--#ifdef PTRACE_SETFPREGS
--	case PTRACE_SETFPREGS: /* Set the child FPU state. */
--		ret = set_fpregs(vp, child);
--		break;
--#endif
- 	case PTRACE_GET_THREAD_AREA:
- 		ret = ptrace_get_thread_area(child, addr, vp);
- 		break;
-@@ -154,12 +132,6 @@ long arch_ptrace(struct task_struct *chi
- 		break;
- 	}
- #endif
--#ifdef PTRACE_ARCH_PRCTL
--	case PTRACE_ARCH_PRCTL:
--		/* XXX Calls ptrace on the host - needs some SMP thinking */
--		ret = arch_prctl(child, data, (void __user *) addr);
--		break;
--#endif
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
- 		if (ret == -EIO)
-diff -puN arch/um/sys-i386/asm/ptrace.h~um-clean-arch_ptrace-up-a-bit arch/um/sys-i386/asm/ptrace.h
---- a/arch/um/sys-i386/asm/ptrace.h~um-clean-arch_ptrace-up-a-bit
-+++ a/arch/um/sys-i386/asm/ptrace.h
-@@ -42,11 +42,6 @@
+diff -puN block/blk-core.c~block-document-blk-plug-fix block/blk-core.c
+--- a/block/blk-core.c~block-document-blk-plug-fix
++++ a/block/blk-core.c
+@@ -2638,7 +2638,7 @@ EXPORT_SYMBOL(kblockd_schedule_delayed_w
+  *   for a memory allocation, memory reclaim could end up wanting to free a
+  *   page belonging to that request that is currently residing in our private
+  *   plug. By flushing the pending I/O when the process goes to sleep, we avoid
+- *   this kind of deadlocks.
++ *   this kind of deadlock.
   */
- struct user_desc;
- 
--extern int get_fpxregs(struct user_fxsr_struct __user *buf,
--		       struct task_struct *child);
--extern int set_fpxregs(struct user_fxsr_struct __user *buf,
--		       struct task_struct *tsk);
--
- extern int ptrace_get_thread_area(struct task_struct *child, int idx,
-                                   struct user_desc __user *user_desc);
- 
-diff -puN arch/um/sys-i386/ptrace.c~um-clean-arch_ptrace-up-a-bit arch/um/sys-i386/ptrace.c
---- a/arch/um/sys-i386/ptrace.c~um-clean-arch_ptrace-up-a-bit
-+++ a/arch/um/sys-i386/ptrace.c
-@@ -145,7 +145,7 @@ int peek_user(struct task_struct *child,
- 	return put_user(tmp, (unsigned long __user *) data);
- }
- 
--int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
-+static int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
+ void blk_start_plug(struct blk_plug *plug)
  {
- 	int err, n, cpu = ((struct thread_info *) child->stack)->cpu;
- 	struct user_i387_struct fpregs;
-@@ -161,7 +161,7 @@ int get_fpregs(struct user_i387_struct _
- 	return n;
- }
+diff -puN include/linux/blkdev.h~block-document-blk-plug-fix include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-document-blk-plug-fix
++++ a/include/linux/blkdev.h
+@@ -863,16 +863,16 @@ struct request_queue *blk_alloc_queue_no
+ extern void blk_put_queue(struct request_queue *);
  
--int set_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
-+static int set_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
- {
- 	int n, cpu = ((struct thread_info *) child->stack)->cpu;
- 	struct user_i387_struct fpregs;
-@@ -174,7 +174,7 @@ int set_fpregs(struct user_i387_struct _
- 				    (unsigned long *) &fpregs);
- }
- 
--int get_fpxregs(struct user_fxsr_struct __user *buf, struct task_struct *child)
-+static int get_fpxregs(struct user_fxsr_struct __user *buf, struct task_struct *child)
- {
- 	int err, n, cpu = ((struct thread_info *) child->stack)->cpu;
- 	struct user_fxsr_struct fpregs;
-@@ -190,7 +190,7 @@ int get_fpxregs(struct user_fxsr_struct 
- 	return n;
- }
- 
--int set_fpxregs(struct user_fxsr_struct __user *buf, struct task_struct *child)
-+static int set_fpxregs(struct user_fxsr_struct __user *buf, struct task_struct *child)
- {
- 	int n, cpu = ((struct thread_info *) child->stack)->cpu;
- 	struct user_fxsr_struct fpregs;
-@@ -208,15 +208,21 @@ long subarch_ptrace(struct task_struct *
- {
- 	int ret = -EIO;
- 	void __user *datap = (void __user *) data;
--
- 	switch (request) {
-+	case PTRACE_GETFPREGS: /* Get the child FPU state. */
-+		ret = get_fpregs(datap, child);
-+		break;
-+	case PTRACE_SETFPREGS: /* Set the child FPU state. */
-+		ret = set_fpregs(datap, child);
-+		break;
- 	case PTRACE_GETFPXREGS: /* Get the child FPU state. */
- 		ret = get_fpxregs(datap, child);
- 		break;
- 	case PTRACE_SETFPXREGS: /* Set the child FPU state. */
- 		ret = set_fpxregs(datap, child);
- 		break;
-+	default:
-+		ret = -EIO;
- 	}
--
- 	return ret;
- }
-diff -puN arch/um/sys-x86_64/ptrace.c~um-clean-arch_ptrace-up-a-bit arch/um/sys-x86_64/ptrace.c
---- a/arch/um/sys-x86_64/ptrace.c~um-clean-arch_ptrace-up-a-bit
-+++ a/arch/um/sys-x86_64/ptrace.c
-@@ -145,7 +145,7 @@ int is_syscall(unsigned long addr)
- 	return instr == 0x050f;
- }
- 
--int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
-+static int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
- {
- 	int err, n, cpu = ((struct thread_info *) child->stack)->cpu;
- 	long fpregs[HOST_FP_SIZE];
-@@ -162,7 +162,7 @@ int get_fpregs(struct user_i387_struct _
- 	return n;
- }
- 
--int set_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
-+static int set_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
- {
- 	int n, cpu = ((struct thread_info *) child->stack)->cpu;
- 	long fpregs[HOST_FP_SIZE];
-@@ -178,5 +178,21 @@ int set_fpregs(struct user_i387_struct _
- long subarch_ptrace(struct task_struct *child, long request,
- 		    unsigned long addr, unsigned long data)
- {
--	return -EIO;
-+	int ret = -EIO;
-+	void __user *datap = (void __user *) data;
-+
-+	switch (request) {
-+	case PTRACE_GETFPREGS: /* Get the child FPU state. */
-+		ret = get_fpregs(datap, child);
-+		break;
-+	case PTRACE_SETFPREGS: /* Set the child FPU state. */
-+		ret = set_fpregs(datap, child);
-+		break;
-+	case PTRACE_ARCH_PRCTL:
-+		/* XXX Calls ptrace on the host - needs some SMP thinking */
-+		ret = arch_prctl(child, data, (void __user *) addr);
-+		break;
-+	}
-+
-+	return ret;
- }
+ /*
+- * blk_plug allows to build up a queue of related requests by holding the I/O
++ * blk_plug permits building a queue of related requests by holding the I/O
+  * fragments for a short period. This allows merging of sequential requests
+- * into single larger request. As the requests are moved from per-task list to
+- * the device's request_queue in a batch, this results in improved
+- * scalability as the lock contention for request_queue lock is reduced.
++ * into single larger request. As the requests are moved from a per-task list to
++ * the device's request_queue in a batch, this results in improved scalability
++ * as the lock contention for request_queue lock is reduced.
+  *
+- * Note: Code in between changing the blk_plug list/cb_list or element of such
+- * lists is preemptable, but such code can't do sleep (or be very careful),
+- * otherwise data is corrupted. For details, please check schedule() where
+- * blk_schedule_flush_plug() is called.
++ * Note: code in between changing the blk_plug list/cb_list or an element of
++ * these lists is preemptible, but such code cannot sleep (or must be very
++ * careful), otherwise data is corrupted. For details, please check schedule()
++ * where blk_schedule_flush_plug() is called.
+  */
+ struct blk_plug {
+ 	unsigned long magic; /* detect uninitialized use-cases */
 _
 
-Patches currently in -mm which might be from viro@ftp.linux.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-um-fix-oopsable-race-in-line_close.patch
-um-winch_interrupt-can-happen-inside-of-free_winch.patch
-um-fix-free_winch-mess.patch
-um-ptrace_etfpxregs-had-been-wired-on-the-wrong-subarch.patch
-um-fix-strrchr-problems.patch
-um-clean-arch_ptrace-up-a-bit.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
+block-document-blk-plug-fix.patch
+mm.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
