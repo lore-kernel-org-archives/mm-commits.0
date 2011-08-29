@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spinlock_debug-print-owner-on-spinlock-lockup.patch added to -mm tree
-Date: Mon, 29 Aug 2011 15:42:42 -0700
-Message-ID: <201108292242.p7TMggbR004743@imap1.linux-foundation.org>
+Subject: + proc-fix-races-against-execve-of-proc-pid-fd.patch added to -mm tree
+Date: Mon, 29 Aug 2011 16:03:09 -0700
+Message-ID: <201108292303.p7TN39nl006536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754412Ab1H2WnU (ORCPT
+	by vger.kernel.org with ESMTP id S1754103Ab1H2XEb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Aug 2011 18:43:20 -0400
+	Mon, 29 Aug 2011 19:04:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, mingo@redhat.com
+Cc: segoon@openwall.com, stable@kernel.org
 
 
 The patch titled
-     lib/spinlock_debug.c: print owner on spinlock lockup
+     proc: fix races against execve() of /proc/PID/fd**
 has been added to the -mm tree.  Its filename is
-     spinlock_debug-print-owner-on-spinlock-lockup.patch
+     proc-fix-races-against-execve-of-proc-pid-fd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,265 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/spinlock_debug.c: print owner on spinlock lockup
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: proc: fix races against execve() of /proc/PID/fd**
+From: Vasiliy Kulikov <segoon@openwall.com>
 
-When SPIN_BUG_ON is triggered, the lock owner information is reported. 
-But it is omitted when spinlock lockup is detected.
+fd* files are restricted to the task's owner, and other users may not get
+direct access to them.  But one may open any of these files and run any
+setuid program, keeping opened file descriptors.  As there are permission
+checks on open(), but not on readdir() and read(), operations on the kept
+file descriptors will not be checked.  It makes it possible to violate
+procfs permission model.
 
-This information is useful especially on the architectures which don't
-implement trigger_all_cpu_backtrace() that is called just after detecting
-lockup.  So report it and also avoid message format duplication.
+Reading fdinfo/* may disclosure current fds' position and flags, reading
+directory contents of fdinfo/ and fd/ may disclosure the number of opened
+files by the target task.  This information is not sensible per se, but it
+can reveal some private information (like length of a password stored in a
+file) under certain conditions.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Used existing (un)lock_trace functions to check for ptrace_may_access(),
+but instead of using EPERM return code from it use EACCES to be consistent
+with existing proc_pid_follow_link()/proc_pid_readlink() return code.  If
+they differ, attacker can guess what fds exist by analyzing stat() return
+code.  Patched handlers: stat() for fd/*, stat() and read() for fdindo/*,
+readdir() and lookup() for fd/ and fdinfo/.
+
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/spinlock_debug.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ fs/proc/base.c |  146 +++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 103 insertions(+), 43 deletions(-)
 
-diff -puN lib/spinlock_debug.c~spinlock_debug-print-owner-on-spinlock-lockup lib/spinlock_debug.c
---- a/lib/spinlock_debug.c~spinlock_debug-print-owner-on-spinlock-lockup
-+++ a/lib/spinlock_debug.c
-@@ -49,13 +49,10 @@ void __rwlock_init(rwlock_t *lock, const
- 
- EXPORT_SYMBOL(__rwlock_init);
- 
--static void spin_bug(raw_spinlock_t *lock, const char *msg)
-+static void spin_dump(raw_spinlock_t *lock, const char *msg)
- {
- 	struct task_struct *owner = NULL;
- 
--	if (!debug_locks_off())
--		return;
--
- 	if (lock->owner && lock->owner != SPINLOCK_OWNER_INIT)
- 		owner = lock->owner;
- 	printk(KERN_EMERG "BUG: spinlock %s on CPU#%d, %s/%d\n",
-@@ -70,6 +67,14 @@ static void spin_bug(raw_spinlock_t *loc
- 	dump_stack();
+diff -puN fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd
++++ a/fs/proc/base.c
+@@ -1665,12 +1665,46 @@ out:
+ 	return error;
  }
  
-+static void spin_bug(raw_spinlock_t *lock, const char *msg)
++static int proc_pid_fd_link_getattr(struct vfsmount *mnt, struct dentry *dentry,
++		struct kstat *stat)
 +{
-+	if (!debug_locks_off())
-+		return;
++	struct inode *inode = dentry->d_inode;
++	struct task_struct *task = get_proc_task(inode);
++	int rc;
 +
-+	spin_dump(lock, msg);
++	if (task == NULL)
++		return -ESRCH;
++
++	rc = -EACCES;
++	if (lock_trace(task))
++		goto out_task;
++
++	generic_fillattr(inode, stat);
++	unlock_trace(task);
++	put_task_struct(task);
++	rc = 0;
++out_task:
++	return rc;
 +}
 +
- #define SPIN_BUG_ON(cond, lock, msg) if (unlikely(cond)) spin_bug(lock, msg)
+ static const struct inode_operations proc_pid_link_inode_operations = {
+ 	.readlink	= proc_pid_readlink,
+ 	.follow_link	= proc_pid_follow_link,
+ 	.setattr	= proc_setattr,
+ };
  
- static inline void
-@@ -113,11 +118,7 @@ static void __spin_lock_debug(raw_spinlo
- 		/* lockup suspected: */
- 		if (print_once) {
- 			print_once = 0;
--			printk(KERN_EMERG "BUG: spinlock lockup on CPU#%d, "
--					"%s/%d, %p\n",
--				raw_smp_processor_id(), current->comm,
--				task_pid_nr(current), lock);
--			dump_stack();
-+			spin_dump(lock, "lockup");
- #ifdef CONFIG_SMP
- 			trigger_all_cpu_backtrace();
- #endif
++static const struct inode_operations proc_fdinfo_link_inode_operations = {
++	.setattr	= proc_setattr,
++	.getattr	= proc_pid_fd_link_getattr,
++};
++
++static const struct inode_operations proc_fd_link_inode_operations = {
++	.readlink	= proc_pid_readlink,
++	.follow_link	= proc_pid_follow_link,
++	.setattr	= proc_setattr,
++	.getattr	= proc_pid_fd_link_getattr,
++};
++
+ 
+ /* building an inode */
+ 
+@@ -1902,49 +1936,61 @@ out:
+ 
+ static int proc_fd_info(struct inode *inode, struct path *path, char *info)
+ {
+-	struct task_struct *task = get_proc_task(inode);
+-	struct files_struct *files = NULL;
++	struct task_struct *task;
++	struct files_struct *files;
+ 	struct file *file;
+ 	int fd = proc_fd(inode);
++	int rc;
+ 
+-	if (task) {
+-		files = get_files_struct(task);
+-		put_task_struct(task);
+-	}
+-	if (files) {
+-		/*
+-		 * We are not taking a ref to the file structure, so we must
+-		 * hold ->file_lock.
+-		 */
+-		spin_lock(&files->file_lock);
+-		file = fcheck_files(files, fd);
+-		if (file) {
+-			unsigned int f_flags;
+-			struct fdtable *fdt;
+-
+-			fdt = files_fdtable(files);
+-			f_flags = file->f_flags & ~O_CLOEXEC;
+-			if (FD_ISSET(fd, fdt->close_on_exec))
+-				f_flags |= O_CLOEXEC;
+-
+-			if (path) {
+-				*path = file->f_path;
+-				path_get(&file->f_path);
+-			}
+-			if (info)
+-				snprintf(info, PROC_FDINFO_MAX,
+-					 "pos:\t%lli\n"
+-					 "flags:\t0%o\n",
+-					 (long long) file->f_pos,
+-					 f_flags);
+-			spin_unlock(&files->file_lock);
+-			put_files_struct(files);
+-			return 0;
++	task = get_proc_task(inode);
++	if (!task)
++		return -ENOENT;
++
++	rc = -EACCES;
++	if (lock_trace(task))
++		goto out_task;
++
++	rc = -ENOENT;
++	files = get_files_struct(task);
++	if (files == NULL)
++		goto out_unlock;
++
++	/*
++	 * We are not taking a ref to the file structure, so we must
++	 * hold ->file_lock.
++	 */
++	spin_lock(&files->file_lock);
++	file = fcheck_files(files, fd);
++	if (file) {
++		unsigned int f_flags;
++		struct fdtable *fdt;
++
++		fdt = files_fdtable(files);
++		f_flags = file->f_flags & ~O_CLOEXEC;
++		if (FD_ISSET(fd, fdt->close_on_exec))
++			f_flags |= O_CLOEXEC;
++
++		if (path) {
++			*path = file->f_path;
++			path_get(&file->f_path);
+ 		}
+-		spin_unlock(&files->file_lock);
+-		put_files_struct(files);
+-	}
+-	return -ENOENT;
++		if (info)
++			snprintf(info, PROC_FDINFO_MAX,
++				 "pos:\t%lli\n"
++				 "flags:\t0%o\n",
++				 (long long) file->f_pos,
++				 f_flags);
++		rc = 0;
++	} else
++		rc = -ENOENT;
++	spin_unlock(&files->file_lock);
++	put_files_struct(files);
++
++out_unlock:
++	unlock_trace(task);
++out_task:
++	put_task_struct(task);
++	return rc;
+ }
+ 
+ static int proc_fd_link(struct inode *inode, struct path *path)
+@@ -2039,7 +2085,7 @@ static struct dentry *proc_fd_instantiat
+ 	spin_unlock(&files->file_lock);
+ 	put_files_struct(files);
+ 
+-	inode->i_op = &proc_pid_link_inode_operations;
++	inode->i_op = &proc_fd_link_inode_operations;
+ 	inode->i_size = 64;
+ 	ei->op.proc_get_link = proc_fd_link;
+ 	d_set_d_op(dentry, &tid_fd_dentry_operations);
+@@ -2071,7 +2117,12 @@ static struct dentry *proc_lookupfd_comm
+ 	if (fd == ~0U)
+ 		goto out;
+ 
++	result = ERR_PTR(-EACCES);
++	if (lock_trace(task))
++		goto out;
++
+ 	result = instantiate(dir, dentry, task, &fd);
++	unlock_trace(task);
+ out:
+ 	put_task_struct(task);
+ out_no_task:
+@@ -2091,23 +2142,28 @@ static int proc_readfd_common(struct fil
+ 	retval = -ENOENT;
+ 	if (!p)
+ 		goto out_no_task;
++
++	retval = -EACCES;
++	if (lock_trace(p))
++		goto out;
++
+ 	retval = 0;
+ 
+ 	fd = filp->f_pos;
+ 	switch (fd) {
+ 		case 0:
+ 			if (filldir(dirent, ".", 1, 0, inode->i_ino, DT_DIR) < 0)
+-				goto out;
++				goto out_unlock;
+ 			filp->f_pos++;
+ 		case 1:
+ 			ino = parent_ino(dentry);
+ 			if (filldir(dirent, "..", 2, 1, ino, DT_DIR) < 0)
+-				goto out;
++				goto out_unlock;
+ 			filp->f_pos++;
+ 		default:
+ 			files = get_files_struct(p);
+ 			if (!files)
+-				goto out;
++				goto out_unlock;
+ 			rcu_read_lock();
+ 			for (fd = filp->f_pos-2;
+ 			     fd < files_fdtable(files)->max_fds;
+@@ -2131,6 +2187,9 @@ static int proc_readfd_common(struct fil
+ 			rcu_read_unlock();
+ 			put_files_struct(files);
+ 	}
++
++out_unlock:
++	unlock_trace(p);
+ out:
+ 	put_task_struct(p);
+ out_no_task:
+@@ -2208,6 +2267,7 @@ static struct dentry *proc_fdinfo_instan
+ 	ei->fd = fd;
+ 	inode->i_mode = S_IFREG | S_IRUSR;
+ 	inode->i_fop = &proc_fdinfo_file_operations;
++	inode->i_op = &proc_fdinfo_link_inode_operations;
+ 	d_set_d_op(dentry, &tid_fd_dentry_operations);
+ 	d_add(dentry, inode);
+ 	/* Close the race of the process dying before we return the dentry */
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
-linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
-mm-debug-pageallocc-use-plain-__ratelimit-instead-of-printk_ratelimit.patch
-lib-stringc-introduce-memchr_inv.patch
-lib-stringc-introduce-memchr_inv-fix-kernel-doc-for-memchr_inv.patch
-mm-debug-pageallocc-use-memchr_inv.patch
-debug-pagealloc-add-support-for-highmem-pages.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-spinlock_debug-print-owner-on-spinlock-lockup.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+proc-fix-races-against-execve-of-proc-pid-fd.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 
