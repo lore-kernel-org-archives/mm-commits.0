@@ -1,103 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-rtmutexc-fix-warning-improve-coding-style.patch removed from -mm tree
-Date: Mon, 29 Aug 2011 12:30:53 -0700
-Message-ID: <201108291927.p7TJRMjA018762@imap1.linux-foundation.org>
+Subject: + mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch added to -mm tree
+Date: Mon, 29 Aug 2011 13:39:56 -0700
+Message-ID: <201108292039.p7TKdwvf024927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754829Ab1H2T14 (ORCPT
+	by vger.kernel.org with ESMTP id S1755026Ab1H2Ukk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Aug 2011 15:27:56 -0400
+	Mon, 29 Aug 2011 16:40:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: minchan.kim@gmail.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com
 
 
 The patch titled
-     kernel/rtmutex.c: fix warning, improve coding-style
-has been removed from the -mm tree.  Its filename was
-     kernel-rtmutexc-fix-warning-improve-coding-style.patch
+     mm-change-isolate-mode-from-define-to-bitwise-type-fix
+has been added to the -mm tree.  Its filename is
+     mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/rtmutex.c: fix warning, improve coding-style
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-change-isolate-mode-from-define-to-bitwise-type-fix
+From: Minchan Kim <minchan.kim@gmail.com>
 
-kernel/rtmutex.c: In function '__rt_mutex_slowlock':
-kernel/rtmutex.c:605: warning: suggest parentheses around assignment used as tru
+[c1e8b0ae8, mm-change-isolate-mode-from-define-to-bitwise-type]
+made a mistake on the bitwise type.
 
-Fixes "rcu: Permit rt_mutex_unlock() with irqs disabled".
+This patch corrects it.
 
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rtmutex.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/rtmutex.c~kernel-rtmutexc-fix-warning-improve-coding-style kernel/rtmutex.c
---- a/kernel/rtmutex.c~kernel-rtmutexc-fix-warning-improve-coding-style
-+++ a/kernel/rtmutex.c
-@@ -602,7 +602,8 @@ __rt_mutex_slowlock(struct rt_mutex *loc
+diff -puN include/linux/mmzone.h~mm-change-isolate-mode-from-define-to-bitwise-type-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-change-isolate-mode-from-define-to-bitwise-type-fix
++++ a/include/linux/mmzone.h
+@@ -165,9 +165,9 @@ static inline int is_unevictable_lru(enu
+ #define LRU_ALL	     ((1 << NR_LRU_LISTS) - 1)
  
- 		raw_spin_unlock(&lock->wait_lock);
+ /* Isolate inactive pages */
+-#define ISOLATE_INACTIVE	((__force fmode_t)0x1)
++#define ISOLATE_INACTIVE	((__force isolate_mode_t)0x1)
+ /* Isolate active pages */
+-#define ISOLATE_ACTIVE		((__force fmode_t)0x2)
++#define ISOLATE_ACTIVE		((__force isolate_mode_t)0x2)
  
--		if (was_disabled = irqs_disabled())
-+		was_disabled = irqs_disabled();
-+		if (was_disabled)
- 			local_irq_enable();
- 
- 		debug_rt_mutex_print_deadlock(waiter);
+ /* LRU Isolation modes. */
+ typedef unsigned __bitwise__ isolate_mode_t;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
-mm.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-mempolicyc-fix-pgoff-in-mbind-vma-merge.patch
+mm-compaction-trivial-clean-up-in-acct_isolated.patch
+mm-change-isolate-mode-from-define-to-bitwise-type.patch
+mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
+mm-compaction-make-isolate_lru_page-filter-aware.patch
+mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
+mm-migration-clean-up-unmap_and_move.patch
+vmscan-add-block-plug-for-page-reclaim.patch
+mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
+xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
+mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
+mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
+vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+mm-add-free_hot_cold_page_list-helper.patch
 
