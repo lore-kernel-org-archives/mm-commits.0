@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dio-optimize-cache-misses-in-the-submission-path-v2.patch added to -mm tree
-Date: Tue, 30 Aug 2011 16:51:47 -0700
-Message-ID: <201108302351.p7UNpltW026482@imap1.linux-foundation.org>
+Subject: + dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 30 Aug 2011 16:53:14 -0700
+Message-ID: <201108302353.p7UNrFw7026530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49966 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753759Ab1H3Xwg (ORCPT
+	by vger.kernel.org with ESMTP id S1753759Ab1H3Xxq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Aug 2011 19:52:36 -0400
+	Tue, 30 Aug 2011 19:53:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, axboe@kernel.dk, hch@lst.de, jmoyer@redhat.com
+Cc: akpm@linux-foundation.org, ak@linux.intel.com
 
 
 The patch titled
-     dio: optimize cache misses in the submission path
+     dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     dio-optimize-cache-misses-in-the-submission-path-v2.patch
+     dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,146 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dio: optimize cache misses in the submission path
-From: Andi Kleen <ak@linux.intel.com>
+Subject: dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Some investigation of a transaction processing workload showed that a
-major consumer of cycles in __blockdev_direct_IO is the cache miss while
-accessing the block size.  This is because it has to walk the chain from
-block_dev to gendisk to queue.
+ERROR: trailing whitespace
+#63: FILE: fs/direct-io.c:1109:
++^I/* $
 
-The block size is needed early on to check alignment and sizes.  It's only
-done if the check for the inode block size fails.  But the costly block
-device state is unconditionally fetched.
+ERROR: trailing whitespace
+#80: FILE: fs/direct-io.c:1127:
++^I^Iif (unlikely((addr & blocksize_mask) || $
 
-- Reorganize the code to only fetch block dev state when actually
-  needed.
+WARNING: suspect code indent for conditional statements (24, 33)
+#82: FILE: fs/direct-io.c:1129:
+ 			if (bdev)
++				 blkbits = blksize_bits(
 
-Then do a prefetch on the block dev early on in the direct IO path.  This
-is worth it, because there is substantial code run before we actually
-touch the block dev now.
+ERROR: trailing whitespace
+#99: FILE: fs/direct-io.c:1319:
++^Istruct block_device *bdev, const struct iovec *iov, loff_t offset, $
 
-- I also added some unlikelies to make it clear the compiler that block
-  device fetch code is not normally executed.
+ERROR: trailing whitespace
+#103: FILE: fs/direct-io.c:1323:
++^I/* $
 
-This gave a small, but measurable improvement on a large database
-benchmark (about 0.3%)
+ERROR: trailing whitespace
+#108: FILE: fs/direct-io.c:1328:
++^I * $
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Christoph Hellwig <hch@lst.de>
+total: 5 errors, 1 warnings, 80 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/dio-optimize-cache-misses-in-the-submission-path-v2.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   45 ++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 36 insertions(+), 9 deletions(-)
+ fs/direct-io.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/direct-io.c~dio-optimize-cache-misses-in-the-submission-path-v2 fs/direct-io.c
---- a/fs/direct-io.c~dio-optimize-cache-misses-in-the-submission-path-v2
+diff -puN fs/direct-io.c~dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes fs/direct-io.c
+--- a/fs/direct-io.c~dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes
 +++ a/fs/direct-io.c
-@@ -1084,8 +1084,8 @@ static inline int drop_refcount(struct d
-  * individual fields and will generate much worse code.
-  * This is important for the whole file.
-  */
--ssize_t
--__blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
-+static inline ssize_t
-+do_blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
- 	struct block_device *bdev, const struct iovec *iov, loff_t offset, 
- 	unsigned long nr_segs, get_block_t get_block, dio_iodone_t end_io,
- 	dio_submit_t submit_io,	int flags)
-@@ -1094,7 +1094,6 @@ __blockdev_direct_IO(int rw, struct kioc
- 	size_t size;
- 	unsigned long addr;
- 	unsigned blkbits = inode->i_blkbits;
--	unsigned bdev_blkbits = 0;
- 	unsigned blocksize_mask = (1 << blkbits) - 1;
- 	ssize_t retval = -EINVAL;
- 	loff_t end = offset;
-@@ -1107,12 +1106,14 @@ __blockdev_direct_IO(int rw, struct kioc
+@@ -1106,7 +1106,7 @@ do_blockdev_direct_IO(int rw, struct kio
  	if (rw & WRITE)
  		rw = WRITE_ODIRECT;
  
--	if (bdev)
--		bdev_blkbits = blksize_bits(bdev_logical_block_size(bdev));
-+	/* 
-+	 * Avoid references to bdev if not absolutely needed to give
-+	 * the early prefetch in the caller enough time.
-+	 */
- 
- 	if (offset & blocksize_mask) {
- 		if (bdev)
--			 blkbits = bdev_blkbits;
-+			blkbits = blksize_bits(bdev_logical_block_size(bdev));
- 		blocksize_mask = (1 << blkbits) - 1;
- 		if (offset & blocksize_mask)
- 			goto out;
-@@ -1123,11 +1124,13 @@ __blockdev_direct_IO(int rw, struct kioc
+-	/* 
++	/*
+ 	 * Avoid references to bdev if not absolutely needed to give
+ 	 * the early prefetch in the caller enough time.
+ 	 */
+@@ -1124,10 +1124,10 @@ do_blockdev_direct_IO(int rw, struct kio
  		addr = (unsigned long)iov[seg].iov_base;
  		size = iov[seg].iov_len;
  		end += size;
--		if ((addr & blocksize_mask) || (size & blocksize_mask))  {
-+		if (unlikely((addr & blocksize_mask) || 
-+			     (size & blocksize_mask)))  {
+-		if (unlikely((addr & blocksize_mask) || 
+-			     (size & blocksize_mask)))  {
++		if (unlikely((addr & blocksize_mask) ||
++			     (size & blocksize_mask))) {
  			if (bdev)
--				 blkbits = bdev_blkbits;
-+				 blkbits = blksize_bits(
-+					 bdev_logical_block_size(bdev));
+-				 blkbits = blksize_bits(
++				blkbits = blksize_bits(
+ 					 bdev_logical_block_size(bdev));
  			blocksize_mask = (1 << blkbits) - 1;
--			if ((addr & blocksize_mask) || (size & blocksize_mask))  
-+			if ((addr & blocksize_mask) || (size & blocksize_mask))
- 				goto out;
- 		}
- 	}
-@@ -1310,6 +1313,30 @@ __blockdev_direct_IO(int rw, struct kioc
- out:
- 	return retval;
- }
-+
-+ssize_t
-+__blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
-+	struct block_device *bdev, const struct iovec *iov, loff_t offset, 
-+	unsigned long nr_segs, get_block_t get_block, dio_iodone_t end_io,
-+	dio_submit_t submit_io,	int flags)
-+{
-+	/* 
-+	 * The block device state is needed in the end to finally
-+	 * submit everything.  Since it's likely to be cache cold
-+	 * prefetch it here as first thing to hide some of the
-+	 * latency.
-+	 * 
-+	 * Attempt to prefetch the pieces we likely need later.
-+	 */
-+	prefetch(&bdev->bd_disk->part_tbl);
-+	prefetch(bdev->bd_queue);
-+	prefetch((char *)bdev->bd_queue + SMP_CACHE_BYTES);
-+
-+	return do_blockdev_direct_IO(rw, iocb, inode, bdev, iov, offset,
-+				     nr_segs, get_block, end_io,
-+				     submit_io, flags);
-+}
-+
- EXPORT_SYMBOL(__blockdev_direct_IO);
+ 			if ((addr & blocksize_mask) || (size & blocksize_mask))
+@@ -1316,16 +1316,16 @@ out:
  
- static __init int dio_init(void)
+ ssize_t
+ __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+-	struct block_device *bdev, const struct iovec *iov, loff_t offset, 
++	struct block_device *bdev, const struct iovec *iov, loff_t offset,
+ 	unsigned long nr_segs, get_block_t get_block, dio_iodone_t end_io,
+ 	dio_submit_t submit_io,	int flags)
+ {
+-	/* 
++	/*
+ 	 * The block device state is needed in the end to finally
+ 	 * submit everything.  Since it's likely to be cache cold
+ 	 * prefetch it here as first thing to hide some of the
+ 	 * latency.
+-	 * 
++	 *
+ 	 * Attempt to prefetch the pieces we likely need later.
+ 	 */
+ 	prefetch(&bdev->bd_disk->part_tbl);
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
 linux-next.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
+block-document-blk-plug-fix.patch
+mm.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
 dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-fix-a-wrong-comment.patch
-dio-rearrange-fields-in-dio-dio_submit-to-avoid-holes.patch
-dio-use-a-slab-cache-for-struct-dio.patch
-dio-separate-map_bh-from-dio-v2.patch
-dio-inline-the-complete-submission-path-v2.patch
 dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io.patch
 dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-remove-unnecessary-dio-argument-from-dio_pages_present.patch
-dio-remove-unused-dio-parameter-from-dio_bio_add_page.patch
-vfs-cache-request_queue-in-struct-block_device.patch
-dio-optimize-cache-misses-in-the-submission-path-v2.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
