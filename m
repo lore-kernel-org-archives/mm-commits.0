@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-move-find_next_bito-from-lib-y-to-obj-y.patch added to -mm tree
-Date: Tue, 30 Aug 2011 12:26:04 -0700
-Message-ID: <201108301926.p7UJQ5Uc011370@imap1.linux-foundation.org>
+Subject: + drivers-rtc-rtc-imxdic-needs-linux-schedh.patch added to -mm tree
+Date: Tue, 30 Aug 2011 14:11:53 -0700
+Message-ID: <201108302111.p7ULBruF017444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45341 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754183Ab1H3T0r (ORCPT
+	by vger.kernel.org with ESMTP id S1756733Ab1H3VMb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Aug 2011 15:26:47 -0400
+	Tue, 30 Aug 2011 17:12:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, akinobu.mita@gmail.com, gerg@uclinux.org
+Cc: axel.lin@gmail.com, a.zummo@towertech.it, baruch@tkos.co.il, mcuos.com@gmail.com
 
 
 The patch titled
-     bitops: move find_next_bit.o from lib-y to obj-y
+     drivers/rtc/rtc-imxdi.c needs linux/sched.h
 has been added to the -mm tree.  Its filename is
-     bitops-move-find_next_bito-from-lib-y-to-obj-y.patch
+     drivers-rtc-rtc-imxdic-needs-linux-schedh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: move find_next_bit.o from lib-y to obj-y
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: drivers/rtc/rtc-imxdi.c needs linux/sched.h
+From: Axel Lin <axel.lin@gmail.com>
 
-If there are no builtin users of find_next_bit_le() and
-find_next_zero_bit_le(), these functions are not present in the kernel
-image, causing m68k allmodconfig to fail with:
+Include linux/sched.h to fix below build error.
 
-ERROR: "find_next_zero_bit_le" [fs/ufs/ufs.ko] undefined!
-ERROR: "find_next_bit_le" [fs/udf/udf.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/reiserfs/reiserfs.ko] undefined!
-ERROR: "find_next_bit_le" [fs/ocfs2/ocfs2.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/ocfs2/ocfs2.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/nilfs2/nilfs2.ko] undefined!
-ERROR: "find_next_bit_le" [fs/ext4/ext4.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/ext4/ext4.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/ext3/ext3.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/ext2/ext2.ko] undefined!
-ERROR: "find_next_zero_bit_le" [drivers/media/rc/ite-cir.ko] undefined!
-ERROR: "find_next_bit_le" [drivers/media/rc/ite-cir.ko] undefined!
-ERROR: "find_next_zero_bit_le" [drivers/md/dm-log.ko] undefined!
-ERROR: "find_next_bit_le" [drivers/block/drbd/drbd.ko] undefined!
-ERROR: "find_next_zero_bit_le" [drivers/block/drbd/drbd.ko] undefined!
+  CC      drivers/rtc/rtc-imxdi.o
+drivers/rtc/rtc-imxdi.c: In function 'di_write_wait':
+drivers/rtc/rtc-imxdi.c:168: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+drivers/rtc/rtc-imxdi.c:168: error: (Each undeclared identifier is reported only once
+drivers/rtc/rtc-imxdi.c:168: error: for each function it appears in.)
+drivers/rtc/rtc-imxdi.c:168: error: implicit declaration of function 'signal_pending'
+drivers/rtc/rtc-imxdi.c:168: error: implicit declaration of function 'schedule_timeout'
+drivers/rtc/rtc-imxdi.c: In function 'dryice_norm_irq':
+drivers/rtc/rtc-imxdi.c:329: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
 
-This started to happen after commit 171d809df1896 ("m68k: merge mmu and
-non-mmu bitops.h"), as m68k had its own inline versions before.
-
-commit 63e424c84429903 ("arch: remove
-CONFIG_GENERIC_FIND_{NEXT_BIT,BIT_LE,LAST_BIT}") added find_last_bit.o to
-obj-y (so it's always included), but find_next_bit.o to lib-y (so it gets
-removed by the linker if there are no builtin users).
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Baruch Siach <baruch@tkos.co.il>
+Cc: Wan ZongShun <mcuos.com@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-imxdi.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/Makefile~bitops-move-find_next_bito-from-lib-y-to-obj-y lib/Makefile
---- a/lib/Makefile~bitops-move-find_next_bito-from-lib-y-to-obj-y
-+++ a/lib/Makefile
-@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o md5.o irq_regs.o reciprocal_div.o argv_split.o \
- 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
--	 is_single_threaded.o plist.o decompress.o find_next_bit.o
-+	 is_single_threaded.o plist.o decompress.o
+diff -puN drivers/rtc/rtc-imxdi.c~drivers-rtc-rtc-imxdic-needs-linux-schedh drivers/rtc/rtc-imxdi.c
+--- a/drivers/rtc/rtc-imxdi.c~drivers-rtc-rtc-imxdic-needs-linux-schedh
++++ a/drivers/rtc/rtc-imxdi.c
+@@ -35,6 +35,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/rtc.h>
++#include <linux/sched.h>
+ #include <linux/workqueue.h>
  
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-@@ -22,7 +22,7 @@ lib-y	+= kobject.o kref.o klist.o
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
- 	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
--	 bsearch.o find_last_bit.o
-+	 bsearch.o find_last_bit.o find_next_bit.o
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
- 
+ /* DryIce Register Definitions */
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-bitops-move-find_next_bito-from-lib-y-to-obj-y.patch
+drivers-rtc-rtc-imxdic-needs-linux-schedh.patch
 linux-next.patch
-fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch
-lib-stringc-introduce-memchr_inv-fix-kernel-doc-for-memchr_inv.patch
-include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro.patch
+leds-renesas-tpu-led-driver-v2-fix.patch
 
