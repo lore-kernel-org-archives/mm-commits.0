@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 30 Aug 2011 16:47:24 -0700
-Message-ID: <201108302347.p7UNlPiJ026199@imap1.linux-foundation.org>
+Subject: + dio-fix-a-wrong-comment.patch added to -mm tree
+Date: Tue, 30 Aug 2011 16:47:33 -0700
+Message-ID: <201108302347.p7UNlXKe026207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753704Ab1H3Xr4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753704Ab1H3XsO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Aug 2011 19:47:56 -0400
+	Tue, 30 Aug 2011 19:48:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com
+Cc: ak@linux.intel.com, axboe@kernel.dk, hch@lst.de, jmoyer@redhat.com
 
 
 The patch titled
-     dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes
+     dio: fix a wrong comment
 has been added to the -mm tree.  Its filename is
-     dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+     dio-fix-a-wrong-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,185 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dio: fix a wrong comment
+From: Andi Kleen <ak@linux.intel.com>
 
-ERROR: trailing whitespace
-#85: FILE: fs/direct-io.c:71:
-+^Iint pages_in_io;^I^I/* approximate total IO pages */^I$
+There's nothing on the stack, even before my changes.
 
-ERROR: trailing whitespace
-#95: FILE: fs/direct-io.c:81:
-+^Idio_submit_t *submit_io;^I/* IO submition function */^I$
-
-ERROR: trailing whitespace
-#103: FILE: fs/direct-io.c:87:
-+^I$
-
-ERROR: trailing whitespace
-#162: FILE: fs/direct-io.c:143:
-+^Istruct page *pages[DIO_PAGES];^I/* page buffer */^I$
-
-WARNING: line over 80 characters
-#171: FILE: fs/direct-io.c:193:
-+static inline unsigned dio_pages_present(struct dio *dio, struct dio_submit *sdio)
-
-ERROR: trailing whitespace
-#394: FILE: fs/direct-io.c:630:
-+static int dio_new_bio(struct dio *dio, struct dio_submit *sdio, $
-
-ERROR: space prohibited after that open parenthesis '('
-#525: FILE: fs/direct-io.c:773:
-+	if (	(sdio->cur_page == page) &&
-
-ERROR: trailing whitespace
-#612: FILE: fs/direct-io.c:866:
-+^Iif (submit_page_section(dio, sdio, page, 0, this_chunk_bytes, $
-
-WARNING: line over 80 characters
-#696: FILE: fs/direct-io.c:954:
-+					sdio->next_block_for_io += dio_remainder;
-
-WARNING: line over 80 characters
-#748: FILE: fs/direct-io.c:1010:
-+			ret = submit_page_section(dio, sdio, page, offset_in_page,
-
-WARNING: line over 80 characters
-#765: FILE: fs/direct-io.c:1022:
-+			BUG_ON(sdio->block_in_file > sdio->final_block_in_request);
-
-total: 7 errors, 4 warnings, 817 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/dio-separate-fields-only-used-in-the-submission-path-from-struct-dio.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/direct-io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/direct-io.c~dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes fs/direct-io.c
---- a/fs/direct-io.c~dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes
+diff -puN fs/direct-io.c~dio-fix-a-wrong-comment fs/direct-io.c
+--- a/fs/direct-io.c~dio-fix-a-wrong-comment
 +++ a/fs/direct-io.c
-@@ -68,7 +68,7 @@ struct dio_submit {
- 	unsigned start_zero_done;	/* flag: sub-blocksize zeroing has
- 					   been performed at the start of a
- 					   write */
--	int pages_in_io;		/* approximate total IO pages */	
-+	int pages_in_io;		/* approximate total IO pages */
- 	size_t	size;			/* total request size (doesn't change)*/
- 	sector_t block_in_file;		/* Current offset into the underlying
- 					   file in dio_block units. */
-@@ -78,13 +78,13 @@ struct dio_submit {
- 	int boundary;			/* prev block is at a boundary */
- 	int reap_counter;		/* rate limit reaping */
- 	get_block_t *get_block;		/* block mapping function */
--	dio_submit_t *submit_io;	/* IO submition function */	
-+	dio_submit_t *submit_io;	/* IO submition function */
+@@ -39,7 +39,7 @@
  
- 	loff_t logical_offset_in_bio;	/* current first logical block in bio */
- 	sector_t final_block_in_bio;	/* current final block in bio + 1 */
- 	sector_t next_block_for_io;	/* next block to be put under IO,
- 					   in dio_blocks units */
--	
-+
- 	/*
- 	 * Deferred addition of a page to the dio.  These variables are
- 	 * private to dio_send_cur_page(), submit_page_section() and
-@@ -140,7 +140,7 @@ struct dio {
- 	 * allocation time.  Don't add new fields after pages[] unless you
- 	 * wish that they not be zeroed.
- 	 */
--	struct page *pages[DIO_PAGES];	/* page buffer */	
-+	struct page *pages[DIO_PAGES];	/* page buffer */
- };
- 
- static void __inode_dio_wait(struct inode *inode)
-@@ -627,7 +627,7 @@ static int get_more_blocks(struct dio *d
  /*
-  * There is no bio.  Make one now.
+  * How many user pages to map in one call to get_user_pages().  This determines
+- * the size of a structure on the stack.
++ * the size of a structure in the slab cache
   */
--static int dio_new_bio(struct dio *dio, struct dio_submit *sdio, 
-+static int dio_new_bio(struct dio *dio, struct dio_submit *sdio,
- 		       sector_t start_sector)
- {
- 	sector_t sector;
-@@ -770,7 +770,7 @@ submit_page_section(struct dio *dio, str
- 	/*
- 	 * Can we just grow the current page's presence in the dio?
- 	 */
--	if (	(sdio->cur_page == page) &&
-+	if ((sdio->cur_page == page) &&
- 		(sdio->cur_page_offset + sdio->cur_page_len == offset) &&
- 		(sdio->cur_page_block +
- 			(sdio->cur_page_len >> sdio->blkbits) == blocknr)) {
-@@ -863,7 +863,7 @@ static void dio_zero_block(struct dio *d
- 	this_chunk_bytes = this_chunk_blocks << sdio->blkbits;
- 
- 	page = ZERO_PAGE(0);
--	if (submit_page_section(dio, sdio, page, 0, this_chunk_bytes, 
-+	if (submit_page_section(dio, sdio, page, 0, this_chunk_bytes,
- 				sdio->next_block_for_io))
- 		return;
+ #define DIO_PAGES	64
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
-block-document-blk-plug-fix.patch
-mm.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-nbd-replace-some-printk-with-dev_warn-and-dev_info-checkpatch-fixes.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio.patch
 dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+dio-fix-a-wrong-comment.patch
+dio-rearrange-fields-in-dio-dio_submit-to-avoid-holes.patch
+dio-use-a-slab-cache-for-struct-dio.patch
+dio-separate-map_bh-from-dio-v2.patch
+dio-inline-the-complete-submission-path-v2.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io.patch
+dio-remove-unnecessary-dio-argument-from-dio_pages_present.patch
+dio-remove-unused-dio-parameter-from-dio_bio_add_page.patch
+vfs-cache-request_queue-in-struct-block_device.patch
+dio-optimize-cache-misses-in-the-submission-path-v2.patch
 
