@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 30 Aug 2011 16:49:44 -0700
-Message-ID: <201108302349.p7UNniBH026318@imap1.linux-foundation.org>
+Subject: + dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 30 Aug 2011 16:50:48 -0700
+Message-ID: <201108302350.p7UNon9E026382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45785 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753704Ab1H3XuL (ORCPT
+	by vger.kernel.org with ESMTP id S1753704Ab1H3XvS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Aug 2011 19:50:11 -0400
+	Tue, 30 Aug 2011 19:51:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, ak@linux.intel.com
 
 
 The patch titled
-     dio-inline-the-complete-submission-path-v2-checkpatch-fixes
+     dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+     dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dio-inline-the-complete-submission-path-v2-checkpatch-fixes
+Subject: dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#46: FILE: fs/direct-io.c:248:
-+static inline struct page *dio_get_page(struct dio *dio, struct dio_submit *sdio)
+ERROR: trailing whitespace
+#180: FILE: fs/direct-io.c:1103:
++^Iunsigned long user_addr; $
 
-ERROR: inline keyword should sit between storage class and type
-#55: FILE: fs/direct-io.c:379:
-+static void inline
+ERROR: need consistent spacing around '+' (ctx:WxV)
+#223: FILE: fs/direct-io.c:1213:
++			((user_addr+iov[seg].iov_len +PAGE_SIZE-1)/PAGE_SIZE
+ 			                             ^
 
 ERROR: trailing whitespace
-#91: FILE: fs/direct-io.c:634:
-+static inline int dio_new_bio(struct dio *dio, struct dio_submit *sdio, $
+#247: FILE: fs/direct-io.c:1237:
++^I$
 
-ERROR: code indent should use tabs where possible
-#111: FILE: fs/direct-io.c:693:
-+^I  ^I^I    ^I    struct buffer_head *map_bh)$
-
-WARNING: please, no space before tabs
-#111: FILE: fs/direct-io.c:693:
-+^I  ^I^I    ^I    struct buffer_head *map_bh)$
-
-WARNING: line over 80 characters
-#129: FILE: fs/direct-io.c:845:
-+static inline void dio_zero_block(struct dio *dio, struct dio_submit *sdio, int end,
-
-ERROR: trailing whitespace
-#146: FILE: fs/direct-io.c:1216:
-+ * $
-
-ERROR: trailing whitespace
-#149: FILE: fs/direct-io.c:1219:
-+ * individual fields and will generate much worse code. $
-
-total: 5 errors, 3 warnings, 109 lines checked
+total: 3 errors, 0 warnings, 297 lines checked
 
 NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
       scripts/cleanfile
 
-./patches/dio-inline-the-complete-submission-path-v2.patch has style problems, please review.
+./patches/dio-merge-direct_io_walker-into-__blockdev_direct_io.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -85,56 +66,39 @@ Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ fs/direct-io.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/direct-io.c~dio-inline-the-complete-submission-path-v2-checkpatch-fixes fs/direct-io.c
---- a/fs/direct-io.c~dio-inline-the-complete-submission-path-v2-checkpatch-fixes
+diff -puN fs/direct-io.c~dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes fs/direct-io.c
+--- a/fs/direct-io.c~dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
 +++ a/fs/direct-io.c
-@@ -376,10 +376,8 @@ void dio_end_io(struct bio *bio, int err
- }
- EXPORT_SYMBOL_GPL(dio_end_io);
+@@ -1100,7 +1100,7 @@ __blockdev_direct_IO(int rw, struct kioc
+ 	loff_t end = offset;
+ 	struct dio *dio;
+ 	struct dio_submit sdio = { 0, };
+-	unsigned long user_addr; 
++	unsigned long user_addr;
+ 	size_t bytes;
+ 	struct buffer_head map_bh = { 0, };
  
--static void inline
--dio_bio_alloc(struct dio *dio, struct dio_submit *sdio,
--	      struct block_device *bdev,
--	      sector_t first_sector, int nr_vecs)
-+static inline void dio_bio_alloc(struct dio *dio, struct dio_submit *sdio,
-+	      	struct block_device *bdev, sector_t first_sector, int nr_vecs)
- {
- 	struct bio *bio;
+@@ -1210,7 +1210,7 @@ __blockdev_direct_IO(int rw, struct kioc
+ 	for (seg = 0; seg < nr_segs; seg++) {
+ 		user_addr = (unsigned long)iov[seg].iov_base;
+ 		sdio.pages_in_io +=
+-			((user_addr+iov[seg].iov_len +PAGE_SIZE-1)/PAGE_SIZE
++			((user_addr+iov[seg].iov_len + PAGE_SIZE - 1)/PAGE_SIZE
+ 				- user_addr/PAGE_SIZE);
+ 	}
  
-@@ -631,7 +629,7 @@ static int get_more_blocks(struct dio *d
- /*
-  * There is no bio.  Make one now.
-  */
--static inline int dio_new_bio(struct dio *dio, struct dio_submit *sdio, 
-+static inline int dio_new_bio(struct dio *dio, struct dio_submit *sdio,
- 		       sector_t start_sector, struct buffer_head *map_bh)
- {
- 	sector_t sector;
-@@ -690,7 +688,7 @@ static inline int dio_bio_add_page(struc
-  * dio, and for dropping the refcount which came from that presence.
-  */
- static inline int dio_send_cur_page(struct dio *dio, struct dio_submit *sdio,
--	  		    	    struct buffer_head *map_bh)
-+				    struct buffer_head *map_bh)
- {
- 	int ret = 0;
+@@ -1234,7 +1234,7 @@ __blockdev_direct_IO(int rw, struct kioc
+ 		}
+ 		sdio.total_pages += (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+ 		sdio.curr_user_address = user_addr;
+-	
++
+ 		retval = do_direct_IO(dio, &sdio, &map_bh);
  
-@@ -1213,10 +1211,10 @@ direct_io_worker(int rw, struct kiocb *i
-  * expected that filesystem provide exclusion between new direct I/O
-  * and truncates.  For DIO_LOCKING filesystems this is done by i_mutex,
-  * but other filesystems need to take care of this on their own.
-- * 
-+ *
-  * NOTE: if you pass "sdio" to anything by pointer make sure that function
-  * is always inlined. Otherwise gcc is unable to split the structure into
-- * individual fields and will generate much worse code. 
-+ * individual fields and will generate much worse code.
-  * This is important for the whole file.
-  */
- ssize_t
+ 		dio->result += iov[seg].iov_len -
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -181,6 +145,7 @@ memstick-add-support-for-legacy-memorysticks-fix.patch
 kexec-remove-kmsg_dump_kexec.patch
 dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
 dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
 journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
