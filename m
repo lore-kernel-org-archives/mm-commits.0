@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch added to -mm tree
-Date: Wed, 31 Aug 2011 14:12:50 -0700
-Message-ID: <201108312112.p7VLCpLc026867@imap1.linux-foundation.org>
+Subject: + mm-vmallocc-report-more-vmalloc-failures.patch added to -mm tree
+Date: Wed, 31 Aug 2011 14:17:00 -0700
+Message-ID: <201108312117.p7VLH0oa027030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55820 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755534Ab1HaVNl (ORCPT
+	by vger.kernel.org with ESMTP id S1755349Ab1HaVRy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Aug 2011 17:13:41 -0400
+	Wed, 31 Aug 2011 17:17:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, andy.grover@oracle.com, chris.mason@oracle.com, davem@davemloft.net
+Cc: joe@perches.com
 
 
 The patch titled
-     net/rds: replace xlist in net/rds/xlist.h with llist
+     mm/vmalloc.c: report more vmalloc failures
 has been added to the -mm tree.  Its filename is
-     net-rds-replace-xlist-in-net-rds-xlisth-with-llist.patch
+     mm-vmallocc-report-more-vmalloc-failures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,342 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/rds: replace xlist in net/rds/xlist.h with llist
-From: Huang Ying <ying.huang@intel.com>
+Subject: mm/vmalloc.c: report more vmalloc failures
+From: Joe Perches <joe@perches.com>
 
-The functionality of xlist and llist are almost the same.  Replace xlist
-with llist to avoid code duplication.
+Some vmalloc failure paths do not report OOM conditions.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Andy Grover <andy.grover@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Add warn_alloc_failed, which also does a dump_stack, to those failure
+paths.
+
+This allows more site specific vmalloc failure logging message printks to
+be removed.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/rds/Kconfig   |    1 
- net/rds/ib_rdma.c |  112 ++++++++++++++++++++------------------------
- net/rds/xlist.h   |   80 -------------------------------
- 3 files changed, 52 insertions(+), 141 deletions(-)
+ mm/vmalloc.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN net/rds/Kconfig~net-rds-replace-xlist-in-net-rds-xlisth-with-llist net/rds/Kconfig
---- a/net/rds/Kconfig~net-rds-replace-xlist-in-net-rds-xlisth-with-llist
-+++ a/net/rds/Kconfig
-@@ -9,6 +9,7 @@ config RDS
+diff -puN mm/vmalloc.c~mm-vmallocc-report-more-vmalloc-failures mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-report-more-vmalloc-failures
++++ a/mm/vmalloc.c
+@@ -1625,13 +1625,12 @@ void *__vmalloc_node_range(unsigned long
  
- config RDS_RDMA
- 	tristate "RDS over Infiniband and iWARP"
-+	select LLIST
- 	depends on RDS && INFINIBAND && INFINIBAND_ADDR_TRANS
- 	---help---
- 	  Allow RDS to use Infiniband and iWARP as a transport.
-diff -puN net/rds/ib_rdma.c~net-rds-replace-xlist-in-net-rds-xlisth-with-llist net/rds/ib_rdma.c
---- a/net/rds/ib_rdma.c~net-rds-replace-xlist-in-net-rds-xlisth-with-llist
-+++ a/net/rds/ib_rdma.c
-@@ -33,10 +33,10 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/rculist.h>
-+#include <linux/llist.h>
- 
- #include "rds.h"
- #include "ib.h"
--#include "xlist.h"
- 
- static DEFINE_PER_CPU(unsigned long, clean_list_grace);
- #define CLEAN_LIST_BUSY_BIT 0
-@@ -49,7 +49,7 @@ struct rds_ib_mr {
- 	struct rds_ib_mr_pool	*pool;
- 	struct ib_fmr		*fmr;
- 
--	struct xlist_head	xlist;
-+	struct llist_node	llnode;
- 
- 	/* unmap_list is for freeing */
- 	struct list_head	unmap_list;
-@@ -71,9 +71,9 @@ struct rds_ib_mr_pool {
- 	atomic_t		item_count;		/* total # of MRs */
- 	atomic_t		dirty_count;		/* # dirty of MRs */
- 
--	struct xlist_head	drop_list;		/* MRs that have reached their max_maps limit */
--	struct xlist_head	free_list;		/* unused MRs */
--	struct xlist_head	clean_list;		/* global unused & unamapped MRs */
-+	struct llist_head	drop_list;		/* MRs that have reached their max_maps limit */
-+	struct llist_head	free_list;		/* unused MRs */
-+	struct llist_head	clean_list;		/* global unused & unamapped MRs */
- 	wait_queue_head_t	flush_wait;
- 
- 	atomic_t		free_pinned;		/* memory pinned by free MRs */
-@@ -220,9 +220,9 @@ struct rds_ib_mr_pool *rds_ib_create_mr_
- 	if (!pool)
- 		return ERR_PTR(-ENOMEM);
- 
--	INIT_XLIST_HEAD(&pool->free_list);
--	INIT_XLIST_HEAD(&pool->drop_list);
--	INIT_XLIST_HEAD(&pool->clean_list);
-+	init_llist_head(&pool->free_list);
-+	init_llist_head(&pool->drop_list);
-+	init_llist_head(&pool->clean_list);
- 	mutex_init(&pool->flush_lock);
- 	init_waitqueue_head(&pool->flush_wait);
- 	INIT_DELAYED_WORK(&pool->flush_worker, rds_ib_mr_pool_flush_worker);
-@@ -260,26 +260,18 @@ void rds_ib_destroy_mr_pool(struct rds_i
- 	kfree(pool);
- }
- 
--static void refill_local(struct rds_ib_mr_pool *pool, struct xlist_head *xl,
--			 struct rds_ib_mr **ibmr_ret)
--{
--	struct xlist_head *ibmr_xl;
--	ibmr_xl = xlist_del_head_fast(xl);
--	*ibmr_ret = list_entry(ibmr_xl, struct rds_ib_mr, xlist);
--}
--
- static inline struct rds_ib_mr *rds_ib_reuse_fmr(struct rds_ib_mr_pool *pool)
- {
- 	struct rds_ib_mr *ibmr = NULL;
--	struct xlist_head *ret;
-+	struct llist_node *ret;
- 	unsigned long *flag;
- 
- 	preempt_disable();
- 	flag = &__get_cpu_var(clean_list_grace);
- 	set_bit(CLEAN_LIST_BUSY_BIT, flag);
--	ret = xlist_del_head(&pool->clean_list);
-+	ret = llist_del_first(&pool->clean_list);
- 	if (ret)
--		ibmr = list_entry(ret, struct rds_ib_mr, xlist);
-+		ibmr = llist_entry(ret, struct rds_ib_mr, llnode);
- 
- 	clear_bit(CLEAN_LIST_BUSY_BIT, flag);
- 	preempt_enable();
-@@ -529,46 +521,44 @@ static inline unsigned int rds_ib_flush_
- }
- 
- /*
-- * given an xlist of mrs, put them all into the list_head for more processing
-+ * given an llist of mrs, put them all into the list_head for more processing
-  */
--static void xlist_append_to_list(struct xlist_head *xlist, struct list_head *list)
-+static void llist_append_to_list(struct llist_head *llist, struct list_head *list)
- {
- 	struct rds_ib_mr *ibmr;
--	struct xlist_head splice;
--	struct xlist_head *cur;
--	struct xlist_head *next;
--
--	splice.next = NULL;
--	xlist_splice(xlist, &splice);
--	cur = splice.next;
--	while (cur) {
--		next = cur->next;
--		ibmr = list_entry(cur, struct rds_ib_mr, xlist);
-+	struct llist_node *node;
-+	struct llist_node *next;
-+
-+	node = llist_del_all(llist);
-+	while (node) {
-+		next = node->next;
-+		ibmr = llist_entry(node, struct rds_ib_mr, llnode);
- 		list_add_tail(&ibmr->unmap_list, list);
--		cur = next;
-+		node = next;
- 	}
- }
- 
- /*
-- * this takes a list head of mrs and turns it into an xlist of clusters.
-- * each cluster has an xlist of MR_CLUSTER_SIZE mrs that are ready for
-- * reuse.
-+ * this takes a list head of mrs and turns it into linked llist nodes
-+ * of clusters.  Each cluster has linked llist nodes of
-+ * MR_CLUSTER_SIZE mrs that are ready for reuse.
-  */
--static void list_append_to_xlist(struct rds_ib_mr_pool *pool,
--				struct list_head *list, struct xlist_head *xlist,
--				struct xlist_head **tail_ret)
-+static void list_to_llist_nodes(struct rds_ib_mr_pool *pool,
-+				struct list_head *list,
-+				struct llist_node **nodes_head,
-+				struct llist_node **nodes_tail)
- {
- 	struct rds_ib_mr *ibmr;
--	struct xlist_head *cur_mr = xlist;
--	struct xlist_head *tail_mr = NULL;
-+	struct llist_node *cur = NULL;
-+	struct llist_node **next = nodes_head;
- 
- 	list_for_each_entry(ibmr, list, unmap_list) {
--		tail_mr = &ibmr->xlist;
--		tail_mr->next = NULL;
--		cur_mr->next = tail_mr;
--		cur_mr = tail_mr;
-+		cur = &ibmr->llnode;
-+		*next = cur;
-+		next = &cur->next;
- 	}
--	*tail_ret = tail_mr;
-+	*next = NULL;
-+	*nodes_tail = cur;
- }
- 
- /*
-@@ -581,8 +571,8 @@ static int rds_ib_flush_mr_pool(struct r
- 			        int free_all, struct rds_ib_mr **ibmr_ret)
- {
- 	struct rds_ib_mr *ibmr, *next;
--	struct xlist_head clean_xlist;
--	struct xlist_head *clean_tail;
-+	struct llist_node *clean_nodes;
-+	struct llist_node *clean_tail;
- 	LIST_HEAD(unmap_list);
- 	LIST_HEAD(fmr_list);
- 	unsigned long unpinned = 0;
-@@ -603,7 +593,7 @@ static int rds_ib_flush_mr_pool(struct r
- 
- 			prepare_to_wait(&pool->flush_wait, &wait,
- 					TASK_UNINTERRUPTIBLE);
--			if (xlist_empty(&pool->clean_list))
-+			if (llist_empty(&pool->clean_list))
- 				schedule();
- 
- 			ibmr = rds_ib_reuse_fmr(pool);
-@@ -628,10 +618,10 @@ static int rds_ib_flush_mr_pool(struct r
- 	/* Get the list of all MRs to be dropped. Ordering matters -
- 	 * we want to put drop_list ahead of free_list.
- 	 */
--	xlist_append_to_list(&pool->drop_list, &unmap_list);
--	xlist_append_to_list(&pool->free_list, &unmap_list);
-+	llist_append_to_list(&pool->drop_list, &unmap_list);
-+	llist_append_to_list(&pool->free_list, &unmap_list);
- 	if (free_all)
--		xlist_append_to_list(&pool->clean_list, &unmap_list);
-+		llist_append_to_list(&pool->clean_list, &unmap_list);
- 
- 	free_goal = rds_ib_flush_goal(pool, free_all);
- 
-@@ -663,22 +653,22 @@ static int rds_ib_flush_mr_pool(struct r
- 	if (!list_empty(&unmap_list)) {
- 		/* we have to make sure that none of the things we're about
- 		 * to put on the clean list would race with other cpus trying
--		 * to pull items off.  The xlist would explode if we managed to
-+		 * to pull items off.  The llist would explode if we managed to
- 		 * remove something from the clean list and then add it back again
--		 * while another CPU was spinning on that same item in xlist_del_head.
-+		 * while another CPU was spinning on that same item in llist_del_first.
- 		 *
--		 * This is pretty unlikely, but just in case  wait for an xlist grace period
-+		 * This is pretty unlikely, but just in case  wait for an llist grace period
- 		 * here before adding anything back into the clean list.
- 		 */
- 		wait_clean_list_grace();
- 
--		list_append_to_xlist(pool, &unmap_list, &clean_xlist, &clean_tail);
-+		list_to_llist_nodes(pool, &unmap_list, &clean_nodes, &clean_tail);
- 		if (ibmr_ret)
--			refill_local(pool, &clean_xlist, ibmr_ret);
-+			*ibmr_ret = llist_entry(clean_nodes, struct rds_ib_mr, llnode);
- 
--		/* refill_local may have emptied our list */
--		if (!xlist_empty(&clean_xlist))
--			xlist_add(clean_xlist.next, clean_tail, &pool->clean_list);
-+		/* more than one entry in llist nodes */
-+		if (clean_nodes->next)
-+			llist_add_batch(clean_nodes->next, clean_tail, &pool->clean_list);
- 
- 	}
- 
-@@ -711,9 +701,9 @@ void rds_ib_free_mr(void *trans_private,
- 
- 	/* Return it to the pool's free list */
- 	if (ibmr->remap_count >= pool->fmr_attr.max_maps)
--		xlist_add(&ibmr->xlist, &ibmr->xlist, &pool->drop_list);
-+		llist_add(&ibmr->llnode, &pool->drop_list);
- 	else
--		xlist_add(&ibmr->xlist, &ibmr->xlist, &pool->free_list);
-+		llist_add(&ibmr->llnode, &pool->free_list);
- 
- 	atomic_add(ibmr->sg_len, &pool->free_pinned);
- 	atomic_inc(&pool->dirty_count);
-diff -puN net/rds/xlist.h~net-rds-replace-xlist-in-net-rds-xlisth-with-llist /dev/null
---- a/net/rds/xlist.h
-+++ /dev/null
-@@ -1,80 +0,0 @@
--#ifndef _LINUX_XLIST_H
--#define _LINUX_XLIST_H
--
--#include <linux/stddef.h>
--#include <linux/poison.h>
--#include <linux/prefetch.h>
--#include <asm/system.h>
--
--struct xlist_head {
--	struct xlist_head *next;
--};
--
--static inline void INIT_XLIST_HEAD(struct xlist_head *list)
--{
--	list->next = NULL;
--}
--
--static inline int xlist_empty(struct xlist_head *head)
--{
--	return head->next == NULL;
--}
--
--static inline void xlist_add(struct xlist_head *new, struct xlist_head *tail,
--			     struct xlist_head *head)
--{
--	struct xlist_head *cur;
--	struct xlist_head *check;
--
--	while (1) {
--		cur = head->next;
--		tail->next = cur;
--		check = cmpxchg(&head->next, cur, new);
--		if (check == cur)
--			break;
--	}
--}
--
--static inline struct xlist_head *xlist_del_head(struct xlist_head *head)
--{
--	struct xlist_head *cur;
--	struct xlist_head *check;
--	struct xlist_head *next;
--
--	while (1) {
--		cur = head->next;
--		if (!cur)
--			goto out;
--
--		next = cur->next;
--		check = cmpxchg(&head->next, cur, next);
--		if (check == cur)
--			goto out;
--	}
--out:
--	return cur;
--}
--
--static inline struct xlist_head *xlist_del_head_fast(struct xlist_head *head)
--{
--	struct xlist_head *cur;
--
--	cur = head->next;
--	if (!cur)
+ 	size = PAGE_ALIGN(size);
+ 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
 -		return NULL;
++		goto fail;
+ 
+ 	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNLIST,
+ 				  start, end, node, gfp_mask, caller);
 -
--	head->next = cur->next;
--	return cur;
--}
--
--static inline void xlist_splice(struct xlist_head *list,
--				struct xlist_head *head)
--{
--	struct xlist_head *cur;
--
--	WARN_ON(head->next);
--	cur = xchg(&list->next, NULL);
--	head->next = cur;
--}
+ 	if (!area)
+-		return NULL;
++		goto fail;
+ 
+ 	addr = __vmalloc_area_node(area, gfp_mask, prot, node, caller);
+ 
+@@ -1649,6 +1648,12 @@ void *__vmalloc_node_range(unsigned long
+ 	kmemleak_alloc(addr, real_size, 3, gfp_mask);
+ 
+ 	return addr;
++
++fail:
++	warn_alloc_failed(gfp_mask, 0,
++			  "vmalloc: allocation failure: %lu bytes\n",
++			  real_size);
++	return NULL;
+ }
+ 
+ /**
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+linux-next.patch
+maintainers-update-bna-10g-maintainer.patch
+mm-neaten-warn_alloc_failed.patch
+mm-neaten-warn_alloc_failed-fix.patch
+mm-vmallocc-report-more-vmalloc-failures.patch
+treewide-use-__printf-not-__attribute__formatprintf.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+kernelh-checkpatch-mark-strict_strtofoo-and-simple_strtofoo-as-obsolete.patch
+
