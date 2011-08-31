@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-skip-scanning-active-lists-based-on-individual-size-fix.patch added to -mm tree
-Date: Wed, 31 Aug 2011 16:34:29 -0700
-Message-ID: <201108312334.p7VNYTGY001864@imap1.linux-foundation.org>
+Subject: + tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals.patch added to -mm tree
+Date: Wed, 31 Aug 2011 16:43:14 -0700
+Message-ID: <201108312343.p7VNhEt2002341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753975Ab1HaXfL (ORCPT
+	by vger.kernel.org with ESMTP id S1755796Ab1HaXoL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Aug 2011 19:35:11 -0400
+	Wed, 31 Aug 2011 19:44:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jweiner@redhat.com, minchan.kim@gmail.com
+Cc: utdilya@mail.ru, alan@lxorguk.ukuu.org.uk, aneesh.kumar@linux.vnet.ibm.com, greg@kroah.com, hirofumi@mail.parknet.co.jp, torvalds@linux-foundation.org
 
 
 The patch titled
-     memcg-skip-scanning-active-lists-based-on-individual-size-fix
+     tty: make ppp_synctty and hdlc work with pseudo terminals
 has been added to the -mm tree.  Its filename is
-     memcg-skip-scanning-active-lists-based-on-individual-size-fix.patch
+     tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-skip-scanning-active-lists-based-on-individual-size-fix
-From: Johannes Weiner <jweiner@redhat.com>
+Subject: tty: make ppp_synctty and hdlc work with pseudo terminals
+From: ilya <utdilya@mail.ru>
 
-Also ditch the documentation note for the removed stats value.
+Taken from https://bugzilla.kernel.org/show_bug.cgi?id=40482.
 
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+If frames are sent very fast from one side(master/slave) to other one,
+the frames merge in one (merge point "flip buffer") and the other side can read
+only one big frame. But sync line disciplines need one frame in one read.
+
+To push one frame to ldisc I propose this small patch.  It fixes a
+regression introduced by commit e043e42bdb6 ("pty: avoid forcing
+'low_latency' tty flag").
+
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/tty/pty.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-skip-scanning-active-lists-based-on-individual-size-fix Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-skip-scanning-active-lists-based-on-individual-size-fix
-+++ a/Documentation/cgroups/memory.txt
-@@ -418,7 +418,6 @@ total_unevictable	- sum of all children'
- 
- # The following additional stats are dependent on CONFIG_DEBUG_VM.
- 
--inactive_ratio		- VM internal parameter. (see mm/page_alloc.c)
- recent_rotated_anon	- VM internal parameter. (see mm/vmscan.c)
- recent_rotated_file	- VM internal parameter. (see mm/vmscan.c)
- recent_scanned_anon	- VM internal parameter. (see mm/vmscan.c)
+diff -puN drivers/tty/pty.c~tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals drivers/tty/pty.c
+--- a/drivers/tty/pty.c~tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals
++++ a/drivers/tty/pty.c
+@@ -221,6 +221,7 @@ static int pty_open(struct tty_struct *t
+ 	clear_bit(TTY_OTHER_CLOSED, &tty->link->flags);
+ 	set_bit(TTY_THROTTLED, &tty->flags);
+ 	retval = 0;
++	tty->low_latency = 1;
+ out:
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from jweiner@redhat.com are
+Patches currently in -mm which might be from utdilya@mail.ru are
 
-mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
-mm-page-writebackc-document-bdi_min_ratio.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
-xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
-mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
-mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-compaction-compact-unevictable-pages.patch
-mm-compaction-accounting-fix.patch
-memcg-remove-unneeded-preempt_disable.patch
-memcg-skip-scanning-active-lists-based-on-individual-size.patch
-memcg-skip-scanning-active-lists-based-on-individual-size-fix.patch
+tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals.patch
 
