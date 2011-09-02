@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-powerpc-sysdev-fsl_rioc-release-rapidio-port-i-o-region-resource-if-port-failed-to-initialize.patch added to -mm tree
-Date: Fri, 02 Sep 2011 16:16:15 -0700
-Message-ID: <201109022316.p82NGFiW016321@imap1.linux-foundation.org>
+Subject: + cris-lower-the-printk-level-in-cris-serial-driver.patch added to -mm tree
+Date: Fri, 02 Sep 2011 16:25:15 -0700
+Message-ID: <201109022325.p82NPFr2016704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756500Ab1IBXQb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 19:16:31 -0400
+	by vger.kernel.org with ESMTP id S1750724Ab1IBXZ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 19:25:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Gang.Liu@freescale.com, alexandre.bounine@idt.com, benh@kernel.crashing.org, grant.likely@secretlab.ca, paulus@samba.org
+Cc: xiyou.wangcong@gmail.com, geert@linux-m68k.org, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     arch/powerpc/sysdev/fsl_rio.c: release rapidio port I/O region resource if port failed to initialize
+     cris: lower the printk level in cris serial driver
 has been added to the -mm tree.  Its filename is
-     arch-powerpc-sysdev-fsl_rioc-release-rapidio-port-i-o-region-resource-if-port-failed-to-initialize.patch
+     cris-lower-the-printk-level-in-cris-serial-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/sysdev/fsl_rio.c: release rapidio port I/O region resource if port failed to initialize
-From: Liu Gang <Gang.Liu@freescale.com>
+Subject: cris: lower the printk level in cris serial driver
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-The "struct rio_mport" contains a member of master port I/O memory
-resource structure "struct resource iores".  This resource will be read
-from device tree and be used for rapidio R/W transaction memory space. 
-Rapidio requests the port I/O memory resource under the root resource
-"iomem_resource".
+KERN_CRIT is too high, replace those KERN_CRIT with KERN_ERR or
+KERN_WARNING.
 
-			struct rio_mport *port;
-			port = kzalloc(sizeof(struct rio_mport), GFP_KERNEL);
-
-			request_resource(&iomem_resource, &port->iores);
-
-When port failed to initialize, allocated "rio_mport" structure memory
-will be freed, and the port I/O memory resource structure pointer
-"&port->iores" will be invalid.  If other requests resource under
-"iomem_resource", "&port->iores" node may be operated in the child
-resources list and this will cause the system to crash.
-
-So the requested port I/O memory resource should be released before
-freeing allocated "rio_mport" structure.
-
-Signed-off-by: Liu Gang <Gang.Liu@freescale.com>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/tty/serial/crisv10.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~arch-powerpc-sysdev-fsl_rioc-release-rapidio-port-i-o-region-resource-if-port-failed-to-initialize arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~arch-powerpc-sysdev-fsl_rioc-release-rapidio-port-i-o-region-resource-if-port-failed-to-initialize
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -1608,6 +1608,7 @@ int fsl_rio_setup(struct platform_device
- 	return 0;
- err:
- 	iounmap(priv->regs_win);
-+	release_resource(&port->iores);
- err_res:
- 	kfree(priv);
- err_priv:
+diff -puN drivers/tty/serial/crisv10.c~cris-lower-the-printk-level-in-cris-serial-driver drivers/tty/serial/crisv10.c
+--- a/drivers/tty/serial/crisv10.c~cris-lower-the-printk-level-in-cris-serial-driver
++++ a/drivers/tty/serial/crisv10.c
+@@ -1788,7 +1788,7 @@ static unsigned int handle_descr_data(st
+ 	struct etrax_recv_buffer *buffer = phys_to_virt(descr->buf) - sizeof *buffer;
+ 
+ 	if (info->recv_cnt + recvl > 65536) {
+-		printk(KERN_CRIT
++		printk(KERN_WARNING
+ 		       "%s: Too much pending incoming serial data! Dropping %u bytes.\n", __func__, recvl);
+ 		return 0;
+ 	}
+@@ -3813,13 +3813,13 @@ rs_close(struct tty_struct *tty, struct 
+ 		 * one, we've got real problems, since it means the
+ 		 * serial port won't be shutdown.
+ 		 */
+-		printk(KERN_CRIT
++		printk(KERN_ERR
+ 		       "rs_close: bad serial port count; tty->count is 1, "
+ 		       "info->count is %d\n", info->count);
+ 		info->count = 1;
+ 	}
+ 	if (--info->count < 0) {
+-		printk(KERN_CRIT "rs_close: bad serial port count for ttyS%d: %d\n",
++		printk(KERN_ERR "rs_close: bad serial port count for ttyS%d: %d\n",
+ 		       info->line, info->count);
+ 		info->count = 0;
+ 	}
+@@ -4452,7 +4452,7 @@ static int __init rs_init(void)
+ #if defined(CONFIG_ETRAX_RS485_ON_PA)
+ 	if (cris_io_interface_allocate_pins(if_ser0, 'a', rs485_pa_bit,
+ 			rs485_pa_bit)) {
+-		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
++		printk(KERN_ERR "ETRAX100LX serial: Could not allocate "
+ 			"RS485 pin\n");
+ 		put_tty_driver(driver);
+ 		return -EBUSY;
+@@ -4461,7 +4461,7 @@ static int __init rs_init(void)
+ #if defined(CONFIG_ETRAX_RS485_ON_PORT_G)
+ 	if (cris_io_interface_allocate_pins(if_ser0, 'g', rs485_pa_bit,
+ 			rs485_port_g_bit)) {
+-		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
++		printk(KERN_ERR "ETRAX100LX serial: Could not allocate "
+ 			"RS485 pin\n");
+ 		put_tty_driver(driver);
+ 		return -EBUSY;
+@@ -4494,7 +4494,7 @@ static int __init rs_init(void)
+ 		if (info->enabled) {
+ 			if (cris_request_io_interface(info->io_if,
+ 					info->io_if_description)) {
+-				printk(KERN_CRIT "ETRAX100LX async serial: "
++				printk(KERN_ERR "ETRAX100LX async serial: "
+ 					"Could not allocate IO pins for "
+ 					"%s, port %d\n",
+ 					info->io_if_description, i);
 _
 
-Patches currently in -mm which might be from Gang.Liu@freescale.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-arch-powerpc-sysdev-fsl_rioc-release-rapidio-port-i-o-region-resource-if-port-failed-to-initialize.patch
-drivers-rapidio-rio-scanc-use-discovered-bit-to-test-if-enumeration-is-complete.patch
+cris-lower-the-printk-level-in-cris-serial-driver.patch
+kexec-remove-kmsg_dump_kexec.patch
 
