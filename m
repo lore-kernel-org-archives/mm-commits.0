@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + epoll-limit-paths.patch added to -mm tree
-Date: Fri, 02 Sep 2011 14:49:40 -0700
-Message-ID: <201109022149.p82LnffO011005@imap1.linux-foundation.org>
+Subject: + proc-fix-races-against-execve-of-proc-pid-fd-fix.patch added to -mm tree
+Date: Fri, 02 Sep 2011 15:21:13 -0700
+Message-ID: <201109022221.p82MLDYS013607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756088Ab1IBVts (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 17:49:48 -0400
+	by vger.kernel.org with ESMTP id S1756345Ab1IBWVa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 18:21:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbaron@redhat.com, davidel@xmailserver.org, nelhage@ksplice.com
+Cc: segooon@gmail.com, gorcunov@gmail.com, segoon@openwall.com
 
 
 The patch titled
-     epoll: limit paths
+     proc-fix-races-against-execve-of-proc-pid-fd-fix
 has been added to the -mm tree.  Its filename is
-     epoll-limit-paths.patch
+     proc-fix-races-against-execve-of-proc-pid-fd-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,465 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: epoll: limit paths
-From: Jason Baron <jbaron@redhat.com>
+Subject: proc-fix-races-against-execve-of-proc-pid-fd-fix
+From: Vasiliy Kulikov <segooon@gmail.com>
 
-The current epoll code can be tickled to run basically indefinitely in
-both loop detection path check (on ep_insert()), and in the wakeup paths. 
-The programs that tickle this behavior set up deeply linked networks of
-epoll file descriptors that cause the epoll algorithms to traverse them
-indefinitely.  A couple of these sample programs have been previously
-posted in this thread: https://lkml.org/lkml/2011/2/25/297.
+In the patch "proc: fix races against execve() of /proc/PID/fd**"
+proc_pid_fd_link_getattr() leaked task_struct if ptrace check fails.
 
-To fix the loop detection path check algorithms, I simply keep track of
-the epoll nodes that have been already visited.  Thus, the loop detection
-becomes proportional to the number of epoll file descriptor and links. 
-This dramatically decreases the run-time of the loop check algorithm.  In
-one diabolical case I tried it reduced the run-time from 15 mintues (all
-in kernel time) to .3 seconds.
-
-Fixing the wakeup paths could be done at wakeup time in a similar manner
-by keeping track of nodes that have already been visited, but the
-complexity is harder, since there can be multiple wakeups on different
-cpus...Thus, I've opted to limit the number of possible wakeup paths when
-the paths are created.
-
-This is accomplished, by noting that the end file descriptor points that
-are found during the loop detection pass (from the newly added link), are
-actually the sources for wakeup events.  I keep a list of these file
-descriptors and limit the number and length of these paths that emanate
-from these 'source file descriptors'.  In the current implemetation I
-allow 1000 paths of length 1, 500 of length 2, 100 of length 3, 50 of
-length 4 and 10 of length 5.  Note that it is sufficient to check the
-'source file descriptors' reachable from the newly added link, since no
-other 'source file descriptors' will have newly added links.  This allows
-us to check only the wakeup paths that may have gotten too long, and not
-re-check all possible wakeup paths on the system.
-
-In terms of the path limit selection, I think its first worth noting that
-the most common case for epoll, is probably the model where you have 1
-epoll file descriptor that is monitoring n number of 'source file
-descriptors'.  In this case, each 'source file descriptor' has a 1 path of
-length 1.  Thus, I believe that the limits I'm proposing are quite
-reasonable and in fact may be too generous.  Thus, I'm hoping that the
-proposed limits will not prevent any workloads that currently work to
-fail.
-
-In terms of locking, I have extended the use of the 'epmutex' to all
-epoll_ctl add and remove operations.  Currently its only used in a subset
-of the add paths.  I need to hold the epmutex, so that we can correctly
-traverse a coherent graph, to check the number of paths.  I believe that
-this additional locking is probably ok, since its in the setup/teardown
-paths, and doesn't affect the running paths, but it certainly is going to
-add some extra overhead.  Also, worth noting is that the epmuex was
-recently added to the ep_ctl add operations in the initial path loop
-detection code using the argument that it was not on a critical path.
-
-Another thing to note here, is the length of epoll chains that is allowed.
-Currently, eventpoll.c defines:
-
-/* Maximum number of nesting allowed inside epoll sets */
-#define EP_MAX_NESTS 4
-
-This basically means that I am limited to a graph depth of 5 (EP_MAX_NESTS
-+ 1).  However, this limit is currently only enforced during the loop
-check detection code, and only when the epoll file descriptors are added
-in a certain order.  Thus, this limit is currently easily bypassed.  The
-newly added check for wakeup paths, stricly limits the wakeup paths to a
-length of 5, regardless of the order in which ep's are linked together. 
-Thus, a side-effect of the new code is a more consistent enforcement of
-the graph depth.
-
-Thus far, I've tested this, using the sample programs previously
-mentioned, which now either return quickly or return -EINVAL.  I've also
-testing using the piptest.c epoll tester, which showed no difference in
-performance.  I've also created a number of different epoll networks and
-tested that they behave as expectded.
-
-I believe this solves the original diabolical test cases, while still
-preserving the sane epoll nesting.
-
-Signed-off-by: Jason Baron <jbaron@redhat.com>
-Cc: Nelson Elhage <nelhage@ksplice.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Reported-by: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c            |  224 ++++++++++++++++++++++++++++++++----
- include/linux/eventpoll.h |    1 
- include/linux/fs.h        |    1 
- 3 files changed, 202 insertions(+), 24 deletions(-)
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~epoll-limit-paths fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-limit-paths
-+++ a/fs/eventpoll.c
-@@ -188,6 +188,12 @@ struct eventpoll {
+diff -puN fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd-fix fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd-fix
++++ a/fs/proc/base.c
+@@ -1681,9 +1681,9 @@ static int proc_pid_fd_link_getattr(stru
  
- 	/* The user that created the eventpoll descriptor */
- 	struct user_struct *user;
-+
-+	struct file *file;
-+
-+	/* used to optimize loop detection check */
-+	int visited;
-+	struct list_head visitedllink;
- };
- 
- /* Wait structure used by the poll hooks */
-@@ -246,6 +252,12 @@ static struct kmem_cache *epi_cache __re
- /* Slab cache used to allocate "struct eppoll_entry" */
- static struct kmem_cache *pwq_cache __read_mostly;
- 
-+/* Visited nodes during ep_loop_check(), so we can unset them when we finish */
-+LIST_HEAD(visited_list);
-+
-+/* Files with newly added links, which need a limit on emanating paths */
-+LIST_HEAD(tfile_check_list);
-+
- #ifdef CONFIG_SYSCTL
- 
- #include <linux/sysctl.h>
-@@ -267,6 +279,12 @@ ctl_table epoll_table[] = {
- };
- #endif /* CONFIG_SYSCTL */
- 
-+static const struct file_operations eventpoll_fops;
-+
-+static inline int is_file_epoll(struct file *f)
-+{
-+	return f->f_op == &eventpoll_fops;
-+}
- 
- /* Setup the structure that is used as key for the RB tree */
- static inline void ep_set_ffd(struct epoll_filefd *ffd,
-@@ -700,12 +718,6 @@ static const struct file_operations even
- 	.llseek		= noop_llseek,
- };
- 
--/* Fast test to see if the file is an eventpoll file */
--static inline int is_file_epoll(struct file *f)
--{
--	return f->f_op == &eventpoll_fops;
--}
--
- /*
-  * This is called from eventpoll_release() to unlink files from the eventpoll
-  * interface. We need to have this facility to cleanup correctly files that are
-@@ -915,6 +927,96 @@ static void ep_rbtree_insert(struct even
- 	rb_insert_color(&epi->rbn, &ep->rbr);
+ 	generic_fillattr(inode, stat);
+ 	unlock_trace(task);
+-	put_task_struct(task);
+ 	rc = 0;
+ out_task:
++	put_task_struct(task);
+ 	return rc;
  }
  
-+
-+
-+#define PATH_ARR_SIZE 5
-+/* These are the number paths of length 1 to 5, that we are allowing to emanate
-+ * from a single file of interest. For example, we allow 1000 paths of length
-+ * 1, to emanate from each file of interest. This essentially represents the
-+ * potential wakeup paths, which need to be limited in order to avoid massive
-+ * uncontrolled wakeup storms. The common use case should be a single ep which
-+ * is connected to n file sources. In this case each file source has 1 path
-+ * of length 1. Thus, the numbers below should be more than sufficient.
-+ */
-+int path_limits[PATH_ARR_SIZE] = { 1000, 500, 100, 50, 10 };
-+int path_count[PATH_ARR_SIZE];
-+
-+static int path_count_inc(int nests)
-+{
-+	if (++path_count[nests] > path_limits[nests])
-+		return -1;
-+	return 0;
-+}
-+
-+static void path_count_init(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < PATH_ARR_SIZE; i++)
-+		path_count[i] = 0;
-+}
-+
-+static int reverse_path_check_proc(void *priv, void *cookie, int call_nests)
-+{
-+	int error = 0;
-+	struct file *file = priv;
-+	struct file *child_file;
-+	struct epitem *epi;
-+
-+	list_for_each_entry(epi, &file->f_ep_links, fllink) {
-+		child_file = epi->ep->file;
-+		if (is_file_epoll(child_file)) {
-+			if (list_empty(&child_file->f_ep_links)) {
-+				if (path_count_inc(call_nests)) {
-+					error = -1;
-+					break;
-+				}
-+			} else {
-+				error = ep_call_nested(&poll_loop_ncalls,
-+							EP_MAX_NESTS,
-+							reverse_path_check_proc,
-+							child_file, child_file,
-+							current);
-+			}
-+			if (error != 0)
-+				break;
-+		} else {
-+			printk(KERN_ERR "reverse_path_check_proc: "
-+				"file is not an ep!\n");
-+		}
-+	}
-+	return error;
-+}
-+
-+/**
-+ * reverse_path_check - The tfile_check_list is list of file *, which have
-+ *                      links that are proposed to be newly added. We need to
-+ *                      make sure that those added links don't add too many
-+ *                      paths such that we will spend all our time waking up
-+ *                      eventpoll objects.
-+ *
-+ * Returns: Returns zero if the proposed links don't create too many paths,
-+ *	    -1 otherwise.
-+ */
-+static int reverse_path_check(void)
-+{
-+	int length = 0;
-+	int error = 0;
-+	struct file *current_file;
-+
-+	/* let's call this for all tfiles */
-+	list_for_each_entry(current_file, &tfile_check_list, f_tfile_llink) {
-+		length++;
-+		path_count_init();
-+		error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
-+					reverse_path_check_proc, current_file,
-+					current_file, current);
-+		if (error)
-+			break;
-+	}
-+	return error;
-+}
-+
- /*
-  * Must be called with "mtx" held.
-  */
-@@ -976,6 +1078,11 @@ static int ep_insert(struct eventpoll *e
- 	 */
- 	ep_rbtree_insert(ep, epi);
- 
-+	/* now check if we've created too many backpaths */
-+	error = -EINVAL;
-+	if (reverse_path_check())
-+		goto error_remove_epi;
-+
- 	/* We have to drop the new item inside our item list to keep track of it */
- 	spin_lock_irqsave(&ep->lock, flags);
- 
-@@ -1000,6 +1107,14 @@ static int ep_insert(struct eventpoll *e
- 
- 	return 0;
- 
-+error_remove_epi:
-+	spin_lock(&tfile->f_lock);
-+	if (ep_is_linked(&epi->fllink))
-+		list_del_init(&epi->fllink);
-+	spin_unlock(&tfile->f_lock);
-+
-+	rb_erase(&epi->rbn, &ep->rbr);
-+
- error_unregister:
- 	ep_unregister_pollwait(ep, epi);
- 
-@@ -1264,18 +1379,35 @@ static int ep_loop_check_proc(void *priv
- 	int error = 0;
- 	struct file *file = priv;
- 	struct eventpoll *ep = file->private_data;
-+	struct eventpoll *ep_tovisit;
- 	struct rb_node *rbp;
- 	struct epitem *epi;
- 
- 	mutex_lock(&ep->mtx);
-+	ep->visited = 1;
-+	list_add(&ep->visitedllink, &visited_list);
- 	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (unlikely(is_file_epoll(epi->ffd.file))) {
-+			ep_tovisit = epi->ffd.file->private_data;
-+			if (ep_tovisit->visited)
-+				continue;
- 			error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
- 					       ep_loop_check_proc, epi->ffd.file,
--					       epi->ffd.file->private_data, current);
-+					       ep_tovisit, current);
- 			if (error != 0)
- 				break;
-+		} else {
-+			/* if we've reached a file that is not associated with
-+			 * an ep, then then we need to check if the newly added
-+			 * links are going to add too many wakeup paths. We do
-+			 * this by adding it to the tfile_check_list, if it's
-+			 * not already there, and calling reverse_path_check()
-+			 * during ep_insert()
-+			 */
-+			if (list_empty(&epi->ffd.file->f_tfile_llink))
-+				list_add(&epi->ffd.file->f_tfile_llink,
-+					 &tfile_check_list);
- 		}
- 	}
- 	mutex_unlock(&ep->mtx);
-@@ -1296,8 +1428,30 @@ static int ep_loop_check_proc(void *priv
-  */
- static int ep_loop_check(struct eventpoll *ep, struct file *file)
- {
--	return ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
-+	int ret;
-+	struct eventpoll *ep_cur, *ep_next;
-+
-+	ret = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
- 			      ep_loop_check_proc, file, ep, current);
-+	/* clear visited list */
-+	list_for_each_entry_safe(ep_cur, ep_next, &visited_list, visitedllink) {
-+		ep_cur->visited = 0;
-+		list_del(&ep_cur->visitedllink);
-+	}
-+	return ret;
-+}
-+
-+static void clear_tfile_check_list(void)
-+{
-+	struct file *file;
-+
-+	/* first clear the tfile_check_list */
-+	while (!list_empty(&tfile_check_list)) {
-+		file = list_first_entry(&tfile_check_list, struct file,
-+					f_tfile_llink);
-+		list_del_init(&file->f_tfile_llink);
-+	}
-+	INIT_LIST_HEAD(&tfile_check_list);
- }
- 
- /*
-@@ -1305,8 +1459,9 @@ static int ep_loop_check(struct eventpol
-  */
- SYSCALL_DEFINE1(epoll_create1, int, flags)
- {
--	int error;
-+	int error, fd;
- 	struct eventpoll *ep = NULL;
-+	struct file *file;
- 
- 	/* Check the EPOLL_* constant for consistency.  */
- 	BUILD_BUG_ON(EPOLL_CLOEXEC != O_CLOEXEC);
-@@ -1323,11 +1478,25 @@ SYSCALL_DEFINE1(epoll_create1, int, flag
- 	 * Creates all the items needed to setup an eventpoll file. That is,
- 	 * a file structure and a free file descriptor.
- 	 */
--	error = anon_inode_getfd("[eventpoll]", &eventpoll_fops, ep,
-+	fd = get_unused_fd_flags(O_RDWR | (flags & O_CLOEXEC));
-+	if (fd < 0) {
-+		error = fd;
-+		goto out_free_ep;
-+	}
-+	file = anon_inode_getfile("[eventpoll]", &eventpoll_fops, ep,
- 				 O_RDWR | (flags & O_CLOEXEC));
--	if (error < 0)
--		ep_free(ep);
--
-+	if (IS_ERR(file)) {
-+		error = PTR_ERR(file);
-+		goto out_free_fd;
-+	}
-+	fd_install(fd, file);
-+	ep->file = file;
-+	return fd;
-+
-+out_free_fd:
-+	put_unused_fd(fd);
-+out_free_ep:
-+	ep_free(ep);
- 	return error;
- }
- 
-@@ -1393,21 +1562,27 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	/*
- 	 * When we insert an epoll file descriptor, inside another epoll file
- 	 * descriptor, there is the change of creating closed loops, which are
--	 * better be handled here, than in more critical paths.
-+	 * better be handled here, than in more critical paths. While we are
-+	 * checking for loops we also determine the list of files reachable
-+	 * and hang them on the tfile_check_list, so we can check that we
-+	 * haven't created too many possible wakeup paths.
- 	 *
--	 * We hold epmutex across the loop check and the insert in this case, in
--	 * order to prevent two separate inserts from racing and each doing the
--	 * insert "at the same time" such that ep_loop_check passes on both
--	 * before either one does the insert, thereby creating a cycle.
-+	 * We need to hold the epmutex across both ep_insert and ep_remove
-+	 * b/c we want to make sure we are looking at a coherent view of
-+	 * epoll network.
- 	 */
--	if (unlikely(is_file_epoll(tfile) && op == EPOLL_CTL_ADD)) {
-+	if (op == EPOLL_CTL_ADD || op == EPOLL_CTL_DEL) {
- 		mutex_lock(&epmutex);
- 		did_lock_epmutex = 1;
--		error = -ELOOP;
--		if (ep_loop_check(ep, tfile) != 0)
--			goto error_tgt_fput;
- 	}
--
-+	if (op == EPOLL_CTL_ADD) {
-+		if (is_file_epoll(tfile)) {
-+			error = -ELOOP;
-+			if (ep_loop_check(ep, tfile) != 0)
-+				goto error_tgt_fput;
-+		} else
-+			list_add(&tfile->f_tfile_llink, &tfile_check_list);
-+	}
- 
- 	mutex_lock(&ep->mtx);
- 
-@@ -1426,6 +1601,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 			error = ep_insert(ep, &epds, tfile, fd);
- 		} else
- 			error = -EEXIST;
-+		clear_tfile_check_list();
- 		break;
- 	case EPOLL_CTL_DEL:
- 		if (epi)
-@@ -1444,7 +1620,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	mutex_unlock(&ep->mtx);
- 
- error_tgt_fput:
--	if (unlikely(did_lock_epmutex))
-+	if (did_lock_epmutex)
- 		mutex_unlock(&epmutex);
- 
- 	fput(tfile);
-diff -puN include/linux/eventpoll.h~epoll-limit-paths include/linux/eventpoll.h
---- a/include/linux/eventpoll.h~epoll-limit-paths
-+++ a/include/linux/eventpoll.h
-@@ -61,6 +61,7 @@ struct file;
- static inline void eventpoll_init_file(struct file *file)
- {
- 	INIT_LIST_HEAD(&file->f_ep_links);
-+	INIT_LIST_HEAD(&file->f_tfile_llink);
- }
- 
- 
-diff -puN include/linux/fs.h~epoll-limit-paths include/linux/fs.h
---- a/include/linux/fs.h~epoll-limit-paths
-+++ a/include/linux/fs.h
-@@ -987,6 +987,7 @@ struct file {
- #ifdef CONFIG_EPOLL
- 	/* Used by fs/eventpoll.c to link all the hooks to this file */
- 	struct list_head	f_ep_links;
-+	struct list_head	f_tfile_llink;
- #endif /* #ifdef CONFIG_EPOLL */
- 	struct address_space	*f_mapping;
- #ifdef CONFIG_DEBUG_WRITECOUNT
 _
 
-Patches currently in -mm which might be from jbaron@redhat.com are
+Patches currently in -mm which might be from segooon@gmail.com are
 
-linux-next.patch
-epoll-limit-paths.patch
+proc-fix-races-against-execve-of-proc-pid-fd-fix.patch
 
