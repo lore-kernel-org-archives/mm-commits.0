@@ -1,65 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals.patch removed from -mm tree
-Date: Fri, 02 Sep 2011 16:26:48 -0700
-Message-ID: <201109022326.p82NQmNQ016731@imap1.linux-foundation.org>
+Subject: + cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch added to -mm tree
+Date: Fri, 02 Sep 2011 16:29:10 -0700
+Message-ID: <201109022329.p82NTA3w016780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724Ab1IBX1F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 19:27:05 -0400
+	by vger.kernel.org with ESMTP id S1750724Ab1IBX3N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 19:29:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: utdilya@mail.ru, alan@lxorguk.ukuu.org.uk, aneesh.kumar@linux.vnet.ibm.com, greg@kroah.com, hirofumi@mail.parknet.co.jp, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     tty: make ppp_synctty and hdlc work with pseudo terminals
-has been removed from the -mm tree.  Its filename was
-     tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals.patch
+     cris: fix a build error in drivers/tty/serial/crisv10.c
+has been added to the -mm tree.  Its filename is
+     cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: make ppp_synctty and hdlc work with pseudo terminals
-From: ilya <utdilya@mail.ru>
+Subject: cris: fix a build error in drivers/tty/serial/crisv10.c
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Taken from https://bugzilla.kernel.org/show_bug.cgi?id=40482.
+drivers/tty/serial/crisv10.c:4453: error: 'if_ser0' undeclared (first use in this function): 2 errors in 2 logs
+        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
+drivers/tty/serial/crisv10.c:4453: error: (Each undeclared identifier is reported only once: 2 errors in 2 logs
+        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
+drivers/tty/serial/crisv10.c:4453: error: for each function it appears in.): 2 errors in 2 logs
+        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
 
-If frames are sent very fast from one side(master/slave) to other one,
-the frames merge in one (merge point "flip buffer") and the other side can read
-only one big frame. But sync line disciplines need one frame in one read.
+"if_ser0" is a typo, it should be "if_serial_0".
 
-To push one frame to ldisc I propose this small patch.  It fixes a
-regression introduced by commit e043e42bdb6 ("pty: avoid forcing
-'low_latency' tty flag").
-
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/pty.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/tty/serial/crisv10.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/tty/pty.c~tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals drivers/tty/pty.c
---- a/drivers/tty/pty.c~tty-make-ppp_synctty-and-hdlc-work-with-pseudo-terminals
-+++ a/drivers/tty/pty.c
-@@ -221,6 +221,7 @@ static int pty_open(struct tty_struct *t
- 	clear_bit(TTY_OTHER_CLOSED, &tty->link->flags);
- 	set_bit(TTY_THROTTLED, &tty->flags);
- 	retval = 0;
-+	tty->low_latency = 1;
- out:
- 	return retval;
- }
+diff -puN drivers/tty/serial/crisv10.c~cris-fix-a-build-error-in-drivers-tty-serial-crisv10c drivers/tty/serial/crisv10.c
+--- a/drivers/tty/serial/crisv10.c~cris-fix-a-build-error-in-drivers-tty-serial-crisv10c
++++ a/drivers/tty/serial/crisv10.c
+@@ -4450,7 +4450,7 @@ static int __init rs_init(void)
+ 
+ #if defined(CONFIG_ETRAX_RS485)
+ #if defined(CONFIG_ETRAX_RS485_ON_PA)
+-	if (cris_io_interface_allocate_pins(if_ser0, 'a', rs485_pa_bit,
++	if (cris_io_interface_allocate_pins(if_serial_0, 'a', rs485_pa_bit,
+ 			rs485_pa_bit)) {
+ 		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
+ 			"RS485 pin\n");
+@@ -4459,7 +4459,7 @@ static int __init rs_init(void)
+ 	}
+ #endif
+ #if defined(CONFIG_ETRAX_RS485_ON_PORT_G)
+-	if (cris_io_interface_allocate_pins(if_ser0, 'g', rs485_pa_bit,
++	if (cris_io_interface_allocate_pins(if_serial_0, 'g', rs485_pa_bit,
+ 			rs485_port_g_bit)) {
+ 		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
+ 			"RS485 pin\n");
 _
 
-Patches currently in -mm which might be from utdilya@mail.ru are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
+cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch
+cris-lower-the-printk-level-in-cris-serial-driver.patch
+kexec-remove-kmsg_dump_kexec.patch
 
