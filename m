@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch added to -mm tree
-Date: Fri, 02 Sep 2011 16:29:10 -0700
-Message-ID: <201109022329.p82NTA3w016780@imap1.linux-foundation.org>
+Subject: + lib-bitmapc-quiet-sparse-noise-about-address-space.patch added to -mm tree
+Date: Fri, 02 Sep 2011 16:33:59 -0700
+Message-ID: <201109022333.p82NXxrj016962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724Ab1IBX3N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 19:29:13 -0400
+	by vger.kernel.org with ESMTP id S1750735Ab1IBXeB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 19:34:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com
+Cc: hartleys@visionengravers.com, ak@linux.intel.com, andy.shevchenko@gmail.com, hsweeten@visionengravers.com, len.brown@intel.com, ying.huang@intel.com
 
 
 The patch titled
-     cris: fix a build error in drivers/tty/serial/crisv10.c
+     lib/bitmap.c: quiet sparse noise about address space
 has been added to the -mm tree.  Its filename is
-     cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch
+     lib-bitmapc-quiet-sparse-noise-about-address-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: fix a build error in drivers/tty/serial/crisv10.c
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: lib/bitmap.c: quiet sparse noise about address space
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-drivers/tty/serial/crisv10.c:4453: error: 'if_ser0' undeclared (first use in this function): 2 errors in 2 logs
-        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
-drivers/tty/serial/crisv10.c:4453: error: (Each undeclared identifier is reported only once: 2 errors in 2 logs
-        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
-drivers/tty/serial/crisv10.c:4453: error: for each function it appears in.): 2 errors in 2 logs
-        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
+__bitmap_parse() and __bitmap_parselist() both take a pointer to a kernel
+buffer as a parameter and then cast it to a pointer to user buffer for use
+in cases when the parameter is_user indicates that the buffer is actually
+located in user space.  This casting, and the casts in the callers,
+results in sparse noise like the following:
 
-"if_ser0" is a typo, it should be "if_serial_0".
+	warning: incorrect type in initializer (different address spaces)
+	  expected char const [noderef] <asn:1>*ubuf
+	  got char const *buf
+	warning: cast removes address space of expression
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Since these casts are intentional, use __force to quiet the noise.
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/crisv10.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/bitmap.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/tty/serial/crisv10.c~cris-fix-a-build-error-in-drivers-tty-serial-crisv10c drivers/tty/serial/crisv10.c
---- a/drivers/tty/serial/crisv10.c~cris-fix-a-build-error-in-drivers-tty-serial-crisv10c
-+++ a/drivers/tty/serial/crisv10.c
-@@ -4450,7 +4450,7 @@ static int __init rs_init(void)
+diff -puN lib/bitmap.c~lib-bitmapc-quiet-sparse-noise-about-address-space lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmapc-quiet-sparse-noise-about-address-space
++++ a/lib/bitmap.c
+@@ -419,7 +419,7 @@ int __bitmap_parse(const char *buf, unsi
+ {
+ 	int c, old_c, totaldigits, ndigits, nchunks, nbits;
+ 	u32 chunk;
+-	const char __user *ubuf = buf;
++	const char __user __force *ubuf = buf;
  
- #if defined(CONFIG_ETRAX_RS485)
- #if defined(CONFIG_ETRAX_RS485_ON_PA)
--	if (cris_io_interface_allocate_pins(if_ser0, 'a', rs485_pa_bit,
-+	if (cris_io_interface_allocate_pins(if_serial_0, 'a', rs485_pa_bit,
- 			rs485_pa_bit)) {
- 		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
- 			"RS485 pin\n");
-@@ -4459,7 +4459,7 @@ static int __init rs_init(void)
- 	}
- #endif
- #if defined(CONFIG_ETRAX_RS485_ON_PORT_G)
--	if (cris_io_interface_allocate_pins(if_ser0, 'g', rs485_pa_bit,
-+	if (cris_io_interface_allocate_pins(if_serial_0, 'g', rs485_pa_bit,
- 			rs485_port_g_bit)) {
- 		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
- 			"RS485 pin\n");
+ 	bitmap_zero(maskp, nmaskbits);
+ 
+@@ -504,7 +504,9 @@ int bitmap_parse_user(const char __user 
+ {
+ 	if (!access_ok(VERIFY_READ, ubuf, ulen))
+ 		return -EFAULT;
+-	return __bitmap_parse((const char *)ubuf, ulen, 1, maskp, nmaskbits);
++	return __bitmap_parse((const char __force *)ubuf,
++				ulen, 1, maskp, nmaskbits);
++
+ }
+ EXPORT_SYMBOL(bitmap_parse_user);
+ 
+@@ -594,7 +596,7 @@ static int __bitmap_parselist(const char
+ {
+ 	unsigned a, b;
+ 	int c, old_c, totaldigits;
+-	const char __user *ubuf = buf;
++	const char __user __force *ubuf = buf;
+ 	int exp_digit, in_range;
+ 
+ 	totaldigits = c = 0;
+@@ -694,7 +696,7 @@ int bitmap_parselist_user(const char __u
+ {
+ 	if (!access_ok(VERIFY_READ, ubuf, ulen))
+ 		return -EFAULT;
+-	return __bitmap_parselist((const char *)ubuf,
++	return __bitmap_parselist((const char __force *)ubuf,
+ 					ulen, 1, maskp, nmaskbits);
+ }
+ EXPORT_SYMBOL(bitmap_parselist_user);
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch
-cris-lower-the-printk-level-in-cris-serial-driver.patch
-kexec-remove-kmsg_dump_kexec.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space.patch
 
