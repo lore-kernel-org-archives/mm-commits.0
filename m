@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-revert-memcg-add-memoryvmscan_stat.patch added to -mm tree
-Date: Thu, 01 Sep 2011 17:10:45 -0700
-Message-ID: <201109020010.p820Aj05005158@imap1.linux-foundation.org>
+Subject: + epoll-limit-paths.patch added to -mm tree
+Date: Fri, 02 Sep 2011 14:49:40 -0700
+Message-ID: <201109022149.p82LnffO011005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45730 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932742Ab1IBAXF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2011 20:23:05 -0400
+	by vger.kernel.org with ESMTP id S1756088Ab1IBVts (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 17:49:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jweiner@redhat.com, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: jbaron@redhat.com, davidel@xmailserver.org, nelhage@ksplice.com
 
 
 The patch titled
-     memcg: Revert "memcg: add memory.vmscan_stat"
+     epoll: limit paths
 has been added to the -mm tree.  Its filename is
-     memcg-revert-memcg-add-memoryvmscan_stat.patch
+     epoll-limit-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,622 +33,465 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: Revert "memcg: add memory.vmscan_stat"
-From: Johannes Weiner <jweiner@redhat.com>
+Subject: epoll: limit paths
+From: Jason Baron <jbaron@redhat.com>
 
-Revert the post-3.0 commit 82f9d486e59f5 ("memcg: add
-memory.vmscan_stat").
+The current epoll code can be tickled to run basically indefinitely in
+both loop detection path check (on ep_insert()), and in the wakeup paths. 
+The programs that tickle this behavior set up deeply linked networks of
+epoll file descriptors that cause the epoll algorithms to traverse them
+indefinitely.  A couple of these sample programs have been previously
+posted in this thread: https://lkml.org/lkml/2011/2/25/297.
 
-The implementation of per-memcg reclaim statistics violates how memcg
-hierarchies usually behave: hierarchically.
+To fix the loop detection path check algorithms, I simply keep track of
+the epoll nodes that have been already visited.  Thus, the loop detection
+becomes proportional to the number of epoll file descriptor and links. 
+This dramatically decreases the run-time of the loop check algorithm.  In
+one diabolical case I tried it reduced the run-time from 15 mintues (all
+in kernel time) to .3 seconds.
 
-The reclaim statistics are accounted to child memcgs and the parent
-hitting the limit, but not to hierarchy levels in between.  Usually,
-hierarchical statistics are perfectly recursive, with each level
-representing the sum of itself and all its children.
+Fixing the wakeup paths could be done at wakeup time in a similar manner
+by keeping track of nodes that have already been visited, but the
+complexity is harder, since there can be multiple wakeups on different
+cpus...Thus, I've opted to limit the number of possible wakeup paths when
+the paths are created.
 
-Since this exports statistics to userspace, this may lead to confusion and
-problems with changing things after the release, so revert it now, we can
-try again later.
+This is accomplished, by noting that the end file descriptor points that
+are found during the loop detection pass (from the newly added link), are
+actually the sources for wakeup events.  I keep a list of these file
+descriptors and limit the number and length of these paths that emanate
+from these 'source file descriptors'.  In the current implemetation I
+allow 1000 paths of length 1, 500 of length 2, 100 of length 3, 50 of
+length 4 and 10 of length 5.  Note that it is sufficient to check the
+'source file descriptors' reachable from the newly added link, since no
+other 'source file descriptors' will have newly added links.  This allows
+us to check only the wakeup paths that may have gotten too long, and not
+re-check all possible wakeup paths on the system.
 
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+In terms of the path limit selection, I think its first worth noting that
+the most common case for epoll, is probably the model where you have 1
+epoll file descriptor that is monitoring n number of 'source file
+descriptors'.  In this case, each 'source file descriptor' has a 1 path of
+length 1.  Thus, I believe that the limits I'm proposing are quite
+reasonable and in fact may be too generous.  Thus, I'm hoping that the
+proposed limits will not prevent any workloads that currently work to
+fail.
+
+In terms of locking, I have extended the use of the 'epmutex' to all
+epoll_ctl add and remove operations.  Currently its only used in a subset
+of the add paths.  I need to hold the epmutex, so that we can correctly
+traverse a coherent graph, to check the number of paths.  I believe that
+this additional locking is probably ok, since its in the setup/teardown
+paths, and doesn't affect the running paths, but it certainly is going to
+add some extra overhead.  Also, worth noting is that the epmuex was
+recently added to the ep_ctl add operations in the initial path loop
+detection code using the argument that it was not on a critical path.
+
+Another thing to note here, is the length of epoll chains that is allowed.
+Currently, eventpoll.c defines:
+
+/* Maximum number of nesting allowed inside epoll sets */
+#define EP_MAX_NESTS 4
+
+This basically means that I am limited to a graph depth of 5 (EP_MAX_NESTS
++ 1).  However, this limit is currently only enforced during the loop
+check detection code, and only when the epoll file descriptors are added
+in a certain order.  Thus, this limit is currently easily bypassed.  The
+newly added check for wakeup paths, stricly limits the wakeup paths to a
+length of 5, regardless of the order in which ep's are linked together. 
+Thus, a side-effect of the new code is a more consistent enforcement of
+the graph depth.
+
+Thus far, I've tested this, using the sample programs previously
+mentioned, which now either return quickly or return -EINVAL.  I've also
+testing using the piptest.c epoll tester, which showed no difference in
+performance.  I've also created a number of different epoll networks and
+tested that they behave as expectded.
+
+I believe this solves the original diabolical test cases, while still
+preserving the sane epoll nesting.
+
+Signed-off-by: Jason Baron <jbaron@redhat.com>
+Cc: Nelson Elhage <nelhage@ksplice.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   85 --------------
- include/linux/memcontrol.h       |   19 ---
- include/linux/swap.h             |    6 +
- mm/memcontrol.c                  |  172 +----------------------------
- mm/vmscan.c                      |   39 ------
- 5 files changed, 18 insertions(+), 303 deletions(-)
+ fs/eventpoll.c            |  224 ++++++++++++++++++++++++++++++++----
+ include/linux/eventpoll.h |    1 
+ include/linux/fs.h        |    1 
+ 3 files changed, 202 insertions(+), 24 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-revert-memcg-add-memoryvmscan_stat Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-revert-memcg-add-memoryvmscan_stat
-+++ a/Documentation/cgroups/memory.txt
-@@ -380,7 +380,7 @@ will be charged as a new owner of it.
+diff -puN fs/eventpoll.c~epoll-limit-paths fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-limit-paths
++++ a/fs/eventpoll.c
+@@ -188,6 +188,12 @@ struct eventpoll {
  
- 5.2 stat file
- 
--5.2.1 memory.stat file includes following statistics
-+memory.stat file includes following statistics
- 
- # per-memory cgroup local status
- cache		- # of bytes of page cache memory.
-@@ -438,89 +438,6 @@ Note:
- 	 file_mapped is accounted only when the memory cgroup is owner of page
- 	 cache.)
- 
--5.2.2 memory.vmscan_stat
--
--memory.vmscan_stat includes statistics information for memory scanning and
--freeing, reclaiming. The statistics shows memory scanning information since
--memory cgroup creation and can be reset to 0 by writing 0 as
--
-- #echo 0 > ../memory.vmscan_stat
--
--This file contains following statistics.
--
--[param]_[file_or_anon]_pages_by_[reason]_[under_heararchy]
--[param]_elapsed_ns_by_[reason]_[under_hierarchy]
--
--For example,
--
--  scanned_file_pages_by_limit indicates the number of scanned
--  file pages at vmscan.
--
--Now, 3 parameters are supported
--
--  scanned - the number of pages scanned by vmscan
--  rotated - the number of pages activated at vmscan
--  freed   - the number of pages freed by vmscan
--
--If "rotated" is high against scanned/freed, the memcg seems busy.
--
--Now, 2 reason are supported
--
--  limit - the memory cgroup's limit
--  system - global memory pressure + softlimit
--           (global memory pressure not under softlimit is not handled now)
--
--When under_hierarchy is added in the tail, the number indicates the
--total memcg scan of its children and itself.
--
--elapsed_ns is a elapsed time in nanosecond. This may include sleep time
--and not indicates CPU usage. So, please take this as just showing
--latency.
--
--Here is an example.
--
--# cat /cgroup/memory/A/memory.vmscan_stat
--scanned_pages_by_limit 9471864
--scanned_anon_pages_by_limit 6640629
--scanned_file_pages_by_limit 2831235
--rotated_pages_by_limit 4243974
--rotated_anon_pages_by_limit 3971968
--rotated_file_pages_by_limit 272006
--freed_pages_by_limit 2318492
--freed_anon_pages_by_limit 962052
--freed_file_pages_by_limit 1356440
--elapsed_ns_by_limit 351386416101
--scanned_pages_by_system 0
--scanned_anon_pages_by_system 0
--scanned_file_pages_by_system 0
--rotated_pages_by_system 0
--rotated_anon_pages_by_system 0
--rotated_file_pages_by_system 0
--freed_pages_by_system 0
--freed_anon_pages_by_system 0
--freed_file_pages_by_system 0
--elapsed_ns_by_system 0
--scanned_pages_by_limit_under_hierarchy 9471864
--scanned_anon_pages_by_limit_under_hierarchy 6640629
--scanned_file_pages_by_limit_under_hierarchy 2831235
--rotated_pages_by_limit_under_hierarchy 4243974
--rotated_anon_pages_by_limit_under_hierarchy 3971968
--rotated_file_pages_by_limit_under_hierarchy 272006
--freed_pages_by_limit_under_hierarchy 2318492
--freed_anon_pages_by_limit_under_hierarchy 962052
--freed_file_pages_by_limit_under_hierarchy 1356440
--elapsed_ns_by_limit_under_hierarchy 351386416101
--scanned_pages_by_system_under_hierarchy 0
--scanned_anon_pages_by_system_under_hierarchy 0
--scanned_file_pages_by_system_under_hierarchy 0
--rotated_pages_by_system_under_hierarchy 0
--rotated_anon_pages_by_system_under_hierarchy 0
--rotated_file_pages_by_system_under_hierarchy 0
--freed_pages_by_system_under_hierarchy 0
--freed_anon_pages_by_system_under_hierarchy 0
--freed_file_pages_by_system_under_hierarchy 0
--elapsed_ns_by_system_under_hierarchy 0
--
- 5.3 swappiness
- 
- Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
-diff -puN include/linux/memcontrol.h~memcg-revert-memcg-add-memoryvmscan_stat include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-revert-memcg-add-memoryvmscan_stat
-+++ a/include/linux/memcontrol.h
-@@ -39,16 +39,6 @@ extern unsigned long mem_cgroup_isolate_
- 					struct mem_cgroup *mem_cont,
- 					int active, int file);
- 
--struct memcg_scanrecord {
--	struct mem_cgroup *mem; /* scanend memory cgroup */
--	struct mem_cgroup *root; /* scan target hierarchy root */
--	int context;		/* scanning context (see memcontrol.c) */
--	unsigned long nr_scanned[2]; /* the number of scanned pages */
--	unsigned long nr_rotated[2]; /* the number of rotated pages */
--	unsigned long nr_freed[2]; /* the number of freed pages */
--	unsigned long elapsed; /* nsec of time elapsed while scanning */
--};
--
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- /*
-  * All "charge" functions with gfp_mask should use GFP_KERNEL or
-@@ -127,15 +117,6 @@ mem_cgroup_get_reclaim_stat_from_page(st
- extern void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
- 					struct task_struct *p);
- 
--extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
--						  gfp_t gfp_mask, bool noswap,
--						  struct memcg_scanrecord *rec);
--extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
--						gfp_t gfp_mask, bool noswap,
--						struct zone *zone,
--						struct memcg_scanrecord *rec,
--						unsigned long *nr_scanned);
--
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
- extern int do_swap_account;
- #endif
-diff -puN include/linux/swap.h~memcg-revert-memcg-add-memoryvmscan_stat include/linux/swap.h
---- a/include/linux/swap.h~memcg-revert-memcg-add-memoryvmscan_stat
-+++ a/include/linux/swap.h
-@@ -252,6 +252,12 @@ static inline void lru_cache_add_file(st
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
- extern int __isolate_lru_page(struct page *page, int mode, int file);
-+extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem,
-+						  gfp_t gfp_mask, bool noswap);
-+extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
-+						gfp_t gfp_mask, bool noswap,
-+						struct zone *zone,
-+						unsigned long *nr_scanned);
- extern unsigned long shrink_all_memory(unsigned long nr_pages);
- extern int vm_swappiness;
- extern int remove_mapping(struct address_space *mapping, struct page *page);
-diff -puN mm/memcontrol.c~memcg-revert-memcg-add-memoryvmscan_stat mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-revert-memcg-add-memoryvmscan_stat
-+++ a/mm/memcontrol.c
-@@ -204,50 +204,6 @@ struct mem_cgroup_eventfd_list {
- static void mem_cgroup_threshold(struct mem_cgroup *mem);
- static void mem_cgroup_oom_notify(struct mem_cgroup *mem);
- 
--enum {
--	SCAN_BY_LIMIT,
--	SCAN_BY_SYSTEM,
--	NR_SCAN_CONTEXT,
--	SCAN_BY_SHRINK,	/* not recorded now */
--};
--
--enum {
--	SCAN,
--	SCAN_ANON,
--	SCAN_FILE,
--	ROTATE,
--	ROTATE_ANON,
--	ROTATE_FILE,
--	FREED,
--	FREED_ANON,
--	FREED_FILE,
--	ELAPSED,
--	NR_SCANSTATS,
--};
--
--struct scanstat {
--	spinlock_t	lock;
--	unsigned long	stats[NR_SCAN_CONTEXT][NR_SCANSTATS];
--	unsigned long	rootstats[NR_SCAN_CONTEXT][NR_SCANSTATS];
--};
--
--const char *scanstat_string[NR_SCANSTATS] = {
--	"scanned_pages",
--	"scanned_anon_pages",
--	"scanned_file_pages",
--	"rotated_pages",
--	"rotated_anon_pages",
--	"rotated_file_pages",
--	"freed_pages",
--	"freed_anon_pages",
--	"freed_file_pages",
--	"elapsed_ns",
--};
--#define SCANSTAT_WORD_LIMIT	"_by_limit"
--#define SCANSTAT_WORD_SYSTEM	"_by_system"
--#define SCANSTAT_WORD_HIERARCHY	"_under_hierarchy"
--
--
- /*
-  * The memory controller data structure. The memory controller controls both
-  * page cache and RSS per cgroup. We would eventually like to provide
-@@ -313,8 +269,7 @@ struct mem_cgroup {
- 
- 	/* For oom notifier event fd */
- 	struct list_head oom_notify;
--	/* For recording LRU-scan statistics */
--	struct scanstat scanstat;
+ 	/* The user that created the eventpoll descriptor */
+ 	struct user_struct *user;
 +
- 	/*
- 	 * Should we move charges of a task when a task is moved into this
- 	 * mem_cgroup ? And what type of charges should we move ?
-@@ -1678,44 +1633,6 @@ bool mem_cgroup_reclaimable(struct mem_c
- }
- #endif
- 
--static void __mem_cgroup_record_scanstat(unsigned long *stats,
--			   struct memcg_scanrecord *rec)
--{
--
--	stats[SCAN] += rec->nr_scanned[0] + rec->nr_scanned[1];
--	stats[SCAN_ANON] += rec->nr_scanned[0];
--	stats[SCAN_FILE] += rec->nr_scanned[1];
--
--	stats[ROTATE] += rec->nr_rotated[0] + rec->nr_rotated[1];
--	stats[ROTATE_ANON] += rec->nr_rotated[0];
--	stats[ROTATE_FILE] += rec->nr_rotated[1];
--
--	stats[FREED] += rec->nr_freed[0] + rec->nr_freed[1];
--	stats[FREED_ANON] += rec->nr_freed[0];
--	stats[FREED_FILE] += rec->nr_freed[1];
--
--	stats[ELAPSED] += rec->elapsed;
--}
--
--static void mem_cgroup_record_scanstat(struct memcg_scanrecord *rec)
--{
--	struct mem_cgroup *mem;
--	int context = rec->context;
--
--	if (context >= NR_SCAN_CONTEXT)
--		return;
--
--	mem = rec->mem;
--	spin_lock(&mem->scanstat.lock);
--	__mem_cgroup_record_scanstat(mem->scanstat.stats[context], rec);
--	spin_unlock(&mem->scanstat.lock);
--
--	mem = rec->root;
--	spin_lock(&mem->scanstat.lock);
--	__mem_cgroup_record_scanstat(mem->scanstat.rootstats[context], rec);
--	spin_unlock(&mem->scanstat.lock);
--}
--
- /*
-  * Scan the hierarchy if needed to reclaim memory. We remember the last child
-  * we reclaimed from, so that we don't end up penalizing one child extensively
-@@ -1740,9 +1657,8 @@ static int mem_cgroup_hierarchical_recla
- 	bool noswap = reclaim_options & MEM_CGROUP_RECLAIM_NOSWAP;
- 	bool shrink = reclaim_options & MEM_CGROUP_RECLAIM_SHRINK;
- 	bool check_soft = reclaim_options & MEM_CGROUP_RECLAIM_SOFT;
--	struct memcg_scanrecord rec;
- 	unsigned long excess;
--	unsigned long scanned;
-+	unsigned long nr_scanned;
- 
- 	excess = res_counter_soft_limit_excess(&root_mem->res) >> PAGE_SHIFT;
- 
-@@ -1750,15 +1666,6 @@ static int mem_cgroup_hierarchical_recla
- 	if (!check_soft && !shrink && root_mem->memsw_is_minimum)
- 		noswap = true;
- 
--	if (shrink)
--		rec.context = SCAN_BY_SHRINK;
--	else if (check_soft)
--		rec.context = SCAN_BY_SYSTEM;
--	else
--		rec.context = SCAN_BY_LIMIT;
--
--	rec.root = root_mem;
--
- 	while (1) {
- 		victim = mem_cgroup_select_victim(root_mem);
- 		if (victim == root_mem) {
-@@ -1799,23 +1706,14 @@ static int mem_cgroup_hierarchical_recla
- 			css_put(&victim->css);
- 			continue;
- 		}
--		rec.mem = victim;
--		rec.nr_scanned[0] = 0;
--		rec.nr_scanned[1] = 0;
--		rec.nr_rotated[0] = 0;
--		rec.nr_rotated[1] = 0;
--		rec.nr_freed[0] = 0;
--		rec.nr_freed[1] = 0;
--		rec.elapsed = 0;
- 		/* we use swappiness of local cgroup */
- 		if (check_soft) {
- 			ret = mem_cgroup_shrink_node_zone(victim, gfp_mask,
--				noswap, zone, &rec, &scanned);
--			*total_scanned += scanned;
-+				noswap, zone, &nr_scanned);
-+			*total_scanned += nr_scanned;
- 		} else
- 			ret = try_to_free_mem_cgroup_pages(victim, gfp_mask,
--						noswap, &rec);
--		mem_cgroup_record_scanstat(&rec);
-+						noswap);
- 		css_put(&victim->css);
- 		/*
- 		 * At shrinking usage, we can't check we should stop here or
-@@ -3854,18 +3752,14 @@ try_to_free:
- 	/* try to free all pages in this cgroup */
- 	shrink = 1;
- 	while (nr_retries && mem->res.usage > 0) {
--		struct memcg_scanrecord rec;
- 		int progress;
- 
- 		if (signal_pending(current)) {
- 			ret = -EINTR;
- 			goto out;
- 		}
--		rec.context = SCAN_BY_SHRINK;
--		rec.mem = mem;
--		rec.root = mem;
- 		progress = try_to_free_mem_cgroup_pages(mem, GFP_KERNEL,
--						false, &rec);
-+						false);
- 		if (!progress) {
- 			nr_retries--;
- 			/* maybe some writeback is necessary */
-@@ -4709,54 +4603,6 @@ static int mem_control_numa_stat_open(st
- }
- #endif /* CONFIG_NUMA */
- 
--static int mem_cgroup_vmscan_stat_read(struct cgroup *cgrp,
--				struct cftype *cft,
--				struct cgroup_map_cb *cb)
--{
--	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
--	char string[64];
--	int i;
--
--	for (i = 0; i < NR_SCANSTATS; i++) {
--		strcpy(string, scanstat_string[i]);
--		strcat(string, SCANSTAT_WORD_LIMIT);
--		cb->fill(cb, string,  mem->scanstat.stats[SCAN_BY_LIMIT][i]);
--	}
--
--	for (i = 0; i < NR_SCANSTATS; i++) {
--		strcpy(string, scanstat_string[i]);
--		strcat(string, SCANSTAT_WORD_SYSTEM);
--		cb->fill(cb, string,  mem->scanstat.stats[SCAN_BY_SYSTEM][i]);
--	}
--
--	for (i = 0; i < NR_SCANSTATS; i++) {
--		strcpy(string, scanstat_string[i]);
--		strcat(string, SCANSTAT_WORD_LIMIT);
--		strcat(string, SCANSTAT_WORD_HIERARCHY);
--		cb->fill(cb, string,  mem->scanstat.rootstats[SCAN_BY_LIMIT][i]);
--	}
--	for (i = 0; i < NR_SCANSTATS; i++) {
--		strcpy(string, scanstat_string[i]);
--		strcat(string, SCANSTAT_WORD_SYSTEM);
--		strcat(string, SCANSTAT_WORD_HIERARCHY);
--		cb->fill(cb, string,  mem->scanstat.rootstats[SCAN_BY_SYSTEM][i]);
--	}
--	return 0;
--}
--
--static int mem_cgroup_reset_vmscan_stat(struct cgroup *cgrp,
--				unsigned int event)
--{
--	struct mem_cgroup *mem = mem_cgroup_from_cont(cgrp);
--
--	spin_lock(&mem->scanstat.lock);
--	memset(&mem->scanstat.stats, 0, sizeof(mem->scanstat.stats));
--	memset(&mem->scanstat.rootstats, 0, sizeof(mem->scanstat.rootstats));
--	spin_unlock(&mem->scanstat.lock);
--	return 0;
--}
--
--
- static struct cftype mem_cgroup_files[] = {
- 	{
- 		.name = "usage_in_bytes",
-@@ -4827,11 +4673,6 @@ static struct cftype mem_cgroup_files[] 
- 		.mode = S_IRUGO,
- 	},
- #endif
--	{
--		.name = "vmscan_stat",
--		.read_map = mem_cgroup_vmscan_stat_read,
--		.trigger = mem_cgroup_reset_vmscan_stat,
--	},
++	struct file *file;
++
++	/* used to optimize loop detection check */
++	int visited;
++	struct list_head visitedllink;
  };
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
-@@ -5095,7 +4936,6 @@ mem_cgroup_create(struct cgroup_subsys *
- 	atomic_set(&mem->refcnt, 1);
- 	mem->move_charge_at_immigrate = 0;
- 	mutex_init(&mem->thresholds_lock);
--	spin_lock_init(&mem->scanstat.lock);
- 	return &mem->css;
- free_out:
- 	__mem_cgroup_free(mem);
-diff -puN mm/vmscan.c~memcg-revert-memcg-add-memoryvmscan_stat mm/vmscan.c
---- a/mm/vmscan.c~memcg-revert-memcg-add-memoryvmscan_stat
-+++ a/mm/vmscan.c
-@@ -105,7 +105,6 @@ struct scan_control {
+ /* Wait structure used by the poll hooks */
+@@ -246,6 +252,12 @@ static struct kmem_cache *epi_cache __re
+ /* Slab cache used to allocate "struct eppoll_entry" */
+ static struct kmem_cache *pwq_cache __read_mostly;
  
- 	/* Which cgroup do we reclaim from */
- 	struct mem_cgroup *mem_cgroup;
--	struct memcg_scanrecord *memcg_record;
++/* Visited nodes during ep_loop_check(), so we can unset them when we finish */
++LIST_HEAD(visited_list);
++
++/* Files with newly added links, which need a limit on emanating paths */
++LIST_HEAD(tfile_check_list);
++
+ #ifdef CONFIG_SYSCTL
  
- 	/*
- 	 * Nodemask of nodes allowed by the caller. If NULL, all nodes
-@@ -1349,8 +1348,6 @@ putback_lru_pages(struct zone *zone, str
- 			int file = is_file_lru(lru);
- 			int numpages = hpage_nr_pages(page);
- 			reclaim_stat->recent_rotated[file] += numpages;
--			if (!scanning_global_lru(sc))
--				sc->memcg_record->nr_rotated[file] += numpages;
+ #include <linux/sysctl.h>
+@@ -267,6 +279,12 @@ ctl_table epoll_table[] = {
+ };
+ #endif /* CONFIG_SYSCTL */
+ 
++static const struct file_operations eventpoll_fops;
++
++static inline int is_file_epoll(struct file *f)
++{
++	return f->f_op == &eventpoll_fops;
++}
+ 
+ /* Setup the structure that is used as key for the RB tree */
+ static inline void ep_set_ffd(struct epoll_filefd *ffd,
+@@ -700,12 +718,6 @@ static const struct file_operations even
+ 	.llseek		= noop_llseek,
+ };
+ 
+-/* Fast test to see if the file is an eventpoll file */
+-static inline int is_file_epoll(struct file *f)
+-{
+-	return f->f_op == &eventpoll_fops;
+-}
+-
+ /*
+  * This is called from eventpoll_release() to unlink files from the eventpoll
+  * interface. We need to have this facility to cleanup correctly files that are
+@@ -915,6 +927,96 @@ static void ep_rbtree_insert(struct even
+ 	rb_insert_color(&epi->rbn, &ep->rbr);
+ }
+ 
++
++
++#define PATH_ARR_SIZE 5
++/* These are the number paths of length 1 to 5, that we are allowing to emanate
++ * from a single file of interest. For example, we allow 1000 paths of length
++ * 1, to emanate from each file of interest. This essentially represents the
++ * potential wakeup paths, which need to be limited in order to avoid massive
++ * uncontrolled wakeup storms. The common use case should be a single ep which
++ * is connected to n file sources. In this case each file source has 1 path
++ * of length 1. Thus, the numbers below should be more than sufficient.
++ */
++int path_limits[PATH_ARR_SIZE] = { 1000, 500, 100, 50, 10 };
++int path_count[PATH_ARR_SIZE];
++
++static int path_count_inc(int nests)
++{
++	if (++path_count[nests] > path_limits[nests])
++		return -1;
++	return 0;
++}
++
++static void path_count_init(void)
++{
++	int i;
++
++	for (i = 0; i < PATH_ARR_SIZE; i++)
++		path_count[i] = 0;
++}
++
++static int reverse_path_check_proc(void *priv, void *cookie, int call_nests)
++{
++	int error = 0;
++	struct file *file = priv;
++	struct file *child_file;
++	struct epitem *epi;
++
++	list_for_each_entry(epi, &file->f_ep_links, fllink) {
++		child_file = epi->ep->file;
++		if (is_file_epoll(child_file)) {
++			if (list_empty(&child_file->f_ep_links)) {
++				if (path_count_inc(call_nests)) {
++					error = -1;
++					break;
++				}
++			} else {
++				error = ep_call_nested(&poll_loop_ncalls,
++							EP_MAX_NESTS,
++							reverse_path_check_proc,
++							child_file, child_file,
++							current);
++			}
++			if (error != 0)
++				break;
++		} else {
++			printk(KERN_ERR "reverse_path_check_proc: "
++				"file is not an ep!\n");
++		}
++	}
++	return error;
++}
++
++/**
++ * reverse_path_check - The tfile_check_list is list of file *, which have
++ *                      links that are proposed to be newly added. We need to
++ *                      make sure that those added links don't add too many
++ *                      paths such that we will spend all our time waking up
++ *                      eventpoll objects.
++ *
++ * Returns: Returns zero if the proposed links don't create too many paths,
++ *	    -1 otherwise.
++ */
++static int reverse_path_check(void)
++{
++	int length = 0;
++	int error = 0;
++	struct file *current_file;
++
++	/* let's call this for all tfiles */
++	list_for_each_entry(current_file, &tfile_check_list, f_tfile_llink) {
++		length++;
++		path_count_init();
++		error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
++					reverse_path_check_proc, current_file,
++					current_file, current);
++		if (error)
++			break;
++	}
++	return error;
++}
++
+ /*
+  * Must be called with "mtx" held.
+  */
+@@ -976,6 +1078,11 @@ static int ep_insert(struct eventpoll *e
+ 	 */
+ 	ep_rbtree_insert(ep, epi);
+ 
++	/* now check if we've created too many backpaths */
++	error = -EINVAL;
++	if (reverse_path_check())
++		goto error_remove_epi;
++
+ 	/* We have to drop the new item inside our item list to keep track of it */
+ 	spin_lock_irqsave(&ep->lock, flags);
+ 
+@@ -1000,6 +1107,14 @@ static int ep_insert(struct eventpoll *e
+ 
+ 	return 0;
+ 
++error_remove_epi:
++	spin_lock(&tfile->f_lock);
++	if (ep_is_linked(&epi->fllink))
++		list_del_init(&epi->fllink);
++	spin_unlock(&tfile->f_lock);
++
++	rb_erase(&epi->rbn, &ep->rbr);
++
+ error_unregister:
+ 	ep_unregister_pollwait(ep, epi);
+ 
+@@ -1264,18 +1379,35 @@ static int ep_loop_check_proc(void *priv
+ 	int error = 0;
+ 	struct file *file = priv;
+ 	struct eventpoll *ep = file->private_data;
++	struct eventpoll *ep_tovisit;
+ 	struct rb_node *rbp;
+ 	struct epitem *epi;
+ 
+ 	mutex_lock(&ep->mtx);
++	ep->visited = 1;
++	list_add(&ep->visitedllink, &visited_list);
+ 	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 		if (unlikely(is_file_epoll(epi->ffd.file))) {
++			ep_tovisit = epi->ffd.file->private_data;
++			if (ep_tovisit->visited)
++				continue;
+ 			error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
+ 					       ep_loop_check_proc, epi->ffd.file,
+-					       epi->ffd.file->private_data, current);
++					       ep_tovisit, current);
+ 			if (error != 0)
+ 				break;
++		} else {
++			/* if we've reached a file that is not associated with
++			 * an ep, then then we need to check if the newly added
++			 * links are going to add too many wakeup paths. We do
++			 * this by adding it to the tfile_check_list, if it's
++			 * not already there, and calling reverse_path_check()
++			 * during ep_insert()
++			 */
++			if (list_empty(&epi->ffd.file->f_tfile_llink))
++				list_add(&epi->ffd.file->f_tfile_llink,
++					 &tfile_check_list);
  		}
- 		if (!pagevec_add(&pvec, page)) {
- 			spin_unlock_irq(&zone->lru_lock);
-@@ -1394,10 +1391,6 @@ static noinline_for_stack void update_is
- 
- 	reclaim_stat->recent_scanned[0] += *nr_anon;
- 	reclaim_stat->recent_scanned[1] += *nr_file;
--	if (!scanning_global_lru(sc)) {
--		sc->memcg_record->nr_scanned[0] += *nr_anon;
--		sc->memcg_record->nr_scanned[1] += *nr_file;
--	}
+ 	}
+ 	mutex_unlock(&ep->mtx);
+@@ -1296,8 +1428,30 @@ static int ep_loop_check_proc(void *priv
+  */
+ static int ep_loop_check(struct eventpoll *ep, struct file *file)
+ {
+-	return ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
++	int ret;
++	struct eventpoll *ep_cur, *ep_next;
++
++	ret = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
+ 			      ep_loop_check_proc, file, ep, current);
++	/* clear visited list */
++	list_for_each_entry_safe(ep_cur, ep_next, &visited_list, visitedllink) {
++		ep_cur->visited = 0;
++		list_del(&ep_cur->visitedllink);
++	}
++	return ret;
++}
++
++static void clear_tfile_check_list(void)
++{
++	struct file *file;
++
++	/* first clear the tfile_check_list */
++	while (!list_empty(&tfile_check_list)) {
++		file = list_first_entry(&tfile_check_list, struct file,
++					f_tfile_llink);
++		list_del_init(&file->f_tfile_llink);
++	}
++	INIT_LIST_HEAD(&tfile_check_list);
  }
  
  /*
-@@ -1511,9 +1504,6 @@ shrink_inactive_list(unsigned long nr_to
- 		nr_reclaimed += shrink_page_list(&page_list, zone, sc);
- 	}
- 
--	if (!scanning_global_lru(sc))
--		sc->memcg_record->nr_freed[file] += nr_reclaimed;
--
- 	local_irq_disable();
- 	if (current_is_kswapd())
- 		__count_vm_events(KSWAPD_STEAL, nr_reclaimed);
-@@ -1613,8 +1603,6 @@ static void shrink_active_list(unsigned 
- 	}
- 
- 	reclaim_stat->recent_scanned[file] += nr_taken;
--	if (!scanning_global_lru(sc))
--		sc->memcg_record->nr_scanned[file] += nr_taken;
- 
- 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
- 	if (file)
-@@ -1666,8 +1654,6 @@ static void shrink_active_list(unsigned 
- 	 * get_scan_ratio.
- 	 */
- 	reclaim_stat->recent_rotated[file] += nr_rotated;
--	if (!scanning_global_lru(sc))
--		sc->memcg_record->nr_rotated[file] += nr_rotated;
- 
- 	move_active_pages_to_lru(zone, &l_active,
- 						LRU_ACTIVE + file * LRU_FILE);
-@@ -2265,10 +2251,9 @@ unsigned long try_to_free_pages(struct z
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- 
- unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
--					gfp_t gfp_mask, bool noswap,
--					struct zone *zone,
--					struct memcg_scanrecord *rec,
--					unsigned long *scanned)
-+						gfp_t gfp_mask, bool noswap,
-+						struct zone *zone,
-+						unsigned long *nr_scanned)
+@@ -1305,8 +1459,9 @@ static int ep_loop_check(struct eventpol
+  */
+ SYSCALL_DEFINE1(epoll_create1, int, flags)
  {
- 	struct scan_control sc = {
- 		.nr_scanned = 0,
-@@ -2278,9 +2263,7 @@ unsigned long mem_cgroup_shrink_node_zon
- 		.may_swap = !noswap,
- 		.order = 0,
- 		.mem_cgroup = mem,
--		.memcg_record = rec,
- 	};
--	ktime_t start, end;
+-	int error;
++	int error, fd;
+ 	struct eventpoll *ep = NULL;
++	struct file *file;
  
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
-@@ -2289,7 +2272,6 @@ unsigned long mem_cgroup_shrink_node_zon
- 						      sc.may_writepage,
- 						      sc.gfp_mask);
- 
--	start = ktime_get();
- 	/*
- 	 * NOTE: Although we can get the priority field, using it
- 	 * here is not a good idea, since it limits the pages we can scan.
-@@ -2298,25 +2280,19 @@ unsigned long mem_cgroup_shrink_node_zon
- 	 * the priority and make it zero.
+ 	/* Check the EPOLL_* constant for consistency.  */
+ 	BUILD_BUG_ON(EPOLL_CLOEXEC != O_CLOEXEC);
+@@ -1323,11 +1478,25 @@ SYSCALL_DEFINE1(epoll_create1, int, flag
+ 	 * Creates all the items needed to setup an eventpoll file. That is,
+ 	 * a file structure and a free file descriptor.
  	 */
- 	shrink_zone(0, zone, &sc);
--	end = ktime_get();
+-	error = anon_inode_getfd("[eventpoll]", &eventpoll_fops, ep,
++	fd = get_unused_fd_flags(O_RDWR | (flags & O_CLOEXEC));
++	if (fd < 0) {
++		error = fd;
++		goto out_free_ep;
++	}
++	file = anon_inode_getfile("[eventpoll]", &eventpoll_fops, ep,
+ 				 O_RDWR | (flags & O_CLOEXEC));
+-	if (error < 0)
+-		ep_free(ep);
 -
--	if (rec)
--		rec->elapsed += ktime_to_ns(ktime_sub(end, start));
--	*scanned = sc.nr_scanned;
- 
- 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
- 
-+	*nr_scanned = sc.nr_scanned;
- 	return sc.nr_reclaimed;
++	if (IS_ERR(file)) {
++		error = PTR_ERR(file);
++		goto out_free_fd;
++	}
++	fd_install(fd, file);
++	ep->file = file;
++	return fd;
++
++out_free_fd:
++	put_unused_fd(fd);
++out_free_ep:
++	ep_free(ep);
+ 	return error;
  }
  
- unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *mem_cont,
- 					   gfp_t gfp_mask,
--					   bool noswap,
--					   struct memcg_scanrecord *rec)
-+					   bool noswap)
- {
- 	struct zonelist *zonelist;
- 	unsigned long nr_reclaimed;
--	ktime_t start, end;
- 	int nid;
- 	struct scan_control sc = {
- 		.may_writepage = !laptop_mode,
-@@ -2325,7 +2301,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
- 		.order = 0,
- 		.mem_cgroup = mem_cont,
--		.memcg_record = rec,
- 		.nodemask = NULL, /* we don't care the placement */
- 		.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 				(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK),
-@@ -2334,7 +2309,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 		.gfp_mask = sc.gfp_mask,
- 	};
- 
--	start = ktime_get();
+@@ -1393,21 +1562,27 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
  	/*
- 	 * Unlike direct reclaim via alloc_pages(), memcg's reclaim doesn't
- 	 * take care of from where we get pages. So the node where we start the
-@@ -2349,9 +2323,6 @@ unsigned long try_to_free_mem_cgroup_pag
- 					    sc.gfp_mask);
+ 	 * When we insert an epoll file descriptor, inside another epoll file
+ 	 * descriptor, there is the change of creating closed loops, which are
+-	 * better be handled here, than in more critical paths.
++	 * better be handled here, than in more critical paths. While we are
++	 * checking for loops we also determine the list of files reachable
++	 * and hang them on the tfile_check_list, so we can check that we
++	 * haven't created too many possible wakeup paths.
+ 	 *
+-	 * We hold epmutex across the loop check and the insert in this case, in
+-	 * order to prevent two separate inserts from racing and each doing the
+-	 * insert "at the same time" such that ep_loop_check passes on both
+-	 * before either one does the insert, thereby creating a cycle.
++	 * We need to hold the epmutex across both ep_insert and ep_remove
++	 * b/c we want to make sure we are looking at a coherent view of
++	 * epoll network.
+ 	 */
+-	if (unlikely(is_file_epoll(tfile) && op == EPOLL_CTL_ADD)) {
++	if (op == EPOLL_CTL_ADD || op == EPOLL_CTL_DEL) {
+ 		mutex_lock(&epmutex);
+ 		did_lock_epmutex = 1;
+-		error = -ELOOP;
+-		if (ep_loop_check(ep, tfile) != 0)
+-			goto error_tgt_fput;
+ 	}
+-
++	if (op == EPOLL_CTL_ADD) {
++		if (is_file_epoll(tfile)) {
++			error = -ELOOP;
++			if (ep_loop_check(ep, tfile) != 0)
++				goto error_tgt_fput;
++		} else
++			list_add(&tfile->f_tfile_llink, &tfile_check_list);
++	}
  
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc, &shrink);
--	end = ktime_get();
--	if (rec)
--		rec->elapsed += ktime_to_ns(ktime_sub(end, start));
+ 	mutex_lock(&ep->mtx);
  
- 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
+@@ -1426,6 +1601,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 			error = ep_insert(ep, &epds, tfile, fd);
+ 		} else
+ 			error = -EEXIST;
++		clear_tfile_check_list();
+ 		break;
+ 	case EPOLL_CTL_DEL:
+ 		if (epi)
+@@ -1444,7 +1620,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 	mutex_unlock(&ep->mtx);
  
+ error_tgt_fput:
+-	if (unlikely(did_lock_epmutex))
++	if (did_lock_epmutex)
+ 		mutex_unlock(&epmutex);
+ 
+ 	fput(tfile);
+diff -puN include/linux/eventpoll.h~epoll-limit-paths include/linux/eventpoll.h
+--- a/include/linux/eventpoll.h~epoll-limit-paths
++++ a/include/linux/eventpoll.h
+@@ -61,6 +61,7 @@ struct file;
+ static inline void eventpoll_init_file(struct file *file)
+ {
+ 	INIT_LIST_HEAD(&file->f_ep_links);
++	INIT_LIST_HEAD(&file->f_tfile_llink);
+ }
+ 
+ 
+diff -puN include/linux/fs.h~epoll-limit-paths include/linux/fs.h
+--- a/include/linux/fs.h~epoll-limit-paths
++++ a/include/linux/fs.h
+@@ -987,6 +987,7 @@ struct file {
+ #ifdef CONFIG_EPOLL
+ 	/* Used by fs/eventpoll.c to link all the hooks to this file */
+ 	struct list_head	f_ep_links;
++	struct list_head	f_tfile_llink;
+ #endif /* #ifdef CONFIG_EPOLL */
+ 	struct address_space	*f_mapping;
+ #ifdef CONFIG_DEBUG_WRITECOUNT
 _
 
-Patches currently in -mm which might be from jweiner@redhat.com are
+Patches currently in -mm which might be from jbaron@redhat.com are
 
-mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-memcg-revert-memcg-add-memoryvmscan_stat.patch
-mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
-mm-page-writebackc-document-bdi_min_ratio.patch
-mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
-xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
-mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
-mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-compaction-compact-unevictable-pages.patch
-mm-compaction-accounting-fix.patch
-memcg-remove-unneeded-preempt_disable.patch
-memcg-skip-scanning-active-lists-based-on-individual-size.patch
-memcg-skip-scanning-active-lists-based-on-individual-size-fix.patch
+linux-next.patch
+epoll-limit-paths.patch
 
