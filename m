@@ -1,109 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmapc-quiet-sparse-noise-about-address-space.patch added to -mm tree
-Date: Fri, 02 Sep 2011 16:33:59 -0700
-Message-ID: <201109022333.p82NXxrj016962@imap1.linux-foundation.org>
+Subject: [nacked] drm-vmwgfx-use-ida_simple_get-for-id-allocation.patch removed from -mm tree
+Date: Fri, 02 Sep 2011 17:10:45 -0700
+Message-ID: <201109030010.p830AjKM018605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39874 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750735Ab1IBXeB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 19:34:01 -0400
+	by vger.kernel.org with ESMTP id S1752011Ab1ICALJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2011 20:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, ak@linux.intel.com, andy.shevchenko@gmail.com, hsweeten@visionengravers.com, len.brown@intel.com, ying.huang@intel.com
+To: jic23@cam.ac.uk, James.Bottomley@HansenPartnership.com, airlied@linux.ie, guenter.roeck@ericsson.com, rusty@rustcorp.com.au, thellstrom@vmware.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib/bitmap.c: quiet sparse noise about address space
-has been added to the -mm tree.  Its filename is
-     lib-bitmapc-quiet-sparse-noise-about-address-space.patch
+     drm/vmwgfx: use ida_simple_get() for id allocation
+has been removed from the -mm tree.  Its filename was
+     drm-vmwgfx-use-ida_simple_get-for-id-allocation.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib/bitmap.c: quiet sparse noise about address space
-From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: drm/vmwgfx: use ida_simple_get() for id allocation
+From: Jonathan Cameron <jic23@cam.ac.uk>
 
-__bitmap_parse() and __bitmap_parselist() both take a pointer to a kernel
-buffer as a parameter and then cast it to a pointer to user buffer for use
-in cases when the parameter is_user indicates that the buffer is actually
-located in user space.  This casting, and the casts in the callers,
-results in sparse noise like the following:
+Some messing with error codes to return 0 on out id's and match
+current situation.  Is this necessary? Looks a touch 'interesting'.
 
-	warning: incorrect type in initializer (different address spaces)
-	  expected char const [noderef] <asn:1>*ubuf
-	  got char const *buf
-	warning: cast removes address space of expression
-
-Since these casts are intentional, use __force to quiet the noise.
-
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c |   34 +++-------------
+ 1 file changed, 8 insertions(+), 26 deletions(-)
 
-diff -puN lib/bitmap.c~lib-bitmapc-quiet-sparse-noise-about-address-space lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmapc-quiet-sparse-noise-about-address-space
-+++ a/lib/bitmap.c
-@@ -419,7 +419,7 @@ int __bitmap_parse(const char *buf, unsi
- {
- 	int c, old_c, totaldigits, ndigits, nchunks, nbits;
- 	u32 chunk;
--	const char __user *ubuf = buf;
-+	const char __user __force *ubuf = buf;
+diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c~drm-vmwgfx-use-ida_simple_get-for-id-allocation drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c~drm-vmwgfx-use-ida_simple_get-for-id-allocation
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
+@@ -37,7 +37,6 @@
+ #include <linux/kernel.h>
  
- 	bitmap_zero(maskp, nmaskbits);
- 
-@@ -504,7 +504,9 @@ int bitmap_parse_user(const char __user 
+ struct vmwgfx_gmrid_man {
+-	spinlock_t lock;
+ 	struct ida gmr_ida;
+ 	uint32_t max_gmr_ids;
+ };
+@@ -49,34 +48,20 @@ static int vmw_gmrid_man_get_node(struct
  {
- 	if (!access_ok(VERIFY_READ, ubuf, ulen))
- 		return -EFAULT;
--	return __bitmap_parse((const char *)ubuf, ulen, 1, maskp, nmaskbits);
-+	return __bitmap_parse((const char __force *)ubuf,
-+				ulen, 1, maskp, nmaskbits);
-+
+ 	struct vmwgfx_gmrid_man *gman =
+ 		(struct vmwgfx_gmrid_man *)man->priv;
+-	int ret;
+ 	int id;
+ 
+ 	mem->mm_node = NULL;
+ 
+-	do {
+-		if (unlikely(ida_pre_get(&gman->gmr_ida, GFP_KERNEL) == 0))
+-			return -ENOMEM;
+-
+-		spin_lock(&gman->lock);
+-		ret = ida_get_new(&gman->gmr_ida, &id);
+-
+-		if (unlikely(ret == 0 && id >= gman->max_gmr_ids)) {
+-			ida_remove(&gman->gmr_ida, id);
+-			spin_unlock(&gman->lock);
++	id = ida_simple_get(&gman->gmr_ida, 0, gman->max_gmr_ids, GFP_KERNEL);
++	if (id < 0) {
++		if (id == -ENOSPC)
+ 			return 0;
+-		}
+-
+-		spin_unlock(&gman->lock);
+-
+-	} while (ret == -EAGAIN);
+-
+-	if (likely(ret == 0)) {
+-		mem->mm_node = gman;
+-		mem->start = id;
++		return id;
+ 	}
++	mem->mm_node = gman;
++	mem->start = id;
+ 
+-	return ret;
++	return 0;
  }
- EXPORT_SYMBOL(bitmap_parse_user);
  
-@@ -594,7 +596,7 @@ static int __bitmap_parselist(const char
- {
- 	unsigned a, b;
- 	int c, old_c, totaldigits;
--	const char __user *ubuf = buf;
-+	const char __user __force *ubuf = buf;
- 	int exp_digit, in_range;
+ static void vmw_gmrid_man_put_node(struct ttm_mem_type_manager *man,
+@@ -86,9 +71,7 @@ static void vmw_gmrid_man_put_node(struc
+ 		(struct vmwgfx_gmrid_man *)man->priv;
  
- 	totaldigits = c = 0;
-@@ -694,7 +696,7 @@ int bitmap_parselist_user(const char __u
- {
- 	if (!access_ok(VERIFY_READ, ubuf, ulen))
- 		return -EFAULT;
--	return __bitmap_parselist((const char *)ubuf,
-+	return __bitmap_parselist((const char __force *)ubuf,
- 					ulen, 1, maskp, nmaskbits);
+ 	if (mem->mm_node) {
+-		spin_lock(&gman->lock);
+-		ida_remove(&gman->gmr_ida, mem->start);
+-		spin_unlock(&gman->lock);
++		ida_simple_remove(&gman->gmr_ida, mem->start);
+ 		mem->mm_node = NULL;
+ 	}
  }
- EXPORT_SYMBOL(bitmap_parselist_user);
+@@ -102,7 +85,6 @@ static int vmw_gmrid_man_init(struct ttm
+ 	if (unlikely(gman == NULL))
+ 		return -ENOMEM;
+ 
+-	spin_lock_init(&gman->lock);
+ 	ida_init(&gman->gmr_ida);
+ 	gman->max_gmr_ids = p_size;
+ 	man->priv = (void *) gman;
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from jic23@cam.ac.uk are
 
-lib-bitmapc-quiet-sparse-noise-about-address-space.patch
+linux-next.patch
+hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch
+drivers-hwmon-hwmonc-convert-idr-to-ida-and-use-ida_simple_get.patch
+drivers-scsi-sdc-use-ida_simple_get-and-ida_simple_remove-in-place-of-boilerplate-code.patch
+drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id.patch
+drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get.patch
+w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it.patch
 
