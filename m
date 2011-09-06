@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-add-res-counter-common-ancestor-searching.patch added to -mm tree
-Date: Tue, 06 Sep 2011 15:42:18 -0700
-Message-ID: <201109062242.p86MgIpI008296@imap1.linux-foundation.org>
+Subject: + cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.patch added to -mm tree
+Date: Tue, 06 Sep 2011 15:42:25 -0700
+Message-ID: <201109062242.p86MgQgD008316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56366 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44097 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755200Ab1IFWml (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 18:42:41 -0400
+	by vger.kernel.org with ESMTP id S1754983Ab1IFWmn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 18:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fweisbec@gmail.com, adityakali@google.com, hannes@cmpxchg.org, kay.sievers@v
 
 
 The patch titled
-     cgroups: add res counter common ancestor searching
+     cgroups: pull up res counter charge failure interpretation to caller
 has been added to the -mm tree.  Its filename is
-     cgroups-add-res-counter-common-ancestor-searching.patch
+     cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: add res counter common ancestor searching
+Subject: cgroups: pull up res counter charge failure interpretation to caller
 From: Frederic Weisbecker <fweisbec@gmail.com>
 
-Add a new API to find the common ancestor between two resource counters. 
-This includes the passed resource counter themselves.
+res_counter_charge() always returns -ENOMEM when the limit is reached and
+the charge thus can't happen.
+
+However it's up to the caller to interpret this failure and return the
+appropriate error value.  The task counter subsystem will need to report
+the user that a fork() has been cancelled because of some limit reached,
+not because we are too short on memory.
+
+Fix this by returning -1 when res_counter_charge() fails.
 
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Acked-by: Paul Menage <paul@paulmenage.org>
+Cc: Paul Menage <paul@paulmenage.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Aditya Kali <adityakali@google.com>
@@ -51,51 +58,21 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    2 ++
- kernel/res_counter.c        |   19 +++++++++++++++++++
- 2 files changed, 21 insertions(+)
+ kernel/res_counter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/res_counter.h~cgroups-add-res-counter-common-ancestor-searching include/linux/res_counter.h
---- a/include/linux/res_counter.h~cgroups-add-res-counter-common-ancestor-searching
-+++ a/include/linux/res_counter.h
-@@ -146,6 +146,8 @@ static inline void res_counter_uncharge(
- 	res_counter_uncharge_until(counter, NULL, val);
- }
- 
-+struct res_counter *res_counter_common_ancestor(struct res_counter *l, struct res_counter *r);
-+
- /**
-  * res_counter_margin - calculate chargeable space of a counter
-  * @cnt: the counter
-diff -puN kernel/res_counter.c~cgroups-add-res-counter-common-ancestor-searching kernel/res_counter.c
---- a/kernel/res_counter.c~cgroups-add-res-counter-common-ancestor-searching
+diff -puN kernel/res_counter.c~cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller kernel/res_counter.c
+--- a/kernel/res_counter.c~cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller
 +++ a/kernel/res_counter.c
-@@ -92,6 +92,25 @@ void res_counter_uncharge_until(struct r
- }
- 
- 
-+struct res_counter *
-+res_counter_common_ancestor(struct res_counter *r1, struct res_counter *r2)
-+{
-+	struct res_counter *iter;
-+
-+	while (r1) {
-+		iter = r2;
-+		while (iter) {
-+			if (iter == r1)
-+				return iter;
-+			iter = iter->parent;
-+		}
-+
-+		r1 = r1->parent;
-+	}
-+
-+	return NULL;
-+}
-+
- static inline unsigned long long *
- res_counter_member(struct res_counter *counter, int member)
+@@ -26,7 +26,7 @@ int res_counter_charge_locked(struct res
  {
+ 	if (counter->usage + val > counter->limit) {
+ 		counter->failcnt++;
+-		return -ENOMEM;
++		return -1;
+ 	}
+ 
+ 	counter->usage += val;
 _
 
 Patches currently in -mm which might be from fweisbec@gmail.com are
