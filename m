@@ -1,97 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bitops-move-find_next_bito-from-lib-y-to-obj-y.patch removed from -mm tree
-Date: Tue, 06 Sep 2011 12:16:42 -0700
-Message-ID: <201109061912.p86JCVHN022198@imap1.linux-foundation.org>
+Subject: [merged] nbd-replace-printk-kern_err-with-dev_err.patch removed from -mm tree
+Date: Tue, 06 Sep 2011 12:16:52 -0700
+Message-ID: <201109061912.p86JCelj022208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754543Ab1IFTMn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 15:12:43 -0400
+	by vger.kernel.org with ESMTP id S1754501Ab1IFTMs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 15:12:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, akinobu.mita@gmail.com, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: amwang@redhat.com, Paul.Clements@steeleye.com, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitops: move find_next_bit.o from lib-y to obj-y
+     nbd: replace printk KERN_ERR with dev_err()
 has been removed from the -mm tree.  Its filename was
-     bitops-move-find_next_bito-from-lib-y-to-obj-y.patch
+     nbd-replace-printk-kern_err-with-dev_err.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitops: move find_next_bit.o from lib-y to obj-y
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: nbd: replace printk KERN_ERR with dev_err()
+From: WANG Cong <amwang@redhat.com>
 
-If there are no builtin users of find_next_bit_le() and
-find_next_zero_bit_le(), these functions are not present in the kernel
-image, causing m68k allmodconfig to fail with:
-
-ERROR: "find_next_zero_bit_le" [fs/ufs/ufs.ko] undefined!
-ERROR: "find_next_bit_le" [fs/udf/udf.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/reiserfs/reiserfs.ko] undefined!
-ERROR: "find_next_bit_le" [fs/ocfs2/ocfs2.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/ocfs2/ocfs2.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/nilfs2/nilfs2.ko] undefined!
-ERROR: "find_next_bit_le" [fs/ext4/ext4.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/ext4/ext4.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/ext3/ext3.ko] undefined!
-ERROR: "find_next_zero_bit_le" [fs/ext2/ext2.ko] undefined!
-ERROR: "find_next_zero_bit_le" [drivers/media/rc/ite-cir.ko] undefined!
-ERROR: "find_next_bit_le" [drivers/media/rc/ite-cir.ko] undefined!
-ERROR: "find_next_zero_bit_le" [drivers/md/dm-log.ko] undefined!
-ERROR: "find_next_bit_le" [drivers/block/drbd/drbd.ko] undefined!
-ERROR: "find_next_zero_bit_le" [drivers/block/drbd/drbd.ko] undefined!
-
-This started to happen after commit 171d809df1896 ("m68k: merge mmu and
-non-mmu bitops.h"), as m68k had its own inline versions before.
-
-commit 63e424c84429903 ("arch: remove
-CONFIG_GENERIC_FIND_{NEXT_BIT,BIT_LE,LAST_BIT}") added find_last_bit.o to
-obj-y (so it's always included), but find_next_bit.o to lib-y (so it gets
-removed by the linker if there are no builtin users).
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Signed-off-by: WANG Cong <amwang@redhat.com>
+Cc: Paul Clements <Paul.Clements@steeleye.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/nbd.c |   50 +++++++++++++++++++++---------------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
-diff -puN lib/Makefile~bitops-move-find_next_bito-from-lib-y-to-obj-y lib/Makefile
---- a/lib/Makefile~bitops-move-find_next_bito-from-lib-y-to-obj-y
-+++ a/lib/Makefile
-@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 idr.o int_sqrt.o extable.o prio_tree.o \
- 	 sha1.o md5.o irq_regs.o reciprocal_div.o argv_split.o \
- 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
--	 is_single_threaded.o plist.o decompress.o find_next_bit.o
-+	 is_single_threaded.o plist.o decompress.o
+diff -puN drivers/block/nbd.c~nbd-replace-printk-kern_err-with-dev_err drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-replace-printk-kern_err-with-dev_err
++++ a/drivers/block/nbd.c
+@@ -158,8 +158,9 @@ static int sock_xmit(struct nbd_device *
+ 	sigset_t blocked, oldset;
  
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-@@ -22,7 +22,7 @@ lib-y	+= kobject.o kref.o klist.o
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
- 	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
--	 bsearch.o find_last_bit.o
-+	 bsearch.o find_last_bit.o find_next_bit.o
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+ 	if (unlikely(!sock)) {
+-		printk(KERN_ERR "%s: Attempted %s on closed socket in sock_xmit\n",
+-		       lo->disk->disk_name, (send ? "send" : "recv"));
++		dev_err(disk_to_dev(lo->disk),
++			"Attempted %s on closed socket in sock_xmit\n",
++			(send ? "send" : "recv"));
+ 		return -EINVAL;
+ 	}
  
+@@ -250,8 +251,8 @@ static int nbd_send_req(struct nbd_devic
+ 	result = sock_xmit(lo, 1, &request, sizeof(request),
+ 			(nbd_cmd(req) == NBD_CMD_WRITE) ? MSG_MORE : 0);
+ 	if (result <= 0) {
+-		printk(KERN_ERR "%s: Send control failed (result %d)\n",
+-				lo->disk->disk_name, result);
++		dev_err(disk_to_dev(lo->disk),
++			"Send control failed (result %d)\n", result);
+ 		goto error_out;
+ 	}
+ 
+@@ -270,8 +271,9 @@ static int nbd_send_req(struct nbd_devic
+ 					lo->disk->disk_name, req, bvec->bv_len);
+ 			result = sock_send_bvec(lo, bvec, flags);
+ 			if (result <= 0) {
+-				printk(KERN_ERR "%s: Send data failed (result %d)\n",
+-						lo->disk->disk_name, result);
++				dev_err(disk_to_dev(lo->disk),
++					"Send data failed (result %d)\n",
++					result);
+ 				goto error_out;
+ 			}
+ 		}
+@@ -328,14 +330,13 @@ static struct request *nbd_read_stat(str
+ 	reply.magic = 0;
+ 	result = sock_xmit(lo, 0, &reply, sizeof(reply), MSG_WAITALL);
+ 	if (result <= 0) {
+-		printk(KERN_ERR "%s: Receive control failed (result %d)\n",
+-				lo->disk->disk_name, result);
++		dev_err(disk_to_dev(lo->disk),
++			"Receive control failed (result %d)\n", result);
+ 		goto harderror;
+ 	}
+ 
+ 	if (ntohl(reply.magic) != NBD_REPLY_MAGIC) {
+-		printk(KERN_ERR "%s: Wrong magic (0x%lx)\n",
+-				lo->disk->disk_name,
++		dev_err(disk_to_dev(lo->disk), "Wrong magic (0x%lx)\n",
+ 				(unsigned long)ntohl(reply.magic));
+ 		result = -EPROTO;
+ 		goto harderror;
+@@ -347,15 +348,15 @@ static struct request *nbd_read_stat(str
+ 		if (result != -ENOENT)
+ 			goto harderror;
+ 
+-		printk(KERN_ERR "%s: Unexpected reply (%p)\n",
+-				lo->disk->disk_name, reply.handle);
++		dev_err(disk_to_dev(lo->disk), "Unexpected reply (%p)\n",
++			reply.handle);
+ 		result = -EBADR;
+ 		goto harderror;
+ 	}
+ 
+ 	if (ntohl(reply.error)) {
+-		printk(KERN_ERR "%s: Other side returned error (%d)\n",
+-				lo->disk->disk_name, ntohl(reply.error));
++		dev_err(disk_to_dev(lo->disk), "Other side returned error (%d)\n",
++			ntohl(reply.error));
+ 		req->errors++;
+ 		return req;
+ 	}
+@@ -369,8 +370,8 @@ static struct request *nbd_read_stat(str
+ 		rq_for_each_segment(bvec, req, iter) {
+ 			result = sock_recv_bvec(lo, bvec);
+ 			if (result <= 0) {
+-				printk(KERN_ERR "%s: Receive data failed (result %d)\n",
+-						lo->disk->disk_name, result);
++				dev_err(disk_to_dev(lo->disk), "Receive data failed (result %d)\n",
++					result);
+ 				req->errors++;
+ 				return req;
+ 			}
+@@ -408,7 +409,7 @@ static int nbd_do_it(struct nbd_device *
+ 	lo->pid = task_pid_nr(current);
+ 	ret = device_create_file(disk_to_dev(lo->disk), &pid_attr);
+ 	if (ret) {
+-		printk(KERN_ERR "nbd: device_create_file failed!");
++		dev_err(disk_to_dev(lo->disk), "device_create_file failed!\n");
+ 		lo->pid = 0;
+ 		return ret;
+ 	}
+@@ -457,8 +458,8 @@ static void nbd_handle_req(struct nbd_de
+ 	if (rq_data_dir(req) == WRITE) {
+ 		nbd_cmd(req) = NBD_CMD_WRITE;
+ 		if (lo->flags & NBD_READ_ONLY) {
+-			printk(KERN_ERR "%s: Write on read-only\n",
+-					lo->disk->disk_name);
++			dev_err(disk_to_dev(lo->disk),
++				"Write on read-only\n");
+ 			goto error_out;
+ 		}
+ 	}
+@@ -468,16 +469,15 @@ static void nbd_handle_req(struct nbd_de
+ 	mutex_lock(&lo->tx_lock);
+ 	if (unlikely(!lo->sock)) {
+ 		mutex_unlock(&lo->tx_lock);
+-		printk(KERN_ERR "%s: Attempted send on closed socket\n",
+-		       lo->disk->disk_name);
++		dev_err(disk_to_dev(lo->disk),
++			"Attempted send on closed socket\n");
+ 		goto error_out;
+ 	}
+ 
+ 	lo->active_req = req;
+ 
+ 	if (nbd_send_req(lo, req) != 0) {
+-		printk(KERN_ERR "%s: Request send failed\n",
+-				lo->disk->disk_name);
++		dev_err(disk_to_dev(lo->disk), "Request send failed\n");
+ 		req->errors++;
+ 		nbd_end_request(req);
+ 	} else {
+@@ -549,8 +549,8 @@ static void do_nbd_request(struct reques
+ 		BUG_ON(lo->magic != LO_MAGIC);
+ 
+ 		if (unlikely(!lo->sock)) {
+-			printk(KERN_ERR "%s: Attempted send on closed socket\n",
+-				lo->disk->disk_name);
++			dev_err(disk_to_dev(lo->disk),
++				"Attempted send on closed socket\n");
+ 			req->errors++;
+ 			nbd_end_request(req);
+ 			spin_lock_irq(q->queue_lock);
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from amwang@redhat.com are
 
-origin.patch
+numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled.patch
+numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
 linux-next.patch
-fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch
-lib-stringc-introduce-memchr_inv-fix-kernel-doc-for-memchr_inv.patch
-include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro.patch
-cris-lower-the-printk-level-in-cris-serial-driver.patch
+sched-fix-a-memory-leak-in-__sdt_free.patch
+sysctl-make-config_sysctl_syscall-default-to-n.patch
 
