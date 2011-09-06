@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] drivers-block-loopc-emit-uevent-on-auto-release.patch removed from -mm tree
-Date: Tue, 06 Sep 2011 13:31:22 -0700
-Message-ID: <201109062031.p86KVMkQ029435@imap1.linux-foundation.org>
+Subject: + drivers-block-loopc-emit-uevent-on-auto-release.patch added to -mm tree
+Date: Tue, 06 Sep 2011 13:33:30 -0700
+Message-ID: <201109062033.p86KXURX029545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755040Ab1IFUb2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 16:31:28 -0400
+	by vger.kernel.org with ESMTP id S1755071Ab1IFUdh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 16:33:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: psusi@cfl.rr.com, axboe@kernel.dk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: psusi@cfl.rr.com, axboe@kernel.dk, ayan@ayan.net
 
 
 The patch titled
      drivers/block/loop.c: emit uevent on auto release
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      drivers-block-loopc-emit-uevent-on-auto-release.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -26,13 +36,13 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: drivers/block/loop.c: emit uevent on auto release
 From: Phillip Susi <psusi@cfl.rr.com>
 
-Fix the loopback device to emit a uevent on auto release.  The loopback
-driver failed to emit the change uevent when auto releasing the device. 
-Fix lo_release() to pass the bdev to loop_clr_fd() so it can emit the
-event.
+The loopback driver failed to emit the change uevent when auto releasing
+the device.  Fixed lo_release() to pass the bdev to loop_clr_fd() so it
+can emit the event.
 
-Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Phillip Susi <psusi@cfl.rr.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Ayan George <ayan@ayan.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -42,7 +52,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 diff -puN drivers/block/loop.c~drivers-block-loopc-emit-uevent-on-auto-release drivers/block/loop.c
 --- a/drivers/block/loop.c~drivers-block-loopc-emit-uevent-on-auto-release
 +++ a/drivers/block/loop.c
-@@ -1509,7 +1509,7 @@ static int lo_release(struct gendisk *di
+@@ -1588,7 +1588,7 @@ static int lo_release(struct gendisk *di
  		 * In autoclear mode, stop the loop thread
  		 * and remove configuration after last close.
  		 */
@@ -55,5 +65,6 @@ _
 
 Patches currently in -mm which might be from psusi@cfl.rr.com are
 
-fixed-loopback-device-to-emit-uevent-on-auto-release.patch
+drivers-block-loopc-emit-uevent-on-auto-release.patch
+drivers-block-loopc-remove-unnecessary-bdev-argument-from-loop_clr_fd.patch
 
