@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-add-documentation-for-task-counter-subsystem.patch added to -mm tree
-Date: Tue, 06 Sep 2011 15:42:30 -0700
-Message-ID: <201109062242.p86MgUnm008325@imap1.linux-foundation.org>
+Subject: + cgroups-convert-task-counter-to-use-the-subsys-fork-callback.patch added to -mm tree
+Date: Tue, 06 Sep 2011 15:42:42 -0700
+Message-ID: <201109062242.p86MghGD008343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754983Ab1IFWm5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 18:42:57 -0400
+	by vger.kernel.org with ESMTP id S1755290Ab1IFWnG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 18:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: fweisbec@gmail.com, adityakali@google.com, hannes@cmpxchg.org, kay.sievers@v
 
 
 The patch titled
-     cgroups: add documentation for task counter subsystem
+     cgroups: convert task counter to use the subsys fork callback
 has been added to the -mm tree.  Its filename is
-     cgroups-add-documentation-for-task-counter-subsystem.patch
+     cgroups-convert-task-counter-to-use-the-subsys-fork-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,9 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: add documentation for task counter subsystem
+Subject: cgroups: convert task counter to use the subsys fork callback
 From: Frederic Weisbecker <fweisbec@gmail.com>
 
+Instead of using an ad hoc hook on the fork path for the task counter, use
+the subsystem fork callback that we can now use to cancel the fork.
+
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Paul Menage <paul@paulmenage.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
@@ -48,139 +52,61 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/task_counter.txt |  126 +++++++++++++++++++++++
- 1 file changed, 126 insertions(+)
+ include/linux/cgroup.h       |    9 ---------
+ kernel/cgroup_task_counter.c |    3 ++-
+ kernel/fork.c                |    4 ----
+ 3 files changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN /dev/null Documentation/cgroups/task_counter.txt
---- /dev/null
-+++ a/Documentation/cgroups/task_counter.txt
-@@ -0,0 +1,126 @@
-+Task counter subsystem
-+
-+1. Description
-+
-+The task counter subsystem limits the number of tasks running
-+inside a given cgroup. It behaves like the NR_PROC rlimit but in
-+the scope of a cgroup instead of a user.
-+
-+It has two typical usecases, although more can probably be found:
-+
-+- Protect against forkbombs that explode inside a container when
-+that container is implemented using a cgroup. The NR_PROC rlimit
-+is not efficient for that because if we have several containers
-+running in parallel under the same user, one container could starve
-+all the others by spawning a high number of tasks close to the
-+rlimit boundary. So in this case we need this limitation to be
-+done in a per cgroup granularity.
-+
-+- Kill all tasks inside a cgroup without races. By setting the limit
-+of running tasks to 0, one can prevent from any further fork inside a
-+cgroup and then kill all of its tasks without the need to retry an
-+unbound amount of time due to races between kills and forks running
-+in parallel (more details in "Kill a cgroup safely" paragraph).
-+
-+
-+2. Interface
-+
-+When a hierarchy is mounted with the task counter subsystem binded, it
-+adds two files into the cgroups directories, except the root one:
-+
-+- tasks.usage contains the number of tasks running inside a cgroup and
-+its children in the hierarchy (see paragraph about Inheritance).
-+
-+- tasks.limit contains the maximum number of tasks that can run inside
-+a cgroup. We check this limit when a task forks or when it is migrated
-+to a cgroup.
-+
-+Note that the tasks.limit value can be forced below tasks.usage, in which
-+case any new task in the cgroup will be rejected until the tasks.usage
-+value goes below tasks.limit.
-+
-+For optimization reasons, the root directory of a hierarchy doesn't have
-+a task counter.
-+
-+
-+3. Inheritance
-+
-+When a task is added to a cgroup, by way of a cgroup migration or a fork,
-+it increases the task counter of that cgroup and of all its ancestors.
-+Hence a cgroup is also subject to the limit of its ancestors.
-+
-+In the following hierarchy:
-+
-+
-+             A
-+             |
-+             B
-+           /   \
-+          C     D
-+
-+
-+We have 1 task running in B, one running in C and none running in D.
-+It means we have tasks.usage = 1 in C and tasks.usage = 2 in B because
-+B counts its task and those of its children.
-+
-+Now lets set tasks.limit = 2 in B and tasks.limit = 1 in D.
-+If we move a new task in D, it will be refused because the limit in B has
-+been reached already.
-+
-+
-+4. Kill a cgroup safely
-+
-+As explained in the description, this subsystem is also helpful to
-+kill all tasks in a cgroup safely, after setting tasks.limit to 0,
-+so that we don't race against parallel forks in an unbound numbers
-+of kill iterations.
-+
-+But there is a small detail to be aware of to use this feature that
-+way.
-+
-+Some typical way to proceed would be:
-+
-+	echo 0 > tasks.limit
-+	for TASK in $(cat cgroup.procs)
-+	do
-+		kill -KILL $TASK
-+	done
-+
-+However there is a small race window where a task can be in the way to
-+be forked but hasn't enough completed the fork to have the PID of the
-+fork appearing in the cgroup.procs file.
-+
-+The only way to get it right is to run a loop that reads tasks.usage, kill
-+all the tasks in cgroup.procs and exit the loop only if the value in
-+tasks.usage was the same than the number of tasks that were in cgroup.procs,
-+ie: the number of tasks that were killed.
-+
-+It works because the new child appears in tasks.usage right before we check,
-+in the fork path, whether the parent has a pending signal, in which case the
-+fork is cancelled anyway. So relying on tasks.usage is fine and non-racy.
-+
-+This race window is tiny and unlikely to happen, so most of the time a single
-+kill iteration should be enough. But it's worth knowing about that corner
-+case spotted by Oleg Nesterov.
-+
-+Example of safe use would be:
-+
-+	echo 0 > tasks.limit
-+	END=false
-+
-+	while [ $END == false ]
-+	do
-+		NR_TASKS=$(cat tasks.usage)
-+		NR_KILLED=0
-+
-+		for TASK in $(cat cgroup.procs)
-+		do
-+			let NR_KILLED=NR_KILLED+1
-+			kill -KILL $TASK
-+		done
-+
-+		if [ "$NR_TASKS" = "$NR_KILLED" ]
-+		then
-+			END=true
-+		fi
-+	done
+diff -puN include/linux/cgroup.h~cgroups-convert-task-counter-to-use-the-subsys-fork-callback include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-convert-task-counter-to-use-the-subsys-fork-callback
++++ a/include/linux/cgroup.h
+@@ -663,13 +663,4 @@ static inline int cgroup_attach_task_cur
+ 
+ #endif /* !CONFIG_CGROUPS */
+ 
+-#ifdef CONFIG_CGROUP_TASK_COUNTER
+-int cgroup_task_counter_fork(struct task_struct *child);
+-#else
+-static inline int cgroup_task_counter_fork(struct task_struct *child)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_CGROUP_TASK_COUNTER */
+-
+ #endif /* _LINUX_CGROUP_H */
+diff -puN kernel/cgroup_task_counter.c~cgroups-convert-task-counter-to-use-the-subsys-fork-callback kernel/cgroup_task_counter.c
+--- a/kernel/cgroup_task_counter.c~cgroups-convert-task-counter-to-use-the-subsys-fork-callback
++++ a/kernel/cgroup_task_counter.c
+@@ -168,7 +168,7 @@ static int task_counter_populate(struct 
+ 	return cgroup_add_files(cgrp, ss, files, ARRAY_SIZE(files));
+ }
+ 
+-int cgroup_task_counter_fork(struct task_struct *child)
++static int task_counter_fork(struct cgroup_subsys *ss, struct task_struct *child)
+ {
+ 	struct cgroup_subsys_state *css = child->cgroups->subsys[tasks_subsys_id];
+ 	struct cgroup *cgrp = css->cgroup;
+@@ -195,5 +195,6 @@ struct cgroup_subsys tasks_subsys = {
+ 	.can_attach_task	= task_counter_can_attach_task,
+ 	.cancel_attach_task	= task_counter_cancel_attach_task,
+ 	.attach_task		= task_counter_attach_task,
++	.fork			= task_counter_fork,
+ 	.populate		= task_counter_populate,
+ };
+diff -puN kernel/fork.c~cgroups-convert-task-counter-to-use-the-subsys-fork-callback kernel/fork.c
+--- a/kernel/fork.c~cgroups-convert-task-counter-to-use-the-subsys-fork-callback
++++ a/kernel/fork.c
+@@ -1335,10 +1335,6 @@ static struct task_struct *copy_process(
+ 	p->group_leader = p;
+ 	INIT_LIST_HEAD(&p->thread_group);
+ 
+-	retval = cgroup_task_counter_fork(p);
+-	if (retval)
+-		goto bad_fork_free_pid;
+-
+ 	/* Now that the task is set up, run cgroup callbacks if
+ 	 * necessary. We need to run them before the task is visible
+ 	 * on the tasklist. */
 _
 
 Patches currently in -mm which might be from fweisbec@gmail.com are
