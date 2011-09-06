@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lis3lv02d-make-regulator-api-usage-unconditional.patch added to -mm tree
-Date: Tue, 06 Sep 2011 14:09:11 -0700
-Message-ID: <201109062109.p86L9B4O032738@imap1.linux-foundation.org>
+Subject: + drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent.patch added to -mm tree
+Date: Tue, 06 Sep 2011 14:25:44 -0700
+Message-ID: <201109062125.p86LPiXY001707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755129Ab1IFVJY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 17:09:24 -0400
+	by vger.kernel.org with ESMTP id S1751600Ab1IFVZx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 17:25:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, eric.piel@tremplin-utc.net, ilkka.koskinen@nokia.com
+Cc: jj@chaosbits.net, gregkh@suse.de, james_p_freyensee@linux.intel.com, rocher.jeremy@gmail.com, slyfox@gentoo.org
 
 
 The patch titled
-     lis3lv02d: make regulator API usage unconditional
+     drivers/misc/pti.c: give 'comm' function scope in pti_control_frame_built_and_sent()
 has been added to the -mm tree.  Its filename is
-     lis3lv02d-make-regulator-api-usage-unconditional.patch
+     drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,140 +25,56 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lis3lv02d: make regulator API usage unconditional
-=46rom: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: drivers/misc/pti.c: give 'comm' function scope in pti_control_frame_built_and_sent()
+From: Jesper Juhl <jj@chaosbits.net>
 
-The regulator API contains a range of features for stubbing itself out
-when not in use and for transparently restricting the actual effect of
-regulator API calls where they can't be supported on a particular syste=
-m
-so that drivers don't need to individually implement this.  Simplify th=
-e
-driver slightly by making use of this idiom.
+In drivers/misc/pti.c::pti_control_frame_built_and_sent() we assign 'comm'
+to 'thread_name_p' if (!thread_name).  The problem is that 'comm' then
+goes out of scope and later we use 'thread_name_p' which now refers to an
+out-of-scope variable.  To fix that, simply move 'comm' up to have
+function scope.
 
-The only in tree user is ecovec24 which does not use the regulator API.
-
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: =C9ric Piel <eric.piel@tremplin-utc.net>
-Cc: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: J Freyensee <james_p_freyensee@linux.intel.com>
+Cc: Jeremy Rocher <rocher.jeremy@gmail.com>
+Cc: Sergei Trofimovich <slyfox@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d_i2c.c |   34 ++++++++---------------
- include/linux/lis3lv02d.h              |    1=20
- 2 files changed, 12 insertions(+), 23 deletions(-)
+ drivers/misc/pti.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d_i2c.c~lis3lv02d-make-regulat=
-or-api-usage-unconditional drivers/misc/lis3lv02d/lis3lv02d_i2c.c
---- a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c~lis3lv02d-make-regulator-a=
-pi-usage-unconditional
-+++ a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c
-@@ -79,8 +79,7 @@ static int lis3_i2c_init(struct lis3lv02
- 	u8 reg;
- 	int ret;
-=20
--	if (lis3->reg_ctrl)
--		lis3_reg_ctrl(lis3, LIS3_REG_ON);
-+	lis3_reg_ctrl(lis3, LIS3_REG_ON);
-=20
- 	lis3->read(lis3, WHO_AM_I, &reg);
- 	if (reg !=3D lis3->whoami)
-@@ -106,10 +105,6 @@ static int __devinit lis3lv02d_i2c_probe
- 	struct lis3lv02d_platform_data *pdata =3D client->dev.platform_data;
-=20
- 	if (pdata) {
--		/* Regulator control is optional */
--		if (pdata->driver_features & LIS3_USE_REGULATOR_CTRL)
--			lis3_dev.reg_ctrl =3D lis3_reg_ctrl;
--
- 		if ((pdata->driver_features & LIS3_USE_BLOCK_READ) &&
- 			(i2c_check_functionality(client->adapter,
- 						I2C_FUNC_SMBUS_I2C_BLOCK)))
-@@ -131,15 +126,13 @@ static int __devinit lis3lv02d_i2c_probe
- 			goto fail;
- 	}
-=20
--	if (lis3_dev.reg_ctrl) {
--		lis3_dev.regulators[0].supply =3D reg_vdd;
--		lis3_dev.regulators[1].supply =3D reg_vdd_io;
--		ret =3D regulator_bulk_get(&client->dev,
--					ARRAY_SIZE(lis3_dev.regulators),
--					lis3_dev.regulators);
--		if (ret < 0)
--			goto fail;
--	}
-+	lis3_dev.regulators[0].supply =3D reg_vdd;
-+	lis3_dev.regulators[1].supply =3D reg_vdd_io;
-+	ret =3D regulator_bulk_get(&client->dev,
-+				 ARRAY_SIZE(lis3_dev.regulators),
-+				 lis3_dev.regulators);
-+	if (ret < 0)
-+		goto fail;
-=20
- 	lis3_dev.pdata	  =3D pdata;
- 	lis3_dev.bus_priv =3D client;
-@@ -153,13 +146,11 @@ static int __devinit lis3lv02d_i2c_probe
- 	i2c_set_clientdata(client, &lis3_dev);
-=20
- 	/* Provide power over the init call */
--	if (lis3_dev.reg_ctrl)
--		lis3_reg_ctrl(&lis3_dev, LIS3_REG_ON);
-+	lis3_reg_ctrl(&lis3_dev, LIS3_REG_ON);
-=20
- 	ret =3D lis3lv02d_init_device(&lis3_dev);
-=20
--	if (lis3_dev.reg_ctrl)
--		lis3_reg_ctrl(&lis3_dev, LIS3_REG_OFF);
-+	lis3_reg_ctrl(&lis3_dev, LIS3_REG_OFF);
-=20
- 	if (ret)
- 		goto fail2;
-@@ -185,9 +176,8 @@ static int __devexit lis3lv02d_i2c_remov
- 	lis3lv02d_joystick_disable(lis3);
- 	lis3lv02d_remove_fs(&lis3_dev);
-=20
--	if (lis3_dev.reg_ctrl)
--		regulator_bulk_free(ARRAY_SIZE(lis3->regulators),
--				lis3_dev.regulators);
-+	regulator_bulk_free(ARRAY_SIZE(lis3->regulators),
-+			    lis3_dev.regulators);
- 	return 0;
- }
-=20
-diff -puN include/linux/lis3lv02d.h~lis3lv02d-make-regulator-api-usage-=
-unconditional include/linux/lis3lv02d.h
---- a/include/linux/lis3lv02d.h~lis3lv02d-make-regulator-api-usage-unco=
-nditional
-+++ a/include/linux/lis3lv02d.h
-@@ -113,7 +113,6 @@ struct lis3lv02d_platform_data {
- 	s8 axis_x;
- 	s8 axis_y;
- 	s8 axis_z;
--#define LIS3_USE_REGULATOR_CTRL 0x01
- #define LIS3_USE_BLOCK_READ	0x02
- 	u16 driver_features;
- 	int default_rate;
-_
-
-Patches currently in -mm which might be from broonie@opensource.wolfson=
-micro.com are
-
-alpha-gpio-generic_gpio-default-must-be-n.patch
-linux-next.patch
-lis3lv02d-make-regulator-api-usage-unconditional.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -puN drivers/misc/pti.c~drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent drivers/misc/pti.c
+--- a/drivers/misc/pti.c~drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent
++++ a/drivers/misc/pti.c
+@@ -165,6 +165,11 @@ static void pti_write_to_aperture(struct
+ static void pti_control_frame_built_and_sent(struct pti_masterchannel *mc,
+ 					     const char *thread_name)
+ {
++	/*
++	 * Since we access the comm member in current's task_struct, we only
++	 * need to be as large as what 'comm' in that structure is.
++	 */
++	char comm[TASK_COMM_LEN];
+ 	struct pti_masterchannel mccontrol = {.master = CONTROL_ID,
+ 					      .channel = 0};
+ 	const char *thread_name_p;
+@@ -172,13 +177,6 @@ static void pti_control_frame_built_and_
+ 	u8 control_frame[CONTROL_FRAME_LEN];
+ 
+ 	if (!thread_name) {
+-		/*
+-		 * Since we access the comm member in current's task_struct,
+-		 * we only need to be as large as what 'comm' in that
+-		 * structure is.
+-		 */
+-		char comm[TASK_COMM_LEN];
