@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + llist-move-cpu_relax-after-cmpxchg.patch added to -mm tree
-Date: Tue, 06 Sep 2011 14:37:12 -0700
-Message-ID: <201109062137.p86LbCpa002604@imap1.linux-foundation.org>
+Subject: + llist-define-macro-to-check-nmi-safe-cmpxchg.patch added to -mm tree
+Date: Tue, 06 Sep 2011 14:37:10 -0700
+Message-ID: <201109062137.p86LbAhr002598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42358 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751154Ab1IFVhX (ORCPT
+	by vger.kernel.org with ESMTP id S1750791Ab1IFVhX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 17:37:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ying.huang@intel.com, andi@firstfloor.org, mathieu.desnoyers@efficios.com, p
 
 
 The patch titled
-     llist: move cpu_relax after cmpxchg
+     llist: define macro to check NMI safe cmpxchg
 has been added to the -mm tree.  Its filename is
-     llist-move-cpu_relax-after-cmpxchg.patch
+     llist-define-macro-to-check-nmi-safe-cmpxchg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: llist: move cpu_relax after cmpxchg
+Subject: llist: define macro to check NMI safe cmpxchg
 From: Huang Ying <ying.huang@intel.com>
 
-If the first cmpxchg call succeeds, it is not necessary to use cpu_relax
-before cmpxchg.  So cpu_relax in a busy loop involving cmpxchg should go
-after cmpxchg instead of before that.  This patch fixes this in llist.
+To make code cleaner and reduce code duplication.  Thanks Peter
+Zijlstra for reminding.
 
 Signed-off-by: Huang Ying <ying.huang@intel.com>
-Acked-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/llist.h |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ include/linux/llist.h |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/llist.h~llist-move-cpu_relax-after-cmpxchg include/linux/llist.h
---- a/include/linux/llist.h~llist-move-cpu_relax-after-cmpxchg
+diff -puN include/linux/llist.h~llist-define-macro-to-check-nmi-safe-cmpxchg include/linux/llist.h
+--- a/include/linux/llist.h~llist-define-macro-to-check-nmi-safe-cmpxchg
 +++ a/include/linux/llist.h
-@@ -156,11 +156,14 @@ static inline void llist_add(struct llis
- 	CHECK_NMI_SAFE_CMPXCHG();
+@@ -70,6 +70,12 @@ struct llist_node {
+ #define LLIST_HEAD_INIT(name)	{ NULL }
+ #define LLIST_HEAD(name)	struct llist_head name = LLIST_HEAD_INIT(name)
  
- 	entry = head->first;
--	do {
-+	for (;;) {
- 		old_entry = entry;
- 		new->next = entry;
-+		entry = cmpxchg(&head->first, old_entry, new);
-+		if (entry == old_entry)
-+			break;
- 		cpu_relax();
--	} while ((entry = cmpxchg(&head->first, old_entry, new)) != old_entry);
-+	}
- }
- 
++#ifdef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
++#define CHECK_NMI_SAFE_CMPXCHG()
++#else
++#define CHECK_NMI_SAFE_CMPXCHG()	BUG_ON(in_nmi())
++#endif
++
  /**
-@@ -178,11 +181,14 @@ static inline void llist_add_batch(struc
- 	CHECK_NMI_SAFE_CMPXCHG();
+  * init_llist_head - initialize lock-less list head
+  * @head:	the head for your lock-less list
+@@ -147,9 +153,7 @@ static inline void llist_add(struct llis
+ {
+ 	struct llist_node *entry, *old_entry;
+ 
+-#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+-	BUG_ON(in_nmi());
+-#endif
++	CHECK_NMI_SAFE_CMPXCHG();
  
  	entry = head->first;
--	do {
-+	for (;;) {
- 		old_entry = entry;
- 		new_last->next = entry;
-+		entry = cmpxchg(&head->first, old_entry, new_first);
-+		if (entry == old_entry)
-+			break;
- 		cpu_relax();
--	} while ((entry = cmpxchg(&head->first, old_entry, new_first)) != old_entry);
-+	}
- }
+ 	do {
+@@ -171,9 +175,7 @@ static inline void llist_add_batch(struc
+ {
+ 	struct llist_node *entry, *old_entry;
  
- /**
-@@ -206,13 +212,16 @@ static inline struct llist_node *llist_d
- 	CHECK_NMI_SAFE_CMPXCHG();
+-#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+-	BUG_ON(in_nmi());
+-#endif
++	CHECK_NMI_SAFE_CMPXCHG();
  
  	entry = head->first;
--	do {
-+	for (;;) {
- 		if (entry == NULL)
- 			return NULL;
- 		old_entry = entry;
- 		next = entry->next;
-+		entry = cmpxchg(&head->first, old_entry, next);
-+		if (entry == old_entry)
-+			break;
- 		cpu_relax();
--	} while ((entry = cmpxchg(&head->first, old_entry, next)) != old_entry);
-+	}
+ 	do {
+@@ -201,9 +203,7 @@ static inline struct llist_node *llist_d
+ {
+ 	struct llist_node *entry, *old_entry, *next;
  
- 	return entry;
+-#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+-	BUG_ON(in_nmi());
+-#endif
++	CHECK_NMI_SAFE_CMPXCHG();
+ 
+ 	entry = head->first;
+ 	do {
+@@ -227,9 +227,7 @@ static inline struct llist_node *llist_d
+  */
+ static inline struct llist_node *llist_del_all(struct llist_head *head)
+ {
+-#ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+-	BUG_ON(in_nmi());
+-#endif
++	CHECK_NMI_SAFE_CMPXCHG();
+ 
+ 	return xchg(&head->first, NULL);
  }
 _
 
