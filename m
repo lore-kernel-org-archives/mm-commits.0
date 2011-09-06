@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sound-core-pcm_libc-fix-race-condition-in-wait_for_avail.patch added to -mm tree
-Date: Tue, 06 Sep 2011 16:00:51 -0700
-Message-ID: <201109062300.p86N0pWm009851@imap1.linux-foundation.org>
+Subject: + leds-ledtrig-timer-fix-broken-sysfs-delay-handling.patch added to -mm tree
+Date: Tue, 06 Sep 2011 16:02:32 -0700
+Message-ID: <201109062302.p86N2WO2010091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43179 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754868Ab1IFXBB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 19:01:01 -0400
+	by vger.kernel.org with ESMTP id S1754851Ab1IFXCn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 19:02:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@infradead.org, arjan@linux.intel.com, tiwai@suse.de
+Cc: jhovold@gmail.com, florian@openwrt.org, richard.purdie@linuxfoundation.org, stable@kernel.org
 
 
 The patch titled
-     sound/core/pcm_lib.c: fix race condition in wait_for_avail()
+     drivers/leds/ledtrig-timer.c: fix broken sysfs delay handling
 has been added to the -mm tree.  Its filename is
-     sound-core-pcm_libc-fix-race-condition-in-wait_for_avail.patch
+     leds-ledtrig-timer-fix-broken-sysfs-delay-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound/core/pcm_lib.c: fix race condition in wait_for_avail()
-From: Arjan van de Ven <arjan@infradead.org>
+Subject: drivers/leds/ledtrig-timer.c: fix broken sysfs delay handling
+From: Johan Hovold <jhovold@gmail.com>
 
-wait_for_avail() in pcm_lib.c has a race in it (observed in practice by an
-Intel validation group).
+Fix regression introduced by commit 5ada28bf7675 ("led-class: always
+implement blinking") which broke sysfs delay handling by not storing the
+updated value.  Consequently it was only possible to set one of the delays
+through the sysfs interface as the other delay was automatically restored
+to it's default value.  Reading the parameters always gave the defaults.
 
-The function is supposed to return once space in the buffer has become
-available, or if some timeout happens.  The entity that creates space (irq
-handler of sound driver and some such) will do a wake up on a waitqueue
-that this function registers for.
-
-However there are two races in the existing code
-
-1) If space became available between the caller noticing there was no
-   space and this function actually sleeping, the wakeup is missed and the
-   timeout condition will happen instead
-
-2) If a wakeup happened but not sufficient space became available, the
-   code will loop again and wait for more space.  However, if the second
-   wake comes in prior to hitting the schedule_timeout_interruptible(), it
-   will be missed, and potentially you'll wait out until the timeout
-   happens.
-
-The fix consists of using more careful setting of the current state (so
-that if a wakeup happens in the main loop window, the schedule_timeout()
-falls through) and by checking for available space prior to going into the
-schedule_timeout() loop, but after being on the waitqueue and having the
-state set to interruptible.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Acked-by: Florian Fainelli <florian@openwrt.org>
+Acked-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/pcm_lib.c |   29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ drivers/leds/ledtrig-timer.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN sound/core/pcm_lib.c~sound-core-pcm_libc-fix-race-condition-in-wait_for_avail sound/core/pcm_lib.c
---- a/sound/core/pcm_lib.c~sound-core-pcm_libc-fix-race-condition-in-wait_for_avail
-+++ a/sound/core/pcm_lib.c
-@@ -1761,6 +1761,10 @@ static int wait_for_avail(struct snd_pcm
- 	snd_pcm_uframes_t avail = 0;
- 	long wait_time, tout;
+diff -puN drivers/leds/ledtrig-timer.c~leds-ledtrig-timer-fix-broken-sysfs-delay-handling drivers/leds/ledtrig-timer.c
+--- a/drivers/leds/ledtrig-timer.c~leds-ledtrig-timer-fix-broken-sysfs-delay-handling
++++ a/drivers/leds/ledtrig-timer.c
+@@ -41,6 +41,7 @@ static ssize_t led_delay_on_store(struct
  
-+	init_waitqueue_entry(&wait, current);
-+	add_wait_queue(&runtime->tsleep, &wait);
-+	set_current_state(TASK_INTERRUPTIBLE);
-+
- 	if (runtime->no_period_wakeup)
- 		wait_time = MAX_SCHEDULE_TIMEOUT;
- 	else {
-@@ -1771,16 +1775,34 @@ static int wait_for_avail(struct snd_pcm
- 		}
- 		wait_time = msecs_to_jiffies(wait_time * 1000);
+ 	if (count == size) {
+ 		led_blink_set(led_cdev, &state, &led_cdev->blink_delay_off);
++		led_cdev->blink_delay_on = state;
+ 		ret = count;
  	}
--	init_waitqueue_entry(&wait, current);
--	add_wait_queue(&runtime->tsleep, &wait);
-+
-+	/*
-+	 * We need to check if space became available already (and thus the
-+	 * wakeup happened already) prior to going into the sleep loop to
-+	 * close the race of space already having become available.
-+	 * This check must happen after been added to the waitqueue and
-+	 * having current state be INTERRUPTIBLE.
-+	 */
-+
-+	if (is_playback)
-+		avail = snd_pcm_playback_avail(runtime);
-+	else
-+		avail = snd_pcm_capture_avail(runtime);
-+	if (avail >= runtime->twake)
-+		goto _endloop;
-+
-+
- 	for (;;) {
- 		if (signal_pending(current)) {
- 			err = -ERESTARTSYS;
- 			break;
- 		}
- 		snd_pcm_stream_unlock_irq(substream);
--		tout = schedule_timeout_interruptible(wait_time);
-+
-+		tout = schedule_timeout(wait_time);
-+
- 		snd_pcm_stream_lock_irq(substream);
-+		set_current_state(TASK_INTERRUPTIBLE);
- 		switch (runtime->status->state) {
- 		case SNDRV_PCM_STATE_SUSPENDED:
- 			err = -ESTRPIPE;
-@@ -1814,6 +1836,7 @@ static int wait_for_avail(struct snd_pcm
- 			break;
+ 
+@@ -69,6 +70,7 @@ static ssize_t led_delay_off_store(struc
+ 
+ 	if (count == size) {
+ 		led_blink_set(led_cdev, &led_cdev->blink_delay_on, &state);
++		led_cdev->blink_delay_off = state;
+ 		ret = count;
  	}
-  _endloop:
-+	set_current_state(TASK_RUNNING);
- 	remove_wait_queue(&runtime->tsleep, &wait);
- 	*availp = avail;
- 	return err;
+ 
 _
 
-Patches currently in -mm which might be from arjan@infradead.org are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
-sound-core-pcm_libc-fix-race-condition-in-wait_for_avail.patch
-sound-core-pcm_libc-fix-race-condition-in-wait_for_avail-fix.patch
+leds-ledtrig-timer-fix-broken-sysfs-delay-handling.patch
+linux-next.patch
 
