@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-new-cancel_attach_task-subsystem-callback-fix.patch added to -mm tree
-Date: Tue, 06 Sep 2011 15:42:13 -0700
-Message-ID: <201109062242.p86MgDZR008288@imap1.linux-foundation.org>
+Subject: + cgroups-add-res-counter-common-ancestor-searching-fix.patch added to -mm tree
+Date: Tue, 06 Sep 2011 15:42:21 -0700
+Message-ID: <201109062242.p86MgLvr008305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47732 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753461Ab1IFWmO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 18:42:14 -0400
+	by vger.kernel.org with ESMTP id S1754376Ab1IFWmW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 18:42:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, fweisbec@gmail.com
 
 
 The patch titled
-     cgroups-new-cancel_attach_task-subsystem-callback-fix
+     cgroups-add-res-counter-common-ancestor-searching-fix
 has been added to the -mm tree.  Its filename is
-     cgroups-new-cancel_attach_task-subsystem-callback-fix.patch
+     cgroups-add-res-counter-common-ancestor-searching-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups-new-cancel_attach_task-subsystem-callback-fix
+Subject: cgroups-add-res-counter-common-ancestor-searching-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix typo
+whitespace fix
 
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/cgroups.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/res_counter.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/cgroups/cgroups.txt~cgroups-new-cancel_attach_task-subsystem-callback-fix Documentation/cgroups/cgroups.txt
---- a/Documentation/cgroups/cgroups.txt~cgroups-new-cancel_attach_task-subsystem-callback-fix
-+++ a/Documentation/cgroups/cgroups.txt
-@@ -627,7 +627,7 @@ void cancel_attach_task(struct cgroup *c
- (cgroup_mutex held by caller)
+diff -puN kernel/res_counter.c~cgroups-add-res-counter-common-ancestor-searching-fix kernel/res_counter.c
+--- a/kernel/res_counter.c~cgroups-add-res-counter-common-ancestor-searching-fix
++++ a/kernel/res_counter.c
+@@ -91,7 +91,6 @@ void res_counter_uncharge_until(struct r
+ 	local_irq_restore(flags);
+ }
  
- As cancel_attach, but for operations that must be cancelled once per
--task that wanted to be attached. This typically revert the effect of
-+task that wanted to be attached. This typically reverts the effect of
- can_attach_task().
- 
- void pre_attach(struct cgroup *cgrp);
+-
+ struct res_counter *
+ res_counter_common_ancestor(struct res_counter *r1, struct res_counter *r2)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
