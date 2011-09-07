@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + block-blk-sysfsc-fix-kerneldoc-references.patch added to -mm tree
-Date: Wed, 07 Sep 2011 14:31:58 -0700
-Message-ID: <201109072131.p87LVw37019918@imap1.linux-foundation.org>
+Subject: + mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch added to -mm tree
+Date: Wed, 07 Sep 2011 15:20:00 -0700
+Message-ID: <201109072220.p87MK0Cx023833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39528 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757170Ab1IGVcA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Sep 2011 17:32:00 -0400
+	by vger.kernel.org with ESMTP id S1757325Ab1IGWUE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Sep 2011 18:20:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axboe@kernel.dk
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, jack@suse.cz
 
 
 The patch titled
-     block/blk-sysfs.c: fix kerneldoc references
+     mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix
 has been added to the -mm tree.  Its filename is
-     block-blk-sysfsc-fix-kerneldoc-references.patch
+     mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block/blk-sysfs.c: fix kerneldoc references
+Subject: mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The kerneldoc for blk_release_queue() is referring to blk_cleanup_queue().
+fiddle wording
 
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-sysfs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/backing-dev.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN block/blk-sysfs.c~block-blk-sysfsc-fix-kerneldoc-references block/blk-sysfs.c
---- a/block/blk-sysfs.c~block-blk-sysfsc-fix-kerneldoc-references
-+++ a/block/blk-sysfs.c
-@@ -457,11 +457,11 @@ queue_attr_store(struct kobject *kobj, s
- }
+diff -puN mm/backing-dev.c~mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix
++++ a/mm/backing-dev.c
+@@ -404,9 +404,8 @@ static int bdi_forker_thread(void *ptr)
+ 		/*
+ 		 * In the following loop we are going to check whether we have
+ 		 * some work to do without any synchronization with tasks
+-		 * waking us up to do work for them. So we have to set task
+-		 * state already here so that we don't miss wakeups coming
+-		 * after we verify some condition.
++		 * waking us up to do work for them. Set the task state here
++		 * so that we don't miss wakeups after verifying conditions.
+ 		 */
+ 		set_current_state(TASK_INTERRUPTIBLE);
  
- /**
-- * blk_cleanup_queue: - release a &struct request_queue when it is no longer needed
-- * @kobj:    the kobj belonging of the request queue to be released
-+ * blk_release_queue: - release a &struct request_queue when it is no longer needed
-+ * @kobj:    the kobj belonging to the request queue to be released
-  *
-  * Description:
-- *     blk_cleanup_queue is the pair to blk_init_queue() or
-+ *     blk_release_queue is the pair to blk_init_queue() or
-  *     blk_queue_make_request().  It should be called when a request queue is
-  *     being released; typically when a block device is being de-registered.
-  *     Currently, its primary task it to free all the &struct request
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +80,7 @@ sound-core-pcm_libc-fix-race-condition-in-wait_for_avail-fix.patch
 drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
 block-document-blk-plug.patch
 block-document-blk-plug-v3-fix.patch
+block-blk-sysfsc-fix-kerneldoc-references.patch
 mm.patch
 mm-add-comments-to-explain-mm_struct-fields-fix.patch
 vmscan-use-atomic-long-for-shrinker-batching-fix.patch
@@ -92,6 +91,7 @@ mm-neaten-warn_alloc_failed-fix.patch
 debug-pagealloc-add-support-for-highmem-pages-fix.patch
 mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
 mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
 include-linux-securityh-fix-security_inode_init_security-arg.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
@@ -124,5 +124,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-block-blk-sysfsc-fix-kerneldoc-references.patch
 
