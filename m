@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch added to -mm tree
-Date: Tue, 06 Sep 2011 18:16:55 -0700
-Message-ID: <201109070112.p871Cg7v020768@imap1.linux-foundation.org>
+Subject: + ksm-fix-the-comment-of-try_to_unmap_one.patch added to -mm tree
+Date: Wed, 07 Sep 2011 13:45:35 -0700
+Message-ID: <201109072045.p87KjaXA016904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751399Ab1IGBMo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2011 21:12:44 -0400
+	by vger.kernel.org with ESMTP id S1753841Ab1IGUpo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Sep 2011 16:45:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, andy.shevchenko@gmail.com, hartleys@visionengravers.com, hsweeten@visionengravers.com, len.brown@intel.com, ying.huang@intel.com
+Cc: gaowanlong@cn.fujitsu.com, hughd@google.com
 
 
 The patch titled
-     lib-bitmapc-quiet-sparse-noise-about-address-space-fix
+     ksm: fix the comment of try_to_unmap_one()
 has been added to the -mm tree.  Its filename is
-     lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+     ksm-fix-the-comment-of-try_to_unmap_one.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-bitmapc-quiet-sparse-noise-about-address-space-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ksm: fix the comment of try_to_unmap_one()
+From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: H Hartley Sweeten <hartleys@visionengravers.com>
-Cc: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Len Brown <len.brown@intel.com>
+try_to_unmap_one() is called by try_to_unmap_ksm(), too.
+
+Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/bitmap.c~lib-bitmapc-quiet-sparse-noise-about-address-space-fix lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmapc-quiet-sparse-noise-about-address-space-fix
-+++ a/lib/bitmap.c
-@@ -419,7 +419,7 @@ int __bitmap_parse(const char *buf, unsi
- {
- 	int c, old_c, totaldigits, ndigits, nchunks, nbits;
- 	u32 chunk;
--	const char __user __force *ubuf = buf;
-+	const char __user __force *ubuf = (const char __user __force *)buf;
+diff -puN mm/rmap.c~ksm-fix-the-comment-of-try_to_unmap_one mm/rmap.c
+--- a/mm/rmap.c~ksm-fix-the-comment-of-try_to_unmap_one
++++ a/mm/rmap.c
+@@ -1164,7 +1164,7 @@ void page_remove_rmap(struct page *page)
  
- 	bitmap_zero(maskp, nmaskbits);
- 
-@@ -596,7 +596,7 @@ static int __bitmap_parselist(const char
- {
- 	unsigned a, b;
- 	int c, old_c, totaldigits;
--	const char __user __force *ubuf = buf;
-+	const char __user __force *ubuf = (const char __user __force *)buf;
- 	int exp_digit, in_range;
- 
- 	totaldigits = c = 0;
+ /*
+  * Subfunctions of try_to_unmap: try_to_unmap_one called
+- * repeatedly from either try_to_unmap_anon or try_to_unmap_file.
++ * repeatedly from try_to_unmap_ksm, try_to_unmap_anon or try_to_unmap_file.
+  */
+ int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 		     unsigned long address, enum ttu_flags flags)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gaowanlong@cn.fujitsu.com are
 
-origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-sound-core-pcm_libc-fix-race-condition-in-wait_for_avail-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
-block-document-blk-plug.patch
-block-document-blk-plug-v3-fix.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-cgroups-new-cancel_attach_task-subsystem-callback-fix.patch
-cgroups-add-res-counter-common-ancestor-searching-fix.patch
-cgroups-add-a-task-counter-subsystem.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-aio-allocate-kiocbs-in-batches-fix.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+ksm-fix-the-comment-of-try_to_unmap_one.patch
 
