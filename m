@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch added to -mm tree
-Date: Thu, 08 Sep 2011 16:56:17 -0700
-Message-ID: <201109082356.p88NuHMg016078@imap1.linux-foundation.org>
+Subject: + dynamic_debug-remove-num_enabled-accounting.patch added to -mm tree
+Date: Thu, 08 Sep 2011 16:56:21 -0700
+Message-ID: <201109082356.p88NuLpd016089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42378 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756081Ab1IHX4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:56:25 -0400
+	by vger.kernel.org with ESMTP id S1756081Ab1IHX43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:56:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jbaron@redhat.com, arnd@arndb.de, greg@kroah.com
 
 
 The patch titled
-     dynamic_debug: consolidate repetitive struct _ddebug descriptor definitions
+     dynamic_debug: remove num_enabled accounting
 has been added to the -mm tree.  Its filename is
-     dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+     dynamic_debug-remove-num_enabled-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dynamic_debug: consolidate repetitive struct _ddebug descriptor definitions
+Subject: dynamic_debug: remove num_enabled accounting
 From: Jason Baron <jbaron@redhat.com>
 
-Replace the repetitive struct _ddebug descriptor definitions with a new
-DECLARE_DYNAMIC_DEBUG_META_DATA(name, fmt) macro.
+The num_enabled accounting isn't actually used anywhere - remove them.
 
 Signed-off-by: Jason Baron <jbaron@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -45,83 +44,40 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dynamic_debug.h |   64 +++++++++++++++++---------------
- 1 file changed, 35 insertions(+), 29 deletions(-)
+ lib/dynamic_debug.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN include/linux/dynamic_debug.h~dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions include/linux/dynamic_debug.h
---- a/include/linux/dynamic_debug.h~dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions
-+++ a/include/linux/dynamic_debug.h
-@@ -54,35 +54,41 @@ extern int __dynamic_netdev_dbg(struct _
- 			     const char *fmt, ...)
- 	__attribute__ ((format (printf, 3, 4)));
+diff -puN lib/dynamic_debug.c~dynamic_debug-remove-num_enabled-accounting lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~dynamic_debug-remove-num_enabled-accounting
++++ a/lib/dynamic_debug.c
+@@ -42,7 +42,6 @@ struct ddebug_table {
+ 	struct list_head link;
+ 	char *mod_name;
+ 	unsigned int num_ddebugs;
+-	unsigned int num_enabled;
+ 	struct _ddebug *ddebugs;
+ };
  
--#define dynamic_pr_debug(fmt, ...) do {					\
--	static struct _ddebug descriptor				\
--	__used								\
--	__attribute__((section("__verbose"), aligned(8))) =		\
--	{ KBUILD_MODNAME, __func__, __FILE__, fmt, __LINE__,		\
--		_DPRINTK_FLAGS_DEFAULT };				\
--	if (unlikely(descriptor.enabled))				\
--		__dynamic_pr_debug(&descriptor, pr_fmt(fmt), ##__VA_ARGS__); \
--	} while (0)
+@@ -152,11 +151,6 @@ static void ddebug_change(const struct d
+ 			newflags = (dp->flags & mask) | flags;
+ 			if (newflags == dp->flags)
+ 				continue;
 -
--#define dynamic_dev_dbg(dev, fmt, ...) do {				\
--	static struct _ddebug descriptor				\
--	__used								\
--	__attribute__((section("__verbose"), aligned(8))) =		\
--	{ KBUILD_MODNAME, __func__, __FILE__, fmt, __LINE__,		\
--		_DPRINTK_FLAGS_DEFAULT };				\
--	if (unlikely(descriptor.enabled))				\
--		__dynamic_dev_dbg(&descriptor, dev, fmt, ##__VA_ARGS__);	\
--	} while (0)
--
--#define dynamic_netdev_dbg(dev, fmt, ...) do {				\
--	static struct _ddebug descriptor				\
--	__used								\
--	__attribute__((section("__verbose"), aligned(8))) =		\
--	{ KBUILD_MODNAME, __func__, __FILE__, fmt, __LINE__,		\
--		_DPRINTK_FLAGS_DEFAULT };				\
--	if (unlikely(descriptor.enabled))				\
--		__dynamic_netdev_dbg(&descriptor, dev, fmt, ##__VA_ARGS__);\
--	} while (0)
-+#define DECLARE_DYNAMIC_DEBUG_METADATA(name, fmt)		\
-+	static struct _ddebug __used __aligned(8)		\
-+	__attribute__((section("__verbose"))) name = {		\
-+		.modname = KBUILD_MODNAME,			\
-+		.function = __func__,				\
-+		.filename = __FILE__,				\
-+		.format = (fmt),				\
-+		.lineno = __LINE__,				\
-+		.flags =  _DPRINTK_FLAGS_DEFAULT,		\
-+		.enabled = false,				\
-+	}
-+
-+#define dynamic_pr_debug(fmt, ...)				\
-+do {								\
-+	DECLARE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);	\
-+	if (unlikely(descriptor.enabled))			\
-+		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),	\
-+				   ##__VA_ARGS__);		\
-+} while (0)
-+
-+#define dynamic_dev_dbg(dev, fmt, ...)				\
-+do {								\
-+	DECLARE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);	\
-+	if (unlikely(descriptor.enabled))			\
-+		__dynamic_dev_dbg(&descriptor, dev, fmt,	\
-+				  ##__VA_ARGS__);		\
-+} while (0)
-+
-+#define dynamic_netdev_dbg(dev, fmt, ...)			\
-+do {								\
-+	DECLARE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);	\
-+	if (unlikely(descriptor.enabled))			\
-+		__dynamic_netdev_dbg(&descriptor, dev, fmt,	\
-+				     ##__VA_ARGS__);		\
-+} while (0)
+-			if (!newflags)
+-				dt->num_enabled--;
+-			else if (!dp->flags)
+-				dt->num_enabled++;
+ 			dp->flags = newflags;
+ 			if (newflags)
+ 				dp->enabled = 1;
+@@ -764,7 +758,6 @@ int ddebug_add_module(struct _ddebug *ta
+ 	}
+ 	dt->mod_name = new_name;
+ 	dt->num_ddebugs = n;
+-	dt->num_enabled = 0;
+ 	dt->ddebugs = tab;
  
- #else
- 
+ 	mutex_lock(&ddebug_lock);
 _
 
 Patches currently in -mm which might be from jbaron@redhat.com are
