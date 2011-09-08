@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-cpufreq-pcc-cpufreqc-avoid-null-pointer-dereference.patch added to -mm tree
-Date: Thu, 08 Sep 2011 16:54:48 -0700
-Message-ID: <201109082354.p88NsmVK015794@imap1.linux-foundation.org>
+Subject: + maintainers-update-e-mail-address-of-benny-halevy.patch added to -mm tree
+Date: Thu, 08 Sep 2011 16:54:50 -0700
+Message-ID: <201109082354.p88NspQn015797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54429 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754223Ab1IHXyx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:54:53 -0400
+	by vger.kernel.org with ESMTP id S1754223Ab1IHXyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:54:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nagananda.chumbalkar@hp.com, davej@codemonkey.org.uk, lenb@kernel.org, stable@kernel.org
+Cc: bhalevy@tonian.com, bharrosh@panasas.com
 
 
 The patch titled
-     drivers/cpufreq/pcc-cpufreq.c: avoid NULL pointer dereference
+     MAINTAINERS: update e-mail address of Benny Halevy
 has been added to the -mm tree.  Its filename is
-     drivers-cpufreq-pcc-cpufreqc-avoid-null-pointer-dereference.patch
+     maintainers-update-e-mail-address-of-benny-halevy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/cpufreq/pcc-cpufreq.c: avoid NULL pointer dereference
-From: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
+Subject: MAINTAINERS: update e-mail address of Benny Halevy
+From: Benny Halevy <bhalevy@tonian.com>
 
-per_cpu(processors, n) can be NULL.
-
-Loading CPUFreq modules[  437.661360] BUG: unable to handle kernel NULL pointer
-dereference at (null)
-IP: [<ffffffffa0434314>] pcc_cpufreq_cpu_init+0x74/0x220 [pcc_cpufreq]
-
-It's better to avoid the oops by failing the driver, and allowing the
-system to boot.
-
-Signed-off-by: Naga Chumbalkar <nagananda.chumbalkar@hp.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Len Brown <lenb@kernel.org>
-Cc: <stable@kernel.org>
+Acked-by: Boaz Harrosh <bharrosh@panasas.com>
+Signed-off-by: Benny Halevy <bhalevy@tonian.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/pcc-cpufreq.c |    3 +++
- 1 file changed, 3 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpufreq/pcc-cpufreq.c~drivers-cpufreq-pcc-cpufreqc-avoid-null-pointer-dereference drivers/cpufreq/pcc-cpufreq.c
---- a/drivers/cpufreq/pcc-cpufreq.c~drivers-cpufreq-pcc-cpufreqc-avoid-null-pointer-dereference
-+++ a/drivers/cpufreq/pcc-cpufreq.c
-@@ -261,6 +261,9 @@ static int pcc_get_offset(int cpu)
- 	pr = per_cpu(processors, cpu);
- 	pcc_cpu_data = per_cpu_ptr(pcc_cpu_info, cpu);
+diff -puN MAINTAINERS~maintainers-update-e-mail-address-of-benny-halevy MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-e-mail-address-of-benny-halevy
++++ a/MAINTAINERS
+@@ -4774,7 +4774,7 @@ F:	drivers/net/wireless/orinoco/
  
-+	if (!pr)
-+		return -ENODEV;
-+
- 	status = acpi_evaluate_object(pr->handle, "PCCP", NULL, &buffer);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
+ OSD LIBRARY and FILESYSTEM
+ M:	Boaz Harrosh <bharrosh@panasas.com>
+-M:	Benny Halevy <bhalevy@panasas.com>
++M:	Benny Halevy <bhalevy@tonian.com>
+ L:	osd-dev@open-osd.org
+ W:	http://open-osd.org
+ T:	git git://git.open-osd.org/open-osd.git
 _
 
-Patches currently in -mm which might be from nagananda.chumbalkar@hp.com are
+Patches currently in -mm which might be from bhalevy@tonian.com are
 
-drivers-cpufreq-pcc-cpufreqc-avoid-null-pointer-dereference.patch
-linux-next.patch
+maintainers-update-e-mail-address-of-benny-halevy.patch
 
