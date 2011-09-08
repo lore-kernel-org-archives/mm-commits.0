@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-serial-fix-locking-imbalance.patch added to -mm tree
-Date: Thu, 08 Sep 2011 16:55:29 -0700
-Message-ID: <201109082355.p88NtTHe015878@imap1.linux-foundation.org>
+Subject: + x86-uv2-gug-fix-for-gru-global-addresses.patch added to -mm tree
+Date: Thu, 08 Sep 2011 16:55:35 -0700
+Message-ID: <201109082355.p88NtajB015899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53813 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755778Ab1IHXzi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:55:38 -0400
+	by vger.kernel.org with ESMTP id S1753130Ab1IHX4A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:56:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jslaby@suse.cz, greg@kroah.com
+Cc: steiner@sgi.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     TTY: serial, fix locking imbalance
+     x86 uv2: bug fix for GRU global addresses
 has been added to the -mm tree.  Its filename is
-     tty-serial-fix-locking-imbalance.patch
+     x86-uv2-gug-fix-for-gru-global-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,227 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: TTY: serial, fix locking imbalance
-From: Jiri Slaby <jslaby@suse.cz>
+Subject: x86 uv2: bug fix for GRU global addresses
+From: Jack Steiner <steiner@sgi.com>
 
-linux-next commit "TTY: serial, move locking in uart_close" moved the
-lock, but omitted to update branches which unlock the lock.  Now they try
-to unlock the lock without holding it.
+This is a workaround for a UV2 hub bug that affects the format of system
+global addresses.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Greg KH <greg@kroah.com>
+The GRU API for UV2 was inadvertently broken by a hardware change.  The
+format of the physical address used for TLB dropins and for addresses used
+with instructions running in unmapped mode has changed.  This change was
+not documented and became apparent only when diags failed running on
+system simulators.
+
+For UV1, TLB and GRU instruction physical addresses are identical to
+socket physical addresses (although high NASID bits must be OR'ed into the
+address).
+
+For UV2, socket physical addresses need to be converted.  The NODE portion
+of the physical address needs to be shifted so that the low bit is in bit
+39 or bit 40, depending on an MMR value.
+
+It is not yet clear if this bug will be fixed in a silicon respin.  If it
+is fixed, the hub revision will be incremented & the workaround disabled.
+
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/serial_core.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/uv/uv_bau.h   |    1 
+ arch/x86/include/asm/uv/uv_hub.h   |   37 ++++++++++++++++++++++++---
+ arch/x86/kernel/apic/x2apic_uv_x.c |    7 +++--
+ arch/x86/platform/uv/tlb_uv.c      |   17 ++++--------
+ 4 files changed, 46 insertions(+), 16 deletions(-)
 
-diff -puN drivers/tty/serial/serial_core.c~tty-serial-fix-locking-imbalance drivers/tty/serial/serial_core.c
---- a/drivers/tty/serial/serial_core.c~tty-serial-fix-locking-imbalance
-+++ a/drivers/tty/serial/serial_core.c
-@@ -1262,7 +1262,7 @@ static void uart_close(struct tty_struct
- 
- 	if (tty_hung_up_p(filp)) {
- 		spin_unlock_irqrestore(&port->lock, flags);
--		goto done;
-+		return;
- 	}
- 
- 	if ((tty->count == 1) && (port->count != 1)) {
-@@ -1284,7 +1284,7 @@ static void uart_close(struct tty_struct
- 	}
- 	if (port->count) {
- 		spin_unlock_irqrestore(&port->lock, flags);
--		goto done;
-+		return;
- 	}
- 
- 	/*
-@@ -1347,7 +1347,6 @@ static void uart_close(struct tty_struct
- 	wake_up_interruptible(&port->open_wait);
- 	wake_up_interruptible(&port->close_wait);
- 
--done:
- 	mutex_unlock(&port->mutex);
+diff -puN arch/x86/include/asm/uv/uv_bau.h~x86-uv2-gug-fix-for-gru-global-addresses arch/x86/include/asm/uv/uv_bau.h
+--- a/arch/x86/include/asm/uv/uv_bau.h~x86-uv2-gug-fix-for-gru-global-addresses
++++ a/arch/x86/include/asm/uv/uv_bau.h
+@@ -55,6 +55,7 @@
+ #define UV_BAU_TUNABLES_DIR		"sgi_uv"
+ #define UV_BAU_TUNABLES_FILE		"bau_tunables"
+ #define WHITESPACE			" \t\n"
++#define uv_mmask			((1UL << uv_hub_info->m_val) - 1)
+ #define uv_physnodeaddr(x)		((__pa((unsigned long)(x)) & uv_mmask))
+ #define cpubit_isset(cpu, bau_local_cpumask) \
+ 	test_bit((cpu), (bau_local_cpumask).bits)
+diff -puN arch/x86/include/asm/uv/uv_hub.h~x86-uv2-gug-fix-for-gru-global-addresses arch/x86/include/asm/uv/uv_hub.h
+--- a/arch/x86/include/asm/uv/uv_hub.h~x86-uv2-gug-fix-for-gru-global-addresses
++++ a/arch/x86/include/asm/uv/uv_hub.h
+@@ -46,6 +46,13 @@
+  *	PNODE   - the low N bits of the GNODE. The PNODE is the most useful variant
+  *		  of the nasid for socket usage.
+  *
++ *	GPA	- (global physical address) a socket physical address converted
++ *		  so that it can be used by the GRU as a global address. Socket
++ *		  physical addresses 1) need additional NASID (node) bits added
++ *		  to the high end of the address, and 2) unaliased if the
++ *		  partition does not have a physical address 0. In addition, on
++ *		  UV2 rev 1, GPAs need the gnode left shifted to bits 39 or 40.
++ *
+  *
+  *  NumaLink Global Physical Address Format:
+  *  +--------------------------------+---------------------+
+@@ -141,6 +148,8 @@ struct uv_hub_info_s {
+ 	unsigned int		gnode_extra;
+ 	unsigned char		hub_revision;
+ 	unsigned char		apic_pnode_shift;
++	unsigned char		m_shift;
++	unsigned char		n_lshift;
+ 	unsigned long		gnode_upper;
+ 	unsigned long		lowmem_remap_top;
+ 	unsigned long		lowmem_remap_base;
+@@ -177,6 +186,16 @@ static inline int is_uv2_hub(void)
+ 	return uv_hub_info->hub_revision >= UV2_HUB_REVISION_BASE;
  }
  
++static inline int is_uv2_1_hub(void)
++{
++	return uv_hub_info->hub_revision == UV2_HUB_REVISION_BASE;
++}
++
++static inline int is_uv2_2_hub(void)
++{
++	return uv_hub_info->hub_revision == UV2_HUB_REVISION_BASE + 1;
++}
++
+ union uvh_apicid {
+     unsigned long       v;
+     struct uvh_apicid_s {
+@@ -276,7 +295,10 @@ static inline unsigned long uv_soc_phys_
+ {
+ 	if (paddr < uv_hub_info->lowmem_remap_top)
+ 		paddr |= uv_hub_info->lowmem_remap_base;
+-	return paddr | uv_hub_info->gnode_upper;
++	paddr |= uv_hub_info->gnode_upper;
++	paddr = ((paddr << uv_hub_info->m_shift) >> uv_hub_info->m_shift) |
++		((paddr >> uv_hub_info->m_val) << uv_hub_info->n_lshift);
++	return paddr;
+ }
+ 
+ 
+@@ -300,16 +322,19 @@ static inline unsigned long uv_gpa_to_so
+ 	unsigned long remap_base = uv_hub_info->lowmem_remap_base;
+ 	unsigned long remap_top =  uv_hub_info->lowmem_remap_top;
+ 
++	gpa = ((gpa << uv_hub_info->m_shift) >> uv_hub_info->m_shift) |
++		((gpa >> uv_hub_info->n_lshift) << uv_hub_info->m_val);
++	gpa = gpa & uv_hub_info->gpa_mask;
+ 	if (paddr >= remap_base && paddr < remap_base + remap_top)
+ 		paddr -= remap_base;
+ 	return paddr;
+ }
+ 
+ 
+-/* gnode -> pnode */
++/* gpa -> pnode */
+ static inline unsigned long uv_gpa_to_gnode(unsigned long gpa)
+ {
+-	return gpa >> uv_hub_info->m_val;
++	return gpa >> uv_hub_info->n_lshift;
+ }
+ 
+ /* gpa -> pnode */
+@@ -320,6 +345,12 @@ static inline int uv_gpa_to_pnode(unsign
+ 	return uv_gpa_to_gnode(gpa) & n_mask;
+ }
+ 
++/* gpa -> node offset*/
++static inline unsigned long uv_gpa_to_offset(unsigned long gpa)
++{
++	return (gpa << uv_hub_info->m_shift) >> uv_hub_info->m_shift;
++}
++
+ /* pnode, offset --> socket virtual */
+ static inline void *uv_pnode_offset_to_vaddr(int pnode, unsigned long offset)
+ {
+diff -puN arch/x86/kernel/apic/x2apic_uv_x.c~x86-uv2-gug-fix-for-gru-global-addresses arch/x86/kernel/apic/x2apic_uv_x.c
+--- a/arch/x86/kernel/apic/x2apic_uv_x.c~x86-uv2-gug-fix-for-gru-global-addresses
++++ a/arch/x86/kernel/apic/x2apic_uv_x.c
+@@ -832,6 +832,10 @@ void __init uv_system_init(void)
+ 		uv_cpu_hub_info(cpu)->apic_pnode_shift = uvh_apicid.s.pnode_shift;
+ 		uv_cpu_hub_info(cpu)->hub_revision = uv_hub_info->hub_revision;
+ 
++		uv_cpu_hub_info(cpu)->m_shift = 64 - m_val;
++		uv_cpu_hub_info(cpu)->n_lshift = is_uv2_1_hub() ?
++				(m_val == 40 ? 40 : 39) : m_val;
++
+ 		pnode = uv_apicid_to_pnode(apicid);
+ 		blade = boot_pnode_to_blade(pnode);
+ 		lcpu = uv_blade_info[blade].nr_possible_cpus;
+@@ -862,8 +866,7 @@ void __init uv_system_init(void)
+ 		if (uv_node_to_blade[nid] >= 0)
+ 			continue;
+ 		paddr = node_start_pfn(nid) << PAGE_SHIFT;
+-		paddr = uv_soc_phys_ram_to_gpa(paddr);
+-		pnode = (paddr >> m_val) & pnode_mask;
++		pnode = uv_gpa_to_pnode(uv_soc_phys_ram_to_gpa(paddr));
+ 		blade = boot_pnode_to_blade(pnode);
+ 		uv_node_to_blade[nid] = blade;
+ 	}
+diff -puN arch/x86/platform/uv/tlb_uv.c~x86-uv2-gug-fix-for-gru-global-addresses arch/x86/platform/uv/tlb_uv.c
+--- a/arch/x86/platform/uv/tlb_uv.c~x86-uv2-gug-fix-for-gru-global-addresses
++++ a/arch/x86/platform/uv/tlb_uv.c
+@@ -115,9 +115,6 @@ early_param("nobau", setup_nobau);
+ 
+ /* base pnode in this partition */
+ static int uv_base_pnode __read_mostly;
+-/* position of pnode (which is nasid>>1): */
+-static int uv_nshift __read_mostly;
+-static unsigned long uv_mmask __read_mostly;
+ 
+ static DEFINE_PER_CPU(struct ptc_stats, ptcstats);
+ static DEFINE_PER_CPU(struct bau_control, bau_control);
+@@ -1435,7 +1432,7 @@ static void activation_descriptor_init(i
+ {
+ 	int i;
+ 	int cpu;
+-	unsigned long pa;
++	unsigned long gpa;
+ 	unsigned long m;
+ 	unsigned long n;
+ 	size_t dsize;
+@@ -1451,9 +1448,9 @@ static void activation_descriptor_init(i
+ 	bau_desc = kmalloc_node(dsize, GFP_KERNEL, node);
+ 	BUG_ON(!bau_desc);
+ 
+-	pa = uv_gpa(bau_desc); /* need the real nasid*/
+-	n = pa >> uv_nshift;
+-	m = pa & uv_mmask;
++	gpa = uv_gpa(bau_desc);
++	n = uv_gpa_to_gnode(gpa);
++	m = uv_gpa_to_offset(gpa);
+ 
+ 	/* the 14-bit pnode */
+ 	write_mmr_descriptor_base(pnode, (n << UV_DESC_PSHIFT | m));
+@@ -1525,9 +1522,9 @@ static void pq_init(int node, int pnode)
+ 		bcp->queue_last		= pqp + (DEST_Q_SIZE - 1);
+ 	}
+ 	/*
+-	 * need the pnode of where the memory was really allocated
++	 * need the gnode of where the memory was really allocated
+ 	 */
+-	pn = uv_gpa(pqp) >> uv_nshift;
++	pn = uv_gpa_to_gnode(uv_gpa(pqp));
+ 	first = uv_physnodeaddr(pqp);
+ 	pn_first = ((unsigned long)pn << UV_PAYLOADQ_PNODE_SHIFT) | first;
+ 	last = uv_physnodeaddr(pqp + (DEST_Q_SIZE - 1));
+@@ -1837,8 +1834,6 @@ static int __init uv_bau_init(void)
+ 		zalloc_cpumask_var_node(mask, GFP_KERNEL, cpu_to_node(cur_cpu));
+ 	}
+ 
+-	uv_nshift = uv_hub_info->m_val;
+-	uv_mmask = (1UL << uv_hub_info->m_val) - 1;
+ 	nuvhubs = uv_num_possible_blades();
+ 	spin_lock_init(&disable_lock);
+ 	congested_cycles = usec_2_cycles(congested_respns_us);
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 linux-next.patch
-tty-serial-fix-locking-imbalance.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-vt-suspend-cleanup-if-defined-uglyness-and-fix-compile-error.patch
+x86-uv2-gug-fix-for-gru-global-addresses.patch
 
