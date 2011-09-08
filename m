@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch added to -mm tree
-Date: Thu, 08 Sep 2011 16:56:27 -0700
-Message-ID: <201109082356.p88NuRFR016110@imap1.linux-foundation.org>
+Subject: + dynamic_debug-use-a-single-printk-to-emit-messages.patch added to -mm tree
+Date: Thu, 08 Sep 2011 16:56:23 -0700
+Message-ID: <201109082356.p88NuNZA016096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756301Ab1IHX4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:56:40 -0400
+	by vger.kernel.org with ESMTP id S1756081Ab1IHX4b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:56:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbaron@redhat.com, arnd@arndb.de, greg@kroah.com, rdunlap@xenotime.net
+Cc: jbaron@redhat.com, arnd@arndb.de, greg@kroah.com
 
 
 The patch titled
-     dynamic_debug: fix undefined reference to `__netdev_printk'
+     dynamic_debug: use a single printk() to emit messages
 has been added to the -mm tree.  Its filename is
-     dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch
+     dynamic_debug-use-a-single-printk-to-emit-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dynamic_debug: fix undefined reference to `__netdev_printk'
+Subject: dynamic_debug: use a single printk() to emit messages
 From: Jason Baron <jbaron@redhat.com>
 
-Dynamic debug recently added support for netdev_printk.  It uses
-__netdev_printk() to support this functionality.  However, when CONFIG_NET
-is not set, we get the following error:
+We were using KERN_CONT to combine messages with their prefix.  However,
+KERN_CONT is not smp safe, in the sense that it can interleave messages. 
+This interleaving can result in printks coming out at the wrong loglevel. 
+With the high frequency of printks that dynamic debug can produce this is
+not desirable.
 
-lib/built-in.o: In function `__dynamic_netdev_dbg':
-(.text+0x9fda): undefined reference to `__netdev_printk'
-
-Fix this by making the call to netdev_printk() contingent upon CONFIG_NET.
- We could have fixed this by defining netdev_printk() to a 'no-op' in the
-!CONFIG_NET case.  However, this is not consistent with how the networking
-layer uses netdev_printk.  For example, CONFIG_NET is not set,
-netdev_printk() does not have a 'no-op' definition defined.
+So make dynamic_emit_prefix() fill a char buf[64] instead of doing a
+printk directly.  If we enable printing out of function, module, line, or
+pid info, they are placed in this 64 byte buffer.  In my testing 64 bytes
+was enough size to fulfill all requests.  Even if it's not, we can match
+up the printk itself to see where it's from, so to me this is no big deal.
 
 Signed-off-by: Jason Baron <jbaron@redhat.com>
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 Cc: Greg KH <greg@kroah.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_debug.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ lib/dynamic_debug.c |   72 +++++++++++++++++++-----------------------
+ 1 file changed, 33 insertions(+), 39 deletions(-)
 
-diff -puN lib/dynamic_debug.c~dynamic_debug-fix-undefined-reference-to-__netdev_printk lib/dynamic_debug.c
---- a/lib/dynamic_debug.c~dynamic_debug-fix-undefined-reference-to-__netdev_printk
+diff -puN lib/dynamic_debug.c~dynamic_debug-use-a-single-printk-to-emit-messages lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~dynamic_debug-use-a-single-printk-to-emit-messages
 +++ a/lib/dynamic_debug.c
-@@ -503,6 +503,8 @@ int __dynamic_dev_dbg(struct _ddebug *de
+@@ -422,52 +422,52 @@ static int ddebug_exec_query(char *query
+ 	return 0;
  }
- EXPORT_SYMBOL(__dynamic_dev_dbg);
  
-+#ifdef CONFIG_NET
+-static int dynamic_emit_prefix(const struct _ddebug *descriptor)
++#define PREFIX_SIZE 64
++#define LEFT(wrote) ((PREFIX_SIZE - wrote) > 0) ? (PREFIX_SIZE - wrote) : 0
 +
- int __dynamic_netdev_dbg(struct _ddebug *descriptor,
- 		      const struct net_device *dev, const char *fmt, ...)
++static char *dynamic_emit_prefix(const struct _ddebug *desc, char *buf)
  {
-@@ -524,6 +526,8 @@ int __dynamic_netdev_dbg(struct _ddebug 
+-	char tid[sizeof(int) + sizeof(int)/2 + 4];
+-	char lineno[sizeof(int) + sizeof(int)/2];
++	int pos_after_tid;
++	int pos = 0;
+ 
+-	if (descriptor->flags & _DPRINTK_FLAGS_INCL_TID) {
++	pos += snprintf(buf + pos, LEFT(pos), "%s", KERN_DEBUG);
++	if (desc->flags & _DPRINTK_FLAGS_INCL_TID) {
+ 		if (in_interrupt())
+-			snprintf(tid, sizeof(tid), "%s", "<intr> ");
++			pos += snprintf(buf + pos, LEFT(pos), "%s ",
++						"<intr>");
+ 		else
+-			snprintf(tid, sizeof(tid), "[%d] ",
+-				 task_pid_vnr(current));
+-	} else {
+-		tid[0] = 0;
++			pos += snprintf(buf + pos, LEFT(pos), "[%d] ",
++						task_pid_vnr(current));
+ 	}
++	pos_after_tid = pos;
++	if (desc->flags & _DPRINTK_FLAGS_INCL_MODNAME)
++		pos += snprintf(buf + pos, LEFT(pos), "%s:", desc->modname);
++	if (desc->flags & _DPRINTK_FLAGS_INCL_FUNCNAME)
++		pos += snprintf(buf + pos, LEFT(pos), "%s:", desc->function);
++	if (desc->flags & _DPRINTK_FLAGS_INCL_LINENO)
++		pos += snprintf(buf + pos, LEFT(pos), "%d:", desc->lineno);
++	if (pos - pos_after_tid)
++		pos += snprintf(buf + pos, LEFT(pos), " ");
++	if (pos >= PREFIX_SIZE)
++		buf[PREFIX_SIZE - 1] = '\0';
+ 
+-	if (descriptor->flags & _DPRINTK_FLAGS_INCL_LINENO)
+-		snprintf(lineno, sizeof(lineno), "%d", descriptor->lineno);
+-	else
+-		lineno[0] = 0;
+-
+-	return printk(KERN_DEBUG "%s%s%s%s%s%s",
+-		      tid,
+-		      (descriptor->flags & _DPRINTK_FLAGS_INCL_MODNAME) ?
+-		      descriptor->modname : "",
+-		      (descriptor->flags & _DPRINTK_FLAGS_INCL_MODNAME) ?
+-		      ":" : "",
+-		      (descriptor->flags & _DPRINTK_FLAGS_INCL_FUNCNAME) ?
+-		      descriptor->function : "",
+-		      (descriptor->flags & _DPRINTK_FLAGS_INCL_FUNCNAME) ?
+-		      ":" : "",
+-		      lineno);
++	return buf;
  }
- EXPORT_SYMBOL(__dynamic_netdev_dbg);
  
-+#endif
-+
- static __initdata char ddebug_setup_string[1024];
- static __init int ddebug_setup_query(char *str)
+ int __dynamic_pr_debug(struct _ddebug *descriptor, const char *fmt, ...)
  {
-_
-
-Patches currently in -mm which might be from jbaron@redhat.com are
-
-linux-next.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix.patch
-dynamic_debug-remove-num_enabled-accounting.patch
-dynamic_debug-use-a-single-printk-to-emit-messages.patch
-dynamic_debug-use-a-single-printk-to-emit-messages-fix.patch
-dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch
-epoll-limit-paths.patch
-
+ 	va_list args;
+ 	int res;
++	struct va_format vaf;
++	char buf[PREFIX_SIZE];
+ 
+ 	BUG_ON(!descriptor);
+ 	BUG_ON(!fmt);
+ 
+ 	va_start(args, fmt);
+-
+-	res = dynamic_emit_prefix(descriptor);
+-	res += vprintk(fmt, args);
+-
++	vaf.fmt = fmt;
++	vaf.va = &args;
++	res = printk("%s%pV", dynamic_emit_prefix(descriptor, buf), &vaf);
+ 	va_end(args);
+ 
+ 	return res;
+@@ -480,18 +480,15 @@ int __dynamic_dev_dbg(struct _ddebug *de
+ 	struct va_format vaf;
+ 	va_list args;
+ 	int res;
++	char buf[PREFIX_SIZE];
+ 
+ 	BUG_ON(!descriptor);
+ 	BUG_ON(!fmt);
+ 
+ 	va_start(args, fmt);
+-
+ 	vaf.fmt = fmt;
+ 	vaf.va = &args;
+-
+-	res = dynamic_emit_prefix(descriptor);
+-	res += __dev_printk(KERN_CONT, dev, &vaf);
+-
++	res = __dev_printk(dynamic_emit_prefix(descriptor, buf), dev, &vaf);
+ 	va_end(args);
+ 
+ 	return res;
+@@ -504,18 +501,15 @@ int __dynamic_netdev_dbg(struct _ddebug 
+ 	struct va_format vaf;
+ 	va_list args;
+ 	int res;
++	char buf[PREFIX_SIZE];
+ 
+ 	BUG_ON(!descriptor);
+ 	BUG_ON(!fmt);
+ 
+ 	va_start(args, fmt);
+-
+ 	vaf.fmt = fmt;
+ 	vaf.va = &args;
+-
+-	res = dynamic_emit_prefix(descriptor);
+-	res += __netdev_printk(KERN_CONT, dev, &vaf);
