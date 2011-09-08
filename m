@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + thp-tail-page-refcounting-fix-6.patch added to -mm tree
-Date: Thu, 08 Sep 2011 16:57:13 -0700
-Message-ID: <201109082357.p88NvDIF016139@imap1.linux-foundation.org>
+Subject: + lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout.patch added to -mm tree
+Date: Thu, 08 Sep 2011 16:57:26 -0700
+Message-ID: <201109082357.p88NvQdl016145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52405 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756250Ab1IHX5Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:57:16 -0400
+	by vger.kernel.org with ESMTP id S1756326Ab1IHX53 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:57:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, minchan.kim@gmail.com, walken@google.com
+Cc: jjzhang@suse.de
 
 
 The patch titled
-     thp-tail-page-refcounting-fix-6
+     lib/Kconfig.debug: fix help message for DEFAULT_HUNG_TASK_TIMEOUT
 has been added to the -mm tree.  Its filename is
-     thp-tail-page-refcounting-fix-6.patch
+     lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: thp-tail-page-refcounting-fix-6
-From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: lib/Kconfig.debug: fix help message for DEFAULT_HUNG_TASK_TIMEOUT
+From: Jiaju Zhang <jjzhang@suse.de>
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Added missing _secs in the help message of config DEFAULT_HUNG_TASK_TIMEOUT.
+
+Signed-off-by: Jiaju Zhang <jjzhang@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/internal.h      |    5 +++++
- mm/swap.c          |   12 +++++++++---
- 3 files changed, 15 insertions(+), 4 deletions(-)
+ lib/Kconfig.debug |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~thp-tail-page-refcounting-fix-6 include/linux/mm.h
---- a/include/linux/mm.h~thp-tail-page-refcounting-fix-6
-+++ a/include/linux/mm.h
-@@ -377,7 +377,7 @@ static inline int page_count(struct page
- 	return atomic_read(&compound_head(page)->_count);
- }
+diff -puN lib/Kconfig.debug~lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout
++++ a/lib/Kconfig.debug
+@@ -249,8 +249,9 @@ config DEFAULT_HUNG_TASK_TIMEOUT
+ 	  to determine when a task has become non-responsive and should
+ 	  be considered hung.
  
--extern int __get_page_tail(struct page *page);
-+extern bool __get_page_tail(struct page *page);
+-	  It can be adjusted at runtime via the kernel.hung_task_timeout
+-	  sysctl or by writing a value to /proc/sys/kernel/hung_task_timeout.
++	  It can be adjusted at runtime via the kernel.hung_task_timeout_secs
++	  sysctl or by writing a value to
++	  /proc/sys/kernel/hung_task_timeout_secs.
  
- static inline void get_page(struct page *page)
- {
-diff -puN mm/internal.h~thp-tail-page-refcounting-fix-6 mm/internal.h
---- a/mm/internal.h~thp-tail-page-refcounting-fix-6
-+++ a/mm/internal.h
-@@ -59,6 +59,11 @@ static inline void __get_page_tail_foll(
- 	atomic_inc(&page->_mapcount);
- }
- 
-+/*
-+ * This is meant to be called as the FOLL_GET operation of
-+ * follow_page() and it must be called while holding the proper PT
-+ * lock while the pte (or pmd_trans_huge) is still mapping the page.
-+ */
- static inline void get_page_foll(struct page *page)
- {
- 	if (unlikely(PageTail(page)))
-diff -puN mm/swap.c~thp-tail-page-refcounting-fix-6 mm/swap.c
---- a/mm/swap.c~thp-tail-page-refcounting-fix-6
-+++ a/mm/swap.c
-@@ -79,6 +79,7 @@ static void put_compound_page(struct pag
- 	if (unlikely(PageTail(page))) {
- 		/* __split_huge_page_refcount can run under us */
- 		struct page *page_head = compound_trans_head(page);
-+
- 		if (likely(page != page_head &&
- 			   get_page_unless_zero(page_head))) {
- 			unsigned long flags;
-@@ -143,7 +144,11 @@ void put_page(struct page *page)
- }
- EXPORT_SYMBOL(put_page);
- 
--int __get_page_tail(struct page *page)
-+/*
-+ * This function is exported but must not be called by anything other
-+ * than get_page(). It implements the slow path of get_page().
-+ */
-+bool __get_page_tail(struct page *page)
- {
- 	/*
- 	 * This takes care of get_page() if run on a tail page
-@@ -154,8 +159,9 @@ int __get_page_tail(struct page *page)
- 	 * split_huge_page().
- 	 */
- 	unsigned long flags;
--	int got = 0;
-+	bool got = false;
- 	struct page *page_head = compound_trans_head(page);
-+
- 	if (likely(page != page_head && get_page_unless_zero(page_head))) {
- 		/*
- 		 * page_head wasn't a dangling pointer but it
-@@ -167,7 +173,7 @@ int __get_page_tail(struct page *page)
- 		/* here __split_huge_page_refcount won't run anymore */
- 		if (likely(PageTail(page))) {
- 			__get_page_tail_foll(page, false);
--			got = 1;
-+			got = true;
- 		}
- 		compound_unlock_irqrestore(page_head, flags);
- 		if (unlikely(!got))
+ 	  A timeout of 0 disables the check.  The default is two minutes.
+ 	  Keeping the default should be fine in most cases.
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from jjzhang@suse.de are
 
-mm-compaction-trivial-clean-up-in-acct_isolated.patch
-mm-change-isolate-mode-from-define-to-bitwise-type.patch
-mm-compaction-make-isolate_lru_page-filter-aware.patch
-mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
-mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
-mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
-mm-migration-clean-up-unmap_and_move.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix-fix.patch
-thp-tail-page-refcounting-fix-5.patch
-thp-tail-page-refcounting-fix-6.patch
+lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout.patch
 
