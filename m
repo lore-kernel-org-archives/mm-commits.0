@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-close-race-between-charge-and-putback.patch added to -mm tree
-Date: Thu, 08 Sep 2011 16:58:09 -0700
-Message-ID: <201109082358.p88NwA1e016182@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer.patch added to -mm tree
+Date: Fri, 09 Sep 2011 14:36:09 -0700
+Message-ID: <201109092136.p89La91q008231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52452 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752980Ab1IHX6U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2011 19:58:20 -0400
+	by vger.kernel.org with ESMTP id S933939Ab1IIVgK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2011 17:36:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jweiner@redhat.com, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.com
+Cc: hartleys@visionengravers.com, hsweeten@visionengravers.com
 
 
 The patch titled
-     memcg: close race between charge and putback
+     arch/x86/kernel/e820.c: quiet sparse noise about plain integer as NULL pointer
 has been added to the -mm tree.  Its filename is
-     memcg-close-race-between-charge-and-putback.patch
+     arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: close race between charge and putback
-From: Johannes Weiner <jweiner@redhat.com>
+Subject: arch/x86/kernel/e820.c: quiet sparse noise about plain integer as NULL pointer
+From: H Hartley Sweeten <hartleys@visionengravers.com>
 
-There is a potential race between a thread charging a page and another
-thread putting it back to the LRU list:
+The last parameter to sort() is a pointer to the function used to swap
+items.  This parameter should be NULL, not 0, when not used.  This quiets
+the following sparse warning:
 
-charge:                         putback:
-SetPageCgroupUsed               SetPageLRU
-PageLRU && add to memcg LRU     PageCgroupUsed && add to memcg LRU
+warning: Using plain integer as NULL pointer
 
-The order of setting one flag and checking the other is crucial, otherwise
-the charge may observe !PageLRU while the putback observes !PageCgroupUsed
-and the page is not linked to the memcg LRU at all.
-
-Global memory pressure may fix this by trying to isolate and putback the
-page for reclaim, where that putback would link it to the memcg LRU again.
- Without that, the memory cgroup is undeletable due to a charge whose
-physical page can not be found and moved out.
-
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Cc: Ying Han <yinghan@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ arch/x86/kernel/e820.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-close-race-between-charge-and-putback mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-close-race-between-charge-and-putback
-+++ a/mm/memcontrol.c
-@@ -994,6 +994,16 @@ void mem_cgroup_add_lru_list(struct page
- 		return;
- 	pc = lookup_page_cgroup(page);
- 	VM_BUG_ON(PageCgroupAcctLRU(pc));
-+	/*
-+	 * putback:				charge:
-+	 * SetPageLRU				SetPageCgroupUsed
-+	 * smp_mb				smp_mb
-+	 * PageCgroupUsed && add to memcg LRU	PageLRU && add to memcg LRU
-+	 *
-+	 * Ensure that one of the two sides adds the page to the memcg
-+	 * LRU during a race.
-+	 */
-+	smp_mb();
- 	if (!PageCgroupUsed(pc))
- 		return;
- 	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
-@@ -1045,7 +1055,16 @@ static void mem_cgroup_lru_add_after_com
- 	unsigned long flags;
- 	struct zone *zone = page_zone(page);
- 	struct page_cgroup *pc = lookup_page_cgroup(page);
--
-+	/*
-+	 * putback:				charge:
-+	 * SetPageLRU				SetPageCgroupUsed
-+	 * smp_mb				smp_mb
-+	 * PageCgroupUsed && add to memcg LRU	PageLRU && add to memcg LRU
-+	 *
-+	 * Ensure that one of the two sides adds the page to the memcg
-+	 * LRU during a race.
-+	 */
-+	smp_mb();
- 	/* taking care of that the page is added to LRU while we commit it */
- 	if (likely(!PageLRU(page)))
- 		return;
+diff -puN arch/x86/kernel/e820.c~arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer
++++ a/arch/x86/kernel/e820.c
+@@ -296,7 +296,7 @@ int __init sanitize_e820_map(struct e820
+ 	chg_nr = chgidx;
+ 
+ 	/* sort change-point list by memory addresses (low -> high) */
+-	sort(change_point, chg_nr, sizeof *change_point, cpcompare, 0);
++	sort(change_point, chg_nr, sizeof *change_point, cpcompare, NULL);
+ 
+ 	/* create a new bios memory map, removing overlaps */
+ 	overlap_entries = 0;	 /* number of entries in the overlap table */
 _
 
-Patches currently in -mm which might be from jweiner@redhat.com are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
-mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-memcg-revert-memcg-add-memoryvmscan_stat.patch
-mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
-mm-page-writebackc-document-bdi_min_ratio.patch
-mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
-xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
-mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
-mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-compaction-compact-unevictable-pages.patch
-mm-compaction-accounting-fix.patch
-memcg-skip-scanning-active-lists-based-on-individual-size.patch
-memcg-skip-scanning-active-lists-based-on-individual-size-fix.patch
-memcg-close-race-between-charge-and-putback.patch
+arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+vt-suspend-cleanup-if-defined-uglyness-and-fix-compile-error.patch
 
