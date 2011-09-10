@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-set-leds_triggers-as-tristate.patch added to -mm tree
-Date: Fri, 09 Sep 2011 16:55:19 -0700
-Message-ID: <201109092355.p89NtJvS013872@imap1.linux-foundation.org>
+Subject: + lib-idrc-fix-comment-for-ida_get_new_above.patch added to -mm tree
+Date: Fri, 09 Sep 2011 17:02:11 -0700
+Message-ID: <201109100002.p8A02BFx014217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32772 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753308Ab1IIXzU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2011 19:55:20 -0400
+	by vger.kernel.org with ESMTP id S1751743Ab1IJACM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2011 20:02:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@canonical.com, richard.purdie@linuxfoundation.org
+Cc: shhuiw@gmail.com
 
 
 The patch titled
-     leds: set LEDS_TRIGGERS as tristate
+     lib/idr.c: fix comment for ida_get_new_above()
 has been added to the -mm tree.  Its filename is
-     leds-set-leds_triggers-as-tristate.patch
+     lib-idrc-fix-comment-for-ida_get_new_above.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: set LEDS_TRIGGERS as tristate
-From: Bryan Wu <bryan.wu@canonical.com>
+Subject: lib/idr.c: fix comment for ida_get_new_above()
+From: Wang Sheng-Hui <shhuiw@gmail.com>
 
-LEDS_TRIGGERS depends on LEDS_CLASSS, which should be tristate.  So set it
-as tristate too and update header files as well.
-
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
-Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
+Signed-off-by: Wang Sheng-Hui <shhuiw@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig |    2 +-
- drivers/leds/leds.h  |    2 +-
- include/linux/leds.h |    7 ++++---
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ lib/idr.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-set-leds_triggers-as-tristate drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-set-leds_triggers-as-tristate
-+++ a/drivers/leds/Kconfig
-@@ -391,7 +391,7 @@ config LEDS_RENESAS_TPU
- 	  Brightness control is supported but hardware blinking is not.
- 
- config LEDS_TRIGGERS
--	bool "LED Trigger support"
-+	tristate "LED Trigger support"
- 	depends on LEDS_CLASS
- 	help
- 	  This option enables trigger support for the leds class.
-diff -puN drivers/leds/leds.h~leds-set-leds_triggers-as-tristate drivers/leds/leds.h
---- a/drivers/leds/leds.h~leds-set-leds_triggers-as-tristate
-+++ a/drivers/leds/leds.h
-@@ -35,7 +35,7 @@ static inline int led_get_brightness(str
- extern struct rw_semaphore leds_list_lock;
- extern struct list_head leds_list;
- 
--#ifdef CONFIG_LEDS_TRIGGERS
-+#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
- void led_trigger_set_default(struct led_classdev *led_cdev);
- void led_trigger_set(struct led_classdev *led_cdev,
- 			struct led_trigger *trigger);
-diff -puN include/linux/leds.h~leds-set-leds_triggers-as-tristate include/linux/leds.h
---- a/include/linux/leds.h~leds-set-leds_triggers-as-tristate
-+++ a/include/linux/leds.h
-@@ -66,7 +66,7 @@ struct led_classdev {
- 	struct timer_list	 blink_timer;
- 	int			 blink_brightness;
- 
--#ifdef CONFIG_LEDS_TRIGGERS
-+#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
- 	/* Protects the trigger data below */
- 	struct rw_semaphore	 trigger_lock;
- 
-@@ -115,7 +115,7 @@ extern void led_brightness_set(struct le
- /*
-  * LED Triggers
-  */
--#ifdef CONFIG_LEDS_TRIGGERS
-+#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
- 
- #define TRIG_NAME_MAX 50
- 
-@@ -161,7 +161,8 @@ extern void led_trigger_blink(struct led
- #endif
- 
- /* Trigger specific functions */
--#ifdef CONFIG_LEDS_TRIGGER_IDE_DISK
-+#if defined(CONFIG_LEDS_TRIGGER_IDE_DISK) || \
-+	defined(CONFIG_LEDS_TRIGGER_IDE_DISK_MODULE)
- extern void ledtrig_ide_activity(void);
- #else
- #define ledtrig_ide_activity() do {} while(0)
+diff -puN lib/idr.c~lib-idrc-fix-comment-for-ida_get_new_above lib/idr.c
+--- a/lib/idr.c~lib-idrc-fix-comment-for-ida_get_new_above
++++ a/lib/idr.c
+@@ -767,8 +767,8 @@ EXPORT_SYMBOL(ida_pre_get);
+  * @starting_id: id to start search at
+  * @p_id:	pointer to the allocated handle
+  *
+- * Allocate new ID above or equal to @ida.  It should be called with
+- * any required locks.
++ * Allocate new ID above or equal to @starting_id.  It should be called
++ * with any required locks.
+  *
+  * If memory is required, it will return %-EAGAIN, you should unlock
+  * and go back to the ida_pre_get() call.  If the ida is full, it will
 _
 
-Patches currently in -mm which might be from bryan.wu@canonical.com are
+Patches currently in -mm which might be from shhuiw@gmail.com are
 
-origin.patch
-leds-class-change-back-leds_class-to-tristate-instead-of-bool.patch
-documentation-leds-class-fix-a-typo.patch
-leds-set-leds_triggers-as-tristate.patch
+linux-next.patch
+lib-idrc-fix-comment-for-ida_get_new_above.patch
 
