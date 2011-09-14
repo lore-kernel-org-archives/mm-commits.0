@@ -1,83 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: + fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow.patch added to -mm tree
-Date: Wed, 14 Sep 2011 13:51:55 -0700
-Message-ID: <201109142051.p8EKptQO008356@hpaq13.eem.corp.google.com>
+Subject: [folded] numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch removed from -mm tree
+Date: Wed, 14 Sep 2011 16:16:33 -0700
+Message-ID: <201109142316.p8ENGXsb030720@wpaz17.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:20294 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47273 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933235Ab1INUwG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:52:06 -0400
+	with ESMTP id S1750945Ab1INXQt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 19:16:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: boyu.mt@taobao.com, tytso@mit.edu, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, amwang@redhat.com, rdunlap@xenotime.net, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/buffer.c: add device information for error output in __find_get_block_slow()
-has been added to the -mm tree.  Its filename is
-     fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow.patch
+     numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
+has been removed from the -mm tree.  Its filename was
+     numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/buffer.c: add device information for error output in __find_get_block_slow()
-From: Tao Ma <boyu.mt@taobao.com>
+Subject: numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On the ext4 mailing list[1], we got some report about errors in
-__find_get_block_slow(), but the information is very limited.
+Remove unneeded ifdefs.  It'll convert a compile-time error into a
+link-time one, but the code is nicer.
 
-If the device information is given, we can know the name of the sick
-volume.  Futhermore, we can get the corresponding status of that
-block(group, inode block etc) by analyzing the disk layout.
-
-[1] http://marc.info/?l=linux-ext4&m=131379831421147&w=2
-
-Signed-off-by: Tao Ma <boyu.mt@taobao.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Cong Wang <amwang@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/vmstat.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/buffer.c~fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow fs/buffer.c
---- a/fs/buffer.c~fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow
-+++ a/fs/buffer.c
-@@ -213,13 +213,16 @@ __find_get_block_slow(struct block_devic
- 	 * elsewhere, don't buffer_error if we had some unmapped buffers
- 	 */
- 	if (all_mapped) {
-+		char b[BDEVNAME_SIZE];
-+
- 		printk("__find_get_block_slow() failed. "
- 			"block=%llu, b_blocknr=%llu\n",
- 			(unsigned long long)block,
- 			(unsigned long long)bh->b_blocknr);
- 		printk("b_state=0x%08lx, b_size=%zu\n",
- 			bh->b_state, bh->b_size);
--		printk("device blocksize: %d\n", 1 << bd_inode->i_blkbits);
-+		printk("device %s blocksize: %d\n", bdevname(bdev, b),
-+			1 << bd_inode->i_blkbits);
- 	}
- out_unlock:
- 	spin_unlock(&bd_mapping->private_lock);
+diff -puN include/linux/vmstat.h~numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix include/linux/vmstat.h
+--- a/include/linux/vmstat.h~numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
++++ a/include/linux/vmstat.h
+@@ -258,8 +258,6 @@ static inline void refresh_zone_stat_thr
+ 
+ #endif		/* CONFIG_SMP */
+ 
+-#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS) || defined(CONFIG_NUMA)
+ extern const char * const vmstat_text[];
+-#endif
+ 
+ #endif /* _LINUX_VMSTAT_H */
 _
 
-Patches currently in -mm which might be from boyu.mt@taobao.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow.patch
+origin.patch
+numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+sound-core-pcm_libc-fix-race-condition-in-wait_for_avail-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix.patch
+dynamic_debug-use-a-single-printk-to-emit-messages-fix.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
+block-document-blk-plug.patch
+block-document-blk-plug-v3-fix.patch
+block-blk-sysfsc-fix-kerneldoc-references.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+cgroups-new-cancel_attach_task-subsystem-callback-fix.patch
+cgroups-add-res-counter-common-ancestor-searching-fix.patch
+cgroups-add-a-task-counter-subsystem.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+aio-allocate-kiocbs-in-batches-fix.patch
+aio-allocate-kiocbs-in-batches-fix-fix.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
