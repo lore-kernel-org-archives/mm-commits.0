@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blk-cgroup-be-able-to-remove-the-record-of-unplugged-device.patch added to -mm tree
-Date: Wed, 14 Sep 2011 13:43:33 -0700
-Message-ID: <201109142043.p8EKhX0X015578@wpaz13.hot.corp.google.com>
+Subject: + net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch added to -mm tree
+Date: Wed, 14 Sep 2011 13:43:36 -0700
+Message-ID: <201109142043.p8EKhahi027001@wpaz37.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15270 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:22726 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933143Ab1INUob (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:31 -0400
+	with ESMTP id S933143Ab1INUos (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gaowanlong@cn.fujitsu.com, axboe@kernel.dk, lizf@cn.fujitsu.com, paul@paulmenage.org, stable@kernel.org, vgoyal@redhat.com
+Cc: alex@alex.org.uk, davem@davemloft.net, kaber@trash.net, stable@kernel.org
 
 
 The patch titled
-     blk-cgroup: be able to remove the record of unplugged device
+     net/netfilter/nf_conntrack_netlink.c: fix Oops on container destroy
 has been added to the -mm tree.  Its filename is
-     blk-cgroup-be-able-to-remove-the-record-of-unplugged-device.patch
+     net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blk-cgroup: be able to remove the record of unplugged device
-From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Subject: net/netfilter/nf_conntrack_netlink.c: fix Oops on container destroy
+From: Alex Bligh <alex@alex.org.uk>
 
-The bug is we're not able to remove the device from blkio cgroup's
-per-device control files if it gets unplugged.
+Problem:
 
-To reproduce the bug:
+A repeatable Oops can be caused if a container with networking
+unshared is destroyed when it has nf_conntrack entries yet to expire.
 
-  # mount -t cgroup -o blkio xxx /cgroup
-  # cd /cgroup
-  # echo "8:0 1000" > blkio.throttle.read_bps_device
-  # unplug the device
-  # cat blkio.throttle.read_bps_device
-  8:0	1000
-  # echo "8:0 0" > blkio.throttle.read_bps_device
-  -bash: echo: write error: No such device
+A copy of the oops follows below. A perl program generating the oops
+repeatably is attached inline below.
 
-After patching, the device removal will succeed.
+Analysis:
 
-Thanks for the comments of Paul, Zefan, and Vivek.
+The oops is called from cleanup_net when the namespace is
+destroyed. conntrack iterates through outstanding events and calls
+death_by_timeout on each of them, which in turn produces a call to
+ctnetlink_conntrack_event. This calls nf_netlink_has_listeners, which
+oopses because net->nfnl is NULL.
 
-Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <paul@paulmenage.org>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+The perl program generates the container through fork() then
+clone(NS_NEWNET). I does not explicitly	set up netlink
+explicitly set up netlink, but I presume it was set up else net->nfnl
+would have been NULL earlier (i.e. when an earlier connection
+timed out). This would thus suggest that net->nfnl is made NULL
+during the destruction of the container, which I think is done by
+nfnetlink_net_exit_batch.
+
+I can see that the various subsystems are deinitialised in the opposite
+order to which the relevant register_pernet_subsys calls are called,
+and both nf_conntrack and nfnetlink_net_ops register their relevant
+subsystems. If nfnetlink_net_ops registered later than nfconntrack,
+then its exit routine would have been called first, which would cause
+the oops described. I am not sure there is anything to prevent this
+happening in a container environment.
+
+Whilst there's perhaps a more complex problem revolving around ordering
+of subsystem deinit, it seems to me that missing a netlink event on a
+container that is dying is not a disaster. An early check for net->nfnl
+being non-NULL in ctnetlink_conntrack_event appears to fix this. There
+may remain a potential race condition if it becomes NULL immediately
+after being checked (I am not sure any lock is held at this point or
+how synchronisation for subsystem deinitialization works).
+
+Patch:
+
+The patch attached should apply on everything from 2.6.26 (if not before)
+onwards; it appears to be a problem on all kernels. This was taken against
+Ubuntu-3.0.0-11.17 which is very close to 3.0.4. I have torture-tested it
+with the above perl script for 15 minutes or so; the perl script hung the
+machine within 20 seconds without this patch.
+
+Applicability:
+
+If this is the right solution, it should be applied to all stable kernels
+as well as head. Apart from the minor overhead of checking one variable
+against NULL, it can never 'do the wrong thing', because if net->nfnl
+is NULL, an oops will inevitably result. Therefore, checking is a reasonable
+thing to do unless it can be proven than net->nfnl will never be NULL.
+
+Check net->nfnl for NULL in ctnetlink_conntrack_event to avoid Oops on
+container destroy
+
+Signed-off-by: Alex Bligh <alex@alex.org.uk>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: David Miller <davem@davemloft.net>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-cgroup.c |   37 ++++++++++++++++---------------------
- 1 file changed, 16 insertions(+), 21 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN block/blk-cgroup.c~blk-cgroup-be-able-to-remove-the-record-of-unplugged-device block/blk-cgroup.c
---- a/block/blk-cgroup.c~blk-cgroup-be-able-to-remove-the-record-of-unplugged-device
-+++ a/block/blk-cgroup.c
-@@ -785,10 +785,10 @@ static int blkio_policy_parse_and_set(ch
- {
- 	char *s[4], *p, *major_s = NULL, *minor_s = NULL;
- 	int ret;
--	unsigned long major, minor, temp;
-+	unsigned long major, minor;
- 	int i = 0;
- 	dev_t dev;
--	u64 bps, iops;
-+	u64 temp;
+diff -puN net/netfilter/nf_conntrack_netlink.c~fix-repeatable-oops-on-container-destroy-with-conntrack net/netfilter/nf_conntrack_netlink.c
+--- a/net/netfilter/nf_conntrack_netlink.c~fix-repeatable-oops-on-container-destroy-with-conntrack
++++ a/net/netfilter/nf_conntrack_netlink.c
+@@ -570,6 +570,11 @@ ctnetlink_conntrack_event(unsigned int e
+ 		return 0;
  
- 	memset(s, 0, sizeof(s));
+ 	net = nf_ct_net(ct);
++
++	/* container deinit, netlink may have died before death_by_timeout */
++	if (!net->nfnl)
++		return 0;
++
+ 	if (!item->report && !nfnetlink_has_listeners(net, group))
+ 		return 0;
  
-@@ -826,20 +826,23 @@ static int blkio_policy_parse_and_set(ch
- 
- 	dev = MKDEV(major, minor);
- 
--	ret = blkio_check_dev_num(dev);
-+	ret = strict_strtoull(s[1], 10, &temp);
- 	if (ret)
--		return ret;
-+		return -EINVAL;
- 
--	newpn->dev = dev;
-+	/* For rule removal, do not check for device presence. */
-+	if (temp) {
-+		ret = blkio_check_dev_num(dev);
-+		if (ret)
-+			return ret;
-+	}
- 
--	if (s[1] == NULL)
--		return -EINVAL;
-+	newpn->dev = dev;
- 
- 	switch (plid) {
- 	case BLKIO_POLICY_PROP:
--		ret = strict_strtoul(s[1], 10, &temp);
--		if (ret || (temp < BLKIO_WEIGHT_MIN && temp > 0) ||
--			temp > BLKIO_WEIGHT_MAX)
-+		if ((temp < BLKIO_WEIGHT_MIN && temp > 0) ||
-+		     temp > BLKIO_WEIGHT_MAX)
- 			return -EINVAL;
- 
- 		newpn->plid = plid;
-@@ -850,26 +853,18 @@ static int blkio_policy_parse_and_set(ch
- 		switch(fileid) {
- 		case BLKIO_THROTL_read_bps_device:
- 		case BLKIO_THROTL_write_bps_device:
--			ret = strict_strtoull(s[1], 10, &bps);
--			if (ret)
--				return -EINVAL;
--
- 			newpn->plid = plid;
- 			newpn->fileid = fileid;
--			newpn->val.bps = bps;
-+			newpn->val.bps = temp;
- 			break;
- 		case BLKIO_THROTL_read_iops_device:
- 		case BLKIO_THROTL_write_iops_device:
--			ret = strict_strtoull(s[1], 10, &iops);
--			if (ret)
--				return -EINVAL;
+_
+
+Patches currently in -mm which might be from alex@alex.org.uk are
+
+net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch
+
