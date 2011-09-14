@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch added to -mm tree
-Date: Wed, 14 Sep 2011 13:44:09 -0700
-Message-ID: <201109142044.p8EKiArx008463@hpaq6.eem.corp.google.com>
+Subject: + workqueue-lock-cwq-access-in-drain_workqueue.patch added to -mm tree
+Date: Wed, 14 Sep 2011 13:43:30 -0700
+Message-ID: <201109142043.p8EKhUO4007639@hpaq6.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:22456 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15141 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933143Ab1INUoO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:14 -0400
+	with ESMTP id S933143Ab1INUoQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, consul.kautuk@gmail.com
+Cc: ttuttle@chromium.org, stable@kernel.org, tj@kernel.org
 
 
 The patch titled
-     mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
+     workqueue: lock cwq access in drain_workqueue
 has been added to the -mm tree.  Its filename is
-     mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+     workqueue-lock-cwq-access-in-drain_workqueue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: workqueue: lock cwq access in drain_workqueue
+From: Thomas Tuttle <ttuttle@chromium.org>
 
-Cc: Kautuk Consul <consul.kautuk@gmail.com>
+Take cwq->gcwq->lock to avoid racing between drain_workqueue checking to
+make sure the workqueues are empty and cwq_dec_nr_in_flight decrementing
+and then incrementing nr_active when it activates a delayed work.
+
+We discovered this when a corner case in one of our drivers resulted in us
+trying to destroy a workqueue in which the remaining work would always
+requeue itself again in the same workqueue.  We would hit this race
+condition and trip the BUG_ON on workqueue.c:3080.
+
+Signed-off-by: Thomas Tuttle <ttuttle@chromium.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/workqueue.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix mm/mmap.c
---- a/mm/mmap.c~mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
-+++ a/mm/mmap.c
-@@ -2582,7 +2582,6 @@ int mm_take_all_locks(struct mm_struct *
+diff -puN kernel/workqueue.c~workqueue-lock-cwq-access-in-drain_workqueue kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-lock-cwq-access-in-drain_workqueue
++++ a/kernel/workqueue.c
+@@ -2412,8 +2412,13 @@ reflush:
  
- out_unlock:
- 	mm_drop_all_locks(mm);
--
- 	return -EINTR;
- }
+ 	for_each_cwq_cpu(cpu, wq) {
+ 		struct cpu_workqueue_struct *cwq = get_cwq(cpu, wq);
++		bool drained;
  
+-		if (!cwq->nr_active && list_empty(&cwq->delayed_works))
++		spin_lock_irq(&cwq->gcwq->lock);
++		drained = !cwq->nr_active && list_empty(&cwq->delayed_works);
++		spin_unlock_irq(&cwq->gcwq->lock);
++
++		if (drained)
+ 			continue;
+ 
+ 		if (++flush_cnt == 10 ||
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ttuttle@chromium.org are
 
-origin.patch
-headers_check-is-broken.patch
-samples-hidraw-is-busted.patch
-numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
-rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-sound-core-pcm_libc-fix-race-condition-in-wait_for_avail-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix.patch
-dynamic_debug-use-a-single-printk-to-emit-messages-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
-block-document-blk-plug.patch
-block-document-blk-plug-v3-fix.patch
-block-blk-sysfsc-fix-kerneldoc-references.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-cgroups-new-cancel_attach_task-subsystem-callback-fix.patch
-cgroups-add-res-counter-common-ancestor-searching-fix.patch
-cgroups-add-a-task-counter-subsystem.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-aio-allocate-kiocbs-in-batches-fix.patch
-aio-allocate-kiocbs-in-batches-fix-fix.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+workqueue-lock-cwq-access-in-drain_workqueue.patch
 
