@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init.patch added to -mm tree
-Date: Wed, 14 Sep 2011 13:43:38 -0700
-Message-ID: <201109142043.p8EKhds6022200@wpaz33.hot.corp.google.com>
+Subject: + mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks.patch added to -mm tree
+Date: Wed, 14 Sep 2011 13:44:08 -0700
+Message-ID: <201109142044.p8EKi8Ad012716@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:14828 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15100 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933143Ab1INUnr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:43:47 -0400
+	with ESMTP id S933143Ab1INUoL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jj@chaosbits.net, magi@slimlogic.co.uk, sameo@linux.intel.com
+Cc: consul.kautuk@gmail.com
 
 
 The patch titled
-     drivers/mfd/tps65912-core.c: don't leak init_data in tps65912_device_init()
+     mm/mmap.c: eliminate the ret variable from mm_take_all_locks()
 has been added to the -mm tree.  Its filename is
-     drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init.patch
+     mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd/tps65912-core.c: don't leak init_data in tps65912_device_init()
-From: Jesper Juhl <jj@chaosbits.net>
+Subject: mm/mmap.c: eliminate the ret variable from mm_take_all_locks()
+From: Kautuk Consul <consul.kautuk@gmail.com>
 
-We neglect to free init_data on successful exit.  I also moved two
-assignments to just before they are needed.  This avoids doing them in
-case we hit an earlier error exit from the function.
+The ret variable is really not needed in mm_take_all_locks().
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Margarita Olaya Cabrera <magi@slimlogic.co.uk>
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/tps65912-core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mmap.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mfd/tps65912-core.c~drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init drivers/mfd/tps65912-core.c
---- a/drivers/mfd/tps65912-core.c~drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init
-+++ a/drivers/mfd/tps65912-core.c
-@@ -131,9 +131,6 @@ int tps65912_device_init(struct tps65912
- 	if (init_data == NULL)
- 		return -ENOMEM;
+diff -puN mm/mmap.c~trivial-eliminate-the-ret-variable-from-mm_take_all_locks mm/mmap.c
+--- a/mm/mmap.c~trivial-eliminate-the-ret-variable-from-mm_take_all_locks
++++ a/mm/mmap.c
+@@ -2558,7 +2558,6 @@ int mm_take_all_locks(struct mm_struct *
+ {
+ 	struct vm_area_struct *vma;
+ 	struct anon_vma_chain *avc;
+-	int ret = -EINTR;
  
--	init_data->irq = pmic_plat_data->irq;
--	init_data->irq_base = pmic_plat_data->irq;
--
- 	mutex_init(&tps65912->io_mutex);
- 	dev_set_drvdata(tps65912->dev, tps65912);
+ 	BUG_ON(down_read_trylock(&mm->mmap_sem));
  
-@@ -153,10 +150,13 @@ int tps65912_device_init(struct tps65912
- 	if (ret < 0)
- 		goto err;
+@@ -2579,13 +2578,12 @@ int mm_take_all_locks(struct mm_struct *
+ 				vm_lock_anon_vma(mm, avc->anon_vma);
+ 	}
  
-+	init_data->irq = pmic_plat_data->irq;
-+	init_data->irq_base = pmic_plat_data->irq;
- 	ret = tps65912_irq_init(tps65912, init_data->irq, init_data);
- 	if (ret < 0)
- 		goto err;
+-	ret = 0;
++	return 0;
  
-+	kfree(init_data);
- 	return ret;
+ out_unlock:
+-	if (ret)
+-		mm_drop_all_locks(mm);
++	mm_drop_all_locks(mm);
  
- err:
+-	return ret;
++	return -EINTR;
+ }
+ 
+ static void vm_unlock_anon_vma(struct anon_vma *anon_vma)
 _
 
-Patches currently in -mm which might be from jj@chaosbits.net are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
-origin.patch
-drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent.patch
-linux-next.patch
-audit-always-follow-va_copy-with-va_end.patch
-drivers-gpu-vga-vgaarbc-add-missing-kfree.patch
-drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init.patch
-drivers-scsi-aacraid-commctrlc-fix-mem-leak-in-aac_send_raw_srb.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
 
