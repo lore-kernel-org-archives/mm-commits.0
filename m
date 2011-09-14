@@ -1,62 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded] numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch removed from -mm tree
-Date: Wed, 14 Sep 2011 16:16:33 -0700
-Message-ID: <201109142316.p8ENGXsb030720@wpaz17.hot.corp.google.com>
+Subject: [folded] mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch removed from -mm tree
+Date: Wed, 14 Sep 2011 16:17:17 -0700
+Message-ID: <201109142317.p8ENHIl5006387@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:47273 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:54240 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab1INXQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 19:16:49 -0400
+	with ESMTP id S1750945Ab1INXR3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 19:17:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, amwang@redhat.com, rdunlap@xenotime.net, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jweiner@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
+     mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
 has been removed from the -mm tree.  Its filename was
-     numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
+     mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
 
-This patch was dropped because it was folded into numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled.patch
+This patch was dropped because it was folded into mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
+Subject: mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove unneeded ifdefs.  It'll convert a compile-time error into a
-link-time one, but the code is nicer.
+fix comment
 
-Cc: Cong Wang <amwang@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmstat.h~numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix include/linux/vmstat.h
---- a/include/linux/vmstat.h~numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix
-+++ a/include/linux/vmstat.h
-@@ -258,8 +258,6 @@ static inline void refresh_zone_stat_thr
+diff -puN mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
++++ a/mm/vmscan.c
+@@ -1833,7 +1833,7 @@ static void get_scan_count(struct zone *
+ 	bool force_scan = false;
+ 	unsigned long nr_force_scan[2];
  
- #endif		/* CONFIG_SMP */
- 
--#if defined(CONFIG_PROC_FS) || defined(CONFIG_SYSFS) || defined(CONFIG_NUMA)
- extern const char * const vmstat_text[];
--#endif
- 
- #endif /* _LINUX_VMSTAT_H */
+-	/* kswapd does zone balancing and need to scan this zone */
++	/* kswapd does zone balancing and needs to scan this zone */
+ 	if (scanning_global_lru(sc) && current_is_kswapd())
+ 		force_scan = true;
+ 	/* memcg may have small limit and need to avoid priority drop */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
 rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
