@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks.patch added to -mm tree
-Date: Wed, 14 Sep 2011 13:44:08 -0700
-Message-ID: <201109142044.p8EKi8Ad012716@wpaz21.hot.corp.google.com>
+Subject: + mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch added to -mm tree
+Date: Wed, 14 Sep 2011 13:44:09 -0700
+Message-ID: <201109142044.p8EKiArx008463@hpaq6.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15100 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:22456 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933143Ab1INUoL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:11 -0400
+	with ESMTP id S933143Ab1INUoO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: consul.kautuk@gmail.com
+Cc: akpm@linux-foundation.org, consul.kautuk@gmail.com
 
 
 The patch titled
-     mm/mmap.c: eliminate the ret variable from mm_take_all_locks()
+     mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
 has been added to the -mm tree.  Its filename is
-     mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks.patch
+     mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/mmap.c: eliminate the ret variable from mm_take_all_locks()
-From: Kautuk Consul <consul.kautuk@gmail.com>
+Subject: mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The ret variable is really not needed in mm_take_all_locks().
-
-Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Cc: Kautuk Consul <consul.kautuk@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/mmap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/mmap.c~trivial-eliminate-the-ret-variable-from-mm_take_all_locks mm/mmap.c
---- a/mm/mmap.c~trivial-eliminate-the-ret-variable-from-mm_take_all_locks
+diff -puN mm/mmap.c~mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
 +++ a/mm/mmap.c
-@@ -2558,7 +2558,6 @@ int mm_take_all_locks(struct mm_struct *
- {
- 	struct vm_area_struct *vma;
- 	struct anon_vma_chain *avc;
--	int ret = -EINTR;
- 
- 	BUG_ON(down_read_trylock(&mm->mmap_sem));
- 
-@@ -2579,13 +2578,12 @@ int mm_take_all_locks(struct mm_struct *
- 				vm_lock_anon_vma(mm, avc->anon_vma);
- 	}
- 
--	ret = 0;
-+	return 0;
+@@ -2582,7 +2582,6 @@ int mm_take_all_locks(struct mm_struct *
  
  out_unlock:
--	if (ret)
--		mm_drop_all_locks(mm);
-+	mm_drop_all_locks(mm);
- 
--	return ret;
-+	return -EINTR;
+ 	mm_drop_all_locks(mm);
+-
+ 	return -EINTR;
  }
  
- static void vm_unlock_anon_vma(struct anon_vma *anon_vma)
 _
 
-Patches currently in -mm which might be from consul.kautuk@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks.patch
+origin.patch
+headers_check-is-broken.patch
+samples-hidraw-is-busted.patch
+numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled-fix.patch
+mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
+sound-core-pcm_libc-fix-race-condition-in-wait_for_avail-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix.patch
+dynamic_debug-use-a-single-printk-to-emit-messages-fix.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
+block-document-blk-plug.patch
+block-document-blk-plug-v3-fix.patch
+block-blk-sysfsc-fix-kerneldoc-references.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
 mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+cgroups-new-cancel_attach_task-subsystem-callback-fix.patch
+cgroups-add-res-counter-common-ancestor-searching-fix.patch
+cgroups-add-a-task-counter-subsystem.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+aio-allocate-kiocbs-in-batches-fix.patch
+aio-allocate-kiocbs-in-batches-fix-fix.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
