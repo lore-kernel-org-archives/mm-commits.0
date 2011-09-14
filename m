@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch added to -mm tree
-Date: Wed, 14 Sep 2011 13:43:36 -0700
-Message-ID: <201109142043.p8EKhahi027001@wpaz37.hot.corp.google.com>
+Subject: + ipw2x00-fix-rtnl-mutex-deadlock.patch added to -mm tree
+Date: Wed, 14 Sep 2011 13:49:57 -0700
+Message-ID: <201109142049.p8EKnvFm005908@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:22726 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:25737 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933143Ab1INUos (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:48 -0400
+	with ESMTP id S933235Ab1INUuI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:50:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alex@alex.org.uk, davem@davemloft.net, kaber@trash.net, stable@kernel.org
+Cc: sgruszka@redhat.com, baryluk@smp.if.uj.edu.pl, dcbw@redhat.com, mfwitten@gmail.com
 
 
 The patch titled
-     net/netfilter/nf_conntrack_netlink.c: fix Oops on container destroy
+     ipw2x00: fix rtnl mutex deadlock
 has been added to the -mm tree.  Its filename is
-     net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch
+     ipw2x00-fix-rtnl-mutex-deadlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,176 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/netfilter/nf_conntrack_netlink.c: fix Oops on container destroy
-From: Alex Bligh <alex@alex.org.uk>
+Subject: ipw2x00: fix rtnl mutex deadlock
+From: Stanislaw Gruszka <sgruszka@redhat.com>
 
-Problem:
+This fixes a regression introduced by:
 
-A repeatable Oops can be caused if a container with networking
-unshared is destroyed when it has nf_conntrack entries yet to expire.
+commit: ecb4433550f0620f3d1471ae7099037ede30a91e
+Author: Stanislaw Gruszka <sgruszka@redhat.com>
+Date:   Fri Aug 12 14:00:59 2011 +0200
 
-A copy of the oops follows below. A perl program generating the oops
-repeatably is attached inline below.
+    mac80211: fix suspend/resume races with unregister hw
 
-Analysis:
+Above commit add rtnl_lock() into wiphy_register(), what cause deadlock
+when initializing ipw2x00 driver, which itself call wiphy_register() from
+register_netdev() internal callback with rtnl mutex taken.
 
-The oops is called from cleanup_net when the namespace is
-destroyed. conntrack iterates through outstanding events and calls
-death_by_timeout on each of them, which in turn produces a call to
-ctnetlink_conntrack_event. This calls nf_netlink_has_listeners, which
-oopses because net->nfnl is NULL.
+To fix move wiphy_register() outside register_netdev().  This solution
+have side effect of not creating /sys/class/net/wlanX/phy80211 link, but
+that's a minor issue we can live with.
 
-The perl program generates the container through fork() then
-clone(NS_NEWNET). I does not explicitly	set up netlink
-explicitly set up netlink, but I presume it was set up else net->nfnl
-would have been NULL earlier (i.e. when an earlier connection
-timed out). This would thus suggest that net->nfnl is made NULL
-during the destruction of the container, which I think is done by
-nfnetlink_net_exit_batch.
-
-I can see that the various subsystems are deinitialised in the opposite
-order to which the relevant register_pernet_subsys calls are called,
-and both nf_conntrack and nfnetlink_net_ops register their relevant
-subsystems. If nfnetlink_net_ops registered later than nfconntrack,
-then its exit routine would have been called first, which would cause
-the oops described. I am not sure there is anything to prevent this
-happening in a container environment.
-
-Whilst there's perhaps a more complex problem revolving around ordering
-of subsystem deinit, it seems to me that missing a netlink event on a
-container that is dying is not a disaster. An early check for net->nfnl
-being non-NULL in ctnetlink_conntrack_event appears to fix this. There
-may remain a potential race condition if it becomes NULL immediately
-after being checked (I am not sure any lock is held at this point or
-how synchronisation for subsystem deinitialization works).
-
-Patch:
-
-The patch attached should apply on everything from 2.6.26 (if not before)
-onwards; it appears to be a problem on all kernels. This was taken against
-Ubuntu-3.0.0-11.17 which is very close to 3.0.4. I have torture-tested it
-with the above perl script for 15 minutes or so; the perl script hung the
-machine within 20 seconds without this patch.
-
-Applicability:
-
-If this is the right solution, it should be applied to all stable kernels
-as well as head. Apart from the minor overhead of checking one variable
-against NULL, it can never 'do the wrong thing', because if net->nfnl
-is NULL, an oops will inevitably result. Therefore, checking is a reasonable
-thing to do unless it can be proven than net->nfnl will never be NULL.
-
-Check net->nfnl for NULL in ctnetlink_conntrack_event to avoid Oops on
-container destroy
-
-Signed-off-by: Alex Bligh <alex@alex.org.uk>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: David Miller <davem@davemloft.net>
-Cc: <stable@kernel.org>
+Bisected-by: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
+Bisected-by: Michael Witten <mfwitten@gmail.com>
+Tested-by: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
+Tested-by: Michael Witten <mfwitten@gmail.com>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Dan Williams <dcbw@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/nf_conntrack_netlink.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/wireless/ipw2x00/ipw2100.c |   21 ++++++++----
+ drivers/net/wireless/ipw2x00/ipw2200.c |   39 +++++++++++++++--------
+ 2 files changed, 40 insertions(+), 20 deletions(-)
 
-diff -puN net/netfilter/nf_conntrack_netlink.c~fix-repeatable-oops-on-container-destroy-with-conntrack net/netfilter/nf_conntrack_netlink.c
---- a/net/netfilter/nf_conntrack_netlink.c~fix-repeatable-oops-on-container-destroy-with-conntrack
-+++ a/net/netfilter/nf_conntrack_netlink.c
-@@ -570,6 +570,11 @@ ctnetlink_conntrack_event(unsigned int e
- 		return 0;
- 
- 	net = nf_ct_net(ct);
+diff -puN drivers/net/wireless/ipw2x00/ipw2100.c~ipw2x00-fix-rtnl-mutex-deadlock drivers/net/wireless/ipw2x00/ipw2100.c
+--- a/drivers/net/wireless/ipw2x00/ipw2100.c~ipw2x00-fix-rtnl-mutex-deadlock
++++ a/drivers/net/wireless/ipw2x00/ipw2100.c
+@@ -1903,15 +1903,17 @@ static void ipw2100_down(struct ipw2100_
+ static int ipw2100_net_init(struct net_device *dev)
+ {
+ 	struct ipw2100_priv *priv = libipw_priv(dev);
 +
-+	/* container deinit, netlink may have died before death_by_timeout */
-+	if (!net->nfnl)
-+		return 0;
++	return ipw2100_up(priv, 1);
++}
 +
- 	if (!item->report && !nfnetlink_has_listeners(net, group))
- 		return 0;
++static int ipw2100_wdev_init(struct net_device *dev)
++{
++	struct ipw2100_priv *priv = libipw_priv(dev);
+ 	const struct libipw_geo *geo = libipw_get_geo(priv->ieee);
+ 	struct wireless_dev *wdev = &priv->ieee->wdev;
+-	int ret;
+ 	int i;
  
+-	ret = ipw2100_up(priv, 1);
+-	if (ret)
+-		return ret;
+-
+ 	memcpy(wdev->wiphy->perm_addr, priv->mac_addr, ETH_ALEN);
+ 
+ 	/* fill-out priv->ieee->bg_band */
+@@ -6350,9 +6352,13 @@ static int ipw2100_pci_init_one(struct p
+ 		       "Error calling register_netdev.\n");
+ 		goto fail;
+ 	}
++	registered = 1;
++
++	err = ipw2100_wdev_init(dev);
++	if (err)
++		goto fail;
+ 
+ 	mutex_lock(&priv->action_mutex);
+-	registered = 1;
+ 
+ 	IPW_DEBUG_INFO("%s: Bound to %s\n", dev->name, pci_name(pci_dev));
+ 
+@@ -6389,7 +6395,8 @@ static int ipw2100_pci_init_one(struct p
+ 
+       fail_unlock:
+ 	mutex_unlock(&priv->action_mutex);
+-
++	wiphy_unregister(priv->ieee->wdev.wiphy);
++	kfree(priv->ieee->bg_band.channels);
+       fail:
+ 	if (dev) {
+ 		if (registered)
+diff -puN drivers/net/wireless/ipw2x00/ipw2200.c~ipw2x00-fix-rtnl-mutex-deadlock drivers/net/wireless/ipw2x00/ipw2200.c
+--- a/drivers/net/wireless/ipw2x00/ipw2200.c~ipw2x00-fix-rtnl-mutex-deadlock
++++ a/drivers/net/wireless/ipw2x00/ipw2200.c
+@@ -11426,16 +11426,23 @@ static void ipw_bg_down(struct work_stru
+ /* Called by register_netdev() */
+ static int ipw_net_init(struct net_device *dev)
+ {
++	int rc = 0;
++	struct ipw_priv *priv = libipw_priv(dev);
++
++	mutex_lock(&priv->mutex);
++	if (ipw_up(priv))
++		rc = -EIO;
++	mutex_unlock(&priv->mutex);
++
++	return rc;
++}
++
++static int ipw_wdev_init(struct net_device *dev)
++{
+ 	int i, rc = 0;
+ 	struct ipw_priv *priv = libipw_priv(dev);
+ 	const struct libipw_geo *geo = libipw_get_geo(priv->ieee);
+ 	struct wireless_dev *wdev = &priv->ieee->wdev;
+-	mutex_lock(&priv->mutex);
+-
+-	if (ipw_up(priv)) {
+-		rc = -EIO;
+-		goto out;
+-	}
+ 
+ 	memcpy(wdev->wiphy->perm_addr, priv->mac_addr, ETH_ALEN);
+ 
+@@ -11520,13 +11527,9 @@ static int ipw_net_init(struct net_devic
+ 	set_wiphy_dev(wdev->wiphy, &priv->pci_dev->dev);
+ 
+ 	/* With that information in place, we can now register the wiphy... */
+-	if (wiphy_register(wdev->wiphy)) {
++	if (wiphy_register(wdev->wiphy))
+ 		rc = -EIO;
+-		goto out;
+-	}
+-
+ out:
+-	mutex_unlock(&priv->mutex);
+ 	return rc;
+ }
+ 
+@@ -11833,14 +11836,22 @@ static int __devinit ipw_pci_probe(struc
+ 		goto out_remove_sysfs;
+ 	}
+ 
++	err = ipw_wdev_init(net_dev);
++	if (err) {
++		IPW_ERROR("failed to register wireless device\n");
++		goto out_unregister_netdev;
++	}
++
+ #ifdef CONFIG_IPW2200_PROMISCUOUS
+ 	if (rtap_iface) {
+ 	        err = ipw_prom_alloc(priv);
+ 		if (err) {
+ 			IPW_ERROR("Failed to register promiscuous network "
+ 				  "device (error %d).\n", err);
+-			unregister_netdev(priv->net_dev);
+-			goto out_remove_sysfs;
++			wiphy_unregister(priv->ieee->wdev.wiphy);
++			kfree(priv->ieee->a_band.channels);
++			kfree(priv->ieee->bg_band.channels);
++			goto out_unregister_netdev;
+ 		}
+ 	}
+ #endif
+@@ -11852,6 +11863,8 @@ static int __devinit ipw_pci_probe(struc
+ 
+ 	return 0;
+ 
++      out_unregister_netdev:
++	unregister_netdev(priv->net_dev);
+       out_remove_sysfs:
+ 	sysfs_remove_group(&pdev->dev.kobj, &ipw_attribute_group);
+       out_release_irq:
 _
 
-Patches currently in -mm which might be from alex@alex.org.uk are
+Patches currently in -mm which might be from sgruszka@redhat.com are
 
-net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch
+origin.patch
+linux-next.patch
+ipw2x00-fix-rtnl-mutex-deadlock.patch
 
