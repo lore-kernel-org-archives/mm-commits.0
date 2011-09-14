@@ -1,52 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch removed from -mm tree
-Date: Wed, 14 Sep 2011 16:17:17 -0700
-Message-ID: <201109142317.p8ENHIl5006387@wpaz1.hot.corp.google.com>
+Subject: [folded] rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch removed from -mm tree
+Date: Wed, 14 Sep 2011 16:17:44 -0700
+Message-ID: <201109142317.p8ENHiei006694@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:54240 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47654 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab1INXR3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 19:17:29 -0400
+	with ESMTP id S1750945Ab1INXRx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 19:17:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jweiner@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dg77.kim@samsung.com, kyungmin.park@samsung.com, myungjoo.ham@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
+     rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-force-scanning-small-targets-without-swap-fix.patch
+     rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
+This patch was dropped because it was folded into rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
+Subject: rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix comment
+make s3c_rtc_alarm_clk_lock local to s3c_rtc_alarm_clk_enable()
 
-Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Donggeun Kim <dg77.kim@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
+ drivers/rtc/rtc-s3c.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap-fix
-+++ a/mm/vmscan.c
-@@ -1833,7 +1833,7 @@ static void get_scan_count(struct zone *
- 	bool force_scan = false;
- 	unsigned long nr_force_scan[2];
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix
++++ a/drivers/rtc/rtc-s3c.c
+@@ -50,10 +50,10 @@ static bool wake_en;
+ static enum s3c_cpu_type s3c_rtc_cpu_type;
  
--	/* kswapd does zone balancing and need to scan this zone */
-+	/* kswapd does zone balancing and needs to scan this zone */
- 	if (scanning_global_lru(sc) && current_is_kswapd())
- 		force_scan = true;
- 	/* memcg may have small limit and need to avoid priority drop */
+ static DEFINE_SPINLOCK(s3c_rtc_pie_lock);
+-static DEFINE_SPINLOCK(s3c_rtc_alarm_clk_lock);
+ 
+ static void s3c_rtc_alarm_clk_enable(bool enable)
+ {
++	static DEFINE_SPINLOCK(s3c_rtc_alarm_clk_lock);
+ 	static bool alarm_clk_enabled;
+ 	unsigned long irq_flags;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -54,7 +59,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled.patch
 mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
-rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch
+rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt.patch
 linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
