@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipw2x00-fix-rtnl-mutex-deadlock.patch added to -mm tree
-Date: Wed, 14 Sep 2011 13:49:57 -0700
-Message-ID: <201109142049.p8EKnvFm005908@wpaz1.hot.corp.google.com>
+Subject: + fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow.patch added to -mm tree
+Date: Wed, 14 Sep 2011 13:51:55 -0700
+Message-ID: <201109142051.p8EKptQO008356@hpaq13.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:25737 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:20294 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933235Ab1INUuI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:50:08 -0400
+	with ESMTP id S933235Ab1INUwG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:52:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sgruszka@redhat.com, baryluk@smp.if.uj.edu.pl, dcbw@redhat.com, mfwitten@gmail.com
+Cc: boyu.mt@taobao.com, tytso@mit.edu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ipw2x00: fix rtnl mutex deadlock
+     fs/buffer.c: add device information for error output in __find_get_block_slow()
 has been added to the -mm tree.  Its filename is
-     ipw2x00-fix-rtnl-mutex-deadlock.patch
+     fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,176 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipw2x00: fix rtnl mutex deadlock
-From: Stanislaw Gruszka <sgruszka@redhat.com>
+Subject: fs/buffer.c: add device information for error output in __find_get_block_slow()
+From: Tao Ma <boyu.mt@taobao.com>
 
-This fixes a regression introduced by:
+On the ext4 mailing list[1], we got some report about errors in
+__find_get_block_slow(), but the information is very limited.
 
-commit: ecb4433550f0620f3d1471ae7099037ede30a91e
-Author: Stanislaw Gruszka <sgruszka@redhat.com>
-Date:   Fri Aug 12 14:00:59 2011 +0200
+If the device information is given, we can know the name of the sick
+volume.  Futhermore, we can get the corresponding status of that
+block(group, inode block etc) by analyzing the disk layout.
 
-    mac80211: fix suspend/resume races with unregister hw
+[1] http://marc.info/?l=linux-ext4&m=131379831421147&w=2
 
-Above commit add rtnl_lock() into wiphy_register(), what cause deadlock
-when initializing ipw2x00 driver, which itself call wiphy_register() from
-register_netdev() internal callback with rtnl mutex taken.
-
-To fix move wiphy_register() outside register_netdev().  This solution
-have side effect of not creating /sys/class/net/wlanX/phy80211 link, but
-that's a minor issue we can live with.
-
-Bisected-by: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
-Bisected-by: Michael Witten <mfwitten@gmail.com>
-Tested-by: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
-Tested-by: Michael Witten <mfwitten@gmail.com>
-Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
-Cc: Dan Williams <dcbw@redhat.com>
+Signed-off-by: Tao Ma <boyu.mt@taobao.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ipw2x00/ipw2100.c |   21 ++++++++----
- drivers/net/wireless/ipw2x00/ipw2200.c |   39 +++++++++++++++--------
- 2 files changed, 40 insertions(+), 20 deletions(-)
+ fs/buffer.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/ipw2x00/ipw2100.c~ipw2x00-fix-rtnl-mutex-deadlock drivers/net/wireless/ipw2x00/ipw2100.c
---- a/drivers/net/wireless/ipw2x00/ipw2100.c~ipw2x00-fix-rtnl-mutex-deadlock
-+++ a/drivers/net/wireless/ipw2x00/ipw2100.c
-@@ -1903,15 +1903,17 @@ static void ipw2100_down(struct ipw2100_
- static int ipw2100_net_init(struct net_device *dev)
- {
- 	struct ipw2100_priv *priv = libipw_priv(dev);
+diff -puN fs/buffer.c~fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow fs/buffer.c
+--- a/fs/buffer.c~fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow
++++ a/fs/buffer.c
+@@ -213,13 +213,16 @@ __find_get_block_slow(struct block_devic
+ 	 * elsewhere, don't buffer_error if we had some unmapped buffers
+ 	 */
+ 	if (all_mapped) {
++		char b[BDEVNAME_SIZE];
 +
-+	return ipw2100_up(priv, 1);
-+}
-+
-+static int ipw2100_wdev_init(struct net_device *dev)
-+{
-+	struct ipw2100_priv *priv = libipw_priv(dev);
- 	const struct libipw_geo *geo = libipw_get_geo(priv->ieee);
- 	struct wireless_dev *wdev = &priv->ieee->wdev;
--	int ret;
- 	int i;
- 
--	ret = ipw2100_up(priv, 1);
--	if (ret)
--		return ret;
--
- 	memcpy(wdev->wiphy->perm_addr, priv->mac_addr, ETH_ALEN);
- 
- 	/* fill-out priv->ieee->bg_band */
-@@ -6350,9 +6352,13 @@ static int ipw2100_pci_init_one(struct p
- 		       "Error calling register_netdev.\n");
- 		goto fail;
+ 		printk("__find_get_block_slow() failed. "
+ 			"block=%llu, b_blocknr=%llu\n",
+ 			(unsigned long long)block,
+ 			(unsigned long long)bh->b_blocknr);
+ 		printk("b_state=0x%08lx, b_size=%zu\n",
+ 			bh->b_state, bh->b_size);
+-		printk("device blocksize: %d\n", 1 << bd_inode->i_blkbits);
++		printk("device %s blocksize: %d\n", bdevname(bdev, b),
++			1 << bd_inode->i_blkbits);
  	}
-+	registered = 1;
-+
-+	err = ipw2100_wdev_init(dev);
-+	if (err)
-+		goto fail;
- 
- 	mutex_lock(&priv->action_mutex);
--	registered = 1;
- 
- 	IPW_DEBUG_INFO("%s: Bound to %s\n", dev->name, pci_name(pci_dev));
- 
-@@ -6389,7 +6395,8 @@ static int ipw2100_pci_init_one(struct p
- 
-       fail_unlock:
- 	mutex_unlock(&priv->action_mutex);
--
-+	wiphy_unregister(priv->ieee->wdev.wiphy);
-+	kfree(priv->ieee->bg_band.channels);
-       fail:
- 	if (dev) {
- 		if (registered)
-diff -puN drivers/net/wireless/ipw2x00/ipw2200.c~ipw2x00-fix-rtnl-mutex-deadlock drivers/net/wireless/ipw2x00/ipw2200.c
---- a/drivers/net/wireless/ipw2x00/ipw2200.c~ipw2x00-fix-rtnl-mutex-deadlock
-+++ a/drivers/net/wireless/ipw2x00/ipw2200.c
-@@ -11426,16 +11426,23 @@ static void ipw_bg_down(struct work_stru
- /* Called by register_netdev() */
- static int ipw_net_init(struct net_device *dev)
- {
-+	int rc = 0;
-+	struct ipw_priv *priv = libipw_priv(dev);
-+
-+	mutex_lock(&priv->mutex);
-+	if (ipw_up(priv))
-+		rc = -EIO;
-+	mutex_unlock(&priv->mutex);
-+
-+	return rc;
-+}
-+
-+static int ipw_wdev_init(struct net_device *dev)
-+{
- 	int i, rc = 0;
- 	struct ipw_priv *priv = libipw_priv(dev);
- 	const struct libipw_geo *geo = libipw_get_geo(priv->ieee);
- 	struct wireless_dev *wdev = &priv->ieee->wdev;
--	mutex_lock(&priv->mutex);
--
--	if (ipw_up(priv)) {
--		rc = -EIO;
--		goto out;
--	}
- 
- 	memcpy(wdev->wiphy->perm_addr, priv->mac_addr, ETH_ALEN);
- 
-@@ -11520,13 +11527,9 @@ static int ipw_net_init(struct net_devic
- 	set_wiphy_dev(wdev->wiphy, &priv->pci_dev->dev);
- 
- 	/* With that information in place, we can now register the wiphy... */
--	if (wiphy_register(wdev->wiphy)) {
-+	if (wiphy_register(wdev->wiphy))
- 		rc = -EIO;
--		goto out;
--	}
--
- out:
--	mutex_unlock(&priv->mutex);
- 	return rc;
- }
- 
-@@ -11833,14 +11836,22 @@ static int __devinit ipw_pci_probe(struc
- 		goto out_remove_sysfs;
- 	}
- 
-+	err = ipw_wdev_init(net_dev);
-+	if (err) {
-+		IPW_ERROR("failed to register wireless device\n");
-+		goto out_unregister_netdev;
-+	}
-+
- #ifdef CONFIG_IPW2200_PROMISCUOUS
- 	if (rtap_iface) {
- 	        err = ipw_prom_alloc(priv);
- 		if (err) {
- 			IPW_ERROR("Failed to register promiscuous network "
- 				  "device (error %d).\n", err);
--			unregister_netdev(priv->net_dev);
--			goto out_remove_sysfs;
-+			wiphy_unregister(priv->ieee->wdev.wiphy);
-+			kfree(priv->ieee->a_band.channels);
-+			kfree(priv->ieee->bg_band.channels);
-+			goto out_unregister_netdev;
- 		}
- 	}
- #endif
-@@ -11852,6 +11863,8 @@ static int __devinit ipw_pci_probe(struc
- 
- 	return 0;
- 
-+      out_unregister_netdev:
-+	unregister_netdev(priv->net_dev);
-       out_remove_sysfs:
- 	sysfs_remove_group(&pdev->dev.kobj, &ipw_attribute_group);
-       out_release_irq:
+ out_unlock:
+ 	spin_unlock(&bd_mapping->private_lock);
 _
 
-Patches currently in -mm which might be from sgruszka@redhat.com are
+Patches currently in -mm which might be from boyu.mt@taobao.com are
 
-origin.patch
-linux-next.patch
-ipw2x00-fix-rtnl-mutex-deadlock.patch
+fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow.patch
 
