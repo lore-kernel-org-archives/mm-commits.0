@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-lock-cwq-access-in-drain_workqueue.patch added to -mm tree
-Date: Wed, 14 Sep 2011 13:43:30 -0700
-Message-ID: <201109142043.p8EKhUO4007639@hpaq6.eem.corp.google.com>
+Subject: + netconsole-switch-init_netconsole-to-late_initcall.patch added to -mm tree
+Date: Wed, 14 Sep 2011 13:44:16 -0700
+Message-ID: <201109142044.p8EKiHGm013839@wpaz29.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15141 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15221 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933143Ab1INUoQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:16 -0400
+	with ESMTP id S933143Ab1INUoZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 16:44:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ttuttle@chromium.org, stable@kernel.org, tj@kernel.org
+Cc: ming.m.lin@intel.com, davem@davemloft.net, jeffrey.t.kirsher@intel.com
 
 
 The patch titled
-     workqueue: lock cwq access in drain_workqueue
+     netconsole: switch init_netconsole() to late_initcall if build-in
 has been added to the -mm tree.  Its filename is
-     workqueue-lock-cwq-access-in-drain_workqueue.patch
+     netconsole-switch-init_netconsole-to-late_initcall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueue: lock cwq access in drain_workqueue
-From: Thomas Tuttle <ttuttle@chromium.org>
+Subject: netconsole: switch init_netconsole() to late_initcall if build-in
+From: Lin Ming <ming.m.lin@intel.com>
 
-Take cwq->gcwq->lock to avoid racing between drain_workqueue checking to
-make sure the workqueues are empty and cwq_dec_nr_in_flight decrementing
-and then incrementing nr_active when it activates a delayed work.
+Commit 88491d8 ("drivers/net: Kconfig & Makefile cleanup") causes a
+regression that netconsole does not work if netconsole and network device
+driver are build into kernel, because netconsole is linked before network
+device driver.
 
-We discovered this when a corner case in one of our drivers resulted in us
-trying to destroy a workqueue in which the remaining work would always
-requeue itself again in the same workqueue.  We would hit this race
-condition and trip the BUG_ON on workqueue.c:3080.
+Andrew Morton suggested to fix this with initcall ordering.  Fixes it by
+switching init_netconsole() to late_initcall.
 
-Signed-off-by: Thomas Tuttle <ttuttle@chromium.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Lin Ming <ming.m.lin@intel.com>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/net/netconsole.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/workqueue.c~workqueue-lock-cwq-access-in-drain_workqueue kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-lock-cwq-access-in-drain_workqueue
-+++ a/kernel/workqueue.c
-@@ -2412,8 +2412,13 @@ reflush:
+diff -puN drivers/net/netconsole.c~netconsole-switch-init_netconsole-to-late_initcall drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-switch-init_netconsole-to-late_initcall
++++ a/drivers/net/netconsole.c
+@@ -799,5 +799,11 @@ static void __exit cleanup_netconsole(vo
+ 	}
+ }
  
- 	for_each_cwq_cpu(cpu, wq) {
- 		struct cpu_workqueue_struct *cwq = get_cwq(cpu, wq);
-+		bool drained;
- 
--		if (!cwq->nr_active && list_empty(&cwq->delayed_works))
-+		spin_lock_irq(&cwq->gcwq->lock);
-+		drained = !cwq->nr_active && list_empty(&cwq->delayed_works);
-+		spin_unlock_irq(&cwq->gcwq->lock);
-+
-+		if (drained)
- 			continue;
- 
- 		if (++flush_cnt == 10 ||
+-module_init(init_netconsole);
++/*
++ * Use late_initcall to ensure netconsole is
++ * initialized after network device driver if built-in.
++ *
++ * late_initcall() and module_init() are identical if built as module.
++ */
++late_initcall(init_netconsole);
+ module_exit(cleanup_netconsole);
 _
 
-Patches currently in -mm which might be from ttuttle@chromium.org are
+Patches currently in -mm which might be from ming.m.lin@intel.com are
 
-workqueue-lock-cwq-access-in-drain_workqueue.patch
+origin.patch
+netconsole-switch-init_netconsole-to-late_initcall.patch
 
