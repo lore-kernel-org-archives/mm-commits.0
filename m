@@ -1,111 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpio-gpio-genericc-fix-build-errors.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:37:09 -0700
-Message-ID: <201109151937.p8FJb9d8011385@hpaq13.eem.corp.google.com>
+Subject: [merged] mm-sync-vmalloc-address-space-page-tables-in-alloc_vm_area.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:36:33 -0700
+Message-ID: <201109151936.p8FJaX4j011956@hpaq1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:10727 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:13975 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934575Ab1IOThS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:37:18 -0400
+	with ESMTP id S934575Ab1IOThX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:37:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rmk+kernel@arm.linux.org.uk, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: david.vrabel@citrix.com, Ian.Campbell@citrix.com, jeremy.fitzhardinge@citrix.com, keir.xen@gmail.com, konrad.wilk@oracle.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/gpio/gpio-generic.c: fix build errors
+     mm: sync vmalloc address space page tables in alloc_vm_area()
 has been removed from the -mm tree.  Its filename was
-     drivers-gpio-gpio-genericc-fix-build-errors.patch
+     mm-sync-vmalloc-address-space-page-tables-in-alloc_vm_area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/gpio/gpio-generic.c: fix build errors
-From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: mm: sync vmalloc address space page tables in alloc_vm_area()
+From: David Vrabel <david.vrabel@citrix.com>
 
-Building a kernel with hotplug disabled results in a link failure:
+Xen backend drivers (e.g., blkback and netback) would sometimes fail to
+map grant pages into the vmalloc address space allocated with
+alloc_vm_area().  The GNTTABOP_map_grant_ref would fail because Xen could
+not find the page (in the L2 table) containing the PTEs it needed to
+update.
 
-`bgpio_remove' referenced in section `___ksymtab_gpl+bgpio_remove' of drivers/built-in.o: defined in discarded section `.devexit.text' of drivers/built-in.o
+(XEN) mm.c:3846:d0 Could not find L1 PTE for address fbb42000
 
-This is because of bgpio_remove() is exported.  It is illegal to export
-symbols which are discarded either at link time or as part of an init/exit
-section.
+netback and blkback were making the hypercall from a kernel thread where
+task->active_mm != &init_mm and alloc_vm_area() was only updating the page
+tables for init_mm.  The usual method of deferring the update to the page
+tables of other processes (i.e., after taking a fault) doesn't work as a
+fault cannot occur during the hypercall.
 
-Fix this by dropping the __devexit attributation from bgpio_remove(). 
-Also drop the __devinit attributation from bgpio_init().
+This would work on some systems depending on what else was using vmalloc.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Fix this by reverting ef691947d8a3 ("vmalloc: remove vmalloc_sync_all()
+from alloc_vm_area()") and add a comment to explain why it's needed.
+
+Signed-off-by: David Vrabel <david.vrabel@citrix.com>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Ian Campbell <Ian.Campbell@citrix.com>
+Cc: Keir Fraser <keir.xen@gmail.com>
+Cc: <stable@kernel.org>		[3.0.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpio-generic.c     |   15 +++++----------
- include/linux/basic_mmio_gpio.h |   15 +++++----------
- 2 files changed, 10 insertions(+), 20 deletions(-)
+ mm/vmalloc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/gpio/gpio-generic.c~drivers-gpio-gpio-genericc-fix-build-errors drivers/gpio/gpio-generic.c
---- a/drivers/gpio/gpio-generic.c~drivers-gpio-gpio-genericc-fix-build-errors
-+++ a/drivers/gpio/gpio-generic.c
-@@ -351,7 +351,7 @@ static int bgpio_setup_direction(struct 
- 	return 0;
+diff -puN mm/vmalloc.c~mm-sync-vmalloc-address-space-page-tables-in-alloc_vm_area mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-sync-vmalloc-address-space-page-tables-in-alloc_vm_area
++++ a/mm/vmalloc.c
+@@ -2140,6 +2140,14 @@ struct vm_struct *alloc_vm_area(size_t s
+ 		return NULL;
+ 	}
+ 
++	/*
++	 * If the allocated address space is passed to a hypercall
++	 * before being used then we cannot rely on a page fault to
++	 * trigger an update of the page tables.  So sync all the page
++	 * tables here.
++	 */
++	vmalloc_sync_all();
++
+ 	return area;
  }
- 
--int __devexit bgpio_remove(struct bgpio_chip *bgc)
-+int bgpio_remove(struct bgpio_chip *bgc)
- {
- 	int err = gpiochip_remove(&bgc->gc);
- 
-@@ -361,15 +361,10 @@ int __devexit bgpio_remove(struct bgpio_
- }
- EXPORT_SYMBOL_GPL(bgpio_remove);
- 
--int __devinit bgpio_init(struct bgpio_chip *bgc,
--			 struct device *dev,
--			 unsigned long sz,
--			 void __iomem *dat,
--			 void __iomem *set,
--			 void __iomem *clr,
--			 void __iomem *dirout,
--			 void __iomem *dirin,
--			 bool big_endian)
-+int bgpio_init(struct bgpio_chip *bgc, struct device *dev,
-+	       unsigned long sz, void __iomem *dat, void __iomem *set,
-+	       void __iomem *clr, void __iomem *dirout, void __iomem *dirin,
-+	       bool big_endian)
- {
- 	int ret;
- 
-diff -puN include/linux/basic_mmio_gpio.h~drivers-gpio-gpio-genericc-fix-build-errors include/linux/basic_mmio_gpio.h
---- a/include/linux/basic_mmio_gpio.h~drivers-gpio-gpio-genericc-fix-build-errors
-+++ a/include/linux/basic_mmio_gpio.h
-@@ -63,15 +63,10 @@ static inline struct bgpio_chip *to_bgpi
- 	return container_of(gc, struct bgpio_chip, gc);
- }
- 
--int __devexit bgpio_remove(struct bgpio_chip *bgc);
--int __devinit bgpio_init(struct bgpio_chip *bgc,
--			 struct device *dev,
--			 unsigned long sz,
--			 void __iomem *dat,
--			 void __iomem *set,
--			 void __iomem *clr,
--			 void __iomem *dirout,
--			 void __iomem *dirin,
--			 bool big_endian);
-+int bgpio_remove(struct bgpio_chip *bgc);
-+int bgpio_init(struct bgpio_chip *bgc, struct device *dev,
-+	       unsigned long sz, void __iomem *dat, void __iomem *set,
-+	       void __iomem *clr, void __iomem *dirout, void __iomem *dirin,
-+	       bool big_endian);
- 
- #endif /* __BASIC_MMIO_GPIO_H */
+ EXPORT_SYMBOL_GPL(alloc_vm_area);
 _
 
-Patches currently in -mm which might be from rmk+kernel@arm.linux.org.uk are
+Patches currently in -mm which might be from david.vrabel@citrix.com are
 
 origin.patch
-linux-next.patch
 
