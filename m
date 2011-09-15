@@ -1,74 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-disable-cmpxchg_double-as-it-breaks-uml-build.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:35:24 -0700
-Message-ID: <201109151935.p8FJZOTS014139@wpaz13.hot.corp.google.com>
+Subject: [merged] cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:36:38 -0700
+Message-ID: <201109151936.p8FJacTS010741@hpaq13.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:10304 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:10463 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934606Ab1IOTgS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:36:18 -0400
+	with ESMTP id S934580Ab1IOTgn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:36:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cascardo@holoscopio.com, cl@linux.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     um: disable CMPXCHG_DOUBLE as it breaks UML build
+     cris: fix a build error in drivers/tty/serial/crisv10.c
 has been removed from the -mm tree.  Its filename was
-     um-disable-cmpxchg_double-as-it-breaks-uml-build.patch
+     cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: disable CMPXCHG_DOUBLE as it breaks UML build
-From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Subject: cris: fix a build error in drivers/tty/serial/crisv10.c
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Commit b789ef518b2 ("slub: Add cmpxchg_double_slab()") tests for
-cmpxchg_double support in the SLUB code and it breaks UML builds with
-SLUB.  Since UML does not support checking for CPU features, disable
-CMPXCHG_DOUBLE just like CMPXCHG_LOCAL is disabled for UML.
+drivers/tty/serial/crisv10.c:4453: error: 'if_ser0' undeclared (first use in this function): 2 errors in 2 logs
+        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
+drivers/tty/serial/crisv10.c:4453: error: (Each undeclared identifier is reported only once: 2 errors in 2 logs
+        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
+drivers/tty/serial/crisv10.c:4453: error: for each function it appears in.): 2 errors in 2 logs
+        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
 
-Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
-Reviewed-by: Christoph Lameter <cl@linux.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Signed-off-by: Richard Weinberger <richard@nod.at>
+"if_ser0" is a typo, it should be "if_serial_0".
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig.x86 |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/tty/serial/crisv10.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/Kconfig.x86~um-disable-cmpxchg_double-as-it-breaks-uml-build arch/um/Kconfig.x86
---- a/arch/um/Kconfig.x86~um-disable-cmpxchg_double-as-it-breaks-uml-build
-+++ a/arch/um/Kconfig.x86
-@@ -10,6 +10,10 @@ config CMPXCHG_LOCAL
- 	bool
- 	default n
+diff -puN drivers/tty/serial/crisv10.c~cris-fix-a-build-error-in-drivers-tty-serial-crisv10c drivers/tty/serial/crisv10.c
+--- a/drivers/tty/serial/crisv10.c~cris-fix-a-build-error-in-drivers-tty-serial-crisv10c
++++ a/drivers/tty/serial/crisv10.c
+@@ -4450,7 +4450,7 @@ static int __init rs_init(void)
  
-+config CMPXCHG_DOUBLE
-+	bool
-+	default n
-+
- source "arch/x86/Kconfig.cpu"
- 
- endmenu
+ #if defined(CONFIG_ETRAX_RS485)
+ #if defined(CONFIG_ETRAX_RS485_ON_PA)
+-	if (cris_io_interface_allocate_pins(if_ser0, 'a', rs485_pa_bit,
++	if (cris_io_interface_allocate_pins(if_serial_0, 'a', rs485_pa_bit,
+ 			rs485_pa_bit)) {
+ 		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
+ 			"RS485 pin\n");
+@@ -4459,7 +4459,7 @@ static int __init rs_init(void)
+ 	}
+ #endif
+ #if defined(CONFIG_ETRAX_RS485_ON_PORT_G)
+-	if (cris_io_interface_allocate_pins(if_ser0, 'g', rs485_pa_bit,
++	if (cris_io_interface_allocate_pins(if_serial_0, 'g', rs485_pa_bit,
+ 			rs485_port_g_bit)) {
+ 		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
+ 			"RS485 pin\n");
 _
 
-Patches currently in -mm which might be from cascardo@holoscopio.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-lis3lv02d-avoid-divide-by-zero-due-to-unchecked.patch
-lis3-update-maintainer-information.patch
-lis3-add-support-for-hp-elitebook-2730p.patch
-lis3-add-support-for-hp-elitebook-8540w.patch
-hp_accel-add-hp-probook-655x.patch
-config_hp_accel-fix-help-text.patch
-lis3-free-regulators-if-probe-fails.patch
-lis3-change-naming-to-consistent.patch
-lis3-change-exported-function-to-use-given.patch
-lis3-remove-the-references-to-the-global-variable-in-core-driver.patch
+cris-lower-the-printk-level-in-cris-serial-driver.patch
+kexec-remove-kmsg_dump_kexec.patch
 
