@@ -1,70 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:36:42 -0700
-Message-ID: <201109151936.p8FJagKK014155@wpaz1.hot.corp.google.com>
+Subject: [merged] rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:36:52 -0700
+Message-ID: <201109151936.p8FJaqCF026639@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:10571 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:10637 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934580Ab1IOTg4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:36:56 -0400
+	with ESMTP id S934580Ab1IOThB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jj@chaosbits.net, gregkh@suse.de, james_p_freyensee@linux.intel.com, rocher.jeremy@gmail.com, slyfox@gentoo.org, mm-commits@vger.kernel.org
+To: dg77.kim@samsung.com, kyungmin.park@samsung.com, myungjoo.ham@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/misc/pti.c: give 'comm' function scope in pti_control_frame_built_and_sent()
+     drivers/rtc/rtc-s3c.c: fix no occurrence of alarm interrupt
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent.patch
+     rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/pti.c: give 'comm' function scope in pti_control_frame_built_and_sent()
-From: Jesper Juhl <jj@chaosbits.net>
+Subject: drivers/rtc/rtc-s3c.c: fix no occurrence of alarm interrupt
+From: Donggeun Kim <dg77.kim@samsung.com>
 
-In drivers/misc/pti.c::pti_control_frame_built_and_sent() we assign 'comm'
-to 'thread_name_p' if (!thread_name).  The problem is that 'comm' then
-goes out of scope and later we use 'thread_name_p' which now refers to an
-out-of-scope variable.  To fix that, simply move 'comm' up to have
-function scope.
+The driver does not generate an alarm interrupt
+even though a time for an alarm is set.
+This results from disabling rtc_clk after setting the alarm time.
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: J Freyensee <james_p_freyensee@linux.intel.com>
-Cc: Jeremy Rocher <rocher.jeremy@gmail.com>
-Cc: Sergei Trofimovich <slyfox@gentoo.org>
+To generate an alarm interrupt the driver should maintain its enabled
+state for rtc_clk the until alarm interrupt occurs.  This patch permits
+generation of an alarm interrupt.
+
+[akpm@linux-foundation.org: make s3c_rtc_alarm_clk_lock local to s3c_rtc_alarm_clk_enable()]
+Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
+Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/pti.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-s3c.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff -puN drivers/misc/pti.c~drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent drivers/misc/pti.c
---- a/drivers/misc/pti.c~drivers-misc-ptic-give-comm-function-scope-in-pti_control_frame_built_and_sent
-+++ a/drivers/misc/pti.c
-@@ -165,6 +165,11 @@ static void pti_write_to_aperture(struct
- static void pti_control_frame_built_and_sent(struct pti_masterchannel *mc,
- 					     const char *thread_name)
- {
-+	/*
-+	 * Since we access the comm member in current's task_struct, we only
-+	 * need to be as large as what 'comm' in that structure is.
-+	 */
-+	char comm[TASK_COMM_LEN];
- 	struct pti_masterchannel mccontrol = {.master = CONTROL_ID,
- 					      .channel = 0};
- 	const char *thread_name_p;
-@@ -172,13 +177,6 @@ static void pti_control_frame_built_and_
- 	u8 control_frame[CONTROL_FRAME_LEN];
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt
++++ a/drivers/rtc/rtc-s3c.c
+@@ -51,6 +51,27 @@ static enum s3c_cpu_type s3c_rtc_cpu_typ
  
- 	if (!thread_name) {
--		/*
--		 * Since we access the comm member in current's task_struct,
--		 * we only need to be as large as what 'comm' in that
--		 * structure is.
--		 */
--		char comm[TASK_COMM_LEN];
+ static DEFINE_SPINLOCK(s3c_rtc_pie_lock);
+ 
++static void s3c_rtc_alarm_clk_enable(bool enable)
++{
++	static DEFINE_SPINLOCK(s3c_rtc_alarm_clk_lock);
++	static bool alarm_clk_enabled;
++	unsigned long irq_flags;
++
++	spin_lock_irqsave(&s3c_rtc_alarm_clk_lock, irq_flags);
++	if (enable) {
++		if (!alarm_clk_enabled) {
++			clk_enable(rtc_clk);
++			alarm_clk_enabled = true;
++		}
++	} else {
++		if (alarm_clk_enabled) {
++			clk_disable(rtc_clk);
++			alarm_clk_enabled = false;
++		}
++	}
++	spin_unlock_irqrestore(&s3c_rtc_alarm_clk_lock, irq_flags);
++}
++
+ /* IRQ Handlers */
+ 
+ static irqreturn_t s3c_rtc_alarmirq(int irq, void *id)
+@@ -64,6 +85,9 @@ static irqreturn_t s3c_rtc_alarmirq(int 
+ 		writeb(S3C2410_INTP_ALM, s3c_rtc_base + S3C2410_INTP);
+ 
+ 	clk_disable(rtc_clk);
++
++	s3c_rtc_alarm_clk_enable(false);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -97,6 +121,8 @@ static int s3c_rtc_setaie(struct device 
+ 	writeb(tmp, s3c_rtc_base + S3C2410_RTCALM);
+ 	clk_disable(rtc_clk);
+ 
++	s3c_rtc_alarm_clk_enable(enabled);
++
+ 	return 0;
+ }
+ 
+_
+
+Patches currently in -mm which might be from dg77.kim@samsung.com are
+
+origin.patch
+linux-next.patch
+driver-misc-fsa9480c-fix-potential-null-pointer-dereference.patch
+
