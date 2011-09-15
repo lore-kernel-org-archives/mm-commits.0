@@ -1,124 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [folded] rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch removed from -mm tree
-Date: Wed, 14 Sep 2011 16:17:44 -0700
-Message-ID: <201109142317.p8ENHiei006694@wpaz33.hot.corp.google.com>
+Subject: [merged] mm-mempolicyc-make-copy_from_user-provably-correct.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:35:17 -0700
+Message-ID: <201109151935.p8FJZH54005251@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:47654 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:9802 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab1INXRx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2011 19:17:53 -0400
+	with ESMTP id S934575Ab1IOTfY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:35:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dg77.kim@samsung.com, kyungmin.park@samsung.com, myungjoo.ham@samsung.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix
+     mm/mempolicy.c: make copy_from_user() provably correct
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix.patch
+     mm-mempolicyc-make-copy_from_user-provably-correct.patch
 
-This patch was dropped because it was folded into rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/mempolicy.c: make copy_from_user() provably correct
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-make s3c_rtc_alarm_clk_lock local to s3c_rtc_alarm_clk_enable()
+Because of x86-implement-strict-user-copy-checks-for-x86_64.patch
 
-Cc: Donggeun Kim <dg77.kim@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
+When compiling mm/mempolicy.c the following warning is shown.
+
+In file included from arch/x86/include/asm/uaccess.h:572,
+                 from include/linux/uaccess.h:5,
+                 from include/linux/highmem.h:7,
+                 from include/linux/pagemap.h:10,
+                 from include/linux/mempolicy.h:70,
+                 from mm/mempolicy.c:68:
+In function `copy_from_user',
+    inlined from `compat_sys_get_mempolicy' at mm/mempolicy.c:1415:
+arch/x86/include/asm/uaccess_64.h:64: warning: call to `copy_from_user_overflow' declared with attribute warning: copy_from_user() buffer size is not provably correct
+  LD      mm/built-in.o
+
+Fix this by passing correct buffer size value.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt-fix
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -50,10 +50,10 @@ static bool wake_en;
- static enum s3c_cpu_type s3c_rtc_cpu_type;
+diff -puN mm/mempolicy.c~mm-mempolicyc-make-copy_from_user-provably-correct mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-make-copy_from_user-provably-correct
++++ a/mm/mempolicy.c
+@@ -1411,7 +1411,9 @@ asmlinkage long compat_sys_get_mempolicy
+ 	err = sys_get_mempolicy(policy, nm, nr_bits+1, addr, flags);
  
- static DEFINE_SPINLOCK(s3c_rtc_pie_lock);
--static DEFINE_SPINLOCK(s3c_rtc_alarm_clk_lock);
- 
- static void s3c_rtc_alarm_clk_enable(bool enable)
- {
-+	static DEFINE_SPINLOCK(s3c_rtc_alarm_clk_lock);
- 	static bool alarm_clk_enabled;
- 	unsigned long irq_flags;
- 
+ 	if (!err && nmask) {
+-		err = copy_from_user(bm, nm, alloc_size);
++		unsigned long copy_size;
++		copy_size = min_t(unsigned long, sizeof(bm), alloc_size);
++		err = copy_from_user(bm, nm, copy_size);
+ 		/* ensure entire bitmap is zeroed */
+ 		err |= clear_user(nmask, ALIGN(maxnode-1, 8) / 8);
+ 		err |= compat_put_bitmap(nmask, bm, nr_bits);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-numa-fix-numa-compile-error-when-sysfs-and-procfs-are-disabled.patch
-mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
-rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface-fix.patch
-sound-core-pcm_libc-fix-race-condition-in-wait_for_avail-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix.patch
-dynamic_debug-use-a-single-printk-to-emit-messages-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
-block-document-blk-plug.patch
-block-document-blk-plug-v3-fix.patch
-block-blk-sysfsc-fix-kerneldoc-references.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-cgroups-new-cancel_attach_task-subsystem-callback-fix.patch
-cgroups-add-res-counter-common-ancestor-searching-fix.patch
-cgroups-add-a-task-counter-subsystem.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-aio-allocate-kiocbs-in-batches-fix.patch
-aio-allocate-kiocbs-in-batches-fix-fix.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-compaction-trivial-clean-up-in-acct_isolated.patch
+mm-change-isolate-mode-from-define-to-bitwise-type.patch
+mm-compaction-make-isolate_lru_page-filter-aware.patch
+mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
+mm-migration-clean-up-unmap_and_move.patch
+mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+memcg-rename-mem-variable-to-memcg.patch
+memcg-fix-oom-schedule_timeout.patch
+memcg-replace-ss-id_lock-with-a-rwlock.patch
+memcg-do-not-expose-uninitialized-mem_cgroup_per_node-to-world.patch
+memcg-skip-scanning-active-lists-based-on-individual-size.patch
+memcg-close-race-between-charge-and-putback.patch
 
