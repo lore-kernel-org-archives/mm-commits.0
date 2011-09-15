@@ -1,67 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-fix-strrchr-problems.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:36:02 -0700
-Message-ID: <201109151936.p8FJa2Co011171@hpaq7.eem.corp.google.com>
+Subject: [merged] um-disable-cmpxchg_double-as-it-breaks-uml-build.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:35:24 -0700
+Message-ID: <201109151935.p8FJZOTS014139@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:10318 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:10304 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
 	with ESMTP id S934606Ab1IOTgS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:36:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viro@ftp.linux.org.uk, jdike@addtoit.com, richard@nod.at, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: cascardo@holoscopio.com, cl@linux.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     um: fix strrchr() problems
+     um: disable CMPXCHG_DOUBLE as it breaks UML build
 has been removed from the -mm tree.  Its filename was
-     um-fix-strrchr-problems.patch
+     um-disable-cmpxchg_double-as-it-breaks-uml-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: fix strrchr() problems
-From: Al Viro <viro@ftp.linux.org.uk>
+Subject: um: disable CMPXCHG_DOUBLE as it breaks UML build
+From: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
 
-richard@nod.at:
-Fixes:
-/usr/lib/gcc/x86_64-linux-gnu/4.4.5/../../../../lib/libc.a(strrchr.o): In function `rindex':
-(.text+0x0): multiple definition of `strrchr'
+Commit b789ef518b2 ("slub: Add cmpxchg_double_slab()") tests for
+cmpxchg_double support in the SLUB code and it breaks UML builds with
+SLUB.  Since UML does not support checking for CPU features, disable
+CMPXCHG_DOUBLE just like CMPXCHG_LOCAL is disabled for UML.
 
-If both STATIC_LINK and UML_NET_VDE are set to "y" libc's strrchr may
-clash with the kernel implementation.
-
-This workaround comes originally from Jeff Dike:
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=494995#35
-
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Richard Weinberger <richard@nod.at>
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
 Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/Kconfig.x86 |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/um/Makefile~um-fix-strrchr-problems arch/um/Makefile
---- a/arch/um/Makefile~um-fix-strrchr-problems
-+++ a/arch/um/Makefile
-@@ -41,7 +41,7 @@ KBUILD_CPPFLAGS += -I$(srctree)/$(ARCH_D
- KBUILD_CFLAGS += $(CFLAGS) $(CFLAGS-y) -D__arch_um__ -DSUBARCH=\"$(SUBARCH)\" \
- 	$(ARCH_INCLUDE) $(MODE_INCLUDE) -Dvmap=kernel_vmap	\
- 	-Din6addr_loopback=kernel_in6addr_loopback \
--	-Din6addr_any=kernel_in6addr_any
-+	-Din6addr_any=kernel_in6addr_any -Dstrrchr=kernel_strrchr
+diff -puN arch/um/Kconfig.x86~um-disable-cmpxchg_double-as-it-breaks-uml-build arch/um/Kconfig.x86
+--- a/arch/um/Kconfig.x86~um-disable-cmpxchg_double-as-it-breaks-uml-build
++++ a/arch/um/Kconfig.x86
+@@ -10,6 +10,10 @@ config CMPXCHG_LOCAL
+ 	bool
+ 	default n
  
- KBUILD_AFLAGS += $(ARCH_INCLUDE)
++config CMPXCHG_DOUBLE
++	bool
++	default n
++
+ source "arch/x86/Kconfig.cpu"
  
+ endmenu
 _
 
-Patches currently in -mm which might be from viro@ftp.linux.org.uk are
+Patches currently in -mm which might be from cascardo@holoscopio.com are
 
 origin.patch
-slab-leaks3-default-y.patch
+lis3lv02d-avoid-divide-by-zero-due-to-unchecked.patch
+lis3-update-maintainer-information.patch
+lis3-add-support-for-hp-elitebook-2730p.patch
+lis3-add-support-for-hp-elitebook-8540w.patch
+hp_accel-add-hp-probook-655x.patch
+config_hp_accel-fix-help-text.patch
+lis3-free-regulators-if-probe-fails.patch
+lis3-change-naming-to-consistent.patch
+lis3-change-exported-function-to-use-given.patch
+lis3-remove-the-references-to-the-global-variable-in-core-driver.patch
 
