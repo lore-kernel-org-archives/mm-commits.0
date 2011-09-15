@@ -1,104 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:36:52 -0700
-Message-ID: <201109151936.p8FJaqCF026639@wpaz21.hot.corp.google.com>
+Subject: [merged] maintainers-update-e-mail-address-of-benny-halevy.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:37:01 -0700
+Message-ID: <201109151937.p8FJb12p003566@wpaz37.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:10637 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:13828 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934580Ab1IOThB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:37:01 -0400
+	with ESMTP id S934575Ab1IOThF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:37:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dg77.kim@samsung.com, kyungmin.park@samsung.com, myungjoo.ham@samsung.com, mm-commits@vger.kernel.org
+To: bhalevy@tonian.com, bharrosh@panasas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/rtc/rtc-s3c.c: fix no occurrence of alarm interrupt
+     MAINTAINERS: update e-mail address of Benny Halevy
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt.patch
+     maintainers-update-e-mail-address-of-benny-halevy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-s3c.c: fix no occurrence of alarm interrupt
-From: Donggeun Kim <dg77.kim@samsung.com>
+Subject: MAINTAINERS: update e-mail address of Benny Halevy
+From: Benny Halevy <bhalevy@tonian.com>
 
-The driver does not generate an alarm interrupt
-even though a time for an alarm is set.
-This results from disabling rtc_clk after setting the alarm time.
-
-To generate an alarm interrupt the driver should maintain its enabled
-state for rtc_clk the until alarm interrupt occurs.  This patch permits
-generation of an alarm interrupt.
-
-[akpm@linux-foundation.org: make s3c_rtc_alarm_clk_lock local to s3c_rtc_alarm_clk_enable()]
-Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
-Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Boaz Harrosh <bharrosh@panasas.com>
+Signed-off-by: Benny Halevy <bhalevy@tonian.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-fix-no-occurrence-of-alarm-interrupt
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -51,6 +51,27 @@ static enum s3c_cpu_type s3c_rtc_cpu_typ
+diff -puN MAINTAINERS~maintainers-update-e-mail-address-of-benny-halevy MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-e-mail-address-of-benny-halevy
++++ a/MAINTAINERS
+@@ -4774,7 +4774,7 @@ F:	drivers/net/wireless/orinoco/
  
- static DEFINE_SPINLOCK(s3c_rtc_pie_lock);
- 
-+static void s3c_rtc_alarm_clk_enable(bool enable)
-+{
-+	static DEFINE_SPINLOCK(s3c_rtc_alarm_clk_lock);
-+	static bool alarm_clk_enabled;
-+	unsigned long irq_flags;
-+
-+	spin_lock_irqsave(&s3c_rtc_alarm_clk_lock, irq_flags);
-+	if (enable) {
-+		if (!alarm_clk_enabled) {
-+			clk_enable(rtc_clk);
-+			alarm_clk_enabled = true;
-+		}
-+	} else {
-+		if (alarm_clk_enabled) {
-+			clk_disable(rtc_clk);
-+			alarm_clk_enabled = false;
-+		}
-+	}
-+	spin_unlock_irqrestore(&s3c_rtc_alarm_clk_lock, irq_flags);
-+}
-+
- /* IRQ Handlers */
- 
- static irqreturn_t s3c_rtc_alarmirq(int irq, void *id)
-@@ -64,6 +85,9 @@ static irqreturn_t s3c_rtc_alarmirq(int 
- 		writeb(S3C2410_INTP_ALM, s3c_rtc_base + S3C2410_INTP);
- 
- 	clk_disable(rtc_clk);
-+
-+	s3c_rtc_alarm_clk_enable(false);
-+
- 	return IRQ_HANDLED;
- }
- 
-@@ -97,6 +121,8 @@ static int s3c_rtc_setaie(struct device 
- 	writeb(tmp, s3c_rtc_base + S3C2410_RTCALM);
- 	clk_disable(rtc_clk);
- 
-+	s3c_rtc_alarm_clk_enable(enabled);
-+
- 	return 0;
- }
- 
+ OSD LIBRARY and FILESYSTEM
+ M:	Boaz Harrosh <bharrosh@panasas.com>
+-M:	Benny Halevy <bhalevy@panasas.com>
++M:	Benny Halevy <bhalevy@tonian.com>
+ L:	osd-dev@open-osd.org
+ W:	http://open-osd.org
+ T:	git git://git.open-osd.org/open-osd.git
 _
 
-Patches currently in -mm which might be from dg77.kim@samsung.com are
+Patches currently in -mm which might be from bhalevy@tonian.com are
 
 origin.patch
-linux-next.patch
-driver-misc-fsa9480c-fix-potential-null-pointer-dereference.patch
 
