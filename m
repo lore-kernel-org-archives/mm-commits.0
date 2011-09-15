@@ -1,71 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-drivers-xtermc-fix-a-file-descriptor-leak.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:35:32 -0700
-Message-ID: <201109151935.p8FJZWTR024915@hpaq6.eem.corp.google.com>
+Subject: [merged] um-winch_interrupt-can-happen-inside-of-free_winch.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:35:45 -0700
+Message-ID: <201109151935.p8FJZjNA011249@wpaz24.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:13238 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:10169 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934591Ab1IOTf6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:35:58 -0400
+	with ESMTP id S934591Ab1IOTgA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:36:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: j.neuschaefer@gmx.net, richard@nod.at, mm-commits@vger.kernel.org
+To: viro@ftp.linux.org.uk, richard@nod.at, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     um: drivers/xterm.c: fix a file descriptor leak
+     um: winch_interrupt() can happen inside of free_winch()
 has been removed from the -mm tree.  Its filename was
-     um-drivers-xtermc-fix-a-file-descriptor-leak.patch
+     um-winch_interrupt-can-happen-inside-of-free_winch.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: drivers/xterm.c: fix a file descriptor leak
-=46rom: Jonathan Neusch=E4fer <j.neuschaefer@gmx.net>
+Subject: um: winch_interrupt() can happen inside of free_winch()
+From: Al Viro <viro@ftp.linux.org.uk>
 
-I could use out_close1, but that seems to be the code path to close the=
- fd
-returned by os_create_unix_socket, and using it to close the fd returne=
-d
-by mkstemp might lead to some confusion, so I don't do it.
+...  so set winch->fd to -1 before doing free_irq(), to avoid having
+winch_interrupt() come from/during the latter and attempt to do
+reactivate_fd() on something that's already gone.
 
-Signed-off-by: Jonathan Neusch=E4fer <j.neuschaefer@gmx.net>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/xterm.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/drivers/line.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/drivers/xterm.c~um-drivers-xtermc-fix-a-file-descript=
-or-leak arch/um/drivers/xterm.c
---- a/arch/um/drivers/xterm.c~um-drivers-xtermc-fix-a-file-descriptor-l=
-eak
-+++ a/arch/um/drivers/xterm.c
-@@ -123,6 +123,7 @@ static int xterm_open(int input, int out
- 		err =3D -errno;
- 		printk(UM_KERN_ERR "xterm_open : unlink failed, errno =3D %d\n",
- 		       errno);
-+		close(fd);
- 		return err;
- 	}
- 	close(fd);
+diff -puN arch/um/drivers/line.c~um-winch_interrupt-can-happen-inside-of-free_winch arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~um-winch_interrupt-can-happen-inside-of-free_winch
++++ a/arch/um/drivers/line.c
+@@ -725,6 +725,8 @@ struct winch {
+ 
+ static void free_winch(struct winch *winch, int free_irq_ok)
+ {
++	int fd = winch->fd;
++	winch->fd = -1;
+ 	if (free_irq_ok)
+ 		free_irq(WINCH_IRQ, winch);
+ 
+@@ -732,8 +734,8 @@ static void free_winch(struct winch *win
+ 
+ 	if (winch->pid != -1)
+ 		os_kill_process(winch->pid, 1);
+-	if (winch->fd != -1)
+-		os_close_file(winch->fd);
++	if (fd != -1)
++		os_close_file(fd);
+ 	if (winch->stack != 0)
+ 		free_stack(winch->stack, 0);
+ 	kfree(winch);
 _
 
-Patches currently in -mm which might be from j.neuschaefer@gmx.net are
+Patches currently in -mm which might be from viro@ftp.linux.org.uk are
 
 origin.patch
+slab-leaks3-default-y.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
