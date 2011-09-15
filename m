@@ -1,75 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:36:38 -0700
-Message-ID: <201109151936.p8FJacTS010741@hpaq13.eem.corp.google.com>
+Subject: [merged] alpha-gpio-generic_gpio-default-must-be-n.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:36:06 -0700
+Message-ID: <201109151936.p8FJa6FQ001582@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:10463 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:10445 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934580Ab1IOTgn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:36:43 -0400
+	with ESMTP id S934591Ab1IOTgl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:36:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: ben@decadent.org.uk, broonie@opensource.wolfsonmicro.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, mcree@orcon.net.nz, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris: fix a build error in drivers/tty/serial/crisv10.c
+     alpha, gpio: GENERIC_GPIO default must be n
 has been removed from the -mm tree.  Its filename was
-     cris-fix-a-build-error-in-drivers-tty-serial-crisv10c.patch
+     alpha-gpio-generic_gpio-default-must-be-n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: fix a build error in drivers/tty/serial/crisv10.c
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: alpha, gpio: GENERIC_GPIO default must be n
+From: Ben Hutchings <ben@decadent.org.uk>
 
-drivers/tty/serial/crisv10.c:4453: error: 'if_ser0' undeclared (first use in this function): 2 errors in 2 logs
-        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
-drivers/tty/serial/crisv10.c:4453: error: (Each undeclared identifier is reported only once: 2 errors in 2 logs
-        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
-drivers/tty/serial/crisv10.c:4453: error: for each function it appears in.): 2 errors in 2 logs
-        v3.1-rc4/cris/cris-allmodconfig v3.1-rc4/cris/cris-allyesconfig
+Since GPIOLIB is optional on alpha, GENERIC_GPIO must not be selected by
+default.  If GPIOLIB is enabled, it will select GENERIC_GPIO.
 
-"if_ser0" is a typo, it should be "if_serial_0".
+See <http://bugs.debian.org/638696> for an example of what 'def_bool y'
+breaks.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Reported-by: Michael Cree <mcree@orcon.net.nz>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michael Cree <mcree@orcon.net.nz>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/crisv10.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/alpha/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/tty/serial/crisv10.c~cris-fix-a-build-error-in-drivers-tty-serial-crisv10c drivers/tty/serial/crisv10.c
---- a/drivers/tty/serial/crisv10.c~cris-fix-a-build-error-in-drivers-tty-serial-crisv10c
-+++ a/drivers/tty/serial/crisv10.c
-@@ -4450,7 +4450,7 @@ static int __init rs_init(void)
+diff -puN arch/alpha/Kconfig~alpha-gpio-generic_gpio-default-must-be-n arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~alpha-gpio-generic_gpio-default-must-be-n
++++ a/arch/alpha/Kconfig
+@@ -51,7 +51,7 @@ config GENERIC_CMOS_UPDATE
+         def_bool y
  
- #if defined(CONFIG_ETRAX_RS485)
- #if defined(CONFIG_ETRAX_RS485_ON_PA)
--	if (cris_io_interface_allocate_pins(if_ser0, 'a', rs485_pa_bit,
-+	if (cris_io_interface_allocate_pins(if_serial_0, 'a', rs485_pa_bit,
- 			rs485_pa_bit)) {
- 		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
- 			"RS485 pin\n");
-@@ -4459,7 +4459,7 @@ static int __init rs_init(void)
- 	}
- #endif
- #if defined(CONFIG_ETRAX_RS485_ON_PORT_G)
--	if (cris_io_interface_allocate_pins(if_ser0, 'g', rs485_pa_bit,
-+	if (cris_io_interface_allocate_pins(if_serial_0, 'g', rs485_pa_bit,
- 			rs485_port_g_bit)) {
- 		printk(KERN_CRIT "ETRAX100LX serial: Could not allocate "
- 			"RS485 pin\n");
+ config GENERIC_GPIO
+-	def_bool y
++	bool
+ 
+ config ZONE_DMA
+ 	bool
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
 origin.patch
-cris-lower-the-printk-level-in-cris-serial-driver.patch
-kexec-remove-kmsg_dump_kexec.patch
+linux-next.patch
 
