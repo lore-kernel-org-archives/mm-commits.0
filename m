@@ -1,123 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-fix-force-scanning-small-targets-without-swap.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:36:21 -0700
-Message-ID: <201109151936.p8FJaLqY010397@hpaq13.eem.corp.google.com>
+Subject: [merged] workqueue-lock-cwq-access-in-drain_workqueue.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:37:05 -0700
+Message-ID: <201109151937.p8FJb51v014987@hpaq12.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:14200 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:10948 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934575Ab1IOTht (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:37:49 -0400
+	with ESMTP id S934575Ab1IOThu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:37:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jweiner@redhat.com, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, yinghan@google.c
+To: ttuttle@chromium.org, stable@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: vmscan: fix force-scanning small targets without swap
+     workqueue: lock cwq access in drain_workqueue
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-force-scanning-small-targets-without-swap.patch
+     workqueue-lock-cwq-access-in-drain_workqueue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: vmscan: fix force-scanning small targets without swap
-From: Johannes Weiner <jweiner@redhat.com>
+Subject: workqueue: lock cwq access in drain_workqueue
+From: Thomas Tuttle <ttuttle@chromium.org>
 
-Without swap, anonymous pages are not scanned.  As such, they should not
-count when considering force-scanning a small target if there is no swap.
+Take cwq->gcwq->lock to avoid racing between drain_workqueue checking to
+make sure the workqueues are empty and cwq_dec_nr_in_flight decrementing
+and then incrementing nr_active when it activates a delayed work.
 
-Otherwise, targets are not force-scanned even when their effective scan
-number is zero and the other conditions--kswapd/memcg--apply.
+We discovered this when a corner case in one of our drivers resulted in us
+trying to destroy a workqueue in which the remaining work would always
+requeue itself again in the same workqueue.  We would hit this race
+condition and trip the BUG_ON on workqueue.c:3080.
 
-This fixes 246e87a ("memcg: fix get_scan_count() for small targets").
-
-[akpm@linux-foundation.org: fix comment]
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Thomas Tuttle <ttuttle@chromium.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ kernel/workqueue.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-force-scanning-small-targets-without-swap
-+++ a/mm/vmscan.c
-@@ -1808,23 +1808,15 @@ static void get_scan_count(struct zone *
- 	u64 fraction[2], denominator;
- 	enum lru_list l;
- 	int noswap = 0;
--	int force_scan = 0;
-+	bool force_scan = false;
- 	unsigned long nr_force_scan[2];
+diff -puN kernel/workqueue.c~workqueue-lock-cwq-access-in-drain_workqueue kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-lock-cwq-access-in-drain_workqueue
++++ a/kernel/workqueue.c
+@@ -2412,8 +2412,13 @@ reflush:
  
--
--	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
--		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
--	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
--		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
--
--	if (((anon + file) >> priority) < SWAP_CLUSTER_MAX) {
--		/* kswapd does zone balancing and need to scan this zone */
--		if (scanning_global_lru(sc) && current_is_kswapd())
--			force_scan = 1;
--		/* memcg may have small limit and need to avoid priority drop */
--		if (!scanning_global_lru(sc))
--			force_scan = 1;
--	}
-+	/* kswapd does zone balancing and needs to scan this zone */
-+	if (scanning_global_lru(sc) && current_is_kswapd())
-+		force_scan = true;
-+	/* memcg may have small limit and need to avoid priority drop */
-+	if (!scanning_global_lru(sc))
-+		force_scan = true;
+ 	for_each_cwq_cpu(cpu, wq) {
+ 		struct cpu_workqueue_struct *cwq = get_cwq(cpu, wq);
++		bool drained;
  
- 	/* If we have no swap space, do not bother scanning anon pages. */
- 	if (!sc->may_swap || (nr_swap_pages <= 0)) {
-@@ -1837,6 +1829,11 @@ static void get_scan_count(struct zone *
- 		goto out;
- 	}
- 
-+	anon  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_ANON) +
-+		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
-+	file  = zone_nr_lru_pages(zone, sc, LRU_ACTIVE_FILE) +
-+		zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
+-		if (!cwq->nr_active && list_empty(&cwq->delayed_works))
++		spin_lock_irq(&cwq->gcwq->lock);
++		drained = !cwq->nr_active && list_empty(&cwq->delayed_works);
++		spin_unlock_irq(&cwq->gcwq->lock);
 +
- 	if (scanning_global_lru(sc)) {
- 		free  = zone_page_state(zone, NR_FREE_PAGES);
- 		/* If we have very few page cache pages,
++		if (drained)
+ 			continue;
+ 
+ 		if (++flush_cnt == 10 ||
 _
 
-Patches currently in -mm which might be from jweiner@redhat.com are
+Patches currently in -mm which might be from ttuttle@chromium.org are
 
 origin.patch
-mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
-mm-page-writebackc-document-bdi_min_ratio.patch
-mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
-xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
-mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
-mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-compaction-compact-unevictable-pages.patch
-mm-compaction-accounting-fix.patch
-memcg-skip-scanning-active-lists-based-on-individual-size.patch
-memcg-skip-scanning-active-lists-based-on-individual-size-fix.patch
-memcg-close-race-between-charge-and-putback.patch
 
