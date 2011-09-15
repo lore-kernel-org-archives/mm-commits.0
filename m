@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-fix-free_winch-mess.patch removed from -mm tree
-Date: Thu, 15 Sep 2011 12:35:52 -0700
-Message-ID: <201109151935.p8FJZqh5009638@hpaq14.eem.corp.google.com>
+Subject: [merged] um-fix-oopsable-race-in-line_close.patch removed from -mm tree
+Date: Thu, 15 Sep 2011 12:35:41 -0700
+Message-ID: <201109151935.p8FJZfto025284@hpaq6.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:13282 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:10197 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934604Ab1IOTgD (ORCPT
+	with ESMTP id S934591Ab1IOTgD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Sep 2011 15:36:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,118 +14,121 @@ To: viro@ftp.linux.org.uk, richard@nod.at, viro@zeniv.linux.org.uk, mm-commits@v
 
 
 The patch titled
-     um: fix free_winch() mess
+     um: fix oopsable race in line_close()
 has been removed from the -mm tree.  Its filename was
-     um-fix-free_winch-mess.patch
+     um-fix-oopsable-race-in-line_close.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: um: fix free_winch() mess
+Subject: um: fix oopsable race in line_close()
 From: Al Viro <viro@ftp.linux.org.uk>
 
-while not doing free_irq() from irq handler is commendable, kfree() on the
-data passed to said handler before free_irq() is Not Good(tm).  Freeing
-the stack it's being run on is also not nice...  Solution: delay actually
-freeing stuff.
+tty->count is decremented only after ->close() had been called and several
+tasks can hit it in parallel.  As the result, using tty->count to check if
+you are the last one is broken.  We end up leaving line->tty not reset to
+NULL and the next IRQ on that sucker will blow up trying to dereference
+pointers from kfree'd struct tty.
+
+Fix is obvious: we need to use a counter of our own.
 
 Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c |   38 ++++++++++++++++++++++++--------------
- 1 file changed, 24 insertions(+), 14 deletions(-)
+ arch/um/drivers/line.c        |   25 ++++++++++++-------------
+ arch/um/include/shared/line.h |    1 +
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/um/drivers/line.c~um-fix-free_winch-mess arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~um-fix-free_winch-mess
+diff -puN arch/um/drivers/line.c~um-fix-oopsable-race-in-line_close arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~um-fix-oopsable-race-in-line_close
 +++ a/arch/um/drivers/line.c
-@@ -721,43 +721,53 @@ struct winch {
- 	int pid;
- 	struct tty_struct *tty;
- 	unsigned long stack;
-+	struct work_struct work;
- };
+@@ -399,8 +399,8 @@ int line_setup_irq(int fd, int input, in
+  * is done under a spinlock.  Checking whether the device is in use is
+  * line->tty->count > 1, also under the spinlock.
+  *
+- * tty->count serves to decide whether the device should be enabled or
+- * disabled on the host.  If it's equal to 1, then we are doing the
++ * line->count serves to decide whether the device should be enabled or
++ * disabled on the host.  If it's equal to 0, then we are doing the
+  * first open or last close.  Otherwise, open and close just return.
+  */
  
--static void free_winch(struct winch *winch, int free_irq_ok)
-+static void __free_winch(struct work_struct *work)
- {
--	int fd = winch->fd;
--	winch->fd = -1;
--	if (free_irq_ok)
--		free_irq(WINCH_IRQ, winch);
+@@ -414,16 +414,16 @@ int line_open(struct line *lines, struct
+ 		goto out_unlock;
+ 
+ 	err = 0;
+-	if (tty->count > 1)
++	if (line->count++)
+ 		goto out_unlock;
+ 
+-	spin_unlock(&line->count_lock);
 -
--	list_del(&winch->list);
-+	struct winch *winch = container_of(work, struct winch, work);
-+	free_irq(WINCH_IRQ, winch);
++	BUG_ON(tty->driver_data);
+ 	tty->driver_data = line;
+ 	line->tty = tty;
  
- 	if (winch->pid != -1)
- 		os_kill_process(winch->pid, 1);
--	if (fd != -1)
--		os_close_file(fd);
- 	if (winch->stack != 0)
- 		free_stack(winch->stack, 0);
- 	kfree(winch);
- }
++	spin_unlock(&line->count_lock);
+ 	err = enable_chan(line);
+-	if (err)
++	if (err) /* line_close() will be called by our caller */
+ 		return err;
  
-+static void free_winch(struct winch *winch)
-+{
-+	int fd = winch->fd;
-+	winch->fd = -1;
-+	if (fd != -1)
-+		os_close_file(fd);
-+	list_del(&winch->list);
-+	__free_winch(&winch->work);
-+}
+ 	INIT_DELAYED_WORK(&line->task, line_timer_cb);
+@@ -436,7 +436,7 @@ int line_open(struct line *lines, struct
+ 	chan_window_size(&line->chan_list, &tty->winsize.ws_row,
+ 			 &tty->winsize.ws_col);
+ 
+-	return err;
++	return 0;
+ 
+ out_unlock:
+ 	spin_unlock(&line->count_lock);
+@@ -460,17 +460,16 @@ void line_close(struct tty_struct *tty, 
+ 	flush_buffer(line);
+ 
+ 	spin_lock(&line->count_lock);
+-	if (!line->valid)
+-		goto out_unlock;
++	BUG_ON(!line->valid);
+ 
+-	if (tty->count > 1)
++	if (--line->count)
+ 		goto out_unlock;
+ 
+-	spin_unlock(&line->count_lock);
+-
+ 	line->tty = NULL;
+ 	tty->driver_data = NULL;
+ 
++	spin_unlock(&line->count_lock);
 +
- static irqreturn_t winch_interrupt(int irq, void *data)
- {
- 	struct winch *winch = data;
+ 	if (line->sigio) {
+ 		unregister_winch(tty);
+ 		line->sigio = 0;
+@@ -498,7 +497,7 @@ static int setup_one_line(struct line *l
+ 
+ 	spin_lock(&line->count_lock);
+ 
+-	if (line->tty != NULL) {
++	if (line->count) {
+ 		*error_out = "Device is already open";
+ 		goto out;
+ 	}
+diff -puN arch/um/include/shared/line.h~um-fix-oopsable-race-in-line_close arch/um/include/shared/line.h
+--- a/arch/um/include/shared/line.h~um-fix-oopsable-race-in-line_close
++++ a/arch/um/include/shared/line.h
+@@ -33,6 +33,7 @@ struct line_driver {
+ struct line {
  	struct tty_struct *tty;
- 	struct line *line;
-+	int fd = winch->fd;
- 	int err;
- 	char c;
+ 	spinlock_t count_lock;
++	unsigned long count;
+ 	int valid;
  
--	if (winch->fd != -1) {
--		err = generic_read(winch->fd, &c, NULL);
-+	if (fd != -1) {
-+		err = generic_read(fd, &c, NULL);
- 		if (err < 0) {
- 			if (err != -EAGAIN) {
-+				winch->fd = -1;
-+				list_del(&winch->list);
-+				os_close_file(fd);
- 				printk(KERN_ERR "winch_interrupt : "
- 				       "read failed, errno = %d\n", -err);
- 				printk(KERN_ERR "fd %d is losing SIGWINCH "
- 				       "support\n", winch->tty_fd);
--				free_winch(winch, 0);
-+				INIT_WORK(&winch->work, __free_winch);
-+				schedule_work(&winch->work);
- 				return IRQ_HANDLED;
- 			}
- 			goto out;
-@@ -829,7 +839,7 @@ static void unregister_winch(struct tty_
- 	list_for_each_safe(ele, next, &winch_handlers) {
- 		winch = list_entry(ele, struct winch, list);
- 		if (winch->tty == tty) {
--			free_winch(winch, 1);
-+			free_winch(winch);
- 			break;
- 		}
- 	}
-@@ -845,7 +855,7 @@ static void winch_cleanup(void)
- 
- 	list_for_each_safe(ele, next, &winch_handlers) {
- 		winch = list_entry(ele, struct winch, list);
--		free_winch(winch, 1);
-+		free_winch(winch);
- 	}
- 
- 	spin_unlock(&winch_handler_lock);
+ 	char *init_str;
 _
 
 Patches currently in -mm which might be from viro@ftp.linux.org.uk are
