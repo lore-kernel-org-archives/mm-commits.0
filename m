@@ -1,95 +1,140 @@
 From: akpm@google.com
-Subject: [folded] kmemleak-show-where-early_log-issues-come-from-update.patch removed from -mm tree
-Date: Tue, 20 Sep 2011 14:05:41 -0700
-Message-ID: <201109202105.p8KL5fYe026733@wpaz37.hot.corp.google.com>
+Subject: [folded] dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix.patch removed from -mm tree
+Date: Tue, 20 Sep 2011 14:15:47 -0700
+Message-ID: <201109202115.p8KLFm3O032048@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:47984 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:63355 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751114Ab1ITVFs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2011 17:05:48 -0400
+	with ESMTP id S1751743Ab1ITVP5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2011 17:15:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arnd@arndb.de, greg@kroah.com, jbaron@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemleak-show-where-early_log-issues-come-from-update
+     Subject: dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix
 has been removed from the -mm tree.  Its filename was
-     kmemleak-show-where-early_log-issues-come-from-update.patch
+     dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix.patch
 
-This patch was dropped because it was folded into kmemleak-show-where-early_log-issues-come-from.patch
+This patch was dropped because it was folded into dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: kmemleak-show-where-early_log-issues-come-from-update
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix
 
-We should extend the above to the other early kmemleak API calls (apart
-from KMEMLEAK_ALLOC).
+s/DECLARE/DEFINE/
 
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- mm/kmemleak.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ include/linux/dynamic_debug.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/kmemleak.c~kmemleak-show-where-early_log-issues-come-from-update mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-show-where-early_log-issues-come-from-update
-+++ a/mm/kmemleak.c
-@@ -1718,34 +1718,37 @@ void __init kmemleak_init(void)
- 	 */
- 	for (i = 0; i < crt_early_log; i++) {
- 		struct early_log *log = &early_log[i];
-+		int ret = 0;
+diff -puN include/linux/dynamic_debug.h~dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix include/linux/dynamic_debug.h
+--- a/include/linux/dynamic_debug.h~dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions-fix
++++ a/include/linux/dynamic_debug.h
+@@ -54,7 +54,7 @@ extern int __dynamic_netdev_dbg(struct _
+ 			     const char *fmt, ...)
+ 	__attribute__ ((format (printf, 3, 4)));
  
- 		switch (log->op_type) {
- 		case KMEMLEAK_ALLOC:
- 			early_alloc(log);
- 			break;
- 		case KMEMLEAK_FREE:
--			kmemleak_free(log->ptr);
-+			ret = __kmemleak_free(log->ptr);
- 			break;
- 		case KMEMLEAK_FREE_PART:
--			kmemleak_free_part(log->ptr, log->size);
-+			ret = __kmemleak_free_part(log->ptr, log->size);
- 			break;
- 		case KMEMLEAK_NOT_LEAK:
--			if (__kmemleak_not_leak(log->ptr) < 0)
--				print_log_stack(log);
-+			ret = __kmemleak_not_leak(log->ptr);
- 			break;
- 		case KMEMLEAK_IGNORE:
--			if (__kmemleak_ignore(log->ptr) < 0)
--				print_log_stack(log);
-+			ret = __kmemleak_ignore(log->ptr);
- 			break;
- 		case KMEMLEAK_SCAN_AREA:
--			kmemleak_scan_area(log->ptr, log->size, GFP_KERNEL);
-+			ret = __kmemleak_scan_area(log->ptr, log->size,
-+						   GFP_KERNEL);
- 			break;
- 		case KMEMLEAK_NO_SCAN:
--			kmemleak_no_scan(log->ptr);
-+			ret = __kmemleak_no_scan(log->ptr);
- 			break;
- 		default:
- 			WARN_ON(1);
- 		}
-+
-+		if (ret < 0)
-+			print_log_stack(log);
- 	}
- }
+-#define DECLARE_DYNAMIC_DEBUG_METADATA(name, fmt)		\
++#define DEFINE_DYNAMIC_DEBUG_METADATA(name, fmt)		\
+ 	static struct _ddebug __used __aligned(8)		\
+ 	__attribute__((section("__verbose"))) name = {		\
+ 		.modname = KBUILD_MODNAME,			\
+@@ -68,7 +68,7 @@ extern int __dynamic_netdev_dbg(struct _
  
+ #define dynamic_pr_debug(fmt, ...)				\
+ do {								\
+-	DECLARE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);	\
++	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
+ 	if (unlikely(descriptor.enabled))			\
+ 		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),	\
+ 				   ##__VA_ARGS__);		\
+@@ -76,7 +76,7 @@ do {								\
+ 
+ #define dynamic_dev_dbg(dev, fmt, ...)				\
+ do {								\
+-	DECLARE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);	\
++	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);	\
+ 	if (unlikely(descriptor.enabled))			\
+ 		__dynamic_dev_dbg(&descriptor, dev, fmt,	\
+ 				  ##__VA_ARGS__);		\
+@@ -84,7 +84,7 @@ do {								\
+ 
+ #define dynamic_netdev_dbg(dev, fmt, ...)			\
+ do {								\
+-	DECLARE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);	\
++	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
+ 	if (unlikely(descriptor.enabled))			\
+ 		__dynamic_netdev_dbg(&descriptor, dev, fmt,	\
+ 				     ##__VA_ARGS__);		\
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-kmemleak-show-where-early_log-issues-come-from.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages-fix.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements-checkpatch-fixes.patch
+block-document-blk-plug.patch
+block-document-blk-plug-v3-fix.patch
+block-blk-sysfsc-fix-kerneldoc-references.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+aio-allocate-kiocbs-in-batches-fix.patch
+aio-allocate-kiocbs-in-batches-fix-fix.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
