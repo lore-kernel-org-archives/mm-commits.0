@@ -1,133 +1,197 @@
 From: akpm@google.com
-Subject: [alternative-merged] fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.patch removed from -mm tree
-Date: Tue, 20 Sep 2011 15:43:06 -0700
-Message-ID: <201109202243.p8KMh7Xu026882@hpaq12.eem.corp.google.com>
+Subject: [folded] aio-allocate-kiocbs-in-batches-fix.patch removed from -mm tree
+Date: Wed, 21 Sep 2011 14:16:17 -0700
+Message-ID: <201109212116.p8LLGHVs029406@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:38596 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:56678 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190Ab1ITWoI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2011 18:44:08 -0400
+	with ESMTP id S1750967Ab1IUVQY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2011 17:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arighi@develer.com, geert@linux-m68k.org, peter.nordstrom@palm.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fb: fix potential deadlock between lock_fb_info and conso=
-le_lock
+     Subject: aio-allocate-kiocbs-in-batches-fix
 has been removed from the -mm tree.  Its filename was
-     fb-fix-potential-deadlock-between-lock_fb_info-and-console_lock.pa=
-tch
+     aio-allocate-kiocbs-in-batches-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was folded into aio-allocate-kiocbs-in-batches.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-=46rom: Andrea Righi <arighi@develer.com>
-Subject: fb: fix potential deadlock between lock_fb_info and console_lo=
-ck
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: aio-allocate-kiocbs-in-batches-fix
 
-fb_set_suspend() must be called with the console semaphore held, which
-means the code path coming in here will first take the console_lock() a=
-nd
-then call lock_fb_info().
+- coding-style fixes
 
-However several framebuffer ioctl commands acquire these locks in rever=
-se
-order (lock_fb_info() and then console_lock()).  This gives rise to
-potential AB-BA deadlock.
+- improve variable name(s)
 
-=46ix this by changing the order of acquisition in the ioctl commands t=
-hat
-make use of console_lock().
+- fix typo(s)
 
-Signed-off-by: Andrea Righi <arighi@develer.com>
-Reported-by: Peter Nordstr=F6m (Palm GBU) <peter.nordstrom@palm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: <stable@kernel.org>
+- use new kmap_atomic() interface
 
+- change comment to use the number of columns God gave us
+
+- use "bool" for a boolean
+
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/video/fbmem.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ fs/aio.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fb-fix-potential-deadlock-between-lock_=
-fb_info-and-console_lock drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-fix-potential-deadlock-between-lock_fb_i=
-nfo-and-console_lock
-+++ a/drivers/video/fbmem.c
-@@ -1076,14 +1076,16 @@ static long do_fb_ioctl(struct fb_info *
- 	case FBIOPUT_VSCREENINFO:
- 		if (copy_from_user(&var, argp, sizeof(var)))
- 			return -EFAULT;
--		if (!lock_fb_info(info))
--			return -ENODEV;
- 		console_lock();
-+		if (!lock_fb_info(info)) {
-+			console_unlock();
-+			return -ENODEV;
-+		}
- 		info->flags |=3D FBINFO_MISC_USEREVENT;
- 		ret =3D fb_set_var(info, &var);
- 		info->flags &=3D ~FBINFO_MISC_USEREVENT;
--		console_unlock();
- 		unlock_fb_info(info);
-+		console_unlock();
- 		if (!ret && copy_to_user(argp, &var, sizeof(var)))
- 			ret =3D -EFAULT;
- 		break;
-@@ -1112,12 +1114,14 @@ static long do_fb_ioctl(struct fb_info *
- 	case FBIOPAN_DISPLAY:
- 		if (copy_from_user(&var, argp, sizeof(var)))
- 			return -EFAULT;
--		if (!lock_fb_info(info))
--			return -ENODEV;
- 		console_lock();
-+		if (!lock_fb_info(info)) {
-+			console_unlock();
-+			return -ENODEV;
-+		}
- 		ret =3D fb_pan_display(info, &var);
--		console_unlock();
- 		unlock_fb_info(info);
-+		console_unlock();
- 		if (ret =3D=3D 0 && copy_to_user(argp, &var, sizeof(var)))
- 			return -EFAULT;
- 		break;
-@@ -1159,14 +1163,16 @@ static long do_fb_ioctl(struct fb_info *
- 		unlock_fb_info(info);
- 		break;
- 	case FBIOBLANK:
--		if (!lock_fb_info(info))
--			return -ENODEV;
- 		console_lock();
-+		if (!lock_fb_info(info)) {
-+			console_unlock();
-+			return -ENODEV;
-+		}
- 		info->flags |=3D FBINFO_MISC_USEREVENT;
- 		ret =3D fb_blank(info, arg);
- 		info->flags &=3D ~FBINFO_MISC_USEREVENT;
--		console_unlock();
- 		unlock_fb_info(info);
-+		console_unlock();
- 		break;
- 	default:
- 		if (!lock_fb_info(info))
+diff -puN fs/aio.c~aio-allocate-kiocbs-in-batches-fix fs/aio.c
+--- a/fs/aio.c~aio-allocate-kiocbs-in-batches-fix
++++ a/fs/aio.c
+@@ -468,12 +468,14 @@ struct kiocb_stash {
+ 	unsigned used;
+ 	struct kiocb *kiocbs[KIOCB_STASH_SIZE];
+ };
+-static void kiocb_stash_init(struct kiocb_stash *stash, int nr)
++
++static void kiocb_stash_init(struct kiocb_stash *stash, int total)
+ {
+ 	stash->head = stash->tail = 0;
+-	stash->total = nr;
++	stash->total = total;
+ 	stash->used = 0;
+ }
++
+ static void kiocb_stash_free(struct kiocb_stash *stash, int used)
+ {
+ 	int i;
+@@ -481,24 +483,25 @@ static void kiocb_stash_free(struct kioc
+ 	for (i = used; i < stash->total; i++)
+ 		kmem_cache_free(kiocb_cachep, stash->kiocbs[i]);
+ }
++
+ static inline unsigned kiocb_stash_avail(struct kiocb_stash *stash)
+ {
+ 	return stash->tail - stash->head;
+ }
+ 
+ /*
+- * Allocate nr kiocbs.  This aovids taking and dropping the lock a
++ * Allocate nr kiocbs.  This avoids taking and dropping the lock a
+  * lot during setup.
+  */
+ static int kiocb_stash_refill(struct kioctx *ctx, struct kiocb_stash *stash)
+ {
+ 	int i, nr = KIOCB_STASH_SIZE;
+ 	int avail;
+-	int called_fput = 0;
++	bool called_fput;
+ 	struct aio_ring *ring;
+ 
+ 	/*
+-	 * Allocate the requests up-front.  Later, we'll trim the list
++	 * Allocate the requests up front.  Later, we'll trim the list
+ 	 * if there isn't enough room in the completion ring.
+ 	 */
+ 	stash->head = 0;
+@@ -509,15 +512,14 @@ static int kiocb_stash_refill(struct kio
+ 	for (i = 0; i < nr; i++) {
+ 		stash->kiocbs[i] = __aio_get_req(ctx);
+ 		if (!stash->kiocbs[i] && !called_fput) {
+-			/* Handle a potential starvation case --
+-			 * should be exceedingly rare as requests will
+-			 * be stuck on fput_head only if the
+-			 * aio_fput_routine is delayed and the
+-			 * requests were the last user of the struct
+-			 * file.
++			/*
++			 * Handle a potential starvation case.  Should be
++			 * exceedingly rare as requests will be stuck on
++			 * fput_head only if the aio_fput_routine is delayed and
++			 * the requests were the last user of the struct file.
+ 			 */
+ 			aio_fput_routine(NULL);
+-			called_fput = 1;
++			called_fput = true;
+ 			i--;
+ 			continue;
+ 		}
+@@ -525,7 +527,7 @@ static int kiocb_stash_refill(struct kio
+ 	stash->tail = i;
+ 
+ 	spin_lock_irq(&ctx->ctx_lock);
+-	ring = kmap_atomic(ctx->ring_info.ring_pages[0], KM_USER0);
++	ring = kmap_atomic(ctx->ring_info.ring_pages[0]);
+ 
+ 	avail = aio_ring_avail(&ctx->ring_info, ring) + ctx->reqs_active;
+ 	if (avail < stash->tail) {
+@@ -538,7 +540,7 @@ static int kiocb_stash_refill(struct kio
+ 		list_add(&stash->kiocbs[i]->ki_list, &ctx->active_reqs);
+ 		ctx->reqs_active++;
+ 	}
+-	kunmap_atomic(ring, KM_USER0);
++	kunmap_atomic(ring);
+ 	spin_unlock_irq(&ctx->ctx_lock);
+ 
+ 	if (stash->tail == 0)
 _
 
-Patches currently in -mm which might be from arighi@develer.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+block-document-blk-plug.patch
+block-blk-sysfsc-fix-kerneldoc-references.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+aio-allocate-kiocbs-in-batches.patch
+aio-allocate-kiocbs-in-batches-fix-fix.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
