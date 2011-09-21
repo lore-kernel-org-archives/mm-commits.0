@@ -1,22 +1,22 @@
 From: akpm@google.com
-Subject: [folded] aio-allocate-kiocbs-in-batches-fix.patch removed from -mm tree
-Date: Wed, 21 Sep 2011 14:16:17 -0700
-Message-ID: <201109212116.p8LLGHVs029406@hpaq11.eem.corp.google.com>
+Subject: [folded] aio-allocate-kiocbs-in-batches-fix-fix.patch removed from -mm tree
+Date: Wed, 21 Sep 2011 14:16:21 -0700
+Message-ID: <201109212116.p8LLGLG4028962@wpaz37.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:56678 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:56735 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967Ab1IUVQY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2011 17:16:24 -0400
+	with ESMTP id S1751041Ab1IUVQc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Sep 2011 17:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio-allocate-kiocbs-in-batches-fix
+     Subject: aio-allocate-kiocbs-in-batches-fix-fix
 has been removed from the -mm tree.  Its filename was
-     aio-allocate-kiocbs-in-batches-fix.patch
+     aio-allocate-kiocbs-in-batches-fix-fix.patch
 
 This patch was dropped because it was folded into aio-allocate-kiocbs-in-batches.patch
 
@@ -24,116 +24,27 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-allocate-kiocbs-in-batches-fix
-
-- coding-style fixes
-
-- improve variable name(s)
-
-- fix typo(s)
-
-- use new kmap_atomic() interface
-
-- change comment to use the number of columns God gave us
-
-- use "bool" for a boolean
+Subject: aio-allocate-kiocbs-in-batches-fix-fix
 
 Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- fs/aio.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ fs/aio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-allocate-kiocbs-in-batches-fix fs/aio.c
---- a/fs/aio.c~aio-allocate-kiocbs-in-batches-fix
+diff -puN fs/aio.c~aio-allocate-kiocbs-in-batches-fix-fix fs/aio.c
+--- a/fs/aio.c~aio-allocate-kiocbs-in-batches-fix-fix
 +++ a/fs/aio.c
-@@ -468,12 +468,14 @@ struct kiocb_stash {
- 	unsigned used;
- 	struct kiocb *kiocbs[KIOCB_STASH_SIZE];
- };
--static void kiocb_stash_init(struct kiocb_stash *stash, int nr)
-+
-+static void kiocb_stash_init(struct kiocb_stash *stash, int total)
- {
- 	stash->head = stash->tail = 0;
--	stash->total = nr;
-+	stash->total = total;
- 	stash->used = 0;
- }
-+
- static void kiocb_stash_free(struct kiocb_stash *stash, int used)
- {
- 	int i;
-@@ -481,24 +483,25 @@ static void kiocb_stash_free(struct kioc
- 	for (i = used; i < stash->total; i++)
- 		kmem_cache_free(kiocb_cachep, stash->kiocbs[i]);
- }
-+
- static inline unsigned kiocb_stash_avail(struct kiocb_stash *stash)
- {
- 	return stash->tail - stash->head;
- }
- 
- /*
-- * Allocate nr kiocbs.  This aovids taking and dropping the lock a
-+ * Allocate nr kiocbs.  This avoids taking and dropping the lock a
-  * lot during setup.
-  */
- static int kiocb_stash_refill(struct kioctx *ctx, struct kiocb_stash *stash)
+@@ -497,7 +497,7 @@ static int kiocb_stash_refill(struct kio
  {
  	int i, nr = KIOCB_STASH_SIZE;
  	int avail;
--	int called_fput = 0;
-+	bool called_fput;
+-	bool called_fput;
++	bool called_fput = false;
  	struct aio_ring *ring;
  
  	/*
--	 * Allocate the requests up-front.  Later, we'll trim the list
-+	 * Allocate the requests up front.  Later, we'll trim the list
- 	 * if there isn't enough room in the completion ring.
- 	 */
- 	stash->head = 0;
-@@ -509,15 +512,14 @@ static int kiocb_stash_refill(struct kio
- 	for (i = 0; i < nr; i++) {
- 		stash->kiocbs[i] = __aio_get_req(ctx);
- 		if (!stash->kiocbs[i] && !called_fput) {
--			/* Handle a potential starvation case --
--			 * should be exceedingly rare as requests will
--			 * be stuck on fput_head only if the
--			 * aio_fput_routine is delayed and the
--			 * requests were the last user of the struct
--			 * file.
-+			/*
-+			 * Handle a potential starvation case.  Should be
-+			 * exceedingly rare as requests will be stuck on
-+			 * fput_head only if the aio_fput_routine is delayed and
-+			 * the requests were the last user of the struct file.
- 			 */
- 			aio_fput_routine(NULL);
--			called_fput = 1;
-+			called_fput = true;
- 			i--;
- 			continue;
- 		}
-@@ -525,7 +527,7 @@ static int kiocb_stash_refill(struct kio
- 	stash->tail = i;
- 
- 	spin_lock_irq(&ctx->ctx_lock);
--	ring = kmap_atomic(ctx->ring_info.ring_pages[0], KM_USER0);
-+	ring = kmap_atomic(ctx->ring_info.ring_pages[0]);
- 
- 	avail = aio_ring_avail(&ctx->ring_info, ring) + ctx->reqs_active;
- 	if (avail < stash->tail) {
-@@ -538,7 +540,7 @@ static int kiocb_stash_refill(struct kio
- 		list_add(&stash->kiocbs[i]->ki_list, &ctx->active_reqs);
- 		ctx->reqs_active++;
- 	}
--	kunmap_atomic(ring, KM_USER0);
-+	kunmap_atomic(ring);
- 	spin_unlock_irq(&ctx->ctx_lock);
- 
- 	if (stash->tail == 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -183,7 +94,6 @@ scatterlist-new-helper-functions-update-fix.patch
 memstick-add-support-for-legacy-memorysticks-fix.patch
 kexec-remove-kmsg_dump_kexec.patch
 aio-allocate-kiocbs-in-batches.patch
-aio-allocate-kiocbs-in-batches-fix-fix.patch
 dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
 dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
 dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
