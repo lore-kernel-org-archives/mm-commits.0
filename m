@@ -1,12 +1,12 @@
 From: akpm@google.com
-Subject: [merged] mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread.patch removed from -mm tree
-Date: Thu, 22 Sep 2011 14:00:56 -0700
-Message-ID: <201109222100.p8ML0u5u019275@hpaq13.eem.corp.google.com>
+Subject: [merged] mm-clean-up-clearing-of-bdi_pending-bit-in-bdi_forker_thread.patch removed from -mm tree
+Date: Thu, 22 Sep 2011 14:00:51 -0700
+Message-ID: <201109222100.p8ML0pPo005938@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:11104 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:11103 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753914Ab1IVVBo (ORCPT
+	with ESMTP id S1753860Ab1IVVBo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Sep 2011 17:01:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,9 +14,9 @@ To: jack@suse.cz, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add comment explaining task state setting in bdi_forker_thread()
+     Subject: mm: clean up clearing of BDI_pending bit in bdi_forker_thread()
 has been removed from the -mm tree.  Its filename was
-     mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread.patch
+     mm-clean-up-clearing-of-bdi_pending-bit-in-bdi_forker_thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -24,45 +24,62 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: mm: add comment explaining task state setting in bdi_forker_thread()
+Subject: mm: clean up clearing of BDI_pending bit in bdi_forker_thread()
+
+bdi_forker_thread() clears BDI_pending bit at the end of the main loop. 
+However clearing of this bit must not be done in some cases which is
+handled by calling 'continue' from switch statement.  That's kind of
+unusual construct and without a good reason so change the function into
+more intuitive code flow.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Acked-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- mm/backing-dev.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/backing-dev.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
-diff -puN mm/backing-dev.c~mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread mm/backing-dev.c
---- a/mm/backing-dev.c~mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread
+diff -puN mm/backing-dev.c~mm-clean-up-clearing-of-bdi_pending-bit-in-bdi_forker_thread mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-clean-up-clearing-of-bdi_pending-bit-in-bdi_forker_thread
 +++ a/mm/backing-dev.c
-@@ -401,6 +401,13 @@ static int bdi_forker_thread(void *ptr)
+@@ -359,6 +359,17 @@ static unsigned long bdi_longest_inactiv
+ 	return max(5UL * 60 * HZ, interval);
+ }
+ 
++/*
++ * Clear pending bit and wakeup anybody waiting for flusher thread creation or
++ * shutdown
++ */
++static void bdi_clear_pending(struct backing_dev_info *bdi)
++{
++	clear_bit(BDI_pending, &bdi->state);
++	smp_mb__after_clear_bit();
++	wake_up_bit(&bdi->state, BDI_pending);
++}
++
+ static int bdi_forker_thread(void *ptr)
+ {
+ 	struct bdi_writeback *me = ptr;
+@@ -469,11 +480,13 @@ static int bdi_forker_thread(void *ptr)
+ 				spin_unlock_bh(&bdi->wb_lock);
+ 				wake_up_process(task);
+ 			}
++			bdi_clear_pending(bdi);
+ 			break;
+ 
+ 		case KILL_THREAD:
+ 			__set_current_state(TASK_RUNNING);
+ 			kthread_stop(task);
++			bdi_clear_pending(bdi);
+ 			break;
+ 
+ 		case NO_ACTION:
+@@ -489,16 +502,8 @@ static int bdi_forker_thread(void *ptr)
+ 			else
+ 				schedule_timeout(msecs_to_jiffies(dirty_writeback_interval * 10));
+ 			try_to_freeze();
+-			/* Back to the main loop */
+-			continue;
++			break;
  		}
- 
- 		spin_lock_bh(&bdi_lock);
-+		/*
-+		 * In the following loop we are going to check whether we have
-+		 * some work to do without any synchronization with tasks
-+		 * waking us up to do work for them. So we have to set task
-+		 * state already here so that we don't miss wakeups coming
-+		 * after we verify some condition.
-+		 */
- 		set_current_state(TASK_INTERRUPTIBLE);
- 
- 		list_for_each_entry(bdi, &bdi_list, bdi_list) {
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-origin.patch
-linux-next.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
-xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
-mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
-mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-
