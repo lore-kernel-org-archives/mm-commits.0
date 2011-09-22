@@ -1,112 +1,114 @@
 From: akpm@google.com
-Subject: [merged] block-blk-sysfsc-fix-kerneldoc-references.patch removed from -mm tree
-Date: Thu, 22 Sep 2011 14:00:47 -0700
-Message-ID: <201109222100.p8ML0lEf011852@hpaq11.eem.corp.google.com>
+Subject: [merged] block-document-blk-plug.patch removed from -mm tree
+Date: Thu, 22 Sep 2011 14:00:30 -0700
+Message-ID: <201109222100.p8ML0Ulk003698@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:10478 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:34636 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753860Ab1IVVAw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Sep 2011 17:00:52 -0400
+	with ESMTP id S1753863Ab1IVVAp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Sep 2011 17:00:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, mm-commits@vger.kernel.org
+To: sjayaraman@suse.de, axboe@kernel.dk, corbet@lwn.net, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block/blk-sysfs.c: fix kerneldoc references
+     Subject: block: document blk-plug
 has been removed from the -mm tree.  Its filename was
-     block-blk-sysfsc-fix-kerneldoc-references.patch
+     block-document-blk-plug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block/blk-sysfs.c: fix kerneldoc references
+From: Suresh Jayaraman <sjayaraman@suse.de>
+Subject: block: document blk-plug
 
-The kerneldoc for blk_release_queue() is referring to blk_cleanup_queue().
+Thus spake Andrew Morton:
 
+"And I have the usual maintainability whine.  If someone comes up to
+vmscan.c and sees it calling blk_start_plug(), how are they supposed to
+work out why that call is there?  They go look at the blk_start_plug()
+definition and it is undocumented.  I think we can do better than this?"
+
+Adapted from the LWN article - http://lwn.net/Articles/438256/ by Jens
+Axboe and from an earlier attempt by Shaohua Li to document blk-plug.
+
+[akpm@linux-foundation.org: grammatical and spelling tweaks]
+Signed-off-by: Suresh Jayaraman <sjayaraman@suse.de>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- block/blk-sysfs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ block/blk-core.c       |   14 ++++++++++++++
+ include/linux/blkdev.h |   22 ++++++++++++++--------
+ 2 files changed, 28 insertions(+), 8 deletions(-)
 
-diff -puN block/blk-sysfs.c~block-blk-sysfsc-fix-kerneldoc-references block/blk-sysfs.c
---- a/block/blk-sysfs.c~block-blk-sysfsc-fix-kerneldoc-references
-+++ a/block/blk-sysfs.c
-@@ -457,11 +457,11 @@ queue_attr_store(struct kobject *kobj, s
- }
+diff -puN block/blk-core.c~block-document-blk-plug block/blk-core.c
+--- a/block/blk-core.c~block-document-blk-plug
++++ a/block/blk-core.c
+@@ -2629,6 +2629,20 @@ EXPORT_SYMBOL(kblockd_schedule_delayed_w
  
- /**
-- * blk_cleanup_queue: - release a &struct request_queue when it is no longer needed
-- * @kobj:    the kobj belonging of the request queue to be released
-+ * blk_release_queue: - release a &struct request_queue when it is no longer needed
-+ * @kobj:    the kobj belonging to the request queue to be released
-  *
-  * Description:
-- *     blk_cleanup_queue is the pair to blk_init_queue() or
-+ *     blk_release_queue is the pair to blk_init_queue() or
-  *     blk_queue_make_request().  It should be called when a request queue is
-  *     being released; typically when a block device is being de-registered.
-  *     Currently, its primary task it to free all the &struct request
+ #define PLUG_MAGIC	0x91827364
+ 
++/**
++ * blk_start_plug - initialize blk_plug and track it inside the task_struct
++ * @plug:	The &struct blk_plug that needs to be initialized
++ *
++ * Description:
++ *   Tracking blk_plug inside the task_struct will help with auto-flushing the
++ *   pending I/O should the task end up blocking between blk_start_plug() and
++ *   blk_finish_plug(). This is important from a performance perspective, but
++ *   also ensures that we don't deadlock. For instance, if the task is blocking
++ *   for a memory allocation, memory reclaim could end up wanting to free a
++ *   page belonging to that request that is currently residing in our private
++ *   plug. By flushing the pending I/O when the process goes to sleep, we avoid
++ *   this kind of deadlock.
++ */
+ void blk_start_plug(struct blk_plug *plug)
+ {
+ 	struct task_struct *tsk = current;
+diff -puN include/linux/blkdev.h~block-document-blk-plug include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-document-blk-plug
++++ a/include/linux/blkdev.h
+@@ -863,16 +863,22 @@ struct request_queue *blk_alloc_queue_no
+ extern void blk_put_queue(struct request_queue *);
+ 
+ /*
+- * Note: Code in between changing the blk_plug list/cb_list or element of such
+- * lists is preemptable, but such code can't do sleep (or be very careful),
+- * otherwise data is corrupted. For details, please check schedule() where
+- * blk_schedule_flush_plug() is called.
++ * blk_plug permits building a queue of related requests by holding the I/O
++ * fragments for a short period. This allows merging of sequential requests
++ * into single larger request. As the requests are moved from a per-task list to
++ * the device's request_queue in a batch, this results in improved scalability
++ * as the lock contention for request_queue lock is reduced.
++ *
++ * It is ok not to disable preemption when adding the request to the plug list
++ * or when attempting a merge, because blk_schedule_flush_list() will only flush
++ * the plug list when the task sleeps by itself. For details, please see
++ * schedule() where blk_schedule_flush_plug() is called.
+  */
+ struct blk_plug {
+-	unsigned long magic;
+-	struct list_head list;
+-	struct list_head cb_list;
+-	unsigned int should_sort;
++	unsigned long magic; /* detect uninitialized use-cases */
++	struct list_head list; /* requests */
++	struct list_head cb_list; /* md requires an unplug callback */
++	unsigned int should_sort; /*list to be sorted before flushing? */
+ };
+ #define BLK_MAX_REQUEST_COUNT 16
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sjayaraman@suse.de are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
-dynamic_debug-use-a-single-printk-to-emit-messages.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-lib-hexdumpc-make-hex2bin-return-the-updated-src-address.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
