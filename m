@@ -1,102 +1,124 @@
 From: akpm@google.com
-Subject: [merged] floppy-use-del_timer_sync-in-init-cleanup.patch removed from -mm tree
-Date: Thu, 22 Sep 2011 14:00:03 -0700
-Message-ID: <201109222100.p8ML04Yq004655@hpaq7.eem.corp.google.com>
+Subject: [merged] blk-cgroup-be-able-to-remove-the-record-of-unplugged-device.patch removed from -mm tree
+Date: Thu, 22 Sep 2011 14:00:10 -0700
+Message-ID: <201109222100.p8ML0A7G026119@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:10588 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:35024 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753860Ab1IVVA7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Sep 2011 17:00:59 -0400
+	with ESMTP id S1753860Ab1IVVBP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Sep 2011 17:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: C.Emde@osadl.org, axboe@kernel.dk, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: gaowanlong@cn.fujitsu.com, axboe@kernel.dk, lizf@cn.fujitsu.com, paul@paulmenage.org, stable@kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: floppy: use del_timer_sync() in init cleanup
+     Subject: blk-cgroup: be able to remove the record of unplugged device
 has been removed from the -mm tree.  Its filename was
-     floppy-use-del_timer_sync-in-init-cleanup.patch
+     blk-cgroup-be-able-to-remove-the-record-of-unplugged-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Carsten Emde <C.Emde@osadl.org>
-Subject: floppy: use del_timer_sync() in init cleanup
+From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Subject: blk-cgroup: be able to remove the record of unplugged device
 
-When no floppy is found the module code can be released while a timer
-function is pending or about to be executed.
+The bug is we're not able to remove the device from blkio cgroup's
+per-device control files if it gets unplugged.
 
-CPU0                                  CPU1
-				      floppy_init()
-timer_softirq()
-   spin_lock_irq(&base->lock);
-   detach_timer();
-   spin_unlock_irq(&base->lock);
-   -> Interrupt
-					del_timer();
-				        return -ENODEV;
-                                      module_cleanup();
-   <- EOI
-   call_timer_fn();
-   OOPS
+To reproduce the bug:
 
-Use del_timer_sync() to prevent this.
+  # mount -t cgroup -o blkio xxx /cgroup
+  # cd /cgroup
+  # echo "8:0 1000" > blkio.throttle.read_bps_device
+  # unplug the device
+  # cat blkio.throttle.read_bps_device
+  8:0	1000
+  # echo "8:0 0" > blkio.throttle.read_bps_device
+  -bash: echo: write error: No such device
 
-Signed-off-by: Carsten Emde <C.Emde@osadl.org>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+After patching, the device removal will succeed.
+
+Thanks for the comments of Paul, Zefan, and Vivek.
+
+Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <paul@paulmenage.org>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ block/blk-cgroup.c |   37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-use-del_timer_sync-in-init-cleanup drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-use-del_timer_sync-in-init-cleanup
-+++ a/drivers/block/floppy.c
-@@ -4250,7 +4250,7 @@ static int __init floppy_init(void)
- 	use_virtual_dma = can_use_virtual_dma & 1;
- 	fdc_state[0].address = FDC1;
- 	if (fdc_state[0].address == -1) {
--		del_timer(&fd_timeout);
-+		del_timer_sync(&fd_timeout);
- 		err = -ENODEV;
- 		goto out_unreg_region;
- 	}
-@@ -4261,7 +4261,7 @@ static int __init floppy_init(void)
- 	fdc = 0;		/* reset fdc in case of unexpected interrupt */
- 	err = floppy_grab_irq_and_dma();
- 	if (err) {
--		del_timer(&fd_timeout);
-+		del_timer_sync(&fd_timeout);
- 		err = -EBUSY;
- 		goto out_unreg_region;
- 	}
-@@ -4318,7 +4318,7 @@ static int __init floppy_init(void)
- 		user_reset_fdc(-1, FD_RESET_ALWAYS, false);
- 	}
- 	fdc = 0;
--	del_timer(&fd_timeout);
-+	del_timer_sync(&fd_timeout);
- 	current_drive = 0;
- 	initialized = true;
- 	if (have_no_fdc) {
-@@ -4368,7 +4368,7 @@ out_unreg_blkdev:
- 	unregister_blkdev(FLOPPY_MAJOR, "fd");
- out_put_disk:
- 	while (dr--) {
--		del_timer(&motor_off_timer[dr]);
-+		del_timer_sync(&motor_off_timer[dr]);
- 		if (disks[dr]->queue)
- 			blk_cleanup_queue(disks[dr]->queue);
- 		put_disk(disks[dr]);
-_
-
-Patches currently in -mm which might be from C.Emde@osadl.org are
-
-origin.patch
-
+diff -puN block/blk-cgroup.c~blk-cgroup-be-able-to-remove-the-record-of-unplugged-device block/blk-cgroup.c
+--- a/block/blk-cgroup.c~blk-cgroup-be-able-to-remove-the-record-of-unplugged-device
++++ a/block/blk-cgroup.c
+@@ -785,10 +785,10 @@ static int blkio_policy_parse_and_set(ch
+ {
+ 	char *s[4], *p, *major_s = NULL, *minor_s = NULL;
+ 	int ret;
+-	unsigned long major, minor, temp;
++	unsigned long major, minor;
+ 	int i = 0;
+ 	dev_t dev;
+-	u64 bps, iops;
++	u64 temp;
+ 
+ 	memset(s, 0, sizeof(s));
+ 
+@@ -826,20 +826,23 @@ static int blkio_policy_parse_and_set(ch
+ 
+ 	dev = MKDEV(major, minor);
+ 
+-	ret = blkio_check_dev_num(dev);
++	ret = strict_strtoull(s[1], 10, &temp);
+ 	if (ret)
+-		return ret;
++		return -EINVAL;
+ 
+-	newpn->dev = dev;
++	/* For rule removal, do not check for device presence. */
++	if (temp) {
++		ret = blkio_check_dev_num(dev);
++		if (ret)
++			return ret;
++	}
+ 
+-	if (s[1] == NULL)
+-		return -EINVAL;
++	newpn->dev = dev;
+ 
+ 	switch (plid) {
+ 	case BLKIO_POLICY_PROP:
+-		ret = strict_strtoul(s[1], 10, &temp);
+-		if (ret || (temp < BLKIO_WEIGHT_MIN && temp > 0) ||
+-			temp > BLKIO_WEIGHT_MAX)
++		if ((temp < BLKIO_WEIGHT_MIN && temp > 0) ||
++		     temp > BLKIO_WEIGHT_MAX)
+ 			return -EINVAL;
+ 
+ 		newpn->plid = plid;
+@@ -850,26 +853,18 @@ static int blkio_policy_parse_and_set(ch
+ 		switch(fileid) {
+ 		case BLKIO_THROTL_read_bps_device:
+ 		case BLKIO_THROTL_write_bps_device:
+-			ret = strict_strtoull(s[1], 10, &bps);
+-			if (ret)
+-				return -EINVAL;
+-
+ 			newpn->plid = plid;
+ 			newpn->fileid = fileid;
+-			newpn->val.bps = bps;
++			newpn->val.bps = temp;
+ 			break;
+ 		case BLKIO_THROTL_read_iops_device:
+ 		case BLKIO_THROTL_write_iops_device:
+-			ret = strict_strtoull(s[1], 10, &iops);
+-			if (ret)
+-				return -EINVAL;
