@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + loop-cleanup-set_status-interface-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 23 Sep 2011 13:58:09 -0700
-Message-ID: <201109232058.p8NKwAeJ022812@hpaq5.eem.corp.google.com>
+Subject: + hp_accel-add-a-new-pnp-id.patch added to -mm tree
+Date: Fri, 23 Sep 2011 14:16:58 -0700
+Message-ID: <201109232116.p8NLGwgN025935@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:10550 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:20127 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933Ab1IWU6P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 16:58:15 -0400
+	with ESMTP id S1752112Ab1IWVRE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 17:17:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@google.com, axboe@kernel.dk, dmonakhov@openvz.org
+Cc: tiwai@suse.de, mjg@redhat.com
 
 
 The patch titled
-     Subject: loop-cleanup-set_status-interface-checkpatch-fixes
+     Subject: hp_accel: Add a new PNP id
 has been added to the -mm tree.  Its filename is
-     loop-cleanup-set_status-interface-checkpatch-fixes.patch
+     hp_accel-add-a-new-pnp-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@google.com>
-Subject: loop-cleanup-set_status-interface-checkpatch-fixes
+From: Takashi Iwai <tiwai@suse.de>
+Subject: hp_accel: Add a new PNP id
 
-WARNING: line over 80 characters
-#120: FILE: drivers/block/loop.c:1388:
-+						(struct loop_info __user *) arg);
+New HP laptops assign a new PNP id "HPQ6000" for DriveGuard.
 
-total: 0 errors, 1 warnings, 92 lines checked
-
-./patches/loop-cleanup-set_status-interface.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dmitry Monakhov <dmonakhov@openvz.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/block/loop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/hp_accel.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/loop.c~loop-cleanup-set_status-interface-checkpatch-fixes drivers/block/loop.c
---- a/drivers/block/loop.c~loop-cleanup-set_status-interface-checkpatch-fixes
-+++ a/drivers/block/loop.c
-@@ -1385,7 +1385,7 @@ static int lo_ioctl(struct block_device 
- 		err = -EPERM;
- 		if ((mode & FMODE_WRITE) || capable(CAP_SYS_ADMIN))
- 			err = loop_set_status_old(lo,
--						(struct loop_info __user *) arg);
-+					(struct loop_info __user *)arg);
- 		break;
- 	case LOOP_GET_STATUS:
- 		err = loop_get_status_old(lo, (struct loop_info __user *) arg);
+diff -puN drivers/platform/x86/hp_accel.c~hp_accel-add-a-new-pnp-id drivers/platform/x86/hp_accel.c
+--- a/drivers/platform/x86/hp_accel.c~hp_accel-add-a-new-pnp-id
++++ a/drivers/platform/x86/hp_accel.c
+@@ -76,6 +76,7 @@ static inline void delayed_sysfs_set(str
+ /* For automatic insertion of the module */
+ static struct acpi_device_id lis3lv02d_device_ids[] = {
+ 	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
++	{"HPQ6000", 0}, /* HP Mobile Data Protection System PNP */
+ 	{"", 0},
+ };
+ MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
 _
-Subject: Subject: loop-cleanup-set_status-interface-checkpatch-fixes
+Subject: Subject: hp_accel: Add a new PNP id
 
-Patches currently in -mm which might be from akpm@google.com are
+Patches currently in -mm which might be from tiwai@suse.de are
 
+origin.patch
 linux-next.patch
-loop-cleanup-set_status-interface-checkpatch-fixes.patch
+hp_accel-add-a-new-pnp-id.patch
 
