@@ -1,76 +1,65 @@
 From: akpm@google.com
-Subject: [merged] scripts-tagssh-update-to-support-powerpc-_global-symbols.patch removed from -mm tree
-Date: Fri, 23 Sep 2011 13:12:06 -0700
-Message-ID: <201109232012.p8NKC6MN016621@hpaq2.eem.corp.google.com>
+Subject: + loop-prevent-information-leak-after-failed-read.patch added to -mm tree
+Date: Fri, 23 Sep 2011 13:56:57 -0700
+Message-ID: <201109232056.p8NKuwBS006284@hpaq6.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:4515 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:10033 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751973Ab1IWUNE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 16:13:04 -0400
+	with ESMTP id S1752171Ab1IWU5E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 16:57:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: imunsie@au1.ibm.com, benh@kernel.crashing.org, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dmonakhov@openvz.org, axboe@kernel.dk
 
 
 The patch titled
-     Subject: scripts/tags.sh: update to support powerpc _GLOBAL symbols
-has been removed from the -mm tree.  Its filename was
-     scripts-tagssh-update-to-support-powerpc-_global-symbols.patch
+     Subject: loop: prevent information leak after failed read
+has been added to the -mm tree.  Its filename is
+     loop-prevent-information-leak-after-failed-read.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ian Munsie <imunsie@au1.ibm.com>
-Subject: scripts/tags.sh: update to support powerpc _GLOBAL symbols
+From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: loop: prevent information leak after failed read
 
-On PowerPC we use _GLOBAL throughout the assembly to define symbols, but
-currently these symbols are missing from the tags generated with
-ARCH=powerpc make tags.  This patch modifies the tags.sh script to
-recognise _GLOBAL(.*) so that these symbols will be in the tags.
+If read was not fully successful we have to fail whole bio to prevent
+information leak of old pages
 
-This is almost (but not quite) PowerPC specific and this change should
-not affect anyone else:
+##Testcase_begin
+dd if=/dev/zero of=./file bs=1M count=1
+losetup /dev/loop0 ./file -o 4096
+truncate -s 0 ./file
+# OOps loop offset is now beyond i_size, so read will silently fail.
+# So bio's pages would not be cleared, may which result in information leak.
+hexdump -C /dev/loop0
+##testcase_end
 
-$ git grep -E '^_GLOBAL\(([^)]*)\).*' |sed 's/^\([^/]*\/[^/]*\)\/.*$/\1/'|uniq -c
-    627 arch/powerpc
-      2 arch/um
-
-Signed-off-by: Ian Munsie <imunsie@au1.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- scripts/tags.sh |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/loop.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/tags.sh~scripts-tagssh-update-to-support-powerpc-_global-symbols scripts/tags.sh
---- a/scripts/tags.sh~scripts-tagssh-update-to-support-powerpc-_global-symbols
-+++ a/scripts/tags.sh
-@@ -129,7 +129,7 @@ exuberant()
- 	-I EXPORT_SYMBOL,EXPORT_SYMBOL_GPL                      \
- 	-I DEFINE_TRACE,EXPORT_TRACEPOINT_SYMBOL,EXPORT_TRACEPOINT_SYMBOL_GPL \
- 	--extra=+f --c-kinds=+px                                \
--	--regex-asm='/^ENTRY\(([^)]*)\).*/\1/'                  \
-+	--regex-asm='/^(ENTRY|_GLOBAL)\(([^)]*)\).*/\2/'        \
- 	--regex-c='/^SYSCALL_DEFINE[[:digit:]]?\(([^,)]*).*/sys_\1/' \
- 	--regex-c++='/^TRACE_EVENT\(([^,)]*).*/trace_\1/'		\
- 	--regex-c++='/^DEFINE_EVENT\([^,)]*, *([^,)]*).*/trace_\1/'
-@@ -151,7 +151,7 @@ exuberant()
- emacs()
- {
- 	all_sources | xargs $1 -a                               \
--	--regex='/^ENTRY(\([^)]*\)).*/\1/'                      \
-+	--regex='/^(ENTRY|_GLOBAL)(\([^)]*\)).*/\2/'            \
- 	--regex='/^SYSCALL_DEFINE[0-9]?(\([^,)]*\).*/sys_\1/'   \
- 	--regex='/^TRACE_EVENT(\([^,)]*\).*/trace_\1/'		\
- 	--regex='/^DEFINE_EVENT([^,)]*, *\([^,)]*\).*/trace_\1/'
-_
-
-Patches currently in -mm which might be from imunsie@au1.ibm.com are
-
-linux-next.patch
-
+diff -puN drivers/block/loop.c~loop-prevent-information-leak-after-failed-read drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-prevent-information-leak-after-failed-read
++++ a/drivers/block/loop.c
+@@ -449,7 +449,8 @@ do_lo_receive(struct loop_device *lo,
+ 
+ 	if (retval < 0)
+ 		return retval;
