@@ -1,74 +1,76 @@
 From: akpm@google.com
-Subject: [merged] thp-fix-khugepaged-defrag-tunable-documentation.patch removed from -mm tree
-Date: Fri, 23 Sep 2011 13:12:11 -0700
-Message-ID: <201109232012.p8NKCB0e013701@wpaz5.hot.corp.google.com>
+Subject: [merged] scripts-tagssh-update-to-support-powerpc-_global-symbols.patch removed from -mm tree
+Date: Fri, 23 Sep 2011 13:12:06 -0700
+Message-ID: <201109232012.p8NKC6MN016621@hpaq2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:4131 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:4515 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784Ab1IWUMR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 16:12:17 -0400
+	with ESMTP id S1751973Ab1IWUNE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 16:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: imunsie@au1.ibm.com, benh@kernel.crashing.org, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix khugepaged defrag tunable documentation
+     Subject: scripts/tags.sh: update to support powerpc _GLOBAL symbols
 has been removed from the -mm tree.  Its filename was
-     thp-fix-khugepaged-defrag-tunable-documentation.patch
+     scripts-tagssh-update-to-support-powerpc-_global-symbols.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: thp: fix khugepaged defrag tunable documentation
+From: Ian Munsie <imunsie@au1.ibm.com>
+Subject: scripts/tags.sh: update to support powerpc _GLOBAL symbols
 
-e27e6151b154 ("mm/thp: use conventional format for boolean attributes")
-changed /sys/kernel/mm/transparent_hugepage/khugepaged/defrag to be tuned
-by using 1 (enabled) or 0 (disabled) instead of "yes" and "no",
-respectively.
+On PowerPC we use _GLOBAL throughout the assembly to define symbols, but
+currently these symbols are missing from the tags generated with
+ARCH=powerpc make tags.  This patch modifies the tags.sh script to
+recognise _GLOBAL(.*) so that these symbols will be in the tags.
 
-Update the documentation.
+This is almost (but not quite) PowerPC specific and this change should
+not affect anyone else:
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+$ git grep -E '^_GLOBAL\(([^)]*)\).*' |sed 's/^\([^/]*\/[^/]*\)\/.*$/\1/'|uniq -c
+    627 arch/powerpc
+      2 arch/um
+
+Signed-off-by: Ian Munsie <imunsie@au1.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- Documentation/vm/transhuge.txt |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ scripts/tags.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/vm/transhuge.txt~thp-fix-khugepaged-defrag-tunable-documentation Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~thp-fix-khugepaged-defrag-tunable-documentation
-+++ a/Documentation/vm/transhuge.txt
-@@ -123,10 +123,11 @@ be automatically shutdown if it's set to
- khugepaged runs usually at low frequency so while one may not want to
- invoke defrag algorithms synchronously during the page faults, it
- should be worth invoking defrag at least in khugepaged. However it's
--also possible to disable defrag in khugepaged:
-+also possible to disable defrag in khugepaged by writing 0 or enable
-+defrag in khugepaged by writing 1:
- 
--echo yes >/sys/kernel/mm/transparent_hugepage/khugepaged/defrag
--echo no >/sys/kernel/mm/transparent_hugepage/khugepaged/defrag
-+echo 0 >/sys/kernel/mm/transparent_hugepage/khugepaged/defrag
-+echo 1 >/sys/kernel/mm/transparent_hugepage/khugepaged/defrag
- 
- You can also control how many pages khugepaged should scan at each
- pass:
+diff -puN scripts/tags.sh~scripts-tagssh-update-to-support-powerpc-_global-symbols scripts/tags.sh
+--- a/scripts/tags.sh~scripts-tagssh-update-to-support-powerpc-_global-symbols
++++ a/scripts/tags.sh
+@@ -129,7 +129,7 @@ exuberant()
+ 	-I EXPORT_SYMBOL,EXPORT_SYMBOL_GPL                      \
+ 	-I DEFINE_TRACE,EXPORT_TRACEPOINT_SYMBOL,EXPORT_TRACEPOINT_SYMBOL_GPL \
+ 	--extra=+f --c-kinds=+px                                \
+-	--regex-asm='/^ENTRY\(([^)]*)\).*/\1/'                  \
++	--regex-asm='/^(ENTRY|_GLOBAL)\(([^)]*)\).*/\2/'        \
+ 	--regex-c='/^SYSCALL_DEFINE[[:digit:]]?\(([^,)]*).*/sys_\1/' \
+ 	--regex-c++='/^TRACE_EVENT\(([^,)]*).*/trace_\1/'		\
+ 	--regex-c++='/^DEFINE_EVENT\([^,)]*, *([^,)]*).*/trace_\1/'
+@@ -151,7 +151,7 @@ exuberant()
+ emacs()
+ {
+ 	all_sources | xargs $1 -a                               \
+-	--regex='/^ENTRY(\([^)]*\)).*/\1/'                      \
++	--regex='/^(ENTRY|_GLOBAL)(\([^)]*\)).*/\2/'            \
+ 	--regex='/^SYSCALL_DEFINE[0-9]?(\([^,)]*\).*/sys_\1/'   \
+ 	--regex='/^TRACE_EVENT(\([^,)]*\).*/trace_\1/'		\
+ 	--regex='/^DEFINE_EVENT([^,)]*, *\([^,)]*\).*/trace_\1/'
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from imunsie@au1.ibm.com are
 
-origin.patch
 linux-next.patch
-oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch
-oom-remove-oom_disable_count.patch
-oom-fix-race-while-temporarily-setting-currents-oom_score_adj.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-mm-compaction-make-compact_zone_order-static.patch
-cpusets-avoid-looping-when-storing-to-mems_allowed-if-one-node-remains-set.patch
 
