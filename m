@@ -1,83 +1,104 @@
 From: akpm@google.com
-Subject: + scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error.patch added to -mm tree
-Date: Fri, 23 Sep 2011 15:51:43 -0700
-Message-ID: <201109232251.p8NMphnZ005822@hpaq7.eem.corp.google.com>
+Subject: [failures] leds-set-leds_triggers-as-tristate.patch removed from -mm tree
+Date: Fri, 23 Sep 2011 16:01:03 -0700
+Message-ID: <201109232301.p8NN13sL006542@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:24702 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:29180 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752413Ab1IWWvt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 18:51:49 -0400
+	with ESMTP id S1753030Ab1IWXBN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 19:01:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, James.Bottomley@HansenPartnership.com
+To: bryan.wu@canonical.com, richard.purdie@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scsi: SCSI_ISCI needs to select SCSI_SAS_HOST_SMP, fixes build error
-has been added to the -mm tree.  Its filename is
-     scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error.patch
+     Subject: leds: set LEDS_TRIGGERS as tristate
+has been removed from the -mm tree.  Its filename was
+     leds-set-leds_triggers-as-tristate.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: scsi: SCSI_ISCI needs to select SCSI_SAS_HOST_SMP, fixes build error
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: leds: set LEDS_TRIGGERS as tristate
 
-SCSI_ISCI needs to select SCSI_SAS_HOST_SMP to ensure that all
-needed symbols are available to it.
+LEDS_TRIGGERS depends on LEDS_CLASSS, which should be tristate.  So set it
+as tristate too and update header files as well.
 
-Fixes this build error:
-ERROR: "try_test_sas_gpio_gp_bit" [drivers/scsi/isci/isci.ko] undefined!
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/scsi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/leds/Kconfig |    2 +-
+ drivers/leds/leds.h  |    2 +-
+ include/linux/leds.h |    7 ++++---
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error
-+++ a/drivers/scsi/Kconfig
-@@ -847,6 +847,7 @@ config SCSI_ISCI
- 	# (temporary): known alpha quality driver
- 	depends on EXPERIMENTAL
- 	select SCSI_SAS_LIBSAS
-+	select SCSI_SAS_HOST_SMP
- 	---help---
- 	  This driver supports the 6Gb/s SAS capabilities of the storage
- 	  control unit found in the Intel(R) C600 series chipset.
+diff -puN drivers/leds/Kconfig~leds-set-leds_triggers-as-tristate drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-set-leds_triggers-as-tristate
++++ a/drivers/leds/Kconfig
+@@ -391,7 +391,7 @@ config LEDS_RENESAS_TPU
+ 	  Brightness control is supported but hardware blinking is not.
+ 
+ config LEDS_TRIGGERS
+-	bool "LED Trigger support"
++	tristate "LED Trigger support"
+ 	depends on LEDS_CLASS
+ 	help
+ 	  This option enables trigger support for the leds class.
+diff -puN drivers/leds/leds.h~leds-set-leds_triggers-as-tristate drivers/leds/leds.h
+--- a/drivers/leds/leds.h~leds-set-leds_triggers-as-tristate
++++ a/drivers/leds/leds.h
+@@ -35,7 +35,7 @@ static inline int led_get_brightness(str
+ extern struct rw_semaphore leds_list_lock;
+ extern struct list_head leds_list;
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ void led_trigger_set_default(struct led_classdev *led_cdev);
+ void led_trigger_set(struct led_classdev *led_cdev,
+ 			struct led_trigger *trigger);
+diff -puN include/linux/leds.h~leds-set-leds_triggers-as-tristate include/linux/leds.h
+--- a/include/linux/leds.h~leds-set-leds_triggers-as-tristate
++++ a/include/linux/leds.h
+@@ -66,7 +66,7 @@ struct led_classdev {
+ 	struct timer_list	 blink_timer;
+ 	int			 blink_brightness;
+ 
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 	/* Protects the trigger data below */
+ 	struct rw_semaphore	 trigger_lock;
+ 
+@@ -115,7 +115,7 @@ extern void led_brightness_set(struct le
+ /*
+  * LED Triggers
+  */
+-#ifdef CONFIG_LEDS_TRIGGERS
++#if defined(CONFIG_LEDS_TRIGGERS) || defined(CONFIG_LEDS_TRIGGERS_MODULE)
+ 
+ #define TRIG_NAME_MAX 50
+ 
+@@ -161,7 +161,8 @@ extern void led_trigger_blink(struct led
+ #endif
+ 
+ /* Trigger specific functions */
+-#ifdef CONFIG_LEDS_TRIGGER_IDE_DISK
++#if defined(CONFIG_LEDS_TRIGGER_IDE_DISK) || \
++	defined(CONFIG_LEDS_TRIGGER_IDE_DISK_MODULE)
+ extern void ledtrig_ide_activity(void);
+ #else
+ #define ledtrig_ide_activity() do {} while(0)
 _
-Subject: Subject: scsi: SCSI_ISCI needs to select SCSI_SAS_HOST_SMP, fixes build error
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from bryan.wu@canonical.com are
 
 origin.patch
-scsi-fix-qla2xxx-printk-format-warning.patch
 linux-next.patch
-drm-fix-kconfig-unmet-dependency-warning.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error.patch
-cross-memory-attach-update.patch
-consolidate-config_debug_strict_user_copy_checks-fix.patch
-dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-init-add-root=partuuid=uuid-partnroff=%d-support.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+leds-class-change-back-leds_class-to-tristate-instead-of-bool.patch
 
