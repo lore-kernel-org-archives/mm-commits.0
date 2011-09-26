@@ -1,67 +1,73 @@
 From: akpm@google.com
-Subject: [failures] leds-class-change-back-leds_class-to-tristate-instead-of-bool.patch removed from -mm tree
-Date: Fri, 23 Sep 2011 16:26:48 -0700
-Message-ID: <201109232326.p8NNQm79021366@hpaq1.eem.corp.google.com>
+Subject: [merged] scsi-fix-qla2xxx-printk-format-warning.patch removed from -mm tree
+Date: Mon, 26 Sep 2011 12:21:59 -0700
+Message-ID: <201109261922.p8QJM0Fa023478@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:24117 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:38319 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284Ab1IWX04 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Sep 2011 19:26:56 -0400
+	with ESMTP id S1752777Ab1IZTWI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2011 15:22:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bryan.wu@canonical.com, linus.walleij@linaro.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, James.Bottomley@HansenPartnership.com, andrew.vasquez@qlogic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds-class: change back LEDS_CLASS to tristate instead of bool
+     Subject: scsi: fix qla2xxx printk format warning
 has been removed from the -mm tree.  Its filename was
-     leds-class-change-back-leds_class-to-tristate-instead-of-bool.patch
+     scsi-fix-qla2xxx-printk-format-warning.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: leds-class: change back LEDS_CLASS to tristate instead of bool
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: scsi: fix qla2xxx printk format warning
 
-LEDS_CLASS is required by leds and trigger drivers, but we can build it as
-module.  So change this option back as tristate and treak the help message
-as well.
+sector_t can be different types, so cast it to its largest
+possible type.
 
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
-Acked-by: Richard Purdie <rpurdie@rpsys.net>
-Cc: Linus Walleij <linus.walleij@linaro.org>
+drivers/scsi/qla2xxx/qla_isr.c:1509:5: warning: format '%lx' expects type 'long unsigned int', but argument 5 has type 'sector_t'
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/leds/Kconfig |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/scsi/qla2xxx/qla_isr.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-class-change-back-leds_class-to-tristate-instead-of-bool drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-class-change-back-leds_class-to-tristate-instead-of-bool
-+++ a/drivers/leds/Kconfig
-@@ -17,10 +17,13 @@ menuconfig NEW_LEDS
- if NEW_LEDS
+diff -puN drivers/scsi/qla2xxx/qla_isr.c~scsi-fix-qla2xxx-printk-format-warning drivers/scsi/qla2xxx/qla_isr.c
+--- a/drivers/scsi/qla2xxx/qla_isr.c~scsi-fix-qla2xxx-printk-format-warning
++++ a/drivers/scsi/qla2xxx/qla_isr.c
+@@ -1507,8 +1507,8 @@ qla2x00_handle_dif_error(srb_t *sp, stru
  
- config LEDS_CLASS
--	bool "LED Class Support"
-+	tristate "LED Class Support"
- 	help
- 	  This option enables the led sysfs class in /sys/class/leds.  You'll
--	  need this to do anything useful with LEDs.  If unsure, say N.
-+	  need this to do anything useful with LEDs.  If unsure, say M.
-+
-+	  Note: don't disable it as N, because plenty of led and trigger drivers
-+	  are using this option.
- 
- comment "LED drivers"
+ 			if (k != blocks_done) {
+ 				qla_printk(KERN_WARNING, sp->fcport->vha->hw,
+-				    "unexpected tag values tag:lba=%x:%lx)\n",
+-				    e_ref_tag, lba_s);
++				    "unexpected tag values tag:lba=%x:%llx)\n",
++				    e_ref_tag, (unsigned long long)lba_s);
+ 				return 1;
+ 			}
  
 _
 
-Patches currently in -mm which might be from bryan.wu@canonical.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
 linux-next.patch
+drm-fix-kconfig-unmet-dependency-warning.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+cross-memory-attach-update.patch
+consolidate-config_debug_strict_user_copy_checks-fix.patch
+dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
