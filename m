@@ -1,23 +1,28 @@
 From: akpm@google.com
-Subject: + memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch added to -mm tree
-Date: Mon, 26 Sep 2011 16:46:03 -0700
-Message-ID: <201109262346.p8QNk3EL029371@wpaz1.hot.corp.google.com>
+Subject: + rtc-mc13xxx-move-probe-and-remove-callbacks-to-inittext-and-exittext.patch added to -mm tree
+Date: Mon, 26 Sep 2011 16:58:04 -0700
+Message-ID: <201109262358.p8QNw447015511@hpaq14.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:61862 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:3609 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753083Ab1IZXqk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2011 19:46:40 -0400
+	with ESMTP id S1752990Ab1IZX7A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2011 19:59:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srostedt@redhat.com, balbir@linux.vnet.ibm.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de
+Cc: u.kleine-koenig@pengutronix.de, a.zummo@towertech.it
 
 
 The patch titled
-     Subject: memcg: Fix race condition in memcg_check_events() with this_cpu usage
+     Subject: drivers/rtc/rtc-mc13xxx.c: move probe and remove callback=
+s to .init.text and .exit.text
 has been added to the -mm tree.  Its filename is
-     memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch
+     rtc-mc13xxx-move-probe-and-remove-callbacks-to-inittext-and-exitte=
+xt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -25,94 +30,77 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-From: Steven Rostedt <srostedt@redhat.com>
-Subject: memcg: Fix race condition in memcg_check_events() with this_cpu usage
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: drivers/rtc/rtc-mc13xxx.c: move probe and remove callbacks to =
+=2Einit.text and .exit.text
 
-Various code in memcontrol.c () calls this_cpu_read() on the calculations
-to be done from two different percpu variables, or does an open-coded
-read-modify-write on a single percpu variable.
+The driver is added using platform_driver_probe(), so the callbacks can=
+ be
+discarded more aggessively.
 
-Disable preemption throughout these operations so that the writes go to
-the correct palces.
-
-[ Added this_cpu to __this_cpu conversion by Johannes ]
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- mm/memcontrol.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-mc13xxx.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage
-+++ a/mm/memcontrol.c
-@@ -687,8 +687,8 @@ static bool __memcg_event_check(struct m
- {
- 	unsigned long val, next;
- 
--	val = this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
--	next = this_cpu_read(memcg->stat->targets[target]);
-+	val = __this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
-+	next = __this_cpu_read(memcg->stat->targets[target]);
- 	/* from time_after() in jiffies.h */
- 	return ((long)next - (long)val < 0);
+diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-move-probe-and-remove-c=
+allbacks-to-inittext-and-exittext drivers/rtc/rtc-mc13xxx.c
+--- a/drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-move-probe-and-remove-callb=
+acks-to-inittext-and-exittext
++++ a/drivers/rtc/rtc-mc13xxx.c
+@@ -309,7 +309,7 @@ static irqreturn_t mc13xxx_rtc_reset_han
+ 	return IRQ_HANDLED;
  }
-@@ -697,7 +697,7 @@ static void __mem_cgroup_target_update(s
+=20
+-static int __devinit mc13xxx_rtc_probe(struct platform_device *pdev)
++static int __init mc13xxx_rtc_probe(struct platform_device *pdev)
  {
- 	unsigned long val, next;
- 
--	val = this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
-+	val = __this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
- 
- 	switch (target) {
- 	case MEM_CGROUP_TARGET_THRESH:
-@@ -713,7 +713,7 @@ static void __mem_cgroup_target_update(s
- 		return;
- 	}
- 
--	this_cpu_write(memcg->stat->targets[target], next);
-+	__this_cpu_write(memcg->stat->targets[target], next);
+ 	int ret;
+ 	struct mc13xxx_rtc *priv;
+@@ -378,7 +378,7 @@ err_reset_irq_request:
+ 	return ret;
  }
- 
- /*
-@@ -722,6 +722,7 @@ static void __mem_cgroup_target_update(s
-  */
- static void memcg_check_events(struct mem_cgroup *memcg, struct page *page)
+=20
+-static int __devexit mc13xxx_rtc_remove(struct platform_device *pdev)
++static int __exit mc13xxx_rtc_remove(struct platform_device *pdev)
  {
-+	preempt_disable();
- 	/* threshold event is triggered in finer grain than soft limit */
- 	if (unlikely(__memcg_event_check(memcg, MEM_CGROUP_TARGET_THRESH))) {
- 		mem_cgroup_threshold(memcg);
-@@ -741,6 +742,7 @@ static void memcg_check_events(struct me
- 		}
- #endif
- 	}
-+	preempt_enable();
- }
- 
- static struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
+ 	struct mc13xxx_rtc *priv =3D platform_get_drvdata(pdev);
+=20
+@@ -410,7 +410,7 @@ const struct platform_device_id mc13xxx_
+=20
+ static struct platform_driver mc13xxx_rtc_driver =3D {
+ 	.id_table =3D mc13xxx_rtc_idtable,
+-	.remove =3D __devexit_p(mc13xxx_rtc_remove),
++	.remove =3D __exit_p(mc13xxx_rtc_remove),
+ 	.driver =3D {
+ 		.name =3D DRIVER_NAME,
+ 		.owner =3D THIS_MODULE,
 _
-Subject: Subject: memcg: Fix race condition in memcg_check_events() with this_cpu usage
+Subject: Subject: drivers/rtc/rtc-mc13xxx.c: move probe and remove call=
+backs to .init.text and .exit.text
 
-Patches currently in -mm which might be from srostedt@redhat.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
 linux-next.patch
-memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch
+rtc-mc13xxx-move-probe-and-remove-callbacks-to-inittext-and-exittext.pa=
+tch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
