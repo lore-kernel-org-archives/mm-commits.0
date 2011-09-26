@@ -1,70 +1,88 @@
 From: akpm@google.com
-Subject: [merged] scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error.patch removed from -mm tree
-Date: Mon, 26 Sep 2011 12:22:06 -0700
-Message-ID: <201109261922.p8QJM6Pv000828@hpaq13.eem.corp.google.com>
+Subject: + alpha-wire-up-accept4-syscall.patch added to -mm tree
+Date: Mon, 26 Sep 2011 15:19:49 -0700
+Message-ID: <201109262219.p8QMJolq016766@wpaz24.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:62591 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:3410 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348Ab1IZTWV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2011 15:22:21 -0400
+	with ESMTP id S1751012Ab1IZWUN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2011 18:20:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mcree@orcon.net.nz, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net
 
 
 The patch titled
-     Subject: scsi: SCSI_ISCI needs to select SCSI_SAS_HOST_SMP, fixes build error
-has been removed from the -mm tree.  Its filename was
-     scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error.patch
+     Subject: alpha: wire up accept4 syscall
+has been added to the -mm tree.  Its filename is
+     alpha-wire-up-accept4-syscall.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: scsi: SCSI_ISCI needs to select SCSI_SAS_HOST_SMP, fixes build error
+From: Michael Cree <mcree@orcon.net.nz>
+Subject: alpha: wire up accept4 syscall
 
-SCSI_ISCI needs to select SCSI_SAS_HOST_SMP to ensure that all
-needed symbols are available to it.
+Somehow wiring up the accept4 syscall on Alpha was missed long ago.
+This commit rectifies that oversight.
 
-Fixes this build error:
-ERROR: "try_test_sas_gpio_gp_bit" [drivers/scsi/isci/isci.ko] undefined!
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Michael Cree <mcree@orcon.net.nz>
+Reviewed-by: Matt Turner <mattst88@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/scsi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/include/asm/unistd.h |    3 ++-
+ arch/alpha/kernel/systbls.S     |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/Kconfig~scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~scsi-scsi_isci-needs-to-select-scsi_sas_host_smp-fixes-build-error
-+++ a/drivers/scsi/Kconfig
-@@ -847,6 +847,7 @@ config SCSI_ISCI
- 	# (temporary): known alpha quality driver
- 	depends on EXPERIMENTAL
- 	select SCSI_SAS_LIBSAS
-+	select SCSI_SAS_HOST_SMP
- 	---help---
- 	  This driver supports the 6Gb/s SAS capabilities of the storage
- 	  control unit found in the Intel(R) C600 series chipset.
+diff -puN arch/alpha/include/asm/unistd.h~alpha-wire-up-accept4-syscall arch/alpha/include/asm/unistd.h
+--- a/arch/alpha/include/asm/unistd.h~alpha-wire-up-accept4-syscall
++++ a/arch/alpha/include/asm/unistd.h
+@@ -457,10 +457,11 @@
+ #define __NR_clock_adjtime		499
+ #define __NR_syncfs			500
+ #define __NR_setns			501
++#define __NR_accept4			502
+ 
+ #ifdef __KERNEL__
+ 
+-#define NR_SYSCALLS			502
++#define NR_SYSCALLS			503
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN arch/alpha/kernel/systbls.S~alpha-wire-up-accept4-syscall arch/alpha/kernel/systbls.S
+--- a/arch/alpha/kernel/systbls.S~alpha-wire-up-accept4-syscall
++++ a/arch/alpha/kernel/systbls.S
+@@ -520,6 +520,7 @@ sys_call_table:
+ 	.quad sys_clock_adjtime
+ 	.quad sys_syncfs			/* 500 */
+ 	.quad sys_setns
++	.quad sys_accept4
+ 
+ 	.size sys_call_table, . - sys_call_table
+ 	.type sys_call_table, @object
 _
+Subject: Subject: alpha: wire up accept4 syscall
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from mcree@orcon.net.nz are
 
 origin.patch
-linux-next.patch
-drm-fix-kconfig-unmet-dependency-warning.patch
-drivers-scsi-megaraidc-fix-sparse-warnings.patch
-cross-memory-attach-update.patch
-consolidate-config_debug_strict_user_copy_checks-fix.patch
-dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-init-add-root=partuuid=uuid-partnroff=%d-support.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+alpha-wire-up-accept4-syscall.patch
+alpha-wire-up-sendmmsg-syscall.patch
 
