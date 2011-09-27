@@ -1,180 +1,75 @@
 From: akpm@google.com
-Subject: [merged] x86-rtc-dont-recursively-acquire-rtc_lock.patch removed from -mm tree
-Date: Tue, 27 Sep 2011 12:03:23 -0700
-Message-ID: <201109271903.p8RJ3NF5004558@wpaz5.hot.corp.google.com>
+Subject: [merged] kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch removed from -mm tree
+Date: Tue, 27 Sep 2011 12:03:10 -0700
+Message-ID: <201109271903.p8RJ3CCf001033@hpaq13.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:16843 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:41325 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752510Ab1I0TDq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:03:46 -0400
+	with ESMTP id S1751343Ab1I0TEG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:04:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, avi@redhat.com, hpa@zytor.com, jbeulich@novell.com, jwboyer@gmail.com, mingo@elte.hu, rui.zhang@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: pyu@redhat.com, john.stultz@linaro.org, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86 rtc: don't recursively acquire rtc_lock
+     Subject: kernel/time.c: change jiffies_to_clock_t() input parameter's type to unsigned long
 has been removed from the -mm tree.  Its filename was
-     x86-rtc-dont-recursively-acquire-rtc_lock.patch
+     kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: x86 rtc: don't recursively acquire rtc_lock
+From: hank <pyu@redhat.com>
+Subject: kernel/time.c: change jiffies_to_clock_t() input parameter's type to unsigned long
 
-A deadlock was introduced on x86 in commit ef68c8f87ed1 ("x86: Serialize
-EFI time accesses on rtc_lock") because efi_get_time() and friends can be
-called with rtc_lock already held by read_persistent_time(), e.g.
+The parameter's origin type is long.  On an i386 architecture, it can
+easily be larger than 0x80000000, causing this function to convert it to a
+sign-extended u64 type.  Change the type to unsigned long so we get the
+correct result.
 
-timekeeping_init()
-    read_persistent_clock()     <-- acquire rtc_lock
-        efi_get_time()
-            phys_efi_get_time() <-- acquire rtc_lock <DEADLOCK>
-
-To fix this let's push the locking down into the get_wallclock() and
-set_wallclock() implementations.  Only the clock implementations that
-access the x86 RTC directly need to acquire rtc_lock, so it makes sense to
-push the locking down into the rtc, vrtc and efi code.
-
-The virtualization implementations don't require rtc_lock to be held
-because they provide their own serialization.
-
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
-Acked-by: Jan Beulich <jbeulich@novell.com>
-Acked-by: Avi Kivity <avi@redhat.com> [for the virtualization aspect]
-Cc: Ingo Molnar <mingo@elte.hu>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: hank <pyu@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Josh Boyer <jwboyer@gmail.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/rtc.c         |   23 ++++++++++++-----------
- arch/x86/platform/mrst/vrtc.c |    9 +++++++++
- 2 files changed, 21 insertions(+), 11 deletions(-)
+ include/linux/jiffies.h |    2 +-
+ kernel/time.c           |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/rtc.c~x86-rtc-dont-recursively-acquire-rtc_lock arch/x86/kernel/rtc.c
---- a/arch/x86/kernel/rtc.c~x86-rtc-dont-recursively-acquire-rtc_lock
-+++ a/arch/x86/kernel/rtc.c
-@@ -43,8 +43,11 @@ int mach_set_rtc_mmss(unsigned long nowt
+diff -puN include/linux/jiffies.h~kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long include/linux/jiffies.h
+--- a/include/linux/jiffies.h~kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long
++++ a/include/linux/jiffies.h
+@@ -303,7 +303,7 @@ extern void jiffies_to_timespec(const un
+ extern unsigned long timeval_to_jiffies(const struct timeval *value);
+ extern void jiffies_to_timeval(const unsigned long jiffies,
+ 			       struct timeval *value);
+-extern clock_t jiffies_to_clock_t(long x);
++extern clock_t jiffies_to_clock_t(unsigned long x);
+ extern unsigned long clock_t_to_jiffies(unsigned long x);
+ extern u64 jiffies_64_to_clock_t(u64 x);
+ extern u64 nsec_to_clock_t(u64 x);
+diff -puN kernel/time.c~kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long kernel/time.c
+--- a/kernel/time.c~kernel-timec-change-jiffies_to_clock_t-input-parameters-type-to-unsigned-long
++++ a/kernel/time.c
+@@ -575,7 +575,7 @@ EXPORT_SYMBOL(jiffies_to_timeval);
+ /*
+  * Convert jiffies/jiffies_64 to clock_t and back.
+  */
+-clock_t jiffies_to_clock_t(long x)
++clock_t jiffies_to_clock_t(unsigned long x)
  {
- 	int real_seconds, real_minutes, cmos_minutes;
- 	unsigned char save_control, save_freq_select;
-+	unsigned long flags;
- 	int retval = 0;
- 
-+	spin_lock_irqsave(&rtc_lock, flags);
-+
- 	 /* tell the clock it's being set */
- 	save_control = CMOS_READ(RTC_CONTROL);
- 	CMOS_WRITE((save_control|RTC_SET), RTC_CONTROL);
-@@ -94,12 +97,17 @@ int mach_set_rtc_mmss(unsigned long nowt
- 	CMOS_WRITE(save_control, RTC_CONTROL);
- 	CMOS_WRITE(save_freq_select, RTC_FREQ_SELECT);
- 
-+	spin_unlock_irqrestore(&rtc_lock, flags);
-+
- 	return retval;
- }
- 
- unsigned long mach_get_cmos_time(void)
- {
- 	unsigned int status, year, mon, day, hour, min, sec, century = 0;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&rtc_lock, flags);
- 
- 	/*
- 	 * If UIP is clear, then we have >= 244 microseconds before
-@@ -126,6 +134,8 @@ unsigned long mach_get_cmos_time(void)
- 	status = CMOS_READ(RTC_CONTROL);
- 	WARN_ON_ONCE(RTC_ALWAYS_BCD && (status & RTC_DM_BINARY));
- 
-+	spin_unlock_irqrestore(&rtc_lock, flags);
-+
- 	if (RTC_ALWAYS_BCD || !(status & RTC_DM_BINARY)) {
- 		sec = bcd2bin(sec);
- 		min = bcd2bin(min);
-@@ -170,24 +180,15 @@ EXPORT_SYMBOL(rtc_cmos_write);
- 
- int update_persistent_clock(struct timespec now)
- {
--	unsigned long flags;
--	int retval;
--
--	spin_lock_irqsave(&rtc_lock, flags);
--	retval = x86_platform.set_wallclock(now.tv_sec);
--	spin_unlock_irqrestore(&rtc_lock, flags);
--
--	return retval;
-+	return x86_platform.set_wallclock(now.tv_sec);
- }
- 
- /* not static: needed by APM */
- void read_persistent_clock(struct timespec *ts)
- {
--	unsigned long retval, flags;
-+	unsigned long retval;
- 
--	spin_lock_irqsave(&rtc_lock, flags);
- 	retval = x86_platform.get_wallclock();
--	spin_unlock_irqrestore(&rtc_lock, flags);
- 
- 	ts->tv_sec = retval;
- 	ts->tv_nsec = 0;
-diff -puN arch/x86/platform/mrst/vrtc.c~x86-rtc-dont-recursively-acquire-rtc_lock arch/x86/platform/mrst/vrtc.c
---- a/arch/x86/platform/mrst/vrtc.c~x86-rtc-dont-recursively-acquire-rtc_lock
-+++ a/arch/x86/platform/mrst/vrtc.c
-@@ -59,8 +59,11 @@ EXPORT_SYMBOL_GPL(vrtc_cmos_write);
- unsigned long vrtc_get_time(void)
- {
- 	u8 sec, min, hour, mday, mon;
-+	unsigned long flags;
- 	u32 year;
- 
-+	spin_lock_irqsave(&rtc_lock, flags);
-+
- 	while ((vrtc_cmos_read(RTC_FREQ_SELECT) & RTC_UIP))
- 		cpu_relax();
- 
-@@ -71,6 +74,8 @@ unsigned long vrtc_get_time(void)
- 	mon = vrtc_cmos_read(RTC_MONTH);
- 	year = vrtc_cmos_read(RTC_YEAR);
- 
-+	spin_unlock_irqrestore(&rtc_lock, flags);
-+
- 	/* vRTC YEAR reg contains the offset to 1960 */
- 	year += 1960;
- 
-@@ -84,8 +89,10 @@ unsigned long vrtc_get_time(void)
- int vrtc_set_mmss(unsigned long nowtime)
- {
- 	int real_sec, real_min;
-+	unsigned long flags;
- 	int vrtc_min;
- 
-+	spin_lock_irqsave(&rtc_lock, flags);
- 	vrtc_min = vrtc_cmos_read(RTC_MINUTES);
- 
- 	real_sec = nowtime % 60;
-@@ -96,6 +103,8 @@ int vrtc_set_mmss(unsigned long nowtime)
- 
- 	vrtc_cmos_write(real_sec, RTC_SECONDS);
- 	vrtc_cmos_write(real_min, RTC_MINUTES);
-+	spin_unlock_irqrestore(&rtc_lock, flags);
-+
- 	return 0;
- }
- 
+ #if (TICK_NSEC % (NSEC_PER_SEC / USER_HZ)) == 0
+ # if HZ < USER_HZ
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from pyu@redhat.com are
 
-origin.patch
 linux-next.patch
 
