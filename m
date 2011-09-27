@@ -1,59 +1,67 @@
 From: akpm@google.com
-Subject: [wrecked] fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch removed from -mm tree
-Date: Tue, 27 Sep 2011 12:11:07 -0700
-Message-ID: <201109271911.p8RJB7Zx008164@hpaq1.eem.corp.google.com>
+Subject: + include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch added to -mm tree
+Date: Tue, 27 Sep 2011 12:47:05 -0700
+Message-ID: <201109272026.p8RKQpGI027125@hpaq6.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:21036 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:24215 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565Ab1I0TLz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:11:55 -0400
+	with ESMTP id S1752147Ab1I0U1F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 16:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andy.shevchenko@gmail.com, dhowells@redhat.com, jmorris@namei.org, serge@hallyn.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@redhat.com, suresh.b.siddha@intel.com
 
 
 The patch titled
-     Subject: fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
-has been removed from the -mm tree.  Its filename was
-     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix.patch
+     include/linux/dmar.h: forward-declare struct acpi_dmar_header
+has been added to the -mm tree.  Its filename is
+     include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
+Subject: include/linux/dmar.h: forward-declare struct acpi_dmar_header
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
 
-Use hex2bin()
+x86_64 allnoconfig:
 
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: Serge E. Hallyn <serge@hallyn.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Andrew Morton <akpm@google.com>
+In file included from arch/x86/kernel/pci-dma.c:3:
+include/linux/dmar.h:248: warning: 'struct acpi_dmar_header' declared inside parameter list
+include/linux/dmar.h:248: warning: its scope is only this definition or declaration, which is probably not what you want
+
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/dmar.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix
-+++ a/fs/binfmt_misc.c
-@@ -243,9 +243,7 @@ static int unquote(char *from)
+diff -puN include/linux/dmar.h~include-linux-dmarh-forward-declare-struct-acpi_dmar_header include/linux/dmar.h
+--- a/include/linux/dmar.h~include-linux-dmarh-forward-declare-struct-acpi_dmar_header
++++ a/include/linux/dmar.h
+@@ -26,6 +26,8 @@
+ #include <linux/msi.h>
+ #include <linux/irqreturn.h>
  
- 	while ((c = *s++) != '\0') {
- 		if (c == '\\' && *s == 'x') {
--			s++;
--			*p = hex_to_bin(*s++) << 4;
--			*p++ |= hex_to_bin(*s++);
-+			s = (char *)hex2bin(p, s + 1, 1);
- 			continue;
- 		}
- 		*p++ = c;
++struct acpi_dmar_header;
++
+ /* DMAR Flags */
+ #define DMAR_INTR_REMAP		0x1
+ #define DMAR_X2APIC_OPT_OUT	0x2
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,7 +97,6 @@ leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
 llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
 lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 sysctl-add-support-for-poll-fix.patch
 pps-new-client-driver-using-gpio-fix.patch
@@ -107,4 +114,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
 
