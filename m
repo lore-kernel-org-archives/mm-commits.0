@@ -1,521 +1,83 @@
 From: akpm@google.com
-Subject: [merged] leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface.patch removed from -mm tree
-Date: Tue, 27 Sep 2011 12:03:28 -0700
-Message-ID: <201109271903.p8RJ3SY2004719@wpaz5.hot.corp.google.com>
+Subject: [wrecked] tracex86-add-tracepoint-to-x86-timer-interrupt-handler.patch removed from -mm tree
+Date: Tue, 27 Sep 2011 12:06:18 -0700
+Message-ID: <201109271906.p8RJ6IA3016901@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:41390 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:18305 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751343Ab1I0TEO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:04:14 -0400
+	with ESMTP id S1753172Ab1I0TGh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:06:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: git@wildgooses.com, a.zummo@towertech.it, daniel@caiaq.de, grant.likely@secretlab.ca, hpa@zytor.com, kernel@wildgooses.com, mingo@elte.hu, rpurdie@rpsys.net, tglx@linutronix.de, mm-co
+To: vnagarnaik@google.com, a.p.zijlstra@chello.nl, dhsharp@google.com, fweisbec@gmail.com, mingo@redhat.com, mrubin@google.com, rostedt@goodmis.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds: new PCEngines Alix system driver (enables LEDs via gpio interface)
+     Subject: trace,x86: add tracepoint to x86 timer interrupt handler
 has been removed from the -mm tree.  Its filename was
-     leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface.patch
+     tracex86-add-tracepoint-to-x86-timer-interrupt-handler.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ed Wildgoose <git@wildgooses.com>
-Subject: leds: new PCEngines Alix system driver (enables LEDs via gpio interface)
+From: Vaibhav Nagarnaik <vnagarnaik@google.com>
+Subject: trace,x86: add tracepoint to x86 timer interrupt handler
 
-This new driver replaces the old PCEngines Alix 2/3 LED driver with a new
-driver that controls the LEDs through the leds-gpio driver.  The old
-driver accessed GPIOs directly, which created a conflict and prevented
-also loading the cs5535-gpio driver to read other GPIOs on the Alix board.
- With this new driver, we hook into leds-gpio which in turn uses GPIO to
-control the LEDs and therefore it's possible to control both the LEDs and
-access onboard GPIOs
+The x86 timer interrupt handler is the only handler not traced in the
+irq/irq_handler_{entry|exit} trace events.
 
-Driver is moved to platform/geode and any other geode initialisation
-modules should move here also.
+Add tracepoints to the interrupt handler to trace it.
 
-This driver is inspired by leds-net5501.c by Alessandro Zummo.
-
-Ideally, leds-net5501.c should also be moved to platform/geode. 
-Additionally the driver relies on parts of the patch: 7f131cf3ed ("leds:
-leds-alix2c - take port address from MSR) by Daniel Mack to perform
-detection of the Alix board.
-
-[akpm@linux-foundation.org: include module.h]
-Signed-off-by: Ed Wildgoose <kernel@wildgooses.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Daniel Mack <daniel@caiaq.de>
-Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Vaibhav Nagarnaik <vnagarnaik@google.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Michael Rubin <mrubin@google.com>
+Cc: David Sharp <dhsharp@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                 |   14 +
- arch/x86/platform/Makefile       |    1 
- arch/x86/platform/geode/Makefile |    1 
- arch/x86/platform/geode/alix.c   |  142 +++++++++++++++++
- drivers/leds/Kconfig             |    8 
- drivers/leds/Makefile            |    1 
- drivers/leds/leds-alix2.c        |  239 -----------------------------
- 7 files changed, 158 insertions(+), 248 deletions(-)
+ arch/x86/kernel/time.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/Kconfig~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface arch/x86/Kconfig
---- a/arch/x86/Kconfig~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface
-+++ a/arch/x86/Kconfig
-@@ -2074,6 +2074,20 @@ config OLPC_XO15_SCI
- 	   - AC adapter status updates
- 	   - Battery status updates
+diff -puN arch/x86/kernel/time.c~tracex86-add-tracepoint-to-x86-timer-interrupt-handler arch/x86/kernel/time.c
+--- a/arch/x86/kernel/time.c~tracex86-add-tracepoint-to-x86-timer-interrupt-handler
++++ a/arch/x86/kernel/time.c
+@@ -52,6 +52,13 @@ unsigned long profile_pc(struct pt_regs 
+ }
+ EXPORT_SYMBOL(profile_pc);
  
-+config ALIX
-+	bool "PCEngines ALIX System Support (LED setup)"
-+	select GPIOLIB
-+	---help---
-+	  This option enables system support for the PCEngines ALIX.
-+	  At present this just sets up LEDs for GPIO control on
-+	  ALIX2/3/6 boards.  However, other system specific setup should
-+	  get added here.
-+
-+	  Note: You must still enable the drivers for GPIO and LED support
-+	  (GPIO_CS5535 & LEDS_GPIO) to actually use the LEDs
-+
-+	  Note: You have to set alix.force=1 for boards with Award BIOS.
-+
- endif # X86_32
- 
- config AMD_NB
-diff -puN arch/x86/platform/Makefile~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface arch/x86/platform/Makefile
---- a/arch/x86/platform/Makefile~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface
-+++ a/arch/x86/platform/Makefile
-@@ -1,6 +1,7 @@
- # Platform specific code goes here
- obj-y	+= ce4100/
- obj-y	+= efi/
-+obj-y	+= geode/
- obj-y	+= iris/
- obj-y	+= mrst/
- obj-y	+= olpc/
-diff -puN /dev/null arch/x86/platform/geode/Makefile
---- /dev/null
-+++ a/arch/x86/platform/geode/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_ALIX)		+= alix.o
-diff -puN /dev/null arch/x86/platform/geode/alix.c
---- /dev/null
-+++ a/arch/x86/platform/geode/alix.c
-@@ -0,0 +1,142 @@
-+/*
-+ * System Specific setup for PCEngines ALIX.
-+ * At the moment this means setup of GPIO control of LEDs
-+ * on Alix.2/3/6 boards.
-+ *
-+ *
-+ * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
-+ * Copyright (C) 2011 Ed Wildgoose <kernel@wildgooses.com>
-+ *
-+ * TODO: There are large similarities with leds-net5501.c
-+ * by Alessandro Zummo <a.zummo@towertech.it>
-+ * In the future leds-net5501.c should be migrated over to platform
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/string.h>
-+#include <linux/module.h>
-+#include <linux/leds.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio.h>
-+
-+#include <asm/geode.h>
-+
-+static int force = 0;
-+module_param(force, bool, 0444);
-+/* FIXME: Award bios is not automatically detected as Alix platform */
-+MODULE_PARM_DESC(force, "Force detection as ALIX.2/ALIX.3 platform");
-+
-+static struct gpio_led alix_leds[] = {
-+	{
-+		.name = "alix:1",
-+		.gpio = 6,
-+		.default_trigger = "default-on",
-+		.active_low = 1,
-+	},
-+	{
-+		.name = "alix:2",
-+		.gpio = 25,
-+		.default_trigger = "default-off",
-+		.active_low = 1,
-+	},
-+	{
-+		.name = "alix:3",
-+		.gpio = 27,
-+		.default_trigger = "default-off",
-+		.active_low = 1,
-+	},
++static irqreturn_t timer_interrupt(int irq, void *dev_id);
++static struct irqaction irq0  = {
++	.handler = timer_interrupt,
++	.flags = IRQF_DISABLED | IRQF_NOBALANCING | IRQF_IRQPOLL | IRQF_TIMER,
++	.name = "timer"
 +};
 +
-+static struct gpio_led_platform_data alix_leds_data = {
-+	.num_leds = ARRAY_SIZE(alix_leds),
-+	.leds = alix_leds,
-+};
-+
-+static struct platform_device alix_leds_dev = {
-+	.name = "leds-gpio",
-+	.id = -1,
-+	.dev.platform_data = &alix_leds_data,
-+};
-+
-+static void __init register_alix(void)
-+{
-+	/* Setup LED control through leds-gpio driver */
-+	platform_device_register(&alix_leds_dev);
-+}
-+
-+static int __init alix_present(unsigned long bios_phys,
-+				const char *alix_sig,
-+				size_t alix_sig_len)
-+{
-+	const size_t bios_len = 0x00010000;
-+	const char *bios_virt;
-+	const char *scan_end;
-+	const char *p;
-+	char name[64];
-+
-+	if (force) {
-+		printk(KERN_NOTICE "%s: forced to skip BIOS test, "
-+		       "assume system is ALIX.2/ALIX.3\n",
-+		       KBUILD_MODNAME);
-+		return 1;
-+	}
-+
-+	bios_virt = phys_to_virt(bios_phys);
-+	scan_end = bios_virt + bios_len - (alix_sig_len + 2);
-+	for (p = bios_virt; p < scan_end; p++) {
-+		const char *tail;
-+		char *a;
-+
-+		if (memcmp(p, alix_sig, alix_sig_len) != 0)
-+			continue;
-+
-+		memcpy(name, p, sizeof(name));
-+
-+		/* remove the first \0 character from string */
-+		a = strchr(name, '\0');
-+		if (a)
-+			*a = ' ';
-+
-+		/* cut the string at a newline */
-+		a = strchr(name, '\r');
-+		if (a)
-+			*a = '\0';
-+
-+		tail = p + alix_sig_len;
-+		if ((tail[0] == '2' || tail[0] == '3')) {
-+			printk(KERN_INFO
-+			       "%s: system is recognized as \"%s\"\n",
-+			       KBUILD_MODNAME, name);
-+			return 1;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init alix_init(void)
-+{
-+	const char tinybios_sig[] = "PC Engines ALIX.";
-+	const char coreboot_sig[] = "PC Engines\0ALIX.";
-+
-+	if (!is_geode())
-+		return 0;
-+
-+	if (alix_present(0xf0000, tinybios_sig, sizeof(tinybios_sig) - 1) ||
-+	    alix_present(0x500, coreboot_sig, sizeof(coreboot_sig) - 1))
-+		register_alix();
-+
-+	return 0;
-+}
-+
-+module_init(alix_init);
-+
-+MODULE_AUTHOR("Ed Wildgoose <kernel@wildgooses.com>");
-+MODULE_DESCRIPTION("PCEngines ALIX System Setup");
-+MODULE_LICENSE("GPL");
-diff -puN drivers/leds/Kconfig~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface
-+++ a/drivers/leds/Kconfig
-@@ -113,14 +113,6 @@ config LEDS_WRAP
- 	help
- 	  This option enables support for the PCEngines WRAP programmable LEDs.
+ /*
+  * Default timer interrupt handler for PIT/HPET
+  */
+@@ -60,7 +67,9 @@ static irqreturn_t timer_interrupt(int i
+ 	/* Keep nmi watchdog up to date */
+ 	inc_irq_stat(irq0_irqs);
  
--config LEDS_ALIX2
--	tristate "LED Support for ALIX.2 and ALIX.3 series"
--	depends on LEDS_CLASS
--	depends on X86 && !GPIO_CS5535 && !CS5535_GPIO
--	help
--	  This option enables support for the PCEngines ALIX.2 and ALIX.3 LEDs.
--	  You have to set leds-alix2.force=1 for boards with Award BIOS.
--
- config LEDS_COBALT_QUBE
- 	tristate "LED Support for the Cobalt Qube series front LED"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/Makefile~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface
-+++ a/drivers/leds/Makefile
-@@ -16,7 +16,6 @@ obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-am
- obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
- obj-$(CONFIG_LEDS_NET5501)		+= leds-net5501.o
- obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
--obj-$(CONFIG_LEDS_ALIX2)		+= leds-alix2.o
- obj-$(CONFIG_LEDS_COBALT_QUBE)		+= leds-cobalt-qube.o
- obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
- obj-$(CONFIG_LEDS_SUNFIRE)		+= leds-sunfire.o
-diff -puN drivers/leds/leds-alix2.c~leds-new-pcengines-alix-system-driver-enables-leds-via-gpio-interface /dev/null
---- a/drivers/leds/leds-alix2.c
-+++ /dev/null
-@@ -1,239 +0,0 @@
--/*
-- * LEDs driver for PCEngines ALIX.2 and ALIX.3
-- *
-- * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
-- */
--
--#include <linux/err.h>
--#include <linux/io.h>
--#include <linux/kernel.h>
--#include <linux/leds.h>
--#include <linux/module.h>
--#include <linux/platform_device.h>
--#include <linux/string.h>
--#include <linux/pci.h>
--
--static int force = 0;
--module_param(force, bool, 0444);
--MODULE_PARM_DESC(force, "Assume system has ALIX.2/ALIX.3 style LEDs");
--
--#define MSR_LBAR_GPIO		0x5140000C
--#define CS5535_GPIO_SIZE	256
--
--static u32 gpio_base;
--
--static struct pci_device_id divil_pci[] = {
--	{ PCI_DEVICE(PCI_VENDOR_ID_NS,  PCI_DEVICE_ID_NS_CS5535_ISA) },
--	{ PCI_DEVICE(PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA) },
--	{ } /* NULL entry */
++	trace_irq_handler_entry(irq, &irq0);
+ 	global_clock_event->event_handler(global_clock_event);
++	trace_irq_handler_exit(irq, &irq0, 1);
+ 
+ 	/* MCA bus quirk: Acknowledge irq0 by setting bit 7 in port 0x61 */
+ 	if (MCA_bus)
+@@ -69,12 +78,6 @@ static irqreturn_t timer_interrupt(int i
+ 	return IRQ_HANDLED;
+ }
+ 
+-static struct irqaction irq0  = {
+-	.handler = timer_interrupt,
+-	.flags = IRQF_DISABLED | IRQF_NOBALANCING | IRQF_IRQPOLL | IRQF_TIMER,
+-	.name = "timer"
 -};
--MODULE_DEVICE_TABLE(pci, divil_pci);
--
--struct alix_led {
--	struct led_classdev cdev;
--	unsigned short port;
--	unsigned int on_value;
--	unsigned int off_value;
--};
--
--static void alix_led_set(struct led_classdev *led_cdev,
--			 enum led_brightness brightness)
--{
--	struct alix_led *led_dev =
--		container_of(led_cdev, struct alix_led, cdev);
--
--	if (brightness)
--		outl(led_dev->on_value, gpio_base + led_dev->port);
--	else
--		outl(led_dev->off_value, gpio_base + led_dev->port);
--}
--
--static struct alix_led alix_leds[] = {
--	{
--		.cdev = {
--			.name = "alix:1",
--			.brightness_set = alix_led_set,
--		},
--		.port = 0x00,
--		.on_value = 1 << 22,
--		.off_value = 1 << 6,
--	},
--	{
--		.cdev = {
--			.name = "alix:2",
--			.brightness_set = alix_led_set,
--		},
--		.port = 0x80,
--		.on_value = 1 << 25,
--		.off_value = 1 << 9,
--	},
--	{
--		.cdev = {
--			.name = "alix:3",
--			.brightness_set = alix_led_set,
--		},
--		.port = 0x80,
--		.on_value = 1 << 27,
--		.off_value = 1 << 11,
--	},
--};
--
--static int __init alix_led_probe(struct platform_device *pdev)
--{
--	int i;
--	int ret;
--
--	for (i = 0; i < ARRAY_SIZE(alix_leds); i++) {
--		alix_leds[i].cdev.flags |= LED_CORE_SUSPENDRESUME;
--		ret = led_classdev_register(&pdev->dev, &alix_leds[i].cdev);
--		if (ret < 0)
--			goto fail;
--	}
--	return 0;
--
--fail:
--	while (--i >= 0)
--		led_classdev_unregister(&alix_leds[i].cdev);
--	return ret;
--}
--
--static int alix_led_remove(struct platform_device *pdev)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
--		led_classdev_unregister(&alix_leds[i].cdev);
--	return 0;
--}
--
--static struct platform_driver alix_led_driver = {
--	.remove = alix_led_remove,
--	.driver = {
--		.name = KBUILD_MODNAME,
--		.owner = THIS_MODULE,
--	},
--};
--
--static int __init alix_present(unsigned long bios_phys,
--				const char *alix_sig,
--				size_t alix_sig_len)
--{
--	const size_t bios_len = 0x00010000;
--	const char *bios_virt;
--	const char *scan_end;
--	const char *p;
--	char name[64];
--
--	if (force) {
--		printk(KERN_NOTICE "%s: forced to skip BIOS test, "
--		       "assume system has ALIX.2 style LEDs\n",
--		       KBUILD_MODNAME);
--		return 1;
--	}
--
--	bios_virt = phys_to_virt(bios_phys);
--	scan_end = bios_virt + bios_len - (alix_sig_len + 2);
--	for (p = bios_virt; p < scan_end; p++) {
--		const char *tail;
--		char *a;
--
--		if (memcmp(p, alix_sig, alix_sig_len) != 0)
--			continue;
--
--		memcpy(name, p, sizeof(name));
--
--		/* remove the first \0 character from string */
--		a = strchr(name, '\0');
--		if (a)
--			*a = ' ';
--
--		/* cut the string at a newline */
--		a = strchr(name, '\r');
--		if (a)
--			*a = '\0';
--
--		tail = p + alix_sig_len;
--		if ((tail[0] == '2' || tail[0] == '3')) {
--			printk(KERN_INFO
--			       "%s: system is recognized as \"%s\"\n",
--			       KBUILD_MODNAME, name);
--			return 1;
--		}
--	}
--
--	return 0;
--}
--
--static struct platform_device *pdev;
--
--static int __init alix_pci_led_init(void)
--{
--	u32 low, hi;
--
--	if (pci_dev_present(divil_pci) == 0) {
--		printk(KERN_WARNING KBUILD_MODNAME": DIVIL not found\n");
--		return -ENODEV;
--	}
--
--	/* Grab the GPIO I/O range */
--	rdmsr(MSR_LBAR_GPIO, low, hi);
--
--	/* Check the mask and whether GPIO is enabled (sanity check) */
--	if (hi != 0x0000f001) {
--		printk(KERN_WARNING KBUILD_MODNAME": GPIO not enabled\n");
--		return -ENODEV;
--	}
--
--	/* Mask off the IO base address */
--	gpio_base = low & 0x0000ff00;
--
--	if (!request_region(gpio_base, CS5535_GPIO_SIZE, KBUILD_MODNAME)) {
--		printk(KERN_ERR KBUILD_MODNAME": can't allocate I/O for GPIO\n");
--		return -ENODEV;
--	}
--
--	/* Set GPIO function to output */
--	outl(1 << 6, gpio_base + 0x04);
--	outl(1 << 9, gpio_base + 0x84);
--	outl(1 << 11, gpio_base + 0x84);
--
--	return 0;
--}
--
--static int __init alix_led_init(void)
--{
--	int ret = -ENODEV;
--	const char tinybios_sig[] = "PC Engines ALIX.";
--	const char coreboot_sig[] = "PC Engines\0ALIX.";
--
--	if (alix_present(0xf0000, tinybios_sig, sizeof(tinybios_sig) - 1) ||
--	    alix_present(0x500, coreboot_sig, sizeof(coreboot_sig) - 1))
--		ret = alix_pci_led_init();
--
--	if (ret < 0)
--		return ret;
--
--	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
--	if (!IS_ERR(pdev)) {
--		ret = platform_driver_probe(&alix_led_driver, alix_led_probe);
--		if (ret)
--			platform_device_unregister(pdev);
--	} else
--		ret = PTR_ERR(pdev);
--
--	return ret;
--}
--
--static void __exit alix_led_exit(void)
--{
--	platform_device_unregister(pdev);
--	platform_driver_unregister(&alix_led_driver);
--	release_region(gpio_base, CS5535_GPIO_SIZE);
--}
--
--module_init(alix_led_init);
--module_exit(alix_led_exit);
