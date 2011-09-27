@@ -1,78 +1,111 @@
 From: akpm@google.com
-Subject: [merged] drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init.patch removed from -mm tree
-Date: Tue, 27 Sep 2011 12:11:38 -0700
-Message-ID: <201109271911.p8RJBcc9025044@wpaz33.hot.corp.google.com>
+Subject: [wrecked] fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch removed from -mm tree
+Date: Tue, 27 Sep 2011 12:11:12 -0700
+Message-ID: <201109271911.p8RJBCkS022876@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:45599 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:45683 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565Ab1I0TLq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:11:46 -0400
+	with ESMTP id S1751565Ab1I0TMA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:12:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jj@chaosbits.net, magi@slimlogic.co.uk, sameo@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andy.shevchenko@gmail.com, dhowells@redhat.com, jmorris@namei.org, serge@hallyn.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/mfd/tps65912-core.c: don't leak init_data in tps65912_device_init()
+     Subject: fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init.patch
+     fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jesper Juhl <jj@chaosbits.net>
-Subject: drivers/mfd/tps65912-core.c: don't leak init_data in tps65912_device_init()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
 
-We neglect to free init_data on successful exit.  I also moved two
-assignments to just before they are needed.  This avoids doing them in
-case we hit an earlier error exit from the function.
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Margarita Olaya Cabrera <magi@slimlogic.co.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Serge E. Hallyn <serge@hallyn.com>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/mfd/tps65912-core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/binfmt_misc.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mfd/tps65912-core.c~drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init drivers/mfd/tps65912-core.c
---- a/drivers/mfd/tps65912-core.c~drivers-mfd-tps65912-corec-dont-leak-init_data-in-tps65912_device_init
-+++ a/drivers/mfd/tps65912-core.c
-@@ -131,9 +131,6 @@ int tps65912_device_init(struct tps65912
- 	if (init_data == NULL)
- 		return -ENOMEM;
+diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~fs-binfmt_miscc-use-kernels-hex_to_bin-method-fix-fix
++++ a/fs/binfmt_misc.c
+@@ -242,11 +242,10 @@ static int unquote(char *from)
+ 	char c = 0, *s = from, *p = from;
  
--	init_data->irq = pmic_plat_data->irq;
--	init_data->irq_base = pmic_plat_data->irq;
--
- 	mutex_init(&tps65912->io_mutex);
- 	dev_set_drvdata(tps65912->dev, tps65912);
- 
-@@ -153,10 +150,13 @@ int tps65912_device_init(struct tps65912
- 	if (ret < 0)
- 		goto err;
- 
-+	init_data->irq = pmic_plat_data->irq;
-+	init_data->irq_base = pmic_plat_data->irq;
- 	ret = tps65912_irq_init(tps65912, init_data->irq, init_data);
- 	if (ret < 0)
- 		goto err;
- 
-+	kfree(init_data);
- 	return ret;
- 
- err:
+ 	while ((c = *s++) != '\0') {
+-		if (c == '\\' && *s == 'x') {
+-			s = (char *)hex2bin(p, s + 1, 1);
+-			continue;
+-		}
+-		*p++ = c;
++		if (c == '\\' && *s == 'x')
++			s = (char *)hex2bin(p++, s + 1, 1);
++		else
++			*p++ = c;
+ 	}
+ 	return p - from;
+ }
 _
 
-Patches currently in -mm which might be from jj@chaosbits.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-audit-always-follow-va_copy-with-va_end.patch
-drivers-gpu-vga-vgaarbc-add-missing-kfree.patch
-drivers-scsi-aacraid-commctrlc-fix-mem-leak-in-aac_send_raw_srb.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+drivers-block-mtip32xx-mtip32xxc-fix-warning.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
