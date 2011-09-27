@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch added to -mm tree
-Date: Tue, 27 Sep 2011 12:49:41 -0700
-Message-ID: <201109272029.p8RKTQrp018842@hpaq14.eem.corp.google.com>
+Subject: + drivers-power-intel_mid_batteryc-fix-build.patch added to -mm tree
+Date: Tue, 27 Sep 2011 15:31:33 -0700
+Message-ID: <201109272311.p8RNBIK6020199@wpaz17.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:25879 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:19013 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308Ab1I0U3f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 16:29:35 -0400
+	with ESMTP id S1753083Ab1I0XL2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 19:11:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, kjwinchester@gmail.com, mingo@redhat.com
+Cc: akpm@linux-foundation.org, alan@linux.intel.com, cbouatmailru@gmail.com, nithish.mahalingam@intel.com
 
 
 The patch titled
-     arch/x86/kernel/cpu/perf_event_amd.c needs asm/apicdef.h
+     drivers/power/intel_mid_battery.c: fix build
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch
+     drivers-power-intel_mid_batteryc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/cpu/perf_event_amd.c needs asm/apicdef.h
+Subject: drivers/power/intel_mid_battery.c: fix build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-x86_64 allnoconfig:
+Seems that nobody's even trying any more.
 
-arch/x86/kernel/cpu/perf_event_amd.c: In function 'amd_pmu_cpu_starting':
-arch/x86/kernel/cpu/perf_event_amd.c:350: error: 'BAD_APICID' undeclared (first use in this function)
-arch/x86/kernel/cpu/perf_event_amd.c:350: error: (Each undeclared identifier is reported only once
-arch/x86/kernel/cpu/perf_event_amd.c:350: error: for each function it appears in.)
-
-Cc: Kevin Winchester <kjwinchester@gmail.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Nithish Mahalingam <nithish.mahalingam@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- arch/x86/kernel/cpu/perf_event_amd.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/power/intel_mid_battery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/perf_event_amd.c~arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh arch/x86/kernel/cpu/perf_event_amd.c
---- a/arch/x86/kernel/cpu/perf_event_amd.c~arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh
-+++ a/arch/x86/kernel/cpu/perf_event_amd.c
-@@ -3,6 +3,8 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- 
-+#include <asm/apicdef.h>
-+
- #include "perf_event.h"
- 
- static __initconst const u64 amd_hw_cache_event_ids
+diff -puN drivers/power/intel_mid_battery.c~drivers-power-intel_mid_batteryc-fix-build drivers/power/intel_mid_battery.c
+--- a/drivers/power/intel_mid_battery.c~drivers-power-intel_mid_batteryc-fix-build
++++ a/drivers/power/intel_mid_battery.c
+@@ -314,7 +314,7 @@ static void pmic_battery_read_status(str
+ 			pbi->batt_health = POWER_SUPPLY_HEALTH_GOOD;
+ 			if (r8 & PMIC_BATT_CHR_SDCLMT_MASK) {
+ 				/* PMIC will change charging current automatically */
+-				pmic_battery_log_event(pbi, BATT_EVENT_DCLMT_EXCPT);
++				pmic_battery_log_event(BATT_EVENT_DCLMT_EXCPT);
+ 			}
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,9 +68,11 @@ linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
 drivers-block-mtip32xx-mtip32xxc-fix-warning.patch
+drivers-block-mtip32xx-mtip32xxc-needs-compath.patch
 mm.patch
 mm-add-comments-to-explain-mm_struct-fields-fix.patch
 vmscan-use-atomic-long-for-shrinker-batching-fix.patch
@@ -117,5 +114,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch
+drivers-power-intel_mid_batteryc-fix-build.patch
 
