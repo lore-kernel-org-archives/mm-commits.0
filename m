@@ -1,435 +1,344 @@
 From: akpm@google.com
-Subject: [wrecked] tracex86-add-x86-irq-vector-entry-exit-tracepoints.patch removed from -mm tree
-Date: Tue, 27 Sep 2011 12:06:29 -0700
-Message-ID: <201109271906.p8RJ6TRg000364@hpaq2.eem.corp.google.com>
+Subject: [wrecked] pci-dmar-update-dmar-units-devices-list-during-hotplug.patch removed from -mm tree
+Date: Tue, 27 Sep 2011 12:08:57 -0700
+Message-ID: <201109271908.p8RJ8wM3029613@wpaz29.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:42898 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:19937 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753172Ab1I0TGr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:06:47 -0400
+	with ESMTP id S1752058Ab1I0TJx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 15:09:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vnagarnaik@google.com, a.p.zijlstra@chello.nl, dhsharp@google.com, fweisbec@gmail.com, mingo@redhat.com, mrubin@google.com, rostedt@goodmis.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, dan.j.williams@intel.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, vinod.koul@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: trace,x86: add x86 irq vector entry/exit tracepoints
+     Subject: pci, dmar: update dmar units devices list during hotplug
 has been removed from the -mm tree.  Its filename was
-     tracex86-add-x86-irq-vector-entry-exit-tracepoints.patch
+     pci-dmar-update-dmar-units-devices-list-during-hotplug.patch
 
 This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Vaibhav Nagarnaik <vnagarnaik@google.com>
-Subject: trace,x86: add x86 irq vector entry/exit tracepoints
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: pci, dmar: update dmar units devices list during hotplug
 
-The current interrupt traces from irq_handler_entry and irq_handler_exit
-provide when an interrupt is handled.  They provide good data about when
-the system has switched to kernel space and how it affects the currently
-running processes.
+When do pci remove/rescan on system that have more iommus, got
 
-There are some IRQ vectors which trigger the system into kernel space,
-which are not handled in generic IRQ handlers.  Tracing such events gives
-us the information about IRQ interaction with other system events.
+[  894.089745] Set context mapping for c4:00.0
+[  894.110890] mpt2sas3: Allocated physical memory: size(4293 kB)
+[  894.112556] mpt2sas3: Current Controller Queue Depth(1883), Max Controller Queue Depth(2144)
+[  894.127278] mpt2sas3: Scatter Gather Elements per IO(128)
+[  894.361295] DRHD: handling fault status reg 2
+[  894.364053] DMAR:[DMA Read] Request device [c4:00.0] fault addr fffbe000
+[  894.364056] DMAR:[fault reason 02] Present bit in context entry is cl
 
-The trace also tells where the system is spending its time.  We want to
-know which cores are handling interrupts and how they are affecting other
-processes in the system.  Also, the trace provides information about when
-the cores are idle and which interrupts are changing that state.
+it turns out when remove/rescan, pci dev will be freed and will get
+another new dev.  but drhd units still keep old one...  so
+dmar_find_matched_drhd_unit will return wrong drhd and iommu for the
+device that is not on first iommu.
 
-The following patch adds the event definition and trace instrumentation
-for interrupt vectors.  For x86, a lookup table is provided to print out
-readable IRQ vector names.  The template can be used to provide interrupt
-vector lookup tables on other architectures.
+So need to update devices in drhd_units during pci remove/rescan.
 
-Signed-off-by: Vaibhav Nagarnaik <vnagarnaik@google.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Michael Rubin <mrubin@google.com>
-Cc: David Sharp <dhsharp@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Could save domain/bus/device/function aside in the list and according that
+info restore new dev to drhd_units later.  Then
+dmar_find_matched_drdh_unit and device_to_iommu could return right drhd
+and iommu.
+
+Add remove_dev_from_drhd/restore_dev_to_drhd functions to do the real
+work.  call them in device ADD_DEVICE and UNBOUND_DRIVER
+
+Need to do the samething to atsr.  (expose dmar_atsr_units and add
+atsru->segment)
+
+After patch, will right iommu for the new dev and will not get DMAR error
+any more.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- arch/x86/include/asm/irq_vectors.h       |   50 ++++++++++++++++++
- arch/x86/kernel/apic/apic.c              |    7 ++
- arch/x86/kernel/cpu/mcheck/therm_throt.c |    3 +
- arch/x86/kernel/cpu/mcheck/threshold.c   |    3 +
- arch/x86/kernel/irq.c                    |    6 +-
- arch/x86/kernel/irq_work.c               |    3 +
- arch/x86/kernel/smp.c                    |    7 ++
- arch/x86/kernel/traps.c                  |    3 +
- arch/x86/mm/tlb.c                        |    3 +
- include/trace/events/irq_vectors.h       |   56 +++++++++++++++++++++
- 10 files changed, 140 insertions(+), 1 deletion(-)
+ drivers/iommu/dmar.c        |    7 -
+ drivers/iommu/intel-iommu.c |  177 +++++++++++++++++++++++++++++++++-
+ include/linux/dmar.h        |    5 
+ 3 files changed, 180 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/include/asm/irq_vectors.h~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/include/asm/irq_vectors.h
---- a/arch/x86/include/asm/irq_vectors.h~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/include/asm/irq_vectors.h
-@@ -177,4 +177,54 @@ static inline int invalid_vm86_irq(int i
- # define NR_IRQS			NR_IRQS_LEGACY
- #endif
+diff -puN drivers/iommu/dmar.c~pci-dmar-update-dmar-units-devices-list-during-hotplug drivers/iommu/dmar.c
+--- a/drivers/iommu/dmar.c~pci-dmar-update-dmar-units-devices-list-during-hotplug
++++ a/drivers/iommu/dmar.c
+@@ -263,7 +263,7 @@ rmrr_parse_dev(struct dmar_rmrr_unit *rm
+ 	return ret;
+ }
  
-+#define irq_vector_name(sirq) { sirq, #sirq }
-+#define invalidate_tlb_vector_name(i) { INVALIDATE_TLB_VECTOR_END-31+i, \
-+					"INVALIDATE_TLB_VECTOR" }
+-static LIST_HEAD(dmar_atsr_units);
++LIST_HEAD(dmar_atsr_units);
+ 
+ static int __init dmar_parse_one_atsr(struct acpi_dmar_header *hdr)
+ {
+@@ -277,6 +277,7 @@ static int __init dmar_parse_one_atsr(st
+ 
+ 	atsru->hdr = hdr;
+ 	atsru->include_all = atsr->flags & 0x1;
++	atsru->segment = atsr->segment;
+ 
+ 	list_add(&atsru->list, &dmar_atsr_units);
+ 
+@@ -308,14 +309,12 @@ int dmar_find_matched_atsr_unit(struct p
+ {
+ 	int i;
+ 	struct pci_bus *bus;
+-	struct acpi_dmar_atsr *atsr;
+ 	struct dmar_atsr_unit *atsru;
+ 
+ 	dev = pci_physfn(dev);
+ 
+ 	list_for_each_entry(atsru, &dmar_atsr_units, list) {
+-		atsr = container_of(atsru->hdr, struct acpi_dmar_atsr, header);
+-		if (atsr->segment == pci_domain_nr(dev->bus))
++		if (atsru->segment == pci_domain_nr(dev->bus))
+ 			goto found;
+ 	}
+ 
+diff -puN drivers/iommu/intel-iommu.c~pci-dmar-update-dmar-units-devices-list-during-hotplug drivers/iommu/intel-iommu.c
+--- a/drivers/iommu/intel-iommu.c~pci-dmar-update-dmar-units-devices-list-during-hotplug
++++ a/drivers/iommu/intel-iommu.c
+@@ -633,6 +633,157 @@ static struct intel_iommu *device_to_iom
+ 	return NULL;
+ }
+ 
++#ifdef CONFIG_HOTPLUG
++struct dev_dmaru {
++	struct list_head list;
++	void *dmaru;
++	int index;
++	int segment;
++	unsigned char bus;
++	unsigned int devfn;
++};
 +
-+#define irq_vector_name_table						\
-+			irq_vector_name(NMI_VECTOR),			\
-+			irq_vector_name(LOCAL_TIMER_VECTOR),		\
-+			irq_vector_name(ERROR_APIC_VECTOR),		\
-+			irq_vector_name(RESCHEDULE_VECTOR),		\
-+			irq_vector_name(CALL_FUNCTION_VECTOR),		\
-+			irq_vector_name(CALL_FUNCTION_SINGLE_VECTOR),	\
-+			irq_vector_name(THERMAL_APIC_VECTOR),		\
-+			irq_vector_name(THRESHOLD_APIC_VECTOR),		\
-+			irq_vector_name(REBOOT_VECTOR),			\
-+			irq_vector_name(SPURIOUS_APIC_VECTOR),		\
-+			irq_vector_name(IRQ_WORK_VECTOR),		\
-+			irq_vector_name(X86_PLATFORM_IPI_VECTOR),	\
-+			invalidate_tlb_vector_name(0),			\
-+			invalidate_tlb_vector_name(1),			\
-+			invalidate_tlb_vector_name(2),			\
-+			invalidate_tlb_vector_name(3),			\
-+			invalidate_tlb_vector_name(4),			\
-+			invalidate_tlb_vector_name(5),			\
-+			invalidate_tlb_vector_name(6),			\
-+			invalidate_tlb_vector_name(7),			\
-+			invalidate_tlb_vector_name(8),			\
-+			invalidate_tlb_vector_name(9),			\
-+			invalidate_tlb_vector_name(10),			\
-+			invalidate_tlb_vector_name(11),			\
-+			invalidate_tlb_vector_name(12),			\
-+			invalidate_tlb_vector_name(13),			\
-+			invalidate_tlb_vector_name(14),			\
-+			invalidate_tlb_vector_name(15),			\
-+			invalidate_tlb_vector_name(16),			\
-+			invalidate_tlb_vector_name(17),			\
-+			invalidate_tlb_vector_name(18),			\
-+			invalidate_tlb_vector_name(19),			\
-+			invalidate_tlb_vector_name(20),			\
-+			invalidate_tlb_vector_name(21),			\
-+			invalidate_tlb_vector_name(22),			\
-+			invalidate_tlb_vector_name(23),			\
-+			invalidate_tlb_vector_name(24),			\
-+			invalidate_tlb_vector_name(25),			\
-+			invalidate_tlb_vector_name(26),			\
-+			invalidate_tlb_vector_name(27),			\
-+			invalidate_tlb_vector_name(28),			\
-+			invalidate_tlb_vector_name(29),			\
-+			invalidate_tlb_vector_name(30),			\
-+			invalidate_tlb_vector_name(31)
++static int
++save_dev_dmaru(int segment, unsigned char bus, unsigned int devfn,
++		 void *dmaru, int index, struct list_head *lh)
++{
++	struct dev_dmaru *m;
 +
- #endif /* _ASM_X86_IRQ_VECTORS_H */
-diff -puN arch/x86/kernel/apic/apic.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/kernel/apic/apic.c
---- a/arch/x86/kernel/apic/apic.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/kernel/apic/apic.c
-@@ -34,6 +34,7 @@
- #include <linux/dmi.h>
- #include <linux/smp.h>
- #include <linux/mm.h>
-+#include <trace/events/irq_vectors.h>
- 
- #include <asm/perf_event.h>
- #include <asm/x86_init.h>
-@@ -859,7 +860,9 @@ void __irq_entry smp_apic_timer_interrup
- 	 */
- 	exit_idle();
- 	irq_enter();
-+	trace_irq_vector_entry(LOCAL_TIMER_VECTOR);
- 	local_apic_timer_interrupt();
-+	trace_irq_vector_exit(LOCAL_TIMER_VECTOR);
- 	irq_exit();
- 
- 	set_irq_regs(old_regs);
-@@ -1793,6 +1796,7 @@ void smp_spurious_interrupt(struct pt_re
- 
- 	exit_idle();
- 	irq_enter();
-+	trace_irq_vector_entry(SPURIOUS_APIC_VECTOR);
- 	/*
- 	 * Check if this really is a spurious interrupt and ACK it
- 	 * if it is a vectored one.  Just in case...
-@@ -1807,6 +1811,7 @@ void smp_spurious_interrupt(struct pt_re
- 	/* see sw-dev-man vol 3, chapter 7.4.13.5 */
- 	pr_info("spurious APIC interrupt on CPU#%d, "
- 		"should never happen.\n", smp_processor_id());
-+	trace_irq_vector_exit(SPURIOUS_APIC_VECTOR);
- 	irq_exit();
- }
- 
-@@ -1830,6 +1835,7 @@ void smp_error_interrupt(struct pt_regs 
- 
- 	exit_idle();
- 	irq_enter();
-+	trace_irq_vector_entry(ERROR_APIC_VECTOR);
- 	/* First tickle the hardware, only then report what went on. -- REW */
- 	v0 = apic_read(APIC_ESR);
- 	apic_write(APIC_ESR, 0);
-@@ -1850,6 +1856,7 @@ void smp_error_interrupt(struct pt_regs 
- 
- 	apic_printk(APIC_DEBUG, KERN_CONT "\n");
- 
-+	trace_irq_vector_exit(ERROR_APIC_VECTOR);
- 	irq_exit();
- }
- 
-diff -puN arch/x86/kernel/cpu/mcheck/therm_throt.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/kernel/cpu/mcheck/therm_throt.c
---- a/arch/x86/kernel/cpu/mcheck/therm_throt.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-@@ -24,6 +24,7 @@
- #include <linux/init.h>
- #include <linux/smp.h>
- #include <linux/cpu.h>
-+#include <trace/events/irq_vectors.h>
- 
- #include <asm/processor.h>
- #include <asm/system.h>
-@@ -399,8 +400,10 @@ asmlinkage void smp_thermal_interrupt(st
- {
- 	exit_idle();
- 	irq_enter();
-+	trace_irq_vector_entry(THERMAL_APIC_VECTOR);
- 	inc_irq_stat(irq_thermal_count);
- 	smp_thermal_vector();
-+	trace_irq_vector_exit(THERMAL_APIC_VECTOR);
- 	irq_exit();
- 	/* Ack only at the end to avoid potential reentry */
- 	ack_APIC_irq();
-diff -puN arch/x86/kernel/cpu/mcheck/threshold.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/kernel/cpu/mcheck/threshold.c
---- a/arch/x86/kernel/cpu/mcheck/threshold.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/kernel/cpu/mcheck/threshold.c
-@@ -3,6 +3,7 @@
-  */
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
-+#include <trace/events/irq_vectors.h>
- 
- #include <asm/irq_vectors.h>
- #include <asm/apic.h>
-@@ -21,8 +22,10 @@ asmlinkage void smp_threshold_interrupt(
- {
- 	exit_idle();
- 	irq_enter();
-+	trace_irq_vector_entry(THRESHOLD_APIC_VECTOR);
- 	inc_irq_stat(irq_threshold_count);
- 	mce_threshold_vector();
-+	trace_irq_vector_exit(THRESHOLD_APIC_VECTOR);
- 	irq_exit();
- 	/* Ack only at the end to avoid potential reentry */
- 	ack_APIC_irq();
-diff -puN arch/x86/kernel/irq.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/kernel/irq.c
---- a/arch/x86/kernel/irq.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/kernel/irq.c
-@@ -18,6 +18,9 @@
- #include <asm/mce.h>
- #include <asm/hw_irq.h>
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/irq_vectors.h>
++	m = kzalloc(sizeof(*m), GFP_KERNEL);
++	if (!m)
++		return -ENOMEM;
 +
- atomic_t irq_err_count;
- 
- /* Function pointer for generic interrupt vector handling */
-@@ -212,12 +215,13 @@ void smp_x86_platform_ipi(struct pt_regs
- 	exit_idle();
- 
- 	irq_enter();
--
-+	trace_irq_vector_entry(X86_PLATFORM_IPI_VECTOR);
- 	inc_irq_stat(x86_platform_ipis);
- 
- 	if (x86_platform_ipi_callback)
- 		x86_platform_ipi_callback();
- 
-+	trace_irq_vector_exit(X86_PLATFORM_IPI_VECTOR);
- 	irq_exit();
- 
- 	set_irq_regs(old_regs);
-diff -puN arch/x86/kernel/irq_work.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/kernel/irq_work.c
---- a/arch/x86/kernel/irq_work.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/kernel/irq_work.c
-@@ -8,13 +8,16 @@
- #include <linux/irq_work.h>
- #include <linux/hardirq.h>
- #include <asm/apic.h>
-+#include <trace/events/irq_vectors.h>
- 
- void smp_irq_work_interrupt(struct pt_regs *regs)
- {
- 	irq_enter();
- 	ack_APIC_irq();
-+	trace_irq_vector_entry(IRQ_WORK_VECTOR);
- 	inc_irq_stat(apic_irq_work_irqs);
- 	irq_work_run();
-+	trace_irq_vector_exit(IRQ_WORK_VECTOR);
- 	irq_exit();
- }
- 
-diff -puN arch/x86/kernel/smp.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/kernel/smp.c
---- a/arch/x86/kernel/smp.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/kernel/smp.c
-@@ -23,6 +23,7 @@
- #include <linux/interrupt.h>
- #include <linux/cpu.h>
- #include <linux/gfp.h>
-+#include <trace/events/irq_vectors.h>
- 
- #include <asm/mtrr.h>
- #include <asm/tlbflush.h>
-@@ -200,8 +201,10 @@ static void native_stop_other_cpus(int w
- void smp_reschedule_interrupt(struct pt_regs *regs)
- {
- 	ack_APIC_irq();
-+	trace_irq_vector_entry(RESCHEDULE_VECTOR);
- 	inc_irq_stat(irq_resched_count);
- 	scheduler_ipi();
-+	trace_irq_vector_exit(RESCHEDULE_VECTOR);
- 	/*
- 	 * KVM uses this interrupt to force a cpu out of guest mode
- 	 */
-@@ -211,8 +214,10 @@ void smp_call_function_interrupt(struct 
- {
- 	ack_APIC_irq();
- 	irq_enter();
-+	trace_irq_vector_entry(CALL_FUNCTION_VECTOR);
- 	generic_smp_call_function_interrupt();
- 	inc_irq_stat(irq_call_count);
-+	trace_irq_vector_exit(CALL_FUNCTION_VECTOR);
- 	irq_exit();
- }
- 
-@@ -220,8 +225,10 @@ void smp_call_function_single_interrupt(
- {
- 	ack_APIC_irq();
- 	irq_enter();
-+	trace_irq_vector_entry(CALL_FUNCTION_SINGLE_VECTOR);
- 	generic_smp_call_function_single_interrupt();
- 	inc_irq_stat(irq_call_count);
-+	trace_irq_vector_exit(CALL_FUNCTION_SINGLE_VECTOR);
- 	irq_exit();
- }
- 
-diff -puN arch/x86/kernel/traps.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/kernel/traps.c
---- a/arch/x86/kernel/traps.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/kernel/traps.c
-@@ -31,6 +31,7 @@
- #include <linux/mm.h>
- #include <linux/smp.h>
- #include <linux/io.h>
-+#include <trace/events/irq_vectors.h>
- 
- #ifdef CONFIG_EISA
- #include <linux/ioport.h>
-@@ -434,12 +435,14 @@ dotraplinkage notrace __kprobes void
- do_nmi(struct pt_regs *regs, long error_code)
- {
- 	nmi_enter();
-+	trace_irq_vector_entry(NMI_VECTOR);
- 
- 	inc_irq_stat(__nmi_count);
- 
- 	if (!ignore_nmis)
- 		default_do_nmi(regs);
- 
-+	trace_irq_vector_exit(NMI_VECTOR);
- 	nmi_exit();
- }
- 
-diff -puN arch/x86/mm/tlb.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~tracex86-add-x86-irq-vector-entry-exit-tracepoints
-+++ a/arch/x86/mm/tlb.c
-@@ -5,6 +5,7 @@
- #include <linux/smp.h>
- #include <linux/interrupt.h>
- #include <linux/module.h>
-+#include <trace/events/irq_vectors.h>
- #include <linux/cpu.h>
- 
- #include <asm/tlbflush.h>
-@@ -141,6 +142,7 @@ void smp_invalidate_interrupt(struct pt_
- 	sender = ~regs->orig_ax - INVALIDATE_TLB_VECTOR_START;
- 	f = &flush_state[sender];
- 
-+	trace_irq_vector_entry(INVALIDATE_TLB_VECTOR_START + sender);
- 	if (!cpumask_test_cpu(cpu, to_cpumask(f->flush_cpumask)))
- 		goto out;
- 		/*
-@@ -167,6 +169,7 @@ out:
- 	cpumask_clear_cpu(cpu, to_cpumask(f->flush_cpumask));
- 	smp_mb__after_clear_bit();
- 	inc_irq_stat(irq_tlb_count);
-+	trace_irq_vector_exit(INVALIDATE_TLB_VECTOR_START + sender);
- }
- 
- static void flush_tlb_others_ipi(const struct cpumask *cpumask,
-diff -puN /dev/null include/trace/events/irq_vectors.h
---- /dev/null
-+++ a/include/trace/events/irq_vectors.h
-@@ -0,0 +1,56 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM irq_vectors
++	m->segment = segment;
++	m->bus     = bus;
++	m->devfn   = devfn;
++	m->dmaru   = dmaru;
++	m->index   = index;
 +
-+#if !defined(_TRACE_IRQ_VECTORS_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_IRQ_VECTORS_H
++	list_add(&m->list, lh);
 +
-+#include <linux/tracepoint.h>
-+#include <asm/irq.h>
++	return 0;
++}
 +
-+#ifndef irq_vector_name_table
-+#define irq_vector_name_table { -1, NULL }
++static void
++*get_dev_dmaru(int segment, unsigned char bus, unsigned int devfn,
++		int *index, struct list_head *lh)
++{
++	struct dev_dmaru *m;
++	void *dmaru = NULL;
++
++	list_for_each_entry(m, lh, list) {
++		if (m->segment == segment &&
++		    m->bus == bus && m->devfn == devfn) {
++			*index = m->index;
++			dmaru  = m->dmaru;
++			list_del(&m->list);
++			kfree(m);
++			break;
++		}
++	}
++
++	return dmaru;
++}
++
++static LIST_HEAD(saved_dev_drhd_list);
++
++static void remove_dev_from_drhd(struct pci_dev *dev)
++{
++	struct dmar_drhd_unit *drhd = NULL;
++	int segment = pci_domain_nr(dev->bus);
++	int i;
++
++	for_each_drhd_unit(drhd) {
++		if (drhd->ignored)
++			continue;
++		if (segment != drhd->segment)
++			continue;
++
++		for (i = 0; i < drhd->devices_cnt; i++) {
++			if (drhd->devices[i] == dev) {
++				/* save it at first if it is in drhd */
++				save_dev_dmaru(segment, dev->bus->number,
++						dev->devfn, drhd, i,
++						&saved_dev_drhd_list);
++				/* always remove it */
++				drhd->devices[i] = NULL;
++				return;
++			}
++		}
++	}
++}
++
++static void restore_dev_to_drhd(struct pci_dev *dev)
++{
++	struct dmar_drhd_unit *drhd = NULL;
++	int i;
++
++	/* find the stored drhd */
++	drhd = get_dev_dmaru(pci_domain_nr(dev->bus), dev->bus->number,
++				 dev->devfn, &i, &saved_dev_drhd_list);
++	/* restore that into drhd */
++	if (drhd)
++		drhd->devices[i] = dev;
++}
++#else
++static void remove_dev_from_drhd(struct pci_dev *dev)
++{
++}
++
++static void restore_dev_to_drhd(struct pci_dev *dev)
++{
++}
 +#endif
 +
-+DECLARE_EVENT_CLASS(irq_vector,
++#if defined(CONFIG_DMAR) && defined(CONFIG_HOTPLUG)
++static LIST_HEAD(saved_dev_atsr_list);
 +
-+	TP_PROTO(int irq),
++static void remove_dev_from_atsr(struct pci_dev *dev)
++{
++	struct dmar_atsr_unit *atsr = NULL;
++	int segment = pci_domain_nr(dev->bus);
++	int i;
 +
-+	TP_ARGS(irq),
++	for_each_atsr_unit(atsr) {
++		if (segment != atsr->segment)
++			continue;
 +
-+	TP_STRUCT__entry(
-+		__field(	int,	irq	)
-+	),
++		for (i = 0; i < atsr->devices_cnt; i++) {
++			if (atsr->devices[i] == dev) {
++				/* save it at first if it is in drhd */
++				save_dev_dmaru(segment, dev->bus->number,
++						dev->devfn, atsr, i,
++						&saved_dev_atsr_list);
++				/* always remove it */
++				atsr->devices[i] = NULL;
++				return;
++			}
++		}
++	}
++}
 +
-+	TP_fast_assign(
-+		__entry->irq = irq;
-+	),
++static void restore_dev_to_atsr(struct pci_dev *dev)
++{
++	struct dmar_atsr_unit *atsr = NULL;
++	int i;
 +
-+	TP_printk("irq=%d name=%s", __entry->irq,
-+		__print_symbolic(__entry->irq, irq_vector_name_table))
-+);
++	/* find the stored atsr */
++	atsr = get_dev_dmaru(pci_domain_nr(dev->bus), dev->bus->number,
++				 dev->devfn, &i, &saved_dev_atsr_list);
++	/* restore that into atsr */
++	if (atsr)
++		atsr->devices[i] = dev;
++}
++#else
++static void remove_dev_from_atsr(struct pci_dev *dev)
++{
++}
 +
-+/*
-+ * irq_vector_entry - called before enterring a interrupt vector handler
-+ */
-+DEFINE_EVENT(irq_vector, irq_vector_entry,
++static void restore_dev_to_atsr(struct pci_dev *dev)
++{
++}
++#endif
 +
-+	TP_PROTO(int irq),
+ static void domain_flush_cache(struct dmar_domain *domain,
+ 			       void *addr, int size)
+ {
+@@ -3403,20 +3554,36 @@ static int device_notifier(struct notifi
+ 	struct pci_dev *pdev = to_pci_dev(dev);
+ 	struct dmar_domain *domain;
+ 
+-	if (iommu_no_mapping(dev))
++	if (unlikely(dev->bus != &pci_bus_type))
+ 		return 0;
+ 
+-	domain = find_domain(pdev);
+-	if (!domain)
+-		return 0;
++	switch (action) {
++	case BUS_NOTIFY_UNBOUND_DRIVER:
++		if (iommu_no_mapping(dev))
++			goto out;
 +
-+	TP_ARGS(irq)
-+);
++		if (iommu_pass_through)
++			goto out;
 +
-+/*
-+ * irq_vector_exit - called immediately after the interrupt vector
-+ * handler returns
-+ */
-+DEFINE_EVENT(irq_vector, irq_vector_exit,
++		domain = find_domain(pdev);
++		if (!domain)
++			goto out;
+ 
+-	if (action == BUS_NOTIFY_UNBOUND_DRIVER && !iommu_pass_through) {
+ 		domain_remove_one_dev_info(domain, pdev);
+ 
+ 		if (!(domain->flags & DOMAIN_FLAG_VIRTUAL_MACHINE) &&
+ 		    !(domain->flags & DOMAIN_FLAG_STATIC_IDENTITY) &&
+ 		    list_empty(&domain->devices))
+ 			domain_exit(domain);
++out:
++		remove_dev_from_drhd(pdev);
++		remove_dev_from_atsr(pdev);
 +
-+	TP_PROTO(int irq),
++		break;
++	case BUS_NOTIFY_ADD_DEVICE:
++		restore_dev_to_drhd(pdev);
++		restore_dev_to_atsr(pdev);
++		break;
+ 	}
+ 
+ 	return 0;
+diff -puN include/linux/dmar.h~pci-dmar-update-dmar-units-devices-list-during-hotplug include/linux/dmar.h
+--- a/include/linux/dmar.h~pci-dmar-update-dmar-units-devices-list-during-hotplug
++++ a/include/linux/dmar.h
+@@ -219,14 +219,19 @@ struct dmar_rmrr_unit {
+ #define for_each_rmrr_units(rmrr) \
+ 	list_for_each_entry(rmrr, &dmar_rmrr_units, list)
+ 
++extern struct list_head dmar_atsr_units;
+ struct dmar_atsr_unit {
+ 	struct list_head list;		/* list of ATSR units */
+ 	struct acpi_dmar_header *hdr;	/* ACPI header */
+ 	struct pci_dev **devices;	/* target devices */
+ 	int devices_cnt;		/* target device count */
++	u16	segment;		/* PCI domain		*/
+ 	u8 include_all:1;		/* include all ports */
+ };
+ 
++#define for_each_atsr_unit(atsr) \
++	list_for_each_entry(atsr, &dmar_atsr_units, list)
 +
-+	TP_ARGS(irq)
-+);
-+
-+#endif /*  _TRACE_IRQ_VECTORS_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
+ extern int intel_iommu_init(void);
+ #else /* !CONFIG_DMAR: */
+ static inline int intel_iommu_init(void) { return -ENODEV; }
 _
 
-Patches currently in -mm which might be from vnagarnaik@google.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
+linux-next.patch
+memblock-add-memblock_start_of_dram.patch
+memblock-add-no_bootmem-config-symbol.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
