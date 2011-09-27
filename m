@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + drivers-net-ethernet-i825xx-3c505c-fix-build-with-dynamic-debug.patch added to -mm tree
-Date: Tue, 27 Sep 2011 15:44:20 -0700
-Message-ID: <201109272324.p8RNO5kL022497@wpaz29.hot.corp.google.com>
+Subject: + mrst-battery-fixes-fix.patch added to -mm tree
+Date: Tue, 27 Sep 2011 16:46:57 -0700
+Message-ID: <201109272347.p8RNkvo3028222@wpaz24.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:49649 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:59246 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751354Ab1I0XYQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 19:24:16 -0400
+	with ESMTP id S1751357Ab1I0XrT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 19:47:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@google.com, davem@davemloft.net, jbaron@redhat.com, philb@gnu.org
+Cc: akpm@linux-foundation.org, alan@linux.intel.com, cbouatmailru@gmail.com, major_lee@wistron.com, nithish.mahalingam@intel.com
 
 
 The patch titled
-     drivers/net/ethernet/i825xx/3c505.c: fix build with dynamic debug
+     drivers/power/intel_mid_battery.c: fix build
 has been added to the -mm tree.  Its filename is
-     drivers-net-ethernet-i825xx-3c505c-fix-build-with-dynamic-debug.patch
+     mrst-battery-fixes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/ethernet/i825xx/3c505.c: fix build with dynamic debug
-From: Andrew Morton <akpm@google.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+DESC
+drivers/power/intel_mid_battery.c: fix build
+EDESC
 
-The `#define filename' screws up the expansion of
-DEFINE_DYNAMIC_DEBUG_METADATA:
+Seems that nobody's even trying any more.
 
-drivers/net/ethernet/i825xx/3c505.c: In function 'send_pcb':
-drivers/net/ethernet/i825xx/3c505.c:390: error: expected identifier before string constant
-drivers/net/ethernet/i825xx/3c505.c:390: error: expected '}' before '.' token
-drivers/net/ethernet/i825xx/3c505.c:436: error: expected identifier before string constant
-drivers/net/ethernet/i825xx/3c505.c:435: error: expected '}' before '.' token
-drivers/net/ethernet/i825xx/3c505.c: In function 'start_receive':
-drivers/net/ethernet/i825xx/3c505.c:557: error: expected identifier before string constant
-drivers/net/ethernet/i825xx/3c505.c:557: error: expected '}' before '.' token
-drivers/net/ethernet/i825xx/3c505.c: In function 'receive_packet':
-drivers/net/ethernet/i825xx/3c505.c:629: error: expected identifier before string constant
-
-etc
-
-Cc: Philip Blundell <philb@gnu.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Jason Baron <jbaron@redhat.com>
+Cc: Nithish Mahalingam <nithish.mahalingam@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: Major Lee <major_lee@wistron.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/net/ethernet/i825xx/3c505.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/power/intel_mid_battery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ethernet/i825xx/3c505.c~drivers-net-ethernet-i825xx-3c505c-fix-build-with-dynamic-debug drivers/net/ethernet/i825xx/3c505.c
---- a/drivers/net/ethernet/i825xx/3c505.c~drivers-net-ethernet-i825xx-3c505c-fix-build-with-dynamic-debug
-+++ a/drivers/net/ethernet/i825xx/3c505.c
-@@ -126,15 +126,13 @@
-  *
-  *********************************************************/
- 
--#define filename __FILE__
+diff -puN drivers/power/intel_mid_battery.c~mrst-battery-fixes-fix drivers/power/intel_mid_battery.c
+--- a/drivers/power/intel_mid_battery.c~mrst-battery-fixes-fix
++++ a/drivers/power/intel_mid_battery.c
+@@ -314,7 +314,7 @@ static void pmic_battery_read_status(str
+ 			pbi->batt_health = POWER_SUPPLY_HEALTH_GOOD;
+ 			if (r8 & PMIC_BATT_CHR_SDCLMT_MASK) {
+ 				/* PMIC will change charging current automatically */
+-				pmic_battery_log_event(pbi, BATT_EVENT_DCLMT_EXCPT);
++				pmic_battery_log_event(BATT_EVENT_DCLMT_EXCPT);
+ 			}
+ 		}
+ 	}
+_
+Subject: drivers/power/intel_mid_battery.c: fix build
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes-fix.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+drivers-block-mtip32xx-mtip32xxc-fix-warning.patch
+drivers-block-mtip32xx-mtip32xxc-needs-compath.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
