@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch added to -mm tree
-Date: Tue, 27 Sep 2011 12:47:05 -0700
-Message-ID: <201109272026.p8RKQpGI027125@hpaq6.eem.corp.google.com>
+Subject: + arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch added to -mm tree
+Date: Tue, 27 Sep 2011 12:49:41 -0700
+Message-ID: <201109272029.p8RKTQrp018842@hpaq14.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:24215 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:25879 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752147Ab1I0U1F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 16:27:05 -0400
+	with ESMTP id S1752308Ab1I0U3f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 16:29:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@redhat.com, suresh.b.siddha@intel.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, kjwinchester@gmail.com, mingo@redhat.com
 
 
 The patch titled
-     include/linux/dmar.h: forward-declare struct acpi_dmar_header
+     arch/x86/kernel/cpu/perf_event_amd.c needs asm/apicdef.h
 has been added to the -mm tree.  Its filename is
-     include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+     arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/dmar.h: forward-declare struct acpi_dmar_header
+Subject: arch/x86/kernel/cpu/perf_event_amd.c needs asm/apicdef.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
 x86_64 allnoconfig:
 
-In file included from arch/x86/kernel/pci-dma.c:3:
-include/linux/dmar.h:248: warning: 'struct acpi_dmar_header' declared inside parameter list
-include/linux/dmar.h:248: warning: its scope is only this definition or declaration, which is probably not what you want
+arch/x86/kernel/cpu/perf_event_amd.c: In function 'amd_pmu_cpu_starting':
+arch/x86/kernel/cpu/perf_event_amd.c:350: error: 'BAD_APICID' undeclared (first use in this function)
+arch/x86/kernel/cpu/perf_event_amd.c:350: error: (Each undeclared identifier is reported only once
+arch/x86/kernel/cpu/perf_event_amd.c:350: error: for each function it appears in.)
 
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Kevin Winchester <kjwinchester@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dmar.h |    2 ++
+ arch/x86/kernel/cpu/perf_event_amd.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN include/linux/dmar.h~include-linux-dmarh-forward-declare-struct-acpi_dmar_header include/linux/dmar.h
---- a/include/linux/dmar.h~include-linux-dmarh-forward-declare-struct-acpi_dmar_header
-+++ a/include/linux/dmar.h
-@@ -26,6 +26,8 @@
- #include <linux/msi.h>
- #include <linux/irqreturn.h>
+diff -puN arch/x86/kernel/cpu/perf_event_amd.c~arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh arch/x86/kernel/cpu/perf_event_amd.c
+--- a/arch/x86/kernel/cpu/perf_event_amd.c~arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh
++++ a/arch/x86/kernel/cpu/perf_event_amd.c
+@@ -3,6 +3,8 @@
+ #include <linux/init.h>
+ #include <linux/slab.h>
  
-+struct acpi_dmar_header;
++#include <asm/apicdef.h>
 +
- /* DMAR Flags */
- #define DMAR_INTR_REMAP		0x1
- #define DMAR_X2APIC_OPT_OUT	0x2
+ #include "perf_event.h"
+ 
+ static __initconst const u64 amd_hw_cache_event_ids
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,6 +72,7 @@ origin.patch
 linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
 drivers-block-mtip32xx-mtip32xxc-fix-warning.patch
@@ -114,5 +117,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch
 
