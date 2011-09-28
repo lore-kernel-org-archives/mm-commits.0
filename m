@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + aio-allocate-kiocbs-in-batches.patch added to -mm tree
-Date: Wed, 28 Sep 2011 12:14:48 -0700
-Message-ID: <201109281914.p8SJEoIm022518@wpaz5.hot.corp.google.com>
+Subject: + mm-thrashc-quiet-sparse-noise.patch added to -mm tree
+Date: Wed, 28 Sep 2011 12:20:52 -0700
+Message-ID: <201109281920.p8SJKr1I013835@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:47617 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:24386 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753543Ab1I1TO4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2011 15:14:56 -0400
+	with ESMTP id S1753347Ab1I1TVH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2011 15:21:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, dehrenberg@google.com
+Cc: hartleys@visionengravers.com, hsweeten@visionengravers.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     Subject: aio: allocate kiocbs in batches
+     Subject: mm/thrash.c: quiet sparse noise
 has been added to the -mm tree.  Its filename is
-     aio-allocate-kiocbs-in-batches.patch
+     mm-thrashc-quiet-sparse-noise.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,265 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: aio: allocate kiocbs in batches
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: mm/thrash.c: quiet sparse noise
 
-In testing aio on a fast storage device, I found that the context lock
-takes up a fair amount of cpu time in the I/O submission path.  The reason
-is that we take it for every I/O submitted (see __aio_get_req).  Since we
-know how many I/Os are passed to io_submit, we can preallocate the kiocbs
-in batches, reducing the number of times we take and release the lock.
+Quiet the following sparse noise:
 
-In my testing, I was able to reduce the amount of time spent in
-_raw_spin_lock_irq by .56% (average of 3 runs).  The command I used to
-test this was:
+warning: symbol 'swap_token_memcg' was not declared. Should it be static?
 
-   aio-stress -O -o 2 -o 3 -r 8 -d 128 -b 32 -i 32 -s 16384 <dev>
-
-I also tested the patch with various numbers of events passed to
-io_submit, and I ran the xfstests aio group of tests to ensure I didn't
-break anything.
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Daniel Ehrenberg <dehrenberg@google.com>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- fs/aio.c            |  136 +++++++++++++++++++++++++++++++++---------
- include/linux/aio.h |    1 
- 2 files changed, 108 insertions(+), 29 deletions(-)
+ mm/thrash.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-allocate-kiocbs-in-batches fs/aio.c
---- a/fs/aio.c~aio-allocate-kiocbs-in-batches
-+++ a/fs/aio.c
-@@ -440,8 +440,6 @@ void exit_aio(struct mm_struct *mm)
- static struct kiocb *__aio_get_req(struct kioctx *ctx)
- {
- 	struct kiocb *req = NULL;
--	struct aio_ring *ring;
--	int okay = 0;
+diff -puN mm/thrash.c~mm-thrashc-quiet-sparse-noise mm/thrash.c
+--- a/mm/thrash.c~mm-thrashc-quiet-sparse-noise
++++ a/mm/thrash.c
+@@ -29,7 +29,7 @@
  
- 	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL);
- 	if (unlikely(!req))
-@@ -459,39 +457,114 @@ static struct kiocb *__aio_get_req(struc
- 	INIT_LIST_HEAD(&req->ki_run_list);
- 	req->ki_eventfd = NULL;
+ static DEFINE_SPINLOCK(swap_token_lock);
+ struct mm_struct *swap_token_mm;
+-struct mem_cgroup *swap_token_memcg;
++static struct mem_cgroup *swap_token_memcg;
  
--	/* Check if the completion queue has enough free space to
--	 * accept an event from this io.
--	 */
-+	return req;
-+}
-+
-+/*
-+ * struct kiocb's are allocated in batches to reduce the number of
-+ * times the ctx lock is acquired and released.
-+ */
-+#define KIOCB_BATCH_SIZE	32L
-+struct kiocb_batch {
-+	struct list_head head;
-+	long count; /* number of requests left to allocate */
-+};
-+
-+static void kiocb_batch_init(struct kiocb_batch *batch, long total)
-+{
-+	INIT_LIST_HEAD(&batch->head);
-+	batch->count = total;
-+}
-+
-+static void kiocb_batch_free(struct kiocb_batch *batch)
-+{
-+	struct kiocb *req, *n;
-+
-+	list_for_each_entry_safe(req, n, &batch->head, ki_batch) {
-+		list_del(&req->ki_batch);
-+		kmem_cache_free(kiocb_cachep, req);
-+	}
-+}
-+
-+/*
-+ * Allocate a batch of kiocbs.  This avoids taking and dropping the
-+ * context lock a lot during setup.
-+ */
-+static int kiocb_batch_refill(struct kioctx *ctx, struct kiocb_batch *batch)
-+{
-+	unsigned short allocated, to_alloc;
-+	long avail;
-+	bool called_fput = false;
-+	struct kiocb *req, *n;
-+	struct aio_ring *ring;
-+
-+	to_alloc = min(batch->count, KIOCB_BATCH_SIZE);
-+	for (allocated = 0; allocated < to_alloc; allocated++) {
-+		req = __aio_get_req(ctx);
-+		if (!req)
-+			/* allocation failed, go with what we've got */
-+			break;
-+		list_add(&req->ki_batch, &batch->head);
-+	}
-+
-+	if (allocated == 0)
-+		goto out;
-+
-+retry:
- 	spin_lock_irq(&ctx->ctx_lock);
--	ring = kmap_atomic(ctx->ring_info.ring_pages[0], KM_USER0);
--	if (ctx->reqs_active < aio_ring_avail(&ctx->ring_info, ring)) {
-+	ring = kmap_atomic(ctx->ring_info.ring_pages[0]);
-+
-+	avail = aio_ring_avail(&ctx->ring_info, ring) - ctx->reqs_active;
-+	BUG_ON(avail < 0);
-+	if (avail == 0 && !called_fput) {
-+		/*
-+		 * Handle a potential starvation case.  It is possible that
-+		 * we hold the last reference on a struct file, causing us
-+		 * to delay the final fput to non-irq context.  In this case,
-+		 * ctx->reqs_active is artificially high.  Calling the fput
-+		 * routine here may free up a slot in the event completion
-+		 * ring, allowing this allocation to succeed.
-+		 */
-+		kunmap_atomic(ring);
-+		spin_unlock_irq(&ctx->ctx_lock);
-+		aio_fput_routine(NULL);
-+		called_fput = true;
-+		goto retry;
-+	}
-+
-+	if (avail < allocated) {
-+		/* Trim back the number of requests. */
-+		list_for_each_entry_safe(req, n, &batch->head, ki_batch) {
-+			list_del(&req->ki_batch);
-+			kmem_cache_free(kiocb_cachep, req);
-+			if (--allocated <= avail)
-+				break;
-+		}
-+	}
-+
-+	batch->count -= allocated;
-+	list_for_each_entry(req, &batch->head, ki_batch) {
- 		list_add(&req->ki_list, &ctx->active_reqs);
- 		ctx->reqs_active++;
--		okay = 1;
- 	}
--	kunmap_atomic(ring, KM_USER0);
--	spin_unlock_irq(&ctx->ctx_lock);
- 
--	if (!okay) {
--		kmem_cache_free(kiocb_cachep, req);
--		req = NULL;
--	}
-+	kunmap_atomic(ring);
-+	spin_unlock_irq(&ctx->ctx_lock);
- 
--	return req;
-+out:
-+	return allocated;
- }
- 
--static inline struct kiocb *aio_get_req(struct kioctx *ctx)
-+static inline struct kiocb *aio_get_req(struct kioctx *ctx,
-+					struct kiocb_batch *batch)
- {
- 	struct kiocb *req;
--	/* Handle a potential starvation case -- should be exceedingly rare as 
--	 * requests will be stuck on fput_head only if the aio_fput_routine is 
--	 * delayed and the requests were the last user of the struct file.
--	 */
--	req = __aio_get_req(ctx);
--	if (unlikely(NULL == req)) {
--		aio_fput_routine(NULL);
--		req = __aio_get_req(ctx);
--	}
-+
-+	if (list_empty(&batch->head))
-+		if (kiocb_batch_refill(ctx, batch) == 0)
-+			return NULL;
-+	req = list_first_entry(&batch->head, struct kiocb, ki_batch);
-+	list_del(&req->ki_batch);
- 	return req;
- }
- 
-@@ -1515,7 +1588,8 @@ static ssize_t aio_setup_iocb(struct kio
- }
- 
- static int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
--			 struct iocb *iocb, bool compat)
-+			 struct iocb *iocb, struct kiocb_batch *batch,
-+			 bool compat)
- {
- 	struct kiocb *req;
- 	struct file *file;
-@@ -1541,7 +1615,7 @@ static int io_submit_one(struct kioctx *
- 	if (unlikely(!file))
- 		return -EBADF;
- 
--	req = aio_get_req(ctx);		/* returns with 2 references to req */
-+	req = aio_get_req(ctx, batch);  /* returns with 2 references to req */
- 	if (unlikely(!req)) {
- 		fput(file);
- 		return -EAGAIN;
-@@ -1621,8 +1695,9 @@ long do_io_submit(aio_context_t ctx_id, 
- {
- 	struct kioctx *ctx;
- 	long ret = 0;
--	int i;
-+	int i = 0;
- 	struct blk_plug plug;
-+	struct kiocb_batch batch;
- 
- 	if (unlikely(nr < 0))
- 		return -EINVAL;
-@@ -1639,6 +1714,8 @@ long do_io_submit(aio_context_t ctx_id, 
- 		return -EINVAL;
- 	}
- 
-+	kiocb_batch_init(&batch, nr);
-+
- 	blk_start_plug(&plug);
- 
- 	/*
-@@ -1659,12 +1736,13 @@ long do_io_submit(aio_context_t ctx_id, 
- 			break;
- 		}
- 
--		ret = io_submit_one(ctx, user_iocb, &tmp, compat);
-+		ret = io_submit_one(ctx, user_iocb, &tmp, &batch, compat);
- 		if (ret)
- 			break;
- 	}
- 	blk_finish_plug(&plug);
- 
-+	kiocb_batch_free(&batch);
- 	put_ioctx(ctx);
- 	return i ? i : ret;
- }
-diff -puN include/linux/aio.h~aio-allocate-kiocbs-in-batches include/linux/aio.h
---- a/include/linux/aio.h~aio-allocate-kiocbs-in-batches
-+++ a/include/linux/aio.h
-@@ -117,6 +117,7 @@ struct kiocb {
- 
- 	struct list_head	ki_list;	/* the aio core uses this
- 						 * for cancellation */
-+	struct list_head	ki_batch;	/* batch allocation */
- 
- 	/*
- 	 * If the aio_resfd field of the userspace iocb is not zero,
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR
+ static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
 _
-Subject: Subject: aio: allocate kiocbs in batches
+Subject: Subject: mm/thrash.c: quiet sparse noise
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
+origin.patch
 linux-next.patch
-aio-allocate-kiocbs-in-batches.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio.patch
-dio-fix-a-wrong-comment.patch
-dio-rearrange-fields-in-dio-dio_submit-to-avoid-holes.patch
-dio-use-a-slab-cache-for-struct-dio.patch
-dio-separate-map_bh-from-dio-v2.patch
-dio-inline-the-complete-submission-path-v2.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io.patch
-dio-remove-unnecessary-dio-argument-from-dio_pages_present.patch
-dio-remove-unused-dio-parameter-from-dio_bio_add_page.patch
-vfs-cache-request_queue-in-struct-block_device.patch
-dio-optimize-cache-misses-in-the-submission-path-v2.patch
+arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer.patch
+arch-x86-kernel-ptracec-quiet-sparse-noise.patch
+arch-x86-mm-pageattrc-quiet-sparse-noise-local-functions-should-be-static.patch
+mm-memblockc-quiet-sparse-noise.patch
+mm-thrashc-quiet-sparse-noise.patch
+mm-mempolicyc-quiet-sparse-noise.patch
+mm-huge_memoryc-quiet-sparse-noise.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
 
