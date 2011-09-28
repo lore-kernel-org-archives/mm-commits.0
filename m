@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + mrst-battery-fixes-fix.patch added to -mm tree
-Date: Tue, 27 Sep 2011 16:46:57 -0700
-Message-ID: <201109272347.p8RNkvo3028222@wpaz24.hot.corp.google.com>
+Subject: + aio-allocate-kiocbs-in-batches.patch added to -mm tree
+Date: Wed, 28 Sep 2011 12:14:48 -0700
+Message-ID: <201109281914.p8SJEoIm022518@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:59246 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47617 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751357Ab1I0XrT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2011 19:47:19 -0400
+	with ESMTP id S1753543Ab1I1TO4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2011 15:14:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@linux.intel.com, cbouatmailru@gmail.com, major_lee@wistron.com, nithish.mahalingam@intel.com
+Cc: jmoyer@redhat.com, dehrenberg@google.com
 
 
 The patch titled
-     drivers/power/intel_mid_battery.c: fix build
+     Subject: aio: allocate kiocbs in batches
 has been added to the -mm tree.  Its filename is
-     mrst-battery-fixes-fix.patch
+     aio-allocate-kiocbs-in-batches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,265 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-DESC
-drivers/power/intel_mid_battery.c: fix build
-EDESC
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: aio: allocate kiocbs in batches
 
-Seems that nobody's even trying any more.
+In testing aio on a fast storage device, I found that the context lock
+takes up a fair amount of cpu time in the I/O submission path.  The reason
+is that we take it for every I/O submitted (see __aio_get_req).  Since we
+know how many I/Os are passed to io_submit, we can preallocate the kiocbs
+in batches, reducing the number of times we take and release the lock.
 
-Cc: Nithish Mahalingam <nithish.mahalingam@intel.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: Major Lee <major_lee@wistron.com>
+In my testing, I was able to reduce the amount of time spent in
+_raw_spin_lock_irq by .56% (average of 3 runs).  The command I used to
+test this was:
+
+   aio-stress -O -o 2 -o 3 -r 8 -d 128 -b 32 -i 32 -s 16384 <dev>
+
+I also tested the patch with various numbers of events passed to
+io_submit, and I ran the xfstests aio group of tests to ensure I didn't
+break anything.
+
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Daniel Ehrenberg <dehrenberg@google.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/power/intel_mid_battery.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c            |  136 +++++++++++++++++++++++++++++++++---------
+ include/linux/aio.h |    1 
+ 2 files changed, 108 insertions(+), 29 deletions(-)
 
-diff -puN drivers/power/intel_mid_battery.c~mrst-battery-fixes-fix drivers/power/intel_mid_battery.c
---- a/drivers/power/intel_mid_battery.c~mrst-battery-fixes-fix
-+++ a/drivers/power/intel_mid_battery.c
-@@ -314,7 +314,7 @@ static void pmic_battery_read_status(str
- 			pbi->batt_health = POWER_SUPPLY_HEALTH_GOOD;
- 			if (r8 & PMIC_BATT_CHR_SDCLMT_MASK) {
- 				/* PMIC will change charging current automatically */
--				pmic_battery_log_event(pbi, BATT_EVENT_DCLMT_EXCPT);
-+				pmic_battery_log_event(BATT_EVENT_DCLMT_EXCPT);
- 			}
- 		}
+diff -puN fs/aio.c~aio-allocate-kiocbs-in-batches fs/aio.c
+--- a/fs/aio.c~aio-allocate-kiocbs-in-batches
++++ a/fs/aio.c
+@@ -440,8 +440,6 @@ void exit_aio(struct mm_struct *mm)
+ static struct kiocb *__aio_get_req(struct kioctx *ctx)
+ {
+ 	struct kiocb *req = NULL;
+-	struct aio_ring *ring;
+-	int okay = 0;
+ 
+ 	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL);
+ 	if (unlikely(!req))
+@@ -459,39 +457,114 @@ static struct kiocb *__aio_get_req(struc
+ 	INIT_LIST_HEAD(&req->ki_run_list);
+ 	req->ki_eventfd = NULL;
+ 
+-	/* Check if the completion queue has enough free space to
+-	 * accept an event from this io.
+-	 */
++	return req;
++}
++
++/*
++ * struct kiocb's are allocated in batches to reduce the number of
++ * times the ctx lock is acquired and released.
++ */
++#define KIOCB_BATCH_SIZE	32L
++struct kiocb_batch {
++	struct list_head head;
++	long count; /* number of requests left to allocate */
++};
++
++static void kiocb_batch_init(struct kiocb_batch *batch, long total)
++{
++	INIT_LIST_HEAD(&batch->head);
++	batch->count = total;
++}
++
++static void kiocb_batch_free(struct kiocb_batch *batch)
++{
++	struct kiocb *req, *n;
++
++	list_for_each_entry_safe(req, n, &batch->head, ki_batch) {
++		list_del(&req->ki_batch);
++		kmem_cache_free(kiocb_cachep, req);
++	}
++}
++
++/*
++ * Allocate a batch of kiocbs.  This avoids taking and dropping the
++ * context lock a lot during setup.
++ */
++static int kiocb_batch_refill(struct kioctx *ctx, struct kiocb_batch *batch)
++{
++	unsigned short allocated, to_alloc;
++	long avail;
++	bool called_fput = false;
++	struct kiocb *req, *n;
++	struct aio_ring *ring;
++
++	to_alloc = min(batch->count, KIOCB_BATCH_SIZE);
++	for (allocated = 0; allocated < to_alloc; allocated++) {
++		req = __aio_get_req(ctx);
++		if (!req)
++			/* allocation failed, go with what we've got */
++			break;
++		list_add(&req->ki_batch, &batch->head);
++	}
++
++	if (allocated == 0)
++		goto out;
++
++retry:
+ 	spin_lock_irq(&ctx->ctx_lock);
+-	ring = kmap_atomic(ctx->ring_info.ring_pages[0], KM_USER0);
+-	if (ctx->reqs_active < aio_ring_avail(&ctx->ring_info, ring)) {
++	ring = kmap_atomic(ctx->ring_info.ring_pages[0]);
++
++	avail = aio_ring_avail(&ctx->ring_info, ring) - ctx->reqs_active;
++	BUG_ON(avail < 0);
++	if (avail == 0 && !called_fput) {
++		/*
++		 * Handle a potential starvation case.  It is possible that
++		 * we hold the last reference on a struct file, causing us
++		 * to delay the final fput to non-irq context.  In this case,
++		 * ctx->reqs_active is artificially high.  Calling the fput
++		 * routine here may free up a slot in the event completion
++		 * ring, allowing this allocation to succeed.
++		 */
++		kunmap_atomic(ring);
++		spin_unlock_irq(&ctx->ctx_lock);
++		aio_fput_routine(NULL);
++		called_fput = true;
++		goto retry;
++	}
++
++	if (avail < allocated) {
++		/* Trim back the number of requests. */
++		list_for_each_entry_safe(req, n, &batch->head, ki_batch) {
++			list_del(&req->ki_batch);
++			kmem_cache_free(kiocb_cachep, req);
++			if (--allocated <= avail)
++				break;
++		}
++	}
++
++	batch->count -= allocated;
++	list_for_each_entry(req, &batch->head, ki_batch) {
+ 		list_add(&req->ki_list, &ctx->active_reqs);
+ 		ctx->reqs_active++;
+-		okay = 1;
  	}
+-	kunmap_atomic(ring, KM_USER0);
+-	spin_unlock_irq(&ctx->ctx_lock);
+ 
+-	if (!okay) {
+-		kmem_cache_free(kiocb_cachep, req);
+-		req = NULL;
+-	}
++	kunmap_atomic(ring);
++	spin_unlock_irq(&ctx->ctx_lock);
+ 
+-	return req;
++out:
++	return allocated;
+ }
+ 
+-static inline struct kiocb *aio_get_req(struct kioctx *ctx)
++static inline struct kiocb *aio_get_req(struct kioctx *ctx,
++					struct kiocb_batch *batch)
+ {
+ 	struct kiocb *req;
+-	/* Handle a potential starvation case -- should be exceedingly rare as 
+-	 * requests will be stuck on fput_head only if the aio_fput_routine is 
+-	 * delayed and the requests were the last user of the struct file.
+-	 */
+-	req = __aio_get_req(ctx);
+-	if (unlikely(NULL == req)) {
+-		aio_fput_routine(NULL);
+-		req = __aio_get_req(ctx);
+-	}
++
++	if (list_empty(&batch->head))
++		if (kiocb_batch_refill(ctx, batch) == 0)
++			return NULL;
++	req = list_first_entry(&batch->head, struct kiocb, ki_batch);
++	list_del(&req->ki_batch);
+ 	return req;
+ }
+ 
+@@ -1515,7 +1588,8 @@ static ssize_t aio_setup_iocb(struct kio
+ }
+ 
+ static int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
+-			 struct iocb *iocb, bool compat)
++			 struct iocb *iocb, struct kiocb_batch *batch,
++			 bool compat)
+ {
+ 	struct kiocb *req;
+ 	struct file *file;
+@@ -1541,7 +1615,7 @@ static int io_submit_one(struct kioctx *
+ 	if (unlikely(!file))
+ 		return -EBADF;
+ 
+-	req = aio_get_req(ctx);		/* returns with 2 references to req */
++	req = aio_get_req(ctx, batch);  /* returns with 2 references to req */
+ 	if (unlikely(!req)) {
+ 		fput(file);
+ 		return -EAGAIN;
+@@ -1621,8 +1695,9 @@ long do_io_submit(aio_context_t ctx_id, 
+ {
+ 	struct kioctx *ctx;
+ 	long ret = 0;
+-	int i;
++	int i = 0;
+ 	struct blk_plug plug;
++	struct kiocb_batch batch;
+ 
+ 	if (unlikely(nr < 0))
+ 		return -EINVAL;
+@@ -1639,6 +1714,8 @@ long do_io_submit(aio_context_t ctx_id, 
+ 		return -EINVAL;
+ 	}
+ 
++	kiocb_batch_init(&batch, nr);
++
+ 	blk_start_plug(&plug);
+ 
+ 	/*
+@@ -1659,12 +1736,13 @@ long do_io_submit(aio_context_t ctx_id, 
+ 			break;
+ 		}
+ 
+-		ret = io_submit_one(ctx, user_iocb, &tmp, compat);
++		ret = io_submit_one(ctx, user_iocb, &tmp, &batch, compat);
+ 		if (ret)
+ 			break;
+ 	}
+ 	blk_finish_plug(&plug);
+ 
++	kiocb_batch_free(&batch);
+ 	put_ioctx(ctx);
+ 	return i ? i : ret;
+ }
+diff -puN include/linux/aio.h~aio-allocate-kiocbs-in-batches include/linux/aio.h
+--- a/include/linux/aio.h~aio-allocate-kiocbs-in-batches
++++ a/include/linux/aio.h
+@@ -117,6 +117,7 @@ struct kiocb {
+ 
+ 	struct list_head	ki_list;	/* the aio core uses this
+ 						 * for cancellation */
++	struct list_head	ki_batch;	/* batch allocation */
+ 
+ 	/*
+ 	 * If the aio_resfd field of the userspace iocb is not zero,
 _
-Subject: drivers/power/intel_mid_battery.c: fix build
+Subject: Subject: aio: allocate kiocbs in batches
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jmoyer@redhat.com are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-arch-x86-kernel-cpu-perf_event_amdc-needs-asm-apicdefh.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-drivers-block-mtip32xx-mtip32xxc-fix-warning.patch
-drivers-block-mtip32xx-mtip32xxc-needs-compath.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
-dynamic_debug-use-a-single-printk-to-emit-messages.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+aio-allocate-kiocbs-in-batches.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio.patch
+dio-fix-a-wrong-comment.patch
+dio-rearrange-fields-in-dio-dio_submit-to-avoid-holes.patch
+dio-use-a-slab-cache-for-struct-dio.patch
+dio-separate-map_bh-from-dio-v2.patch
+dio-inline-the-complete-submission-path-v2.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io.patch
+dio-remove-unnecessary-dio-argument-from-dio_pages_present.patch
+dio-remove-unused-dio-parameter-from-dio_bio_add_page.patch
+vfs-cache-request_queue-in-struct-block_device.patch
+dio-optimize-cache-misses-in-the-submission-path-v2.patch
 
