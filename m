@@ -1,160 +1,87 @@
 From: akpm@google.com
-Subject: + brlocks-lglocks-clean-up-code-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 29 Sep 2011 15:45:18 -0700
-Message-ID: <201109292245.p8TMjIGH009544@hpaq3.eem.corp.google.com>
+Subject: [nacked] x86-rtc-dont-register-a-platform-rtc-device-for-intel-mid-platforms-fix.patch removed from -mm tree
+Date: Thu, 29 Sep 2011 16:11:13 -0700
+Message-ID: <201109292311.p8TNBE8w007980@hpaq3.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:21026 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:58433 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756079Ab1I2Wpf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2011 18:45:35 -0400
+	with ESMTP id S1751559Ab1I2XLk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2011 19:11:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@google.com, ak@linux.intel.com, npiggin@kernel.dk, viro@zeniv.linux.org.uk
+To: rdunlap@xenotime.net, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, mathias.nyman@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: brlocks-lglocks-clean-up-code-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     brlocks-lglocks-clean-up-code-checkpatch-fixes.patch
+     Subject: x86 mrst: fix build error when X86_MRST is not enabled
+has been removed from the -mm tree.  Its filename was
+     x86-rtc-dont-register-a-platform-rtc-device-for-intel-mid-platforms-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@google.com>
-Subject: brlocks-lglocks-clean-up-code-checkpatch-fixes
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: x86 mrst: fix build error when X86_MRST is not enabled
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Fix build when CONFIG_X86_INTEL_MID is enabled but CONFIG_X86_MRST is not
+enabled.  Fixes this build error:
 
-ERROR: trailing whitespace
-#768: FILE: include/linux/lglock.h:54:
-+#endif $
+rtc.c:(.init.text+0x2fbb): undefined reference to `__mrst_cpu_chip'
 
-WARNING: line over 80 characters
-#772: FILE: include/linux/lglock.h:58:
-+	DEFINE_PER_CPU(arch_spinlock_t, name ## _lock) = __ARCH_SPIN_LOCK_UNLOCKED; \
-
-ERROR: trailing whitespace
-#917: FILE: kernel/lglock.c:5:
-+void lg_lock_init(struct lglock *lg, char *name) $
-
-ERROR: trailing whitespace
-#923: FILE: kernel/lglock.c:11:
-+void lg_local_lock(struct lglock *lg) $
-
-ERROR: trailing whitespace
-#933: FILE: kernel/lglock.c:21:
-+void lg_local_unlock(struct lglock *lg) $
-
-ERROR: trailing whitespace
-#943: FILE: kernel/lglock.c:31:
-+void lg_local_lock_cpu(struct lglock *lg, int cpu) $
-
-ERROR: trailing whitespace
-#953: FILE: kernel/lglock.c:41:
-+void lg_local_unlock_cpu(struct lglock *lg, int cpu) $
-
-ERROR: trailing whitespace
-#963: FILE: kernel/lglock.c:51:
-+void lg_global_lock_online(struct lglock *lg) $
-
-total: 7 errors, 1 warnings, 893 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/brlocks-lglocks-clean-up-code.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Mathias Nyman <mathias.nyman@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- kernel/lglock.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/mrst.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/lglock.c~brlocks-lglocks-clean-up-code-checkpatch-fixes kernel/lglock.c
---- a/kernel/lglock.c~brlocks-lglocks-clean-up-code-checkpatch-fixes
-+++ a/kernel/lglock.c
-@@ -2,13 +2,13 @@
- #include <linux/module.h>
- #include <linux/lglock.h>
+diff -puN arch/x86/include/asm/mrst.h~x86-rtc-dont-register-a-platform-rtc-device-for-intel-mid-platforms-fix arch/x86/include/asm/mrst.h
+--- a/arch/x86/include/asm/mrst.h~x86-rtc-dont-register-a-platform-rtc-device-for-intel-mid-platforms-fix
++++ a/arch/x86/include/asm/mrst.h
+@@ -32,18 +32,18 @@ enum mrst_cpu_type {
  
--void lg_lock_init(struct lglock *lg, char *name) 
-+void lg_lock_init(struct lglock *lg, char *name)
+ extern enum mrst_cpu_type __mrst_cpu_chip;
+ 
+-#ifdef CONFIG_X86_INTEL_MID
++#ifdef CONFIG_X86_MRST
+ 
+ static inline enum mrst_cpu_type mrst_identify_cpu(void)
  {
- 	LOCKDEP_INIT_MAP(&lg->lock_dep_map, name, &lg->lock_key, 0);
+ 	return __mrst_cpu_chip;
  }
- EXPORT_SYMBOL(lg_lock_init);
  
--void lg_local_lock(struct lglock *lg) 
-+void lg_local_lock(struct lglock *lg)
- {
- 	arch_spinlock_t *lock;
- 	preempt_disable();
-@@ -18,7 +18,7 @@ void lg_local_lock(struct lglock *lg) 
- }
- EXPORT_SYMBOL(lg_local_lock);
+-#else /* !CONFIG_X86_INTEL_MID */
++#else /* !CONFIG_X86_MRST */
  
--void lg_local_unlock(struct lglock *lg) 
-+void lg_local_unlock(struct lglock *lg)
- {
- 	arch_spinlock_t *lock;
- 	rwlock_release(&lg->lock_dep_map, 1, _RET_IP_);
-@@ -28,7 +28,7 @@ void lg_local_unlock(struct lglock *lg) 
- }
- EXPORT_SYMBOL(lg_local_unlock);
+ #define mrst_identify_cpu()    (0)
  
--void lg_local_lock_cpu(struct lglock *lg, int cpu) 
-+void lg_local_lock_cpu(struct lglock *lg, int cpu)
- {
- 	arch_spinlock_t *lock;
- 	preempt_disable();
-@@ -38,7 +38,7 @@ void lg_local_lock_cpu(struct lglock *lg
- }
- EXPORT_SYMBOL(lg_local_lock_cpu);
+-#endif /* !CONFIG_X86_INTEL_MID */
++#endif /* !CONFIG_X86_MRST */
  
--void lg_local_unlock_cpu(struct lglock *lg, int cpu) 
-+void lg_local_unlock_cpu(struct lglock *lg, int cpu)
- {
- 	arch_spinlock_t *lock;
- 	rwlock_release(&lg->lock_dep_map, 1, _RET_IP_);
-@@ -48,7 +48,7 @@ void lg_local_unlock_cpu(struct lglock *
- }
- EXPORT_SYMBOL(lg_local_unlock_cpu);
- 
--void lg_global_lock_online(struct lglock *lg) 
-+void lg_global_lock_online(struct lglock *lg)
- {
- 	int i;
- 	preempt_disable();
+ enum mrst_timer_options {
+ 	MRST_TIMER_DEFAULT,
 _
-Subject: Subject: brlocks-lglocks-clean-up-code-checkpatch-fixes
 
-Patches currently in -mm which might be from akpm@google.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
+origin.patch
 linux-next.patch
-drivers-net-ethernet-i825xx-3c505c-fix-build-with-dynamic-debug.patch
-brlocks-lglocks-clean-up-code-checkpatch-fixes.patch
-ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes.patch
-loop-cleanup-set_status-interface-checkpatch-fixes.patch
-treewide-use-__printf-not-__attribute__formatprintf-fix.patch
+drm-fix-kconfig-unmet-dependency-warning.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+cross-memory-attach-update.patch
+consolidate-config_debug_strict_user_copy_checks-fix.patch
+dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
