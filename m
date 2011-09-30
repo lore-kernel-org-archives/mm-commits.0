@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + cciss-auto-engage-scsi-mid-layer-at-driver-load-time.patch added to -mm tree
-Date: Fri, 30 Sep 2011 14:28:08 -0700
-Message-ID: <201109302128.p8ULS8L5006211@hpaq1.eem.corp.google.com>
+Subject: + x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch added to -mm tree
+Date: Fri, 30 Sep 2011 14:40:05 -0700
+Message-ID: <201109302140.p8ULe5WR009337@hpaq2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:60062 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:2115 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754175Ab1I3V3H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 17:29:07 -0400
+	with ESMTP id S1756316Ab1I3VlI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 17:41:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: scameron@beardog.cce.hp.com, axboe@kernel.dk
+Cc: konrad.wilk@oracle.com, a.p.zijlstra@chello.nl, hpa@zytor.com, jeremy.fitzhardinge@citrix.com, mingo@redhat.com, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: cciss: auto engage SCSI mid layer at driver load time
+     Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
 has been added to the -mm tree.  Its filename is
-     cciss-auto-engage-scsi-mid-layer-at-driver-load-time.patch
+     x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Subject: cciss: auto engage SCSI mid layer at driver load time
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
 
-A long time ago, probably in 2002, one of the distros, or maybe more than
-one, loaded block drivers prior to loading the SCSI mid layer.  This meant
-that the cciss driver, being a block driver, could not engage the SCSI mid
-layer at init time without panicking, and relied on being poked by a
-userland program after the system was up (and the SCSI mid layer was
-therefore present) to engage the SCSI mid layer.
+Fix an outstanding issue that has been reported since 2.6.37.  Under a
+heavy loaded machine processing "fork()" calls could crash with:
 
-This is no longer the case, and cciss can safely rely on the SCSI mid
-layer being present at init time and engage the SCSI mid layer straight
-away.  This means that users will see their tape drives and medium
-changers at driver load time without need for a script in /etc/rc.d that
-does this:
+BUG: unable to handle kernel paging request at f573fc8c
+IP: [<c01abc54>] swap_count_continued+0x104/0x180
+*pdpt = 000000002a3b9027 *pde = 0000000001bed067 *pte = 0000000000000000
+Oops: 0000 [#1] SMP
+Modules linked in:
+Pid: 1638, comm: apache2 Not tainted 3.0.4-linode37 #1
+EIP: 0061:[<c01abc54>] EFLAGS: 00210246 CPU: 3
+EIP is at swap_count_continued+0x104/0x180
+.. snip..
+Call Trace:
+ [<c01ac222>] ? __swap_duplicate+0xc2/0x160
+ [<c01040f7>] ? pte_mfn_to_pfn+0x87/0xe0
+ [<c01ac2e4>] ? swap_duplicate+0x14/0x40
+ [<c01a0a6b>] ? copy_pte_range+0x45b/0x500
+ [<c01a0ca5>] ? copy_page_range+0x195/0x200
+ [<c01328c6>] ? dup_mmap+0x1c6/0x2c0
+ [<c0132cf8>] ? dup_mm+0xa8/0x130
+ [<c013376a>] ? copy_process+0x98a/0xb30
+ [<c013395f>] ? do_fork+0x4f/0x280
+ [<c01573b3>] ? getnstimeofday+0x43/0x100
+ [<c010f770>] ? sys_clone+0x30/0x40
+ [<c06c048d>] ? ptregs_clone+0x15/0x48
+ [<c06bfb71>] ? syscall_call+0x7/0xb
 
-for x in /proc/driver/cciss/cciss*
-do
-	echo "engage scsi" > $x
-done
+The problem is that in copy_page_range() we turn lazy mode on, and then in
+swap_entry_free() we call swap_count_continued() which ends up in:
 
-However, if no tape drives or medium changers are detected, the SCSI mid
-layer will not be engaged.  If a tape drive or medium change is later
-hot-added to the system it will then be necessary to use the above script
-or similar for the device(s) to be acceesible.
+         map = kmap_atomic(page, KM_USER0) + offset;
 
-Signed-off-by: Stephen M. Cameron <scameron@beardog.cce.hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+and then later we touch *map.
+
+Since we are running in batched mode (lazy) we don't actually set up the
+PTE mappings and the kmap_atomic is not done synchronously and ends up
+trying to dereference a page that has not been set.
+
+Looking at kmap_atomic_prot_pfn(), it uses 'arch_flush_lazy_mmu_mode' and
+doing the same in kmap_atomic_prot() and __kunmap_atomic() makes the problem
+go away.
+
+Interestingly, commit b8bcfe997e4615 ("x86/paravirt: remove lazy mode in
+interrupts") removed part of this to fix an interrupt issue - but it went
+to far and did not consider this scenario.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- Documentation/blockdev/cciss.txt |   14 ++++++--------
- drivers/block/cciss.c            |    1 +
- drivers/block/cciss_scsi.c       |    1 +
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ arch/x86/mm/highmem_32.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/blockdev/cciss.txt~cciss-auto-engage-scsi-mid-layer-at-driver-load-time Documentation/blockdev/cciss.txt
---- a/Documentation/blockdev/cciss.txt~cciss-auto-engage-scsi-mid-layer-at-driver-load-time
-+++ a/Documentation/blockdev/cciss.txt
-@@ -98,14 +98,12 @@ You must enable "SCSI tape drive support
- "SCSI support" in your kernel configuration to be able to use SCSI
- tape drives with your Smart Array 5xxx controller.
+diff -puN arch/x86/mm/highmem_32.c~x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode arch/x86/mm/highmem_32.c
+--- a/arch/x86/mm/highmem_32.c~x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode
++++ a/arch/x86/mm/highmem_32.c
+@@ -45,6 +45,7 @@ void *kmap_atomic_prot(struct page *page
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ 	BUG_ON(!pte_none(*(kmap_pte-idx)));
+ 	set_pte(kmap_pte-idx, mk_pte(page, prot));
++	arch_flush_lazy_mmu_mode();
  
--Additionally, note that the driver will not engage the SCSI core at init 
--time.  The driver must be directed to dynamically engage the SCSI core via 
--the /proc filesystem entry which the "block" side of the driver creates as 
--/proc/driver/cciss/cciss* at runtime.  This is because at driver init time, 
--the SCSI core may not yet be initialized (because the driver is a block 
--driver) and attempting to register it with the SCSI core in such a case 
--would cause a hang.  This is best done via an initialization script 
--(typically in /etc/init.d, but could vary depending on distribution). 
-+Additionally, note that the driver will engage the SCSI core at init
-+time if any tape drives or medium changers are detected.  The driver may
-+also be directed to dynamically engage the SCSI core via the /proc filesystem
-+entry which the "block" side of the driver creates as
-+/proc/driver/cciss/cciss* at runtime.  This is best done via a script.
-+
- For example:
- 
- 	for x in /proc/driver/cciss/cciss[0-9]*
-diff -puN drivers/block/cciss.c~cciss-auto-engage-scsi-mid-layer-at-driver-load-time drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-auto-engage-scsi-mid-layer-at-driver-load-time
-+++ a/drivers/block/cciss.c
-@@ -5151,6 +5151,7 @@ reinit_after_soft_reset:
- 	h->cciss_max_sectors = 8192;
- 
- 	rebuild_lun_table(h, 1, 0);
-+	cciss_engage_scsi(h);
- 	h->busy_initializing = 0;
- 	return 1;
- 
-diff -puN drivers/block/cciss_scsi.c~cciss-auto-engage-scsi-mid-layer-at-driver-load-time drivers/block/cciss_scsi.c
---- a/drivers/block/cciss_scsi.c~cciss-auto-engage-scsi-mid-layer-at-driver-load-time
-+++ a/drivers/block/cciss_scsi.c
-@@ -1720,5 +1720,6 @@ static int  cciss_eh_abort_handler(struc
- /* If no tape support, then these become defined out of existence */
- 
- #define cciss_scsi_setup(cntl_num)
-+#define cciss_engage_scsi(h)
- 
- #endif /* CONFIG_CISS_SCSI_TAPE */
+ 	return (void *)vaddr;
+ }
+@@ -88,6 +89,7 @@ void __kunmap_atomic(void *kvaddr)
+ 		 */
+ 		kpte_clear_flush(kmap_pte-idx, vaddr);
+ 		kmap_atomic_idx_pop();
++		arch_flush_lazy_mmu_mode();
+ 	}
+ #ifdef CONFIG_DEBUG_HIGHMEM
+ 	else {
 _
-Subject: Subject: cciss: auto engage SCSI mid layer at driver load time
+Subject: Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
 
-Patches currently in -mm which might be from scameron@beardog.cce.hp.com are
+Patches currently in -mm which might be from konrad.wilk@oracle.com are
 
 origin.patch
 linux-next.patch
-cciss-auto-engage-scsi-mid-layer-at-driver-load-time.patch
+x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch
 
