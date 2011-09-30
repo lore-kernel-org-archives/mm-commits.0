@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + cgroups-create-a-workqueue-for-cgroup-fix.patch added to -mm tree
-Date: Fri, 30 Sep 2011 15:31:11 -0700
-Message-ID: <201109302231.p8UMVCgA030304@wpaz21.hot.corp.google.com>
+Subject: + cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch added to -mm tree
+Date: Fri, 30 Sep 2011 16:03:22 -0700
+Message-ID: <201109302303.p8UN3Mqq021454@hpaq1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:20429 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:11054 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758413Ab1I3Wb0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 18:31:26 -0400
+	with ESMTP id S1753970Ab1I3XEN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 19:04:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, laijs@cn.fujitsu.com, lizf@cn.fujitsu.com, miaox@cn.fujitsu.com, mingo@redhat.com, nishimura@mxp.nes.nec.co.jp, paul@paulmenage.org
+Cc: rostedt@goodmis.org, catalin.marinas@arm.com, jrnieder@gmail.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: cgroups-create-a-workqueue-for-cgroup-fix
+     Subject: cgroup/kmemleak: Annotate alloc_page() for cgroup allocations
 has been added to the -mm tree.  Its filename is
-     cgroups-create-a-workqueue-for-cgroup-fix.patch
+     cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cgroups-create-a-workqueue-for-cgroup-fix
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: cgroup/kmemleak: Annotate alloc_page() for cgroup allocations
 
-s/queue_cgroup_work/cgroup_queue_work/
+When the cgroup base was allocated with kmalloc, it was necessary to
+annotate the variable with kmemleak_not_leak().  But because it has
+recently been changed to be allocated with alloc_page() (which skips
+kmemleak checks) causes a warning on boot up.
 
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Paul Menage <paul@paulmenage.org>
+I was triggering this output:
+
+ allocated 8388608 bytes of page_cgroup
+ please try 'cgroup_disable=memory' option if you don't want memory cgroups
+ kmemleak: Trying to color unknown object at 0xf5840000 as Grey
+ Pid: 0, comm: swapper Not tainted 3.0.0-test #12
+ Call Trace:
+  [<c17e34e6>] ? printk+0x1d/0x1f^M
+  [<c10e2941>] paint_ptr+0x4f/0x78
+  [<c178ab57>] kmemleak_not_leak+0x58/0x7d
+  [<c108ae9f>] ? __rcu_read_unlock+0x9/0x7d
+  [<c1cdb462>] kmemleak_init+0x19d/0x1e9
+  [<c1cbf771>] start_kernel+0x346/0x3ec
+  [<c1cbf1b4>] ? loglevel+0x18/0x18
+  [<c1cbf0aa>] i386_start_kernel+0xaa/0xb0
+
+After a bit of debugging I tracked the object 0xf840000 (and others) down
+to the cgroup code.  The change from allocating base with kmalloc to
+alloc_page() has the base not calling kmemleak_alloc() which adds the
+pointer to the object_tree_root, but kmemleak_not_leak() adds it to the
+crt_early_log[] table.  On kmemleak_init(), the entry is found in the
+early_log[] but not the object_tree_root, and this error message is
+displayed.
+
+If alloc_page() fails then it defaults back to vmalloc() which still uses
+the kmemleak_alloc() which makes us still need the kmemleak_not_leak()
+call.  The solution is to call the kmemleak_alloc() directly if the
+alloc_page() succeeds.
+
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- include/linux/cgroup.h |    2 +-
- kernel/cgroup.c        |    4 ++--
- kernel/cpuset.c        |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/page_cgroup.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-create-a-workqueue-for-cgroup-fix include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-create-a-workqueue-for-cgroup-fix
-+++ a/include/linux/cgroup.h
-@@ -28,7 +28,7 @@ struct css_id;
- extern int cgroup_init_early(void);
- extern int cgroup_init(void);
- extern void cgroup_wq_init(void);
--extern void queue_cgroup_work(struct work_struct *work);
-+extern void cgroup_queue_work(struct work_struct *work);
- extern void cgroup_lock(void);
- extern int cgroup_lock_is_held(void);
- extern bool cgroup_lock_live_group(struct cgroup *cgrp);
-diff -puN kernel/cgroup.c~cgroups-create-a-workqueue-for-cgroup-fix kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-create-a-workqueue-for-cgroup-fix
-+++ a/kernel/cgroup.c
-@@ -4388,7 +4388,7 @@ void __init cgroup_wq_init(void)
- 	BUG_ON(!cgroup_wq);
- }
- 
--void queue_cgroup_work(struct work_struct *work)
-+void cgroup_queue_work(struct work_struct *work)
+diff -puN mm/page_cgroup.c~cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations mm/page_cgroup.c
+--- a/mm/page_cgroup.c~cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations
++++ a/mm/page_cgroup.c
+@@ -133,10 +133,13 @@ struct page *lookup_cgroup_page(struct p
+ static void *__meminit alloc_page_cgroup(size_t size, int nid)
  {
- 	queue_work(cgroup_wq, work);
- }
-@@ -4701,7 +4701,7 @@ static void check_for_release(struct cgr
- 		}
- 		raw_spin_unlock(&release_list_lock);
- 		if (need_schedule_work)
--			queue_cgroup_work(&release_agent_work);
-+			cgroup_queue_work(&release_agent_work);
- 	}
- }
+ 	void *addr = NULL;
++	gfp_t flags = GFP_KERNEL | __GFP_NOWARN;
  
-diff -puN kernel/cpuset.c~cgroups-create-a-workqueue-for-cgroup-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cgroups-create-a-workqueue-for-cgroup-fix
-+++ a/kernel/cpuset.c
-@@ -759,7 +759,7 @@ static DECLARE_WORK(rebuild_sched_domain
-  */
- static void async_rebuild_sched_domains(void)
- {
--	queue_cgroup_work(&rebuild_sched_domains_work);
-+	cgroup_queue_work(&rebuild_sched_domains_work);
- }
+-	addr = alloc_pages_exact_nid(nid, size, GFP_KERNEL | __GFP_NOWARN);
+-	if (addr)
++	addr = alloc_pages_exact_nid(nid, size, flags);
++	if (addr) {
++		kmemleak_alloc(addr, size, 1, flags);
+ 		return addr;
++	}
  
- /*
+ 	if (node_state(nid, N_HIGH_MEMORY))
+ 		addr = vmalloc_node(size, nid);
 _
-Subject: Subject: cgroups-create-a-workqueue-for-cgroup-fix
+Subject: Subject: cgroup/kmemleak: Annotate alloc_page() for cgroup allocations
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
-dynamic_debug-use-a-single-printk-to-emit-messages.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-cgroups-create-a-workqueue-for-cgroup-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch
+stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix.patch
+stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix-fix.patch
+cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch
+memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch
 
