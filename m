@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch added to -mm tree
-Date: Fri, 30 Sep 2011 14:40:05 -0700
-Message-ID: <201109302140.p8ULe5WR009337@hpaq2.eem.corp.google.com>
+Subject: + watchdog-move-watchdog__all_cpus-under-config_sysctl.patch added to -mm tree
+Date: Fri, 30 Sep 2011 15:20:46 -0700
+Message-ID: <201109302220.p8UMKkc1021456@hpaq12.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:2115 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:57935 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756316Ab1I3VlI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 17:41:08 -0400
+	with ESMTP id S1758098Ab1I3WUv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 18:20:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: konrad.wilk@oracle.com, a.p.zijlstra@chello.nl, hpa@zytor.com, jeremy.fitzhardinge@citrix.com, mingo@redhat.com, stable@kernel.org, tglx@linutronix.de
+Cc: vvs@sw.ru
 
 
 The patch titled
-     Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
+     Subject: watchdog: move watchdog_*_all_cpus under CONFIG_SYSCTL
 has been added to the -mm tree.  Its filename is
-     x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch
+     watchdog-move-watchdog__all_cpus-under-config_sysctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
+From: Vasily Averin <vvs@sw.ru>
+Subject: watchdog: move watchdog_*_all_cpus under CONFIG_SYSCTL
 
-Fix an outstanding issue that has been reported since 2.6.37.  Under a
-heavy loaded machine processing "fork()" calls could crash with:
+Fix compilation warnings for CONFIG_SYSCTL=n:
 
-BUG: unable to handle kernel paging request at f573fc8c
-IP: [<c01abc54>] swap_count_continued+0x104/0x180
-*pdpt = 000000002a3b9027 *pde = 0000000001bed067 *pte = 0000000000000000
-Oops: 0000 [#1] SMP
-Modules linked in:
-Pid: 1638, comm: apache2 Not tainted 3.0.4-linode37 #1
-EIP: 0061:[<c01abc54>] EFLAGS: 00210246 CPU: 3
-EIP is at swap_count_continued+0x104/0x180
-.. snip..
-Call Trace:
- [<c01ac222>] ? __swap_duplicate+0xc2/0x160
- [<c01040f7>] ? pte_mfn_to_pfn+0x87/0xe0
- [<c01ac2e4>] ? swap_duplicate+0x14/0x40
- [<c01a0a6b>] ? copy_pte_range+0x45b/0x500
- [<c01a0ca5>] ? copy_page_range+0x195/0x200
- [<c01328c6>] ? dup_mmap+0x1c6/0x2c0
- [<c0132cf8>] ? dup_mm+0xa8/0x130
- [<c013376a>] ? copy_process+0x98a/0xb30
- [<c013395f>] ? do_fork+0x4f/0x280
- [<c01573b3>] ? getnstimeofday+0x43/0x100
- [<c010f770>] ? sys_clone+0x30/0x40
- [<c06c048d>] ? ptregs_clone+0x15/0x48
- [<c06bfb71>] ? syscall_call+0x7/0xb
+fixed compilation warnings in case of disabled CONFIG_SYSCTL
+kernel/watchdog.c:483:13: warning: `watchdog_enable_all_cpus' defined but not used
+kernel/watchdog.c:500:13: warning: `watchdog_disable_all_cpus' defined but not used
 
-The problem is that in copy_page_range() we turn lazy mode on, and then in
-swap_entry_free() we call swap_count_continued() which ends up in:
+these functions are static and are used only in sysctl handler, so move
+them inside #ifdef CONFIG_SYSCTL too
 
-         map = kmap_atomic(page, KM_USER0) + offset;
-
-and then later we touch *map.
-
-Since we are running in batched mode (lazy) we don't actually set up the
-PTE mappings and the kmap_atomic is not done synchronously and ends up
-trying to dereference a page that has not been set.
-
-Looking at kmap_atomic_prot_pfn(), it uses 'arch_flush_lazy_mmu_mode' and
-doing the same in kmap_atomic_prot() and __kunmap_atomic() makes the problem
-go away.
-
-Interestingly, commit b8bcfe997e4615 ("x86/paravirt: remove lazy mode in
-interrupts") removed part of this to fix an interrupt issue - but it went
-to far and did not consider this scenario.
-
-Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Vasily Averin <vvs@sw.ru>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- arch/x86/mm/highmem_32.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/watchdog.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/highmem_32.c~x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode arch/x86/mm/highmem_32.c
---- a/arch/x86/mm/highmem_32.c~x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode
-+++ a/arch/x86/mm/highmem_32.c
-@@ -45,6 +45,7 @@ void *kmap_atomic_prot(struct page *page
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
- 	BUG_ON(!pte_none(*(kmap_pte-idx)));
- 	set_pte(kmap_pte-idx, mk_pte(page, prot));
-+	arch_flush_lazy_mmu_mode();
- 
- 	return (void *)vaddr;
- }
-@@ -88,6 +89,7 @@ void __kunmap_atomic(void *kvaddr)
- 		 */
- 		kpte_clear_flush(kmap_pte-idx, vaddr);
- 		kmap_atomic_idx_pop();
-+		arch_flush_lazy_mmu_mode();
+diff -puN kernel/watchdog.c~watchdog-move-watchdog__all_cpus-under-config_sysctl kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-move-watchdog__all_cpus-under-config_sysctl
++++ a/kernel/watchdog.c
+@@ -482,6 +482,8 @@ static void watchdog_disable(int cpu)
  	}
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	else {
+ }
+ 
++/* sysctl functions */
++#ifdef CONFIG_SYSCTL
+ static void watchdog_enable_all_cpus(void)
+ {
+ 	int cpu;
+@@ -511,8 +513,6 @@ static void watchdog_disable_all_cpus(vo
+ }
+ 
+ 
+-/* sysctl functions */
+-#ifdef CONFIG_SYSCTL
+ /*
+  * proc handler for /proc/sys/kernel/nmi_watchdog,watchdog_thresh
+  */
 _
-Subject: Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
+Subject: Subject: watchdog: move watchdog_*_all_cpus under CONFIG_SYSCTL
 
-Patches currently in -mm which might be from konrad.wilk@oracle.com are
+Patches currently in -mm which might be from vvs@sw.ru are
 
 origin.patch
-linux-next.patch
-x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch
+watchdog-move-watchdog__all_cpus-under-config_sysctl.patch
 
