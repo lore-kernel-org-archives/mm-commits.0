@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + cciss-add-half-second-delay-to-pci-pm-reset-code.patch added to -mm tree
-Date: Fri, 30 Sep 2011 13:52:17 -0700
-Message-ID: <201109302052.p8UKqIXg017145@wpaz17.hot.corp.google.com>
+Subject: + stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix.patch added to -mm tree
+Date: Fri, 30 Sep 2011 14:07:00 -0700
+Message-ID: <201109302107.p8UL7105021055@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:18709 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:48959 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752737Ab1I3Uwa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 16:52:30 -0400
+	with ESMTP id S1755275Ab1I3VHY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 17:07:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, axboe@kernel.dk
+Cc: akpm@google.com, a.p.zijlstra@chello.nl, hpa@linux.intel.com, htejun@gmail.com, jeremy.fitzhardinge@citrix.com, jeremy@goop.org, mingo@redhat.com, rostedt@goodmis.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     Subject: cciss: add half second delay to PCI PM reset code
+     Subject: stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix
 has been added to the -mm tree.  Its filename is
-     cciss-add-half-second-delay-to-pci-pm-reset-code.patch
+     stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,25 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mike Miller <mike.miller@hp.com>
-Subject: cciss: add half second delay to PCI PM reset code
+From: Andrew Morton <akpm@google.com>
+Subject: stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix
 
-After using PCI Power Management to reset the Smart Array in kdump kernels
-we need some delay.  Otherwise we may think the board failed to reset and
-bail out.  This affects all users with a Smart Array P600.
+- add comment
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+- s/local_save_flags/local_irq_save/
+
+Cc: H. Peter Anvin <hpa@linux.intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/block/cciss.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/stop_machine.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-add-half-second-delay-to-pci-pm-reset-code drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-add-half-second-delay-to-pci-pm-reset-code
-+++ a/drivers/block/cciss.c
-@@ -4550,13 +4550,13 @@ static int cciss_controller_hard_reset(s
- 		pmcsr &= ~PCI_PM_CTRL_STATE_MASK;
- 		pmcsr |= PCI_D3hot;
- 		pci_write_config_word(pdev, pos + PCI_PM_CTRL, pmcsr);
+diff -puN kernel/stop_machine.c~stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix kernel/stop_machine.c
+--- a/kernel/stop_machine.c~stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix
++++ a/kernel/stop_machine.c
+@@ -486,10 +486,14 @@ int __stop_machine(int (*fn)(void *), vo
+ 					    .active_cpus = cpus };
+ 
+ 	if (smdata.num_threads == 1) {
++		/*
++		 * Handle the case where stop_machine() is called early in boot
++		 * before SMP startup.
++		 */
+ 		unsigned long flags;
+ 		int ret;
+ 
+-		local_save_flags(flags);
++		local_irq_save(flags);
+ 		ret = (*fn)(data);
+ 		local_irq_restore(flags);
+ 
+_
+Subject: Subject: stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix
+
+Patches currently in -mm which might be from akpm@google.com are
+
+origin.patch
+linux-next.patch
+drivers-net-ethernet-i825xx-3c505c-fix-build-with-dynamic-debug.patch
+brlocks-lglocks-clean-up-code-checkpatch-fixes.patch
+ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes.patch
+loop-cleanup-set_status-interface-checkpatch-fixes.patch
+stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix.patch
+treewide-use-__printf-not-__attribute__formatprintf-fix.patch
+
