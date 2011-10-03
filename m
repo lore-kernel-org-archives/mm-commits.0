@@ -1,113 +1,93 @@
 From: akpm@google.com
-Subject: + cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch added to -mm tree
-Date: Fri, 30 Sep 2011 16:03:22 -0700
-Message-ID: <201109302303.p8UN3Mqq021454@hpaq1.eem.corp.google.com>
+Subject: [withdrawn] binfmt_elf-fix-pie-execution-with-randomization-disabled.patch removed from -mm tree
+Date: Mon, 03 Oct 2011 14:58:14 -0700
+Message-ID: <201110032158.p93LwFtM026873@hpaq5.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:11054 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:16796 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753970Ab1I3XEN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2011 19:04:13 -0400
+	with ESMTP id S1752001Ab1JCV7e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2011 17:59:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, catalin.marinas@arm.com, jrnieder@gmail.com, mhocko@suse.cz
+To: hongjiu.lu@intel.com, jkosina@suse.cz, jwboyer@redhat.com, mingo@elte.hu, nicolas.pitre@linaro.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup/kmemleak: Annotate alloc_page() for cgroup allocations
-has been added to the -mm tree.  Its filename is
-     cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch
+     Subject: binfmt_elf: fix PIE execution with randomization disabled
+has been removed from the -mm tree.  Its filename was
+     binfmt_elf-fix-pie-execution-with-randomization-disabled.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: cgroup/kmemleak: Annotate alloc_page() for cgroup allocations
+From: H.J. Lu <hongjiu.lu@intel.com>
+Subject: binfmt_elf: fix PIE execution with randomization disabled
 
-When the cgroup base was allocated with kmalloc, it was necessary to
-annotate the variable with kmemleak_not_leak().  But because it has
-recently been changed to be allocated with alloc_page() (which skips
-kmemleak checks) causes a warning on boot up.
+We've had a bug report
+(https://bugzilla.redhat.com/show_bug.cgi?id=708563) of some PIE programs
+getting a SIGKILL upon exec if you disable address randomization with:
 
-I was triggering this output:
+	echo 0 > /proc/sys/kernel/randomize_va_space
 
- allocated 8388608 bytes of page_cgroup
- please try 'cgroup_disable=memory' option if you don't want memory cgroups
- kmemleak: Trying to color unknown object at 0xf5840000 as Grey
- Pid: 0, comm: swapper Not tainted 3.0.0-test #12
- Call Trace:
-  [<c17e34e6>] ? printk+0x1d/0x1f^M
-  [<c10e2941>] paint_ptr+0x4f/0x78
-  [<c178ab57>] kmemleak_not_leak+0x58/0x7d
-  [<c108ae9f>] ? __rcu_read_unlock+0x9/0x7d
-  [<c1cdb462>] kmemleak_init+0x19d/0x1e9
-  [<c1cbf771>] start_kernel+0x346/0x3ec
-  [<c1cbf1b4>] ? loglevel+0x18/0x18
-  [<c1cbf0aa>] i386_start_kernel+0xaa/0xb0
+I tracked this down to get_unmapped_area_prot returning -ENOMEM because
+the address being passed in is larger than TASK_SIZE - len for the bss
+section of the test executable.  That filters back to set_brk returning an
+error to load_elf_binary and the SIGKILL being sent around line 872 of
+binfmt_elf.c.
 
-After a bit of debugging I tracked the object 0xf840000 (and others) down
-to the cgroup code.  The change from allocating base with kmalloc to
-alloc_page() has the base not calling kmemleak_alloc() which adds the
-pointer to the object_tree_root, but kmemleak_not_leak() adds it to the
-crt_early_log[] table.  On kmemleak_init(), the entry is found in the
-early_log[] but not the object_tree_root, and this error message is
-displayed.
+H.J.  submitted an upstream bug report
+(http://bugzilla.kernel.org/show_bug.cgi?id=36372) as well, but got no
+feedback and we can't view it with kernel.org being down anyway.  He came
+up with the patch below as well, which is what I'm sending on for
+comments.  The changelog is my addition, so if that is wrong yell at me.
 
-If alloc_page() fails then it defaults back to vmalloc() which still uses
-the kmemleak_alloc() which makes us still need the kmemleak_not_leak()
-call.  The solution is to call the kmemleak_alloc() directly if the
-alloc_page() succeeds.
+I wanted to get some more eyes on this, because the current code sets
+load_bias to 0 unconditionally on CONFIG_X86 or CONFIG_ARM.  I have no
+idea why that is.  The original execshield patches had an #ifdef on
+__i386__ but the patch that was commited to add PIE support has the
+CONFIG_X86 setting.
 
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Set the load_bias for PIE executables to a non-zero address if no virtual
+address is specified.  This prevents us from running out of room for all
+the various loadable segments when ASLR is disabled.
+
+Signed-off-by: H.J. Lu <hongjiu.lu@intel.com>
+Signed-off-by: Josh Boyer <jwboyer@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- mm/page_cgroup.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_cgroup.c~cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations mm/page_cgroup.c
---- a/mm/page_cgroup.c~cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations
-+++ a/mm/page_cgroup.c
-@@ -133,10 +133,13 @@ struct page *lookup_cgroup_page(struct p
- static void *__meminit alloc_page_cgroup(size_t size, int nid)
- {
- 	void *addr = NULL;
-+	gfp_t flags = GFP_KERNEL | __GFP_NOWARN;
- 
--	addr = alloc_pages_exact_nid(nid, size, GFP_KERNEL | __GFP_NOWARN);
--	if (addr)
-+	addr = alloc_pages_exact_nid(nid, size, flags);
-+	if (addr) {
-+		kmemleak_alloc(addr, size, 1, flags);
- 		return addr;
-+	}
- 
- 	if (node_state(nid, N_HIGH_MEMORY))
- 		addr = vmalloc_node(size, nid);
+diff -puN fs/binfmt_elf.c~binfmt_elf-fix-pie-execution-with-randomization-disabled fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-fix-pie-execution-with-randomization-disabled
++++ a/fs/binfmt_elf.c
+@@ -793,9 +793,14 @@ static int load_elf_binary(struct linux_
+ 			/* Try and get dynamic programs out of the way of the
+ 			 * default mmap base, as well as whatever program they
+ 			 * might try to exec.  This is because the brk will
+-			 * follow the loader, and is not movable.  */
++			 * follow the loader, and is not movable.  Don't use
++			 * 0 load address since we may not have room for
++			 * all loadable segements.  */
+ #if defined(CONFIG_X86) || defined(CONFIG_ARM)
+-			load_bias = 0;
++			if (vaddr)
++				load_bias = 0;
++			else
++				load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE);
+ #else
+ 			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
+ #endif
 _
-Subject: Subject: cgroup/kmemleak: Annotate alloc_page() for cgroup allocations
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from hongjiu.lu@intel.com are
 
-linux-next.patch
-stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch
-stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix.patch
-stop_machine-make-stop_machine-safe-and-efficient-to-call-early-fix-fix.patch
-cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch
-memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch
 
