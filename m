@@ -1,76 +1,149 @@
 From: akpm@google.com
-Subject: [merged] tty-serial-fix-locking-imbalance.patch removed from -mm tree
-Date: Tue, 04 Oct 2011 12:29:48 -0700
-Message-ID: <201110041929.p94JTmBv017526@hpaq6.eem.corp.google.com>
+Subject: [merged] memory-hotplug-correct-page-reservation-checking.patch removed from -mm tree
+Date: Tue, 04 Oct 2011 12:29:53 -0700
+Message-ID: <201110041929.p94JTrPI017047@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:33411 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:45869 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932752Ab1JDTah (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2011 15:30:37 -0400
+	with ESMTP id S932752Ab1JDTaj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2011 15:30:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, greg@kroah.com, mm-commits@vger.kernel.org
+To: nfont@austin.ibm.com, dave@linux.vnet.ibm.com, greg@kroah.com, nfont@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: TTY: serial, fix locking imbalance
+     Subject: memory hotplug: correct page reservation checking
 has been removed from the -mm tree.  Its filename was
-     tty-serial-fix-locking-imbalance.patch
+     memory-hotplug-correct-page-reservation-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: TTY: serial, fix locking imbalance
+From: Nathan Fontenot <nfont@austin.ibm.com>
+Subject: memory hotplug: correct page reservation checking
 
-linux-next commit "TTY: serial, move locking in uart_close" moved the
-lock, but omitted to update branches which unlock the lock.  Now they try
-to unlock the lock without holding it.
+The check to ensure that pages of recently added memory sections are
+correctly marked as reserved before trying to online the memory is broken.
+ The request to online the memory fails with the following:
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+kernel: section number XXX page number 256 not reserved, was it already online?
+
+This updates the page reservation checking to check the pages of each
+memory section of the memory block being onlined individually.
+
+Signed-off-by: Nathan Fontenot <nfont@linux.vnet.ibm.com>
 Cc: Greg KH <greg@kroah.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/tty/serial/serial_core.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/base/memory.c |   60 ++++++++++++++++++++++++----------------
+ 1 file changed, 37 insertions(+), 23 deletions(-)
 
-diff -puN drivers/tty/serial/serial_core.c~tty-serial-fix-locking-imbalance drivers/tty/serial/serial_core.c
---- a/drivers/tty/serial/serial_core.c~tty-serial-fix-locking-imbalance
-+++ a/drivers/tty/serial/serial_core.c
-@@ -1262,7 +1262,7 @@ static void uart_close(struct tty_struct
+diff -puN drivers/base/memory.c~memory-hotplug-correct-page-reservation-checking drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-correct-page-reservation-checking
++++ a/drivers/base/memory.c
+@@ -227,41 +227,42 @@ int memory_isolate_notify(unsigned long 
+  * MEMORY_HOTPLUG depends on SPARSEMEM in mm/Kconfig, so it is
+  * OK to have direct references to sparsemem variables in here.
+  */
++static int check_page_reservations(unsigned long phys_index)
++{
++	int i;
++	struct page *page;
++
++	page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
++
++	for (i = 0; i < PAGES_PER_SECTION; i++) {
++		if (PageReserved(page + i))
++			continue;
++
++		printk(KERN_WARNING "section number %ld page number %d "
++			"not reserved, was it already online?\n", phys_index, i);
++			return -EBUSY;
++	}
++
++	return 0;
++}
++
+ static int
+ memory_block_action(unsigned long phys_index, unsigned long action)
+ {
+-	int i;
+ 	unsigned long start_pfn, start_paddr;
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+-	struct page *first_page;
++	struct page *page;
+ 	int ret;
  
- 	if (tty_hung_up_p(filp)) {
- 		spin_unlock_irqrestore(&port->lock, flags);
--		goto done;
-+		return;
- 	}
+-	first_page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
+-
+-	/*
+-	 * The probe routines leave the pages reserved, just
+-	 * as the bootmem code does.  Make sure they're still
+-	 * that way.
+-	 */
+-	if (action == MEM_ONLINE) {
+-		for (i = 0; i < nr_pages; i++) {
+-			if (PageReserved(first_page+i))
+-				continue;
+-
+-			printk(KERN_WARNING "section number %ld page number %d "
+-				"not reserved, was it already online?\n",
+-				phys_index, i);
+-			return -EBUSY;
+-		}
+-	}
++	page = pfn_to_page(phys_index << PFN_SECTION_SHIFT);
  
- 	if ((tty->count == 1) && (port->count != 1)) {
-@@ -1284,7 +1284,7 @@ static void uart_close(struct tty_struct
- 	}
- 	if (port->count) {
- 		spin_unlock_irqrestore(&port->lock, flags);
--		goto done;
-+		return;
- 	}
+ 	switch (action) {
+ 		case MEM_ONLINE:
+-			start_pfn = page_to_pfn(first_page);
++			start_pfn = page_to_pfn(page);
+ 			ret = online_pages(start_pfn, nr_pages);
+ 			break;
+ 		case MEM_OFFLINE:
+-			start_paddr = page_to_pfn(first_page) << PAGE_SHIFT;
++			start_paddr = page_to_pfn(page) << PAGE_SHIFT;
+ 			ret = remove_memory(start_paddr,
+ 					    nr_pages << PAGE_SHIFT);
+ 			break;
+@@ -277,7 +278,7 @@ memory_block_action(unsigned long phys_i
+ static int memory_block_change_state(struct memory_block *mem,
+ 		unsigned long to_state, unsigned long from_state_req)
+ {
+-	int ret = 0;
++	int i, ret = 0;
  
- 	/*
-@@ -1347,7 +1347,6 @@ static void uart_close(struct tty_struct
- 	wake_up_interruptible(&port->open_wait);
- 	wake_up_interruptible(&port->close_wait);
+ 	mutex_lock(&mem->state_mutex);
  
--done:
- 	mutex_unlock(&port->mutex);
- }
+@@ -289,6 +290,19 @@ static int memory_block_change_state(str
+ 	if (to_state == MEM_OFFLINE)
+ 		mem->state = MEM_GOING_OFFLINE;
  
++	if (to_state == MEM_ONLINE) {
++		/*
++		 * The probe routines leave the pages reserved, just
++		 * as the bootmem code does.  Make sure they're still
++		 * that way.
++		 */
++		for (i = 0; i < sections_per_block; i++) {
++			ret = check_page_reservations(mem->start_section_nr + i);
++			if (ret)
++				return ret;
++		}
++	}
++
+ 	ret = memory_block_action(mem->start_section_nr, to_state);
+ 
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from nfont@austin.ibm.com are
 
 linux-next.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
 
