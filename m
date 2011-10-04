@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + cgroups-add-res-counter-common-ancestor-searching.patch added to -mm tree
-Date: Tue, 04 Oct 2011 15:01:46 -0700
-Message-ID: <201110042201.p94M1lZ2030133@wpaz17.hot.corp.google.com>
+Subject: + cgroups-new-cancel_attach_task-subsystem-callback.patch added to -mm tree
+Date: Tue, 04 Oct 2011 15:01:37 -0700
+Message-ID: <201110042201.p94M1b9M010775@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:3439 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:3413 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933049Ab1JDWCA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2011 18:02:00 -0400
+	with ESMTP id S933049Ab1JDWB5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2011 18:01:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill@shutemov.name, adityakali@google.com, fweisbec@gmail.com, hannes@cmpxchg.org, htejun@gmail.com, kay.sievers@vrfy.org, lizf@cn.fujitsu.com, oleg@redhat.com, paul@paulmenage.org, thockin@hockin.org
+Cc: fweisbec@gmail.com, adityakali@google.com, hannes@cmpxchg.org, htejun@gmail.com, kay.sievers@vrfy.org, kirill@shutemov.name, lizf@cn.fujitsu.com, oleg@redhat.com, paul@paulmenage.org, thockin@hockin.org
 
 
 The patch titled
-     Subject: cgroups: add res counter common ancestor searching
+     Subject: cgroups: new cancel_attach_task() subsystem callback
 has been added to the -mm tree.  Its filename is
-     cgroups-add-res-counter-common-ancestor-searching.patch
+     cgroups-new-cancel_attach_task-subsystem-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: cgroups: add res counter common ancestor searching
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: cgroups: new cancel_attach_task() subsystem callback
 
-Add a new API to find the common ancestor between two resource counters. 
-This includes the passed resource counter themselves.
+To cancel a process attachment on a subsystem, we only call the
+cancel_attach() callback once on the leader but we have no way to cancel
+the attachment individually for each member of the process group.
 
-Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
+This is going to be needed for the max number of tasks susbystem that is
+coming.
+
+To prepare for this integration, call a new cancel_attach_task() callback
+on each task of the group until we reach the member that failed to attach.
+
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Acked-by: Paul Menage <paul@paulmenage.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <paul@paulmenage.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Aditya Kali <adityakali@google.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Tim Hockin <thockin@hockin.org>
 Cc: Tejun Heo <htejun@gmail.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- include/linux/res_counter.h |    3 +++
- kernel/res_counter.c        |   33 +++++++++++++++++++++++++++++++++
- 2 files changed, 36 insertions(+)
+ Documentation/cgroups/cgroups.txt |    7 +++++++
+ include/linux/cgroup.h            |    2 ++
+ kernel/cgroup.c                   |   24 ++++++++++++++++++++----
+ 3 files changed, 29 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/res_counter.h~cgroups-add-res-counter-common-ancestor-searching include/linux/res_counter.h
---- a/include/linux/res_counter.h~cgroups-add-res-counter-common-ancestor-searching
-+++ a/include/linux/res_counter.h
-@@ -147,6 +147,9 @@ static inline void res_counter_uncharge(
- 	res_counter_uncharge_until(counter, NULL, val);
- }
+diff -puN Documentation/cgroups/cgroups.txt~cgroups-new-cancel_attach_task-subsystem-callback Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroups-new-cancel_attach_task-subsystem-callback
++++ a/Documentation/cgroups/cgroups.txt
+@@ -623,6 +623,13 @@ function, so that the subsystem can impl
+ This will be called only about subsystems whose can_attach() operation have
+ succeeded.
  
-+struct res_counter *res_counter_common_ancestor(struct res_counter *l,
-+						struct res_counter *r);
++void cancel_attach_task(struct cgroup *cgrp, struct task_struct *tsk)
++(cgroup_mutex held by caller)
 +
- /**
-  * res_counter_margin - calculate chargeable space of a counter
-  * @cnt: the counter
-diff -puN kernel/res_counter.c~cgroups-add-res-counter-common-ancestor-searching kernel/res_counter.c
---- a/kernel/res_counter.c~cgroups-add-res-counter-common-ancestor-searching
-+++ a/kernel/res_counter.c
-@@ -91,6 +91,39 @@ void res_counter_uncharge_until(struct r
- 	local_irq_restore(flags);
- }
++As cancel_attach, but for operations that must be cancelled once per
++task that wanted to be attached. This typically revert the effect of
++can_attach_task().
++
+ void pre_attach(struct cgroup *cgrp);
+ (cgroup_mutex held by caller)
  
-+/*
-+ * Walk through r1 and r2 parents and try to find the closest common one
-+ * between both. If none is found, it returns NULL.
-+ */
-+struct res_counter *
-+res_counter_common_ancestor(struct res_counter *r1, struct res_counter *r2)
-+{
-+	struct res_counter *iter;
-+	int r1_depth = 0, r2_depth = 0;
+diff -puN include/linux/cgroup.h~cgroups-new-cancel_attach_task-subsystem-callback include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-new-cancel_attach_task-subsystem-callback
++++ a/include/linux/cgroup.h
+@@ -472,6 +472,8 @@ struct cgroup_subsys {
+ 			       struct task_struct *tsk);
+ 	void (*cancel_attach)(struct cgroup_subsys *ss, struct cgroup *cgrp,
+ 			      struct task_struct *tsk);
++	void (*cancel_attach_task)(struct cgroup *cgrp,
++				   struct task_struct *tsk);
+ 	void (*pre_attach)(struct cgroup *cgrp);
+ 	void (*attach_task)(struct cgroup *cgrp, struct cgroup *old_cgrp,
+ 			    struct task_struct *tsk);
+diff -puN kernel/cgroup.c~cgroups-new-cancel_attach_task-subsystem-callback kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-new-cancel_attach_task-subsystem-callback
++++ a/kernel/cgroup.c
+@@ -1883,6 +1883,9 @@ out:
+ 				 * remaining subsystems.
+ 				 */
+ 				break;
 +
-+	for (iter = r1; iter; iter = iter->parent)
-+		r1_depth++;
++			if (ss->cancel_attach_task)
++				ss->cancel_attach_task(cgrp, tsk);
+ 			if (ss->cancel_attach)
+ 				ss->cancel_attach(ss, cgrp, tsk);
+ 		}
+@@ -1992,7 +1995,7 @@ int cgroup_attach_proc(struct cgroup *cg
+ {
+ 	int retval, i, group_size;
+ 	struct cgroup_subsys *ss, *failed_ss = NULL;
+-	bool cancel_failed_ss = false;
++	struct task_struct *failed_task = NULL;
+ 	/* guaranteed to be initialized later, but the compiler needs this */
+ 	struct cgroup *oldcgrp = NULL;
+ 	struct css_set *oldcg;
+@@ -2081,7 +2084,7 @@ int cgroup_attach_proc(struct cgroup *cg
+ 							     oldcgrp, tsk);
+ 				if (retval) {
+ 					failed_ss = ss;
+-					cancel_failed_ss = true;
++					failed_task = tsk;
+ 					goto out_cancel_attach;
+ 				}
+ 			}
+@@ -2146,8 +2149,11 @@ int cgroup_attach_proc(struct cgroup *cg
+ 				if (ss->attach_task)
+ 					ss->attach_task(cgrp, oldcgrp, tsk);
+ 			}
++		} else if (retval == -ESRCH) {
++			if (ss->cancel_attach_task)
++				ss->cancel_attach_task(cgrp, tsk);
+ 		} else {
+-			BUG_ON(retval != -ESRCH);
++			BUG_ON(1);
+ 		}
+ 	}
+ 	/* nothing is sensitive to fork() after this point. */
+@@ -2179,8 +2185,18 @@ out_cancel_attach:
+ 	/* same deal as in cgroup_attach_task */
+ 	if (retval) {
+ 		for_each_subsys(root, ss) {
++			if (ss->cancel_attach_task && (ss != failed_ss ||
++						       failed_task)) {
++				for (i = 0; i < group_size; i++) {
++					tsk = flex_array_get_ptr(group, i);
++					if (tsk == failed_task)
++						break;
++					ss->cancel_attach_task(cgrp, tsk);
++				}
++			}
 +
-+	for (iter = r2; iter; iter = iter->parent)
-+		r2_depth++;
-+
-+	while (r1_depth > r2_depth) {
-+		r1 = r1->parent;
-+		r1_depth--;
-+	}
-+
-+	while (r2_depth > r1_depth) {
-+		r2 = r2->parent;
-+		r2_depth--;
-+	}
-+
-+	while (r1 != r2) {
-+		r1 = r1->parent;
-+		r2 = r2->parent;
-+	}
-+
-+	return r1;
-+}
- 
- static inline unsigned long long *
- res_counter_member(struct res_counter *counter, int member)
+ 			if (ss == failed_ss) {
+-				if (cancel_failed_ss && ss->cancel_attach)
++				if (failed_task && ss->cancel_attach)
+ 					ss->cancel_attach(ss, cgrp, leader);
+ 				break;
+ 			}
 _
-Subject: Subject: cgroups: add res counter common ancestor searching
+Subject: Subject: cgroups: new cancel_attach_task() subsystem callback
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
+origin.patch
+linux-next.patch
+cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc.patch
+cgroups-fix-ordering-of-calls-in-cgroup_attach_proc.patch
 cgroups-add-res_counter_write_u64-api.patch
 cgroups-new-resource-counter-inheritance-api.patch
 cgroups-add-previous-cgroup-in-can_attach_task-attach_task-callbacks.patch
