@@ -1,23 +1,23 @@
-From: akpm@google.com
-Subject: + stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch added to -mm tree
-Date: Tue, 04 Oct 2011 14:05:01 -0700
-Message-ID: <201110042105.p94L53vw032264@hpaq14.eem.corp.google.com>
+From: akpm@linux-foundation.org
+Subject: + stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 04 Oct 2011 14:06:24 -0700
+Message-ID: <201110042106.p94L6Pea022601@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:37574 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:25019 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933618Ab1JDVF2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2011 17:05:28 -0400
+	with ESMTP id S933618Ab1JDVGn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2011 17:06:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy.fitzhardinge@citrix.com, a.p.zijlstra@chello.nl, hpa@linux.intel.com, htejun@gmail.com, konrad.wilk@oracle.com, mingo@elte.hu, rostedt@goodmis.org, rusty@rustcorp.com.au, tj@kernel.org
+Cc: akpm@linux-foundation.org, hpa@linux.intel.com, jeremy.fitzhardinge@citrix.com
 
 
 The patch titled
-     Subject: stop_machine: make stop_machine safe and efficient to call early
+     Subject: stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch
+     stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Subject: stop_machine: make stop_machine safe and efficient to call early
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes
 
-Make stop_machine() safe to call early in boot, before SMP has been set
-up, by simply calling the callback function directly if there's only one
-CPU online.
-
-[ Fixes from AKPM:
-   - add comment
-   - local_irq_flags, not save_flags
-   - also call hard_irq_disable() for systems which need it
-
-  Tejun suggested using an explicit flag rather than just looking at
-  the online cpu count. ]
-
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: H. Peter Anvin <hpa@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Signed-off-by: Andrew Morton <akpm@google.com>
+
+ERROR: do not initialise statics to 0 or NULL
+#39: FILE: kernel/stop_machine.c:44:
++static bool stop_machine_initialized = false;
+
+ERROR: code indent should use tabs where possible
+#61: FILE: kernel/stop_machine.c:496:
++ ^I^Iunsigned long flags;$
+
+WARNING: please, no space before tabs
+#61: FILE: kernel/stop_machine.c:496:
++ ^I^Iunsigned long flags;$
+
+WARNING: please, no spaces at the start of a line
+#61: FILE: kernel/stop_machine.c:496:
++ ^I^Iunsigned long flags;$
+
+total: 2 errors, 2 warnings, 39 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stop_machine.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ kernel/stop_machine.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/stop_machine.c~stop_machine-make-stop_machine-safe-and-efficient-to-call-early kernel/stop_machine.c
---- a/kernel/stop_machine.c~stop_machine-make-stop_machine-safe-and-efficient-to-call-early
+diff -puN kernel/stop_machine.c~stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes kernel/stop_machine.c
+--- a/kernel/stop_machine.c~stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes
 +++ a/kernel/stop_machine.c
-@@ -41,6 +41,7 @@ struct cpu_stopper {
- };
+@@ -493,7 +493,7 @@ int __stop_machine(int (*fn)(void *), vo
+ 		 * Handle the case where stop_machine() is called early in boot
+ 		 * before SMP startup.
+ 		 */
+- 		unsigned long flags;
++		unsigned long flags;
+ 		int ret;
  
- static DEFINE_PER_CPU(struct cpu_stopper, cpu_stopper);
-+static bool stop_machine_initialized = false;
- 
- static void cpu_stop_init_done(struct cpu_stop_done *done, unsigned int nr_todo)
- {
-@@ -386,6 +387,8 @@ static int __init cpu_stop_init(void)
- 	cpu_stop_cpu_callback(&cpu_stop_cpu_notifier, CPU_ONLINE, bcpu);
- 	register_cpu_notifier(&cpu_stop_cpu_notifier);
- 
-+	stop_machine_initialized = true;
-+
- 	return 0;
- }
- early_initcall(cpu_stop_init);
-@@ -485,6 +488,24 @@ int __stop_machine(int (*fn)(void *), vo
- 					    .num_threads = num_online_cpus(),
- 					    .active_cpus = cpus };
- 
-+	if (!stop_machine_initialized) {
-+		/*
-+		 * Handle the case where stop_machine() is called early in boot
-+		 * before SMP startup.
-+		 */
-+ 		unsigned long flags;
-+		int ret;
-+
-+		WARN_ON_ONCE(smdata.num_threads != 1);
-+
-+		local_irq_save(flags);
-+		hard_irq_disable();
-+		ret = (*fn)(data);
-+		local_irq_restore(flags);
-+
-+		return ret;
-+	}
-+
- 	/* Set the initial state and stop all online cpus. */
- 	set_state(&smdata, STOPMACHINE_PREPARE);
- 	return stop_cpus(cpu_online_mask, stop_machine_cpu_stop, &smdata);
+ 		WARN_ON_ONCE(smdata.num_threads != 1);
 _
-Subject: Subject: stop_machine: make stop_machine safe and efficient to call early
+Subject: Subject: stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes
 
-Patches currently in -mm which might be from jeremy.fitzhardinge@citrix.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes-fix.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
 mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+cgroups-create-a-workqueue-for-cgroup-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
