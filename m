@@ -1,93 +1,132 @@
 From: akpm@google.com
-Subject: + binfmt_elf-fix-pie-execution-with-randomization-disabled.patch added to -mm tree
-Date: Tue, 04 Oct 2011 15:05:05 -0700
-Message-ID: <201110042205.p94M55Po032438@hpaq14.eem.corp.google.com>
+Subject: [obsolete] stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 04 Oct 2011 15:08:23 -0700
+Message-ID: <201110042208.p94M8NtL005483@hpaq12.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:54996 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:6503 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932820Ab1JDWGX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2011 18:06:23 -0400
+	with ESMTP id S1756228Ab1JDWIi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Oct 2011 18:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jkosina@suse.cz, hongjiu.lu@intel.com, jwboyer@redhat.com, mingo@elte.hu, nicolas.pitre@linaro.org, rmk@arm.linux.org.uk, stable@kernel.org
+To: akpm@linux-foundation.org, hpa@linux.intel.com, jeremy.fitzhardinge@citrix.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt_elf: fix PIE execution with randomization disabled
-has been added to the -mm tree.  Its filename is
-     binfmt_elf-fix-pie-execution-with-randomization-disabled.patch
+     Subject: stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: binfmt_elf: fix PIE execution with randomization disabled
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes
 
-The case of address space randomization being disabled in runtime through
-randomize_va_space sysctl is not treated properly in load_elf_binary(),
-resulting in SIGKILL coming at exec() time for certain PIE-linked binaries
-in case the randomization has been disabled at runtime prior to calling
-exec().
+Cc: H. Peter Anvin <hpa@linux.intel.com>
 
-Handle the randomize_va_space == 0 case the same way as if we were not
-supporting .text randomization at all.
+ERROR: do not initialise statics to 0 or NULL
+#39: FILE: kernel/stop_machine.c:44:
++static bool stop_machine_initialized = false;
 
-Based on original patch by H.J. Lu and Josh Boyer.
+ERROR: code indent should use tabs where possible
+#61: FILE: kernel/stop_machine.c:496:
++ ^I^Iunsigned long flags;$
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: H.J. Lu <hongjiu.lu@intel.com>
-Cc: <stable@kernel.org>
-Tested-by: Josh Boyer <jwboyer@redhat.com>
-Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
-Signed-off-by: Andrew Morton <akpm@google.com>
+WARNING: please, no space before tabs
+#61: FILE: kernel/stop_machine.c:496:
++ ^I^Iunsigned long flags;$
+
+WARNING: please, no spaces at the start of a line
+#61: FILE: kernel/stop_machine.c:496:
++ ^I^Iunsigned long flags;$
+
+total: 2 errors, 2 warnings, 39 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ kernel/stop_machine.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~binfmt_elf-fix-pie-execution-with-randomization-disabled fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elf-fix-pie-execution-with-randomization-disabled
-+++ a/fs/binfmt_elf.c
-@@ -795,7 +795,16 @@ static int load_elf_binary(struct linux_
- 			 * might try to exec.  This is because the brk will
- 			 * follow the loader, and is not movable.  */
- #if defined(CONFIG_X86) || defined(CONFIG_ARM)
--			load_bias = 0;
-+			/* Memory randomization might have been switched off
-+			 * in runtime via sysctl.
-+			 * If that is the case, retain the original non-zero
-+			 * load_bias value in order to establish proper
-+			 * non-randomized mappings.
-+			 */
-+			if (current->flags & PF_RANDOMIZE)
-+				load_bias = 0;
-+			else
-+				load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
- #else
- 			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
- #endif
+diff -puN kernel/stop_machine.c~stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes kernel/stop_machine.c
+--- a/kernel/stop_machine.c~stop_machine-make-stop_machine-safe-and-efficient-to-call-early-checkpatch-fixes
++++ a/kernel/stop_machine.c
+@@ -493,7 +493,7 @@ int __stop_machine(int (*fn)(void *), vo
+ 		 * Handle the case where stop_machine() is called early in boot
+ 		 * before SMP startup.
+ 		 */
+- 		unsigned long flags;
++		unsigned long flags;
+ 		int ret;
+ 
+ 		WARN_ON_ONCE(smdata.num_threads != 1);
 _
-Subject: Subject: binfmt_elf: fix PIE execution with randomization disabled
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-kmod-prevent-kmod_loop_msg-overflow-in-__request_module.patch
-binfmt_elf-fix-pie-execution-with-randomization-disabled.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes-fix.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+stop_machine-fixup-cutnpaste-error-in-stopped-thread-name-v3.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
