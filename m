@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register-fix.patch added to -mm tree
-Date: Wed, 05 Oct 2011 14:47:47 -0700
-Message-ID: <201110052147.p95LlmMY011695@hpaq7.eem.corp.google.com>
+Subject: + drivers-leds-leds-lm3530c-add-__devexit_p-where-needed.patch added to -mm tree
+Date: Wed, 05 Oct 2011 14:49:16 -0700
+Message-ID: <201110052149.p95LnGFp019960@wpaz37.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:39056 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:53231 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932499Ab1JEVrz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Oct 2011 17:47:55 -0400
+	with ESMTP id S932499Ab1JEVt0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Oct 2011 17:49:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@google.com, axel.lin@gmail.com, rpurdie@rpsys.net, samu.p.onkalo@nokia.com
+Cc: axel.lin@gmail.com, linus.walleij@linaro.org, rpurdie@rpsys.net, shreshthakumar.sahu@stericsson.com
 
 
 The patch titled
-     Subject: leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register-fix
+     Subject: drivers/leds/leds-lm3530.c: add __devexit_p where needed
 has been added to the -mm tree.  Its filename is
-     leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register-fix.patch
+     drivers-leds-leds-lm3530c-add-__devexit_p-where-needed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,25 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@google.com>
-Subject: leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register-fix
+From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/leds/leds-lm3530.c: add __devexit_p where needed
 
-remove unneeded "ret |="
+According to the comments in include/linux/init.h:
 
-Cc: Axel Lin <axel.lin@gmail.com>
+"Pointers to __devexit functions must use __devexit_p(function_name), the
+wrapper will insert either the function_name or NULL, depending on the config
+options."
+
+We have __devexit annotation for lm3530_remove(), so add __devexit_p to
+the `struct i2c_driver'.
+
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Shreshtha Kumar SAHU <shreshthakumar.sahu@stericsson.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Samu Onkalo <samu.p.onkalo@nokia.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/leds/leds-lp5521.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/leds/leds-lm3530.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-lp5521.c~leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register-fix drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register-fix
-+++ a/drivers/leds/leds-lp5521.c
-@@ -182,9 +182,7 @@ static int lp5521_set_engine_mode(struct
- 	engine_state &= ~(engine->engine_mask);
- 	mode &= engine->engine_mask;
- 	engine_state |= mode;
--	ret |= lp5521_write(client, LP5521_REG_OP_MODE, engine_state);
+diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-add-__devexit_p-where-needed drivers/leds/leds-lm3530.c
+--- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-add-__devexit_p-where-needed
++++ a/drivers/leds/leds-lm3530.c
+@@ -449,7 +449,7 @@ MODULE_DEVICE_TABLE(i2c, lm3530_id);
+ 
+ static struct i2c_driver lm3530_i2c_driver = {
+ 	.probe = lm3530_probe,
+-	.remove = lm3530_remove,
++	.remove = __devexit_p(lm3530_remove),
+ 	.id_table = lm3530_id,
+ 	.driver = {
+ 		.name = LM3530_NAME,
+_
+Subject: Subject: drivers/leds/leds-lm3530.c: add __devexit_p where needed
+
+Patches currently in -mm which might be from axel.lin@gmail.com are
+
+origin.patch
+linux-next.patch
+backlight-rename-corgibl_limit_intensity-to-genericbl_limit_intensity.patch
+leds-renesas-tpu-led-driver-v2-fix.patch
+leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register.patch
+leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register-fix.patch
+drivers-leds-leds-lm3530c-add-__devexit_p-where-needed.patch
+
