@@ -1,13 +1,13 @@
 From: akpm@google.com
 Subject: + isofs-add-readpages-support-for-isofs.patch added to -mm tree
-Date: Wed, 05 Oct 2011 15:24:56 -0700
-Message-ID: <201110052224.p95MOucQ030288@hpaq13.eem.corp.google.com>
+Date: Wed, 05 Oct 2011 15:26:00 -0700
+Message-ID: <201110052226.p95MQ0tB030409@hpaq6.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:61751 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:1631 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935438Ab1JEWZs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Oct 2011 18:25:48 -0400
+	with ESMTP id S934801Ab1JEW0r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Oct 2011 18:26:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -42,7 +42,7 @@ reduce the CPU utilization and make performance higher.
 Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Andrew Morton <>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
  fs/isofs/inode.c |   10 +++++++++-
