@@ -1,68 +1,80 @@
 From: akpm@google.com
-Subject: [merged] kmod-prevent-kmod_loop_msg-overflow-in-__request_module.patch removed from -mm tree
-Date: Wed, 05 Oct 2011 12:12:35 -0700
-Message-ID: <201110051912.p95JCbbM030219@wpaz33.hot.corp.google.com>
+Subject: + ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch added to -mm tree
+Date: Wed, 05 Oct 2011 12:30:53 -0700
+Message-ID: <201110051930.p95JUshx029067@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15568 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:27074 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934538Ab1JETNc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Oct 2011 15:13:32 -0400
+	with ESMTP id S934271Ab1JETbM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Oct 2011 15:31:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sfr@canb.auug.org.au, dledford@redhat.com
 
 
 The patch titled
-     Subject: kmod: prevent kmod_loop_msg overflow in __request_module()
-has been removed from the -mm tree.  Its filename was
-     kmod-prevent-kmod_loop_msg-overflow-in-__request_module.patch
+     Subject: ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix
+has been added to the -mm tree.  Its filename is
+     ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: kmod: prevent kmod_loop_msg overflow in __request_module()
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix
 
-Due to post-increment in condition of kmod_loop_msg in __request_module(),
-the system log can be spammed by much more than 5 instances of the
-'runaway loop' message if the number of events triggering it makes the
-kmod_loop_msg to overflow.
+ipc/mqueue.c: In function 'mqueue_get_inode':
+ipc/mqueue.c:154:4: error: implicit declaration of function 'vmalloc'
+ipc/mqueue.c:154:19: warning: assignment makes pointer from integer without=
+ a cast
+ipc/mqueue.c: In function 'mqueue_evict_inode':
+ipc/mqueue.c:278:3: error: implicit declaration of function 'vfree'
 
-Fix that by making sure we never increment it past the threshold.
+Caused by commit 8a53f9442429 ("ipc/mqueue: update maximums for the
+mqueue subsystem").  See Rule 1 in Documentation/SubmitChecklist.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Signed-off-by: Andrew Morton <akpm@google.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Doug Ledford <dledford@redhat.com>
+Signed-off-by: Andrew Morton <>
 ---
 
- kernel/kmod.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ ipc/mqueue.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/kmod.c~kmod-prevent-kmod_loop_msg-overflow-in-__request_module kernel/kmod.c
---- a/kernel/kmod.c~kmod-prevent-kmod_loop_msg-overflow-in-__request_module
-+++ a/kernel/kmod.c
-@@ -114,10 +114,12 @@ int __request_module(bool wait, const ch
- 	atomic_inc(&kmod_concurrent);
- 	if (atomic_read(&kmod_concurrent) > max_modprobes) {
- 		/* We may be blaming an innocent here, but unlikely */
--		if (kmod_loop_msg++ < 5)
-+		if (kmod_loop_msg < 5) {
- 			printk(KERN_ERR
- 			       "request_module: runaway loop modprobe %s\n",
- 			       module_name);
-+			kmod_loop_msg++;
-+		}
- 		atomic_dec(&kmod_concurrent);
- 		return -ENOMEM;
- 	}
+diff -puN ipc/mqueue.c~ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix
++++ a/ipc/mqueue.c
+@@ -16,6 +16,7 @@
+ #include <linux/capability.h>
+ #include <linux/init.h>
+ #include <linux/pagemap.h>
++#include <linux/vmalloc.h>
+ #include <linux/file.h>
+ #include <linux/mount.h>
+ #include <linux/namei.h>
 _
+Subject: Subject: ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
 linux-next.patch
-binfmt_elf-fix-pie-execution-with-randomization-disabled.patch
+ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch
+consolidate-config_debug_strict_user_copy_checks.patch
+treewide-use-__printf-not-__attribute__formatprintf-fix.patch
+init-add-root=partuuid=uuid-partnroff=%d-support-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
 
