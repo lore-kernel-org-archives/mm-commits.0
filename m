@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + rapidio-documentation-update.patch added to -mm tree
-Date: Thu, 06 Oct 2011 15:55:29 -0700
-Message-ID: <201110062255.p96MtTLD015722@wpaz33.hot.corp.google.com>
+Subject: + mm-add-vm_area_add_early.patch added to -mm tree
+Date: Thu, 06 Oct 2011 16:11:00 -0700
+Message-ID: <201110062311.p96NB0WV029623@hpaq5.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:7137 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:14819 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752817Ab1JFWzq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 18:55:46 -0400
+	with ESMTP id S1752764Ab1JFXLE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 19:11:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, Gang.Liu@freescale.com, micha@neli.hopto.org
+Cc: nicolas.pitre@linaro.org
 
 
 The patch titled
-     Subject: RapidIO: documentation update
+     Subject: mm: add vm_area_add_early()
 has been added to the -mm tree.  Its filename is
-     rapidio-documentation-update.patch
+     mm-add-vm_area_add_early.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: RapidIO: documentation update
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+Subject: mm: add vm_area_add_early()
 
-Update rapidio.txt to reflect changes from recent patch.
-See http://marc.info/?l=linux-kernel&m=131285620113589&w=2 for details.
+The existing vm_area_register_early() allows for early vmalloc space
+allocation.  However upcoming cleanups in the ARM architecture require
+that some fixed locations in the vmalloc area be reserved also very early.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Liu Gang <Gang.Liu@freescale.com>
-Cc: Micha Nelissen <micha@neli.hopto.org>
+The name "vm_area_register_early" would have been a good name for the
+reservation part without the allocation.  Since it is already in use with
+
+Both vm_area_register_early() and vm_area_add_early() can be used together
+meaning that the former is now implemented using the later where it is
+ensured that no conflicting areas are added, but no attempt is made to
+make the allocation scheme in vm_area_register_early() more sophisticated.
+After all, you must know what you're doing when using those functions.
+
+Signed-off-by: Nicolas Pitre <nicolas.pitre@linaro.org>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- Documentation/rapidio/rapidio.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/vmalloc.h |    1 +
+ mm/vmalloc.c            |   28 ++++++++++++++++++++++++++--
+ 2 files changed, 27 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/rapidio/rapidio.txt~rapidio-documentation-update Documentation/rapidio/rapidio.txt
---- a/Documentation/rapidio/rapidio.txt~rapidio-documentation-update
-+++ a/Documentation/rapidio/rapidio.txt
-@@ -144,7 +144,7 @@ and the default device ID in order to ac
+diff -puN include/linux/vmalloc.h~mm-add-vm_area_add_early include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-add-vm_area_add_early
++++ a/include/linux/vmalloc.h
+@@ -131,6 +131,7 @@ extern long vwrite(char *buf, char *addr
+  */
+ extern rwlock_t vmlist_lock;
+ extern struct vm_struct *vmlist;
++extern __init void vm_area_add_early(struct vm_struct *vm);
+ extern __init void vm_area_register_early(struct vm_struct *vm, size_t align);
  
- After the host has completed enumeration of the entire network it releases
- devices by clearing device ID locks (calls rio_clear_locks()). For each endpoint
--in the system, it sets the Master Enable bit in the Port General Control CSR
-+in the system, it sets the Discovered bit in the Port General Control CSR
- to indicate that enumeration is completed and agents are allowed to execute
- passive discovery of the network.
+ #ifdef CONFIG_SMP
+diff -puN mm/vmalloc.c~mm-add-vm_area_add_early mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-add-vm_area_add_early
++++ a/mm/vmalloc.c
+@@ -1118,6 +1118,31 @@ void *vm_map_ram(struct page **pages, un
+ EXPORT_SYMBOL(vm_map_ram);
  
+ /**
++ * vm_area_add_early - add vmap area early during boot
++ * @vm: vm_struct to add
++ *
++ * This function is used to add fixed kernel vm area to vmlist before
++ * vmalloc_init() is called.  @vm->addr, @vm->size, and @vm->flags
++ * should contain proper values and the other fields should be zero.
++ *
++ * DO NOT USE THIS FUNCTION UNLESS YOU KNOW WHAT YOU'RE DOING.
++ */
++void __init vm_area_add_early(struct vm_struct *vm)
++{
++	struct vm_struct *tmp, **p;
++
++	for (p = &vmlist; (tmp = *p) != NULL; p = &tmp->next) {
++		if (tmp->addr >= vm->addr) {
++			BUG_ON(tmp->addr < vm->addr + vm->size);
++			break;
++		} else
++			BUG_ON(tmp->addr + tmp->size > vm->addr);
++	}
++	vm->next = *p;
++	*p = vm;
++}
++
++/**
+  * vm_area_register_early - register vmap area early during boot
+  * @vm: vm_struct to register
+  * @align: requested alignment
+@@ -1139,8 +1164,7 @@ void __init vm_area_register_early(struc
+ 
+ 	vm->addr = (void *)addr;
+ 
+-	vm->next = vmlist;
+-	vmlist = vm;
++	vm_area_add_early(vm);
+ }
+ 
+ void __init vmalloc_init(void)
 _
-Subject: Subject: RapidIO: documentation update
+Subject: Subject: mm: add vm_area_add_early()
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from nicolas.pitre@linaro.org are
 
-drivers-rapidio-rio-scanc-use-discovered-bit-to-test-if-enumeration-is-complete.patch
-arch-powerpc-sysdev-fsl_rioc-release-rapidio-port-i-o-region-resource-if-port-failed-to-initialize.patch
-rapidio-add-mport-driver-for-tsi721-bridge.patch
-rapidio-add-mport-driver-for-tsi721-bridge-update.patch
-rapidio-fix-potential-null-deref-in-rio_setup_device.patch
-drivers-net-rionetc-fix-ethernet-address-macros-for-le-platforms.patch
-rapidio-documentation-update.patch
-include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
+origin.patch
+linux-next.patch
+mm-add-vm_area_add_early.patch
+binfmt_elf-fix-pie-execution-with-randomization-disabled.patch
 
