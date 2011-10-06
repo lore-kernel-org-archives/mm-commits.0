@@ -1,117 +1,151 @@
 From: akpm@google.com
-Subject: [obsolete] mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 06 Oct 2011 16:15:24 -0700
-Message-ID: <201110062315.p96NFP7G003578@wpaz13.hot.corp.google.com>
+Subject: [withdrawn] mm-compaction-compact-unevictable-pages.patch removed from -mm tree
+Date: Thu, 06 Oct 2011 16:15:17 -0700
+Message-ID: <201110062315.p96NFIq8007532@hpaq1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:17620 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:11294 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261Ab1JFXP2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 19:15:28 -0400
+	with ESMTP id S1752261Ab1JFXPe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 19:15:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan.kim@gmail.com, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-compact-unevictable-pages-checkpatch-fixes
+     Subject: mm: compaction: compact unevictable pages
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+     mm-compaction-compact-unevictable-pages.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-compact-unevictable-pages-checkpatch-fixes
+From: Minchan Kim <minchan.kim@gmail.com>
+Subject: mm: compaction: compact unevictable pages
 
-ERROR: need consistent spacing around '|' (ctx:VxW)
-#67: FILE: mm/compaction.c:264:
-+	isolate_mode_t mode = ISOLATE_ACTIVE| ISOLATE_INACTIVE |
- 	                                    ^
+Presently compaction doesn't handle mlocked pages as it uses
+__isolate_lru_page which doesn't consider unevicatable pages.  It is used
+by just lumpy so it is pointless that it isolates unevictable pages.  
 
-total: 1 errors, 0 warnings, 36 lines checked
+But the situation has changed.  Compaction can handle unevictable pages
+and it can help getting big contiguos pages in memory whcih is fragmented
+by many pinned pages with mlock.
 
-./patches/mm-compaction-compact-unevictable-pages.patch has style problems, please review.
+I tested this patch with following scenario.
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
+1. A : allocate 80% anon pages in system
+2. B : allocate 20% mlocked page in system
+/* Maybe, mlocked pages are located in low pfn address */
+3. kill A /* high pfn address are free */
+4. echo 1 > /proc/sys/vm/compact_memory
 
-Please run checkpatch prior to sending patches
+old:
 
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+compact_blocks_moved 251
+compact_pages_moved 44
+
+new:
+
+compact_blocks_moved 258
+compact_pages_moved 412
+
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mmzone.h |    6 ++++--
+ mm/compaction.c        |    3 ++-
+ mm/vmscan.c            |    7 +------
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-compact-unevictable-pages-checkpatch-fixes mm/compaction.c
---- a/mm/compaction.c~mm-compaction-compact-unevictable-pages-checkpatch-fixes
+diff -puN include/linux/mmzone.h~mm-compaction-compact-unevictable-pages include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-compaction-compact-unevictable-pages
++++ a/include/linux/mmzone.h
+@@ -169,10 +169,12 @@ static inline int is_unevictable_lru(enu
+ #define ISOLATE_INACTIVE	((__force isolate_mode_t)0x1)
+ /* Isolate active pages */
+ #define ISOLATE_ACTIVE		((__force isolate_mode_t)0x2)
++/* Isolate unevictable pages */
++#define ISOLATE_UNEVICTABLE	((__force isolate_mode_t)0x4)
+ /* Isolate clean file */
+-#define ISOLATE_CLEAN		((__force isolate_mode_t)0x4)
++#define ISOLATE_CLEAN		((__force isolate_mode_t)0x8)
+ /* Isolate unmapped file */
+-#define ISOLATE_UNMAPPED	((__force isolate_mode_t)0x8)
++#define ISOLATE_UNMAPPED	((__force isolate_mode_t)0x10)
+ 
+ /* LRU Isolation modes. */
+ typedef unsigned __bitwise__ isolate_mode_t;
+diff -puN mm/compaction.c~mm-compaction-compact-unevictable-pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-compact-unevictable-pages
 +++ a/mm/compaction.c
-@@ -261,7 +261,7 @@ static isolate_migrate_t isolate_migrate
+@@ -261,7 +261,8 @@ static isolate_migrate_t isolate_migrate
  	unsigned long last_pageblock_nr = 0, pageblock_nr;
  	unsigned long nr_scanned = 0, nr_isolated = 0;
  	struct list_head *migratelist = &cc->migratepages;
--	isolate_mode_t mode = ISOLATE_ACTIVE| ISOLATE_INACTIVE |
-+	isolate_mode_t mode = ISOLATE_ACTIVE | ISOLATE_INACTIVE |
- 				ISOLATE_UNEVICTABLE;
+-	isolate_mode_t mode = ISOLATE_ACTIVE|ISOLATE_INACTIVE;
++	isolate_mode_t mode = ISOLATE_ACTIVE| ISOLATE_INACTIVE |
++				ISOLATE_UNEVICTABLE;
  
  	/* Do not scan outside zone boundaries */
+ 	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
+diff -puN mm/vmscan.c~mm-compaction-compact-unevictable-pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-compaction-compact-unevictable-pages
++++ a/mm/vmscan.c
+@@ -1038,12 +1038,7 @@ int __isolate_lru_page(struct page *page
+ 	if (!all_lru_mode && !!page_is_file_cache(page) != file)
+ 		return ret;
+ 
+-	/*
+-	 * When this function is being called for lumpy reclaim, we
+-	 * initially look into all LRU pages, active, inactive and
+-	 * unevictable; only give shrink_page_list evictable pages.
+-	 */
+-	if (PageUnevictable(page))
++	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
+ 		return ret;
+ 
+ 	ret = -EBUSY;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
 origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
-dynamic_debug-use-a-single-printk-to-emit-messages.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-ipc-introduce-shm_rmid_forced-sysctl-testing.patch
-sysctl-add-support-for-poll-fix.patch
-include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+mm-compaction-trivial-clean-up-in-acct_isolated.patch
+mm-change-isolate-mode-from-define-to-bitwise-type.patch
+mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
+mm-compaction-make-isolate_lru_page-filter-aware.patch
+mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
+mm-migration-clean-up-unmap_and_move.patch
+vmscan-add-block-plug-for-page-reclaim.patch
+mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
+xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
+mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
+mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
+vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+mm-add-free_hot_cold_page_list-helper.patch
+mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
+mm-compaction-accounting-fix.patch
+kswapd-assign-new_order-and-new_classzone_idx-after-wakeup-in-sleeping.patch
+thp-tail-page-refcounting-fix-5.patch
+thp-tail-page-refcounting-fix-6.patch
+mm-compaction-make-compact_zone_order-static.patch
+mm-disable-user-interface-to-manually-rescue-unevictable-pages.patch
+vmscan-add-barrier-to-prevent-evictable-page-in-unevictable-list.patch
+memcg-skip-scanning-active-lists-based-on-individual-size.patch
+memcg-skip-scanning-active-lists-based-on-individual-size-fix.patch
 
