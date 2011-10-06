@@ -1,140 +1,117 @@
 From: akpm@google.com
-Subject: + drivers-watchdog-w83627hf_wdtc-implement-wdioc_gettimeleft-ioctl-support.patch added to -mm tree
-Date: Thu, 06 Oct 2011 16:14:17 -0700
-Message-ID: <201110062314.p96NEH3a021358@wpaz24.hot.corp.google.com>
+Subject: [obsolete] mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 06 Oct 2011 16:15:24 -0700
+Message-ID: <201110062315.p96NFP7G003578@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:17049 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:17620 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261Ab1JFXOY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 19:14:24 -0400
+	with ESMTP id S1752261Ab1JFXP2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 19:15:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: glee@swspec.com, P@draigbrady.com, wim@iguana.be
+To: akpm@linux-foundation.org, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/watchdog/w83627hf_wdt.c: implement WDIOC_GETTIMELEFT ioctl support
-has been added to the -mm tree.  Its filename is
-     drivers-watchdog-w83627hf_wdtc-implement-wdioc_gettimeleft-ioctl-support.patch
+     Subject: mm-compaction-compact-unevictable-pages-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-compact-unevictable-pages-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Greg Lee <glee@swspec.com>
-Subject: drivers/watchdog/w83627hf_wdt.c: implement WDIOC_GETTIMELEFT ioctl support
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-compaction-compact-unevictable-pages-checkpatch-fixes
 
-Implement the WDIOC_GETTIMELEFT ioctl, allowing you to check how much time
-is left on the watchdog counter before a reset occurs.  A few additional
-naming clean-ups requested by Padraig Brady as well.
+ERROR: need consistent spacing around '|' (ctx:VxW)
+#67: FILE: mm/compaction.c:264:
++	isolate_mode_t mode = ISOLATE_ACTIVE| ISOLATE_INACTIVE |
+ 	                                    ^
 
-Signed-off-by: Greg Lee <glee [at] swspec.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Padraig Brady <P@draigbrady.com>
-Signed-off-by: Andrew Morton <akpm@google.com>
+total: 1 errors, 0 warnings, 36 lines checked
+
+./patches/mm-compaction-compact-unevictable-pages.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/w83627hf_wdt.c |   33 ++++++++++++++++++++++++------
- 1 file changed, 27 insertions(+), 6 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/w83627hf_wdt.c~drivers-watchdog-w83627hf_wdtc-implement-wdioc_gettimeleft-ioctl-support drivers/watchdog/w83627hf_wdt.c
---- a/drivers/watchdog/w83627hf_wdt.c~drivers-watchdog-w83627hf_wdtc-implement-wdioc_gettimeleft-ioctl-support
-+++ a/drivers/watchdog/w83627hf_wdt.c
-@@ -142,7 +142,7 @@ static void w83627hf_init(void)
- 	w83627hf_unselect_wd_register();
- }
+diff -puN mm/compaction.c~mm-compaction-compact-unevictable-pages-checkpatch-fixes mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-compact-unevictable-pages-checkpatch-fixes
++++ a/mm/compaction.c
+@@ -261,7 +261,7 @@ static isolate_migrate_t isolate_migrate
+ 	unsigned long last_pageblock_nr = 0, pageblock_nr;
+ 	unsigned long nr_scanned = 0, nr_isolated = 0;
+ 	struct list_head *migratelist = &cc->migratepages;
+-	isolate_mode_t mode = ISOLATE_ACTIVE| ISOLATE_INACTIVE |
++	isolate_mode_t mode = ISOLATE_ACTIVE | ISOLATE_INACTIVE |
+ 				ISOLATE_UNEVICTABLE;
  
--static void wdt_ctrl(int timeout)
-+static void wdt_set_time(int timeout)
- {
- 	spin_lock(&io_lock);
- 
-@@ -158,13 +158,13 @@ static void wdt_ctrl(int timeout)
- 
- static int wdt_ping(void)
- {
--	wdt_ctrl(timeout);
-+	wdt_set_time(timeout);
- 	return 0;
- }
- 
- static int wdt_disable(void)
- {
--	wdt_ctrl(0);
-+	wdt_set_time(0);
- 	return 0;
- }
- 
-@@ -176,6 +176,24 @@ static int wdt_set_heartbeat(int t)
- 	return 0;
- }
- 
-+static int wdt_get_time(void)
-+{
-+	int timeleft;
-+
-+	spin_lock(&io_lock);
-+
-+	w83627hf_select_wd_register();
-+
-+	outb_p(0xF6, WDT_EFER);    /* Select CRF6 */
-+	timeleft = inb_p(WDT_EFDR); /* Read Timeout counter to CRF6 */
-+
-+	w83627hf_unselect_wd_register();
-+
-+	spin_unlock(&io_lock);
-+
-+	return timeleft;
-+}
-+
- static ssize_t wdt_write(struct file *file, const char __user *buf,
- 						size_t count, loff_t *ppos)
- {
-@@ -202,7 +220,7 @@ static long wdt_ioctl(struct file *file,
- {
- 	void __user *argp = (void __user *)arg;
- 	int __user *p = argp;
--	int new_timeout;
-+	int timeval;
- 	static const struct watchdog_info ident = {
- 		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
- 							WDIOF_MAGICCLOSE,
-@@ -238,14 +256,17 @@ static long wdt_ioctl(struct file *file,
- 		wdt_ping();
- 		break;
- 	case WDIOC_SETTIMEOUT:
--		if (get_user(new_timeout, p))
-+		if (get_user(timeval, p))
- 			return -EFAULT;
--		if (wdt_set_heartbeat(new_timeout))
-+		if (wdt_set_heartbeat(timeval))
- 			return -EINVAL;
- 		wdt_ping();
- 		/* Fall */
- 	case WDIOC_GETTIMEOUT:
- 		return put_user(timeout, p);
-+	case WDIOC_GETTIMELEFT:
-+		timeval = wdt_get_time();
-+		return put_user(timeval, p);
- 	default:
- 		return -ENOTTY;
- 	}
+ 	/* Do not scan outside zone boundaries */
 _
-Subject: Subject: drivers/watchdog/w83627hf_wdt.c: implement WDIOC_GETTIMELEFT ioctl support
 
-Patches currently in -mm which might be from glee@swspec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-watchdog-w83627hf_wdtc-implement-wdioc_gettimeleft-ioctl-support.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes-fix.patch
+drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+sysctl-add-support-for-poll-fix.patch
+include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
