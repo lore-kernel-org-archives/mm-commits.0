@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + hfs-fix-hfs_find_init-sb-ext_tree-null-ptr-oops.patch added to -mm tree
-Date: Thu, 06 Oct 2011 15:54:10 -0700
-Message-ID: <201110062254.p96MsATu003098@hpaq2.eem.corp.google.com>
+Subject: + rapidio-documentation-update.patch added to -mm tree
+Date: Thu, 06 Oct 2011 15:55:29 -0700
+Message-ID: <201110062255.p96MtTLD015722@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:6564 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:7137 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab1JFWyd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 18:54:33 -0400
+	with ESMTP id S1752817Ab1JFWzq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 18:55:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clement.lecigne@netasq.com, hch@lst.de, jeffm@suse.com, plougher@redhat.com
+Cc: alexandre.bounine@idt.com, Gang.Liu@freescale.com, micha@neli.hopto.org
 
 
 The patch titled
-     From: plougher@redhat.com (Phillip Lougher)
+     Subject: RapidIO: documentation update
 has been added to the -mm tree.  Its filename is
-     hfs-fix-hfs_find_init-sb-ext_tree-null-ptr-oops.patch
+     rapidio-documentation-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: plougher@redhat.com (Phillip Lougher)
-Subject: hfs: fix hfs_find_init() sb->ext_tree NULL ptr oops
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: RapidIO: documentation update
 
-Clement Lecigne reports a filesystem which causes a kernel oops in
-hfs_find_init() trying to dereference sb->ext_tree which is NULL.
+Update rapidio.txt to reflect changes from recent patch.
+See http://marc.info/?l=linux-kernel&m=131285620113589&w=2 for details.
 
-This proves to be because the filesystem has a corrupted MDB extent
-record, where the extents file does not fit into the first three extents
-in the file record (the first blocks).
-
-In hfs_get_block() when looking up the blocks for the extent file
-(HFS_EXT_CNID), it fails the first blocks special case, and falls through
-to the extent code (which ultimately calls hfs_find_init()) which is in
-the process of being initialised.
-
-Hfs avoids this scenario by always having the extents b-tree fitting into
-the first blocks (the extents B-tree can't have overflow extents).
-
-The fix is to check at mount time that the B-tree fits into first blocks,
-i.e.  fail if HFS_I(inode)->alloc_blocks >= HFS_I(inode)->first_blocks
-
-Note, the existing commit 47f365eb57573 ("hfs: fix oops on mount with
-corrupted btree extent records") becomes subsumed into this as a special
-case, but only for the extents B-tree (HFS_EXT_CNID), it is perfectly
-acceptable for the catalog B-Tree file to grow beyond three extents, with
-the remaining extent descriptors in the extents overfow.
-
-This fixes CVE-2011-2203
-
-Reported-by: Clement LECIGNE <clement.lecigne@netasq.com>
-Signed-off-by: Phillip Lougher <plougher@redhat.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Liu Gang <Gang.Liu@freescale.com>
+Cc: Micha Nelissen <micha@neli.hopto.org>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- fs/hfs/btree.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ Documentation/rapidio/rapidio.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfs/btree.c~hfs-fix-hfs_find_init-sb-ext_tree-null-ptr-oops fs/hfs/btree.c
---- a/fs/hfs/btree.c~hfs-fix-hfs_find_init-sb-ext_tree-null-ptr-oops
-+++ a/fs/hfs/btree.c
-@@ -46,11 +46,26 @@ struct hfs_btree *hfs_btree_open(struct 
- 	case HFS_EXT_CNID:
- 		hfs_inode_read_fork(tree->inode, mdb->drXTExtRec, mdb->drXTFlSize,
- 				    mdb->drXTFlSize, be32_to_cpu(mdb->drXTClpSiz));
-+		if (HFS_I(tree->inode)->alloc_blocks >
-+					HFS_I(tree->inode)->first_blocks) {
-+			printk(KERN_ERR "hfs: invalid btree extent records\n");
-+			unlock_new_inode(tree->inode);
-+			goto free_inode;
-+		}
-+
- 		tree->inode->i_mapping->a_ops = &hfs_btree_aops;
- 		break;
- 	case HFS_CAT_CNID:
- 		hfs_inode_read_fork(tree->inode, mdb->drCTExtRec, mdb->drCTFlSize,
- 				    mdb->drCTFlSize, be32_to_cpu(mdb->drCTClpSiz));
-+
-+		if (!HFS_I(tree->inode)->first_blocks) {
-+			printk(KERN_ERR "hfs: invalid btree extent records "
-+								"(0 size).\n");
-+			unlock_new_inode(tree->inode);
-+			goto free_inode;
-+		}
-+
- 		tree->inode->i_mapping->a_ops = &hfs_btree_aops;
- 		break;
- 	default:
-@@ -59,11 +74,6 @@ struct hfs_btree *hfs_btree_open(struct 
- 	}
- 	unlock_new_inode(tree->inode);
+diff -puN Documentation/rapidio/rapidio.txt~rapidio-documentation-update Documentation/rapidio/rapidio.txt
+--- a/Documentation/rapidio/rapidio.txt~rapidio-documentation-update
++++ a/Documentation/rapidio/rapidio.txt
+@@ -144,7 +144,7 @@ and the default device ID in order to ac
  
--	if (!HFS_I(tree->inode)->first_blocks) {
--		printk(KERN_ERR "hfs: invalid btree extent records (0 size).\n");
--		goto free_inode;
--	}
+ After the host has completed enumeration of the entire network it releases
+ devices by clearing device ID locks (calls rio_clear_locks()). For each endpoint
+-in the system, it sets the Master Enable bit in the Port General Control CSR
++in the system, it sets the Discovered bit in the Port General Control CSR
+ to indicate that enumeration is completed and agents are allowed to execute
+ passive discovery of the network.
+ 
+_
+Subject: Subject: RapidIO: documentation update
+
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
+
+drivers-rapidio-rio-scanc-use-discovered-bit-to-test-if-enumeration-is-complete.patch
+arch-powerpc-sysdev-fsl_rioc-release-rapidio-port-i-o-region-resource-if-port-failed-to-initialize.patch
+rapidio-add-mport-driver-for-tsi721-bridge.patch
+rapidio-add-mport-driver-for-tsi721-bridge-update.patch
+rapidio-fix-potential-null-deref-in-rio_setup_device.patch
+drivers-net-rionetc-fix-ethernet-address-macros-for-le-platforms.patch
+rapidio-documentation-update.patch
+include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
+
