@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + hrtimers-special-case-zero-length-sleeps.patch added to -mm tree
-Date: Thu, 06 Oct 2011 14:01:17 -0700
-Message-ID: <201110062101.p96L1IEm028035@wpaz13.hot.corp.google.com>
+Subject: + block-avoid-unnecessary-plug-list-flush.patch added to -mm tree
+Date: Thu, 06 Oct 2011 14:12:06 -0700
+Message-ID: <201110062112.p96LC7io030105@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:63417 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:6814 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755089Ab1JFVBe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 17:01:34 -0400
+	with ESMTP id S1758655Ab1JFVMP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 17:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg@redhat.com, arjan@infradead.org, tglx@linutronix.de
+Cc: shaohua.li@intel.com, axboe@kernel.dk, namhyung@gmail.com
 
 
 The patch titled
-     Subject: hrtimers: Special-case zero length sleeps
+     Subject: block: avoid unnecessary plug list flush
 has been added to the -mm tree.  Its filename is
-     hrtimers-special-case-zero-length-sleeps.patch
+     block-avoid-unnecessary-plug-list-flush.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matthew Garrett <mjg@redhat.com>
-Subject: hrtimers: Special-case zero length sleeps
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: block: avoid unnecessary plug list flush
 
-sleep(0) is a common construct used by applications that want to trigger
-the scheduler.  sched_yield() might make more sense, but only appeared in
-POSIX.1-2001 and so plenty of example code still uses the sleep(0) form.
+get_request_wait() could sleep and flush the plug list.  If the list is
+already flushed, don't flush again.
 
-This wouldn't normally be a problem, but it means that event-driven
-applications that are merely trying to avoid starving other processes may
-actually end up sleeping due to having large timer_slack values.  Special-
-casing this seems reasonable.
-
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Arjan van de Ven <arjan@infradead.org>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Reviewed-by: Namhyung Kim <namhyung@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- kernel/hrtimer.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ block/blk-core.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN kernel/hrtimer.c~hrtimers-special-case-zero-length-sleeps kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimers-special-case-zero-length-sleeps
-+++ a/kernel/hrtimer.c
-@@ -1566,6 +1566,14 @@ long hrtimer_nanosleep(struct timespec *
- 	if (rt_task(current))
- 		slack = 0;
- 
-+	/*
-+	 * Applications will often sleep(0) to indicate that they wish to
-+	 * be scheduled. Special case that to avoid actually putting them
-+	 * to sleep for the duration of the slack.
-+	 */
-+	if (rqtp->tv_sec == 0 && rqtp->tv_nsec == 0)
-+		slack = 0;
+diff -puN block/blk-core.c~block-avoid-unnecessary-plug-list-flush block/blk-core.c
+--- a/block/blk-core.c~block-avoid-unnecessary-plug-list-flush
++++ a/block/blk-core.c
+@@ -1296,15 +1296,17 @@ get_rq:
+ 		 */
+ 		if (list_empty(&plug->list))
+ 			trace_block_plug(q);
+-		else if (!plug->should_sort) {
+-			struct request *__rq;
+-
+-			__rq = list_entry_rq(plug->list.prev);
+-			if (__rq->q != q)
+-				plug->should_sort = 1;
++		else {
++			if (!plug->should_sort) {
++				struct request *__rq;
 +
- 	hrtimer_init_on_stack(&t.timer, clockid, mode);
- 	hrtimer_set_expires_range_ns(&t.timer, timespec_to_ktime(*rqtp), slack);
- 	if (do_nanosleep(&t, mode))
++				__rq = list_entry_rq(plug->list.prev);
++				if (__rq->q != q)
++					plug->should_sort = 1;
++			}
++			if (request_count >= BLK_MAX_REQUEST_COUNT)
++				blk_flush_plug_list(plug, false);
+ 		}
+-		if (request_count >= BLK_MAX_REQUEST_COUNT)
+-			blk_flush_plug_list(plug, false);
+ 		list_add_tail(&req->queuelist, &plug->list);
+ 		drive_stat_acct(req, 1);
+ 	} else {
 _
-Subject: Subject: hrtimers: Special-case zero length sleeps
+Subject: Subject: block: avoid unnecessary plug list flush
 
-Patches currently in -mm which might be from mjg@redhat.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
 linux-next.patch
-acerhdf-add-support-for-aspire-1410-bios-v13314.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-hp_accel-add-a-new-pnp-id.patch
-hp_accel-add-axis-mapping-for-hp-probook-elitebook.patch
-hrtimers-special-case-zero-length-sleeps.patch
-lis3lv02d-avoid-divide-by-zero-due-to-unchecked.patch
-lis3-update-maintainer-information.patch
-lis3-add-support-for-hp-elitebook-2730p.patch
-lis3-add-support-for-hp-elitebook-8540w.patch
-hp_accel-add-hp-probook-655x.patch
-lis3-free-regulators-if-probe-fails.patch
-lis3-change-naming-to-consistent.patch
-lis3-change-exported-function-to-use-given.patch
-lis3-remove-the-references-to-the-global-variable-in-core-driver.patch
-maintainers-add-new-entry-for-ideapad-laptop.patch
+x86-tlb-flush-avoid-superflous-leave_mm.patch
+block-avoid-unnecessary-plug-list-flush.patch
+block-add-missed-trace_block_plug.patch
+vmscan-add-block-plug-for-page-reclaim.patch
+vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
