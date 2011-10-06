@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + vmscan-limit-direct-reclaim-for-higher-order-allocations.patch added to -mm tree
-Date: Thu, 06 Oct 2011 14:16:03 -0700
-Message-ID: <201110062116.p96LG3jv017692@hpaq6.eem.corp.google.com>
+Subject: + parport_pc-release-io-region-properly-if-unsupported-ite887x-card-is-found.patch added to -mm tree
+Date: Thu, 06 Oct 2011 14:29:48 -0700
+Message-ID: <201110062129.p96LTmaK003077@wpaz29.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:16577 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:17711 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759174Ab1JFVQL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 17:16:11 -0400
+	with ESMTP id S1757282Ab1JFVaz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 17:30:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, aarcange@redhat.com, jweiner@redhat.com, mgorman@suse.de
+Cc: jkosina@suse.cz, alan@linux.intel.com, bjorn.helgaas@hp.com, gregkh@suse.de, krahn@niehs.nih.gov, ndevos@redhat.com
 
 
 The patch titled
-     Subject: vmscan: limit direct reclaim for higher order allocations
+     Subject: parport_pc: release IO region properly if unsupported ITE887x card is found
 has been added to the -mm tree.  Its filename is
-     vmscan-limit-direct-reclaim-for-higher-order-allocations.patch
+     parport_pc-release-io-region-properly-if-unsupported-ite887x-card-is-found.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: vmscan: limit direct reclaim for higher order allocations
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: parport_pc: release IO region properly if unsupported ITE887x card is found
 
-When suffering from memory fragmentation due to unfreeable pages, THP page
-faults will repeatedly try to compact memory.  Due to the unfreeable
-pages, compaction fails.
+sio_ite_8872_probe() bails out if it detects no-parallel (1S, 2S) or
+unknown card.
 
-Needless to say, at that point page reclaim also fails to create free
-contiguous 2MB areas.  However, that doesn't stop the current code from
-trying, over and over again, and freeing a minimum of 4MB (2UL <<
-sc->order pages) at every single invocation.
+It doesn't call release_region() on the previously allocated resource
+though.  This causes
 
-This resulted in my 12GB system having 2-3GB free memory, a corresponding
-amount of used swap and very sluggish response times.
+  (a) leak of the resource
+  (b) kernel oops when parport module is removed and /proc/ioports is read. This
+      is because the string that has been associated to the IO port region
+      is a static char array inside the already removed module.
 
-This can be avoided by having the direct reclaim code not reclaim from
-zones that already have plenty of free memory available for compaction.
+Let's call release_region() properly before baling out.
 
-If compaction still fails due to unmovable memory, doing additional
-reclaim will only hurt the system, not help.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <jweiner@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Acked-by: Niels de Vos <ndevos@redhat.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Joe Krahn <krahn@niehs.nih.gov>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- mm/vmscan.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/parport/parport_pc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/vmscan.c~vmscan-limit-direct-reclaim-for-higher-order-allocations mm/vmscan.c
---- a/mm/vmscan.c~vmscan-limit-direct-reclaim-for-higher-order-allocations
-+++ a/mm/vmscan.c
-@@ -2108,6 +2108,16 @@ static void shrink_zones(int priority, s
- 				continue;
- 			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
- 				continue;	/* Let kswapd poll it */
-+			if (COMPACTION_BUILD) {
-+				/*
-+				 * If we already have plenty of memory free
-+				 * for compaction, don't free any more.
-+				 */
-+				if (sc->order > PAGE_ALLOC_COSTLY_ORDER &&
-+					(compaction_suitable(zone, sc->order) ||
-+					 compaction_deferred(zone)))
-+					continue;
-+			}
- 			/*
- 			 * This steals pages from memory cgroups over softlimit
- 			 * and returns the number of reclaimed pages and
+diff -puN drivers/parport/parport_pc.c~parport_pc-release-io-region-properly-if-unsupported-ite887x-card-is-found drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~parport_pc-release-io-region-properly-if-unsupported-ite887x-card-is-found
++++ a/drivers/parport/parport_pc.c
+@@ -2595,14 +2595,17 @@ static int __devinit sio_ite_8872_probe(
+ 		break;
+ 	case 0x6:
+ 		printk(KERN_INFO "parport_pc: ITE8873 found (1S)\n");
++		release_region(inta_addr[i], 32);
+ 		return 0;
+ 	case 0x8:
+ 		printk(KERN_INFO "parport_pc: ITE8874 found (2S)\n");
++		release_region(inta_addr[i], 32);
+ 		return 0;
+ 	default:
+ 		printk(KERN_INFO "parport_pc: unknown ITE887x\n");
+ 		printk(KERN_INFO "parport_pc: please mail 'lspci -nvv' "
+ 			"output to Rich.Liu@ite.com.tw\n");
++		release_region(inta_addr[i], 32);
+ 		return 0;
+ 	}
+ 
 _
-Subject: Subject: vmscan: limit direct reclaim for higher order allocations
+Subject: Subject: parport_pc: release IO region properly if unsupported ITE887x card is found
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
+origin.patch
 linux-next.patch
-mm-compaction-trivial-clean-up-in-acct_isolated.patch
-mm-change-isolate-mode-from-define-to-bitwise-type.patch
-mm-change-isolate-mode-from-define-to-bitwise-type-fix.patch
-mm-compaction-make-isolate_lru_page-filter-aware.patch
-mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
-mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
-mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
-mm-migration-clean-up-unmap_and_move.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
-xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
-mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
-mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-kswapd-avoid-unnecessary-rebalance-after-an-unsuccessful-balancing.patch
-mm-compaction-compact-unevictable-pages.patch
-mm-compaction-accounting-fix.patch
-mm-fix-page-faults-detection-in-swap-token-logic.patch
-mm-add-extra-free-kbytes-tunable.patch
-mm-add-extra-free-kbytes-tunable-update.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-thrashc-quiet-sparse-noise.patch
-mm-huge_memoryc-quiet-sparse-noise.patch
-vmscan-add-barrier-to-prevent-evictable-page-in-unevictable-list.patch
-vmscan-limit-direct-reclaim-for-higher-order-allocations.patch
-memcg-skip-scanning-active-lists-based-on-individual-size.patch
+binfmt_elf-fix-pie-execution-with-randomization-disabled.patch
+parport_pc-release-io-region-properly-if-unsupported-ite887x-card-is-found.patch
 
