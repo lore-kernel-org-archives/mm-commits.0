@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch added to -mm tree
-Date: Mon, 10 Oct 2011 15:42:18 -0700
-Message-ID: <201110102242.p9AMgIFB017691@hpaq1.eem.corp.google.com>
+Subject: + oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring.patch added to -mm tree
+Date: Mon, 10 Oct 2011 15:46:25 -0700
+Message-ID: <201110102246.p9AMkPVD004527@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:51554 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:13279 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753494Ab1JJWmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2011 18:42:38 -0400
+	with ESMTP id S1752169Ab1JJWrX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2011 18:47:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, akpm@linux-foundation.org, apw@shadowen.org
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, oleg@redhat.com, rjw@sisk.pl
 
 
 The patch titled
-     Subject: checkpatch: add a --strict check for utf-8 in commit logs
+     Subject: oom: thaw threads if oom killed thread is frozen before deferring
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+     oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add a --strict check for utf-8 in commit logs
+From: David Rientjes <rientjes@google.com>
+Subject: oom: thaw threads if oom killed thread is frozen before deferring
 
-Some find using utf-8 in commit logs inappropriate.
+If a thread has been oom killed and is frozen, thaw it before returning to
+the page allocator.  Otherwise, it can stay frozen indefinitely and no
+memory will be freed.
 
-Some patch commit logs contain unintended utf-8 characters when doing
-things like copy/pasting compilation output.
-
-Look for the start of any commit log by skipping initial lines that look
-like email headers and "From: " lines.
-
-Stop looking for utf-8 at the first signature line.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Michal Hocko <mhocko@suse.cz>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- scripts/checkpatch.pl |   30 ++++++++++++++++++++++++++----
- 1 file changed, 26 insertions(+), 4 deletions(-)
+ mm/oom_kill.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-a-strict-check-for-utf-8-in-commit-logs scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-a-strict-check-for-utf-8-in-commit-logs
-+++ a/scripts/checkpatch.pl
-@@ -240,9 +240,8 @@ our $NonptrType;
- our $Type;
- our $Declare;
+diff -puN mm/oom_kill.c~oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring
++++ a/mm/oom_kill.c
+@@ -32,6 +32,7 @@
+ #include <linux/mempolicy.h>
+ #include <linux/security.h>
+ #include <linux/ptrace.h>
++#include <linux/freezer.h>
  
--our $UTF8	= qr {
--	[\x09\x0A\x0D\x20-\x7E]              # ASCII
--	| [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
-+our $NON_ASCII_UTF8	= qr{
-+	[\xC2-\xDF][\x80-\xBF]               # non-overlong 2-byte
- 	|  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
- 	| [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
- 	|  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
-@@ -251,6 +250,11 @@ our $UTF8	= qr {
- 	|  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
- }x;
- 
-+our $UTF8	= qr{
-+	[\x09\x0A\x0D\x20-\x7E]              # ASCII
-+	| $NON_ASCII_UTF8
-+}x;
-+
- our $typeTypedefs = qr{(?x:
- 	(?:__)?(?:u|s|be|le)(?:8|16|32|64)|
- 	atomic_t
-@@ -1330,6 +1334,9 @@ sub process {
- 	my $signoff = 0;
- 	my $is_patch = 0;
- 
-+	my $in_header_lines = 1;
-+	my $in_commit_log = 0;		#Scanning lines before patch
-+
- 	our @report = ();
- 	our $cnt_lines = 0;
- 	our $cnt_error = 0;
-@@ -1497,7 +1504,6 @@ sub process {
- 		if ($line =~ /^diff --git.*?(\S+)$/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@;
--
- 		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@;
-@@ -1536,6 +1542,7 @@ sub process {
- # Check the patch for a signoff:
- 		if ($line =~ /^\s*signed-off-by:/i) {
- 			$signoff++;
-+			$in_commit_log = 0;
- 		}
- 
- # Check signature styles
-@@ -1613,6 +1620,21 @@ sub process {
- 			    "Invalid UTF-8, patch and commit message should be encoded in UTF-8\n" . $hereptr);
- 		}
- 
-+# Check if it's the start of a commit log
-+# (not a header line and we haven't seen the patch filename)
-+		if ($in_header_lines && $realfile =~ /^$/ &&
-+		    $rawline !~ /^(commit\b|from\b|\w+:).+$/i) {
-+			$in_header_lines = 0;
-+			$in_commit_log = 1;
+ int sysctl_panic_on_oom;
+ int sysctl_oom_kill_allocating_task;
+@@ -320,8 +321,11 @@ static struct task_struct *select_bad_pr
+ 		 * blocked waiting for another task which itself is waiting
+ 		 * for memory. Is there a better alternative?
+ 		 */
+-		if (test_tsk_thread_flag(p, TIF_MEMDIE))
++		if (test_tsk_thread_flag(p, TIF_MEMDIE)) {
++			if (unlikely(frozen(p)))
++				thaw_process(p);
+ 			return ERR_PTR(-1UL);
 +		}
-+
-+# Still not yet in a patch, check for any UTF-8
-+		if ($in_commit_log && $realfile =~ /^$/ &&
-+		    $rawline =~ /$NON_ASCII_UTF8/) {
-+			CHK("UTF8_BEFORE_PATCH",
-+			    "8-bit UTF-8 used in possible commit log\n" . $herecurr);
-+		}
-+
- # ignore non-hunk lines and lines being removed
- 		next if (!$hunk_line || $line =~ /^-/);
+ 		if (!p->mm)
+ 			continue;
  
 _
-Subject: Subject: checkpatch: add a --strict check for utf-8 in commit logs
+Subject: Subject: oom: thaw threads if oom killed thread is frozen before deferring
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
-mm-neaten-warn_alloc_failed.patch
-mm-neaten-warn_alloc_failed-fix.patch
-mm-vmallocc-report-more-vmalloc-failures.patch
-treewide-use-__printf-not-__attribute__formatprintf.patch
-treewide-use-__printf-not-__attribute__formatprintf-fix.patch
-treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
-kernelh-checkpatch-mark-strict_strtofoo-and-simple_strtofoo-as-obsolete.patch
-checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch
+oom-remove-oom_disable_count.patch
+oom-fix-race-while-temporarily-setting-currents-oom_score_adj.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+mm-compaction-make-compact_zone_order-static.patch
+oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring.patch
+cpusets-avoid-looping-when-storing-to-mems_allowed-if-one-node-remains-set.patch
 
