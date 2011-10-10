@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + usb-gadget-fix-langwell_udcc-build-error.patch added to -mm tree
-Date: Mon, 10 Oct 2011 15:47:37 -0700
-Message-ID: <201110102247.p9AMlbJ2013424@wpaz1.hot.corp.google.com>
+Subject: + mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch added to -mm tree
+Date: Mon, 10 Oct 2011 15:53:15 -0700
+Message-ID: <201110102253.p9AMrFv3023933@wpaz24.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:13539 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:17330 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752169Ab1JJWrs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2011 18:47:48 -0400
+	with ESMTP id S1750702Ab1JJWxs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2011 18:53:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, balbi@ti.com, greg@kroah.com
+Cc: cl@gentwo.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, rientjes@google.com
 
 
 The patch titled
-     Subject: usb gadget: fix langwell_udc.c build error
+     Subject: mm: do not drain pagevecs for mlockall(MCL_FUTURE)
 has been added to the -mm tree.  Its filename is
-     usb-gadget-fix-langwell_udcc-build-error.patch
+     mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: usb gadget: fix langwell_udc.c build error
+From: Christoph Lameter <cl@gentwo.org>
+Subject: mm: do not drain pagevecs for mlockall(MCL_FUTURE)
 
-Move function to fix langwell_udc.c build error:
+MCL_FUTURE does not move pages between lru list and draining the LRU per
+cpu pagevecs is a nasty activity.  Avoid doing it unecessarily.
 
-drivers/usb/gadget/langwell_udc.c: In function 'show_langwell_udc':
-drivers/usb/gadget/langwell_udc.c:1693:3: error: implicit declaration of function 'lpm_device_speed'
-drivers/usb/gadget/langwell_udc.c: At top level:
-drivers/usb/gadget/langwell_udc.c:2637:37: error: conflicting types for 'lpm_device_speed'
-drivers/usb/gadget/langwell_udc.c:1693:20: note: previous implicit declaration of 'lpm_device_speed' was here
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Christoph Lameter <cl@gentwo.org>
+Cc: David Rientjes <rientjes@google.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/usb/gadget/langwell_udc.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/mlock.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/gadget/langwell_udc.c~usb-gadget-fix-langwell_udcc-build-error drivers/usb/gadget/langwell_udc.c
---- a/drivers/usb/gadget/langwell_udc.c~usb-gadget-fix-langwell_udcc-build-error
-+++ a/drivers/usb/gadget/langwell_udc.c
-@@ -1562,6 +1562,20 @@ static ssize_t show_function(struct devi
- static DEVICE_ATTR(function, S_IRUGO, show_function, NULL);
+diff -puN mm/mlock.c~mm-do-not-drain-pagevecs-for-mlockallmcl_future mm/mlock.c
+--- a/mm/mlock.c~mm-do-not-drain-pagevecs-for-mlockallmcl_future
++++ a/mm/mlock.c
+@@ -549,7 +549,8 @@ SYSCALL_DEFINE1(mlockall, int, flags)
+ 	if (!can_do_mlock())
+ 		goto out;
  
+-	lru_add_drain_all();	/* flush pagevec */
++	if (flags & MCL_CURRENT)
++		lru_add_drain_all();	/* flush pagevec */
  
-+static inline enum usb_device_speed lpm_device_speed(u32 reg)
-+{
-+	switch (LPM_PSPD(reg)) {
-+	case LPM_SPEED_HIGH:
-+		return USB_SPEED_HIGH;
-+	case LPM_SPEED_FULL:
-+		return USB_SPEED_FULL;
-+	case LPM_SPEED_LOW:
-+		return USB_SPEED_LOW;
-+	default:
-+		return USB_SPEED_UNKNOWN;
-+	}
-+}
-+
- /* device "langwell_udc" sysfs attribute file */
- static ssize_t show_langwell_udc(struct device *_dev,
- 		struct device_attribute *attr, char *buf)
-@@ -2634,20 +2648,6 @@ done:
- 	dev_vdbg(&dev->pdev->dev, "<--- %s()\n", __func__);
- }
+ 	down_write(&current->mm->mmap_sem);
  
--static inline enum usb_device_speed lpm_device_speed(u32 reg)
--{
--	switch (LPM_PSPD(reg)) {
--	case LPM_SPEED_HIGH:
--		return USB_SPEED_HIGH;
--	case LPM_SPEED_FULL:
--		return USB_SPEED_FULL;
--	case LPM_SPEED_LOW:
--		return USB_SPEED_LOW;
--	default:
--		return USB_SPEED_UNKNOWN;
--	}
--}
+_
+Subject: Subject: mm: do not drain pagevecs for mlockall(MCL_FUTURE)
+
+Patches currently in -mm which might be from cl@gentwo.org are
+
+origin.patch
+linux-next.patch
+mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch
+
