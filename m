@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + bio-use-a-static-inline-function-for-bio_integrity_clone.patch added to -mm tree
-Date: Thu, 06 Oct 2011 16:23:21 -0700
-Message-ID: <201110062323.p96NNLvL005621@wpaz5.hot.corp.google.com>
+Subject: + checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch added to -mm tree
+Date: Mon, 10 Oct 2011 15:42:18 -0700
+Message-ID: <201110102242.p9AMgIFB017691@hpaq1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:21757 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:51554 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965298Ab1JFXXb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2011 19:23:31 -0400
+	with ESMTP id S1753494Ab1JJWmi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2011 18:42:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, axboe@kernel.dk
+Cc: joe@perches.com, akpm@linux-foundation.org, apw@shadowen.org
 
 
 The patch titled
-     Subject: include/linux/bio.h: use a static inline function for bio_integrity_clone()
+     Subject: checkpatch: add a --strict check for utf-8 in commit logs
 has been added to the -mm tree.  Its filename is
-     bio-use-a-static-inline-function-for-bio_integrity_clone.patch
+     checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: include/linux/bio.h: use a static inline function for bio_integrity_clone()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add a --strict check for utf-8 in commit logs
 
-When CONFIG_BLK_DEV_INTEGRITY is not set, we get these warnings:
+Some find using utf-8 in commit logs inappropriate.
 
-drivers/md/dm.c: In function 'split_bvec':
-drivers/md/dm.c:1061:3: warning: statement with no effect
-drivers/md/dm.c: In function 'clone_bio':
-drivers/md/dm.c:1088:3: warning: statement with no effect
+Some patch commit logs contain unintended utf-8 characters when doing
+things like copy/pasting compilation output.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Jens Axboe <axboe@kernel.dk>
+Look for the start of any commit log by skipping initial lines that look
+like email headers and "From: " lines.
+
+Stop looking for utf-8 at the first signature line.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- include/linux/bio.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   30 ++++++++++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bio.h~bio-use-a-static-inline-function-for-bio_integrity_clone include/linux/bio.h
---- a/include/linux/bio.h~bio-use-a-static-inline-function-for-bio_integrity_clone
-+++ a/include/linux/bio.h
-@@ -527,7 +527,11 @@ extern void bio_integrity_init(void);
- #define bioset_integrity_create(a, b)	(0)
- #define bio_integrity_prep(a)		(0)
- #define bio_integrity_enabled(a)	(0)
--#define bio_integrity_clone(a, b, c, d)	(0)
-+static inline int bio_integrity_clone(struct bio *bio, struct bio *bio_src,
-+				      gfp_t gfp_mask, struct bio_set *bs)
-+{
-+	return 0;
-+}
- #define bioset_integrity_free(a)	do { } while (0)
- #define bio_integrity_free(a, b)	do { } while (0)
- #define bio_integrity_endio(a, b)	do { } while (0)
+diff -puN scripts/checkpatch.pl~checkpatch-add-a-strict-check-for-utf-8-in-commit-logs scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-a-strict-check-for-utf-8-in-commit-logs
++++ a/scripts/checkpatch.pl
+@@ -240,9 +240,8 @@ our $NonptrType;
+ our $Type;
+ our $Declare;
+ 
+-our $UTF8	= qr {
+-	[\x09\x0A\x0D\x20-\x7E]              # ASCII
+-	| [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
++our $NON_ASCII_UTF8	= qr{
++	[\xC2-\xDF][\x80-\xBF]               # non-overlong 2-byte
+ 	|  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
+ 	| [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+ 	|  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
+@@ -251,6 +250,11 @@ our $UTF8	= qr {
+ 	|  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
+ }x;
+ 
++our $UTF8	= qr{
++	[\x09\x0A\x0D\x20-\x7E]              # ASCII
++	| $NON_ASCII_UTF8
++}x;
++
+ our $typeTypedefs = qr{(?x:
+ 	(?:__)?(?:u|s|be|le)(?:8|16|32|64)|
+ 	atomic_t
+@@ -1330,6 +1334,9 @@ sub process {
+ 	my $signoff = 0;
+ 	my $is_patch = 0;
+ 
++	my $in_header_lines = 1;
++	my $in_commit_log = 0;		#Scanning lines before patch
++
+ 	our @report = ();
+ 	our $cnt_lines = 0;
+ 	our $cnt_error = 0;
+@@ -1497,7 +1504,6 @@ sub process {
+ 		if ($line =~ /^diff --git.*?(\S+)$/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@;
+-
+ 		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@;
+@@ -1536,6 +1542,7 @@ sub process {
+ # Check the patch for a signoff:
+ 		if ($line =~ /^\s*signed-off-by:/i) {
+ 			$signoff++;
++			$in_commit_log = 0;
+ 		}
+ 
+ # Check signature styles
+@@ -1613,6 +1620,21 @@ sub process {
+ 			    "Invalid UTF-8, patch and commit message should be encoded in UTF-8\n" . $hereptr);
+ 		}
+ 
++# Check if it's the start of a commit log
++# (not a header line and we haven't seen the patch filename)
++		if ($in_header_lines && $realfile =~ /^$/ &&
++		    $rawline !~ /^(commit\b|from\b|\w+:).+$/i) {
++			$in_header_lines = 0;
++			$in_commit_log = 1;
++		}
++
++# Still not yet in a patch, check for any UTF-8
++		if ($in_commit_log && $realfile =~ /^$/ &&
++		    $rawline =~ /$NON_ASCII_UTF8/) {
++			CHK("UTF8_BEFORE_PATCH",
++			    "8-bit UTF-8 used in possible commit log\n" . $herecurr);
++		}
++
+ # ignore non-hunk lines and lines being removed
+ 		next if (!$hunk_line || $line =~ /^-/);
+ 
 _
-Subject: Subject: include/linux/bio.h: use a static inline function for bio_integrity_clone()
+Subject: Subject: checkpatch: add a --strict check for utf-8 in commit logs
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch
-bio-use-a-static-inline-function-for-bio_integrity_clone.patch
-consolidate-config_debug_strict_user_copy_checks.patch
+mm-neaten-warn_alloc_failed.patch
+mm-neaten-warn_alloc_failed-fix.patch
+mm-vmallocc-report-more-vmalloc-failures.patch
+treewide-use-__printf-not-__attribute__formatprintf.patch
 treewide-use-__printf-not-__attribute__formatprintf-fix.patch
-cgroups-add-a-task-counter-subsystem-fix.patch
-init-add-root=partuuid=uuid-partnroff=%d-support-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
+treewide-use-__printf-not-__attribute__formatprintf-checkpatch-fixes.patch
+kernelh-checkpatch-mark-strict_strtofoo-and-simple_strtofoo-as-obsolete.patch
+checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
 
