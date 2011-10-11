@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + tty-support-compat_ioctl-get-set-termios_locked.patch added to -mm tree
-Date: Tue, 11 Oct 2011 14:44:09 -0700
-Message-ID: <201110112144.p9BLi9u0016492@hpaq6.eem.corp.google.com>
+Subject: + ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid.patch added to -mm tree
+Date: Tue, 11 Oct 2011 14:54:50 -0700
+Message-ID: <201110112154.p9BLsp0B015184@hpaq6.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:43181 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:47553 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922Ab1JKVop (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2011 17:44:45 -0400
+	with ESMTP id S1751084Ab1JKVzC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2011 17:55:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas@m3y3r.de, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, greg@kroah.com
+Cc: manfred@colorfullife.com, a.p.zijlstra@chello.nl, efault@gmx.de, tglx@linutronix.de
 
 
 The patch titled
-     Subject: tty: support compat_ioctl get/set termios_locked
+     Subject: ipc/sem.c: fix return code race with semop vs. semop +semctl(IPC_RMID)
 has been added to the -mm tree.  Its filename is
-     tty-support-compat_ioctl-get-set-termios_locked.patch
+     ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: tty: support compat_ioctl get/set termios_locked
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: fix return code race with semop vs. semop +semctl(IPC_RMID)
 
-When running a Fedora 15 (x86) on an x86_64 kernel, in the boot process
-plymouthd complains about those two missing ioctls:
+sys_semtimedop() may return -EIDRM although the semaphore operation
+completed successfully:
 
-[    2.581783] ioctl32(plymouthd:186): Unknown cmd fd(10) cmd(00005457){t:'T';sz:0} arg(ffb6a5d0) on /dev/tty1
-[    2.581803] ioctl32(plymouthd:186): Unknown cmd fd(10) cmd(00005456){t:'T';sz:0} arg(ffb6a680) on /dev/tty1
+thread 1:	thread 2:
+		semtimedop(), sleeps
+semop():
+* acquires sem_lock()
+		semtimedop() woken up due to timeout
+		sem_lock() loops
+* notices that thread 2 could be completed.
+* performs the operations that thread 2 is sleeping on.
+* marks the semaphore operation as IN_WAKEUP
+* drops sem_lock(), does wakeup, sets return code to 0
+		* thread delayed due to interrupt, whatever
+* returns to user space
+		* thread still delayed
+semctl(IPC_RMID)
+* acquires sem_lock()
+* ipc_rmid(), ipcp->deleted=1
+* drops sem_lock()
+		* thread finally continues - but seem_lock()
+		  now fails due to ipcp->deleted == 1
+		* returns -EIDRM instead of 0
 
-both ioctl functions work on the 'struct termios' resp.  'struct
-termios2', which has the same size (36 bytes resp.  44 bytes) on x86 and
-x86_64, so it's just a matter of converting the pointer from userland.
+The fix is trivial: Always use the return code in queue.status.
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+In real world, the race probably doesn't matter:
+If the semaphore array is destroyed, the app is probably not interested
+if the last operation succeeded or was already cancelled.
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/tty/tty_io.c    |    2 ++
- drivers/tty/tty_ioctl.c |   17 +++++++++++++++++
- include/linux/tty.h     |    2 ++
- 3 files changed, 21 insertions(+)
+ ipc/sem.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/tty/tty_io.c~tty-support-compat_ioctl-get-set-termios_locked drivers/tty/tty_io.c
---- a/drivers/tty/tty_io.c~tty-support-compat_ioctl-get-set-termios_locked
-+++ a/drivers/tty/tty_io.c
-@@ -2716,6 +2716,8 @@ static long tty_compat_ioctl(struct file
- 	ld = tty_ldisc_ref_wait(tty);
- 	if (ld->ops->compat_ioctl)
- 		retval = ld->ops->compat_ioctl(tty, file, cmd, arg);
-+	else
-+		retval = n_tty_compat_ioctl_helper(tty, file, cmd, arg);
- 	tty_ldisc_deref(ld);
- 
- 	return retval;
-diff -puN drivers/tty/tty_ioctl.c~tty-support-compat_ioctl-get-set-termios_locked drivers/tty/tty_ioctl.c
---- a/drivers/tty/tty_ioctl.c~tty-support-compat_ioctl-get-set-termios_locked
-+++ a/drivers/tty/tty_ioctl.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
- #include <linux/bitops.h>
- #include <linux/mutex.h>
-+#include <linux/compat.h>
- 
- #include <asm/io.h>
- #include <asm/uaccess.h>
-@@ -1179,3 +1180,19 @@ int n_tty_ioctl_helper(struct tty_struct
+diff -puN ipc/sem.c~ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid
++++ a/ipc/sem.c
+@@ -1460,7 +1460,6 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
+ 	 * Array removed? If yes, leave without sem_unlock().
+ 	 */
+ 	if (IS_ERR(sma)) {
+-		error = -EIDRM;
+ 		goto out_free;
  	}
- }
- EXPORT_SYMBOL(n_tty_ioctl_helper);
-+
-+#ifdef CONFIG_COMPAT
-+long n_tty_compat_ioctl_helper(struct tty_struct *tty, struct file *file,
-+					unsigned int cmd, unsigned long arg)
-+{
-+	switch (cmd) {
-+	case TIOCGLCKTRMIOS:
-+	case TIOCSLCKTRMIOS:
-+		return tty_mode_ioctl(tty, file, cmd, (unsigned long) compat_ptr(arg));
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+}
-+EXPORT_SYMBOL(n_tty_compat_ioctl_helper);
-+#endif
-+
-diff -puN include/linux/tty.h~tty-support-compat_ioctl-get-set-termios_locked include/linux/tty.h
---- a/include/linux/tty.h~tty-support-compat_ioctl-get-set-termios_locked
-+++ a/include/linux/tty.h
-@@ -581,6 +581,8 @@ extern int __init tty_init(void);
- /* tty_ioctl.c */
- extern int n_tty_ioctl_helper(struct tty_struct *tty, struct file *file,
- 		       unsigned int cmd, unsigned long arg);
-+extern long n_tty_compat_ioctl_helper(struct tty_struct *tty, struct file *file,
-+		       unsigned int cmd, unsigned long arg);
- 
- /* serial.c */
  
 _
-Subject: Subject: tty: support compat_ioctl get/set termios_locked
+Subject: Subject: ipc/sem.c: fix return code race with semop vs. semop +semctl(IPC_RMID)
 
-Patches currently in -mm which might be from thomas@m3y3r.de are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-linux-next.patch
-tty-support-compat_ioctl-get-set-termios_locked.patch
+ipc-mqueue-cleanup-definition-names-and-locations.patch
+ipc-mqueue-switch-back-to-using-non-max-values-on-create.patch
+ipc-mqueue-enforce-hard-limits.patch
+ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
+ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid.patch
+ipc-semc-handle-spurious-wakeups.patch
+ipc-semc-replace-busy-loop-with-completion.patch
+slab-leaks3-default-y.patch
 
