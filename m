@@ -1,23 +1,23 @@
-From: akpm@linux-foundation.org
-Subject: + ceph-mds_clientc-quiet-sparse-noise.patch added to -mm tree
-Date: Tue, 11 Oct 2011 14:27:58 -0700
-Message-ID: <201110112127.p9BLRwJ3018153@wpaz21.hot.corp.google.com>
+From: akpm@google.com
+Subject: + tty-support-compat_ioctl-get-set-termios_locked.patch added to -mm tree
+Date: Tue, 11 Oct 2011 14:44:09 -0700
+Message-ID: <201110112144.p9BLi9u0016492@hpaq6.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:55739 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:43181 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750791Ab1JKV2E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2011 17:28:04 -0400
+	with ESMTP id S1750922Ab1JKVop (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2011 17:44:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hartleys@visionengravers.com, hsweeten@visionengravers.com, sage@newdream.net
+Cc: thomas@m3y3r.de, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, greg@kroah.com
 
 
 The patch titled
-     Subject: ceph/mds_client.c: quiet sparse noise
+     Subject: tty: support compat_ioctl get/set termios_locked
 has been added to the -mm tree.  Its filename is
-     ceph-mds_clientc-quiet-sparse-noise.patch
+     tty-support-compat_ioctl-get-set-termios_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: H Hartley Sweeten <hartleys@visionengravers.com>
-Subject: ceph/mds_client.c: quiet sparse noise
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: tty: support compat_ioctl get/set termios_locked
 
-warning: symbol 'get_nonsnap_parent' was not declared. Should it be static?
-warning: symbol 'done_closing_sessions' was not declared. Should it be static?
+When running a Fedora 15 (x86) on an x86_64 kernel, in the boot process
+plymouthd complains about those two missing ioctls:
 
-Local functions don't need external visability. Make them static.
+[    2.581783] ioctl32(plymouthd:186): Unknown cmd fd(10) cmd(00005457){t:'T';sz:0} arg(ffb6a5d0) on /dev/tty1
+[    2.581803] ioctl32(plymouthd:186): Unknown cmd fd(10) cmd(00005456){t:'T';sz:0} arg(ffb6a680) on /dev/tty1
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Sage Weil <sage@newdream.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+both ioctl functions work on the 'struct termios' resp.  'struct
+termios2', which has the same size (36 bytes resp.  44 bytes) on x86 and
+x86_64, so it's just a matter of converting the pointer from userland.
+
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- fs/ceph/mds_client.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/tty/tty_io.c    |    2 ++
+ drivers/tty/tty_ioctl.c |   17 +++++++++++++++++
+ include/linux/tty.h     |    2 ++
+ 3 files changed, 21 insertions(+)
 
-diff -puN fs/ceph/mds_client.c~ceph-mds_clientc-quiet-sparse-noise fs/ceph/mds_client.c
---- a/fs/ceph/mds_client.c~ceph-mds_clientc-quiet-sparse-noise
-+++ a/fs/ceph/mds_client.c
-@@ -619,7 +619,7 @@ static void __unregister_request(struct 
-  *
-  * Called under mdsc->mutex.
-  */
--struct dentry *get_nonsnap_parent(struct dentry *dentry)
-+static struct dentry *get_nonsnap_parent(struct dentry *dentry)
- {
- 	/*
- 	 * we don't need to worry about protecting the d_parent access
-@@ -3154,7 +3154,7 @@ void ceph_mdsc_sync(struct ceph_mds_clie
- /*
-  * true if all sessions are closed, or we force unmount
-  */
--bool done_closing_sessions(struct ceph_mds_client *mdsc)
-+static bool done_closing_sessions(struct ceph_mds_client *mdsc)
- {
- 	int i, n = 0;
+diff -puN drivers/tty/tty_io.c~tty-support-compat_ioctl-get-set-termios_locked drivers/tty/tty_io.c
+--- a/drivers/tty/tty_io.c~tty-support-compat_ioctl-get-set-termios_locked
++++ a/drivers/tty/tty_io.c
+@@ -2716,6 +2716,8 @@ static long tty_compat_ioctl(struct file
+ 	ld = tty_ldisc_ref_wait(tty);
+ 	if (ld->ops->compat_ioctl)
+ 		retval = ld->ops->compat_ioctl(tty, file, cmd, arg);
++	else
++		retval = n_tty_compat_ioctl_helper(tty, file, cmd, arg);
+ 	tty_ldisc_deref(ld);
+ 
+ 	return retval;
+diff -puN drivers/tty/tty_ioctl.c~tty-support-compat_ioctl-get-set-termios_locked drivers/tty/tty_ioctl.c
+--- a/drivers/tty/tty_ioctl.c~tty-support-compat_ioctl-get-set-termios_locked
++++ a/drivers/tty/tty_ioctl.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/bitops.h>
+ #include <linux/mutex.h>
++#include <linux/compat.h>
+ 
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+@@ -1179,3 +1180,19 @@ int n_tty_ioctl_helper(struct tty_struct
+ 	}
+ }
+ EXPORT_SYMBOL(n_tty_ioctl_helper);
++
++#ifdef CONFIG_COMPAT
++long n_tty_compat_ioctl_helper(struct tty_struct *tty, struct file *file,
++					unsigned int cmd, unsigned long arg)
++{
++	switch (cmd) {
++	case TIOCGLCKTRMIOS:
++	case TIOCSLCKTRMIOS:
++		return tty_mode_ioctl(tty, file, cmd, (unsigned long) compat_ptr(arg));
++	default:
++		return -ENOIOCTLCMD;
++	}
++}
++EXPORT_SYMBOL(n_tty_compat_ioctl_helper);
++#endif
++
+diff -puN include/linux/tty.h~tty-support-compat_ioctl-get-set-termios_locked include/linux/tty.h
+--- a/include/linux/tty.h~tty-support-compat_ioctl-get-set-termios_locked
++++ a/include/linux/tty.h
+@@ -581,6 +581,8 @@ extern int __init tty_init(void);
+ /* tty_ioctl.c */
+ extern int n_tty_ioctl_helper(struct tty_struct *tty, struct file *file,
+ 		       unsigned int cmd, unsigned long arg);
++extern long n_tty_compat_ioctl_helper(struct tty_struct *tty, struct file *file,
++		       unsigned int cmd, unsigned long arg);
+ 
+ /* serial.c */
  
 _
-Subject: Subject: ceph/mds_client.c: quiet sparse noise
+Subject: Subject: tty: support compat_ioctl get/set termios_locked
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from thomas@m3y3r.de are
 
-origin.patch
 linux-next.patch
-arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer.patch
-arch-x86-kernel-ptracec-quiet-sparse-noise.patch
-arch-x86-mm-pageattrc-quiet-sparse-noise-local-functions-should-be-static.patch
-ceph-mds_clientc-quiet-sparse-noise.patch
-mm-memblockc-quiet-sparse-noise.patch
-mm-thrashc-quiet-sparse-noise.patch
-mm-mempolicyc-quiet-sparse-noise.patch
-mm-huge_memoryc-quiet-sparse-noise.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-mm-page_cgroupc-quiet-sparse-noise.patch
+tty-support-compat_ioctl-get-set-termios_locked.patch
 
