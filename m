@@ -1,17 +1,17 @@
 From: akpm@google.com
 Subject: + revert-treewide-use-__printf-not-__attribute__formatprintf.patch added to -mm tree
-Date: Tue, 11 Oct 2011 11:52:39 -0700
-Message-ID: <201110111852.p9BIqdpm030874@hpaq11.eem.corp.google.com>
+Date: Tue, 11 Oct 2011 11:53:20 -0700
+Message-ID: <201110111853.p9BIrKdN032528@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:8841 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:31957 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638Ab1JKSwo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2011 14:52:44 -0400
+	with ESMTP id S1754638Ab1JKSx0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2011 14:53:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@google.com, joe@perches.com
+Cc: akpm@google.com, joe@perches.com, kirill@shutemov.name
 
 
 The patch titled
@@ -37,6 +37,7 @@ From: Andrew Morton <akpm@google.com>
 Subject: treewide-use-__printf-not-__attribute__formatprintf: revert arch bits
 
 Cc: Joe Perches <joe@perches.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
