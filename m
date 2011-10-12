@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + leds-save-the-delay-values-after-a-successful-call-to-blink_set.patch added to -mm tree
-Date: Tue, 11 Oct 2011 16:02:40 -0700
-Message-ID: <201110112302.p9BN2fPb020455@wpaz9.hot.corp.google.com>
+Subject: + mm-huge_memory-fix-copying-user-highpage.patch added to -mm tree
+Date: Wed, 12 Oct 2011 13:44:08 -0700
+Message-ID: <201110122044.p9CKiAID005794@wpaz24.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:41085 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:16984 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893Ab1JKXDE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2011 19:03:04 -0400
+	with ESMTP id S1752608Ab1JLUoQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2011 16:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ospite@studenti.unina.it, johannes@sipsolutions.net, rpurdie@rpsys.net, stable@kernel.org
+Cc: dhillf@gmail.com, aarcange@redhat.com, jweiner@redhat.com
 
 
 The patch titled
-     Subject: leds: save the delay values after a successful call to blink_set()
+     From: Hillf Danton <dhillf@gmail.com>
 has been added to the -mm tree.  Its filename is
-     leds-save-the-delay-values-after-a-successful-call-to-blink_set.patch
+     mm-huge_memory-fix-copying-user-highpage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Antonio Ospite <ospite@studenti.unina.it>
-Subject: leds: save the delay values after a successful call to blink_set()
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm/huge_memory: fix copying user highpage
 
-When calling the hardware blinking function implemented by blink_set(),
-the delay_on and delay_off values are not preserved across calls.
+The THP copy-on-write handler falls back to regular-sized pages for a huge
+page replacement upon allocation failure or if THP has been individually
+disabled in the target VMA.  The loop responsible for copying page-sized
+chunks accidentally uses multiples of PAGE_SHIFT instead of PAGE_SIZE as
+the virtual address arg for copy_user_highpage().
 
-Fix that and make the "timer" trigger work as expected when hardware
-blinking is available.
-
-BEFORE the fix:
-  $ cd /sys/class/leds/someled
-  $ echo timer > trigger
-  $ cat delay_on delay_off
-  0
-  0
-  $ echo 100 > delay_on
-  $ cat delay_on delay_off
-  0
-  0
-  $ echo 100 > delay_off
-  $ cat delay_on delay_off
-  0
-  0
-
-AFTER the fix:
-  $ cd /sys/class/leds/someled
-  $ echo timer > trigger
-  $ cat delay_on delay_off
-  0
-  0
-  $ echo 100 > delay_on
-  $ cat delay_on delay_off
-  100
-  0
-  $ echo 100 > delay_off
-  $ cat delay_on delay_off
-  100
-  100
-
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-Reviewed-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: <stable@kernel.org>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Acked-by: Johannes Weiner <jweiner@redhat.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/leds/led-class.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/led-class.c~leds-save-the-delay-values-after-a-successful-call-to-blink_set drivers/leds/led-class.c
---- a/drivers/leds/led-class.c~leds-save-the-delay-values-after-a-successful-call-to-blink_set
-+++ a/drivers/leds/led-class.c
-@@ -268,8 +268,11 @@ void led_blink_set(struct led_classdev *
- 		   unsigned long *delay_off)
- {
- 	if (led_cdev->blink_set &&
--	    !led_cdev->blink_set(led_cdev, delay_on, delay_off))
-+	    !led_cdev->blink_set(led_cdev, delay_on, delay_off)) {
-+		led_cdev->blink_delay_on = *delay_on;
-+		led_cdev->blink_delay_off = *delay_off;
- 		return;
-+	}
+diff -puN mm/huge_memory.c~mm-huge_memory-fix-copying-user-highpage mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-huge_memory-fix-copying-user-highpage
++++ a/mm/huge_memory.c
+@@ -829,7 +829,7 @@ static int do_huge_pmd_wp_page_fallback(
  
- 	/* blink with 1 Hz as default if nothing specified */
- 	if (!*delay_on && !*delay_off)
+ 	for (i = 0; i < HPAGE_PMD_NR; i++) {
+ 		copy_user_highpage(pages[i], page + i,
+-				   haddr + PAGE_SHIFT*i, vma);
++				   haddr + PAGE_SIZE * i, vma);
+ 		__SetPageUptodate(pages[i]);
+ 		cond_resched();
+ 	}
 _
-Subject: Subject: leds: save the delay values after a successful call to blink_set()
+Subject: From: Hillf Danton <dhillf@gmail.com>
 
-Patches currently in -mm which might be from ospite@studenti.unina.it are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
+origin.patch
 linux-next.patch
-leds-save-the-delay-values-after-a-successful-call-to-blink_set.patch
-leds-turn-the-blink_timer-off-before-starting-to-blink.patch
+mm-huge_memory-fix-copying-user-highpage.patch
 
