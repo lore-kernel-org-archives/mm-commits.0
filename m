@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + m32r-allow-use-of-atomic64.patch added to -mm tree
-Date: Fri, 14 Oct 2011 13:35:12 -0700
-Message-ID: <201110142035.p9EKZC1K022370@wpaz17.hot.corp.google.com>
+Subject: + mm-huge_memory-fix-typo-when-updating-mmu-cache.patch added to -mm tree
+Date: Fri, 14 Oct 2011 13:36:26 -0700
+Message-ID: <201110142036.p9EKaQfv013698@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:48532 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:49308 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752253Ab1JNUfZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Oct 2011 16:35:25 -0400
+	with ESMTP id S1753589Ab1JNUga (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Oct 2011 16:36:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, mingo@elte.hu, takata@linux-m32r.org
+Cc: dhillf@gmail.com, aarcange@redhat.com, jweiner@redhat.com
 
 
 The patch titled
-     Subject: m32r: allow use of atomic64
+     Subject: mm/huge_memory: fix typo when updating mmu cache
 has been added to the -mm tree.  Its filename is
-     m32r-allow-use-of-atomic64.patch
+     mm-huge_memory-fix-typo-when-updating-mmu-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: m32r: allow use of atomic64
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm/huge_memory: fix typo when updating mmu cache
 
-Atomic64 is now a valid type in Linux. Archs that do not have their own
-version of atomic64 operators are to use the generic operations.
+There are three cases of update_mmu_cache() in the file, and the case in
+function collapse_huge_page() has a typo, namely the last parameter used,
+which is corrected based on the other two cases.
 
-The m32r architecture needs to define GENERIC_ATOMIC64.
+Due to the define of update_mmu_cache by X86, the only arch that
+implements THP currently, the change here has no really crystal point, but
+one or two minutes of efforts could be saved for those archs that are
+likely to support THP in future.
 
-Link: http://lkml.kernel.org/r/20111013085936.GA13046@elte.hu
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Reported-by: Ingo Molnar <mingo@elte.hu>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- arch/m32r/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/Kconfig~m32r-allow-use-of-atomic64 arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-allow-use-of-atomic64
-+++ a/arch/m32r/Kconfig
-@@ -10,6 +10,7 @@ config M32R
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_IRQ_SHOW
-+	select GENERIC_ATOMIC64
- 
- config SBUS
- 	bool
+diff -puN mm/huge_memory.c~mm-huge_memory-fix-typo-when-updating-mmu-cache mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-huge_memory-fix-typo-when-updating-mmu-cache
++++ a/mm/huge_memory.c
+@@ -1967,7 +1967,7 @@ static void collapse_huge_page(struct mm
+ 	BUG_ON(!pmd_none(*pmd));
+ 	page_add_new_anon_rmap(new_page, vma, address);
+ 	set_pmd_at(mm, address, pmd, _pmd);
+-	update_mmu_cache(vma, address, entry);
++	update_mmu_cache(vma, address, _pmd);
+ 	prepare_pmd_huge_pte(pgtable, mm);
+ 	mm->nr_ptes--;
+ 	spin_unlock(&mm->page_table_lock);
 _
-Subject: Subject: m32r: allow use of atomic64
+Subject: Subject: mm/huge_memory: fix typo when updating mmu cache
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
 origin.patch
 linux-next.patch
-m32r-allow-use-of-atomic64.patch
-stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch
-cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch
-memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch
+mm-huge_memory-fix-copying-user-highpage.patch
+mm-huge_memory-fix-typo-when-updating-mmu-cache.patch
 
