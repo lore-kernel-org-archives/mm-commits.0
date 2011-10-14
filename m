@@ -1,86 +1,114 @@
 From: akpm@google.com
-Subject: [merged] usb-gadget-fix-langwell_udcc-build-error.patch removed from -mm tree
-Date: Fri, 14 Oct 2011 12:51:55 -0700
-Message-ID: <201110141951.p9EJptEV007146@hpaq5.eem.corp.google.com>
+Subject: [merged] x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch removed from -mm tree
+Date: Fri, 14 Oct 2011 12:51:48 -0700
+Message-ID: <201110141951.p9EJpn3A006989@hpaq5.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:23303 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:23337 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752157Ab1JNTwE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Oct 2011 15:52:04 -0400
+	with ESMTP id S1752157Ab1JNTwI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Oct 2011 15:52:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, balbi@ti.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: konrad.wilk@oracle.com, a.p.zijlstra@chello.nl, hpa@zytor.com, jeremy.fitzhardinge@citrix.com, mingo@redhat.com, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usb gadget: fix langwell_udc.c build error
+     Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
 has been removed from the -mm tree.  Its filename was
-     usb-gadget-fix-langwell_udcc-build-error.patch
+     x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: usb gadget: fix langwell_udc.c build error
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
 
-Move function to fix langwell_udc.c build error:
+Fix an outstanding issue that has been reported since 2.6.37.  Under a
+heavy loaded machine processing "fork()" calls could crash with:
 
-drivers/usb/gadget/langwell_udc.c: In function 'show_langwell_udc':
-drivers/usb/gadget/langwell_udc.c:1693:3: error: implicit declaration of function 'lpm_device_speed'
-drivers/usb/gadget/langwell_udc.c: At top level:
-drivers/usb/gadget/langwell_udc.c:2637:37: error: conflicting types for 'lpm_device_speed'
-drivers/usb/gadget/langwell_udc.c:1693:20: note: previous implicit declaration of 'lpm_device_speed' was here
+BUG: unable to handle kernel paging request at f573fc8c
+IP: [<c01abc54>] swap_count_continued+0x104/0x180
+*pdpt = 000000002a3b9027 *pde = 0000000001bed067 *pte = 0000000000000000
+Oops: 0000 [#1] SMP
+Modules linked in:
+Pid: 1638, comm: apache2 Not tainted 3.0.4-linode37 #1
+EIP: 0061:[<c01abc54>] EFLAGS: 00210246 CPU: 3
+EIP is at swap_count_continued+0x104/0x180
+.. snip..
+Call Trace:
+ [<c01ac222>] ? __swap_duplicate+0xc2/0x160
+ [<c01040f7>] ? pte_mfn_to_pfn+0x87/0xe0
+ [<c01ac2e4>] ? swap_duplicate+0x14/0x40
+ [<c01a0a6b>] ? copy_pte_range+0x45b/0x500
+ [<c01a0ca5>] ? copy_page_range+0x195/0x200
+ [<c01328c6>] ? dup_mmap+0x1c6/0x2c0
+ [<c0132cf8>] ? dup_mm+0xa8/0x130
+ [<c013376a>] ? copy_process+0x98a/0xb30
+ [<c013395f>] ? do_fork+0x4f/0x280
+ [<c01573b3>] ? getnstimeofday+0x43/0x100
+ [<c010f770>] ? sys_clone+0x30/0x40
+ [<c06c048d>] ? ptregs_clone+0x15/0x48
+ [<c06bfb71>] ? syscall_call+0x7/0xb
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <greg@kroah.com>
+The problem is that in copy_page_range() we turn lazy mode on, and then in
+swap_entry_free() we call swap_count_continued() which ends up in:
+
+         map = kmap_atomic(page, KM_USER0) + offset;
+
+and then later we touch *map.
+
+Since we are running in batched mode (lazy) we don't actually set up the
+PTE mappings and the kmap_atomic is not done synchronously and ends up
+trying to dereference a page that has not been set.
+
+Looking at kmap_atomic_prot_pfn(), it uses 'arch_flush_lazy_mmu_mode' and
+doing the same in kmap_atomic_prot() and __kunmap_atomic() makes the problem
+go away.
+
+Interestingly, commit b8bcfe997e4615 ("x86/paravirt: remove lazy mode in
+interrupts") removed part of this to fix an interrupt issue - but it went
+to far and did not consider this scenario.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- drivers/usb/gadget/langwell_udc.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ arch/x86/mm/highmem_32.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/usb/gadget/langwell_udc.c~usb-gadget-fix-langwell_udcc-build-error drivers/usb/gadget/langwell_udc.c
---- a/drivers/usb/gadget/langwell_udc.c~usb-gadget-fix-langwell_udcc-build-error
-+++ a/drivers/usb/gadget/langwell_udc.c
-@@ -1562,6 +1562,20 @@ static ssize_t show_function(struct devi
- static DEVICE_ATTR(function, S_IRUGO, show_function, NULL);
+diff -puN arch/x86/mm/highmem_32.c~x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode arch/x86/mm/highmem_32.c
+--- a/arch/x86/mm/highmem_32.c~x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode
++++ a/arch/x86/mm/highmem_32.c
+@@ -45,6 +45,7 @@ void *kmap_atomic_prot(struct page *page
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ 	BUG_ON(!pte_none(*(kmap_pte-idx)));
+ 	set_pte(kmap_pte-idx, mk_pte(page, prot));
++	arch_flush_lazy_mmu_mode();
  
- 
-+static inline enum usb_device_speed lpm_device_speed(u32 reg)
-+{
-+	switch (LPM_PSPD(reg)) {
-+	case LPM_SPEED_HIGH:
-+		return USB_SPEED_HIGH;
-+	case LPM_SPEED_FULL:
-+		return USB_SPEED_FULL;
-+	case LPM_SPEED_LOW:
-+		return USB_SPEED_LOW;
-+	default:
-+		return USB_SPEED_UNKNOWN;
-+	}
-+}
-+
- /* device "langwell_udc" sysfs attribute file */
- static ssize_t show_langwell_udc(struct device *_dev,
- 		struct device_attribute *attr, char *buf)
-@@ -2634,20 +2648,6 @@ done:
- 	dev_vdbg(&dev->pdev->dev, "<--- %s()\n", __func__);
+ 	return (void *)vaddr;
  }
- 
--static inline enum usb_device_speed lpm_device_speed(u32 reg)
--{
--	switch (LPM_PSPD(reg)) {
--	case LPM_SPEED_HIGH:
--		return USB_SPEED_HIGH;
--	case LPM_SPEED_FULL:
--		return USB_SPEED_FULL;
--	case LPM_SPEED_LOW:
--		return USB_SPEED_LOW;
--	default:
--		return USB_SPEED_UNKNOWN;
--	}
--}
+@@ -88,6 +89,7 @@ void __kunmap_atomic(void *kvaddr)
+ 		 */
+ 		kpte_clear_flush(kmap_pte-idx, vaddr);
+ 		kmap_atomic_idx_pop();
++		arch_flush_lazy_mmu_mode();
+ 	}
+ #ifdef CONFIG_DEBUG_HIGHMEM
+ 	else {
+_
+
+Patches currently in -mm which might be from konrad.wilk@oracle.com are
+
+origin.patch
+linux-next.patch
+stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch
+
