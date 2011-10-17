@@ -1,114 +1,111 @@
 From: akpm@google.com
-Subject: [obsolete] ipc-semc-replace-busy-loop-with-completion-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 17 Oct 2011 14:55:55 -0700
-Message-ID: <201110172155.p9HLttTU017148@hpaq13.eem.corp.google.com>
+Subject: [withdrawn] ipc-introduce-shm_rmid_forced-sysctl-testing.patch removed from -mm tree
+Date: Mon, 17 Oct 2011 14:56:11 -0700
+Message-ID: <201110172156.p9HLuCXO005290@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:18438 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:18895 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754311Ab1JQVz7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 17:55:59 -0400
+	with ESMTP id S1754311Ab1JQV5I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 17:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@google.com, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.lezcano@free.fr, ebiederm@xmission.com, mingo@elte.hu, oleg@redhat.com, rdunlap@xenotime.net, segoon@openwall.com, serge.hallyn@canonical.com, tj@ker
 
 
 The patch titled
-     Subject: ipc-semc-replace-busy-loop-with-completion-checkpatch-fixes
+     Subject: ipc-introduce-shm_rmid_forced-sysctl-testing
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-replace-busy-loop-with-completion-checkpatch-fixes.patch
+     ipc-introduce-shm_rmid_forced-sysctl-testing.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@google.com>
-Subject: ipc-semc-replace-busy-loop-with-completion-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-introduce-shm_rmid_forced-sysctl-testing
 
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Force this on for -next/mm testing purposes.
 
-WARNING: please, no space before tabs
-#75: FILE: ipc/sem.c:208:
-+ *   ^I* if it's not -EINTR, then it must wait on q->done.$
-
-WARNING: please, no space before tabs
-#76: FILE: ipc/sem.c:209:
-+ *   ^I* After the completion was signaled:$
-
-WARNING: please, no space before tabs
-#77: FILE: ipc/sem.c:210:
-+ *   ^I  - if it's not -EINTR, then the operation was completed by$
-
-WARNING: please, no space before tabs
-#81: FILE: ipc/sem.c:213:
-+ *   ^I  - otherwise it must acquire the spinlock and do the cleanup$
-
-WARNING: braces {} are not necessary for single statement blocks
-#205: FILE: ipc/sem.c:1420:
-+		if (!IS_ERR(sma)) {
-+			sem_unlock(sma);
-+		}
-
-total: 0 errors, 5 warnings, 170 lines checked
-
-./patches/ipc-semc-replace-busy-loop-with-completion.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Signed-off-by: Andrew Morton <akpm@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serge.hallyn@canonical.com>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ ipc/shm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipc-semc-replace-busy-loop-with-completion-checkpatch-fixes ipc/sem.c
---- a/ipc/sem.c~ipc-semc-replace-busy-loop-with-completion-checkpatch-fixes
-+++ a/ipc/sem.c
-@@ -205,12 +205,12 @@ static inline void sem_rmid(struct ipc_n
-  *	* call wake_up_process
-  *	* complete_all(&q->done);
-  * - the previously blocked thread checks queue.status:
-- *   	* if it's not -EINTR, then it must wait on q->done.
-- *   	* After the completion was signaled:
-- *   	  - if it's not -EINTR, then the operation was completed by
-- *   	  update_queue. semtimedop can return queue.status without
-- *   	  performing any operation on the sem array.
-- *   	  - otherwise it must acquire the spinlock and do the cleanup
-+ *	* if it's not -EINTR, then it must wait on q->done.
-+ *	* After the completion was signaled:
-+ *	  - if it's not -EINTR, then the operation was completed by
-+ *	    update_queue. semtimedop can return queue.status without
-+ *	    performing any operation on the sem array.
-+ *	  - otherwise it must acquire the spinlock and do the cleanup
-  *
-  * The completion is necessary to protect against the following
-  * races:
-@@ -1417,9 +1417,8 @@ sleep_again:
- 	error = queue.status;
- 	if (error != -EINTR) {
- 		/* If there is a return code, then we can leave immediately. */
--		if (!IS_ERR(sma)) {
-+		if (!IS_ERR(sma))
- 			sem_unlock(sma);
--		}
- 		/* Except that we must wait for the hands-off */
- 		wait_for_completion(&queue.done);
- 		goto out_free;
+diff -puN ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl-testing ipc/shm.c
+--- a/ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl-testing
++++ a/ipc/shm.c
+@@ -74,7 +74,7 @@ void shm_init_ns(struct ipc_namespace *n
+ 	ns->shm_ctlmax = SHMMAX;
+ 	ns->shm_ctlall = SHMALL;
+ 	ns->shm_ctlmni = SHMMNI;
+-	ns->shm_rmid_forced = 0;
++	ns->shm_rmid_forced = 1;
+ 	ns->shm_tot = 0;
+ 	ipc_init_ids(&shm_ids(ns));
+ }
 _
 
-Patches currently in -mm which might be from akpm@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-drivers-net-ethernet-i825xx-3c505c-fix-build-with-dynamic-debug.patch
-brlocks-lglocks-clean-up-code-checkpatch-fixes.patch
-ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes.patch
-loop-cleanup-set_status-interface-checkpatch-fixes.patch
-revert-treewide-use-__printf-not-__attribute__formatprintf.patch
-leds-leds-lp5521-avoid-writing-uninitialized-value-to-lp5521_reg_op_mode-register-fix.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes-fix.patch
+drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+fs-nameic-remove-unused-getname_flags.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+sysctl-add-support-for-poll-fix.patch
+include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
