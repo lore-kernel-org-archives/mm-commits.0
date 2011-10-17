@@ -1,23 +1,23 @@
 From: akpm@google.com
-Subject: + powerpc-get_hugepte-dont-put_page-the-wrong-page.patch added to -mm tree
-Date: Mon, 17 Oct 2011 12:12:03 -0700
-Message-ID: <201110171912.p9HJC4xX027871@wpaz24.hot.corp.google.com>
+Subject: + sparc-gup_pte_range-support-thp-based-tail-recounting.patch added to -mm tree
+Date: Mon, 17 Oct 2011 12:15:07 -0700
+Message-ID: <201110171915.p9HJF8oo031045@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:56083 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:57665 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752097Ab1JQTMg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 15:12:36 -0400
+	with ESMTP id S1751238Ab1JQTPc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 15:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, david@gibson.dropbear.id.au, hughd@google.com, jweiner@redhat.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com
+Cc: aarcange@redhat.com, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem@davemloft.net, david@gibson.dropbear.id.au, heiko.carstens@de.ibm.com, hughd@google.com, jweiner@redhat.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Subject: powerpc: get_hugepte() don't put_page() the wrong page
+     Subject: sparc: gup_pte_range() support THP based tail recounting
 has been added to the -mm tree.  Its filename is
-     powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
+     sparc-gup_pte_range-support-thp-based-tail-recounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: powerpc: get_hugepte() don't put_page() the wrong page
+Subject: sparc: gup_pte_range() support THP based tail recounting
 
-"page" may have changed to point to the next hugepage after the loop
-completed, The references have been taken on the head page, so the
-put_page must happen there too.
-
-This is a longstanding issue pre-thp inclusion.
-
-It's totally unclear how these page_cache_add_speculative and pte_val(pte)
-!= pte_val(*ptep) checks are necessary across all the powerpc gup_fast
-code, when x86 doesn't need any of that: there's no way the page can be
-freed with irq disabled so we're guaranteed the atomic_inc will happen on
-a page with page_count > 0 (so not needing the speculative check).  The
-pte check is also meaningless on x86: no need to rollback on x86 if the
-pte changed, because the pte can still change a CPU tick after the check
-succeeded and it won't be rolled back in that case.  The important thing
-is we got a reference on a valid page that was mapped there a CPU tick
-ago.  So not knowing the soft tlb refill code of ppc64 in great detail I'm
-not removing the "speculative" page_count increase and the pte checks
-across all the code, but unless there's a strong reason for it they should
-be later cleaned up too.
-
-If a pte can change from huge to non-huge (like it could happen with THP)
-passing a pte_t *ptep to gup_hugepte() would also require to repeat the
-is_hugepd in gup_hugepte(), but that shouldn't happen with hugetlbfs only
-so I'm not altering that.
+Up to this point the code assumed old refcounting for hugepages (pre-thp).
+ This updates the code directly to the thp mapcount tail page refcounting.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -70,26 +48,47 @@ Cc: Mel Gorman <mgorman@suse.de>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/mm/gup.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-get_hugepte-dont-put_page-the-wrong-page arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-get_hugepte-dont-put_page-the-wrong-page
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -653,7 +653,7 @@ static noinline int gup_hugepte(pte_t *p
- 	if (unlikely(pte_val(pte) != pte_val(*ptep))) {
- 		/* Could be optimized better */
- 		while (*nr) {
--			put_page(page);
-+			put_page(head);
- 			(*nr)--;
+diff -puN arch/sparc/mm/gup.c~sparc-gup_pte_range-support-thp-based-tail-recounting arch/sparc/mm/gup.c
+--- a/arch/sparc/mm/gup.c~sparc-gup_pte_range-support-thp-based-tail-recounting
++++ a/arch/sparc/mm/gup.c
+@@ -12,6 +12,17 @@
+ #include <linux/rwsem.h>
+ #include <asm/pgtable.h>
+ 
++static inline void get_huge_page_tail(struct page *page)
++{
++	/*
++	 * __split_huge_page_refcount() cannot run
++	 * from under us.
++	 */
++	VM_BUG_ON(page_mapcount(page) < 0);
++	VM_BUG_ON(atomic_read(&page->_count) != 0);
++	atomic_inc(&page->_mapcount);
++}
++
+ /*
+  * The performance critical leaf functions are made noinline otherwise gcc
+  * inlines everything into a single function which results in too much
+@@ -56,6 +67,8 @@ static noinline int gup_pte_range(pmd_t 
+ 			put_page(head);
+ 			return 0;
  		}
- 	}
++		if (head != page)
++			get_huge_page_tail(page);
+ 
+ 		pages[*nr] = page;
+ 		(*nr)++;
 _
-Subject: Subject: powerpc: get_hugepte() don't put_page() the wrong page
+Subject: Subject: sparc: gup_pte_range() support THP based tail recounting
 
 Patches currently in -mm which might be from aarcange@redhat.com are
 
@@ -111,6 +110,9 @@ powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
 powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
 powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
 powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
+s390-gup_huge_pmd-support-thp-tail-recounting.patch
+sparc-gup_pte_range-support-thp-based-tail-recounting.patch
+thp-share-get_huge_page_tail.patch
 mm-mempolicyc-quiet-sparse-noise.patch
 mm-huge_memoryc-quiet-sparse-noise.patch
 vmscan-limit-direct-reclaim-for-higher-order-allocations.patch
