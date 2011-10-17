@@ -1,13 +1,13 @@
 From: akpm@google.com
-Subject: + sparc-gup_pte_range-support-thp-based-tail-recounting.patch added to -mm tree
-Date: Mon, 17 Oct 2011 12:15:07 -0700
-Message-ID: <201110171915.p9HJF8oo031045@hpaq7.eem.corp.google.com>
+Subject: + s390-gup_huge_pmd-support-thp-tail-recounting.patch added to -mm tree
+Date: Mon, 17 Oct 2011 12:14:58 -0700
+Message-ID: <201110171915.p9HJExex031807@hpaq5.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:57665 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:57709 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238Ab1JQTPc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 15:15:32 -0400
+	with ESMTP id S1751869Ab1JQTPf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 15:15:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: aarcange@redhat.com, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem
 
 
 The patch titled
-     Subject: sparc: gup_pte_range() support THP based tail recounting
+     Subject: s390: gup_huge_pmd() support THP tail recounting
 has been added to the -mm tree.  Its filename is
-     sparc-gup_pte_range-support-thp-based-tail-recounting.patch
+     s390-gup_huge_pmd-support-thp-tail-recounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: sparc: gup_pte_range() support THP based tail recounting
+Subject: s390: gup_huge_pmd() support THP tail recounting
 
 Up to this point the code assumed old refcounting for hugepages (pre-thp).
- This updates the code directly to the thp mapcount tail page refcounting.
+This updates the code directly to the thp mapcount tail page refcounting.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -54,15 +54,15 @@ Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- arch/sparc/mm/gup.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/s390/mm/gup.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN arch/sparc/mm/gup.c~sparc-gup_pte_range-support-thp-based-tail-recounting arch/sparc/mm/gup.c
---- a/arch/sparc/mm/gup.c~sparc-gup_pte_range-support-thp-based-tail-recounting
-+++ a/arch/sparc/mm/gup.c
-@@ -12,6 +12,17 @@
- #include <linux/rwsem.h>
- #include <asm/pgtable.h>
+diff -puN arch/s390/mm/gup.c~s390-gup_huge_pmd-support-thp-tail-recounting arch/s390/mm/gup.c
+--- a/arch/s390/mm/gup.c~s390-gup_huge_pmd-support-thp-tail-recounting
++++ a/arch/s390/mm/gup.c
+@@ -48,11 +48,22 @@ static inline int gup_pte_range(pmd_t *p
+ 	return 1;
+ }
  
 +static inline void get_huge_page_tail(struct page *page)
 +{
@@ -75,20 +75,42 @@ diff -puN arch/sparc/mm/gup.c~sparc-gup_pte_range-support-thp-based-tail-recount
 +	atomic_inc(&page->_mapcount);
 +}
 +
- /*
-  * The performance critical leaf functions are made noinline otherwise gcc
-  * inlines everything into a single function which results in too much
-@@ -56,6 +67,8 @@ static noinline int gup_pte_range(pmd_t 
- 			put_page(head);
- 			return 0;
- 		}
-+		if (head != page)
-+			get_huge_page_tail(page);
+ static inline int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
+ 		unsigned long end, int write, struct page **pages, int *nr)
+ {
+ 	unsigned long mask, result;
+-	struct page *head, *page;
++	struct page *head, *page, *tail;
+ 	int refs;
  
+ 	result = write ? 0 : _SEGMENT_ENTRY_RO;
+@@ -64,6 +75,7 @@ static inline int gup_huge_pmd(pmd_t *pm
+ 	refs = 0;
+ 	head = pmd_page(pmd);
+ 	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
++	tail = page;
+ 	do {
+ 		VM_BUG_ON(compound_head(page) != head);
  		pages[*nr] = page;
- 		(*nr)++;
+@@ -81,6 +93,16 @@ static inline int gup_huge_pmd(pmd_t *pm
+ 		*nr -= refs;
+ 		while (refs--)
+ 			put_page(head);
++	} else {
++		/*
++		 * Any tail page need their mapcount reference taken
++		 * before we return.
++		 */
++		while (refs--) {
++			if (PageTail(tail))
++				get_huge_page_tail(tail);
++			tail++;
++		}
+ 	}
+ 
+ 	return 1;
 _
-Subject: Subject: sparc: gup_pte_range() support THP based tail recounting
+Subject: Subject: s390: gup_huge_pmd() support THP tail recounting
 
 Patches currently in -mm which might be from aarcange@redhat.com are
 
