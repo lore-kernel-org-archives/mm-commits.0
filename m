@@ -1,13 +1,13 @@
 From: akpm@google.com
-Subject: + powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch added to -mm tree
-Date: Mon, 17 Oct 2011 12:11:58 -0700
-Message-ID: <201110171911.p9HJBwHO007852@wpaz13.hot.corp.google.com>
+Subject: + powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch added to -mm tree
+Date: Mon, 17 Oct 2011 12:12:07 -0700
+Message-ID: <201110171912.p9HJC8Ue020431@wpaz37.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:26100 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:26111 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269Ab1JQTMW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 15:12:22 -0400
+	with ESMTP id S1752097Ab1JQTMX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 15:12:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: aarcange@redhat.com, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, david
 
 
 The patch titled
-     Subject: powerpc: remove superfluous PageTail checks on the pte gup_fast
+     Subject: powerpc: gup_hugepte() avoid to free the head page too many times
 has been added to the -mm tree.  Its filename is
-     powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
+     powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,9 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: powerpc: remove superfluous PageTail checks on the pte gup_fast
+Subject: powerpc: gup_hugepte() avoid to free the head page too many times
 
-This part of gup_fast doesn't seem capable of handling hugetlbfs ptes,
-those should be handled by gup_hugepd only, so these checks are
-superfluous.
-
-Plus if this wasn't a noop, it would have oopsed because, the insistence
-of using the speculative refcounting would trigger a VM_BUG_ON if a tail
-page was encountered in the page_cache_get_speculative().
+We only taken "refs" pins on the head page not "*nr" pins.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -56,41 +50,27 @@ Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- arch/powerpc/mm/gup.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ arch/powerpc/mm/hugetlbpage.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/mm/gup.c~powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast arch/powerpc/mm/gup.c
---- a/arch/powerpc/mm/gup.c~powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast
-+++ a/arch/powerpc/mm/gup.c
-@@ -16,17 +16,6 @@
+diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -652,10 +652,9 @@ static noinline int gup_hugepte(pte_t *p
  
- #ifdef __HAVE_ARCH_PTE_SPECIAL
+ 	if (unlikely(pte_val(pte) != pte_val(*ptep))) {
+ 		/* Could be optimized better */
+-		while (*nr) {
++		*nr -= refs;
++		while (refs--)
+ 			put_page(head);
+-			(*nr)--;
+-		}
+ 	}
  
--static inline void get_huge_page_tail(struct page *page)
--{
--	/*
--	 * __split_huge_page_refcount() cannot run
--	 * from under us.
--	 */
--	VM_BUG_ON(page_mapcount(page) < 0);
--	VM_BUG_ON(atomic_read(&page->_count) != 0);
--	atomic_inc(&page->_mapcount);
--}
--
- /*
-  * The performance critical leaf functions are made noinline otherwise gcc
-  * inlines everything into a single function which results in too much
-@@ -58,8 +47,6 @@ static noinline int gup_pte_range(pmd_t 
- 			put_page(page);
- 			return 0;
- 		}
--		if (PageTail(page))
--			get_huge_page_tail(page);
- 		pages[*nr] = page;
- 		(*nr)++;
- 
+ 	return 1;
 _
-Subject: Subject: powerpc: remove superfluous PageTail checks on the pte gup_fast
+Subject: Subject: powerpc: gup_hugepte() avoid to free the head page too many times
 
 Patches currently in -mm which might be from aarcange@redhat.com are
 
