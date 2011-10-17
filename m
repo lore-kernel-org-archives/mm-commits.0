@@ -1,13 +1,13 @@
 From: akpm@google.com
-Subject: + powerpc-gup_huge_pmd-return-0-if-pte-changes.patch added to -mm tree
-Date: Mon, 17 Oct 2011 14:36:45 -0700
-Message-ID: <201110172136.p9HLaj7I009966@wpaz9.hot.corp.google.com>
+Subject: + s390-gup_huge_pmd-return-0-if-pte-changes.patch added to -mm tree
+Date: Mon, 17 Oct 2011 14:37:07 -0700
+Message-ID: <201110172137.p9HLb7Oi008067@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:8938 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:9129 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754571Ab1JQVh3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 17:37:29 -0400
+	with ESMTP id S1754518Ab1JQVht (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 17:37:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: aarcange@redhat.com, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, davem
 
 
 The patch titled
-     Subject: powerpc: gup_huge_pmd() return 0 if pte changes
+     Subject: s390: gup_huge_pmd() return 0 if pte changes
 has been added to the -mm tree.  Its filename is
-     powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
+     s390-gup_huge_pmd-return-0-if-pte-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: powerpc: gup_huge_pmd() return 0 if pte changes
+Subject: s390: gup_huge_pmd() return 0 if pte changes
 
-powerpc didn't return 0 in that case, if it's rolling back the *nr pointer
-it should also return zero to avoid adding pages to the array at the wrong
+s390 didn't return 0 in that case, if it's rolling back the *nr pointer it
+should also return zero to avoid adding pages to the array at the wrong
 offset.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
@@ -55,13 +55,13 @@ Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |   21 +++++++++++----------
+ arch/s390/mm/gup.c |   21 +++++++++++----------
  1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-gup_huge_pmd-return-0-if-pte-changes arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-gup_huge_pmd-return-0-if-pte-changes
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -667,16 +667,17 @@ static noinline int gup_hugepte(pte_t *p
+diff -puN arch/s390/mm/gup.c~s390-gup_huge_pmd-return-0-if-pte-changes arch/s390/mm/gup.c
+--- a/arch/s390/mm/gup.c~s390-gup_huge_pmd-return-0-if-pte-changes
++++ a/arch/s390/mm/gup.c
+@@ -93,16 +93,17 @@ static inline int gup_huge_pmd(pmd_t *pm
  		*nr -= refs;
  		while (refs--)
  			put_page(head);
@@ -90,7 +90,7 @@ diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-gup_huge_pmd-return-0-if-pte-cha
  
  	return 1;
 _
-Subject: Subject: powerpc: gup_huge_pmd() return 0 if pte changes
+Subject: Subject: s390: gup_huge_pmd() return 0 if pte changes
 
 Patches currently in -mm which might be from aarcange@redhat.com are
 
