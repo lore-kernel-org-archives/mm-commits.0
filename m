@@ -1,111 +1,189 @@
 From: akpm@google.com
-Subject: [withdrawn] ipc-introduce-shm_rmid_forced-sysctl-testing.patch removed from -mm tree
-Date: Mon, 17 Oct 2011 14:56:11 -0700
-Message-ID: <201110172156.p9HLuCXO005290@wpaz5.hot.corp.google.com>
+Subject: + ipc-semc-remove-private-structures-from-public-header-file.patch added to -mm tree
+Date: Mon, 17 Oct 2011 14:59:33 -0700
+Message-ID: <201110172159.p9HLxYOx012868@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:18895 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:20221 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754311Ab1JQV5I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 17:57:08 -0400
+	with ESMTP id S1754115Ab1JQV7k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2011 17:59:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel.lezcano@free.fr, ebiederm@xmission.com, mingo@elte.hu, oleg@redhat.com, rdunlap@xenotime.net, segoon@openwall.com, serge.hallyn@canonical.com, tj@ker
+To: mm-commits@vger.kernel.org
+Cc: manfred@colorfullife.com, a.p.zijlstra@chello.nl, efault@gmx.de, tglx@linutronix.de
 
 
 The patch titled
-     Subject: ipc-introduce-shm_rmid_forced-sysctl-testing
-has been removed from the -mm tree.  Its filename was
-     ipc-introduce-shm_rmid_forced-sysctl-testing.patch
+     Subject: ipc/sem.c: remove private structures from public header file
+has been added to the -mm tree.  Its filename is
+     ipc-semc-remove-private-structures-from-public-header-file.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-introduce-shm_rmid_forced-sysctl-testing
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: remove private structures from public header file
 
-Force this on for -next/mm testing purposes.
+include/linux/sem.h contains several structures that are only used within
+ipc/sem.c.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Serge E. Hallyn" <serge.hallyn@canonical.com>
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+The patch moves them into ipc/sem.c - there is no need to expose the
+structures to the whole kernel.
+
+No functional changes, only whitespace cleanups and 80-char per line
+fixes.
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Galbraith <efault@gmx.de>
+Signed-off-by: Andrew Morton <akpm@google.com>
 ---
 
- ipc/shm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sem.h |   42 --------------------------------------
+ ipc/sem.c           |   46 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+), 42 deletions(-)
 
-diff -puN ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl-testing ipc/shm.c
---- a/ipc/shm.c~ipc-introduce-shm_rmid_forced-sysctl-testing
-+++ a/ipc/shm.c
-@@ -74,7 +74,7 @@ void shm_init_ns(struct ipc_namespace *n
- 	ns->shm_ctlmax = SHMMAX;
- 	ns->shm_ctlall = SHMALL;
- 	ns->shm_ctlmni = SHMMNI;
--	ns->shm_rmid_forced = 0;
-+	ns->shm_rmid_forced = 1;
- 	ns->shm_tot = 0;
- 	ipc_init_ids(&shm_ids(ns));
- }
+diff -puN include/linux/sem.h~ipc-semc-remove-private-structures-from-public-header-file include/linux/sem.h
+--- a/include/linux/sem.h~ipc-semc-remove-private-structures-from-public-header-file
++++ a/include/linux/sem.h
+@@ -83,13 +83,6 @@ struct  seminfo {
+ 
+ struct task_struct;
+ 
+-/* One semaphore structure for each semaphore in the system. */
+-struct sem {
+-	int	semval;		/* current value */
+-	int	sempid;		/* pid of last operation */
+-	struct list_head sem_pending; /* pending single-sop operations */
+-};
+-
+ /* One sem_array data structure for each set of semaphores in the system. */
+ struct sem_array {
+ 	struct kern_ipc_perm	____cacheline_aligned_in_smp
+@@ -103,41 +96,6 @@ struct sem_array {
+ 	int			complex_count;	/* pending complex operations */
+ };
+ 
+-/* One queue for each sleeping process in the system. */
+-struct sem_queue {
+-	struct list_head	simple_list; /* queue of pending operations */
+-	struct list_head	list;	 /* queue of pending operations */
+-	struct task_struct	*sleeper; /* this process */
+-	struct sem_undo		*undo;	 /* undo structure */
+-	int    			pid;	 /* process id of requesting process */
+-	int    			status;	 /* completion status of operation */
+-	struct sembuf		*sops;	 /* array of pending operations */
+-	int			nsops;	 /* number of operations */
+-	int			alter;   /* does the operation alter the array? */
+-};
+-
+-/* Each task has a list of undo requests. They are executed automatically
+- * when the process exits.
+- */
+-struct sem_undo {
+-	struct list_head	list_proc;	/* per-process list: all undos from one process. */
+-						/* rcu protected */
+-	struct rcu_head		rcu;		/* rcu struct for sem_undo() */
+-	struct sem_undo_list	*ulp;		/* sem_undo_list for the process */
+-	struct list_head	list_id;	/* per semaphore array list: all undos for one array */
+-	int			semid;		/* semaphore set identifier */
+-	short *			semadj;		/* array of adjustments, one per semaphore */
+-};
+-
+-/* sem_undo_list controls shared access to the list of sem_undo structures
+- * that may be shared among all a CLONE_SYSVSEM task group.
+- */ 
+-struct sem_undo_list {
+-	atomic_t		refcnt;
+-	spinlock_t		lock;
+-	struct list_head	list_proc;
+-};
+-
+ struct sysv_sem {
+ 	struct sem_undo_list *undo_list;
+ };
+diff -puN ipc/sem.c~ipc-semc-remove-private-structures-from-public-header-file ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-remove-private-structures-from-public-header-file
++++ a/ipc/sem.c
+@@ -90,6 +90,52 @@
+ #include <asm/uaccess.h>
+ #include "util.h"
+ 
++/* One semaphore structure for each semaphore in the system. */
++struct sem {
++	int	semval;		/* current value */
++	int	sempid;		/* pid of last operation */
++	struct list_head sem_pending; /* pending single-sop operations */
++};
++
++/* One queue for each sleeping process in the system. */
++struct sem_queue {
++	struct list_head	simple_list; /* queue of pending operations */
++	struct list_head	list;	 /* queue of pending operations */
++	struct task_struct	*sleeper; /* this process */
++	struct sem_undo		*undo;	 /* undo structure */
++	int			pid;	 /* process id of requesting process */
++	int			status;	 /* completion status of operation */
++	struct sembuf		*sops;	 /* array of pending operations */
++	int			nsops;	 /* number of operations */
++	int			alter;	 /* does *sops alter the array? */
++};
++
++/* Each task has a list of undo requests. They are executed automatically
++ * when the process exits.
++ */
++struct sem_undo {
++	struct list_head	list_proc;	/* per-process list: *
++						 * all undos from one process
++						 * rcu protected */
++	struct rcu_head		rcu;		/* rcu struct for sem_undo */
++	struct sem_undo_list	*ulp;		/* back ptr to sem_undo_list */
++	struct list_head	list_id;	/* per semaphore array list:
++						 * all undos for one array */
++	int			semid;		/* semaphore set identifier */
++	short			*semadj;	/* array of adjustments */
++						/* one per semaphore */
++};
++
++/* sem_undo_list controls shared access to the list of sem_undo structures
++ * that may be shared among all a CLONE_SYSVSEM task group.
++ */
++struct sem_undo_list {
++	atomic_t		refcnt;
++	spinlock_t		lock;
++	struct list_head	list_proc;
++};
++
++
+ #define sem_ids(ns)	((ns)->ids[IPC_SEM_IDS])
+ 
+ #define sem_unlock(sma)		ipc_unlock(&(sma)->sem_perm)
 _
+Subject: Subject: ipc/sem.c: remove private structures from public header file
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
-dynamic_debug-use-a-single-printk-to-emit-messages.patch
-fs-nameic-remove-unused-getname_flags.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-sysctl-add-support-for-poll-fix.patch
-include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
+ipc-mqueue-cleanup-definition-names-and-locations.patch
+ipc-mqueue-switch-back-to-using-non-max-values-on-create.patch
+ipc-mqueue-enforce-hard-limits.patch
+ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
+ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid.patch
+ipc-semc-handle-spurious-wakeups.patch
+ipc-semc-remove-private-structures-from-public-header-file.patch
+include-linux-semh-make-sysv_sem-empty-if-sysvipc-is-disabled.patch
+ipc-semc-alternatives-to-preempt_disable.patch
 slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
