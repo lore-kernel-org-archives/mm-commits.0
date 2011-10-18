@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch added to -mm tree
-Date: Tue, 18 Oct 2011 16:01:16 -0700
-Message-ID: <201110182341.p9INfWDS000608@hpaq7.eem.corp.google.com>
+Subject: + readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix.patch added to -mm tree
+Date: Tue, 18 Oct 2011 16:05:44 -0700
+Message-ID: <201110182346.p9INk0HX008239@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:54919 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:56352 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752179Ab1JRXls (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 19:41:48 -0400
+	with ESMTP id S1751762Ab1JRXqF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 19:46:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, john.stultz@linaro.org, mingo@redhat.com, steiner@sgi.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, apw@canonical.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix
+     Subject: readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix
 has been added to the -mm tree.  Its filename is
-     x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
+     readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,35 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix
+Subject: readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix
 
-fix CONFIG_SMP=n build
+remove unused getname_flags()
 
-arch/x86/kernel/tsc.c: In function 'calibrate_delay_is_known':
-arch/x86/kernel/tsc.c:1012: error: 'struct cpuinfo_x86' has no member named 'phys_proc_id'
-arch/x86/kernel/tsc.c:1012: error: 'struct cpuinfo_x86' has no member named 'phys_proc_id'
-arch/x86/kernel/tsc.c:1006: warning: unused variable 'cpu'
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/tsc.c |    3 ++-
- calibrate.c           |    0 
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/namei.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/x86/kernel/smpboot.c~x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix arch/x86/kernel/smpboot.c
-diff -puN arch/x86/kernel/tsc.c~x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix arch/x86/kernel/tsc.c
---- a/arch/x86/kernel/tsc.c~x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix
-+++ a/arch/x86/kernel/tsc.c
-@@ -995,6 +995,7 @@ void __init tsc_init(void)
- 	check_system_tsc_reliable();
+diff -puN fs/namei.c~readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix fs/namei.c
+--- a/fs/namei.c~readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix
++++ a/fs/namei.c
+@@ -161,11 +161,6 @@ static char *getname_flags_empty(const c
+ 	return result;
  }
  
-+#ifdef CONFIG_SMP
- /*
-  * If we have a constant TSC and are using the TSC for the delay loop,
-  * we can skip clock calibration if another cpu in the same socket has already
-@@ -1013,4 +1014,4 @@ unsigned long __cpuinit calibrate_delay_
- 			return cpu_data(i).loops_per_jiffy;
- 	return 0;
- }
+-static char *getname_flags(const char __user * filename, int flags)
+-{
+-	return getname_flags_empty(filename, flags, 0);
+-}
 -
-+#endif
-diff -puN init/calibrate.c~x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix init/calibrate.c
+ char *getname(const char __user * filename)
+ {
+ 	return getname_flags_empty(filename, 0, 0);
 _
-Subject: Subject: x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix
+Subject: Subject: readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -87,8 +74,10 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 fs-xfs-xfs_trans_ailc-fix-build.patch
 include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 mrst-battery-fixes-fix.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
 drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
 drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
 mm.patch
@@ -133,5 +122,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
 
