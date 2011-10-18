@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-leds-lp5521c-check-if-reset-is-successful.patch added to -mm tree
-Date: Tue, 18 Oct 2011 14:11:18 -0700
-Message-ID: <201110182111.p9ILBJL6030560@wpaz1.hot.corp.google.com>
+Subject: + drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch added to -mm tree
+Date: Tue, 18 Oct 2011 14:11:22 -0700
+Message-ID: <201110182111.p9ILBNE0014414@hpaq2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:46463 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:46466 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753980Ab1JRVL2 (ORCPT
+	with ESMTP id S1754109Ab1JRVL2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 17:11:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srinidhi.kasagar@stericsson.com, linus.walleij@linaro.org, naga.radheshy@stericsson.com, richard.purdie@linuxfoundation.org
+Cc: akpm@linux-foundation.org, linus.walleij@linaro.org, naga.radheshy@stericsson.com, richard.purdie@linuxfoundation.org, srinidhi.kasagar@stericsson.com
 
 
 The patch titled
-     Subject: drivers/leds/leds-lp5521.c: check if reset is successful
+     Subject: drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix
 has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-lp5521c-check-if-reset-is-successful.patch
+     drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Srinidhi KASAGAR <srinidhi.kasagar@stericsson.com>
-Subject: drivers/leds/leds-lp5521.c: check if reset is successful
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix
 
-Make sure that the reset is successful by issuing a dummy read to R
-channel current register and check its default value.  On some platforms,
-without this dummy read, any further access to {R/G/B}_EXEC will not have
-any impact.
+fix up code comment
 
-Signed-off-by: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
-Tested-by: Naga Radhesh <naga.radheshy@stericsson.com>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Naga Radhesh <naga.radheshy@stericsson.com>
 Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
+Cc: Srinidhi KASAGAR <srinidhi.kasagar@stericsson.com>
+Cc: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/leds/leds-lp5521.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-check-if-reset-is-successful drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-check-if-reset-is-successful
+diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix
 +++ a/drivers/leds/leds-lp5521.c
-@@ -97,6 +97,9 @@
- /* Status */
- #define LP5521_EXT_CLK_USED		0x08
- 
-+/* default R channel current register value */
-+#define LP5521_REG_R_CURR_DEFAULT	0xAF
-+
- struct lp5521_engine {
- 	int		id;
- 	u8		mode;
-@@ -643,6 +646,7 @@ static int __devinit lp5521_probe(struct
- 	struct lp5521_chip		*chip;
- 	struct lp5521_platform_data	*pdata;
- 	int ret, i, led;
-+	u8 buf;
- 
- 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
- 	if (!chip)
-@@ -681,6 +685,21 @@ static int __devinit lp5521_probe(struct
- 				     * Exact value is not available. 10 - 20ms
- 				     * appears to be enough for reset.
+@@ -687,11 +687,10 @@ static int __devinit lp5521_probe(struct
  				     */
-+
-+	/*
-+	 * Make sure that the chip is reset by reading back
-+	 * r channel current reg. This is a dummy read, otherwise
-+	 * in some platforms, access to R G B channel program
-+	 * execution mode to 'Run' in LP5521_REG_ENABLE register
-+	 * will not have any affect - strange!
-+	 */
-+	lp5521_read(client, LP5521_REG_R_CURRENT, &buf);
-+	if (buf != LP5521_REG_R_CURR_DEFAULT) {
-+		dev_err(&client->dev, "error in reseting chip\n");
-+		goto fail2;
-+	}
-+	usleep_range(10000, 20000);
-+
- 	ret = lp5521_detect(client);
  
- 	if (ret) {
+ 	/*
+-	 * Make sure that the chip is reset by reading back
+-	 * r channel current reg. This is a dummy read, otherwise
+-	 * in some platforms, access to R G B channel program
+-	 * execution mode to 'Run' in LP5521_REG_ENABLE register
+-	 * will not have any affect - strange!
++	 * Make sure that the chip is reset by reading back the r channel
++	 * current reg. This is dummy read is required on some platforms -
++	 * otherwise further access to the R G B channels in the
++	 * LP5521_REG_ENABLE register will not have any effect - strange!
+ 	 */
+ 	lp5521_read(client, LP5521_REG_R_CURRENT, &buf);
+ 	if (buf != LP5521_REG_R_CURR_DEFAULT) {
 _
-Subject: Subject: drivers/leds/leds-lp5521.c: check if reset is successful
+Subject: Subject: drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix
 
-Patches currently in -mm which might be from srinidhi.kasagar@stericsson.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
 linux-next.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-drivers-leds-leds-lp5521c-check-if-reset-is-successful.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes-fix.patch
+drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+fs-nameic-remove-unused-getname_flags.patch
 drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+sysctl-add-support-for-poll-fix.patch
+include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
