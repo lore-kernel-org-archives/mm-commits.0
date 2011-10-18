@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-xfs-xfs_trans_ailc-fix-build.patch added to -mm tree
-Date: Tue, 18 Oct 2011 15:49:03 -0700
-Message-ID: <201110182329.p9INTJqR001161@hpaq13.eem.corp.google.com>
+Subject: + x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch added to -mm tree
+Date: Tue, 18 Oct 2011 16:01:16 -0700
+Message-ID: <201110182341.p9INfWDS000608@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:50316 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:54919 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137Ab1JRX3g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 19:29:36 -0400
+	with ESMTP id S1752179Ab1JRXls (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 19:41:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aelder@sgi.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com, john.stultz@linaro.org, mingo@redhat.com, steiner@sgi.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: fs/xfs/xfs_trans_ail.c: fix build
+     Subject: x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix
 has been added to the -mm tree.  Its filename is
-     fs-xfs-xfs_trans_ailc-fix-build.patch
+     x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,48 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/xfs/xfs_trans_ail.c: fix build
+Subject: x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix
 
-fs/xfs/xfs_trans_ail.c: In function 'xfsaild_push':
-fs/xfs/xfs_trans_ail.c:437: error: 'flush_log' undeclared (first use in this function)                                                                          fs/xfs/xfs_trans_ail.c:437: error: (Each undeclared identifier is reported only once
+fix CONFIG_SMP=n build
 
-Not sure what's happening here - some mainline-vs-next snafu?
+arch/x86/kernel/tsc.c: In function 'calibrate_delay_is_known':
+arch/x86/kernel/tsc.c:1012: error: 'struct cpuinfo_x86' has no member named 'phys_proc_id'
+arch/x86/kernel/tsc.c:1012: error: 'struct cpuinfo_x86' has no member named 'phys_proc_id'
+arch/x86/kernel/tsc.c:1006: warning: unused variable 'cpu'
 
-Cc: Alex Elder <aelder@sgi.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_trans_ail.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/x86/kernel/tsc.c |    3 ++-
+ calibrate.c           |    0 
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/xfs/xfs_trans_ail.c~fs-xfs-xfs_trans_ailc-fix-build fs/xfs/xfs_trans_ail.c
---- a/fs/xfs/xfs_trans_ail.c~fs-xfs-xfs_trans_ailc-fix-build
-+++ a/fs/xfs/xfs_trans_ail.c
-@@ -432,12 +432,10 @@ xfsaild_push(
- 		case XFS_ITEM_PUSHBUF:
- 			XFS_STATS_INC(xs_push_ail_pushbuf);
+diff -puN arch/x86/kernel/smpboot.c~x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix arch/x86/kernel/smpboot.c
+diff -puN arch/x86/kernel/tsc.c~x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix arch/x86/kernel/tsc.c
+--- a/arch/x86/kernel/tsc.c~x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix
++++ a/arch/x86/kernel/tsc.c
+@@ -995,6 +995,7 @@ void __init tsc_init(void)
+ 	check_system_tsc_reliable();
+ }
  
--			if (!IOP_PUSHBUF(lip)) {
-+			if (!IOP_PUSHBUF(lip))
- 				stuck++;
--				flush_log = 1;
--			} else {
-+			else
- 				ailp->xa_last_pushed_lsn = lsn;
--			}
- 			push_xfsbufd = 1;
- 			break;
- 
++#ifdef CONFIG_SMP
+ /*
+  * If we have a constant TSC and are using the TSC for the delay loop,
+  * we can skip clock calibration if another cpu in the same socket has already
+@@ -1013,4 +1014,4 @@ unsigned long __cpuinit calibrate_delay_
+ 			return cpu_data(i).loops_per_jiffy;
+ 	return 0;
+ }
+-
++#endif
+diff -puN init/calibrate.c~x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix init/calibrate.c
 _
-Subject: Subject: fs/xfs/xfs_trans_ail.c: fix build
+Subject: Subject: x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -77,6 +85,7 @@ linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-xfs-xfs_trans_ailc-fix-build.patch
 include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 mrst-battery-fixes-fix.patch
@@ -124,5 +133,5 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-fs-xfs-xfs_trans_ailc-fix-build.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
 
