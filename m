@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + security-follow-rename-pack_hex_byte-to-hex_byte_pack.patch added to -mm tree
-Date: Tue, 18 Oct 2011 14:01:48 -0700
-Message-ID: <201110182101.p9IL1nGB014440@hpaq7.eem.corp.google.com>
+Subject: + ramfs-remove-module-leftovers.patch added to -mm tree
+Date: Tue, 18 Oct 2011 14:05:09 -0700
+Message-ID: <201110182105.p9IL59s8003469@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:15378 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:16758 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752354Ab1JRVDF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 17:03:05 -0400
+	with ESMTP id S1752354Ab1JRVFh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 17:05:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andriy.shevchenko@linux.intel.com, jmorris@namei.org, zohar@us.ibm.com
+Cc: richard@nod.at, hch@lst.de, viro@zeniv.linux.org.uk, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     Subject: security: follow rename pack_hex_byte() to hex_byte_pack()
+     Subject: ramfs: remove module leftovers
 has been added to the -mm tree.  Its filename is
-     security-follow-rename-pack_hex_byte-to-hex_byte_pack.patch
+     ramfs-remove-module-leftovers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: security: follow rename pack_hex_byte() to hex_byte_pack()
+From: Richard Weinberger <richard@nod.at>
+Subject: ramfs: remove module leftovers
 
-There is no functional change.
+Since ramfs is hard-selected to "y", the module leftovers make no sense.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/encrypted-keys/encrypted.c |    2 +-
- security/keys/trusted.c                  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/ramfs/inode.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN security/keys/encrypted-keys/encrypted.c~security-follow-rename-pack_hex_byte-to-hex_byte_pack security/keys/encrypted-keys/encrypted.c
---- a/security/keys/encrypted-keys/encrypted.c~security-follow-rename-pack_hex_byte-to-hex_byte_pack
-+++ a/security/keys/encrypted-keys/encrypted.c
-@@ -293,7 +293,7 @@ static char *datablob_format(struct encr
- 	/* convert the hex encoded iv, encrypted-data and HMAC to ascii */
- 	bufp = &ascii_buf[len];
- 	for (i = 0; i < (asciiblob_len - len) / 2; i++)
--		bufp = pack_hex_byte(bufp, iv[i]);
-+		bufp = hex_byte_pack(bufp, iv[i]);
- out:
- 	return ascii_buf;
- }
-diff -puN security/keys/trusted.c~security-follow-rename-pack_hex_byte-to-hex_byte_pack security/keys/trusted.c
---- a/security/keys/trusted.c~security-follow-rename-pack_hex_byte-to-hex_byte_pack
-+++ a/security/keys/trusted.c
-@@ -1098,7 +1098,7 @@ static long trusted_read(const struct ke
+diff -puN fs/ramfs/inode.c~ramfs-remove-module-leftovers fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~ramfs-remove-module-leftovers
++++ a/fs/ramfs/inode.c
+@@ -23,7 +23,6 @@
+  * caches is sufficient.
+  */
  
- 	bufp = ascii_buf;
- 	for (i = 0; i < p->blob_len; i++)
--		bufp = pack_hex_byte(bufp, p->blob[i]);
-+		bufp = hex_byte_pack(bufp, p->blob[i]);
- 	if ((copy_to_user(buffer, ascii_buf, 2 * p->blob_len)) != 0) {
- 		kfree(ascii_buf);
- 		return -EFAULT;
-_
-Subject: Subject: security: follow rename pack_hex_byte() to hex_byte_pack()
-
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
-
-linux-next.patch
-selinuxfs-remove-custome-hex_to_bin.patch
-lib-rename-pack_hex_byte-to-hex_byte_pack.patch
-kgdb-follow-rename-pack_hex_byte-to-hex_byte_pack.patch
-security-follow-rename-pack_hex_byte-to-hex_byte_pack.patch
-fat-follow-rename-pack_hex_byte-to-hex_byte_pack.patch
-wireless-at76c50x-follow-rename-pack_hex_byte-to-hex_byte_pack.patch
-
+-#include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/pagemap.h>
+ #include <linux/highmem.h>
+@@ -288,14 +287,7 @@ static int __init init_ramfs_fs(void)
+ {
+ 	return register_filesystem(&ramfs_fs_type);
+ }
+-
+-static void __exit exit_ramfs_fs(void)
+-{
+-	unregister_filesystem(&ramfs_fs_type);
+-}
+-
+ module_init(init_ramfs_fs)
+-module_exit(exit_ramfs_fs)
+ 
+ int __init init_rootfs(void)
+ {
+@@ -311,5 +303,3 @@ int __init init_rootfs(void)
+ 
+ 	return err;
+ }
