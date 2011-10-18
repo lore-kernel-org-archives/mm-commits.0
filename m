@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch added to -mm tree
-Date: Tue, 18 Oct 2011 14:58:33 -0700
-Message-ID: <201110182158.p9ILwYYF018334@hpaq12.eem.corp.google.com>
+Subject: + drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation.patch added to -mm tree
+Date: Tue, 18 Oct 2011 15:00:55 -0700
+Message-ID: <201110182200.p9IM0u5l026926@hpaq3.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:44431 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:9838 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681Ab1JRV7E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 17:59:04 -0400
+	with ESMTP id S1754355Ab1JRWBG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 18:01:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan@mindstab.net, drepper@akkadia.org, jmorris@namei.org, kay.sievers@vrfy.org, lennart@poettering.net, mingo@elte.hu, rdunlap@xenotime.net
+Cc: dan.carpenter@oracle.com, airlied@linux.ie, thellstrom@vmware.com
 
 
 The patch titled
-     Subject: kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix
+     Subject: drivers/gpu/drm/vmwgfx: memory leaks caused by double allocation
 has been added to the -mm tree.  Its filename is
-     kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
+     drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/gpu/drm/vmwgfx: memory leaks caused by double allocation
 
-make cap_last_cap const, per Ulrich
+These variables get allocated twice so the first allocation is a memory
+leak.
 
-Cc: Dan Ballard <dan@mindstab.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: James Morris <jmorris@namei.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Lennart Poettering <lennart@poettering.net>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Ulrich Drepper <drepper@akkadia.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: David Airlie <airlied@linux.ie>
+Reviewed-by: Thomas Hellstrom <thellstrom@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/vmwgfx/vmwgfx_fence.c    |    3 +--
+ drivers/gpu/drm/vmwgfx/vmwgfx_resource.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sysctl.c~kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix kernel/sysctl.c
---- a/kernel/sysctl.c~kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix
-+++ a/kernel/sysctl.c
-@@ -134,7 +134,7 @@ static int minolduid;
- static int min_percpu_pagelist_fract = 8;
- 
- static int ngroups_max = NGROUPS_MAX;
--static int cap_last_cap = CAP_LAST_CAP;
-+static const int cap_last_cap = CAP_LAST_CAP;
- 
- #ifdef CONFIG_INOTIFY_USER
- #include <linux/inotify.h>
-@@ -743,7 +743,7 @@ static struct ctl_table kern_table[] = {
- 	},
- 	{
- 		.procname	= "cap_last_cap",
--		.data		= &cap_last_cap,
-+		.data		= (void *)&cap_last_cap,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0444,
- 		.proc_handler	= proc_dointvec,
+diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_fence.c~drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c~drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+@@ -953,8 +953,7 @@ int vmw_event_fence_action_create(struct
+ 				  uint32_t *tv_usec,
+ 				  bool interruptible)
+ {
+-	struct vmw_event_fence_action *eaction =
+-		kzalloc(sizeof(*eaction), GFP_KERNEL);
++	struct vmw_event_fence_action *eaction;
+ 	struct ttm_mem_global *mem_glob =
+ 		vmw_mem_glob(fence->fman->dev_priv);
+ 	struct vmw_fence_manager *fman = fence->fman;
+diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_resource.c~drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c~drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+@@ -1255,8 +1255,7 @@ int vmw_surface_define_ioctl(struct drm_
+ 			     struct drm_file *file_priv)
+ {
+ 	struct vmw_private *dev_priv = vmw_priv(dev);
+-	struct vmw_user_surface *user_srf =
+-	    kmalloc(sizeof(*user_srf), GFP_KERNEL);
++	struct vmw_user_surface *user_srf;
+ 	struct vmw_surface *srf;
+ 	struct vmw_resource *res;
+ 	struct vmw_resource *tmp;
 _
-Subject: Subject: kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix
+Subject: Subject: drivers/gpu/drm/vmwgfx: memory leaks caused by double allocation
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-origin.patch
-dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
-dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
-dynamic_debug-use-a-single-printk-to-emit-messages.patch
-fs-nameic-remove-unused-getname_flags.patch
-drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-sysctl-add-support-for-poll-fix.patch
-include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
-dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
-dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+memory-hotplug-release-lock-on-an-error-path.patch
+drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation.patch
+bio-change-some-signed-vars-to-unsigned.patch
+paride-fix-potential-information-leak-in-pg_read.patch
 
