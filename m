@@ -1,28 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch added to -mm tree
-Date: Tue, 18 Oct 2011 15:42:46 -0700
-Message-ID: <201110182242.p9IMgk0j016739@wpaz13.hot.corp.google.com>
+Subject: + drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161.patch added to -mm tree
+Date: Tue, 18 Oct 2011 15:44:51 -0700
+Message-ID: <201110182244.p9IMipKA023527@wpaz29.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5410 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:6240 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754705Ab1JRWm5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 18:42:57 -0400
+	with ESMTP id S1754826Ab1JRWpF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 18:45:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@chromium.org, airlied@redhat.com, hidave.darkstar@gmail.com, hughd@google.com, marcheu@chromium.org, msb@chromium.org, rientjes@google.com
+Cc: jacmet@sunsite.dk, michael.hennerich@analog.com, vapier@gentoo.org
 
 
 The patch titled
-     Subject: drm: avoid switching to text console if there is no panic=
- timeout
+     Subject: drivers/misc/ad525x_dpot-i2c.c: add i2c support for AD5161
 has been added to the -mm tree.  Its filename is
-     drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.p=
-atch
+     drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,71 +25,46 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-=46rom: Hugh Dickins <hughd@chromium.org>
-Subject: drm: avoid switching to text console if there is no panic time=
-out
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: drivers/misc/ad525x_dpot-i2c.c: add i2c support for AD5161
 
-Add a check for panic_timeout in the drm_fb_helper_panic() notifier: if
-we're going to reboot immediately, the user will not be able to see the
-messages anyway, and messing with the video mode may display artifacts,
-and certainly get into several layers of complexity (including mutexes =
-and
-memory allocations) which we shall be much safer to avoid.
+Commit 6c536e4ce8e ("ad525x_dpot: add support for SPI parts") added
+support for the AD5161 through SPI, but the device supports both I2C and
+SPI (depending on the DIS pin), so add it to -i2c as well.
 
-[msb@chromium.org: edited commit message and modified to short-circuit =
-panic_timeout < 0 instead of testing panic_timeout >=3D 0]
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Dave Airlie <airlied@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: St=E9phane Marchesin <marcheu@chromium.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_fb_helper.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/misc/ad525x_dpot-i2c.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpu/drm/drm_fb_helper.c~drm-avoid-switching-to-text-c=
-onsole-if-there-is-no-panic-timeout drivers/gpu/drm/drm_fb_helper.c
---- a/drivers/gpu/drm/drm_fb_helper.c~drm-avoid-switching-to-text-conso=
-le-if-there-is-no-panic-timeout
-+++ a/drivers/gpu/drm/drm_fb_helper.c
-@@ -256,6 +256,13 @@ bool drm_fb_helper_force_kernel_mode(voi
- int drm_fb_helper_panic(struct notifier_block *n, unsigned long ununse=
-d,
- 			void *panic_str)
- {
-+	/*
-+	 * It's a waste of time and effort to switch back to text console
-+	 * if the kernel should reboot before panic messages can be seen.
-+	 */
-+	if (panic_timeout < 0)
-+		return 0;
-+
- 	printk(KERN_ERR "panic occurred, switching back to text console\n");
- 	return drm_fb_helper_force_kernel_mode();
- }
+diff -puN drivers/misc/ad525x_dpot-i2c.c~drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161 drivers/misc/ad525x_dpot-i2c.c
+--- a/drivers/misc/ad525x_dpot-i2c.c~drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161
++++ a/drivers/misc/ad525x_dpot-i2c.c
+@@ -98,6 +98,7 @@ static const struct i2c_device_id ad_dpo
+ 	{"ad5282", AD5282_ID},
+ 	{"adn2860", ADN2860_ID},
+ 	{"ad5273", AD5273_ID},
++	{"ad5161", AD5161_ID},
+ 	{"ad5171", AD5171_ID},
+ 	{"ad5170", AD5170_ID},
+ 	{"ad5172", AD5172_ID},
 _
-Subject: Subject: drm: avoid switching to text console if there is no p=
-anic timeout
+Subject: Subject: drivers/misc/ad525x_dpot-i2c.c: add i2c support for AD5161
 
-Patches currently in -mm which might be from hughd@chromium.org are
+Patches currently in -mm which might be from jacmet@sunsite.dk are
 
-drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
+linux-next.patch
+drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
