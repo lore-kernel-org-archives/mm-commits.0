@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch added to -mm tree
-Date: Tue, 18 Oct 2011 17:14:39 -0700
-Message-ID: <201110190014.p9J0EemC031445@hpaq2.eem.corp.google.com>
+Subject: + proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch added to -mm tree
+Date: Wed, 19 Oct 2011 13:12:46 -0700
+Message-ID: <201110192012.p9JKClZI023327@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:4196 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:22317 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752042Ab1JSAOu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 20:14:50 -0400
+	with ESMTP id S1753492Ab1JSUNO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2011 16:13:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hughd@google.com, walken@google.com
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, cl@linux-foundation.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, rientjes@google.com, shemminger@vyatta.com, stable@kernel.org, wilsons@start.ca
 
 
 The patch titled
-     Subject: mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
+     Subject: /proc/self/numa_maps: restore "huge" tag for hugetlb vmas
 has been added to the -mm tree.  Its filename is
-     mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
+     proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,47 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
+Subject: /proc/self/numa_maps: restore "huge" tag for hugetlb vmas
 
-add comment
+The display of the "huge" tag was accidentally removed in 29ea2f698 ("mm:
+use walk_page_range() instead of custom page table walking code").
 
+Reported-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Stephen Wilson <wilsons@start.ca>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Michel Lespinasse <walken@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/proc/task_mmu.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/mlock.c~mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix mm/mlock.c
---- a/mm/mlock.c~mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
-+++ a/mm/mlock.c
-@@ -112,6 +112,11 @@ void munlock_vma_page(struct page *page)
- 		if (!isolate_lru_page(page)) {
- 			int ret = SWAP_AGAIN;
+diff -puN fs/proc/task_mmu.c~proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas
++++ a/fs/proc/task_mmu.c
+@@ -1039,6 +1039,9 @@ static int show_numa_map(struct seq_file
+ 		seq_printf(m, " stack");
+ 	}
  
-+			/*
-+			 * Optimization: if the page was mapped just once,
-+			 * that's our mapping and we don't need to check all the
-+			 * other vmas.
-+			 */
- 			if (page_mapcount(page) > 1)
- 				ret = try_to_munlock(page);
- 			/*
++	if (is_vm_hugetlb_page(vma))
++		seq_printf(m, " huge");
++
+ 	walk_page_range(vma->vm_start, vma->vm_end, &walk);
+ 
+ 	if (!md->pages)
 _
-Subject: Subject: mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
+Subject: Subject: /proc/self/numa_maps: restore "huge" tag for hugetlb vmas
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
+proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
 linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
