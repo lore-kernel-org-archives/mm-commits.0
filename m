@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-munlock-use-mapcount-to-avoid-terrible-overhead.patch added to -mm tree
-Date: Tue, 18 Oct 2011 17:14:35 -0700
-Message-ID: <201110190014.p9J0Eamb021276@hpaq7.eem.corp.google.com>
+Subject: + mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch added to -mm tree
+Date: Tue, 18 Oct 2011 17:14:39 -0700
+Message-ID: <201110190014.p9J0EemC031445@hpaq2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:4140 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:4196 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751217Ab1JSAOm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 20:14:42 -0400
-Received: from hpaq7.eem.corp.google.com (hpaq7.eem.corp.google.com [172.25.149.7])
-	by smtp-out.google.com with ESMTP id p9J0Ecg0026994
-	for <mm-commits@vger.kernel.org>; Tue, 18 Oct 2011 17:14:38 -0700
+	with ESMTP id S1752042Ab1JSAOu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2011 20:14:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, walken@google.com
+Cc: akpm@linux-foundation.org, hughd@google.com, walken@google.com
 
 
 The patch titled
-     Subject: mm: munlock use mapcount to avoid terrible overhead
+     Subject: mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
 has been added to the -mm tree.  Its filename is
-     mm-munlock-use-mapcount-to-avoid-terrible-overhead.patch
+     mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,80 +33,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: munlock use mapcount to avoid terrible overhead
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
 
-A process spent 30 minutes exiting, just munlocking the pages of a large
-anonymous area that had been alternately mprotected into page-sized vmas:
-for every single page there's an anon_vma walk through all the other
-little vmas to find the right one.
+add comment
 
-A general fix to that would be a lot more complicated (use prio_tree on
-anon_vma?), but there's one very simple thing we can do to speed up the
-common case: if a page to be munlocked is mapped only once, then it is our
-vma that it is mapped into, and there's no need whatever to walk through
-all the others.
-
-Okay, there is a very remote race in munlock_vma_pages_range(), if between
-its follow_page() and lock_page(), another process were to munlock the
-same page, then page reclaim remove it from our vma, then another process
-mlock it again.  We would find it with page_mapcount 1, yet it's still
-mlocked in another process.  But never mind, that's much less likely than
-the down_read_trylock() failure which munlocking already tolerates (in
-try_to_unmap_one()): in due course page reclaim will discover and move the
-page to unevictable instead.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/mlock.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/mlock.c~mm-munlock-use-mapcount-to-avoid-terrible-overhead mm/mlock.c
---- a/mm/mlock.c~mm-munlock-use-mapcount-to-avoid-terrible-overhead
+diff -puN mm/mlock.c~mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
 +++ a/mm/mlock.c
-@@ -110,7 +110,10 @@ void munlock_vma_page(struct page *page)
- 	if (TestClearPageMlocked(page)) {
- 		dec_zone_page_state(page, NR_MLOCK);
+@@ -112,6 +112,11 @@ void munlock_vma_page(struct page *page)
  		if (!isolate_lru_page(page)) {
--			int ret = try_to_munlock(page);
-+			int ret = SWAP_AGAIN;
-+
-+			if (page_mapcount(page) > 1)
-+				ret = try_to_munlock(page);
+ 			int ret = SWAP_AGAIN;
+ 
++			/*
++			 * Optimization: if the page was mapped just once,
++			 * that's our mapping and we don't need to check all the
++			 * other vmas.
++			 */
+ 			if (page_mapcount(page) > 1)
+ 				ret = try_to_munlock(page);
  			/*
- 			 * did try_to_unlock() succeed or punt?
- 			 */
 _
-Subject: Subject: mm: munlock use mapcount to avoid terrible overhead
+Subject: Subject: mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
 linux-next.patch
-drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
-radix_tree-clean-away-saw_unset_tag-leftovers.patch
-tmpfs-add-tmpfs-to-the-kconfig-prompt-to-make-it-obvious.patch
-mm-distinguish-between-mlocked-and-pinned-pages.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-xfs-xfs_trans_ailc-fix-build.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes-fix.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
+drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 thp-mremap-support-and-tlb-optimization-fix.patch
 thp-mremap-support-and-tlb-optimization-fix-fix.patch
-thp-tail-page-refcounting-fix-5.patch
-powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
-powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
-powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
-powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
-powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
-s390-gup_huge_pmd-support-thp-tail-recounting.patch
-s390-gup_huge_pmd-return-0-if-pte-changes.patch
-sparc-gup_pte_range-support-thp-based-tail-recounting.patch
-thp-share-get_huge_page_tail.patch
-ksm-fix-the-comment-of-try_to_unmap_one.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
 mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
-prio_tree-debugging-patch.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
+dynamic_debug-consolidate-repetitive-struct-_ddebug-descriptor-definitions.patch
+dynamic_debug-use-a-single-printk-to-emit-messages.patch
+fs-nameic-remove-unused-getname_flags.patch
+drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+sysctl-add-support-for-poll-fix.patch
+include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+dio-separate-fields-only-used-in-the-submission-path-from-struct-dio-checkpatch-fixes.patch
+dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
