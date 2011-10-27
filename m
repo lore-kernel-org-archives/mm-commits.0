@@ -1,122 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-race-between-mremap-and-removing-migration-entry.patch removed from -mm tree
-Date: Thu, 27 Oct 2011 16:08:21 -0700
-Message-ID: <201110272308.p9RN8LHZ028850@hpaq7.eem.corp.google.com>
+Subject: [merged] cciss-add-half-second-delay-to-pci-pm-reset-code.patch removed from -mm tree
+Date: Thu, 27 Oct 2011 16:08:29 -0700
+Message-ID: <201110272308.p9RN8TvW000447@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:48817 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:22355 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753789Ab1J0XIe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 19:08:34 -0400
+	with ESMTP id S1753789Ab1J0XIv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 19:08:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, mgorman@suse.de, pluto@agmk.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mike.miller@hp.com, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix race between mremap and removing migration entry
+     Subject: cciss: add half second delay to PCI PM reset code
 has been removed from the -mm tree.  Its filename was
-     mm-fix-race-between-mremap-and-removing-migration-entry.patch
+     cciss-add-half-second-delay-to-pci-pm-reset-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix race between mremap and removing migration entry
+From: Mike Miller <mike.miller@hp.com>
+Subject: cciss: add half second delay to PCI PM reset code
 
-I don't usually pay much attention to the stale "?  " addresses in stack
-backtraces, but this lucky report from Pawel Sikora hints that mremap's
-move_ptes() has inadequate locking against page migration.
+After using PCI Power Management to reset the Smart Array in kdump kernels
+we need some delay.  Otherwise we may think the board failed to reset and
+bail out.  This affects all users with a Smart Array P600.
 
- 3.0 BUG_ON(!PageLocked(p)) in migration_entry_to_page():
- kernel BUG at include/linux/swapops.h:105!
- RIP: 0010:[<ffffffff81127b76>]  [<ffffffff81127b76>]
-                       migration_entry_wait+0x156/0x160
-  [<ffffffff811016a1>] handle_pte_fault+0xae1/0xaf0
-  [<ffffffff810feee2>] ? __pte_alloc+0x42/0x120
-  [<ffffffff8112c26b>] ? do_huge_pmd_anonymous_page+0xab/0x310
-  [<ffffffff81102a31>] handle_mm_fault+0x181/0x310
-  [<ffffffff81106097>] ? vma_adjust+0x537/0x570
-  [<ffffffff81424bed>] do_page_fault+0x11d/0x4e0
-  [<ffffffff81109a05>] ? do_mremap+0x2d5/0x570
-  [<ffffffff81421d5f>] page_fault+0x1f/0x30
-
-mremap's down_write of mmap_sem, together with i_mmap_mutex or lock, and
-pagetable locks, were good enough before page migration (with its
-requirement that every migration entry be found) came in, and enough while
-migration always held mmap_sem; but not enough nowadays, when there's
-memory hotremove and compaction.
-
-The danger is that move_ptes() lets a migration entry dodge around behind
-remove_migration_pte()'s back, so it's in the old location when looking at
-the new, then in the new location when looking at the old.
-
-Either mremap's move_ptes() must additionally take anon_vma lock(), or
-migration's remove_migration_pte() must stop peeking for is_swap_entry()
-before it takes pagetable lock.
-
-Consensus chooses the latter: we prefer to add overhead to migration than
-to mremapping, which gets used by JVMs and by exec stack setup.
-
-Reported-by: Pawel Sikora <pluto@agmk.net>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/block/cciss.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-fix-race-between-mremap-and-removing-migration-entry mm/migrate.c
---- a/mm/migrate.c~mm-fix-race-between-mremap-and-removing-migration-entry
-+++ a/mm/migrate.c
-@@ -120,10 +120,10 @@ static int remove_migration_pte(struct p
- 
- 		ptep = pte_offset_map(pmd, addr);
- 
--		if (!is_swap_pte(*ptep)) {
--			pte_unmap(ptep);
--			goto out;
--		}
-+		/*
-+		 * Peek to check is_swap_pte() before taking ptlock?  No, we
-+		 * can race mremap's move_ptes(), which skips anon_vma lock.
-+		 */
- 
- 		ptl = pte_lockptr(mm, pmd);
- 	}
-_
-
-Patches currently in -mm which might be from hughd@google.com are
-
-proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
-linux-next.patch
-drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
-radix_tree-clean-away-saw_unset_tag-leftovers.patch
-tmpfs-add-tmpfs-to-the-kconfig-prompt-to-make-it-obvious.patch
-mm-distinguish-between-mlocked-and-pinned-pages.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-thp-tail-page-refcounting-fix-5.patch
-powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
-powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
-powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
-powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
-powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
-s390-gup_huge_pmd-support-thp-tail-recounting.patch
-s390-gup_huge_pmd-return-0-if-pte-changes.patch
-sparc-gup_pte_range-support-thp-based-tail-recounting.patch
-thp-share-get_huge_page_tail.patch
-ksm-fix-the-comment-of-try_to_unmap_one.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
-prio_tree-debugging-patch.patch
-
+diff -puN drivers/block/cciss.c~cciss-add-half-second-delay-to-pci-pm-reset-code drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-add-half-second-delay-to-pci-pm-reset-code
++++ a/drivers/block/cciss.c
+@@ -4550,13 +4550,13 @@ static int cciss_controller_hard_reset(s
+ 		pmcsr &= ~PCI_PM_CTRL_STATE_MASK;
+ 		pmcsr |= PCI_D3hot;
+ 		pci_write_config_word(pdev, pos + PCI_PM_CTRL, pmcsr);
