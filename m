@@ -1,76 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation.patch removed from -mm tree
-Date: Thu, 27 Oct 2011 16:08:26 -0700
-Message-ID: <201110272308.p9RN8QfW014175@wpaz24.hot.corp.google.com>
+Subject: [merged] mm-fix-race-between-mremap-and-removing-migration-entry.patch removed from -mm tree
+Date: Thu, 27 Oct 2011 16:08:21 -0700
+Message-ID: <201110272308.p9RN8LHZ028850@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:22290 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:48817 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753789Ab1J0XIb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 19:08:31 -0400
+	with ESMTP id S1753789Ab1J0XIe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 19:08:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, airlied@linux.ie, thellstrom@vmware.com, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, mgorman@suse.de, pluto@agmk.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/gpu/drm/vmwgfx: memory leaks caused by double allocation
+     Subject: mm: fix race between mremap and removing migration entry
 has been removed from the -mm tree.  Its filename was
-     drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation.patch
+     mm-fix-race-between-mremap-and-removing-migration-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: drivers/gpu/drm/vmwgfx: memory leaks caused by double allocation
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix race between mremap and removing migration entry
 
-These variables get allocated twice so the first allocation is a memory
-leak.
+I don't usually pay much attention to the stale "?  " addresses in stack
+backtraces, but this lucky report from Pawel Sikora hints that mremap's
+move_ptes() has inadequate locking against page migration.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: David Airlie <airlied@linux.ie>
-Reviewed-by: Thomas Hellstrom <thellstrom@vmware.com>
+ 3.0 BUG_ON(!PageLocked(p)) in migration_entry_to_page():
+ kernel BUG at include/linux/swapops.h:105!
+ RIP: 0010:[<ffffffff81127b76>]  [<ffffffff81127b76>]
+                       migration_entry_wait+0x156/0x160
+  [<ffffffff811016a1>] handle_pte_fault+0xae1/0xaf0
+  [<ffffffff810feee2>] ? __pte_alloc+0x42/0x120
+  [<ffffffff8112c26b>] ? do_huge_pmd_anonymous_page+0xab/0x310
+  [<ffffffff81102a31>] handle_mm_fault+0x181/0x310
+  [<ffffffff81106097>] ? vma_adjust+0x537/0x570
+  [<ffffffff81424bed>] do_page_fault+0x11d/0x4e0
+  [<ffffffff81109a05>] ? do_mremap+0x2d5/0x570
+  [<ffffffff81421d5f>] page_fault+0x1f/0x30
+
+mremap's down_write of mmap_sem, together with i_mmap_mutex or lock, and
+pagetable locks, were good enough before page migration (with its
+requirement that every migration entry be found) came in, and enough while
+migration always held mmap_sem; but not enough nowadays, when there's
+memory hotremove and compaction.
+
+The danger is that move_ptes() lets a migration entry dodge around behind
+remove_migration_pte()'s back, so it's in the old location when looking at
+the new, then in the new location when looking at the old.
+
+Either mremap's move_ptes() must additionally take anon_vma lock(), or
+migration's remove_migration_pte() must stop peeking for is_swap_entry()
+before it takes pagetable lock.
+
+Consensus chooses the latter: we prefer to add overhead to migration than
+to mremapping, which gets used by JVMs and by exec stack setup.
+
+Reported-by: Pawel Sikora <pluto@agmk.net>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/vmwgfx/vmwgfx_fence.c    |    3 +--
- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ mm/migrate.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_fence.c~drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c~drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
-@@ -953,8 +953,7 @@ int vmw_event_fence_action_create(struct
- 				  uint32_t *tv_usec,
- 				  bool interruptible)
- {
--	struct vmw_event_fence_action *eaction =
--		kzalloc(sizeof(*eaction), GFP_KERNEL);
-+	struct vmw_event_fence_action *eaction;
- 	struct ttm_mem_global *mem_glob =
- 		vmw_mem_glob(fence->fman->dev_priv);
- 	struct vmw_fence_manager *fman = fence->fman;
-diff -puN drivers/gpu/drm/vmwgfx/vmwgfx_resource.c~drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c~drivers-gpu-drm-vmwgfx-memory-leaks-caused-by-double-allocation
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
-@@ -1255,8 +1255,7 @@ int vmw_surface_define_ioctl(struct drm_
- 			     struct drm_file *file_priv)
- {
- 	struct vmw_private *dev_priv = vmw_priv(dev);
--	struct vmw_user_surface *user_srf =
--	    kmalloc(sizeof(*user_srf), GFP_KERNEL);
-+	struct vmw_user_surface *user_srf;
- 	struct vmw_surface *srf;
- 	struct vmw_resource *res;
- 	struct vmw_resource *tmp;
+diff -puN mm/migrate.c~mm-fix-race-between-mremap-and-removing-migration-entry mm/migrate.c
+--- a/mm/migrate.c~mm-fix-race-between-mremap-and-removing-migration-entry
++++ a/mm/migrate.c
+@@ -120,10 +120,10 @@ static int remove_migration_pte(struct p
+ 
+ 		ptep = pte_offset_map(pmd, addr);
+ 
+-		if (!is_swap_pte(*ptep)) {
+-			pte_unmap(ptep);
+-			goto out;
+-		}
++		/*
++		 * Peek to check is_swap_pte() before taking ptlock?  No, we
++		 * can race mremap's move_ptes(), which skips anon_vma lock.
++		 */
+ 
+ 		ptl = pte_lockptr(mm, pmd);
+ 	}
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-origin.patch
+proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
 linux-next.patch
-bio-change-some-signed-vars-to-unsigned.patch
-paride-fix-potential-information-leak-in-pg_read.patch
+drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
+radix_tree-clean-away-saw_unset_tag-leftovers.patch
+tmpfs-add-tmpfs-to-the-kconfig-prompt-to-make-it-obvious.patch
+mm-distinguish-between-mlocked-and-pinned-pages.patch
+mremap-check-for-overflow-using-deltas.patch
+mremap-avoid-sending-one-ipi-per-page.patch
+thp-mremap-support-and-tlb-optimization.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+thp-tail-page-refcounting-fix-5.patch
+powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
+powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
+powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
+powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
+powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
+s390-gup_huge_pmd-support-thp-tail-recounting.patch
+s390-gup_huge_pmd-return-0-if-pte-changes.patch
+sparc-gup_pte_range-support-thp-based-tail-recounting.patch
+thp-share-get_huge_page_tail.patch
+ksm-fix-the-comment-of-try_to_unmap_one.patch
+mm-munlock-use-mapcount-to-avoid-terrible-overhead.patch
+mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
+prio_tree-debugging-patch.patch
 
