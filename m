@@ -1,60 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-vt-d-entry-for-drivers-pci-drivers-iommu-move.patch removed from -mm tree
-Date: Thu, 27 Oct 2011 16:08:58 -0700
-Message-ID: <201110272308.p9RN8w0K026373@wpaz13.hot.corp.google.com>
+Subject: [merged] m32r-allow-use-of-atomic64.patch removed from -mm tree
+Date: Thu, 27 Oct 2011 16:08:40 -0700
+Message-ID: <201110272308.p9RN8ehh021350@wpaz29.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:48947 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:48950 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755265Ab1J0XJL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 19:09:11 -0400
+	with ESMTP id S1755266Ab1J0XJM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 19:09:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@purestorage.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, mingo@elte.hu, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update VT-d entry for drivers/pci -> drivers/iommu move
+     Subject: m32r: allow use of atomic64
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-vt-d-entry-for-drivers-pci-drivers-iommu-move.patch
+     m32r-allow-use-of-atomic64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Roland Dreier <roland@purestorage.com>
-Subject: MAINTAINERS: update VT-d entry for drivers/pci -> drivers/iommu move
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: m32r: allow use of atomic64
 
-Commit 166e9278a3f9 ("x86/ia64: intel-iommu: move to drivers/iommu/")
-moved the VT-d driver to drivers/iommu, but left the "F:" line in
-MAINTAINERS pointing to drivers/pci, which breaks
-scripts/get_maintainer.pl.
+Atomic64 is now a valid type in Linux. Archs that do not have their own
+version of atomic64 operators are to use the generic operations.
 
-Signed-off-by: Roland Dreier <roland@purestorage.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+The m32r architecture needs to define GENERIC_ATOMIC64.
+
+Link: http://lkml.kernel.org/r/20111013085936.GA13046@elte.hu
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Reported-by: Ingo Molnar <mingo@elte.hu>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m32r/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-update-vt-d-entry-for-drivers-pci-drivers-iommu-move MAINTAINERS
---- a/MAINTAINERS~maintainers-update-vt-d-entry-for-drivers-pci-drivers-iommu-move
-+++ a/MAINTAINERS
-@@ -3384,7 +3384,7 @@ M:	David Woodhouse <dwmw2@infradead.org>
- L:	iommu@lists.linux-foundation.org
- T:	git git://git.infradead.org/iommu-2.6.git
- S:	Supported
--F:	drivers/pci/intel-iommu.c
-+F:	drivers/iommu/intel-iommu.c
- F:	include/linux/intel-iommu.h
+diff -puN arch/m32r/Kconfig~m32r-allow-use-of-atomic64 arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~m32r-allow-use-of-atomic64
++++ a/arch/m32r/Kconfig
+@@ -10,6 +10,7 @@ config M32R
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_IRQ_SHOW
++	select GENERIC_ATOMIC64
  
- INTEL IOP-ADMA DMA DRIVER
+ config SBUS
+ 	bool
 _
 
-Patches currently in -mm which might be from roland@purestorage.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 origin.patch
 linux-next.patch
+stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch
+cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch
+memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch
 
