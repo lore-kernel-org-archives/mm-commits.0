@@ -1,82 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch removed from -mm tree
-Date: Thu, 27 Oct 2011 16:08:54 -0700
-Message-ID: <201110272308.p9RN8sJK017056@wpaz37.hot.corp.google.com>
+Subject: [merged] tty-support-compat_ioctl-get-set-termios_locked.patch removed from -mm tree
+Date: Thu, 27 Oct 2011 16:08:36 -0700
+Message-ID: <201110272308.p9RN8aBX000488@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:48923 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:48944 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753789Ab1J0XJF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 19:09:05 -0400
+	with ESMTP id S1753789Ab1J0XJK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 19:09:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@redhat.com, arnd@arndb.de, greg@kroah.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: thomas@m3y3r.de, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dynamic_debug: fix undefined reference to `__netdev_printk'
+     Subject: tty: support compat_ioctl get/set termios_locked
 has been removed from the -mm tree.  Its filename was
-     dynamic_debug-fix-undefined-reference-to-__netdev_printk.patch
+     tty-support-compat_ioctl-get-set-termios_locked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@redhat.com>
-Subject: dynamic_debug: fix undefined reference to `__netdev_printk'
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: tty: support compat_ioctl get/set termios_locked
 
-Dynamic debug recently added support for netdev_printk.  It uses
-__netdev_printk() to support this functionality.  However, when CONFIG_NET
-is not set, we get the following error:
+When running a Fedora 15 (x86) on an x86_64 kernel, in the boot process
+plymouthd complains about those two missing ioctls:
 
-lib/built-in.o: In function `__dynamic_netdev_dbg':
-(.text+0x9fda): undefined reference to `__netdev_printk'
+[    2.581783] ioctl32(plymouthd:186): Unknown cmd fd(10) cmd(00005457){t:'T';sz:0} arg(ffb6a5d0) on /dev/tty1
+[    2.581803] ioctl32(plymouthd:186): Unknown cmd fd(10) cmd(00005456){t:'T';sz:0} arg(ffb6a680) on /dev/tty1
 
-Fix this by making the call to netdev_printk() contingent upon CONFIG_NET.
- We could have fixed this by defining netdev_printk() to a 'no-op' in the
-!CONFIG_NET case.  However, this is not consistent with how the networking
-layer uses netdev_printk.  For example, CONFIG_NET is not set,
-netdev_printk() does not have a 'no-op' definition defined.
+both ioctl functions work on the 'struct termios' resp.  'struct
+termios2', which has the same size (36 bytes resp.  44 bytes) on x86 and
+x86_64, so it's just a matter of converting the pointer from userland.
 
-Signed-off-by: Jason Baron <jbaron@redhat.com>
-Acked-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Greg KH <greg@kroah.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_debug.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/tty/tty_io.c    |    2 ++
+ drivers/tty/tty_ioctl.c |   17 +++++++++++++++++
+ include/linux/tty.h     |    2 ++
+ 3 files changed, 21 insertions(+)
 
-diff -puN lib/dynamic_debug.c~dynamic_debug-fix-undefined-reference-to-__netdev_printk lib/dynamic_debug.c
---- a/lib/dynamic_debug.c~dynamic_debug-fix-undefined-reference-to-__netdev_printk
-+++ a/lib/dynamic_debug.c
-@@ -502,6 +502,8 @@ int __dynamic_dev_dbg(struct _ddebug *de
- }
- EXPORT_SYMBOL(__dynamic_dev_dbg);
+diff -puN drivers/tty/tty_io.c~tty-support-compat_ioctl-get-set-termios_locked drivers/tty/tty_io.c
+--- a/drivers/tty/tty_io.c~tty-support-compat_ioctl-get-set-termios_locked
++++ a/drivers/tty/tty_io.c
+@@ -2716,6 +2716,8 @@ static long tty_compat_ioctl(struct file
+ 	ld = tty_ldisc_ref_wait(tty);
+ 	if (ld->ops->compat_ioctl)
+ 		retval = ld->ops->compat_ioctl(tty, file, cmd, arg);
++	else
++		retval = n_tty_compat_ioctl_helper(tty, file, cmd, arg);
+ 	tty_ldisc_deref(ld);
  
-+#ifdef CONFIG_NET
+ 	return retval;
+diff -puN drivers/tty/tty_ioctl.c~tty-support-compat_ioctl-get-set-termios_locked drivers/tty/tty_ioctl.c
+--- a/drivers/tty/tty_ioctl.c~tty-support-compat_ioctl-get-set-termios_locked
++++ a/drivers/tty/tty_ioctl.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/bitops.h>
+ #include <linux/mutex.h>
++#include <linux/compat.h>
+ 
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+@@ -1179,3 +1180,19 @@ int n_tty_ioctl_helper(struct tty_struct
+ 	}
+ }
+ EXPORT_SYMBOL(n_tty_ioctl_helper);
 +
- int __dynamic_netdev_dbg(struct _ddebug *descriptor,
- 		      const struct net_device *dev, const char *fmt, ...)
- {
-@@ -523,6 +525,8 @@ int __dynamic_netdev_dbg(struct _ddebug 
- }
- EXPORT_SYMBOL(__dynamic_netdev_dbg);
- 
++#ifdef CONFIG_COMPAT
++long n_tty_compat_ioctl_helper(struct tty_struct *tty, struct file *file,
++					unsigned int cmd, unsigned long arg)
++{
++	switch (cmd) {
++	case TIOCGLCKTRMIOS:
++	case TIOCSLCKTRMIOS:
++		return tty_mode_ioctl(tty, file, cmd, (unsigned long) compat_ptr(arg));
++	default:
++		return -ENOIOCTLCMD;
++	}
++}
++EXPORT_SYMBOL(n_tty_compat_ioctl_helper);
 +#endif
 +
- static __initdata char ddebug_setup_string[1024];
- static __init int ddebug_setup_query(char *str)
- {
+diff -puN include/linux/tty.h~tty-support-compat_ioctl-get-set-termios_locked include/linux/tty.h
+--- a/include/linux/tty.h~tty-support-compat_ioctl-get-set-termios_locked
++++ a/include/linux/tty.h
+@@ -581,6 +581,8 @@ extern int __init tty_init(void);
+ /* tty_ioctl.c */
+ extern int n_tty_ioctl_helper(struct tty_struct *tty, struct file *file,
+ 		       unsigned int cmd, unsigned long arg);
++extern long n_tty_compat_ioctl_helper(struct tty_struct *tty, struct file *file,
++		       unsigned int cmd, unsigned long arg);
+ 
+ /* serial.c */
+ 
 _
 
-Patches currently in -mm which might be from jbaron@redhat.com are
+Patches currently in -mm which might be from thomas@m3y3r.de are
 
 origin.patch
 linux-next.patch
-drivers-net-ethernet-i825xx-3c505c-fix-build-with-dynamic-debug.patch
-epoll-fix-spurious-lockdep-warnings.patch
-epoll-limit-paths.patch
 
