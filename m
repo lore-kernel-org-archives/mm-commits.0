@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-race-between-mremap-and-removing-migration-entry.patch added to -mm tree
-Date: Wed, 19 Oct 2011 13:22:42 -0700
-Message-ID: <201110192022.p9JKMg3Y017780@wpaz17.hot.corp.google.com>
+Subject: + x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch added to -mm tree
+Date: Thu, 27 Oct 2011 15:48:34 -0700
+Message-ID: <201110272248.p9RMmZrH010496@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5928 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:43983 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753684Ab1JSUW5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2011 16:22:57 -0400
+	with ESMTP id S1752832Ab1J0WtC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2011 18:49:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, aarcange@redhat.com, mgorman@suse.de, pluto@agmk.net, stable@vger.kernel.org
+Cc: konrad.wilk@oracle.com, a.p.zijlstra@chello.nl, hpa@zytor.com, jeremy.fitzhardinge@citrix.com, mingo@redhat.com, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm: fix race between mremap and removing migration entry
+     Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
 has been added to the -mm tree.  Its filename is
-     mm-fix-race-between-mremap-and-removing-migration-entry.patch
+     x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix race between mremap and removing migration entry
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
 
-I don't usually pay much attention to the stale "?  " addresses in stack
-backtraces, but this lucky report from Pawel Sikora hints that mremap's
-move_ptes() has inadequate locking against page migration.
+Fix an outstanding issue that has been reported since 2.6.37.  Under a
+heavy loaded machine processing "fork()" calls could crash with:
 
- 3.0 BUG_ON(!PageLocked(p)) in migration_entry_to_page():
- kernel BUG at include/linux/swapops.h:105!
- RIP: 0010:[<ffffffff81127b76>]  [<ffffffff81127b76>]
-                       migration_entry_wait+0x156/0x160
-  [<ffffffff811016a1>] handle_pte_fault+0xae1/0xaf0
-  [<ffffffff810feee2>] ? __pte_alloc+0x42/0x120
-  [<ffffffff8112c26b>] ? do_huge_pmd_anonymous_page+0xab/0x310
-  [<ffffffff81102a31>] handle_mm_fault+0x181/0x310
-  [<ffffffff81106097>] ? vma_adjust+0x537/0x570
-  [<ffffffff81424bed>] do_page_fault+0x11d/0x4e0
-  [<ffffffff81109a05>] ? do_mremap+0x2d5/0x570
-  [<ffffffff81421d5f>] page_fault+0x1f/0x30
+BUG: unable to handle kernel paging request at f573fc8c
+IP: [<c01abc54>] swap_count_continued+0x104/0x180
+*pdpt = 000000002a3b9027 *pde = 0000000001bed067 *pte = 0000000000000000
+Oops: 0000 [#1] SMP
+Modules linked in:
+Pid: 1638, comm: apache2 Not tainted 3.0.4-linode37 #1
+EIP: 0061:[<c01abc54>] EFLAGS: 00210246 CPU: 3
+EIP is at swap_count_continued+0x104/0x180
+.. snip..
+Call Trace:
+ [<c01ac222>] ? __swap_duplicate+0xc2/0x160
+ [<c01040f7>] ? pte_mfn_to_pfn+0x87/0xe0
+ [<c01ac2e4>] ? swap_duplicate+0x14/0x40
+ [<c01a0a6b>] ? copy_pte_range+0x45b/0x500
+ [<c01a0ca5>] ? copy_page_range+0x195/0x200
+ [<c01328c6>] ? dup_mmap+0x1c6/0x2c0
+ [<c0132cf8>] ? dup_mm+0xa8/0x130
+ [<c013376a>] ? copy_process+0x98a/0xb30
+ [<c013395f>] ? do_fork+0x4f/0x280
+ [<c01573b3>] ? getnstimeofday+0x43/0x100
+ [<c010f770>] ? sys_clone+0x30/0x40
+ [<c06c048d>] ? ptregs_clone+0x15/0x48
+ [<c06bfb71>] ? syscall_call+0x7/0xb
 
-mremap's down_write of mmap_sem, together with i_mmap_mutex or lock, and
-pagetable locks, were good enough before page migration (with its
-requirement that every migration entry be found) came in, and enough while
-migration always held mmap_sem; but not enough nowadays, when there's
-memory hotremove and compaction.
+The problem is that in copy_page_range() we turn lazy mode on, and then in
+swap_entry_free() we call swap_count_continued() which ends up in:
 
-The danger is that move_ptes() lets a migration entry dodge around behind
-remove_migration_pte()'s back, so it's in the old location when looking at
-the new, then in the new location when looking at the old.
+         map = kmap_atomic(page, KM_USER0) + offset;
 
-Either mremap's move_ptes() must additionally take anon_vma lock(), or
-migration's remove_migration_pte() must stop peeking for is_swap_entry()
-before it takes pagetable lock.
+and then later we touch *map.
 
-Consensus chooses the latter: we prefer to add overhead to migration than
-to mremapping, which gets used by JVMs and by exec stack setup.
+Since we are running in batched mode (lazy) we don't actually set up the
+PTE mappings and the kmap_atomic is not done synchronously and ends up
+trying to dereference a page that has not been set.
 
-Reported-by: Pawel Sikora <pluto@agmk.net>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Looking at kmap_atomic_prot_pfn(), it uses 'arch_flush_lazy_mmu_mode' and
+doing the same in kmap_atomic_prot() and __kunmap_atomic() makes the problem
+go away.
+
+Interestingly, commit b8bcfe997e4615 ("x86/paravirt: remove lazy mode in
+interrupts") removed part of this to fix an interrupt issue - but it went
+to far and did not consider this scenario.
+
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/mm/highmem_32.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/migrate.c~mm-fix-race-between-mremap-and-removing-migration-entry mm/migrate.c
---- a/mm/migrate.c~mm-fix-race-between-mremap-and-removing-migration-entry
-+++ a/mm/migrate.c
-@@ -120,10 +120,10 @@ static int remove_migration_pte(struct p
+diff -puN arch/x86/mm/highmem_32.c~x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode arch/x86/mm/highmem_32.c
+--- a/arch/x86/mm/highmem_32.c~x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode
++++ a/arch/x86/mm/highmem_32.c
+@@ -45,6 +45,7 @@ void *kmap_atomic_prot(struct page *page
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ 	BUG_ON(!pte_none(*(kmap_pte-idx)));
+ 	set_pte(kmap_pte-idx, mk_pte(page, prot));
++	arch_flush_lazy_mmu_mode();
  
- 		ptep = pte_offset_map(pmd, addr);
- 
--		if (!is_swap_pte(*ptep)) {
--			pte_unmap(ptep);
--			goto out;
--		}
-+		/*
-+		 * Peek to check is_swap_pte() before taking ptlock?  No, we
-+		 * can race mremap's move_ptes(), which skips anon_vma lock.
-+		 */
- 
- 		ptl = pte_lockptr(mm, pmd);
+ 	return (void *)vaddr;
+ }
+@@ -88,6 +89,7 @@ void __kunmap_atomic(void *kvaddr)
+ 		 */
+ 		kpte_clear_flush(kmap_pte-idx, vaddr);
+ 		kmap_atomic_idx_pop();
++		arch_flush_lazy_mmu_mode();
  	}
+ #ifdef CONFIG_DEBUG_HIGHMEM
+ 	else {
 _
-Subject: Subject: mm: fix race between mremap and removing migration entry
+Subject: Subject: x86/paravirt: PTE updates in k(un)map_atomic need to be synchronous, regardless of lazy_mmu mode
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from konrad.wilk@oracle.com are
 
 origin.patch
-mm-fix-race-between-mremap-and-removing-migration-entry.patch
-proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
+dma-mapping-fix-sync_single_range_-dma-debugging.patch
+dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
 linux-next.patch
-drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
-radix_tree-clean-away-saw_unset_tag-leftovers.patch
-tmpfs-add-tmpfs-to-the-kconfig-prompt-to-make-it-obvious.patch
-mm-distinguish-between-mlocked-and-pinned-pages.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
-thp-mremap-support-and-tlb-optimization.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-thp-tail-page-refcounting-fix-5.patch
-powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
-powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
-powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
-powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
-powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
-s390-gup_huge_pmd-support-thp-tail-recounting.patch
-s390-gup_huge_pmd-return-0-if-pte-changes.patch
-sparc-gup_pte_range-support-thp-based-tail-recounting.patch
-thp-share-get_huge_page_tail.patch
-ksm-fix-the-comment-of-try_to_unmap_one.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
-prio_tree-debugging-patch.patch
+x86-paravirt-pte-updates-in-kunmap_atomic-need-to-be-synchronous-regardless-of-lazy_mmu-mode.patch
+stop_machine-make-stop_machine-safe-and-efficient-to-call-early.patch
 
