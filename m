@@ -1,321 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dio-separate-map_bh-from-dio-v2.patch removed from -mm tree
-Date: Fri, 28 Oct 2011 15:10:38 -0700
-Message-ID: <201110282210.p9SMAcVm032043@hpaq13.eem.corp.google.com>
+Subject: [merged] dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 28 Oct 2011 15:11:01 -0700
+Message-ID: <201110282211.p9SMB1Kv020727@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:33070 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:33117 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753971Ab1J1WKw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2011 18:10:52 -0400
+	with ESMTP id S1755806Ab1J1WLF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2011 18:11:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, axboe@kernel.dk, hch@lst.de, jmoyer@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dio: separate map_bh from dio
+     Subject: dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     dio-separate-map_bh-from-dio-v2.patch
+     dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: dio: separate map_bh from dio
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
 
-Only a single b_private field in the map_bh buffer head is needed after
-the submission path.  Move map_bh separately to avoid storing this
-information in the long term slab.
+ERROR: trailing whitespace
+#180: FILE: fs/direct-io.c:1103:
++^Iunsigned long user_addr; $
 
-This avoids the weird 104 byte hole in struct dio_submit which also needed
-to be memseted early.
+ERROR: need consistent spacing around '+' (ctx:WxV)
+#223: FILE: fs/direct-io.c:1213:
++			((user_addr+iov[seg].iov_len +PAGE_SIZE-1)/PAGE_SIZE
+ 			                             ^
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Christoph Hellwig <hch@lst.de>
+ERROR: trailing whitespace
+#247: FILE: fs/direct-io.c:1237:
++^I$
+
+total: 3 errors, 0 warnings, 297 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/dio-merge-direct_io_walker-into-__blockdev_direct_io.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   65 ++++++++++++++++++++++++++---------------------
- 1 file changed, 36 insertions(+), 29 deletions(-)
+ fs/direct-io.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/direct-io.c~dio-separate-map_bh-from-dio-v2 fs/direct-io.c
---- a/fs/direct-io.c~dio-separate-map_bh-from-dio-v2
+diff -puN fs/direct-io.c~dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes fs/direct-io.c
+--- a/fs/direct-io.c~dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
 +++ a/fs/direct-io.c
-@@ -119,6 +119,7 @@ struct dio {
- 	loff_t i_size;			/* i_size when submitted */
- 	dio_iodone_t *end_io;		/* IO completion function */
- 
-+	void *private;			/* copy from map_bh.b_private */
- 
- 	/* BIO completion state */
- 	spinlock_t bio_lock;		/* protects BIO fields below */
-@@ -133,7 +134,6 @@ struct dio {
- 	struct kiocb *iocb;		/* kiocb */
- 	ssize_t result;                 /* IO result */
- 
--	struct buffer_head map_bh;	/* last get_block() result */
- 	/*
- 	 * pages[] (and any fields placed after it) are not zeroed out at
- 	 * allocation time.  Don't add new fields after pages[] unless you
-@@ -301,7 +301,7 @@ static ssize_t dio_complete(struct dio *
- 
- 	if (dio->end_io && dio->result) {
- 		dio->end_io(dio->iocb, offset, transferred,
--			    dio->map_bh.b_private, ret, is_async);
-+			    dio->private, ret, is_async);
- 	} else {
- 		if (is_async)
- 			aio_complete(dio->iocb, ret, 0);
-@@ -574,10 +574,10 @@ static int dio_bio_reap(struct dio *dio,
-  * buffer_mapped().  However the direct-io code will only process holes one
-  * block at a time - it will repeatedly call get_block() as it walks the hole.
-  */
--static int get_more_blocks(struct dio *dio, struct dio_submit *sdio)
-+static int get_more_blocks(struct dio *dio, struct dio_submit *sdio,
-+			   struct buffer_head *map_bh)
- {
- 	int ret;
--	struct buffer_head *map_bh = &dio->map_bh;
- 	sector_t fs_startblk;	/* Into file, in filesystem-sized blocks */
- 	sector_t fs_endblk;	/* Into file, in filesystem-sized blocks */
- 	unsigned long fs_count;	/* Number of filesystem-sized blocks */
-@@ -617,6 +617,9 @@ static int get_more_blocks(struct dio *d
- 
- 		ret = (*sdio->get_block)(dio->inode, fs_startblk,
- 						map_bh, create);
-+
-+		/* Store for completion */
-+		dio->private = map_bh->b_private;
- 	}
- 	return ret;
- }
-@@ -625,7 +628,7 @@ static int get_more_blocks(struct dio *d
-  * There is no bio.  Make one now.
-  */
- static int dio_new_bio(struct dio *dio, struct dio_submit *sdio,
--		       sector_t start_sector)
-+		       sector_t start_sector, struct buffer_head *map_bh)
- {
- 	sector_t sector;
- 	int ret, nr_pages;
-@@ -634,10 +637,10 @@ static int dio_new_bio(struct dio *dio, 
- 	if (ret)
- 		goto out;
- 	sector = start_sector << (sdio->blkbits - 9);
--	nr_pages = min(sdio->pages_in_io, bio_get_nr_vecs(dio->map_bh.b_bdev));
-+	nr_pages = min(sdio->pages_in_io, bio_get_nr_vecs(map_bh->b_bdev));
- 	nr_pages = min(nr_pages, BIO_MAX_PAGES);
- 	BUG_ON(nr_pages <= 0);
--	dio_bio_alloc(dio, sdio, dio->map_bh.b_bdev, sector, nr_pages);
-+	dio_bio_alloc(dio, sdio, map_bh->b_bdev, sector, nr_pages);
- 	sdio->boundary = 0;
- out:
- 	return ret;
-@@ -682,7 +685,8 @@ static int dio_bio_add_page(struct dio *
-  * The caller of this function is responsible for removing cur_page from the
-  * dio, and for dropping the refcount which came from that presence.
-  */
--static int dio_send_cur_page(struct dio *dio, struct dio_submit *sdio)
-+static int dio_send_cur_page(struct dio *dio, struct dio_submit *sdio,
-+			     struct buffer_head *map_bh)
- {
- 	int ret = 0;
- 
-@@ -717,14 +721,14 @@ static int dio_send_cur_page(struct dio 
- 	}
- 
- 	if (sdio->bio == NULL) {
--		ret = dio_new_bio(dio, sdio, sdio->cur_page_block);
-+		ret = dio_new_bio(dio, sdio, sdio->cur_page_block, map_bh);
- 		if (ret)
- 			goto out;
- 	}
- 
- 	if (dio_bio_add_page(dio, sdio) != 0) {
- 		dio_bio_submit(dio, sdio);
--		ret = dio_new_bio(dio, sdio, sdio->cur_page_block);
-+		ret = dio_new_bio(dio, sdio, sdio->cur_page_block, map_bh);
- 		if (ret == 0) {
- 			ret = dio_bio_add_page(dio, sdio);
- 			BUG_ON(ret != 0);
-@@ -753,7 +757,8 @@ out:
-  */
- static int
- submit_page_section(struct dio *dio, struct dio_submit *sdio, struct page *page,
--		unsigned offset, unsigned len, sector_t blocknr)
-+		    unsigned offset, unsigned len, sector_t blocknr,
-+		    struct buffer_head *map_bh)
- {
- 	int ret = 0;
- 
-@@ -778,7 +783,7 @@ submit_page_section(struct dio *dio, str
- 		 * avoid metadata seeks.
- 		 */
- 		if (sdio->boundary) {
--			ret = dio_send_cur_page(dio, sdio);
-+			ret = dio_send_cur_page(dio, sdio, map_bh);
- 			page_cache_release(sdio->cur_page);
- 			sdio->cur_page = NULL;
- 		}
-@@ -789,7 +794,7 @@ submit_page_section(struct dio *dio, str
- 	 * If there's a deferred page already there then send it.
- 	 */
- 	if (sdio->cur_page) {
--		ret = dio_send_cur_page(dio, sdio);
-+		ret = dio_send_cur_page(dio, sdio, map_bh);
- 		page_cache_release(sdio->cur_page);
- 		sdio->cur_page = NULL;
- 		if (ret)
-@@ -811,16 +816,16 @@ out:
-  * file blocks.  Only called for S_ISREG files - blockdevs do not set
-  * buffer_new
-  */
--static void clean_blockdev_aliases(struct dio *dio)
-+static void clean_blockdev_aliases(struct dio *dio, struct buffer_head *map_bh)
- {
- 	unsigned i;
- 	unsigned nblocks;
- 
--	nblocks = dio->map_bh.b_size >> dio->inode->i_blkbits;
-+	nblocks = map_bh->b_size >> dio->inode->i_blkbits;
- 
- 	for (i = 0; i < nblocks; i++) {
--		unmap_underlying_metadata(dio->map_bh.b_bdev,
--					dio->map_bh.b_blocknr + i);
-+		unmap_underlying_metadata(map_bh->b_bdev,
-+					  map_bh->b_blocknr + i);
- 	}
- }
- 
-@@ -833,7 +838,8 @@ static void clean_blockdev_aliases(struc
-  * `end' is zero if we're doing the start of the IO, 1 at the end of the
-  * IO.
-  */
--static void dio_zero_block(struct dio *dio, struct dio_submit *sdio, int end)
-+static void dio_zero_block(struct dio *dio, struct dio_submit *sdio, int end,
-+			   struct buffer_head *map_bh)
- {
- 	unsigned dio_blocks_per_fs_block;
- 	unsigned this_chunk_blocks;	/* In dio_blocks */
-@@ -841,7 +847,7 @@ static void dio_zero_block(struct dio *d
- 	struct page *page;
- 
- 	sdio->start_zero_done = 1;
--	if (!sdio->blkfactor || !buffer_new(&dio->map_bh))
-+	if (!sdio->blkfactor || !buffer_new(map_bh))
- 		return;
- 
- 	dio_blocks_per_fs_block = 1 << sdio->blkfactor;
-@@ -861,7 +867,7 @@ static void dio_zero_block(struct dio *d
- 
- 	page = ZERO_PAGE(0);
- 	if (submit_page_section(dio, sdio, page, 0, this_chunk_bytes,
--				sdio->next_block_for_io))
-+				sdio->next_block_for_io, map_bh))
- 		return;
- 
- 	sdio->next_block_for_io += this_chunk_blocks;
-@@ -883,13 +889,13 @@ static void dio_zero_block(struct dio *d
-  * it should set b_size to PAGE_SIZE or more inside get_block().  This gives
-  * fine alignment but still allows this function to work in PAGE_SIZE units.
-  */
--static int do_direct_IO(struct dio *dio, struct dio_submit *sdio)
-+static int do_direct_IO(struct dio *dio, struct dio_submit *sdio,
-+			struct buffer_head *map_bh)
- {
- 	const unsigned blkbits = sdio->blkbits;
- 	const unsigned blocks_per_page = PAGE_SIZE >> blkbits;
- 	struct page *page;
- 	unsigned block_in_page;
--	struct buffer_head *map_bh = &dio->map_bh;
- 	int ret = 0;
- 
- 	/* The I/O can start at any block offset within the first page */
-@@ -915,7 +921,7 @@ static int do_direct_IO(struct dio *dio,
- 				unsigned long blkmask;
- 				unsigned long dio_remainder;
- 
--				ret = get_more_blocks(dio, sdio);
-+				ret = get_more_blocks(dio, sdio, map_bh);
- 				if (ret) {
- 					page_cache_release(page);
- 					goto out;
-@@ -928,7 +934,7 @@ static int do_direct_IO(struct dio *dio,
- 				sdio->next_block_for_io =
- 					map_bh->b_blocknr << sdio->blkfactor;
- 				if (buffer_new(map_bh))
--					clean_blockdev_aliases(dio);
-+					clean_blockdev_aliases(dio, map_bh);
- 
- 				if (!sdio->blkfactor)
- 					goto do_holes;
-@@ -987,7 +993,7 @@ do_holes:
- 			 * we must zero out the start of this block.
- 			 */
- 			if (unlikely(sdio->blkfactor && !sdio->start_zero_done))
--				dio_zero_block(dio, sdio, 0);
-+				dio_zero_block(dio, sdio, 0, map_bh);
- 
- 			/*
- 			 * Work out, in this_chunk_blocks, how much disk we
-@@ -1005,7 +1011,7 @@ do_holes:
- 
- 			sdio->boundary = buffer_boundary(map_bh);
- 			ret = submit_page_section(dio, sdio, page, offset_in_page,
--				this_chunk_bytes, sdio->next_block_for_io);
-+				  this_chunk_bytes, sdio->next_block_for_io, map_bh);
- 			if (ret) {
- 				page_cache_release(page);
- 				goto out;
-@@ -1041,6 +1047,7 @@ direct_io_worker(int rw, struct kiocb *i
- 	ssize_t ret = 0;
- 	ssize_t ret2;
+@@ -1096,7 +1096,7 @@ __blockdev_direct_IO(int rw, struct kioc
+ 	loff_t end = offset;
+ 	struct dio *dio;
+ 	struct dio_submit sdio = { 0, };
+-	unsigned long user_addr; 
++	unsigned long user_addr;
  	size_t bytes;
-+	struct buffer_head map_bh = { 0, };
+ 	struct buffer_head map_bh = { 0, };
  
- 	dio->inode = inode;
- 	dio->rw = rw;
-@@ -1095,7 +1102,7 @@ direct_io_worker(int rw, struct kiocb *i
- 		sdio->total_pages += (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
- 		sdio->curr_user_address = user_addr;
- 	
--		ret = do_direct_IO(dio, sdio);
-+		ret = do_direct_IO(dio, sdio, &map_bh);
+@@ -1206,7 +1206,7 @@ __blockdev_direct_IO(int rw, struct kioc
+ 	for (seg = 0; seg < nr_segs; seg++) {
+ 		user_addr = (unsigned long)iov[seg].iov_base;
+ 		sdio.pages_in_io +=
+-			((user_addr+iov[seg].iov_len +PAGE_SIZE-1)/PAGE_SIZE
++			((user_addr+iov[seg].iov_len + PAGE_SIZE - 1)/PAGE_SIZE
+ 				- user_addr/PAGE_SIZE);
+ 	}
+ 
+@@ -1230,7 +1230,7 @@ __blockdev_direct_IO(int rw, struct kioc
+ 		}
+ 		sdio.total_pages += (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+ 		sdio.curr_user_address = user_addr;
+-	
++
+ 		retval = do_direct_IO(dio, &sdio, &map_bh);
  
  		dio->result += iov[seg].iov_len -
- 			((sdio->final_block_in_request - sdio->block_in_file) <<
-@@ -1118,10 +1125,10 @@ direct_io_worker(int rw, struct kiocb *i
- 	 * There may be some unwritten disk at the end of a part-written
- 	 * fs-block-sized block.  Go zero that now.
- 	 */
--	dio_zero_block(dio, sdio, 1);
-+	dio_zero_block(dio, sdio, 1, &map_bh);
- 
- 	if (sdio->cur_page) {
--		ret2 = dio_send_cur_page(dio, sdio);
-+		ret2 = dio_send_cur_page(dio, sdio, &map_bh);
- 		if (ret == 0)
- 			ret = ret2;
- 		page_cache_release(sdio->cur_page);
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
+proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
 linux-next.patch
-brlocks-lglocks-clean-up-code.patch
-brlocks-lglocks-clean-up-code-checkpatch-fixes.patch
-hwpoison-convert-pr_debugs-to-pr_infos.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes-fix.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
+drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
+vmscan-use-atomic-long-for-shrinker-batching-fix.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
+include-linux-securityh-fix-security_inode_init_security-arg.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
+drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-vfs-cache-request_queue-in-struct-block_device.patch
-dio-optimize-cache-misses-in-the-submission-path-v2.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
+sysctl-add-support-for-poll-fix.patch
+include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
+pps-new-client-driver-using-gpio-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
 dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
