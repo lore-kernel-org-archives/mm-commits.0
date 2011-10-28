@@ -1,145 +1,363 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 28 Oct 2011 15:11:01 -0700
-Message-ID: <201110282211.p9SMB1Kv020727@wpaz5.hot.corp.google.com>
+Subject: [merged] dio-merge-direct_io_walker-into-__blockdev_direct_io.patch removed from -mm tree
+Date: Fri, 28 Oct 2011 15:10:57 -0700
+Message-ID: <201110282210.p9SMAvnE000800@hpaq12.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:33117 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:7026 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755806Ab1J1WLF (ORCPT
+	with ESMTP id S1753971Ab1J1WLF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2011 18:11:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, axboe@kernel.dk, hch@lst.de, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
+     Subject: dio: merge direct_io_walker() into __blockdev_direct_IO()
 has been removed from the -mm tree.  Its filename was
-     dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes.patch
+     dio-merge-direct_io_walker-into-__blockdev_direct_io.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
+From: Andi Kleen <ak@linux.intel.com>
+Subject: dio: merge direct_io_walker() into __blockdev_direct_IO()
 
-ERROR: trailing whitespace
-#180: FILE: fs/direct-io.c:1103:
-+^Iunsigned long user_addr; $
+This doesn't change anything for the compiler, but hch thought it would
+make the code clearer.
 
-ERROR: need consistent spacing around '+' (ctx:WxV)
-#223: FILE: fs/direct-io.c:1213:
-+			((user_addr+iov[seg].iov_len +PAGE_SIZE-1)/PAGE_SIZE
- 			                             ^
+I moved the reference counting into its own little inline.
 
-ERROR: trailing whitespace
-#247: FILE: fs/direct-io.c:1237:
-+^I$
-
-total: 3 errors, 0 warnings, 297 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/dio-merge-direct_io_walker-into-__blockdev_direct_io.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/direct-io.c |  271 ++++++++++++++++++++++-------------------------
+ 1 file changed, 132 insertions(+), 139 deletions(-)
 
-diff -puN fs/direct-io.c~dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes fs/direct-io.c
---- a/fs/direct-io.c~dio-merge-direct_io_walker-into-__blockdev_direct_io-checkpatch-fixes
+diff -puN fs/direct-io.c~dio-merge-direct_io_walker-into-__blockdev_direct_io fs/direct-io.c
+--- a/fs/direct-io.c~dio-merge-direct_io_walker-into-__blockdev_direct_io
 +++ a/fs/direct-io.c
-@@ -1096,7 +1096,7 @@ __blockdev_direct_IO(int rw, struct kioc
+@@ -1033,136 +1033,10 @@ out:
+ 	return ret;
+ }
+ 
+-static inline ssize_t
+-direct_io_worker(int rw, struct kiocb *iocb, struct inode *inode, 
+-	const struct iovec *iov, loff_t offset, unsigned long nr_segs, 
+-	unsigned blkbits, get_block_t get_block, dio_iodone_t end_io,
+-	dio_submit_t submit_io, struct dio *dio, struct dio_submit *sdio)
++static inline int drop_refcount(struct dio *dio)
+ {
+-	unsigned long user_addr; 
++	int ret2;
+ 	unsigned long flags;
+-	int seg;
+-	ssize_t ret = 0;
+-	ssize_t ret2;
+-	size_t bytes;
+-	struct buffer_head map_bh = { 0, };
+-
+-	dio->inode = inode;
+-	dio->rw = rw;
+-	sdio->blkbits = blkbits;
+-	sdio->blkfactor = inode->i_blkbits - blkbits;
+-	sdio->block_in_file = offset >> blkbits;
+-
+-	sdio->get_block = get_block;
+-	dio->end_io = end_io;
+-	sdio->submit_io = submit_io;
+-	sdio->final_block_in_bio = -1;
+-	sdio->next_block_for_io = -1;
+-
+-	dio->iocb = iocb;
+-	dio->i_size = i_size_read(inode);
+-
+-	spin_lock_init(&dio->bio_lock);
+-	dio->refcount = 1;
+-
+-	/*
+-	 * In case of non-aligned buffers, we may need 2 more
+-	 * pages since we need to zero out first and last block.
+-	 */
+-	if (unlikely(sdio->blkfactor))
+-		sdio->pages_in_io = 2;
+-
+-	for (seg = 0; seg < nr_segs; seg++) {
+-		user_addr = (unsigned long)iov[seg].iov_base;
+-		sdio->pages_in_io +=
+-			((user_addr+iov[seg].iov_len +PAGE_SIZE-1)/PAGE_SIZE
+-				- user_addr/PAGE_SIZE);
+-	}
+-
+-	for (seg = 0; seg < nr_segs; seg++) {
+-		user_addr = (unsigned long)iov[seg].iov_base;
+-		sdio->size += bytes = iov[seg].iov_len;
+-
+-		/* Index into the first page of the first block */
+-		sdio->first_block_in_page = (user_addr & ~PAGE_MASK) >> blkbits;
+-		sdio->final_block_in_request = sdio->block_in_file +
+-						(bytes >> blkbits);
+-		/* Page fetching state */
+-		sdio->head = 0;
+-		sdio->tail = 0;
+-		sdio->curr_page = 0;
+-
+-		sdio->total_pages = 0;
+-		if (user_addr & (PAGE_SIZE-1)) {
+-			sdio->total_pages++;
+-			bytes -= PAGE_SIZE - (user_addr & (PAGE_SIZE - 1));
+-		}
+-		sdio->total_pages += (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+-		sdio->curr_user_address = user_addr;
+-	
+-		ret = do_direct_IO(dio, sdio, &map_bh);
+-
+-		dio->result += iov[seg].iov_len -
+-			((sdio->final_block_in_request - sdio->block_in_file) <<
+-					blkbits);
+-
+-		if (ret) {
+-			dio_cleanup(dio, sdio);
+-			break;
+-		}
+-	} /* end iovec loop */
+-
+-	if (ret == -ENOTBLK) {
+-		/*
+-		 * The remaining part of the request will be
+-		 * be handled by buffered I/O when we return
+-		 */
+-		ret = 0;
+-	}
+-	/*
+-	 * There may be some unwritten disk at the end of a part-written
+-	 * fs-block-sized block.  Go zero that now.
+-	 */
+-	dio_zero_block(dio, sdio, 1, &map_bh);
+-
+-	if (sdio->cur_page) {
+-		ret2 = dio_send_cur_page(dio, sdio, &map_bh);
+-		if (ret == 0)
+-			ret = ret2;
+-		page_cache_release(sdio->cur_page);
+-		sdio->cur_page = NULL;
+-	}
+-	if (sdio->bio)
+-		dio_bio_submit(dio, sdio);
+-
+-	/*
+-	 * It is possible that, we return short IO due to end of file.
+-	 * In that case, we need to release all the pages we got hold on.
+-	 */
+-	dio_cleanup(dio, sdio);
+-
+-	/*
+-	 * All block lookups have been performed. For READ requests
+-	 * we can let i_mutex go now that its achieved its purpose
+-	 * of protecting us from looking up uninitialized blocks.
+-	 */
+-	if (rw == READ && (dio->flags & DIO_LOCKING))
+-		mutex_unlock(&dio->inode->i_mutex);
+-
+-	/*
+-	 * The only time we want to leave bios in flight is when a successful
+-	 * partial aio read or full aio write have been setup.  In that case
+-	 * bio completion will call aio_complete.  The only time it's safe to
+-	 * call aio_complete is when we return -EIOCBQUEUED, so we key on that.
+-	 * This had *better* be the only place that raises -EIOCBQUEUED.
+-	 */
+-	BUG_ON(ret == -EIOCBQUEUED);
+-	if (dio->is_async && ret == 0 && dio->result &&
+-	    ((rw & READ) || (dio->result == sdio->size)))
+-		ret = -EIOCBQUEUED;
+-
+-	if (ret != -EIOCBQUEUED)
+-		dio_await_completion(dio);
+ 
+ 	/*
+ 	 * Sync will always be dropping the final ref and completing the
+@@ -1178,14 +1052,7 @@ direct_io_worker(int rw, struct kiocb *i
+ 	spin_lock_irqsave(&dio->bio_lock, flags);
+ 	ret2 = --dio->refcount;
+ 	spin_unlock_irqrestore(&dio->bio_lock, flags);
+-
+-	if (ret2 == 0) {
+-		ret = dio_complete(dio, offset, ret, false);
+-		kmem_cache_free(dio_cache, dio);
+-	} else
+-		BUG_ON(ret != -EIOCBQUEUED);
+-
+-	return ret;
++	return ret2;
+ }
+ 
+ /*
+@@ -1229,6 +1096,9 @@ __blockdev_direct_IO(int rw, struct kioc
  	loff_t end = offset;
  	struct dio *dio;
  	struct dio_submit sdio = { 0, };
--	unsigned long user_addr; 
-+	unsigned long user_addr;
- 	size_t bytes;
- 	struct buffer_head map_bh = { 0, };
++	unsigned long user_addr; 
++	size_t bytes;
++	struct buffer_head map_bh = { 0, };
  
-@@ -1206,7 +1206,7 @@ __blockdev_direct_IO(int rw, struct kioc
- 	for (seg = 0; seg < nr_segs; seg++) {
- 		user_addr = (unsigned long)iov[seg].iov_base;
- 		sdio.pages_in_io +=
--			((user_addr+iov[seg].iov_len +PAGE_SIZE-1)/PAGE_SIZE
-+			((user_addr+iov[seg].iov_len + PAGE_SIZE - 1)/PAGE_SIZE
- 				- user_addr/PAGE_SIZE);
- 	}
+ 	if (rw & WRITE)
+ 		rw = WRITE_ODIRECT;
+@@ -1306,9 +1176,132 @@ __blockdev_direct_IO(int rw, struct kioc
+ 	dio->is_async = !is_sync_kiocb(iocb) && !((rw & WRITE) &&
+ 		(end > i_size_read(inode)));
  
-@@ -1230,7 +1230,7 @@ __blockdev_direct_IO(int rw, struct kioc
- 		}
- 		sdio.total_pages += (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
- 		sdio.curr_user_address = user_addr;
--	
+-	retval = direct_io_worker(rw, iocb, inode, iov, offset,
+-				nr_segs, blkbits, get_block, end_io,
+-				  submit_io, dio, &sdio);
++	retval = 0;
 +
- 		retval = do_direct_IO(dio, &sdio, &map_bh);
++	dio->inode = inode;
++	dio->rw = rw;
++	sdio.blkbits = blkbits;
++	sdio.blkfactor = inode->i_blkbits - blkbits;
++	sdio.block_in_file = offset >> blkbits;
++
++	sdio.get_block = get_block;
++	dio->end_io = end_io;
++	sdio.submit_io = submit_io;
++	sdio.final_block_in_bio = -1;
++	sdio.next_block_for_io = -1;
++
++	dio->iocb = iocb;
++	dio->i_size = i_size_read(inode);
++
++	spin_lock_init(&dio->bio_lock);
++	dio->refcount = 1;
++
++	/*
++	 * In case of non-aligned buffers, we may need 2 more
++	 * pages since we need to zero out first and last block.
++	 */
++	if (unlikely(sdio.blkfactor))
++		sdio.pages_in_io = 2;
++
++	for (seg = 0; seg < nr_segs; seg++) {
++		user_addr = (unsigned long)iov[seg].iov_base;
++		sdio.pages_in_io +=
++			((user_addr+iov[seg].iov_len +PAGE_SIZE-1)/PAGE_SIZE
++				- user_addr/PAGE_SIZE);
++	}
++
++	for (seg = 0; seg < nr_segs; seg++) {
++		user_addr = (unsigned long)iov[seg].iov_base;
++		sdio.size += bytes = iov[seg].iov_len;
++
++		/* Index into the first page of the first block */
++		sdio.first_block_in_page = (user_addr & ~PAGE_MASK) >> blkbits;
++		sdio.final_block_in_request = sdio.block_in_file +
++						(bytes >> blkbits);
++		/* Page fetching state */
++		sdio.head = 0;
++		sdio.tail = 0;
++		sdio.curr_page = 0;
++
++		sdio.total_pages = 0;
++		if (user_addr & (PAGE_SIZE-1)) {
++			sdio.total_pages++;
++			bytes -= PAGE_SIZE - (user_addr & (PAGE_SIZE - 1));
++		}
++		sdio.total_pages += (bytes + PAGE_SIZE - 1) / PAGE_SIZE;
++		sdio.curr_user_address = user_addr;
++	
++		retval = do_direct_IO(dio, &sdio, &map_bh);
++
++		dio->result += iov[seg].iov_len -
++			((sdio.final_block_in_request - sdio.block_in_file) <<
++					blkbits);
++
++		if (retval) {
++			dio_cleanup(dio, &sdio);
++			break;
++		}
++	} /* end iovec loop */
++
++	if (retval == -ENOTBLK) {
++		/*
++		 * The remaining part of the request will be
++		 * be handled by buffered I/O when we return
++		 */
++		retval = 0;
++	}
++	/*
++	 * There may be some unwritten disk at the end of a part-written
++	 * fs-block-sized block.  Go zero that now.
++	 */
++	dio_zero_block(dio, &sdio, 1, &map_bh);
++
++	if (sdio.cur_page) {
++		ssize_t ret2;
++
++		ret2 = dio_send_cur_page(dio, &sdio, &map_bh);
++		if (retval == 0)
++			retval = ret2;
++		page_cache_release(sdio.cur_page);
++		sdio.cur_page = NULL;
++	}
++	if (sdio.bio)
++		dio_bio_submit(dio, &sdio);
++
++	/*
++	 * It is possible that, we return short IO due to end of file.
++	 * In that case, we need to release all the pages we got hold on.
++	 */
++	dio_cleanup(dio, &sdio);
++
++	/*
++	 * All block lookups have been performed. For READ requests
++	 * we can let i_mutex go now that its achieved its purpose
++	 * of protecting us from looking up uninitialized blocks.
++	 */
++	if (rw == READ && (dio->flags & DIO_LOCKING))
++		mutex_unlock(&dio->inode->i_mutex);
++
++	/*
++	 * The only time we want to leave bios in flight is when a successful
++	 * partial aio read or full aio write have been setup.  In that case
++	 * bio completion will call aio_complete.  The only time it's safe to
++	 * call aio_complete is when we return -EIOCBQUEUED, so we key on that.
++	 * This had *better* be the only place that raises -EIOCBQUEUED.
++	 */
++	BUG_ON(retval == -EIOCBQUEUED);
++	if (dio->is_async && retval == 0 && dio->result &&
++	    ((rw & READ) || (dio->result == sdio.size)))
++		retval = -EIOCBQUEUED;
++
++	if (retval != -EIOCBQUEUED)
++		dio_await_completion(dio);
++
++	if (drop_refcount(dio) == 0) {
++		retval = dio_complete(dio, offset, retval, false);
++		kmem_cache_free(dio_cache, dio);
++	} else
++		BUG_ON(retval != -EIOCBQUEUED);
  
- 		dio->result += iov[seg].iov_len -
+ out:
+ 	return retval;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
-dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
-proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
-drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
-drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+brlocks-lglocks-clean-up-code.patch
+brlocks-lglocks-clean-up-code-checkpatch-fixes.patch
+hwpoison-convert-pr_debugs-to-pr_infos.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space.patch
 lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-sysctl-add-support-for-poll-fix.patch
-include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
+vfs-cache-request_queue-in-struct-block_device.patch
+dio-optimize-cache-misses-in-the-submission-path-v2.patch
 dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
 
