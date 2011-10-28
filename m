@@ -1,181 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 28 Oct 2011 15:10:53 -0700
-Message-ID: <201110282210.p9SMArUj000780@hpaq12.eem.corp.google.com>
+Subject: [merged] dio-inline-the-complete-submission-path-v2.patch removed from -mm tree
+Date: Fri, 28 Oct 2011 15:10:48 -0700
+Message-ID: <201110282210.p9SMAmPR009025@hpaq3.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:6997 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:6996 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755806Ab1J1WK7 (ORCPT
+	with ESMTP id S1753971Ab1J1WK7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2011 18:10:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, axboe@kernel.dk, hch@lst.de, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dio-inline-the-complete-submission-path-v2-checkpatch-fixes
+     Subject: dio: inline the complete submission path
 has been removed from the -mm tree.  Its filename was
-     dio-inline-the-complete-submission-path-v2-checkpatch-fixes.patch
+     dio-inline-the-complete-submission-path-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dio-inline-the-complete-submission-path-v2-checkpatch-fixes
+From: Andi Kleen <ak@linux.intel.com>
+Subject: dio: inline the complete submission path
 
-WARNING: line over 80 characters
-#46: FILE: fs/direct-io.c:248:
-+static inline struct page *dio_get_page(struct dio *dio, struct dio_submit *sdio)
+Add inlines to all the submission path functions.  While this increases
+code size it also gives gcc a lot of optimization opportunities in this
+critical hotpath.
 
-ERROR: inline keyword should sit between storage class and type
-#55: FILE: fs/direct-io.c:379:
-+static void inline
+In particular -- together with some other changes -- this allows gcc to
+get rid of the unnecessary clearing of sdio at the beginning and optimize
+the messy parameter passing.  Any non inlining of a function which takes a
+sdio parameter would break this optimization because they cannot be done
+if the address of a structure is taken.
 
-ERROR: trailing whitespace
-#91: FILE: fs/direct-io.c:634:
-+static inline int dio_new_bio(struct dio *dio, struct dio_submit *sdio, $
+Note that benefits are only seen with CONFIG_OPTIMIZE_INLINING and
+CONFIG_CC_OPTIMIZE_FOR_SIZE both set to off.
 
-ERROR: code indent should use tabs where possible
-#111: FILE: fs/direct-io.c:693:
-+^I  ^I^I    ^I    struct buffer_head *map_bh)$
+This gives about 2.2% improvement on a large database benchmark with a
+high IOPS rate.
 
-WARNING: please, no space before tabs
-#111: FILE: fs/direct-io.c:693:
-+^I  ^I^I    ^I    struct buffer_head *map_bh)$
-
-WARNING: line over 80 characters
-#129: FILE: fs/direct-io.c:845:
-+static inline void dio_zero_block(struct dio *dio, struct dio_submit *sdio, int end,
-
-ERROR: trailing whitespace
-#146: FILE: fs/direct-io.c:1216:
-+ * $
-
-ERROR: trailing whitespace
-#149: FILE: fs/direct-io.c:1219:
-+ * individual fields and will generate much worse code. $
-
-total: 5 errors, 3 warnings, 109 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/dio-inline-the-complete-submission-path-v2.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ fs/direct-io.c |   31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
-diff -puN fs/direct-io.c~dio-inline-the-complete-submission-path-v2-checkpatch-fixes fs/direct-io.c
---- a/fs/direct-io.c~dio-inline-the-complete-submission-path-v2-checkpatch-fixes
+diff -puN fs/direct-io.c~dio-inline-the-complete-submission-path-v2 fs/direct-io.c
+--- a/fs/direct-io.c~dio-inline-the-complete-submission-path-v2
 +++ a/fs/direct-io.c
-@@ -376,10 +376,8 @@ void dio_end_io(struct bio *bio, int err
+@@ -199,7 +199,7 @@ static inline unsigned dio_pages_present
+ /*
+  * Go grab and pin some userspace pages.   Typically we'll get 64 at a time.
+  */
+-static int dio_refill_pages(struct dio *dio, struct dio_submit *sdio)
++static inline int dio_refill_pages(struct dio *dio, struct dio_submit *sdio)
+ {
+ 	int ret;
+ 	int nr_pages;
+@@ -245,7 +245,7 @@ out:
+  * decent number of pages, less frequently.  To provide nicer use of the
+  * L1 cache.
+  */
+-static struct page *dio_get_page(struct dio *dio, struct dio_submit *sdio)
++static inline struct page *dio_get_page(struct dio *dio, struct dio_submit *sdio)
+ {
+ 	if (dio_pages_present(dio, sdio) == 0) {
+ 		int ret;
+@@ -376,7 +376,7 @@ void dio_end_io(struct bio *bio, int err
  }
  EXPORT_SYMBOL_GPL(dio_end_io);
  
--static void inline
--dio_bio_alloc(struct dio *dio, struct dio_submit *sdio,
--	      struct block_device *bdev,
--	      sector_t first_sector, int nr_vecs)
-+static inline void dio_bio_alloc(struct dio *dio, struct dio_submit *sdio,
-+	      	struct block_device *bdev, sector_t first_sector, int nr_vecs)
+-static void
++static void inline
+ dio_bio_alloc(struct dio *dio, struct dio_submit *sdio,
+ 	      struct block_device *bdev,
+ 	      sector_t first_sector, int nr_vecs)
+@@ -407,7 +407,7 @@ dio_bio_alloc(struct dio *dio, struct di
+  *
+  * bios hold a dio reference between submit_bio and ->end_io.
+  */
+-static void dio_bio_submit(struct dio *dio, struct dio_submit *sdio)
++static inline void dio_bio_submit(struct dio *dio, struct dio_submit *sdio)
  {
- 	struct bio *bio;
- 
-@@ -627,7 +625,7 @@ static int get_more_blocks(struct dio *d
+ 	struct bio *bio = sdio->bio;
+ 	unsigned long flags;
+@@ -435,7 +435,7 @@ static void dio_bio_submit(struct dio *d
  /*
-  * There is no bio.  Make one now.
+  * Release any resources in case of a failure
   */
--static inline int dio_new_bio(struct dio *dio, struct dio_submit *sdio, 
-+static inline int dio_new_bio(struct dio *dio, struct dio_submit *sdio,
- 		       sector_t start_sector, struct buffer_head *map_bh)
+-static void dio_cleanup(struct dio *dio, struct dio_submit *sdio)
++static inline void dio_cleanup(struct dio *dio, struct dio_submit *sdio)
  {
- 	sector_t sector;
-@@ -686,7 +684,7 @@ static inline int dio_bio_add_page(struc
-  * dio, and for dropping the refcount which came from that presence.
+ 	while (dio_pages_present(dio, sdio))
+ 		page_cache_release(dio_get_page(dio, sdio));
+@@ -528,7 +528,7 @@ static void dio_await_completion(struct 
+  *
+  * This also helps to limit the peak amount of pinned userspace memory.
   */
- static inline int dio_send_cur_page(struct dio *dio, struct dio_submit *sdio,
--	  		    	    struct buffer_head *map_bh)
-+				    struct buffer_head *map_bh)
+-static int dio_bio_reap(struct dio *dio, struct dio_submit *sdio)
++static inline int dio_bio_reap(struct dio *dio, struct dio_submit *sdio)
  {
  	int ret = 0;
  
-@@ -1209,10 +1207,10 @@ direct_io_worker(int rw, struct kiocb *i
+@@ -627,7 +627,7 @@ static int get_more_blocks(struct dio *d
+ /*
+  * There is no bio.  Make one now.
+  */
+-static int dio_new_bio(struct dio *dio, struct dio_submit *sdio,
++static inline int dio_new_bio(struct dio *dio, struct dio_submit *sdio, 
+ 		       sector_t start_sector, struct buffer_head *map_bh)
+ {
+ 	sector_t sector;
+@@ -653,7 +653,7 @@ out:
+  *
+  * Return zero on success.  Non-zero means the caller needs to start a new BIO.
+  */
+-static int dio_bio_add_page(struct dio *dio, struct dio_submit *sdio)
++static inline int dio_bio_add_page(struct dio *dio, struct dio_submit *sdio)
+ {
+ 	int ret;
+ 
+@@ -685,8 +685,8 @@ static int dio_bio_add_page(struct dio *
+  * The caller of this function is responsible for removing cur_page from the
+  * dio, and for dropping the refcount which came from that presence.
+  */
+-static int dio_send_cur_page(struct dio *dio, struct dio_submit *sdio,
+-			     struct buffer_head *map_bh)
++static inline int dio_send_cur_page(struct dio *dio, struct dio_submit *sdio,
++	  		    	    struct buffer_head *map_bh)
+ {
+ 	int ret = 0;
+ 
+@@ -755,7 +755,7 @@ out:
+  * If that doesn't work out then we put the old page into the bio and add this
+  * page to the dio instead.
+  */
+-static int
++static inline int
+ submit_page_section(struct dio *dio, struct dio_submit *sdio, struct page *page,
+ 		    unsigned offset, unsigned len, sector_t blocknr,
+ 		    struct buffer_head *map_bh)
+@@ -838,7 +838,7 @@ static void clean_blockdev_aliases(struc
+  * `end' is zero if we're doing the start of the IO, 1 at the end of the
+  * IO.
+  */
+-static void dio_zero_block(struct dio *dio, struct dio_submit *sdio, int end,
++static inline void dio_zero_block(struct dio *dio, struct dio_submit *sdio, int end,
+ 			   struct buffer_head *map_bh)
+ {
+ 	unsigned dio_blocks_per_fs_block;
+@@ -1035,7 +1035,7 @@ out:
+ 	return ret;
+ }
+ 
+-static ssize_t
++static inline ssize_t
+ direct_io_worker(int rw, struct kiocb *iocb, struct inode *inode, 
+ 	const struct iovec *iov, loff_t offset, unsigned long nr_segs, 
+ 	unsigned blkbits, get_block_t get_block, dio_iodone_t end_io,
+@@ -1209,6 +1209,11 @@ direct_io_worker(int rw, struct kiocb *i
   * expected that filesystem provide exclusion between new direct I/O
   * and truncates.  For DIO_LOCKING filesystems this is done by i_mutex,
   * but other filesystems need to take care of this on their own.
-- * 
-+ *
-  * NOTE: if you pass "sdio" to anything by pointer make sure that function
-  * is always inlined. Otherwise gcc is unable to split the structure into
-- * individual fields and will generate much worse code. 
-+ * individual fields and will generate much worse code.
-  * This is important for the whole file.
++ * 
++ * NOTE: if you pass "sdio" to anything by pointer make sure that function
++ * is always inlined. Otherwise gcc is unable to split the structure into
++ * individual fields and will generate much worse code. 
++ * This is important for the whole file.
   */
  ssize_t
+ __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
-dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
-proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-readlinkat-ensure-we-return-enoent-for-the-empty-pathname-for-normal-lookups.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
-drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-comments-to-explain-mm_struct-fields-fix.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
-drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+brlocks-lglocks-clean-up-code.patch
+brlocks-lglocks-clean-up-code-checkpatch-fixes.patch
+hwpoison-convert-pr_debugs-to-pr_infos.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space.patch
 lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-sysctl-add-support-for-poll-fix.patch
-include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
-pps-new-client-driver-using-gpio-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
+vfs-cache-request_queue-in-struct-block_device.patch
+dio-optimize-cache-misses-in-the-submission-path-v2.patch
 dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
 
