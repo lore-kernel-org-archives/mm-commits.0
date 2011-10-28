@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-add-udev-events-for-memory-online-offline.patch added to -mm tree
-Date: Fri, 28 Oct 2011 15:46:47 -0700
-Message-ID: <201110282246.p9SMklxf008634@wpaz33.hot.corp.google.com>
+Subject: + mm-vmstatc-cache-align-vm_stat.patch added to -mm tree
+Date: Fri, 28 Oct 2011 15:55:02 -0700
+Message-ID: <201110282255.p9SMt2c7029344@wpaz37.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:13411 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:14891 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932752Ab1J1WrD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2011 18:47:03 -0400
+	with ESMTP id S932935Ab1J1Wzf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2011 18:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, greg@kroah.com, haveblue@us.ibm.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, schwidefsky@de.ibm.com, vgoyal@redhat.com
+Cc: sivanich@sgi.com, cl@gentwo.org, mel@csn.ul.ie
 
 
 The patch titled
-     Subject: kdump: Add udev events for memory online/offline
+     Subject: mm/vmstat.c: cache align vm_stat
 has been added to the -mm tree.  Its filename is
-     kdump-add-udev-events-for-memory-online-offline.patch
+     mm-vmstatc-cache-align-vm_stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: kdump: Add udev events for memory online/offline
+From: Dimitri Sivanich <sivanich@sgi.com>
+Subject: mm/vmstat.c: cache align vm_stat
 
-Currently no udev events for memory hotplug "online" and "offline" are
-generated:
+Avoid false sharing of the vm_stat array.
 
-# udevadm monitor
-# echo offline > /sys/devices/system/memory/memory4/state
-==> No event
+This was found to adversely affect tmpfs I/O performance.
 
-When kdump is loaded, kexec detects the current memory configuration and
-stores it in the pre-allocated ELF core header.  Therefore, for kdump it
-is necessary to reload the kdump kernel with kexec when the memory
-configuration changes (e.g.  for online/offline hotplug memory).
-
-In order to do this automatically, udev rules should be used.  This kernel
-patch adds udev events for "online" and "offline".  Together with this
-kernel patch, the following udev rules for online/offline have to be added
-to "/etc/udev/rules.d/98-kexec.rules":
-
-SUBSYSTEM=="memory", ACTION=="online", PROGRAM="/etc/init.d/kdump restart"
-SUBSYSTEM=="memory", ACTION=="offline", PROGRAM="/etc/init.d/kdump restart"
-
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+Acked-by: Christoph Lameter <cl@gentwo.org>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline drivers/base/memory.c
---- a/drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline
-+++ a/drivers/base/memory.c
-@@ -332,11 +332,15 @@ store_mem_state(struct sys_device *dev,
+diff -puN mm/vmstat.c~mm-vmstatc-cache-align-vm_stat mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstatc-cache-align-vm_stat
++++ a/mm/vmstat.c
+@@ -78,7 +78,7 @@ void vm_events_fold_cpu(int cpu)
+  *
+  * vm_stat contains the global counters
+  */
+-atomic_long_t vm_stat[NR_VM_ZONE_STAT_ITEMS];
++atomic_long_t vm_stat[NR_VM_ZONE_STAT_ITEMS] __cacheline_aligned_in_smp;
+ EXPORT_SYMBOL(vm_stat);
  
- 	mem = container_of(dev, struct memory_block, sysdev);
- 
--	if (!strncmp(buf, "online", min((int)count, 6)))
-+	if (!strncmp(buf, "online", min((int)count, 6))) {
- 		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
--	else if(!strncmp(buf, "offline", min((int)count, 7)))
-+		if (ret == 0)
-+			kobject_uevent(&dev->kobj, KOBJ_ONLINE);
-+	} else if (!strncmp(buf, "offline", min((int)count, 7))) {
- 		ret = memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE);
+ #ifdef CONFIG_SMP
+_
+Subject: Subject: mm/vmstat.c: cache align vm_stat
+
+Patches currently in -mm which might be from sivanich@sgi.com are
+
+mm-vmstatc-cache-align-vm_stat.patch
+
