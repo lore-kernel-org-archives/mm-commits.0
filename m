@@ -1,68 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch removed from -mm tree
-Date: Mon, 31 Oct 2011 16:46:17 -0700
-Message-ID: <201110312346.p9VNkIA5020049@wpaz1.hot.corp.google.com>
+Subject: [folded] vmscan-limit-direct-reclaim-for-higher-order-allocations-fix.patch removed from -mm tree
+Date: Mon, 31 Oct 2011 16:46:59 -0700
+Message-ID: <201110312347.p9VNl0Nw007997@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:42781 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:53116 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036Ab1JaXqW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:46:22 -0400
+	with ESMTP id S1752221Ab1JaXrG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:47:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, consul.kautuk@gmail.com, mm-commits@vger.kernel.org
+To: jweiner@redhat.com, aarcange@redhat.com, mgorman@suse.de, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
+     Subject: vmscan-limit-direct-reclaim-for-higher-order-allocations-fix
 has been removed from the -mm tree.  Its filename was
-     mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+     vmscan-limit-direct-reclaim-for-higher-order-allocations-fix.patch
 
-This patch was dropped because it was folded into mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks.patch
+This patch was dropped because it was folded into vmscan-limit-direct-reclaim-for-higher-order-allocations.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
+From: Johannes Weiner <jweiner@redhat.com>
+Subject: vmscan-limit-direct-reclaim-for-higher-order-allocations-fix
 
-Cc: Kautuk Consul <consul.kautuk@gmail.com>
+change comment to explain the order check
+
+Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmscan.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix mm/mmap.c
---- a/mm/mmap.c~mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix
-+++ a/mm/mmap.c
-@@ -2582,7 +2582,6 @@ int mm_take_all_locks(struct mm_struct *
- 
- out_unlock:
- 	mm_drop_all_locks(mm);
--
- 	return -EINTR;
- }
- 
+diff -puN mm/vmscan.c~vmscan-limit-direct-reclaim-for-higher-order-allocations-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-limit-direct-reclaim-for-higher-order-allocations-fix
++++ a/mm/vmscan.c
+@@ -2115,8 +2115,14 @@ static void shrink_zones(int priority, s
+ 				continue;	/* Let kswapd poll it */
+ 			if (COMPACTION_BUILD) {
+ 				/*
+-				 * If we already have plenty of memory free
+-				 * for compaction, don't free any more.
++				 * If we already have plenty of memory
++				 * free for compaction, don't free any
++				 * more.  Even though compaction is
++				 * invoked for any non-zero order,
++				 * only frequent costly order
++				 * reclamation is disruptive enough to
++				 * become a noticable problem, like
++				 * transparent huge page allocations.
+ 				 */
+ 				if (sc->order > PAGE_ALLOC_COSTLY_ORDER &&
+ 					(compaction_suitable(zone, sc->order) ||
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jweiner@redhat.com are
 
-origin.patch
-dma-mapping-fix-sync_single_range_-dma-debugging.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
-mm-add-comments-to-explain-mm_struct-fields.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+mm-page-writebackc-document-bdi_min_ratio.patch
+mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
+xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
+mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
+mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
+mremap-check-for-overflow-using-deltas.patch
+mremap-avoid-sending-one-ipi-per-page.patch
 thp-mremap-support-and-tlb-optimization.patch
-mm-neaten-warn_alloc_failed.patch
-debug-pagealloc-add-support-for-highmem-pages.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
-kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
-drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+vmscanc-fix-invalid-strict_strtoul-check-in-write_scan_unevictable_node.patch
+mm-disable-user-interface-to-manually-rescue-unevictable-pages.patch
+mm-huge_memoryc-quiet-sparse-noise.patch
+vmscan-add-barrier-to-prevent-evictable-page-in-unevictable-list.patch
+vmscan-limit-direct-reclaim-for-higher-order-allocations.patch
+vmscan-abort-reclaim-compaction-if-compaction-can-proceed.patch
+mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch
+mm-huge_memory-fix-copying-user-highpage.patch
+mm-huge_memory-fix-typo-when-updating-mmu-cache.patch
 
