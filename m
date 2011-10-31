@@ -1,87 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-limit-direct-reclaim-for-higher-order-allocations-fix.patch removed from -mm tree
-Date: Mon, 31 Oct 2011 16:46:59 -0700
-Message-ID: <201110312347.p9VNl0Nw007997@wpaz13.hot.corp.google.com>
+Subject: [folded] mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch removed from -mm tree
+Date: Mon, 31 Oct 2011 16:47:37 -0700
+Message-ID: <201110312347.p9VNlbSx022689@hpaq12.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:53116 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:42997 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752221Ab1JaXrG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:47:06 -0400
+	with ESMTP id S1752036Ab1JaXrn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jweiner@redhat.com, aarcange@redhat.com, mgorman@suse.de, minchan.kim@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan-limit-direct-reclaim-for-higher-order-allocations-fix
+     Subject: mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
 has been removed from the -mm tree.  Its filename was
-     vmscan-limit-direct-reclaim-for-higher-order-allocations-fix.patch
+     mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
 
-This patch was dropped because it was folded into vmscan-limit-direct-reclaim-for-higher-order-allocations.patch
+This patch was dropped because it was folded into mm-munlock-use-mapcount-to-avoid-terrible-overhead.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Johannes Weiner <jweiner@redhat.com>
-Subject: vmscan-limit-direct-reclaim-for-higher-order-allocations-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
 
-change comment to explain the order check
+add comment
 
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/mlock.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/vmscan.c~vmscan-limit-direct-reclaim-for-higher-order-allocations-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-limit-direct-reclaim-for-higher-order-allocations-fix
-+++ a/mm/vmscan.c
-@@ -2115,8 +2115,14 @@ static void shrink_zones(int priority, s
- 				continue;	/* Let kswapd poll it */
- 			if (COMPACTION_BUILD) {
- 				/*
--				 * If we already have plenty of memory free
--				 * for compaction, don't free any more.
-+				 * If we already have plenty of memory
-+				 * free for compaction, don't free any
-+				 * more.  Even though compaction is
-+				 * invoked for any non-zero order,
-+				 * only frequent costly order
-+				 * reclamation is disruptive enough to
-+				 * become a noticable problem, like
-+				 * transparent huge page allocations.
- 				 */
- 				if (sc->order > PAGE_ALLOC_COSTLY_ORDER &&
- 					(compaction_suitable(zone, sc->order) ||
+diff -puN mm/mlock.c~mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix mm/mlock.c
+--- a/mm/mlock.c~mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix
++++ a/mm/mlock.c
+@@ -112,6 +112,11 @@ void munlock_vma_page(struct page *page)
+ 		if (!isolate_lru_page(page)) {
+ 			int ret = SWAP_AGAIN;
+ 
++			/*
++			 * Optimization: if the page was mapped just once,
++			 * that's our mapping and we don't need to check all the
++			 * other vmas.
++			 */
+ 			if (page_mapcount(page) > 1)
+ 				ret = try_to_munlock(page);
+ 			/*
 _
 
-Patches currently in -mm which might be from jweiner@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page-writebackc-document-bdi_min_ratio.patch
-mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
-mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
-xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
-mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
-mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
-mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
-mremap-check-for-overflow-using-deltas.patch
-mremap-avoid-sending-one-ipi-per-page.patch
+origin.patch
+dma-mapping-fix-sync_single_range_-dma-debugging.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
+proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
+mm-add-comments-to-explain-mm_struct-fields.patch
+mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 thp-mremap-support-and-tlb-optimization.patch
-vmscanc-fix-invalid-strict_strtoul-check-in-write_scan_unevictable_node.patch
-mm-disable-user-interface-to-manually-rescue-unevictable-pages.patch
-mm-huge_memoryc-quiet-sparse-noise.patch
-vmscan-add-barrier-to-prevent-evictable-page-in-unevictable-list.patch
-vmscan-limit-direct-reclaim-for-higher-order-allocations.patch
-vmscan-abort-reclaim-compaction-if-compaction-can-proceed.patch
-mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch
-mm-huge_memory-fix-copying-user-highpage.patch
-mm-huge_memory-fix-typo-when-updating-mmu-cache.patch
+mm-neaten-warn_alloc_failed.patch
+debug-pagealloc-add-support-for-highmem-pages.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-munlock-use-mapcount-to-avoid-terrible-overhead.patch
+kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
+drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
 
