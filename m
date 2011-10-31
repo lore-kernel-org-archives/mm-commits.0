@@ -1,72 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-add-comments-to-explain-mm_struct-fields-fix.patch removed from -mm tree
-Date: Mon, 31 Oct 2011 16:41:36 -0700
-Message-ID: <201110312341.p9VNfaxa030919@wpaz21.hot.corp.google.com>
+Subject: [folded] mm-compaction-make-isolate_lru_page-filter-aware-fix.patch removed from -mm tree
+Date: Mon, 31 Oct 2011 16:40:58 -0700
+Message-ID: <201110312340.p9VNewaY003769@hpaq13.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:42049 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:42072 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753008Ab1JaXlt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:41:49 -0400
+	with ESMTP id S1752629Ab1JaXlz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:41:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, mm-commits@vger.kernel.org
+To: minchan.kim@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, mm-co
 
 
 The patch titled
-     Subject: mm-add-comments-to-explain-mm_struct-fields-fix
+     Subject: mm-compaction-make-isolate_lru_page-filter-aware-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-comments-to-explain-mm_struct-fields-fix.patch
+     mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
 
-This patch was dropped because it was folded into mm-add-comments-to-explain-mm_struct-fields.patch
+This patch was dropped because it was folded into mm-compaction-make-isolate_lru_page-filter-aware.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-comments-to-explain-mm_struct-fields-fix
+From: Minchan Kim <minchan.kim@gmail.com>
+Subject: mm-compaction-make-isolate_lru_page-filter-aware-fix
 
-add missing ;
-
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 +-
+ include/linux/mmzone.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm_types.h~mm-add-comments-to-explain-mm_struct-fields-fix include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-add-comments-to-explain-mm_struct-fields-fix
-+++ a/include/linux/mm_types.h
-@@ -294,7 +294,7 @@ struct mm_struct {
- 	unsigned long hiwater_vm;	/* High-water virtual memory usage */
+diff -puN include/linux/mmzone.h~mm-compaction-make-isolate_lru_page-filter-aware-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-compaction-make-isolate_lru_page-filter-aware-fix
++++ a/include/linux/mmzone.h
+@@ -169,7 +169,7 @@ static inline int is_unevictable_lru(enu
+ /* Isolate active pages */
+ #define ISOLATE_ACTIVE		((__force isolate_mode_t)0x2)
+ /* Isolate clean file */
+-#define ISOLATE_CLEAN		((__force fmode_t)0x4)
++#define ISOLATE_CLEAN		((__force isolate_mode_t)0x4)
  
- 	unsigned long total_vm;		/* Total pages mapped */
--	unsigned long locked_vm		/* Pages that have PG_mlocked set */
-+	unsigned long locked_vm;	/* Pages that have PG_mlocked set */
- 	unsigned long pinned_vm;	/* Refcount permanently increased */
- 	unsigned long shared_vm;	/* Shared pages (files) */
- 	unsigned long exec_vm;		/* VM_EXEC & ~VM_WRITE */
+ /* LRU Isolation modes. */
+ typedef unsigned __bitwise__ isolate_mode_t;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan.kim@gmail.com are
 
-origin.patch
-dma-mapping-fix-sync_single_range_-dma-debugging.patch
-include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
-proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
-mm-add-comments-to-explain-mm_struct-fields.patch
-mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-thp-mremap-support-and-tlb-optimization-fix.patch
-thp-mremap-support-and-tlb-optimization-fix-fix.patch
-mm-neaten-warn_alloc_failed-fix.patch
-debug-pagealloc-add-support-for-highmem-pages-fix.patch
-mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
-mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
-mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
-kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
-drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
-lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
-llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
-checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+mm-compaction-trivial-clean-up-in-acct_isolated.patch
+mm-change-isolate-mode-from-define-to-bitwise-type.patch
+mm-compaction-make-isolate_lru_page-filter-aware.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
+mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
+mm-migration-clean-up-unmap_and_move.patch
+vmscan-add-block-plug-for-page-reclaim.patch
+mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
+xfs-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+ext4-warn-if-direct-reclaim-tries-to-writeback-pages.patch
+mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
+mm-vmscan-throttle-reclaim-if-encountering-too-many-dirty-pages-under-writeback.patch
+mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
+vmscan-count-pages-into-balanced-for-zone-with-good-watermark.patch
+kswapd-assign-new_order-and-new_classzone_idx-after-wakeup-in-sleeping.patch
+mm-compaction-make-compact_zone_order-static.patch
+mm-disable-user-interface-to-manually-rescue-unevictable-pages.patch
+vmscan-add-barrier-to-prevent-evictable-page-in-unevictable-list.patch
+vmscan-limit-direct-reclaim-for-higher-order-allocations.patch
+vmscan-limit-direct-reclaim-for-higher-order-allocations-fix.patch
+vmscan-abort-reclaim-compaction-if-compaction-can-proceed.patch
+mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch
 
