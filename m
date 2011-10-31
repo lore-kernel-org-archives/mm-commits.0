@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-compaction-make-isolate_lru_page-filter-aware-fix.patch removed from -mm tree
-Date: Mon, 31 Oct 2011 16:40:58 -0700
-Message-ID: <201110312340.p9VNewaY003769@hpaq13.eem.corp.google.com>
+Subject: [folded] mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch removed from -mm tree
+Date: Mon, 31 Oct 2011 16:41:14 -0700
+Message-ID: <201110312341.p9VNfEC2030769@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:42072 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:52307 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752629Ab1JaXlz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:41:55 -0400
+	with ESMTP id S1752036Ab1JaXmN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:42:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan.kim@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, mm-co
 
 
 The patch titled
-     Subject: mm-compaction-make-isolate_lru_page-filter-aware-fix
+     Subject: mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-make-isolate_lru_page-filter-aware-fix.patch
+     mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-make-isolate_lru_page-filter-aware.patch
+This patch was dropped because it was folded into mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Minchan Kim <minchan.kim@gmail.com>
-Subject: mm-compaction-make-isolate_lru_page-filter-aware-fix
+Subject: mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix
 
 Signed-off-by: Minchan Kim <minchan.kim@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -40,15 +40,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/mmzone.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~mm-compaction-make-isolate_lru_page-filter-aware-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-compaction-make-isolate_lru_page-filter-aware-fix
+diff -puN include/linux/mmzone.h~mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix
 +++ a/include/linux/mmzone.h
-@@ -169,7 +169,7 @@ static inline int is_unevictable_lru(enu
- /* Isolate active pages */
- #define ISOLATE_ACTIVE		((__force isolate_mode_t)0x2)
+@@ -171,7 +171,7 @@ static inline int is_unevictable_lru(enu
  /* Isolate clean file */
--#define ISOLATE_CLEAN		((__force fmode_t)0x4)
-+#define ISOLATE_CLEAN		((__force isolate_mode_t)0x4)
+ #define ISOLATE_CLEAN		((__force isolate_mode_t)0x4)
+ /* Isolate unmapped file */
+-#define ISOLATE_UNMAPPED	((__force fmode_t)0x8)
++#define ISOLATE_UNMAPPED	((__force isolate_mode_t)0x8)
  
  /* LRU Isolation modes. */
  typedef unsigned __bitwise__ isolate_mode_t;
@@ -60,7 +60,6 @@ mm-compaction-trivial-clean-up-in-acct_isolated.patch
 mm-change-isolate-mode-from-define-to-bitwise-type.patch
 mm-compaction-make-isolate_lru_page-filter-aware.patch
 mm-zone_reclaim-make-isolate_lru_page-filter-aware.patch
-mm-zone_reclaim-make-isolate_lru_page-filter-aware-fix.patch
 mm-migration-clean-up-unmap_and_move.patch
 vmscan-add-block-plug-for-page-reclaim.patch
 mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
