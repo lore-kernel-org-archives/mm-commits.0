@@ -1,97 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: + oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring.patch added to -mm tree
-Date: Mon, 31 Oct 2011 03:34:25 -0700
-Message-ID: <201110311030.p9VAUdDt027838@hpaq6.eem.corp.google.com>
+Subject: [folded] dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 31 Oct 2011 16:39:00 -0700
+Message-ID: <201110312339.p9VNd0bX019817@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:63101 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:51834 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933374Ab1JaKbn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 06:31:43 -0400
+	with ESMTP id S1751493Ab1JaXjX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:39:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, oleg@redhat.com, rjw@sisk.pl
+To: akpm@linux-foundation.org, clemens@ladisch.de, fujita.tomonori@lab.ntt.co.jp, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: thaw threads if oom killed thread is frozen before deferring
-has been added to the -mm tree.  Its filename is
-     oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring.patch
+     Subject: dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into dma-mapping-fix-sync_single_range_-dma-debugging.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: oom: thaw threads if oom killed thread is frozen before deferring
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes
 
-If a thread has been oom killed and is frozen, thaw it before returning to
-the page allocator.  Otherwise, it can stay frozen indefinitely and no
-memory will be freed.
+Cc: Clemens Ladisch <clemens@ladisch.de>
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Michal Hocko <mhocko@suse.cz>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+WARNING: struct dma_map_ops should normally be const
+#39: FILE: include/asm-generic/dma-mapping-common.h:126:
++	struct dma_map_ops *ops = get_dma_ops(dev);
+
+WARNING: struct dma_map_ops should normally be const
+#53: FILE: include/asm-generic/dma-mapping-common.h:140:
++	struct dma_map_ops *ops = get_dma_ops(dev);
+
+total: 0 errors, 2 warnings, 26 lines checked
+
+./patches/dma-mapping-fix-sync_single_range_-dma-debugging.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/asm-generic/dma-mapping-common.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring mm/oom_kill.c
---- a/mm/oom_kill.c~oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring
-+++ a/mm/oom_kill.c
-@@ -32,6 +32,7 @@
- #include <linux/mempolicy.h>
- #include <linux/security.h>
- #include <linux/ptrace.h>
-+#include <linux/freezer.h>
+diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes include/asm-generic/dma-mapping-common.h
+--- a/include/asm-generic/dma-mapping-common.h~dma-mapping-fix-sync_single_range_-dma-debugging-checkpatch-fixes
++++ a/include/asm-generic/dma-mapping-common.h
+@@ -123,7 +123,7 @@ static inline void dma_sync_single_range
+ 						 size_t size,
+ 						 enum dma_data_direction dir)
+ {
+-	struct dma_map_ops *ops = get_dma_ops(dev);
++	const struct dma_map_ops *ops = get_dma_ops(dev);
  
- int sysctl_panic_on_oom;
- int sysctl_oom_kill_allocating_task;
-@@ -317,8 +318,11 @@ static struct task_struct *select_bad_pr
- 		 * blocked waiting for another task which itself is waiting
- 		 * for memory. Is there a better alternative?
- 		 */
--		if (test_tsk_thread_flag(p, TIF_MEMDIE))
-+		if (test_tsk_thread_flag(p, TIF_MEMDIE)) {
-+			if (unlikely(frozen(p)))
-+				thaw_process(p);
- 			return ERR_PTR(-1UL);
-+		}
- 		if (!p->mm)
- 			continue;
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	if (ops->sync_single_for_cpu)
+@@ -137,7 +137,7 @@ static inline void dma_sync_single_range
+ 						    size_t size,
+ 						    enum dma_data_direction dir)
+ {
+-	struct dma_map_ops *ops = get_dma_ops(dev);
++	const struct dma_map_ops *ops = get_dma_ops(dev);
  
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	if (ops->sync_single_for_device)
 _
-Subject: Subject: oom: thaw threads if oom killed thread is frozen before deferring
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+dma-mapping-fix-sync_single_range_-dma-debugging.patch
+include-linux-dmarh-forward-declare-struct-acpi_dmar_header.patch
 proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
-linux-next.patch
-drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
-oom-thaw-threads-if-oom-killed-thread-is-frozen-before-deferring.patch
-oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch
-oom-remove-oom_disable_count.patch
-oom-fix-race-while-temporarily-setting-currents-oom_score_adj.patch
+mm-add-comments-to-explain-mm_struct-fields-fix.patch
 mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
-mm-compaction-make-compact_zone_order-static.patch
-mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch
-cpusets-avoid-looping-when-storing-to-mems_allowed-if-one-node-remains-set.patch
+thp-mremap-support-and-tlb-optimization-fix.patch
+thp-mremap-support-and-tlb-optimization-fix-fix.patch
+mm-neaten-warn_alloc_failed-fix.patch
+debug-pagealloc-add-support-for-highmem-pages-fix.patch
+mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
+mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
+mm-munlock-use-mapcount-to-avoid-terrible-overhead-fix.patch
+kernel-sysctlc-add-cap_last_cap-to-proc-sys-kernel-fix.patch
+drivers-leds-leds-lp5521c-check-if-reset-is-successful-fix.patch
+lib-bitmapc-quiet-sparse-noise-about-address-space-fix.patch
+llist-return-whether-list-is-empty-before-adding-in-llist_add-fix.patch
+checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
 
