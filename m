@@ -1,54 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-mremap-support-and-tlb-optimization-fix-fix.patch removed from -mm tree
-Date: Mon, 31 Oct 2011 16:43:45 -0700
-Message-ID: <201110312343.p9VNhjXQ014569@hpaq5.eem.corp.google.com>
+Subject: [folded] mm-neaten-warn_alloc_failed-fix.patch removed from -mm tree
+Date: Mon, 31 Oct 2011 16:45:15 -0700
+Message-ID: <201110312345.p9VNjG9x001830@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:42332 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:42599 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290Ab1JaXny (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:43:54 -0400
+	with ESMTP id S1751729Ab1JaXpY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Oct 2011 19:45:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp-mremap-support-and-tlb-optimization-fix-fix
+     Subject: mm-neaten-warn_alloc_failed-fix
 has been removed from the -mm tree.  Its filename was
-     thp-mremap-support-and-tlb-optimization-fix-fix.patch
+     mm-neaten-warn_alloc_failed-fix.patch
 
-This patch was dropped because it was folded into thp-mremap-support-and-tlb-optimization.patch
+This patch was dropped because it was folded into mm-neaten-warn_alloc_failed.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thp-mremap-support-and-tlb-optimization-fix-fix
+Subject: mm-neaten-warn_alloc_failed-fix
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+use the __printf() macro
+
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
+ include/linux/mm.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-mremap-support-and-tlb-optimization-fix-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-mremap-support-and-tlb-optimization-fix-fix
-+++ a/mm/huge_memory.c
-@@ -1072,7 +1072,7 @@ int move_huge_pmd(struct vm_area_struct 
- 	 * The destination pmd shouldn't be established, free_pgtables()
- 	 * should have release it.
- 	 */
--	if (!WARN_ON(pmd_none(*new_pmd))) {
-+	if (WARN_ON(!pmd_none(*new_pmd))) {
- 		VM_BUG_ON(pmd_trans_huge(*new_pmd));
- 		goto out;
- 	}
+diff -puN include/linux/mm.h~mm-neaten-warn_alloc_failed-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-neaten-warn_alloc_failed-fix
++++ a/include/linux/mm.h
+@@ -1335,7 +1335,7 @@ extern void si_meminfo(struct sysinfo * 
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
+ extern int after_bootmem;
+ 
+-extern __attribute__((format (printf, 3, 4)))
++extern __printf(3, 4)
+ void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
+ 
+ extern void setup_per_cpu_pageset(void);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +58,7 @@ proc-self-numa_maps-restore-huge-tag-for-hugetlb-vmas.patch
 mm-add-comments-to-explain-mm_struct-fields.patch
 mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 thp-mremap-support-and-tlb-optimization.patch
-mm-neaten-warn_alloc_failed-fix.patch
+mm-neaten-warn_alloc_failed.patch
 debug-pagealloc-add-support-for-highmem-pages-fix.patch
 mm-add-comment-explaining-task-state-setting-in-bdi_forker_thread-fix.patch
 mm-mmapc-eliminate-the-ret-variable-from-mm_take_all_locks-fix.patch
