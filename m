@@ -1,196 +1,364 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:09:59 -0700
-Message-ID: <201111012109.pA1L9x59004208@wpaz13.hot.corp.google.com>
+Subject: [merged] mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:08:50 -0700
+Message-ID: <201111012108.pA1L8oaa004233@hpaq1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15598 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:28981 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755346Ab1KAVKS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:18 -0400
+	with ESMTP id S1755720Ab1KAVKW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mitsuo.hayasaka.hu@hitachi.com, akpm@linux-foundation.org, jeremy.fitzhardinge@citrix.com, namhyung@gmail.com, paulmck@linux.vnet.ibm.com, rientjes@google.com, stable@kernel.orgstab
+To: mel@csn.ul.ie, aelder@sgi.com, chris.mason@oracle.com, dave@linux.vnet.ibm.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, jweiner@redhat.com, mgorm
 
 
 The patch titled
-     Subject: mm: avoid null pointer access in vm_struct via /proc/vmallocinfo
+     Subject: mm: vmscan: do not writeback filesystem pages in direct reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
+     mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
-Subject: mm: avoid null pointer access in vm_struct via /proc/vmallocinfo
+From: Mel Gorman <mel@csn.ul.ie>
+Subject: mm: vmscan: do not writeback filesystem pages in direct reclaim
 
-The /proc/vmallocinfo shows information about vmalloc allocations in
-vmlist that is a linklist of vm_struct.  It, however, may access pages
-field of vm_struct where a page was not allocated.  This results in a null
-pointer access and leads to a kernel panic.
+Testing from the XFS folk revealed that there is still too much I/O from
+the end of the LRU in kswapd.  Previously it was considered acceptable by
+VM people for a small number of pages to be written back from reclaim with
+testing generally showing about 0.3% of pages reclaimed were written back
+(higher if memory was low).  That writing back a small number of pages is
+ok has been heavily disputed for quite some time and Dave Chinner
+explained it well;
 
-Why this happens: In __vmalloc_node_range() called from vmalloc(), newly
-allocated vm_struct is added to vmlist at __get_vm_area_node() and then,
-some fields of vm_struct such as nr_pages and pages are set at
-__vmalloc_area_node().  In other words, it is added to vmlist before it is
-fully initialized.  At the same time, when the /proc/vmallocinfo is read,
-it accesses the pages field of vm_struct according to the nr_pages field
-at show_numa_info().  Thus, a null pointer access happens.
+	It doesn't have to be a very high number to be a problem. IO
+	is orders of magnitude slower than the CPU time it takes to
+	flush a page, so the cost of making a bad flush decision is
+	very high. And single page writeback from the LRU is almost
+	always a bad flush decision.
 
-The patch adds the newly allocated vm_struct to the vmlist *after* it is
-fully initialized.  So, it can avoid accessing the pages field with
-unallocated page when show_numa_info() is called.
+To complicate matters, filesystems respond very differently to requests
+from reclaim according to Christoph Hellwig;
 
-Signed-off-by: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Namhyung Kim <namhyung@gmail.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: <stable@kernel.org>
-Cc: <stable@vger.kernel.org>
+	xfs tries to write it back if the requester is kswapd
+	ext4 ignores the request if it's a delayed allocation
+	btrfs ignores the request
+
+As a result, each filesystem has different performance characteristics
+when under memory pressure and there are many pages being dirtied.  In
+some cases, the request is ignored entirely so the VM cannot depend on the
+IO being dispatched.
+
+The objective of this series is to reduce writing of filesystem-backed
+pages from reclaim, play nicely with writeback that is already in progress
+and throttle reclaim appropriately when writeback pages are encountered. 
+The assumption is that the flushers will always write pages faster than if
+reclaim issues the IO.
+
+A secondary goal is to avoid the problem whereby direct reclaim splices
+two potentially deep call stacks together.
+
+There is a potential new problem as reclaim has less control over how long
+before a page in a particularly zone or container is cleaned and direct
+reclaimers depend on kswapd or flusher threads to do the necessary work. 
+However, as filesystems sometimes ignore direct reclaim requests already,
+it is not expected to be a serious issue.
+
+Patch 1 disables writeback of filesystem pages from direct reclaim
+	entirely. Anonymous pages are still written.
+
+Patch 2 removes dead code in lumpy reclaim as it is no longer able
+	to synchronously write pages. This hurts lumpy reclaim but
+	there is an expectation that compaction is used for hugepage
+	allocations these days and lumpy reclaim's days are numbered.
+
+Patches 3-4 add warnings to XFS and ext4 if called from
+	direct reclaim. With patch 1, this "never happens" and is
+	intended to catch regressions in this logic in the future.
+
+Patch 5 disables writeback of filesystem pages from kswapd unless
+	the priority is raised to the point where kswapd is considered
+	to be in trouble.
+
+Patch 6 throttles reclaimers if too many dirty pages are being
+	encountered and the zones or backing devices are congested.
+
+Patch 7 invalidates dirty pages found at the end of the LRU so they
+	are reclaimed quickly after being written back rather than
+	waiting for a reclaimer to find them
+
+I consider this series to be orthogonal to the writeback work but it is
+worth noting that the writeback work affects the viability of patch 8 in
+particular.
+
+I tested this on ext4 and xfs using fs_mark, a simple writeback test based
+on dd and a micro benchmark that does a streaming write to a large mapping
+(exercises use-once LRU logic) followed by streaming writes to a mix of
+anonymous and file-backed mappings.  The command line for fs_mark when
+botted with 512M looked something like
+
+./fs_mark -d  /tmp/fsmark-2676  -D  100  -N  150  -n  150  -L  25  -t  1  -S0  -s  10485760
+
+The number of files was adjusted depending on the amount of available
+memory so that the files created was about 3xRAM.  For multiple threads,
+the -d switch is specified multiple times.
+
+The test machine is x86-64 with an older generation of AMD processor with
+4 cores.  The underlying storage was 4 disks configured as RAID-0 as this
+was the best configuration of storage I had available.  Swap is on a
+separate disk.  Dirty ratio was tuned to 40% instead of the default of
+20%.
+
+Testing was run with and without monitors to both verify that the patches
+were operating as expected and that any performance gain was real and not
+due to interference from monitors.
+
+Here is a summary of results based on testing XFS.
+
+512M1P-xfs           Files/s  mean                 32.69 ( 0.00%)     34.44 ( 5.08%)
+512M1P-xfs           Elapsed Time fsmark                    51.41     48.29
+512M1P-xfs           Elapsed Time simple-wb                114.09    108.61
+512M1P-xfs           Elapsed Time mmap-strm                113.46    109.34
+512M1P-xfs           Kswapd efficiency fsmark                 62%       63%
+512M1P-xfs           Kswapd efficiency simple-wb              56%       61%
+512M1P-xfs           Kswapd efficiency mmap-strm              44%       42%
+512M-xfs             Files/s  mean                 30.78 ( 0.00%)     35.94 (14.36%)
+512M-xfs             Elapsed Time fsmark                    56.08     48.90
+512M-xfs             Elapsed Time simple-wb                112.22     98.13
+512M-xfs             Elapsed Time mmap-strm                219.15    196.67
+512M-xfs             Kswapd efficiency fsmark                 54%       56%
+512M-xfs             Kswapd efficiency simple-wb              54%       55%
+512M-xfs             Kswapd efficiency mmap-strm              45%       44%
+512M-4X-xfs          Files/s  mean                 30.31 ( 0.00%)     33.33 ( 9.06%)
+512M-4X-xfs          Elapsed Time fsmark                    63.26     55.88
+512M-4X-xfs          Elapsed Time simple-wb                100.90     90.25
+512M-4X-xfs          Elapsed Time mmap-strm                261.73    255.38
+512M-4X-xfs          Kswapd efficiency fsmark                 49%       50%
+512M-4X-xfs          Kswapd efficiency simple-wb              54%       56%
+512M-4X-xfs          Kswapd efficiency mmap-strm              37%       36%
+512M-16X-xfs         Files/s  mean                 60.89 ( 0.00%)     65.22 ( 6.64%)
+512M-16X-xfs         Elapsed Time fsmark                    67.47     58.25
+512M-16X-xfs         Elapsed Time simple-wb                103.22     90.89
+512M-16X-xfs         Elapsed Time mmap-strm                237.09    198.82
+512M-16X-xfs         Kswapd efficiency fsmark                 45%       46%
+512M-16X-xfs         Kswapd efficiency simple-wb              53%       55%
+512M-16X-xfs         Kswapd efficiency mmap-strm              33%       33%
+
+Up until 512-4X, the FSmark improvements were statistically significant. 
+For the 4X and 16X tests the results were within standard deviations but
+just barely.  The time to completion for all tests is improved which is an
+important result.  In general, kswapd efficiency is not affected by
+skipping dirty pages.
+
+1024M1P-xfs          Files/s  mean                 39.09 ( 0.00%)     41.15 ( 5.01%)
+1024M1P-xfs          Elapsed Time fsmark                    84.14     80.41
+1024M1P-xfs          Elapsed Time simple-wb                210.77    184.78
+1024M1P-xfs          Elapsed Time mmap-strm                162.00    160.34
+1024M1P-xfs          Kswapd efficiency fsmark                 69%       75%
+1024M1P-xfs          Kswapd efficiency simple-wb              71%       77%
+1024M1P-xfs          Kswapd efficiency mmap-strm              43%       44%
+1024M-xfs            Files/s  mean                 35.45 ( 0.00%)     37.00 ( 4.19%)
+1024M-xfs            Elapsed Time fsmark                    94.59     91.00
+1024M-xfs            Elapsed Time simple-wb                229.84    195.08
+1024M-xfs            Elapsed Time mmap-strm                405.38    440.29
+1024M-xfs            Kswapd efficiency fsmark                 79%       71%
+1024M-xfs            Kswapd efficiency simple-wb              74%       74%
+1024M-xfs            Kswapd efficiency mmap-strm              39%       42%
+1024M-4X-xfs         Files/s  mean                 32.63 ( 0.00%)     35.05 ( 6.90%)
+1024M-4X-xfs         Elapsed Time fsmark                   103.33     97.74
+1024M-4X-xfs         Elapsed Time simple-wb                204.48    178.57
+1024M-4X-xfs         Elapsed Time mmap-strm                528.38    511.88
+1024M-4X-xfs         Kswapd efficiency fsmark                 81%       70%
+1024M-4X-xfs         Kswapd efficiency simple-wb              73%       72%
+1024M-4X-xfs         Kswapd efficiency mmap-strm              39%       38%
+1024M-16X-xfs        Files/s  mean                 42.65 ( 0.00%)     42.97 ( 0.74%)
+1024M-16X-xfs        Elapsed Time fsmark                   103.11     99.11
+1024M-16X-xfs        Elapsed Time simple-wb                200.83    178.24
+1024M-16X-xfs        Elapsed Time mmap-strm                397.35    459.82
+1024M-16X-xfs        Kswapd efficiency fsmark                 84%       69%
+1024M-16X-xfs        Kswapd efficiency simple-wb              74%       73%
+1024M-16X-xfs        Kswapd efficiency mmap-strm              39%       40%
+
+All FSMark tests up to 16X had statistically significant improvements. 
+For the most part, tests are completing faster with the exception of the
+streaming writes to a mixture of anonymous and file-backed mappings which
+were slower in two cases
+
+In the cases where the mmap-strm tests were slower, there was more
+swapping due to dirty pages being skipped.  The number of additional pages
+swapped is almost identical to the fewer number of pages written from
+reclaim.  In other words, roughly the same number of pages were reclaimed
+but swapping was slower.  As the test is a bit unrealistic and stresses
+memory heavily, the small shift is acceptable.
+
+4608M1P-xfs          Files/s  mean                 29.75 ( 0.00%)     30.96 ( 3.91%)
+4608M1P-xfs          Elapsed Time fsmark                   512.01    492.15
+4608M1P-xfs          Elapsed Time simple-wb                618.18    566.24
+4608M1P-xfs          Elapsed Time mmap-strm                488.05    465.07
+4608M1P-xfs          Kswapd efficiency fsmark                 93%       86%
+4608M1P-xfs          Kswapd efficiency simple-wb              88%       84%
+4608M1P-xfs          Kswapd efficiency mmap-strm              46%       45%
+4608M-xfs            Files/s  mean                 27.60 ( 0.00%)     28.85 ( 4.33%)
+4608M-xfs            Elapsed Time fsmark                   555.96    532.34
+4608M-xfs            Elapsed Time simple-wb                659.72    571.85
+4608M-xfs            Elapsed Time mmap-strm               1082.57   1146.38
+4608M-xfs            Kswapd efficiency fsmark                 89%       91%
+4608M-xfs            Kswapd efficiency simple-wb              88%       82%
+4608M-xfs            Kswapd efficiency mmap-strm              48%       46%
+4608M-4X-xfs         Files/s  mean                 26.00 ( 0.00%)     27.47 ( 5.35%)
+4608M-4X-xfs         Elapsed Time fsmark                   592.91    564.00
+4608M-4X-xfs         Elapsed Time simple-wb                616.65    575.07
+4608M-4X-xfs         Elapsed Time mmap-strm               1773.02   1631.53
+4608M-4X-xfs         Kswapd efficiency fsmark                 90%       94%
+4608M-4X-xfs         Kswapd efficiency simple-wb              87%       82%
+4608M-4X-xfs         Kswapd efficiency mmap-strm              43%       43%
+4608M-16X-xfs        Files/s  mean                 26.07 ( 0.00%)     26.42 ( 1.32%)
+4608M-16X-xfs        Elapsed Time fsmark                   602.69    585.78
+4608M-16X-xfs        Elapsed Time simple-wb                606.60    573.81
+4608M-16X-xfs        Elapsed Time mmap-strm               1549.75   1441.86
+4608M-16X-xfs        Kswapd efficiency fsmark                 98%       98%
+4608M-16X-xfs        Kswapd efficiency simple-wb              88%       82%
+4608M-16X-xfs        Kswapd efficiency mmap-strm              44%       42%
+
+Unlike the other tests, the fsmark results are not statistically
+significant but the min and max times are both improved and for the most
+part, tests completed faster.
+
+There are other indications that this is an improvement as well.  For
+example, in the vast majority of cases, there were fewer pages scanned by
+direct reclaim implying in many cases that stalls due to direct reclaim
+are reduced.  KSwapd is scanning more due to skipping dirty pages which is
+unfortunate but the CPU usage is still acceptable
+
+In an earlier set of tests, I used blktrace and in almost all cases
+throughput throughout the entire test was higher.  However, I ended up
+discarding those results as recording blktrace data was too heavy for my
+liking.
+
+On a laptop, I plugged in a USB stick and ran a similar tests of tests
+using it as backing storage.  A desktop environment was running and for
+the entire duration of the tests, firefox and gnome terminal were
+launching and exiting to vaguely simulate a user.
+
+1024M-xfs            Files/s  mean               0.41 ( 0.00%)        0.44 ( 6.82%)
+1024M-xfs            Elapsed Time fsmark               2053.52   1641.03
+1024M-xfs            Elapsed Time simple-wb            1229.53    768.05
+1024M-xfs            Elapsed Time mmap-strm            4126.44   4597.03
+1024M-xfs            Kswapd efficiency fsmark              84%       85%
+1024M-xfs            Kswapd efficiency simple-wb           92%       81%
+1024M-xfs            Kswapd efficiency mmap-strm           60%       51%
+1024M-xfs            Avg wait ms fsmark                5404.53     4473.87
+1024M-xfs            Avg wait ms simple-wb             2541.35     1453.54
+1024M-xfs            Avg wait ms mmap-strm             3400.25     3852.53
+
+The mmap-strm results were hurt because firefox launching had a tendency
+to push the test out of memory.  On the postive side, firefox launched
+marginally faster with the patches applied.  Time to completion for many
+tests was faster but more importantly - the "Avg wait" time as measured by
+iostat was far lower implying the system would be more responsive.  It was
+also the case that "Avg wait ms" on the root filesystem was lower.  I
+tested it manually and while the system felt slightly more responsive
+while copying data to a USB stick, it was marginal enough that it could be
+my imagination.
+
+
+This patch: do not writeback filesystem pages in direct reclaim.
+
+When kswapd is failing to keep zones above the min watermark, a process
+will enter direct reclaim in the same manner kswapd does.  If a dirty page
+is encountered during the scan, this page is written to backing storage
+using mapping->writepage.
+
+This causes two problems.  First, it can result in very deep call stacks,
+particularly if the target storage or filesystem are complex.  Some
+filesystems ignore write requests from direct reclaim as a result.  The
+second is that a single-page flush is inefficient in terms of IO.  While
+there is an expectation that the elevator will merge requests, this does
+not always happen.  Quoting Christoph Hellwig;
+
+	The elevator has a relatively small window it can operate on,
+	and can never fix up a bad large scale writeback pattern.
+
+This patch prevents direct reclaim writing back filesystem pages by
+checking if current is kswapd.  Anonymous pages are still written to swap
+as there is not the equivalent of a flusher thread for anonymous pages. 
+If the dirty pages cannot be written back, they are placed back on the LRU
+lists.  There is now a direct dependency on dirty page balancing to
+prevent too many pages in the system being dirtied which would prevent
+reclaim making forward progress.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Alex Elder <aelder@sgi.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 
- mm/vmalloc.c            |   65 ++++++++++++++++++++++++++++----------
- 2 files changed, 49 insertions(+), 17 deletions(-)
+ include/linux/mmzone.h |    1 +
+ mm/vmscan.c            |    9 +++++++++
+ mm/vmstat.c            |    1 +
+ 3 files changed, 11 insertions(+)
 
-diff -puN include/linux/vmalloc.h~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo
-+++ a/include/linux/vmalloc.h
-@@ -13,6 +13,7 @@ struct vm_area_struct;		/* vma defining 
- #define VM_MAP		0x00000004	/* vmap()ed pages */
- #define VM_USERMAP	0x00000008	/* suitable for remap_vmalloc_range */
- #define VM_VPAGES	0x00000010	/* buffer for pages was vmalloc'ed */
-+#define VM_UNLIST	0x00000020	/* vm_struct is not listed in vmlist */
- /* bits [20..32] reserved for arch specific ioremap internals */
+diff -puN include/linux/mmzone.h~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim
++++ a/include/linux/mmzone.h
+@@ -100,6 +100,7 @@ enum zone_stat_item {
+ 	NR_UNSTABLE_NFS,	/* NFS unstable pages */
+ 	NR_BOUNCE,
+ 	NR_VMSCAN_WRITE,
++	NR_VMSCAN_WRITE_SKIP,
+ 	NR_WRITEBACK_TEMP,	/* Writeback using temporary buffers */
+ 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
+ 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
+diff -puN mm/vmscan.c~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim
++++ a/mm/vmscan.c
+@@ -865,6 +865,15 @@ static unsigned long shrink_page_list(st
+ 		if (PageDirty(page)) {
+ 			nr_dirty++;
  
- /*
-diff -puN mm/vmalloc.c~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo mm/vmalloc.c
---- a/mm/vmalloc.c~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo
-+++ a/mm/vmalloc.c
-@@ -1253,18 +1253,22 @@ EXPORT_SYMBOL_GPL(map_vm_area);
- DEFINE_RWLOCK(vmlist_lock);
- struct vm_struct *vmlist;
- 
--static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
-+static void setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
- 			      unsigned long flags, void *caller)
- {
--	struct vm_struct *tmp, **p;
--
- 	vm->flags = flags;
- 	vm->addr = (void *)va->va_start;
- 	vm->size = va->va_end - va->va_start;
- 	vm->caller = caller;
- 	va->private = vm;
- 	va->flags |= VM_VM_AREA;
-+}
-+
-+static void insert_vmalloc_vmlist(struct vm_struct *vm)
-+{
-+	struct vm_struct *tmp, **p;
- 
-+	vm->flags &= ~VM_UNLIST;
- 	write_lock(&vmlist_lock);
- 	for (p = &vmlist; (tmp = *p) != NULL; p = &tmp->next) {
- 		if (tmp->addr >= vm->addr)
-@@ -1275,6 +1279,13 @@ static void insert_vmalloc_vm(struct vm_
- 	write_unlock(&vmlist_lock);
- }
- 
-+static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
-+			      unsigned long flags, void *caller)
-+{
-+	setup_vmalloc_vm(vm, va, flags, caller);
-+	insert_vmalloc_vmlist(vm);
-+}
-+
- static struct vm_struct *__get_vm_area_node(unsigned long size,
- 		unsigned long align, unsigned long flags, unsigned long start,
- 		unsigned long end, int node, gfp_t gfp_mask, void *caller)
-@@ -1313,7 +1324,18 @@ static struct vm_struct *__get_vm_area_n
- 		return NULL;
- 	}
- 
--	insert_vmalloc_vm(area, va, flags, caller);
-+	/*
-+	 * When this function is called from __vmalloc_node_range,
-+	 * we do not add vm_struct to vmlist here to avoid
-+	 * accessing uninitialized members of vm_struct such as
-+	 * pages and nr_pages fields. They will be set later.
-+	 * To distinguish it from others, we use a VM_UNLIST flag.
-+	 */
-+	if (flags & VM_UNLIST)
-+		setup_vmalloc_vm(area, va, flags, caller);
-+	else
-+		insert_vmalloc_vm(area, va, flags, caller);
-+
- 	return area;
- }
- 
-@@ -1381,17 +1403,20 @@ struct vm_struct *remove_vm_area(const v
- 	va = find_vmap_area((unsigned long)addr);
- 	if (va && va->flags & VM_VM_AREA) {
- 		struct vm_struct *vm = va->private;
--		struct vm_struct *tmp, **p;
--		/*
--		 * remove from list and disallow access to this vm_struct
--		 * before unmap. (address range confliction is maintained by
--		 * vmap.)
--		 */
--		write_lock(&vmlist_lock);
--		for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
--			;
--		*p = tmp->next;
--		write_unlock(&vmlist_lock);
-+
-+		if (!(vm->flags & VM_UNLIST)) {
-+			struct vm_struct *tmp, **p;
 +			/*
-+			 * remove from list and disallow access to
-+			 * this vm_struct before unmap. (address range
-+			 * confliction is maintained by vmap.)
++			 * Only kswapd can writeback filesystem pages to
++			 * avoid risk of stack overflow
 +			 */
-+			write_lock(&vmlist_lock);
-+			for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
-+				;
-+			*p = tmp->next;
-+			write_unlock(&vmlist_lock);
-+		}
- 
- 		vmap_debug_free_range(va->va_start, va->va_end);
- 		free_unmap_vmap_area(va);
-@@ -1602,8 +1627,8 @@ void *__vmalloc_node_range(unsigned long
- 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
- 		return NULL;
- 
--	area = __get_vm_area_node(size, align, VM_ALLOC, start, end, node,
--				  gfp_mask, caller);
-+	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNLIST,
-+				  start, end, node, gfp_mask, caller);
- 
- 	if (!area)
- 		return NULL;
-@@ -1611,6 +1636,12 @@ void *__vmalloc_node_range(unsigned long
- 	addr = __vmalloc_area_node(area, gfp_mask, prot, node, caller);
- 
- 	/*
-+	 * In this function, newly allocated vm_struct is not added
-+	 * to vmlist at __get_vm_area_node(). so, it is added here.
-+	 */
-+	insert_vmalloc_vmlist(area);
++			if (page_is_file_cache(page) && !current_is_kswapd()) {
++				inc_zone_page_state(page, NR_VMSCAN_WRITE_SKIP);
++				goto keep_locked;
++			}
 +
-+	/*
- 	 * A ref_count = 3 is needed because the vm_struct and vmap_area
- 	 * structures allocated in the __get_vm_area_node() function contain
- 	 * references to the virtual address of the vmalloc'ed block.
+ 			if (references == PAGEREF_RECLAIM_CLEAN)
+ 				goto keep_locked;
+ 			if (!may_enter_fs)
+diff -puN mm/vmstat.c~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim
++++ a/mm/vmstat.c
+@@ -702,6 +702,7 @@ const char * const vmstat_text[] = {
+ 	"nr_unstable",
+ 	"nr_bounce",
+ 	"nr_vmscan_write",
++	"nr_vmscan_write_skip",
+ 	"nr_writeback_temp",
+ 	"nr_isolated_anon",
+ 	"nr_isolated_file",
 _
 
-Patches currently in -mm which might be from mitsuo.hayasaka.hu@hitachi.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+mm-add-free_hot_cold_page_list-helper.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
