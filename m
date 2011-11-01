@@ -1,60 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-lm3530c-remove-obsolete-cleanup-for-clientdata.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:15:11 -0700
-Message-ID: <201111012115.pA1LFBt7007386@hpaq11.eem.corp.google.com>
+Subject: [merged] drivers-leds-leds-renesas-tpuc-update-driver-to-use-workqueue.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:15:15 -0700
+Message-ID: <201111012115.pA1LFFX7014157@wpaz17.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:30070 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:30064 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753188Ab1KAVPo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:44 -0400
+	with ESMTP id S1752676Ab1KAVPl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w.sang@pengutronix.de, khali@linux-fr.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: damm@opensource.se, grant.likely@secretlab.ca, lethal@linux-sh.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-lm3530.c: remove obsolete cleanup for clientdata
+     Subject: drivers/leds/leds-renesas-tpu.c: update driver to use workqueue
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-lm3530c-remove-obsolete-cleanup-for-clientdata.patch
+     drivers-leds-leds-renesas-tpuc-update-driver-to-use-workqueue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: drivers/leds/leds-lm3530.c: remove obsolete cleanup for clientdata
+From: Magnus Damm <damm@opensource.se>
+Subject: drivers/leds/leds-renesas-tpu.c: update driver to use workqueue
 
-A few new i2c-drivers came into the kernel which clear the
-clientdata-pointer on exit or error.  This is obsolete meanwhile, the core
-will do it.
+Use a workqueue in the Renesas TPU LED driver to allow the Runtime PM code
+to sleep.
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Signed-off-by: Magnus Damm <damm@opensource.se>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3530.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/leds/leds-renesas-tpu.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-remove-obsolete-cleanup-for-clientdata drivers/leds/leds-lm3530.c
---- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-remove-obsolete-cleanup-for-clientdata
-+++ a/drivers/leds/leds-lm3530.c
-@@ -421,7 +421,6 @@ err_class_register:
- err_reg_init:
- 	regulator_put(drvdata->regulator);
- err_regulator_get:
--	i2c_set_clientdata(client, NULL);
- 	kfree(drvdata);
- err_out:
- 	return err;
+diff -puN drivers/leds/leds-renesas-tpu.c~drivers-leds-leds-renesas-tpuc-update-driver-to-use-workqueue drivers/leds/leds-renesas-tpu.c
+--- a/drivers/leds/leds-renesas-tpu.c~drivers-leds-leds-renesas-tpuc-update-driver-to-use-workqueue
++++ a/drivers/leds/leds-renesas-tpu.c
+@@ -31,6 +31,7 @@
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ #include <linux/pm_runtime.h>
++#include <linux/workqueue.h>
+ 
+ enum r_tpu_pin { R_TPU_PIN_UNUSED, R_TPU_PIN_GPIO, R_TPU_PIN_GPIO_FN };
+ enum r_tpu_timer { R_TPU_TIMER_UNUSED, R_TPU_TIMER_ON };
+@@ -44,6 +45,8 @@ struct r_tpu_priv {
+ 	enum r_tpu_timer timer_state;
+ 	unsigned long min_rate;
+ 	unsigned int refresh_rate;
++	struct work_struct work;
++	enum led_brightness new_brightness;
+ };
+ 
+ static DEFINE_SPINLOCK(r_tpu_lock);
+@@ -211,15 +214,15 @@ static void r_tpu_set_pin(struct r_tpu_p
+ 	p->pin_state = new_state;
+ }
+ 
+-static void r_tpu_set_brightness(struct led_classdev *ldev,
+-				 enum led_brightness brightness)
++static void r_tpu_work(struct work_struct *work)
+ {
+-	struct r_tpu_priv *p = container_of(ldev, struct r_tpu_priv, ldev);
++	struct r_tpu_priv *p = container_of(work, struct r_tpu_priv, work);
++	enum led_brightness brightness = p->new_brightness;
+ 
+ 	r_tpu_disable(p);
+ 
+ 	/* off and maximum are handled as GPIO pins, in between PWM */
+-	if ((brightness == 0) || (brightness == ldev->max_brightness))
++	if ((brightness == 0) || (brightness == p->ldev.max_brightness))
+ 		r_tpu_set_pin(p, R_TPU_PIN_GPIO, brightness);
+ 	else {
+ 		r_tpu_set_pin(p, R_TPU_PIN_GPIO_FN, 0);
+@@ -227,6 +230,14 @@ static void r_tpu_set_brightness(struct 
+ 	}
+ }
+ 
++static void r_tpu_set_brightness(struct led_classdev *ldev,
++				 enum led_brightness brightness)
++{
++	struct r_tpu_priv *p = container_of(ldev, struct r_tpu_priv, ldev);
++	p->new_brightness = brightness;
++	schedule_work(&p->work);
++}
++
+ static int __devinit r_tpu_probe(struct platform_device *pdev)
+ {
+ 	struct led_renesas_tpu_config *cfg = pdev->dev.platform_data;
+@@ -274,6 +285,7 @@ static int __devinit r_tpu_probe(struct 
+ 	r_tpu_set_pin(p, R_TPU_PIN_GPIO, LED_OFF);
+ 	platform_set_drvdata(pdev, p);
+ 
++	INIT_WORK(&p->work, r_tpu_work);
+ 
+ 	p->ldev.name = cfg->name;
+ 	p->ldev.brightness = LED_OFF;
+@@ -307,6 +319,7 @@ static int __devexit r_tpu_remove(struct
+ 
+ 	r_tpu_set_brightness(&p->ldev, LED_OFF);
+ 	led_classdev_unregister(&p->ldev);
++	cancel_work_sync(&p->work);
+ 	r_tpu_disable(p);
+ 	r_tpu_set_pin(p, R_TPU_PIN_UNUSED, LED_OFF);
+ 
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from damm@opensource.se are
 
 origin.patch
 linux-next.patch
-rtc-add-initial-support-for-mcp7941x-parts.patch
 
