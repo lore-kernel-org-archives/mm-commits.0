@@ -1,105 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwpoison-convert-pr_debugs-to-pr_infos.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:11:15 -0700
-Message-ID: <201111012111.pA1LBFW5016023@hpaq7.eem.corp.google.com>
+Subject: [merged] fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:11:10 -0700
+Message-ID: <201111012111.pA1LBAB5004937@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15833 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15835 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750795Ab1KAVLV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:11:21 -0400
+	with ESMTP id S1752436Ab1KAVLX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:11:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dnelson@redhat.com, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: boyu.mt@taobao.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: HWPOISON: convert pr_debug()s to pr_info()s
+     Subject: fs/buffer.c: add device information for error output in __find_get_block_slow()
 has been removed from the -mm tree.  Its filename was
-     hwpoison-convert-pr_debugs-to-pr_infos.patch
+     fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dean Nelson <dnelson@redhat.com>
-Subject: HWPOISON: convert pr_debug()s to pr_info()s
+From: Tao Ma <boyu.mt@taobao.com>
+Subject: fs/buffer.c: add device information for error output in __find_get_block_slow()
 
-Commit fb46e73520940b ("HWPOISON: Convert pr_debugs to pr_info) authored
-by Andi Kleen converted a number of pr_debug()s to pr_info()s.
+On the ext4 mailing list[1], we got some report about errors in
+__find_get_block_slow(), but the information is very limited.
 
-About the same time additional code with pr_debug()s was added by two
-other commits 8c6c2ecb4466 ("HWPOSION, hugetlb: recover from free hugepage
-error when !MF_COUNT_INCREASED") and d950b95882f3d ("HWPOISON, hugetlb:
-soft offlining for hugepage").  And these pr_debug()s failed to get
-converted to pr_info()s.
+If the device information is given, we can know the name of the sick
+volume.  Futhermore, we can get the corresponding status of that
+block(group, inode block etc) by analyzing the disk layout.
 
-This patch converts them as well.  And does some minor related whitespace
-cleanup.
+[1] http://marc.info/?l=linux-ext4&m=131379831421147&w=2
 
-Signed-off-by: Dean Nelson <dnelson@redhat.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Tao Ma <boyu.mt@taobao.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/buffer.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~hwpoison-convert-pr_debugs-to-pr_infos mm/memory-failure.c
---- a/mm/memory-failure.c~hwpoison-convert-pr_debugs-to-pr_infos
-+++ a/mm/memory-failure.c
-@@ -1310,7 +1310,7 @@ int unpoison_memory(unsigned long pfn)
- 		 * to the end.
- 		 */
- 		if (PageHuge(page)) {
--			pr_debug("MCE: Memory failure is now running on free hugepage %#lx\n", pfn);
-+			pr_info("MCE: Memory failure is now running on free hugepage %#lx\n", pfn);
- 			return 0;
- 		}
- 		if (TestClearPageHWPoison(p))
-@@ -1419,7 +1419,7 @@ static int soft_offline_huge_page(struct
- 
- 	if (PageHWPoison(hpage)) {
- 		put_page(hpage);
--		pr_debug("soft offline: %#lx hugepage already poisoned\n", pfn);
-+		pr_info("soft offline: %#lx hugepage already poisoned\n", pfn);
- 		return -EBUSY;
+diff -puN fs/buffer.c~fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow fs/buffer.c
+--- a/fs/buffer.c~fs-bufferc-add-device-information-for-error-output-in-__find_get_block_slow
++++ a/fs/buffer.c
+@@ -213,13 +213,16 @@ __find_get_block_slow(struct block_devic
+ 	 * elsewhere, don't buffer_error if we had some unmapped buffers
+ 	 */
+ 	if (all_mapped) {
++		char b[BDEVNAME_SIZE];
++
+ 		printk("__find_get_block_slow() failed. "
+ 			"block=%llu, b_blocknr=%llu\n",
+ 			(unsigned long long)block,
+ 			(unsigned long long)bh->b_blocknr);
+ 		printk("b_state=0x%08lx, b_size=%zu\n",
+ 			bh->b_state, bh->b_size);
+-		printk("device blocksize: %d\n", 1 << bd_inode->i_blkbits);
++		printk("device %s blocksize: %d\n", bdevname(bdev, b),
++			1 << bd_inode->i_blkbits);
  	}
- 
-@@ -1433,8 +1433,8 @@ static int soft_offline_huge_page(struct
- 		list_for_each_entry_safe(page1, page2, &pagelist, lru)
- 			put_page(page1);
- 
--		pr_debug("soft offline: %#lx: migration failed %d, type %lx\n",
--			 pfn, ret, page->flags);
-+		pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
-+			pfn, ret, page->flags);
- 		if (ret > 0)
- 			ret = -EIO;
- 		return ret;
-@@ -1505,7 +1505,7 @@ int soft_offline_page(struct page *page,
- 	}
- 	if (!PageLRU(page)) {
- 		pr_info("soft_offline: %#lx: unknown non LRU page type %lx\n",
--				pfn, page->flags);
-+			pfn, page->flags);
- 		return -EIO;
- 	}
- 
-@@ -1566,7 +1566,7 @@ int soft_offline_page(struct page *page,
- 		}
- 	} else {
- 		pr_info("soft offline: %#lx: isolation failed: %d, page count %d, type %lx\n",
--				pfn, ret, page_count(page), page->flags);
-+			pfn, ret, page_count(page), page->flags);
- 	}
- 	if (ret)
- 		return ret;
+ out_unlock:
+ 	spin_unlock(&bd_mapping->private_lock);
 _
 
-Patches currently in -mm which might be from dnelson@redhat.com are
+Patches currently in -mm which might be from boyu.mt@taobao.com are
 
 origin.patch
 linux-next.patch
+fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks.patch
 
