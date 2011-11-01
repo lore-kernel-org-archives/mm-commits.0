@@ -1,129 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:16:56 -0700
-Message-ID: <201111012116.pA1LGuAI015019@wpaz17.hot.corp.google.com>
+Subject: [merged] lib-rename-pack_hex_byte-to-hex_byte_pack.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:16:15 -0700
+Message-ID: <201111012116.pA1LGFwl008082@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:16877 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:16893 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117Ab1KAVRE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:17:04 -0400
+	with ESMTP id S1753117Ab1KAVRI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:17:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, akpm@linux-foundation.org, apw@shadowen.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, dhowells@redhat.com, hirofumi@mail.parknet.co.jp, jason.wessel@windriver.com, jesper.nilsson@axis.com, jmorris@namei.org, linville@tuxdriver.com, ya
 
 
 The patch titled
-     Subject: checkpatch: add a --strict check for utf-8 in commit logs
+     Subject: lib: rename pack_hex_byte() to hex_byte_pack()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-a-strict-check-for-utf-8-in-commit-logs.patch
+     lib-rename-pack_hex_byte-to-hex_byte_pack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add a --strict check for utf-8 in commit logs
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib: rename pack_hex_byte() to hex_byte_pack()
 
-Some find using utf-8 in commit logs inappropriate.
+As suggested by Andrew Morton in [1] there is better to have most
+significant part first in the function name.
 
-Some patch commit logs contain unintended utf-8 characters when doing
-things like copy/pasting compilation output.
+[1] https://lkml.org/lkml/2011/9/20/22
 
-Look for the start of any commit log by skipping initial lines that look
-like email headers and "From: " lines.
+There is no functional change.
 
-Stop looking for utf-8 at the first signature line.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   30 ++++++++++++++++++++++++++----
- 1 file changed, 26 insertions(+), 4 deletions(-)
+ include/linux/kernel.h |    7 ++++++-
+ lib/vsprintf.c         |   14 +++++++-------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-a-strict-check-for-utf-8-in-commit-logs scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-a-strict-check-for-utf-8-in-commit-logs
-+++ a/scripts/checkpatch.pl
-@@ -240,9 +240,8 @@ our $NonptrType;
- our $Type;
- our $Declare;
+diff -puN include/linux/kernel.h~lib-rename-pack_hex_byte-to-hex_byte_pack include/linux/kernel.h
+--- a/include/linux/kernel.h~lib-rename-pack_hex_byte-to-hex_byte_pack
++++ a/include/linux/kernel.h
+@@ -372,13 +372,18 @@ extern const char hex_asc[];
+ #define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
+ #define hex_asc_hi(x)	hex_asc[((x) & 0xf0) >> 4]
  
--our $UTF8	= qr {
--	[\x09\x0A\x0D\x20-\x7E]              # ASCII
--	| [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
-+our $NON_ASCII_UTF8	= qr{
-+	[\xC2-\xDF][\x80-\xBF]               # non-overlong 2-byte
- 	|  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
- 	| [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
- 	|  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
-@@ -251,6 +250,11 @@ our $UTF8	= qr {
- 	|  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
- }x;
+-static inline char *pack_hex_byte(char *buf, u8 byte)
++static inline char *hex_byte_pack(char *buf, u8 byte)
+ {
+ 	*buf++ = hex_asc_hi(byte);
+ 	*buf++ = hex_asc_lo(byte);
+ 	return buf;
+ }
  
-+our $UTF8	= qr{
-+	[\x09\x0A\x0D\x20-\x7E]              # ASCII
-+	| $NON_ASCII_UTF8
-+}x;
++static inline char * __deprecated pack_hex_byte(char *buf, u8 byte)
++{
++	return hex_byte_pack(buf, byte);
++}
 +
- our $typeTypedefs = qr{(?x:
- 	(?:__)?(?:u|s|be|le)(?:8|16|32|64)|
- 	atomic_t
-@@ -1330,6 +1334,9 @@ sub process {
- 	my $signoff = 0;
- 	my $is_patch = 0;
+ extern int hex_to_bin(char ch);
+ extern int __must_check hex2bin(u8 *dst, const char *src, size_t count);
  
-+	my $in_header_lines = 1;
-+	my $in_commit_log = 0;		#Scanning lines before patch
-+
- 	our @report = ();
- 	our $cnt_lines = 0;
- 	our $cnt_error = 0;
-@@ -1497,7 +1504,6 @@ sub process {
- 		if ($line =~ /^diff --git.*?(\S+)$/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@;
--
- 		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@;
-@@ -1536,6 +1542,7 @@ sub process {
- # Check the patch for a signoff:
- 		if ($line =~ /^\s*signed-off-by:/i) {
- 			$signoff++;
-+			$in_commit_log = 0;
+diff -puN lib/vsprintf.c~lib-rename-pack_hex_byte-to-hex_byte_pack lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-rename-pack_hex_byte-to-hex_byte_pack
++++ a/lib/vsprintf.c
+@@ -547,7 +547,7 @@ char *mac_address_string(char *buf, char
+ 	}
+ 
+ 	for (i = 0; i < 6; i++) {
+-		p = pack_hex_byte(p, addr[i]);
++		p = hex_byte_pack(p, addr[i]);
+ 		if (fmt[0] == 'M' && i != 5)
+ 			*p++ = separator;
+ 	}
+@@ -667,13 +667,13 @@ char *ip6_compressed_string(char *p, con
+ 		lo = word & 0xff;
+ 		if (hi) {
+ 			if (hi > 0x0f)
+-				p = pack_hex_byte(p, hi);
++				p = hex_byte_pack(p, hi);
+ 			else
+ 				*p++ = hex_asc_lo(hi);
+-			p = pack_hex_byte(p, lo);
++			p = hex_byte_pack(p, lo);
  		}
+ 		else if (lo > 0x0f)
+-			p = pack_hex_byte(p, lo);
++			p = hex_byte_pack(p, lo);
+ 		else
+ 			*p++ = hex_asc_lo(lo);
+ 		needcolon = true;
+@@ -695,8 +695,8 @@ char *ip6_string(char *p, const char *ad
+ 	int i;
  
- # Check signature styles
-@@ -1613,6 +1620,21 @@ sub process {
- 			    "Invalid UTF-8, patch and commit message should be encoded in UTF-8\n" . $hereptr);
- 		}
+ 	for (i = 0; i < 8; i++) {
+-		p = pack_hex_byte(p, *addr++);
+-		p = pack_hex_byte(p, *addr++);
++		p = hex_byte_pack(p, *addr++);
++		p = hex_byte_pack(p, *addr++);
+ 		if (fmt[0] == 'I' && i != 7)
+ 			*p++ = ':';
+ 	}
+@@ -754,7 +754,7 @@ char *uuid_string(char *buf, char *end, 
+ 	}
  
-+# Check if it's the start of a commit log
-+# (not a header line and we haven't seen the patch filename)
-+		if ($in_header_lines && $realfile =~ /^$/ &&
-+		    $rawline !~ /^(commit\b|from\b|\w+:).+$/i) {
-+			$in_header_lines = 0;
-+			$in_commit_log = 1;
-+		}
-+
-+# Still not yet in a patch, check for any UTF-8
-+		if ($in_commit_log && $realfile =~ /^$/ &&
-+		    $rawline =~ /$NON_ASCII_UTF8/) {
-+			CHK("UTF8_BEFORE_PATCH",
-+			    "8-bit UTF-8 used in possible commit log\n" . $herecurr);
-+		}
-+
- # ignore non-hunk lines and lines being removed
- 		next if (!$hunk_line || $line =~ /^-/);
- 
+ 	for (i = 0; i < 16; i++) {
+-		p = pack_hex_byte(p, addr[index[i]]);
++		p = hex_byte_pack(p, addr[index[i]]);
+ 		switch (i) {
+ 		case 3:
+ 		case 5:
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 origin.patch
 linux-next.patch
+selinuxfs-remove-custome-hex_to_bin.patch
 
