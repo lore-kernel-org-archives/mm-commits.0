@@ -1,77 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-add-console_suspend-module-parameter.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:14:21 -0700
-Message-ID: <201111012114.pA1LELC3014685@wpaz24.hot.corp.google.com>
+Subject: [merged] printk-fix-bounds-checking-for-log_prefix.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:14:24 -0700
+Message-ID: <201111012114.pA1LEOrZ017675@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:29814 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:29833 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab1KAVOX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:14:23 -0400
+	with ESMTP id S1752436Ab1KAVO3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:14:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
+To: william.r.douglas@gmail.com, william.douglas@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: add console_suspend module parameter
+     Subject: printk: fix bounds checking for log_prefix
 has been removed from the -mm tree.  Its filename was
-     printk-add-console_suspend-module-parameter.patch
+     printk-fix-bounds-checking-for-log_prefix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Subject: printk: add console_suspend module parameter
+From: William Douglas <william.r.douglas@gmail.com>
+Subject: printk: fix bounds checking for log_prefix
 
-We are enabling some power features on medfield.  To test suspend-2-RAM
-conveniently, we need turn on/off console_suspend_enabled frequently.
+Currently log_prefix is testing that the first character of the log level
+and facility is less than '0' and greater than '9' (which is always
+false).  It should be testing to see if the character less than '0' or
+greater than '9' instead.  This patch makes that change.
 
-Add a module parameter, so users could change it by:
-/sys/module/printk/parameters/console_suspend
+The code being changed worked because strtoul bombs out (endp isn't
+updated) and 0 is returned anyway.
 
-Signed-off-by: Yanmin Zhang <yanmin_zhang@linux.intel.com>
+Signed-off-by: William Douglas <william.douglas@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 +++++
- kernel/printk.c                     |    4 ++++
- 2 files changed, 9 insertions(+)
+ kernel/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~printk-add-console_suspend-module-parameter Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~printk-add-console_suspend-module-parameter
-+++ a/Documentation/kernel-parameters.txt
-@@ -1669,6 +1669,11 @@ bytes respectively. Such letter suffixes
- 			debugging driver suspend/resume hooks).  This may
- 			not work reliably with all consoles, but is known
- 			to work with serial and VGA consoles.
-+			To facilitate more flexible debugging, we also add
-+			console_suspend, a printk module parameter to control
-+			it. Users could use console_suspend (usually
-+			/sys/module/printk/parameters/console_suspend) to
-+			turn on/off it dynamically.
- 
- 	noaliencache	[MM, NUMA, SLAB] Disables the allocation of alien
- 			caches in the slab allocator.  Saves per-node memory,
-diff -puN kernel/printk.c~printk-add-console_suspend-module-parameter kernel/printk.c
---- a/kernel/printk.c~printk-add-console_suspend-module-parameter
+diff -puN kernel/printk.c~printk-fix-bounds-checking-for-log_prefix kernel/printk.c
+--- a/kernel/printk.c~printk-fix-bounds-checking-for-log_prefix
 +++ a/kernel/printk.c
-@@ -1111,6 +1111,10 @@ static int __init console_suspend_disabl
- 	return 1;
- }
- __setup("no_console_suspend", console_suspend_disable);
-+module_param_named(console_suspend, console_suspend_enabled,
-+		bool, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(console_suspend, "suspend console during suspend"
-+	" and hibernate operations");
+@@ -595,7 +595,7 @@ static size_t log_prefix(const char *p, 
+ 		/* multi digit including the level and facility number */
+ 		char *endp = NULL;
  
- /**
-  * suspend_console - suspend the console subsystem
+-		if (p[1] < '0' && p[1] > '9')
++		if (p[1] < '0' || p[1] > '9')
+ 			return 0;
+ 
+ 		lev = (simple_strtoul(&p[1], &endp, 10) & 7);
 _
 
-Patches currently in -mm which might be from yanmin_zhang@linux.intel.com are
+Patches currently in -mm which might be from william.r.douglas@gmail.com are
 
 origin.patch
 
