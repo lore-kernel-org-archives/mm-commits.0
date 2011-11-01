@@ -1,67 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-aslr-maintainer.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:14:42 -0700
-Message-ID: <201111012114.pA1LEgxG014913@wpaz24.hot.corp.google.com>
+Subject: [merged] backlight-rename-corgibl_limit_intensity-to-genericbl_limit_intensity.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:15:00 -0700
+Message-ID: <201111012115.pA1LF0pi015037@wpaz24.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:16413 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:29920 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab1KAVPB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:01 -0400
+	with ESMTP id S1752676Ab1KAVPG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, jwboyer@redhat.com, mingo@elte.hu, nicolas.pitre@linaro.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add ASLR maintainer
+     Subject: backlight: rename corgibl_limit_intensity() to genericbl_limit_intensity()
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-aslr-maintainer.patch
+     backlight-rename-corgibl_limit_intensity-to-genericbl_limit_intensity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: MAINTAINERS: add ASLR maintainer
+From: Axel Lin <axel.lin@gmail.com>
+Subject: backlight: rename corgibl_limit_intensity() to genericbl_limit_intensity()
 
-Since achieving the full ASLR by merging the PIE randomization in commit
-cc503c1b43 ("x86: PIE executable randomization"), I have been dealing with
-most (if not all) of the bugreports reported against userspace address
-space randomization, so it might be a good idea to provide a decent
-contact point in MAINTAINERS.
+The rename of corgibl_limit_intensity is missed in commit d00ba726
+("backlight: Rename the corgi backlight driver to generic").  Let's fix it
+now.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Josh Boyer <jwboyer@redhat.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/video/backlight/generic_bl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-aslr-maintainer MAINTAINERS
---- a/MAINTAINERS~maintainers-add-aslr-maintainer
-+++ a/MAINTAINERS
-@@ -316,6 +316,10 @@ W:	http://wiki.analog.com/AD7879
- S:	Supported
- F:	drivers/input/touchscreen/ad7879.c
+diff -puN drivers/video/backlight/generic_bl.c~backlight-rename-corgibl_limit_intensity-to-genericbl_limit_intensity drivers/video/backlight/generic_bl.c
+--- a/drivers/video/backlight/generic_bl.c~backlight-rename-corgibl_limit_intensity-to-genericbl_limit_intensity
++++ a/drivers/video/backlight/generic_bl.c
+@@ -56,7 +56,7 @@ static int genericbl_get_intensity(struc
+  * Called when the battery is low to limit the backlight intensity.
+  * If limit==0 clear any limit, otherwise limit the intensity
+  */
+-void corgibl_limit_intensity(int limit)
++void genericbl_limit_intensity(int limit)
+ {
+ 	struct backlight_device *bd = generic_backlight_device;
  
-+ADDRESS SPACE LAYOUT RANDOMIZATION (ASLR)
-+M:	Jiri Kosina <jkosina@suse.cz>
-+S:	Maintained
-+
- ADM1025 HARDWARE MONITOR DRIVER
- M:	Jean Delvare <khali@linux-fr.org>
- L:	lm-sensors@lm-sensors.org
+@@ -68,7 +68,7 @@ void corgibl_limit_intensity(int limit)
+ 	backlight_update_status(generic_backlight_device);
+ 	mutex_unlock(&bd->ops_lock);
+ }
+-EXPORT_SYMBOL(corgibl_limit_intensity);
++EXPORT_SYMBOL(genericbl_limit_intensity);
+ 
+ static const struct backlight_ops genericbl_ops = {
+ 	.options = BL_CORE_SUSPENDRESUME,
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 origin.patch
 linux-next.patch
-binfmt_elf-fix-pie-execution-with-randomization-disabled.patch
 
