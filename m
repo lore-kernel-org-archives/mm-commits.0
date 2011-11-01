@@ -1,63 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:12:15 -0700
-Message-ID: <201111012112.pA1LCFHh030982@wpaz1.hot.corp.google.com>
+Subject: [merged] lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:12:46 -0700
+Message-ID: <201111012112.pA1LCkY5031122@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:29504 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:29517 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699Ab1KAVMp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:12:45 -0400
+	with ESMTP id S1752436Ab1KAVMt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:12:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@gentwo.org, jweiner@redhat.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: jjzhang@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not drain pagevecs for mlockall(MCL_FUTURE)
+     Subject: lib/Kconfig.debug: fix help message for DEFAULT_HUNG_TASK_TIMEOUT
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-drain-pagevecs-for-mlockallmcl_future.patch
+     lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@gentwo.org>
-Subject: mm: do not drain pagevecs for mlockall(MCL_FUTURE)
+From: Jiaju Zhang <jjzhang@suse.de>
+Subject: lib/Kconfig.debug: fix help message for DEFAULT_HUNG_TASK_TIMEOUT
 
-MCL_FUTURE does not move pages between lru list and draining the LRU per
-cpu pagevecs is a nasty activity.  Avoid doing it unecessarily.
+Added missing _secs in the help message of config DEFAULT_HUNG_TASK_TIMEOUT.
 
-Signed-off-by: Christoph Lameter <cl@gentwo.org>
-Cc: David Rientjes <rientjes@google.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Johannes Weiner <jweiner@redhat.com>
+Signed-off-by: Jiaju Zhang <jjzhang@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/mlock.c~mm-do-not-drain-pagevecs-for-mlockallmcl_future mm/mlock.c
---- a/mm/mlock.c~mm-do-not-drain-pagevecs-for-mlockallmcl_future
-+++ a/mm/mlock.c
-@@ -549,7 +549,8 @@ SYSCALL_DEFINE1(mlockall, int, flags)
- 	if (!can_do_mlock())
- 		goto out;
+diff -puN lib/Kconfig.debug~lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout lib/Kconfig.debug
+--- a/lib/Kconfig.debug~lib-kconfigdebug-fix-help-message-for-default_hung_task_timeout
++++ a/lib/Kconfig.debug
+@@ -248,8 +248,9 @@ config DEFAULT_HUNG_TASK_TIMEOUT
+ 	  to determine when a task has become non-responsive and should
+ 	  be considered hung.
  
--	lru_add_drain_all();	/* flush pagevec */
-+	if (flags & MCL_CURRENT)
-+		lru_add_drain_all();	/* flush pagevec */
+-	  It can be adjusted at runtime via the kernel.hung_task_timeout
+-	  sysctl or by writing a value to /proc/sys/kernel/hung_task_timeout.
++	  It can be adjusted at runtime via the kernel.hung_task_timeout_secs
++	  sysctl or by writing a value to
++	  /proc/sys/kernel/hung_task_timeout_secs.
  
- 	down_write(&current->mm->mmap_sem);
- 
+ 	  A timeout of 0 disables the check.  The default is two minutes.
+ 	  Keeping the default should be fine in most cases.
 _
 
-Patches currently in -mm which might be from cl@gentwo.org are
+Patches currently in -mm which might be from jjzhang@suse.de are
 
 origin.patch
-linux-next.patch
 
