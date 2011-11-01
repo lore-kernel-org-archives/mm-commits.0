@@ -1,94 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-lp5521c-check-if-reset-is-successful.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:15:45 -0700
-Message-ID: <201111012115.pA1LFjeW007749@hpaq11.eem.corp.google.com>
+Subject: [merged] spinlock_debug-print-owner-on-spinlock-lockup.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:15:54 -0700
+Message-ID: <201111012115.pA1LFsqS007679@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:16621 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:16640 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117Ab1KAVPy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:54 -0400
+	with ESMTP id S1752436Ab1KAVP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srinidhi.kasagar@stericsson.com, linus.walleij@linaro.org, naga.radheshy@stericsson.com, richard.purdie@linuxfoundation.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-lp5521.c: check if reset is successful
+     Subject: lib/spinlock_debug.c: print owner on spinlock lockup
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-lp5521c-check-if-reset-is-successful.patch
+     spinlock_debug-print-owner-on-spinlock-lockup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Srinidhi KASAGAR <srinidhi.kasagar@stericsson.com>
-Subject: drivers/leds/leds-lp5521.c: check if reset is successful
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: lib/spinlock_debug.c: print owner on spinlock lockup
 
-Make sure that the reset is successful by issuing a dummy read to R
-channel current register and check its default value.  On some platforms,
-without this dummy read, any further access to {R/G/B}_EXEC will not have
-any impact.
+When SPIN_BUG_ON is triggered, the lock owner information is reported. 
+But it is omitted when spinlock lockup is detected.
 
-[akpm@linux-foundation.org: fix up code comment]
-Signed-off-by: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
-Tested-by: Naga Radhesh <naga.radheshy@stericsson.com>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
+This information is useful especially on the architectures which don't
+implement trigger_all_cpu_backtrace() that is called just after detecting
+lockup.  So report it and also avoid message format duplication.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ lib/spinlock_debug.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-check-if-reset-is-successful drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-check-if-reset-is-successful
-+++ a/drivers/leds/leds-lp5521.c
-@@ -97,6 +97,9 @@
- /* Status */
- #define LP5521_EXT_CLK_USED		0x08
+diff -puN lib/spinlock_debug.c~spinlock_debug-print-owner-on-spinlock-lockup lib/spinlock_debug.c
+--- a/lib/spinlock_debug.c~spinlock_debug-print-owner-on-spinlock-lockup
++++ a/lib/spinlock_debug.c
+@@ -49,13 +49,10 @@ void __rwlock_init(rwlock_t *lock, const
  
-+/* default R channel current register value */
-+#define LP5521_REG_R_CURR_DEFAULT	0xAF
-+
- struct lp5521_engine {
- 	int		id;
- 	u8		mode;
-@@ -643,6 +646,7 @@ static int __devinit lp5521_probe(struct
- 	struct lp5521_chip		*chip;
- 	struct lp5521_platform_data	*pdata;
- 	int ret, i, led;
-+	u8 buf;
+ EXPORT_SYMBOL(__rwlock_init);
  
- 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
- 	if (!chip)
-@@ -681,6 +685,20 @@ static int __devinit lp5521_probe(struct
- 				     * Exact value is not available. 10 - 20ms
- 				     * appears to be enough for reset.
- 				     */
-+
-+	/*
-+	 * Make sure that the chip is reset by reading back the r channel
-+	 * current reg. This is dummy read is required on some platforms -
-+	 * otherwise further access to the R G B channels in the
-+	 * LP5521_REG_ENABLE register will not have any effect - strange!
-+	 */
-+	lp5521_read(client, LP5521_REG_R_CURRENT, &buf);
-+	if (buf != LP5521_REG_R_CURR_DEFAULT) {
-+		dev_err(&client->dev, "error in reseting chip\n");
-+		goto fail2;
-+	}
-+	usleep_range(10000, 20000);
-+
- 	ret = lp5521_detect(client);
+-static void spin_bug(raw_spinlock_t *lock, const char *msg)
++static void spin_dump(raw_spinlock_t *lock, const char *msg)
+ {
+ 	struct task_struct *owner = NULL;
  
- 	if (ret) {
+-	if (!debug_locks_off())
+-		return;
+-
+ 	if (lock->owner && lock->owner != SPINLOCK_OWNER_INIT)
+ 		owner = lock->owner;
+ 	printk(KERN_EMERG "BUG: spinlock %s on CPU#%d, %s/%d\n",
+@@ -70,6 +67,14 @@ static void spin_bug(raw_spinlock_t *loc
+ 	dump_stack();
+ }
+ 
++static void spin_bug(raw_spinlock_t *lock, const char *msg)
++{
++	if (!debug_locks_off())
++		return;
++
++	spin_dump(lock, msg);
++}
++
+ #define SPIN_BUG_ON(cond, lock, msg) if (unlikely(cond)) spin_bug(lock, msg)
+ 
+ static inline void
+@@ -113,11 +118,7 @@ static void __spin_lock_debug(raw_spinlo
+ 		/* lockup suspected: */
+ 		if (print_once) {
+ 			print_once = 0;
+-			printk(KERN_EMERG "BUG: spinlock lockup on CPU#%d, "
+-					"%s/%d, %p\n",
+-				raw_smp_processor_id(), current->comm,
+-				task_pid_nr(current), lock);
+-			dump_stack();
++			spin_dump(lock, "lockup");
+ #ifdef CONFIG_SMP
+ 			trigger_all_cpu_backtrace();
+ #endif
 _
 
-Patches currently in -mm which might be from srinidhi.kasagar@stericsson.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 linux-next.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+ext4-use-proper-little-endian-bitops.patch
+ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
 
