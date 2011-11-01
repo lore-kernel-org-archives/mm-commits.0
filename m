@@ -1,73 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-turn-the-blink_timer-off-before-starting-to-blink.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:15:41 -0700
-Message-ID: <201111012115.pA1LFfh2007631@wpaz13.hot.corp.google.com>
+Subject: [merged] drivers-leds-leds-lp5521c-check-if-reset-is-successful.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:15:45 -0700
+Message-ID: <201111012115.pA1LFjeW007749@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:30106 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:16621 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699Ab1KAVPv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:51 -0400
+	with ESMTP id S1753117Ab1KAVPy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ospite@studenti.unina.it, johannes@sipsolutions.net, rpurdie@rpsys.net, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: srinidhi.kasagar@stericsson.com, linus.walleij@linaro.org, naga.radheshy@stericsson.com, richard.purdie@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds: turn the blink_timer off before starting to blink
+     Subject: drivers/leds/leds-lp5521.c: check if reset is successful
 has been removed from the -mm tree.  Its filename was
-     leds-turn-the-blink_timer-off-before-starting-to-blink.patch
+     drivers-leds-leds-lp5521c-check-if-reset-is-successful.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Antonio Ospite <ospite@studenti.unina.it>
-Subject: leds: turn the blink_timer off before starting to blink
+From: Srinidhi KASAGAR <srinidhi.kasagar@stericsson.com>
+Subject: drivers/leds/leds-lp5521.c: check if reset is successful
 
-Depending on the implementation of the hardware blinking function in
-blink_set(), the led can support hardware blinking for some values of
-delay_on and delay_off and fall-back to software blinking for some other
-values.
+Make sure that the reset is successful by issuing a dummy read to R
+channel current register and check its default value.  On some platforms,
+without this dummy read, any further access to {R/G/B}_EXEC will not have
+any impact.
 
-Turning off the blink_timer unconditionally before starting to blink
-make sure that a sequence like:
-
-  OFF
-  hardware blinking
-  software blinking
-  hardware blinking
-
-does not leave the software blinking timer active.
-
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-Reviewed-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: <stable@kernel.org>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: fix up code comment]
+Signed-off-by: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
+Tested-by: Naga Radhesh <naga.radheshy@stericsson.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Richard Purdie <richard.purdie@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/led-class.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/leds/leds-lp5521.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN drivers/leds/led-class.c~leds-turn-the-blink_timer-off-before-starting-to-blink drivers/leds/led-class.c
---- a/drivers/leds/led-class.c~leds-turn-the-blink_timer-off-before-starting-to-blink
-+++ a/drivers/leds/led-class.c
-@@ -267,6 +267,8 @@ void led_blink_set(struct led_classdev *
- 		   unsigned long *delay_on,
- 		   unsigned long *delay_off)
- {
-+	del_timer_sync(&led_cdev->blink_timer);
+diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-check-if-reset-is-successful drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-check-if-reset-is-successful
++++ a/drivers/leds/leds-lp5521.c
+@@ -97,6 +97,9 @@
+ /* Status */
+ #define LP5521_EXT_CLK_USED		0x08
+ 
++/* default R channel current register value */
++#define LP5521_REG_R_CURR_DEFAULT	0xAF
 +
- 	if (led_cdev->blink_set &&
- 	    !led_cdev->blink_set(led_cdev, delay_on, delay_off)) {
- 		led_cdev->blink_delay_on = *delay_on;
+ struct lp5521_engine {
+ 	int		id;
+ 	u8		mode;
+@@ -643,6 +646,7 @@ static int __devinit lp5521_probe(struct
+ 	struct lp5521_chip		*chip;
+ 	struct lp5521_platform_data	*pdata;
+ 	int ret, i, led;
++	u8 buf;
+ 
+ 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+ 	if (!chip)
+@@ -681,6 +685,20 @@ static int __devinit lp5521_probe(struct
+ 				     * Exact value is not available. 10 - 20ms
+ 				     * appears to be enough for reset.
+ 				     */
++
++	/*
++	 * Make sure that the chip is reset by reading back the r channel
++	 * current reg. This is dummy read is required on some platforms -
++	 * otherwise further access to the R G B channels in the
++	 * LP5521_REG_ENABLE register will not have any effect - strange!
++	 */
++	lp5521_read(client, LP5521_REG_R_CURRENT, &buf);
++	if (buf != LP5521_REG_R_CURR_DEFAULT) {
++		dev_err(&client->dev, "error in reseting chip\n");
++		goto fail2;
++	}
++	usleep_range(10000, 20000);
++
+ 	ret = lp5521_detect(client);
+ 
+ 	if (ret) {
 _
 
-Patches currently in -mm which might be from ospite@studenti.unina.it are
+Patches currently in -mm which might be from srinidhi.kasagar@stericsson.com are
 
 origin.patch
 linux-next.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
 
