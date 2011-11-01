@@ -1,92 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix_tree-clean-away-saw_unset_tag-leftovers.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:08:03 -0700
-Message-ID: <201111012108.pA1L835Z010021@wpaz17.hot.corp.google.com>
+Subject: [merged] vmscan-add-block-plug-for-page-reclaim.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:08:06 -0700
+Message-ID: <201111012108.pA1L86Np015875@hpaq5.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15198 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:28550 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753108Ab1KAVIG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:08:06 -0400
-Received: from wpaz17.hot.corp.google.com (wpaz17.hot.corp.google.com [172.24.198.81])
-	by smtp-out.google.com with ESMTP id pA1L84EM020445
-	for <mm-commits@vger.kernel.org>; Tue, 1 Nov 2011 14:08:05 -0700
+	with ESMTP id S1753108Ab1KAVIN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:08:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, axboe@kernel.dk, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix_tree: clean away saw_unset_tag leftovers
+     Subject: vmscan: add block plug for page reclaim
 has been removed from the -mm tree.  Its filename was
-     radix_tree-clean-away-saw_unset_tag-leftovers.patch
+     vmscan-add-block-plug-for-page-reclaim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: radix_tree: clean away saw_unset_tag leftovers
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: vmscan: add block plug for page reclaim
 
-radix_tree_tag_get()'s BUG (when it sees a tag after saw_unset_tag) was
-unsafe and removed in 2.6.34, but the pointless saw_unset_tag left behind.
+per-task block plug can reduce block queue lock contention and increase
+request merge.  Currently page reclaim doesn't support it.  I originally
+thought page reclaim doesn't need it, because kswapd thread count is
+limited and file cache write is done at flusher mostly.
 
-Remove it now, and return 0 as soon as we see unset tag - we already rely
-upon the root tag to be correct, returning 0 immediately if it's not set.
+When I test a workload with heavy swap in a 4-node machine, each CPU is
+doing direct page reclaim and swap.  This causes block queue lock
+contention.  In my test, without below patch, the CPU utilization is about
+2% ~ 7%.  With the patch, the CPU utilization is about 1% ~ 3%.  Disk
+throughput isn't changed.  This should improve normal kswapd write and
+file cache write too (increase request merge for example), but might not
+be so obvious as I explain above.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN lib/radix-tree.c~radix_tree-clean-away-saw_unset_tag-leftovers lib/radix-tree.c
---- a/lib/radix-tree.c~radix_tree-clean-away-saw_unset_tag-leftovers
-+++ a/lib/radix-tree.c
-@@ -576,7 +576,6 @@ int radix_tree_tag_get(struct radix_tree
- {
- 	unsigned int height, shift;
- 	struct radix_tree_node *node;
--	int saw_unset_tag = 0;
+diff -puN mm/vmscan.c~vmscan-add-block-plug-for-page-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-add-block-plug-for-page-reclaim
++++ a/mm/vmscan.c
+@@ -2005,12 +2005,14 @@ static void shrink_zone(int priority, st
+ 	enum lru_list l;
+ 	unsigned long nr_reclaimed, nr_scanned;
+ 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
++	struct blk_plug plug;
  
- 	/* check the root's tag bit */
- 	if (!root_tag_get(root, tag))
-@@ -603,15 +602,10 @@ int radix_tree_tag_get(struct radix_tree
- 			return 0;
+ restart:
+ 	nr_reclaimed = 0;
+ 	nr_scanned = sc->nr_scanned;
+ 	get_scan_count(zone, sc, nr, priority);
  
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
--
--		/*
--		 * This is just a debug check.  Later, we can bale as soon as
--		 * we see an unset tag.
--		 */
- 		if (!tag_get(node, tag, offset))
--			saw_unset_tag = 1;
-+			return 0;
- 		if (height == 1)
--			return !!tag_get(node, tag, offset);
-+			return 1;
- 		node = rcu_dereference_raw(node->slots[offset]);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		height--;
++	blk_start_plug(&plug);
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+ 					nr[LRU_INACTIVE_FILE]) {
+ 		for_each_evictable_lru(l) {
+@@ -2034,6 +2036,7 @@ restart:
+ 		if (nr_reclaimed >= nr_to_reclaim && priority < DEF_PRIORITY)
+ 			break;
+ 	}
++	blk_finish_plug(&plug);
+ 	sc->nr_reclaimed += nr_reclaimed;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
 linux-next.patch
-drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
-thp-tail-page-refcounting-fix-5.patch
-powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
-powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
-powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
-powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
-powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
-s390-gup_huge_pmd-support-thp-tail-recounting.patch
-s390-gup_huge_pmd-return-0-if-pte-changes.patch
-sparc-gup_pte_range-support-thp-based-tail-recounting.patch
-thp-share-get_huge_page_tail.patch
-prio_tree-debugging-patch.patch
+x86-tlb-flush-avoid-superflous-leave_mm.patch
+block-avoid-unnecessary-plug-list-flush.patch
+block-add-missed-trace_block_plug.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+intel_idle-fix-api-misuse.patch
+intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
