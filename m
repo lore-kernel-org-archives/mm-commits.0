@@ -1,66 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-thrashc-quiet-sparse-noise.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:11:38 -0700
-Message-ID: <201111012111.pA1LBcpx005125@hpaq2.eem.corp.google.com>
+Subject: [merged] vmscanc-fix-invalid-strict_strtoul-check-in-write_scan_unevictable_node.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:11:25 -0700
+Message-ID: <201111012111.pA1LBPpb006615@hpaq3.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15896 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15913 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab1KAVLs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:11:48 -0400
+	with ESMTP id S1752436Ab1KAVLv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:11:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hartleys@visionengravers.com, hsweeten@visionengravers.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: consul.kautuk@gmail.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thrash.c: quiet sparse noise
+     Subject: vmscan.c: fix invalid strict_strtoul() check in write_scan_unevictable_node()
 has been removed from the -mm tree.  Its filename was
-     mm-thrashc-quiet-sparse-noise.patch
+     vmscanc-fix-invalid-strict_strtoul-check-in-write_scan_unevictable_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: H Hartley Sweeten <hartleys@visionengravers.com>
-Subject: mm/thrash.c: quiet sparse noise
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Subject: vmscan.c: fix invalid strict_strtoul() check in write_scan_unevictable_node()
 
-Quiet the following sparse noise:
+write_scan_unevictable_node() checks the value req returned by
+strict_strtoul() and returns 1 if req is 0.
 
-warning: symbol 'swap_token_memcg' was not declared. Should it be static?
+However, when strict_strtoul() returns 0, it means successful conversion
+of buf to unsigned long.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Due to this, the function was not proceeding to scan the zones for
+unevictable pages even though we write a valid value to the
+scan_unevictable_pages sys file.
+
+Change this check slightly to check for invalid value in buf as well as 0
+value stored in res after successful conversion via strict_strtoul.  In
+both cases, we do not perform the scanning of this node's zones.
+
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/thrash.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/thrash.c~mm-thrashc-quiet-sparse-noise mm/thrash.c
---- a/mm/thrash.c~mm-thrashc-quiet-sparse-noise
-+++ a/mm/thrash.c
-@@ -29,7 +29,7 @@
+diff -puN mm/vmscan.c~vmscanc-fix-invalid-strict_strtoul-check-in-write_scan_unevictable_node mm/vmscan.c
+--- a/mm/vmscan.c~vmscanc-fix-invalid-strict_strtoul-check-in-write_scan_unevictable_node
++++ a/mm/vmscan.c
+@@ -3520,8 +3520,8 @@ static ssize_t write_scan_unevictable_no
+ 	unsigned long res;
+ 	unsigned long req = strict_strtoul(buf, 10, &res);
  
- static DEFINE_SPINLOCK(swap_token_lock);
- struct mm_struct *swap_token_mm;
--struct mem_cgroup *swap_token_memcg;
-+static struct mem_cgroup *swap_token_memcg;
+-	if (!req)
+-		return 1;	/* zero is no-op */
++	if (req || !res)
++		return 1; /* Invalid input or zero is no-op */
  
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
+ 	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
+ 		if (!populated_zone(zone))
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
 origin.patch
-linux-next.patch
-arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer.patch
-arch-x86-kernel-ptracec-quiet-sparse-noise.patch
-arch-x86-mm-pageattrc-quiet-sparse-noise-local-functions-should-be-static.patch
-ceph-mds_clientc-quiet-sparse-noise.patch
-mm-page_cgroupc-quiet-sparse-noise.patch
+devtmpfsd-fix-task-state-handling.patch
 
