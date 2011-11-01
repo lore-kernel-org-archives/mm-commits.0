@@ -1,113 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-neaten-warn_alloc_failed.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:10:30 -0700
-Message-ID: <201111012110.pA1LAUZu007990@wpaz5.hot.corp.google.com>
+Subject: [merged] include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:10:25 -0700
+Message-ID: <201111012110.pA1LAPCT017216@hpaq5.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:29040 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15708 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753045Ab1KAVKd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:33 -0400
+	with ESMTP id S1753016Ab1KAVKh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: sonic.zhang@analog.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@snapgear.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: neaten warn_alloc_failed
+     Subject: include/asm-generic/page.h: calculate virt_to_page and page_to_virt via predefined macro
 has been removed from the -mm tree.  Its filename was
-     mm-neaten-warn_alloc_failed.patch
+     include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: mm: neaten warn_alloc_failed
+From: Sonic Zhang <sonic.zhang@analog.com>
+Subject: include/asm-generic/page.h: calculate virt_to_page and page_to_virt via predefined macro
 
-Add __attribute__((format (printf...) to the function to validate format
-and arguments.  Use vsprintf extension %pV to avoid any possible message
-interleaving.  Coalesce format string.  Convert printks/pr_warning to
-pr_warn.
+On NOMMU architectures, if physical memory doesn't start from 0,
+ARCH_PFN_OFFSET is defined to generate page index in mem_map array. 
+Because virtual address is equal to physical address, PAGE_OFFSET is
+always 0.  virt_to_page and page_to_virt should not index page by
+PAGE_OFFSET directly.
 
-[akpm@linux-foundation.org: use the __printf() macro]
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 ++-
- mm/page_alloc.c    |   16 +++++++++++-----
- mm/vmalloc.c       |    4 ++--
- 3 files changed, 15 insertions(+), 8 deletions(-)
+ include/asm-generic/page.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-neaten-warn_alloc_failed include/linux/mm.h
---- a/include/linux/mm.h~mm-neaten-warn_alloc_failed
-+++ a/include/linux/mm.h
-@@ -1334,7 +1334,8 @@ extern void si_meminfo(struct sysinfo * 
- extern void si_meminfo_node(struct sysinfo *val, int nid);
- extern int after_bootmem;
+diff -puN include/asm-generic/page.h~include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro include/asm-generic/page.h
+--- a/include/asm-generic/page.h~include-asm-generic-pageh-calculate-virt_to_page-and-page_to_virt-via-predefined-macro
++++ a/include/asm-generic/page.h
+@@ -79,8 +79,8 @@ extern unsigned long memory_end;
+ #define virt_to_pfn(kaddr)	(__pa(kaddr) >> PAGE_SHIFT)
+ #define pfn_to_virt(pfn)	__va((pfn) << PAGE_SHIFT)
  
--extern void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
-+extern __printf(3, 4)
-+void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
+-#define virt_to_page(addr)	(mem_map + (((unsigned long)(addr)-PAGE_OFFSET) >> PAGE_SHIFT))
+-#define page_to_virt(page)	((((page) - mem_map) << PAGE_SHIFT) + PAGE_OFFSET)
++#define virt_to_page(addr)	pfn_to_page(virt_to_pfn(addr))
++#define page_to_virt(page)	pfn_to_virt(page_to_pfn(page))
  
- extern void setup_per_cpu_pageset(void);
- 
-diff -puN mm/page_alloc.c~mm-neaten-warn_alloc_failed mm/page_alloc.c
---- a/mm/page_alloc.c~mm-neaten-warn_alloc_failed
-+++ a/mm/page_alloc.c
-@@ -1754,7 +1754,6 @@ static DEFINE_RATELIMIT_STATE(nopage_rs,
- 
- void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...)
- {
--	va_list args;
- 	unsigned int filter = SHOW_MEM_FILTER_NODES;
- 
- 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
-@@ -1773,14 +1772,21 @@ void warn_alloc_failed(gfp_t gfp_mask, i
- 		filter &= ~SHOW_MEM_FILTER_NODES;
- 
- 	if (fmt) {
--		printk(KERN_WARNING);
-+		struct va_format vaf;
-+		va_list args;
-+
- 		va_start(args, fmt);
--		vprintk(fmt, args);
-+
-+		vaf.fmt = fmt;
-+		vaf.va = &args;
-+
-+		pr_warn("%pV", &vaf);
-+
- 		va_end(args);
- 	}
- 
--	pr_warning("%s: page allocation failure: order:%d, mode:0x%x\n",
--		   current->comm, order, gfp_mask);
-+	pr_warn("%s: page allocation failure: order:%d, mode:0x%x\n",
-+		current->comm, order, gfp_mask);
- 
- 	dump_stack();
- 	if (!should_suppress_show_mem())
-diff -puN mm/vmalloc.c~mm-neaten-warn_alloc_failed mm/vmalloc.c
---- a/mm/vmalloc.c~mm-neaten-warn_alloc_failed
-+++ a/mm/vmalloc.c
-@@ -1593,8 +1593,8 @@ static void *__vmalloc_area_node(struct 
- 	return area->addr;
- 
- fail:
--	warn_alloc_failed(gfp_mask, order, "vmalloc: allocation failure, "
--			  "allocated %ld of %ld bytes\n",
-+	warn_alloc_failed(gfp_mask, order,
-+			  "vmalloc: allocation failure, allocated %ld of %ld bytes\n",
- 			  (area->nr_pages*PAGE_SIZE), area->size);
- 	vfree(area->addr);
- 	return NULL;
+ #ifndef page_to_phys
+ #define page_to_phys(page)      ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from sonic.zhang@analog.com are
 
 origin.patch
 linux-next.patch
