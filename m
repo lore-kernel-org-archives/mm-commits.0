@@ -1,76 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mremap-check-for-overflow-using-deltas.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:10:11 -0700
-Message-ID: <201111012110.pA1LABGS026278@hpaq14.eem.corp.google.com>
+Subject: [merged] mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:09:59 -0700
+Message-ID: <201111012109.pA1L9x59004208@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:28953 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15598 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755569Ab1KAVKS (ORCPT
+	with ESMTP id S1755346Ab1KAVKS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: mitsuo.hayasaka.hu@hitachi.com, akpm@linux-foundation.org, jeremy.fitzhardinge@citrix.com, namhyung@gmail.com, paulmck@linux.vnet.ibm.com, rientjes@google.com, stable@kernel.orgstab
 
 
 The patch titled
-     Subject: mremap: check for overflow using deltas
+     Subject: mm: avoid null pointer access in vm_struct via /proc/vmallocinfo
 has been removed from the -mm tree.  Its filename was
-     mremap-check-for-overflow-using-deltas.patch
+     mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mremap: check for overflow using deltas
+From: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
+Subject: mm: avoid null pointer access in vm_struct via /proc/vmallocinfo
 
-Using "- 1" relies on the old_end to be page aligned and PAGE_SIZE > 1,
-those are reasonable requirements but the check remains obscure and it
-looks more like an off by one error than an overflow check.  This I feel
-will improve readability.
+The /proc/vmallocinfo shows information about vmalloc allocations in
+vmlist that is a linklist of vm_struct.  It, however, may access pages
+field of vm_struct where a page was not allocated.  This results in a null
+pointer access and leads to a kernel panic.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Johannes Weiner <jweiner@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+Why this happens: In __vmalloc_node_range() called from vmalloc(), newly
+allocated vm_struct is added to vmlist at __get_vm_area_node() and then,
+some fields of vm_struct such as nr_pages and pages are set at
+__vmalloc_area_node().  In other words, it is added to vmlist before it is
+fully initialized.  At the same time, when the /proc/vmallocinfo is read,
+it accesses the pages field of vm_struct according to the nr_pages field
+at show_numa_info().  Thus, a null pointer access happens.
+
+The patch adds the newly allocated vm_struct to the vmlist *after* it is
+fully initialized.  So, it can avoid accessing the pages field with
+unallocated page when show_numa_info() is called.
+
+Signed-off-by: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: <stable@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/vmalloc.h |    1 
+ mm/vmalloc.c            |   65 ++++++++++++++++++++++++++++----------
+ 2 files changed, 49 insertions(+), 17 deletions(-)
 
-diff -puN mm/mremap.c~mremap-check-for-overflow-using-deltas mm/mremap.c
---- a/mm/mremap.c~mremap-check-for-overflow-using-deltas
-+++ a/mm/mremap.c
-@@ -141,9 +141,10 @@ unsigned long move_page_tables(struct vm
- 	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
- 		cond_resched();
- 		next = (old_addr + PMD_SIZE) & PMD_MASK;
--		if (next - 1 > old_end)
--			next = old_end;
-+		/* even if next overflowed, extent below will be ok */
- 		extent = next - old_addr;
-+		if (extent > old_end - old_addr)
-+			extent = old_end - old_addr;
- 		old_pmd = get_old_pmd(vma->vm_mm, old_addr);
- 		if (!old_pmd)
- 			continue;
+diff -puN include/linux/vmalloc.h~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo
++++ a/include/linux/vmalloc.h
+@@ -13,6 +13,7 @@ struct vm_area_struct;		/* vma defining 
+ #define VM_MAP		0x00000004	/* vmap()ed pages */
+ #define VM_USERMAP	0x00000008	/* suitable for remap_vmalloc_range */
+ #define VM_VPAGES	0x00000010	/* buffer for pages was vmalloc'ed */
++#define VM_UNLIST	0x00000020	/* vm_struct is not listed in vmlist */
+ /* bits [20..32] reserved for arch specific ioremap internals */
+ 
+ /*
+diff -puN mm/vmalloc.c~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-avoid-null-pointer-access-in-vm_struct-via-proc-vmallocinfo
++++ a/mm/vmalloc.c
+@@ -1253,18 +1253,22 @@ EXPORT_SYMBOL_GPL(map_vm_area);
+ DEFINE_RWLOCK(vmlist_lock);
+ struct vm_struct *vmlist;
+ 
+-static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
++static void setup_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
+ 			      unsigned long flags, void *caller)
+ {
+-	struct vm_struct *tmp, **p;
+-
+ 	vm->flags = flags;
+ 	vm->addr = (void *)va->va_start;
+ 	vm->size = va->va_end - va->va_start;
+ 	vm->caller = caller;
+ 	va->private = vm;
+ 	va->flags |= VM_VM_AREA;
++}
++
++static void insert_vmalloc_vmlist(struct vm_struct *vm)
++{
++	struct vm_struct *tmp, **p;
+ 
++	vm->flags &= ~VM_UNLIST;
+ 	write_lock(&vmlist_lock);
+ 	for (p = &vmlist; (tmp = *p) != NULL; p = &tmp->next) {
+ 		if (tmp->addr >= vm->addr)
+@@ -1275,6 +1279,13 @@ static void insert_vmalloc_vm(struct vm_
+ 	write_unlock(&vmlist_lock);
+ }
+ 
++static void insert_vmalloc_vm(struct vm_struct *vm, struct vmap_area *va,
++			      unsigned long flags, void *caller)
++{
++	setup_vmalloc_vm(vm, va, flags, caller);
++	insert_vmalloc_vmlist(vm);
++}
++
+ static struct vm_struct *__get_vm_area_node(unsigned long size,
+ 		unsigned long align, unsigned long flags, unsigned long start,
+ 		unsigned long end, int node, gfp_t gfp_mask, void *caller)
+@@ -1313,7 +1324,18 @@ static struct vm_struct *__get_vm_area_n
+ 		return NULL;
+ 	}
+ 
+-	insert_vmalloc_vm(area, va, flags, caller);
++	/*
++	 * When this function is called from __vmalloc_node_range,
++	 * we do not add vm_struct to vmlist here to avoid
++	 * accessing uninitialized members of vm_struct such as
++	 * pages and nr_pages fields. They will be set later.
++	 * To distinguish it from others, we use a VM_UNLIST flag.
++	 */
++	if (flags & VM_UNLIST)
++		setup_vmalloc_vm(area, va, flags, caller);
++	else
++		insert_vmalloc_vm(area, va, flags, caller);
++
+ 	return area;
+ }
+ 
+@@ -1381,17 +1403,20 @@ struct vm_struct *remove_vm_area(const v
+ 	va = find_vmap_area((unsigned long)addr);
+ 	if (va && va->flags & VM_VM_AREA) {
+ 		struct vm_struct *vm = va->private;
+-		struct vm_struct *tmp, **p;
+-		/*
+-		 * remove from list and disallow access to this vm_struct
+-		 * before unmap. (address range confliction is maintained by
+-		 * vmap.)
+-		 */
+-		write_lock(&vmlist_lock);
+-		for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
+-			;
+-		*p = tmp->next;
+-		write_unlock(&vmlist_lock);
++
++		if (!(vm->flags & VM_UNLIST)) {
++			struct vm_struct *tmp, **p;
++			/*
++			 * remove from list and disallow access to
++			 * this vm_struct before unmap. (address range
++			 * confliction is maintained by vmap.)
++			 */
++			write_lock(&vmlist_lock);
++			for (p = &vmlist; (tmp = *p) != vm; p = &tmp->next)
++				;
++			*p = tmp->next;
++			write_unlock(&vmlist_lock);
++		}
+ 
+ 		vmap_debug_free_range(va->va_start, va->va_end);
+ 		free_unmap_vmap_area(va);
+@@ -1602,8 +1627,8 @@ void *__vmalloc_node_range(unsigned long
+ 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
+ 		return NULL;
+ 
+-	area = __get_vm_area_node(size, align, VM_ALLOC, start, end, node,
+-				  gfp_mask, caller);
++	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNLIST,
++				  start, end, node, gfp_mask, caller);
+ 
+ 	if (!area)
+ 		return NULL;
+@@ -1611,6 +1636,12 @@ void *__vmalloc_node_range(unsigned long
+ 	addr = __vmalloc_area_node(area, gfp_mask, prot, node, caller);
+ 
+ 	/*
++	 * In this function, newly allocated vm_struct is not added
++	 * to vmlist at __get_vm_area_node(). so, it is added here.
++	 */
++	insert_vmalloc_vmlist(area);
++
++	/*
+ 	 * A ref_count = 3 is needed because the vm_struct and vmap_area
+ 	 * structures allocated in the __get_vm_area_node() function contain
+ 	 * references to the virtual address of the vmalloc'ed block.
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from mitsuo.hayasaka.hu@hitachi.com are
 
 origin.patch
-thp-tail-page-refcounting-fix-5.patch
-powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
-powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
-powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
-powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
-powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
-s390-gup_huge_pmd-support-thp-tail-recounting.patch
-s390-gup_huge_pmd-return-0-if-pte-changes.patch
-sparc-gup_pte_range-support-thp-based-tail-recounting.patch
-thp-share-get_huge_page_tail.patch
 
