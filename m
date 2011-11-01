@@ -1,118 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:12:49 -0700
-Message-ID: <201111012112.pA1LCnlV005868@hpaq2.eem.corp.google.com>
+Subject: [merged] lis3-update-maintainer-information.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:13:13 -0700
+Message-ID: <201111012113.pA1LDDxA012097@hpaq13.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:16173 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:29659 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab1KAVNZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:13:25 -0400
+	with ESMTP id S1753117Ab1KAVNm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:13:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jic23@cam.ac.uk, James.Bottomley@HansenPartnership.com, airlied@linux.ie, djwong@us.ibm.com, guenter.roeck@ericsson.com, rusty@rustcorp.com.au, thellstrom@vmware.com, tj@kernel.org, z
+To: eric.piel@tremplin-utc.net, cascardo@holoscopio.com, chunkeey@googlemail.com, ilkka.koskinen@nokia.com, lyall.pearce@hp.com, m-starostik@versanet.de, mjg@redhat.com, witold.pilat@gmai
 
 
 The patch titled
-     Subject: hwmon: convert idr to ida and use ida_simple interface
+     Subject: lis3: update maintainer information
 has been removed from the -mm tree.  Its filename was
-     hwmon-convert-idr-to-ida-and-use-ida_simple-interface.patch
+     lis3-update-maintainer-information.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Subject: hwmon: convert idr to ida and use ida_simple interface
+=46rom: =C9ric Piel <eric.piel@tremplin-utc.net>
+Subject: lis3: update maintainer information
 
-hwmon was using an idr with a NULL pointer, so convert to an
-ida which then allows use of Rusty's ida_simple_get.
+In the move of the lis3 driver, the hp_accel.c file got dropped from th=
+e
+MAINTAINER file. Make it explicit again that this file is tied to lis3
+again.
 
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Darrick J. Wong <djwong@us.ibm.com>
+Signed-off-by: =C9ric Piel <eric.piel@tremplin-utc.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Witold Pilat <witold.pilat@gmail.com>
+Cc: Lyall Pearce <lyall.pearce@hp.com>
+Cc: Malte Starostik <m-starostik@versanet.de>
+Cc: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Cc: Thadeu Lima de Souza Cascardo <cascardo@holoscopio.com>
+Cc: Christian Lamparter <chunkeey@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/hwmon.c |   32 ++++++++------------------------
- 1 file changed, 8 insertions(+), 24 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/hwmon/hwmon.c~hwmon-convert-idr-to-ida-and-use-ida_simple-interface drivers/hwmon/hwmon.c
---- a/drivers/hwmon/hwmon.c~hwmon-convert-idr-to-ida-and-use-ida_simple-interface
-+++ a/drivers/hwmon/hwmon.c
-@@ -27,8 +27,7 @@
- 
- static struct class *hwmon_class;
- 
--static DEFINE_IDR(hwmon_idr);
--static DEFINE_SPINLOCK(idr_lock);
-+static DEFINE_IDA(hwmon_ida);
- 
- /**
-  * hwmon_device_register - register w/ hwmon
-@@ -42,30 +41,17 @@ static DEFINE_SPINLOCK(idr_lock);
- struct device *hwmon_device_register(struct device *dev)
- {
- 	struct device *hwdev;
--	int id, err;
-+	int id;
- 
--again:
--	if (unlikely(idr_pre_get(&hwmon_idr, GFP_KERNEL) == 0))
--		return ERR_PTR(-ENOMEM);
--
--	spin_lock(&idr_lock);
--	err = idr_get_new(&hwmon_idr, NULL, &id);
--	spin_unlock(&idr_lock);
--
--	if (unlikely(err == -EAGAIN))
--		goto again;
--	else if (unlikely(err))
--		return ERR_PTR(err);
-+	id = ida_simple_get(&hwmon_ida, 0, 0, GFP_KERNEL);
-+	if (id < 0)
-+		return ERR_PTR(id);
- 
--	id = id & MAX_ID_MASK;
- 	hwdev = device_create(hwmon_class, dev, MKDEV(0, 0), NULL,
- 			      HWMON_ID_FORMAT, id);
- 
--	if (IS_ERR(hwdev)) {
--		spin_lock(&idr_lock);
--		idr_remove(&hwmon_idr, id);
--		spin_unlock(&idr_lock);
--	}
-+	if (IS_ERR(hwdev))
-+		ida_simple_remove(&hwmon_ida, id);
- 
- 	return hwdev;
- }
-@@ -81,9 +67,7 @@ void hwmon_device_unregister(struct devi
- 
- 	if (likely(sscanf(dev_name(dev), HWMON_ID_FORMAT, &id) == 1)) {
- 		device_unregister(dev);
--		spin_lock(&idr_lock);
--		idr_remove(&hwmon_idr, id);
--		spin_unlock(&idr_lock);
-+		ida_simple_remove(&hwmon_ida, id);
- 	} else
- 		dev_dbg(dev->parent,
- 			"hwmon_device_unregister() failed: bad class ID!\n");
+diff -puN MAINTAINERS~lis3-update-maintainer-information MAINTAINERS
+--- a/MAINTAINERS~lis3-update-maintainer-information
++++ a/MAINTAINERS
+@@ -3995,6 +3995,7 @@ M:	Eric Piel <eric.piel@tremplin-utc.net
+ S:	Maintained
+ F:	Documentation/misc-devices/lis3lv02d
+ F:	drivers/misc/lis3lv02d/
++F:	drivers/platform/x86/hp_accel.c
+=20
+ LLC (802.2)
+ M:	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 _
 
-Patches currently in -mm which might be from jic23@cam.ac.uk are
+Patches currently in -mm which might be from eric.piel@tremplin-utc.net=
+ are
 
 origin.patch
-linux-next.patch
-drivers-scsi-sdc-use-ida_simple_get-and-ida_simple_remove-in-place-of-boilerplate-code.patch
-drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id.patch
-drivers-rtc-classc-convert-idr-to-ida-and-use-ida_simple_get.patch
-w1-ds2760-and-ds2780-use-ida-for-id-and-ida_simple_get-to-get-it.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
