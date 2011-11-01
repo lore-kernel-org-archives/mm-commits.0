@@ -1,364 +1,296 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:08:50 -0700
-Message-ID: <201111012108.pA1L8oaa004233@hpaq1.eem.corp.google.com>
+Subject: [merged] thp-mremap-support-and-tlb-optimization.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:10:21 -0700
+Message-ID: <201111012110.pA1LAL7c012589@wpaz24.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:28981 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:28998 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755720Ab1KAVKW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:22 -0400
+	with ESMTP id S1751699Ab1KAVK0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, aelder@sgi.com, chris.mason@oracle.com, dave@linux.vnet.ibm.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, jweiner@redhat.com, mgorm
+To: aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: do not writeback filesystem pages in direct reclaim
+     Subject: thp: mremap support and TLB optimization
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim.patch
+     thp-mremap-support-and-tlb-optimization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mel@csn.ul.ie>
-Subject: mm: vmscan: do not writeback filesystem pages in direct reclaim
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp: mremap support and TLB optimization
 
-Testing from the XFS folk revealed that there is still too much I/O from
-the end of the LRU in kswapd.  Previously it was considered acceptable by
-VM people for a small number of pages to be written back from reclaim with
-testing generally showing about 0.3% of pages reclaimed were written back
-(higher if memory was low).  That writing back a small number of pages is
-ok has been heavily disputed for quite some time and Dave Chinner
-explained it well;
+This adds THP support to mremap (decreases the number of split_huge_page()
+calls).
 
-	It doesn't have to be a very high number to be a problem. IO
-	is orders of magnitude slower than the CPU time it takes to
-	flush a page, so the cost of making a bad flush decision is
-	very high. And single page writeback from the LRU is almost
-	always a bad flush decision.
+Here are also some benchmarks with a proggy like this:
 
-To complicate matters, filesystems respond very differently to requests
-from reclaim according to Christoph Hellwig;
+===
+#define _GNU_SOURCE
+#include <sys/mman.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/time.h>
 
-	xfs tries to write it back if the requester is kswapd
-	ext4 ignores the request if it's a delayed allocation
-	btrfs ignores the request
+#define SIZE (5UL*1024*1024*1024)
 
-As a result, each filesystem has different performance characteristics
-when under memory pressure and there are many pages being dirtied.  In
-some cases, the request is ignored entirely so the VM cannot depend on the
-IO being dispatched.
+int main()
+{
+        static struct timeval oldstamp, newstamp;
+	long diffsec;
+	char *p, *p2, *p3, *p4;
+	if (posix_memalign((void **)&p, 2*1024*1024, SIZE))
+		perror("memalign"), exit(1);
+	if (posix_memalign((void **)&p2, 2*1024*1024, SIZE))
+		perror("memalign"), exit(1);
+	if (posix_memalign((void **)&p3, 2*1024*1024, 4096))
+		perror("memalign"), exit(1);
 
-The objective of this series is to reduce writing of filesystem-backed
-pages from reclaim, play nicely with writeback that is already in progress
-and throttle reclaim appropriately when writeback pages are encountered. 
-The assumption is that the flushers will always write pages faster than if
-reclaim issues the IO.
+	memset(p, 0xff, SIZE);
+	memset(p2, 0xff, SIZE);
+	memset(p3, 0x77, 4096);
+	gettimeofday(&oldstamp, NULL);
+	p4 = mremap(p, SIZE, SIZE, MREMAP_FIXED|MREMAP_MAYMOVE, p3);
+	gettimeofday(&newstamp, NULL);
+	diffsec = newstamp.tv_sec - oldstamp.tv_sec;
+	diffsec = newstamp.tv_usec - oldstamp.tv_usec + 1000000 * diffsec;
+	printf("usec %ld\n", diffsec);
+	if (p == MAP_FAILED || p4 != p3)
+	//if (p == MAP_FAILED)
+		perror("mremap"), exit(1);
+	if (memcmp(p4, p2, SIZE))
+		printf("mremap bug\n"), exit(1);
+	printf("ok\n");
 
-A secondary goal is to avoid the problem whereby direct reclaim splices
-two potentially deep call stacks together.
+	return 0;
+}
+===
 
-There is a potential new problem as reclaim has less control over how long
-before a page in a particularly zone or container is cleaned and direct
-reclaimers depend on kswapd or flusher threads to do the necessary work. 
-However, as filesystems sometimes ignore direct reclaim requests already,
-it is not expected to be a serious issue.
+THP on
 
-Patch 1 disables writeback of filesystem pages from direct reclaim
-	entirely. Anonymous pages are still written.
+ Performance counter stats for './largepage13' (3 runs):
 
-Patch 2 removes dead code in lumpy reclaim as it is no longer able
-	to synchronously write pages. This hurts lumpy reclaim but
-	there is an expectation that compaction is used for hugepage
-	allocations these days and lumpy reclaim's days are numbered.
+          69195836 dTLB-loads                 ( +-   3.546% )  (scaled from 50.30%)
+             60708 dTLB-load-misses           ( +-  11.776% )  (scaled from 52.62%)
+         676266476 dTLB-stores                ( +-   5.654% )  (scaled from 69.54%)
+             29856 dTLB-store-misses          ( +-   4.081% )  (scaled from 89.22%)
+        1055848782 iTLB-loads                 ( +-   4.526% )  (scaled from 80.18%)
+              8689 iTLB-load-misses           ( +-   2.987% )  (scaled from 58.20%)
 
-Patches 3-4 add warnings to XFS and ext4 if called from
-	direct reclaim. With patch 1, this "never happens" and is
-	intended to catch regressions in this logic in the future.
+        7.314454164  seconds time elapsed   ( +-   0.023% )
 
-Patch 5 disables writeback of filesystem pages from kswapd unless
-	the priority is raised to the point where kswapd is considered
-	to be in trouble.
+THP off
 
-Patch 6 throttles reclaimers if too many dirty pages are being
-	encountered and the zones or backing devices are congested.
+ Performance counter stats for './largepage13' (3 runs):
 
-Patch 7 invalidates dirty pages found at the end of the LRU so they
-	are reclaimed quickly after being written back rather than
-	waiting for a reclaimer to find them
+        1967379311 dTLB-loads                 ( +-   0.506% )  (scaled from 60.59%)
+           9238687 dTLB-load-misses           ( +-  22.547% )  (scaled from 61.87%)
+        2014239444 dTLB-stores                ( +-   0.692% )  (scaled from 60.40%)
+           3312335 dTLB-store-misses          ( +-   7.304% )  (scaled from 67.60%)
+        6764372065 iTLB-loads                 ( +-   0.925% )  (scaled from 79.00%)
+              8202 iTLB-load-misses           ( +-   0.475% )  (scaled from 70.55%)
 
-I consider this series to be orthogonal to the writeback work but it is
-worth noting that the writeback work affects the viability of patch 8 in
-particular.
+        9.693655243  seconds time elapsed   ( +-   0.069% )
 
-I tested this on ext4 and xfs using fs_mark, a simple writeback test based
-on dd and a micro benchmark that does a streaming write to a large mapping
-(exercises use-once LRU logic) followed by streaming writes to a mix of
-anonymous and file-backed mappings.  The command line for fs_mark when
-botted with 512M looked something like
+grep thp /proc/vmstat
+thp_fault_alloc 35849
+thp_fault_fallback 0
+thp_collapse_alloc 3
+thp_collapse_alloc_failed 0
+thp_split 0
 
-./fs_mark -d  /tmp/fsmark-2676  -D  100  -N  150  -n  150  -L  25  -t  1  -S0  -s  10485760
+thp_split 0 confirms no thp split despite plenty of hugepages allocated.
 
-The number of files was adjusted depending on the amount of available
-memory so that the files created was about 3xRAM.  For multiple threads,
-the -d switch is specified multiple times.
+The measurement of only the mremap time (so excluding the 3 long
+memset and final long 10GB memory accessing memcmp):
 
-The test machine is x86-64 with an older generation of AMD processor with
-4 cores.  The underlying storage was 4 disks configured as RAID-0 as this
-was the best configuration of storage I had available.  Swap is on a
-separate disk.  Dirty ratio was tuned to 40% instead of the default of
-20%.
+THP on
 
-Testing was run with and without monitors to both verify that the patches
-were operating as expected and that any performance gain was real and not
-due to interference from monitors.
+usec 14824
+usec 14862
+usec 14859
 
-Here is a summary of results based on testing XFS.
+THP off
 
-512M1P-xfs           Files/s  mean                 32.69 ( 0.00%)     34.44 ( 5.08%)
-512M1P-xfs           Elapsed Time fsmark                    51.41     48.29
-512M1P-xfs           Elapsed Time simple-wb                114.09    108.61
-512M1P-xfs           Elapsed Time mmap-strm                113.46    109.34
-512M1P-xfs           Kswapd efficiency fsmark                 62%       63%
-512M1P-xfs           Kswapd efficiency simple-wb              56%       61%
-512M1P-xfs           Kswapd efficiency mmap-strm              44%       42%
-512M-xfs             Files/s  mean                 30.78 ( 0.00%)     35.94 (14.36%)
-512M-xfs             Elapsed Time fsmark                    56.08     48.90
-512M-xfs             Elapsed Time simple-wb                112.22     98.13
-512M-xfs             Elapsed Time mmap-strm                219.15    196.67
-512M-xfs             Kswapd efficiency fsmark                 54%       56%
-512M-xfs             Kswapd efficiency simple-wb              54%       55%
-512M-xfs             Kswapd efficiency mmap-strm              45%       44%
-512M-4X-xfs          Files/s  mean                 30.31 ( 0.00%)     33.33 ( 9.06%)
-512M-4X-xfs          Elapsed Time fsmark                    63.26     55.88
-512M-4X-xfs          Elapsed Time simple-wb                100.90     90.25
-512M-4X-xfs          Elapsed Time mmap-strm                261.73    255.38
-512M-4X-xfs          Kswapd efficiency fsmark                 49%       50%
-512M-4X-xfs          Kswapd efficiency simple-wb              54%       56%
-512M-4X-xfs          Kswapd efficiency mmap-strm              37%       36%
-512M-16X-xfs         Files/s  mean                 60.89 ( 0.00%)     65.22 ( 6.64%)
-512M-16X-xfs         Elapsed Time fsmark                    67.47     58.25
-512M-16X-xfs         Elapsed Time simple-wb                103.22     90.89
-512M-16X-xfs         Elapsed Time mmap-strm                237.09    198.82
-512M-16X-xfs         Kswapd efficiency fsmark                 45%       46%
-512M-16X-xfs         Kswapd efficiency simple-wb              53%       55%
-512M-16X-xfs         Kswapd efficiency mmap-strm              33%       33%
+usec 256416
+usec 255981
+usec 255847
 
-Up until 512-4X, the FSmark improvements were statistically significant. 
-For the 4X and 16X tests the results were within standard deviations but
-just barely.  The time to completion for all tests is improved which is an
-important result.  In general, kswapd efficiency is not affected by
-skipping dirty pages.
+With an older kernel without the mremap optimizations (the below patch
+optimizes the non THP version too).
 
-1024M1P-xfs          Files/s  mean                 39.09 ( 0.00%)     41.15 ( 5.01%)
-1024M1P-xfs          Elapsed Time fsmark                    84.14     80.41
-1024M1P-xfs          Elapsed Time simple-wb                210.77    184.78
-1024M1P-xfs          Elapsed Time mmap-strm                162.00    160.34
-1024M1P-xfs          Kswapd efficiency fsmark                 69%       75%
-1024M1P-xfs          Kswapd efficiency simple-wb              71%       77%
-1024M1P-xfs          Kswapd efficiency mmap-strm              43%       44%
-1024M-xfs            Files/s  mean                 35.45 ( 0.00%)     37.00 ( 4.19%)
-1024M-xfs            Elapsed Time fsmark                    94.59     91.00
-1024M-xfs            Elapsed Time simple-wb                229.84    195.08
-1024M-xfs            Elapsed Time mmap-strm                405.38    440.29
-1024M-xfs            Kswapd efficiency fsmark                 79%       71%
-1024M-xfs            Kswapd efficiency simple-wb              74%       74%
-1024M-xfs            Kswapd efficiency mmap-strm              39%       42%
-1024M-4X-xfs         Files/s  mean                 32.63 ( 0.00%)     35.05 ( 6.90%)
-1024M-4X-xfs         Elapsed Time fsmark                   103.33     97.74
-1024M-4X-xfs         Elapsed Time simple-wb                204.48    178.57
-1024M-4X-xfs         Elapsed Time mmap-strm                528.38    511.88
-1024M-4X-xfs         Kswapd efficiency fsmark                 81%       70%
-1024M-4X-xfs         Kswapd efficiency simple-wb              73%       72%
-1024M-4X-xfs         Kswapd efficiency mmap-strm              39%       38%
-1024M-16X-xfs        Files/s  mean                 42.65 ( 0.00%)     42.97 ( 0.74%)
-1024M-16X-xfs        Elapsed Time fsmark                   103.11     99.11
-1024M-16X-xfs        Elapsed Time simple-wb                200.83    178.24
-1024M-16X-xfs        Elapsed Time mmap-strm                397.35    459.82
-1024M-16X-xfs        Kswapd efficiency fsmark                 84%       69%
-1024M-16X-xfs        Kswapd efficiency simple-wb              74%       73%
-1024M-16X-xfs        Kswapd efficiency mmap-strm              39%       40%
+THP on
 
-All FSMark tests up to 16X had statistically significant improvements. 
-For the most part, tests are completing faster with the exception of the
-streaming writes to a mixture of anonymous and file-backed mappings which
-were slower in two cases
+usec 392107
+usec 390237
+usec 404124
 
-In the cases where the mmap-strm tests were slower, there was more
-swapping due to dirty pages being skipped.  The number of additional pages
-swapped is almost identical to the fewer number of pages written from
-reclaim.  In other words, roughly the same number of pages were reclaimed
-but swapping was slower.  As the test is a bit unrealistic and stresses
-memory heavily, the small shift is acceptable.
+THP off
 
-4608M1P-xfs          Files/s  mean                 29.75 ( 0.00%)     30.96 ( 3.91%)
-4608M1P-xfs          Elapsed Time fsmark                   512.01    492.15
-4608M1P-xfs          Elapsed Time simple-wb                618.18    566.24
-4608M1P-xfs          Elapsed Time mmap-strm                488.05    465.07
-4608M1P-xfs          Kswapd efficiency fsmark                 93%       86%
-4608M1P-xfs          Kswapd efficiency simple-wb              88%       84%
-4608M1P-xfs          Kswapd efficiency mmap-strm              46%       45%
-4608M-xfs            Files/s  mean                 27.60 ( 0.00%)     28.85 ( 4.33%)
-4608M-xfs            Elapsed Time fsmark                   555.96    532.34
-4608M-xfs            Elapsed Time simple-wb                659.72    571.85
-4608M-xfs            Elapsed Time mmap-strm               1082.57   1146.38
-4608M-xfs            Kswapd efficiency fsmark                 89%       91%
-4608M-xfs            Kswapd efficiency simple-wb              88%       82%
-4608M-xfs            Kswapd efficiency mmap-strm              48%       46%
-4608M-4X-xfs         Files/s  mean                 26.00 ( 0.00%)     27.47 ( 5.35%)
-4608M-4X-xfs         Elapsed Time fsmark                   592.91    564.00
-4608M-4X-xfs         Elapsed Time simple-wb                616.65    575.07
-4608M-4X-xfs         Elapsed Time mmap-strm               1773.02   1631.53
-4608M-4X-xfs         Kswapd efficiency fsmark                 90%       94%
-4608M-4X-xfs         Kswapd efficiency simple-wb              87%       82%
-4608M-4X-xfs         Kswapd efficiency mmap-strm              43%       43%
-4608M-16X-xfs        Files/s  mean                 26.07 ( 0.00%)     26.42 ( 1.32%)
-4608M-16X-xfs        Elapsed Time fsmark                   602.69    585.78
-4608M-16X-xfs        Elapsed Time simple-wb                606.60    573.81
-4608M-16X-xfs        Elapsed Time mmap-strm               1549.75   1441.86
-4608M-16X-xfs        Kswapd efficiency fsmark                 98%       98%
-4608M-16X-xfs        Kswapd efficiency simple-wb              88%       82%
-4608M-16X-xfs        Kswapd efficiency mmap-strm              44%       42%
+usec 444294
+usec 445237
+usec 445820
 
-Unlike the other tests, the fsmark results are not statistically
-significant but the min and max times are both improved and for the most
-part, tests completed faster.
+I guess with a threaded program that sends more IPI on large SMP it'd
+create an even larger difference.
 
-There are other indications that this is an improvement as well.  For
-example, in the vast majority of cases, there were fewer pages scanned by
-direct reclaim implying in many cases that stalls due to direct reclaim
-are reduced.  KSwapd is scanning more due to skipping dirty pages which is
-unfortunate but the CPU usage is still acceptable
+All debug options are off except DEBUG_VM to avoid skewing the
+results.
 
-In an earlier set of tests, I used blktrace and in almost all cases
-throughput throughout the entire test was higher.  However, I ended up
-discarding those results as recording blktrace data was too heavy for my
-liking.
+The only problem for native 2M mremap like it happens above both the
+source and destination address must be 2M aligned or the hugepmd can't be
+moved without a split but that is an hardware limitation.
 
-On a laptop, I plugged in a USB stick and ran a similar tests of tests
-using it as backing storage.  A desktop environment was running and for
-the entire duration of the tests, firefox and gnome terminal were
-launching and exiting to vaguely simulate a user.
-
-1024M-xfs            Files/s  mean               0.41 ( 0.00%)        0.44 ( 6.82%)
-1024M-xfs            Elapsed Time fsmark               2053.52   1641.03
-1024M-xfs            Elapsed Time simple-wb            1229.53    768.05
-1024M-xfs            Elapsed Time mmap-strm            4126.44   4597.03
-1024M-xfs            Kswapd efficiency fsmark              84%       85%
-1024M-xfs            Kswapd efficiency simple-wb           92%       81%
-1024M-xfs            Kswapd efficiency mmap-strm           60%       51%
-1024M-xfs            Avg wait ms fsmark                5404.53     4473.87
-1024M-xfs            Avg wait ms simple-wb             2541.35     1453.54
-1024M-xfs            Avg wait ms mmap-strm             3400.25     3852.53
-
-The mmap-strm results were hurt because firefox launching had a tendency
-to push the test out of memory.  On the postive side, firefox launched
-marginally faster with the patches applied.  Time to completion for many
-tests was faster but more importantly - the "Avg wait" time as measured by
-iostat was far lower implying the system would be more responsive.  It was
-also the case that "Avg wait ms" on the root filesystem was lower.  I
-tested it manually and while the system felt slightly more responsive
-while copying data to a USB stick, it was marginal enough that it could be
-my imagination.
-
-
-This patch: do not writeback filesystem pages in direct reclaim.
-
-When kswapd is failing to keep zones above the min watermark, a process
-will enter direct reclaim in the same manner kswapd does.  If a dirty page
-is encountered during the scan, this page is written to backing storage
-using mapping->writepage.
-
-This causes two problems.  First, it can result in very deep call stacks,
-particularly if the target storage or filesystem are complex.  Some
-filesystems ignore write requests from direct reclaim as a result.  The
-second is that a single-page flush is inefficient in terms of IO.  While
-there is an expectation that the elevator will merge requests, this does
-not always happen.  Quoting Christoph Hellwig;
-
-	The elevator has a relatively small window it can operate on,
-	and can never fix up a bad large scale writeback pattern.
-
-This patch prevents direct reclaim writing back filesystem pages by
-checking if current is kswapd.  Anonymous pages are still written to swap
-as there is not the equivalent of a flusher thread for anonymous pages. 
-If the dirty pages cannot be written back, they are placed back on the LRU
-lists.  There is now a direct dependency on dirty page balancing to
-prevent too many pages in the system being dirtied which would prevent
-reclaim making forward progress.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Alex Elder <aelder@sgi.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+[akpm@linux-foundation.org: coding-style nitpicking]
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Johannes Weiner <jweiner@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- mm/vmscan.c            |    9 +++++++++
- mm/vmstat.c            |    1 +
- 3 files changed, 11 insertions(+)
+ include/linux/huge_mm.h |    5 ++++
+ mm/huge_memory.c        |   45 ++++++++++++++++++++++++++++++++++++++
+ mm/mremap.c             |   22 +++++++++++++++---
+ 3 files changed, 68 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim
-+++ a/include/linux/mmzone.h
-@@ -100,6 +100,7 @@ enum zone_stat_item {
- 	NR_UNSTABLE_NFS,	/* NFS unstable pages */
- 	NR_BOUNCE,
- 	NR_VMSCAN_WRITE,
-+	NR_VMSCAN_WRITE_SKIP,
- 	NR_WRITEBACK_TEMP,	/* Writeback using temporary buffers */
- 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
- 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
-diff -puN mm/vmscan.c~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim
-+++ a/mm/vmscan.c
-@@ -865,6 +865,15 @@ static unsigned long shrink_page_list(st
- 		if (PageDirty(page)) {
- 			nr_dirty++;
+diff -puN include/linux/huge_mm.h~thp-mremap-support-and-tlb-optimization include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-mremap-support-and-tlb-optimization
++++ a/include/linux/huge_mm.h
+@@ -22,6 +22,11 @@ extern int zap_huge_pmd(struct mmu_gathe
+ extern int mincore_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, unsigned long end,
+ 			unsigned char *vec);
++extern int move_huge_pmd(struct vm_area_struct *vma,
++			 struct vm_area_struct *new_vma,
++			 unsigned long old_addr,
++			 unsigned long new_addr, unsigned long old_end,
++			 pmd_t *old_pmd, pmd_t *new_pmd);
+ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot);
  
-+			/*
-+			 * Only kswapd can writeback filesystem pages to
-+			 * avoid risk of stack overflow
-+			 */
-+			if (page_is_file_cache(page) && !current_is_kswapd()) {
-+				inc_zone_page_state(page, NR_VMSCAN_WRITE_SKIP);
-+				goto keep_locked;
-+			}
+diff -puN mm/huge_memory.c~thp-mremap-support-and-tlb-optimization mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-mremap-support-and-tlb-optimization
++++ a/mm/huge_memory.c
+@@ -1052,6 +1052,51 @@ int mincore_huge_pmd(struct vm_area_stru
+ 	return ret;
+ }
+ 
++int move_huge_pmd(struct vm_area_struct *vma, struct vm_area_struct *new_vma,
++		  unsigned long old_addr,
++		  unsigned long new_addr, unsigned long old_end,
++		  pmd_t *old_pmd, pmd_t *new_pmd)
++{
++	int ret = 0;
++	pmd_t pmd;
 +
- 			if (references == PAGEREF_RECLAIM_CLEAN)
- 				goto keep_locked;
- 			if (!may_enter_fs)
-diff -puN mm/vmstat.c~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim mm/vmstat.c
---- a/mm/vmstat.c~mm-vmscan-do-not-writeback-filesystem-pages-in-direct-reclaim
-+++ a/mm/vmstat.c
-@@ -702,6 +702,7 @@ const char * const vmstat_text[] = {
- 	"nr_unstable",
- 	"nr_bounce",
- 	"nr_vmscan_write",
-+	"nr_vmscan_write_skip",
- 	"nr_writeback_temp",
- 	"nr_isolated_anon",
- 	"nr_isolated_file",
++	struct mm_struct *mm = vma->vm_mm;
++
++	if ((old_addr & ~HPAGE_PMD_MASK) ||
++	    (new_addr & ~HPAGE_PMD_MASK) ||
++	    old_end - old_addr < HPAGE_PMD_SIZE ||
++	    (new_vma->vm_flags & VM_NOHUGEPAGE))
++		goto out;
++
++	/*
++	 * The destination pmd shouldn't be established, free_pgtables()
++	 * should have release it.
++	 */
++	if (WARN_ON(!pmd_none(*new_pmd))) {
++		VM_BUG_ON(pmd_trans_huge(*new_pmd));
++		goto out;
++	}
++
++	spin_lock(&mm->page_table_lock);
++	if (likely(pmd_trans_huge(*old_pmd))) {
++		if (pmd_trans_splitting(*old_pmd)) {
++			spin_unlock(&mm->page_table_lock);
++			wait_split_huge_page(vma->anon_vma, old_pmd);
++			ret = -1;
++		} else {
++			pmd = pmdp_get_and_clear(mm, old_addr, old_pmd);
++			VM_BUG_ON(!pmd_none(*new_pmd));
++			set_pmd_at(mm, new_addr, new_pmd, pmd);
++			spin_unlock(&mm->page_table_lock);
++			ret = 1;
++		}
++	} else {
++		spin_unlock(&mm->page_table_lock);
++	}
++out:
++	return ret;
++}
++
+ int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long addr, pgprot_t newprot)
+ {
+diff -puN mm/mremap.c~thp-mremap-support-and-tlb-optimization mm/mremap.c
+--- a/mm/mremap.c~thp-mremap-support-and-tlb-optimization
++++ a/mm/mremap.c
+@@ -41,8 +41,7 @@ static pmd_t *get_old_pmd(struct mm_stru
+ 		return NULL;
+ 
+ 	pmd = pmd_offset(pud, addr);
+-	split_huge_page_pmd(mm, pmd);
+-	if (pmd_none_or_clear_bad(pmd))
++	if (pmd_none(*pmd))
+ 		return NULL;
+ 
+ 	return pmd;
+@@ -65,8 +64,6 @@ static pmd_t *alloc_new_pmd(struct mm_st
+ 		return NULL;
+ 
+ 	VM_BUG_ON(pmd_trans_huge(*pmd));
+-	if (pmd_none(*pmd) && __pte_alloc(mm, vma, pmd, addr))
+-		return NULL;
+ 
+ 	return pmd;
+ }
+@@ -149,6 +146,23 @@ unsigned long move_page_tables(struct vm
+ 		new_pmd = alloc_new_pmd(vma->vm_mm, vma, new_addr);
+ 		if (!new_pmd)
+ 			break;
++		if (pmd_trans_huge(*old_pmd)) {
++			int err = 0;
++			if (extent == HPAGE_PMD_SIZE)
++				err = move_huge_pmd(vma, new_vma, old_addr,
++						    new_addr, old_end,
++						    old_pmd, new_pmd);
++			if (err > 0) {
++				need_flush = true;
++				continue;
++			} else if (!err) {
++				split_huge_page_pmd(vma->vm_mm, old_pmd);
++			}
++			VM_BUG_ON(pmd_trans_huge(*old_pmd));
++		}
++		if (pmd_none(*new_pmd) && __pte_alloc(new_vma->vm_mm, new_vma,
++						      new_pmd, new_addr))
++			break;
+ 		next = (new_addr + PMD_SIZE) & PMD_MASK;
+ 		if (extent > next - new_addr)
+ 			extent = next - new_addr;
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
-mm-add-free_hot_cold_page_list-helper.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+thp-tail-page-refcounting-fix-5.patch
+powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
+powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
+powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
+powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
+powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
+s390-gup_huge_pmd-support-thp-tail-recounting.patch
+s390-gup_huge_pmd-return-0-if-pte-changes.patch
+sparc-gup_pte_range-support-thp-based-tail-recounting.patch
+thp-share-get_huge_page_tail.patch
 
