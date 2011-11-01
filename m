@@ -1,246 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-stringc-introduce-memchr_inv.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:09:51 -0700
-Message-ID: <201111012109.pA1L9pc8007618@wpaz5.hot.corp.google.com>
+Subject: [merged] mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:09:36 -0700
+Message-ID: <201111012109.pA1L9ahA031997@hpaq12.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15504 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15509 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755088Ab1KAVKE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:04 -0400
+	with ESMTP id S1755346Ab1KAVKF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, cl@linux-foundation.org, eric.dumazet@gmail.com, joern@logfs.org, marcin.slusarz@gmail.com, mpm@selenic.com, penberg@kernel.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, aelder@sgi.com, chris.mason@oracle.com, dave@linux.vnet.ibm.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, jweiner@redhat.com, min
 
 
 The patch titled
-     Subject: lib/string.c: introduce memchr_inv()
+     Subject: mm: vmscan: immediately reclaim end-of-LRU dirty pages when writeback completes
 has been removed from the -mm tree.  Its filename was
-     lib-stringc-introduce-memchr_inv.patch
+     mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: lib/string.c: introduce memchr_inv()
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmscan: immediately reclaim end-of-LRU dirty pages when writeback completes
 
-memchr_inv() is mainly used to check whether the whole buffer is filled
-with just a specified byte.
+When direct reclaim encounters a dirty page, it gets recycled around the
+LRU for another cycle.  This patch marks the page PageReclaim similar to
+deactivate_page() so that the page gets reclaimed almost immediately after
+the page gets cleaned.  This is to avoid reclaiming clean pages that are
+younger than a dirty page encountered at the end of the LRU that might
+have been something like a use-once page.
 
-The function name and prototype are stolen from logfs and the
-implementation is from SLUB.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Acked-by: Joern Engel <joern@logfs.org>
-Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <jweiner@redhat.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Alex Elder <aelder@sgi.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/logfs/logfs.h       |    1 
- fs/logfs/super.c       |   22 ---------------
- include/linux/string.h |    1 
- lib/string.c           |   54 +++++++++++++++++++++++++++++++++++++++
- mm/slub.c              |   47 +--------------------------------
- 5 files changed, 57 insertions(+), 68 deletions(-)
+ include/linux/mmzone.h |    2 +-
+ mm/vmscan.c            |   10 +++++++++-
+ mm/vmstat.c            |    2 +-
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN fs/logfs/logfs.h~lib-stringc-introduce-memchr_inv fs/logfs/logfs.h
---- a/fs/logfs/logfs.h~lib-stringc-introduce-memchr_inv
-+++ a/fs/logfs/logfs.h
-@@ -618,7 +618,6 @@ static inline int logfs_buf_recover(stru
- struct page *emergency_read_begin(struct address_space *mapping, pgoff_t index);
- void emergency_read_end(struct page *page);
- void logfs_crash_dump(struct super_block *sb);
--void *memchr_inv(const void *s, int c, size_t n);
- int logfs_statfs(struct dentry *dentry, struct kstatfs *stats);
- int logfs_check_ds(struct logfs_disk_super *ds);
- int logfs_write_sb(struct super_block *sb);
-diff -puN fs/logfs/super.c~lib-stringc-introduce-memchr_inv fs/logfs/super.c
---- a/fs/logfs/super.c~lib-stringc-introduce-memchr_inv
-+++ a/fs/logfs/super.c
-@@ -91,28 +91,6 @@ void logfs_crash_dump(struct super_block
- }
+diff -puN include/linux/mmzone.h~mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes
++++ a/include/linux/mmzone.h
+@@ -100,7 +100,7 @@ enum zone_stat_item {
+ 	NR_UNSTABLE_NFS,	/* NFS unstable pages */
+ 	NR_BOUNCE,
+ 	NR_VMSCAN_WRITE,
+-	NR_VMSCAN_WRITE_SKIP,
++	NR_VMSCAN_IMMEDIATE,	/* Prioritise for reclaim when writeback ends */
+ 	NR_WRITEBACK_TEMP,	/* Writeback using temporary buffers */
+ 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
+ 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
+diff -puN mm/vmscan.c~mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes
++++ a/mm/vmscan.c
+@@ -866,7 +866,15 @@ static unsigned long shrink_page_list(st
+ 			 */
+ 			if (page_is_file_cache(page) &&
+ 					(!current_is_kswapd() || priority >= DEF_PRIORITY - 2)) {
+-				inc_zone_page_state(page, NR_VMSCAN_WRITE_SKIP);
++				/*
++				 * Immediately reclaim when written back.
++				 * Similar in principal to deactivate_page()
++				 * except we already have the page isolated
++				 * and know it's dirty
++				 */
++				inc_zone_page_state(page, NR_VMSCAN_IMMEDIATE);
++				SetPageReclaim(page);
++
+ 				goto keep_locked;
+ 			}
  
- /*
-- * TODO: move to lib/string.c
-- */
--/**
-- * memchr_inv - Find a character in an area of memory.
-- * @s: The memory area
-- * @c: The byte to search for
-- * @n: The size of the area.
-- *
-- * returns the address of the first character other than @c, or %NULL
-- * if the whole buffer contains just @c.
-- */
--void *memchr_inv(const void *s, int c, size_t n)
--{
--	const unsigned char *p = s;
--	while (n-- != 0)
--		if ((unsigned char)c != *p++)
--			return (void *)(p - 1);
--
--	return NULL;
--}
--
--/*
-  * FIXME: There should be a reserve for root, similar to ext2.
-  */
- int logfs_statfs(struct dentry *dentry, struct kstatfs *stats)
-diff -puN include/linux/string.h~lib-stringc-introduce-memchr_inv include/linux/string.h
---- a/include/linux/string.h~lib-stringc-introduce-memchr_inv
-+++ a/include/linux/string.h
-@@ -114,6 +114,7 @@ extern int memcmp(const void *,const voi
- #ifndef __HAVE_ARCH_MEMCHR
- extern void * memchr(const void *,int,__kernel_size_t);
- #endif
-+void *memchr_inv(const void *s, int c, size_t n);
- 
- extern char *kstrdup(const char *s, gfp_t gfp);
- extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
-diff -puN lib/string.c~lib-stringc-introduce-memchr_inv lib/string.c
---- a/lib/string.c~lib-stringc-introduce-memchr_inv
-+++ a/lib/string.c
-@@ -756,3 +756,57 @@ void *memchr(const void *s, int c, size_
- }
- EXPORT_SYMBOL(memchr);
- #endif
-+
-+static void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
-+{
-+	while (bytes) {
-+		if (*start != value)
-+			return (void *)start;
-+		start++;
-+		bytes--;
-+	}
-+	return NULL;
-+}
-+
-+/**
-+ * memchr_inv - Find an unmatching character in an area of memory.
-+ * @start: The memory area
-+ * @c: Find a character other than c
-+ * @bytes: The size of the area.
-+ *
-+ * returns the address of the first character other than @c, or %NULL
-+ * if the whole buffer contains just @c.
-+ */
-+void *memchr_inv(const void *start, int c, size_t bytes)
-+{
-+	u8 value = c;
-+	u64 value64;
-+	unsigned int words, prefix;
-+
-+	if (bytes <= 16)
-+		return check_bytes8(start, value, bytes);
-+
-+	value64 = value | value << 8 | value << 16 | value << 24;
-+	value64 = (value64 & 0xffffffff) | value64 << 32;
-+	prefix = 8 - ((unsigned long)start) % 8;
-+
-+	if (prefix) {
-+		u8 *r = check_bytes8(start, value, prefix);
-+		if (r)
-+			return r;
-+		start += prefix;
-+		bytes -= prefix;
-+	}
-+
-+	words = bytes / 8;
-+
-+	while (words) {
-+		if (*(u64 *)start != value64)
-+			return check_bytes8(start, value, 8);
-+		start += 8;
-+		words--;
-+	}
-+
-+	return check_bytes8(start, value, bytes % 8);
-+}
-+EXPORT_SYMBOL(memchr_inv);
-diff -puN mm/slub.c~lib-stringc-introduce-memchr_inv mm/slub.c
---- a/mm/slub.c~lib-stringc-introduce-memchr_inv
-+++ a/mm/slub.c
-@@ -655,49 +655,6 @@ static void init_object(struct kmem_cach
- 		memset(p + s->objsize, val, s->inuse - s->objsize);
- }
- 
--static u8 *check_bytes8(u8 *start, u8 value, unsigned int bytes)
--{
--	while (bytes) {
--		if (*start != value)
--			return start;
--		start++;
--		bytes--;
--	}
--	return NULL;
--}
--
--static u8 *check_bytes(u8 *start, u8 value, unsigned int bytes)
--{
--	u64 value64;
--	unsigned int words, prefix;
--
--	if (bytes <= 16)
--		return check_bytes8(start, value, bytes);
--
--	value64 = value | value << 8 | value << 16 | value << 24;
--	value64 = (value64 & 0xffffffff) | value64 << 32;
--	prefix = 8 - ((unsigned long)start) % 8;
--
--	if (prefix) {
--		u8 *r = check_bytes8(start, value, prefix);
--		if (r)
--			return r;
--		start += prefix;
--		bytes -= prefix;
--	}
--
--	words = bytes / 8;
--
--	while (words) {
--		if (*(u64 *)start != value64)
--			return check_bytes8(start, value, 8);
--		start += 8;
--		words--;
--	}
--
--	return check_bytes8(start, value, bytes % 8);
--}
--
- static void restore_bytes(struct kmem_cache *s, char *message, u8 data,
- 						void *from, void *to)
- {
-@@ -712,7 +669,7 @@ static int check_bytes_and_report(struct
- 	u8 *fault;
- 	u8 *end;
- 
--	fault = check_bytes(start, value, bytes);
-+	fault = memchr_inv(start, value, bytes);
- 	if (!fault)
- 		return 1;
- 
-@@ -805,7 +762,7 @@ static int slab_pad_check(struct kmem_ca
- 	if (!remainder)
- 		return 1;
- 
--	fault = check_bytes(end - remainder, POISON_INUSE, remainder);
-+	fault = memchr_inv(end - remainder, POISON_INUSE, remainder);
- 	if (!fault)
- 		return 1;
- 	while (end > fault && end[-1] == POISON_INUSE)
+diff -puN mm/vmstat.c~mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmscan-immediately-reclaim-end-of-lru-dirty-pages-when-writeback-completes
++++ a/mm/vmstat.c
+@@ -702,7 +702,7 @@ const char * const vmstat_text[] = {
+ 	"nr_unstable",
+ 	"nr_bounce",
+ 	"nr_vmscan_write",
+-	"nr_vmscan_write_skip",
++	"nr_vmscan_immediate_reclaim",
+ 	"nr_writeback_temp",
+ 	"nr_isolated_anon",
+ 	"nr_isolated_file",
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
+mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
+thp-tail-page-refcounting-fix-5.patch
+powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
+powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
+powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
+powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
+powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
+s390-gup_huge_pmd-support-thp-tail-recounting.patch
+s390-gup_huge_pmd-return-0-if-pte-changes.patch
+sparc-gup_pte_range-support-thp-based-tail-recounting.patch
+thp-share-get_huge_page_tail.patch
 
