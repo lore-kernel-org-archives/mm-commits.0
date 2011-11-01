@@ -1,125 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] debug-pagealloc-add-support-for-highmem-pages.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:10:33 -0700
-Message-ID: <201111012110.pA1LAXPB023808@hpaq6.eem.corp.google.com>
+Subject: [merged] mm-neaten-warn_alloc_failed.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:10:30 -0700
+Message-ID: <201111012110.pA1LAUZu007990@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:29064 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:29040 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016Ab1KAVKg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:36 -0400
+	with ESMTP id S1753045Ab1KAVKd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debug-pagealloc: add support for highmem pages
+     Subject: mm: neaten warn_alloc_failed
 has been removed from the -mm tree.  Its filename was
-     debug-pagealloc-add-support-for-highmem-pages.patch
+     mm-neaten-warn_alloc_failed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: debug-pagealloc: add support for highmem pages
+From: Joe Perches <joe@perches.com>
+Subject: mm: neaten warn_alloc_failed
 
-This adds support for highmem pages poisoning and verification to the
-debug-pagealloc feature for no-architecture support.
+Add __attribute__((format (printf...) to the function to validate format
+and arguments.  Use vsprintf extension %pV to avoid any possible message
+interleaving.  Coalesce format string.  Convert printks/pr_warning to
+pr_warn.
 
-[akpm@linux-foundation.org: remove unneeded preempt_disable/enable]
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+[akpm@linux-foundation.org: use the __printf() macro]
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug-pagealloc.c |   44 +++++++++--------------------------------
- 1 file changed, 10 insertions(+), 34 deletions(-)
+ include/linux/mm.h |    3 ++-
+ mm/page_alloc.c    |   16 +++++++++++-----
+ mm/vmalloc.c       |    4 ++--
+ 3 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN mm/debug-pagealloc.c~debug-pagealloc-add-support-for-highmem-pages mm/debug-pagealloc.c
---- a/mm/debug-pagealloc.c~debug-pagealloc-add-support-for-highmem-pages
-+++ a/mm/debug-pagealloc.c
-@@ -1,6 +1,7 @@
- #include <linux/kernel.h>
- #include <linux/string.h>
- #include <linux/mm.h>
-+#include <linux/highmem.h>
- #include <linux/page-debug-flags.h>
- #include <linux/poison.h>
- #include <linux/ratelimit.h>
-@@ -20,28 +21,13 @@ static inline bool page_poison(struct pa
- 	return test_bit(PAGE_DEBUG_FLAG_POISON, &page->debug_flags);
- }
+diff -puN include/linux/mm.h~mm-neaten-warn_alloc_failed include/linux/mm.h
+--- a/include/linux/mm.h~mm-neaten-warn_alloc_failed
++++ a/include/linux/mm.h
+@@ -1334,7 +1334,8 @@ extern void si_meminfo(struct sysinfo * 
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
+ extern int after_bootmem;
  
--static void poison_highpage(struct page *page)
--{
--	/*
--	 * Page poisoning for highmem pages is not implemented.
--	 *
--	 * This can be called from interrupt contexts.
--	 * So we need to create a new kmap_atomic slot for this
--	 * application and it will need interrupt protection.
--	 */
--}
--
- static void poison_page(struct page *page)
+-extern void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
++extern __printf(3, 4)
++void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...);
+ 
+ extern void setup_per_cpu_pageset(void);
+ 
+diff -puN mm/page_alloc.c~mm-neaten-warn_alloc_failed mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-neaten-warn_alloc_failed
++++ a/mm/page_alloc.c
+@@ -1754,7 +1754,6 @@ static DEFINE_RATELIMIT_STATE(nopage_rs,
+ 
+ void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...)
  {
--	void *addr;
-+	void *addr = kmap_atomic(page);
+-	va_list args;
+ 	unsigned int filter = SHOW_MEM_FILTER_NODES;
  
--	if (PageHighMem(page)) {
--		poison_highpage(page);
--		return;
--	}
- 	set_page_poison(page);
--	addr = page_address(page);
- 	memset(addr, PAGE_POISON, PAGE_SIZE);
-+	kunmap_atomic(addr);
- }
+ 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
+@@ -1773,14 +1772,21 @@ void warn_alloc_failed(gfp_t gfp_mask, i
+ 		filter &= ~SHOW_MEM_FILTER_NODES;
  
- static void poison_pages(struct page *page, int n)
-@@ -86,27 +72,17 @@ static void check_poison_mem(unsigned ch
- 	dump_stack();
- }
- 
--static void unpoison_highpage(struct page *page)
--{
--	/*
--	 * See comment in poison_highpage().
--	 * Highmem pages should not be poisoned for now
--	 */
--	BUG_ON(page_poison(page));
--}
--
- static void unpoison_page(struct page *page)
- {
--	if (PageHighMem(page)) {
--		unpoison_highpage(page);
-+	void *addr;
+ 	if (fmt) {
+-		printk(KERN_WARNING);
++		struct va_format vaf;
++		va_list args;
 +
-+	if (!page_poison(page))
- 		return;
--	}
--	if (page_poison(page)) {
--		void *addr = page_address(page);
+ 		va_start(args, fmt);
+-		vprintk(fmt, args);
++
++		vaf.fmt = fmt;
++		vaf.va = &args;
++
++		pr_warn("%pV", &vaf);
++
+ 		va_end(args);
+ 	}
  
--		check_poison_mem(addr, PAGE_SIZE);
--		clear_page_poison(page);
--	}
-+	addr = kmap_atomic(page);
-+	check_poison_mem(addr, PAGE_SIZE);
-+	clear_page_poison(page);
-+	kunmap_atomic(addr);
- }
+-	pr_warning("%s: page allocation failure: order:%d, mode:0x%x\n",
+-		   current->comm, order, gfp_mask);
++	pr_warn("%s: page allocation failure: order:%d, mode:0x%x\n",
++		current->comm, order, gfp_mask);
  
- static void unpoison_pages(struct page *page, int n)
+ 	dump_stack();
+ 	if (!should_suppress_show_mem())
+diff -puN mm/vmalloc.c~mm-neaten-warn_alloc_failed mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-neaten-warn_alloc_failed
++++ a/mm/vmalloc.c
+@@ -1593,8 +1593,8 @@ static void *__vmalloc_area_node(struct 
+ 	return area->addr;
+ 
+ fail:
+-	warn_alloc_failed(gfp_mask, order, "vmalloc: allocation failure, "
+-			  "allocated %ld of %ld bytes\n",
++	warn_alloc_failed(gfp_mask, order,
++			  "vmalloc: allocation failure, allocated %ld of %ld bytes\n",
+ 			  (area->nr_pages*PAGE_SIZE), area->size);
+ 	vfree(area->addr);
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-ext4-use-proper-little-endian-bitops.patch
-ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
 
