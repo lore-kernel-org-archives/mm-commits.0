@@ -1,118 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-renesas-tpuc-update-driver-to-use-workqueue.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:15:15 -0700
-Message-ID: <201111012115.pA1LFFX7014157@wpaz17.hot.corp.google.com>
+Subject: [merged] leds-save-the-delay-values-after-a-successful-call-to-blink_set.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:15:37 -0700
+Message-ID: <201111012115.pA1LFbx9010971@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:30064 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:16598 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752676Ab1KAVPl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:41 -0400
+	with ESMTP id S1752436Ab1KAVPr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:15:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: damm@opensource.se, grant.likely@secretlab.ca, lethal@linux-sh.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: ospite@studenti.unina.it, johannes@sipsolutions.net, rpurdie@rpsys.net, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-renesas-tpu.c: update driver to use workqueue
+     Subject: leds: save the delay values after a successful call to blink_set()
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-renesas-tpuc-update-driver-to-use-workqueue.patch
+     leds-save-the-delay-values-after-a-successful-call-to-blink_set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Magnus Damm <damm@opensource.se>
-Subject: drivers/leds/leds-renesas-tpu.c: update driver to use workqueue
+From: Antonio Ospite <ospite@studenti.unina.it>
+Subject: leds: save the delay values after a successful call to blink_set()
 
-Use a workqueue in the Renesas TPU LED driver to allow the Runtime PM code
-to sleep.
+When calling the hardware blinking function implemented by blink_set(),
+the delay_on and delay_off values are not preserved across calls.
 
-Signed-off-by: Magnus Damm <damm@opensource.se>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Fix that and make the "timer" trigger work as expected when hardware
+blinking is available.
+
+BEFORE the fix:
+  $ cd /sys/class/leds/someled
+  $ echo timer > trigger
+  $ cat delay_on delay_off
+  0
+  0
+  $ echo 100 > delay_on
+  $ cat delay_on delay_off
+  0
+  0
+  $ echo 100 > delay_off
+  $ cat delay_on delay_off
+  0
+  0
+
+AFTER the fix:
+  $ cd /sys/class/leds/someled
+  $ echo timer > trigger
+  $ cat delay_on delay_off
+  0
+  0
+  $ echo 100 > delay_on
+  $ cat delay_on delay_off
+  100
+  0
+  $ echo 100 > delay_off
+  $ cat delay_on delay_off
+  100
+  100
+
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+Reviewed-by: Johannes Berg <johannes@sipsolutions.net>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: <stable@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-renesas-tpu.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ drivers/leds/led-class.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-renesas-tpu.c~drivers-leds-leds-renesas-tpuc-update-driver-to-use-workqueue drivers/leds/leds-renesas-tpu.c
---- a/drivers/leds/leds-renesas-tpu.c~drivers-leds-leds-renesas-tpuc-update-driver-to-use-workqueue
-+++ a/drivers/leds/leds-renesas-tpu.c
-@@ -31,6 +31,7 @@
- #include <linux/err.h>
- #include <linux/slab.h>
- #include <linux/pm_runtime.h>
-+#include <linux/workqueue.h>
- 
- enum r_tpu_pin { R_TPU_PIN_UNUSED, R_TPU_PIN_GPIO, R_TPU_PIN_GPIO_FN };
- enum r_tpu_timer { R_TPU_TIMER_UNUSED, R_TPU_TIMER_ON };
-@@ -44,6 +45,8 @@ struct r_tpu_priv {
- 	enum r_tpu_timer timer_state;
- 	unsigned long min_rate;
- 	unsigned int refresh_rate;
-+	struct work_struct work;
-+	enum led_brightness new_brightness;
- };
- 
- static DEFINE_SPINLOCK(r_tpu_lock);
-@@ -211,15 +214,15 @@ static void r_tpu_set_pin(struct r_tpu_p
- 	p->pin_state = new_state;
- }
- 
--static void r_tpu_set_brightness(struct led_classdev *ldev,
--				 enum led_brightness brightness)
-+static void r_tpu_work(struct work_struct *work)
+diff -puN drivers/leds/led-class.c~leds-save-the-delay-values-after-a-successful-call-to-blink_set drivers/leds/led-class.c
+--- a/drivers/leds/led-class.c~leds-save-the-delay-values-after-a-successful-call-to-blink_set
++++ a/drivers/leds/led-class.c
+@@ -268,8 +268,11 @@ void led_blink_set(struct led_classdev *
+ 		   unsigned long *delay_off)
  {
--	struct r_tpu_priv *p = container_of(ldev, struct r_tpu_priv, ldev);
-+	struct r_tpu_priv *p = container_of(work, struct r_tpu_priv, work);
-+	enum led_brightness brightness = p->new_brightness;
+ 	if (led_cdev->blink_set &&
+-	    !led_cdev->blink_set(led_cdev, delay_on, delay_off))
++	    !led_cdev->blink_set(led_cdev, delay_on, delay_off)) {
++		led_cdev->blink_delay_on = *delay_on;
++		led_cdev->blink_delay_off = *delay_off;
+ 		return;
++	}
  
- 	r_tpu_disable(p);
- 
- 	/* off and maximum are handled as GPIO pins, in between PWM */
--	if ((brightness == 0) || (brightness == ldev->max_brightness))
-+	if ((brightness == 0) || (brightness == p->ldev.max_brightness))
- 		r_tpu_set_pin(p, R_TPU_PIN_GPIO, brightness);
- 	else {
- 		r_tpu_set_pin(p, R_TPU_PIN_GPIO_FN, 0);
-@@ -227,6 +230,14 @@ static void r_tpu_set_brightness(struct 
- 	}
- }
- 
-+static void r_tpu_set_brightness(struct led_classdev *ldev,
-+				 enum led_brightness brightness)
-+{
-+	struct r_tpu_priv *p = container_of(ldev, struct r_tpu_priv, ldev);
-+	p->new_brightness = brightness;
-+	schedule_work(&p->work);
-+}
-+
- static int __devinit r_tpu_probe(struct platform_device *pdev)
- {
- 	struct led_renesas_tpu_config *cfg = pdev->dev.platform_data;
-@@ -274,6 +285,7 @@ static int __devinit r_tpu_probe(struct 
- 	r_tpu_set_pin(p, R_TPU_PIN_GPIO, LED_OFF);
- 	platform_set_drvdata(pdev, p);
- 
-+	INIT_WORK(&p->work, r_tpu_work);
- 
- 	p->ldev.name = cfg->name;
- 	p->ldev.brightness = LED_OFF;
-@@ -307,6 +319,7 @@ static int __devexit r_tpu_remove(struct
- 
- 	r_tpu_set_brightness(&p->ldev, LED_OFF);
- 	led_classdev_unregister(&p->ldev);
-+	cancel_work_sync(&p->work);
- 	r_tpu_disable(p);
- 	r_tpu_set_pin(p, R_TPU_PIN_UNUSED, LED_OFF);
- 
+ 	/* blink with 1 Hz as default if nothing specified */
+ 	if (!*delay_on && !*delay_off)
 _
 
-Patches currently in -mm which might be from damm@opensource.se are
+Patches currently in -mm which might be from ospite@studenti.unina.it are
 
 origin.patch
 linux-next.patch
