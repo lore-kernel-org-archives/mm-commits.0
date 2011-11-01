@@ -1,54 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-kunmap_high-comment.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:11:22 -0700
-Message-ID: <201111012111.pA1LBMUG013106@wpaz24.hot.corp.google.com>
+Subject: [merged] mm-compaction-make-compact_zone_order-static.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:11:19 -0700
+Message-ID: <201111012111.pA1LBJAb030282@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15844 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:29219 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752972Ab1KAVLZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:11:25 -0400
+	with ESMTP id S1752436Ab1KAVLY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:11:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: omycle@gmail.com, mm-commits@vger.kernel.org
+To: kyungmin.park@samsung.com, minchan.kim@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix kunmap_high() comment
+     Subject: mm: compaction: make compact_zone_order() static
 has been removed from the -mm tree.  Its filename was
-     mm-fix-kunmap_high-comment.patch
+     mm-compaction-make-compact_zone_order-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Li Haifeng <omycle@gmail.com>
-Subject: mm: fix kunmap_high() comment
+From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: mm: compaction: make compact_zone_order() static
 
-Signed-off-by: Li Haifeng <omycle@gmail.com>
+There's no compact_zone_order() user outside file scope, so make it static.
+
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compaction.h |    8 --------
+ mm/compaction.c            |    2 +-
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/highmem.c~mm-fix-kunmap_high-comment mm/highmem.c
---- a/mm/highmem.c~mm-fix-kunmap_high-comment
-+++ a/mm/highmem.c
-@@ -250,7 +250,7 @@ void *kmap_high_get(struct page *page)
- #endif
+diff -puN include/linux/compaction.h~mm-compaction-make-compact_zone_order-static include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-make-compact_zone_order-static
++++ a/include/linux/compaction.h
+@@ -24,8 +24,6 @@ extern unsigned long try_to_compact_page
+ 			int order, gfp_t gfp_mask, nodemask_t *mask,
+ 			bool sync);
+ extern unsigned long compaction_suitable(struct zone *zone, int order);
+-extern unsigned long compact_zone_order(struct zone *zone, int order,
+-					gfp_t gfp_mask, bool sync);
  
- /**
-- * kunmap_high - map a highmem page into memory
-+ * kunmap_high - unmap a highmem page into memory
-  * @page: &struct page to unmap
-  *
-  * If ARCH_NEEDS_KMAP_HIGH_GET is not defined then this may be called
-_
-
-Patches currently in -mm which might be from omycle@gmail.com are
-
-origin.patch
-linux-next.patch
-
+ /* Do not skip compaction more than 64 times */
+ #define COMPACT_MAX_DEFER_SHIFT 6
+@@ -69,12 +67,6 @@ static inline unsigned long compaction_s
+ 	return COMPACT_SKIPPED;
+ }
+ 
+-static inline unsigned long compact_zone_order(struct zone *zone, int order,
+-					       gfp_t gfp_mask, bool sync)
+-{
+-	return COMPACT_CONTINUE;
+-}
