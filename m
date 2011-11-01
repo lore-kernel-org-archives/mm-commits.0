@@ -1,80 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:08:17 -0700
-Message-ID: <201111012108.pA1L8HAI011404@wpaz21.hot.corp.google.com>
+Subject: [merged] mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:08:36 -0700
+Message-ID: <201111012108.pA1L8aZO006940@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15369 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:28747 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754914Ab1KAVJH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:09:07 -0400
+	with ESMTP id S1753079Ab1KAVJP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:09:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: jweiner@redhat.com, bsingharora@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.
 
 
 The patch titled
-     Subject: oom: avoid killing kthreads if they assume the oom killed thread's mm
+     Subject: mm: vmscan: drop nr_force_scan[] from get_scan_count
 has been removed from the -mm tree.  Its filename was
-     oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm.patch
+     mm-vmscan-drop-nr_force_scan-from-get_scan_count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: oom: avoid killing kthreads if they assume the oom killed thread's mm
+From: Johannes Weiner <jweiner@redhat.com>
+Subject: mm: vmscan: drop nr_force_scan[] from get_scan_count
 
-After selecting a task to kill, the oom killer iterates all processes and
-kills all other threads that share the same mm_struct in different thread
-groups.  It would not otherwise be helpful to kill a thread if its memory
-would not be subsequently freed.
+The nr_force_scan[] tuple holds the effective scan numbers for anon and
+file pages in case the situation called for a forced scan and the
+regularly calculated scan numbers turned out zero.
 
-A kernel thread, however, may assume a user thread's mm by using
-use_mm().  This is only temporary and should not result in sending a
-SIGKILL to that kthread.
+However, the effective scan number can always be assumed to be
+SWAP_CLUSTER_MAX right before the division into anon and file.  The
+numerators and denominator are properly set up for all cases, be it force
+scan for just file, just anon, or both, to do the right thing.
 
-This patch ensures that only user threads and not kthreads are sent a
-SIGKILL if they share the same mm_struct as the oom killed task.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   36 ++++++++++++------------------------
+ 1 file changed, 12 insertions(+), 24 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm mm/oom_kill.c
---- a/mm/oom_kill.c~oom-avoid-killing-kthreads-if-they-assume-the-oom-killed-threads-mm
-+++ a/mm/oom_kill.c
-@@ -439,7 +439,7 @@ static int oom_kill_task(struct task_str
- 	task_unlock(p);
+diff -puN mm/vmscan.c~mm-vmscan-drop-nr_force_scan-from-get_scan_count mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-drop-nr_force_scan-from-get_scan_count
++++ a/mm/vmscan.c
+@@ -1817,12 +1817,19 @@ static void get_scan_count(struct zone *
+ 	enum lru_list l;
+ 	int noswap = 0;
+ 	bool force_scan = false;
+-	unsigned long nr_force_scan[2];
  
- 	/*
--	 * Kill all processes sharing p->mm in other thread groups, if any.
-+	 * Kill all user processes sharing p->mm in other thread groups, if any.
- 	 * They don't get access to memory reserves or a higher scheduler
- 	 * priority, though, to avoid depletion of all memory or task
- 	 * starvation.  This prevents mm->mmap_sem livelock when an oom killed
-@@ -449,7 +449,8 @@ static int oom_kill_task(struct task_str
- 	 * signal.
- 	 */
- 	for_each_process(q)
--		if (q->mm == mm && !same_thread_group(q, p)) {
-+		if (q->mm == mm && !same_thread_group(q, p) &&
-+		    !(q->flags & PF_KTHREAD)) {
- 			task_lock(q);	/* Protect ->comm from prctl() */
- 			pr_err("Kill process %d (%s) sharing same memory\n",
- 				task_pid_nr(q), q->comm);
+-	/* kswapd does zone balancing and needs to scan this zone */
++	/*
++	 * If the zone or memcg is small, nr[l] can be 0.  This
++	 * results in no scanning on this priority and a potential
++	 * priority drop.  Global direct reclaim can go to the next
++	 * zone and tends to have no problems. Global kswapd is for
++	 * zone balancing and it needs to scan a minimum amount. When
++	 * reclaiming for a memcg, a priority drop can cause high
++	 * latencies, so it's better to scan a minimum amount there as
++	 * well.
++	 */
+ 	if (scanning_global_lru(sc) && current_is_kswapd())
+ 		force_scan = true;
+-	/* memcg may have small limit and need to avoid priority drop */
+ 	if (!scanning_global_lru(sc))
+ 		force_scan = true;
+ 
+@@ -1832,8 +1839,6 @@ static void get_scan_count(struct zone *
+ 		fraction[0] = 0;
+ 		fraction[1] = 1;
+ 		denominator = 1;
+-		nr_force_scan[0] = 0;
+-		nr_force_scan[1] = SWAP_CLUSTER_MAX;
+ 		goto out;
+ 	}
+ 
+@@ -1850,8 +1855,6 @@ static void get_scan_count(struct zone *
+ 			fraction[0] = 1;
+ 			fraction[1] = 0;
+ 			denominator = 1;
+-			nr_force_scan[0] = SWAP_CLUSTER_MAX;
+-			nr_force_scan[1] = 0;
+ 			goto out;
+ 		}
+ 	}
+@@ -1900,11 +1903,6 @@ static void get_scan_count(struct zone *
+ 	fraction[0] = ap;
+ 	fraction[1] = fp;
+ 	denominator = ap + fp + 1;
+-	if (force_scan) {
+-		unsigned long scan = SWAP_CLUSTER_MAX;
+-		nr_force_scan[0] = div64_u64(scan * ap, denominator);
+-		nr_force_scan[1] = div64_u64(scan * fp, denominator);
+-	}
+ out:
+ 	for_each_evictable_lru(l) {
+ 		int file = is_file_lru(l);
+@@ -1913,20 +1911,10 @@ out:
+ 		scan = zone_nr_lru_pages(zone, sc, l);
+ 		if (priority || noswap) {
+ 			scan >>= priority;
++			if (!scan && force_scan)
++				scan = SWAP_CLUSTER_MAX;
+ 			scan = div64_u64(scan * fraction[file], denominator);
+ 		}
+-
+-		/*
+-		 * If zone is small or memcg is small, nr[l] can be 0.
+-		 * This results no-scan on this priority and priority drop down.
+-		 * For global direct reclaim, it can visit next zone and tend
+-		 * not to have problems. For global kswapd, it's for zone
+-		 * balancing and it need to scan a small amounts. When using
+-		 * memcg, priority drop can cause big latency. So, it's better
+-		 * to scan small amount. See may_noscan above.
+-		 */
+-		if (!scan && force_scan)
+-			scan = nr_force_scan[file];
+ 		nr[l] = scan;
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jweiner@redhat.com are
 
 origin.patch
-linux-next.patch
-drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
-cpusets-avoid-looping-when-storing-to-mems_allowed-if-one-node-remains-set.patch
+mm-add-extra-free-kbytes-tunable.patch
+thp-tail-page-refcounting-fix-5.patch
+powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
+powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
+powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
+powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
+powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
+s390-gup_huge_pmd-support-thp-tail-recounting.patch
+s390-gup_huge_pmd-return-0-if-pte-changes.patch
+sparc-gup_pte_range-support-thp-based-tail-recounting.patch
+thp-share-get_huge_page_tail.patch
+memcg-skip-scanning-active-lists-based-on-individual-size.patch
+memcg-skip-scanning-active-lists-based-on-individual-size-fix.patch
+memcg-close-race-between-charge-and-putback.patch
 
