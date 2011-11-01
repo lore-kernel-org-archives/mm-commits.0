@@ -1,117 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:09:23 -0700
-Message-ID: <201111012109.pA1L9NhZ016470@hpaq5.eem.corp.google.com>
+Subject: [merged] mm-vmallocc-report-more-vmalloc-failures.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:10:51 -0700
+Message-ID: <201111012110.pA1LAp9Q004747@hpaq2.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:29034 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:29143 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753045Ab1KAVKc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:32 -0400
+	with ESMTP id S1753705Ab1KAVKz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aelder@sgi.com, chris.mason@oracle.com, dave@linux.vnet.ibm.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, jweiner@redhat.com, min
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: do not writeback filesystem pages in kswapd except in high priority
+     Subject: mm/vmalloc.c: report more vmalloc failures
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority.patch
+     mm-vmallocc-report-more-vmalloc-failures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: do not writeback filesystem pages in kswapd except in high priority
+From: Joe Perches <joe@perches.com>
+Subject: mm/vmalloc.c: report more vmalloc failures
 
-It is preferable that no dirty pages are dispatched for cleaning from the
-page reclaim path.  At normal priorities, this patch prevents kswapd
-writing pages.
+Some vmalloc failure paths do not report OOM conditions.
 
-However, page reclaim does have a requirement that pages be freed in a
-particular zone.  If it is failing to make sufficient progress (reclaiming
-< SWAP_CLUSTER_MAX at any priority priority), the priority is raised to
-scan more pages.  A priority of DEF_PRIORITY - 3 is considered to be the
-point where kswapd is getting into trouble reclaiming pages.  If this
-priority is reached, kswapd will dispatch pages for writing.
+Add warn_alloc_failed, which also does a dump_stack, to those failure
+paths.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Alex Elder <aelder@sgi.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+This allows more site specific vmalloc failure logging message printks to
+be removed.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-writeback-filesystem-pages-in-kswapd-except-in-high-priority
-+++ a/mm/vmscan.c
-@@ -750,7 +750,8 @@ static noinline_for_stack void free_page
-  */
- static unsigned long shrink_page_list(struct list_head *page_list,
- 				      struct zone *zone,
--				      struct scan_control *sc)
-+				      struct scan_control *sc,
-+				      int priority)
- {
- 	LIST_HEAD(ret_pages);
- 	LIST_HEAD(free_pages);
-@@ -856,9 +857,11 @@ static unsigned long shrink_page_list(st
+diff -puN mm/vmalloc.c~mm-vmallocc-report-more-vmalloc-failures mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-report-more-vmalloc-failures
++++ a/mm/vmalloc.c
+@@ -1625,13 +1625,12 @@ void *__vmalloc_node_range(unsigned long
  
- 			/*
- 			 * Only kswapd can writeback filesystem pages to
--			 * avoid risk of stack overflow
-+			 * avoid risk of stack overflow but do not writeback
-+			 * unless under significant pressure.
- 			 */
--			if (page_is_file_cache(page) && !current_is_kswapd()) {
-+			if (page_is_file_cache(page) &&
-+					(!current_is_kswapd() || priority >= DEF_PRIORITY - 2)) {
- 				inc_zone_page_state(page, NR_VMSCAN_WRITE_SKIP);
- 				goto keep_locked;
- 			}
-@@ -1509,12 +1512,12 @@ shrink_inactive_list(unsigned long nr_to
+ 	size = PAGE_ALIGN(size);
+ 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
+-		return NULL;
++		goto fail;
  
- 	spin_unlock_irq(&zone->lru_lock);
+ 	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNLIST,
+ 				  start, end, node, gfp_mask, caller);
+-
+ 	if (!area)
+-		return NULL;
++		goto fail;
  
--	nr_reclaimed = shrink_page_list(&page_list, zone, sc);
-+	nr_reclaimed = shrink_page_list(&page_list, zone, sc, priority);
+ 	addr = __vmalloc_area_node(area, gfp_mask, prot, node, caller);
  
- 	/* Check if we should syncronously wait for writeback */
- 	if (should_reclaim_stall(nr_taken, nr_reclaimed, priority, sc)) {
- 		set_reclaim_mode(priority, sc, true);
--		nr_reclaimed += shrink_page_list(&page_list, zone, sc);
-+		nr_reclaimed += shrink_page_list(&page_list, zone, sc, priority);
- 	}
+@@ -1649,6 +1648,12 @@ void *__vmalloc_node_range(unsigned long
+ 	kmemleak_alloc(addr, real_size, 3, gfp_mask);
  
- 	local_irq_disable();
+ 	return addr;
++
++fail:
++	warn_alloc_failed(gfp_mask, 0,
++			  "vmalloc: allocation failure: %lu bytes\n",
++			  real_size);
++	return NULL;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
-thp-tail-page-refcounting-fix-5.patch
-powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
-powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
-powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
-powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
-powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
-s390-gup_huge_pmd-support-thp-tail-recounting.patch
-s390-gup_huge_pmd-return-0-if-pte-changes.patch
-sparc-gup_pte_range-support-thp-based-tail-recounting.patch
-thp-share-get_huge_page_tail.patch
+linux-next.patch
 
