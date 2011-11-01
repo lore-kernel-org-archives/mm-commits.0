@@ -1,115 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:09:01 -0700
-Message-ID: <201111012109.pA1L91Ne016872@wpaz29.hot.corp.google.com>
+Subject: [merged] lib-stringc-introduce-memchr_inv.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:09:51 -0700
+Message-ID: <201111012109.pA1L9pc8007618@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:15494 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:15504 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755088Ab1KAVKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:00 -0400
+	with ESMTP id S1755088Ab1KAVKE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:10:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aelder@sgi.com, chris.mason@oracle.com, dave@linux.vnet.ibm.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, jweiner@redhat.com, min
+To: akinobu.mita@gmail.com, cl@linux-foundation.org, eric.dumazet@gmail.com, joern@logfs.org, marcin.slusarz@gmail.com, mpm@selenic.com, penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: remove dead code related to lumpy reclaim waiting on pages under writeback
+     Subject: lib/string.c: introduce memchr_inv()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback.patch
+     lib-stringc-introduce-memchr_inv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: remove dead code related to lumpy reclaim waiting on pages under writeback
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: lib/string.c: introduce memchr_inv()
 
-Lumpy reclaim worked with two passes - the first which queued pages for IO
-and the second which waited on writeback.  As direct reclaim can no longer
-write pages there is some dead code.  This patch removes it but direct
-reclaim will continue to wait on pages under writeback while in
-synchronous reclaim mode.
+memchr_inv() is mainly used to check whether the whole buffer is filled
+with just a specified byte.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Alex Elder <aelder@sgi.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+The function name and prototype are stolen from logfs and the
+implementation is from SLUB.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Acked-by: Pekka Enberg <penberg@kernel.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Acked-by: Joern Engel <joern@logfs.org>
+Cc: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ fs/logfs/logfs.h       |    1 
+ fs/logfs/super.c       |   22 ---------------
+ include/linux/string.h |    1 
+ lib/string.c           |   54 +++++++++++++++++++++++++++++++++++++++
+ mm/slub.c              |   47 +--------------------------------
+ 5 files changed, 57 insertions(+), 68 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-remove-dead-code-related-to-lumpy-reclaim-waiting-on-pages-under-writeback
-+++ a/mm/vmscan.c
-@@ -495,15 +495,6 @@ static pageout_t pageout(struct page *pa
- 			return PAGE_ACTIVATE;
- 		}
- 
--		/*
--		 * Wait on writeback if requested to. This happens when
--		 * direct reclaiming a large contiguous area and the
--		 * first attempt to free a range of pages fails.
--		 */
--		if (PageWriteback(page) &&
--		    (sc->reclaim_mode & RECLAIM_MODE_SYNC))
--			wait_on_page_writeback(page);
--
- 		if (!PageWriteback(page)) {
- 			/* synchronous write or broken a_ops? */
- 			ClearPageReclaim(page);
-@@ -804,12 +795,10 @@ static unsigned long shrink_page_list(st
- 
- 		if (PageWriteback(page)) {
- 			/*
--			 * Synchronous reclaim is performed in two passes,
--			 * first an asynchronous pass over the list to
--			 * start parallel writeback, and a second synchronous
--			 * pass to wait for the IO to complete.  Wait here
--			 * for any page for which writeback has already
--			 * started.
-+			 * Synchronous reclaim cannot queue pages for
-+			 * writeback due to the possibility of stack overflow
-+			 * but if it encounters a page under writeback, wait
-+			 * for the IO to complete.
- 			 */
- 			if ((sc->reclaim_mode & RECLAIM_MODE_SYNC) &&
- 			    may_enter_fs)
-@@ -1414,7 +1403,7 @@ static noinline_for_stack void update_is
+diff -puN fs/logfs/logfs.h~lib-stringc-introduce-memchr_inv fs/logfs/logfs.h
+--- a/fs/logfs/logfs.h~lib-stringc-introduce-memchr_inv
++++ a/fs/logfs/logfs.h
+@@ -618,7 +618,6 @@ static inline int logfs_buf_recover(stru
+ struct page *emergency_read_begin(struct address_space *mapping, pgoff_t index);
+ void emergency_read_end(struct page *page);
+ void logfs_crash_dump(struct super_block *sb);
+-void *memchr_inv(const void *s, int c, size_t n);
+ int logfs_statfs(struct dentry *dentry, struct kstatfs *stats);
+ int logfs_check_ds(struct logfs_disk_super *ds);
+ int logfs_write_sb(struct super_block *sb);
+diff -puN fs/logfs/super.c~lib-stringc-introduce-memchr_inv fs/logfs/super.c
+--- a/fs/logfs/super.c~lib-stringc-introduce-memchr_inv
++++ a/fs/logfs/super.c
+@@ -91,28 +91,6 @@ void logfs_crash_dump(struct super_block
  }
  
  /*
-- * Returns true if the caller should wait to clean dirty/writeback pages.
-+ * Returns true if a direct reclaim should wait on pages under writeback.
-  *
-  * If we are direct reclaiming for contiguous pages and we do not reclaim
-  * everything in the list, try again and wait for writeback IO to complete.
+- * TODO: move to lib/string.c
+- */
+-/**
+- * memchr_inv - Find a character in an area of memory.
+- * @s: The memory area
+- * @c: The byte to search for
+- * @n: The size of the area.
+- *
+- * returns the address of the first character other than @c, or %NULL
+- * if the whole buffer contains just @c.
+- */
+-void *memchr_inv(const void *s, int c, size_t n)
+-{
+-	const unsigned char *p = s;
+-	while (n-- != 0)
+-		if ((unsigned char)c != *p++)
+-			return (void *)(p - 1);
+-
+-	return NULL;
+-}
+-
+-/*
+  * FIXME: There should be a reserve for root, similar to ext2.
+  */
+ int logfs_statfs(struct dentry *dentry, struct kstatfs *stats)
+diff -puN include/linux/string.h~lib-stringc-introduce-memchr_inv include/linux/string.h
+--- a/include/linux/string.h~lib-stringc-introduce-memchr_inv
++++ a/include/linux/string.h
+@@ -114,6 +114,7 @@ extern int memcmp(const void *,const voi
+ #ifndef __HAVE_ARCH_MEMCHR
+ extern void * memchr(const void *,int,__kernel_size_t);
+ #endif
++void *memchr_inv(const void *s, int c, size_t n);
+ 
+ extern char *kstrdup(const char *s, gfp_t gfp);
+ extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
+diff -puN lib/string.c~lib-stringc-introduce-memchr_inv lib/string.c
+--- a/lib/string.c~lib-stringc-introduce-memchr_inv
++++ a/lib/string.c
+@@ -756,3 +756,57 @@ void *memchr(const void *s, int c, size_
+ }
+ EXPORT_SYMBOL(memchr);
+ #endif
++
++static void *check_bytes8(const u8 *start, u8 value, unsigned int bytes)
++{
++	while (bytes) {
++		if (*start != value)
++			return (void *)start;
++		start++;
++		bytes--;
++	}
++	return NULL;
++}
++
++/**
++ * memchr_inv - Find an unmatching character in an area of memory.
++ * @start: The memory area
++ * @c: Find a character other than c
++ * @bytes: The size of the area.
++ *
++ * returns the address of the first character other than @c, or %NULL
++ * if the whole buffer contains just @c.
++ */
++void *memchr_inv(const void *start, int c, size_t bytes)
++{
++	u8 value = c;
++	u64 value64;
++	unsigned int words, prefix;
++
++	if (bytes <= 16)
++		return check_bytes8(start, value, bytes);
++
++	value64 = value | value << 8 | value << 16 | value << 24;
++	value64 = (value64 & 0xffffffff) | value64 << 32;
++	prefix = 8 - ((unsigned long)start) % 8;
++
++	if (prefix) {
++		u8 *r = check_bytes8(start, value, prefix);
++		if (r)
++			return r;
++		start += prefix;
++		bytes -= prefix;
++	}
++
++	words = bytes / 8;
++
++	while (words) {
++		if (*(u64 *)start != value64)
++			return check_bytes8(start, value, 8);
++		start += 8;
++		words--;
++	}
++
++	return check_bytes8(start, value, bytes % 8);
++}
++EXPORT_SYMBOL(memchr_inv);
+diff -puN mm/slub.c~lib-stringc-introduce-memchr_inv mm/slub.c
+--- a/mm/slub.c~lib-stringc-introduce-memchr_inv
++++ a/mm/slub.c
+@@ -655,49 +655,6 @@ static void init_object(struct kmem_cach
+ 		memset(p + s->objsize, val, s->inuse - s->objsize);
+ }
+ 
+-static u8 *check_bytes8(u8 *start, u8 value, unsigned int bytes)
+-{
+-	while (bytes) {
+-		if (*start != value)
+-			return start;
+-		start++;
+-		bytes--;
+-	}
+-	return NULL;
+-}
+-
+-static u8 *check_bytes(u8 *start, u8 value, unsigned int bytes)
+-{
+-	u64 value64;
+-	unsigned int words, prefix;
+-
+-	if (bytes <= 16)
+-		return check_bytes8(start, value, bytes);
+-
+-	value64 = value | value << 8 | value << 16 | value << 24;
+-	value64 = (value64 & 0xffffffff) | value64 << 32;
+-	prefix = 8 - ((unsigned long)start) % 8;
+-
+-	if (prefix) {
+-		u8 *r = check_bytes8(start, value, prefix);
+-		if (r)
+-			return r;
+-		start += prefix;
+-		bytes -= prefix;
+-	}
+-
+-	words = bytes / 8;
+-
+-	while (words) {
+-		if (*(u64 *)start != value64)
+-			return check_bytes8(start, value, 8);
+-		start += 8;
+-		words--;
+-	}
+-
+-	return check_bytes8(start, value, bytes % 8);
+-}
+-
+ static void restore_bytes(struct kmem_cache *s, char *message, u8 data,
+ 						void *from, void *to)
+ {
+@@ -712,7 +669,7 @@ static int check_bytes_and_report(struct
+ 	u8 *fault;
+ 	u8 *end;
+ 
+-	fault = check_bytes(start, value, bytes);
++	fault = memchr_inv(start, value, bytes);
+ 	if (!fault)
+ 		return 1;
+ 
+@@ -805,7 +762,7 @@ static int slab_pad_check(struct kmem_ca
+ 	if (!remainder)
+ 		return 1;
+ 
+-	fault = check_bytes(end - remainder, POISON_INUSE, remainder);
++	fault = memchr_inv(end - remainder, POISON_INUSE, remainder);
+ 	if (!fault)
+ 		return 1;
+ 	while (end > fault && end[-1] == POISON_INUSE)
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
-thp-tail-page-refcounting-fix-5.patch
-powerpc-remove-superfluous-pagetail-checks-on-the-pte-gup_fast.patch
-powerpc-get_hugepte-dont-put_page-the-wrong-page.patch
-powerpc-gup_hugepte-avoid-to-free-the-head-page-too-many-times.patch
-powerpc-gup_hugepte-support-thp-based-tail-recounting.patch
-powerpc-gup_huge_pmd-return-0-if-pte-changes.patch
-s390-gup_huge_pmd-support-thp-tail-recounting.patch
-s390-gup_huge_pmd-return-0-if-pte-changes.patch
-sparc-gup_pte_range-support-thp-based-tail-recounting.patch
-thp-share-get_huge_page_tail.patch
+linux-next.patch
+ext4-use-proper-little-endian-bitops.patch
+ocfs2-avoid-unaligned-access-to-dqc_bitmap.patch
 
