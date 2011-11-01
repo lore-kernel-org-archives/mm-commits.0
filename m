@@ -1,131 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-rename-pack_hex_byte-to-hex_byte_pack.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:16:15 -0700
-Message-ID: <201111012116.pA1LGFwl008082@hpaq11.eem.corp.google.com>
+Subject: [merged] epoll-fix-spurious-lockdep-warnings.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:17:00 -0700
+Message-ID: <201111012117.pA1LH0kM019194@hpaq7.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:16893 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:30356 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117Ab1KAVRI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:17:08 -0400
+	with ESMTP id S1751699Ab1KAVRL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:17:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, dhowells@redhat.com, hirofumi@mail.parknet.co.jp, jason.wessel@windriver.com, jesper.nilsson@axis.com, jmorris@namei.org, linville@tuxdriver.com, ya
+To: nelhage@nelhage.com, davej@redhat.com, davidel@xmailserver.org, jbaron@redhat.com, pebolle@tiscali.nl, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: rename pack_hex_byte() to hex_byte_pack()
+     Subject: epoll: fix spurious lockdep warnings
 has been removed from the -mm tree.  Its filename was
-     lib-rename-pack_hex_byte-to-hex_byte_pack.patch
+     epoll-fix-spurious-lockdep-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib: rename pack_hex_byte() to hex_byte_pack()
+From: Nelson Elhage <nelhage@nelhage.com>
+Subject: epoll: fix spurious lockdep warnings
 
-As suggested by Andrew Morton in [1] there is better to have most
-significant part first in the function name.
+epoll can acquire recursively acquire ep->mtx on multiple "struct
+eventpoll"s at once in the case where one epoll fd is monitoring another
+epoll fd.  This is perfectly OK, since we're careful about the lock
+ordering, but it causes spurious lockdep warnings.  Annotate the recursion
+using mutex_lock_nested, and add a comment explaining the nesting rules
+for good measure.
 
-[1] https://lkml.org/lkml/2011/9/20/22
+Recent versions of systemd are triggering this, and it can also be
+demonstrated with the following trivial test program:
 
-There is no functional change.
+--------------------8<--------------------
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+int main(void) {
+   int e1, e2;
+   struct epoll_event evt = {
+       .events = EPOLLIN
+   };
+
+   e1 = epoll_create1(0);
+   e2 = epoll_create1(0);
+   epoll_ctl(e1, EPOLL_CTL_ADD, e2, &evt);
+   return 0;
+}
+--------------------8<--------------------
+
+Reported-by: Paul Bolle <pebolle@tiscali.nl>
+Tested-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Nelson Elhage <nelhage@nelhage.com>
+Acked-by: Jason Baron <jbaron@redhat.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: <stable@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    7 ++++++-
- lib/vsprintf.c         |   14 +++++++-------
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ fs/eventpoll.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/kernel.h~lib-rename-pack_hex_byte-to-hex_byte_pack include/linux/kernel.h
---- a/include/linux/kernel.h~lib-rename-pack_hex_byte-to-hex_byte_pack
-+++ a/include/linux/kernel.h
-@@ -372,13 +372,18 @@ extern const char hex_asc[];
- #define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
- #define hex_asc_hi(x)	hex_asc[((x) & 0xf0) >> 4]
- 
--static inline char *pack_hex_byte(char *buf, u8 byte)
-+static inline char *hex_byte_pack(char *buf, u8 byte)
+diff -puN fs/eventpoll.c~epoll-fix-spurious-lockdep-warnings fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-fix-spurious-lockdep-warnings
++++ a/fs/eventpoll.c
+@@ -70,6 +70,15 @@
+  * simultaneous inserts (A into B and B into A) from racing and
+  * constructing a cycle without either insert observing that it is
+  * going to.
++ * It is necessary to acquire multiple "ep->mtx"es at once in the
++ * case when one epoll fd is added to another. In this case, we
++ * always acquire the locks in the order of nesting (i.e. after
++ * epoll_ctl(e1, EPOLL_CTL_ADD, e2), e1->mtx will always be acquired
++ * before e2->mtx). Since we disallow cycles of epoll file
++ * descriptors, this ensures that the mutexes are well-ordered. In
++ * order to communicate this nesting to lockdep, when walking a tree
++ * of epoll file descriptors, we use the current recursion depth as
++ * the lockdep subkey.
+  * It is possible to drop the "ep->mtx" and to use the global
+  * mutex "epmutex" (together with "ep->lock") to have it working,
+  * but having "ep->mtx" will make the interface more scalable.
+@@ -464,13 +473,15 @@ static void ep_unregister_pollwait(struc
+  * @ep: Pointer to the epoll private data structure.
+  * @sproc: Pointer to the scan callback.
+  * @priv: Private opaque data passed to the @sproc callback.
++ * @depth: The current depth of recursive f_op->poll calls.
+  *
+  * Returns: The same integer error code returned by the @sproc callback.
+  */
+ static int ep_scan_ready_list(struct eventpoll *ep,
+ 			      int (*sproc)(struct eventpoll *,
+ 					   struct list_head *, void *),
+-			      void *priv)
++			      void *priv,
++			      int depth)
  {
- 	*buf++ = hex_asc_hi(byte);
- 	*buf++ = hex_asc_lo(byte);
- 	return buf;
+ 	int error, pwake = 0;
+ 	unsigned long flags;
+@@ -481,7 +492,7 @@ static int ep_scan_ready_list(struct eve
+ 	 * We need to lock this because we could be hit by
+ 	 * eventpoll_release_file() and epoll_ctl().
+ 	 */
+-	mutex_lock(&ep->mtx);
++	mutex_lock_nested(&ep->mtx, depth);
+ 
+ 	/*
+ 	 * Steal the ready list, and re-init the original one to the
+@@ -670,7 +681,7 @@ static int ep_read_events_proc(struct ev
+ 
+ static int ep_poll_readyevents_proc(void *priv, void *cookie, int call_nests)
+ {
+-	return ep_scan_ready_list(priv, ep_read_events_proc, NULL);
++	return ep_scan_ready_list(priv, ep_read_events_proc, NULL, call_nests + 1);
  }
  
-+static inline char * __deprecated pack_hex_byte(char *buf, u8 byte)
-+{
-+	return hex_byte_pack(buf, byte);
-+}
-+
- extern int hex_to_bin(char ch);
- extern int __must_check hex2bin(u8 *dst, const char *src, size_t count);
+ static unsigned int ep_eventpoll_poll(struct file *file, poll_table *wait)
+@@ -737,7 +748,7 @@ void eventpoll_release_file(struct file 
  
-diff -puN lib/vsprintf.c~lib-rename-pack_hex_byte-to-hex_byte_pack lib/vsprintf.c
---- a/lib/vsprintf.c~lib-rename-pack_hex_byte-to-hex_byte_pack
-+++ a/lib/vsprintf.c
-@@ -547,7 +547,7 @@ char *mac_address_string(char *buf, char
+ 		ep = epi->ep;
+ 		list_del_init(&epi->fllink);
+-		mutex_lock(&ep->mtx);
++		mutex_lock_nested(&ep->mtx, 0);
+ 		ep_remove(ep, epi);
+ 		mutex_unlock(&ep->mtx);
+ 	}
+@@ -1134,7 +1145,7 @@ static int ep_send_events(struct eventpo
+ 	esed.maxevents = maxevents;
+ 	esed.events = events;
+ 
+-	return ep_scan_ready_list(ep, ep_send_events_proc, &esed);
++	return ep_scan_ready_list(ep, ep_send_events_proc, &esed, 0);
+ }
+ 
+ static inline struct timespec ep_set_mstimeout(long ms)
+@@ -1267,7 +1278,7 @@ static int ep_loop_check_proc(void *priv
+ 	struct rb_node *rbp;
+ 	struct epitem *epi;
+ 
+-	mutex_lock(&ep->mtx);
++	mutex_lock_nested(&ep->mtx, call_nests + 1);
+ 	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		epi = rb_entry(rbp, struct epitem, rbn);
+ 		if (unlikely(is_file_epoll(epi->ffd.file))) {
+@@ -1409,7 +1420,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
  	}
  
- 	for (i = 0; i < 6; i++) {
--		p = pack_hex_byte(p, addr[i]);
-+		p = hex_byte_pack(p, addr[i]);
- 		if (fmt[0] == 'M' && i != 5)
- 			*p++ = separator;
- 	}
-@@ -667,13 +667,13 @@ char *ip6_compressed_string(char *p, con
- 		lo = word & 0xff;
- 		if (hi) {
- 			if (hi > 0x0f)
--				p = pack_hex_byte(p, hi);
-+				p = hex_byte_pack(p, hi);
- 			else
- 				*p++ = hex_asc_lo(hi);
--			p = pack_hex_byte(p, lo);
-+			p = hex_byte_pack(p, lo);
- 		}
- 		else if (lo > 0x0f)
--			p = pack_hex_byte(p, lo);
-+			p = hex_byte_pack(p, lo);
- 		else
- 			*p++ = hex_asc_lo(lo);
- 		needcolon = true;
-@@ -695,8 +695,8 @@ char *ip6_string(char *p, const char *ad
- 	int i;
  
- 	for (i = 0; i < 8; i++) {
--		p = pack_hex_byte(p, *addr++);
--		p = pack_hex_byte(p, *addr++);
-+		p = hex_byte_pack(p, *addr++);
-+		p = hex_byte_pack(p, *addr++);
- 		if (fmt[0] == 'I' && i != 7)
- 			*p++ = ':';
- 	}
-@@ -754,7 +754,7 @@ char *uuid_string(char *buf, char *end, 
- 	}
+-	mutex_lock(&ep->mtx);
++	mutex_lock_nested(&ep->mtx, 0);
  
- 	for (i = 0; i < 16; i++) {
--		p = pack_hex_byte(p, addr[index[i]]);
-+		p = hex_byte_pack(p, addr[index[i]]);
- 		switch (i) {
- 		case 3:
- 		case 5:
+ 	/*
+ 	 * Try to lookup the file inside our RB tree, Since we grabbed "mtx"
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from nelhage@nelhage.com are
 
 origin.patch
-linux-next.patch
-selinuxfs-remove-custome-hex_to_bin.patch
 
