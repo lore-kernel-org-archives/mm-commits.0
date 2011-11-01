@@ -1,59 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161.patch removed from -mm tree
-Date: Tue, 01 Nov 2011 14:14:01 -0700
-Message-ID: <201111012114.pA1LE1IM006606@hpaq11.eem.corp.google.com>
+Subject: [merged] printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel.patch removed from -mm tree
+Date: Tue, 01 Nov 2011 14:14:18 -0700
+Message-ID: <201111012114.pA1LEInB032034@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:29785 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:29805 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab1KAVOQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:14:16 -0400
+	with ESMTP id S1752436Ab1KAVOW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Nov 2011 17:14:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jacmet@sunsite.dk, michael.hennerich@analog.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: yanmin_zhang@linux.intel.com, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/misc/ad525x_dpot-i2c.c: add i2c support for AD5161
+     Subject: printk: add module parameter ignore_loglevel to control ignore_loglevel
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161.patch
+     printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: drivers/misc/ad525x_dpot-i2c.c: add i2c support for AD5161
+From: Yanmin Zhang <yanmin_zhang@linux.intel.com>
+Subject: printk: add module parameter ignore_loglevel to control ignore_loglevel
 
-Commit 6c536e4ce8e ("ad525x_dpot: add support for SPI parts") added
-support for the AD5161 through SPI, but the device supports both I2C and
-SPI (depending on the DIS pin), so add it to -i2c as well.
+We are enabling some power features on medfield.  To test suspend-2-RAM
+conveniently, we need turn on/off ignore_loglevel frequently without
+rebooting.
 
-Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
-Acked-by: Michael Hennerich <michael.hennerich@analog.com>
+Add a module parameter, so users can change it by:
+/sys/module/printk/parameters/ignore_loglevel
+
+Signed-off-by: Yanmin Zhang <yanmin.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ad525x_dpot-i2c.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/kernel-parameters.txt |    3 +++
+ kernel/printk.c                     |    3 +++
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/misc/ad525x_dpot-i2c.c~drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161 drivers/misc/ad525x_dpot-i2c.c
---- a/drivers/misc/ad525x_dpot-i2c.c~drivers-misc-ad525x_dpot-i2cc-add-i2c-support-for-ad5161
-+++ a/drivers/misc/ad525x_dpot-i2c.c
-@@ -98,6 +98,7 @@ static const struct i2c_device_id ad_dpo
- 	{"ad5282", AD5282_ID},
- 	{"adn2860", ADN2860_ID},
- 	{"ad5273", AD5273_ID},
-+	{"ad5161", AD5161_ID},
- 	{"ad5171", AD5171_ID},
- 	{"ad5170", AD5170_ID},
- 	{"ad5172", AD5172_ID},
+diff -puN Documentation/kernel-parameters.txt~printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel
++++ a/Documentation/kernel-parameters.txt
+@@ -973,6 +973,9 @@ bytes respectively. Such letter suffixes
+ 	ignore_loglevel	[KNL]
+ 			Ignore loglevel setting - this will print /all/
+ 			kernel messages to the console. Useful for debugging.
++			We also add it as printk module parameter, so users
++			could change it dynamically, usually by
++			/sys/module/printk/parameters/ignore_loglevel.
+ 
+ 	ihash_entries=	[KNL]
+ 			Set number of hash buckets for inode cache.
+diff -puN kernel/printk.c~printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel kernel/printk.c
+--- a/kernel/printk.c~printk-add-module-parameter-ignore_loglevel-to-control-ignore_loglevel
++++ a/kernel/printk.c
+@@ -532,6 +532,9 @@ static int __init ignore_loglevel_setup(
+ }
+ 
+ early_param("ignore_loglevel", ignore_loglevel_setup);
++module_param_named(ignore_loglevel, ignore_loglevel, bool, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
++	"print all kernel messages to the console.");
+ 
+ /*
+  * Write out chars from start to end - 1 inclusive
 _
 
-Patches currently in -mm which might be from jacmet@sunsite.dk are
+Patches currently in -mm which might be from yanmin_zhang@linux.intel.com are
 
 origin.patch
-linux-next.patch
 
