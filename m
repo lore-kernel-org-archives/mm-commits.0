@@ -1,59 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded] proc-fix-races-against-execve-of-proc-pid-fd-fix.patch removed from -mm tree
-Date: Wed, 02 Nov 2011 13:16:44 -0700
-Message-ID: <201111022016.pA2KGjfw008961@wpaz17.hot.corp.google.com>
+Subject: [folded] init-add-root=partuuid=uuid-partnroff=%d-support-fix.patch removed from -mm tree
+Date: Wed, 02 Nov 2011 13:17:08 -0700
+Message-ID: <201111022017.pA2KH8mf012296@hpaq14.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:39147 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:39251 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286Ab1KBURE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Nov 2011 16:17:04 -0400
+	with ESMTP id S1751638Ab1KBURU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Nov 2011 16:17:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segooon@gmail.com, gorcunov@gmail.com, segoon@openwall.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, wad@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-fix-races-against-execve-of-proc-pid-fd-fix
+     Subject: init-add-root=partuuid=uuid-partnroff=%d-support-fix
 has been removed from the -mm tree.  Its filename was
-     proc-fix-races-against-execve-of-proc-pid-fd-fix.patch
+     init-add-root=partuuid=uuid-partnroff=%d-support-fix.patch
 
-This patch was dropped because it was folded into proc-fix-races-against-execve-of-proc-pid-fd.patch
+This patch was dropped because it was folded into init-add-root=partuuid=uuid-partnroff=%d-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Vasiliy Kulikov <segooon@gmail.com>
-Subject: proc-fix-races-against-execve-of-proc-pid-fd-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: init-add-root=partuuid=uuid-partnroff=%d-support-fix
 
-In the patch "proc: fix races against execve() of /proc/PID/fd**"
-proc_pid_fd_link_getattr() leaked task_struct if ptrace check fails.
+After merging the akpm tree, today's linux-next build (lost of them)
+produced this warning:
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Reported-by: Cyrill Gorcunov <gorcunov@gmail.com>
+WARNING: init/mounts.o(.text+0x192): Section mismatch in reference from the function devt_from_partuuid() to the variable .init.data:root_wait
+The function devt_from_partuuid() references
+the variable __initdata root_wait.
+This is often because devt_from_partuuid lacks a __initdata
+annotation or the annotation of root_wait is wrong.
+
+Commit 185237e4cfab ("This patch makes two changes:"
+init-add-root=partuuid=uuid-partnroff=%d-support-update.patch) adds the
+reference to root_wait from the non-init function devt_from_partuuid().
+
+The easiest thing to do is to remove __init_date from root_wait.
+
+I have applied this patch as a merge fixup for today:
+
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Wed, 10 Aug 2011 12:09:35 +1000
+Subject: [PATCH] do_mounts: remove __init_data from root_wait
+
+as it is now used from a non init routine.
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Will Drewry <wad@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
+ init/do_mounts.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd-fix fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd-fix
-+++ a/fs/proc/base.c
-@@ -1668,9 +1668,9 @@ static int proc_pid_fd_link_getattr(stru
+diff -puN init/do_mounts.c~init-add-root=partuuid=uuid-partnroff=%d-support-fix init/do_mounts.c
+--- a/init/do_mounts.c~init-add-root=partuuid=uuid-partnroff=%d-support-fix
++++ a/init/do_mounts.c
+@@ -28,7 +28,7 @@ int __initdata rd_doload;	/* 1 = load RA
+ int root_mountflags = MS_RDONLY | MS_SILENT;
+ static char * __initdata root_device_name;
+ static char __initdata saved_root_name[64];
+-static int __initdata root_wait;
++static int root_wait;
  
- 	generic_fillattr(inode, stat);
- 	unlock_trace(task);
--	put_task_struct(task);
- 	rc = 0;
- out_task:
-+	put_task_struct(task);
- 	return rc;
- }
+ dev_t ROOT_DEV;
  
 _
 
-Patches currently in -mm which might be from segooon@gmail.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-proc-fix-races-against-execve-of-proc-pid-fd.patch
+origin.patch
+init-add-root=partuuid=uuid-partnroff=%d-support.patch
 
