@@ -1,285 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:29:30 -0800
-Message-ID: <201111072029.pA7KTUqA025047@hpaq11.eem.corp.google.com>
+Subject: [merged] drivers-misc-vmw_balloonc-fix-typo-in-code-comment.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:29:53 -0800
+Message-ID: <201111072029.pA7KTrIs006043@wpaz29.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:47739 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47748 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133Ab1KGU3w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:29:52 -0500
+	with ESMTP id S1751663Ab1KGU34 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:29:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cabarnes@indesign-llc.com, stable@kernel.org, stable@vger.kernel.org, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: rakib.mullick@gmail.com, dtor@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/power/ds2780_battery.c: create central point for calling w1 interface
+     Subject: drivers/misc/vmw_balloon.c: fix typo in code comment
 has been removed from the -mm tree.  Its filename was
-     drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface.patch
+     drivers-misc-vmw_balloonc-fix-typo-in-code-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Clifton Barnes <cabarnes@indesign-llc.com>
-Subject: drivers/power/ds2780_battery.c: create central point for calling w1 interface
+From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: drivers/misc/vmw_balloon.c: fix typo in code comment
 
-Simply creates one point to call the w1 interface.
+Fix typo in code comment.
 
-Signed-off-by: Clifton Barnes <cabarnes@indesign-llc.com>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: <stable@kernel.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
+Acked-by: Dmitry Torokhov <dtor@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/ds2780_battery.c |   77 ++++++++++++++++---------------
- 1 file changed, 42 insertions(+), 35 deletions(-)
+ drivers/misc/vmw_balloon.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/power/ds2780_battery.c~drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface drivers/power/ds2780_battery.c
---- a/drivers/power/ds2780_battery.c~drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface
-+++ a/drivers/power/ds2780_battery.c
-@@ -49,8 +49,8 @@ enum current_types {
- static const char model[] = "DS2780";
- static const char manufacturer[] = "Maxim/Dallas";
+diff -puN drivers/misc/vmw_balloon.c~drivers-misc-vmw_balloonc-fix-typo-in-code-comment drivers/misc/vmw_balloon.c
+--- a/drivers/misc/vmw_balloon.c~drivers-misc-vmw_balloonc-fix-typo-in-code-comment
++++ a/drivers/misc/vmw_balloon.c
+@@ -151,7 +151,7 @@ MODULE_LICENSE("GPL");
+ struct vmballoon_stats {
+ 	unsigned int timer;
  
--static inline struct ds2780_device_info *to_ds2780_device_info(
--	struct power_supply *psy)
-+static inline struct ds2780_device_info *
-+to_ds2780_device_info(struct power_supply *psy)
- {
- 	return container_of(psy, struct ds2780_device_info, bat);
- }
-@@ -60,17 +60,25 @@ static inline struct power_supply *to_po
- 	return dev_get_drvdata(dev);
- }
- 
--static inline int ds2780_read8(struct device *dev, u8 *val, int addr)
-+static inline int ds2780_battery_io(struct ds2780_device_info *dev_info,
-+	char *buf, int addr, size_t count, int io)
- {
--	return w1_ds2780_io(dev, val, addr, sizeof(u8), 0);
-+		return w1_ds2780_io(dev_info->w1_dev, buf, addr, count, io);
- }
- 
--static int ds2780_read16(struct device *dev, s16 *val, int addr)
-+static inline int ds2780_read8(struct ds2780_device_info *dev_info, u8 *val,
-+	int addr)
-+{
-+	return ds2780_battery_io(dev_info, val, addr, sizeof(u8), 0);
-+}
-+
-+static int ds2780_read16(struct ds2780_device_info *dev_info, s16 *val,
-+	int addr)
- {
- 	int ret;
- 	u8 raw[2];
- 
--	ret = w1_ds2780_io(dev, raw, addr, sizeof(u8) * 2, 0);
-+	ret = ds2780_battery_io(dev_info, raw, addr, sizeof(raw), 0);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -79,16 +87,16 @@ static int ds2780_read16(struct device *
- 	return 0;
- }
- 
--static inline int ds2780_read_block(struct device *dev, u8 *val, int addr,
--	size_t count)
-+static inline int ds2780_read_block(struct ds2780_device_info *dev_info,
-+	u8 *val, int addr, size_t count)
- {
--	return w1_ds2780_io(dev, val, addr, count, 0);
-+	return ds2780_battery_io(dev_info, val, addr, count, 0);
- }
- 
--static inline int ds2780_write(struct device *dev, u8 *val, int addr,
--	size_t count)
-+static inline int ds2780_write(struct ds2780_device_info *dev_info, u8 *val,
-+	int addr, size_t count)
- {
--	return w1_ds2780_io(dev, val, addr, count, 1);
-+	return ds2780_battery_io(dev_info, val, addr, count, 1);
- }
- 
- static inline int ds2780_store_eeprom(struct device *dev, int addr)
-@@ -122,7 +130,7 @@ static int ds2780_set_sense_register(str
- {
- 	int ret;
- 
--	ret = ds2780_write(dev_info->w1_dev, &conductance,
-+	ret = ds2780_write(dev_info, &conductance,
- 				DS2780_RSNSP_REG, sizeof(u8));
- 	if (ret < 0)
- 		return ret;
-@@ -134,7 +142,7 @@ static int ds2780_set_sense_register(str
- static int ds2780_get_rsgain_register(struct ds2780_device_info *dev_info,
- 	u16 *rsgain)
- {
--	return ds2780_read16(dev_info->w1_dev, rsgain, DS2780_RSGAIN_MSB_REG);
-+	return ds2780_read16(dev_info, rsgain, DS2780_RSGAIN_MSB_REG);
- }
- 
- /* Set RSGAIN value from 0 to 1.999 in steps of 0.001 */
-@@ -144,8 +152,8 @@ static int ds2780_set_rsgain_register(st
- 	int ret;
- 	u8 raw[] = {rsgain >> 8, rsgain & 0xFF};
- 
--	ret = ds2780_write(dev_info->w1_dev, raw,
--				DS2780_RSGAIN_MSB_REG, sizeof(u8) * 2);
-+	ret = ds2780_write(dev_info, raw,
-+				DS2780_RSGAIN_MSB_REG, sizeof(raw));
- 	if (ret < 0)
- 		return ret;
- 
-@@ -167,7 +175,7 @@ static int ds2780_get_voltage(struct ds2
- 	 * Bits 2 - 0 of the voltage value are in bits 7 - 5 of the
- 	 * voltage LSB register
- 	 */
--	ret = ds2780_read16(dev_info->w1_dev, &voltage_raw,
-+	ret = ds2780_read16(dev_info, &voltage_raw,
- 				DS2780_VOLT_MSB_REG);
- 	if (ret < 0)
- 		return ret;
-@@ -196,7 +204,7 @@ static int ds2780_get_temperature(struct
- 	 * Bits 2 - 0 of the temperature value are in bits 7 - 5 of the
- 	 * temperature LSB register
- 	 */
--	ret = ds2780_read16(dev_info->w1_dev, &temperature_raw,
-+	ret = ds2780_read16(dev_info, &temperature_raw,
- 				DS2780_TEMP_MSB_REG);
- 	if (ret < 0)
- 		return ret;
-@@ -222,13 +230,13 @@ static int ds2780_get_current(struct ds2
- 	 * The units of measurement for current are dependent on the value of
- 	 * the sense resistor.
- 	 */
--	ret = ds2780_read8(dev_info->w1_dev, &sense_res_raw, DS2780_RSNSP_REG);
-+	ret = ds2780_read8(dev_info, &sense_res_raw, DS2780_RSNSP_REG);
- 	if (ret < 0)
- 		return ret;
- 
- 	if (sense_res_raw == 0) {
- 		dev_err(dev_info->dev, "sense resistor value is 0\n");
--		return -ENXIO;
-+		return -EINVAL;
- 	}
- 	sense_res = 1000 / sense_res_raw;
- 
-@@ -248,7 +256,7 @@ static int ds2780_get_current(struct ds2
- 	 * Bits 7 - 0 of the current value are in bits 7 - 0 of the current
- 	 * LSB register
- 	 */
--	ret = ds2780_read16(dev_info->w1_dev, &current_raw, reg_msb);
-+	ret = ds2780_read16(dev_info, &current_raw, reg_msb);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -267,7 +275,7 @@ static int ds2780_get_accumulated_curren
- 	 * The units of measurement for accumulated current are dependent on
- 	 * the value of the sense resistor.
- 	 */
--	ret = ds2780_read8(dev_info->w1_dev, &sense_res_raw, DS2780_RSNSP_REG);
-+	ret = ds2780_read8(dev_info, &sense_res_raw, DS2780_RSNSP_REG);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -285,7 +293,7 @@ static int ds2780_get_accumulated_curren
- 	 * Bits 7 - 0 of the ACR value are in bits 7 - 0 of the ACR
- 	 * LSB register
- 	 */
--	ret = ds2780_read16(dev_info->w1_dev, &current_raw, DS2780_ACR_MSB_REG);
-+	ret = ds2780_read16(dev_info, &current_raw, DS2780_ACR_MSB_REG);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -299,7 +307,7 @@ static int ds2780_get_capacity(struct ds
- 	int ret;
- 	u8 raw;
- 
--	ret = ds2780_read8(dev_info->w1_dev, &raw, DS2780_RARC_REG);
-+	ret = ds2780_read8(dev_info, &raw, DS2780_RARC_REG);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -345,7 +353,7 @@ static int ds2780_get_charge_now(struct 
- 	 * Bits 7 - 0 of the RAAC value are in bits 7 - 0 of the RAAC
- 	 * LSB register
- 	 */
--	ret = ds2780_read16(dev_info->w1_dev, &charge_raw, DS2780_RAAC_MSB_REG);
-+	ret = ds2780_read16(dev_info, &charge_raw, DS2780_RAAC_MSB_REG);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -356,7 +364,7 @@ static int ds2780_get_charge_now(struct 
- static int ds2780_get_control_register(struct ds2780_device_info *dev_info,
- 	u8 *control_reg)
- {
--	return ds2780_read8(dev_info->w1_dev, control_reg, DS2780_CONTROL_REG);
-+	return ds2780_read8(dev_info, control_reg, DS2780_CONTROL_REG);
- }
- 
- static int ds2780_set_control_register(struct ds2780_device_info *dev_info,
-@@ -364,7 +372,7 @@ static int ds2780_set_control_register(s
- {
- 	int ret;
- 
--	ret = ds2780_write(dev_info->w1_dev, &control_reg,
-+	ret = ds2780_write(dev_info, &control_reg,
- 				DS2780_CONTROL_REG, sizeof(u8));
- 	if (ret < 0)
- 		return ret;
-@@ -503,7 +511,7 @@ static ssize_t ds2780_get_sense_resistor
- 	struct power_supply *psy = to_power_supply(dev);
- 	struct ds2780_device_info *dev_info = to_ds2780_device_info(psy);
- 
--	ret = ds2780_read8(dev_info->w1_dev, &sense_resistor, DS2780_RSNSP_REG);
-+	ret = ds2780_read8(dev_info, &sense_resistor, DS2780_RSNSP_REG);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -584,7 +592,7 @@ static ssize_t ds2780_get_pio_pin(struct
- 	struct power_supply *psy = to_power_supply(dev);
- 	struct ds2780_device_info *dev_info = to_ds2780_device_info(psy);
- 
--	ret = ds2780_read8(dev_info->w1_dev, &sfr, DS2780_SFR_REG);
-+	ret = ds2780_read8(dev_info, &sfr, DS2780_SFR_REG);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -611,7 +619,7 @@ static ssize_t ds2780_set_pio_pin(struct
- 		return -EINVAL;
- 	}
- 
--	ret = ds2780_write(dev_info->w1_dev, &new_setting,
-+	ret = ds2780_write(dev_info, &new_setting,
- 				DS2780_SFR_REG, sizeof(u8));
- 	if (ret < 0)
- 		return ret;
-@@ -632,7 +640,7 @@ static ssize_t ds2780_read_param_eeprom_
- 		DS2780_EEPROM_BLOCK1_END -
- 		DS2780_EEPROM_BLOCK1_START + 1 - off);
- 
--	return ds2780_read_block(dev_info->w1_dev, buf,
-+	return ds2780_read_block(dev_info, buf,
- 				DS2780_EEPROM_BLOCK1_START + off, count);
- }
- 
-@@ -650,7 +658,7 @@ static ssize_t ds2780_write_param_eeprom
- 		DS2780_EEPROM_BLOCK1_END -
- 		DS2780_EEPROM_BLOCK1_START + 1 - off);
- 
--	ret = ds2780_write(dev_info->w1_dev, buf,
-+	ret = ds2780_write(dev_info, buf,
- 				DS2780_EEPROM_BLOCK1_START + off, count);
- 	if (ret < 0)
- 		return ret;
-@@ -685,9 +693,8 @@ static ssize_t ds2780_read_user_eeprom_b
- 		DS2780_EEPROM_BLOCK0_END -
- 		DS2780_EEPROM_BLOCK0_START + 1 - off);
- 
--	return ds2780_read_block(dev_info->w1_dev, buf,
-+	return ds2780_read_block(dev_info, buf,
- 				DS2780_EEPROM_BLOCK0_START + off, count);
+-	/* allocation statustics */
++	/* allocation statistics */
+ 	unsigned int alloc;
+ 	unsigned int alloc_fail;
+ 	unsigned int sleep_alloc;
+_
+
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
+
+origin.patch
+
