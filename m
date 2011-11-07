@@ -1,63 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_cgroupc-quiet-sparse-noise.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:27:30 -0800
-Message-ID: <201111072027.pA7KRUNM027045@hpaq1.eem.corp.google.com>
+Subject: [merged] ida-make-ida_simple_get-put-irq-safe.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:27:49 -0800
+Message-ID: <201111072027.pA7KRnMN027277@hpaq1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5428 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47300 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751779Ab1KGU1q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:27:46 -0500
+	with ESMTP id S1751494Ab1KGU2A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:28:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hartleys@visionengravers.com, bsingharora@gmail.com, hsweeten@visionengravers.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, nishimura@mxp.nes.nec.co.jp, paul@paulmenage.or
+To: tj@kernel.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_cgroup.c: quiet sparse noise
+     Subject: ida: make ida_simple_get/put() IRQ safe
 has been removed from the -mm tree.  Its filename was
-     mm-page_cgroupc-quiet-sparse-noise.patch
+     ida-make-ida_simple_get-put-irq-safe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: H Hartley Sweeten <hartleys@visionengravers.com>
-Subject: mm/page_cgroup.c: quiet sparse noise
+From: Tejun Heo <tj@kernel.org>
+Subject: ida: make ida_simple_get/put() IRQ safe
 
-warning: symbol 'swap_cgroup_ctrl' was not declared. Should it be static?
+It's often convenient to be able to release resource from IRQ context. 
+Make ida_simple_*() use irqsave/restore spin ops so that they are IRQ
+safe.
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Paul Menage <paul@paulmenage.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/idr.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_cgroup.c~mm-page_cgroupc-quiet-sparse-noise mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-page_cgroupc-quiet-sparse-noise
-+++ a/mm/page_cgroup.c
-@@ -360,7 +360,7 @@ struct swap_cgroup_ctrl {
- 	spinlock_t	lock;
- };
+diff -puN lib/idr.c~ida-make-ida_simple_get-put-irq-safe lib/idr.c
+--- a/lib/idr.c~ida-make-ida_simple_get-put-irq-safe
++++ a/lib/idr.c
+@@ -944,6 +944,7 @@ int ida_simple_get(struct ida *ida, unsi
+ {
+ 	int ret, id;
+ 	unsigned int max;
++	unsigned long flags;
  
--struct swap_cgroup_ctrl swap_cgroup_ctrl[MAX_SWAPFILES];
-+static struct swap_cgroup_ctrl swap_cgroup_ctrl[MAX_SWAPFILES];
+ 	BUG_ON((int)start < 0);
+ 	BUG_ON((int)end < 0);
+@@ -959,7 +960,7 @@ again:
+ 	if (!ida_pre_get(ida, gfp_mask))
+ 		return -ENOMEM;
  
- struct swap_cgroup {
- 	unsigned short		id;
+-	spin_lock(&simple_ida_lock);
++	spin_lock_irqsave(&simple_ida_lock, flags);
+ 	ret = ida_get_new_above(ida, start, &id);
+ 	if (!ret) {
+ 		if (id > max) {
+@@ -969,7 +970,7 @@ again:
+ 			ret = id;
+ 		}
+ 	}
+-	spin_unlock(&simple_ida_lock);
++	spin_unlock_irqrestore(&simple_ida_lock, flags);
+ 
+ 	if (unlikely(ret == -EAGAIN))
+ 		goto again;
+@@ -985,10 +986,12 @@ EXPORT_SYMBOL(ida_simple_get);
+  */
+ void ida_simple_remove(struct ida *ida, unsigned int id)
+ {
++	unsigned long flags;
++
+ 	BUG_ON((int)id < 0);
+-	spin_lock(&simple_ida_lock);
++	spin_lock_irqsave(&simple_ida_lock, flags);
+ 	ida_remove(ida, id);
+-	spin_unlock(&simple_ida_lock);
++	spin_unlock_irqrestore(&simple_ida_lock, flags);
+ }
+ EXPORT_SYMBOL(ida_simple_remove);
+ 
 _
 
-Patches currently in -mm which might be from hartleys@visionengravers.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
-arch-x86-kernel-e820c-quiet-sparse-noise-about-plain-integer-as-null-pointer.patch
-arch-x86-kernel-ptracec-quiet-sparse-noise.patch
-arch-x86-mm-pageattrc-quiet-sparse-noise-local-functions-should-be-static.patch
+linux-next.patch
+drivers-scsi-osd-osd_uldc-use-ida_simple_get-to-handle-id.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update.patch
+scatterlist-new-helper-functions-update-fix.patch
 
