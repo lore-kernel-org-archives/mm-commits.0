@@ -1,62 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pps-new-client-driver-using-gpio-fix.patch removed from -mm tree
-Date: Wed, 02 Nov 2011 13:18:52 -0700
-Message-ID: <201111022018.pA2KIqtV018392@hpaq13.eem.corp.google.com>
+Subject: [obsolete] btrfs-dont-dereference-extent_mapping-if-null.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:23:38 -0800
+Message-ID: <201111072023.pA7KNenh026399@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:39575 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:4638 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863Ab1KBUTI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Nov 2011 16:19:08 -0400
+	with ESMTP id S1751305Ab1KGUXp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:23:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, giometti@linux.it, jamesnuss@nanometrics.ca, lasaine@lvk.cs.msu.su, plyatov@gmail.com, rasm@fe.up.pt, mm-commits@vger.kernel.org
+To: roel.kluin@gmail.com, chris.mason@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pps-new-client-driver-using-gpio-fix
+     Subject: btrfs: don't dereference extent_mapping if NULL
 has been removed from the -mm tree.  Its filename was
-     pps-new-client-driver-using-gpio-fix.patch
+     btrfs-dont-dereference-extent_mapping-if-null.patch
 
-This patch was dropped because it was folded into pps-new-client-driver-using-gpio.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pps-new-client-driver-using-gpio-fix
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: btrfs: don't dereference extent_mapping if NULL
 
-remove unneeded cast of void*
+Don't dereference em if it's NULL or an error pointer.
 
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Igor Plyatov <plyatov@gmail.com>
-Cc: James Nuss <jamesnuss@nanometrics.ca>
-Cc: Ricardo Martins <rasm@fe.up.pt>
-Cc: Rodolfo Giometti <giometti@linux.it>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-gpio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/btrfs/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pps/clients/pps-gpio.c~pps-new-client-driver-using-gpio-fix drivers/pps/clients/pps-gpio.c
---- a/drivers/pps/clients/pps-gpio.c~pps-new-client-driver-using-gpio-fix
-+++ a/drivers/pps/clients/pps-gpio.c
-@@ -55,7 +55,7 @@ static irqreturn_t pps_gpio_irq_handler(
- 	/* Get the time stamp first */
- 	pps_get_ts(&ts);
+diff -puN fs/btrfs/inode.c~btrfs-dont-dereference-extent_mapping-if-null fs/btrfs/inode.c
+--- a/fs/btrfs/inode.c~btrfs-dont-dereference-extent_mapping-if-null
++++ a/fs/btrfs/inode.c
+@@ -1863,7 +1863,8 @@ static int btrfs_io_failed_hook(struct b
  
--	info = (const struct pps_gpio_device_data *)data;
-+	info = data;
- 
- 	rising_edge = gpio_get_value(info->pdata->gpio_pin);
- 	if ((rising_edge && !info->pdata->assert_falling_edge) ||
+ 		read_lock(&em_tree->lock);
+ 		em = lookup_extent_mapping(em_tree, start, failrec->len);
+-		if (em->start > start || em->start + em->len < start) {
++		if (em && !IS_ERR(em) && (em->start > start ||
++					em->start + em->len < start)) {
+ 			free_extent_map(em);
+ 			em = NULL;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-origin.patch
-sysctl-add-support-for-poll.patch
-include-linux-dma-mappingh-add-dma_zalloc_coherent.patch
-pps-new-client-driver-using-gpio.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 
