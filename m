@@ -1,70 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ramfs-remove-module-leftovers.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:25:48 -0800
-Message-ID: <201111072025.pA7KPm9l021358@wpaz17.hot.corp.google.com>
+Subject: [merged] init-do_mounts_rdc-fix-ramdisk-identification-for-padded-cramfs.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:25:53 -0800
+Message-ID: <201111072025.pA7KPrjH011441@hpaq12.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5092 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:5106 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751418Ab1KGU0D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:26:03 -0500
+	with ESMTP id S1751418Ab1KGU0H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:26:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, hch@lst.de, viro@zeniv.linux.org.uk, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: narmstrong@neotion.com, dave@gnu.org, namhyung@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ramfs: remove module leftovers
+     Subject: init/do_mounts_rd.c: fix ramdisk identification for padded cramfs
 has been removed from the -mm tree.  Its filename was
-     ramfs-remove-module-leftovers.patch
+     init-do_mounts_rdc-fix-ramdisk-identification-for-padded-cramfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: ramfs: remove module leftovers
+From: Neil Armstrong <narmstrong@neotion.com>
+Subject: init/do_mounts_rd.c: fix ramdisk identification for padded cramfs
 
-Since ramfs is hard-selected to "y", the module leftovers make no sense.
+When a cramfs ramdisk padded with 512 bytes is given to the kernel, the
+current identify_ramdisk_image function fails to identify it.
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Tested with a padded cramfs image on an ARM based board.
+
+Signed-off-by: Neil Armstrong <narmstrong@neotion.com>
+Cc: Namhyung Kim <namhyung@gmail.com>
+Cc: Davidlohr Bueso <dave@gnu.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/inode.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ init/do_mounts_rd.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN fs/ramfs/inode.c~ramfs-remove-module-leftovers fs/ramfs/inode.c
---- a/fs/ramfs/inode.c~ramfs-remove-module-leftovers
-+++ a/fs/ramfs/inode.c
-@@ -23,7 +23,6 @@
-  * caches is sufficient.
-  */
+diff -puN init/do_mounts_rd.c~init-do_mounts_rdc-fix-ramdisk-identification-for-padded-cramfs init/do_mounts_rd.c
+--- a/init/do_mounts_rd.c~init-do_mounts_rdc-fix-ramdisk-identification-for-padded-cramfs
++++ a/init/do_mounts_rd.c
+@@ -120,6 +120,20 @@ identify_ramdisk_image(int fd, int start
+ 	}
  
--#include <linux/module.h>
- #include <linux/fs.h>
- #include <linux/pagemap.h>
- #include <linux/highmem.h>
-@@ -288,14 +287,7 @@ static int __init init_ramfs_fs(void)
- {
- 	return register_filesystem(&ramfs_fs_type);
- }
--
--static void __exit exit_ramfs_fs(void)
--{
--	unregister_filesystem(&ramfs_fs_type);
--}
--
- module_init(init_ramfs_fs)
--module_exit(exit_ramfs_fs)
- 
- int __init init_rootfs(void)
- {
-@@ -311,5 +303,3 @@ int __init init_rootfs(void)
- 
- 	return err;
- }
+ 	/*
++	 * Read 512 bytes further to check if cramfs is padded
++	 */
++	sys_lseek(fd, start_block * BLOCK_SIZE + 0x200, 0);
++	sys_read(fd, buf, size);
++
++	if (cramfsb->magic == CRAMFS_MAGIC) {
++		printk(KERN_NOTICE
++		       "RAMDISK: cramfs filesystem found at block %d\n",
++		       start_block);
++		nblocks = (cramfsb->size + BLOCK_SIZE - 1) >> BLOCK_SIZE_BITS;
++		goto done;
++	}
++
++	/*
+ 	 * Read block 1 to test for minix and ext2 superblock
+ 	 */
+ 	sys_lseek(fd, (start_block+1) * BLOCK_SIZE, 0);
+_
+
+Patches currently in -mm which might be from narmstrong@neotion.com are
+
+origin.patch
+
