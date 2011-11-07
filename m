@@ -1,289 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-fix-races-against-execve-of-proc-pid-fd.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:27:45 -0800
-Message-ID: <201111072027.pA7KRjmd028473@wpaz1.hot.corp.google.com>
+Subject: [merged] memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:27:20 -0800
+Message-ID: <201111072027.pA7KRKGx012526@wpaz37.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:47304 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:5474 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560Ab1KGU2I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:28:08 -0500
+	with ESMTP id S1753554Ab1KGU2C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:28:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, gorcunov@gmail.com, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: srostedt@redhat.com, balbir@linux.vnet.ibm.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, peterz@infradead.org
 
 
 The patch titled
-     Subject: proc: fix races against execve() of /proc/PID/fd**
+     Subject: memcg: Fix race condition in memcg_check_events() with this_cpu usage
 has been removed from the -mm tree.  Its filename was
-     proc-fix-races-against-execve-of-proc-pid-fd.patch
+     memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Vasiliy Kulikov <segoon@openwall.com>
-Subject: proc: fix races against execve() of /proc/PID/fd**
+From: Steven Rostedt <srostedt@redhat.com>
+Subject: memcg: Fix race condition in memcg_check_events() with this_cpu usage
 
-fd* files are restricted to the task's owner, and other users may not get
-direct access to them.  But one may open any of these files and run any
-setuid program, keeping opened file descriptors.  As there are permission
-checks on open(), but not on readdir() and read(), operations on the kept
-file descriptors will not be checked.  It makes it possible to violate
-procfs permission model.
+Various code in memcontrol.c () calls this_cpu_read() on the calculations
+to be done from two different percpu variables, or does an open-coded
+read-modify-write on a single percpu variable.
 
-Reading fdinfo/* may disclosure current fds' position and flags, reading
-directory contents of fdinfo/ and fd/ may disclosure the number of opened
-files by the target task.  This information is not sensible per se, but it
-can reveal some private information (like length of a password stored in a
-file) under certain conditions.
+Disable preemption throughout these operations so that the writes go to
+the correct palces.
 
-Used existing (un)lock_trace functions to check for ptrace_may_access(),
-but instead of using EPERM return code from it use EACCES to be consistent
-with existing proc_pid_follow_link()/proc_pid_readlink() return code.  If
-they differ, attacker can guess what fds exist by analyzing stat() return
-code.  Patched handlers: stat() for fd/*, stat() and read() for fdindo/*,
-readdir() and lookup() for fd/ and fdinfo/.
-
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: <stable@kernel.org>
-Cc: <stable@vger.kernel.org>
+[hannes@cmpxchg.org: added this_cpu to __this_cpu conversion]
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |  146 +++++++++++++++++++++++++++++++++--------------
- 1 file changed, 103 insertions(+), 43 deletions(-)
+ mm/memcontrol.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd
-+++ a/fs/proc/base.c
-@@ -1652,12 +1652,46 @@ out:
- 	return error;
- }
- 
-+static int proc_pid_fd_link_getattr(struct vfsmount *mnt, struct dentry *dentry,
-+		struct kstat *stat)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct task_struct *task = get_proc_task(inode);
-+	int rc;
-+
-+	if (task == NULL)
-+		return -ESRCH;
-+
-+	rc = -EACCES;
-+	if (lock_trace(task))
-+		goto out_task;
-+
-+	generic_fillattr(inode, stat);
-+	unlock_trace(task);
-+	rc = 0;
-+out_task:
-+	put_task_struct(task);
-+	return rc;
-+}
-+
- static const struct inode_operations proc_pid_link_inode_operations = {
- 	.readlink	= proc_pid_readlink,
- 	.follow_link	= proc_pid_follow_link,
- 	.setattr	= proc_setattr,
- };
- 
-+static const struct inode_operations proc_fdinfo_link_inode_operations = {
-+	.setattr	= proc_setattr,
-+	.getattr	= proc_pid_fd_link_getattr,
-+};
-+
-+static const struct inode_operations proc_fd_link_inode_operations = {
-+	.readlink	= proc_pid_readlink,
-+	.follow_link	= proc_pid_follow_link,
-+	.setattr	= proc_setattr,
-+	.getattr	= proc_pid_fd_link_getattr,
-+};
-+
- 
- /* building an inode */
- 
-@@ -1889,49 +1923,61 @@ out:
- 
- static int proc_fd_info(struct inode *inode, struct path *path, char *info)
+diff -puN mm/memcontrol.c~memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage
++++ a/mm/memcontrol.c
+@@ -686,8 +686,8 @@ static bool __memcg_event_check(struct m
  {
--	struct task_struct *task = get_proc_task(inode);
--	struct files_struct *files = NULL;
-+	struct task_struct *task;
-+	struct files_struct *files;
- 	struct file *file;
- 	int fd = proc_fd(inode);
-+	int rc;
+ 	unsigned long val, next;
  
--	if (task) {
--		files = get_files_struct(task);
--		put_task_struct(task);
--	}
--	if (files) {
--		/*
--		 * We are not taking a ref to the file structure, so we must
--		 * hold ->file_lock.
--		 */
--		spin_lock(&files->file_lock);
--		file = fcheck_files(files, fd);
--		if (file) {
--			unsigned int f_flags;
--			struct fdtable *fdt;
--
--			fdt = files_fdtable(files);
--			f_flags = file->f_flags & ~O_CLOEXEC;
--			if (FD_ISSET(fd, fdt->close_on_exec))
--				f_flags |= O_CLOEXEC;
--
--			if (path) {
--				*path = file->f_path;
--				path_get(&file->f_path);
--			}
--			if (info)
--				snprintf(info, PROC_FDINFO_MAX,
--					 "pos:\t%lli\n"
--					 "flags:\t0%o\n",
--					 (long long) file->f_pos,
--					 f_flags);
--			spin_unlock(&files->file_lock);
--			put_files_struct(files);
--			return 0;
-+	task = get_proc_task(inode);
-+	if (!task)
-+		return -ENOENT;
-+
-+	rc = -EACCES;
-+	if (lock_trace(task))
-+		goto out_task;
-+
-+	rc = -ENOENT;
-+	files = get_files_struct(task);
-+	if (files == NULL)
-+		goto out_unlock;
-+
-+	/*
-+	 * We are not taking a ref to the file structure, so we must
-+	 * hold ->file_lock.
-+	 */
-+	spin_lock(&files->file_lock);
-+	file = fcheck_files(files, fd);
-+	if (file) {
-+		unsigned int f_flags;
-+		struct fdtable *fdt;
-+
-+		fdt = files_fdtable(files);
-+		f_flags = file->f_flags & ~O_CLOEXEC;
-+		if (FD_ISSET(fd, fdt->close_on_exec))
-+			f_flags |= O_CLOEXEC;
-+
-+		if (path) {
-+			*path = file->f_path;
-+			path_get(&file->f_path);
- 		}
--		spin_unlock(&files->file_lock);
--		put_files_struct(files);
--	}
--	return -ENOENT;
-+		if (info)
-+			snprintf(info, PROC_FDINFO_MAX,
-+				 "pos:\t%lli\n"
-+				 "flags:\t0%o\n",
-+				 (long long) file->f_pos,
-+				 f_flags);
-+		rc = 0;
-+	} else
-+		rc = -ENOENT;
-+	spin_unlock(&files->file_lock);
-+	put_files_struct(files);
-+
-+out_unlock:
-+	unlock_trace(task);
-+out_task:
-+	put_task_struct(task);
-+	return rc;
+-	val = this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
+-	next = this_cpu_read(memcg->stat->targets[target]);
++	val = __this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++	next = __this_cpu_read(memcg->stat->targets[target]);
+ 	/* from time_after() in jiffies.h */
+ 	return ((long)next - (long)val < 0);
+ }
+@@ -696,7 +696,7 @@ static void __mem_cgroup_target_update(s
+ {
+ 	unsigned long val, next;
+ 
+-	val = this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++	val = __this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
+ 
+ 	switch (target) {
+ 	case MEM_CGROUP_TARGET_THRESH:
+@@ -712,7 +712,7 @@ static void __mem_cgroup_target_update(s
+ 		return;
+ 	}
+ 
+-	this_cpu_write(memcg->stat->targets[target], next);
++	__this_cpu_write(memcg->stat->targets[target], next);
  }
  
- static int proc_fd_link(struct inode *inode, struct path *path)
-@@ -2026,7 +2072,7 @@ static struct dentry *proc_fd_instantiat
- 	spin_unlock(&files->file_lock);
- 	put_files_struct(files);
- 
--	inode->i_op = &proc_pid_link_inode_operations;
-+	inode->i_op = &proc_fd_link_inode_operations;
- 	inode->i_size = 64;
- 	ei->op.proc_get_link = proc_fd_link;
- 	d_set_d_op(dentry, &tid_fd_dentry_operations);
-@@ -2058,7 +2104,12 @@ static struct dentry *proc_lookupfd_comm
- 	if (fd == ~0U)
- 		goto out;
- 
-+	result = ERR_PTR(-EACCES);
-+	if (lock_trace(task))
-+		goto out;
-+
- 	result = instantiate(dir, dentry, task, &fd);
-+	unlock_trace(task);
- out:
- 	put_task_struct(task);
- out_no_task:
-@@ -2078,23 +2129,28 @@ static int proc_readfd_common(struct fil
- 	retval = -ENOENT;
- 	if (!p)
- 		goto out_no_task;
-+
-+	retval = -EACCES;
-+	if (lock_trace(p))
-+		goto out;
-+
- 	retval = 0;
- 
- 	fd = filp->f_pos;
- 	switch (fd) {
- 		case 0:
- 			if (filldir(dirent, ".", 1, 0, inode->i_ino, DT_DIR) < 0)
--				goto out;
-+				goto out_unlock;
- 			filp->f_pos++;
- 		case 1:
- 			ino = parent_ino(dentry);
- 			if (filldir(dirent, "..", 2, 1, ino, DT_DIR) < 0)
--				goto out;
-+				goto out_unlock;
- 			filp->f_pos++;
- 		default:
- 			files = get_files_struct(p);
- 			if (!files)
--				goto out;
-+				goto out_unlock;
- 			rcu_read_lock();
- 			for (fd = filp->f_pos-2;
- 			     fd < files_fdtable(files)->max_fds;
-@@ -2118,6 +2174,9 @@ static int proc_readfd_common(struct fil
- 			rcu_read_unlock();
- 			put_files_struct(files);
+ /*
+@@ -721,6 +721,7 @@ static void __mem_cgroup_target_update(s
+  */
+ static void memcg_check_events(struct mem_cgroup *memcg, struct page *page)
+ {
++	preempt_disable();
+ 	/* threshold event is triggered in finer grain than soft limit */
+ 	if (unlikely(__memcg_event_check(memcg, MEM_CGROUP_TARGET_THRESH))) {
+ 		mem_cgroup_threshold(memcg);
+@@ -740,6 +741,7 @@ static void memcg_check_events(struct me
+ 		}
+ #endif
  	}
-+
-+out_unlock:
-+	unlock_trace(p);
- out:
- 	put_task_struct(p);
- out_no_task:
-@@ -2195,6 +2254,7 @@ static struct dentry *proc_fdinfo_instan
- 	ei->fd = fd;
- 	inode->i_mode = S_IFREG | S_IRUSR;
- 	inode->i_fop = &proc_fdinfo_file_operations;
-+	inode->i_op = &proc_fdinfo_link_inode_operations;
- 	d_set_d_op(dentry, &tid_fd_dentry_operations);
- 	d_add(dentry, inode);
- 	/* Close the race of the process dying before we return the dentry */
++	preempt_enable();
+ }
+ 
+ static struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from srostedt@redhat.com are
 
 origin.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-proc-force-dcache-drop-on-unauthorized-access.patch
 
