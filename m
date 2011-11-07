@@ -1,83 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:26:33 -0800
-Message-ID: <201111072026.pA7KQXDa022554@wpaz21.hot.corp.google.com>
+Subject: [merged] binfmt_elf-fix-pie-execution-with-randomization-disabled.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:25:42 -0800
+Message-ID: <201111072025.pA7KPhx5026070@hpaq1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5300 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47145 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751779Ab1KGU1A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:27:00 -0500
+	with ESMTP id S1754513Ab1KGU0x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:26:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bblum@andrew.cmu.edu, fweisbec@gmail.com, neilb@suse.de, oleg@redhat.com, paul@paulmenage.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, hongjiu.lu@intel.com, jwboyer@redhat.com, mingo@elte.hu, nicolas.pitre@linaro.org, rmk@arm.linux.org.uk, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroups: more safe tasklist locking in cgroup_attach_proc
+     Subject: binfmt_elf: fix PIE execution with randomization disabled
 has been removed from the -mm tree.  Its filename was
-     cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc.patch
+     binfmt_elf-fix-pie-execution-with-randomization-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ben Blum <bblum@andrew.cmu.edu>
-Subject: cgroups: more safe tasklist locking in cgroup_attach_proc
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: binfmt_elf: fix PIE execution with randomization disabled
 
-Fix unstable tasklist locking in cgroup_attach_proc.
+The case of address space randomization being disabled in runtime through
+randomize_va_space sysctl is not treated properly in load_elf_binary(),
+resulting in SIGKILL coming at exec() time for certain PIE-linked binaries
+in case the randomization has been disabled at runtime prior to calling
+exec().
 
-According to this thread - https://lkml.org/lkml/2011/7/27/243 - RCU is
-not sufficient to guarantee the tasklist is stable w.r.t.  de_thread and
-exit.  Taking tasklist_lock for reading, instead of rcu_read_lock, ensures
-proper exclusion.
+Handle the randomize_va_space == 0 case the same way as if we were not
+supporting .text randomization at all.
 
-Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
-Acked-by: Paul Menage <paul@paulmenage.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Neil Brown <neilb@suse.de>
+Based on original patch by H.J. Lu and Josh Boyer.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: H.J. Lu <hongjiu.lu@intel.com>
+Cc: <stable@kernel.org>
+Tested-by: Josh Boyer <jwboyer@redhat.com>
+Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/binfmt_elf.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc
-+++ a/kernel/cgroup.c
-@@ -2027,7 +2027,7 @@ int cgroup_attach_proc(struct cgroup *cg
- 		goto out_free_group_list;
- 
- 	/* prevent changes to the threadgroup list while we take a snapshot. */
--	rcu_read_lock();
-+	read_lock(&tasklist_lock);
- 	if (!thread_group_leader(leader)) {
- 		/*
- 		 * a race with de_thread from another thread's exec() may strip
-@@ -2036,7 +2036,7 @@ int cgroup_attach_proc(struct cgroup *cg
- 		 * throw this task away and try again (from cgroup_procs_write);
- 		 * this is "double-double-toil-and-trouble-check locking".
- 		 */
--		rcu_read_unlock();
-+		read_unlock(&tasklist_lock);
- 		retval = -EAGAIN;
- 		goto out_free_group_list;
- 	}
-@@ -2057,7 +2057,7 @@ int cgroup_attach_proc(struct cgroup *cg
- 	} while_each_thread(leader, tsk);
- 	/* remember the number of threads in the array for later. */
- 	group_size = i;
--	rcu_read_unlock();
-+	read_unlock(&tasklist_lock);
- 
- 	/*
- 	 * step 1: check that we can legitimately attach to the cgroup.
+diff -puN fs/binfmt_elf.c~binfmt_elf-fix-pie-execution-with-randomization-disabled fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-fix-pie-execution-with-randomization-disabled
++++ a/fs/binfmt_elf.c
+@@ -795,7 +795,16 @@ static int load_elf_binary(struct linux_
+ 			 * might try to exec.  This is because the brk will
+ 			 * follow the loader, and is not movable.  */
+ #if defined(CONFIG_X86) || defined(CONFIG_ARM)
+-			load_bias = 0;
++			/* Memory randomization might have been switched off
++			 * in runtime via sysctl.
++			 * If that is the case, retain the original non-zero
++			 * load_bias value in order to establish proper
++			 * non-randomized mappings.
++			 */
++			if (current->flags & PF_RANDOMIZE)
++				load_bias = 0;
++			else
++				load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
+ #else
+ 			load_bias = ELF_PAGESTART(ELF_ET_DYN_BASE - vaddr);
+ #endif
 _
 
-Patches currently in -mm which might be from bblum@andrew.cmu.edu are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
 
