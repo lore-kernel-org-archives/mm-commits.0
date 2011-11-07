@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroups-fix-ordering-of-calls-in-cgroup_attach_proc.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:26:41 -0800
-Message-ID: <201111072026.pA7KQfHx027426@hpaq7.eem.corp.google.com>
+Subject: [merged] cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:26:33 -0800
+Message-ID: <201111072026.pA7KQXDa022554@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:47178 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:5300 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602Ab1KGU07 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:26:59 -0500
+	with ESMTP id S1751779Ab1KGU1A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:27:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bblum@andrew.cmu.edu, fweisbec@gmail.com, lizf@cn.fujitsu.com, oleg@redhat.com, paul@paulmenage.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: bblum@andrew.cmu.edu, fweisbec@gmail.com, neilb@suse.de, oleg@redhat.com, paul@paulmenage.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroups: don't attach task to subsystem if migration failed
+     Subject: cgroups: more safe tasklist locking in cgroup_attach_proc
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-ordering-of-calls-in-cgroup_attach_proc.patch
+     cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -24,61 +24,57 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Ben Blum <bblum@andrew.cmu.edu>
-Subject: cgroups: don't attach task to subsystem if migration failed
+Subject: cgroups: more safe tasklist locking in cgroup_attach_proc
 
-If a task has exited to the point it has called cgroup_exit() already,
-then we can't migrate it to another cgroup anymore.
+Fix unstable tasklist locking in cgroup_attach_proc.
 
-This can happen when we are attaching a task to a new cgroup between the
-call to ->can_attach_task() on subsystems and the migration that is
-eventually tried in cgroup_task_migrate().
+According to this thread - https://lkml.org/lkml/2011/7/27/243 - RCU is
+not sufficient to guarantee the tasklist is stable w.r.t.  de_thread and
+exit.  Taking tasklist_lock for reading, instead of rcu_read_lock, ensures
+proper exclusion.
 
-In this case cgroup_task_migrate() returns -ESRCH and we don't want to
-attach the task to the subsystems because the attachment to the new cgroup
-itself failed.
-
-Fix this by only calling ->attach_task() on the subsystems if the cgroup
-migration succeeded.
-
-Reported-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Ben Blum <bblum@andrew.cmu.edu>
 Acked-by: Paul Menage <paul@paulmenage.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ kernel/cgroup.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-fix-ordering-of-calls-in-cgroup_attach_proc kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-ordering-of-calls-in-cgroup_attach_proc
+diff -puN kernel/cgroup.c~cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-more-safe-tasklist-locking-in-cgroup_attach_proc
 +++ a/kernel/cgroup.c
-@@ -2135,14 +2135,17 @@ int cgroup_attach_proc(struct cgroup *cg
- 		oldcgrp = task_cgroup_from_root(tsk, root);
- 		if (cgrp == oldcgrp)
- 			continue;
--		/* attach each task to each subsystem */
--		for_each_subsys(root, ss) {
--			if (ss->attach_task)
--				ss->attach_task(cgrp, tsk);
--		}
- 		/* if the thread is PF_EXITING, it can just get skipped. */
- 		retval = cgroup_task_migrate(cgrp, oldcgrp, tsk, true);
--		BUG_ON(retval != 0 && retval != -ESRCH);
-+		if (retval == 0) {
-+			/* attach each task to each subsystem */
-+			for_each_subsys(root, ss) {
-+				if (ss->attach_task)
-+					ss->attach_task(cgrp, tsk);
-+			}
-+		} else {
-+			BUG_ON(retval != -ESRCH);
-+		}
- 	}
- 	/* nothing is sensitive to fork() after this point. */
+@@ -2027,7 +2027,7 @@ int cgroup_attach_proc(struct cgroup *cg
+ 		goto out_free_group_list;
  
+ 	/* prevent changes to the threadgroup list while we take a snapshot. */
+-	rcu_read_lock();
++	read_lock(&tasklist_lock);
+ 	if (!thread_group_leader(leader)) {
+ 		/*
+ 		 * a race with de_thread from another thread's exec() may strip
+@@ -2036,7 +2036,7 @@ int cgroup_attach_proc(struct cgroup *cg
+ 		 * throw this task away and try again (from cgroup_procs_write);
+ 		 * this is "double-double-toil-and-trouble-check locking".
+ 		 */
+-		rcu_read_unlock();
++		read_unlock(&tasklist_lock);
+ 		retval = -EAGAIN;
+ 		goto out_free_group_list;
+ 	}
+@@ -2057,7 +2057,7 @@ int cgroup_attach_proc(struct cgroup *cg
+ 	} while_each_thread(leader, tsk);
+ 	/* remember the number of threads in the array for later. */
+ 	group_size = i;
+-	rcu_read_unlock();
++	read_unlock(&tasklist_lock);
+ 
+ 	/*
+ 	 * step 1: check that we can legitimately attach to the cgroup.
 _
 
 Patches currently in -mm which might be from bblum@andrew.cmu.edu are
