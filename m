@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:29:35 -0800
-Message-ID: <201111072029.pA7KTZpb024485@wpaz21.hot.corp.google.com>
+Subject: [merged] drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:29:30 -0800
+Message-ID: <201111072029.pA7KTUqA025047@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5930 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47739 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751501Ab1KGU3w (ORCPT
+	with ESMTP id S1751133Ab1KGU3w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:29:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,9 +14,9 @@ To: cabarnes@indesign-llc.com, stable@kernel.org, stable@vger.kernel.org, zbr@io
 
 
 The patch titled
-     Subject: drivers/power/ds2780_battery.c: add a nolock function to w1 interface
+     Subject: drivers/power/ds2780_battery.c: create central point for calling w1 interface
 has been removed from the -mm tree.  Its filename was
-     drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface.patch
+     drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -24,10 +24,9 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Clifton Barnes <cabarnes@indesign-llc.com>
-Subject: drivers/power/ds2780_battery.c: add a nolock function to w1 interface
+Subject: drivers/power/ds2780_battery.c: create central point for calling w1 interface
 
-Adds a nolock function to the w1 interface to avoid locking the
-mutex if needed.
+Simply creates one point to call the w1 interface.
 
 Signed-off-by: Clifton Barnes <cabarnes@indesign-llc.com>
 Cc: Evgeniy Polyakov <zbr@ioremap.net>
@@ -36,107 +35,251 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2780.c |   48 +++++++++++++++++++++++---------
- drivers/w1/slaves/w1_ds2780.h |    2 +
- 2 files changed, 37 insertions(+), 13 deletions(-)
+ drivers/power/ds2780_battery.c |   77 ++++++++++++++++---------------
+ 1 file changed, 42 insertions(+), 35 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_ds2780.c~drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface drivers/w1/slaves/w1_ds2780.c
---- a/drivers/w1/slaves/w1_ds2780.c~drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface
-+++ a/drivers/w1/slaves/w1_ds2780.c
-@@ -26,20 +26,14 @@
- #include "../w1_family.h"
- #include "w1_ds2780.h"
+diff -puN drivers/power/ds2780_battery.c~drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface drivers/power/ds2780_battery.c
+--- a/drivers/power/ds2780_battery.c~drivers-power-ds2780_batteryc-create-central-point-for-calling-w1-interface
++++ a/drivers/power/ds2780_battery.c
+@@ -49,8 +49,8 @@ enum current_types {
+ static const char model[] = "DS2780";
+ static const char manufacturer[] = "Maxim/Dallas";
  
--int w1_ds2780_io(struct device *dev, char *buf, int addr, size_t count,
--			int io)
-+static int w1_ds2780_do_io(struct device *dev, char *buf, int addr,
-+			size_t count, int io)
+-static inline struct ds2780_device_info *to_ds2780_device_info(
+-	struct power_supply *psy)
++static inline struct ds2780_device_info *
++to_ds2780_device_info(struct power_supply *psy)
  {
- 	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
+ 	return container_of(psy, struct ds2780_device_info, bat);
+ }
+@@ -60,17 +60,25 @@ static inline struct power_supply *to_po
+ 	return dev_get_drvdata(dev);
+ }
  
--	if (!dev)
--		return -ENODEV;
-+	if (addr > DS2780_DATA_SIZE || addr < 0)
-+		return 0;
+-static inline int ds2780_read8(struct device *dev, u8 *val, int addr)
++static inline int ds2780_battery_io(struct ds2780_device_info *dev_info,
++	char *buf, int addr, size_t count, int io)
+ {
+-	return w1_ds2780_io(dev, val, addr, sizeof(u8), 0);
++		return w1_ds2780_io(dev_info->w1_dev, buf, addr, count, io);
+ }
  
--	mutex_lock(&sl->master->mutex);
--
--	if (addr > DS2780_DATA_SIZE || addr < 0) {
--		count = 0;
--		goto out;
--	}
- 	count = min_t(int, count, DS2780_DATA_SIZE - addr);
+-static int ds2780_read16(struct device *dev, s16 *val, int addr)
++static inline int ds2780_read8(struct ds2780_device_info *dev_info, u8 *val,
++	int addr)
++{
++	return ds2780_battery_io(dev_info, val, addr, sizeof(u8), 0);
++}
++
++static int ds2780_read16(struct ds2780_device_info *dev_info, s16 *val,
++	int addr)
+ {
+ 	int ret;
+ 	u8 raw[2];
  
- 	if (w1_reset_select_slave(sl) == 0) {
-@@ -47,7 +41,6 @@ int w1_ds2780_io(struct device *dev, cha
- 			w1_write_8(sl->master, W1_DS2780_WRITE_DATA);
- 			w1_write_8(sl->master, addr);
- 			w1_write_block(sl->master, buf, count);
--			/* XXX w1_write_block returns void, not n_written */
- 		} else {
- 			w1_write_8(sl->master, W1_DS2780_READ_DATA);
- 			w1_write_8(sl->master, addr);
-@@ -55,13 +48,42 @@ int w1_ds2780_io(struct device *dev, cha
- 		}
+-	ret = w1_ds2780_io(dev, raw, addr, sizeof(u8) * 2, 0);
++	ret = ds2780_battery_io(dev_info, raw, addr, sizeof(raw), 0);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -79,16 +87,16 @@ static int ds2780_read16(struct device *
+ 	return 0;
+ }
+ 
+-static inline int ds2780_read_block(struct device *dev, u8 *val, int addr,
+-	size_t count)
++static inline int ds2780_read_block(struct ds2780_device_info *dev_info,
++	u8 *val, int addr, size_t count)
+ {
+-	return w1_ds2780_io(dev, val, addr, count, 0);
++	return ds2780_battery_io(dev_info, val, addr, count, 0);
+ }
+ 
+-static inline int ds2780_write(struct device *dev, u8 *val, int addr,
+-	size_t count)
++static inline int ds2780_write(struct ds2780_device_info *dev_info, u8 *val,
++	int addr, size_t count)
+ {
+-	return w1_ds2780_io(dev, val, addr, count, 1);
++	return ds2780_battery_io(dev_info, val, addr, count, 1);
+ }
+ 
+ static inline int ds2780_store_eeprom(struct device *dev, int addr)
+@@ -122,7 +130,7 @@ static int ds2780_set_sense_register(str
+ {
+ 	int ret;
+ 
+-	ret = ds2780_write(dev_info->w1_dev, &conductance,
++	ret = ds2780_write(dev_info, &conductance,
+ 				DS2780_RSNSP_REG, sizeof(u8));
+ 	if (ret < 0)
+ 		return ret;
+@@ -134,7 +142,7 @@ static int ds2780_set_sense_register(str
+ static int ds2780_get_rsgain_register(struct ds2780_device_info *dev_info,
+ 	u16 *rsgain)
+ {
+-	return ds2780_read16(dev_info->w1_dev, rsgain, DS2780_RSGAIN_MSB_REG);
++	return ds2780_read16(dev_info, rsgain, DS2780_RSGAIN_MSB_REG);
+ }
+ 
+ /* Set RSGAIN value from 0 to 1.999 in steps of 0.001 */
+@@ -144,8 +152,8 @@ static int ds2780_set_rsgain_register(st
+ 	int ret;
+ 	u8 raw[] = {rsgain >> 8, rsgain & 0xFF};
+ 
+-	ret = ds2780_write(dev_info->w1_dev, raw,
+-				DS2780_RSGAIN_MSB_REG, sizeof(u8) * 2);
++	ret = ds2780_write(dev_info, raw,
++				DS2780_RSGAIN_MSB_REG, sizeof(raw));
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -167,7 +175,7 @@ static int ds2780_get_voltage(struct ds2
+ 	 * Bits 2 - 0 of the voltage value are in bits 7 - 5 of the
+ 	 * voltage LSB register
+ 	 */
+-	ret = ds2780_read16(dev_info->w1_dev, &voltage_raw,
++	ret = ds2780_read16(dev_info, &voltage_raw,
+ 				DS2780_VOLT_MSB_REG);
+ 	if (ret < 0)
+ 		return ret;
+@@ -196,7 +204,7 @@ static int ds2780_get_temperature(struct
+ 	 * Bits 2 - 0 of the temperature value are in bits 7 - 5 of the
+ 	 * temperature LSB register
+ 	 */
+-	ret = ds2780_read16(dev_info->w1_dev, &temperature_raw,
++	ret = ds2780_read16(dev_info, &temperature_raw,
+ 				DS2780_TEMP_MSB_REG);
+ 	if (ret < 0)
+ 		return ret;
+@@ -222,13 +230,13 @@ static int ds2780_get_current(struct ds2
+ 	 * The units of measurement for current are dependent on the value of
+ 	 * the sense resistor.
+ 	 */
+-	ret = ds2780_read8(dev_info->w1_dev, &sense_res_raw, DS2780_RSNSP_REG);
++	ret = ds2780_read8(dev_info, &sense_res_raw, DS2780_RSNSP_REG);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	if (sense_res_raw == 0) {
+ 		dev_err(dev_info->dev, "sense resistor value is 0\n");
+-		return -ENXIO;
++		return -EINVAL;
+ 	}
+ 	sense_res = 1000 / sense_res_raw;
+ 
+@@ -248,7 +256,7 @@ static int ds2780_get_current(struct ds2
+ 	 * Bits 7 - 0 of the current value are in bits 7 - 0 of the current
+ 	 * LSB register
+ 	 */
+-	ret = ds2780_read16(dev_info->w1_dev, &current_raw, reg_msb);
++	ret = ds2780_read16(dev_info, &current_raw, reg_msb);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -267,7 +275,7 @@ static int ds2780_get_accumulated_curren
+ 	 * The units of measurement for accumulated current are dependent on
+ 	 * the value of the sense resistor.
+ 	 */
+-	ret = ds2780_read8(dev_info->w1_dev, &sense_res_raw, DS2780_RSNSP_REG);
++	ret = ds2780_read8(dev_info, &sense_res_raw, DS2780_RSNSP_REG);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -285,7 +293,7 @@ static int ds2780_get_accumulated_curren
+ 	 * Bits 7 - 0 of the ACR value are in bits 7 - 0 of the ACR
+ 	 * LSB register
+ 	 */
+-	ret = ds2780_read16(dev_info->w1_dev, &current_raw, DS2780_ACR_MSB_REG);
++	ret = ds2780_read16(dev_info, &current_raw, DS2780_ACR_MSB_REG);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -299,7 +307,7 @@ static int ds2780_get_capacity(struct ds
+ 	int ret;
+ 	u8 raw;
+ 
+-	ret = ds2780_read8(dev_info->w1_dev, &raw, DS2780_RARC_REG);
++	ret = ds2780_read8(dev_info, &raw, DS2780_RARC_REG);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -345,7 +353,7 @@ static int ds2780_get_charge_now(struct 
+ 	 * Bits 7 - 0 of the RAAC value are in bits 7 - 0 of the RAAC
+ 	 * LSB register
+ 	 */
+-	ret = ds2780_read16(dev_info->w1_dev, &charge_raw, DS2780_RAAC_MSB_REG);
++	ret = ds2780_read16(dev_info, &charge_raw, DS2780_RAAC_MSB_REG);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -356,7 +364,7 @@ static int ds2780_get_charge_now(struct 
+ static int ds2780_get_control_register(struct ds2780_device_info *dev_info,
+ 	u8 *control_reg)
+ {
+-	return ds2780_read8(dev_info->w1_dev, control_reg, DS2780_CONTROL_REG);
++	return ds2780_read8(dev_info, control_reg, DS2780_CONTROL_REG);
+ }
+ 
+ static int ds2780_set_control_register(struct ds2780_device_info *dev_info,
+@@ -364,7 +372,7 @@ static int ds2780_set_control_register(s
+ {
+ 	int ret;
+ 
+-	ret = ds2780_write(dev_info->w1_dev, &control_reg,
++	ret = ds2780_write(dev_info, &control_reg,
+ 				DS2780_CONTROL_REG, sizeof(u8));
+ 	if (ret < 0)
+ 		return ret;
+@@ -503,7 +511,7 @@ static ssize_t ds2780_get_sense_resistor
+ 	struct power_supply *psy = to_power_supply(dev);
+ 	struct ds2780_device_info *dev_info = to_ds2780_device_info(psy);
+ 
+-	ret = ds2780_read8(dev_info->w1_dev, &sense_resistor, DS2780_RSNSP_REG);
++	ret = ds2780_read8(dev_info, &sense_resistor, DS2780_RSNSP_REG);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -584,7 +592,7 @@ static ssize_t ds2780_get_pio_pin(struct
+ 	struct power_supply *psy = to_power_supply(dev);
+ 	struct ds2780_device_info *dev_info = to_ds2780_device_info(psy);
+ 
+-	ret = ds2780_read8(dev_info->w1_dev, &sfr, DS2780_SFR_REG);
++	ret = ds2780_read8(dev_info, &sfr, DS2780_SFR_REG);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -611,7 +619,7 @@ static ssize_t ds2780_set_pio_pin(struct
+ 		return -EINVAL;
  	}
  
--out:
-+	return count;
-+}
-+
-+int w1_ds2780_io(struct device *dev, char *buf, int addr, size_t count,
-+			int io)
-+{
-+	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-+	int ret;
-+
-+	if (!dev)
-+		return -ENODEV;
-+
-+	mutex_lock(&sl->master->mutex);
-+
-+	ret = w1_ds2780_do_io(dev, buf, addr, count, io);
-+
- 	mutex_unlock(&sl->master->mutex);
+-	ret = ds2780_write(dev_info->w1_dev, &new_setting,
++	ret = ds2780_write(dev_info, &new_setting,
+ 				DS2780_SFR_REG, sizeof(u8));
+ 	if (ret < 0)
+ 		return ret;
+@@ -632,7 +640,7 @@ static ssize_t ds2780_read_param_eeprom_
+ 		DS2780_EEPROM_BLOCK1_END -
+ 		DS2780_EEPROM_BLOCK1_START + 1 - off);
  
--	return count;
-+	return ret;
+-	return ds2780_read_block(dev_info->w1_dev, buf,
++	return ds2780_read_block(dev_info, buf,
+ 				DS2780_EEPROM_BLOCK1_START + off, count);
  }
- EXPORT_SYMBOL(w1_ds2780_io);
  
-+int w1_ds2780_io_nolock(struct device *dev, char *buf, int addr, size_t count,
-+			int io)
-+{
-+	int ret;
-+
-+	if (!dev)
-+		return -ENODEV;
-+
-+	ret = w1_ds2780_do_io(dev, buf, addr, count, io);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(w1_ds2780_io_nolock);
-+
- int w1_ds2780_eeprom_cmd(struct device *dev, int addr, int cmd)
- {
- 	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-diff -puN drivers/w1/slaves/w1_ds2780.h~drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface drivers/w1/slaves/w1_ds2780.h
---- a/drivers/w1/slaves/w1_ds2780.h~drivers-power-ds2780_batteryc-add-a-nolock-function-to-w1-interface
-+++ a/drivers/w1/slaves/w1_ds2780.h
-@@ -124,6 +124,8 @@
+@@ -650,7 +658,7 @@ static ssize_t ds2780_write_param_eeprom
+ 		DS2780_EEPROM_BLOCK1_END -
+ 		DS2780_EEPROM_BLOCK1_START + 1 - off);
  
- extern int w1_ds2780_io(struct device *dev, char *buf, int addr, size_t count,
- 			int io);
-+extern int w1_ds2780_io_nolock(struct device *dev, char *buf, int addr,
-+			size_t count, int io);
- extern int w1_ds2780_eeprom_cmd(struct device *dev, int addr, int cmd);
+-	ret = ds2780_write(dev_info->w1_dev, buf,
++	ret = ds2780_write(dev_info, buf,
+ 				DS2780_EEPROM_BLOCK1_START + off, count);
+ 	if (ret < 0)
+ 		return ret;
+@@ -685,9 +693,8 @@ static ssize_t ds2780_read_user_eeprom_b
+ 		DS2780_EEPROM_BLOCK0_END -
+ 		DS2780_EEPROM_BLOCK0_START + 1 - off);
  
- #endif /* !_W1_DS2780_H */
-_
-
-Patches currently in -mm which might be from cabarnes@indesign-llc.com are
-
-origin.patch
-linux-next.patch
-
+-	return ds2780_read_block(dev_info->w1_dev, buf,
++	return ds2780_read_block(dev_info, buf,
+ 				DS2780_EEPROM_BLOCK0_START + off, count);
