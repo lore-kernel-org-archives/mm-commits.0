@@ -1,91 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:27:54 -0800
-Message-ID: <201111072027.pA7KRsIs020697@wpaz9.hot.corp.google.com>
+Subject: [merged] proc-fix-races-against-execve-of-proc-pid-fd.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:27:45 -0800
+Message-ID: <201111072027.pA7KRjmd028473@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5478 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47304 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753554Ab1KGU2E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:28:04 -0500
+	with ESMTP id S1751560Ab1KGU2I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:28:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, a.p.zijlstra@chello.nl, efault@gmx.de, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: segoon@openwall.com, gorcunov@gmail.com, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem.c: fix return code race with semop vs. semop +semctl(IPC_RMID)
+     Subject: proc: fix races against execve() of /proc/PID/fd**
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid.patch
+     proc-fix-races-against-execve-of-proc-pid-fd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: fix return code race with semop vs. semop +semctl(IPC_RMID)
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: proc: fix races against execve() of /proc/PID/fd**
 
-sys_semtimedop() may return -EIDRM although the semaphore operation
-completed successfully:
+fd* files are restricted to the task's owner, and other users may not get
+direct access to them.  But one may open any of these files and run any
+setuid program, keeping opened file descriptors.  As there are permission
+checks on open(), but not on readdir() and read(), operations on the kept
+file descriptors will not be checked.  It makes it possible to violate
+procfs permission model.
 
-thread 1:	thread 2:
-		semtimedop(), sleeps
-semop():
-* acquires sem_lock()
-		semtimedop() woken up due to timeout
-		sem_lock() loops
-* notices that thread 2 could be completed.
-* performs the operations that thread 2 is sleeping on.
-* marks the semaphore operation as IN_WAKEUP
-* drops sem_lock(), does wakeup, sets return code to 0
-		* thread delayed due to interrupt, whatever
-* returns to user space
-		* thread still delayed
-semctl(IPC_RMID)
-* acquires sem_lock()
-* ipc_rmid(), ipcp->deleted=1
-* drops sem_lock()
-		* thread finally continues - but seem_lock()
-		  now fails due to ipcp->deleted == 1
-		* returns -EIDRM instead of 0
+Reading fdinfo/* may disclosure current fds' position and flags, reading
+directory contents of fdinfo/ and fd/ may disclosure the number of opened
+files by the target task.  This information is not sensible per se, but it
+can reveal some private information (like length of a password stored in a
+file) under certain conditions.
 
-The fix is trivial: Always use the return code in queue.status.
+Used existing (un)lock_trace functions to check for ptrace_may_access(),
+but instead of using EPERM return code from it use EACCES to be consistent
+with existing proc_pid_follow_link()/proc_pid_readlink() return code.  If
+they differ, attacker can guess what fds exist by analyzing stat() return
+code.  Patched handlers: stat() for fd/*, stat() and read() for fdindo/*,
+readdir() and lookup() for fd/ and fdinfo/.
 
-In real world, the race probably doesn't matter:
-If the semaphore array is destroyed, the app is probably not interested
-if the last operation succeeded or was already cancelled.
-
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mike Galbraith <efault@gmx.de>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: <stable@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/proc/base.c |  146 +++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 103 insertions(+), 43 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid ipc/sem.c
---- a/ipc/sem.c~ipc-semc-fix-return-code-race-with-semop-vs-semop-semctlipc_rmid
-+++ a/ipc/sem.c
-@@ -1460,7 +1460,6 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
- 	 * Array removed? If yes, leave without sem_unlock().
- 	 */
- 	if (IS_ERR(sma)) {
--		error = -EIDRM;
- 		goto out_free;
- 	}
+diff -puN fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-races-against-execve-of-proc-pid-fd
++++ a/fs/proc/base.c
+@@ -1652,12 +1652,46 @@ out:
+ 	return error;
+ }
  
++static int proc_pid_fd_link_getattr(struct vfsmount *mnt, struct dentry *dentry,
++		struct kstat *stat)
++{
++	struct inode *inode = dentry->d_inode;
++	struct task_struct *task = get_proc_task(inode);
++	int rc;
++
++	if (task == NULL)
++		return -ESRCH;
++
++	rc = -EACCES;
++	if (lock_trace(task))
++		goto out_task;
++
++	generic_fillattr(inode, stat);
++	unlock_trace(task);
++	rc = 0;
++out_task:
++	put_task_struct(task);
++	return rc;
++}
++
+ static const struct inode_operations proc_pid_link_inode_operations = {
+ 	.readlink	= proc_pid_readlink,
+ 	.follow_link	= proc_pid_follow_link,
+ 	.setattr	= proc_setattr,
+ };
+ 
++static const struct inode_operations proc_fdinfo_link_inode_operations = {
++	.setattr	= proc_setattr,
++	.getattr	= proc_pid_fd_link_getattr,
++};
++
++static const struct inode_operations proc_fd_link_inode_operations = {
++	.readlink	= proc_pid_readlink,
++	.follow_link	= proc_pid_follow_link,
++	.setattr	= proc_setattr,
++	.getattr	= proc_pid_fd_link_getattr,
++};
++
+ 
+ /* building an inode */
+ 
+@@ -1889,49 +1923,61 @@ out:
+ 
+ static int proc_fd_info(struct inode *inode, struct path *path, char *info)
+ {
+-	struct task_struct *task = get_proc_task(inode);
+-	struct files_struct *files = NULL;
++	struct task_struct *task;
++	struct files_struct *files;
+ 	struct file *file;
+ 	int fd = proc_fd(inode);
++	int rc;
+ 
+-	if (task) {
+-		files = get_files_struct(task);
+-		put_task_struct(task);
+-	}
+-	if (files) {
+-		/*
+-		 * We are not taking a ref to the file structure, so we must
+-		 * hold ->file_lock.
+-		 */
+-		spin_lock(&files->file_lock);
+-		file = fcheck_files(files, fd);
+-		if (file) {
+-			unsigned int f_flags;
+-			struct fdtable *fdt;
+-
+-			fdt = files_fdtable(files);
+-			f_flags = file->f_flags & ~O_CLOEXEC;
+-			if (FD_ISSET(fd, fdt->close_on_exec))
+-				f_flags |= O_CLOEXEC;
+-
+-			if (path) {
+-				*path = file->f_path;
+-				path_get(&file->f_path);
+-			}
+-			if (info)
+-				snprintf(info, PROC_FDINFO_MAX,
+-					 "pos:\t%lli\n"
+-					 "flags:\t0%o\n",
+-					 (long long) file->f_pos,
+-					 f_flags);
+-			spin_unlock(&files->file_lock);
+-			put_files_struct(files);
+-			return 0;
++	task = get_proc_task(inode);
++	if (!task)
++		return -ENOENT;
++
++	rc = -EACCES;
++	if (lock_trace(task))
++		goto out_task;
++
++	rc = -ENOENT;
++	files = get_files_struct(task);
++	if (files == NULL)
++		goto out_unlock;
++
++	/*
++	 * We are not taking a ref to the file structure, so we must
++	 * hold ->file_lock.
++	 */
++	spin_lock(&files->file_lock);
++	file = fcheck_files(files, fd);
++	if (file) {
++		unsigned int f_flags;
++		struct fdtable *fdt;
++
++		fdt = files_fdtable(files);
++		f_flags = file->f_flags & ~O_CLOEXEC;
++		if (FD_ISSET(fd, fdt->close_on_exec))
++			f_flags |= O_CLOEXEC;
++
++		if (path) {
++			*path = file->f_path;
++			path_get(&file->f_path);
+ 		}
+-		spin_unlock(&files->file_lock);
+-		put_files_struct(files);
+-	}
+-	return -ENOENT;
++		if (info)
++			snprintf(info, PROC_FDINFO_MAX,
++				 "pos:\t%lli\n"
++				 "flags:\t0%o\n",
++				 (long long) file->f_pos,
++				 f_flags);
++		rc = 0;
++	} else
++		rc = -ENOENT;
++	spin_unlock(&files->file_lock);
++	put_files_struct(files);
++
++out_unlock:
++	unlock_trace(task);
++out_task:
++	put_task_struct(task);
++	return rc;
+ }
+ 
+ static int proc_fd_link(struct inode *inode, struct path *path)
+@@ -2026,7 +2072,7 @@ static struct dentry *proc_fd_instantiat
+ 	spin_unlock(&files->file_lock);
+ 	put_files_struct(files);
+ 
+-	inode->i_op = &proc_pid_link_inode_operations;
++	inode->i_op = &proc_fd_link_inode_operations;
+ 	inode->i_size = 64;
+ 	ei->op.proc_get_link = proc_fd_link;
+ 	d_set_d_op(dentry, &tid_fd_dentry_operations);
+@@ -2058,7 +2104,12 @@ static struct dentry *proc_lookupfd_comm
+ 	if (fd == ~0U)
+ 		goto out;
+ 
++	result = ERR_PTR(-EACCES);
++	if (lock_trace(task))
++		goto out;
++
+ 	result = instantiate(dir, dentry, task, &fd);
++	unlock_trace(task);
+ out:
+ 	put_task_struct(task);
+ out_no_task:
+@@ -2078,23 +2129,28 @@ static int proc_readfd_common(struct fil
+ 	retval = -ENOENT;
+ 	if (!p)
+ 		goto out_no_task;
++
++	retval = -EACCES;
++	if (lock_trace(p))
++		goto out;
++
+ 	retval = 0;
+ 
+ 	fd = filp->f_pos;
+ 	switch (fd) {
+ 		case 0:
+ 			if (filldir(dirent, ".", 1, 0, inode->i_ino, DT_DIR) < 0)
+-				goto out;
++				goto out_unlock;
+ 			filp->f_pos++;
+ 		case 1:
+ 			ino = parent_ino(dentry);
+ 			if (filldir(dirent, "..", 2, 1, ino, DT_DIR) < 0)
+-				goto out;
++				goto out_unlock;
+ 			filp->f_pos++;
+ 		default:
+ 			files = get_files_struct(p);
+ 			if (!files)
+-				goto out;
++				goto out_unlock;
+ 			rcu_read_lock();
+ 			for (fd = filp->f_pos-2;
+ 			     fd < files_fdtable(files)->max_fds;
+@@ -2118,6 +2174,9 @@ static int proc_readfd_common(struct fil
+ 			rcu_read_unlock();
+ 			put_files_struct(files);
+ 	}
++
++out_unlock:
++	unlock_trace(p);
+ out:
+ 	put_task_struct(p);
+ out_no_task:
+@@ -2195,6 +2254,7 @@ static struct dentry *proc_fdinfo_instan
+ 	ei->fd = fd;
+ 	inode->i_mode = S_IFREG | S_IRUSR;
+ 	inode->i_fop = &proc_fdinfo_file_operations;
++	inode->i_op = &proc_fdinfo_link_inode_operations;
+ 	d_set_d_op(dentry, &tid_fd_dentry_operations);
+ 	d_add(dentry, inode);
+ 	/* Close the race of the process dying before we return the dentry */
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
 origin.patch
-ipc-mqueue-cleanup-definition-names-and-locations.patch
-ipc-mqueue-switch-back-to-using-non-max-values-on-create.patch
-ipc-mqueue-enforce-hard-limits.patch
-ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
-ipc-semc-alternatives-to-preempt_disable.patch
-slab-leaks3-default-y.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+proc-force-dcache-drop-on-unauthorized-access.patch
 
