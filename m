@@ -1,63 +1,355 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-net-rionetc-fix-ethernet-address-macros-for-le-platforms.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:28:41 -0800
-Message-ID: <201111072028.pA7KSffA028496@hpaq7.eem.corp.google.com>
+Subject: [merged] pps-new-client-driver-using-gpio.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:29:16 -0800
+Message-ID: <201111072029.pA7KTGlg025448@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:47701 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:5902 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133Ab1KGU3Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:29:24 -0500
+	with ESMTP id S1751305Ab1KGU3c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:29:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, chul.kim@idt.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: jamesnuss@nanometrics.ca, giometti@linux.it, lasaine@lvk.cs.msu.su, plyatov@gmail.com, rasm@fe.up.pt, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/net/rionet.c: fix ethernet address macros for LE platforms
+     Subject: pps: new client driver using GPIO
 has been removed from the -mm tree.  Its filename was
-     drivers-net-rionetc-fix-ethernet-address-macros-for-le-platforms.patch
+     pps-new-client-driver-using-gpio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: drivers/net/rionet.c: fix ethernet address macros for LE platforms
+From: James Nuss <jamesnuss@nanometrics.ca>
+Subject: pps: new client driver using GPIO
 
-Modify Ethernet addess macros to be compatible with BE/LE platforms
+This client driver allows you to use a GPIO pin as a source for PPS
+signals.  Platform data [1] are used to specify the GPIO pin number,
+label, assert event edge type, and whether clear events are captured.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Chul Kim <chul.kim@idt.com>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: <stable@kernel.org>		[2.6.39+]
-Cc: <stable@vger.kernel.org>
+This driver is based on the work by Ricardo Martins who submitted an
+initial implementation [2] of a PPS IRQ client driver to the linuxpps
+mailing-list on Dec 3 2010.
+
+[1] include/linux/pps-gpio.h
+[2] http://ml.enneenne.com/pipermail/linuxpps/2010-December/004155.html
+
+[akpm@linux-foundation.org: remove unneeded cast of void*]
+Signed-off-by: James Nuss <jamesnuss@nanometrics.ca>
+Cc: Ricardo Martins <rasm@fe.up.pt>
+Acked-by: Rodolfo Giometti <giometti@linux.it>
+Signed-off-by: Ricardo Martins <rasm@fe.up.pt>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Igor Plyatov <plyatov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/rionet.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pps/clients/Kconfig    |    9 +
+ drivers/pps/clients/Makefile   |    1 
+ drivers/pps/clients/pps-gpio.c |  227 +++++++++++++++++++++++++++++++
+ include/linux/pps-gpio.h       |   32 ++++
+ 4 files changed, 269 insertions(+)
 
-diff -puN drivers/net/rionet.c~drivers-net-rionetc-fix-ethernet-address-macros-for-le-platforms drivers/net/rionet.c
---- a/drivers/net/rionet.c~drivers-net-rionetc-fix-ethernet-address-macros-for-le-platforms
-+++ a/drivers/net/rionet.c
-@@ -88,8 +88,8 @@ static struct rio_dev **rionet_active;
- #define dev_rionet_capable(dev) \
- 	is_rionet_capable(dev->src_ops, dev->dst_ops)
+diff -puN drivers/pps/clients/Kconfig~pps-new-client-driver-using-gpio drivers/pps/clients/Kconfig
+--- a/drivers/pps/clients/Kconfig~pps-new-client-driver-using-gpio
++++ a/drivers/pps/clients/Kconfig
+@@ -29,4 +29,13 @@ config PPS_CLIENT_PARPORT
+ 	  If you say yes here you get support for a PPS source connected
+ 	  with the interrupt pin of your parallel port.
  
--#define RIONET_MAC_MATCH(x)	(*(u32 *)x == 0x00010001)
--#define RIONET_GET_DESTID(x)	(*(u16 *)(x + 4))
-+#define RIONET_MAC_MATCH(x)	(!memcmp((x), "\00\01\00\01", 4))
-+#define RIONET_GET_DESTID(x)	((*((u8 *)x + 4) << 8) | *((u8 *)x + 5))
++config PPS_CLIENT_GPIO
++	tristate "PPS client using GPIO"
++	depends on PPS
++	help
++	  If you say yes here you get support for a PPS source using
++	  GPIO. To be useful you must also register a platform device
++	  specifying the GPIO pin and other options, usually in your board
++	  setup.
++
+ endif
+diff -puN drivers/pps/clients/Makefile~pps-new-client-driver-using-gpio drivers/pps/clients/Makefile
+--- a/drivers/pps/clients/Makefile~pps-new-client-driver-using-gpio
++++ a/drivers/pps/clients/Makefile
+@@ -5,5 +5,6 @@
+ obj-$(CONFIG_PPS_CLIENT_KTIMER)	+= pps-ktimer.o
+ obj-$(CONFIG_PPS_CLIENT_LDISC)	+= pps-ldisc.o
+ obj-$(CONFIG_PPS_CLIENT_PARPORT) += pps_parport.o
++obj-$(CONFIG_PPS_CLIENT_GPIO)	+= pps-gpio.o
  
- static int rionet_rx_clean(struct net_device *ndev)
- {
+ ccflags-$(CONFIG_PPS_DEBUG) := -DDEBUG
+diff -puN /dev/null drivers/pps/clients/pps-gpio.c
+--- /dev/null
++++ a/drivers/pps/clients/pps-gpio.c
+@@ -0,0 +1,227 @@
++/*
++ * pps-gpio.c -- PPS client driver using GPIO
++ *
++ *
++ * Copyright (C) 2010 Ricardo Martins <rasm@fe.up.pt>
++ * Copyright (C) 2011 James Nuss <jamesnuss@nanometrics.ca>
++ *
++ *   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; either version 2 of the License, or
++ *   (at your option) any later version.
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   You should have received a copy of the GNU General Public License
++ *   along with this program; if not, write to the Free Software
++ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#define PPS_GPIO_NAME "pps-gpio"
++#define pr_fmt(fmt) PPS_GPIO_NAME ": " fmt
++
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/pps_kernel.h>
++#include <linux/pps-gpio.h>
++#include <linux/gpio.h>
++#include <linux/list.h>
++
++/* Info for each registered platform device */
++struct pps_gpio_device_data {
++	int irq;			/* IRQ used as PPS source */
++	struct pps_device *pps;		/* PPS source device */
++	struct pps_source_info info;	/* PPS source information */
++	const struct pps_gpio_platform_data *pdata;
++};
++
++/*
++ * Report the PPS event
++ */
++
++static irqreturn_t pps_gpio_irq_handler(int irq, void *data)
++{
++	const struct pps_gpio_device_data *info;
++	struct pps_event_time ts;
++	int rising_edge;
++
++	/* Get the time stamp first */
++	pps_get_ts(&ts);
++
++	info = data;
++
++	rising_edge = gpio_get_value(info->pdata->gpio_pin);
++	if ((rising_edge && !info->pdata->assert_falling_edge) ||
++			(!rising_edge && info->pdata->assert_falling_edge))
++		pps_event(info->pps, &ts, PPS_CAPTUREASSERT, NULL);
++	else if (info->pdata->capture_clear &&
++			((rising_edge && info->pdata->assert_falling_edge) ||
++			 (!rising_edge && !info->pdata->assert_falling_edge)))
++		pps_event(info->pps, &ts, PPS_CAPTURECLEAR, NULL);
++
++	return IRQ_HANDLED;
++}
++
++static int pps_gpio_setup(struct platform_device *pdev)
++{
++	int ret;
++	const struct pps_gpio_platform_data *pdata = pdev->dev.platform_data;
++
++	ret = gpio_request(pdata->gpio_pin, pdata->gpio_label);
++	if (ret) {
++		pr_warning("failed to request GPIO %u\n", pdata->gpio_pin);
++		return -EINVAL;
++	}
++
++	ret = gpio_direction_input(pdata->gpio_pin);
++	if (ret) {
++		pr_warning("failed to set pin direction\n");
++		gpio_free(pdata->gpio_pin);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static unsigned long
++get_irqf_trigger_flags(const struct pps_gpio_platform_data *pdata)
++{
++	unsigned long flags = pdata->assert_falling_edge ?
++		IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING;
++
++	if (pdata->capture_clear) {
++		flags |= ((flags & IRQF_TRIGGER_RISING) ?
++				IRQF_TRIGGER_FALLING : IRQF_TRIGGER_RISING);
++	}
++
++	return flags;
++}
++
++static int pps_gpio_probe(struct platform_device *pdev)
++{
++	struct pps_gpio_device_data *data;
++	int irq;
++	int ret;
++	int err;
++	int pps_default_params;
++	const struct pps_gpio_platform_data *pdata = pdev->dev.platform_data;
++
++
++	/* GPIO setup */
++	ret = pps_gpio_setup(pdev);
++	if (ret)
++		return -EINVAL;
++
++	/* IRQ setup */
++	irq = gpio_to_irq(pdata->gpio_pin);
++	if (irq < 0) {
++		pr_err("failed to map GPIO to IRQ: %d\n", irq);
++		err = -EINVAL;
++		goto return_error;
++	}
++
++	/* allocate space for device info */
++	data = kzalloc(sizeof(struct pps_gpio_device_data), GFP_KERNEL);
++	if (data == NULL) {
++		err = -ENOMEM;
++		goto return_error;
++	}
++
++	/* initialize PPS specific parts of the bookkeeping data structure. */
++	data->info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
++		PPS_ECHOASSERT | PPS_CANWAIT | PPS_TSFMT_TSPEC;
++	if (pdata->capture_clear)
++		data->info.mode |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR |
++			PPS_ECHOCLEAR;
++	data->info.owner = THIS_MODULE;
++	snprintf(data->info.name, PPS_MAX_NAME_LEN - 1, "%s.%d",
++		 pdev->name, pdev->id);
++
++	/* register PPS source */
++	pps_default_params = PPS_CAPTUREASSERT | PPS_OFFSETASSERT;
++	if (pdata->capture_clear)
++		pps_default_params |= PPS_CAPTURECLEAR | PPS_OFFSETCLEAR;
++	data->pps = pps_register_source(&data->info, pps_default_params);
++	if (data->pps == NULL) {
++		kfree(data);
++		pr_err("failed to register IRQ %d as PPS source\n", irq);
++		err = -EINVAL;
++		goto return_error;
++	}
++
++	data->irq = irq;
++	data->pdata = pdata;
++
++	/* register IRQ interrupt handler */
++	ret = request_irq(irq, pps_gpio_irq_handler,
++			get_irqf_trigger_flags(pdata), data->info.name, data);
++	if (ret) {
++		pps_unregister_source(data->pps);
++		kfree(data);
++		pr_err("failed to acquire IRQ %d\n", irq);
++		err = -EINVAL;
++		goto return_error;
++	}
++
++	platform_set_drvdata(pdev, data);
++	dev_info(data->pps->dev, "Registered IRQ %d as PPS source\n", irq);
++
++	return 0;
++
++return_error:
++	gpio_free(pdata->gpio_pin);
++	return err;
++}
++
++static int pps_gpio_remove(struct platform_device *pdev)
++{
++	struct pps_gpio_device_data *data = platform_get_drvdata(pdev);
++	const struct pps_gpio_platform_data *pdata = data->pdata;
++
++	platform_set_drvdata(pdev, NULL);
++	free_irq(data->irq, data);
++	gpio_free(pdata->gpio_pin);
++	pps_unregister_source(data->pps);
++	pr_info("removed IRQ %d as PPS source\n", data->irq);
++	kfree(data);
++	return 0;
++}
++
++static struct platform_driver pps_gpio_driver = {
++	.probe		= pps_gpio_probe,
++	.remove		=  __devexit_p(pps_gpio_remove),
++	.driver		= {
++		.name	= PPS_GPIO_NAME,
++		.owner	= THIS_MODULE
++	},
++};
++
++static int __init pps_gpio_init(void)
++{
++	int ret = platform_driver_register(&pps_gpio_driver);
++	if (ret < 0)
++		pr_err("failed to register platform driver\n");
++	return ret;
++}
++
++static void __exit pps_gpio_exit(void)
++{
++	platform_driver_unregister(&pps_gpio_driver);
++	pr_debug("unregistered platform driver\n");
++}
++
++module_init(pps_gpio_init);
++module_exit(pps_gpio_exit);
++
++MODULE_AUTHOR("Ricardo Martins <rasm@fe.up.pt>");
++MODULE_AUTHOR("James Nuss <jamesnuss@nanometrics.ca>");
++MODULE_DESCRIPTION("Use GPIO pin as PPS source");
++MODULE_LICENSE("GPL");
++MODULE_VERSION("1.0.0");
+diff -puN /dev/null include/linux/pps-gpio.h
+--- /dev/null
++++ a/include/linux/pps-gpio.h
+@@ -0,0 +1,32 @@
++/*
++ * pps-gpio.h -- PPS client for GPIOs
++ *
++ *
++ * Copyright (C) 2011 James Nuss <jamesnuss@nanometrics.ca>
++ *
++ *   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; either version 2 of the License, or
++ *   (at your option) any later version.
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   You should have received a copy of the GNU General Public License
++ *   along with this program; if not, write to the Free Software
++ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef _PPS_GPIO_H
++#define _PPS_GPIO_H
++
++struct pps_gpio_platform_data {
++	bool assert_falling_edge;
++	bool capture_clear;
++	unsigned int gpio_pin;
++	const char *gpio_label;
++};
++
++#endif
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from jamesnuss@nanometrics.ca are
 
 origin.patch
 
