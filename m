@@ -1,102 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfs-fix-hfs_find_init-sb-ext_tree-null-ptr-oops.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:26:28 -0800
-Message-ID: <201111072026.pA7KQSR8009980@hpaq5.eem.corp.google.com>
+Subject: [merged] cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:26:47 -0800
+Message-ID: <201111072026.pA7KQlHe026623@hpaq1.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5259 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:47151 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754513Ab1KGU0t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:26:49 -0500
+	with ESMTP id S1754513Ab1KGU0y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:26:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: plougher@redhat.com, clement.lecigne@netasq.com, hch@lst.de, jeffm@suse.com, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, catalin.marinas@arm.com, jrnieder@gmail.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfs: fix hfs_find_init() sb->ext_tree NULL ptr oops
+     Subject: cgroup/kmemleak: Annotate alloc_page() for cgroup allocations
 has been removed from the -mm tree.  Its filename was
-     hfs-fix-hfs_find_init-sb-ext_tree-null-ptr-oops.patch
+     cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Phillip Lougher <plougher@redhat.com>
-Subject: hfs: fix hfs_find_init() sb->ext_tree NULL ptr oops
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: cgroup/kmemleak: Annotate alloc_page() for cgroup allocations
 
-Clement Lecigne reports a filesystem which causes a kernel oops in
-hfs_find_init() trying to dereference sb->ext_tree which is NULL.
+When the cgroup base was allocated with kmalloc, it was necessary to
+annotate the variable with kmemleak_not_leak().  But because it has
+recently been changed to be allocated with alloc_page() (which skips
+kmemleak checks) causes a warning on boot up.
 
-This proves to be because the filesystem has a corrupted MDB extent
-record, where the extents file does not fit into the first three extents
-in the file record (the first blocks).
+I was triggering this output:
 
-In hfs_get_block() when looking up the blocks for the extent file
-(HFS_EXT_CNID), it fails the first blocks special case, and falls through
-to the extent code (which ultimately calls hfs_find_init()) which is in
-the process of being initialised.
+ allocated 8388608 bytes of page_cgroup
+ please try 'cgroup_disable=memory' option if you don't want memory cgroups
+ kmemleak: Trying to color unknown object at 0xf5840000 as Grey
+ Pid: 0, comm: swapper Not tainted 3.0.0-test #12
+ Call Trace:
+  [<c17e34e6>] ? printk+0x1d/0x1f^M
+  [<c10e2941>] paint_ptr+0x4f/0x78
+  [<c178ab57>] kmemleak_not_leak+0x58/0x7d
+  [<c108ae9f>] ? __rcu_read_unlock+0x9/0x7d
+  [<c1cdb462>] kmemleak_init+0x19d/0x1e9
+  [<c1cbf771>] start_kernel+0x346/0x3ec
+  [<c1cbf1b4>] ? loglevel+0x18/0x18
+  [<c1cbf0aa>] i386_start_kernel+0xaa/0xb0
 
-Hfs avoids this scenario by always having the extents b-tree fitting into
-the first blocks (the extents B-tree can't have overflow extents).
+After a bit of debugging I tracked the object 0xf840000 (and others) down
+to the cgroup code.  The change from allocating base with kmalloc to
+alloc_page() has the base not calling kmemleak_alloc() which adds the
+pointer to the object_tree_root, but kmemleak_not_leak() adds it to the
+crt_early_log[] table.  On kmemleak_init(), the entry is found in the
+early_log[] but not the object_tree_root, and this error message is
+displayed.
 
-The fix is to check at mount time that the B-tree fits into first blocks,
-i.e.  fail if HFS_I(inode)->alloc_blocks >= HFS_I(inode)->first_blocks
+If alloc_page() fails then it defaults back to vmalloc() which still uses
+the kmemleak_alloc() which makes us still need the kmemleak_not_leak()
+call.  The solution is to call the kmemleak_alloc() directly if the
+alloc_page() succeeds.
 
-Note, the existing commit 47f365eb57573 ("hfs: fix oops on mount with
-corrupted btree extent records") becomes subsumed into this as a special
-case, but only for the extents B-tree (HFS_EXT_CNID), it is perfectly
-acceptable for the catalog B-Tree file to grow beyond three extents, with
-the remaining extent descriptors in the extents overfow.
-
-This fixes CVE-2011-2203
-
-Reported-by: Clement LECIGNE <clement.lecigne@netasq.com>
-Signed-off-by: Phillip Lougher <plougher@redhat.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/btree.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ mm/page_cgroup.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/hfs/btree.c~hfs-fix-hfs_find_init-sb-ext_tree-null-ptr-oops fs/hfs/btree.c
---- a/fs/hfs/btree.c~hfs-fix-hfs_find_init-sb-ext_tree-null-ptr-oops
-+++ a/fs/hfs/btree.c
-@@ -46,11 +46,26 @@ struct hfs_btree *hfs_btree_open(struct 
- 	case HFS_EXT_CNID:
- 		hfs_inode_read_fork(tree->inode, mdb->drXTExtRec, mdb->drXTFlSize,
- 				    mdb->drXTFlSize, be32_to_cpu(mdb->drXTClpSiz));
-+		if (HFS_I(tree->inode)->alloc_blocks >
-+					HFS_I(tree->inode)->first_blocks) {
-+			printk(KERN_ERR "hfs: invalid btree extent records\n");
-+			unlock_new_inode(tree->inode);
-+			goto free_inode;
-+		}
-+
- 		tree->inode->i_mapping->a_ops = &hfs_btree_aops;
- 		break;
- 	case HFS_CAT_CNID:
- 		hfs_inode_read_fork(tree->inode, mdb->drCTExtRec, mdb->drCTFlSize,
- 				    mdb->drCTFlSize, be32_to_cpu(mdb->drCTClpSiz));
-+
-+		if (!HFS_I(tree->inode)->first_blocks) {
-+			printk(KERN_ERR "hfs: invalid btree extent records "
-+								"(0 size).\n");
-+			unlock_new_inode(tree->inode);
-+			goto free_inode;
-+		}
-+
- 		tree->inode->i_mapping->a_ops = &hfs_btree_aops;
- 		break;
- 	default:
-@@ -59,11 +74,6 @@ struct hfs_btree *hfs_btree_open(struct 
- 	}
- 	unlock_new_inode(tree->inode);
+diff -puN mm/page_cgroup.c~cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations mm/page_cgroup.c
+--- a/mm/page_cgroup.c~cgroup-kmemleak-annotate-alloc_page-for-cgroup-allocations
++++ a/mm/page_cgroup.c
+@@ -133,10 +133,13 @@ struct page *lookup_cgroup_page(struct p
+ static void *__meminit alloc_page_cgroup(size_t size, int nid)
+ {
+ 	void *addr = NULL;
++	gfp_t flags = GFP_KERNEL | __GFP_NOWARN;
  
--	if (!HFS_I(tree->inode)->first_blocks) {
--		printk(KERN_ERR "hfs: invalid btree extent records (0 size).\n");
--		goto free_inode;
--	}
+-	addr = alloc_pages_exact_nid(nid, size, GFP_KERNEL | __GFP_NOWARN);
+-	if (addr)
++	addr = alloc_pages_exact_nid(nid, size, flags);
++	if (addr) {
++		kmemleak_alloc(addr, size, 1, flags);
+ 		return addr;
++	}
+ 
+ 	if (node_state(nid, N_HIGH_MEMORY))
+ 		addr = vmalloc_node(size, nid);
+_
+
+Patches currently in -mm which might be from rostedt@goodmis.org are
+
+origin.patch
+linux-next.patch
+
