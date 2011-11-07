@@ -1,153 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pps-default-echo-function.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:29:08 -0800
-Message-ID: <201111072029.pA7KT85r022367@hpaq6.eem.corp.google.com>
+Subject: [merged] pps-gpio-client-add-missing-dependency.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:29:22 -0800
+Message-ID: <201111072029.pA7KTMPW014642@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5903 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:5908 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751494Ab1KGU3c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:29:32 -0500
+	with ESMTP id S1751305Ab1KGU3h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:29:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jamesnuss@nanometrics.ca, bengardiner@nanometrics.ca, giometti@linux.it, lasaine@lvk.cs.msu.su, plyatov@gmail.com, rasm@fe.up.pt, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, giometti@enneenne.com, jamesnuss@nanometrics.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pps: default echo function
+     Subject: pps gpio client: add missing dependency
 has been removed from the -mm tree.  Its filename was
-     pps-default-echo-function.patch
+     pps-gpio-client-add-missing-dependency.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: James Nuss <jamesnuss@nanometrics.ca>
-Subject: pps: default echo function
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: pps gpio client: add missing dependency
 
-A default echo function has been provided so it is no longer an error when
-you specify PPS_ECHOASSERT or PPS_ECHOCLEAR without an explicit echo
-function.  This allows some code re-use and also makes it easier to write
-client drivers since the default echo function does not normally need to
-change.
+Add "depends on GENERIC_HARDIRQS" to avoid compile breakage on s390:
 
-Signed-off-by: James Nuss <jamesnuss@nanometrics.ca>
-Reviewed-by: Ben Gardiner <bengardiner@nanometrics.ca>
-Acked-by: Rodolfo Giometti <giometti@linux.it>
-Cc: Ricardo Martins <rasm@fe.up.pt>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Igor Plyatov <plyatov@gmail.com>
+drivers/built-in.o: In function `pps_gpio_remove':
+linux-next/drivers/pps/clients/pps-gpio.c:189: undefined reference to `free_irq'
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: James Nuss <jamesnuss@nanometrics.ca>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps-ktimer.c  |   12 ------------
- drivers/pps/clients/pps_parport.c |    9 ---------
- drivers/pps/kapi.c                |   20 +++++++++++++-------
- 3 files changed, 13 insertions(+), 28 deletions(-)
+ drivers/pps/clients/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pps/clients/pps-ktimer.c~pps-default-echo-function drivers/pps/clients/pps-ktimer.c
---- a/drivers/pps/clients/pps-ktimer.c~pps-default-echo-function
-+++ a/drivers/pps/clients/pps-ktimer.c
-@@ -52,17 +52,6 @@ static void pps_ktimer_event(unsigned lo
- }
+diff -puN drivers/pps/clients/Kconfig~pps-gpio-client-add-missing-dependency drivers/pps/clients/Kconfig
+--- a/drivers/pps/clients/Kconfig~pps-gpio-client-add-missing-dependency
++++ a/drivers/pps/clients/Kconfig
+@@ -31,7 +31,7 @@ config PPS_CLIENT_PARPORT
  
- /*
-- * The echo function
-- */
--
--static void pps_ktimer_echo(struct pps_device *pps, int event, void *data)
--{
--	dev_info(pps->dev, "echo %s %s\n",
--		event & PPS_CAPTUREASSERT ? "assert" : "",
--		event & PPS_CAPTURECLEAR ? "clear" : "");
--}
--
--/*
-  * The PPS info struct
-  */
- 
-@@ -72,7 +61,6 @@ static struct pps_source_info pps_ktimer
- 	.mode		= PPS_CAPTUREASSERT | PPS_OFFSETASSERT |
- 			  PPS_ECHOASSERT |
- 			  PPS_CANWAIT | PPS_TSFMT_TSPEC,
--	.echo		= pps_ktimer_echo,
- 	.owner		= THIS_MODULE,
- };
- 
-diff -puN drivers/pps/clients/pps_parport.c~pps-default-echo-function drivers/pps/clients/pps_parport.c
---- a/drivers/pps/clients/pps_parport.c~pps-default-echo-function
-+++ a/drivers/pps/clients/pps_parport.c
-@@ -133,14 +133,6 @@ out_both:
- 	return;
- }
- 
--/* the PPS echo function */
--static void pps_echo(struct pps_device *pps, int event, void *data)
--{
--	dev_info(pps->dev, "echo %s %s\n",
--		event & PPS_CAPTUREASSERT ? "assert" : "",
--		event & PPS_CAPTURECLEAR ? "clear" : "");
--}
--
- static void parport_attach(struct parport *port)
- {
- 	struct pps_client_pp *device;
-@@ -151,7 +143,6 @@ static void parport_attach(struct parpor
- 				  PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
- 				  PPS_ECHOASSERT | PPS_ECHOCLEAR | \
- 				  PPS_CANWAIT | PPS_TSFMT_TSPEC,
--		.echo		= pps_echo,
- 		.owner		= THIS_MODULE,
- 		.dev		= NULL
- 	};
-diff -puN drivers/pps/kapi.c~pps-default-echo-function drivers/pps/kapi.c
---- a/drivers/pps/kapi.c~pps-default-echo-function
-+++ a/drivers/pps/kapi.c
-@@ -52,6 +52,14 @@ static void pps_add_offset(struct pps_kt
- 	ts->sec += offset->sec;
- }
- 
-+static void pps_echo_client_default(struct pps_device *pps, int event,
-+		void *data)
-+{
-+	dev_info(pps->dev, "echo %s %s\n",
-+		event & PPS_CAPTUREASSERT ? "assert" : "",
-+		event & PPS_CAPTURECLEAR ? "clear" : "");
-+}
-+
- /*
-  * Exported functions
-  */
-@@ -80,13 +88,6 @@ struct pps_device *pps_register_source(s
- 		err = -EINVAL;
- 		goto pps_register_source_exit;
- 	}
--	if ((info->mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)) != 0 &&
--			info->echo == NULL) {
--		pr_err("%s: echo function is not defined\n",
--					info->name);
--		err = -EINVAL;
--		goto pps_register_source_exit;
--	}
- 	if ((info->mode & (PPS_TSFMT_TSPEC | PPS_TSFMT_NTPFP)) == 0) {
- 		pr_err("%s: unspecified time format\n",
- 					info->name);
-@@ -108,6 +109,11 @@ struct pps_device *pps_register_source(s
- 	pps->params.mode = default_params;
- 	pps->info = *info;
- 
-+	/* check for default echo function */
-+	if ((pps->info.mode & (PPS_ECHOASSERT | PPS_ECHOCLEAR)) &&
-+			pps->info.echo == NULL)
-+		pps->info.echo = pps_echo_client_default;
-+
- 	init_waitqueue_head(&pps->queue);
- 	spin_lock_init(&pps->lock);
- 
+ config PPS_CLIENT_GPIO
+ 	tristate "PPS client using GPIO"
+-	depends on PPS
++	depends on PPS && GENERIC_HARDIRQS
+ 	help
+ 	  If you say yes here you get support for a PPS source using
+ 	  GPIO. To be useful you must also register a platform device
 _
 
-Patches currently in -mm which might be from jamesnuss@nanometrics.ca are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 origin.patch
+linux-next.patch
+consolidate-config_debug_strict_user_copy_checks.patch
+kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch
+kdump-add-udev-events-for-memory-online-offline.patch
 
