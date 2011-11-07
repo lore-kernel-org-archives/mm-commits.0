@@ -1,105 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch removed from -mm tree
-Date: Mon, 07 Nov 2011 12:27:20 -0800
-Message-ID: <201111072027.pA7KRKGx012526@wpaz37.hot.corp.google.com>
+Subject: [merged] ipc-semc-handle-spurious-wakeups.patch removed from -mm tree
+Date: Mon, 07 Nov 2011 12:27:58 -0800
+Message-ID: <201111072027.pA7KRwBs023470@hpaq3.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:5474 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:5524 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753554Ab1KGU2C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:28:02 -0500
+	with ESMTP id S1751602Ab1KGU2M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2011 15:28:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srostedt@redhat.com, balbir@linux.vnet.ibm.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, peterz@infradead.org
+To: manfred@colorfullife.com, a.p.zijlstra@chello.nl, efault@gmx.de, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: Fix race condition in memcg_check_events() with this_cpu usage
+     Subject: ipc/sem.c: handle spurious wakeups
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage.patch
+     ipc-semc-handle-spurious-wakeups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Steven Rostedt <srostedt@redhat.com>
-Subject: memcg: Fix race condition in memcg_check_events() with this_cpu usage
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: handle spurious wakeups
 
-Various code in memcontrol.c () calls this_cpu_read() on the calculations
-to be done from two different percpu variables, or does an open-coded
-read-modify-write on a single percpu variable.
+semtimedop() does not handle spurious wakeups, it returns -EINTR to user
+space.  Most other schedule() users would just loop and not return to user
+space.  The patch adds such a loop to semtimedop()
 
-Disable preemption throughout these operations so that the writes go to
-the correct palces.
-
-[hannes@cmpxchg.org: added this_cpu to __this_cpu conversion]
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reported-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
+Cc: Mike Galbraith <efault@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ ipc/sem.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-race-condition-in-memcg_check_events-with-this_cpu-usage
-+++ a/mm/memcontrol.c
-@@ -686,8 +686,8 @@ static bool __memcg_event_check(struct m
- {
- 	unsigned long val, next;
+diff -puN ipc/sem.c~ipc-semc-handle-spurious-wakeups ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-handle-spurious-wakeups
++++ a/ipc/sem.c
+@@ -1426,6 +1426,8 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
  
--	val = this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
--	next = this_cpu_read(memcg->stat->targets[target]);
-+	val = __this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
-+	next = __this_cpu_read(memcg->stat->targets[target]);
- 	/* from time_after() in jiffies.h */
- 	return ((long)next - (long)val < 0);
- }
-@@ -696,7 +696,7 @@ static void __mem_cgroup_target_update(s
- {
- 	unsigned long val, next;
+ 	queue.status = -EINTR;
+ 	queue.sleeper = current;
++
++sleep_again:
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	sem_unlock(sma);
  
--	val = this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
-+	val = __this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
+@@ -1478,6 +1480,13 @@ SYSCALL_DEFINE4(semtimedop, int, semid, 
+ 	 */
+ 	if (timeout && jiffies_left == 0)
+ 		error = -EAGAIN;
++
++	/*
++	 * If the wakeup was spurious, just retry
++	 */
++	if (error == -EINTR && !signal_pending(current))
++		goto sleep_again;
++
+ 	unlink_queue(sma, &queue);
  
- 	switch (target) {
- 	case MEM_CGROUP_TARGET_THRESH:
-@@ -712,7 +712,7 @@ static void __mem_cgroup_target_update(s
- 		return;
- 	}
- 
--	this_cpu_write(memcg->stat->targets[target], next);
-+	__this_cpu_write(memcg->stat->targets[target], next);
- }
- 
- /*
-@@ -721,6 +721,7 @@ static void __mem_cgroup_target_update(s
-  */
- static void memcg_check_events(struct mem_cgroup *memcg, struct page *page)
- {
-+	preempt_disable();
- 	/* threshold event is triggered in finer grain than soft limit */
- 	if (unlikely(__memcg_event_check(memcg, MEM_CGROUP_TARGET_THRESH))) {
- 		mem_cgroup_threshold(memcg);
-@@ -740,6 +741,7 @@ static void memcg_check_events(struct me
- 		}
- #endif
- 	}
-+	preempt_enable();
- }
- 
- static struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
+ out_unlock_free:
 _
 
-Patches currently in -mm which might be from srostedt@redhat.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 origin.patch
+ipc-mqueue-cleanup-definition-names-and-locations.patch
+ipc-mqueue-switch-back-to-using-non-max-values-on-create.patch
+ipc-mqueue-enforce-hard-limits.patch
+ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
+ipc-semc-alternatives-to-preempt_disable.patch
+slab-leaks3-default-y.patch
 
