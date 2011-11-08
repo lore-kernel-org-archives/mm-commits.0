@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + debugobjects-extend-to-assert-that-an-object-is-initialized.patch added to -mm tree
-Date: Tue, 08 Nov 2011 14:17:06 -0800
-Message-ID: <201111082217.pA8MH60p022599@hpaq2.eem.corp.google.com>
+Subject: + kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch added to -mm tree
+Date: Tue, 08 Nov 2011 14:17:10 -0800
+Message-ID: <201111082217.pA8MHBSY001868@hpaq5.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:54015 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:54020 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932411Ab1KHWRU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 17:17:20 -0500
+	with ESMTP id S932411Ab1KHWRZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 17:17:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: cschan@codeaurora.org, akpm@linux-foundation.org, john.stultz@linaro.org, sb
 
 
 The patch titled
-     Subject: debugobjects: extend to assert that an object is initialized
+     Subject: kernel/timer.c: use debugobjects to catch deletion of uninitialized timers
 has been added to the -mm tree.  Its filename is
-     debugobjects-extend-to-assert-that-an-object-is-initialized.patch
+     kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,15 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Christine Chan <cschan@codeaurora.org>
-Subject: debugobjects: extend to assert that an object is initialized
+Subject: kernel/timer.c: use debugobjects to catch deletion of uninitialized timers
 
-Calling del_timer_sync() on an uninitialized timer leads to a never ending
-loop in lock_timer_base() that spins checking for a non-NULL timer base. 
-Add an assertion to debugobjects to catch usage of uninitialized objects
-so that we can initialize timers in the del_timer_sync() path before it
-calls lock_timer_base().
+del_timer_sync() calls debug_object_assert_init() to assert that a timer
+has been initialized before calling lock_timer_base().  lock_timer_base()
+would spin forever on a NULL(uninit-ed) base.  The check is added to
+del_timer() to prevent silent failure, even though it would not get stuck
+in an infinite loop.
 
-[sboyd@codeaurora.org: clarify commit message]
+[sboyd@codeaurora.org: remove WARN, intialize timer function]
 Signed-off-by: Christine Chan <cschan@codeaurora.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: John Stultz <john.stultz@linaro.org>
@@ -51,172 +51,110 @@ Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/debugobjects.tmpl |   50 ++++++++++++++++++++++
- include/linux/debugobjects.h            |    6 ++
- lib/debugobjects.c                      |   38 ++++++++++++++++
- 3 files changed, 94 insertions(+)
+ kernel/timer.c |   53 ++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 48 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/DocBook/debugobjects.tmpl~debugobjects-extend-to-assert-that-an-object-is-initialized Documentation/DocBook/debugobjects.tmpl
---- a/Documentation/DocBook/debugobjects.tmpl~debugobjects-extend-to-assert-that-an-object-is-initialized
-+++ a/Documentation/DocBook/debugobjects.tmpl
-@@ -96,6 +96,7 @@
- 	<listitem><para>debug_object_deactivate</para></listitem>
- 	<listitem><para>debug_object_destroy</para></listitem>
- 	<listitem><para>debug_object_free</para></listitem>
-+	<listitem><para>debug_object_assert_init</para></listitem>
-       </itemizedlist>
-       Each of these functions takes the address of the real object and
-       a pointer to the object type specific debug description
-@@ -273,6 +274,26 @@
- 	debug checks.
-       </para>
-     </sect1>
-+
-+    <sect1 id="debug_object_assert_init">
-+      <title>debug_object_assert_init</title>
-+      <para>
-+	This function is called to assert that an object has been
-+	initialized.
-+      </para>
-+      <para>
-+	When the real object is not tracked by debugobjects, it calls
-+	fixup_assert_init of the object type description structure
-+	provided by the caller, with the hardcoded object state
-+	ODEBUG_NOT_AVAILABLE. The fixup function can correct the problem
-+	by calling debug_object_init and other specific initializing
-+	functions.
-+      </para>
-+      <para>
-+	When the real object is already tracked by debugobjects it is
-+	ignored.
-+      </para>
-+    </sect1>
-   </chapter>
-   <chapter id="fixupfunctions">
-     <title>Fixup functions</title>
-@@ -381,6 +402,35 @@
- 	statistics.
-       </para>
-     </sect1>
-+    <sect1 id="fixup_assert_init">
-+      <title>fixup_assert_init</title>
-+      <para>
-+	This function is called from the debug code whenever a problem
-+	in debug_object_assert_init is detected.
-+      </para>
-+      <para>
-+	Called from debug_object_assert_init() with a hardcoded state
-+	ODEBUG_STATE_NOTAVAILABLE when the object is not found in the
-+	debug bucket.
-+      </para>
-+      <para>
-+	The function returns 1 when the fixup was successful,
-+	otherwise 0. The return value is used to update the
-+	statistics.
-+      </para>
-+      <para>
-+	Note, this function should make sure debug_object_init() is
-+	called before returning.
-+      </para>
-+      <para>
-+	The handling of statically initialized objects is a special
-+	case. The fixup function should check if this is a legitimate
-+	case of a statically initialized object or not. In this case only
-+	debug_object_init() should be called to make the object known to
-+	the tracker. Then the function should return 0 because this is not
-+	a real fixup.
-+      </para>
-+    </sect1>
-   </chapter>
-   <chapter id="bugs">
-     <title>Known Bugs And Assumptions</title>
-diff -puN include/linux/debugobjects.h~debugobjects-extend-to-assert-that-an-object-is-initialized include/linux/debugobjects.h
---- a/include/linux/debugobjects.h~debugobjects-extend-to-assert-that-an-object-is-initialized
-+++ a/include/linux/debugobjects.h
-@@ -46,6 +46,8 @@ struct debug_obj {
-  *			fails
-  * @fixup_free:		fixup function, which is called when the free check
-  *			fails
-+ * @fixup_assert_init:  fixup function, which is called when the assert_init
-+ *			check fails
-  */
- struct debug_obj_descr {
- 	const char		*name;
-@@ -54,6 +56,7 @@ struct debug_obj_descr {
- 	int (*fixup_activate)	(void *addr, enum debug_obj_state state);
- 	int (*fixup_destroy)	(void *addr, enum debug_obj_state state);
- 	int (*fixup_free)	(void *addr, enum debug_obj_state state);
-+	int (*fixup_assert_init)(void *addr, enum debug_obj_state state);
- };
- 
- #ifdef CONFIG_DEBUG_OBJECTS
-@@ -64,6 +67,7 @@ extern void debug_object_activate  (void
- extern void debug_object_deactivate(void *addr, struct debug_obj_descr *descr);
- extern void debug_object_destroy   (void *addr, struct debug_obj_descr *descr);
- extern void debug_object_free      (void *addr, struct debug_obj_descr *descr);
-+extern void debug_object_assert_init(void *addr, struct debug_obj_descr *descr);
- 
- /*
-  * Active state:
-@@ -89,6 +93,8 @@ static inline void
- debug_object_destroy   (void *addr, struct debug_obj_descr *descr) { }
- static inline void
- debug_object_free      (void *addr, struct debug_obj_descr *descr) { }
-+static inline void
-+debug_object_assert_init(void *addr, struct debug_obj_descr *descr) { }
- 
- static inline void debug_objects_early_init(void) { }
- static inline void debug_objects_mem_init(void) { }
-diff -puN lib/debugobjects.c~debugobjects-extend-to-assert-that-an-object-is-initialized lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-extend-to-assert-that-an-object-is-initialized
-+++ a/lib/debugobjects.c
-@@ -570,6 +570,44 @@ out_unlock:
+diff -puN kernel/timer.c~kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers kernel/timer.c
+--- a/kernel/timer.c~kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers
++++ a/kernel/timer.c
+@@ -487,12 +487,40 @@ static int timer_fixup_free(void *addr, 
+ 	}
  }
  
- /**
-+ * debug_object_assert_init - debug checks when object should be init-ed
-+ * @addr:	address of the object
-+ * @descr:	pointer to an object specific debug description structure
++/*
++ * fixup_assert_init is called when:
++ * - an untracked/uninit-ed object is found
 + */
-+void debug_object_assert_init(void *addr, struct debug_obj_descr *descr)
++static int timer_fixup_assert_init(void *addr, enum debug_obj_state state)
 +{
-+	struct debug_bucket *db;
-+	struct debug_obj *obj;
-+	unsigned long flags;
++	struct timer_list *timer = addr;
 +
-+	if (!debug_objects_enabled)
-+		return;
-+
-+	db = get_bucket((unsigned long) addr);
-+
-+	raw_spin_lock_irqsave(&db->lock, flags);
-+
-+	obj = lookup_object(addr, db);
-+	if (!obj) {
-+		struct debug_obj o = { .object = addr,
-+				       .state = ODEBUG_STATE_NOTAVAILABLE,
-+				       .descr = descr };
-+
-+		raw_spin_unlock_irqrestore(&db->lock, flags);
-+		/*
-+		 * Maybe the object is static.  Let the type specific
-+		 * code decide what to do.
-+		 */
-+		if (debug_object_fixup(descr->fixup_assert_init, addr,
-+				ODEBUG_STATE_NOTAVAILABLE))
-+			debug_print_object(&o, "assert_init");
-+		return;
++	switch (state) {
++	case ODEBUG_STATE_NOTAVAILABLE:
++		if (timer->entry.prev == TIMER_ENTRY_STATIC) {
++			/*
++			 * This is not really a fixup. The timer was
++			 * statically initialized. We just make sure that it
++			 * is tracked in the object tracker.
++			 */
++			debug_object_init(timer, &timer_debug_descr);
++			return 0;
++		} else {
++			setup_timer(timer, stub_timer, 0);
++			return 1;
++		}
++	default:
++		return 0;
 +	}
-+
-+	raw_spin_unlock_irqrestore(&db->lock, flags);
 +}
 +
-+/**
-  * debug_object_active_state - debug checks object usage state machine
-  * @addr:	address of the object
-  * @descr:	pointer to an object specific debug description structure
+ static struct debug_obj_descr timer_debug_descr = {
+-	.name		= "timer_list",
+-	.debug_hint	= timer_debug_hint,
+-	.fixup_init	= timer_fixup_init,
+-	.fixup_activate	= timer_fixup_activate,
+-	.fixup_free	= timer_fixup_free,
++	.name			= "timer_list",
++	.debug_hint		= timer_debug_hint,
++	.fixup_init		= timer_fixup_init,
++	.fixup_activate		= timer_fixup_activate,
++	.fixup_free		= timer_fixup_free,
++	.fixup_assert_init	= timer_fixup_assert_init,
+ };
+ 
+ static inline void debug_timer_init(struct timer_list *timer)
+@@ -515,6 +543,11 @@ static inline void debug_timer_free(stru
+ 	debug_object_free(timer, &timer_debug_descr);
+ }
+ 
++static inline void debug_timer_assert_init(struct timer_list *timer)
++{
++	debug_object_assert_init(timer, &timer_debug_descr);
++}
++
+ static void __init_timer(struct timer_list *timer,
+ 			 const char *name,
+ 			 struct lock_class_key *key);
+@@ -538,6 +571,7 @@ EXPORT_SYMBOL_GPL(destroy_timer_on_stack
+ static inline void debug_timer_init(struct timer_list *timer) { }
+ static inline void debug_timer_activate(struct timer_list *timer) { }
+ static inline void debug_timer_deactivate(struct timer_list *timer) { }
++static inline void debug_timer_assert_init(struct timer_list *timer) { }
+ #endif
+ 
+ static inline void debug_init(struct timer_list *timer)
+@@ -559,6 +593,11 @@ static inline void debug_deactivate(stru
+ 	trace_timer_cancel(timer);
+ }
+ 
++static inline void debug_assert_init(struct timer_list *timer)
++{
++	debug_timer_assert_init(timer);
++}
++
+ static void __init_timer(struct timer_list *timer,
+ 			 const char *name,
+ 			 struct lock_class_key *key)
+@@ -909,6 +948,8 @@ int del_timer(struct timer_list *timer)
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
++	debug_assert_init(timer);
++
+ 	timer_stats_timer_clear_start_info(timer);
+ 	if (timer_pending(timer)) {
+ 		base = lock_timer_base(timer, &flags);
+@@ -939,6 +980,8 @@ int try_to_del_timer_sync(struct timer_l
+ 	unsigned long flags;
+ 	int ret = -1;
+ 
++	debug_assert_init(timer);
++
+ 	base = lock_timer_base(timer, &flags);
+ 
+ 	if (base->running_timer == timer)
 _
-Subject: Subject: debugobjects: extend to assert that an object is initialized
+Subject: Subject: kernel/timer.c: use debugobjects to catch deletion of uninitialized timers
 
 Patches currently in -mm which might be from cschan@codeaurora.org are
 
