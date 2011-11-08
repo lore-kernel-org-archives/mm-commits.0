@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-leds-save-the-delay-values-after-a-successful-call-to-blink_set.patch added to -mm tree
-Date: Tue, 08 Nov 2011 14:30:06 -0800
-Message-ID: <201111082230.pA8MU6I8002758@hpaq1.eem.corp.google.com>
+Subject: + checkpatch-update-signature-might-be-better-as-warning.patch added to -mm tree
+Date: Tue, 08 Nov 2011 14:39:57 -0800
+Message-ID: <201111082239.pA8MdvmE028540@hpaq13.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:54543 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:54798 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231Ab1KHWap (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 17:30:45 -0500
+	with ESMTP id S932562Ab1KHWkH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 17:40:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jhovold@gmail.com, johannes@sipsolutions.net, ospite@studenti.unina.it, rpurdie@rpsys.net, stable@vger.kernel.org
+Cc: joe@perches.com, julia.lawall@lip6.fr
 
 
 The patch titled
-     Subject: Revert "leds: save the delay values after a successful call to blink_set()"
+     Subject: checkpatch: update signature "might be better as" warning
 has been added to the -mm tree.  Its filename is
-     revert-leds-save-the-delay-values-after-a-successful-call-to-blink_set.patch
+     checkpatch-update-signature-might-be-better-as-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Johan Hovold <jhovold@gmail.com>
-Subject: Revert "leds: save the delay values after a successful call to blink_set()"
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: update signature "might be better as" warning
 
-Revert commit 6123b0e27.  The problem this patch intends to solve has
-already been fixed by commit 7a5caabd090b8f7
-("drivers/leds/ledtrig-timer.c: fix broken sysfs delay handling").
+email header lines can look like signature tags.  It's valid to have
+multiple email recipients on a single line but not valid to have multiple
+signatures on a single line.
 
-Signed-off-by: Johan Hovold <jhovold@gmail.com>
-Cc: Antonio Ospite <ospite@studenti.unina.it>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: <stable@vger.kernel.org>
+Validate signatures only when not in the email headers.
+
+Clear the $in_commit_log flag when the patch filename appears.
+
+Add '-' to the valid chars in a message header for headers
+like "Message-Id:" and "In-Reply-To:".
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/led-class.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ scripts/checkpatch.pl |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/led-class.c~revert-leds-save-the-delay-values-after-a-successful-call-to-blink_set drivers/leds/led-class.c
---- a/drivers/leds/led-class.c~revert-leds-save-the-delay-values-after-a-successful-call-to-blink_set
-+++ a/drivers/leds/led-class.c
-@@ -270,11 +270,8 @@ void led_blink_set(struct led_classdev *
- 	del_timer_sync(&led_cdev->blink_timer);
+diff -puN scripts/checkpatch.pl~checkpatch-update-signature-might-be-better-as-warning scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-update-signature-might-be-better-as-warning
++++ a/scripts/checkpatch.pl
+@@ -1504,9 +1504,11 @@ sub process {
+ 		if ($line =~ /^diff --git.*?(\S+)$/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@;
++			$in_commit_log = 0;
+ 		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
+ 			$realfile = $1;
+ 			$realfile =~ s@^([^/]*)/@@;
++			$in_commit_log = 0;
  
- 	if (led_cdev->blink_set &&
--	    !led_cdev->blink_set(led_cdev, delay_on, delay_off)) {
--		led_cdev->blink_delay_on = *delay_on;
--		led_cdev->blink_delay_off = *delay_off;
-+	    !led_cdev->blink_set(led_cdev, delay_on, delay_off))
- 		return;
--	}
+ 			$p1_prefix = $1;
+ 			if (!$file && $tree && $p1_prefix ne '' &&
+@@ -1546,7 +1548,8 @@ sub process {
+ 		}
  
- 	/* blink with 1 Hz as default if nothing specified */
- 	if (!*delay_on && !*delay_off)
+ # Check signature styles
+-		if ($line =~ /^(\s*)($signature_tags)(\s*)(.*)/) {
++		if (!$in_header_lines &&
++		    $line =~ /^(\s*)($signature_tags)(\s*)(.*)/) {
+ 			my $space_before = $1;
+ 			my $sign_off = $2;
+ 			my $space_after = $3;
+@@ -1623,7 +1626,7 @@ sub process {
+ # Check if it's the start of a commit log
+ # (not a header line and we haven't seen the patch filename)
+ 		if ($in_header_lines && $realfile =~ /^$/ &&
+-		    $rawline !~ /^(commit\b|from\b|\w+:).+$/i) {
++		    $rawline !~ /^(commit\b|from\b|[\w-]+:).+$/i) {
+ 			$in_header_lines = 0;
+ 			$in_commit_log = 1;
+ 		}
 _
-Subject: Subject: Revert "leds: save the delay values after a successful call to blink_set()"
+Subject: Subject: checkpatch: update signature "might be better as" warning
 
-Patches currently in -mm which might be from jhovold@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-revert-leds-save-the-delay-values-after-a-successful-call-to-blink_set.patch
+linux-next.patch
+checkpatch-update-signature-might-be-better-as-warning.patch
 
