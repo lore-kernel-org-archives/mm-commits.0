@@ -1,148 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch removed from -mm tree
-Date: Tue, 08 Nov 2011 14:12:11 -0800
-Message-ID: <201111082212.pA8MCBOJ010816@hpaq14.eem.corp.google.com>
+Subject: + debugobjects-be-smarter-about-static-objects.patch added to -mm tree
+Date: Tue, 08 Nov 2011 14:17:01 -0800
+Message-ID: <201111082217.pA8MH2MV009948@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:53808 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:54007 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755862Ab1KHWMT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 17:12:19 -0500
+	with ESMTP id S932411Ab1KHWRK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 17:17:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cschan@codeaurora.org, john.stultz@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sboyd@codeaurora.org, cschan@codeaurora.org, john.stultz@linaro.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: kernel/timer.c: use debugobjects to catch deletion of uninitialized timers
-has been removed from the -mm tree.  Its filename was
-     kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+     Subject: debugobjects: be smarter about static objects
+has been added to the -mm tree.  Its filename is
+     debugobjects-be-smarter-about-static-objects.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Christine Chan <cschan@codeaurora.org>
-Subject: kernel/timer.c: use debugobjects to catch deletion of uninitialized timers
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: debugobjects: be smarter about static objects
 
-del_timer_sync() calls debug_object_assert_init() to assert that a timer
-has been initialized before calling lock_timer_base().  lock_timer_base()
-would spin forever on a NULL(uninit-ed) base.  The check is added to
-del_timer() to prevent silent failure, even though it would not get stuck
-in an infinite loop.
+Remove the WARN_ON() in timer_fixup_activate() and actually use the return
+code from fixup to tell the debugobjects code to print a warning.  This
+provides better diagnostic information via a nice debugobjects warning
+instead of a simple WARN_ON(1) in the timer code with no information as to
+what is wrong.  We also assign a dummy timer callback so that if the timer
+is actually set to fire we don't oops.
 
-Signed-off-by: Christine Chan <cschan@codeaurora.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Christine Chan <cschan@codeaurora.org>
 Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/timer.c |   54 ++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 49 insertions(+), 5 deletions(-)
+ kernel/timer.c     |    9 ++++++++-
+ lib/debugobjects.c |   15 +++++++++++----
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN kernel/timer.c~kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers kernel/timer.c
---- a/kernel/timer.c~kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers
+diff -puN kernel/timer.c~debugobjects-be-smarter-about-static-objects kernel/timer.c
+--- a/kernel/timer.c~debugobjects-be-smarter-about-static-objects
 +++ a/kernel/timer.c
-@@ -480,12 +480,41 @@ static int timer_fixup_free(void *addr, 
+@@ -427,6 +427,12 @@ static int timer_fixup_init(void *addr, 
  	}
  }
  
-+/*
-+ * fixup_assert_init is called when:
-+ * - an untracked/uninit-ed object is found
-+ */
-+static int timer_fixup_assert_init(void *addr, enum debug_obj_state state)
++/* Stub timer callback for improperly used timers. */
++static void stub_timer(unsigned long data)
 +{
-+	struct timer_list *timer = addr;
++	WARN_ON(1);
++}
 +
-+	switch (state) {
-+	case ODEBUG_STATE_NOTAVAILABLE:
-+		if (timer->entry.prev == TIMER_ENTRY_STATIC) {
-+			/*
-+			 * This is not really a fixup. The timer was
-+			 * statically initialized. We just make sure that it
-+			 * is tracked in the object tracker.
-+			 */
-+			debug_object_init(timer, &timer_debug_descr);
-+			return 0;
-+		} else {
-+			WARN_ON(1);
-+			init_timer(timer);
+ /*
+  * fixup_activate is called when:
+  * - an active object is activated
+@@ -450,7 +456,8 @@ static int timer_fixup_activate(void *ad
+ 			debug_object_activate(timer, &timer_debug_descr);
+ 			return 0;
+ 		} else {
+-			WARN_ON_ONCE(1);
++			setup_timer(timer, stub_timer, 0);
 +			return 1;
-+		}
-+	default:
-+		return 0;
-+	}
-+}
-+
- static struct debug_obj_descr timer_debug_descr = {
--	.name		= "timer_list",
--	.debug_hint	= timer_debug_hint,
--	.fixup_init	= timer_fixup_init,
--	.fixup_activate	= timer_fixup_activate,
--	.fixup_free	= timer_fixup_free,
-+	.name			= "timer_list",
-+	.debug_hint		= timer_debug_hint,
-+	.fixup_init		= timer_fixup_init,
-+	.fixup_activate		= timer_fixup_activate,
-+	.fixup_free		= timer_fixup_free,
-+	.fixup_assert_init	= timer_fixup_assert_init,
- };
+ 		}
+ 		return 0;
  
- static inline void debug_timer_init(struct timer_list *timer)
-@@ -508,6 +537,11 @@ static inline void debug_timer_free(stru
- 	debug_object_free(timer, &timer_debug_descr);
+diff -puN lib/debugobjects.c~debugobjects-be-smarter-about-static-objects lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-be-smarter-about-static-objects
++++ a/lib/debugobjects.c
+@@ -268,12 +268,15 @@ static void debug_print_object(struct de
+  * Try to repair the damage, so we have a better chance to get useful
+  * debug output.
+  */
+-static void
++static int
+ debug_object_fixup(int (*fixup)(void *addr, enum debug_obj_state state),
+ 		   void * addr, enum debug_obj_state state)
+ {
++	int fixed = 0;
+ 	if (fixup)
+-		debug_objects_fixups += fixup(addr, state);
++		fixed = fixup(addr, state);
++	debug_objects_fixups += fixed;
++	return fixed;
  }
  
-+static inline void debug_timer_assert_init(struct timer_list *timer)
-+{
-+	debug_object_assert_init(timer, &timer_debug_descr);
-+}
-+
- static void __init_timer(struct timer_list *timer,
- 			 const char *name,
- 			 struct lock_class_key *key);
-@@ -531,6 +565,7 @@ EXPORT_SYMBOL_GPL(destroy_timer_on_stack
- static inline void debug_timer_init(struct timer_list *timer) { }
- static inline void debug_timer_activate(struct timer_list *timer) { }
- static inline void debug_timer_deactivate(struct timer_list *timer) { }
-+static inline void debug_timer_assert_init(struct timer_list *timer) { }
- #endif
+ static void debug_object_is_on_stack(void *addr, int onstack)
+@@ -386,6 +389,9 @@ void debug_object_activate(void *addr, s
+ 	struct debug_bucket *db;
+ 	struct debug_obj *obj;
+ 	unsigned long flags;
++	struct debug_obj o = { .object = addr,
++			       .state = ODEBUG_STATE_NOTAVAILABLE,
++			       .descr = descr };
  
- static inline void debug_init(struct timer_list *timer)
-@@ -552,6 +587,11 @@ static inline void debug_deactivate(stru
- 	trace_timer_cancel(timer);
+ 	if (!debug_objects_enabled)
+ 		return;
+@@ -425,8 +431,9 @@ void debug_object_activate(void *addr, s
+ 	 * let the type specific code decide whether this is
+ 	 * true or not.
+ 	 */
+-	debug_object_fixup(descr->fixup_activate, addr,
+-			   ODEBUG_STATE_NOTAVAILABLE);
++	if (debug_object_fixup(descr->fixup_activate, addr,
++			   ODEBUG_STATE_NOTAVAILABLE))
++		debug_print_object(&o, "activate");
  }
  
-+static inline void debug_assert_init(struct timer_list *timer)
-+{
-+	debug_timer_assert_init(timer);
-+}
-+
- static void __init_timer(struct timer_list *timer,
- 			 const char *name,
- 			 struct lock_class_key *key)
-@@ -902,6 +942,8 @@ int del_timer(struct timer_list *timer)
- 	unsigned long flags;
- 	int ret = 0;
- 
-+	debug_assert_init(timer);
-+
- 	timer_stats_timer_clear_start_info(timer);
- 	if (timer_pending(timer)) {
- 		base = lock_timer_base(timer, &flags);
-@@ -932,6 +974,8 @@ int try_to_del_timer_sync(struct timer_l
- 	unsigned long flags;
- 	int ret = -1;
- 
-+	debug_assert_init(timer);
-+
- 	base = lock_timer_base(timer, &flags);
- 
- 	if (base->running_timer == timer)
+ /**
 _
+Subject: Subject: debugobjects: be smarter about static objects
 
-Patches currently in -mm which might be from cschan@codeaurora.org are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
+debugobjects-be-smarter-about-static-objects.patch
+debugobjects-extend-to-assert-that-an-object-is-initialized.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch
+kprobes-silence-debug_strict_user_copy_checks=y-warning.patch
+x86-implement-strict-user-copy-checks-for-x86_64.patch
+consolidate-config_debug_strict_user_copy_checks.patch
+consolidate-config_debug_strict_user_copy_checks-fix.patch
 
