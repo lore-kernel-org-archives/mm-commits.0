@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-remove-unused-node-section-info-from-pc-flags.patch added to -mm tree
-Date: Tue, 08 Nov 2011 13:39:56 -0800
-Message-ID: <201111082139.pA8Ldusw032516@hpaq6.eem.corp.google.com>
+Subject: + mm-make-per-memcg-lru-lists-exclusive.patch added to -mm tree
+Date: Tue, 08 Nov 2011 13:39:49 -0800
+Message-ID: <201111082139.pA8LdnsE029466@hpaq13.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:52626 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:52625 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109Ab1KHVlG (ORCPT
+	with ESMTP id S1753015Ab1KHVlG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 16:41:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jweiner@redhat.com, bsingharora@gmail.com, gthelen@google.com, hch@infradead
 
 
 The patch titled
-     Subject: mm: memcg: remove unused node/section info from pc->flags
+     Subject: mm: make per-memcg LRU lists exclusive
 has been added to the -mm tree.  Its filename is
-     mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+     mm-make-per-memcg-lru-lists-exclusive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,203 +34,848 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Johannes Weiner <jweiner@redhat.com>
-Subject: mm: memcg: remove unused node/section info from pc->flags
+Subject: mm: make per-memcg LRU lists exclusive
 
-To find the page corresponding to a certain page_cgroup, the pc->flags
-encoded the node or section ID with the base array to compare the pc
-pointer to.
+Now that all code that operated on global per-zone LRU lists is converted
+to operate on per-memory cgroup LRU lists instead, there is no reason to
+keep the double-LRU scheme around any longer.
 
-Now that the per-memory cgroup LRU lists link page descriptors directly,
-there is no longer any code that knows the struct page_cgroup of a PFN but
-not the struct page.
+The pc->lru member is removed and page->lru is linked directly to the
+per-memory cgroup LRU lists, which removes two pointers from a descriptor
+that exists for every page frame in the system.
 
 Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Ying Han <yinghan@google.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Reviewed-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Ying Han <yinghan@google.com>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Michel Lespinasse <walken@google.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |   33 -------------------
- mm/page_cgroup.c            |   57 ++++------------------------------
- 2 files changed, 7 insertions(+), 83 deletions(-)
+ include/linux/memcontrol.h  |   51 ++---
+ include/linux/mm_inline.h   |   21 --
+ include/linux/page_cgroup.h |    1 
+ mm/memcontrol.c             |  313 ++++++++++++++++------------------
+ mm/page_cgroup.c            |    1 
+ mm/swap.c                   |   23 +-
+ mm/vmscan.c                 |   64 +++---
+ 7 files changed, 226 insertions(+), 248 deletions(-)
 
-diff -puN include/linux/page_cgroup.h~mm-memcg-remove-unused-node-section-info-from-pc-flags include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~mm-memcg-remove-unused-node-section-info-from-pc-flags
-+++ a/include/linux/page_cgroup.h
-@@ -121,39 +121,6 @@ static inline void move_unlock_page_cgro
- 	local_irq_restore(*flags);
+diff -puN include/linux/memcontrol.h~mm-make-per-memcg-lru-lists-exclusive include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-make-per-memcg-lru-lists-exclusive
++++ a/include/linux/memcontrol.h
+@@ -32,14 +32,6 @@ enum mem_cgroup_page_stat_item {
+ 	MEMCG_NR_FILE_MAPPED, /* # of pages charged as file rss */
+ };
+ 
+-extern unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+-					struct list_head *dst,
+-					unsigned long *scanned, int order,
+-					isolate_mode_t mode,
+-					struct zone *z,
+-					struct mem_cgroup *mem_cont,
+-					int active, int file);
+-
+ struct mem_cgroup_reclaim_cookie {
+ 	struct zone *zone;
+ 	int priority;
+@@ -69,13 +61,14 @@ extern void mem_cgroup_cancel_charge_swa
+ 
+ extern int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
+ 					gfp_t gfp_mask);
+-extern void mem_cgroup_add_lru_list(struct page *page, enum lru_list lru);
+-extern void mem_cgroup_del_lru_list(struct page *page, enum lru_list lru);
+-extern void mem_cgroup_rotate_reclaimable_page(struct page *page);
+-extern void mem_cgroup_rotate_lru_list(struct page *page, enum lru_list lru);
+-extern void mem_cgroup_del_lru(struct page *page);
+-extern void mem_cgroup_move_lists(struct page *page,
+-				  enum lru_list from, enum lru_list to);
++
++struct lruvec *mem_cgroup_zone_lruvec(struct zone *, struct mem_cgroup *);
++struct lruvec *mem_cgroup_lru_add_list(struct zone *, struct page *,
++				       enum lru_list);
++void mem_cgroup_lru_del_list(struct page *, enum lru_list);
++void mem_cgroup_lru_del(struct page *);
++struct lruvec *mem_cgroup_lru_move_lists(struct zone *, struct page *,
++					 enum lru_list, enum lru_list);
+ 
+ /* For coalescing uncharge for reducing memcg' overhead*/
+ extern void mem_cgroup_uncharge_start(void);
+@@ -218,33 +211,33 @@ static inline void mem_cgroup_uncharge_c
+ {
  }
  
--#ifdef CONFIG_SPARSEMEM
--#define PCG_ARRAYID_WIDTH	SECTIONS_SHIFT
--#else
--#define PCG_ARRAYID_WIDTH	NODES_SHIFT
--#endif
+-static inline void mem_cgroup_add_lru_list(struct page *page, int lru)
+-{
+-}
 -
--#if (PCG_ARRAYID_WIDTH > BITS_PER_LONG - NR_PCG_FLAGS)
--#error Not enough space left in pc->flags to store page_cgroup array IDs
--#endif
+-static inline void mem_cgroup_del_lru_list(struct page *page, int lru)
++static inline struct lruvec *mem_cgroup_zone_lruvec(struct zone *zone,
++						    struct mem_cgroup *memcg)
+ {
+-	return ;
++	return &zone->lruvec;
+ }
+ 
+-static inline void mem_cgroup_rotate_reclaimable_page(struct page *page)
++static inline struct lruvec *mem_cgroup_lru_add_list(struct zone *zone,
++						     struct page *page,
++						     enum lru_list lru)
+ {
+-	return ;
++	return &zone->lruvec;
+ }
+ 
+-static inline void mem_cgroup_rotate_lru_list(struct page *page, int lru)
++static inline void mem_cgroup_lru_del_list(struct page *page, enum lru_list lru)
+ {
+-	return ;
+ }
+ 
+-static inline void mem_cgroup_del_lru(struct page *page)
++static inline void mem_cgroup_lru_del(struct page *page)
+ {
+-	return ;
+ }
+ 
+-static inline void
+-mem_cgroup_move_lists(struct page *page, enum lru_list from, enum lru_list to)
++static inline struct lruvec *mem_cgroup_lru_move_lists(struct zone *zone,
++						       struct page *page,
++						       enum lru_list from,
++						       enum lru_list to)
+ {
++	return &zone->lruvec;
+ }
+ 
+ static inline struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
+diff -puN include/linux/mm_inline.h~mm-make-per-memcg-lru-lists-exclusive include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-make-per-memcg-lru-lists-exclusive
++++ a/include/linux/mm_inline.h
+@@ -22,26 +22,21 @@ static inline int page_is_file_cache(str
+ }
+ 
+ static inline void
+-__add_page_to_lru_list(struct zone *zone, struct page *page, enum lru_list l,
+-		       struct list_head *head)
+-{
+-	list_add(&page->lru, head);
+-	__mod_zone_page_state(zone, NR_LRU_BASE + l, hpage_nr_pages(page));
+-	mem_cgroup_add_lru_list(page, l);
+-}
 -
--/* pc->flags: ARRAY-ID | FLAGS */
+-static inline void
+ add_page_to_lru_list(struct zone *zone, struct page *page, enum lru_list l)
+ {
+-	__add_page_to_lru_list(zone, page, l, &zone->lruvec.lists[l]);
++	struct lruvec *lruvec;
++
++	lruvec = mem_cgroup_lru_add_list(zone, page, l);
++	list_add(&page->lru, &lruvec->lists[l]);
++	__mod_zone_page_state(zone, NR_LRU_BASE + l, hpage_nr_pages(page));
+ }
+ 
+ static inline void
+ del_page_from_lru_list(struct zone *zone, struct page *page, enum lru_list l)
+ {
++	mem_cgroup_lru_del_list(page, l);
+ 	list_del(&page->lru);
+ 	__mod_zone_page_state(zone, NR_LRU_BASE + l, -hpage_nr_pages(page));
+-	mem_cgroup_del_lru_list(page, l);
+ }
+ 
+ /**
+@@ -64,7 +59,6 @@ del_page_from_lru(struct zone *zone, str
+ {
+ 	enum lru_list l;
+ 
+-	list_del(&page->lru);
+ 	if (PageUnevictable(page)) {
+ 		__ClearPageUnevictable(page);
+ 		l = LRU_UNEVICTABLE;
+@@ -75,8 +69,9 @@ del_page_from_lru(struct zone *zone, str
+ 			l += LRU_ACTIVE;
+ 		}
+ 	}
++	mem_cgroup_lru_del_list(page, l);
++	list_del(&page->lru);
+ 	__mod_zone_page_state(zone, NR_LRU_BASE + l, -hpage_nr_pages(page));
+-	mem_cgroup_del_lru_list(page, l);
+ }
+ 
+ /**
+diff -puN include/linux/page_cgroup.h~mm-make-per-memcg-lru-lists-exclusive include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~mm-make-per-memcg-lru-lists-exclusive
++++ a/include/linux/page_cgroup.h
+@@ -31,7 +31,6 @@ enum {
+ struct page_cgroup {
+ 	unsigned long flags;
+ 	struct mem_cgroup *mem_cgroup;
+-	struct list_head lru;		/* per cgroup LRU list */
+ };
+ 
+ void __meminit pgdat_page_cgroup_init(struct pglist_data *pgdat);
+diff -puN mm/memcontrol.c~mm-make-per-memcg-lru-lists-exclusive mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-make-per-memcg-lru-lists-exclusive
++++ a/mm/memcontrol.c
+@@ -929,6 +929,27 @@ out:
+ }
+ EXPORT_SYMBOL(mem_cgroup_count_vm_event);
+ 
++/**
++ * mem_cgroup_zone_lruvec - get the lru list vector for a zone and memcg
++ * @zone: zone of the wanted lruvec
++ * @mem: memcg of the wanted lruvec
++ *
++ * Returns the lru list vector holding pages for the given @zone and
++ * @mem.  This can be the global zone lruvec, if the memory controller
++ * is disabled.
++ */
++struct lruvec *mem_cgroup_zone_lruvec(struct zone *zone,
++				      struct mem_cgroup *memcg)
++{
++	struct mem_cgroup_per_zone *mz;
++
++	if (mem_cgroup_disabled())
++		return &zone->lruvec;
++
++	mz = mem_cgroup_zoneinfo(memcg, zone_to_nid(zone), zone_idx(zone));
++	return &mz->lruvec;
++}
++
+ /*
+  * Following LRU functions are allowed to be used without PCG_LOCK.
+  * Operations are called by routine of global LRU independently from memcg.
+@@ -943,104 +964,123 @@ EXPORT_SYMBOL(mem_cgroup_count_vm_event)
+  * When moving account, the page is not on LRU. It's isolated.
+  */
+ 
+-void mem_cgroup_del_lru_list(struct page *page, enum lru_list lru)
++/**
++ * mem_cgroup_lru_add_list - account for adding an lru page and return lruvec
++ * @zone: zone of the page
++ * @page: the page
++ * @lru: current lru
++ *
++ * This function accounts for @page being added to @lru, and returns
++ * the lruvec for the given @zone and the memcg @page is charged to.
++ *
++ * The callsite is then responsible for physically linking the page to
++ * the returned lruvec->lists[@lru].
++ */
++struct lruvec *mem_cgroup_lru_add_list(struct zone *zone, struct page *page,
++				       enum lru_list lru)
+ {
+-	struct page_cgroup *pc;
+ 	struct mem_cgroup_per_zone *mz;
++	struct mem_cgroup *memcg;
++	struct page_cgroup *pc;
+ 
+ 	if (mem_cgroup_disabled())
+-		return;
++		return &zone->lruvec;
++
+ 	pc = lookup_page_cgroup(page);
+-	/* can happen while we handle swapcache. */
+-	if (!TestClearPageCgroupAcctLRU(pc))
+-		return;
+-	VM_BUG_ON(!pc->mem_cgroup);
++	VM_BUG_ON(PageCgroupAcctLRU(pc));
+ 	/*
+-	 * We don't check PCG_USED bit. It's cleared when the "page" is finally
+-	 * removed from global LRU.
++	 * putback:				charge:
++	 * SetPageLRU				SetPageCgroupUsed
++	 * smp_mb				smp_mb
++	 * PageCgroupUsed && add to memcg LRU	PageLRU && add to memcg LRU
++	 *
++	 * Ensure that one of the two sides adds the page to the memcg
++	 * LRU during a race.
+ 	 */
+-	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
+-	/* huge page split is done under lru_lock. so, we have no races. */
+-	MEM_CGROUP_ZSTAT(mz, lru) -= 1 << compound_order(page);
+-	VM_BUG_ON(list_empty(&pc->lru));
+-	list_del_init(&pc->lru);
+-}
 -
--#define PCG_ARRAYID_MASK	((1UL << PCG_ARRAYID_WIDTH) - 1)
--
--#define PCG_ARRAYID_OFFSET	(BITS_PER_LONG - PCG_ARRAYID_WIDTH)
+-void mem_cgroup_del_lru(struct page *page)
+-{
+-	mem_cgroup_del_lru_list(page, page_lru(page));
++	smp_mb();
++	/*
++	 * If the page is uncharged, it may be freed soon, but it
++	 * could also be swap cache (readahead, swapoff) that needs to
++	 * be reclaimable in the future.  root_mem_cgroup will babysit
++	 * it for the time being.
++	 */
++	if (PageCgroupUsed(pc)) {
++		/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
++		smp_rmb();
++		memcg = pc->mem_cgroup;
++		SetPageCgroupAcctLRU(pc);
++	} else
++		memcg = root_mem_cgroup;
++	mz = page_cgroup_zoneinfo(memcg, page);
++	/* compound_order() is stabilized through lru_lock */
++	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
++	return &mz->lruvec;
+ }
+ 
 -/*
-- * Zero the shift count for non-existent fields, to prevent compiler
-- * warnings and ensure references are optimized away.
-- */
--#define PCG_ARRAYID_SHIFT	(PCG_ARRAYID_OFFSET * (PCG_ARRAYID_WIDTH != 0))
--
--static inline void set_page_cgroup_array_id(struct page_cgroup *pc,
--					    unsigned long id)
--{
--	pc->flags &= ~(PCG_ARRAYID_MASK << PCG_ARRAYID_SHIFT);
--	pc->flags |= (id & PCG_ARRAYID_MASK) << PCG_ARRAYID_SHIFT;
--}
--
--static inline unsigned long page_cgroup_array_id(struct page_cgroup *pc)
--{
--	return (pc->flags >> PCG_ARRAYID_SHIFT) & PCG_ARRAYID_MASK;
--}
--
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
- struct page_cgroup;
+- * Writeback is about to end against a page which has been marked for immediate
+- * reclaim.  If it still appears to be reclaimable, move it to the tail of the
+- * inactive list.
++/**
++ * mem_cgroup_lru_del_list - account for removing an lru page
++ * @page: the page
++ * @lru: target lru
++ *
++ * This function accounts for @page being removed from @lru.
++ *
++ * The callsite is then responsible for physically unlinking
++ * @page->lru.
+  */
+-void mem_cgroup_rotate_reclaimable_page(struct page *page)
++void mem_cgroup_lru_del_list(struct page *page, enum lru_list lru)
+ {
+ 	struct mem_cgroup_per_zone *mz;
++	struct mem_cgroup *memcg;
+ 	struct page_cgroup *pc;
+-	enum lru_list lru = page_lru(page);
  
-diff -puN mm/page_cgroup.c~mm-memcg-remove-unused-node-section-info-from-pc-flags mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-memcg-remove-unused-node-section-info-from-pc-flags
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+ 	pc = lookup_page_cgroup(page);
+-	/* unused page is not rotated. */
+-	if (!PageCgroupUsed(pc))
+-		return;
+-	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
+-	smp_rmb();
+-	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
+-	list_move_tail(&pc->lru, &mz->lruvec.lists[lru]);
++	/*
++	 * root_mem_cgroup babysits uncharged LRU pages, but
++	 * PageCgroupUsed is cleared when the page is about to get
++	 * freed.  PageCgroupAcctLRU remembers whether the
++	 * LRU-accounting happened against pc->mem_cgroup or
++	 * root_mem_cgroup.
++	 */
++	if (TestClearPageCgroupAcctLRU(pc)) {
++		VM_BUG_ON(!pc->mem_cgroup);
++		memcg = pc->mem_cgroup;
++	} else
++		memcg = root_mem_cgroup;
++	mz = page_cgroup_zoneinfo(memcg, page);
++	/* huge page split is done under lru_lock. so, we have no races. */
++	MEM_CGROUP_ZSTAT(mz, lru) -= 1 << compound_order(page);
+ }
+ 
+-void mem_cgroup_rotate_lru_list(struct page *page, enum lru_list lru)
++void mem_cgroup_lru_del(struct page *page)
+ {
+-	struct mem_cgroup_per_zone *mz;
+-	struct page_cgroup *pc;
+-
+-	if (mem_cgroup_disabled())
+-		return;
+-
+-	pc = lookup_page_cgroup(page);
+-	/* unused page is not rotated. */
+-	if (!PageCgroupUsed(pc))
+-		return;
+-	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
+-	smp_rmb();
+-	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
+-	list_move(&pc->lru, &mz->lruvec.lists[lru]);
++	mem_cgroup_lru_del_list(page, page_lru(page));
+ }
+ 
+-void mem_cgroup_add_lru_list(struct page *page, enum lru_list lru)
+-{
+-	struct page_cgroup *pc;
+-	struct mem_cgroup_per_zone *mz;
+-
+-	if (mem_cgroup_disabled())
+-		return;
+-	pc = lookup_page_cgroup(page);
+-	VM_BUG_ON(PageCgroupAcctLRU(pc));
+-	/*
+-	 * putback:				charge:
+-	 * SetPageLRU				SetPageCgroupUsed
+-	 * smp_mb				smp_mb
+-	 * PageCgroupUsed && add to memcg LRU	PageLRU && add to memcg LRU
+-	 *
+-	 * Ensure that one of the two sides adds the page to the memcg
+-	 * LRU during a race.
+-	 */
+-	smp_mb();
+-	if (!PageCgroupUsed(pc))
+-		return;
+-	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
+-	smp_rmb();
+-	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
+-	/* huge page split is done under lru_lock. so, we have no races. */
+-	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
+-	SetPageCgroupAcctLRU(pc);
+-	list_add(&pc->lru, &mz->lruvec.lists[lru]);
++/**
++ * mem_cgroup_lru_move_lists - account for moving a page between lrus
++ * @zone: zone of the page
++ * @page: the page
++ * @from: current lru
++ * @to: target lru
++ *
++ * This function accounts for @page being moved between the lrus @from
++ * and @to, and returns the lruvec for the given @zone and the memcg
++ * @page is charged to.
++ *
++ * The callsite is then responsible for physically relinking
++ * @page->lru to the returned lruvec->lists[@to].
++ */
++struct lruvec *mem_cgroup_lru_move_lists(struct zone *zone,
++					 struct page *page,
++					 enum lru_list from,
++					 enum lru_list to)
++{
++	/* XXX: Optimize this, especially for @from == @to */
++	mem_cgroup_lru_del_list(page, from);
++	return mem_cgroup_lru_add_list(zone, page, to);
+ }
+ 
+ /*
+@@ -1051,6 +1091,7 @@ void mem_cgroup_add_lru_list(struct page
+  */
+ static void mem_cgroup_lru_del_before_commit(struct page *page)
+ {
++	enum lru_list lru;
+ 	unsigned long flags;
+ 	struct zone *zone = page_zone(page);
+ 	struct page_cgroup *pc = lookup_page_cgroup(page);
+@@ -1067,17 +1108,28 @@ static void mem_cgroup_lru_del_before_co
+ 		return;
+ 
+ 	spin_lock_irqsave(&zone->lru_lock, flags);
++	lru = page_lru(page);
+ 	/*
+-	 * Forget old LRU when this page_cgroup is *not* used. This Used bit
+-	 * is guarded by lock_page() because the page is SwapCache.
++	 * The uncharged page could still be registered to the LRU of
++	 * the stale pc->mem_cgroup.
++	 *
++	 * As pc->mem_cgroup is about to get overwritten, the old LRU
++	 * accounting needs to be taken care of.  Let root_mem_cgroup
++	 * babysit the page until the new memcg is responsible for it.
++	 *
++	 * The PCG_USED bit is guarded by lock_page() as the page is
++	 * swapcache/pagecache.
+ 	 */
+-	if (!PageCgroupUsed(pc))
+-		mem_cgroup_del_lru_list(page, page_lru(page));
++	if (PageLRU(page) && PageCgroupAcctLRU(pc) && !PageCgroupUsed(pc)) {
++		del_page_from_lru_list(zone, page, lru);
++		add_page_to_lru_list(zone, page, lru);
++	}
+ 	spin_unlock_irqrestore(&zone->lru_lock, flags);
+ }
+ 
+ static void mem_cgroup_lru_add_after_commit(struct page *page)
+ {
++	enum lru_list lru;
+ 	unsigned long flags;
+ 	struct zone *zone = page_zone(page);
+ 	struct page_cgroup *pc = lookup_page_cgroup(page);
+@@ -1095,22 +1147,22 @@ static void mem_cgroup_lru_add_after_com
+ 	if (likely(!PageLRU(page)))
+ 		return;
+ 	spin_lock_irqsave(&zone->lru_lock, flags);
+-	/* link when the page is linked to LRU but page_cgroup isn't */
+-	if (PageLRU(page) && !PageCgroupAcctLRU(pc))
+-		mem_cgroup_add_lru_list(page, page_lru(page));
++	lru = page_lru(page);
++	/*
++	 * If the page is not on the LRU, someone will soon put it
++	 * there.  If it is, and also already accounted for on the
++	 * memcg-side, it must be on the right lruvec as setting
++	 * pc->mem_cgroup and PageCgroupUsed is properly ordered.
++	 * Otherwise, root_mem_cgroup has been babysitting the page
++	 * during the charge.  Move it to the new memcg now.
++	 */
++	if (PageLRU(page) && !PageCgroupAcctLRU(pc)) {
++		del_page_from_lru_list(zone, page, lru);
++		add_page_to_lru_list(zone, page, lru);
++	}
+ 	spin_unlock_irqrestore(&zone->lru_lock, flags);
+ }
+ 
+-
+-void mem_cgroup_move_lists(struct page *page,
+-			   enum lru_list from, enum lru_list to)
+-{
+-	if (mem_cgroup_disabled())
+-		return;
+-	mem_cgroup_del_lru_list(page, from);
+-	mem_cgroup_add_lru_list(page, to);
+-}
+-
+ /*
+  * Checks whether given mem is same or in the root_mem_cgroup's
+  * hierarchy subtree
+@@ -1216,68 +1268,6 @@ mem_cgroup_get_reclaim_stat_from_page(st
+ 	return &mz->reclaim_stat;
+ }
+ 
+-unsigned long mem_cgroup_isolate_pages(unsigned long nr_to_scan,
+-					struct list_head *dst,
+-					unsigned long *scanned, int order,
+-					isolate_mode_t mode,
+-					struct zone *z,
+-					struct mem_cgroup *mem_cont,
+-					int active, int file)
+-{
+-	unsigned long nr_taken = 0;
+-	struct page *page;
+-	unsigned long scan;
+-	LIST_HEAD(pc_list);
+-	struct list_head *src;
+-	struct page_cgroup *pc, *tmp;
+-	int nid = zone_to_nid(z);
+-	int zid = zone_idx(z);
+-	struct mem_cgroup_per_zone *mz;
+-	int lru = LRU_FILE * file + active;
+-	int ret;
+-
+-	BUG_ON(!mem_cont);
+-	mz = mem_cgroup_zoneinfo(mem_cont, nid, zid);
+-	src = &mz->lruvec.lists[lru];
+-
+-	scan = 0;
+-	list_for_each_entry_safe_reverse(pc, tmp, src, lru) {
+-		if (scan >= nr_to_scan)
+-			break;
+-
+-		if (unlikely(!PageCgroupUsed(pc)))
+-			continue;
+-
+-		page = lookup_cgroup_page(pc);
+-
+-		if (unlikely(!PageLRU(page)))
+-			continue;
+-
+-		scan++;
+-		ret = __isolate_lru_page(page, mode, file);
+-		switch (ret) {
+-		case 0:
+-			list_move(&page->lru, dst);
+-			mem_cgroup_del_lru(page);
+-			nr_taken += hpage_nr_pages(page);
+-			break;
+-		case -EBUSY:
+-			/* we don't affect global LRU but rotate in our LRU */
+-			mem_cgroup_rotate_lru_list(page, page_lru(page));
+-			break;
+-		default:
+-			break;
+-		}
+-	}
+-
+-	*scanned = scan;
+-
+-	trace_mm_vmscan_memcg_isolate(0, nr_to_scan, scan, nr_taken,
+-				      0, 0, 0, mode);
+-
+-	return nr_taken;
+-}
+-
+ #define mem_cgroup_from_res_counter(counter, member)	\
+ 	container_of(counter, struct mem_cgroup, member)
+ 
+@@ -3616,11 +3606,11 @@ unsigned long mem_cgroup_soft_limit_recl
+ static int mem_cgroup_force_empty_list(struct mem_cgroup *memcg,
+ 				int node, int zid, enum lru_list lru)
+ {
+-	struct zone *zone;
+ 	struct mem_cgroup_per_zone *mz;
+-	struct page_cgroup *pc, *busy;
+ 	unsigned long flags, loop;
+ 	struct list_head *list;
++	struct page *busy;
++	struct zone *zone;
+ 	int ret = 0;
+ 
+ 	zone = &NODE_DATA(node)->node_zones[zid];
+@@ -3632,6 +3622,7 @@ static int mem_cgroup_force_empty_list(s
+ 	loop += 256;
+ 	busy = NULL;
+ 	while (loop--) {
++		struct page_cgroup *pc;
+ 		struct page *page;
+ 
+ 		ret = 0;
+@@ -3640,16 +3631,16 @@ static int mem_cgroup_force_empty_list(s
+ 			spin_unlock_irqrestore(&zone->lru_lock, flags);
+ 			break;
+ 		}
+-		pc = list_entry(list->prev, struct page_cgroup, lru);
+-		if (busy == pc) {
+-			list_move(&pc->lru, list);
++		page = list_entry(list->prev, struct page, lru);
++		if (busy == page) {
++			list_move(&page->lru, list);
+ 			busy = NULL;
+ 			spin_unlock_irqrestore(&zone->lru_lock, flags);
+ 			continue;
+ 		}
+ 		spin_unlock_irqrestore(&zone->lru_lock, flags);
+ 
+-		page = lookup_cgroup_page(pc);
++		pc = lookup_page_cgroup(page);
+ 
+ 		ret = mem_cgroup_move_parent(page, pc, memcg, GFP_KERNEL);
+ 		if (ret == -ENOMEM)
+@@ -3657,7 +3648,7 @@ static int mem_cgroup_force_empty_list(s
+ 
+ 		if (ret == -EBUSY || ret == -EINVAL) {
+ 			/* found lock contention or "pc" is obsolete. */
+-			busy = pc;
++			busy = page;
+ 			cond_resched();
+ 		} else
+ 			busy = NULL;
+diff -puN mm/page_cgroup.c~mm-make-per-memcg-lru-lists-exclusive mm/page_cgroup.c
+--- a/mm/page_cgroup.c~mm-make-per-memcg-lru-lists-exclusive
 +++ a/mm/page_cgroup.c
-@@ -11,12 +11,6 @@
- #include <linux/swapops.h>
- #include <linux/kmemleak.h>
- 
--static void __meminit init_page_cgroup(struct page_cgroup *pc, unsigned long id)
--{
--	pc->flags = 0;
--	set_page_cgroup_array_id(pc, id);
--	pc->mem_cgroup = NULL;
--}
+@@ -16,7 +16,6 @@ static void __meminit init_page_cgroup(s
+ 	pc->flags = 0;
+ 	set_page_cgroup_array_id(pc, id);
+ 	pc->mem_cgroup = NULL;
+-	INIT_LIST_HEAD(&pc->lru);
+ }
  static unsigned long total_usage;
  
- #if !defined(CONFIG_SPARSEMEM)
-@@ -41,24 +35,11 @@ struct page_cgroup *lookup_page_cgroup(s
- 	return base + offset;
- }
- 
--struct page *lookup_cgroup_page(struct page_cgroup *pc)
--{
--	unsigned long pfn;
--	struct page *page;
--	pg_data_t *pgdat;
--
--	pgdat = NODE_DATA(page_cgroup_array_id(pc));
--	pfn = pc - pgdat->node_page_cgroup + pgdat->node_start_pfn;
--	page = pfn_to_page(pfn);
--	VM_BUG_ON(pc != lookup_page_cgroup(page));
--	return page;
--}
--
- static int __init alloc_node_page_cgroup(int nid)
+diff -puN mm/swap.c~mm-make-per-memcg-lru-lists-exclusive mm/swap.c
+--- a/mm/swap.c~mm-make-per-memcg-lru-lists-exclusive
++++ a/mm/swap.c
+@@ -232,12 +232,14 @@ static void pagevec_lru_move_fn(struct p
+ static void pagevec_move_tail_fn(struct page *page, void *arg)
  {
--	struct page_cgroup *base, *pc;
-+	struct page_cgroup *base;
- 	unsigned long table_size;
--	unsigned long start_pfn, nr_pages, index;
-+	unsigned long nr_pages;
+ 	int *pgmoved = arg;
+-	struct zone *zone = page_zone(page);
  
- 	start_pfn = NODE_DATA(nid)->node_start_pfn;
- 	nr_pages = NODE_DATA(nid)->node_spanned_pages;
-@@ -72,10 +53,6 @@ static int __init alloc_node_page_cgroup
- 			table_size, PAGE_SIZE, __pa(MAX_DMA_ADDRESS));
- 	if (!base)
- 		return -ENOMEM;
--	for (index = 0; index < nr_pages; index++) {
--		pc = base + index;
--		init_page_cgroup(pc, nid);
--	}
- 	NODE_DATA(nid)->node_page_cgroup = base;
- 	total_usage += table_size;
- 	return 0;
-@@ -116,23 +93,10 @@ struct page_cgroup *lookup_page_cgroup(s
- 	return section->page_cgroup + pfn;
+ 	if (PageLRU(page) && !PageActive(page) && !PageUnevictable(page)) {
+ 		enum lru_list lru = page_lru_base_type(page);
+-		list_move_tail(&page->lru, &zone->lruvec.lists[lru]);
+-		mem_cgroup_rotate_reclaimable_page(page);
++		struct lruvec *lruvec;
++
++		lruvec = mem_cgroup_lru_move_lists(page_zone(page),
++						   page, lru, lru);
++		list_move_tail(&page->lru, &lruvec->lists[lru]);
+ 		(*pgmoved)++;
+ 	}
  }
- 
--struct page *lookup_cgroup_page(struct page_cgroup *pc)
--{
--	struct mem_section *section;
--	struct page *page;
--	unsigned long nr;
--
--	nr = page_cgroup_array_id(pc);
--	section = __nr_to_section(nr);
--	page = pfn_to_page(pc - section->page_cgroup);
--	VM_BUG_ON(pc != lookup_page_cgroup(page));
--	return page;
--}
--
- static void *__meminit alloc_page_cgroup(size_t size, int nid)
- {
-+	gfp_t flags = GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN;
- 	void *addr = NULL;
--	gfp_t flags = GFP_KERNEL | __GFP_NOWARN;
- 
- 	addr = alloc_pages_exact_nid(nid, size, flags);
- 	if (addr) {
-@@ -141,9 +105,9 @@ static void *__meminit alloc_page_cgroup
+@@ -476,12 +478,13 @@ static void lru_deactivate_fn(struct pag
+ 		 */
+ 		SetPageReclaim(page);
+ 	} else {
++		struct lruvec *lruvec;
+ 		/*
+ 		 * The page's writeback ends up during pagevec
+ 		 * We moves tha page into tail of inactive.
+ 		 */
+-		list_move_tail(&page->lru, &zone->lruvec.lists[lru]);
+-		mem_cgroup_rotate_reclaimable_page(page);
++		lruvec = mem_cgroup_lru_move_lists(zone, page, lru, lru);
++		list_move_tail(&page->lru, &lruvec->lists[lru]);
+ 		__count_vm_event(PGROTATED);
  	}
  
- 	if (node_state(nid, N_HIGH_MEMORY))
--		addr = vmalloc_node(size, nid);
-+		addr = vzalloc_node(size, nid);
- 	else
--		addr = vmalloc(size);
-+		addr = vzalloc(size);
+@@ -663,6 +666,8 @@ void lru_add_page_tail(struct zone* zone
+ 	SetPageLRU(page_tail);
  
- 	return addr;
+ 	if (page_evictable(page_tail, NULL)) {
++		struct lruvec *lruvec;
++
+ 		if (PageActive(page)) {
+ 			SetPageActive(page_tail);
+ 			active = 1;
+@@ -672,11 +677,13 @@ void lru_add_page_tail(struct zone* zone
+ 			lru = LRU_INACTIVE_ANON;
+ 		}
+ 		update_page_reclaim_stat(zone, page_tail, file, active);
++		lruvec = mem_cgroup_lru_add_list(zone, page_tail, lru);
+ 		if (likely(PageLRU(page)))
+-			__add_page_to_lru_list(zone, page_tail, lru,
+-					       page->lru.prev);
++			list_add(&page_tail->lru, page->lru.prev);
+ 		else
+-			add_page_to_lru_list(zone, page_tail, lru);
++			list_add(&page_tail->lru, &lruvec->lists[lru]);
++		__mod_zone_page_state(zone, NR_LRU_BASE + lru,
++				      hpage_nr_pages(page_tail));
+ 	} else {
+ 		SetPageUnevictable(page_tail);
+ 		add_page_to_lru_list(zone, page_tail, LRU_UNEVICTABLE);
+diff -puN mm/vmscan.c~mm-make-per-memcg-lru-lists-exclusive mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-per-memcg-lru-lists-exclusive
++++ a/mm/vmscan.c
+@@ -1139,15 +1139,14 @@ static unsigned long isolate_lru_pages(u
+ 
+ 		switch (__isolate_lru_page(page, mode, file)) {
+ 		case 0:
++			mem_cgroup_lru_del(page);
+ 			list_move(&page->lru, dst);
+-			mem_cgroup_del_lru(page);
+ 			nr_taken += hpage_nr_pages(page);
+ 			break;
+ 
+ 		case -EBUSY:
+ 			/* else it is being freed elsewhere */
+ 			list_move(&page->lru, src);
+-			mem_cgroup_rotate_lru_list(page, page_lru(page));
+ 			continue;
+ 
+ 		default:
+@@ -1197,8 +1196,8 @@ static unsigned long isolate_lru_pages(u
+ 				break;
+ 
+ 			if (__isolate_lru_page(cursor_page, mode, file) == 0) {
++				mem_cgroup_lru_del(cursor_page);
+ 				list_move(&cursor_page->lru, dst);
+-				mem_cgroup_del_lru(cursor_page);
+ 				nr_taken += hpage_nr_pages(page);
+ 				nr_lumpy_taken++;
+ 				if (PageDirty(cursor_page))
+@@ -1239,18 +1238,20 @@ static unsigned long isolate_lru_pages(u
+ 	return nr_taken;
  }
-@@ -166,14 +130,11 @@ static void free_page_cgroup(void *addr)
  
- static int __meminit init_section_page_cgroup(unsigned long pfn, int nid)
+-static unsigned long isolate_pages_global(unsigned long nr,
+-					struct list_head *dst,
+-					unsigned long *scanned, int order,
+-					isolate_mode_t mode,
+-					struct zone *z,	int active, int file)
++static unsigned long isolate_pages(unsigned long nr, struct mem_cgroup_zone *mz,
++				   struct list_head *dst,
++				   unsigned long *scanned, int order,
++				   isolate_mode_t mode, int active, int file)
  {
--	struct page_cgroup *base, *pc;
- 	struct mem_section *section;
-+	struct page_cgroup *base;
- 	unsigned long table_size;
--	unsigned long nr;
--	int index;
++	struct lruvec *lruvec;
+ 	int lru = LRU_BASE;
++
++	lruvec = mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup);
+ 	if (active)
+ 		lru += LRU_ACTIVE;
+ 	if (file)
+ 		lru += LRU_FILE;
+-	return isolate_lru_pages(nr, &z->lruvec.lists[lru], dst,
++	return isolate_lru_pages(nr, &lruvec->lists[lru], dst,
+ 				 scanned, order, mode, file);
+ }
  
--	nr = pfn_to_section_nr(pfn);
--	section = __nr_to_section(nr);
-+	section = __pfn_to_section(pfn);
+@@ -1518,14 +1519,9 @@ shrink_inactive_list(unsigned long nr_to
  
- 	if (section->page_cgroup)
- 		return 0;
-@@ -193,10 +154,6 @@ static int __meminit init_section_page_c
- 		return -ENOMEM;
- 	}
+ 	spin_lock_irq(&zone->lru_lock);
  
--	for (index = 0; index < PAGES_PER_SECTION; index++) {
--		pc = base + index;
--		init_page_cgroup(pc, nr);
+-	if (scanning_global_lru(mz)) {
+-		nr_taken = isolate_pages_global(nr_to_scan, &page_list,
+-			&nr_scanned, sc->order, reclaim_mode, zone, 0, file);
+-	} else {
+-		nr_taken = mem_cgroup_isolate_pages(nr_to_scan, &page_list,
+-			&nr_scanned, sc->order, reclaim_mode, zone,
+-			mz->mem_cgroup, 0, file);
 -	}
- 	/*
- 	 * The passed "pfn" may not be aligned to SECTION.  For the calculation
- 	 * we need to apply a mask.
++	nr_taken = isolate_pages(nr_to_scan, mz, &page_list,
++				 &nr_scanned, sc->order,
++				 reclaim_mode, 0, file);
+ 	if (global_reclaim(sc)) {
+ 		zone->pages_scanned += nr_scanned;
+ 		if (current_is_kswapd())
+@@ -1625,13 +1621,15 @@ static void move_active_pages_to_lru(str
+ 	pagevec_init(&pvec, 1);
+ 
+ 	while (!list_empty(list)) {
++		struct lruvec *lruvec;
++
+ 		page = lru_to_page(list);
+ 
+ 		VM_BUG_ON(PageLRU(page));
+ 		SetPageLRU(page);
+ 
+-		list_move(&page->lru, &zone->lruvec.lists[lru]);
+-		mem_cgroup_add_lru_list(page, lru);
++		lruvec = mem_cgroup_lru_add_list(zone, page, lru);
++		list_move(&page->lru, &lruvec->lists[lru]);
+ 		pgmoved += hpage_nr_pages(page);
+ 
+ 		if (!pagevec_add(&pvec, page) || list_empty(list)) {
+@@ -1672,17 +1670,10 @@ static void shrink_active_list(unsigned 
+ 		reclaim_mode |= ISOLATE_CLEAN;
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+-	if (scanning_global_lru(mz)) {
+-		nr_taken = isolate_pages_global(nr_pages, &l_hold,
+-						&pgscanned, sc->order,
+-						reclaim_mode, zone,
+-						1, file);
+-	} else {
+-		nr_taken = mem_cgroup_isolate_pages(nr_pages, &l_hold,
+-						&pgscanned, sc->order,
+-						reclaim_mode, zone,
+-						mz->mem_cgroup, 1, file);
+-	}
++
++	nr_taken = isolate_pages(nr_pages, mz, &l_hold,
++				 &pgscanned, sc->order,
++				 reclaim_mode, 1, file);
+ 
+ 	if (global_reclaim(sc))
+ 		zone->pages_scanned += pgscanned;
+@@ -3439,16 +3430,18 @@ int page_evictable(struct page *page, st
+  */
+ static void check_move_unevictable_page(struct page *page, struct zone *zone)
+ {
+-	VM_BUG_ON(PageActive(page));
++	struct lruvec *lruvec;
+ 
++	VM_BUG_ON(PageActive(page));
+ retry:
+ 	ClearPageUnevictable(page);
+ 	if (page_evictable(page, NULL)) {
+ 		enum lru_list l = page_lru_base_type(page);
+ 
+ 		__dec_zone_state(zone, NR_UNEVICTABLE);
+-		list_move(&page->lru, &zone->lruvec.lists[l]);
+-		mem_cgroup_move_lists(page, LRU_UNEVICTABLE, l);
++		lruvec = mem_cgroup_lru_move_lists(zone, page,
++						   LRU_UNEVICTABLE, l);
++		list_move(&page->lru, &lruvec->lists[l]);
+ 		__inc_zone_state(zone, NR_INACTIVE_ANON + l);
+ 		__count_vm_event(UNEVICTABLE_PGRESCUED);
+ 	} else {
+@@ -3456,8 +3449,9 @@ retry:
+ 		 * rotate unevictable list
+ 		 */
+ 		SetPageUnevictable(page);
+-		list_move(&page->lru, &zone->lruvec.lists[LRU_UNEVICTABLE]);
+-		mem_cgroup_rotate_lru_list(page, LRU_UNEVICTABLE);
++		lruvec = mem_cgroup_lru_move_lists(zone, page, LRU_UNEVICTABLE,
++						   LRU_UNEVICTABLE);
++		list_move(&page->lru, &lruvec->lists[LRU_UNEVICTABLE]);
+ 		if (page_evictable(page, NULL))
+ 			goto retry;
+ 	}
 _
-Subject: Subject: mm: memcg: remove unused node/section info from pc->flags
+Subject: Subject: mm: make per-memcg LRU lists exclusive
 
 Patches currently in -mm which might be from jweiner@redhat.com are
 
