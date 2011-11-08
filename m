@@ -1,109 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 08 Nov 2011 13:45:20 -0800
-Message-ID: <201111082145.pA8LjLbb017506@hpaq5.eem.corp.google.com>
+Subject: [to-be-updated] debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized.patch removed from -mm tree
+Date: Tue, 08 Nov 2011 14:12:00 -0800
+Message-ID: <201111082212.pA8MC0wY031762@wpaz13.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:52813 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:53810 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab1KHVp3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 16:45:29 -0500
+	with ESMTP id S1755868Ab1KHWMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 17:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bblum@andrew.cmu.edu, fweisbec@gmail.com
+To: cschan@codeaurora.org, john.stultz@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
+     Subject: debugobjects: extend debugobjects to assert that an object is initialized
+has been removed from the -mm tree.  Its filename was
+     debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes
+From: Christine Chan <cschan@codeaurora.org>
+Subject: debugobjects: extend debugobjects to assert that an object is initialized
 
-Cc: Ben Blum <bblum@andrew.cmu.edu>
+Add new check (assert_init) to make sure objects are initialized and
+tracked by debugobjects.
 
-WARNING: line over 80 characters
-#260: FILE: kernel/cgroup.c:2204:
-+					ss->cancel_attach_task(cgrp, tc->oldcgrp, tc->tsk);
-
-total: 0 errors, 1 warnings, 198 lines checked
-
-./patches/cgroup-fix-task-counter-common-ancestor-logic.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Signed-off-by: Christine Chan <cschan@codeaurora.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/DocBook/debugobjects.tmpl |   50 ++++++++++++++++++++++
+ include/linux/debugobjects.h            |    6 ++
+ lib/debugobjects.c                      |   33 ++++++++++++++
+ 3 files changed, 89 insertions(+)
 
-diff -puN kernel/cgroup.c~cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes
-+++ a/kernel/cgroup.c
-@@ -2201,7 +2201,8 @@ out_cancel_attach:
- 					tc = flex_array_get(group, i);
- 					if (tc->tsk == failed_task)
- 						break;
--					ss->cancel_attach_task(cgrp, tc->oldcgrp, tc->tsk);
-+					ss->cancel_attach_task(cgrp,
-+							tc->oldcgrp, tc->tsk);
- 				}
- 			}
+diff -puN Documentation/DocBook/debugobjects.tmpl~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized Documentation/DocBook/debugobjects.tmpl
+--- a/Documentation/DocBook/debugobjects.tmpl~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized
++++ a/Documentation/DocBook/debugobjects.tmpl
+@@ -96,6 +96,7 @@
+ 	<listitem><para>debug_object_deactivate</para></listitem>
+ 	<listitem><para>debug_object_destroy</para></listitem>
+ 	<listitem><para>debug_object_free</para></listitem>
++	<listitem><para>debug_object_assert_init</para></listitem>
+       </itemizedlist>
+       Each of these functions takes the address of the real object and
+       a pointer to the object type specific debug description
+@@ -273,6 +274,26 @@
+ 	debug checks.
+       </para>
+     </sect1>
++
++    <sect1 id="debug_object_assert_init">
++      <title>debug_object_assert_init</title>
++      <para>
++	This function is called to assert that an object has been
++	initialized.
++      </para>
++      <para>
++	When the real object is not tracked by debugobjects, it calls
++	fixup_assert_init of the object type description structure
++	provided by the caller, with the hardcoded object state
++	ODEBUG_NOT_AVAILABLE. The fixup function can correct the problem
++	by calling debug_object_init and other specific initializing
++	functions.
++      </para>
++      <para>
++	When the real object is already tracked by debugobjects it is
++	ignored.
++      </para>
++    </sect1>
+   </chapter>
+   <chapter id="fixupfunctions">
+     <title>Fixup functions</title>
+@@ -381,6 +402,35 @@
+ 	statistics.
+       </para>
+     </sect1>
++    <sect1 id="fixup_assert_init">
++      <title>fixup_assert_init</title>
++      <para>
++	This function is called from the debug code whenever a problem
++	in debug_object_assert_init is detected.
++      </para>
++      <para>
++	Called from debug_object_assert_init() with a hardcoded state
++	ODEBUG_STATE_NOTAVAILABLE when the object is not found in the
++	debug bucket.
++      </para>
++      <para>
++	The function returns 1 when the fixup was successful,
++	otherwise 0. The return value is used to update the
++	statistics.
++      </para>
++      <para>
++	Note, this function should make sure debug_object_init() is
++	called before returning.
++      </para>
++      <para>
++	The handling of statically initialized objects is a special
++	case. The fixup function should check if this is a legitimate
++	case of a statically initialized object or not. In this case only
++	debug_object_init() should be called to make the object known to
++	the tracker. Then the function should return 0 because this is not
++	a real fixup.
++      </para>
++    </sect1>
+   </chapter>
+   <chapter id="bugs">
+     <title>Known Bugs And Assumptions</title>
+diff -puN include/linux/debugobjects.h~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized include/linux/debugobjects.h
+--- a/include/linux/debugobjects.h~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized
++++ a/include/linux/debugobjects.h
+@@ -46,6 +46,8 @@ struct debug_obj {
+  *			fails
+  * @fixup_free:		fixup function, which is called when the free check
+  *			fails
++ * @fixup_assert_init:  fixup function, which is called when the assert_init
++ *			check fails
+  */
+ struct debug_obj_descr {
+ 	const char		*name;
+@@ -54,6 +56,7 @@ struct debug_obj_descr {
+ 	int (*fixup_activate)	(void *addr, enum debug_obj_state state);
+ 	int (*fixup_destroy)	(void *addr, enum debug_obj_state state);
+ 	int (*fixup_free)	(void *addr, enum debug_obj_state state);
++	int (*fixup_assert_init)(void *addr, enum debug_obj_state state);
+ };
  
+ #ifdef CONFIG_DEBUG_OBJECTS
+@@ -64,6 +67,7 @@ extern void debug_object_activate  (void
+ extern void debug_object_deactivate(void *addr, struct debug_obj_descr *descr);
+ extern void debug_object_destroy   (void *addr, struct debug_obj_descr *descr);
+ extern void debug_object_free      (void *addr, struct debug_obj_descr *descr);
++extern void debug_object_assert_init(void *addr, struct debug_obj_descr *descr);
+ 
+ /*
+  * Active state:
+@@ -89,6 +93,8 @@ static inline void
+ debug_object_destroy   (void *addr, struct debug_obj_descr *descr) { }
+ static inline void
+ debug_object_free      (void *addr, struct debug_obj_descr *descr) { }
++static inline void
++debug_object_assert_init(void *addr, struct debug_obj_descr *descr) { }
+ 
+ static inline void debug_objects_early_init(void) { }
+ static inline void debug_objects_mem_init(void) { }
+diff -puN lib/debugobjects.c~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-extend-debugobjects-to-assert-that-an-object-is-initialized
++++ a/lib/debugobjects.c
+@@ -563,6 +563,39 @@ out_unlock:
+ }
+ 
+ /**
++ * debug_object_assert_init - debug checks when object should be init-ed
++ * @addr:	address of the object
++ * @descr:	pointer to an object specific debug description structure
++ */
++void debug_object_assert_init(void *addr, struct debug_obj_descr *descr)
++{
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	unsigned long flags;
++
++	if (!debug_objects_enabled)
++		return;
++
++	db = get_bucket((unsigned long) addr);
++
++	raw_spin_lock_irqsave(&db->lock, flags);
++
++	obj = lookup_object(addr, db);
++	if (!obj) {
++		raw_spin_unlock_irqrestore(&db->lock, flags);
++		/*
++		 * Maybe the object is static.  Let the type specific
++		 * code decide what to do.
++		 */
++		debug_object_fixup(descr->fixup_assert_init, addr,
++				   ODEBUG_STATE_NOTAVAILABLE);
++		return;
++	}
++
++	raw_spin_unlock_irqrestore(&db->lock, flags);
++}
++
++/**
+  * debug_object_active_state - debug checks object usage state machine
+  * @addr:	address of the object
+  * @descr:	pointer to an object specific debug description structure
 _
-Subject: Subject: cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cschan@codeaurora.org are
 
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
-drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-lib-crc-add-slice-by-8-algorithm-to-crc32c-fix.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
 
