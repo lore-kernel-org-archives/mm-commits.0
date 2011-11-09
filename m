@@ -1,80 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-lowered-default-temp-fanon-fanoff-values.patch added to -mm tree
-Date: Tue, 08 Nov 2011 15:05:50 -0800
-Message-ID: <201111082305.pA8N5pMR015114@hpaq2.eem.corp.google.com>
+Subject: [merged] btusb-patch-add_apple_macbookpro62.patch removed from -mm tree
+Date: Wed, 09 Nov 2011 13:44:12 -0800
+Message-ID: <201111092144.pA9LiDu5012879@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:13527 "EHLO
+Received: from smtp-out.google.com ([74.125.121.67]:41071 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772Ab1KHXF6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2011 18:05:58 -0500
+	with ESMTP id S1750805Ab1KIVo1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2011 16:44:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: peter@piie.net, mjg@redhat.com, petkovbb@gmail.com
+To: froemel@vmars.tuwien.ac.at, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acerhdf: lowered default temp fanon/fanoff values
-has been added to the -mm tree.  Its filename is
-     acerhdf-lowered-default-temp-fanon-fanoff-values.patch
+     Subject: drivers/bluetooth/btusb.c: add_apple_MacBookPro62
+has been removed from the -mm tree.  Its filename was
+     btusb-patch-add_apple_macbookpro62.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Peter Feuerer <peter@piie.net>
-Subject: acerhdf: lowered default temp fanon/fanoff values
+From: Bernhard Froemel <froemel@vmars.tuwien.ac.at>
+Subject: drivers/bluetooth/btusb.c: add_apple_MacBookPro62
 
-Due to new supported hardware, of which the actual temperature limits of
-processor, harddisk and other components are unknown, it feels safer with
-lower fanon / fanoff settings.
+The Apple MBP model 6.2 (and maybe other recent MBPs) uses an Apple
+branded BCM2046 USB bluetooth device that works well [1] with your generic
+driver.  Add the vendor and device id.
 
-It won't change much for most people, already using acerhdf, as they use
-their own fanon/fanoff variable settings when loading the module.
+Output from Marcel's "usb-devices" script:
 
-Furthermore seems like kernel and userspace tools have been improved to
-work more efficient and netbooks don't get so hot anymore.
+T:  Bus=1 Dev#=8 Spd=12 MxCh=0
+D:  Ver=2.00 Cls=ff(vendr) Sub=01 Prot=01 MxPS=64 #Cfgs=1
+P:  Vendor=05ac ProdID=8218 Rev=0.22
+S:  Manufacturer=Apple Inc.
+S:  Product=Bluetooth USB Host Controller
+C:  #Ifs=4 Cfg#=1 Atr=e0 MxPwr=0mA
+E:  Ad=00(both) Atr=00(Control) MxPS=0040 Ivl=0ms
+I:  If#=00 Alt=0 #EPs=03 Cls=ff(vendr) Sub=01 Prot=01 Driver=(none)
+I:  If#=01 Alt=0 #EPs=02 Cls=e0(wlcon) Sub=01 Prot=01 Driver=(none)
+I:  If#=02 Alt=0 #EPs=02 Cls=ff(vendr) Sub=ff Prot=ff Driver=(none)
+I:  If#=03 Alt=0 #EPs=00 Cls=fe(apspe) Sub=01 Prot=01 Driver=(none)
 
-Signed-off-by: Peter Feuerer <peter@piie.net>
-Acked-by: Borislav Petkov <petkovbb@gmail.com>
-Cc: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Bernhard Froemel <froemel@vmars.tuwien.ac.at>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/bluetooth/btusb.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-lowered-default-temp-fanon-fanoff-values drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-lowered-default-temp-fanon-fanoff-values
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -83,8 +83,8 @@ static int kernelmode;
- #endif
+diff -puN drivers/bluetooth/btusb.c~btusb-patch-add_apple_macbookpro62 drivers/bluetooth/btusb.c
+--- a/drivers/bluetooth/btusb.c~btusb-patch-add_apple_macbookpro62
++++ a/drivers/bluetooth/btusb.c
+@@ -103,6 +103,9 @@ static struct usb_device_id btusb_table[
+ 	/* Broadcom BCM20702A0 */
+ 	{ USB_DEVICE(0x413c, 0x8197) },
  
- static unsigned int interval = 10;
--static unsigned int fanon = 63000;
--static unsigned int fanoff = 58000;
-+static unsigned int fanon = 60000;
-+static unsigned int fanoff = 53000;
- static unsigned int verbose;
- static unsigned int fanstate = ACERHDF_FAN_AUTO;
- static char force_bios[16];
++	/* Apple MacBookPro6 BT device */
++	{ USB_DEVICE(0x05ac, 0x8218) },
++
+ 	{ }	/* Terminating entry */
+ };
+ 
 _
-Subject: Subject: acerhdf: lowered default temp fanon/fanoff values
 
-Patches currently in -mm which might be from peter@piie.net are
+Patches currently in -mm which might be from froemel@vmars.tuwien.ac.at are
 
-acerhdf-add-support-for-aspire-1410-bios-v13314.patch
-acerhdf-add-support-for-new-hardware.patch
-acerhdf-lowered-default-temp-fanon-fanoff-values.patch
 
