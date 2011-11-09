@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom-do-not-kill-tasks-with-oom_score_adj-oom_score_adj_min.patch added to -mm tree
-Date: Wed, 09 Nov 2011 14:21:41 -0800
-Message-ID: <201111092221.pA9MLf8n032245@wpaz33.hot.corp.google.com>
+Subject: + add-new-cgroup-list-to-cc-notice.patch added to -mm tree
+Date: Wed, 09 Nov 2011 15:17:31 -0800
+Message-ID: <201111092317.pA9NHVal028361@hpaq11.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:38414 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:40227 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863Ab1KIWWc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2011 17:22:32 -0500
+	with ESMTP id S1754250Ab1KIXRk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2011 18:17:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, rientjes@google.com, yinghan@google.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     Subject: oom: do not kill tasks with oom_score_adj OOM_SCORE_ADJ_MIN
+     Subject: MAINTAINERS: add new cgroup list to CC notice
 has been added to the -mm tree.  Its filename is
-     oom-do-not-kill-tasks-with-oom_score_adj-oom_score_adj_min.patch
+     add-new-cgroup-list-to-cc-notice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: oom: do not kill tasks with oom_score_adj OOM_SCORE_ADJ_MIN
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: MAINTAINERS: add new cgroup list to CC notice
 
-c9f01245 ("oom: remove oom_disable_count") has removed the
-oom_disable_count counter which has been used for early break out from
-oom_badness so we could never select a task with oom_score_adj set to
-OOM_SCORE_ADJ_MIN (oom disabled).
+As discussed at Kernel Summit(2011), new cgroups mailing list is opened by
+James.  This list is for discussing general cgroup design and patches
+including all subsystems and for getting more attentions to
+cgroups/namespaces related issues by developpers.
 
-Now that the counter is gone we are always going through heuristics
-calculation and we always return a non zero positive value.  This means
-that we can end up killing a task with OOM disabled because it is
-indistinguishable from regular tasks with 1% resp.  CAP_SYS_ADMIN tasks
-with 3% usage of memory or tasks with oom_score_adj set but OOM enabled.
-
-Let's break out early if the task should have OOM disabled.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ying Han <yinghan@google.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/oom_kill.c~oom-do-not-kill-tasks-with-oom_score_adj-oom_score_adj_min mm/oom_kill.c
---- a/mm/oom_kill.c~oom-do-not-kill-tasks-with-oom_score_adj-oom_score_adj_min
-+++ a/mm/oom_kill.c
-@@ -185,6 +185,11 @@ unsigned int oom_badness(struct task_str
- 	if (!p)
- 		return 0;
- 
-+	if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
-+		task_unlock(p);
-+		return 0;
-+	}
-+
- 	/*
- 	 * The memory controller may have a limit of 0 bytes, so avoid a divide
- 	 * by zero, if necessary.
+diff -puN MAINTAINERS~add-new-cgroup-list-to-cc-notice MAINTAINERS
+--- a/MAINTAINERS~add-new-cgroup-list-to-cc-notice
++++ a/MAINTAINERS
+@@ -1938,6 +1938,7 @@ CONTROL GROUPS (CGROUPS)
+ M:	Paul Menage <paul@paulmenage.org>
+ M:	Li Zefan <lizf@cn.fujitsu.com>
+ L:	containers@lists.linux-foundation.org
++L:	cgroups@vger.kernel.org
+ S:	Maintained
+ F:	include/linux/cgroup*
+ F:	kernel/cgroup*
+@@ -4305,6 +4306,7 @@ MEMORY RESOURCE CONTROLLER
+ M:	Balbir Singh <bsingharora@gmail.com>
+ M:	Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+ M:	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
++L:	cgroups@vger.kernel.org
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	mm/memcontrol.c
 _
-Subject: Subject: oom: do not kill tasks with oom_score_adj OOM_SCORE_ADJ_MIN
+Subject: Subject: MAINTAINERS: add new cgroup list to CC notice
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
+add-new-cgroup-list-to-cc-notice.patch
 linux-next.patch
-oom-do-not-kill-tasks-with-oom_score_adj-oom_score_adj_min.patch
-mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+cgroup-fix-task-counter-common-ancestor-logic.patch
 mm-memcg-consolidate-hierarchy-iteration-primitives.patch
 mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
 mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
