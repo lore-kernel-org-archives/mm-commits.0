@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpumask-update-setup_node_to_cpumask_map-comments.patch added to -mm tree
-Date: Thu, 10 Nov 2011 15:34:38 -0800
-Message-ID: <201111102334.pAANYcsf013396@wpaz24.hot.corp.google.com>
+Subject: + mm-add-free_hot_cold_page_list-helper-v2.patch added to -mm tree
+Date: Thu, 10 Nov 2011 15:43:28 -0800
+Message-ID: <201111102343.pAANhSfK007088@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:53186 "EHLO
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:62882 "EHLO
 	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753040Ab1KJXem (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 18:34:42 -0500
-Received: by faas12 with SMTP id s12so83399faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 15:34:41 -0800 (PST)
+	with ESMTP id S1755318Ab1KJXnd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 18:43:33 -0500
+Received: by faas12 with SMTP id s12so83517faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 15:43:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gaowanlong@cn.fujitsu.com, rusty@rustcorp.com.au
+Cc: khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com
 
 
 The patch titled
-     Subject: cpumask: update setup_node_to_cpumask_map() comments
+     Subject: mm-add-free_hot_cold_page_list-helper-v2
 has been added to the -mm tree.  Its filename is
-     cpumask-update-setup_node_to_cpumask_map-comments.patch
+     mm-add-free_hot_cold_page_list-helper-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,53 +35,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Subject: cpumask: update setup_node_to_cpumask_map() comments
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm-add-free_hot_cold_page_list-helper-v2
 
-node_to_cpumask() has been replaced by cpumask_of_node(), and wholly
-removed since commit 29c337a0 ("cpumask: remove obsolete node_to_cpumask
-now everyone uses cpumask_of_node").
-
-So update the comments for setup_node_to_cpumask_map().
-
-Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/numa.c |    2 +-
- arch/x86/mm/numa.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/mm/numa.c~cpumask-update-setup_node_to_cpumask_map-comments arch/powerpc/mm/numa.c
---- a/arch/powerpc/mm/numa.c~cpumask-update-setup_node_to_cpumask_map-comments
-+++ a/arch/powerpc/mm/numa.c
-@@ -58,7 +58,7 @@ static int distance_lookup_table[MAX_NUM
-  * Allocate node_to_cpumask_map based on number of available nodes
-  * Requires node_possible_map to be valid.
-  *
-- * Note: node_to_cpumask() is not valid until after this is done.
-+ * Note: cpumask_of_node() is not valid until after this is done.
-  */
- static void __init setup_node_to_cpumask_map(void)
+diff -puN mm/page_alloc.c~mm-add-free_hot_cold_page_list-helper-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-add-free_hot_cold_page_list-helper-v2
++++ a/mm/page_alloc.c
+@@ -1210,6 +1210,9 @@ out:
+ 	local_irq_restore(flags);
+ }
+ 
++/*
++ * Free a list of 0-order pages
++ */
+ void free_hot_cold_page_list(struct list_head *list, int cold)
  {
-diff -puN arch/x86/mm/numa.c~cpumask-update-setup_node_to_cpumask_map-comments arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~cpumask-update-setup_node_to_cpumask_map-comments
-+++ a/arch/x86/mm/numa.c
-@@ -110,7 +110,7 @@ void __cpuinit numa_clear_node(int cpu)
-  * Allocate node_to_cpumask_map based on number of available nodes
-  * Requires node_possible_map to be valid.
-  *
-- * Note: node_to_cpumask() is not valid until after this is done.
-+ * Note: cpumask_of_node() is not valid until after this is done.
-  * (Use CONFIG_DEBUG_PER_CPU_MAPS to check this.)
-  */
- void __init setup_node_to_cpumask_map(void)
-_
-Subject: Subject: cpumask: update setup_node_to_cpumask_map() comments
-
-Patches currently in -mm which might be from gaowanlong@cn.fujitsu.com are
-
-linux-next.patch
-cpumask-update-setup_node_to_cpumask_map-comments.patch
-
+ 	struct page *page, *next;
+@@ -1218,8 +1221,6 @@ void free_hot_cold_page_list(struct list
+ 		trace_mm_pagevec_free(page, cold);
+ 		free_hot_cold_page(page, cold);
+ 	}
