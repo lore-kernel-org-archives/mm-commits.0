@@ -1,153 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] proc-force-dcache-drop-on-unauthorized-access.patch removed from -mm tree
-Date: Thu, 10 Nov 2011 12:30:45 -0800
-Message-ID: <201111102030.pAAKUklO010084@wpaz5.hot.corp.google.com>
+Subject: + kernelh-neaten-panic-prototype.patch added to -mm tree
+Date: Thu, 10 Nov 2011 14:37:32 -0800
+Message-ID: <201111102237.pAAMbX3B016414@wpaz21.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:44051 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750984Ab1KJVb4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 16:31:56 -0500
-Received: by ggnu2 with SMTP id u2so291130ggn.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 13:31:56 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:57766 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751725Ab1KJWhk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 17:37:40 -0500
+Received: by yenr9 with SMTP id r9so309006yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 14:37:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, adobriyan@gmail.com, cl@linux-foundation.org, gorcunov@gmail.com, mpm@selenic.com, penberg@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@perches.com
 
 
 The patch titled
-     Subject: proc: force dcache drop on unauthorized access
-has been removed from the -mm tree.  Its filename was
-     proc-force-dcache-drop-on-unauthorized-access.patch
+     Subject: kernel.h: neaten panic prototype
+has been added to the -mm tree.  Its filename is
+     kernelh-neaten-panic-prototype.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Vasiliy Kulikov <segoon@openwall.com>
-Subject: proc: force dcache drop on unauthorized access
+From: Joe Perches <joe@perches.com>
+Subject: kernel.h: neaten panic prototype
 
-The patch "proc: fix races against execve() of /proc/PID/fd**" is still a
-partial fix for a setxid problem.  link(2) is a yet another way to
-identify whether a specific fd is opened by a privileged process.  By
-calling link(2) against /proc/PID/fd/* an attacker may identify whether
-the fd number is valid for PID by analysing link(2) return code.
+Use __printf macro.
+Convert NORET_AND to ATTRIB_NORET.
+Use the normal kernel style for pointer arguments.
 
-Both getattr() and link() can be used by the attacker iff the dentry is
-present in the dcache.  In this case ->lookup() is not called and the only
-way to check ptrace permissions is either operation handler or
-->revalidate().  The easiest solution to prevent any unauthorized access
-to /proc/PID/fd*/ files is to force the dentry drop on each unauthorized
-access attempt.
-
-If an attacker keeps opened fd of /proc/PID/fd/ and dcache contains a
-specific dentry for some /proc/PID/fd/XXX, any future attemp to use the
-dentry by the attacker would lead to the dentry drop as a result of a
-failed ptrace check in ->revalidate().  Then the attacker cannot spawn a
-dentry for the specific fd number because of ptrace check in ->lookup().
-
-The dentry drop can be still observed by an attacker by analysing
-information from /proc/slabinfo, which is addressed in the successive
-patch.
-
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   42 ++++++------------------------------------
- 1 file changed, 6 insertions(+), 36 deletions(-)
+ include/linux/kernel.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~proc-force-dcache-drop-on-unauthorized-access fs/proc/base.c
---- a/fs/proc/base.c~proc-force-dcache-drop-on-unauthorized-access
-+++ a/fs/proc/base.c
-@@ -1652,46 +1652,12 @@ out:
- 	return error;
- }
+diff -puN include/linux/kernel.h~kernelh-neaten-panic-prototype include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-neaten-panic-prototype
++++ a/include/linux/kernel.h
+@@ -185,8 +185,9 @@ static inline void might_fault(void)
  
--static int proc_pid_fd_link_getattr(struct vfsmount *mnt, struct dentry *dentry,
--		struct kstat *stat)
--{
--	struct inode *inode = dentry->d_inode;
--	struct task_struct *task = get_proc_task(inode);
--	int rc;
--
--	if (task == NULL)
--		return -ESRCH;
--
--	rc = -EACCES;
--	if (lock_trace(task))
--		goto out_task;
--
--	generic_fillattr(inode, stat);
--	unlock_trace(task);
--	rc = 0;
--out_task:
--	put_task_struct(task);
--	return rc;
--}
--
- static const struct inode_operations proc_pid_link_inode_operations = {
- 	.readlink	= proc_pid_readlink,
- 	.follow_link	= proc_pid_follow_link,
- 	.setattr	= proc_setattr,
- };
- 
--static const struct inode_operations proc_fdinfo_link_inode_operations = {
--	.setattr	= proc_setattr,
--	.getattr	= proc_pid_fd_link_getattr,
--};
--
--static const struct inode_operations proc_fd_link_inode_operations = {
--	.readlink	= proc_pid_readlink,
--	.follow_link	= proc_pid_follow_link,
--	.setattr	= proc_setattr,
--	.getattr	= proc_pid_fd_link_getattr,
--};
--
- 
- /* building an inode */
- 
-@@ -2000,6 +1966,11 @@ static int tid_fd_revalidate(struct dent
- 	task = get_proc_task(inode);
- 	fd = proc_fd(inode);
- 
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ)) {
-+		put_task_struct(task);
-+		task = NULL;
-+	}
-+
- 	if (task) {
- 		files = get_files_struct(task);
- 		if (files) {
-@@ -2072,7 +2043,7 @@ static struct dentry *proc_fd_instantiat
- 	spin_unlock(&files->file_lock);
- 	put_files_struct(files);
- 
--	inode->i_op = &proc_fd_link_inode_operations;
-+	inode->i_op = &proc_pid_link_inode_operations;
- 	inode->i_size = 64;
- 	ei->op.proc_get_link = proc_fd_link;
- 	d_set_d_op(dentry, &tid_fd_dentry_operations);
-@@ -2254,7 +2225,6 @@ static struct dentry *proc_fdinfo_instan
- 	ei->fd = fd;
- 	inode->i_mode = S_IFREG | S_IRUSR;
- 	inode->i_fop = &proc_fdinfo_file_operations;
--	inode->i_op = &proc_fdinfo_link_inode_operations;
- 	d_set_d_op(dentry, &tid_fd_dentry_operations);
- 	d_add(dentry, inode);
- 	/* Close the race of the process dying before we return the dentry */
+ extern struct atomic_notifier_head panic_notifier_list;
+ extern long (*panic_blink)(int state);
+-NORET_TYPE void panic(const char * fmt, ...)
+-	__attribute__ ((NORET_AND format (printf, 1, 2))) __cold;
++NORET_TYPE __printf(1, 2)
++void panic(const char *fmt, ...)
++	ATTRIB_NORET __cold;
+ extern void oops_enter(void);
+ extern void oops_exit(void);
+ void print_oops_end_marker(void);
 _
+Subject: Subject: kernel.h: neaten panic prototype
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
-procfs-introduce-the-proc-pid-map_files-directory.patch
+linux-next.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
+kernelh-neaten-panic-prototype.patch
+linkage-remove-unused-noret_and-macro.patch
+treewide-remove-useless-noret_type-macro-and-uses.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+linkage-remove-unused-attrib_noret-macro.patch
+checkpatch-update-signature-might-be-better-as-warning.patch
 
