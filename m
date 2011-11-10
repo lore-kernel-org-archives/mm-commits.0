@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mmx86um-move-cmpxchg_double-config-option.patch added to -mm tree
-Date: Thu, 10 Nov 2011 14:52:49 -0800
-Message-ID: <201111102252.pAAMqoYY018862@wpaz37.hot.corp.google.com>
+Subject: + treewide-remove-useless-noret_type-macro-and-uses.patch added to -mm tree
+Date: Thu, 10 Nov 2011 14:37:46 -0800
+Message-ID: <201111102237.pAAMbk5T017276@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wy0-f202.google.com ([74.125.82.202]:34226 "EHLO
-	mail-wy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753081Ab1KJWwx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 17:52:53 -0500
-Received: by mail-wy0-f202.google.com with SMTP id 8so79478wyg.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 14:52:52 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:35827 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754784Ab1KJXF5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 18:05:57 -0500
+Received: by faas12 with SMTP id s12so82914faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 15:05:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, cl@linux.com, hpa@zytor.com, mingo@elte.hu, penberg@kernel.org, tglx@linutronix.de
+Cc: joe@perches.com, benh@kernel.crashing.org, cmetcalf@tilera.com, egtvedt@samfundet.no, fenghua.yu@intel.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hskinnemoen@gmail.com, mingo@elte.hu, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, schwidefsky@de.ibm.com, tony.luck@intel.com
 
 
 The patch titled
-     Subject: mm,x86,um: move CMPXCHG_DOUBLE config option
+     Subject: treewide: remove useless NORET_TYPE macro and uses
 has been added to the -mm tree.  Its filename is
-     mmx86um-move-cmpxchg_double-config-option.patch
+     treewide-remove-useless-noret_type-macro-and-uses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,122 +35,274 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: mm,x86,um: move CMPXCHG_DOUBLE config option
+From: Joe Perches <joe@perches.com>
+Subject: treewide: remove useless NORET_TYPE macro and uses
 
-Move CMPXCHG_DOUBLE and rename it to HAVE_CMPXCHG_DOUBLE so architectures
-can simply select the option if it is supported.
+It's a very old and now unused prototype marking so just delete it.
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Neaten panic pointer argument style to keep checkpatch quiet.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig         |    3 +++
- arch/x86/Kconfig     |    1 +
- arch/x86/Kconfig.cpu |    3 ---
- arch/x86/um/Kconfig  |    4 ----
- mm/slub.c            |    9 ++++++---
- 5 files changed, 10 insertions(+), 10 deletions(-)
+ arch/avr32/include/asm/system.h        |    2 +-
+ arch/avr32/kernel/traps.c              |    2 +-
+ arch/ia64/kernel/machine_kexec.c       |    2 +-
+ arch/m68k/amiga/config.c               |    2 +-
+ arch/mips/include/asm/ptrace.h         |    2 +-
+ arch/mips/kernel/traps.c               |    2 +-
+ arch/powerpc/kernel/machine_kexec_32.c |    2 +-
+ arch/powerpc/kernel/machine_kexec_64.c |    6 +++---
+ arch/s390/kernel/nmi.c                 |    2 +-
+ arch/tile/kernel/machine_kexec.c       |    4 ++--
+ include/linux/kernel.h                 |    6 +++---
+ include/linux/linkage.h                |    1 -
+ include/linux/sched.h                  |    2 +-
+ kernel/exit.c                          |    6 +++---
+ kernel/panic.c                         |    2 +-
+ 15 files changed, 21 insertions(+), 22 deletions(-)
 
-diff -puN arch/Kconfig~mmx86um-move-cmpxchg_double-config-option arch/Kconfig
---- a/arch/Kconfig~mmx86um-move-cmpxchg_double-config-option
-+++ a/arch/Kconfig
-@@ -196,4 +196,7 @@ config HAVE_ALIGNED_STRUCT_PAGE
- config HAVE_CMPXCHG_LOCAL
- 	bool
+diff -puN arch/avr32/include/asm/system.h~treewide-remove-useless-noret_type-macro-and-uses arch/avr32/include/asm/system.h
+--- a/arch/avr32/include/asm/system.h~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/avr32/include/asm/system.h
+@@ -169,7 +169,7 @@ static inline unsigned long __cmpxchg_lo
+ #define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
  
-+config HAVE_CMPXCHG_DOUBLE
-+	bool
-+
- source "kernel/gcov/Kconfig"
-diff -puN arch/x86/Kconfig~mmx86um-move-cmpxchg_double-config-option arch/x86/Kconfig
---- a/arch/x86/Kconfig~mmx86um-move-cmpxchg_double-config-option
-+++ a/arch/x86/Kconfig
-@@ -78,6 +78,7 @@ config X86
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_ALIGNED_STRUCT_PAGE if SLUB && !M386
- 	select HAVE_CMPXCHG_LOCAL if !M386
-+	select HAVE_CMPXCHG_DOUBLE
+ struct pt_regs;
+-void NORET_TYPE die(const char *str, struct pt_regs *regs, long err);
++void die(const char *str, struct pt_regs *regs, long err);
+ void _exception(long signr, struct pt_regs *regs, int code,
+ 		unsigned long addr);
  
- config INSTRUCTION_DECODER
- 	def_bool (KPROBES || PERF_EVENTS)
-diff -puN arch/x86/Kconfig.cpu~mmx86um-move-cmpxchg_double-config-option arch/x86/Kconfig.cpu
---- a/arch/x86/Kconfig.cpu~mmx86um-move-cmpxchg_double-config-option
-+++ a/arch/x86/Kconfig.cpu
-@@ -309,9 +309,6 @@ config X86_INTERNODE_CACHE_SHIFT
- config X86_CMPXCHG
- 	def_bool X86_64 || (X86_32 && !M386)
+diff -puN arch/avr32/kernel/traps.c~treewide-remove-useless-noret_type-macro-and-uses arch/avr32/kernel/traps.c
+--- a/arch/avr32/kernel/traps.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/avr32/kernel/traps.c
+@@ -24,7 +24,7 @@
  
--config CMPXCHG_DOUBLE
--	def_bool y
--
- config X86_L1_CACHE_SHIFT
- 	int
- 	default "7" if MPENTIUM4 || MPSC
-diff -puN arch/x86/um/Kconfig~mmx86um-move-cmpxchg_double-config-option arch/x86/um/Kconfig
---- a/arch/x86/um/Kconfig~mmx86um-move-cmpxchg_double-config-option
-+++ a/arch/x86/um/Kconfig
-@@ -6,10 +6,6 @@ menu "UML-specific options"
+ static DEFINE_SPINLOCK(die_lock);
  
- menu "Host processor type and features"
- 
--config CMPXCHG_DOUBLE
--	bool
--	default n
--
- source "arch/x86/Kconfig.cpu"
- 
- endmenu
-diff -puN mm/slub.c~mmx86um-move-cmpxchg_double-config-option mm/slub.c
---- a/mm/slub.c~mmx86um-move-cmpxchg_double-config-option
-+++ a/mm/slub.c
-@@ -366,7 +366,8 @@ static inline bool __cmpxchg_double_slab
- 		const char *n)
+-void NORET_TYPE die(const char *str, struct pt_regs *regs, long err)
++void die(const char *str, struct pt_regs *regs, long err)
  {
- 	VM_BUG_ON(!irqs_disabled());
--#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-+#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-+    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (s->flags & __CMPXCHG_DOUBLE) {
- 		if (cmpxchg_double(&page->freelist,
- 			freelist_old, counters_old,
-@@ -400,7 +401,8 @@ static inline bool cmpxchg_double_slab(s
- 		void *freelist_new, unsigned long counters_new,
- 		const char *n)
- {
--#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-+#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-+    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (s->flags & __CMPXCHG_DOUBLE) {
- 		if (cmpxchg_double(&page->freelist,
- 			freelist_old, counters_old,
-@@ -2990,7 +2992,8 @@ static int kmem_cache_open(struct kmem_c
- 		}
- 	}
+ 	static int die_counter;
  
--#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-+#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-+    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (system_has_cmpxchg_double() && (s->flags & SLAB_DEBUG_FLAGS) == 0)
- 		/* Enable fast mode */
- 		s->flags |= __CMPXCHG_DOUBLE;
+diff -puN arch/ia64/kernel/machine_kexec.c~treewide-remove-useless-noret_type-macro-and-uses arch/ia64/kernel/machine_kexec.c
+--- a/arch/ia64/kernel/machine_kexec.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/ia64/kernel/machine_kexec.c
+@@ -27,7 +27,7 @@
+ #include <asm/sal.h>
+ #include <asm/mca.h>
+ 
+-typedef NORET_TYPE void (*relocate_new_kernel_t)(
++typedef void (*relocate_new_kernel_t)(
+ 					unsigned long indirection_page,
+ 					unsigned long start_address,
+ 					struct ia64_boot_param *boot_param,
+diff -puN arch/m68k/amiga/config.c~treewide-remove-useless-noret_type-macro-and-uses arch/m68k/amiga/config.c
+--- a/arch/m68k/amiga/config.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/m68k/amiga/config.c
+@@ -511,7 +511,7 @@ static unsigned long amiga_gettimeoffset
+ 	return ticks + offset;
+ }
+ 
+-static NORET_TYPE void amiga_reset(void)
++static void amiga_reset(void)
+     ATTRIB_NORET;
+ 
+ static void amiga_reset(void)
+diff -puN arch/mips/include/asm/ptrace.h~treewide-remove-useless-noret_type-macro-and-uses arch/mips/include/asm/ptrace.h
+--- a/arch/mips/include/asm/ptrace.h~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/mips/include/asm/ptrace.h
+@@ -144,7 +144,7 @@ extern int ptrace_set_watch_regs(struct 
+ extern asmlinkage void syscall_trace_enter(struct pt_regs *regs);
+ extern asmlinkage void syscall_trace_leave(struct pt_regs *regs);
+ 
+-extern NORET_TYPE void die(const char *, struct pt_regs *) ATTRIB_NORET;
++extern void die(const char *, struct pt_regs *) ATTRIB_NORET;
+ 
+ static inline void die_if_kernel(const char *str, struct pt_regs *regs)
+ {
+diff -puN arch/mips/kernel/traps.c~treewide-remove-useless-noret_type-macro-and-uses arch/mips/kernel/traps.c
+--- a/arch/mips/kernel/traps.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/mips/kernel/traps.c
+@@ -1340,7 +1340,7 @@ void ejtag_exception_handler(struct pt_r
+ /*
+  * NMI exception handler.
+  */
+-NORET_TYPE void ATTRIB_NORET nmi_exception_handler(struct pt_regs *regs)
++void ATTRIB_NORET nmi_exception_handler(struct pt_regs *regs)
+ {
+ 	bust_spinlocks(1);
+ 	printk("NMI taken!!!!\n");
+diff -puN arch/powerpc/kernel/machine_kexec_32.c~treewide-remove-useless-noret_type-macro-and-uses arch/powerpc/kernel/machine_kexec_32.c
+--- a/arch/powerpc/kernel/machine_kexec_32.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/powerpc/kernel/machine_kexec_32.c
+@@ -16,7 +16,7 @@
+ #include <asm/hw_irq.h>
+ #include <asm/io.h>
+ 
+-typedef NORET_TYPE void (*relocate_new_kernel_t)(
++typedef void (*relocate_new_kernel_t)(
+ 				unsigned long indirection_page,
+ 				unsigned long reboot_code_buffer,
+ 				unsigned long start_address) ATTRIB_NORET;
+diff -puN arch/powerpc/kernel/machine_kexec_64.c~treewide-remove-useless-noret_type-macro-and-uses arch/powerpc/kernel/machine_kexec_64.c
+--- a/arch/powerpc/kernel/machine_kexec_64.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/powerpc/kernel/machine_kexec_64.c
+@@ -307,9 +307,9 @@ static union thread_union kexec_stack __
+ struct paca_struct kexec_paca;
+ 
+ /* Our assembly helper, in kexec_stub.S */
+-extern NORET_TYPE void kexec_sequence(void *newstack, unsigned long start,
+-					void *image, void *control,
+-					void (*clear_all)(void)) ATTRIB_NORET;
++extern void kexec_sequence(void *newstack, unsigned long start,
++			   void *image, void *control,
++			   void (*clear_all)(void)) ATTRIB_NORET;
+ 
+ /* too late to fail here */
+ void default_machine_kexec(struct kimage *image)
+diff -puN arch/s390/kernel/nmi.c~treewide-remove-useless-noret_type-macro-and-uses arch/s390/kernel/nmi.c
+--- a/arch/s390/kernel/nmi.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/s390/kernel/nmi.c
+@@ -30,7 +30,7 @@ struct mcck_struct {
+ 
+ static DEFINE_PER_CPU(struct mcck_struct, cpu_mcck);
+ 
+-static NORET_TYPE void s390_handle_damage(char *msg)
++static void s390_handle_damage(char *msg)
+ {
+ 	smp_send_stop();
+ 	disabled_wait((unsigned long) __builtin_return_address(0));
+diff -puN arch/tile/kernel/machine_kexec.c~treewide-remove-useless-noret_type-macro-and-uses arch/tile/kernel/machine_kexec.c
+--- a/arch/tile/kernel/machine_kexec.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/arch/tile/kernel/machine_kexec.c
+@@ -248,10 +248,10 @@ static void setup_quasi_va_is_pa(void)
+ }
+ 
+ 
+-NORET_TYPE void machine_kexec(struct kimage *image)
++void machine_kexec(struct kimage *image)
+ {
+ 	void *reboot_code_buffer;
+-	NORET_TYPE void (*rnk)(unsigned long, void *, unsigned long)
++	void (*rnk)(unsigned long, void *, unsigned long)
+ 		ATTRIB_NORET;
+ 
+ 	/* Mask all interrupts before starting to reboot. */
+diff -puN include/linux/kernel.h~treewide-remove-useless-noret_type-macro-and-uses include/linux/kernel.h
+--- a/include/linux/kernel.h~treewide-remove-useless-noret_type-macro-and-uses
++++ a/include/linux/kernel.h
+@@ -185,16 +185,16 @@ static inline void might_fault(void)
+ 
+ extern struct atomic_notifier_head panic_notifier_list;
+ extern long (*panic_blink)(int state);
+-NORET_TYPE __printf(1, 2)
++__printf(1, 2)
+ void panic(const char *fmt, ...)
+ 	ATTRIB_NORET __cold;
+ extern void oops_enter(void);
+ extern void oops_exit(void);
+ void print_oops_end_marker(void);
+ extern int oops_may_print(void);
+-NORET_TYPE void do_exit(long error_code)
++void do_exit(long error_code)
+ 	ATTRIB_NORET;
+-NORET_TYPE void complete_and_exit(struct completion *, long)
++void complete_and_exit(struct completion *, long)
+ 	ATTRIB_NORET;
+ 
+ /* Internal, do not use. */
+diff -puN include/linux/linkage.h~treewide-remove-useless-noret_type-macro-and-uses include/linux/linkage.h
+--- a/include/linux/linkage.h~treewide-remove-useless-noret_type-macro-and-uses
++++ a/include/linux/linkage.h
+@@ -88,7 +88,6 @@
+ 
+ #endif
+ 
+-#define NORET_TYPE    /**/
+ #define ATTRIB_NORET  __attribute__((noreturn))
+ 
+ #endif
+diff -puN include/linux/sched.h~treewide-remove-useless-noret_type-macro-and-uses include/linux/sched.h
+--- a/include/linux/sched.h~treewide-remove-useless-noret_type-macro-and-uses
++++ a/include/linux/sched.h
+@@ -2252,7 +2252,7 @@ extern void __cleanup_sighand(struct sig
+ extern void exit_itimers(struct signal_struct *);
+ extern void flush_itimer_signals(void);
+ 
+-extern NORET_TYPE void do_group_exit(int);
++extern void do_group_exit(int);
+ 
+ extern void daemonize(const char *, ...);
+ extern int allow_signal(int);
+diff -puN kernel/exit.c~treewide-remove-useless-noret_type-macro-and-uses kernel/exit.c
+--- a/kernel/exit.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/kernel/exit.c
+@@ -888,7 +888,7 @@ static void check_stack_usage(void)
+ static inline void check_stack_usage(void) {}
+ #endif
+ 
+-NORET_TYPE void do_exit(long code)
++void do_exit(long code)
+ {
+ 	struct task_struct *tsk = current;
+ 	int group_dead;
+@@ -1049,7 +1049,7 @@ NORET_TYPE void do_exit(long code)
+ 
+ EXPORT_SYMBOL_GPL(do_exit);
+ 
+-NORET_TYPE void complete_and_exit(struct completion *comp, long code)
++void complete_and_exit(struct completion *comp, long code)
+ {
+ 	if (comp)
+ 		complete(comp);
+@@ -1068,7 +1068,7 @@ SYSCALL_DEFINE1(exit, int, error_code)
+  * Take down every thread in the group.  This is called by fatal signals
+  * as well as by sys_exit_group (below).
+  */
+-NORET_TYPE void
++void
+ do_group_exit(int exit_code)
+ {
+ 	struct signal_struct *sig = current->signal;
+diff -puN kernel/panic.c~treewide-remove-useless-noret_type-macro-and-uses kernel/panic.c
+--- a/kernel/panic.c~treewide-remove-useless-noret_type-macro-and-uses
++++ a/kernel/panic.c
+@@ -57,7 +57,7 @@ EXPORT_SYMBOL(panic_blink);
+  *
+  *	This function never returns.
+  */
+-NORET_TYPE void panic(const char * fmt, ...)
++void panic(const char *fmt, ...)
+ {
+ 	static char buf[1024];
+ 	va_list args;
 _
-Subject: Subject: mm,x86,um: move CMPXCHG_DOUBLE config option
+Subject: Subject: treewide: remove useless NORET_TYPE macro and uses
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-consolidate-config_debug_strict_user_copy_checks.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
+kernelh-neaten-panic-prototype.patch
+linkage-remove-unused-noret_and-macro.patch
 treewide-remove-useless-noret_type-macro-and-uses.patch
 treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
-mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local.patch
-mmx86um-move-cmpxchg_local-config-option.patch
-mmx86um-move-cmpxchg_double-config-option.patch
-kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch
-kdump-add-udev-events-for-memory-online-offline.patch
+linkage-remove-unused-attrib_noret-macro.patch
+checkpatch-update-signature-might-be-better-as-warning.patch
 
