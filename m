@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backing-dev-ensure-wakeup_timer-is-deleted.patch added to -mm tree
-Date: Thu, 10 Nov 2011 15:16:17 -0800
-Message-ID: <201111102316.pAANGHxU007381@wpaz21.hot.corp.google.com>
+Subject: + kdump-add-missing-ram-resource-in-crash_shrink_memory.patch added to -mm tree
+Date: Thu, 10 Nov 2011 15:27:40 -0800
+Message-ID: <201111102327.pAANRegH014244@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:47509 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab1KJXQU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 18:16:20 -0500
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:41078 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360Ab1KJX1n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 18:27:43 -0500
+Received: by ywb5 with SMTP id 5so255238ywb.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 15:27:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rabin.vincent@stericsson.com, axboe@kernel.dk, linus.walleij@linaro.org, stable@vger.kernel.org
+Cc: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, vgoyal@redhat.com
 
 
 The patch titled
-     Subject: backing-dev: ensure wakeup_timer is deleted
+     Subject: kdump: add missing RAM resource in crash_shrink_memory()
 has been added to the -mm tree.  Its filename is
-     backing-dev-ensure-wakeup_timer-is-deleted.patch
+     kdump-add-missing-ram-resource-in-crash_shrink_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +35,105 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Rabin Vincent <rabin.vincent@stericsson.com>
-Subject: backing-dev: ensure wakeup_timer is deleted
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: kdump: add missing RAM resource in crash_shrink_memory()
 
-bdi_prune_sb() in bdi_unregister() attempts to removes the bdi links from
-all super_blocks and then del_timer_sync() the writeback timer.
+When shrinking crashkernel memory using /sys/kernel/kexec_crash_size for
+the newly added memory no RAM resource is created at the moment.
 
-However, this can race with __mark_inode_dirty(), leading to
-bdi_wakeup_thread_delayed() rearming the writeback timer on the bdi we're
-unregistering, after we've called del_timer_sync().
+Example:
 
-This can end up with the bdi being freed with an active timer inside it,
-as in the case of the following dump after the removal of an SD card.
+$ cat /proc/iomem
+00000000-bfffffff : System RAM
+  00000000-005b7ac3 : Kernel code
+  005b7ac4-009743bf : Kernel data
+  009bb000-00a85c33 : Kernel bss
+c0000000-cfffffff : Crash kernel
+d0000000-ffffffff : System RAM
 
-Fix this by redoing the del_timer_sync() in bdi_destory().
+$ echo 0 > /sys/kernel/kexec_crash_size
+$ cat /proc/iomem
+00000000-bfffffff : System RAM
+  00000000-005b7ac3 : Kernel code
+  005b7ac4-009743bf : Kernel data
+  009bb000-00a85c33 : Kernel bss
+                                 <<-- here is System RAM missing
+d0000000-ffffffff : System RAM
 
- ------------[ cut here ]------------
- WARNING: at /home/rabin/kernel/arm/lib/debugobjects.c:262 debug_print_object+0x9c/0xc8()
- ODEBUG: free active (active state 0) object type: timer_list hint: wakeup_timer_fn+0x0/0x180
- Modules linked in:
- Backtrace:
- [<c00109dc>] (dump_backtrace+0x0/0x110) from [<c0236e4c>] (dump_stack+0x18/0x1c)
-  r6:c02bc638 r5:00000106 r4:c79f5d18 r3:00000000
- [<c0236e34>] (dump_stack+0x0/0x1c) from [<c0025e6c>] (warn_slowpath_common+0x54/0x6c)
- [<c0025e18>] (warn_slowpath_common+0x0/0x6c) from [<c0025f28>] (warn_slowpath_fmt+0x38/0x40)
-  r8:20000013 r7:c780c6f0 r6:c031613c r5:c780c6f0 r4:c02b1b29
- r3:00000009
- [<c0025ef0>] (warn_slowpath_fmt+0x0/0x40) from [<c015eb4c>] (debug_print_object+0x9c/0xc8)
-  r3:c02b1b29 r2:c02bc662
- [<c015eab0>] (debug_print_object+0x0/0xc8) from [<c015f574>] (debug_check_no_obj_freed+0xac/0x1dc)
-  r6:c7964000 r5:00000001 r4:c7964000
- [<c015f4c8>] (debug_check_no_obj_freed+0x0/0x1dc) from [<c00a9e38>] (kmem_cache_free+0x88/0x1f8)
- [<c00a9db0>] (kmem_cache_free+0x0/0x1f8) from [<c014286c>] (blk_release_queue+0x70/0x78)
- [<c01427fc>] (blk_release_queue+0x0/0x78) from [<c015290c>] (kobject_release+0x70/0x84)
-  r5:c79641f0 r4:c796420c
- [<c015289c>] (kobject_release+0x0/0x84) from [<c0153ce4>] (kref_put+0x68/0x80)
-  r7:00000083 r6:c74083d0 r5:c015289c r4:c796420c
- [<c0153c7c>] (kref_put+0x0/0x80) from [<c01527d0>] (kobject_put+0x48/0x5c)
-  r5:c79643b4 r4:c79641f0
- [<c0152788>] (kobject_put+0x0/0x5c) from [<c013ddd8>] (blk_cleanup_queue+0x68/0x74)
-  r4:c7964000
- [<c013dd70>] (blk_cleanup_queue+0x0/0x74) from [<c01a6370>] (mmc_blk_put+0x78/0xe8)
-  r5:00000000 r4:c794c400
- [<c01a62f8>] (mmc_blk_put+0x0/0xe8) from [<c01a64b4>] (mmc_blk_release+0x24/0x38)
-  r5:c794c400 r4:c0322824
- [<c01a6490>] (mmc_blk_release+0x0/0x38) from [<c00de11c>] (__blkdev_put+0xe8/0x170)
-  r5:c78d5e00 r4:c74083c0
- [<c00de034>] (__blkdev_put+0x0/0x170) from [<c00de2c0>] (blkdev_put+0x11c/0x12c)
-  r8:c79f5f70 r7:00000001 r6:c74083d0 r5:00000083 r4:c74083c0
- r3:00000000
- [<c00de1a4>] (blkdev_put+0x0/0x12c) from [<c00b0724>] (kill_block_super+0x60/0x6c)
-  r7:c7942300 r6:c79f4000 r5:00000083 r4:c74083c0
- [<c00b06c4>] (kill_block_super+0x0/0x6c) from [<c00b0a94>] (deactivate_locked_super+0x44/0x70)
-  r6:c79f4000 r5:c031af64 r4:c794dc00 r3:c00b06c4
- [<c00b0a50>] (deactivate_locked_super+0x0/0x70) from [<c00b1358>] (deactivate_super+0x6c/0x70)
-  r5:c794dc00 r4:c794dc00
- [<c00b12ec>] (deactivate_super+0x0/0x70) from [<c00c88b0>] (mntput_no_expire+0x188/0x194)
-  r5:c794dc00 r4:c7942300
- [<c00c8728>] (mntput_no_expire+0x0/0x194) from [<c00c95e0>] (sys_umount+0x2e4/0x310)
-  r6:c7942300 r5:00000000 r4:00000000 r3:00000000
- [<c00c92fc>] (sys_umount+0x0/0x310) from [<c000d940>] (ret_fast_syscall+0x0/0x30)
- ---[ end trace e5c83c92ada51c76 ]---
+One result of this bug is that the memory chunk can never be set offline
+using memory hotplug.  With this patch I insert a new "System RAM"
+resource for the released memory.  Then the upper example looks like the
+following:
 
-Signed-off-by: Rabin Vincent <rabin.vincent@stericsson.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
+$ echo 0 > /sys/kernel/kexec_crash_size
+$ cat /proc/iomem
+00000000-bfffffff : System RAM
+  00000000-005b7ac3 : Kernel code
+  005b7ac4-009743bf : Kernel data
+  009bb000-00a85c33 : Kernel bss
+c0000000-cfffffff : System RAM   <<-- new rescoure
+d0000000-ffffffff : System RAM
+
+And now I can set chunk c0000000-cfffffff offline.
+
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ kernel/kexec.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN mm/backing-dev.c~backing-dev-ensure-wakeup_timer-is-deleted mm/backing-dev.c
---- a/mm/backing-dev.c~backing-dev-ensure-wakeup_timer-is-deleted
-+++ a/mm/backing-dev.c
-@@ -724,6 +724,14 @@ void bdi_destroy(struct backing_dev_info
+diff -puN kernel/kexec.c~kdump-add-missing-ram-resource-in-crash_shrink_memory kernel/kexec.c
+--- a/kernel/kexec.c~kdump-add-missing-ram-resource-in-crash_shrink_memory
++++ a/kernel/kexec.c
+@@ -1129,6 +1129,7 @@ int crash_shrink_memory(unsigned long ne
+ {
+ 	int ret = 0;
+ 	unsigned long start, end;
++	struct resource *ram_res;
  
- 	bdi_unregister(bdi);
+ 	mutex_lock(&kexec_mutex);
  
-+	/*
-+	 * If bdi_unregister() had already been called earlier, the
-+	 * wakeup_timer could still be armed because bdi_prune_sb()
-+	 * can race with the bdi_wakeup_thread_delayed() calls from
-+	 * __mark_inode_dirty().
-+	 */
-+	del_timer_sync(&bdi->wb.wakeup_timer);
+@@ -1146,6 +1147,12 @@ int crash_shrink_memory(unsigned long ne
+ 		goto unlock;
+ 	}
+ 
++	ram_res = kzalloc(sizeof(*ram_res), GFP_KERNEL);
++	if (!ram_res) {
++		ret = -ENOMEM;
++		goto unlock;
++	}
 +
- 	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
- 		percpu_counter_destroy(&bdi->bdi_stat[i]);
+ 	start = roundup(start, KEXEC_CRASH_MEM_ALIGN);
+ 	end = roundup(start + new_size, KEXEC_CRASH_MEM_ALIGN);
  
+@@ -1154,7 +1161,15 @@ int crash_shrink_memory(unsigned long ne
+ 
+ 	if ((start == end) && (crashk_res.parent != NULL))
+ 		release_resource(&crashk_res);
++
++	ram_res->start = end;
++	ram_res->end = crashk_res.end;
++	ram_res->flags = IORESOURCE_BUSY | IORESOURCE_MEM;
++	ram_res->name = "System RAM";
++
+ 	crashk_res.end = end - 1;
++
++	insert_resource(&iomem_resource, ram_res);
+ 	crash_unmap_reserved_pages();
+ 
+ unlock:
 _
-Subject: Subject: backing-dev: ensure wakeup_timer is deleted
+Subject: Subject: kdump: add missing RAM resource in crash_shrink_memory()
 
-Patches currently in -mm which might be from rabin.vincent@stericsson.com are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
-backing-dev-ensure-wakeup_timer-is-deleted.patch
+linux-next.patch
+kdump-add-missing-ram-resource-in-crash_shrink_memory.patch
+kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch
+kdump-add-udev-events-for-memory-online-offline.patch
 
