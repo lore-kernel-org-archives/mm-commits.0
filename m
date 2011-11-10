@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local.patch added to -mm tree
-Date: Thu, 10 Nov 2011 14:52:42 -0800
-Message-ID: <201111102252.pAAMqg8V002766@wpaz17.hot.corp.google.com>
+Subject: + mmx86um-move-cmpxchg_local-config-option.patch added to -mm tree
+Date: Thu, 10 Nov 2011 14:52:46 -0800
+Message-ID: <201111102252.pAAMqkff002777@wpaz17.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-wy0-f202.google.com ([74.125.82.202]:34226 "EHLO
 	mail-wy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753081Ab1KJWwr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 17:52:47 -0500
-Received: by wyg8 with SMTP id 8so79478wyg.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 14:52:45 -0800 (PST)
+	with ESMTP id S1753081Ab1KJWwt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 17:52:49 -0500
+Received: by mail-wy0-f202.google.com with SMTP id 8so79478wyg.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 14:52:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: heiko.carstens@de.ibm.com, cl@linux.com, hpa@zytor.com, mingo@elte.hu, penbe
 
 
 The patch titled
-     Subject: mm,slub,x86: decouple size of struct page from CONFIG_CMPXCHG_LOCAL
+     Subject: mm,x86,um: move CMPXCHG_LOCAL config option
 has been added to the -mm tree.  Its filename is
-     mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local.patch
+     mmx86um-move-cmpxchg_local-config-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,26 +36,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: mm,slub,x86: decouple size of struct page from CONFIG_CMPXCHG_LOCAL
+Subject: mm,x86,um: move CMPXCHG_LOCAL config option
 
-While implementing cmpxchg_double() on s390 I realized that we don't set
-CONFIG_CMPXCHG_LOCAL besides the fact that we have support for it. 
-However setting that option will increase the size of struct page by eight
-bytes on 64 bit, which we certainly do not want.  Also, it doesn't make
-sense that a present cpu feature should increase the size of struct page.
-
-Besides that it looks like the dependency to CMPXCHG_LOCAL is wrong and
-that it should depend on CMPXCHG_DOUBLE instead.
-
-
-
-This patch:
-
-If an architecture supports CMPXCHG_LOCAL this shouldn't result
-automatically in larger struct pages if the SLUB allocator is used. 
-Instead introduce a new config option "HAVE_ALIGNED_STRUCT_PAGE" which can
-be selected if a double word aligned struct page is required.  Also update
-x86 Kconfig so that it should work as before.
+Move CMPXCHG_LOCAL and rename it to HAVE_CMPXCHG_LOCAL so architectures
+can simply select the option if it is supported.
 
 Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Acked-by: Christoph Lameter <cl@linux.com>
@@ -66,91 +50,76 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig             |    8 ++++++++
- arch/x86/Kconfig         |    1 +
- include/linux/mm_types.h |    9 ++++-----
- mm/slub.c                |    6 +++---
- 4 files changed, 16 insertions(+), 8 deletions(-)
+ arch/Kconfig         |    3 +++
+ arch/x86/Kconfig     |    1 +
+ arch/x86/Kconfig.cpu |    3 ---
+ arch/x86/um/Kconfig  |    4 ----
+ mm/vmstat.c          |    2 +-
+ 5 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN arch/Kconfig~mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local arch/Kconfig
---- a/arch/Kconfig~mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local
+diff -puN arch/Kconfig~mmx86um-move-cmpxchg_local-config-option arch/Kconfig
+--- a/arch/Kconfig~mmx86um-move-cmpxchg_local-config-option
 +++ a/arch/Kconfig
-@@ -185,4 +185,12 @@ config HAVE_RCU_TABLE_FREE
- config ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	bool
+@@ -193,4 +193,7 @@ config HAVE_ALIGNED_STRUCT_PAGE
+ 	  on a struct page for better performance. However selecting this
+ 	  might increase the size of a struct page by a word.
  
-+config HAVE_ALIGNED_STRUCT_PAGE
++config HAVE_CMPXCHG_LOCAL
 +	bool
-+	help
-+	  This makes sure that struct pages are double word aligned and that
-+	  e.g. the SLUB allocator can perform double word atomic operations
-+	  on a struct page for better performance. However selecting this
-+	  might increase the size of a struct page by a word.
 +
  source "kernel/gcov/Kconfig"
-diff -puN arch/x86/Kconfig~mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local arch/x86/Kconfig
---- a/arch/x86/Kconfig~mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local
+diff -puN arch/x86/Kconfig~mmx86um-move-cmpxchg_local-config-option arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mmx86um-move-cmpxchg_local-config-option
 +++ a/arch/x86/Kconfig
-@@ -76,6 +76,7 @@ config X86
- 	select HAVE_BPF_JIT if (X86_64 && NET)
+@@ -77,6 +77,7 @@ config X86
  	select CLKEVT_I8253
  	select ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	select HAVE_ALIGNED_STRUCT_PAGE if SLUB && !M386
+ 	select HAVE_ALIGNED_STRUCT_PAGE if SLUB && !M386
++	select HAVE_CMPXCHG_LOCAL if !M386
  
  config INSTRUCTION_DECODER
  	def_bool (KPROBES || PERF_EVENTS)
-diff -puN include/linux/mm_types.h~mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local include/linux/mm_types.h
---- a/include/linux/mm_types.h~mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local
-+++ a/include/linux/mm_types.h
-@@ -151,12 +151,11 @@ struct page {
- #endif
+diff -puN arch/x86/Kconfig.cpu~mmx86um-move-cmpxchg_local-config-option arch/x86/Kconfig.cpu
+--- a/arch/x86/Kconfig.cpu~mmx86um-move-cmpxchg_local-config-option
++++ a/arch/x86/Kconfig.cpu
+@@ -309,9 +309,6 @@ config X86_INTERNODE_CACHE_SHIFT
+ config X86_CMPXCHG
+ 	def_bool X86_64 || (X86_32 && !M386)
+ 
+-config CMPXCHG_LOCAL
+-	def_bool X86_64 || (X86_32 && !M386)
+-
+ config CMPXCHG_DOUBLE
+ 	def_bool y
+ 
+diff -puN arch/x86/um/Kconfig~mmx86um-move-cmpxchg_local-config-option arch/x86/um/Kconfig
+--- a/arch/x86/um/Kconfig~mmx86um-move-cmpxchg_local-config-option
++++ a/arch/x86/um/Kconfig
+@@ -6,10 +6,6 @@ menu "UML-specific options"
+ 
+ menu "Host processor type and features"
+ 
+-config CMPXCHG_LOCAL
+-	bool
+-	default n
+-
+ config CMPXCHG_DOUBLE
+ 	bool
+ 	default n
+diff -puN mm/vmstat.c~mmx86um-move-cmpxchg_local-config-option mm/vmstat.c
+--- a/mm/vmstat.c~mmx86um-move-cmpxchg_local-config-option
++++ a/mm/vmstat.c
+@@ -295,7 +295,7 @@ void __dec_zone_page_state(struct page *
  }
+ EXPORT_SYMBOL(__dec_zone_page_state);
+ 
+-#ifdef CONFIG_CMPXCHG_LOCAL
++#ifdef CONFIG_HAVE_CMPXCHG_LOCAL
  /*
-- * If another subsystem starts using the double word pairing for atomic
-- * operations on struct page then it must change the #if to ensure
-- * proper alignment of the page struct.
-+ * The struct page can be forced to be double word aligned so that atomic ops
-+ * on double words work. The SLUB allocator can make use of such a feature.
-  */
--#if defined(CONFIG_SLUB) && defined(CONFIG_CMPXCHG_LOCAL)
--	__attribute__((__aligned__(2*sizeof(unsigned long))))
-+#ifdef CONFIG_HAVE_ALIGNED_STRUCT_PAGE
-+	__aligned(2 * sizeof(unsigned long))
- #endif
- ;
- 
-diff -puN mm/slub.c~mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local mm/slub.c
---- a/mm/slub.c~mmslubx86-decouple-size-of-struct-page-from-config_cmpxchg_local
-+++ a/mm/slub.c
-@@ -366,7 +366,7 @@ static inline bool __cmpxchg_double_slab
- 		const char *n)
- {
- 	VM_BUG_ON(!irqs_disabled());
--#ifdef CONFIG_CMPXCHG_DOUBLE
-+#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (s->flags & __CMPXCHG_DOUBLE) {
- 		if (cmpxchg_double(&page->freelist,
- 			freelist_old, counters_old,
-@@ -400,7 +400,7 @@ static inline bool cmpxchg_double_slab(s
- 		void *freelist_new, unsigned long counters_new,
- 		const char *n)
- {
--#ifdef CONFIG_CMPXCHG_DOUBLE
-+#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (s->flags & __CMPXCHG_DOUBLE) {
- 		if (cmpxchg_double(&page->freelist,
- 			freelist_old, counters_old,
-@@ -2990,7 +2990,7 @@ static int kmem_cache_open(struct kmem_c
- 		}
- 	}
- 
--#ifdef CONFIG_CMPXCHG_DOUBLE
-+#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (system_has_cmpxchg_double() && (s->flags & SLAB_DEBUG_FLAGS) == 0)
- 		/* Enable fast mode */
- 		s->flags |= __CMPXCHG_DOUBLE;
+  * If we have cmpxchg_local support then we do not need to incur the overhead
+  * that comes with local_irq_save/restore if we use this_cpu_cmpxchg.
 _
-Subject: Subject: mm,slub,x86: decouple size of struct page from CONFIG_CMPXCHG_LOCAL
+Subject: Subject: mm,x86,um: move CMPXCHG_LOCAL config option
 
 Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
