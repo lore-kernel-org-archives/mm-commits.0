@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-mqueue-simplify-reading-msgqueue-limit.patch added to -mm tree
-Date: Wed, 09 Nov 2011 15:53:15 -0800
-Message-ID: <201111092353.pA9NrFv7014853@wpaz37.hot.corp.google.com>
+Subject: + crc32-optimize-inner-loop.patch added to -mm tree
+Date: Wed, 09 Nov 2011 16:16:11 -0800
+Message-ID: <201111100016.pAA0GBXe002150@wpaz17.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.44.51]:41277 "EHLO
+Received: from smtp-out.google.com ([216.239.44.51]:42170 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751661Ab1KIXxV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2011 18:53:21 -0500
+	with ESMTP id S1754977Ab1KJAQS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2011 19:16:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@gnu.org
+Cc: Joakim.Tjernlund@transmode.se, eric.dumazet@gmail.com, fzago@systemfabricworks.com, rpearson@systemfabricworks.com
 
 
 The patch titled
-     Subject: ipc/mqueue: simplify reading msgqueue limit
+     Subject: crc32: optimize inner loop
 has been added to the -mm tree.  Its filename is
-     ipc-mqueue-simplify-reading-msgqueue-limit.patch
+     crc32-optimize-inner-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@gnu.org>
-Subject: ipc/mqueue: simplify reading msgqueue limit
+From: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Subject: crc32: optimize inner loop
 
-Because the current task is being used to get the limit, we can simply use
-rlimit() instead of task_rlimit().
+Taking a pointer reference to each row in the crc table matrix, one can
+reduce the inner loop with a few insn's
 
-Signed-off-by: Davidlohr Bueso <dave@gnu.org>
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Cc: Frank Zago <fzago@systemfabricworks.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/crc32.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-simplify-reading-msgqueue-limit ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-simplify-reading-msgqueue-limit
-+++ a/ipc/mqueue.c
-@@ -128,7 +128,6 @@ static struct inode *mqueue_get_inode(st
+diff -puN lib/crc32.c~crc32-optimize-inner-loop lib/crc32.c
+--- a/lib/crc32.c~crc32-optimize-inner-loop
++++ a/lib/crc32.c
+@@ -51,20 +51,21 @@ static inline u32
+ crc32_body(u32 crc, unsigned char const *buf, size_t len, const u32 (*tab)[256])
+ {
+ # ifdef __LITTLE_ENDIAN
+-#  define DO_CRC(x) crc = tab[0][(crc ^ (x)) & 255] ^ (crc >> 8)
+-#  define DO_CRC4 crc = tab[3][(crc) & 255] ^ \
+-		tab[2][(crc >> 8) & 255] ^ \
+-		tab[1][(crc >> 16) & 255] ^ \
+-		tab[0][(crc >> 24) & 255]
++#  define DO_CRC(x) crc = t0[(crc ^ (x)) & 255] ^ (crc >> 8)
++#  define DO_CRC4 crc = t3[(crc) & 255] ^ \
++		t2[(crc >> 8) & 255] ^ \
++		t1[(crc >> 16) & 255] ^ \
++		t0[(crc >> 24) & 255]
+ # else
+-#  define DO_CRC(x) crc = tab[0][((crc >> 24) ^ (x)) & 255] ^ (crc << 8)
+-#  define DO_CRC4 crc = tab[0][(crc) & 255] ^ \
+-		tab[1][(crc >> 8) & 255] ^ \
+-		tab[2][(crc >> 16) & 255] ^ \
+-		tab[3][(crc >> 24) & 255]
++#  define DO_CRC(x) crc = t0[((crc >> 24) ^ (x)) & 255] ^ (crc << 8)
++#  define DO_CRC4 crc = t0[(crc) & 255] ^ \
++		t1[(crc >> 8) & 255] ^  \
++		t2[(crc >> 16) & 255] ^	\
++		t3[(crc >> 24) & 255]
+ # endif
+ 	const u32 *b;
+ 	size_t    rem_len;
++	const u32 *t0=tab[0], *t1=tab[1], *t2=tab[2], *t3=tab[3];
  
- 	if (S_ISREG(mode)) {
- 		struct mqueue_inode_info *info;
--		struct task_struct *p = current;
- 		unsigned long mq_bytes, mq_msg_tblsz;
- 
- 		inode->i_fop = &mqueue_file_operations;
-@@ -163,7 +162,7 @@ static struct inode *mqueue_get_inode(st
- 
- 		spin_lock(&mq_lock);
- 		if (u->mq_bytes + mq_bytes < u->mq_bytes ||
--		    u->mq_bytes + mq_bytes > task_rlimit(p, RLIMIT_MSGQUEUE)) {
-+		    u->mq_bytes + mq_bytes > rlimit(RLIMIT_MSGQUEUE)) {
- 			spin_unlock(&mq_lock);
- 			/* mqueue_evict_inode() releases info->messages */
- 			ret = -EMFILE;
+ 	/* Align it */
+ 	if (unlikely((long)buf & 3 && len)) {
 _
-Subject: Subject: ipc/mqueue: simplify reading msgqueue limit
+Subject: Subject: crc32: optimize inner loop
 
-Patches currently in -mm which might be from dave@gnu.org are
+Patches currently in -mm which might be from Joakim.Tjernlund@transmode.se are
 
-ipc-mqueue-simplify-reading-msgqueue-limit.patch
+crc32-optimize-inner-loop.patch
 
