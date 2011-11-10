@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-add-missing-ram-resource-in-crash_shrink_memory.patch added to -mm tree
-Date: Thu, 10 Nov 2011 15:27:40 -0800
-Message-ID: <201111102327.pAANRegH014244@wpaz5.hot.corp.google.com>
+Subject: + checkpatch-prefer-__printf-not-__attribute__formatprintf.patch added to -mm tree
+Date: Thu, 10 Nov 2011 15:29:11 -0800
+Message-ID: <201111102329.pAANTBfE001266@wpaz29.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:41078 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360Ab1KJX1n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 18:27:43 -0500
-Received: by ywb5 with SMTP id 5so255238ywb.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 15:27:42 -0800 (PST)
+Received: from mail-wy0-f202.google.com ([74.125.82.202]:52118 "EHLO
+	mail-wy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360Ab1KJX3P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 18:29:15 -0500
+Received: by wyg8 with SMTP id 8so80057wyg.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 15:29:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, vgoyal@redhat.com
+Cc: joe@perches.com
 
 
 The patch titled
-     Subject: kdump: add missing RAM resource in crash_shrink_memory()
+     Subject: checkpatch: prefer __printf over __attribute__((format(printf,...)))
 has been added to the -mm tree.  Its filename is
-     kdump-add-missing-ram-resource-in-crash_shrink_memory.patch
+     checkpatch-prefer-__printf-not-__attribute__formatprintf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,105 +35,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: kdump: add missing RAM resource in crash_shrink_memory()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: prefer __printf over __attribute__((format(printf,...)))
 
-When shrinking crashkernel memory using /sys/kernel/kexec_crash_size for
-the newly added memory no RAM resource is created at the moment.
+Add a warn for not using __printf.
 
-Example:
-
-$ cat /proc/iomem
-00000000-bfffffff : System RAM
-  00000000-005b7ac3 : Kernel code
-  005b7ac4-009743bf : Kernel data
-  009bb000-00a85c33 : Kernel bss
-c0000000-cfffffff : Crash kernel
-d0000000-ffffffff : System RAM
-
-$ echo 0 > /sys/kernel/kexec_crash_size
-$ cat /proc/iomem
-00000000-bfffffff : System RAM
-  00000000-005b7ac3 : Kernel code
-  005b7ac4-009743bf : Kernel data
-  009bb000-00a85c33 : Kernel bss
-                                 <<-- here is System RAM missing
-d0000000-ffffffff : System RAM
-
-One result of this bug is that the memory chunk can never be set offline
-using memory hotplug.  With this patch I insert a new "System RAM"
-resource for the released memory.  Then the upper example looks like the
-following:
-
-$ echo 0 > /sys/kernel/kexec_crash_size
-$ cat /proc/iomem
-00000000-bfffffff : System RAM
-  00000000-005b7ac3 : Kernel code
-  005b7ac4-009743bf : Kernel data
-  009bb000-00a85c33 : Kernel bss
-c0000000-cfffffff : System RAM   <<-- new rescoure
-d0000000-ffffffff : System RAM
-
-And now I can set chunk c0000000-cfffffff offline.
-
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/kexec.c~kdump-add-missing-ram-resource-in-crash_shrink_memory kernel/kexec.c
---- a/kernel/kexec.c~kdump-add-missing-ram-resource-in-crash_shrink_memory
-+++ a/kernel/kexec.c
-@@ -1129,6 +1129,7 @@ int crash_shrink_memory(unsigned long ne
- {
- 	int ret = 0;
- 	unsigned long start, end;
-+	struct resource *ram_res;
+diff -puN scripts/checkpatch.pl~checkpatch-prefer-__printf-not-__attribute__formatprintf scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-prefer-__printf-not-__attribute__formatprintf
++++ a/scripts/checkpatch.pl
+@@ -3114,6 +3114,12 @@ sub process {
+ 			     "__aligned(size) is preferred over __attribute__((aligned(size)))\n" . $herecurr);
+ 		}
  
- 	mutex_lock(&kexec_mutex);
- 
-@@ -1146,6 +1147,12 @@ int crash_shrink_memory(unsigned long ne
- 		goto unlock;
- 	}
- 
-+	ram_res = kzalloc(sizeof(*ram_res), GFP_KERNEL);
-+	if (!ram_res) {
-+		ret = -ENOMEM;
-+		goto unlock;
-+	}
++# Check for __attribute__ format(printf, prefer __printf
++		if ($line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf/) {
++			WARN("PREFER_PRINTF",
++			     "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr);
++		}
 +
- 	start = roundup(start, KEXEC_CRASH_MEM_ALIGN);
- 	end = roundup(start + new_size, KEXEC_CRASH_MEM_ALIGN);
- 
-@@ -1154,7 +1161,15 @@ int crash_shrink_memory(unsigned long ne
- 
- 	if ((start == end) && (crashk_res.parent != NULL))
- 		release_resource(&crashk_res);
-+
-+	ram_res->start = end;
-+	ram_res->end = crashk_res.end;
-+	ram_res->flags = IORESOURCE_BUSY | IORESOURCE_MEM;
-+	ram_res->name = "System RAM";
-+
- 	crashk_res.end = end - 1;
-+
-+	insert_resource(&iomem_resource, ram_res);
- 	crash_unmap_reserved_pages();
- 
- unlock:
+ # check for sizeof(&)
+ 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
+ 			WARN("SIZEOF_ADDRESS",
 _
-Subject: Subject: kdump: add missing RAM resource in crash_shrink_memory()
+Subject: Subject: checkpatch: prefer __printf over __attribute__((format(printf,...)))
 
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-kdump-add-missing-ram-resource-in-crash_shrink_memory.patch
-kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch
-kdump-add-udev-events-for-memory-online-offline.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
+kernelh-neaten-panic-prototype.patch
+linkage-remove-unused-noret_and-macro.patch
+treewide-remove-useless-noret_type-macro-and-uses.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+linkage-remove-unused-attrib_noret-macro.patch
+checkpatch-update-signature-might-be-better-as-warning.patch
+checkpatch-prefer-__printf-not-__attribute__formatprintf.patch
 
