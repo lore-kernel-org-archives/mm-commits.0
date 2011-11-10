@@ -1,694 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] lib-crc-add-slice-by-8-algorithm-to-crc32c.patch removed from -mm tree
-Date: Wed, 09 Nov 2011 16:17:09 -0800
-Message-ID: <201111100017.pAA0H9N1024913@wpaz24.hot.corp.google.com>
+Subject: [wrecked] proc-force-dcache-drop-on-unauthorized-access.patch removed from -mm tree
+Date: Thu, 10 Nov 2011 12:30:45 -0800
+Message-ID: <201111102030.pAAKUklO010084@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([74.125.121.67]:45906 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754695Ab1KJAR1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2011 19:17:27 -0500
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:44051 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984Ab1KJVb4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2011 16:31:56 -0500
+Received: by ggnu2 with SMTP id u2so291130ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 Nov 2011 13:31:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fzago@systemfabricworks.com, eric.dumazet@gmail.com, roland@kernel.org, rpearson@systemfabricworks.com, mm-commits@vger.kernel.org
+To: segoon@openwall.com, adobriyan@gmail.com, cl@linux-foundation.org, gorcunov@gmail.com, mpm@selenic.com, penberg@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/crc: add slice by 8 algorithm to crc32.c
+     Subject: proc: force dcache drop on unauthorized access
 has been removed from the -mm tree.  Its filename was
-     lib-crc-add-slice-by-8-algorithm-to-crc32c.patch
+     proc-force-dcache-drop-on-unauthorized-access.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because other changes were merged, which wrecked this patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: frank zago <fzago@systemfabricworks.com>
-Subject: lib/crc: add slice by 8 algorithm to crc32.c
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: proc: force dcache drop on unauthorized access
 
-Add support for slice by 8 to existing crc32 algorithm.  Also modify
-gen_crc32table.c to only produce table entries that are actually used. 
-The parameters CRC_LE_BITS and CRC_BE_BITS determine the number of bits in
-the input array that are processed during each step.  Generally the more
-bits the faster the algorithm is but the more table data required.
+The patch "proc: fix races against execve() of /proc/PID/fd**" is still a
+partial fix for a setxid problem.  link(2) is a yet another way to
+identify whether a specific fd is opened by a privileged process.  By
+calling link(2) against /proc/PID/fd/* an attacker may identify whether
+the fd number is valid for PID by analysing link(2) return code.
 
-Using an x86_64 Opteron machine running at 2100MHz the following table was
-collected with a pre-warmed cache by computing the crc 1000 times on a
-buffer of 4096 bytes.
+Both getattr() and link() can be used by the attacker iff the dentry is
+present in the dcache.  In this case ->lookup() is not called and the only
+way to check ptrace permissions is either operation handler or
+->revalidate().  The easiest solution to prevent any unauthorized access
+to /proc/PID/fd*/ files is to force the dentry drop on each unauthorized
+access attempt.
 
-	BITS	Size	LE Cycles/byte	BE Cycles/byte
-	----------------------------------------------
-	1	873	41.65		34.60
-	2	1097	25.43		29.61
-	4	1057	13.29		15.28
-	8	2913	7.13		8.19
-	32	9684	2.80		2.82
-	64	18178	1.53		1.53
+If an attacker keeps opened fd of /proc/PID/fd/ and dcache contains a
+specific dentry for some /proc/PID/fd/XXX, any future attemp to use the
+dentry by the attacker would lead to the dentry drop as a result of a
+failed ptrace check in ->revalidate().  Then the attacker cannot spawn a
+dentry for the specific fd number because of ptrace check in ->lookup().
 
-	BITS is the value of CRC_LE_BITS or CRC_BE_BITS. The old
-	default was 8 which actually selected the 32 bit algorithm. In
-	this version the value 8 is used to select the standard
-	8 bit algorithm and two new values: 32 and 64 are introduced
-	to select the slice by 4 and slice by 8 algorithms respectively.
+The dentry drop can be still observed by an attacker by analysing
+information from /proc/slabinfo, which is addressed in the successive
+patch.
 
-	Where Size is the size of crc32.o's text segment which includes
-	code and table data when both LE and BE versions are set to BITS.
-
-The current version of crc32.c by default uses the slice by 4 algorithm
-which requires about 2.8 cycles per byte.  The slice by 8 algorithm is
-roughly 2X faster and enables packet processing at over 1GB/sec on a
-typical 2-3GHz system.
-
-[akpm@linux-foundation.org: don't include asm/msr.h]
-Signed-off-by: Bob Pearson <rpearson@systemfabricworks.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: frank zago <fzago@systemfabricworks.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c          |  372 ++++++++++++++++++++++++++++-------------
- lib/crc32defs.h      |   16 -
- lib/gen_crc32table.c |   59 ++++--
- 3 files changed, 310 insertions(+), 137 deletions(-)
+ fs/proc/base.c |   42 ++++++------------------------------------
+ 1 file changed, 6 insertions(+), 36 deletions(-)
 
-diff -puN lib/crc32.c~lib-crc-add-slice-by-8-algorithm-to-crc32c lib/crc32.c
---- a/lib/crc32.c~lib-crc-add-slice-by-8-algorithm-to-crc32c
-+++ a/lib/crc32.c
-@@ -1,4 +1,8 @@
- /*
-+ * July 20, 2011 Bob Pearson <rpearson at systemfabricworks.com>
-+ * added slice by 8 algorithm to the existing conventional and
-+ * slice by 4 algorithms.
-+ *
-  * Oct 15, 2000 Matt Domsch <Matt_Domsch@dell.com>
-  * Nicer crc32 functions/docs submitted by linux@horizon.com.  Thanks!
-  * Code was from the public domain, copyright abandoned.  Code was
-@@ -19,7 +23,6 @@
-  * This source code is licensed under the GNU General Public License,
-  * Version 2.  See the file COPYING for more details.
-  */
--
- #include <linux/crc32.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -28,14 +31,15 @@
- #include <linux/init.h>
- #include <linux/atomic.h>
- #include "crc32defs.h"
--#if CRC_LE_BITS == 8
--# define tole(x) __constant_cpu_to_le32(x)
-+
-+#if CRC_LE_BITS > 8
-+# define tole(x) (__force u32) __constant_cpu_to_le32(x)
- #else
- # define tole(x) (x)
- #endif
- 
--#if CRC_BE_BITS == 8
--# define tobe(x) __constant_cpu_to_be32(x)
-+#if CRC_BE_BITS > 8
-+# define tobe(x) (__force u32) __constant_cpu_to_be32(x)
- #else
- # define tobe(x) (x)
- #endif
-@@ -45,54 +49,228 @@ MODULE_AUTHOR("Matt Domsch <Matt_Domsch@
- MODULE_DESCRIPTION("Ethernet CRC32 calculations");
- MODULE_LICENSE("GPL");
- 
--#if CRC_LE_BITS == 8 || CRC_BE_BITS == 8
-+#if CRC_LE_BITS > 8
-+static inline u32 crc32_le_body(u32 crc, u8 const *buf, size_t len)
-+{
-+	const u8 *p8;
-+	const u32 *p32;
-+	int init_bytes, end_bytes;
-+	size_t words;
-+	int i;
-+	u32 q;
-+	u8 i0, i1, i2, i3;
-+
-+	crc = (__force u32) __cpu_to_le32(crc);
-+
-+#if CRC_LE_BITS == 64
-+	p8 = buf;
-+	p32 = (u32 *)(((uintptr_t)p8 + 7) & ~7);
-+
-+	init_bytes = (uintptr_t)p32 - (uintptr_t)p8;
-+	if (init_bytes > len)
-+		init_bytes = len;
-+	words = (len - init_bytes) >> 3;
-+	end_bytes = (len - init_bytes) & 7;
-+#else
-+	p8 = buf;
-+	p32 = (u32 *)(((uintptr_t)p8 + 3) & ~3);
-+
-+	init_bytes = (uintptr_t)p32 - (uintptr_t)p8;
-+	if (init_bytes > len)
-+		init_bytes = len;
-+	words = (len - init_bytes) >> 2;
-+	end_bytes = (len - init_bytes) & 3;
-+#endif
-+
-+	for (i = 0; i < init_bytes; i++) {
-+#ifdef __LITTLE_ENDIAN
-+		i0 = *p8++ ^ crc;
-+		crc = t0_le[i0] ^ (crc >> 8);
-+#else
-+		i0 = *p8++ ^ (crc >> 24);
-+		crc = t0_le[i0] ^ (crc << 8);
-+#endif
-+	}
-+
-+	for (i = 0; i < words; i++) {
-+#ifdef __LITTLE_ENDIAN
-+#  if CRC_LE_BITS == 64
-+		/* slice by 8 algorithm */
-+		q = *p32++ ^ crc;
-+		i3 = q;
-+		i2 = q >> 8;
-+		i1 = q >> 16;
-+		i0 = q >> 24;
-+		crc = t7_le[i3] ^ t6_le[i2] ^ t5_le[i1] ^ t4_le[i0];
-+
-+		q = *p32++;
-+		i3 = q;
-+		i2 = q >> 8;
-+		i1 = q >> 16;
-+		i0 = q >> 24;
-+		crc ^= t3_le[i3] ^ t2_le[i2] ^ t1_le[i1] ^ t0_le[i0];
-+#  else
-+		/* slice by 4 algorithm */
-+		q = *p32++ ^ crc;
-+		i3 = q;
-+		i2 = q >> 8;
-+		i1 = q >> 16;
-+		i0 = q >> 24;
-+		crc = t3_le[i3] ^ t2_le[i2] ^ t1_le[i1] ^ t0_le[i0];
-+#  endif
-+#else
-+#  if CRC_LE_BITS == 64
-+		q = *p32++ ^ crc;
-+		i3 = q >> 24;
-+		i2 = q >> 16;
-+		i1 = q >> 8;
-+		i0 = q;
-+		crc = t7_le[i3] ^ t6_le[i2] ^ t5_le[i1] ^ t4_le[i0];
-+
-+		q = *p32++;
-+		i3 = q >> 24;
-+		i2 = q >> 16;
-+		i1 = q >> 8;
-+		i0 = q;
-+		crc ^= t3_le[i3] ^ t2_le[i2] ^ t1_le[i1] ^ t0_le[i0];
-+#  else
-+		q = *p32++ ^ crc;
-+		i3 = q >> 24;
-+		i2 = q >> 16;
-+		i1 = q >> 8;
-+		i0 = q;
-+		crc = t3_le[i3] ^ t2_le[i2] ^ t1_le[i1] ^ t0_le[i0];
-+#  endif
-+#endif
-+	}
-+
-+	p8 = (u8 *)p32;
-+
-+	for (i = 0; i < end_bytes; i++) {
-+#ifdef __LITTLE_ENDIAN
-+		i0 = *p8++ ^ crc;
-+		crc = t0_le[i0] ^ (crc >> 8);
-+#else
-+		i0 = *p8++ ^ (crc >> 24);
-+		crc = t0_le[i0] ^ (crc << 8);
-+#endif
-+	}
-+
-+	return __le32_to_cpu((__force __le32)crc);
-+}
-+#endif
- 
--static inline u32
--crc32_body(u32 crc, unsigned char const *buf, size_t len, const u32 (*tab)[256])
-+#if CRC_BE_BITS > 8
-+static inline u32 crc32_be_body(u32 crc, u8 const *buf, size_t len)
- {
--# ifdef __LITTLE_ENDIAN
--#  define DO_CRC(x) crc = tab[0][(crc ^ (x)) & 255] ^ (crc >> 8)
--#  define DO_CRC4 crc = tab[3][(crc) & 255] ^ \
--		tab[2][(crc >> 8) & 255] ^ \
--		tab[1][(crc >> 16) & 255] ^ \
--		tab[0][(crc >> 24) & 255]
--# else
--#  define DO_CRC(x) crc = tab[0][((crc >> 24) ^ (x)) & 255] ^ (crc << 8)
--#  define DO_CRC4 crc = tab[0][(crc) & 255] ^ \
--		tab[1][(crc >> 8) & 255] ^ \
--		tab[2][(crc >> 16) & 255] ^ \
--		tab[3][(crc >> 24) & 255]
--# endif
--	const u32 *b;
--	size_t    rem_len;
-+	const u8 *p8;
-+	const u32 *p32;
-+	int init_bytes, end_bytes;
-+	size_t words;
-+	int i;
-+	u32 q;
-+	u8 i0, i1, i2, i3;
-+
-+	crc = (__force u32) __cpu_to_be32(crc);
-+
-+#if CRC_LE_BITS == 64
-+	p8 = buf;
-+	p32 = (u32 *)(((uintptr_t)p8 + 7) & ~7);
-+
-+	init_bytes = (uintptr_t)p32 - (uintptr_t)p8;
-+	if (init_bytes > len)
-+		init_bytes = len;
-+	words = (len - init_bytes) >> 3;
-+	end_bytes = (len - init_bytes) & 7;
-+#else
-+	p8 = buf;
-+	p32 = (u32 *)(((uintptr_t)p8 + 3) & ~3);
-+
-+	init_bytes = (uintptr_t)p32 - (uintptr_t)p8;
-+	if (init_bytes > len)
-+		init_bytes = len;
-+	words = (len - init_bytes) >> 2;
-+	end_bytes = (len - init_bytes) & 3;
-+#endif
-+
-+	for (i = 0; i < init_bytes; i++) {
-+#ifdef __LITTLE_ENDIAN
-+		i0 = *p8++ ^ crc;
-+		crc = t0_be[i0] ^ (crc >> 8);
-+#else
-+		i0 = *p8++ ^ (crc >> 24);
-+		crc = t0_be[i0] ^ (crc << 8);
-+#endif
-+	}
- 
--	/* Align it */
--	if (unlikely((long)buf & 3 && len)) {
--		do {
--			DO_CRC(*buf++);
--		} while ((--len) && ((long)buf)&3);
--	}
--	rem_len = len & 3;
--	/* load data 32 bits wide, xor data 32 bits wide. */
--	len = len >> 2;
--	b = (const u32 *)buf;
--	for (--b; len; --len) {
--		crc ^= *++b; /* use pre increment for speed */
--		DO_CRC4;
--	}
--	len = rem_len;
--	/* And the last few bytes */
--	if (len) {
--		u8 *p = (u8 *)(b + 1) - 1;
--		do {
--			DO_CRC(*++p); /* use pre increment for speed */
--		} while (--len);
-+	for (i = 0; i < words; i++) {
-+#ifdef __LITTLE_ENDIAN
-+#  if CRC_LE_BITS == 64
-+		/* slice by 8 algorithm */
-+		q = *p32++ ^ crc;
-+		i3 = q;
-+		i2 = q >> 8;
-+		i1 = q >> 16;
-+		i0 = q >> 24;
-+		crc = t7_be[i3] ^ t6_be[i2] ^ t5_be[i1] ^ t4_be[i0];
-+
-+		q = *p32++;
-+		i3 = q;
-+		i2 = q >> 8;
-+		i1 = q >> 16;
-+		i0 = q >> 24;
-+		crc ^= t3_be[i3] ^ t2_be[i2] ^ t1_be[i1] ^ t0_be[i0];
-+#  else
-+		/* slice by 4 algorithm */
-+		q = *p32++ ^ crc;
-+		i3 = q;
-+		i2 = q >> 8;
-+		i1 = q >> 16;
-+		i0 = q >> 24;
-+		crc = t3_be[i3] ^ t2_be[i2] ^ t1_be[i1] ^ t0_be[i0];
-+#  endif
-+#else
-+#  if CRC_LE_BITS == 64
-+		q = *p32++ ^ crc;
-+		i3 = q >> 24;
-+		i2 = q >> 16;
-+		i1 = q >> 8;
-+		i0 = q;
-+		crc = t7_be[i3] ^ t6_be[i2] ^ t5_be[i1] ^ t4_be[i0];
-+
-+		q = *p32++;
-+		i3 = q >> 24;
-+		i2 = q >> 16;
-+		i1 = q >> 8;
-+		i0 = q;
-+		crc ^= t3_be[i3] ^ t2_be[i2] ^ t1_be[i1] ^ t0_be[i0];
-+#  else
-+		q = *p32++ ^ crc;
-+		i3 = q >> 24;
-+		i2 = q >> 16;
-+		i1 = q >> 8;
-+		i0 = q;
-+		crc = t3_be[i3] ^ t2_be[i2] ^ t1_be[i1] ^ t0_be[i0];
-+#  endif
-+#endif
- 	}
--	return crc;
--#undef DO_CRC
--#undef DO_CRC4
-+
-+	p8 = (u8 *)p32;
-+
-+	for (i = 0; i < end_bytes; i++) {
-+#ifdef __LITTLE_ENDIAN
-+		i0 = *p8++ ^ crc;
-+		crc = t0_be[i0] ^ (crc >> 8);
-+#else
-+		i0 = *p8++ ^ (crc >> 24);
-+		crc = t0_be[i0] ^ (crc << 8);
-+#endif
-+	}
-+
-+	return __be32_to_cpu((__force __be32)crc);
+diff -puN fs/proc/base.c~proc-force-dcache-drop-on-unauthorized-access fs/proc/base.c
+--- a/fs/proc/base.c~proc-force-dcache-drop-on-unauthorized-access
++++ a/fs/proc/base.c
+@@ -1652,46 +1652,12 @@ out:
+ 	return error;
  }
- #endif
-+
- /**
-  * crc32_le() - Calculate bitwise little-endian Ethernet AUTODIN II CRC32
-  * @crc: seed value for computation.  ~0 for Ethernet, sometimes 0 for
-@@ -100,53 +278,40 @@ crc32_body(u32 crc, unsigned char const 
-  * @p: pointer to buffer over which CRC is run
-  * @len: length of buffer @p
-  */
--u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len);
--
--#if CRC_LE_BITS == 1
--/*
-- * In fact, the table-based code will work in this case, but it can be
-- * simplified by inlining the table in ?: form.
-- */
--
- u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
- {
-+#if CRC_LE_BITS == 1
- 	int i;
- 	while (len--) {
- 		crc ^= *p++;
- 		for (i = 0; i < 8; i++)
- 			crc = (crc >> 1) ^ ((crc & 1) ? CRCPOLY_LE : 0);
- 	}
--	return crc;
--}
--#else				/* Table-based approach */
--
--u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
+ 
+-static int proc_pid_fd_link_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		struct kstat *stat)
 -{
--# if CRC_LE_BITS == 8
--	const u32      (*tab)[] = crc32table_le;
+-	struct inode *inode = dentry->d_inode;
+-	struct task_struct *task = get_proc_task(inode);
+-	int rc;
 -
--	crc = __cpu_to_le32(crc);
--	crc = crc32_body(crc, p, len, tab);
--	return __le32_to_cpu(crc);
-+# elif CRC_LE_BITS == 2
-+	while (len--) {
-+		crc ^= *p++;
-+		crc = (crc >> 2) ^ t0_le[crc & 0x03];
-+		crc = (crc >> 2) ^ t0_le[crc & 0x03];
-+		crc = (crc >> 2) ^ t0_le[crc & 0x03];
-+		crc = (crc >> 2) ^ t0_le[crc & 0x03];
-+	}
- # elif CRC_LE_BITS == 4
- 	while (len--) {
- 		crc ^= *p++;
--		crc = (crc >> 4) ^ crc32table_le[crc & 15];
--		crc = (crc >> 4) ^ crc32table_le[crc & 15];
-+		crc = (crc >> 4) ^ t0_le[crc & 0x0f];
-+		crc = (crc >> 4) ^ t0_le[crc & 0x0f];
- 	}
--	return crc;
--# elif CRC_LE_BITS == 2
-+# elif CRC_LE_BITS == 8
- 	while (len--) {
- 		crc ^= *p++;
--		crc = (crc >> 2) ^ crc32table_le[crc & 3];
--		crc = (crc >> 2) ^ crc32table_le[crc & 3];
--		crc = (crc >> 2) ^ crc32table_le[crc & 3];
--		crc = (crc >> 2) ^ crc32table_le[crc & 3];
-+		crc = (crc >> 8) ^ t0_le[crc & 0xff];
- 	}
--	return crc;
-+# else
-+	crc = crc32_le_body(crc, p, len);
- # endif
-+	return crc;
- }
--#endif
-+EXPORT_SYMBOL(crc32_le);
- 
- /**
-  * crc32_be() - Calculate bitwise big-endian Ethernet AUTODIN II CRC32
-@@ -155,57 +320,40 @@ u32 __pure crc32_le(u32 crc, unsigned ch
-  * @p: pointer to buffer over which CRC is run
-  * @len: length of buffer @p
-  */
--u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len);
+-	if (task == NULL)
+-		return -ESRCH;
 -
--#if CRC_BE_BITS == 1
--/*
-- * In fact, the table-based code will work in this case, but it can be
-- * simplified by inlining the table in ?: form.
-- */
+-	rc = -EACCES;
+-	if (lock_trace(task))
+-		goto out_task;
 -
- u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
- {
-+#if CRC_BE_BITS == 1
- 	int i;
- 	while (len--) {
- 		crc ^= *p++ << 24;
- 		for (i = 0; i < 8; i++)
--			crc =
--			    (crc << 1) ^ ((crc & 0x80000000) ? CRCPOLY_BE :
--					  0);
-+			crc = (crc << 1) ^
-+			      ((crc & 0x80000000) ? CRCPOLY_BE : 0);
-+	}
-+# elif CRC_BE_BITS == 2
-+	while (len--) {
-+		crc ^= *p++ << 24;
-+		crc = (crc << 2) ^ t0_be[crc >> 30];
-+		crc = (crc << 2) ^ t0_be[crc >> 30];
-+		crc = (crc << 2) ^ t0_be[crc >> 30];
-+		crc = (crc << 2) ^ t0_be[crc >> 30];
- 	}
--	return crc;
+-	generic_fillattr(inode, stat);
+-	unlock_trace(task);
+-	rc = 0;
+-out_task:
+-	put_task_struct(task);
+-	return rc;
 -}
 -
--#else				/* Table-based approach */
--u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
--{
--# if CRC_BE_BITS == 8
--	const u32      (*tab)[] = crc32table_be;
+ static const struct inode_operations proc_pid_link_inode_operations = {
+ 	.readlink	= proc_pid_readlink,
+ 	.follow_link	= proc_pid_follow_link,
+ 	.setattr	= proc_setattr,
+ };
+ 
+-static const struct inode_operations proc_fdinfo_link_inode_operations = {
+-	.setattr	= proc_setattr,
+-	.getattr	= proc_pid_fd_link_getattr,
+-};
 -
--	crc = __cpu_to_be32(crc);
--	crc = crc32_body(crc, p, len, tab);
--	return __be32_to_cpu(crc);
- # elif CRC_BE_BITS == 4
- 	while (len--) {
- 		crc ^= *p++ << 24;
--		crc = (crc << 4) ^ crc32table_be[crc >> 28];
--		crc = (crc << 4) ^ crc32table_be[crc >> 28];
-+		crc = (crc << 4) ^ t0_be[crc >> 28];
-+		crc = (crc << 4) ^ t0_be[crc >> 28];
- 	}
--	return crc;
--# elif CRC_BE_BITS == 2
-+# elif CRC_BE_BITS == 8
- 	while (len--) {
- 		crc ^= *p++ << 24;
--		crc = (crc << 2) ^ crc32table_be[crc >> 30];
--		crc = (crc << 2) ^ crc32table_be[crc >> 30];
--		crc = (crc << 2) ^ crc32table_be[crc >> 30];
--		crc = (crc << 2) ^ crc32table_be[crc >> 30];
-+		crc = (crc << 8) ^ t0_be[crc >> 24];
- 	}
--	return crc;
-+# else
-+	crc = crc32_be_body(crc, p, len);
- # endif
-+	return crc;
- }
--#endif
+-static const struct inode_operations proc_fd_link_inode_operations = {
+-	.readlink	= proc_pid_readlink,
+-	.follow_link	= proc_pid_follow_link,
+-	.setattr	= proc_setattr,
+-	.getattr	= proc_pid_fd_link_getattr,
+-};
 -
--EXPORT_SYMBOL(crc32_le);
- EXPORT_SYMBOL(crc32_be);
  
- /*
-diff -puN lib/crc32defs.h~lib-crc-add-slice-by-8-algorithm-to-crc32c lib/crc32defs.h
---- a/lib/crc32defs.h~lib-crc-add-slice-by-8-algorithm-to-crc32c
-+++ a/lib/crc32defs.h
-@@ -6,27 +6,29 @@
- #define CRCPOLY_LE 0xedb88320
- #define CRCPOLY_BE 0x04c11db7
+ /* building an inode */
  
--/* How many bits at a time to use.  Requires a table of 4<<CRC_xx_BITS bytes. */
-+/* How many bits at a time to use.  Valid values are 1, 2, 4, 8, 32 and 64. */
- /* For less performance-sensitive, use 4 */
- #ifndef CRC_LE_BITS 
--# define CRC_LE_BITS 8
-+# define CRC_LE_BITS 64
- #endif
- #ifndef CRC_BE_BITS
--# define CRC_BE_BITS 8
-+# define CRC_BE_BITS 64
- #endif
+@@ -2000,6 +1966,11 @@ static int tid_fd_revalidate(struct dent
+ 	task = get_proc_task(inode);
+ 	fd = proc_fd(inode);
  
- /*
-  * Little-endian CRC computation.  Used with serial bit streams sent
-  * lsbit-first.  Be sure to use cpu_to_le32() to append the computed CRC.
-  */
--#if CRC_LE_BITS > 8 || CRC_LE_BITS < 1 || CRC_LE_BITS & CRC_LE_BITS-1
--# error CRC_LE_BITS must be a power of 2 between 1 and 8
-+#if CRC_LE_BITS > 64 || CRC_LE_BITS < 1 || CRC_LE_BITS == 16 || \
-+	CRC_LE_BITS & CRC_LE_BITS-1
-+# error "CRC_LE_BITS must be one of {1, 2, 4, 8, 32, 64}"
- #endif
- 
- /*
-  * Big-endian CRC computation.  Used with serial bit streams sent
-  * msbit-first.  Be sure to use cpu_to_be32() to append the computed CRC.
-  */
--#if CRC_BE_BITS > 8 || CRC_BE_BITS < 1 || CRC_BE_BITS & CRC_BE_BITS-1
--# error CRC_BE_BITS must be a power of 2 between 1 and 8
-+#if CRC_BE_BITS > 64 || CRC_BE_BITS < 1 || CRC_BE_BITS == 16 || \
-+	CRC_BE_BITS & CRC_BE_BITS-1
-+# error "CRC_BE_BITS must be one of {1, 2, 4, 8, 32, 64}"
- #endif
-diff -puN lib/gen_crc32table.c~lib-crc-add-slice-by-8-algorithm-to-crc32c lib/gen_crc32table.c
---- a/lib/gen_crc32table.c~lib-crc-add-slice-by-8-algorithm-to-crc32c
-+++ a/lib/gen_crc32table.c
-@@ -4,11 +4,20 @@
- 
- #define ENTRIES_PER_LINE 4
- 
-+#if CRC_LE_BITS <= 8
- #define LE_TABLE_SIZE (1 << CRC_LE_BITS)
-+#else
-+#define LE_TABLE_SIZE 256
-+#endif
++	if (!ptrace_may_access(task, PTRACE_MODE_READ)) {
++		put_task_struct(task);
++		task = NULL;
++	}
 +
-+#if CRC_BE_BITS <= 8
- #define BE_TABLE_SIZE (1 << CRC_BE_BITS)
-+#else
-+#define BE_TABLE_SIZE 256
-+#endif
+ 	if (task) {
+ 		files = get_files_struct(task);
+ 		if (files) {
+@@ -2072,7 +2043,7 @@ static struct dentry *proc_fd_instantiat
+ 	spin_unlock(&files->file_lock);
+ 	put_files_struct(files);
  
--static uint32_t crc32table_le[4][LE_TABLE_SIZE];
--static uint32_t crc32table_be[4][BE_TABLE_SIZE];
-+static uint32_t crc32table_le[8][256];
-+static uint32_t crc32table_be[8][256];
- 
- /**
-  * crc32init_le() - allocate and initialize LE table data
-@@ -24,14 +33,14 @@ static void crc32init_le(void)
- 
- 	crc32table_le[0][0] = 0;
- 
--	for (i = 1 << (CRC_LE_BITS - 1); i; i >>= 1) {
-+	for (i = LE_TABLE_SIZE >> 1; i; i >>= 1) {
- 		crc = (crc >> 1) ^ ((crc & 1) ? CRCPOLY_LE : 0);
- 		for (j = 0; j < LE_TABLE_SIZE; j += 2 * i)
- 			crc32table_le[0][i + j] = crc ^ crc32table_le[0][j];
- 	}
- 	for (i = 0; i < LE_TABLE_SIZE; i++) {
- 		crc = crc32table_le[0][i];
--		for (j = 1; j < 4; j++) {
-+		for (j = 1; j < 8; j++) {
- 			crc = crc32table_le[0][crc & 0xff] ^ (crc >> 8);
- 			crc32table_le[j][i] = crc;
- 		}
-@@ -55,44 +64,58 @@ static void crc32init_be(void)
- 	}
- 	for (i = 0; i < BE_TABLE_SIZE; i++) {
- 		crc = crc32table_be[0][i];
--		for (j = 1; j < 4; j++) {
-+		for (j = 1; j < 8; j++) {
- 			crc = crc32table_be[0][(crc >> 24) & 0xff] ^ (crc << 8);
- 			crc32table_be[j][i] = crc;
- 		}
- 	}
- }
- 
--static void output_table(uint32_t table[4][256], int len, char *trans)
-+static void output_table(uint32_t table[8][256], int len, char trans)
- {
- 	int i, j;
- 
--	for (j = 0 ; j < 4; j++) {
--		printf("{");
-+	for (j = 0 ; j < 8; j++) {
-+		printf("static const u32 t%d_%ce[] = {", j, trans);
- 		for (i = 0; i < len - 1; i++) {
--			if (i % ENTRIES_PER_LINE == 0)
-+			if ((i % ENTRIES_PER_LINE) == 0)
- 				printf("\n");
--			printf("%s(0x%8.8xL), ", trans, table[j][i]);
-+			printf("to%ce(0x%8.8xL),", trans, table[j][i]);
-+			if ((i % ENTRIES_PER_LINE) != (ENTRIES_PER_LINE - 1))
-+				printf(" ");
-+		}
-+		printf("to%ce(0x%8.8xL)};\n\n", trans, table[j][len - 1]);
-+
-+		if (trans == 'l') {
-+			if ((j+1)*8 >= CRC_LE_BITS)
-+				break;
-+		} else {
-+			if ((j+1)*8 >= CRC_BE_BITS)
-+				break;
- 		}
--		printf("%s(0x%8.8xL)},\n", trans, table[j][len - 1]);
- 	}
- }
- 
- int main(int argc, char** argv)
- {
--	printf("/* this file is generated - do not edit */\n\n");
-+	printf("/*\n");
-+	printf(" * crc32table.h - CRC32 tables\n");
-+	printf(" *    this file is generated - do not edit\n");
-+	printf(" *	# gen_crc32table > crc32table.h\n");
-+	printf(" *    with\n");
-+	printf(" *	CRC_LE_BITS = %d\n", CRC_LE_BITS);
-+	printf(" *	CRC_BE_BITS = %d\n", CRC_BE_BITS);
-+	printf(" */\n");
-+	printf("\n");
- 
- 	if (CRC_LE_BITS > 1) {
- 		crc32init_le();
--		printf("static const u32 crc32table_le[4][256] = {");
--		output_table(crc32table_le, LE_TABLE_SIZE, "tole");
--		printf("};\n");
-+		output_table(crc32table_le, LE_TABLE_SIZE, 'l');
- 	}
- 
- 	if (CRC_BE_BITS > 1) {
- 		crc32init_be();
--		printf("static const u32 crc32table_be[4][256] = {");
--		output_table(crc32table_be, BE_TABLE_SIZE, "tobe");
--		printf("};\n");
-+		output_table(crc32table_be, BE_TABLE_SIZE, 'b');
- 	}
- 
- 	return 0;
+-	inode->i_op = &proc_fd_link_inode_operations;
++	inode->i_op = &proc_pid_link_inode_operations;
+ 	inode->i_size = 64;
+ 	ei->op.proc_get_link = proc_fd_link;
+ 	d_set_d_op(dentry, &tid_fd_dentry_operations);
+@@ -2254,7 +2225,6 @@ static struct dentry *proc_fdinfo_instan
+ 	ei->fd = fd;
+ 	inode->i_mode = S_IFREG | S_IRUSR;
+ 	inode->i_fop = &proc_fdinfo_file_operations;
+-	inode->i_op = &proc_fdinfo_link_inode_operations;
+ 	d_set_d_op(dentry, &tid_fd_dentry_operations);
+ 	d_add(dentry, inode);
+ 	/* Close the race of the process dying before we return the dentry */
 _
 
-Patches currently in -mm which might be from fzago@systemfabricworks.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
-crc32-optimize-inner-loop.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
 
