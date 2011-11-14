@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch added to -mm tree
-Date: Mon, 14 Nov 2011 14:13:25 -0800
-Message-ID: <201111142213.pAEMDPKg020701@wpaz21.hot.corp.google.com>
+Subject: + hfs-add-sanity-check-for-file-name-length.patch added to -mm tree
+Date: Mon, 14 Nov 2011 14:31:14 -0800
+Message-ID: <201111142231.pAEMVF93014763@wpaz17.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:41153 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751723Ab1KNWN2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2011 17:13:28 -0500
-Received: by ggnp4 with SMTP id p4so87685ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2011 14:13:27 -0800 (PST)
+Received: from mail-bw0-f74.google.com ([209.85.214.74]:32977 "EHLO
+	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756529Ab1KNWbU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2011 17:31:20 -0500
+Received: by bkat2 with SMTP id t2so201654bka.1
+        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2011 14:31:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tj@kernel.org
+Cc: dan.carpenter@oracle.com, clement.lecigne@netasq.com, eugeneteo@kernel.sg, greg@kroah.com, sandeen@redhat.com
 
 
 The patch titled
-     Subject: workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix
+     Subject: hfs: add sanity check for file name length
 has been added to the -mm tree.  Its filename is
-     workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+     hfs-add-sanity-check-for-file-name-length.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,67 +35,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: hfs: add sanity check for file name length
 
-Cc: Tejun Heo <tj@kernel.org>
+On a corrupted file system the ->len field could be wrong leading to a
+buffer overflow.
+
+Reported-by: Clement LECIGNE <clement.lecigne@netasq.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Cc: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/workqueue.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/hfs/trans.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/workqueue.h~workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix include/linux/workqueue.h
---- a/include/linux/workqueue.h~workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix
-+++ a/include/linux/workqueue.h
-@@ -298,8 +298,7 @@ extern struct workqueue_struct *system_f
+diff -puN fs/hfs/trans.c~hfs-add-sanity-check-for-file-name-length fs/hfs/trans.c
+--- a/fs/hfs/trans.c~hfs-add-sanity-check-for-file-name-length
++++ a/fs/hfs/trans.c
+@@ -40,6 +40,8 @@ int hfs_mac2asc(struct super_block *sb, 
  
- extern struct workqueue_struct *
- __alloc_workqueue_key(const char *fmt, unsigned int flags, int max_active,
--		      struct lock_class_key *key, const char *lock_name, ...)
--	__attribute__((format (printf, 1, 6)));
-+	struct lock_class_key *key, const char *lock_name, ...) __printf(1, 6);
- 
- /**
-  * alloc_workqueue - allocate a workqueue
+ 	src = in->name;
+ 	srclen = in->len;
++	if (srclen > HFS_NAMELEN)
++		srclen = HFS_NAMELEN;
+ 	dst = out;
+ 	dstlen = HFS_MAX_NAMELEN;
+ 	if (nls_io) {
 _
-Subject: Subject: workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix
+Subject: Subject: hfs: add sanity check for file name length
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes-fix.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup-fix.patch
-drivers-net-ethernet-oki-semi-pch_gbe-pch_gbeh-remove-unused-macro-pr_fmt.patch
-debugobjects-extend-to-assert-that-an-object-is-initialized.patch
-kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-vmscan-use-atomic-long-for-shrinker-batching-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-include-linux-securityh-fix-security_inode_init_security-arg.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+bio-change-some-signed-vars-to-unsigned.patch
+paride-fix-potential-information-leak-in-pg_read.patch
+hfs-add-sanity-check-for-file-name-length.patch
 
