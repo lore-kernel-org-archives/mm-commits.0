@@ -1,121 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backing-dev-ensure-wakeup_timer-is-deleted.patch removed from -mm tree
-Date: Mon, 14 Nov 2011 13:26:35 -0800
-Message-ID: <201111142126.pAELQZxc005003@wpaz29.hot.corp.google.com>
+Subject: [merged] drm-fix-kconfig-unmet-dependency-warning.patch removed from -mm tree
+Date: Mon, 14 Nov 2011 13:26:22 -0800
+Message-ID: <201111142126.pAELQNsI000678@wpaz33.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:55169 "EHLO
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:54114 "EHLO
 	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752908Ab1KNV0m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2011 16:26:42 -0500
+	with ESMTP id S1754264Ab1KNVdi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2011 16:33:38 -0500
+Received: by faap16 with SMTP id p16so80113faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2011 13:33:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rabin.vincent@stericsson.com, axboe@kernel.dk, linus.walleij@linaro.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backing-dev: ensure wakeup_timer is deleted
+     Subject: drm: fix kconfig unmet dependency warning
 has been removed from the -mm tree.  Its filename was
-     backing-dev-ensure-wakeup_timer-is-deleted.patch
+     drm-fix-kconfig-unmet-dependency-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Rabin Vincent <rabin.vincent@stericsson.com>
-Subject: backing-dev: ensure wakeup_timer is deleted
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: drm: fix kconfig unmet dependency warning
 
-bdi_prune_sb() in bdi_unregister() attempts to removes the bdi links from
-all super_blocks and then del_timer_sync() the writeback timer.
+Fix kconfig unmet dependency warning.  BACKLIGHT_CLASS_DEVICE depends on
+BACKLIGHT_LCD_SUPPORT, so select the latter along with the former.
 
-However, this can race with __mark_inode_dirty(), leading to
-bdi_wakeup_thread_delayed() rearming the writeback timer on the bdi we're
-unregistering, after we've called del_timer_sync().
+warning: (DRM_RADEON_KMS && DRM_I915 && STUB_POULSBO && FB_BACKLIGHT && PANEL_SHARP_LS037V7DW01 && PANEL_ACX565AKM && USB_APPLEDISPLAY && FB_OLPC_DCON && ASUS_LAPTOP && SONY_LAPTOP && THINKPAD_ACPI && EEEPC_LAPTOP && ACPI_ASUS && ACPI_CMPC && SAMSUNG_Q10) selects BACKLIGHT_CLASS_DEVICE which has unmet direct dependencies (HAS_IOMEM && BACKLIGHT_LCD_SUPPORT)
 
-This can end up with the bdi being freed with an active timer inside it,
-as in the case of the following dump after the removal of an SD card.
-
-Fix this by redoing the del_timer_sync() in bdi_destory().
-
- ------------[ cut here ]------------
- WARNING: at arm/lib/debugobjects.c:262 debug_print_object+0x9c/0xc8()
- ODEBUG: free active (active state 0) object type: timer_list hint: wakeup_timer_fn+0x0/0x180
- Modules linked in:
- Backtrace:
- [<c00109dc>] (dump_backtrace+0x0/0x110) from [<c0236e4c>] (dump_stack+0x18/0x1c)
-  r6:c02bc638 r5:00000106 r4:c79f5d18 r3:00000000
- [<c0236e34>] (dump_stack+0x0/0x1c) from [<c0025e6c>] (warn_slowpath_common+0x54/0x6c)
- [<c0025e18>] (warn_slowpath_common+0x0/0x6c) from [<c0025f28>] (warn_slowpath_fmt+0x38/0x40)
-  r8:20000013 r7:c780c6f0 r6:c031613c r5:c780c6f0 r4:c02b1b29
- r3:00000009
- [<c0025ef0>] (warn_slowpath_fmt+0x0/0x40) from [<c015eb4c>] (debug_print_object+0x9c/0xc8)
-  r3:c02b1b29 r2:c02bc662
- [<c015eab0>] (debug_print_object+0x0/0xc8) from [<c015f574>] (debug_check_no_obj_freed+0xac/0x1dc)
-  r6:c7964000 r5:00000001 r4:c7964000
- [<c015f4c8>] (debug_check_no_obj_freed+0x0/0x1dc) from [<c00a9e38>] (kmem_cache_free+0x88/0x1f8)
- [<c00a9db0>] (kmem_cache_free+0x0/0x1f8) from [<c014286c>] (blk_release_queue+0x70/0x78)
- [<c01427fc>] (blk_release_queue+0x0/0x78) from [<c015290c>] (kobject_release+0x70/0x84)
-  r5:c79641f0 r4:c796420c
- [<c015289c>] (kobject_release+0x0/0x84) from [<c0153ce4>] (kref_put+0x68/0x80)
-  r7:00000083 r6:c74083d0 r5:c015289c r4:c796420c
- [<c0153c7c>] (kref_put+0x0/0x80) from [<c01527d0>] (kobject_put+0x48/0x5c)
-  r5:c79643b4 r4:c79641f0
- [<c0152788>] (kobject_put+0x0/0x5c) from [<c013ddd8>] (blk_cleanup_queue+0x68/0x74)
-  r4:c7964000
- [<c013dd70>] (blk_cleanup_queue+0x0/0x74) from [<c01a6370>] (mmc_blk_put+0x78/0xe8)
-  r5:00000000 r4:c794c400
- [<c01a62f8>] (mmc_blk_put+0x0/0xe8) from [<c01a64b4>] (mmc_blk_release+0x24/0x38)
-  r5:c794c400 r4:c0322824
- [<c01a6490>] (mmc_blk_release+0x0/0x38) from [<c00de11c>] (__blkdev_put+0xe8/0x170)
-  r5:c78d5e00 r4:c74083c0
- [<c00de034>] (__blkdev_put+0x0/0x170) from [<c00de2c0>] (blkdev_put+0x11c/0x12c)
-  r8:c79f5f70 r7:00000001 r6:c74083d0 r5:00000083 r4:c74083c0
- r3:00000000
- [<c00de1a4>] (blkdev_put+0x0/0x12c) from [<c00b0724>] (kill_block_super+0x60/0x6c)
-  r7:c7942300 r6:c79f4000 r5:00000083 r4:c74083c0
- [<c00b06c4>] (kill_block_super+0x0/0x6c) from [<c00b0a94>] (deactivate_locked_super+0x44/0x70)
-  r6:c79f4000 r5:c031af64 r4:c794dc00 r3:c00b06c4
- [<c00b0a50>] (deactivate_locked_super+0x0/0x70) from [<c00b1358>] (deactivate_super+0x6c/0x70)
-  r5:c794dc00 r4:c794dc00
- [<c00b12ec>] (deactivate_super+0x0/0x70) from [<c00c88b0>] (mntput_no_expire+0x188/0x194)
-  r5:c794dc00 r4:c7942300
- [<c00c8728>] (mntput_no_expire+0x0/0x194) from [<c00c95e0>] (sys_umount+0x2e4/0x310)
-  r6:c7942300 r5:00000000 r4:00000000 r3:00000000
- [<c00c92fc>] (sys_umount+0x0/0x310) from [<c000d940>] (ret_fast_syscall+0x0/0x30)
- ---[ end trace e5c83c92ada51c76 ]---
-
-Signed-off-by: Rabin Vincent <rabin.vincent@stericsson.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/gpu/drm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/backing-dev.c~backing-dev-ensure-wakeup_timer-is-deleted mm/backing-dev.c
---- a/mm/backing-dev.c~backing-dev-ensure-wakeup_timer-is-deleted
-+++ a/mm/backing-dev.c
-@@ -724,6 +724,14 @@ void bdi_destroy(struct backing_dev_info
- 
- 	bdi_unregister(bdi);
- 
-+	/*
-+	 * If bdi_unregister() had already been called earlier, the
-+	 * wakeup_timer could still be armed because bdi_prune_sb()
-+	 * can race with the bdi_wakeup_thread_delayed() calls from
-+	 * __mark_inode_dirty().
-+	 */
-+	del_timer_sync(&bdi->wb.wakeup_timer);
-+
- 	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
- 		percpu_counter_destroy(&bdi->bdi_stat[i]);
- 
+diff -puN drivers/gpu/drm/Kconfig~drm-fix-kconfig-unmet-dependency-warning drivers/gpu/drm/Kconfig
+--- a/drivers/gpu/drm/Kconfig~drm-fix-kconfig-unmet-dependency-warning
++++ a/drivers/gpu/drm/Kconfig
+@@ -96,6 +96,7 @@ config DRM_I915
+ 	select FB_CFB_IMAGEBLIT
+ 	# i915 depends on ACPI_VIDEO when ACPI is enabled
+ 	# but for select to work, need to select ACPI_VIDEO's dependencies, ick
++	select BACKLIGHT_LCD_SUPPORT if ACPI
+ 	select BACKLIGHT_CLASS_DEVICE if ACPI
+ 	select VIDEO_OUTPUT_CONTROL if ACPI
+ 	select INPUT if ACPI
 _
 
-Patches currently in -mm which might be from rabin.vincent@stericsson.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
+origin.patch
 linux-next.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+consolidate-config_debug_strict_user_copy_checks-fix.patch
+leds-route-kbd-leds-through-the-generic-leds-layer.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
