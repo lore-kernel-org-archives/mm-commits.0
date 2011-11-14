@@ -1,603 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] leds-route-kbd-leds-through-the-generic-leds-layer.patch removed from -mm tree
-Date: Mon, 14 Nov 2011 15:13:01 -0800
-Message-ID: <201111142313.pAEND1qe007303@wpaz5.hot.corp.google.com>
+Subject: + mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch added to -mm tree
+Date: Mon, 14 Nov 2011 15:21:04 -0800
+Message-ID: <201111142321.pAENL4sw014701@wpaz24.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:50009 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753827Ab1KNXUJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2011 18:20:09 -0500
-Received: by ggnp4 with SMTP id p4so96552ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2011 15:20:09 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:33856 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638Ab1KNXVI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2011 18:21:08 -0500
+Received: by faap16 with SMTP id p16so82901faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2011 15:21:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samuel.thibault@ens-lyon.org, dmitry.torokhov@gmail.com, jslaby@suse.cz, pavel@ucw.cz, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mgorman@suse.de
 
 
 The patch titled
-     Subject: leds: route kbd LEDs through the generic LEDs layer
-has been removed from the -mm tree.  Its filename was
-     leds-route-kbd-leds-through-the-generic-leds-layer.patch
+     Subject: mm: reduce the amount of work done when updating min_free_kbytes
+has been added to the -mm tree.  Its filename is
+     mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: leds: route kbd LEDs through the generic LEDs layer
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: reduce the amount of work done when updating min_free_kbytes
 
-This permits to reassign keyboard LEDs to something else than keyboard
-"leds" state, by adding keyboard led and modifier triggers connected to a
-series of global input LEDs, themselves connected to global input
-triggers, which per-input device LEDs use by default.  Userland can thus
-easily change the LED behavior of (a priori) all input devices, or of
-particular input devices.
+When min_free_kbytes is updated, some pageblocks are marked
+MIGRATE_RESERVE.  Ordinarily, this work is unnoticable as it happens early
+in boot but on large machines with 1TB of memory, this has been reported
+to delay boot times, probably due to the NUMA distances involved.
 
-This also permits to fix #7063 from userland by using a modifier to
-implement proper CapsLock behavior and have the keyboard caps lock led
-show that modifier state.
+The bulk of the work is due to calling calling pageblock_is_reserved() an
+unnecessary amount of times and accessing far more struct page metadata
+than is necessary.  This patch significantly reduces the amount of work
+done by setup_zone_migrate_reserve() improving boot times on 1TB machines.
 
-[rdunlap@xenotime.net: leds-input: depends on INPUT]
-[akpm@linux-foundation.org: fix build]
-[jslaby@suse.cz: fix sleep inside atomic]
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Tested-by: Pavel Machek <pavel@ucw.cz>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Acked-by: Richard Purdie <rpurdie@rpsys.net>
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/leds/leds-class.txt |    3 
- drivers/leds/Kconfig              |   11 -
- drivers/leds/Makefile             |    1 
- drivers/leds/leds-input.c         |  306 ++++++++++++++++++++++++++++
- drivers/tty/vt/keyboard.c         |   96 ++++++++
- 5 files changed, 408 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   35 +++++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
-diff -puN Documentation/leds/leds-class.txt~leds-route-kbd-leds-through-the-generic-leds-layer Documentation/leds/leds-class.txt
---- a/Documentation/leds/leds-class.txt~leds-route-kbd-leds-through-the-generic-leds-layer
-+++ a/Documentation/leds/leds-class.txt
-@@ -2,9 +2,6 @@
- LED handling under Linux
- ========================
+diff -puN mm/page_alloc.c~mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes
++++ a/mm/page_alloc.c
+@@ -3457,25 +3457,28 @@ static void setup_zone_migrate_reserve(s
+ 		if (page_to_nid(page) != zone_to_nid(zone))
+ 			continue;
  
--If you're reading this and thinking about keyboard leds, these are
--handled by the input subsystem and the led class is *not* needed.
+-		/* Blocks with reserved pages will never free, skip them. */
+-		block_end_pfn = min(pfn + pageblock_nr_pages, end_pfn);
+-		if (pageblock_is_reserved(pfn, block_end_pfn))
+-			continue;
 -
- In its simplest form, the LED class just allows control of LEDs from
- userspace. LEDs appear in /sys/class/leds/. The maximum brightness of the
- LED is defined in max_brightness file. The brightness file will set the brightness
-diff -puN drivers/leds/Kconfig~leds-route-kbd-leds-through-the-generic-leds-layer drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-route-kbd-leds-through-the-generic-leds-layer
-+++ a/drivers/leds/Kconfig
-@@ -11,9 +11,6 @@ menuconfig NEW_LEDS
- 	  Say Y to enable Linux LED support.  This allows control of supported
- 	  LEDs from both userspace and optionally, by kernel events (triggers).
+ 		block_migratetype = get_pageblock_migratetype(page);
  
--	  This is not related to standard keyboard LEDs which are controlled
--	  via the input system.
--
- if NEW_LEDS
+-		/* If this block is reserved, account for it */
+-		if (reserve > 0 && block_migratetype == MIGRATE_RESERVE) {
+-			reserve--;
+-			continue;
+-		}
++		/* Only test what is necessary when the reserves are not met */
++		if (reserve > 0) {
++			/* Blocks with reserved pages will never free, skip them. */
++			block_end_pfn = min(pfn + pageblock_nr_pages, end_pfn);
++			if (pageblock_is_reserved(pfn, block_end_pfn))
++				continue;
  
- config LEDS_CLASS
-@@ -32,6 +29,14 @@ config LEDS_88PM860X
- 	  This option enables support for on-chip LED drivers found on Marvell
- 	  Semiconductor 88PM8606 PMIC.
- 
-+config LEDS_INPUT
-+	tristate "LED Support using input keyboards"
-+	depends on LEDS_CLASS && INPUT
-+	select LEDS_TRIGGERS
-+	help
-+	  This option enables support for the LEDs on keyboard managed
-+	  by the input layer.
-+
- config LEDS_ATMEL_PWM
- 	tristate "LED Support using Atmel PWM outputs"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/Makefile~leds-route-kbd-leds-through-the-generic-leds-layer drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-route-kbd-leds-through-the-generic-leds-layer
-+++ a/drivers/leds/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_LEDS_TRIGGERS)		+= led-trig
- obj-$(CONFIG_LEDS_88PM860X)		+= leds-88pm860x.o
- obj-$(CONFIG_LEDS_ATMEL_PWM)		+= leds-atmel-pwm.o
- obj-$(CONFIG_LEDS_BD2802)		+= leds-bd2802.o
-+obj-$(CONFIG_LEDS_INPUT)		+= leds-input.o
- obj-$(CONFIG_LEDS_LOCOMO)		+= leds-locomo.o
- obj-$(CONFIG_LEDS_LM3530)		+= leds-lm3530.o
- obj-$(CONFIG_LEDS_MIKROTIK_RB532)	+= leds-rb532.o
-diff -puN /dev/null drivers/leds/leds-input.c
---- /dev/null
-+++ a/drivers/leds/leds-input.c
-@@ -0,0 +1,306 @@
-+/*
-+ * LED support for the input layer
-+ *
-+ * Copyright 2010 Samuel Thibault <samuel.thibault@ens-lyon.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/leds.h>
-+#include <linux/input.h>
-+
-+#include "leds.h"
-+
-+/*
-+ * Keyboard LEDs are propagated by default like the following example:
-+ *
-+ * keyboard numlock trigger
-+ * -> input::numl global input LED
-+ * -> input-numl global input trigger
-+ * -> per-device <device>-input::numl LED
-+ *
-+ * Userland can however choose the trigger for the input::numl LED, or
-+ * independently choose the trigger for any input-<device>::numl LED.
-+ */
-+
-+/* Global LED classes and triggers are registered on-demand according to
-+ * existing devices */
-+
-+/* Handler for global input LEDs, just triggers the corresponding global input
-+ * trigger. */
-+static void input_led_set(struct led_classdev *cdev,
-+			  enum led_brightness brightness);
-+static struct led_classdev input_leds[LED_CNT] = {
-+#define DEFINE_INPUT_LED(input_led, nam, deftrig) \
-+	[input_led] = { \
-+		.name = "input::"nam, \
-+		.max_brightness = 1, \
-+		.brightness_set = input_led_set, \
-+		.default_trigger = deftrig, \
-+	}
-+/* Default triggers for the global input LEDs just correspond to the legacy
-+ * usage. */
-+	DEFINE_INPUT_LED(LED_NUML, "numl", "numlock"),
-+	DEFINE_INPUT_LED(LED_CAPSL, "capsl", "capslock"),
-+	DEFINE_INPUT_LED(LED_SCROLLL, "scrolll", "scrollock"),
-+	DEFINE_INPUT_LED(LED_COMPOSE, "compose", NULL),
-+	DEFINE_INPUT_LED(LED_KANA, "kana", "kanalock"),
-+	DEFINE_INPUT_LED(LED_SLEEP, "sleep", NULL),
-+	DEFINE_INPUT_LED(LED_SUSPEND, "suspend", NULL),
-+	DEFINE_INPUT_LED(LED_MUTE, "mute", NULL),
-+	DEFINE_INPUT_LED(LED_MISC, "misc", NULL),
-+	DEFINE_INPUT_LED(LED_MAIL, "mail", NULL),
-+	DEFINE_INPUT_LED(LED_CHARGING, "charging", NULL),
-+};
-+static const char *const input_led_names[LED_CNT] = {
-+	[LED_NUML] = "numl",
-+	[LED_CAPSL] = "capsl",
-+	[LED_SCROLLL] = "scrolll",
-+	[LED_COMPOSE] = "compose",
-+	[LED_KANA] = "kana",
-+	[LED_SLEEP] = "sleep",
-+	[LED_SUSPEND] = "suspend",
-+	[LED_MUTE] = "mute",
-+	[LED_MISC] = "misc",
-+	[LED_MAIL] = "mail",
-+	[LED_CHARGING] = "charging",
-+};
-+/* Handler for hotplug initialization */
-+static void input_led_trigger_activate(struct led_classdev *cdev);
-+/* Global input triggers */
-+static struct led_trigger input_led_triggers[LED_CNT] = {
-+#define DEFINE_INPUT_LED_TRIGGER(input_led, nam) \
-+	[input_led] = { \
-+		.name = "input-"nam, \
-+		.activate = input_led_trigger_activate, \
-+	}
-+	DEFINE_INPUT_LED_TRIGGER(LED_NUML, "numl"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_CAPSL, "capsl"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_SCROLLL, "scrolll"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_COMPOSE, "compose"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_KANA, "kana"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_SLEEP, "sleep"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_SUSPEND, "suspend"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_MUTE, "mute"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_MISC, "misc"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_MAIL, "mail"),
-+	DEFINE_INPUT_LED_TRIGGER(LED_CHARGING, "charging"),
-+};
-+/* Lock for registration coherency */
-+static DEFINE_MUTEX(input_led_registered_lock);
-+/* Which global LED classes and triggers are registered */
-+static unsigned long input_led_registered[BITS_TO_LONGS(LED_CNT)];
-+
-+/* Our input handler to catch connect/disconnect */
-+static struct input_handler input_led_handler;
-+
-+/* Global input LED state change, tell the global input trigger.  */
-+static void input_led_set(struct led_classdev *cdev,
-+			  enum led_brightness brightness)
-+{
-+	int led = cdev - input_leds;
-+
-+	led_trigger_event(&input_led_triggers[led], !!brightness);
-+}
-+
-+/* LED state change for some keyboard, notify that keyboard.  */
-+static void perdevice_input_led_set(struct led_classdev *cdev,
-+			  enum led_brightness brightness)
-+{
-+	struct input_handle *handle;
-+	struct led_classdev *leds;
-+	int led;
-+
-+	handle = cdev->dev->platform_data;
-+	if (!handle)
-+		/* Still initializing */
-+		return;
-+	leds = handle->private;
-+	led = cdev - leds;
-+
-+	input_inject_event(handle, EV_LED, led, !!brightness);
-+	input_inject_event(handle, EV_SYN, SYN_REPORT, 0);
-+}
-+
-+/* Keyboard hotplug, initialize its LED status */
-+static void input_led_trigger_activate(struct led_classdev *cdev)
-+{
-+	struct led_trigger *trigger = cdev->trigger;
-+	int led = trigger - input_led_triggers;
-+
-+	if (cdev->brightness_set)
-+		cdev->brightness_set(cdev, input_leds[led].brightness);
-+}
-+
-+/* Free an input handle, used at abortion and disconnection.  */
-+static void input_led_delete_handle(struct input_handle *handle)
-+{
-+	if (handle) {
-+		struct led_classdev *leds = handle->private;
-+		if (leds) {
-+			int i;
-+			for (i = 0; i < LED_CNT; i++)
-+				kfree(leds[i].name);
-+			kfree(leds);
-+		}
-+		kfree(handle);
-+	}
-+}
-+
-+/* A new input device with potential LEDs to connect.  */
-+static int input_led_connect(struct input_handler *handler,
-+			      struct input_dev *dev,
-+			      const struct input_device_id *id)
-+{
-+	struct input_handle *handle;
-+	int i, error = 0;
-+	struct led_classdev *leds;
-+
-+	if (!test_bit(EV_LED, dev->keybit))
-+		return -ENODEV;
-+
-+	handle = kzalloc(sizeof(*handle), GFP_KERNEL);
-+	if (!handle) {
-+		error = -ENOMEM;
-+		goto err;
-+	}
-+
-+	handle->private = leds = kzalloc(sizeof(*leds) * LED_CNT,
-+						GFP_KERNEL);
-+	if (!handle->private) {
-+		error = -ENOMEM;
-+		goto err;
-+	}
-+
-+	handle->dev = dev;
-+	handle->handler = handler;
-+	handle->name = "input leds";
-+
-+	error = input_register_handle(handle);
-+	if (error)
-+		goto err;
-+
-+	/* lazily register missing global input LEDs */
-+	mutex_lock(&input_led_registered_lock);
-+	for (i = 0; i < LED_CNT; i++)
-+		if (input_leds[i].name
-+				&& !test_bit(i, input_led_registered)
-+				&& test_bit(i, dev->ledbit)) {
-+			led_trigger_register(&input_led_triggers[i]);
-+			/* This keyboard has led i, try to register it */
-+			if (!led_classdev_register(NULL, &input_leds[i]))
-+				set_bit(i, input_led_registered);
-+			else
-+				led_trigger_unregister(&input_led_triggers[i]);
-+		}
-+	mutex_unlock(&input_led_registered_lock);
-+
-+	/* and register this device's LEDs */
-+	for (i = 0; i < LED_CNT; i++)
-+		if (input_leds[i].name && test_bit(i, dev->ledbit)) {
-+			leds[i].name = kasprintf(GFP_KERNEL, "%s::%s",
-+						dev_name(&dev->dev),
-+						input_led_names[i]);
-+			if (!leds[i].name) {
-+				error = -ENOMEM;
-+				goto err_handler;
+-		/* Suitable for reserving if this block is movable */
+-		if (reserve > 0 && block_migratetype == MIGRATE_MOVABLE) {
+-			set_pageblock_migratetype(page, MIGRATE_RESERVE);
+-			move_freepages_block(zone, page, MIGRATE_RESERVE);
+-			reserve--;
+-			continue;
++			/* If this block is reserved, account for it */
++			if (block_migratetype == MIGRATE_RESERVE) {
++				reserve--;
++				continue;
 +			}
-+			leds[i].max_brightness = 1;
-+			leds[i].brightness_set = perdevice_input_led_set;
-+			leds[i].default_trigger = input_led_triggers[i].name;
-+		}
 +
-+	/* No issue so far, we can register for real.  */
-+	for (i = 0; i < LED_CNT; i++)
-+		if (leds[i].name) {
-+			led_classdev_register(&dev->dev, &leds[i]);
-+			leds[i].dev->platform_data = handle;
-+			perdevice_input_led_set(&leds[i],
-+					input_leds[i].brightness);
-+		}
-+
-+	return 0;
-+
-+err_handler:
-+	input_unregister_handler(&input_led_handler);
-+err:
-+	input_led_delete_handle(handle);
-+	return error;
-+}
-+
-+/* Disconnected input device. Clean it, and deregister now-useless global LEDs
-+ * and triggers.  */
-+static void input_led_disconnect(struct input_handle *handle)
-+{
-+	int unregister, i;
-+	struct led_classdev *leds = handle->private;
-+
-+	for (i = 0; i < LED_CNT; i++)
-+		if (leds[i].name)
-+			led_classdev_unregister(&leds[i]);
-+
-+	input_unregister_handle(handle);
-+	input_led_delete_handle(handle);
-+
-+	mutex_lock(&input_led_registered_lock);
-+	for (i = 0; i < LED_CNT; i++) {
-+		if (!test_bit(i, input_led_registered))
-+			continue;
-+
-+		unregister = 1;
-+		list_for_each_entry(handle, &input_led_handler.h_list, h_node) {
-+			if (test_bit(i, handle->dev->ledbit)) {
-+				unregister = 0;
-+				break;
++			/* Suitable for reserving if this block is movable */
++			if (block_migratetype == MIGRATE_MOVABLE) {
++				set_pageblock_migratetype(page, MIGRATE_RESERVE);
++				move_freepages_block(zone, page, MIGRATE_RESERVE);
++				reserve--;
++				continue;
 +			}
-+		}
-+		if (!unregister)
-+			continue;
-+
-+		led_classdev_unregister(&input_leds[i]);
-+		led_trigger_unregister(&input_led_triggers[i]);
-+		clear_bit(i, input_led_registered);
-+	}
-+	mutex_unlock(&input_led_registered_lock);
-+}
-+
-+/* Only handle input devices which have LEDs */
-+static const struct input_device_id input_led_ids[] = {
-+	{
-+		.flags = INPUT_DEVICE_ID_MATCH_EVBIT,
-+		.evbit = { BIT_MASK(EV_LED) },
-+	},
-+
-+	{ },	/* Terminating entry */
-+};
-+
-+static struct input_handler input_led_handler = {
-+	.connect	= input_led_connect,
-+	.disconnect	= input_led_disconnect,
-+	.name		= "input leds",
-+	.id_table	= input_led_ids,
-+};
-+
-+static int __init input_led_init(void)
-+{
-+	return input_register_handler(&input_led_handler);
-+}
-+
-+static void __exit input_led_exit(void)
-+{
-+	/* This also disconnects all devices and thus unregisters LEDs and
-+	 * triggers */
-+	input_unregister_handler(&input_led_handler);
-+}
-+
-+module_init(input_led_init);
-+module_exit(input_led_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("User LED support for input layer");
-+MODULE_AUTHOR("Samuel Thibault <samuel.thibault@ens-lyon.org>");
-diff -puN drivers/tty/vt/keyboard.c~leds-route-kbd-leds-through-the-generic-leds-layer drivers/tty/vt/keyboard.c
---- a/drivers/tty/vt/keyboard.c~leds-route-kbd-leds-through-the-generic-leds-layer
-+++ a/drivers/tty/vt/keyboard.c
-@@ -37,6 +37,7 @@
- #include <linux/kbd_kern.h>
- #include <linux/kbd_diacr.h>
- #include <linux/vt_kern.h>
-+#include <linux/leds.h>
- #include <linux/input.h>
- #include <linux/reboot.h>
- #include <linux/notifier.h>
-@@ -138,6 +139,9 @@ static unsigned int diacr;
- static char rep;					/* flag telling character repeat */
+ 		}
  
- static unsigned char ledstate = 0xff;			/* undefined */
-+#ifdef CONFIG_LEDS_INPUT
-+static unsigned char lockstate = 0xff;			/* undefined */
-+#endif
- static unsigned char ledioctl;
- 
- static struct ledptr {
-@@ -977,6 +981,35 @@ static void k_brl(struct vc_data *vc, un
- 	}
- }
- 
-+#ifdef CONFIG_LEDS_INPUT
-+/* When input-based leds are enabled, we route keyboard "leds" through triggers
-+ */
-+static void kbd_ledstate_trigger_activate(struct led_classdev *cdev);
-+static struct led_trigger ledtrig_ledstate[] = {
-+#define DEFINE_LEDSTATE_TRIGGER(kbd_led, nam) \
-+	[kbd_led] = { .name = nam, .activate = kbd_ledstate_trigger_activate, }
-+	DEFINE_LEDSTATE_TRIGGER(VC_SCROLLOCK, "scrollock"),
-+	DEFINE_LEDSTATE_TRIGGER(VC_NUMLOCK,   "numlock"),
-+	DEFINE_LEDSTATE_TRIGGER(VC_CAPSLOCK,  "capslock"),
-+	DEFINE_LEDSTATE_TRIGGER(VC_KANALOCK,  "kanalock"),
-+#undef DEFINE_LEDSTATE_TRIGGER
-+};
-+static void kbd_lockstate_trigger_activate(struct led_classdev *cdev);
-+static struct led_trigger ledtrig_lockstate[] = {
-+#define DEFINE_LOCKSTATE_TRIGGER(kbd_led, nam) \
-+	[kbd_led] = { .name = nam, .activate = kbd_lockstate_trigger_activate, }
-+	DEFINE_LOCKSTATE_TRIGGER(VC_SHIFTLOCK,  "shiftlock"),
-+	DEFINE_LOCKSTATE_TRIGGER(VC_ALTGRLOCK,  "altgrlock"),
-+	DEFINE_LOCKSTATE_TRIGGER(VC_CTRLLOCK,   "ctrllock"),
-+	DEFINE_LOCKSTATE_TRIGGER(VC_ALTLOCK,    "altlock"),
-+	DEFINE_LOCKSTATE_TRIGGER(VC_SHIFTLLOCK, "shiftllock"),
-+	DEFINE_LOCKSTATE_TRIGGER(VC_SHIFTRLOCK, "shiftrlock"),
-+	DEFINE_LOCKSTATE_TRIGGER(VC_CTRLLLOCK,  "ctrlllock"),
-+	DEFINE_LOCKSTATE_TRIGGER(VC_CTRLRLOCK,  "ctrlrlock"),
-+#undef DEFINE_LOCKSTATE_TRIGGER
-+};
-+#endif
-+
- /*
-  * The leds display either (i) the status of NumLock, CapsLock, ScrollLock,
-  * or (ii) whatever pattern of lights people want to show using KDSETLED,
-@@ -1021,19 +1054,44 @@ static inline unsigned char getleds(void
- 	return leds;
- }
- 
-+#ifdef CONFIG_LEDS_INPUT
-+/* Called on trigger connection, to set initial state */
-+static void kbd_ledstate_trigger_activate(struct led_classdev *cdev)
-+{
-+	struct led_trigger *trigger = cdev->trigger;
-+	int led = trigger - ledtrig_ledstate;
-+
-+	tasklet_disable(&keyboard_tasklet);
-+	led_trigger_event(trigger, ledstate & (1 << led) ? INT_MAX : LED_OFF);
-+	tasklet_enable(&keyboard_tasklet);
-+}
-+static void kbd_lockstate_trigger_activate(struct led_classdev *cdev)
-+{
-+	struct led_trigger *trigger = cdev->trigger;
-+	int led = trigger - ledtrig_lockstate;
-+
-+	tasklet_disable(&keyboard_tasklet);
-+	led_trigger_event(trigger, lockstate & (1 << led) ? INT_MAX : LED_OFF);
-+	tasklet_enable(&keyboard_tasklet);
-+}
-+#else
- static int kbd_update_leds_helper(struct input_handle *handle, void *data)
- {
- 	unsigned char leds = *(unsigned char *)data;
- 
- 	if (test_bit(EV_LED, handle->dev->evbit)) {
--		input_inject_event(handle, EV_LED, LED_SCROLLL, !!(leds & 0x01));
--		input_inject_event(handle, EV_LED, LED_NUML,    !!(leds & 0x02));
--		input_inject_event(handle, EV_LED, LED_CAPSL,   !!(leds & 0x04));
-+		input_inject_event(handle, EV_LED, LED_SCROLLL,
-+				!!(leds & VC_SCROLLOCK));
-+		input_inject_event(handle, EV_LED, LED_NUML,
-+				!!(leds & VC_NUMLOCK));
-+		input_inject_event(handle, EV_LED, LED_CAPSL,
-+				!!(leds & VC_CAPSLOCK));
- 		input_inject_event(handle, EV_SYN, SYN_REPORT, 0);
- 	}
- 
- 	return 0;
- }
-+#endif
- 
- /*
-  * This is the tasklet that updates LED state on all keyboards
-@@ -1047,10 +1105,31 @@ static void kbd_bh(unsigned long dummy)
- 	unsigned char leds = getleds();
- 
- 	if (leds != ledstate) {
-+#ifdef CONFIG_LEDS_INPUT
-+		int i;
-+		for (i = 0; i < ARRAY_SIZE(ledtrig_ledstate); i++)
-+			if ((leds ^ ledstate) & (1 << i))
-+				led_trigger_event(&ledtrig_ledstate[i],
-+						leds & (1 << i)
-+						? INT_MAX : LED_OFF);
-+#else
- 		input_handler_for_each_handle(&kbd_handler, &leds,
- 					      kbd_update_leds_helper);
-+#endif
- 		ledstate = leds;
- 	}
-+
-+#ifdef CONFIG_LEDS_INPUT
-+	if (kbd->lockstate != lockstate) {
-+		int i;
-+		for (i = 0; i < ARRAY_SIZE(ledtrig_lockstate); i++)
-+			if ((kbd->lockstate ^ lockstate) & (1 << i))
-+				led_trigger_event(&ledtrig_lockstate[i],
-+						kbd->lockstate & (1 << i)
-+						? INT_MAX : LED_OFF);
-+		lockstate = kbd->lockstate;
-+	}
-+#endif
- }
- 
- DECLARE_TASKLET_DISABLED(keyboard_tasklet, kbd_bh, 0);
-@@ -1388,6 +1467,7 @@ static void kbd_disconnect(struct input_
- 	kfree(handle);
- }
- 
-+#ifndef CONFIG_LEDS_INPUT
- /*
-  * Start keyboard handler on the new keyboard by refreshing LED state to
-  * match the rest of the system.
-@@ -1401,6 +1481,7 @@ static void kbd_start(struct input_handl
- 
- 	tasklet_enable(&keyboard_tasklet);
- }
-+#endif
- 
- static const struct input_device_id kbd_ids[] = {
- 	{
-@@ -1423,7 +1504,9 @@ static struct input_handler kbd_handler 
- 	.match		= kbd_match,
- 	.connect	= kbd_connect,
- 	.disconnect	= kbd_disconnect,
-+#ifndef CONFIG_LEDS_INPUT
- 	.start		= kbd_start,
-+#endif
- 	.name		= "kbd",
- 	.id_table	= kbd_ids,
- };
-@@ -1450,5 +1533,12 @@ int __init kbd_init(void)
- 	tasklet_enable(&keyboard_tasklet);
- 	tasklet_schedule(&keyboard_tasklet);
- 
-+#ifdef CONFIG_LEDS_INPUT
-+	for (i = 0; i < ARRAY_SIZE(ledtrig_ledstate); i++)
-+		led_trigger_register(&ledtrig_ledstate[i]);
-+	for (i = 0; i < ARRAY_SIZE(ledtrig_lockstate); i++)
-+		led_trigger_register(&ledtrig_lockstate[i]);
-+#endif
-+
- 	return 0;
- }
+ 		/*
 _
+Subject: Subject: mm: reduce the amount of work done when updating min_free_kbytes
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
+mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch
+mm-avoid-livelock-on-__gfp_fs-allocations.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-fix.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
 
