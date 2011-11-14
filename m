@@ -1,74 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-livelock-on-__gfp_fs-allocations-fix.patch added to -mm tree
-Date: Mon, 14 Nov 2011 15:03:44 -0800
-Message-ID: <201111142303.pAEN3ibC004055@wpaz24.hot.corp.google.com>
+Subject: [to-be-updated] leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch removed from -mm tree
+Date: Mon, 14 Nov 2011 15:13:06 -0800
+Message-ID: <201111142313.pAEND6DR007929@wpaz17.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:34182 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285Ab1KNXDs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2011 18:03:48 -0500
-Received: by mail-ww0-f74.google.com with SMTP id 5so122760wwe.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2011 15:03:48 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:48419 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756545Ab1KNXNK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2011 18:13:10 -0500
+Received: by faap16 with SMTP id p16so82758faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 14 Nov 2011 15:13:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, ccross@android.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, penberg@cs.helsinki.fi, rientjes@google.com
+To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-avoid-livelock-on-__gfp_fs-allocations-fix
-has been added to the -mm tree.  Its filename is
-     mm-avoid-livelock-on-__gfp_fs-allocations-fix.patch
+     Subject: leds-route-kbd-leds-through-the-generic-leds-layer-fix
+has been removed from the -mm tree.  Its filename was
+     leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-avoid-livelock-on-__gfp_fs-allocations-fix
+Subject: leds-route-kbd-leds-through-the-generic-leds-layer-fix
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Colin Cross <ccross@android.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+x86_64 allmodconfig:
+
+drivers/leds/leds-input.c:304: error: expected declaration specifiers or '...' before string constant
+drivers/leds/leds-input.c:304: warning: data definition has no type or storage class
+drivers/leds/leds-input.c:304: warning: type defaults to 'int' in declaration of 'MODULE_LICENSE'
+drivers/leds/leds-input.c:304: warning: function declaration isn't a prototype
+drivers/leds/leds-input.c:305: error: expected declaration specifiers or '...' before string constant
+drivers/leds/leds-input.c:305: warning: data definition has no type or storage class
+drivers/leds/leds-input.c:305: warning: type defaults to 'int' in declaration of 'MODULE_DESCRIPTION'
+drivers/leds/leds-input.c:305: warning: function declaration isn't a prototype
+drivers/leds/leds-input.c:306: error: expected declaration specifiers or '...' before string constant
+drivers/leds/leds-input.c:306: warning: data definition has no type or storage class
+drivers/leds/leds-input.c:306: warning: type defaults to 'int' in declaration of 'MODULE_AUTHOR'
+drivers/leds/leds-input.c:306: warning: function declaration isn't a prototype
+
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/leds/leds-input.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-avoid-livelock-on-__gfp_fs-allocations-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-avoid-livelock-on-__gfp_fs-allocations-fix
-+++ a/mm/page_alloc.c
-@@ -2263,9 +2263,10 @@ rebalance:
- 		}
+diff -puN drivers/leds/leds-input.c~leds-route-kbd-leds-through-the-generic-leds-layer-fix drivers/leds/leds-input.c
+--- a/drivers/leds/leds-input.c~leds-route-kbd-leds-through-the-generic-leds-layer-fix
++++ a/drivers/leds/leds-input.c
+@@ -13,6 +13,7 @@
+ #include <linux/slab.h>
+ #include <linux/leds.h>
+ #include <linux/input.h>
++#include <linux/module.h>
  
- 		/*
--		 * Suspend converts GFP_KERNEL to __GFP_WAIT which can
--		 * prevent reclaim making forward progress without
--		 * invoking OOM. Bail if we are suspending
-+		 * Suspend converts GFP_KERNEL to __GFP_WAIT which can prevent
-+		 * reclaim making forward progress without invoking OOM.
-+		 * Suspend also disables storage devices so kswapd cannot save
-+		 * us.  Bail if we are suspending.
- 		 */
- 		if (pm_suspending())
- 			goto nopage;
+ #include "leds.h"
+ 
 _
-Subject: Subject: mm-avoid-livelock-on-__gfp_fs-allocations-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -91,8 +85,6 @@ include-linux-securityh-fix-security_inode_init_security-arg.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-route-kbd-leds-through-the-generic-leds-layer.patch
-leds-route-kbd-leds-through-the-generic-leds-layer-fix.patch
 cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
 mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
 procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
