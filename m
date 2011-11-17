@@ -1,61 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] unicore32-exec-remove-redundant-set_fsuser_ds.patch removed from -mm tree
-Date: Thu, 17 Nov 2011 12:21:27 -0800
-Message-ID: <201111172021.pAHKLRnU018387@wpaz9.hot.corp.google.com>
+Subject: [merged] loop-prevent-information-leak-after-failed-read.patch removed from -mm tree
+Date: Thu, 17 Nov 2011 12:21:30 -0800
+Message-ID: <201111172021.pAHKLU8p023294@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:33946 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203Ab1KQUVb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 15:21:31 -0500
-Received: by eyg5 with SMTP id 5so48436eyg.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 12:21:29 -0800 (PST)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:33919 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755266Ab1KQUVd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 15:21:33 -0500
+Received: by vcbfl13 with SMTP id fl13so353488vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 12:21:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minipli@googlemail.com, gxt@mprc.pku.edu.cn, mm-commits@vger.kernel.org
+To: dmonakhov@openvz.org, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: unicore32, exec: remove redundant set_fs(USER_DS)
+     Subject: loop: prevent information leak after failed read
 has been removed from the -mm tree.  Its filename was
-     unicore32-exec-remove-redundant-set_fsuser_ds.patch
+     loop-prevent-information-leak-after-failed-read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mathias Krause <minipli@googlemail.com>
-Subject: unicore32, exec: remove redundant set_fs(USER_DS)
+From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: loop: prevent information leak after failed read
 
-The address limit is already set in flush_old_exec() so this
-set_fs(USER_DS) is redundant.
+If read was not fully successful we have to fail whole bio to prevent
+information leak of old pages
 
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+##Testcase_begin
+dd if=/dev/zero of=./file bs=1M count=1
+losetup /dev/loop0 ./file -o 4096
+truncate -s 0 ./file
+# OOps loop offset is now beyond i_size, so read will silently fail.
+# So bio's pages would not be cleared, may which result in information leak.
+hexdump -C /dev/loop0
+##testcase_end
+
+Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/include/asm/processor.h |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/block/loop.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/unicore32/include/asm/processor.h~unicore32-exec-remove-redundant-set_fsuser_ds arch/unicore32/include/asm/processor.h
---- a/arch/unicore32/include/asm/processor.h~unicore32-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/unicore32/include/asm/processor.h
-@@ -53,7 +53,6 @@ struct thread_struct {
- #define start_thread(regs, pc, sp)					\
- ({									\
- 	unsigned long *stack = (unsigned long *)sp;			\
--	set_fs(USER_DS);						\
- 	memset(regs->uregs, 0, sizeof(regs->uregs));			\
- 	regs->UCreg_asr = USER_MODE;					\
- 	regs->UCreg_pc = pc & ~1;	/* pc */                        \
-_
-
-Patches currently in -mm which might be from minipli@googlemail.com are
-
-linux-next.patch
-arm-exec-remove-redundant-set_fsuser_ds.patch
-ia64-exec-remove-redundant-set_fsuser_ds.patch
-parisc-exec-remove-redundant-set_fsuser_ds.patch
-
+diff -puN drivers/block/loop.c~loop-prevent-information-leak-after-failed-read drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-prevent-information-leak-after-failed-read
++++ a/drivers/block/loop.c
+@@ -372,7 +372,8 @@ do_lo_receive(struct loop_device *lo,
+ 
+ 	if (retval < 0)
+ 		return retval;
