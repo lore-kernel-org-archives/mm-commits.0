@@ -1,38 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-avoid-livelock-on-__gfp_fs-allocations.patch removed from -mm tree
-Date: Thu, 17 Nov 2011 13:34:17 -0800
-Message-ID: <201111172134.pAHLYHpj009980@wpaz1.hot.corp.google.com>
+Subject: + mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch added to -mm tree
+Date: Thu, 17 Nov 2011 13:35:52 -0800
+Message-ID: <201111172135.pAHLZqWo011410@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:39835 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554Ab1KQVeV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 16:34:21 -0500
-Received: by faap16 with SMTP id p16so78140faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 13:34:20 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:53667 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753496Ab1KQVfy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 16:35:54 -0500
+Received: by yenm10 with SMTP id m10so270745yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 13:35:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aarcange@redhat.com, ccross@android.com, kamezawa.hiroyu@jp.fujitsu.com, penberg@cs.helsinki.fi, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mgorman@suse.de, aarcange@redhat.com, ccross@android.com, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com, penberg@cs.helsinki.fi, rientjes@google.com
 
 
 The patch titled
      Subject: mm: avoid livelock on !__GFP_FS allocations
-has been removed from the -mm tree.  Its filename was
-     mm-avoid-livelock-on-__gfp_fs-allocations.patch
+has been added to the -mm tree.  Its filename is
+     mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
 Subject: mm: avoid livelock on !__GFP_FS allocations
-
-This patch seems to have gotten lost in the cracks and the discussion on
-alternatives that started here https://lkml.org/lkml/2011/10/25/24 petered
-out without any alternative patches being posted.  Lacking a viable
-alternative patch, I'm reposting this patch because AFAIK, this bug still
-exists.
 
 Colin Cross reported;
 
@@ -59,66 +63,145 @@ The big difference between GFP_NOIO and suspend converting GFP_KERNEL to
 behave like GFP_NOIO is that normally flushers will be cleaning pages and
 kswapd reclaims pages allowing GFP_NOIO to succeed after a short delay. 
 The same does not necessarily apply during suspend as the storage device
-may be suspended.  Hence, this patch special cases the suspend case to
-fail the page allocation if reclaim cannot make progress.  This might
+may be suspended.
+
+This patch special cases the suspend case to fail the page allocation if
+reclaim cannot make progress and adds some documentation on how
+gfp_allowed_mask is currently used.  Failing allocations like this may
 cause suspend to abort but that is better than a livelock.
 
 [mgorman@suse.de: Rework fix to be suspend specific]
-[akpm@linux-foundation.org: augment comment]
+[rientjes@google.com: Move suspended device check to should_alloc_retry]
 Reported-by: Colin Cross <ccross@android.com>
-Tested-by: Colin Cross <ccross@android.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ include/linux/gfp.h |   16 ++++++++++++++++
+ mm/page_alloc.c     |   30 ++++++++++++++++++++++--------
+ mm/swapfile.c       |    6 +++---
+ 3 files changed, 41 insertions(+), 11 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-avoid-livelock-on-__gfp_fs-allocations mm/page_alloc.c
---- a/mm/page_alloc.c~mm-avoid-livelock-on-__gfp_fs-allocations
+diff -puN include/linux/gfp.h~mm-avoid-livelock-on-__gfp_fs-allocations-v2 include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-avoid-livelock-on-__gfp_fs-allocations-v2
++++ a/include/linux/gfp.h
+@@ -379,9 +379,25 @@ void drain_zone_pages(struct zone *zone,
+ void drain_all_pages(void);
+ void drain_local_pages(void *dummy);
+ 
++/*
++ * gfp_allowed_mask is set to GFP_BOOT_MASK during early boot to restrict what
++ * GFP flags are used before interrupts are enabled. Once interrupts are
++ * enabled, it is set to __GFP_BITS_MASK while the system is running. During
++ * hibernation, it is used by PM to avoid I/O during memory allocation while
++ * devices are suspended.
++ */
+ extern gfp_t gfp_allowed_mask;
+ 
+ extern void pm_restrict_gfp_mask(void);
+ extern void pm_restore_gfp_mask(void);
+ 
++#ifdef CONFIG_PM_SLEEP
++extern bool pm_suspended_storage(void);
++#else
++static inline bool pm_suspended_storage(void)
++{
++	return false;
++}
++#endif /* CONFIG_PM_SLEEP */
++
+ #endif /* __LINUX_GFP_H */
+diff -puN mm/page_alloc.c~mm-avoid-livelock-on-__gfp_fs-allocations-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-avoid-livelock-on-__gfp_fs-allocations-v2
 +++ a/mm/page_alloc.c
-@@ -127,6 +127,20 @@ void pm_restrict_gfp_mask(void)
+@@ -127,6 +127,13 @@ void pm_restrict_gfp_mask(void)
  	saved_gfp_mask = gfp_allowed_mask;
  	gfp_allowed_mask &= ~GFP_IOFS;
  }
 +
-+static bool pm_suspending(void)
++bool pm_suspended_storage(void)
 +{
 +	if ((gfp_allowed_mask & GFP_IOFS) == GFP_IOFS)
 +		return false;
 +	return true;
 +}
-+
-+#else
-+
-+static bool pm_suspending(void)
-+{
-+	return false;
-+}
  #endif /* CONFIG_PM_SLEEP */
  
  #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
-@@ -2247,6 +2261,15 @@ rebalance:
+@@ -1821,12 +1828,25 @@ void warn_alloc_failed(gfp_t gfp_mask, i
  
- 			goto restart;
- 		}
+ static inline int
+ should_alloc_retry(gfp_t gfp_mask, unsigned int order,
++				unsigned long did_some_progress,
+ 				unsigned long pages_reclaimed)
+ {
+ 	/* Do not loop if specifically requested */
+ 	if (gfp_mask & __GFP_NORETRY)
+ 		return 0;
+ 
++	/* Always retry if specifically requested */
++	if (gfp_mask & __GFP_NOFAIL)
++		return 1;
 +
-+		/*
-+		 * Suspend converts GFP_KERNEL to __GFP_WAIT which can prevent
-+		 * reclaim making forward progress without invoking OOM.
-+		 * Suspend also disables storage devices so kswapd cannot save
-+		 * us.  Bail if we are suspending.
-+		 */
-+		if (pm_suspending())
-+			goto nopage;
- 	}
++	/*
++	 * Suspend converts GFP_KERNEL to __GFP_WAIT which can prevent reclaim
++	 * making forward progress without invoking OOM. Suspend also disables
++	 * storage devices so kswapd will not help. Bail if we are suspending.
++	 */
++	if (!did_some_progress && pm_suspended_storage())
++		return 0;
++
+ 	/*
+ 	 * In this implementation, order <= PAGE_ALLOC_COSTLY_ORDER
+ 	 * means __GFP_NOFAIL, but that may not be true in other
+@@ -1845,13 +1865,6 @@ should_alloc_retry(gfp_t gfp_mask, unsig
+ 	if (gfp_mask & __GFP_REPEAT && pages_reclaimed < (1 << order))
+ 		return 1;
+ 
+-	/*
+-	 * Don't let big-order allocations loop unless the caller
+-	 * explicitly requests that.
+-	 */
+-	if (gfp_mask & __GFP_NOFAIL)
+-		return 1;
+-
+ 	return 0;
+ }
+ 
+@@ -2251,7 +2264,8 @@ rebalance:
  
  	/* Check if we should retry the allocation */
+ 	pages_reclaimed += did_some_progress;
+-	if (should_alloc_retry(gfp_mask, order, pages_reclaimed)) {
++	if (should_alloc_retry(gfp_mask, order, did_some_progress,
++						pages_reclaimed)) {
+ 		/* Wait for some write requests to complete then retry */
+ 		wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/50);
+ 		goto rebalance;
+diff -puN mm/swapfile.c~mm-avoid-livelock-on-__gfp_fs-allocations-v2 mm/swapfile.c
+--- a/mm/swapfile.c~mm-avoid-livelock-on-__gfp_fs-allocations-v2
++++ a/mm/swapfile.c
+@@ -670,10 +670,10 @@ int try_to_free_swap(struct page *page)
+ 	 * original page might be freed under memory pressure, then
+ 	 * later read back in from swap, now with the wrong data.
+ 	 *
+-	 * Hibernation clears bits from gfp_allowed_mask to prevent
+-	 * memory reclaim from writing to disk, so check that here.
++	 * Hibration suspends storage while it is writing the image
++	 * to disk so check that here.
+ 	 */
+-	if (!(gfp_allowed_mask & __GFP_IO))
++	if (pm_suspended_storage())
+ 		return 0;
+ 
+ 	delete_from_swap_cache(page);
 _
+Subject: Subject: mm: avoid livelock on !__GFP_FS allocations
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
@@ -127,4 +210,5 @@ mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
 mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch
 mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
 mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
 
