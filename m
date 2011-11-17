@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + user-namespace-make-signalc-respect-user-namespaces-v5.patch added to -mm tree
-Date: Thu, 17 Nov 2011 12:58:14 -0800
-Message-ID: <201111172058.pAHKwE7c006790@wpaz1.hot.corp.google.com>
+Subject: + memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch added to -mm tree
+Date: Thu, 17 Nov 2011 13:00:55 -0800
+Message-ID: <201111172100.pAHL0tb1023772@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:42328 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126Ab1KQU6S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 15:58:18 -0500
-Received: by ywb5 with SMTP id 5so265131ywb.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 12:58:18 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:57524 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751338Ab1KQVA6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 16:00:58 -0500
+Received: by ggnp4 with SMTP id p4so267019ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 13:00:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serge@hallyn.com, ebiederm@xmission.com, matthltc@us.ibm.com, oleg@redhat.com, serge.hallyn@canonical.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, bsingharora@gmail.com, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: user namespace: make signal.c respect user namespaces
+     Subject: memcg: make mem_cgroup_split_huge_fixup() more efficient
 has been added to the -mm tree.  Its filename is
-     user-namespace-make-signalc-respect-user-namespaces-v5.patch
+     memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,171 +35,159 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Serge E. Hallyn" <serge@hallyn.com>
-Subject: user namespace: make signal.c respect user namespaces
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: make mem_cgroup_split_huge_fixup() more efficient
 
-ipc/mqueue.c: for __SI_MESQ, convert the uid being sent to recipient's
-user namespace. (new, thanks Oleg)
+In split_huge_page(), mem_cgroup_split_huge_fixup() is called to handle
+page_cgroup modifcations.  It takes move_lock_page_cgroup() and modifies
+page_cgroup and LRU accounting jobs and called HPAGE_PMD_SIZE - 1 times.
 
-__send_signal: convert current's uid to the recipient's user namespace
-for any siginfo which is not SI_FROMKERNEL (patch from Oleg, thanks
-again :)
+But thinking again,
+  - compound_lock() is held at move_accout...then, it's not necessary
+    to take move_lock_page_cgroup().
+  - LRU is locked and all tail pages will go into the same LRU as
+    head is now on.
+  - page_cgroup is contiguous in huge page range.
 
-do_notify_parent and do_notify_parent_cldstop: map task's uid to parent's
-user namespace
+This patch fixes mem_cgroup_split_huge_fixup() as to be called once per
+hugepage and reduce costs for spliting.
 
-ptrace_signal maps parent's uid into current's user namespace before
-including in signal to current.  IIUC Oleg has argued that this shouldn't
-matter as the debugger will play with it, but it seems like not converting
-the value currently being set is misleading.
-
-Changelog:
-Sep 20: Inspired by Oleg's suggestion, define map_cred_ns() helper to
-	simplify callers and help make clear what we are translating
-        (which uid into which namespace).  Passing the target task would
-	make callers even easier to read, but we pass in user_ns because
-	current_user_ns() != task_cred_xxx(current, user_ns).
-Sep 20: As recommended by Oleg, also put task_pid_vnr() under rcu_read_lock
-	in ptrace_signal().
-Sep 23: In send_signal(), detect when (user) signal is coming from an
-	ancestor or unrelated user namespace.  Pass that on to __send_signal,
-	which sets si_uid to 0 or overflowuid if needed.
-Oct 12: Base on Oleg's fixup_uid() patch.  On top of that, handle all
-	SI_FROMKERNEL cases at callers, because we can't assume sender is
-	current in those cases.
-Nov 10: (mhelsley) rename fixup_uid to more meaningful usern_fixup_signal_uid
-Nov 10: (akpm) make the !CONFIG_USER_NS case clearer
-
-Signed-off-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Signed-off-by: Andrew Morton <>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c    |    7 ++++++-
- kernel/signal.c |   43 ++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 46 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |    5 ++---
+ mm/huge_memory.c           |    3 ++-
+ mm/memcontrol.c            |   32 ++++++++++++++++----------------
+ 3 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN ipc/mqueue.c~user-namespace-make-signalc-respect-user-namespaces-v5 ipc/mqueue.c
---- a/ipc/mqueue.c~user-namespace-make-signalc-respect-user-namespaces-v5
-+++ a/ipc/mqueue.c
-@@ -33,6 +33,7 @@
- #include <linux/nsproxy.h>
- #include <linux/pid.h>
- #include <linux/ipc_namespace.h>
-+#include <linux/user_namespace.h>
- #include <linux/slab.h>
+diff -puN include/linux/memcontrol.h~memcg-make-mem_cgroup_split_huge_fixup-more-efficient include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-make-mem_cgroup_split_huge_fixup-more-efficient
++++ a/include/linux/memcontrol.h
+@@ -158,7 +158,7 @@ u64 mem_cgroup_get_limit(struct mem_cgro
  
- #include <net/sock.h>
-@@ -551,9 +552,13 @@ static void __do_notify(struct mqueue_in
- 			sig_i.si_errno = 0;
- 			sig_i.si_code = SI_MESGQ;
- 			sig_i.si_value = info->notify.sigev_value;
-+			/* map current pid/uid into info->owner's namespaces */
-+			rcu_read_lock();
- 			sig_i.si_pid = task_tgid_nr_ns(current,
- 						ns_of_pid(info->notify_owner));
--			sig_i.si_uid = current_uid();
-+			sig_i.si_uid = user_ns_map_uid(info->user->user_ns,
-+						current_cred(), current_uid());
-+			rcu_read_lock();
+ void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
++void mem_cgroup_split_huge_fixup(struct page *head);
+ #endif
  
- 			kill_pid_info(info->notify.sigev_signo,
- 				      &sig_i, info->notify_owner);
-diff -puN kernel/signal.c~user-namespace-make-signalc-respect-user-namespaces-v5 kernel/signal.c
---- a/kernel/signal.c~user-namespace-make-signalc-respect-user-namespaces-v5
-+++ a/kernel/signal.c
-@@ -28,6 +28,7 @@
- #include <linux/freezer.h>
- #include <linux/pid_namespace.h>
- #include <linux/nsproxy.h>
-+#include <linux/user_namespace.h>
- #define CREATE_TRACE_POINTS
- #include <trace/events/signal.h>
- 
-@@ -1019,6 +1020,34 @@ static inline int legacy_queue(struct si
- 	return (sig < SIGRTMIN) && sigismember(&signals->signal, sig);
+ #ifdef CONFIG_DEBUG_VM
+@@ -374,8 +374,7 @@ u64 mem_cgroup_get_limit(struct mem_cgro
+ 	return 0;
  }
  
-+/*
-+ * map the uid in struct cred into user namespace *ns
-+ */
-+static inline uid_t map_cred_ns(const struct cred *cred,
-+				struct user_namespace *ns)
-+{
-+	return user_ns_map_uid(ns, cred, cred->uid);
-+}
-+
-+#ifdef CONFIG_USER_NS
-+static inline void userns_fixup_signal_uid(struct siginfo *info, struct task_struct *t)
-+{
-+	if (current_user_ns() == task_cred_xxx(t, user_ns))
-+		return;
-+
-+	if (SI_FROMKERNEL(info))
-+		return;
-+
-+	info->si_uid = user_ns_map_uid(task_cred_xxx(t, user_ns),
-+					current_cred(), info->si_uid);
-+}
-+#else
-+static inline void userns_fixup_signal_uid(struct siginfo *info, struct task_struct *t)
-+{
-+	return;
-+}
-+#endif
-+
- static int __send_signal(int sig, struct siginfo *info, struct task_struct *t,
- 			int group, int from_ancestor_ns)
+-static inline void mem_cgroup_split_huge_fixup(struct page *head,
+-						struct page *tail)
++static inline void mem_cgroup_split_huge_fixup(struct page *head)
  {
-@@ -1088,6 +1117,9 @@ static int __send_signal(int sig, struct
- 				q->info.si_pid = 0;
- 			break;
- 		}
-+
-+		userns_fixup_signal_uid(info, t);
-+
- 	} else if (!is_si_special(info)) {
- 		if (sig >= SIGRTMIN && info->si_code != SI_USER) {
- 			/*
-@@ -1626,7 +1658,8 @@ bool do_notify_parent(struct task_struct
- 	 */
- 	rcu_read_lock();
- 	info.si_pid = task_pid_nr_ns(tsk, tsk->parent->nsproxy->pid_ns);
--	info.si_uid = __task_cred(tsk)->uid;
-+	info.si_uid = map_cred_ns(__task_cred(tsk),
-+			task_cred_xxx(tsk->parent, user_ns));
- 	rcu_read_unlock();
+ }
  
- 	info.si_utime = cputime_to_clock_t(tsk->utime + tsk->signal->utime);
-@@ -1709,7 +1742,8 @@ static void do_notify_parent_cldstop(str
- 	 */
- 	rcu_read_lock();
- 	info.si_pid = task_pid_nr_ns(tsk, parent->nsproxy->pid_ns);
--	info.si_uid = __task_cred(tsk)->uid;
-+	info.si_uid = map_cred_ns(__task_cred(tsk),
-+			task_cred_xxx(parent, user_ns));
- 	rcu_read_unlock();
+diff -puN mm/huge_memory.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient mm/huge_memory.c
+--- a/mm/huge_memory.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient
++++ a/mm/huge_memory.c
+@@ -1207,6 +1207,8 @@ static void __split_huge_page_refcount(s
+ 	/* prevent PageLRU to go away from under us, and freeze lru stats */
+ 	spin_lock_irq(&zone->lru_lock);
+ 	compound_lock(page);
++	/* complete memcg works before add pages to LRU */
++	mem_cgroup_split_huge_fixup(page);
  
- 	info.si_utime = cputime_to_clock_t(tsk->utime);
-@@ -2127,8 +2161,11 @@ static int ptrace_signal(int signr, sigi
- 		info->si_signo = signr;
- 		info->si_errno = 0;
- 		info->si_code = SI_USER;
-+		rcu_read_lock();
- 		info->si_pid = task_pid_vnr(current->parent);
--		info->si_uid = task_uid(current->parent);
-+		info->si_uid = map_cred_ns(__task_cred(current->parent),
-+				current_user_ns());
-+		rcu_read_unlock();
+ 	for (i = 1; i < HPAGE_PMD_NR; i++) {
+ 		struct page *page_tail = page + i;
+@@ -1278,7 +1280,6 @@ static void __split_huge_page_refcount(s
+ 		BUG_ON(!PageDirty(page_tail));
+ 		BUG_ON(!PageSwapBacked(page_tail));
+ 
+-		mem_cgroup_split_huge_fixup(page, page_tail);
+ 
+ 		lru_add_page_tail(zone, page, page_tail);
  	}
+diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient
++++ a/mm/memcontrol.c
+@@ -2488,38 +2488,38 @@ static void __mem_cgroup_commit_charge(s
+ /*
+  * Because tail pages are not marked as "used", set it. We're under
+  * zone->lru_lock, 'splitting on pmd' and compund_lock.
++ * charge/uncharge will be never happen and move_account() is done under
++ * compound_lock(), so we don't have to take care of races.
+  */
+-void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail)
++void mem_cgroup_split_huge_fixup(struct page *head)
+ {
+ 	struct page_cgroup *head_pc = lookup_page_cgroup(head);
+-	struct page_cgroup *tail_pc = lookup_page_cgroup(tail);
+-	unsigned long flags;
++	struct page_cgroup *pc;
++	int i;
  
- 	/* If the (new) signal is now blocked, requeue it.  */
+ 	if (mem_cgroup_disabled())
+ 		return;
+-	/*
+-	 * We have no races with charge/uncharge but will have races with
+-	 * page state accounting.
+-	 */
+-	move_lock_page_cgroup(head_pc, &flags);
++	for (i = 1; i < HPAGE_PMD_NR; i++) {
++		pc = head_pc + i;
++		pc->mem_cgroup = head_pc->mem_cgroup;
++		smp_wmb();/* see __commit_charge() */
++		/*
++		 * LRU flags cannot be copied because we need to add tail
++		 * page to LRU by generic call and our hooks will be called.
++		 */
++		pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
++	}
+ 
+-	tail_pc->mem_cgroup = head_pc->mem_cgroup;
+-	smp_wmb(); /* see __commit_charge() */
+ 	if (PageCgroupAcctLRU(head_pc)) {
+ 		enum lru_list lru;
+ 		struct mem_cgroup_per_zone *mz;
+-
+ 		/*
+-		 * LRU flags cannot be copied because we need to add tail
+-		 *.page to LRU by generic call and our hook will be called.
+ 		 * We hold lru_lock, then, reduce counter directly.
+ 		 */
+ 		lru = page_lru(head);
+ 		mz = page_cgroup_zoneinfo(head_pc->mem_cgroup, head);
+-		MEM_CGROUP_ZSTAT(mz, lru) -= 1;
++		MEM_CGROUP_ZSTAT(mz, lru) -= HPAGE_PMD_NR - 1;
+ 	}
+-	tail_pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
+-	move_unlock_page_cgroup(head_pc, &flags);
+ }
+ #endif
+ 
 _
-Subject: Subject: user namespace: make signal.c respect user namespaces
+Subject: Subject: memcg: make mem_cgroup_split_huge_fixup() more efficient
 
-Patches currently in -mm which might be from serge@hallyn.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-user-namespace-make-signalc-respect-user-namespaces-v5.patch
+origin.patch
+linux-next.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+mm-avoid-livelock-on-__gfp_fs-allocations.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-fix.patch
+cgroup-fix-task-counter-common-ancestor-logic.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 
