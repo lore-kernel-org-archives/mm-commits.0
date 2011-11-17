@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-nodec-fix-compilation-error.patch added to -mm tree
-Date: Thu, 17 Nov 2011 13:42:41 -0800
-Message-ID: <201111172142.pAHLgfqk018319@wpaz1.hot.corp.google.com>
+Subject: + unlzo-fix-input-buffer-free.patch added to -mm tree
+Date: Thu, 17 Nov 2011 14:11:09 -0800
+Message-ID: <201111172211.pAHMB90s004649@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:35241 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241Ab1KQVmn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 16:42:43 -0500
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:51571 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752554Ab1KQWLR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 17:11:17 -0500
+Received: by faap16 with SMTP id p16so79197faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 14:11:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: claudio@evidence.eu.com, gregkh@suse.de, rientjes@google.com, stable@vger.kernel.org
+Cc: s.hauer@pengutronix.de, lasse.collin@tukaani.org
 
 
 The patch titled
-     Subject: drivers/base/node.c: fix compilation error
+     Subject: unlzo: Fix input buffer free
 has been added to the -mm tree.  Its filename is
-     drivers-base-nodec-fix-compilation-error.patch
+     unlzo-fix-input-buffer-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +35,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Claudio Scordino <claudio@evidence.eu.com>
-Subject: drivers/base/node.c: fix compilation error
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: unlzo: Fix input buffer free
 
-Fix the error message "directives may not be used inside a macro argument"
-which appears when the kernel is compiled for the cris architecture.
+unlzo modifies the pointer to in_buf, so we have to free the original
+buffer, not the modified pointer.  This only happens when a fill function
+is passed, a case which is currently unused in the kernel.
 
-Signed-off-by: Claudio Scordino <claudio@evidence.eu.com>
-Cc: Greg KH <gregkh@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Lasse Collin <lasse.collin@tukaani.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ lib/decompress_unlzo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~drivers-base-nodec-fix-compilation-error drivers/base/node.c
---- a/drivers/base/node.c~drivers-base-nodec-fix-compilation-error
-+++ a/drivers/base/node.c
-@@ -127,12 +127,13 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_WRITEBACK)),
- 		       nid, K(node_page_state(nid, NR_FILE_PAGES)),
- 		       nid, K(node_page_state(nid, NR_FILE_MAPPED)),
--		       nid, K(node_page_state(nid, NR_ANON_PAGES)
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		       nid, K(node_page_state(nid, NR_ANON_PAGES)
- 			+ node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
--			HPAGE_PMD_NR
-+			HPAGE_PMD_NR),
-+#else
-+		       nid, K(node_page_state(nid, NR_ANON_PAGES)),
- #endif
--		       ),
- 		       nid, K(node_page_state(nid, NR_SHMEM)),
- 		       nid, node_page_state(nid, NR_KERNEL_STACK) *
- 				THREAD_SIZE / 1024,
-@@ -143,13 +144,14 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE) +
- 				node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE)),
--		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE))
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE))
- 			, nid,
- 			K(node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
--			HPAGE_PMD_NR)
-+			HPAGE_PMD_NR));
-+#else
-+		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
- #endif
--		       );
- 	n += hugetlb_report_node_meminfo(nid, buf + n);
- 	return n;
- }
+diff -puN lib/decompress_unlzo.c~unlzo-fix-input-buffer-free lib/decompress_unlzo.c
+--- a/lib/decompress_unlzo.c~unlzo-fix-input-buffer-free
++++ a/lib/decompress_unlzo.c
+@@ -279,7 +279,7 @@ STATIC inline int INIT unlzo(u8 *input, 
+ 	ret = 0;
+ exit_2:
+ 	if (!input)
+-		free(in_buf);
++		free(in_buf_save);
+ exit_1:
+ 	if (!output)
+ 		free(out_buf);
 _
-Subject: Subject: drivers/base/node.c: fix compilation error
+Subject: Subject: unlzo: Fix input buffer free
 
-Patches currently in -mm which might be from claudio@evidence.eu.com are
+Patches currently in -mm which might be from s.hauer@pengutronix.de are
 
+origin.patch
 linux-next.patch
-fs-proc-meminfoc-fix-compilation-error.patch
-drivers-base-nodec-fix-compilation-error.patch
+unlzo-fix-input-buffer-free.patch
 
