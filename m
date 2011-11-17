@@ -1,90 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-securityh-fix-security_inode_init_security-arg.patch removed from -mm tree
-Date: Thu, 17 Nov 2011 12:22:11 -0800
-Message-ID: <201111172022.pAHKMBKa019127@wpaz9.hot.corp.google.com>
+Subject: + user-namespace-make-signalc-respect-user-namespaces-v5.patch added to -mm tree
+Date: Thu, 17 Nov 2011 12:58:14 -0800
+Message-ID: <201111172058.pAHKwE7c006790@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:33946 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203Ab1KQUWO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 15:22:14 -0500
-Received: by mail-ey0-f202.google.com with SMTP id 5so48436eyg.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 12:22:14 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:42328 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126Ab1KQU6S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 15:58:18 -0500
+Received: by ywb5 with SMTP id 5so265131ywb.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 12:58:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jmorris@namei.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: serge@hallyn.com, ebiederm@xmission.com, matthltc@us.ibm.com, oleg@redhat.com, serge.hallyn@canonical.com
 
 
 The patch titled
-     Subject: include/linux/security.h: fix security_inode_init_security() arg
-has been removed from the -mm tree.  Its filename was
-     include-linux-securityh-fix-security_inode_init_security-arg.patch
+     Subject: user namespace: make signal.c respect user namespaces
+has been added to the -mm tree.  Its filename is
+     user-namespace-make-signalc-respect-user-namespaces-v5.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/security.h: fix security_inode_init_security() arg
+From: "Serge E. Hallyn" <serge@hallyn.com>
+Subject: user namespace: make signal.c respect user namespaces
 
-Make the security_inode_init_security() initxattrs arg const, to match the
-non-stubbed version of that function.
+ipc/mqueue.c: for __SI_MESQ, convert the uid being sent to recipient's
+user namespace. (new, thanks Oleg)
 
-Cc: James Morris <jmorris@namei.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+__send_signal: convert current's uid to the recipient's user namespace
+for any siginfo which is not SI_FROMKERNEL (patch from Oleg, thanks
+again :)
+
+do_notify_parent and do_notify_parent_cldstop: map task's uid to parent's
+user namespace
+
+ptrace_signal maps parent's uid into current's user namespace before
+including in signal to current.  IIUC Oleg has argued that this shouldn't
+matter as the debugger will play with it, but it seems like not converting
+the value currently being set is misleading.
+
+Changelog:
+Sep 20: Inspired by Oleg's suggestion, define map_cred_ns() helper to
+	simplify callers and help make clear what we are translating
+        (which uid into which namespace).  Passing the target task would
+	make callers even easier to read, but we pass in user_ns because
+	current_user_ns() != task_cred_xxx(current, user_ns).
+Sep 20: As recommended by Oleg, also put task_pid_vnr() under rcu_read_lock
+	in ptrace_signal().
+Sep 23: In send_signal(), detect when (user) signal is coming from an
+	ancestor or unrelated user namespace.  Pass that on to __send_signal,
+	which sets si_uid to 0 or overflowuid if needed.
+Oct 12: Base on Oleg's fixup_uid() patch.  On top of that, handle all
+	SI_FROMKERNEL cases at callers, because we can't assume sender is
+	current in those cases.
+Nov 10: (mhelsley) rename fixup_uid to more meaningful usern_fixup_signal_uid
+Nov 10: (akpm) make the !CONFIG_USER_NS case clearer
+
+Signed-off-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Andrew Morton <>
 ---
 
- include/linux/security.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/mqueue.c    |    7 ++++++-
+ kernel/signal.c |   43 ++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 46 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/security.h~include-linux-securityh-fix-security_inode_init_security-arg include/linux/security.h
---- a/include/linux/security.h~include-linux-securityh-fix-security_inode_init_security-arg
-+++ a/include/linux/security.h
-@@ -2044,7 +2044,7 @@ static inline void security_inode_free(s
- static inline int security_inode_init_security(struct inode *inode,
- 						struct inode *dir,
- 						const struct qstr *qstr,
--						initxattrs initxattrs,
-+						const initxattrs initxattrs,
- 						void *fs_data)
+diff -puN ipc/mqueue.c~user-namespace-make-signalc-respect-user-namespaces-v5 ipc/mqueue.c
+--- a/ipc/mqueue.c~user-namespace-make-signalc-respect-user-namespaces-v5
++++ a/ipc/mqueue.c
+@@ -33,6 +33,7 @@
+ #include <linux/nsproxy.h>
+ #include <linux/pid.h>
+ #include <linux/ipc_namespace.h>
++#include <linux/user_namespace.h>
+ #include <linux/slab.h>
+ 
+ #include <net/sock.h>
+@@ -551,9 +552,13 @@ static void __do_notify(struct mqueue_in
+ 			sig_i.si_errno = 0;
+ 			sig_i.si_code = SI_MESGQ;
+ 			sig_i.si_value = info->notify.sigev_value;
++			/* map current pid/uid into info->owner's namespaces */
++			rcu_read_lock();
+ 			sig_i.si_pid = task_tgid_nr_ns(current,
+ 						ns_of_pid(info->notify_owner));
+-			sig_i.si_uid = current_uid();
++			sig_i.si_uid = user_ns_map_uid(info->user->user_ns,
++						current_cred(), current_uid());
++			rcu_read_lock();
+ 
+ 			kill_pid_info(info->notify.sigev_signo,
+ 				      &sig_i, info->notify_owner);
+diff -puN kernel/signal.c~user-namespace-make-signalc-respect-user-namespaces-v5 kernel/signal.c
+--- a/kernel/signal.c~user-namespace-make-signalc-respect-user-namespaces-v5
++++ a/kernel/signal.c
+@@ -28,6 +28,7 @@
+ #include <linux/freezer.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/nsproxy.h>
++#include <linux/user_namespace.h>
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/signal.h>
+ 
+@@ -1019,6 +1020,34 @@ static inline int legacy_queue(struct si
+ 	return (sig < SIGRTMIN) && sigismember(&signals->signal, sig);
+ }
+ 
++/*
++ * map the uid in struct cred into user namespace *ns
++ */
++static inline uid_t map_cred_ns(const struct cred *cred,
++				struct user_namespace *ns)
++{
++	return user_ns_map_uid(ns, cred, cred->uid);
++}
++
++#ifdef CONFIG_USER_NS
++static inline void userns_fixup_signal_uid(struct siginfo *info, struct task_struct *t)
++{
++	if (current_user_ns() == task_cred_xxx(t, user_ns))
++		return;
++
++	if (SI_FROMKERNEL(info))
++		return;
++
++	info->si_uid = user_ns_map_uid(task_cred_xxx(t, user_ns),
++					current_cred(), info->si_uid);
++}
++#else
++static inline void userns_fixup_signal_uid(struct siginfo *info, struct task_struct *t)
++{
++	return;
++}
++#endif
++
+ static int __send_signal(int sig, struct siginfo *info, struct task_struct *t,
+ 			int group, int from_ancestor_ns)
  {
- 	return 0;
+@@ -1088,6 +1117,9 @@ static int __send_signal(int sig, struct
+ 				q->info.si_pid = 0;
+ 			break;
+ 		}
++
++		userns_fixup_signal_uid(info, t);
++
+ 	} else if (!is_si_special(info)) {
+ 		if (sig >= SIGRTMIN && info->si_code != SI_USER) {
+ 			/*
+@@ -1626,7 +1658,8 @@ bool do_notify_parent(struct task_struct
+ 	 */
+ 	rcu_read_lock();
+ 	info.si_pid = task_pid_nr_ns(tsk, tsk->parent->nsproxy->pid_ns);
+-	info.si_uid = __task_cred(tsk)->uid;
++	info.si_uid = map_cred_ns(__task_cred(tsk),
++			task_cred_xxx(tsk->parent, user_ns));
+ 	rcu_read_unlock();
+ 
+ 	info.si_utime = cputime_to_clock_t(tsk->utime + tsk->signal->utime);
+@@ -1709,7 +1742,8 @@ static void do_notify_parent_cldstop(str
+ 	 */
+ 	rcu_read_lock();
+ 	info.si_pid = task_pid_nr_ns(tsk, parent->nsproxy->pid_ns);
+-	info.si_uid = __task_cred(tsk)->uid;
++	info.si_uid = map_cred_ns(__task_cred(tsk),
++			task_cred_xxx(parent, user_ns));
+ 	rcu_read_unlock();
+ 
+ 	info.si_utime = cputime_to_clock_t(tsk->utime);
+@@ -2127,8 +2161,11 @@ static int ptrace_signal(int signr, sigi
+ 		info->si_signo = signr;
+ 		info->si_errno = 0;
+ 		info->si_code = SI_USER;
++		rcu_read_lock();
+ 		info->si_pid = task_pid_vnr(current->parent);
+-		info->si_uid = task_uid(current->parent);
++		info->si_uid = map_cred_ns(__task_cred(current->parent),
++				current_user_ns());
++		rcu_read_unlock();
+ 	}
+ 
+ 	/* If the (new) signal is now blocked, requeue it.  */
 _
+Subject: Subject: user namespace: make signal.c respect user namespaces
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from serge@hallyn.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
-debugobjects-extend-to-assert-that-an-object-is-initialized.patch
-kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-avoid-livelock-on-__gfp_fs-allocations-fix.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+user-namespace-make-signalc-respect-user-namespaces-v5.patch
 
