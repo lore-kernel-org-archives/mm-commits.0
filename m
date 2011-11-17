@@ -1,66 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] paride-fix-potential-information-leak-in-pg_read.patch removed from -mm tree
-Date: Thu, 17 Nov 2011 12:21:53 -0800
-Message-ID: <201111172021.pAHKLrgH023422@wpaz5.hot.corp.google.com>
+Subject: [merged] slab-add-taint-flag-outputting-to-debug-paths.patch removed from -mm tree
+Date: Thu, 17 Nov 2011 12:21:57 -0800
+Message-ID: <201111172021.pAHKLvig018696@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:38321 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203Ab1KQUV4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 15:21:56 -0500
-Received: by mail-ww0-f74.google.com with SMTP id 5so49875wwe.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 12:21:56 -0800 (PST)
+Received: from mail-bw0-f74.google.com ([209.85.214.74]:41741 "EHLO
+	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754203Ab1KQUWB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 15:22:01 -0500
+Received: by bkat2 with SMTP id t2so53126bka.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 12:21:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, axboe@kernel.dk, tim@cyberelk.net, mm-commits@vger.kernel.org
+To: davej@redhat.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: paride: fix potential information leak in pg_read()
+     Subject: slab: add taint flag outputting to debug paths.
 has been removed from the -mm tree.  Its filename was
-     paride-fix-potential-information-leak-in-pg_read.patch
+     slab-add-taint-flag-outputting-to-debug-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: paride: fix potential information leak in pg_read()
+From: Dave Jones <davej@redhat.com>
+Subject: slab: add taint flag outputting to debug paths.
 
-Smatch has a new check for Rosenberg type information leaks where structs
-are copied to the user with uninitialized stack data in them.  i In this
-case, the pg_write_hdr struct has a hole in it.
+When we get corruption reports, it's useful to see if the kernel was
+tainted, to rule out problems we can't do anything about.
 
-struct pg_write_hdr {
-        char                       magic;                /*     0     1 */
-        char                       func;                 /*     1     1 */
-        /* XXX 2 bytes hole, try to pack */
-        int                        dlen;                 /*     4     4 */
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Tim Waugh <tim@cyberelk.net>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/paride/pg.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slab.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/paride/pg.c~paride-fix-potential-information-leak-in-pg_read drivers/block/paride/pg.c
---- a/drivers/block/paride/pg.c~paride-fix-potential-information-leak-in-pg_read
-+++ a/drivers/block/paride/pg.c
-@@ -630,6 +630,7 @@ static ssize_t pg_read(struct file *filp
- 		if (dev->status & 0x10)
- 			return -ETIME;
- 
-+	memset(&hdr, 0, sizeof(hdr));
- 	hdr.magic = PG_MAGIC;
- 	hdr.dlen = dev->dlen;
- 	copy = 0;
+diff -puN mm/slab.c~slab-add-taint-flag-outputting-to-debug-paths mm/slab.c
+--- a/mm/slab.c~slab-add-taint-flag-outputting-to-debug-paths
++++ a/mm/slab.c
+@@ -1941,8 +1941,8 @@ static void check_poison_obj(struct kmem
+ 			/* Print header */
+ 			if (lines == 0) {
+ 				printk(KERN_ERR
+-					"Slab corruption: %s start=%p, len=%d\n",
+-					cachep->name, realobj, size);
++					"Slab corruption (%s): %s start=%p, len=%d\n",
++					print_tainted(), cachep->name, realobj, size);
+ 				print_objinfo(cachep, objp, 0);
+ 			}
+ 			/* Hexdump the affected line */
+@@ -3051,8 +3051,9 @@ static void check_slabp(struct kmem_cach
+ 	if (entries != cachep->num - slabp->inuse) {
+ bad:
+ 		printk(KERN_ERR "slab: Internal list corruption detected in "
+-				"cache '%s'(%d), slabp %p(%d). Hexdump:\n",
+-			cachep->name, cachep->num, slabp, slabp->inuse);
++			"cache '%s'(%d), slabp %p(%d). Tainted(%s). Hexdump:\n",
++			cachep->name, cachep->num, slabp, slabp->inuse,
++			print_tainted());
+ 		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_OFFSET, 16, 1, slabp,
+ 			sizeof(*slabp) + cachep->num * sizeof(kmem_bufctl_t),
+ 			1);
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
 linux-next.patch
