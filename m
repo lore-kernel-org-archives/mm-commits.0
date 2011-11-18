@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + numa-emulation-x86_64-documentation-changes-in-boot-optionstxt.patch added to -mm tree
-Date: Fri, 18 Nov 2011 11:51:20 -0800
-Message-ID: <201111181951.pAIJpKum014419@wpaz9.hot.corp.google.com>
+Subject: [folded] numa-emulation-x86_64-documentation-changes-in-boot-optionstxt.patch removed from -mm tree
+Date: Fri, 18 Nov 2011 11:53:53 -0800
+Message-ID: <201111181953.pAIJrrhc031800@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:65377 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753616Ab1KRTvY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 14:51:24 -0500
-Received: by eyg5 with SMTP id 5so80968eyg.1
-        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 11:51:23 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:34798 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755016Ab1KRTx5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 14:53:57 -0500
+Received: by faap16 with SMTP id p16so107488faa.1
+        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 11:53:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: pholasek@redhat.com, hpa@zytor.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de
+To: pholasek@redhat.com, hpa@zytor.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: NUMA emulation x86_64: Documentation changes in boot-options.txt
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      numa-emulation-x86_64-documentation-changes-in-boot-optionstxt.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into numa-emulation-x86_64-numa=fake-parameter-for-custom-nodes-distance.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -71,10 +61,8 @@ diff -puN Documentation/x86/x86_64/boot-options.txt~numa-emulation-x86_64-docume
  ACPI
  
 _
-Subject: Subject: NUMA emulation x86_64: Documentation changes in boot-options.txt
 
 Patches currently in -mm which might be from pholasek@redhat.com are
 
 numa-emulation-x86_64-numa=fake-parameter-for-custom-nodes-distance.patch
-numa-emulation-x86_64-documentation-changes-in-boot-optionstxt.patch
 
