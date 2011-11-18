@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch added to -mm tree
-Date: Fri, 18 Nov 2011 11:30:50 -0800
-Message-ID: <201111181930.pAIJUoYt024351@wpaz9.hot.corp.google.com>
+Subject: + hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch added to -mm tree
+Date: Fri, 18 Nov 2011 11:40:06 -0800
+Message-ID: <201111181940.pAIJe63h019235@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:36292 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756358Ab1KRTax (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 14:30:53 -0500
-Received: by ywb5 with SMTP id 5so433762ywb.1
-        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 11:30:52 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:42900 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756691Ab1KRTkK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 14:40:10 -0500
+Received: by faap16 with SMTP id p16so107083faa.1
+        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 11:40:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: dhillf@gmail.com, aarcange@redhat.com, jweiner@redhat.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix
+     Subject: hugetlb: detect race upon page allocation failure during COW
 has been added to the -mm tree.  Its filename is
-     memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+     hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,67 +35,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix
+From: Hillf Danton <dhillf@gmail.com>
+Subject: hugetlb: detect race upon page allocation failure during COW
 
-fix typo, per Michal
+In the error path where we failed to allocate a new huge page, we should
+check whether a racing thread has added this page for us while this thread
+waited for the page_table_lock.
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+We are serialized by hugetlb_instantiation_mutex on the pagefault patch
+but this race can occur when another thread is performing page migration.
+
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix
-+++ a/mm/memcontrol.c
-@@ -2487,7 +2487,7 @@ static void __mem_cgroup_commit_charge(s
- 			(1 << PCG_ACCT_LRU) | (1 << PCG_MIGRATION))
- /*
-  * Because tail pages are not marked as "used", set it. We're under
-- * zone->lru_lock, 'splitting on pmd' and compund_lock.
-+ * zone->lru_lock, 'splitting on pmd' and compound_lock.
-  * charge/uncharge will be never happen and move_account() is done under
-  * compound_lock(), so we don't have to take care of races.
-  */
+diff -puN mm/hugetlb.c~hugetlb-detect-race-upon-page-allocation-failure-during-cow mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-detect-race-upon-page-allocation-failure-during-cow
++++ a/mm/hugetlb.c
+@@ -2407,7 +2407,14 @@ retry_avoidcopy:
+ 				BUG_ON(page_count(old_page) != 1);
+ 				BUG_ON(huge_pte_none(pte));
+ 				spin_lock(&mm->page_table_lock);
+-				goto retry_avoidcopy;
++				ptep = huge_pte_offset(mm, address & huge_page_mask(h));
++				if (likely(pte_same(huge_ptep_get(ptep), pte)))
++					goto retry_avoidcopy;
++				/*
++				 * race occurs while re-acquiring page_table_lock, and
++				 * our job is done.
++				 */
++				return 0;
+ 			}
+ 			WARN_ON_ONCE(1);
+ 		}
 _
-Subject: Subject: memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix
+Subject: Subject: hugetlb: detect race upon page allocation failure during COW
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
-debugobjects-extend-to-assert-that-an-object-is-initialized.patch
-kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
 
