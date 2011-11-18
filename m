@@ -1,83 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + mm-account-reaped-page-cache-on-inode-cache-pruning.patch added to -mm tree
-Date: Thu, 17 Nov 2011 16:23:27 -0800
-Message-ID: <201111180023.pAI0NRoP022320@wpaz1.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Fri, 18 Nov 2011 10:48:19 -0800
+Message-ID: <201111181848.pAIImKE6012710@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:54260 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755256Ab1KRAXc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 19:23:32 -0500
-Received: by vcbfl13 with SMTP id fl13so400083vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 16:23:31 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:52194 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753556Ab1KRSsW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 13:48:22 -0500
+Received: by ggnp4 with SMTP id p4so429134ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 10:48:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, david@fromorbit.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-has been added to the -mm tree.  Its filename is
-     mm-account-reaped-page-cache-on-inode-cache-pruning.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: account reaped page cache on inode cache pruning
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Inode cache pruning indirectly reclaims page-cache by invalidating mapping
-pages.  Let's account them into reclaim-state to notice this progress in
-memory reclaimer.
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/staging/media/as102/as102_drv.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN fs/inode.c~mm-account-reaped-page-cache-on-inode-cache-pruning fs/inode.c
---- a/fs/inode.c~mm-account-reaped-page-cache-on-inode-cache-pruning
-+++ a/fs/inode.c
-@@ -692,6 +692,8 @@ void prune_icache_sb(struct super_block 
- 	else
- 		__count_vm_events(PGINODESTEAL, reap);
- 	spin_unlock(&sb->s_inode_lru_lock);
-+	if (current->reclaim_state)
-+		current->reclaim_state->reclaimed_slab += reap;
+diff -puN drivers/staging/media/as102/as102_drv.h~linux-next-git-rejects drivers/staging/media/as102/as102_drv.h
+--- a/drivers/staging/media/as102/as102_drv.h~linux-next-git-rejects
++++ a/drivers/staging/media/as102/as102_drv.h
+@@ -27,14 +27,10 @@
+ #define DRIVER_FULL_NAME "Abilis Systems as10x usb driver"
+ #define DRIVER_NAME "as10x_usb"
  
- 	dispose_list(&freeable);
- }
+-<<<<<<< HEAD
+-extern int as102_debug;
+ #define debug	as102_debug
+-=======
+-extern int debug;
++extern int as102_debug;
+ extern struct usb_driver as102_usb_driver;
+ extern int elna_enable;
+->>>>>>> linux-next/akpm-end
+ 
+ #define dprintk(debug, args...) \
+ 	do { if (debug) {	\
 _
-Subject: From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-vmscan-fix-initial-shrinker-size-handling.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
 vmscan-use-atomic-long-for-shrinker-batching.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
-mm-add-free_hot_cold_page_list-helper.patch
-mm-add-free_hot_cold_page_list-helper-v2.patch
-mm-add-free_hot_cold_page_list-helper-v3.patch
-mm-remove-unused-pagevec_free.patch
-mm-tracepoint-rename-page-free-events.patch
-mm-tracepoint-fixup-documentation-and-examples.patch
-mm-fix-page-faults-detection-in-swap-token-logic.patch
-mm-account-reaped-page-cache-on-inode-cache-pruning.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
+debugobjects-extend-to-assert-that-an-object-is-initialized.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
