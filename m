@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch added to -mm tree
-Date: Fri, 18 Nov 2011 12:00:03 -0800
-Message-ID: <201111182000.pAIK03Sh009025@wpaz5.hot.corp.google.com>
+Subject: + mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch added to -mm tree
+Date: Fri, 18 Nov 2011 12:00:06 -0800
+Message-ID: <201111182000.pAIK06S5009426@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:51276 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755675Ab1KRUAH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 15:00:07 -0500
-Received: by eyg5 with SMTP id 5so81212eyg.1
-        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 12:00:06 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:63333 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156Ab1KRUAN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 15:00:13 -0500
+Received: by ywb5 with SMTP id 5so438504ywb.1
+        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 12:00:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: consul.kautuk@gmail.com
+Cc: akpm@linux-foundation.org, consul.kautuk@gmail.com
 
 
 The patch titled
-     Subject: mm/vmalloc.c: eliminate extra loop in pcpu_get_vm_areas error path
+     Subject: mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
+     mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,52 +35,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Kautuk Consul <consul.kautuk@gmail.com>
-Subject: mm/vmalloc.c: eliminate extra loop in pcpu_get_vm_areas error path
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
 
-If either of the vas or vms arrays are not properly kzalloced, then the
-code jumps to the err_free label.
+remove now-unneeded tests
 
-The err_free label runs a loop to check and free each of the array members
-of the vas and vms arrays which is not required for this situation as none
-of the array members have been allocated till this point.
-
-Eliminate the extra loop we have to go through by introducing a new label
-err_free2 and then jumping to it.
-
-Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Cc: Kautuk Consul <consul.kautuk@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path
+diff -puN mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
 +++ a/mm/vmalloc.c
-@@ -2351,7 +2351,7 @@ struct vm_struct **pcpu_get_vm_areas(con
- 	vms = kzalloc(sizeof(vms[0]) * nr_vms, GFP_KERNEL);
- 	vas = kzalloc(sizeof(vas[0]) * nr_vms, GFP_KERNEL);
- 	if (!vas || !vms)
--		goto err_free;
-+		goto err_free2;
+@@ -2449,10 +2449,8 @@ found:
  
+ err_free:
  	for (area = 0; area < nr_vms; area++) {
- 		vas[area] = kzalloc(sizeof(struct vmap_area), GFP_KERNEL);
-@@ -2454,6 +2454,7 @@ err_free:
- 		if (vms)
- 			kfree(vms[area]);
+-		if (vas)
+-			kfree(vas[area]);
+-		if (vms)
+-			kfree(vms[area]);
++		kfree(vas[area]);
++		kfree(vms[area]);
  	}
-+err_free2:
+ err_free2:
  	kfree(vas);
- 	kfree(vms);
- 	return NULL;
 _
-Subject: Subject: mm/vmalloc.c: eliminate extra loop in pcpu_get_vm_areas error path
+Subject: Subject: mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
 
-Patches currently in -mm which might be from consul.kautuk@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+vmscan-use-atomic-long-for-shrinker-batching.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+mrst-battery-fixes.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
 mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+debugobjects-extend-to-assert-that-an-object-is-initialized.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
