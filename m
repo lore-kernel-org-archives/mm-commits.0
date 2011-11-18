@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-delete-comments-refering-to-the-bkl.patch added to -mm tree
-Date: Thu, 17 Nov 2011 16:08:53 -0800
-Message-ID: <201111180008.pAI08rH8021401@wpaz9.hot.corp.google.com>
+Subject: + mm-account-reaped-page-cache-on-inode-cache-pruning.patch added to -mm tree
+Date: Thu, 17 Nov 2011 16:23:27 -0800
+Message-ID: <201111180023.pAI0NRoP022320@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:37621 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754476Ab1KRAI4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 19:08:56 -0500
-Received: by wwe5 with SMTP id 5so55679wwe.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 16:08:55 -0800 (PST)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:54260 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755256Ab1KRAXc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 19:23:32 -0500
+Received: by vcbfl13 with SMTP id fl13so400083vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 16:23:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@gnu.org
+Cc: khlebnikov@openvz.org, david@fromorbit.com
 
 
 The patch titled
-     Subject: reiserfs: delete comments refering to the BKL
+     From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 has been added to the -mm tree.  Its filename is
-     reiserfs-delete-comments-refering-to-the-bkl.patch
+     mm-account-reaped-page-cache-on-inode-cache-pruning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,60 +35,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@gnu.org>
-Subject: reiserfs: delete comments refering to the BKL
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm: account reaped page cache on inode cache pruning
 
-Signed-off-by: Davidlohr Bueso <dave@gnu.org>
+Inode cache pruning indirectly reclaims page-cache by invalidating mapping
+pages.  Let's account them into reclaim-state to notice this progress in
+memory reclaimer.
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-delete-comments-refering-to-the-bkl fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-delete-comments-refering-to-the-bkl
-+++ a/fs/reiserfs/journal.c
-@@ -2896,14 +2896,13 @@ int journal_transaction_should_end(struc
- 	    journal->j_cnode_free < (journal->j_trans_max * 3)) {
- 		return 1;
- 	}
--	/* protected by the BKL here */
-+
- 	journal->j_len_alloc += new_alloc;
- 	th->t_blocks_allocated += new_alloc ;
- 	return 0;
- }
+diff -puN fs/inode.c~mm-account-reaped-page-cache-on-inode-cache-pruning fs/inode.c
+--- a/fs/inode.c~mm-account-reaped-page-cache-on-inode-cache-pruning
++++ a/fs/inode.c
+@@ -692,6 +692,8 @@ void prune_icache_sb(struct super_block 
+ 	else
+ 		__count_vm_events(PGINODESTEAL, reap);
+ 	spin_unlock(&sb->s_inode_lru_lock);
++	if (current->reclaim_state)
++		current->reclaim_state->reclaimed_slab += reap;
  
--/* this must be called inside a transaction, and requires the
--** kernel_lock to be held
-+/* this must be called inside a transaction
- */
- void reiserfs_block_writes(struct reiserfs_transaction_handle *th)
- {
-@@ -2914,8 +2913,7 @@ void reiserfs_block_writes(struct reiser
- 	return;
+ 	dispose_list(&freeable);
  }
- 
--/* this must be called without a transaction started, and does not
--** require BKL
-+/* this must be called without a transaction started
- */
- void reiserfs_allow_writes(struct super_block *s)
- {
-@@ -2924,8 +2922,7 @@ void reiserfs_allow_writes(struct super_
- 	wake_up(&journal->j_join_wait);
- }
- 
--/* this must be called without a transaction started, and does not
--** require BKL
-+/* this must be called without a transaction started
- */
- void reiserfs_wait_on_write_block(struct super_block *s)
- {
 _
-Subject: Subject: reiserfs: delete comments refering to the BKL
+Subject: From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-Patches currently in -mm which might be from dave@gnu.org are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
-reiserfs-delete-comments-refering-to-the-bkl.patch
+linux-next.patch
+vmscan-fix-initial-shrinker-size-handling.patch
+vmscan-use-atomic-long-for-shrinker-batching.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+mm-add-free_hot_cold_page_list-helper.patch
+mm-add-free_hot_cold_page_list-helper-v2.patch
+mm-add-free_hot_cold_page_list-helper-v3.patch
+mm-remove-unused-pagevec_free.patch
+mm-tracepoint-rename-page-free-events.patch
+mm-tracepoint-fixup-documentation-and-examples.patch
+mm-fix-page-faults-detection-in-swap-token-logic.patch
+mm-account-reaped-page-cache-on-inode-cache-pruning.patch
 
