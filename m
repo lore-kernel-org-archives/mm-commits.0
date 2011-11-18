@@ -1,68 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [folded] numa-emulation-x86_64-documentation-changes-in-boot-optionstxt.patch removed from -mm tree
-Date: Fri, 18 Nov 2011 11:53:53 -0800
-Message-ID: <201111181953.pAIJrrhc031800@wpaz1.hot.corp.google.com>
+Subject: + mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch added to -mm tree
+Date: Fri, 18 Nov 2011 12:00:03 -0800
+Message-ID: <201111182000.pAIK03Sh009025@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:34798 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755016Ab1KRTx5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 14:53:57 -0500
-Received: by faap16 with SMTP id p16so107488faa.1
-        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 11:53:56 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:51276 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755675Ab1KRUAH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Nov 2011 15:00:07 -0500
+Received: by eyg5 with SMTP id 5so81212eyg.1
+        for <mm-commits@vger.kernel.org>; Fri, 18 Nov 2011 12:00:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pholasek@redhat.com, hpa@zytor.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: consul.kautuk@gmail.com
 
 
 The patch titled
-     Subject: NUMA emulation x86_64: Documentation changes in boot-options.txt
-has been removed from the -mm tree.  Its filename was
-     numa-emulation-x86_64-documentation-changes-in-boot-optionstxt.patch
+     Subject: mm/vmalloc.c: eliminate extra loop in pcpu_get_vm_areas error path
+has been added to the -mm tree.  Its filename is
+     mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
 
-This patch was dropped because it was folded into numa-emulation-x86_64-numa=fake-parameter-for-custom-nodes-distance.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Petr Holasek <pholasek@redhat.com>
-Subject: NUMA emulation x86_64: Documentation changes in boot-options.txt
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Subject: mm/vmalloc.c: eliminate extra loop in pcpu_get_vm_areas error path
 
-Signed-off-by: Petr Holasek <pholasek@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: David Rientjes <rientjes@google.com>
+If either of the vas or vms arrays are not properly kzalloced, then the
+code jumps to the err_free label.
+
+The err_free label runs a loop to check and free each of the array members
+of the vas and vms arrays which is not required for this situation as none
+of the array members have been allocated till this point.
+
+Eliminate the extra loop we have to go through by introducing a new label
+err_free2 and then jumping to it.
+
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/x86/x86_64/boot-options.txt |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/x86/x86_64/boot-options.txt~numa-emulation-x86_64-documentation-changes-in-boot-optionstxt Documentation/x86/x86_64/boot-options.txt
---- a/Documentation/x86/x86_64/boot-options.txt~numa-emulation-x86_64-documentation-changes-in-boot-optionstxt
-+++ a/Documentation/x86/x86_64/boot-options.txt
-@@ -166,13 +166,15 @@ NUMA
+diff -puN mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path
++++ a/mm/vmalloc.c
+@@ -2351,7 +2351,7 @@ struct vm_struct **pcpu_get_vm_areas(con
+ 	vms = kzalloc(sizeof(vms[0]) * nr_vms, GFP_KERNEL);
+ 	vas = kzalloc(sizeof(vas[0]) * nr_vms, GFP_KERNEL);
+ 	if (!vas || !vms)
+-		goto err_free;
++		goto err_free2;
  
-   numa=noacpi   Don't parse the SRAT table for NUMA setup
- 
--  numa=fake=<size>[MG]
-+  numa=fake=<size>[MG][,distance]
- 		If given as a memory unit, fills all system RAM with nodes of
- 		size interleaved over physical nodes.
-+		Optional distance sets linear distance between emulated nodes.
- 
--  numa=fake=<N>
-+  numa=fake=<N>[,distance]
- 		If given as an integer, fills all system RAM with N fake nodes
- 		interleaved over physical nodes.
-+		Optional distance sets linear distance between emulated nodes.
- 
- ACPI
- 
+ 	for (area = 0; area < nr_vms; area++) {
+ 		vas[area] = kzalloc(sizeof(struct vmap_area), GFP_KERNEL);
+@@ -2454,6 +2454,7 @@ err_free:
+ 		if (vms)
+ 			kfree(vms[area]);
+ 	}
++err_free2:
+ 	kfree(vas);
+ 	kfree(vms);
+ 	return NULL;
 _
+Subject: Subject: mm/vmalloc.c: eliminate extra loop in pcpu_get_vm_areas error path
 
-Patches currently in -mm which might be from pholasek@redhat.com are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
-numa-emulation-x86_64-numa=fake-parameter-for-custom-nodes-distance.patch
+linux-next.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
 
