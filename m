@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-platform-x86-sony-laptopc-fix-scancodes.patch added to -mm tree
-Date: Thu, 17 Nov 2011 15:52:27 -0800
-Message-ID: <201111172352.pAHNqRHL011392@wpaz5.hot.corp.google.com>
+Subject: + cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch added to -mm tree
+Date: Thu, 17 Nov 2011 16:00:49 -0800
+Message-ID: <201111180000.pAI00nxt000345@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:54486 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754650Ab1KQXwd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 18:52:33 -0500
-Received: by wwe5 with SMTP id 5so55431wwe.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 15:52:31 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:41268 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754320Ab1KRAAw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Nov 2011 19:00:52 -0500
+Received: by qyd20 with SMTP id 20so430818qyd.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Nov 2011 16:00:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: john@calvaedi.com, dtor@mail.ru, john@calva.com, malattia@linux.it, mjg@redhat.com
+Cc: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, miaox@cn.fujitsu.com, paul@paulmenage.org
 
 
 The patch titled
-     Subject: drivers/platform/x86/sony-laptop.c: fix scancodes
+     Subject: cpusets: stall when updating mems_allowed for mempolicy or disjoint nodemask
 has been added to the -mm tree.  Its filename is
-     drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+     cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,85 +35,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: John Hughes <john@calvaedi.com>
-Subject: drivers/platform/x86/sony-laptop.c: fix scancodes
+From: David Rientjes <rientjes@google.com>
+Subject: cpusets: stall when updating mems_allowed for mempolicy or disjoint nodemask
 
-The scancodes returned by the sony-laptop driver for function keys did not
-match the scancodes used to remap keys.  Also, since the scancode was sent
-to the input subsystem after the mapped keysym the /lib/udev/keymap
-utility was confused about which scancode to report for which keysym.
+c0ff7453bb5c ("cpuset,mm: fix no node to alloc memory when changing
+cpuset's mems") adds get_mems_allowed() to prevent the set of allowed
+nodes from changing for a thread.  This causes any update to a set of
+allowed nodes to stall until put_mems_allowed() is called.
 
-This patch fixes the driver so the correct scancode is shown for each key.
- It also adds to the documentation a description of where to find the
-scancodes.
+This stall is unncessary, however, if at least one node remains unchanged
+in the update to the set of allowed nodes.  This was addressed by
+89e8a244b97e ("cpusets: avoid looping when storing to mems_allowed if one
+node remains set"), but it's still possible that an empty nodemask may be
+read from a mempolicy because the old nodemask may be remapped to the new
+nodemask during rebind.  To prevent this, only avoid the stall if there is
+no mempolicy for the thread being changed.
 
-Before the patch FN/E returned scancode 0x1B, but to remap scancode 0x14
-had to be used.
+This is a temporary solution until all reads from mempolicy nodemasks can
+be guaranteed to not be empty without the get_mems_allowed()
+synchronization.
 
-Signed-off-by: John Hughes <john@calva.com>
-Cc: Mattia Dongili <malattia@linux.it>
-Cc: Matthew Garrett <mjg@redhat.com>
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
+Also moves the check for nodemask intersection inside task_lock() so that
+tsk->mems_allowed cannot change.  This ensures that nothing can set this
+tsk's mems_allowed out from under us and also protects tsk->mempolicy.
+
+Reported-by: Miao Xie <miaox@cn.fujitsu.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Paul Menage <paul@paulmenage.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/laptops/sony-laptop.txt |    5 +++++
- drivers/platform/x86/sony-laptop.c    |    9 +++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ kernel/cpuset.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/laptops/sony-laptop.txt~drivers-platform-x86-sony-laptopc-fix-scancodes Documentation/laptops/sony-laptop.txt
---- a/Documentation/laptops/sony-laptop.txt~drivers-platform-x86-sony-laptopc-fix-scancodes
-+++ a/Documentation/laptops/sony-laptop.txt
-@@ -17,6 +17,11 @@ subsystem. See the logs of acpid or /pro
- devices are created by the driver. Additionally, loading the driver with the
- debug option will report all events in the kernel log.
+diff -puN kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask
++++ a/kernel/cpuset.c
+@@ -949,7 +949,7 @@ static void cpuset_migrate_mm(struct mm_
+ static void cpuset_change_task_nodemask(struct task_struct *tsk,
+ 					nodemask_t *newmems)
+ {
+-	bool masks_disjoint = !nodes_intersects(*newmems, tsk->mems_allowed);
++	bool need_loop;
  
-+The "scancodes" passed to the input system (that can be remapped with udev)
-+are indexes to the table "sony_laptop_input_keycode_map" in the sony-laptop.c
-+module.  For example the "FN/E" key combination (EJECTCD on some models)
-+generates the scancode 20 (0x14).
-+
- Backlight control:
- ------------------
- If your laptop model supports it, you will find sysfs files in the
-diff -puN drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes drivers/platform/x86/sony-laptop.c
---- a/drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes
-+++ a/drivers/platform/x86/sony-laptop.c
-@@ -347,6 +347,7 @@ static void sony_laptop_report_input_eve
- 	struct input_dev *jog_dev = sony_laptop_input.jog_dev;
- 	struct input_dev *key_dev = sony_laptop_input.key_dev;
- 	struct sony_laptop_keypress kp = { NULL };
-+	int scancode;
+ repeat:
+ 	/*
+@@ -962,6 +962,14 @@ repeat:
+ 		return;
  
- 	if (event == SONYPI_EVENT_FNKEY_RELEASED ||
- 			event == SONYPI_EVENT_ANYBUTTON_RELEASED) {
-@@ -380,8 +381,8 @@ static void sony_laptop_report_input_eve
- 			dprintk("sony_laptop_report_input_event, event not known: %d\n", event);
- 			break;
- 		}
--		if (sony_laptop_input_index[event] != -1) {
--			kp.key = sony_laptop_input_keycode_map[sony_laptop_input_index[event]];
-+		if ((scancode = sony_laptop_input_index[event]) != -1) {
-+			kp.key = sony_laptop_input_keycode_map[scancode];
- 			if (kp.key != KEY_UNKNOWN)
- 				kp.dev = key_dev;
- 		}
-@@ -389,9 +390,9 @@ static void sony_laptop_report_input_eve
- 	}
+ 	task_lock(tsk);
++	/*
++	 * Determine if a loop is necessary if another thread is doing
++	 * get_mems_allowed().  If at least one node remains unchanged and
++	 * tsk does not have a mempolicy, then an empty nodemask will not be
++	 * possible when mems_allowed is larger than a word.
++	 */
++	need_loop = tsk->mempolicy ||
++			!nodes_intersects(*newmems, tsk->mems_allowed);
+ 	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
+ 	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
  
- 	if (kp.dev) {
--		input_report_key(kp.dev, kp.key, 1);
- 		/* we emit the scancode so we can always remap the key */
--		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
-+		input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
-+		input_report_key(kp.dev, kp.key, 1);
- 		input_sync(kp.dev);
+@@ -981,11 +989,9 @@ repeat:
  
- 		/* schedule key release */
+ 	/*
+ 	 * Allocation of memory is very fast, we needn't sleep when waiting
+-	 * for the read-side.  No wait is necessary, however, if at least one
+-	 * node remains unchanged.
++	 * for the read-side.
+ 	 */
+-	while (masks_disjoint &&
+-			ACCESS_ONCE(tsk->mems_allowed_change_disable)) {
++	while (need_loop && ACCESS_ONCE(tsk->mems_allowed_change_disable)) {
+ 		task_unlock(tsk);
+ 		if (!task_curr(tsk))
+ 			yield();
 _
-Subject: Subject: drivers/platform/x86/sony-laptop.c: fix scancodes
+Subject: Subject: cpusets: stall when updating mems_allowed for mempolicy or disjoint nodemask
 
-Patches currently in -mm which might be from john@calvaedi.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+origin.patch
+linux-next.patch
+drivers-base-nodec-fix-compilation-error.patch
+hugetlb-provide-a-default-hpage_shift-if-config_hugetlb_page.patch
+drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size.patch
+hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 
