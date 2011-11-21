@@ -1,95 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix.patch removed from -mm tree
-Date: Mon, 21 Nov 2011 12:39:27 -0800
-Message-ID: <201111212039.pALKdRA4030132@wpaz9.hot.corp.google.com>
+Subject: + merge_configsh-use-signal-names-compatible-with-dash-and-bash.patch added to -mm tree
+Date: Mon, 21 Nov 2011 13:30:53 -0800
+Message-ID: <201111212130.pALLUsoD015841@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:53216 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752371Ab1KUUja (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2011 15:39:30 -0500
-Received: by fabs1 with SMTP id s1so82832fab.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2011 12:39:29 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:52941 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756915Ab1KUVa5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2011 16:30:57 -0500
+Received: by yenm12 with SMTP id m12so181106yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2011 13:30:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david.daney@cavium.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dvhart@linux.intel.com, john.stultz@linaro.org, mmarek@suse.cz
 
 
 The patch titled
-     Subject: hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix
-has been removed from the -mm tree.  Its filename was
-     hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix.patch
+     Subject: merge_config.sh: use signal names compatible with dash and bash
+has been added to the -mm tree.  Its filename is
+     merge_configsh-use-signal-names-compatible-with-dash-and-bash.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix
+From: Darren Hart <dvhart@linux.intel.com>
+Subject: merge_config.sh: use signal names compatible with dash and bash
 
-improve the comment
+The SIGHUP SIGINT and SIGTERM names caused failures when running
+merge_config.sh with the dash shell.  Dropping the "SIG" component makes
+the script work in both bash and dash.
 
-Cc: David Daney <david.daney@cavium.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Darren Hart <dvhart@linux.intel.com>
+Acked-by: John Stultz <john.stultz@linaro.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ scripts/kconfig/merge_config.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-provide-safer-dummy-values-for-hpage_mask-and-hpage_size-fix
-+++ a/include/linux/hugetlb.h
-@@ -111,7 +111,11 @@ static inline void copy_huge_page(struct
- #define hugetlb_change_protection(vma, address, end, newprot)
+diff -puN scripts/kconfig/merge_config.sh~merge_configsh-use-signal-names-compatible-with-dash-and-bash scripts/kconfig/merge_config.sh
+--- a/scripts/kconfig/merge_config.sh~merge_configsh-use-signal-names-compatible-with-dash-and-bash
++++ a/scripts/kconfig/merge_config.sh
+@@ -24,7 +24,7 @@ clean_up() {
+        rm -f $TMP_FILE
+        exit
+ }
+-trap clean_up SIGHUP SIGINT SIGTERM
++trap clean_up HUP INT TERM
  
- #ifndef HPAGE_MASK
--/* Keep the compiler happy with some dummy (but BUGgy) values */
-+/*
-+ * HPAGE_MASK and friends are defined if !CONFIG_HUGETLB_PAGE as an
-+ * ifdef-avoiding convenience.  However they should never be evaluated at
-+ * runtime if !CONFIG_HUGETLB_PAGE.
-+ */
- #define HPAGE_MASK	({BUG(); 0; })
- #define HPAGE_SIZE	({BUG(); 0; })
- #define HPAGE_SHIFT	({BUG(); 0; })
+ usage() {
+ 	echo "Usage: $0 [OPTIONS] [CONFIG [...]]"
 _
+Subject: Subject: merge_config.sh: use signal names compatible with dash and bash
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dvhart@linux.intel.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-debugobjects-extend-to-assert-that-an-object-is-initialized.patch
-kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+kconfig-add-merge_configsh-script.patch
+merge_configsh-use-signal-names-compatible-with-dash-and-bash.patch
+merge_configsh-whitespace-cleanup.patch
 
