@@ -1,73 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch removed from -mm tree
-Date: Mon, 21 Nov 2011 14:05:13 -0800
-Message-ID: <201111212205.pALM5Ddg018319@wpaz5.hot.corp.google.com>
+Subject: + hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch added to -mm tree
+Date: Mon, 21 Nov 2011 14:08:03 -0800
+Message-ID: <201111212208.pALM84vk022454@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:49475 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757342Ab1KUWFY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2011 17:05:24 -0500
-Received: by wwe5 with SMTP id 5so178586wwe.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2011 14:05:23 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:61992 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753692Ab1KUWPX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2011 17:15:23 -0500
+Received: by ywb5 with SMTP id 5so776221ywb.1
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2011 14:15:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, aarcange@redhat.com, jweiner@redhat.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mhocko@suse.cz, aarcange@redhat.com, dhillf@gmail.com, jweiner@redhat.com
 
 
 The patch titled
-     Subject: hugetlb: detect race upon page allocation failure during COW
-has been removed from the -mm tree.  Its filename was
-     hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+     Subject: hugetlb: clarify hugetlb_instantiation_mutex usage
+has been added to the -mm tree.  Its filename is
+     hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: hugetlb: detect race upon page allocation failure during COW
+From: Michal Hocko <mhocko@suse.cz>
+Subject: hugetlb: clarify hugetlb_instantiation_mutex usage
 
-In the error path where we failed to allocate a new huge page, we should
-check whether a racing thread has added this page for us while this thread
-waited for the page_table_lock.
+Let's make it clear that we cannot race with other fault handlers due to
+hugetlb (global) mutex.  Also make it clear that we want to keep pte_same
+checks anayway to have a transition from the global mutex easier.
 
-We are serialized by hugetlb_instantiation_mutex on the pagefault patch
-but this race can occur when another thread is performing page migration.
-
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/hugetlb.c~hugetlb-detect-race-upon-page-allocation-failure-during-cow mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-detect-race-upon-page-allocation-failure-during-cow
+diff -puN mm/hugetlb.c~hugetlb-clarify-hugetlb_instantiation_mutex-usage mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-clarify-hugetlb_instantiation_mutex-usage
 +++ a/mm/hugetlb.c
-@@ -2407,7 +2407,14 @@ retry_avoidcopy:
- 				BUG_ON(page_count(old_page) != 1);
- 				BUG_ON(huge_pte_none(pte));
- 				spin_lock(&mm->page_table_lock);
--				goto retry_avoidcopy;
-+				ptep = huge_pte_offset(mm, address & huge_page_mask(h));
-+				if (likely(pte_same(huge_ptep_get(ptep), pte)))
-+					goto retry_avoidcopy;
-+				/*
-+				 * race occurs while re-acquiring page_table_lock, and
-+				 * our job is done.
-+				 */
-+				return 0;
- 			}
- 			WARN_ON_ONCE(1);
- 		}
+@@ -2348,6 +2348,9 @@ static int unmap_ref_private(struct mm_s
+ 
+ /*
+  * Hugetlb_cow() should be called with page lock of the original hugepage held.
++ * Called with hugetlb_instantiation_mutex held and pte_page locked so we
++ * cannot race with other handlers or page migration.
++ * Keep the pte_same checks anyway to make transition from the mutex easier.
+  */
+ static int hugetlb_cow(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, pte_t *ptep, pte_t pte,
 _
+Subject: Subject: hugetlb: clarify hugetlb_instantiation_mutex usage
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
 linux-next.patch
+mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
+cgroup_freezer-fix-freezing-groups-with-stopped-tasks.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
 
