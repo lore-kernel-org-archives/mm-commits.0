@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev.patch added to -mm tree
-Date: Tue, 22 Nov 2011 15:17:36 -0800
-Message-ID: <201111222317.pAMNHawn020998@wpaz1.hot.corp.google.com>
+Subject: + fs-remove-unneeded-plug-in-mpage_readpages.patch added to -mm tree
+Date: Tue, 22 Nov 2011 15:23:27 -0800
+Message-ID: <201111222323.pAMNNRgq000341@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:50745 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab1KVXRm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:17:42 -0500
-Received: by fabs1 with SMTP id s1so32974fab.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:17:41 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:64005 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519Ab1KVXX3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:23:29 -0500
+Received: by ywb5 with SMTP id 5so140362ywb.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:23:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: baryluk@smp.if.uj.edu.pl, allen.m.kay@intel.com, dwmw2@infradead.org, suresh.b.siddha@intel.com
+Cc: linkinjeon@gmail.com, amit.sahrawat83@gmail.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: intel-iommu: Fix __init section missmatch of dmar_parse_rmrr_atsr_dev
+     Subject: fs: remove unneeded plug in mpage_readpages()
 has been added to the -mm tree.  Its filename is
-     intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev.patch
+     fs-remove-unneeded-plug-in-mpage_readpages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,43 +35,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
-Subject: intel-iommu: Fix __init section missmatch of dmar_parse_rmrr_atsr_dev
+From: Namjae Jeon <linkinjeon@gmail.com>
+Subject: fs: remove unneeded plug in mpage_readpages()
 
-dmar_parse_rmrr_atsr_dev() (drivers/iommu/dmar.c) is called from
-dmar_dev_scope_init() (drivers/iommu/intel-iommu.c), but
-dmar_dev_scope_init() is annotated with __init, when
-dmar_parse_rmrr_atsr_dev() is not, causing full section missmatch
-analsysis to abort compilation.
+The block plug in mpage_readpages() is duplicates the one in read_pages().
 
-Fix problem by adding __init annotation to dmar_parse_rmrr_atsr_dev.
-
-Signed-off-by: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Allen Kay <allen.m.kay@intel.com>
+Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
+Signed-off-by: Amit Sahrawat <amit.sahrawat83@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/intel-iommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/mpage.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/iommu/intel-iommu.c~intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev drivers/iommu/intel-iommu.c
---- a/drivers/iommu/intel-iommu.c~intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev
-+++ a/drivers/iommu/intel-iommu.c
-@@ -3542,7 +3542,7 @@ found:
- 	return 0;
- }
- 
--int dmar_parse_rmrr_atsr_dev(void)
-+int __init dmar_parse_rmrr_atsr_dev(void)
- {
- 	struct dmar_rmrr_unit *rmrr, *rmrr_n;
- 	struct dmar_atsr_unit *atsr, *atsr_n;
-_
-Subject: Subject: intel-iommu: Fix __init section missmatch of dmar_parse_rmrr_atsr_dev
-
-Patches currently in -mm which might be from baryluk@smp.if.uj.edu.pl are
-
-intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev.patch
-
+diff -puN fs/mpage.c~fs-remove-unneeded-plug-in-mpage_readpages fs/mpage.c
+--- a/fs/mpage.c~fs-remove-unneeded-plug-in-mpage_readpages
++++ a/fs/mpage.c
+@@ -371,9 +371,6 @@ mpage_readpages(struct address_space *ma
+ 	sector_t last_block_in_bio = 0;
+ 	struct buffer_head map_bh;
+ 	unsigned long first_logical_block = 0;
+-	struct blk_plug plug;
