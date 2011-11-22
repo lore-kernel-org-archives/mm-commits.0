@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-improve-the-error-code-path.patch added to -mm tree
-Date: Tue, 22 Nov 2011 15:08:32 -0800
-Message-ID: <201111222308.pAMN8cRM007811@wpaz1.hot.corp.google.com>
+Subject: + thp-improve-order-in-lru-list-for-split-huge-page.patch added to -mm tree
+Date: Tue, 22 Nov 2011 15:08:47 -0800
+Message-ID: <201111222308.pAMN8mVg014748@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:54799 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752771Ab1KVXIm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:08:42 -0500
-Received: by fabs1 with SMTP id s1so32794fab.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:08:41 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:40225 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851Ab1KVXIu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:08:50 -0500
+Received: by qyk10 with SMTP id 10so81071qyk.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:08:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: shaohua.li@intel.com, aarcange@redhat.com, jweiner@redhat.com, minchan.kim@g
 
 
 The patch titled
-     Subject: thp: improve the error code path
+     Subject: thp: improve order in lru list for split huge page
 has been added to the -mm tree.  Its filename is
-     thp-improve-the-error-code-path.patch
+     thp-improve-order-in-lru-list-for-split-huge-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,127 +36,70 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: thp: improve the error code path
+Subject: thp: improve order in lru list for split huge page
 
-Improve the error code path.  Delete unnecessary sysfs file for example. 
-Also remove the #ifdef xxx to make code better.
+Put the tail subpages of an isolated hugepage under splitting in the lru
+reclaim head as they supposedly should be isolated too next.
+
+Queues the subpages in physical order in the lru for non isolated
+hugepages under splitting.  That might provide some theoretical cache
+benefit to the buddy allocator later.
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <jweiner@redhat.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   71 +++++++++++++++++++++++++++++++--------------
- 1 file changed, 50 insertions(+), 21 deletions(-)
+ mm/huge_memory.c |    5 ++---
+ mm/swap.c        |    2 +-
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-improve-the-error-code-path mm/huge_memory.c
---- a/mm/huge_memory.c~thp-improve-the-error-code-path
+diff -puN mm/huge_memory.c~thp-improve-order-in-lru-list-for-split-huge-page mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-improve-order-in-lru-list-for-split-huge-page
 +++ a/mm/huge_memory.c
-@@ -487,41 +487,68 @@ static struct attribute_group khugepaged
- 	.attrs = khugepaged_attr,
- 	.name = "khugepaged",
- };
--#endif /* CONFIG_SYSFS */
- 
--static int __init hugepage_init(void)
-+static int __init hugepage_init_sysfs(struct kobject **hugepage_kobj)
+@@ -1228,7 +1228,6 @@ static int __split_huge_page_splitting(s
+ static void __split_huge_page_refcount(struct page *page)
  {
- 	int err;
--#ifdef CONFIG_SYSFS
--	static struct kobject *hugepage_kobj;
--#endif
--
--	err = -EINVAL;
--	if (!has_transparent_hugepage()) {
--		transparent_hugepage_flags = 0;
--		goto out;
--	}
+ 	int i;
+-	unsigned long head_index = page->index;
+ 	struct zone *zone = page_zone(page);
+ 	int zonestat;
+ 	int tail_count = 0;
+@@ -1237,7 +1236,7 @@ static void __split_huge_page_refcount(s
+ 	spin_lock_irq(&zone->lru_lock);
+ 	compound_lock(page);
  
--#ifdef CONFIG_SYSFS
--	err = -ENOMEM;
--	hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
--	if (unlikely(!hugepage_kobj)) {
-+	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
-+	if (unlikely(!*hugepage_kobj)) {
- 		printk(KERN_ERR "hugepage: failed kobject create\n");
--		goto out;
-+		return -ENOMEM;
- 	}
+-	for (i = 1; i < HPAGE_PMD_NR; i++) {
++	for (i = HPAGE_PMD_NR - 1; i >= 1; i--) {
+ 		struct page *page_tail = page + i;
  
--	err = sysfs_create_group(hugepage_kobj, &hugepage_attr_group);
-+	err = sysfs_create_group(*hugepage_kobj, &hugepage_attr_group);
- 	if (err) {
- 		printk(KERN_ERR "hugepage: failed register hugeage group\n");
--		goto out;
-+		goto delete_obj;
- 	}
+ 		/* tail_page->_mapcount cannot change */
+@@ -1300,7 +1299,7 @@ static void __split_huge_page_refcount(s
+ 		BUG_ON(page_tail->mapping);
+ 		page_tail->mapping = page->mapping;
  
--	err = sysfs_create_group(hugepage_kobj, &khugepaged_attr_group);
-+	err = sysfs_create_group(*hugepage_kobj, &khugepaged_attr_group);
- 	if (err) {
- 		printk(KERN_ERR "hugepage: failed register hugeage group\n");
--		goto out;
-+		goto remove_hp_group;
-+	}
-+
-+	return 0;
-+
-+remove_hp_group:
-+	sysfs_remove_group(*hugepage_kobj, &hugepage_attr_group);
-+delete_obj:
-+	kobject_put(*hugepage_kobj);
-+	return err;
-+}
-+
-+static void __init hugepage_exit_sysfs(struct kobject *hugepage_kobj)
-+{
-+	sysfs_remove_group(hugepage_kobj, &khugepaged_attr_group);
-+	sysfs_remove_group(hugepage_kobj, &hugepage_attr_group);
-+	kobject_put(hugepage_kobj);
-+}
-+#else
-+static inline int hugepage_init_sysfs(struct kobject **hugepage_kobj)
-+{
-+	return 0;
-+}
-+
-+static inline void hugepage_exit_sysfs(struct kobject *hugepage_kobj)
-+{
-+}
-+#endif /* CONFIG_SYSFS */
-+
-+static int __init hugepage_init(void)
-+{
-+	int err;
-+	struct kobject *hugepage_kobj;
-+
-+	if (!has_transparent_hugepage()) {
-+		transparent_hugepage_flags = 0;
-+		return -EINVAL;
- 	}
--#endif
-+
-+	err = hugepage_init_sysfs(&hugepage_kobj);
-+	if (err)
-+		return err;
+-		page_tail->index = ++head_index;
++		page_tail->index = page->index + i;
  
- 	err = khugepaged_slab_init();
- 	if (err)
-@@ -545,7 +572,9 @@ static int __init hugepage_init(void)
- 
- 	set_recommended_min_free_kbytes();
- 
-+	return 0;
- out:
-+	hugepage_exit_sysfs(hugepage_kobj);
- 	return err;
- }
- module_init(hugepage_init)
+ 		BUG_ON(!PageAnon(page_tail));
+ 		BUG_ON(!PageUptodate(page_tail));
+diff -puN mm/swap.c~thp-improve-order-in-lru-list-for-split-huge-page mm/swap.c
+--- a/mm/swap.c~thp-improve-order-in-lru-list-for-split-huge-page
++++ a/mm/swap.c
+@@ -676,7 +676,7 @@ void lru_add_page_tail(struct zone* zone
+ 		if (likely(PageLRU(page)))
+ 			head = page->lru.prev;
+ 		else
+-			head = &zone->lru[lru].list;
++			head = zone->lru[lru].list.prev;
+ 		__add_page_to_lru_list(zone, page_tail, lru, head);
+ 	} else {
+ 		SetPageUnevictable(page_tail);
 _
-Subject: Subject: thp: improve the error code path
+Subject: Subject: thp: improve order in lru list for split huge page
 
 Patches currently in -mm which might be from shaohua.li@intel.com are
 
