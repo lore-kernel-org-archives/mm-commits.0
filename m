@@ -1,105 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] thp-improve-order-in-lru-list-for-split-huge-page.patch removed from -mm tree
-Date: Tue, 22 Nov 2011 15:41:22 -0800
-Message-ID: <201111222341.pAMNfMXF019496@wpaz9.hot.corp.google.com>
+Subject: + drivers-memstick-use-kmemdup-rather-than-duplicating-its-implementation.patch added to -mm tree
+Date: Tue, 22 Nov 2011 15:42:06 -0800
+Message-ID: <201111222342.pAMNg6pd013611@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:38874 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752753Ab1KVXl3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:41:29 -0500
-Received: by ywb5 with SMTP id 5so141841ywb.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:41:29 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:63654 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab1KVXmI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:42:08 -0500
+Received: by ggdk5 with SMTP id k5so151165ggd.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:42:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, aarcange@redhat.com, jweiner@redhat.com, minchan.kim@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: thomas@m3y3r.de
 
 
 The patch titled
-     Subject: thp: improve order in lru list for split huge page
-has been removed from the -mm tree.  Its filename was
-     thp-improve-order-in-lru-list-for-split-huge-page.patch
+     Subject: drivers/memstick: use kmemdup rather than duplicating its implementation
+has been added to the -mm tree.  Its filename is
+     drivers-memstick-use-kmemdup-rather-than-duplicating-its-implementation.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: thp: improve order in lru list for split huge page
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: drivers/memstick: use kmemdup rather than duplicating its implementation
 
-Put the tail subpages of an isolated hugepage under splitting in the lru
-reclaim head as they supposedly should be isolated too next.
+Use kmemdup rather than duplicating its implementation
 
-Queues the subpages in physical order in the lru for non isolated
-hugepages under splitting.  That might provide some theoretical cache
-benefit to the buddy allocator later.
+The semantic patch that makes this change is available
+in scripts/coccinelle/api/memdup.cocci.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 ++---
- mm/swap.c        |    2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/memstick/core/mspro_block.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-improve-order-in-lru-list-for-split-huge-page mm/huge_memory.c
---- a/mm/huge_memory.c~thp-improve-order-in-lru-list-for-split-huge-page
-+++ a/mm/huge_memory.c
-@@ -1228,7 +1228,6 @@ static int __split_huge_page_splitting(s
- static void __split_huge_page_refcount(struct page *page)
- {
- 	int i;
--	unsigned long head_index = page->index;
- 	struct zone *zone = page_zone(page);
- 	int zonestat;
- 	int tail_count = 0;
-@@ -1237,7 +1236,7 @@ static void __split_huge_page_refcount(s
- 	spin_lock_irq(&zone->lru_lock);
- 	compound_lock(page);
+diff -puN drivers/memstick/core/mspro_block.c~drivers-memstick-use-kmemdup-rather-than-duplicating-its-implementation drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~drivers-memstick-use-kmemdup-rather-than-duplicating-its-implementation
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1034,12 +1034,11 @@ static int mspro_block_read_attributes(s
+ 	}
+ 	msb->attr_group.name = "media_attributes";
  
--	for (i = 1; i < HPAGE_PMD_NR; i++) {
-+	for (i = HPAGE_PMD_NR - 1; i >= 1; i--) {
- 		struct page *page_tail = page + i;
+-	buffer = kmalloc(attr_len, GFP_KERNEL);
++	buffer = kmemdup((char *)attr, attr_len, GFP_KERNEL);
+ 	if (!buffer) {
+ 		rc = -ENOMEM;
+ 		goto out_free_attr;
+ 	}
+-	memcpy(buffer, (char *)attr, attr_len);
  
- 		/* tail_page->_mapcount cannot change */
-@@ -1300,7 +1299,7 @@ static void __split_huge_page_refcount(s
- 		BUG_ON(page_tail->mapping);
- 		page_tail->mapping = page->mapping;
- 
--		page_tail->index = ++head_index;
-+		page_tail->index = page->index + i;
- 
- 		BUG_ON(!PageAnon(page_tail));
- 		BUG_ON(!PageUptodate(page_tail));
-diff -puN mm/swap.c~thp-improve-order-in-lru-list-for-split-huge-page mm/swap.c
---- a/mm/swap.c~thp-improve-order-in-lru-list-for-split-huge-page
-+++ a/mm/swap.c
-@@ -676,7 +676,7 @@ void lru_add_page_tail(struct zone* zone
- 		if (likely(PageLRU(page)))
- 			head = page->lru.prev;
- 		else
--			head = &zone->lru[lru].list;
-+			head = zone->lru[lru].list.prev;
- 		__add_page_to_lru_list(zone, page_tail, lru, head);
- 	} else {
- 		SetPageUnevictable(page_tail);
+ 	for (cnt = 0; cnt < attr_count; ++cnt) {
+ 		s_attr = kzalloc(sizeof(struct mspro_sys_attr), GFP_KERNEL);
 _
+Subject: Subject: drivers/memstick: use kmemdup rather than duplicating its implementation
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from thomas@m3y3r.de are
 
 origin.patch
 linux-next.patch
-x86-tlb-flush-avoid-superflous-leave_mm.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
-thp-improve-the-error-code-path.patch
-thp-remove-unnecessary-tlb-flush-for-mprotect.patch
-thp-add-tlb_remove_pmd_tlb_entry.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+drivers-memstick-use-kmemdup-rather-than-duplicating-its-implementation.patch
 
