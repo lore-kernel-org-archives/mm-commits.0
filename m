@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-add-documentation-for-procfs-mount-options.patch added to -mm tree
-Date: Mon, 21 Nov 2011 16:34:29 -0800
-Message-ID: <201111220034.pAM0YU0F015897@wpaz9.hot.corp.google.com>
+Subject: [folded] procfs-add-documentation-for-procfs-mount-options.patch removed from -mm tree
+Date: Mon, 21 Nov 2011 16:34:41 -0800
+Message-ID: <201111220034.pAM0YfT6016938@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:42104 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505Ab1KVAed (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2011 19:34:33 -0500
-Received: by ggnk3 with SMTP id k3so157457ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2011 16:34:32 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:63866 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753364Ab1KVAeq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Nov 2011 19:34:46 -0500
+Received: by fabs1 with SMTP id s1so87864fab.1
+        for <mm-commits@vger.kernel.org>; Mon, 21 Nov 2011 16:34:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: segooon@gmail.com, adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, hpa@zytor.com, jmorris@namei.org, oleg@redhat.com, rdunlap@xenotime.net, seooon@openwall.com, tytso@MIT.EDU, viro@zeniv.linux.org.uk
+To: segooon@gmail.com, adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, hpa@zytor.com, jmorris@namei.org, oleg@redhat.com, rdunlap@xenotime.net, seooon@openwall.com, tytso@MIT.EDU, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: procfs: add documentation for procfs mount options
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      procfs-add-documentation-for-procfs-mount-options.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into procfs-add-hidepid=-and-gid=-mount-options.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -108,11 +98,9 @@ diff -puN Documentation/filesystems/proc.txt~procfs-add-documentation-for-procfs
 +prohibited by hidepid=.  If you use some daemon like identd which needs to learn
 +information about processes information, just add identd to this group.
 _
-Subject: Subject: procfs: add documentation for procfs mount options
 
 Patches currently in -mm which might be from segooon@gmail.com are
 
 procfs-parse-mount-options.patch
 procfs-add-hidepid=-and-gid=-mount-options.patch
-procfs-add-documentation-for-procfs-mount-options.patch
 
