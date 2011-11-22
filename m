@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-add-tlb_remove_pmd_tlb_entry.patch added to -mm tree
-Date: Tue, 22 Nov 2011 15:08:44 -0800
-Message-ID: <201111222308.pAMN8jS6014656@wpaz9.hot.corp.google.com>
+Subject: + thp-improve-the-error-code-path.patch added to -mm tree
+Date: Tue, 22 Nov 2011 15:08:32 -0800
+Message-ID: <201111222308.pAMN8cRM007811@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:53195 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab1KVXIr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:08:47 -0500
-Received: by yenm12 with SMTP id m12so148099yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:08:46 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:54799 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752771Ab1KVXIm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:08:42 -0500
+Received: by fabs1 with SMTP id s1so32794fab.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:08:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: shaohua.li@intel.com, aarcange@redhat.com, jweiner@redhat.com, minchan.kim@g
 
 
 The patch titled
-     Subject: thp: add tlb_remove_pmd_tlb_entry
+     Subject: thp: improve the error code path
 has been added to the -mm tree.  Its filename is
-     thp-add-tlb_remove_pmd_tlb_entry.patch
+     thp-improve-the-error-code-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,18 +36,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: thp: add tlb_remove_pmd_tlb_entry
+Subject: thp: improve the error code path
 
-We have tlb_remove_tlb_entry to indicate a pte tlb flush entry should be
-flushed, but not a corresponding API for pmd entry.  This isn't a problem
-so far because THP is only for x86 currently and tlb_flush() under x86
-will flush entire TLB.  But this is confusion and could be missed if thp
-is ported to other arch.
-
-Also convert tlb->need_flush = 1 to a VM_BUG_ON(!tlb->need_flush) in
-__tlb_remove_page() as suggested by Andrea Arcangeli.  __tlb_remove_page()
-is supposed to be called after tlb_remove_xxx_tlb_entry() and we can catch
-any misuse.
+Improve the error code path.  Delete unnecessary sysfs file for example. 
+Also remove the #ifdef xxx to make code better.
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
@@ -57,91 +49,114 @@ Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |   14 ++++++++++++++
- include/linux/huge_mm.h   |    2 +-
- mm/huge_memory.c          |    3 ++-
- mm/memory.c               |    4 ++--
- 4 files changed, 19 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   71 +++++++++++++++++++++++++++++++--------------
+ 1 file changed, 50 insertions(+), 21 deletions(-)
 
-diff -puN include/asm-generic/tlb.h~thp-add-tlb_remove_pmd_tlb_entry include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~thp-add-tlb_remove_pmd_tlb_entry
-+++ a/include/asm-generic/tlb.h
-@@ -139,6 +139,20 @@ static inline void tlb_remove_page(struc
- 		__tlb_remove_tlb_entry(tlb, ptep, address);	\
- 	} while (0)
- 
-+/**
-+ * tlb_remove_pmd_tlb_entry - remember a pmd mapping for later tlb invalidation
-+ * This is a nop so far, because only x86 needs it.
-+ */
-+#ifndef __tlb_remove_pmd_tlb_entry
-+#define __tlb_remove_pmd_tlb_entry(tlb, pmdp, address) do {} while (0)
-+#endif
-+
-+#define tlb_remove_pmd_tlb_entry(tlb, pmdp, address)		\
-+	do {							\
-+		tlb->need_flush = 1;				\
-+		__tlb_remove_pmd_tlb_entry(tlb, pmdp, address);	\
-+	} while (0)
-+
- #define pte_free_tlb(tlb, ptep, address)			\
- 	do {							\
- 		tlb->need_flush = 1;				\
-diff -puN include/linux/huge_mm.h~thp-add-tlb_remove_pmd_tlb_entry include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-add-tlb_remove_pmd_tlb_entry
-+++ a/include/linux/huge_mm.h
-@@ -18,7 +18,7 @@ extern struct page *follow_trans_huge_pm
- 					  unsigned int flags);
- extern int zap_huge_pmd(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma,
--			pmd_t *pmd);
-+			pmd_t *pmd, unsigned long addr);
- extern int mincore_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, unsigned long end,
- 			unsigned char *vec);
-diff -puN mm/huge_memory.c~thp-add-tlb_remove_pmd_tlb_entry mm/huge_memory.c
---- a/mm/huge_memory.c~thp-add-tlb_remove_pmd_tlb_entry
+diff -puN mm/huge_memory.c~thp-improve-the-error-code-path mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-improve-the-error-code-path
 +++ a/mm/huge_memory.c
-@@ -1026,7 +1026,7 @@ out:
+@@ -487,41 +487,68 @@ static struct attribute_group khugepaged
+ 	.attrs = khugepaged_attr,
+ 	.name = "khugepaged",
+ };
+-#endif /* CONFIG_SYSFS */
+ 
+-static int __init hugepage_init(void)
++static int __init hugepage_init_sysfs(struct kobject **hugepage_kobj)
+ {
+ 	int err;
+-#ifdef CONFIG_SYSFS
+-	static struct kobject *hugepage_kobj;
+-#endif
+-
+-	err = -EINVAL;
+-	if (!has_transparent_hugepage()) {
+-		transparent_hugepage_flags = 0;
+-		goto out;
+-	}
+ 
+-#ifdef CONFIG_SYSFS
+-	err = -ENOMEM;
+-	hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
+-	if (unlikely(!hugepage_kobj)) {
++	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
++	if (unlikely(!*hugepage_kobj)) {
+ 		printk(KERN_ERR "hugepage: failed kobject create\n");
+-		goto out;
++		return -ENOMEM;
+ 	}
+ 
+-	err = sysfs_create_group(hugepage_kobj, &hugepage_attr_group);
++	err = sysfs_create_group(*hugepage_kobj, &hugepage_attr_group);
+ 	if (err) {
+ 		printk(KERN_ERR "hugepage: failed register hugeage group\n");
+-		goto out;
++		goto delete_obj;
+ 	}
+ 
+-	err = sysfs_create_group(hugepage_kobj, &khugepaged_attr_group);
++	err = sysfs_create_group(*hugepage_kobj, &khugepaged_attr_group);
+ 	if (err) {
+ 		printk(KERN_ERR "hugepage: failed register hugeage group\n");
+-		goto out;
++		goto remove_hp_group;
++	}
++
++	return 0;
++
++remove_hp_group:
++	sysfs_remove_group(*hugepage_kobj, &hugepage_attr_group);
++delete_obj:
++	kobject_put(*hugepage_kobj);
++	return err;
++}
++
++static void __init hugepage_exit_sysfs(struct kobject *hugepage_kobj)
++{
++	sysfs_remove_group(hugepage_kobj, &khugepaged_attr_group);
++	sysfs_remove_group(hugepage_kobj, &hugepage_attr_group);
++	kobject_put(hugepage_kobj);
++}
++#else
++static inline int hugepage_init_sysfs(struct kobject **hugepage_kobj)
++{
++	return 0;
++}
++
++static inline void hugepage_exit_sysfs(struct kobject *hugepage_kobj)
++{
++}
++#endif /* CONFIG_SYSFS */
++
++static int __init hugepage_init(void)
++{
++	int err;
++	struct kobject *hugepage_kobj;
++
++	if (!has_transparent_hugepage()) {
++		transparent_hugepage_flags = 0;
++		return -EINVAL;
+ 	}
+-#endif
++
++	err = hugepage_init_sysfs(&hugepage_kobj);
++	if (err)
++		return err;
+ 
+ 	err = khugepaged_slab_init();
+ 	if (err)
+@@ -545,7 +572,9 @@ static int __init hugepage_init(void)
+ 
+ 	set_recommended_min_free_kbytes();
+ 
++	return 0;
+ out:
++	hugepage_exit_sysfs(hugepage_kobj);
+ 	return err;
  }
- 
- int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
--		 pmd_t *pmd)
-+		 pmd_t *pmd, unsigned long addr)
- {
- 	int ret = 0;
- 
-@@ -1042,6 +1042,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 			pgtable = get_pmd_huge_pte(tlb->mm);
- 			page = pmd_page(*pmd);
- 			pmd_clear(pmd);
-+			tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
- 			page_remove_rmap(page);
- 			VM_BUG_ON(page_mapcount(page) < 0);
- 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
-diff -puN mm/memory.c~thp-add-tlb_remove_pmd_tlb_entry mm/memory.c
---- a/mm/memory.c~thp-add-tlb_remove_pmd_tlb_entry
-+++ a/mm/memory.c
-@@ -293,7 +293,7 @@ int __tlb_remove_page(struct mmu_gather 
- {
- 	struct mmu_gather_batch *batch;
- 
--	tlb->need_flush = 1;
-+	VM_BUG_ON(!tlb->need_flush);
- 
- 	if (tlb_fast_mode(tlb)) {
- 		free_page_and_swap_cache(page);
-@@ -1231,7 +1231,7 @@ static inline unsigned long zap_pmd_rang
- 			if (next-addr != HPAGE_PMD_SIZE) {
- 				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
- 				split_huge_page_pmd(vma->vm_mm, pmd);
--			} else if (zap_huge_pmd(tlb, vma, pmd))
-+			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
- 				continue;
- 			/* fall through */
- 		}
+ module_init(hugepage_init)
 _
-Subject: Subject: thp: add tlb_remove_pmd_tlb_entry
+Subject: Subject: thp: improve the error code path
 
 Patches currently in -mm which might be from shaohua.li@intel.com are
 
