@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-add-build_bug-macro.patch added to -mm tree
-Date: Tue, 22 Nov 2011 12:09:42 -0800
-Message-ID: <201111222009.pAMK9gcF009151@wpaz5.hot.corp.google.com>
+Subject: + hugetlb-replace-bug-with-build_bug-for-dummy-definitions.patch added to -mm tree
+Date: Tue, 22 Nov 2011 12:09:45 -0800
+Message-ID: <201111222009.pAMK9kWM003171@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vw0-f74.google.com ([209.85.212.74]:39672 "EHLO
-	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343Ab1KVUJp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 15:09:45 -0500
-Received: by vbbfr13 with SMTP id fr13so108574vbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 12:09:45 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:38680 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755093Ab1KVUJu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 15:09:50 -0500
+Received: by wwe5 with SMTP id 5so21963wwe.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 12:09:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: david.daney@cavium.com, dm.n9107@gmail.com, ralf@linux-mips.org, rientjes@go
 
 
 The patch titled
-     Subject: kernel.h: add BUILD_BUG() macro
+     Subject: hugetlb: replace BUG() with BUILD_BUG() for dummy definitions
 has been added to the -mm tree.  Its filename is
-     kernelh-add-build_bug-macro.patch
+     hugetlb-replace-bug-with-build_bug-for-dummy-definitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,22 +36,19 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: David Daney <david.daney@cavium.com>
-Subject: kernel.h: add BUILD_BUG() macro
+Subject: hugetlb: replace BUG() with BUILD_BUG() for dummy definitions
 
-We can place this in definitions that we expect the compiler to remove by
-dead code elimination.  If this assertion fails, we get a nice error
-message at build time.
+The file linux/hugetlb.h has many places where dummy symbols were defined
+so that the main source code would contain fewer:
 
-The GCC function attribute error("message") was added in version 4.3, so
-we define a new macro __linktime_error(message) to expand to this for
-GCC-4.3 and later.  This will give us an error diagnostic from the
-compiler on the line that fails.  For other compilers
-__linktime_error(message) expands to nothing, and we have to be content
-with a link time error, but at least we will still get a build error.
+    #ifdef CONFIG_HUGETLBFS
 
-BUILD_BUG() expands to the undefined function __build_bug_failed() and
-will fail at link time if the compiler ever emits code for it.  On GCC-4.3
-and later, attribute((error())) is used so that the failure will be noted
+or
+
+    #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+
+If there were any misuse of these symbols, the only symptom would be an
+OOPS at runtime.  Change the BUG() to BUILD_BUG() to catch any such abuse
 at compile time instead.
 
 Signed-off-by: David Daney <david.daney@cavium.com>
@@ -61,71 +58,69 @@ Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |    1 +
- include/linux/compiler.h      |    4 +++-
- include/linux/kernel.h        |   16 ++++++++++++++++
- 3 files changed, 20 insertions(+), 1 deletion(-)
+ include/linux/huge_mm.h |    8 ++++----
+ include/linux/hugetlb.h |   14 +++++++-------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/compiler-gcc4.h~kernelh-add-build_bug-macro include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~kernelh-add-build_bug-macro
-+++ a/include/linux/compiler-gcc4.h
-@@ -29,6 +29,7 @@
-    the kernel context */
- #define __cold			__attribute__((__cold__))
+diff -puN include/linux/huge_mm.h~hugetlb-replace-bug-with-build_bug-for-dummy-definitions include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~hugetlb-replace-bug-with-build_bug-for-dummy-definitions
++++ a/include/linux/huge_mm.h
+@@ -145,10 +145,10 @@ static inline struct page *compound_tran
+ 	}
+ 	return page;
+ }
+-#else /* CONFIG_TRANSPARENT_HUGEPAGE */
+-#define HPAGE_PMD_SHIFT ({ BUG(); 0; })
+-#define HPAGE_PMD_MASK ({ BUG(); 0; })
+-#define HPAGE_PMD_SIZE ({ BUG(); 0; })
++#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
++#define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
++#define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
++#define HPAGE_PMD_SIZE ({ BUILD_BUG(); 0; })
  
-+#define __linktime_error(message) __attribute__((__error__(message)))
+ #define hpage_nr_pages(x) 1
  
- #if __GNUC_MINOR__ >= 5
- /*
-diff -puN include/linux/compiler.h~kernelh-add-build_bug-macro include/linux/compiler.h
---- a/include/linux/compiler.h~kernelh-add-build_bug-macro
-+++ a/include/linux/compiler.h
-@@ -293,7 +293,9 @@ void ftrace_likely_update(struct ftrace_
- #ifndef __compiletime_error
- # define __compiletime_error(message)
- #endif
--
-+#ifndef __linktime_error
-+# define __linktime_error(message)
-+#endif
- /*
-  * Prevent the compiler from merging or refetching accesses.  The compiler
-  * is also forbidden from reordering successive instances of ACCESS_ONCE(),
-diff -puN include/linux/kernel.h~kernelh-add-build_bug-macro include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-add-build_bug-macro
-+++ a/include/linux/kernel.h
-@@ -665,6 +665,7 @@ static inline void ftrace_dump(enum ftra
- #define BUILD_BUG_ON_ZERO(e) (0)
- #define BUILD_BUG_ON_NULL(e) ((void*)0)
- #define BUILD_BUG_ON(condition)
-+#define BUILD_BUG() (0)
- #else /* __CHECKER__ */
+diff -puN include/linux/hugetlb.h~hugetlb-replace-bug-with-build_bug-for-dummy-definitions include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-replace-bug-with-build_bug-for-dummy-definitions
++++ a/include/linux/hugetlb.h
+@@ -85,11 +85,11 @@ static inline unsigned long hugetlb_tota
+ 	return 0;
+ }
  
- /* Force a compilation error if a constant expression is not a power of 2 */
-@@ -703,6 +704,21 @@ extern int __build_bug_on_failed;
- 		if (condition) __build_bug_on_failed = 1;	\
- 	} while(0)
- #endif
-+
-+/**
-+ * BUILD_BUG - break compile if used.
-+ *
-+ * If you have some code that you expect the compiler to eliminate at
-+ * build time, you should use BUILD_BUG_ON_USED to detect if it is
-+ * unexpectedly used.
-+ */
-+#define BUILD_BUG()						\
-+	do {							\
-+		extern void __build_bug_failed(void)		\
-+			__linktime_error("BUILD_BUG failed");	\
-+		__build_bug_failed();				\
-+	} while (0)
-+
- #endif	/* __CHECKER__ */
+-#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUG(); 0; })
++#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUILD_BUG(); 0; })
+ #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
+-#define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
+-#define hugetlb_prefault(mapping, vma)		({ BUG(); 0; })
+-#define unmap_hugepage_range(vma, start, end, page)	BUG()
++#define copy_hugetlb_page_range(src, dst, vma)	({ BUILD_BUG(); 0; })
++#define hugetlb_prefault(mapping, vma)		({ BUILD_BUG(); 0; })
++#define unmap_hugepage_range(vma, start, end, page)	BUILD_BUG()
+ static inline void hugetlb_report_meminfo(struct seq_file *m)
+ {
+ }
+@@ -100,8 +100,8 @@ static inline void hugetlb_report_meminf
+ #define pmd_huge(x)	0
+ #define pud_huge(x)	0
+ #define is_hugepage_only_range(mm, addr, len)	0
+-#define hugetlb_free_pgd_range(tlb, addr, end, floor, ceiling) ({BUG(); 0; })
+-#define hugetlb_fault(mm, vma, addr, flags)	({ BUG(); 0; })
++#define hugetlb_free_pgd_range(tlb, addr, end, f, c) ({BUILD_BUG(); 0; })
++#define hugetlb_fault(mm, vma, addr, flags)	({ BUILD_BUG(); 0; })
+ #define huge_pte_offset(mm, address)	0
+ #define dequeue_hwpoisoned_huge_page(page)	0
+ static inline void copy_huge_page(struct page *dst, struct page *src)
+@@ -186,7 +186,7 @@ static inline void set_file_hugepages(st
+ #else /* !CONFIG_HUGETLBFS */
  
- /* Trap pasters of __FUNCTION__ at compile-time */
+ #define is_file_hugepages(file)			0
+-#define set_file_hugepages(file)		BUG()
++#define set_file_hugepages(file)		BUILD_BUG()
+ static inline struct file *hugetlb_file_setup(const char *name, size_t size,
+ 		vm_flags_t acctflag, struct user_struct **user, int creat_flags)
+ {
 _
-Subject: Subject: kernel.h: add BUILD_BUG() macro
+Subject: Subject: hugetlb: replace BUG() with BUILD_BUG() for dummy definitions
 
 Patches currently in -mm which might be from david.daney@cavium.com are
 
