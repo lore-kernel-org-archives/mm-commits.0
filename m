@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-cgroups-memorytxt-fix-typo.patch added to -mm tree
-Date: Tue, 22 Nov 2011 12:14:16 -0800
-Message-ID: <201111222014.pAMKEGU9013087@wpaz5.hot.corp.google.com>
+Subject: + memcg-fix-pgpgin-pgpgout-documentation.patch added to -mm tree
+Date: Tue, 22 Nov 2011 13:25:31 -0800
+Message-ID: <201111222125.pAMLPW80031513@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:53997 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752706Ab1KVUOT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 15:14:19 -0500
-Received: by yenm12 with SMTP id m12so120211yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 12:14:18 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:52246 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755021Ab1KVVZg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 16:25:36 -0500
+Received: by wwe5 with SMTP id 5so25028wwe.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 13:25:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zhu.yanhai@gmail.com, gaoyang.zyh@taobao.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: yinghan@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Subject: Documentation/cgroups/memory.txt: fix typo
+     Subject: memcg: fix pgpgin/pgpgout documentation
 has been added to the -mm tree.  Its filename is
-     documentation-cgroups-memorytxt-fix-typo.patch
+     memcg-fix-pgpgin-pgpgout-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,36 +35,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Zhu Yanhai <zhu.yanhai@gmail.com>
-Subject: Documentation/cgroups/memory.txt: fix typo
+From: Ying Han <yinghan@google.com>
+Subject: memcg: fix pgpgin/pgpgout documentation
 
-It should be memsw.max_usage_in_bytes. This typo has been there for
-really a long time.
+The two memcg stats pgpgin/pgpgout have different meaning than the ones in
+vmstat, which indicates that we picked a bad naming for them.  It might be
+late to change the stat name, but better documentation is always helpful.
 
-Signed-off-by: Zhu Yanhai <gaoyang.zyh@taobao.com>
+Signed-off-by: Ying Han <yinghan@google.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~documentation-cgroups-memorytxt-fix-typo Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~documentation-cgroups-memorytxt-fix-typo
+diff -puN Documentation/cgroups/memory.txt~memcg-fix-pgpgin-pgpgout-documentation Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-fix-pgpgin-pgpgout-documentation
 +++ a/Documentation/cgroups/memory.txt
-@@ -61,7 +61,7 @@ Brief summary of control files.
-  memory.failcnt			 # show the number of memory usage hits limits
-  memory.memsw.failcnt		 # show the number of memory+Swap hits limits
-  memory.max_usage_in_bytes	 # show max memory usage recorded
-- memory.memsw.usage_in_bytes	 # show max memory+Swap usage recorded
-+ memory.memsw.max_usage_in_bytes # show max memory+Swap usage recorded
-  memory.soft_limit_in_bytes	 # set/show soft limit of memory usage
-  memory.stat			 # show various statistics
-  memory.use_hierarchy		 # set/show hierarchical account enabled
+@@ -386,8 +386,11 @@ memory.stat file includes following stat
+ cache		- # of bytes of page cache memory.
+ rss		- # of bytes of anonymous and swap cache memory.
+ mapped_file	- # of bytes of mapped file (includes tmpfs/shmem)
+-pgpgin		- # of pages paged in (equivalent to # of charging events).
+-pgpgout		- # of pages paged out (equivalent to # of uncharging events).
++pgpgin		- # of charging events to the memory cgroup. The charging
++		event happens each time a page is accounted as either mapped
++		anon page(RSS) or cache page(Page Cache) to the cgroup.
++pgpgout		- # of uncharging events to the memory cgroup. The uncharging
++		event happens each time a page is unaccounted from the cgroup.
+ swap		- # of bytes of swap usage
+ inactive_anon	- # of bytes of anonymous memory and swap cache memory on
+ 		LRU list.
 _
-Subject: Subject: Documentation/cgroups/memory.txt: fix typo
+Subject: Subject: memcg: fix pgpgin/pgpgout documentation
 
-Patches currently in -mm which might be from zhu.yanhai@gmail.com are
+Patches currently in -mm which might be from yinghan@google.com are
 
-documentation-cgroups-memorytxt-fix-typo.patch
+origin.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+memcg-fix-pgpgin-pgpgout-documentation.patch
 
