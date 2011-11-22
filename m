@@ -1,32 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kdump-add-udev-events-for-memory-online-offline.patch removed from -mm tree
-Date: Tue, 22 Nov 2011 15:46:08 -0800
-Message-ID: <201111222346.pAMNk83k027672@wpaz5.hot.corp.google.com>
+Subject: + kdump-add-udev-events-for-memory-online-offline.patch added to -mm tree
+Date: Tue, 22 Nov 2011 15:46:57 -0800
+Message-ID: <201111222346.pAMNkv2V028143@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:61651 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186Ab1KVXqM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:46:12 -0500
-Received: by yenm12 with SMTP id m12so151341yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:46:11 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:59314 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752753Ab1KVXrB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:47:01 -0500
+Received: by wwe5 with SMTP id 5so29095wwe.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:47:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, greg@kroah.com, haveblue@us.ibm.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, schwidefsky@de.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, greg@kroah.com, haveblue@us.ibm.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, schwidefsky@de.ibm.com, vgoyal@redhat.com
 
 
 The patch titled
-     Subject: kdump: Add udev events for memory online/offline
-has been removed from the -mm tree.  Its filename was
+     Subject: kdump: add udev events for memory online/offline
+has been added to the -mm tree.  Its filename is
      kdump-add-udev-events-for-memory-online-offline.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: kdump: Add udev events for memory online/offline
+Subject: kdump: add udev events for memory online/offline
 
 Currently no udev events for memory hotplug "online" and "offline" are
 generated:
@@ -59,21 +69,46 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/base/memory.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
 diff -puN drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline drivers/base/memory.c
 --- a/drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline
 +++ a/drivers/base/memory.c
-@@ -332,11 +332,15 @@ store_mem_state(struct sys_device *dev,
+@@ -313,11 +313,22 @@ static int memory_block_change_state(str
  
- 	mem = container_of(dev, struct memory_block, sysdev);
+ 	ret = memory_block_action(mem->start_section_nr, to_state);
  
--	if (!strncmp(buf, "online", min((int)count, 6)))
-+	if (!strncmp(buf, "online", min((int)count, 6))) {
- 		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
--	else if(!strncmp(buf, "offline", min((int)count, 7)))
-+		if (ret == 0)
-+			kobject_uevent(&dev->kobj, KOBJ_ONLINE);
-+	} else if (!strncmp(buf, "offline", min((int)count, 7))) {
- 		ret = memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE);
+-	if (ret)
++	if (ret) {
+ 		mem->state = from_state_req;
+-	else
+-		mem->state = to_state;
++		goto out;
++	}
+ 
++	mem->state = to_state;
++	switch (mem->state) {
++	case MEM_OFFLINE:
++		kobject_uevent(&mem->sysdev.kobj, KOBJ_OFFLINE);
++		break;
++	case MEM_ONLINE:
++		kobject_uevent(&mem->sysdev.kobj, KOBJ_ONLINE);
++		break;
++	default:
++		break;
++	}
+ out:
+ 	mutex_unlock(&mem->state_mutex);
+ 	return ret;
+_
+Subject: Subject: kdump: add udev events for memory online/offline
+
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+
+origin.patch
+linux-next.patch
+kdump-add-missing-ram-resource-in-crash_shrink_memory.patch
+kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch
+kdump-add-udev-events-for-memory-online-offline.patch
+
