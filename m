@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-cmosc-fix-broken-nvram-bank-2-writing.patch added to -mm tree
-Date: Tue, 22 Nov 2011 15:16:26 -0800
-Message-ID: <201111222316.pAMNGQSw028848@wpaz5.hot.corp.google.com>
+Subject: + intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev.patch added to -mm tree
+Date: Tue, 22 Nov 2011 15:17:36 -0800
+Message-ID: <201111222317.pAMNHawn020998@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:62085 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754835Ab1KVXQe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:16:34 -0500
-Received: by wwe5 with SMTP id 5so28499wwe.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:16:33 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:50745 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752136Ab1KVXRm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Nov 2011 18:17:42 -0500
+Received: by fabs1 with SMTP id s1so32974fab.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Nov 2011 15:17:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org, a.zummo@towertech.it
+Cc: baryluk@smp.if.uj.edu.pl, allen.m.kay@intel.com, dwmw2@infradead.org, suresh.b.siddha@intel.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-cmos.c: fix broken NVRAM bank 2 writing
+     Subject: intel-iommu: Fix __init section missmatch of dmar_parse_rmrr_atsr_dev
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-cmosc-fix-broken-nvram-bank-2-writing.patch
+     intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,37 +35,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ondrej Zary <linux@rainbow-software.org>
-Subject: drivers/rtc/rtc-cmos.c: fix broken NVRAM bank 2 writing
+From: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
+Subject: intel-iommu: Fix __init section missmatch of dmar_parse_rmrr_atsr_dev
 
-Fix writing to NVRAM bank 2 in rtc-cmos driver.  It never worked since its
-introduction in 2.6.28 because of a typo.
+dmar_parse_rmrr_atsr_dev() (drivers/iommu/dmar.c) is called from
+dmar_dev_scope_init() (drivers/iommu/intel-iommu.c), but
+dmar_dev_scope_init() is annotated with __init, when
+dmar_parse_rmrr_atsr_dev() is not, causing full section missmatch
+analsysis to abort compilation.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Fix problem by adding __init annotation to dmar_parse_rmrr_atsr_dev.
+
+Signed-off-by: Witold Baryluk <baryluk@smp.if.uj.edu.pl>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Allen Kay <allen.m.kay@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    2 +-
+ drivers/iommu/intel-iommu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-broken-nvram-bank-2-writing drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~drivers-rtc-rtc-cmosc-fix-broken-nvram-bank-2-writing
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -164,7 +164,7 @@ static inline unsigned char cmos_read_ba
- static inline void cmos_write_bank2(unsigned char val, unsigned char addr)
- {
- 	outb(addr, RTC_PORT(2));
--	outb(val, RTC_PORT(2));
-+	outb(val, RTC_PORT(3));
+diff -puN drivers/iommu/intel-iommu.c~intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev drivers/iommu/intel-iommu.c
+--- a/drivers/iommu/intel-iommu.c~intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev
++++ a/drivers/iommu/intel-iommu.c
+@@ -3542,7 +3542,7 @@ found:
+ 	return 0;
  }
  
- #else
+-int dmar_parse_rmrr_atsr_dev(void)
++int __init dmar_parse_rmrr_atsr_dev(void)
+ {
+ 	struct dmar_rmrr_unit *rmrr, *rmrr_n;
+ 	struct dmar_atsr_unit *atsr, *atsr_n;
 _
-Subject: Subject: drivers/rtc/rtc-cmos.c: fix broken NVRAM bank 2 writing
+Subject: Subject: intel-iommu: Fix __init section missmatch of dmar_parse_rmrr_atsr_dev
 
-Patches currently in -mm which might be from linux@rainbow-software.org are
+Patches currently in -mm which might be from baryluk@smp.if.uj.edu.pl are
 
-cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
-drivers-rtc-rtc-cmosc-fix-broken-nvram-bank-2-writing.patch
+intel-iommu-fix-__init-section-missmatch-of-dmar_parse_rmrr_atsr_dev.patch
 
