@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + include-net-netprio_cgrouph-fix-build.patch added to -mm tree
-Date: Wed, 23 Nov 2011 13:59:23 -0800
-Message-ID: <201111232240.pANMeUMB012878@wpaz9.hot.corp.google.com>
+Subject: [withdrawn] include-net-netprio_cgrouph-fix-build.patch removed from -mm tree
+Date: Wed, 23 Nov 2011 14:08:35 -0800
+Message-ID: <201111232249.pANMnfUU022304@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:57883 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752726Ab1KWWkl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2011 17:40:41 -0500
-Received: by yenm12 with SMTP id m12so275833yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2011 14:40:41 -0800 (PST)
+Received: from mail-bw0-f74.google.com ([209.85.214.74]:54287 "EHLO
+	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756346Ab1KWWtq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2011 17:49:46 -0500
+Received: by bkat2 with SMTP id t2so71513bka.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2011 14:49:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, john.r.fastabend@intel.com, nhorman@tuxdriver.com, robert.w.love@intel.com
+To: akpm@linux-foundation.org, davem@davemloft.net, john.r.fastabend@intel.com, nhorman@tuxdriver.com, robert.w.love@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: include/net/netprio_cgroup.h: fix build
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      include-net-netprio_cgrouph-fix-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -73,7 +63,6 @@ diff -puN include/net/netprio_cgroup.h~include-net-netprio_cgrouph-fix-build inc
  	u32 prioidx;
  };
 _
-Subject: Subject: include/net/netprio_cgroup.h: fix build
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -114,5 +103,4 @@ slab-leaks3-default-y.patch
 put_bh-debug.patch
 memblock-add-input-size-checking-to-memblock_find_region.patch
 memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-include-net-netprio_cgrouph-fix-build.patch
 
