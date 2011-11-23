@@ -1,106 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] include-net-netprio_cgrouph-fix-build.patch removed from -mm tree
-Date: Wed, 23 Nov 2011 14:08:35 -0800
-Message-ID: <201111232249.pANMnfUU022304@wpaz9.hot.corp.google.com>
+Subject: + netprio_cgroup-fix-build-break.patch added to -mm tree
+Date: Wed, 23 Nov 2011 15:22:15 -0800
+Message-ID: <201111232322.pANNMFUQ029417@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bw0-f74.google.com ([209.85.214.74]:54287 "EHLO
-	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346Ab1KWWtq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2011 17:49:46 -0500
-Received: by bkat2 with SMTP id t2so71513bka.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2011 14:49:44 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:58996 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752463Ab1KWXW3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Nov 2011 18:22:29 -0500
+Received: by qyk10 with SMTP id 10so208346qyk.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 Nov 2011 15:22:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, john.r.fastabend@intel.com, nhorman@tuxdriver.com, robert.w.love@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nhorman@tuxdriver.com, davem@davemloft.net, john.r.fastabend@intel.com, kirr@mns.spb.ru, robert.w.love@intel.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: include/net/netprio_cgroup.h: fix build
-has been removed from the -mm tree.  Its filename was
-     include-net-netprio_cgrouph-fix-build.patch
+     Subject: netprio_cgroup: fix build break
+has been added to the -mm tree.  Its filename is
+     netprio_cgroup-fix-build-break.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/net/netprio_cgroup.h: fix build
+From: Neil Horman <nhorman@tuxdriver.com>
+Subject: netprio_cgroup: fix build break
 
-In file included from include/linux/netdevice.h:53,
-                 from include/linux/icmpv6.h:173,
-                 from include/linux/ipv6.h:220,
-                 from include/net/ipv6.h:16,
-                 from include/linux/sunrpc/clnt.h:26,
-                 from include/linux/nfs_fs.h:50,
-                 from init/do_mounts.c:20:
-include/net/netprio_cgroup.h:23: error: field 'css' has incomplete type
+I broke the build with the addition of netprio_cgroups if CONFIG_CGROUPS=n.
+This patch corrects it by moving the offending struct into an ifdef
+CONFIG_CGROUPS block.  Also clean up a few needless defines and inline functions
+that don't get called if CONFIG_CGROUPS isn't defined while Im at it.
 
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: Kirill Smelkov <kirr@mns.spb.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: John Fastabend <john.r.fastabend@intel.com>
 Cc: Robert Love <robert.w.love@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/netprio_cgroup.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/net/netprio_cgroup.h |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff -puN include/net/netprio_cgroup.h~include-net-netprio_cgrouph-fix-build include/net/netprio_cgroup.h
---- a/include/net/netprio_cgroup.h~include-net-netprio_cgrouph-fix-build
+diff -puN include/net/netprio_cgroup.h~netprio_cgroup-fix-build-break include/net/netprio_cgroup.h
+--- a/include/net/netprio_cgroup.h~netprio_cgroup-fix-build-break
 +++ a/include/net/netprio_cgroup.h
-@@ -18,8 +18,9 @@
+@@ -18,11 +18,6 @@
  #include <linux/hardirq.h>
  #include <linux/rcupdate.h>
  
 -struct cgroup_netprio_state
 -{
-+struct cgroup_subsys_state;
-+
+-	struct cgroup_subsys_state css;
+-	u32 prioidx;
+-};
+ 
+ struct netprio_map {
+ 	struct rcu_head rcu;
+@@ -32,6 +27,11 @@ struct netprio_map {
+ 
+ #ifdef CONFIG_CGROUPS
+ 
 +struct cgroup_netprio_state {
- 	struct cgroup_subsys_state css;
- 	u32 prioidx;
- };
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-mrst-battery-fixes.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-debugobjects-extend-to-assert-that-an-object-is-initialized.patch
-kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
++	struct cgroup_subsys_state css;
++	u32 prioidx;
++};
++
+ #ifndef CONFIG_NETPRIO_CGROUP
+ extern int net_prio_subsys_id;
+ #endif
+@@ -52,14 +52,6 @@ static inline struct cgroup_netprio_stat
+ #else
+ 
+ #define sock_update_netprioidx(sk)
+-#define skb_update_prio(skb)
+-
+-static inline struct cgroup_netprio_state
+-		*task_netprio_state(struct task_struct *p)
+-{
+-	return NULL;
+-}
