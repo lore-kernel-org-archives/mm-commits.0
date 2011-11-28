@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch added to -mm tree
-Date: Mon, 28 Nov 2011 15:49:45 -0800
-Message-ID: <201111282349.pASNnjsl010915@wpaz5.hot.corp.google.com>
+Subject: + printk-avoid-double-lock-acquire.patch added to -mm tree
+Date: Mon, 28 Nov 2011 15:54:42 -0800
+Message-ID: <201111282354.pASNsgsm015654@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:41224 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752096Ab1K1Xtr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 18:49:47 -0500
-Received: by ghrr18 with SMTP id r18so247186ghr.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 15:49:47 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:36125 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751494Ab1K1Xys (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 18:54:48 -0500
+Received: by eeuu44 with SMTP id u44so50260eeu.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 15:54:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhillf@gmail.com, aarcange@redhat.com, mgorman@suse.de
+Cc: peterz@infradead.org, a.p.zijlstra@chello.nl, aarcange@redhat.com, mingo@elte.hu
 
 
 The patch titled
-     Subject: mm: compaction: push isolate search base of compact control one pfn ahead
+     Subject: printk: avoid double lock acquire
 has been added to the -mm tree.  Its filename is
-     mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+     printk-avoid-double-lock-acquire.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,44 +35,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: mm: compaction: push isolate search base of compact control one pfn ahead
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: printk: avoid double lock acquire
 
-After isolated the current pfn will no longer be scanned and isolated if
-the next round is necessary, so push the isolate_migratepages search base
-of the given compact_control one step ahead.
+Commit 4f2a8d3cf5e ("printk: Fix console_sem vs logbuf_lock unlock race")
+introduced another silly bug where we would want to acquire an already
+held lock.  Avoid this.
 
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Reported-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/printk.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead mm/compaction.c
---- a/mm/compaction.c~mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead
-+++ a/mm/compaction.c
-@@ -365,8 +365,10 @@ static isolate_migrate_t isolate_migrate
- 		nr_isolated++;
+diff -puN kernel/printk.c~printk-avoid-double-lock-acquire kernel/printk.c
+--- a/kernel/printk.c~printk-avoid-double-lock-acquire
++++ a/kernel/printk.c
+@@ -1292,10 +1292,11 @@ again:
+ 	raw_spin_lock(&logbuf_lock);
+ 	if (con_start != log_end)
+ 		retry = 1;
++	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++
+ 	if (retry && console_trylock())
+ 		goto again;
  
- 		/* Avoid isolating too much */
--		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
-+		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
-+			++low_pfn;
- 			break;
-+		}
- 	}
- 
- 	acct_isolated(zone, cc);
+-	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
+ 	if (wake_klogd)
+ 		wake_up_klogd();
+ }
 _
-Subject: Subject: mm: compaction: push isolate search base of compact control one pfn ahead
+Subject: Subject: printk: avoid double lock acquire
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from peterz@infradead.org are
 
 linux-next.patch
-hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
-hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
-mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+printk-avoid-double-lock-acquire.patch
+treewide-remove-useless-noret_type-macro-and-uses.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+mm-memcg-shorten-preempt-disabled-section-around-event-checks.patch
 
