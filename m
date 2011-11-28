@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-add-build_bug-macro-v3.patch added to -mm tree
-Date: Mon, 28 Nov 2011 15:21:35 -0800
-Message-ID: <201111282321.pASNLZDh014752@wpaz9.hot.corp.google.com>
+Subject: + memcg-update-maintainers.patch added to -mm tree
+Date: Mon, 28 Nov 2011 15:22:55 -0800
+Message-ID: <201111282322.pASNMtWD017270@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:37562 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754471Ab1K1XVi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 18:21:38 -0500
-Received: by ywb26 with SMTP id 26so514440ywb.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 15:21:37 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:38345 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753872Ab1K1XW7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 18:22:59 -0500
+Received: by vbbez10 with SMTP id ez10so383733vbb.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 15:22:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david.daney@cavium.com, dhowells@redhat.com, dm.n9107@gmail.com, ralf@linux-mips.org, rientjes@google.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, bsingharora@gmail.com, hannes@cmpxchg.org, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp
 
 
 The patch titled
-     Subject: kernel.h: Add BUILD_BUG() macro.
+     Subject: memcg: update maintainers
 has been added to the -mm tree.  Its filename is
-     kernelh-add-build_bug-macro-v3.patch
+     memcg-update-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,59 +35,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Daney <david.daney@cavium.com>
-Subject: kernel.h: Add BUILD_BUG() macro.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: update maintainers
 
-We can place this in definitions that we expect the compiler to remove
-by dead code elimination.  If this assertion fails, we get a nice
-error message at build time.
+More players joined to memory cgroup developments and Johannes' great work
+changed internal design of memory cgroup dramatically.  And he will do
+more works.  Michal Hokko did many bug fixes and know memory cgroup very
+well.  Daisuke Nishimura helped us very much but he seems busy now. 
+Thanks to his works.
 
-The GCC function attribute error("message") was added in version 4.3,
-so we define a new macro __linktime_error(message) to expand to this
-for GCC-4.3 and later.  This will give us an error diagnostic from the
-compiler on the line that fails.  For other compilers
-__linktime_error(message) expands to nothing, and we have to be
-content with a link time error, but at least we will still get a build
-error.
-
-BUILD_BUG() expands to the undefined function __build_bug_failed() and
-will fail at link time if the compiler ever emits code for it.  On
-GCC-4.3 and later, attribute((error())) is used so that the failure
-will be noted at compile time instead.
-
-Acked-by: David Howells <dhowells@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Signed-off-by: David Daney <david.daney@cavium.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: DM <dm.n9107@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~kernelh-add-build_bug-macro-v3 include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-add-build_bug-macro-v3
-+++ a/include/linux/kernel.h
-@@ -709,7 +709,7 @@ extern int __build_bug_on_failed;
-  * BUILD_BUG - break compile if used.
-  *
-  * If you have some code that you expect the compiler to eliminate at
-- * build time, you should use BUILD_BUG_ON_USED to detect if it is
-+ * build time, you should use BUILD_BUG to detect if it is
-  * unexpectedly used.
-  */
- #define BUILD_BUG()						\
+diff -puN MAINTAINERS~memcg-update-maintainers MAINTAINERS
+--- a/MAINTAINERS~memcg-update-maintainers
++++ a/MAINTAINERS
+@@ -4337,8 +4337,9 @@ F:	include/linux/mm.h
+ F:	mm/
+ 
+ MEMORY RESOURCE CONTROLLER
++M:	Johannes Weiner <hannes@cmpxchg.org>
++M:	Michal Hocko <mhocko@suse.cz>
+ M:	Balbir Singh <bsingharora@gmail.com>
+-M:	Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+ M:	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+ L:	cgroups@vger.kernel.org
+ L:	linux-mm@kvack.org
 _
-Subject: Subject: kernel.h: Add BUILD_BUG() macro.
+Subject: Subject: memcg: update maintainers
 
-Patches currently in -mm which might be from david.daney@cavium.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 linux-next.patch
-kernelh-add-build_bug-macro.patch
-kernelh-add-build_bug-macro-v3.patch
-hugetlb-replace-bug-with-build_bug-for-dummy-definitions.patch
-fs-binfmt_elf-create-kconfig-variable-for-pie-randomization.patch
-mips-randomize-pie-load-address.patch
+memcg-update-maintainers.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
+mm-exclude-reserved-pages-from-dirtyable-memory.patch
+mm-writeback-cleanups-in-preparation-for-per-zone-dirty-limits.patch
+mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
+mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
+btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
+cgroup-fix-task-counter-common-ancestor-logic.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+mm-memcg-shorten-preempt-disabled-section-around-event-checks.patch
+documentation-cgroups-memorytxt-fix-typo.patch
+memcg-fix-pgpgin-pgpgout-documentation.patch
 
