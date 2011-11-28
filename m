@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch added to -mm tree
-Date: Mon, 28 Nov 2011 14:30:23 -0800
-Message-ID: <201111282230.pASMUOhf016793@wpaz1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch added to -mm tree
+Date: Mon, 28 Nov 2011 14:56:26 -0800
+Message-ID: <201111282256.pASMuRB3023240@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:65130 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752053Ab1K1Wa2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 17:30:28 -0500
-Received: by mail-ee0-f74.google.com with SMTP id u44so49497eeu.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 14:30:27 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:35951 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754099Ab1K1W4f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 17:56:35 -0500
+Received: by qyk15 with SMTP id 15so361829qyk.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 14:56:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jweiner@redhat.com, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, shaohua.li@intel.com
+Cc: jekhor@gmail.com, a.zummo@towertech.it, daniel@caiaq.de
 
 
 The patch titled
-     Subject: Btrfs: pass __GFP_WRITE for buffered write page allocations
+     Subject: drivers/rtc/rtc-mxc.c: fix setting time for MX1 SoC
 has been added to the -mm tree.  Its filename is
-     btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
+     drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,72 +35,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Johannes Weiner <jweiner@redhat.com>
-Subject: Btrfs: pass __GFP_WRITE for buffered write page allocations
+From: Yauhen Kharuzhy <jekhor@gmail.com>
+Subject: drivers/rtc/rtc-mxc.c: fix setting time for MX1 SoC
 
-Tell the page allocator that pages allocated for a buffered write are
-expected to become dirty soon.
+There is no way to track year in the i.MX1 RTC: Days Counter register is
+9-bit wide only.  Attempt to save date after 1970-01-01 plus 512 days
+causes endless loop in mxc_rtc_set_mmss().  Fix this by resetting year to
+1970.
 
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Yauhen Kharuzhy <jekhor@gmail.com>
+Cc: Daniel Mack <daniel@caiaq.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-mxc.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN fs/btrfs/file.c~btrfs-pass-__gfp_write-for-buffered-write-page-allocations fs/btrfs/file.c
---- a/fs/btrfs/file.c~btrfs-pass-__gfp_write-for-buffered-write-page-allocations
-+++ a/fs/btrfs/file.c
-@@ -1081,7 +1081,7 @@ static noinline int prepare_pages(struct
- again:
- 	for (i = 0; i < num_pages; i++) {
- 		pages[i] = find_or_create_page(inode->i_mapping, index + i,
--					       mask);
-+					       mask | __GFP_WRITE);
- 		if (!pages[i]) {
- 			faili = i - 1;
- 			err = -ENOMEM;
+diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc
++++ a/drivers/rtc/rtc-mxc.c
+@@ -290,6 +290,17 @@ static int mxc_rtc_read_time(struct devi
+  */
+ static int mxc_rtc_set_mmss(struct device *dev, unsigned long time)
+ {
++	/* RTC_DAYR register is 9-bit in MX1 SoC,
++	 * save time and day of year only
++	 */
++	if (cpu_is_mx1()) {
++		struct rtc_time tm;
++
++		rtc_time_to_tm(time, &tm);
++		tm.tm_year = 70;
++		rtc_tm_to_time(&tm, &time);
++	}
++
+ 	/* Avoid roll-over from reading the different registers */
+ 	do {
+ 		set_alarm_or_time(dev, MXC_RTC_TIME, time);
 _
-Subject: Subject: Btrfs: pass __GFP_WRITE for buffered write page allocations
+Subject: Subject: drivers/rtc/rtc-mxc.c: fix setting time for MX1 SoC
 
-Patches currently in -mm which might be from jweiner@redhat.com are
+Patches currently in -mm which might be from jekhor@gmail.com are
 
-mm-add-extra-free-kbytes-tunable.patch
-mm-migrate-one-less-atomic-operation.patch
-hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
-hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
-fadvise-only-initiate-writeback-for-specified-range-with-fadv_dontneed.patch
-mm-exclude-reserved-pages-from-dirtyable-memory.patch
-mm-writeback-cleanups-in-preparation-for-per-zone-dirty-limits.patch
-mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
-mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
-btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
-mm-memcg-shorten-preempt-disabled-section-around-event-checks.patch
-thp-improve-the-error-code-path.patch
-thp-remove-unnecessary-tlb-flush-for-mprotect.patch
-thp-add-tlb_remove_pmd_tlb_entry.patch
-thp-improve-order-in-lru-list-for-split-huge-page.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
 
