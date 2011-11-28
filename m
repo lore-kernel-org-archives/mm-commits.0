@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch added to -mm tree
-Date: Mon, 28 Nov 2011 14:56:36 -0800
-Message-ID: <201111282256.pASMuan9022424@wpaz9.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-mxcc-make-alarm-work.patch added to -mm tree
+Date: Mon, 28 Nov 2011 14:56:39 -0800
+Message-ID: <201111282256.pASMueSv008194@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:39731 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300Ab1K1W4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 17:56:40 -0500
-Received: by eeuu44 with SMTP id u44so49749eeu.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 14:56:39 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:54599 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754405Ab1K1W4n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 17:56:43 -0500
+Received: by wwp14 with SMTP id 14so161472wwp.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 14:56:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jekhor@gmail.com
+Cc: jekhor@gmail.com, a.zummo@towertech.it, daniel@caiaq.de
 
 
 The patch titled
-     Subject: drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix
+     Subject: drivers/rtc/rtc-mxc.c: make alarm work
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+     drivers-rtc-rtc-mxcc-make-alarm-work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,75 +35,212 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix
+From: Yauhen Kharuzhy <jekhor@gmail.com>
+Subject: drivers/rtc/rtc-mxc.c: make alarm work
 
-use conventional comment layout
+Fix alarm IRQ handling, make the alarm one-shot.  Cleanup black magick
+with a validation of already validated time data.
 
-Cc: Yauhen Kharuzhy <jekhor@gmail.com>
+Add ability to wake the system with alarm.
+
+Signed-off-by: Yauhen Kharuzhy <jekhor@gmail.com>
+Cc: Daniel Mack <daniel@caiaq.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mxc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-mxc.c |  112 +++++++++++++++++++++-------------------
+ 1 file changed, 59 insertions(+), 53 deletions(-)
 
-diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix
+diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-make-alarm-work drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-make-alarm-work
 +++ a/drivers/rtc/rtc-mxc.c
-@@ -290,8 +290,8 @@ static int mxc_rtc_read_time(struct devi
-  */
- static int mxc_rtc_set_mmss(struct device *dev, unsigned long time)
+@@ -155,7 +155,6 @@ static int rtc_update_alarm(struct devic
  {
--	/* RTC_DAYR register is 9-bit in MX1 SoC,
--	 * save time and day of year only
-+	/*
-+	 * TTC_DAYR register is 9-bit in MX1 SoC, save time and day of year only
- 	 */
- 	if (cpu_is_mx1()) {
- 		struct rtc_time tm;
+ 	struct rtc_time alarm_tm, now_tm;
+ 	unsigned long now, time;
+-	int ret;
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 	void __iomem *ioaddr = pdata->ioaddr;
+@@ -168,21 +167,33 @@ static int rtc_update_alarm(struct devic
+ 	alarm_tm.tm_hour = alrm->tm_hour;
+ 	alarm_tm.tm_min = alrm->tm_min;
+ 	alarm_tm.tm_sec = alrm->tm_sec;
+-	rtc_tm_to_time(&now_tm, &now);
+ 	rtc_tm_to_time(&alarm_tm, &time);
+ 
+-	if (time < now) {
+-		time += 60 * 60 * 24;
+-		rtc_time_to_tm(time, &alarm_tm);
+-	}
+-
+-	ret = rtc_tm_to_time(&alarm_tm, &time);
+-
+ 	/* clear all the interrupt status bits */
+ 	writew(readw(ioaddr + RTC_RTCISR), ioaddr + RTC_RTCISR);
+ 	set_alarm_or_time(dev, MXC_RTC_ALARM, time);
+ 
+-	return ret;
++	return 0;
++}
++
++static void mxc_rtc_irq_enable(struct device *dev, unsigned int bit,
++				unsigned int enabled)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
++	void __iomem *ioaddr = pdata->ioaddr;
++	u32 reg;
++
++	spin_lock_irq(&pdata->rtc->irq_lock);
++	reg = readw(ioaddr + RTC_RTCIENR);
++
++	if (enabled)
++		reg |= bit;
++	else
++		reg &= ~bit;
++
++	writew(reg, ioaddr + RTC_RTCIENR);
++	spin_unlock_irq(&pdata->rtc->irq_lock);
+ }
+ 
+ /* This function is the RTC interrupt service routine. */
+@@ -199,13 +210,12 @@ static irqreturn_t mxc_rtc_interrupt(int
+ 	/* clear interrupt sources */
+ 	writew(status, ioaddr + RTC_RTCISR);
+ 
+-	/* clear alarm interrupt if it has occurred */
+-	if (status & RTC_ALM_BIT)
+-		status &= ~RTC_ALM_BIT;
+-
+ 	/* update irq data & counter */
+-	if (status & RTC_ALM_BIT)
++	if (status & RTC_ALM_BIT) {
+ 		events |= (RTC_AF | RTC_IRQF);
++		/* RTC alarm should be one-shot */
++		mxc_rtc_irq_enable(&pdev->dev, RTC_ALM_BIT, 0);
++	}
+ 
+ 	if (status & RTC_1HZ_BIT)
+ 		events |= (RTC_UF | RTC_IRQF);
+@@ -213,9 +223,6 @@ static irqreturn_t mxc_rtc_interrupt(int
+ 	if (status & PIT_ALL_ON)
+ 		events |= (RTC_PF | RTC_IRQF);
+ 
+-	if ((status & RTC_ALM_BIT) && rtc_valid_tm(&pdata->g_rtc_alarm))
+-		rtc_update_alarm(&pdev->dev, &pdata->g_rtc_alarm);
+-
+ 	rtc_update_irq(pdata->rtc, 1, events);
+ 	spin_unlock_irq(&pdata->rtc->irq_lock);
+ 
+@@ -242,26 +249,6 @@ static void mxc_rtc_release(struct devic
+ 	spin_unlock_irq(&pdata->rtc->irq_lock);
+ }
+ 
+-static void mxc_rtc_irq_enable(struct device *dev, unsigned int bit,
+-				unsigned int enabled)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+-	void __iomem *ioaddr = pdata->ioaddr;
+-	u32 reg;
+-
+-	spin_lock_irq(&pdata->rtc->irq_lock);
+-	reg = readw(ioaddr + RTC_RTCIENR);
+-
+-	if (enabled)
+-		reg |= bit;
+-	else
+-		reg &= ~bit;
+-
+-	writew(reg, ioaddr + RTC_RTCIENR);
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
+-}
+-
+ static int mxc_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
+ {
+ 	mxc_rtc_irq_enable(dev, RTC_ALM_BIT, enabled);
+@@ -335,21 +322,7 @@ static int mxc_rtc_set_alarm(struct devi
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 	int ret;
+ 
+-	if (rtc_valid_tm(&alrm->time)) {
+-		if (alrm->time.tm_sec > 59 ||
+-		    alrm->time.tm_hour > 23 ||
+-		    alrm->time.tm_min > 59)
+-			return -EINVAL;
+-
+-		ret = rtc_update_alarm(dev, &alrm->time);
+-	} else {
+-		ret = rtc_valid_tm(&alrm->time);
+-		if (ret)
+-			return ret;
+-
+-		ret = rtc_update_alarm(dev, &alrm->time);
+-	}
+-
++	ret = rtc_update_alarm(dev, &alrm->time);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -435,6 +408,9 @@ static int __init mxc_rtc_probe(struct p
+ 		pdata->irq = -1;
+ 	}
+ 
++	if (pdata->irq >=0)
++		device_init_wakeup(&pdev->dev, 1);
++
+ 	rtc = rtc_device_register(pdev->name, &pdev->dev, &mxc_rtc_ops,
+ 				  THIS_MODULE);
+ 	if (IS_ERR(rtc)) {
+@@ -470,9 +446,39 @@ static int __exit mxc_rtc_remove(struct 
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
++static int mxc_rtc_suspend(struct device *dev)
++{
++	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
++
++	if (device_may_wakeup(dev))
++		enable_irq_wake(pdata->irq);
++
++	return 0;
++}
++
++static int mxc_rtc_resume(struct device *dev)
++{
++	struct rtc_plat_data *pdata = dev_get_drvdata(dev);
++
++	if (device_may_wakeup(dev))
++		disable_irq_wake(pdata->irq);
++
++	return 0;
++}
++#endif
++
++static struct dev_pm_ops mxc_rtc_pm_ops = {
++	.suspend	= mxc_rtc_suspend,
++	.resume		= mxc_rtc_resume,
++};
++
+ static struct platform_driver mxc_rtc_driver = {
+ 	.driver = {
+ 		   .name	= "mxc_rtc",
++#ifdef CONFIG_PM
++		   .pm		= &mxc_rtc_pm_ops,
++#endif
+ 		   .owner	= THIS_MODULE,
+ 	},
+ 	.remove		= __exit_p(mxc_rtc_remove),
 _
-Subject: Subject: drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix
+Subject: Subject: drivers/rtc/rtc-mxc.c: make alarm work
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jekhor@gmail.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-include-net-netprio_cgrouph-various-fixes.patch
-debugobjects-extend-to-assert-that-an-object-is-initialized.patch
-kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
 drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work.patch
 drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
