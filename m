@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch added to -mm tree
-Date: Mon, 28 Nov 2011 14:30:15 -0800
-Message-ID: <201111282230.pASMUKJ9016751@wpaz1.hot.corp.google.com>
+Subject: + btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch added to -mm tree
+Date: Mon, 28 Nov 2011 14:30:23 -0800
+Message-ID: <201111282230.pASMUOhf016793@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:59847 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876Ab1K1WaX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 17:30:23 -0500
-Received: by ghrr18 with SMTP id r18so238474ghr.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 14:30:22 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:65130 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752053Ab1K1Wa2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 17:30:28 -0500
+Received: by mail-ee0-f74.google.com with SMTP id u44so49497eeu.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 14:30:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jweiner@redhat.com, chris.mason@oracle.com, david@fromorbit.com, fengguang.w
 
 
 The patch titled
-     Subject: mm: filemap: pass __GFP_WRITE from grab_cache_page_write_begin()
+     Subject: Btrfs: pass __GFP_WRITE for buffered write page allocations
 has been added to the -mm tree.  Its filename is
-     mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
+     btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,16 +36,16 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Johannes Weiner <jweiner@redhat.com>
-Subject: mm: filemap: pass __GFP_WRITE from grab_cache_page_write_begin()
+Subject: Btrfs: pass __GFP_WRITE for buffered write page allocations
 
-Tell the page allocator that pages allocated through
-grab_cache_page_write_begin() are expected to become dirty soon.
+Tell the page allocator that pages allocated for a buffered write are
+expected to become dirty soon.
 
 Signed-off-by: Johannes Weiner <jweiner@redhat.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
@@ -56,35 +56,23 @@ Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/btrfs/file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin mm/filemap.c
---- a/mm/filemap.c~mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin
-+++ a/mm/filemap.c
-@@ -2354,8 +2354,11 @@ struct page *grab_cache_page_write_begin
- 					pgoff_t index, unsigned flags)
- {
- 	int status;
-+	gfp_t gfp_mask;
- 	struct page *page;
- 	gfp_t gfp_notmask = 0;
-+
-+	gfp_mask = mapping_gfp_mask(mapping) | __GFP_WRITE;
- 	if (flags & AOP_FLAG_NOFS)
- 		gfp_notmask = __GFP_FS;
- repeat:
-@@ -2363,7 +2366,7 @@ repeat:
- 	if (page)
- 		goto found;
- 
--	page = __page_cache_alloc(mapping_gfp_mask(mapping) & ~gfp_notmask);
-+	page = __page_cache_alloc(gfp_mask & ~gfp_notmask);
- 	if (!page)
- 		return NULL;
- 	status = add_to_page_cache_lru(page, mapping, index,
+diff -puN fs/btrfs/file.c~btrfs-pass-__gfp_write-for-buffered-write-page-allocations fs/btrfs/file.c
+--- a/fs/btrfs/file.c~btrfs-pass-__gfp_write-for-buffered-write-page-allocations
++++ a/fs/btrfs/file.c
+@@ -1081,7 +1081,7 @@ static noinline int prepare_pages(struct
+ again:
+ 	for (i = 0; i < num_pages; i++) {
+ 		pages[i] = find_or_create_page(inode->i_mapping, index + i,
+-					       mask);
++					       mask | __GFP_WRITE);
+ 		if (!pages[i]) {
+ 			faili = i - 1;
+ 			err = -ENOMEM;
 _
-Subject: Subject: mm: filemap: pass __GFP_WRITE from grab_cache_page_write_begin()
+Subject: Subject: Btrfs: pass __GFP_WRITE for buffered write page allocations
 
 Patches currently in -mm which might be from jweiner@redhat.com are
 
