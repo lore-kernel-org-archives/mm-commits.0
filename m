@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + leds-convert-leds-dac124s085-to-module_spi_driver.patch added to -mm tree
-Date: Mon, 28 Nov 2011 15:27:40 -0800
-Message-ID: <201111282327.pASNRff5005820@wpaz1.hot.corp.google.com>
+Subject: + mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch added to -mm tree
+Date: Mon, 28 Nov 2011 15:49:45 -0800
+Message-ID: <201111282349.pASNnjsl010915@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:64479 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755553Ab1K1X1p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 18:27:45 -0500
-Received: by eeuu44 with SMTP id u44so50018eeu.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 15:27:43 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:41224 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752096Ab1K1Xtr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 18:49:47 -0500
+Received: by ghrr18 with SMTP id r18so247186ghr.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 15:49:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, broonie@opensource.wolfsonmicro.com, g.liakhovetski@gmx.de, hennerich@blackfin.uclinux.org, hzhuang1@marvell.com, mike@compulab.co.il, rpurdie@rpsys.net
+Cc: dhillf@gmail.com, aarcange@redhat.com, mgorman@suse.de
 
 
 The patch titled
-     Subject: leds: convert leds-dac124s085 to module_spi_driver
+     Subject: mm: compaction: push isolate search base of compact control one pfn ahead
 has been added to the -mm tree.  Its filename is
-     leds-convert-leds-dac124s085-to-module_spi_driver.patch
+     mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,38 +35,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@gmail.com>
-Subject: leds: convert leds-dac124s085 to module_spi_driver
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm: compaction: push isolate search base of compact control one pfn ahead
 
-Factor out some boilerplate code for spi driver registration into
-module_spi_driver.
+After isolated the current pfn will no longer be scanned and isolated if
+the next round is necessary, so push the isolate_migratepages search base
+of the given compact_control one step ahead.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Haojian Zhuang <hzhuang1@marvell.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Michael Hennerich <hennerich@blackfin.uclinux.org>
-Cc: Mike Rapoport <mike@compulab.co.il>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-dac124s085.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ mm/compaction.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-dac124s085.c~leds-convert-leds-dac124s085-to-module_spi_driver drivers/leds/leds-dac124s085.c
---- a/drivers/leds/leds-dac124s085.c~leds-convert-leds-dac124s085-to-module_spi_driver
-+++ a/drivers/leds/leds-dac124s085.c
-@@ -131,18 +131,7 @@ static struct spi_driver dac124s085_driv
- 	},
- };
+diff -puN mm/compaction.c~mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead
++++ a/mm/compaction.c
+@@ -365,8 +365,10 @@ static isolate_migrate_t isolate_migrate
+ 		nr_isolated++;
  
--static int __init dac124s085_leds_init(void)
--{
--	return spi_register_driver(&dac124s085_driver);
--}
--
--static void __exit dac124s085_leds_exit(void)
--{
--	spi_unregister_driver(&dac124s085_driver);
--}
+ 		/* Avoid isolating too much */
+-		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
++		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
++			++low_pfn;
+ 			break;
++		}
+ 	}
+ 
+ 	acct_isolated(zone, cc);
+_
+Subject: Subject: mm: compaction: push isolate search base of compact control one pfn ahead
+
+Patches currently in -mm which might be from dhillf@gmail.com are
+
+linux-next.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+
