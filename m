@@ -1,88 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-add-task-name-to-warn_scan_unevictable-messages.patch added to -mm tree
-Date: Mon, 28 Nov 2011 13:44:44 -0800
-Message-ID: <201111282144.pASLiitw017288@wpaz5.hot.corp.google.com>
+Subject: [to-be-updated] kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch removed from -mm tree
+Date: Mon, 28 Nov 2011 14:11:59 -0800
+Message-ID: <201111282212.pASMBxmk013252@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:63484 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754356Ab1K1Vos (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 16:44:48 -0500
-Received: by faaq16 with SMTP id q16so5768faa.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 13:44:47 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:59866 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750821Ab1K1WME (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 17:12:04 -0500
+Received: by qyk15 with SMTP id 15so356700qyk.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 14:12:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com
+To: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: add task name to warn_scan_unevictable() messages
-has been added to the -mm tree.  Its filename is
-     vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
+     Subject: kdump: fix crash_kexec()/smp_send_stop() race in panic
+has been removed from the -mm tree.  Its filename was
+     kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: vmscan: add task name to warn_scan_unevictable() messages
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: kdump: fix crash_kexec()/smp_send_stop() race in panic
 
-If we need to know a usecase, caller program name is critical important. 
-Show it.
+When two CPUs call panic at the same time there is a possible race
+condition that can stop kdump.  The first CPU calls crash_kexec() and the
+second CPU calls smp_send_stop() in panic() before crash_kexec() finished
+on the first CPU.  So the second CPU stops the first CPU and therefore
+kdump fails:
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-David Rientjes <rientjes@google.com>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+1st CPU:
+panic()->crash_kexec()->mutex_trylock(&kexec_mutex)-> do kdump
+
+2nd CPU:
+panic()->crash_kexec()->kexec_mutex already held by 1st CPU
+       ->smp_send_stop()-> stop 1st CPU (stop kdump)
+
+This patch fixes the problem by introducing a spinlock in panic that
+allows only one CPU to process crash_kexec() and the subsequent panic
+code.
+
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/panic.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/vmscan.c~vmscan-add-task-name-to-warn_scan_unevictable-messages mm/vmscan.c
---- a/mm/vmscan.c~vmscan-add-task-name-to-warn_scan_unevictable-messages
-+++ a/mm/vmscan.c
-@@ -3436,9 +3436,10 @@ void scan_mapping_unevictable_pages(stru
- static void warn_scan_unevictable_pages(void)
+diff -puN kernel/panic.c~kdump-fix-crash_kexec-smp_send_stop-race-in-panic kernel/panic.c
+--- a/kernel/panic.c~kdump-fix-crash_kexec-smp_send_stop-race-in-panic
++++ a/kernel/panic.c
+@@ -59,6 +59,7 @@ EXPORT_SYMBOL(panic_blink);
+  */
+ void panic(const char *fmt, ...)
  {
- 	printk_once(KERN_WARNING
--		    "The scan_unevictable_pages sysctl/node-interface has been "
-+		    "%s: The scan_unevictable_pages sysctl/node-interface has been "
- 		    "disabled for lack of a legitimate use case.  If you have "
--		    "one, please send an email to linux-mm@kvack.org.\n");
-+		    "one, please send an email to linux-mm@kvack.org.\n",
-+		    current->comm);
- }
++	static DEFINE_SPINLOCK(panic_lock);
+ 	static char buf[1024];
+ 	va_list args;
+ 	long i, i_next = 0;
+@@ -82,6 +83,13 @@ void panic(const char *fmt, ...)
+ #endif
  
- /*
+ 	/*
++	 * Only one CPU is allowed to execute the panic code from here. For
++	 * multiple parallel invocations of panic all other CPUs will wait on
++	 * the panic_lock. They are stopped afterwards by smp_send_stop().
++	 */
++	spin_lock(&panic_lock);
++
++	/*
+ 	 * If we have crashed and we have a crash kernel loaded let it handle
+ 	 * everything else.
+ 	 * Do we want to call this before we try to display a message?
 _
-Subject: Subject: vmscan: add task name to warn_scan_unevictable() messages
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
-mm-add-free_hot_cold_page_list-helper.patch
-mm-add-free_hot_cold_page_list-helper-v2.patch
-mm-add-free_hot_cold_page_list-helper-v3.patch
-mm-remove-unused-pagevec_free.patch
-mm-tracepoint-rename-page-free-events.patch
-mm-tracepoint-fixup-documentation-and-examples.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
-kexec-remove-kmsg_dump_kexec.patch
-ipc-mqueue-simplify-reading-msgqueue-limit.patch
+linux-next.patch
+kdump-add-missing-ram-resource-in-crash_shrink_memory.patch
+kdump-add-udev-events-for-memory-online-offline.patch
 
