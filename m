@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-improve-order-in-lru-list-for-split-huge-page.patch added to -mm tree
-Date: Mon, 28 Nov 2011 13:42:05 -0800
-Message-ID: <201111282142.pASLg5Ue013580@wpaz9.hot.corp.google.com>
+Subject: + vmscan-add-task-name-to-warn_scan_unevictable-messages.patch added to -mm tree
+Date: Mon, 28 Nov 2011 13:44:44 -0800
+Message-ID: <201111282144.pASLiitw017288@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:63990 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865Ab1K1VmL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 16:42:11 -0500
-Received: by eeuu44 with SMTP id u44so48927eeu.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 13:42:09 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:63484 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754356Ab1K1Vos (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 16:44:48 -0500
+Received: by faaq16 with SMTP id q16so5768faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 13:44:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shaohua.li@intel.com, aarcange@redhat.com, jweiner@redhat.com, minchan.kim@gmail.com, rientjes@google.com
+Cc: kosaki.motohiro@jp.fujitsu.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan.kim@gmail.com
 
 
 The patch titled
-     Subject: thp: improve order in lru list for split huge page
+     Subject: vmscan: add task name to warn_scan_unevictable() messages
 has been added to the -mm tree.  Its filename is
-     thp-improve-order-in-lru-list-for-split-huge-page.patch
+     vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,82 +35,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: thp: improve order in lru list for split huge page
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: vmscan: add task name to warn_scan_unevictable() messages
 
-Put the tail subpages of an isolated hugepage under splitting in the
-lru reclaim head as they supposedly should be isolated too next.
+If we need to know a usecase, caller program name is critical important. 
+Show it.
 
-Queues the subpages in physical order in the lru for non isolated
-hugepages under splitting. That might provide some theoretical cache
-benefit to the buddy allocator later.
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+David Rientjes <rientjes@google.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 ++---
- mm/swap.c        |    2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-improve-order-in-lru-list-for-split-huge-page mm/huge_memory.c
---- a/mm/huge_memory.c~thp-improve-order-in-lru-list-for-split-huge-page
-+++ a/mm/huge_memory.c
-@@ -1228,7 +1228,6 @@ static int __split_huge_page_splitting(s
- static void __split_huge_page_refcount(struct page *page)
+diff -puN mm/vmscan.c~vmscan-add-task-name-to-warn_scan_unevictable-messages mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-add-task-name-to-warn_scan_unevictable-messages
++++ a/mm/vmscan.c
+@@ -3436,9 +3436,10 @@ void scan_mapping_unevictable_pages(stru
+ static void warn_scan_unevictable_pages(void)
  {
- 	int i;
--	unsigned long head_index = page->index;
- 	struct zone *zone = page_zone(page);
- 	int zonestat;
- 	int tail_count = 0;
-@@ -1239,7 +1238,7 @@ static void __split_huge_page_refcount(s
- 	/* complete memcg works before add pages to LRU */
- 	mem_cgroup_split_huge_fixup(page);
+ 	printk_once(KERN_WARNING
+-		    "The scan_unevictable_pages sysctl/node-interface has been "
++		    "%s: The scan_unevictable_pages sysctl/node-interface has been "
+ 		    "disabled for lack of a legitimate use case.  If you have "
+-		    "one, please send an email to linux-mm@kvack.org.\n");
++		    "one, please send an email to linux-mm@kvack.org.\n",
++		    current->comm);
+ }
  
--	for (i = 1; i < HPAGE_PMD_NR; i++) {
-+	for (i = HPAGE_PMD_NR - 1; i >= 1; i--) {
- 		struct page *page_tail = page + i;
- 
- 		/* tail_page->_mapcount cannot change */
-@@ -1302,7 +1301,7 @@ static void __split_huge_page_refcount(s
- 		BUG_ON(page_tail->mapping);
- 		page_tail->mapping = page->mapping;
- 
--		page_tail->index = ++head_index;
-+		page_tail->index = page->index + i;
- 
- 		BUG_ON(!PageAnon(page_tail));
- 		BUG_ON(!PageUptodate(page_tail));
-diff -puN mm/swap.c~thp-improve-order-in-lru-list-for-split-huge-page mm/swap.c
---- a/mm/swap.c~thp-improve-order-in-lru-list-for-split-huge-page
-+++ a/mm/swap.c
-@@ -681,7 +681,7 @@ void lru_add_page_tail(struct zone* zone
- 		if (likely(PageLRU(page)))
- 			list_add(&page_tail->lru, page->lru.prev);
- 		else
--			list_add(&page_tail->lru, &lruvec->lists[lru]);
-+			list_add(&page_tail->lru, lruvec->lists[lru].prev);
- 		__mod_zone_page_state(zone, NR_LRU_BASE + lru,
- 				      hpage_nr_pages(page_tail));
- 	} else {
+ /*
 _
-Subject: Subject: thp: improve order in lru list for split huge page
+Subject: Subject: vmscan: add task name to warn_scan_unevictable() messages
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-linux-next.patch
-x86-tlb-flush-avoid-superflous-leave_mm.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
-thp-improve-the-error-code-path.patch
-thp-remove-unnecessary-tlb-flush-for-mprotect.patch
-thp-add-tlb_remove_pmd_tlb_entry.patch
-thp-improve-order-in-lru-list-for-split-huge-page.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
+mm-add-free_hot_cold_page_list-helper.patch
+mm-add-free_hot_cold_page_list-helper-v2.patch
+mm-add-free_hot_cold_page_list-helper-v3.patch
+mm-remove-unused-pagevec_free.patch
+mm-tracepoint-rename-page-free-events.patch
+mm-tracepoint-fixup-documentation-and-examples.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
+kexec-remove-kmsg_dump_kexec.patch
+ipc-mqueue-simplify-reading-msgqueue-limit.patch
 
