@@ -1,90 +1,293 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.patch removed from -mm tree
-Date: Tue, 29 Nov 2011 12:03:30 -0800
-Message-ID: <201111292003.pATK3UeM023910@wpaz9.hot.corp.google.com>
+Subject: [merged] lib-move-generic_iomap-to-lib-kconfig.patch removed from -mm tree
+Date: Tue, 29 Nov 2011 12:03:35 -0800
+Message-ID: <201111292003.pATK3ZrM023983@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:43566 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754334Ab1K2UDe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2011 15:03:34 -0500
-Received: by eeuu44 with SMTP id u44so65202eeu.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2011 12:03:33 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:38660 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754334Ab1K2UEG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2011 15:04:06 -0500
+Received: by vbbez10 with SMTP id ez10so529102vbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2011 12:04:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@chromium.org, airlied@redhat.com, hidave.darkstar@gmail.com, hughd@google.com, marcheu@chromium.org, msb@chromium.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: mst@redhat.com, arend@broadcom.com, arnd@arndb.de, benh@kernel.crashing.org, davem@davemloft.net, deller@gmx.de, fabio.baltieri@gmail.com, fenghua.yu@intel.com, frankyl@broadcom.com, galak@kernel.crashing.org, geert@linux-m68k.org, gxt@mprc.pku.edu.cn, hpa@zytor.com, ink@jurassic.park.msu.ru, jbarnes@virtuousgeek.org, jejb@parisc-linux.org, jesper.nilsson@axis.com, jonas@southpole.se, kyle@mcmartin.ca, lasse.collin@tukaani.org, lennox.wu@gmail.com, lethal@linux-sh.org, linux@arm.linux.org.uk, linville@tuxdriver.com, liqin.chen@sunplusct.com, lucas.demarchi@profusion.mobi, mattst88@gmail.com, michael@ellerman.id.au, mingo@redhat.com, monstr@monstr.eu, nicolas.pitre@linaro.org, olof@lixom.net, paul.gortmaker@windriver.com, paulus@samba.org, pebolle@tiscali.nl, ralf@linux-mips.org, rkuo@codeaurora.org, rob.herring@calxeda.com, rth@twiddle.net, sfr@canb.auug.org.au, starvi
 
 
 The patch titled
-     Subject: drm: avoid switching to text console if there is no panic=
- timeout
+     Subject: lib: move GENERIC_IOMAP to lib/Kconfig
 has been removed from the -mm tree.  Its filename was
-     drm-avoid-switching-to-text-console-if-there-is-no-panic-timeout.p=
-atch
+     lib-move-generic_iomap-to-lib-kconfig.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-=46rom: Hugh Dickins <hughd@chromium.org>
-Subject: drm: avoid switching to text console if there is no panic time=
-out
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: lib: move GENERIC_IOMAP to lib/Kconfig
 
-Add a check for panic_timeout in the drm_fb_helper_panic() notifier: if
-we're going to reboot immediately, the user will not be able to see the
-messages anyway, and messing with the video mode may display artifacts,
-and certainly get into several layers of complexity (including mutexes =
-and
-memory allocations) which we shall be much safer to avoid.
+Define GENERIC_IOMAP in a central location instead of all architectures. 
+This will be helpful for the follow-up patch which makes it select other
+configs.  Code is also a bit shorter this way.
 
-[msb@chromium.org: edited commit message and modified to short-circuit =
-panic_timeout < 0 instead of testing panic_timeout >=3D 0]
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Mandeep Singh Baines <msb@chromium.org>
-Cc: Dave Airlie <airlied@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: St=E9phane Marchesin <marcheu@chromium.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Fabio Baltieri <fabio.baltieri@gmail.com>
+Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Lasse Collin <lasse.collin@tukaani.org>
+Cc: Arend van Spriel <arend@broadcom.com>
+Cc: Franky Lin <frankyl@broadcom.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_fb_helper.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/alpha/Kconfig             |    4 ----
+ arch/cris/Kconfig              |    5 +----
+ arch/hexagon/Kconfig           |    4 +---
+ arch/ia64/Kconfig              |    5 +----
+ arch/m68k/Kconfig              |    4 +---
+ arch/openrisc/Kconfig          |    3 ---
+ arch/powerpc/platforms/Kconfig |    3 ---
+ arch/score/Kconfig             |    4 +---
+ arch/sh/Kconfig                |    3 ---
+ arch/unicore32/Kconfig         |    4 +---
+ arch/x86/Kconfig               |    4 +---
+ lib/Kconfig                    |    3 +++
+ 12 files changed, 10 insertions(+), 36 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_fb_helper.c~drm-avoid-switching-to-text-c=
-onsole-if-there-is-no-panic-timeout drivers/gpu/drm/drm_fb_helper.c
---- a/drivers/gpu/drm/drm_fb_helper.c~drm-avoid-switching-to-text-conso=
-le-if-there-is-no-panic-timeout
-+++ a/drivers/gpu/drm/drm_fb_helper.c
-@@ -255,6 +255,13 @@ bool drm_fb_helper_force_kernel_mode(voi
- int drm_fb_helper_panic(struct notifier_block *n, unsigned long ununse=
-d,
- 			void *panic_str)
- {
-+	/*
-+	 * It's a waste of time and effort to switch back to text console
-+	 * if the kernel should reboot before panic messages can be seen.
-+	 */
-+	if (panic_timeout < 0)
-+		return 0;
-+
- 	printk(KERN_ERR "panic occurred, switching back to text console\n");
- 	return drm_fb_helper_force_kernel_mode();
- }
-_
-
-Patches currently in -mm which might be from hughd@chromium.org are
-
-linux-next.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -puN arch/alpha/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/alpha/Kconfig
+@@ -70,10 +70,6 @@ config GENERIC_ISA_DMA
+ 	bool
+ 	default y
+ 
+-config GENERIC_IOMAP
+-	bool
+-	default n
+-
+ source "init/Kconfig"
+ source "kernel/Kconfig.freezer"
+ 
+diff -puN arch/cris/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/cris/Kconfig
+--- a/arch/cris/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/cris/Kconfig
+@@ -19,10 +19,6 @@ config GENERIC_CMOS_UPDATE
+ config ARCH_USES_GETTIMEOFFSET
+ 	def_bool n
+ 
+-config GENERIC_IOMAP
+-       bool
+-       default y
+-
+ config ARCH_HAS_ILOG2_U32
+ 	bool
+ 	default n
+@@ -52,6 +48,7 @@ config CRIS
+ 	select HAVE_IDE
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_IRQ_SHOW
++	select GENERIC_IOMAP
+ 
+ config HZ
+ 	int
+diff -puN arch/hexagon/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/hexagon/Kconfig
+--- a/arch/hexagon/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/hexagon/Kconfig
+@@ -14,6 +14,7 @@ config HEXAGON
+ 	# select HAVE_CLK
+ 	# select IRQ_PER_CPU
+ 	# select GENERIC_PENDING_IRQ if SMP
++	select GENERIC_IOMAP
+ 	select HAVE_IRQ_WORK
+ 	select GENERIC_ATOMIC64
+ 	select HAVE_PERF_EVENTS
+@@ -71,9 +72,6 @@ config GENERIC_CSUM
+ config GENERIC_IRQ_PROBE
+ 	def_bool y
+ 
+-config GENERIC_IOMAP
+-	def_bool y
+-
+ config NEED_SG_DMA_LENGTH
+ 	def_bool y
+ 
+diff -puN arch/ia64/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/ia64/Kconfig
+@@ -29,6 +29,7 @@ config IA64
+ 	select GENERIC_IRQ_SHOW
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
++	select GENERIC_IOMAP
+ 	default y
+ 	help
+ 	  The Itanium Processor Family is Intel's 64-bit successor to
+@@ -102,10 +103,6 @@ config EFI
+ 	bool
+ 	default y
+ 
+-config GENERIC_IOMAP
+-	bool
+-	default y
+-
+ config ARCH_CLOCKSOURCE_DATA
+ 	def_bool y
+ 
+diff -puN arch/m68k/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/m68k/Kconfig
+@@ -37,9 +37,6 @@ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 	default y
+ 
+-config GENERIC_IOMAP
+-	def_bool MMU
+-
+ config GENERIC_CSUM
+ 	bool
+ 
+@@ -78,6 +75,7 @@ source "kernel/Kconfig.freezer"
+ config MMU
+ 	bool "MMU-based Paged Memory Management Support"
+ 	default y
++	select GENERIC_IOMAP
+ 	help
+ 	  Select if you want MMU-based virtualised addressing space
+ 	  support by paged memory management. If unsure, say 'Y'.
+diff -puN arch/openrisc/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/openrisc/Kconfig
+--- a/arch/openrisc/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/openrisc/Kconfig
+@@ -38,9 +38,6 @@ config RWSEM_XCHGADD_ALGORITHM
+ config GENERIC_HWEIGHT
+ 	def_bool y
+ 
+-config GENERIC_IOMAP
+-	def_bool y
+-
+ config NO_IOPORT
+ 	def_bool y
+ 
+diff -puN arch/powerpc/platforms/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/powerpc/platforms/Kconfig
+--- a/arch/powerpc/platforms/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/powerpc/platforms/Kconfig
+@@ -175,9 +175,6 @@ config PPC_INDIRECT_MMIO
+ config PPC_IO_WORKAROUNDS
+ 	bool
+ 
+-config GENERIC_IOMAP
+-	bool
+-
+ source "drivers/cpufreq/Kconfig"
+ 
+ menu "CPU Frequency drivers"
+diff -puN arch/score/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/score/Kconfig
+--- a/arch/score/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/score/Kconfig
+@@ -4,6 +4,7 @@ config SCORE
+        def_bool y
+        select HAVE_GENERIC_HARDIRQS
+        select GENERIC_IRQ_SHOW
++       select GENERIC_IOMAP
+ 
+ choice
+ 	prompt "System type"
+@@ -33,9 +34,6 @@ endmenu
+ config CPU_SCORE7
+ 	bool
+ 
+-config GENERIC_IOMAP
+-	def_bool y
+-
+ config NO_DMA
+ 	bool
+ 	default y
+diff -puN arch/sh/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/sh/Kconfig
+--- a/arch/sh/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/sh/Kconfig
+@@ -84,9 +84,6 @@ config GENERIC_GPIO
+ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 
+-config GENERIC_IOMAP
+-	bool
+-
+ config GENERIC_CLOCKEVENTS
+ 	def_bool y
+ 
+diff -puN arch/unicore32/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/unicore32/Kconfig
+--- a/arch/unicore32/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/unicore32/Kconfig
+@@ -12,6 +12,7 @@ config UNICORE32
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_IRQ_SHOW
+ 	select ARCH_WANT_FRAME_POINTERS
++	select GENERIC_IOMAP
+ 	help
+ 	  UniCore-32 is 32-bit Instruction Set Architecture,
+ 	  including a series of low-power-consumption RISC chip
+@@ -30,9 +31,6 @@ config GENERIC_CLOCKEVENTS
+ config GENERIC_CSUM
+ 	def_bool y
+ 
+-config GENERIC_IOMAP
+-	def_bool y
+-
+ config NO_IOPORT
+ 	bool
+ 
+diff -puN arch/x86/Kconfig~lib-move-generic_iomap-to-lib-kconfig arch/x86/Kconfig
+--- a/arch/x86/Kconfig~lib-move-generic_iomap-to-lib-kconfig
++++ a/arch/x86/Kconfig
+@@ -43,6 +43,7 @@ config X86
+ 	select HAVE_KVM
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_TRACEHOOK
++	select GENERIC_IOMAP
+ 	select HAVE_GENERIC_DMA_COHERENT if X86_32
+ 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 	select USER_STACKTRACE_SUPPORT
+@@ -144,9 +145,6 @@ config NEED_SG_DMA_LENGTH
+ config GENERIC_ISA_DMA
+ 	def_bool ISA_DMA_API
+ 
+-config GENERIC_IOMAP
+-	def_bool y
