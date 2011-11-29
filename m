@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-switch-to-generic_pci_iomap.patch added to -mm tree
-Date: Mon, 28 Nov 2011 16:09:08 -0800
-Message-ID: <201111290009.pAT09EK0029834@wpaz9.hot.corp.google.com>
+Subject: + thp-add-compound-tail-page-_mapcount-when-mapped.patch added to -mm tree
+Date: Mon, 28 Nov 2011 16:17:28 -0800
+Message-ID: <201111290017.pAT0HScj006105@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:40051 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753285Ab1K2AJR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 19:09:17 -0500
-Received: by mail-ee0-f74.google.com with SMTP id u44so50397eeu.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 16:09:16 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:49765 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010Ab1K2ARb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Nov 2011 19:17:31 -0500
+Received: by ywb26 with SMTP id 26so520095ywb.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Nov 2011 16:17:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mst@redhat.com, arnd@arndb.de, davem@davemloft.net, jbarnes@virtuousgeek.org
+Cc: youquan.song@intel.com, aarcange@redhat.com
 
 
 The patch titled
-     Subject: sparc: switch to GENERIC_PCI_IOMAP
+     Subject: thp: add compound tail page _mapcount when mapped
 has been added to the -mm tree.  Its filename is
-     sparc-switch-to-generic_pci_iomap.patch
+     thp-add-compound-tail-page-_mapcount-when-mapped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,106 +35,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: sparc: switch to GENERIC_PCI_IOMAP
+From: Youquan Song <youquan.song@intel.com>
+Subject: thp: add compound tail page _mapcount when mapped
 
-sparc copied pci_iomap from generic code, probably to avoid pulling the
-rest of iomap.c in.  Since that's in a separate file now, we can reuse the
-common implementation.
+With the 3.2-rc kernel, the IOMMU 2M page in KVM works.  While I try to us
+IOMMU 1GB page in KVM, I encounter a oops and 1GB page total fail to be
+used.  The root cause is that 1GB page allocation calls gup_huge_pud()
+while 2M page calls gup_huge_pmd.  If compound pages are used and the page
+is tail page, gup_huge_pmd increase _mapcount to record tail page are
+mapped while gup_huge_pud does not include this process.  So when the
+mapped page is relesed, it will result in kernel oops because the page
+does not mark mapped.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+This patch add tail process for compound page in 1GB huge page which keeps
+the same process as 2M page.
+
+Reproduce like:
+1. Add grub boot option: hugepagesz=1G hugepages=8
+2. mount -t hugetlbfs -o pagesize=1G hugetlbfs /dev/hugepages
+3.qemu-kvm -m 2048 -hda os-kvm.img -cpu kvm64 -smp 4 -mem-path /dev/hugepages
+ -net none -device pci-assign,host=07:00.1
+
+kernel BUG at mm/swap.c:114!
+invalid opcode: 0000 [#1] SMP
+Call Trace:
+ [<ffffffff81127482>] put_page+0x15/0x37
+ [<ffffffff810067c4>] kvm_release_pfn_clean+0x31/0x36
+ [<ffffffff8100b69c>] kvm_iommu_put_pages+0x94/0xb1
+ [<ffffffff8100b739>] kvm_iommu_unmap_memslots+0x80/0xb6
+ [<ffffffff8100b6b9>] ? kvm_iommu_put_pages+0xb1/0xb1
+ [<ffffffff81425cf3>] ? intel_iommu_attach_device+0x13b/0x144
+ [<ffffffff8100bc03>] kvm_assign_device+0xba/0x117
+ [<ffffffff8100aec2>] kvm_vm_ioctl_assigned_device+0x301/0xa47
+ [<ffffffff8100ac6d>] ? kvm_vm_ioctl_assigned_device+0xac/0xa47
+ [<ffffffff8104f2a6>] ? native_sched_clock+0x32/0x6b
+ [<ffffffff810b0be2>] ? sched_clock_cpu+0x45/0xd4
+ [<ffffffff810bc430>] ? trace_hardirqs_off+0xd/0xf
+ [<ffffffff810b0cb2>] ? local_clock+0x41/0x5a
+ [<ffffffff810bc881>] ? lock_release_holdtime+0x2c/0x129
+ [<ffffffff8115760d>] ? cmpxchg_double_slab+0xd0/0x12b
+ [<ffffffff81248f27>] ? avc_has_perm_noaudit+0x388/0x399
+ [<ffffffff8104f2a6>] ? native_sched_clock+0x32/0x6b
+ [<ffffffff8104f2e8>] ? sched_clock+0x9/0xd
+ [<ffffffff81007dcb>] kvm_vm_ioctl+0x36c/0x3a2
+ [<ffffffff8104f2a6>] ? native_sched_clock+0x32/0x6b
+ [<ffffffff8104f2e8>] ? sched_clock+0x9/0xd
+ [<ffffffff81174af0>] do_vfs_ioctl+0x49e/0x4e4
+ [<ffffffff81174b90>] sys_ioctl+0x5a/0x7c
+ [<ffffffff81500dc2>] system_call_fastpath+0x16/0x1b
+RIP  [<ffffffff811273d9>] put_compound_page+0xd4/0x168
+
+Signed-off-by: Youquan Song <youquan.song@intel.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig             |    1 +
- arch/sparc/include/asm/io_32.h |    5 ++++-
- arch/sparc/include/asm/io_64.h |    5 ++++-
- arch/sparc/lib/iomap.c         |   23 -----------------------
- 4 files changed, 9 insertions(+), 25 deletions(-)
+ arch/x86/mm/gup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/sparc/Kconfig~sparc-switch-to-generic_pci_iomap arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~sparc-switch-to-generic_pci_iomap
-+++ a/arch/sparc/Kconfig
-@@ -28,6 +28,7 @@ config SPARC
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_IRQ_SHOW
- 	select USE_GENERIC_SMP_HELPERS if SMP
-+	select GENERIC_PCI_IOMAP
- 
- config SPARC32
- 	def_bool !64BIT
-diff -puN arch/sparc/include/asm/io_32.h~sparc-switch-to-generic_pci_iomap arch/sparc/include/asm/io_32.h
---- a/arch/sparc/include/asm/io_32.h~sparc-switch-to-generic_pci_iomap
-+++ a/arch/sparc/include/asm/io_32.h
-@@ -8,6 +8,10 @@
- #include <asm/page.h>      /* IO address mapping routines need this */
- #include <asm/system.h>
- 
-+#ifdef __KERNEL__
-+#include <asm-generic/pci_iomap.h>
-+#endif
-+
- #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
- 
- static inline u32 flip_dword (u32 l)
-@@ -324,7 +328,6 @@ extern void ioport_unmap(void __iomem *)
- 
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- struct pci_dev;
--extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
- extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
- 
- /*
-diff -puN arch/sparc/include/asm/io_64.h~sparc-switch-to-generic_pci_iomap arch/sparc/include/asm/io_64.h
---- a/arch/sparc/include/asm/io_64.h~sparc-switch-to-generic_pci_iomap
-+++ a/arch/sparc/include/asm/io_64.h
-@@ -9,6 +9,10 @@
- #include <asm/system.h>
- #include <asm/asi.h>
- 
-+#ifdef __KERNEL__
-+#include <asm-generic/pci_iomap.h>
-+#endif
-+
- /* PC crapola... */
- #define __SLOW_DOWN_IO	do { } while (0)
- #define SLOW_DOWN_IO	do { } while (0)
-@@ -514,7 +518,6 @@ extern void ioport_unmap(void __iomem *)
- 
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- struct pci_dev;
--extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
- extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
- 
- static inline int sbus_can_dma_64bit(void)
-diff -puN arch/sparc/lib/iomap.c~sparc-switch-to-generic_pci_iomap arch/sparc/lib/iomap.c
---- a/arch/sparc/lib/iomap.c~sparc-switch-to-generic_pci_iomap
-+++ a/arch/sparc/lib/iomap.c
-@@ -18,31 +18,8 @@ void ioport_unmap(void __iomem *addr)
- EXPORT_SYMBOL(ioport_map);
- EXPORT_SYMBOL(ioport_unmap);
- 
--/* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
--void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
--{
--	resource_size_t start = pci_resource_start(dev, bar);
--	resource_size_t len = pci_resource_len(dev, bar);
--	unsigned long flags = pci_resource_flags(dev, bar);
--
--	if (!len || !start)
--		return NULL;
--	if (maxlen && len > maxlen)
--		len = maxlen;
--	if (flags & IORESOURCE_IO)
--		return ioport_map(start, len);
--	if (flags & IORESOURCE_MEM) {
--		if (flags & IORESOURCE_CACHEABLE)
--			return ioremap(start, len);
--		return ioremap_nocache(start, len);
--	}
--	/* What? */
--	return NULL;
--}
+diff -puN arch/x86/mm/gup.c~thp-add-compound-tail-page-_mapcount-when-mapped arch/x86/mm/gup.c
+--- a/arch/x86/mm/gup.c~thp-add-compound-tail-page-_mapcount-when-mapped
++++ a/arch/x86/mm/gup.c
+@@ -201,6 +201,8 @@ static noinline int gup_huge_pud(pud_t p
+ 	do {
+ 		VM_BUG_ON(compound_head(page) != head);
+ 		pages[*nr] = page;
++		if (PageTail(page))
++			get_huge_page_tail(page);
+ 		(*nr)++;
+ 		page++;
+ 		refs++;
+_
+Subject: Subject: thp: add compound tail page _mapcount when mapped
+
+Patches currently in -mm which might be from youquan.song@intel.com are
+
+thp-add-compound-tail-page-_mapcount-when-mapped.patch
+thp-set-compound-tail-page-_count-to-zero.patch
+
