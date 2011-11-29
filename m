@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sh-switch-to-generic_pci_iomap.patch removed from -mm tree
-Date: Tue, 29 Nov 2011 12:04:32 -0800
-Message-ID: <201111292004.pATK4Wgq028251@wpaz5.hot.corp.google.com>
+Subject: [merged] sparc-switch-to-generic_pci_iomap.patch removed from -mm tree
+Date: Tue, 29 Nov 2011 12:04:36 -0800
+Message-ID: <201111292004.pATK4aTF025024@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:54121 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755234Ab1K2UEf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2011 15:04:35 -0500
-Received: by mail-fx0-f74.google.com with SMTP id q16so1737faa.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2011 12:04:35 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:36565 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756306Ab1K2UEj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2011 15:04:39 -0500
+Received: by mail-ey0-f202.google.com with SMTP id a14so161746eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2011 12:04:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mst@redhat.com, arnd@arndb.de, jbarnes@virtuousgeek.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: mst@redhat.com, arnd@arndb.de, davem@davemloft.net, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: switch to GENERIC_PCI_IOMAP
+     Subject: sparc: switch to GENERIC_PCI_IOMAP
 has been removed from the -mm tree.  Its filename was
-     sh-switch-to-generic_pci_iomap.patch
+     sparc-switch-to-generic_pci_iomap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,60 +26,105 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: sh: switch to GENERIC_PCI_IOMAP
+Subject: sparc: switch to GENERIC_PCI_IOMAP
 
-sh copied pci_iomap from generic code, probably to avoid pulling the rest
-of iomap.c in.  Since that's in a separate file now, we can reuse the
+sparc copied pci_iomap from generic code, probably to avoid pulling the
+rest of iomap.c in.  Since that's in a separate file now, we can reuse the
 common implementation.
 
 Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/Kconfig           |    1 +
- arch/sh/drivers/pci/pci.c |   23 -----------------------
- 2 files changed, 1 insertion(+), 23 deletions(-)
+ arch/sparc/Kconfig             |    1 +
+ arch/sparc/include/asm/io_32.h |    5 ++++-
+ arch/sparc/include/asm/io_64.h |    5 ++++-
+ arch/sparc/lib/iomap.c         |   23 -----------------------
+ 4 files changed, 9 insertions(+), 25 deletions(-)
 
-diff -puN arch/sh/Kconfig~sh-switch-to-generic_pci_iomap arch/sh/Kconfig
---- a/arch/sh/Kconfig~sh-switch-to-generic_pci_iomap
-+++ a/arch/sh/Kconfig
-@@ -857,6 +857,7 @@ config PCI
- 	bool "PCI support"
- 	depends on SYS_SUPPORTS_PCI
- 	select PCI_DOMAINS
+diff -puN arch/sparc/Kconfig~sparc-switch-to-generic_pci_iomap arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~sparc-switch-to-generic_pci_iomap
++++ a/arch/sparc/Kconfig
+@@ -28,6 +28,7 @@ config SPARC
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_IRQ_SHOW
+ 	select USE_GENERIC_SMP_HELPERS if SMP
 +	select GENERIC_PCI_IOMAP
- 	help
- 	  Find out whether you have a PCI motherboard. PCI is the name of a
- 	  bus system, i.e. the way the CPU talks to the other stuff inside
-diff -puN arch/sh/drivers/pci/pci.c~sh-switch-to-generic_pci_iomap arch/sh/drivers/pci/pci.c
---- a/arch/sh/drivers/pci/pci.c~sh-switch-to-generic_pci_iomap
-+++ a/arch/sh/drivers/pci/pci.c
-@@ -393,29 +393,6 @@ static void __iomem *ioport_map_pci(stru
- 	return (void __iomem *)(chan->io_map_base + port);
- }
  
+ config SPARC32
+ 	def_bool !64BIT
+diff -puN arch/sparc/include/asm/io_32.h~sparc-switch-to-generic_pci_iomap arch/sparc/include/asm/io_32.h
+--- a/arch/sparc/include/asm/io_32.h~sparc-switch-to-generic_pci_iomap
++++ a/arch/sparc/include/asm/io_32.h
+@@ -8,6 +8,10 @@
+ #include <asm/page.h>      /* IO address mapping routines need this */
+ #include <asm/system.h>
+ 
++#ifdef __KERNEL__
++#include <asm-generic/pci_iomap.h>
++#endif
++
+ #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
+ 
+ static inline u32 flip_dword (u32 l)
+@@ -324,7 +328,6 @@ extern void ioport_unmap(void __iomem *)
+ 
+ /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
+ struct pci_dev;
+-extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
+ extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
+ 
+ /*
+diff -puN arch/sparc/include/asm/io_64.h~sparc-switch-to-generic_pci_iomap arch/sparc/include/asm/io_64.h
+--- a/arch/sparc/include/asm/io_64.h~sparc-switch-to-generic_pci_iomap
++++ a/arch/sparc/include/asm/io_64.h
+@@ -9,6 +9,10 @@
+ #include <asm/system.h>
+ #include <asm/asi.h>
+ 
++#ifdef __KERNEL__
++#include <asm-generic/pci_iomap.h>
++#endif
++
+ /* PC crapola... */
+ #define __SLOW_DOWN_IO	do { } while (0)
+ #define SLOW_DOWN_IO	do { } while (0)
+@@ -514,7 +518,6 @@ extern void ioport_unmap(void __iomem *)
+ 
+ /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
+ struct pci_dev;
+-extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
+ extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
+ 
+ static inline int sbus_can_dma_64bit(void)
+diff -puN arch/sparc/lib/iomap.c~sparc-switch-to-generic_pci_iomap arch/sparc/lib/iomap.c
+--- a/arch/sparc/lib/iomap.c~sparc-switch-to-generic_pci_iomap
++++ a/arch/sparc/lib/iomap.c
+@@ -18,31 +18,8 @@ void ioport_unmap(void __iomem *addr)
+ EXPORT_SYMBOL(ioport_map);
+ EXPORT_SYMBOL(ioport_unmap);
+ 
+-/* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
 -void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
 -{
 -	resource_size_t start = pci_resource_start(dev, bar);
 -	resource_size_t len = pci_resource_len(dev, bar);
 -	unsigned long flags = pci_resource_flags(dev, bar);
 -
--	if (unlikely(!len || !start))
+-	if (!len || !start)
 -		return NULL;
 -	if (maxlen && len > maxlen)
 -		len = maxlen;
--
 -	if (flags & IORESOURCE_IO)
--		return ioport_map_pci(dev, start, len);
+-		return ioport_map(start, len);
 -	if (flags & IORESOURCE_MEM) {
 -		if (flags & IORESOURCE_CACHEABLE)
 -			return ioremap(start, len);
 -		return ioremap_nocache(start, len);
 -	}
--
+-	/* What? */
 -	return NULL;
 -}
--EXPORT_SYMBOL(pci_iomap);
