@@ -1,130 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparc-switch-to-generic_pci_iomap.patch removed from -mm tree
-Date: Tue, 29 Nov 2011 12:04:36 -0800
-Message-ID: <201111292004.pATK4aTF025024@wpaz9.hot.corp.google.com>
+Subject: + mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch added to -mm tree
+Date: Tue, 29 Nov 2011 15:40:08 -0800
+Message-ID: <201111300021.pAU0LMq7003599@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:36565 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756306Ab1K2UEj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2011 15:04:39 -0500
-Received: by mail-ey0-f202.google.com with SMTP id a14so161746eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2011 12:04:39 -0800 (PST)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:45763 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757155Ab1K3AV1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Nov 2011 19:21:27 -0500
+Received: by vcbfl11 with SMTP id fl11so525127vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 Nov 2011 16:21:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mst@redhat.com, arnd@arndb.de, davem@davemloft.net, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, shaohua.li@intel.com
 
 
 The patch titled
-     Subject: sparc: switch to GENERIC_PCI_IOMAP
-has been removed from the -mm tree.  Its filename was
-     sparc-switch-to-generic_pci_iomap.patch
+     Subject: mm-exclude-reserved-pages-from-dirtyable-memory-fix
+has been added to the -mm tree.  Its filename is
+     mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: sparc: switch to GENERIC_PCI_IOMAP
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-exclude-reserved-pages-from-dirtyable-memory-fix
 
-sparc copied pci_iomap from generic code, probably to avoid pulling the
-rest of iomap.c in.  Since that's in a separate file now, we can reuse the
-common implementation.
+fix highmem build
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig             |    1 +
- arch/sparc/include/asm/io_32.h |    5 ++++-
- arch/sparc/include/asm/io_64.h |    5 ++++-
- arch/sparc/lib/iomap.c         |   23 -----------------------
- 4 files changed, 9 insertions(+), 25 deletions(-)
+ mm/page-writeback.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/sparc/Kconfig~sparc-switch-to-generic_pci_iomap arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~sparc-switch-to-generic_pci_iomap
-+++ a/arch/sparc/Kconfig
-@@ -28,6 +28,7 @@ config SPARC
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_IRQ_SHOW
- 	select USE_GENERIC_SMP_HELPERS if SMP
-+	select GENERIC_PCI_IOMAP
+diff -puN mm/page-writeback.c~mm-exclude-reserved-pages-from-dirtyable-memory-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-exclude-reserved-pages-from-dirtyable-memory-fix
++++ a/mm/page-writeback.c
+@@ -157,8 +157,7 @@ static unsigned long highmem_dirtyable_m
+ 			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
  
- config SPARC32
- 	def_bool !64BIT
-diff -puN arch/sparc/include/asm/io_32.h~sparc-switch-to-generic_pci_iomap arch/sparc/include/asm/io_32.h
---- a/arch/sparc/include/asm/io_32.h~sparc-switch-to-generic_pci_iomap
-+++ a/arch/sparc/include/asm/io_32.h
-@@ -8,6 +8,10 @@
- #include <asm/page.h>      /* IO address mapping routines need this */
- #include <asm/system.h>
- 
-+#ifdef __KERNEL__
-+#include <asm-generic/pci_iomap.h>
-+#endif
-+
- #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
- 
- static inline u32 flip_dword (u32 l)
-@@ -324,7 +328,6 @@ extern void ioport_unmap(void __iomem *)
- 
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- struct pci_dev;
--extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
- extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
- 
- /*
-diff -puN arch/sparc/include/asm/io_64.h~sparc-switch-to-generic_pci_iomap arch/sparc/include/asm/io_64.h
---- a/arch/sparc/include/asm/io_64.h~sparc-switch-to-generic_pci_iomap
-+++ a/arch/sparc/include/asm/io_64.h
-@@ -9,6 +9,10 @@
- #include <asm/system.h>
- #include <asm/asi.h>
- 
-+#ifdef __KERNEL__
-+#include <asm-generic/pci_iomap.h>
-+#endif
-+
- /* PC crapola... */
- #define __SLOW_DOWN_IO	do { } while (0)
- #define SLOW_DOWN_IO	do { } while (0)
-@@ -514,7 +518,6 @@ extern void ioport_unmap(void __iomem *)
- 
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- struct pci_dev;
--extern void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max);
- extern void pci_iounmap(struct pci_dev *dev, void __iomem *);
- 
- static inline int sbus_can_dma_64bit(void)
-diff -puN arch/sparc/lib/iomap.c~sparc-switch-to-generic_pci_iomap arch/sparc/lib/iomap.c
---- a/arch/sparc/lib/iomap.c~sparc-switch-to-generic_pci_iomap
-+++ a/arch/sparc/lib/iomap.c
-@@ -18,31 +18,8 @@ void ioport_unmap(void __iomem *addr)
- EXPORT_SYMBOL(ioport_map);
- EXPORT_SYMBOL(ioport_unmap);
- 
--/* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
--void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
--{
--	resource_size_t start = pci_resource_start(dev, bar);
--	resource_size_t len = pci_resource_len(dev, bar);
--	unsigned long flags = pci_resource_flags(dev, bar);
--
--	if (!len || !start)
--		return NULL;
--	if (maxlen && len > maxlen)
--		len = maxlen;
--	if (flags & IORESOURCE_IO)
--		return ioport_map(start, len);
--	if (flags & IORESOURCE_MEM) {
--		if (flags & IORESOURCE_CACHEABLE)
--			return ioremap(start, len);
--		return ioremap_nocache(start, len);
--	}
--	/* What? */
--	return NULL;
--}
+ 		x += zone_page_state(z, NR_FREE_PAGES) +
+-		     zone_reclaimable_pages(z) -
+-		     zone->dirty_balance_reserve;
++		     zone_reclaimable_pages(z) - z->dirty_balance_reserve;
+ 	}
+ 	/*
+ 	 * Make sure that the number of highmem pages is never larger
+_
+Subject: Subject: mm-exclude-reserved-pages-from-dirtyable-memory-fix
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+vmscan-use-atomic-long-for-shrinker-batching.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+include-net-netprio_cgrouph-various-fixes.patch
+debugobjects-extend-to-assert-that-an-object-is-initialized.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+
