@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-ensure-cast-type-is-unique-in-the-context-parser.patch added to -mm tree
-Date: Wed, 30 Nov 2011 14:20:11 -0800
-Message-ID: <201111302220.pAUMKBhf020412@wpaz9.hot.corp.google.com>
+Subject: + checkpatch-typeof-may-have-more-complex-arguments.patch added to -mm tree
+Date: Wed, 30 Nov 2011 14:20:14 -0800
+Message-ID: <201111302220.pAUMKEai007016@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-vw0-f74.google.com ([209.85.212.74]:52387 "EHLO
 	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751823Ab1K3WUN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 17:20:13 -0500
+	with ESMTP id S1751457Ab1K3WUQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 17:20:16 -0500
 Received: by mail-vw0-f74.google.com with SMTP id ez10so134788vbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 14:20:13 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 14:20:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: apw@canonical.com, joe@perches.com
 
 
 The patch titled
-     Subject: checkpatch: ensure cast type is unique in the context parser
+     Subject: checkpatch: typeof may have more complex arguments
 has been added to the -mm tree.  Its filename is
-     checkpatch-ensure-cast-type-is-unique-in-the-context-parser.patch
+     checkpatch-typeof-may-have-more-complex-arguments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,10 +36,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andy Whitcroft <apw@canonical.com>
-Subject: checkpatch: ensure cast type is unique in the context parser
+Subject: checkpatch: typeof may have more complex arguments
 
-Ensure the cast type is unique in the context parser, we do not want them
-to detect as a comma ','.
+typeof may have various more complex forms as its arguement, not just an
+identifier.  For now allow us to leak to the first close perenthesis ')'.
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
@@ -49,20 +49,20 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-ensure-cast-type-is-unique-in-the-context-parser scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-ensure-cast-type-is-unique-in-the-context-parser
+diff -puN scripts/checkpatch.pl~checkpatch-typeof-may-have-more-complex-arguments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-typeof-may-have-more-complex-arguments
 +++ a/scripts/checkpatch.pl
-@@ -1032,7 +1032,7 @@ sub annotate_values {
- 		} elsif ($cur =~ /^(\(\s*$Type\s*)\)/ && $av_pending eq '_') {
- 			print "CAST($1)\n" if ($dbg_values > 1);
- 			push(@av_paren_type, $type);
--			$type = 'C';
-+			$type = 'c';
- 
- 		} elsif ($cur =~ /^($Type)\s*(?:$Ident|,|\)|\(|\s*$)/) {
- 			print "DECLARE($1)\n" if ($dbg_values > 1);
+@@ -315,7 +315,7 @@ sub build_types {
+ 	$NonptrType	= qr{
+ 			(?:$Modifier\s+|const\s+)*
+ 			(?:
+-				(?:typeof|__typeof__)\s*\(\s*\**\s*$Ident\s*\)|
++				(?:typeof|__typeof__)\s*\([^\)]*\)|
+ 				(?:$typeTypedefs\b)|
+ 				(?:${all}\b)
+ 			)
 _
-Subject: Subject: checkpatch: ensure cast type is unique in the context parser
+Subject: Subject: checkpatch: typeof may have more complex arguments
 
 Patches currently in -mm which might be from apw@canonical.com are
 
