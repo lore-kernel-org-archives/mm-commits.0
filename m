@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-fix-return-is-not-a-function-square-bracket-handling.patch added to -mm tree
-Date: Wed, 30 Nov 2011 14:20:05 -0800
-Message-ID: <201111302220.pAUMK6Gt020163@wpaz9.hot.corp.google.com>
+Subject: + checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch added to -mm tree
+Date: Wed, 30 Nov 2011 14:30:34 -0800
+Message-ID: <201111302230.pAUMUZnw013054@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:38146 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664Ab1K3WUH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 17:20:07 -0500
-Received: by ghrr18 with SMTP id r18so151822ghr.1
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 14:20:07 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56798 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751569Ab1K3Wai (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 17:30:38 -0500
+Received: by eeuu44 with SMTP id u44so18895eeu.1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 14:30:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, joe@perches.com
+Cc: akpm@linux-foundation.org, apw@canonical.com, joe@perches.com
 
 
 The patch titled
-     Subject: checkpatch: fix 'return is not a function' square bracket handling
+     Subject: checkpatch-improve-memset-and-min-max-with-cast-checking-fix
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-return-is-not-a-function-square-bracket-handling.patch
+     checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,18 +35,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andy Whitcroft <apw@canonical.com>
-Subject: checkpatch: fix 'return is not a function' square bracket handling
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: checkpatch-improve-memset-and-min-max-with-cast-checking-fix
 
-We are incorrectly matching square brackets '[' and ']' leading to false
-positives on more complex functions as below:
+fix per Andy
 
-    return (dt3155_fbuffer[m]->ready_head -
-	dt3155_fbuffer[m]->ready_len +
-	dt3155_fbuffer[m]->nbuffers)%
-	(dt3155_fbuffer[m]->nbuffers);
-
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -54,34 +48,62 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-return-is-not-a-function-square-bracket-handling scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-return-is-not-a-function-square-bracket-handling
+diff -puN scripts/checkpatch.pl~checkpatch-improve-memset-and-min-max-with-cast-checking-fix scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-memset-and-min-max-with-cast-checking-fix
 +++ a/scripts/checkpatch.pl
-@@ -2609,7 +2609,7 @@ sub process {
- 			# Flatten any parentheses
- 			$value =~ s/\(/ \(/g;
- 			$value =~ s/\)/\) /g;
--			while ($value =~ s/\[[^\{\}]*\]/1/ ||
-+			while ($value =~ s/\[[^\[\]]*\]/1/ ||
- 			       $value !~ /(?:$Ident|-?$Constant)\s*
- 					     $Compare\s*
- 					     (?:$Ident|-?$Constant)/x &&
+@@ -227,7 +227,7 @@ our $Inline	= qr{inline|__always_inline|
+ our $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
+ our $Lval	= qr{$Ident(?:$Member)*};
+ 
+-our $Constant	= qr{(?i:[0-9]+|0x[0-9a-f]+)[ul]*};
++our $Constant	= qr{(?i:(?:[0-9]+|0x[0-9a-f]+)[ul]*)};
+ our $Assignment	= qr{(?:\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=)};
+ our $Compare    = qr{<=|>=|==|!=|<|>};
+ our $Operators	= qr{
 _
-Subject: Subject: checkpatch: fix 'return is not a function' square bracket handling
+Subject: Subject: checkpatch-improve-memset-and-min-max-with-cast-checking-fix
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context.patch
-checkpatch-check-for-common-memset-parameter-issues-against-statments.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking.patch
-checkpatch-is-not-a-valid-modifier.patch
-checkpatch-optimise-statement-scanner-when-mid-statement.patch
-checkpatch-only-apply-kconfig-help-checks-for-options-which-prompt.patch
-checkpatch-fix-export_symbol-handling-following-a-function.patch
-checkpatch-complex-macro-should-allow-the-empty-do-while-loop.patch
-checkpatch-fix-return-is-not-a-function-square-bracket-handling.patch
-checkpatch-fix-complex-macros-handling-of-square-brackets.patch
-checkpatch-ensure-cast-type-is-unique-in-the-context-parser.patch
-checkpatch-typeof-may-have-more-complex-arguments.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+vmscan-use-atomic-long-for-shrinker-batching.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+debugobjects-extend-to-assert-that-an-object-is-initialized.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
