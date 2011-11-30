@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch added to -mm tree
-Date: Wed, 30 Nov 2011 15:30:20 -0800
-Message-ID: <201111302330.pAUNULsE026876@wpaz9.hot.corp.google.com>
+Subject: + x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch added to -mm tree
+Date: Wed, 30 Nov 2011 15:30:26 -0800
+Message-ID: <201111302330.pAUNURwa013030@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:47608 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753168Ab1K3Xa1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 18:30:27 -0500
-Received: by eeuu44 with SMTP id u44so20016eeu.1
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 15:30:26 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:52772 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753168Ab1K3Xa3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 18:30:29 -0500
+Received: by ywb26 with SMTP id 26so162399ywb.1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 15:30:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dsd@laptop.org, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, dilinger@queued.net, dsd@laptop.org, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: x86, olpc-xo15-sci: enable lid close wakeup control through sysfs
+     Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
 has been added to the -mm tree.  Its filename is
-     x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+     x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,133 +35,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Daniel Drake <dsd@laptop.org>
-Subject: x86, olpc-xo15-sci: enable lid close wakeup control through sysfs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
 
-Like most systems, OLPC's ACPI LID switch wakes up the system when the lid
-is opened, but not when it is closed.
+fix sscanf checking
 
-Under OLPC's opportunistic suspend model, the lid may be closed while the
-system was oportunistically suspended with the screen running.  In this
-event, we want to wake up to turn the screen off.
-
-Enable control of normal ACPI wakeups through lid close events through a
-new sysfs attribute "lid_wake_on_closed".  When set, and when LID wakeups
-are enabled through ACPI, the system will wake up on both open and close
-lid events.
-
-Signed-off-by: Daniel Drake <dsd@laptop.org>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Daniel Drake <dsd@laptop.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/olpc/olpc-xo15-sci.c |   55 +++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ arch/x86/platform/olpc/olpc-xo15-sci.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs arch/x86/platform/olpc/olpc-xo15-sci.c
---- a/arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs
+diff -puN arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix arch/x86/platform/olpc/olpc-xo15-sci.c
+--- a/arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
 +++ a/arch/x86/platform/olpc/olpc-xo15-sci.c
-@@ -24,6 +24,50 @@
- #define XO15_SCI_DEVICE_NAME		"OLPC XO-1.5 SCI"
- 
- static unsigned long xo15_sci_gpe;
-+static bool lid_wake_on_close;
-+
-+static int set_lid_wake_behavior(bool wake_on_close)
-+{
-+	struct acpi_object_list arg_list;
-+	union acpi_object arg;
-+	acpi_status status;
-+
-+	arg_list.count = 1;
-+	arg_list.pointer = &arg;
-+	arg.type = ACPI_TYPE_INTEGER;
-+	arg.integer.value = wake_on_close;
-+	status = acpi_evaluate_object(NULL, "\\_SB.PCI0.LID.LIDW", &arg_list,
-+				      NULL);
-+	if (ACPI_FAILURE(status)) {
-+		pr_warning(PFX "failed to set lid behaviour\n");
-+		return 1;
-+	}
-+
-+	lid_wake_on_close = wake_on_close;
-+	return 0;
-+}
-+
-+static ssize_t lid_wake_on_close_show(struct kobject *s,
-+				      struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%u\n", lid_wake_on_close);
-+}
-+
-+static ssize_t lid_wake_on_close_store(struct kobject *s,
-+				       struct kobj_attribute *attr,
-+				       const char *buf, size_t n)
-+{
-+	unsigned int val;
-+	if (!sscanf(buf, "%u", &val) == 1)
-+		return -EINVAL;
-+
-+	set_lid_wake_behavior(!!val);
-+	return n;
-+}
-+
-+static struct kobj_attribute lid_wake_on_close_attr =
-+	__ATTR(lid_wake_on_close, 0644,
-+	       lid_wake_on_close_show, lid_wake_on_close_store);
- 
- static void battery_status_changed(void)
+@@ -58,7 +58,8 @@ static ssize_t lid_wake_on_close_store(s
+ 				       const char *buf, size_t n)
  {
-@@ -91,6 +135,7 @@ static int xo15_sci_add(struct acpi_devi
- {
- 	unsigned long long tmp;
- 	acpi_status status;
-+	int r;
- 
- 	if (!device)
+ 	unsigned int val;
+-	if (!sscanf(buf, "%u", &val) == 1)
++
++	if (sscanf(buf, "%u", &val) != 1)
  		return -EINVAL;
-@@ -112,6 +157,10 @@ static int xo15_sci_add(struct acpi_devi
  
- 	dev_info(&device->dev, "Initialized, GPE = 0x%lx\n", xo15_sci_gpe);
- 
-+	r = sysfs_create_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
-+	if (r)
-+		goto err_sysfs;
-+
- 	/* Flush queue, and enable all SCI events */
- 	process_sci_queue();
- 	olpc_ec_mask_write(EC_SCI_SRC_ALL);
-@@ -123,6 +172,11 @@ static int xo15_sci_add(struct acpi_devi
- 		device_init_wakeup(&device->dev, true);
- 
- 	return 0;
-+
-+err_sysfs:
-+	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
-+	cancel_work_sync(&sci_work);
-+	return r;
- }
- 
- static int xo15_sci_remove(struct acpi_device *device, int type)
-@@ -130,6 +184,7 @@ static int xo15_sci_remove(struct acpi_d
- 	acpi_disable_gpe(NULL, xo15_sci_gpe);
- 	acpi_remove_gpe_handler(NULL, xo15_sci_gpe, xo15_sci_gpe_handler);
- 	cancel_work_sync(&sci_work);
-+	sysfs_remove_file(&device->dev.kobj, &lid_wake_on_close_attr.attr);
- 	return 0;
- }
- 
+ 	set_lid_wake_behavior(!!val);
 _
-Subject: Subject: x86, olpc-xo15-sci: enable lid close wakeup control through sysfs
+Subject: Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
 
-Patches currently in -mm which might be from dsd@laptop.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+vmscan-use-atomic-long-for-shrinker-batching.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+debugobjects-extend-to-assert-that-an-object-is-initialized.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
