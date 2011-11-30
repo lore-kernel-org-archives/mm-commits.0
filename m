@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch added to -mm tree
-Date: Wed, 30 Nov 2011 15:33:30 -0800
-Message-ID: <201111302333.pAUNXVar015640@wpaz5.hot.corp.google.com>
+Subject: + drivers-leds-leds-lp5523c-remove-unneeded-forward-declaration.patch added to -mm tree
+Date: Wed, 30 Nov 2011 15:48:34 -0800
+Message-ID: <201111302348.pAUNmYZD022610@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:53812 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab1K3Xdf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 18:33:35 -0500
-Received: by ywb26 with SMTP id 26so162674ywb.1
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 15:33:34 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:37331 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259Ab1K3Xsg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 18:48:36 -0500
+Received: by vbbez10 with SMTP id ez10so145117vbb.1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 15:48:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, miaox@cn.fujitsu.com, paul@paulmenage.org, rientjes@google.com, sfr@canb.auug.org.au
+Cc: axel.lin@gmail.com, rpurdie@rpsys.net, samu.p.onkalo@nokia.com
 
 
 The patch titled
-     Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
+     Subject: drivers/leds/leds-lp5523.c: remove unneeded forward declaration
 has been added to the -mm tree.  Its filename is
-     cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
+     drivers-leds-leds-lp5523c-remove-unneeded-forward-declaration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,83 +35,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
+From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/leds/leds-lp5523.c: remove unneeded forward declaration
 
-stupid temporary hack to make it build with CONFIG_NUMA=n
-
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Paul Menage <paul@paulmenage.org>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/leds/leds-lp5523.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
-+++ a/kernel/cpuset.c
-@@ -968,7 +968,10 @@ repeat:
- 	 * tsk does not have a mempolicy, then an empty nodemask will not be
- 	 * possible when mems_allowed is larger than a word.
- 	 */
--	need_loop = tsk->mempolicy ||
-+	need_loop =
-+#ifdef CONFIG_NUMA
-+		tsk->mempolicy ||
-+#endif
- 			!nodes_intersects(*newmems, tsk->mems_allowed);
- 	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
- 	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
-_
-Subject: Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-debugobjects-extend-to-assert-that-an-object-is-initialized.patch
-kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
-
+diff -puN drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-remove-unneeded-forward-declaration drivers/leds/leds-lp5523.c
+--- a/drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-remove-unneeded-forward-declaration
++++ a/drivers/leds/leds-lp5523.c
+@@ -870,8 +870,6 @@ static int __devinit lp5523_init_led(str
+ 	return 0;
+ }
+ 
+-static struct i2c_driver lp5523_driver;
