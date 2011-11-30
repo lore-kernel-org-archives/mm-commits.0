@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + init-do_mountsc-create-root-if-it-does-not-exist.patch added to -mm tree
-Date: Wed, 30 Nov 2011 12:57:30 -0800
-Message-ID: <201111302057.pAUKvUVV013881@wpaz5.hot.corp.google.com>
+Subject: + ctags-remove-struct-forward-declarations.patch added to -mm tree
+Date: Wed, 30 Nov 2011 12:59:10 -0800
+Message-ID: <201111302059.pAUKxABM015290@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:59467 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494Ab1K3U5e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 15:57:34 -0500
-Received: by faaq16 with SMTP id q16so39235faa.1
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 12:57:32 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:43790 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752494Ab1K3U7M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 15:59:12 -0500
+Received: by ywb26 with SMTP id 26so141768ywb.1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 12:59:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tempname2@hotmail.com, viro@zeniv.linux.org.uk
+Cc: adobriyan@gmail.com, mmarek@suse.cz
 
 
 The patch titled
-     Subject: init/do_mounts.c: create /root if it does not exist
+     Subject: ctags: remove struct forward declarations
 has been added to the -mm tree.  Its filename is
-     init-do_mountsc-create-root-if-it-does-not-exist.patch
+     ctags-remove-struct-forward-declarations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,43 +35,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: YanHong <tempname2@hotmail.com>
-Subject: init/do_mounts.c: create /root if it does not exist
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ctags: remove struct forward declarations
 
-If someone supplies an initramfs without /root in it, and we fail to
-execute rdinit, we will try to mount root device and fail, for the mount
-point does not exits.
+They're quite pointless and obscure location of real structure definition.
 
-But we get error message "VFS: Cannot open root device".  It's confusing.
-
-We can give a more detailed error message, or we can go further: if /root
-does not exit, create it.
-
-Signed-off-by: YanHong <tempname2@hotmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    3 +++
- 1 file changed, 3 insertions(+)
+ scripts/tags.sh |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN init/do_mounts.c~init-do_mountsc-create-root-if-it-does-not-exist init/do_mounts.c
---- a/init/do_mounts.c~init-do_mountsc-create-root-if-it-does-not-exist
-+++ a/init/do_mounts.c
-@@ -350,6 +350,9 @@ void __init mount_block_root(char *name,
- 	const char *b = name;
- #endif
+diff -puN scripts/tags.sh~ctags-remove-struct-forward-declarations scripts/tags.sh
+--- a/scripts/tags.sh~ctags-remove-struct-forward-declarations
++++ a/scripts/tags.sh
+@@ -167,6 +167,8 @@ exuberant()
+ 	--langdef=dotconfig --language-force=dotconfig          \
+ 	--regex-dotconfig='/^#?[[:blank:]]*(CONFIG_[[:alnum:]_]+)/\1/'
  
-+	if (sys_access((const char __user *) "/root", 0) != 0)
-+		sys_mkdir((const char __user *) "/root", 0700);
-+
- 	get_fs_names(fs_names);
- retry:
- 	for (p = fs_names; *p; p += strlen(p)+1) {
++	# Remove structure forward declarations.
++	LANG=C sed -i -e '/^\([a-zA-Z_][a-zA-Z0-9_]*\)\t.*\t\/\^struct \1;.*\$\/;"\tx$/d' tags
+ }
+ 
+ emacs()
 _
-Subject: Subject: init/do_mounts.c: create /root if it does not exist
+Subject: Subject: ctags: remove struct forward declarations
 
-Patches currently in -mm which might be from tempname2@hotmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-init-do_mountsc-create-root-if-it-does-not-exist.patch
+linux-next.patch
+ctags-remove-struct-forward-declarations.patch
+procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
+procfs-parse-mount-options.patch
+procfs-add-hidepid=-and-gid=-mount-options.patch
 
