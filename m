@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-clean-up-fault-accounting.patch added to -mm tree
-Date: Wed, 30 Nov 2011 15:01:23 -0800
-Message-ID: <201111302301.pAUN1ORa028855@wpaz9.hot.corp.google.com>
+Subject: + mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch added to -mm tree
+Date: Wed, 30 Nov 2011 15:01:29 -0800
+Message-ID: <201111302301.pAUN1TCa028903@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qw0-f74.google.com ([209.85.216.74]:45703 "EHLO
-	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751659Ab1K3XB2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 18:01:28 -0500
-Received: by qabg24 with SMTP id g24so162277qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 15:01:28 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61135 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751659Ab1K3XBc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 18:01:32 -0500
+Received: by yenq8 with SMTP id q8so22247yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 15:01:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jweiner@redhat.com, bsingharora@gmail.com, hughd@google.com, kamezawa.hiroyu
 
 
 The patch titled
-     Subject: mm: memcg: clean up fault accounting
+     Subject: mm: memcg: lookup_page_cgroup (almost) never returns NULL
 has been added to the -mm tree.  Its filename is
-     mm-memcg-clean-up-fault-accounting.patch
+     mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,60 +36,76 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Johannes Weiner <jweiner@redhat.com>
-Subject: mm: memcg: clean up fault accounting
+Subject: mm: memcg: lookup_page_cgroup (almost) never returns NULL
 
-The fault accounting functions have a single, memcg-internal user, so they
-don't need to be global.  In fact, their one-line bodies can be directly
-folded into the caller.  And since faults happen one at a time, use
-this_cpu_inc() directly instead of this_cpu_add(foo, 1).
+Pages have their corresponding page_cgroup descriptors set up before they
+are used in userspace, and thus managed by a memory cgroup.
+
+The only time where lookup_page_cgroup() can return NULL is in the
+CONFIG_DEBUG_VM-only page sanity checking code that executes while feeding
+pages into the page allocator for the first time.
+
+Remove the NULL checks against lookup_page_cgroup() results from all
+callsites where we know that corresponding page_cgroup descriptors must be
+allocated, and add a comment to the callsite that actually does have to
+check the return value.
 
 Signed-off-by: Johannes Weiner <jweiner@redhat.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-clean-up-fault-accounting mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-clean-up-fault-accounting
+diff -puN mm/memcontrol.c~mm-memcg-lookup_page_cgroup-almost-never-returns-null mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-lookup_page_cgroup-almost-never-returns-null
 +++ a/mm/memcontrol.c
-@@ -589,16 +589,6 @@ static void mem_cgroup_swap_statistics(s
- 	this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SWAPOUT], val);
- }
+@@ -1894,9 +1894,6 @@ void mem_cgroup_update_page_stat(struct 
+ 	bool need_unlock = false;
+ 	unsigned long uninitialized_var(flags);
  
--void mem_cgroup_pgfault(struct mem_cgroup *memcg, int val)
--{
--	this_cpu_add(memcg->stat->events[MEM_CGROUP_EVENTS_PGFAULT], val);
--}
+-	if (unlikely(!pc))
+-		return;
 -
--void mem_cgroup_pgmajfault(struct mem_cgroup *memcg, int val)
--{
--	this_cpu_add(memcg->stat->events[MEM_CGROUP_EVENTS_PGMAJFAULT], val);
--}
--
- static unsigned long mem_cgroup_read_events(struct mem_cgroup *memcg,
- 					    enum mem_cgroup_events_index idx)
- {
-@@ -913,10 +903,10 @@ void mem_cgroup_count_vm_event(struct mm
+ 	rcu_read_lock();
+ 	memcg = pc->mem_cgroup;
+ 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+@@ -2669,8 +2666,6 @@ static int mem_cgroup_charge_common(stru
+ 	}
  
- 	switch (idx) {
- 	case PGMAJFAULT:
--		mem_cgroup_pgmajfault(memcg, 1);
-+		this_cpu_inc(memcg->stat->events[MEM_CGROUP_EVENTS_PGFAULT]);
- 		break;
- 	case PGFAULT:
--		mem_cgroup_pgfault(memcg, 1);
-+		this_cpu_inc(memcg->stat->events[MEM_CGROUP_EVENTS_PGMAJFAULT]);
- 		break;
- 	default:
- 		BUG();
+ 	pc = lookup_page_cgroup(page);
+-	BUG_ON(!pc); /* XXX: remove this and move pc lookup into commit */
+-
+ 	ret = __mem_cgroup_try_charge(mm, gfp_mask, nr_pages, &memcg, oom);
+ 	if (ret || !memcg)
+ 		return ret;
+@@ -2942,7 +2937,7 @@ __mem_cgroup_uncharge_common(struct page
+ 	 * Check if our page_cgroup is valid
+ 	 */
+ 	pc = lookup_page_cgroup(page);
+-	if (unlikely(!pc || !PageCgroupUsed(pc)))
++	if (unlikely(!PageCgroupUsed(pc)))
+ 		return NULL;
+ 
+ 	lock_page_cgroup(pc);
+@@ -3326,6 +3321,10 @@ static struct page_cgroup *lookup_page_c
+ 	struct page_cgroup *pc;
+ 
+ 	pc = lookup_page_cgroup(page);
++	/*
++	 * Can be NULL while feeding pages into the page allocator for
++	 * the first time, i.e. during boot or memory hotplug.
++	 */
+ 	if (likely(pc) && PageCgroupUsed(pc))
+ 		return pc;
+ 	return NULL;
 _
-Subject: Subject: mm: memcg: clean up fault accounting
+Subject: Subject: mm: memcg: lookup_page_cgroup (almost) never returns NULL
 
 Patches currently in -mm which might be from jweiner@redhat.com are
 
