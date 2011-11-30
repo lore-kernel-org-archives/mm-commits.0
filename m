@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch added to -mm tree
-Date: Wed, 30 Nov 2011 15:30:26 -0800
-Message-ID: <201111302330.pAUNURwa013030@wpaz5.hot.corp.google.com>
+Subject: + cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch added to -mm tree
+Date: Wed, 30 Nov 2011 15:33:30 -0800
+Message-ID: <201111302333.pAUNXVar015640@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:52772 "EHLO
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:53812 "EHLO
 	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753168Ab1K3Xa3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 18:30:29 -0500
-Received: by ywb26 with SMTP id 26so162399ywb.1
-        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 15:30:28 -0800 (PST)
+	with ESMTP id S1752613Ab1K3Xdf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Nov 2011 18:33:35 -0500
+Received: by ywb26 with SMTP id 26so162674ywb.1
+        for <mm-commits@vger.kernel.org>; Wed, 30 Nov 2011 15:33:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dilinger@queued.net, dsd@laptop.org, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, miaox@cn.fujitsu.com, paul@paulmenage.org, rientjes@google.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
+     Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
 has been added to the -mm tree.  Its filename is
-     x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+     cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,37 +36,38 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
+Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
 
-fix sscanf checking
+stupid temporary hack to make it build with CONFIG_NUMA=n
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Daniel Drake <dsd@laptop.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
+Cc: Paul Menage <paul@paulmenage.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/olpc/olpc-xo15-sci.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/cpuset.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix arch/x86/platform/olpc/olpc-xo15-sci.c
---- a/arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
-+++ a/arch/x86/platform/olpc/olpc-xo15-sci.c
-@@ -58,7 +58,8 @@ static ssize_t lid_wake_on_close_store(s
- 				       const char *buf, size_t n)
- {
- 	unsigned int val;
--	if (!sscanf(buf, "%u", &val) == 1)
-+
-+	if (sscanf(buf, "%u", &val) != 1)
- 		return -EINVAL;
- 
- 	set_lid_wake_behavior(!!val);
+diff -puN kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
++++ a/kernel/cpuset.c
+@@ -968,7 +968,10 @@ repeat:
+ 	 * tsk does not have a mempolicy, then an empty nodemask will not be
+ 	 * possible when mems_allowed is larger than a word.
+ 	 */
+-	need_loop = tsk->mempolicy ||
++	need_loop =
++#ifdef CONFIG_NUMA
++		tsk->mempolicy ||
++#endif
+ 			!nodes_intersects(*newmems, tsk->mems_allowed);
+ 	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
+ 	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
 _
-Subject: Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix
+Subject: Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -75,6 +76,7 @@ linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 vmscan-use-atomic-long-for-shrinker-batching.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
 x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
