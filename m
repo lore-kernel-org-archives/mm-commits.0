@@ -1,91 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] parport-convert-drivers-parport-to-use-module_platform_driver.patch removed from -mm tree
-Date: Thu, 01 Dec 2011 12:32:25 -0800
-Message-ID: <201112012032.pB1KWPCK008723@wpaz1.hot.corp.google.com>
+Subject: + leds-bd2802-use-gpio_request_one.patch added to -mm tree
+Date: Thu, 01 Dec 2011 12:51:55 -0800
+Message-ID: <201112012051.pB1KptBn017619@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:33357 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309Ab1LAUc2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2011 15:32:28 -0500
-Received: by ghrr18 with SMTP id r18so313565ghr.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Dec 2011 12:32:27 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:33743 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751718Ab1LAUv5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2011 15:51:57 -0500
+Received: by yenr11 with SMTP id r11so153575yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Dec 2011 12:51:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, ben@simtec.co.uk, greg@kroah.com, shadow@dementia.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: axel.lin@gmail.com, q1.kim@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: parport: convert drivers/parport/* to use module_platform_driver()
-has been removed from the -mm tree.  Its filename was
-     parport-convert-drivers-parport-to-use-module_platform_driver.patch
+     Subject: drivers/leds/leds-bd2802.c: use gpio_request_one()
+has been added to the -mm tree.  Its filename is
+     leds-bd2802-use-gpio_request_one.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Axel Lin <axel.lin@gmail.com>
-Subject: parport: convert drivers/parport/* to use module_platform_driver()
+Subject: drivers/leds/leds-bd2802.c: use gpio_request_one()
 
-Convert the drivers in drivers/parport/* to use the
-module_platform_driver() macro which makes the code smaller and a bit
-simpler.
+Use gpio_request_one() instead of multiple gpiolib calls.
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Ben Dooks <ben@simtec.co.uk>
-Cc: Derrick J. Brashear <shadow@dementia.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Kim Kyuwon <q1.kim@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_ax88796.c |   13 +------------
- drivers/parport/parport_sunbpp.c  |   13 +------------
- 2 files changed, 2 insertions(+), 24 deletions(-)
+ drivers/leds/leds-bd2802.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/parport/parport_ax88796.c~parport-convert-drivers-parport-to-use-module_platform_driver drivers/parport/parport_ax88796.c
---- a/drivers/parport/parport_ax88796.c~parport-convert-drivers-parport-to-use-module_platform_driver
-+++ a/drivers/parport/parport_ax88796.c
-@@ -420,18 +420,7 @@ static struct platform_driver axdrv = {
- 	.resume		= parport_ax88796_resume,
- };
+diff -puN drivers/leds/leds-bd2802.c~leds-bd2802-use-gpio_request_one drivers/leds/leds-bd2802.c
+--- a/drivers/leds/leds-bd2802.c~leds-bd2802-use-gpio_request_one
++++ a/drivers/leds/leds-bd2802.c
+@@ -688,8 +688,7 @@ static int __devinit bd2802_probe(struct
+ 	i2c_set_clientdata(client, led);
  
--static int __init parport_ax88796_init(void)
--{
--	return platform_driver_register(&axdrv);
--}
--
--static void __exit parport_ax88796_exit(void)
--{
--	platform_driver_unregister(&axdrv);
--}
--
--module_init(parport_ax88796_init)
--module_exit(parport_ax88796_exit)
-+module_platform_driver(axdrv);
+ 	/* Configure RESET GPIO (L: RESET, H: RESET cancel) */
+-	gpio_request(pdata->reset_gpio, "RGB_RESETB");
+-	gpio_direction_output(pdata->reset_gpio, 1);
++	gpio_request_one(pdata->reset_gpio, GPIOF_OUT_INIT_HIGH, "RGB_RESETB");
  
- MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
- MODULE_DESCRIPTION("AX88796 Parport parallel port driver");
-diff -puN drivers/parport/parport_sunbpp.c~parport-convert-drivers-parport-to-use-module_platform_driver drivers/parport/parport_sunbpp.c
---- a/drivers/parport/parport_sunbpp.c~parport-convert-drivers-parport-to-use-module_platform_driver
-+++ a/drivers/parport/parport_sunbpp.c
-@@ -391,21 +391,10 @@ static struct platform_driver bpp_sbus_d
- 	.remove		= __devexit_p(bpp_remove),
- };
- 
--static int __init parport_sunbpp_init(void)
--{
--	return platform_driver_register(&bpp_sbus_driver);
--}
--
--static void __exit parport_sunbpp_exit(void)
--{
--	platform_driver_unregister(&bpp_sbus_driver);
--}
-+module_platform_driver(bpp_sbus_driver);
- 
- MODULE_AUTHOR("Derrick J Brashear");
- MODULE_DESCRIPTION("Parport Driver for Sparc bidirectional Port");
- MODULE_SUPPORTED_DEVICE("Sparc Bidirectional Parallel Port");
- MODULE_VERSION("2.0");
- MODULE_LICENSE("GPL");
+ 	/* Tacss = min 0.1ms */
+ 	udelay(100);
+_
+Subject: Subject: drivers/leds/leds-bd2802.c: use gpio_request_one()
+
+Patches currently in -mm which might be from axel.lin@gmail.com are
+
+origin.patch
+linux-next.patch
+sbus-convert-drivers-sbus-char-to-use-module_platform_driver.patch
+backlight-convert-drivers-video-backlight-to-use-module_platform_driver.patch
+leds-convert-led-platform-drivers-to-module_platform_driver.patch
+leds-convert-led-i2c-drivers-to-module_i2c_driver.patch
+leds-convert-leds-dac124s085-to-module_spi_driver.patch
+drivers-leds-leds-lp5523c-remove-unneeded-forward-declaration.patch
+leds-bd2802-use-gpio_request_one.patch
+leds-netxbig-use-gpio_request_one.patch
+
