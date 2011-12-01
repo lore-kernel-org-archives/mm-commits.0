@@ -1,26 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode.patch removed from -mm tree
-Date: Thu, 01 Dec 2011 14:32:17 -0800
-Message-ID: <201112012232.pB1MWHB1016328@wpaz5.hot.corp.google.com>
+Subject: + tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode.patch added to -mm tree
+Date: Thu, 01 Dec 2011 14:56:38 -0800
+Message-ID: <201112012256.pB1Muc9L026839@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:34485 "EHLO
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:46017 "EHLO
 	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754710Ab1LAWcV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2011 17:32:21 -0500
-Received: by eaaa14 with SMTP id a14so72550eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Dec 2011 14:32:20 -0800 (PST)
+	with ESMTP id S1755172Ab1LAW4m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2011 17:56:42 -0500
+Received: by eaaa14 with SMTP id a14so73198eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Dec 2011 14:56:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sivanich@sgi.com, john.stultz@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sivanich@sgi.com, john.stultz@linaro.org, tglx@linutronix.de
 
 
 The patch titled
      Subject: tick-sched: add specific do_timer_cpu value for nohz off mode
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -34,20 +44,21 @@ done on systems with nohz mode turned off.
 
 While not necessarily harmful, doing jiffies updates on an application cpu
 does cause some extra overhead that HPC benchmarking people notice.  They
-prefer to have OS activity isolated to certain cpus.  They like reproducibility
-of results, and having jiffies updates bouncing around introduces variability.
+prefer to have OS activity isolated to certain cpus.  They like
+reproducibility of results, and having jiffies updates bouncing around
+introduces variability.
 
 Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  Documentation/ABI/testing/sysfs-devices-system-timekeeping |   16 ++
  drivers/base/sys.c                                         |   10 -
  include/linux/sysdev.h                                     |    2 
- kernel/time/tick-sched.c                                   |   59 ++++++++++
- 4 files changed, 81 insertions(+), 6 deletions(-)
+ kernel/time/tick-sched.c                                   |   67 ++++++++++
+ 4 files changed, 89 insertions(+), 6 deletions(-)
 
 diff -puN /dev/null Documentation/ABI/testing/sysfs-devices-system-timekeeping
 --- /dev/null
@@ -129,7 +140,7 @@ diff -puN include/linux/sysdev.h~tick-sched-add-specific-do_timer_cpu-value-for-
 diff -puN kernel/time/tick-sched.c~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode kernel/time/tick-sched.c
 --- a/kernel/time/tick-sched.c~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode
 +++ a/kernel/time/tick-sched.c
-@@ -834,6 +834,65 @@ void tick_cancel_sched_timer(int cpu)
+@@ -834,6 +834,73 @@ void tick_cancel_sched_timer(int cpu)
  }
  #endif
  
@@ -155,10 +166,18 @@ diff -puN kernel/time/tick-sched.c~tick-sched-add-specific-do_timer_cpu-value-fo
 +	if (rv)
 +		return rv;
 +
-+	if (!cpu_online(new))
++	/* Protect against cpu-hotplug */
++	get_online_cpus();
++
++	if (new >= nr_cpu_ids || !cpu_online(new)) {
++		put_online_cpus();
 +		return -ERANGE;
++	}
 +
 +	*(unsigned int *)(ea->var) = new;
++
++	put_online_cpus();
++
 +	return size;
 +}
 +
@@ -196,7 +215,9 @@ diff -puN kernel/time/tick-sched.c~tick-sched-add-specific-do_timer_cpu-value-fo
   * Async notification about clocksource changes
   */
 _
+Subject: Subject: tick-sched: add specific do_timer_cpu value for nohz off mode
 
 Patches currently in -mm which might be from sivanich@sgi.com are
 
+tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode.patch
 
