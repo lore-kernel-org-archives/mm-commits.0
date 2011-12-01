@@ -1,96 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ab8500-change-to-msleep-to-usleep_range.patch added to -mm tree
-Date: Thu, 01 Dec 2011 13:37:22 -0800
-Message-ID: <201112012137.pB1LbML3008366@wpaz1.hot.corp.google.com>
+Subject: [folded] tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode-fix.patch removed from -mm tree
+Date: Thu, 01 Dec 2011 14:32:02 -0800
+Message-ID: <201112012232.pB1MW2Cw004284@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:41456 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753822Ab1LAVh0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2011 16:37:26 -0500
-Received: by faaq16 with SMTP id q16so76435faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Dec 2011 13:37:25 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:47359 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754710Ab1LAWcH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2011 17:32:07 -0500
+Received: by eekd41 with SMTP id d41so21065eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Dec 2011 14:32:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: linus.walleij@linaro.org, a.zummo@towertech.it, jonas.aberg@stericsson.com, plagnioj@jcrosoft.com
+To: akpm@linux-foundation.org, john.stultz@linaro.org, sivanich@sgi.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ab8500.c: change msleep() to usleep_range()
-has been added to the -mm tree.  Its filename is
-     rtc-ab8500-change-to-msleep-to-usleep_range.patch
+     Subject: tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode-fix
+has been removed from the -mm tree.  Its filename was
+     tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: drivers/rtc/rtc-ab8500.c: change msleep() to usleep_range()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode-fix
 
-The resolution of msleep is related to HZ, so with HZ set to 100 any
-msleep of less than 10ms will become ~10ms.  This is not what we want. 
-Use the hrtimer-based usleep_range() and allow for some slack in the
-non-critical path so we have more control of what is happening here.
+remove unneeded check against NR_CPUS
 
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jonas Aaberg <jonas.aberg@stericsson.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
+Cc: Dimitri Sivanich <sivanich@sgi.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab8500.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/time/tick-sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ab8500.c~rtc-ab8500-change-to-msleep-to-usleep_range drivers/rtc/rtc-ab8500.c
---- a/drivers/rtc/rtc-ab8500.c~rtc-ab8500-change-to-msleep-to-usleep_range
-+++ a/drivers/rtc/rtc-ab8500.c
-@@ -90,7 +90,7 @@ static int ab8500_rtc_read_time(struct d
+diff -puN kernel/time/tick-sched.c~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode-fix kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode-fix
++++ a/kernel/time/tick-sched.c
+@@ -856,7 +856,7 @@ static ssize_t sysfs_store_do_timer_cpu(
+ 	if (rv)
+ 		return rv;
  
- 	/* Early AB8500 chips will not clear the rtc read request bit */
- 	if (abx500_get_chip_id(dev) == 0) {
--		msleep(1);
-+		usleep_range(1000, 1000);
- 	} else {
- 		/* Wait for some cycles after enabling the rtc read in ab8500 */
- 		while (time_before(jiffies, timeout)) {
-@@ -102,7 +102,7 @@ static int ab8500_rtc_read_time(struct d
- 			if (!(value & RTC_READ_REQUEST))
- 				break;
+-	if (new >= NR_CPUS || !cpu_online(new))
++	if (!cpu_online(new))
+ 		return -ERANGE;
  
--			msleep(1);
-+			usleep_range(1000, 5000);
- 		}
- 	}
- 
-@@ -295,7 +295,7 @@ static int __devinit ab8500_rtc_probe(st
- 		return err;
- 
- 	/* Wait for reset by the PorRtc */
--	msleep(1);
-+	usleep_range(1000, 5000);
- 
- 	err = abx500_get_register_interruptible(&pdev->dev, AB8500_RTC,
- 		AB8500_RTC_STAT_REG, &rtc_ctrl);
+ 	*(unsigned int *)(ea->var) = new;
 _
-Subject: Subject: drivers/rtc/rtc-ab8500.c: change msleep() to usleep_range()
 
-Patches currently in -mm which might be from linus.walleij@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-rtc-ab8500-dont-disable-irq-s-when-suspending.patch
-rtc-ab8500-set-can_wake-flag.patch
-rtc-ab8500-change-to-msleep-to-usleep_range.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+vmscan-use-atomic-long-for-shrinker-batching.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+x86-reduce-clock-calibration-time-during-slave-cpu-startup.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode.patch
+debugobjects-extend-to-assert-that-an-object-is-initialized.patch
+kernel-timerc-use-debugobjects-to-catch-deletion-of-uninitialized-timers.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+memblock-add-input-size-checking-to-memblock_find_region.patch
+memblock-add-input-size-checking-to-memblock_find_region-fix.patch
 
