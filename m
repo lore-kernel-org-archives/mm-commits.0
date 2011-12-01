@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context-fix.patch added to -mm tree
-Date: Thu, 01 Dec 2011 12:56:31 -0800
-Message-ID: <201112012056.pB1KuWPX011154@wpaz5.hot.corp.google.com>
+Subject: + checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch added to -mm tree
+Date: Thu, 01 Dec 2011 12:57:06 -0800
+Message-ID: <201112012057.pB1Kv60A011505@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:46081 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753526Ab1LAU4f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2011 15:56:35 -0500
-Received: by eekd41 with SMTP id d41so19196eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Dec 2011 12:56:34 -0800 (PST)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:43073 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753526Ab1LAU5I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Dec 2011 15:57:08 -0500
+Received: by vcbfl11 with SMTP id fl11so304152vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Dec 2011 12:57:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: apw@canonical.com, joe@perches.com
 
 
 The patch titled
-     Subject: checkpatch: fix up complex macros context format
+     Subject: checkpatch: catch all occurances of type and cast spacing errors per line
 has been added to the -mm tree.  Its filename is
-     checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context-fix.patch
+     checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,33 +36,58 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andy Whitcroft <apw@canonical.com>
-Subject: checkpatch: fix up complex macros context format
+Subject: checkpatch: catch all occurances of type and cast spacing errors per line
 
-Fix a missing newline and correctly use the raw context for the
-complex macro report.
+Fix up type and cast spacing checks such that all occurances on a line are
+examined and reported.  For example the line below has a valid cast and a
+bad type, but currently we check the cast first which is good and stop:
+
+    u16* bar = (u16 *)baz;
+
+We will also only report one of the errors in this example:
+
+    u16* bar = (u16*)bad;
+
+Move to iterating across all casts and all types, reporting any failure.
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context-fix scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context-fix
+diff -puN scripts/checkpatch.pl~checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line
 +++ a/scripts/checkpatch.pl
-@@ -2851,7 +2851,7 @@ sub process {
- 					      "Macros with multiple statements should be enclosed in a do - while loop\n" . "$herectx");
- 				} else {
- 					ERROR("COMPLEX_MACRO",
--					      "Macros with complex values should be enclosed in parenthesis\n" . "$here$ctx");
-+					      "Macros with complex values should be enclosed in parenthesis\n" . "$herectx");
- 				}
+@@ -2209,8 +2209,9 @@ sub process {
+ 
+ # * goes on variable not on type
+ 		# (char*[ const])
+-		if ($line =~ m{\($NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)\)}) {
+-			my ($from, $to) = ($1, $1);
++		while ($line =~ m{(\($NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)\))}g) {
++			#print "AA<$1>\n";
++			my ($from, $to) = ($2, $2);
+ 
+ 			# Should start with a space.
+ 			$to =~ s/^(\S)/ $1/;
+@@ -2225,8 +2226,10 @@ sub process {
+ 				ERROR("POINTER_LOCATION",
+ 				      "\"(foo$from)\" should be \"(foo$to)\"\n" .  $herecurr);
  			}
- 		}
+-		} elsif ($line =~ m{\b$NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)($Ident)}) {
+-			my ($from, $to, $ident) = ($1, $1, $2);
++		} 
++		while ($line =~ m{(\b$NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)($Ident))}g) {
++			#print "BB<$1>\n";
++			my ($from, $to, $ident) = ($2, $2, $3);
+ 
+ 			# Should start with a space.
+ 			$to =~ s/^(\S)/ $1/;
 _
-Subject: Subject: checkpatch: fix up complex macros context format
+Subject: Subject: checkpatch: catch all occurances of type and cast spacing errors per line
 
 Patches currently in -mm which might be from apw@canonical.com are
 
