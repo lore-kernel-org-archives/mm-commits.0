@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 07 Dec 2011 15:25:17 -0800
-Message-ID: <201112072325.pB7NPIFv019294@wpaz9.hot.corp.google.com>
+Subject: + selftests-new-very-basic-kernel-selftests-directory.patch added to -mm tree
+Date: Wed, 07 Dec 2011 15:32:34 -0800
+Message-ID: <201112072332.pB7NWZlm018074@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:41170 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758583Ab1LGXZW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2011 18:25:22 -0500
-Received: by eekc14 with SMTP id c14so24779eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Dec 2011 15:25:20 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:59019 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751587Ab1LGXcj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2011 18:32:39 -0500
+Received: by qcsg15 with SMTP id g15so138201qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Dec 2011 15:32:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.carpenter@oracle.com, john@Calva.COMjohn@Calva.COM, john@calvaedi.com, malattia@linux.it, mjg@redhat.com
+Cc: fweisbec@gmail.com, akpm@linux-foundation.org, hpa@zytor.com, jason.wessel@windriver.com, mingo@elte.hu, mmarek@suse.cz, rostedt@goodmis.org, sam@ravnborg.org, tglx@linutronix.de, will.deacon@arm.com
 
 
 The patch titled
-     Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
+     Subject: selftests: new very basic kernel selftests directory
 has been added to the -mm tree.  Its filename is
-     drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+     selftests-new-very-basic-kernel-selftests-directory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,103 +35,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: selftests: new very basic kernel selftests directory
 
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Bring a new kernel selftests directory in tools/testing/selftests.  To add
+a new selftest, create a subdirectory with the sources and a makefile that
+creates a target named "run_test" then add the subdirectory name to the
+TARGET var in tools/testing/selftests/Makefile and
+tools/testing/selftests/run_tests script.
 
-ERROR: code indent should use tabs where possible
-#34: FILE: drivers/platform/x86/sony-laptop.c:395:
-+                   remap the key */$
+This can help centralizing and maintaining any useful selftest that
+developers usually tend to let rust in peace on some random server.
 
-total: 1 errors, 0 warnings, 28 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/drivers-platform-x86-sony-laptopc-fix-scancodes-v2.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: John Hughes <john@Calva.COM>
-Cc: John Hughes <john@calva.com>
-Cc: John Hughes <john@calvaedi.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Mattia Dongili <malattia@linux.it>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/sony-laptop.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ tools/testing/selftests/Makefile  |   11 +++++++++++
+ tools/testing/selftests/run_tests |    8 ++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes drivers/platform/x86/sony-laptop.c
---- a/drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
-+++ a/drivers/platform/x86/sony-laptop.c
-@@ -391,8 +391,10 @@ static void sony_laptop_report_input_eve
- 	}
- 
- 	if (kp.dev) {
--		/* if we have a scancode we emit it so we can always
--                   remap the key */
-+		/*
-+		 * If we have a scancode we emit it so we can always remap the
-+		 * key
-+		 */
- 		if (scancode != -1)
- 			input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
- 		input_report_key(kp.dev, kp.key, 1);
+diff -puN /dev/null tools/testing/selftests/Makefile
+--- /dev/null
++++ a/tools/testing/selftests/Makefile
+@@ -0,0 +1,11 @@
++TARGETS =
++
++all:
++	for TARGET in $(TARGETS); do \
++		make -C $$TARGET; \
++	done;
++
++clean:
++	for TARGET in $(TARGETS); do \
++		make -C $$TARGET clean; \
++	done;
+diff -puN /dev/null tools/testing/selftests/run_tests
+--- /dev/null
++++ a/tools/testing/selftests/run_tests
+@@ -0,0 +1,8 @@
++#!/bin/bash
++
++TARGETS=
++
++for TARGET in $TARGETS
++do
++	$TARGET/run_test
++done
 _
-Subject: Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
+Subject: Subject: selftests: new very basic kernel selftests directory
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+reiserfs-delay-reiserfs-lock-until-journal-initialization.patch
+reiserfs-dont-lock-journal_init.patch
+reiserfs-dont-lock-root-inode-searching.patch
+cgroups-add-res_counter_write_u64-api.patch
+cgroups-new-resource-counter-inheritance-api.patch
+cgroups-add-previous-cgroup-in-can_attach_task-attach_task-callbacks.patch
+cgroups-new-cancel_attach_task-subsystem-callback.patch
+cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor.patch
+cgroups-add-res-counter-common-ancestor-searching.patch
+res_counter-allow-charge-failure-pointer-to-be-null.patch
+cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.patch
+cgroups-allow-subsystems-to-cancel-a-fork.patch
+cgroups-add-a-task-counter-subsystem.patch
+cgroups-add-a-task-counter-subsystem-fix.patch
+cgroup-fix-task-counter-common-ancestor-logic.patch
 cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
 selftests-new-very-basic-kernel-selftests-directory.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+selftests-new-x86-breakpoints-selftest.patch
 
