@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + sony-laptop-fix-scancodes.patch added to -mm tree
-Date: Wed, 07 Dec 2011 15:18:16 -0800
-Message-ID: <201112072318.pB7NIGuX013148@wpaz9.hot.corp.google.com>
+Subject: + drivers-platform-x86-sony-laptopc-fix-scancodes-v2.patch added to -mm tree
+Date: Wed, 07 Dec 2011 15:24:38 -0800
+Message-ID: <201112072324.pB7NOc4N010613@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:41207 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754701Ab1LGXST (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2011 18:18:19 -0500
-Received: by ggnp2 with SMTP id p2so132031ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Dec 2011 15:18:19 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:42921 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752961Ab1LGXYm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2011 18:24:42 -0500
+Received: by eekc14 with SMTP id c14so24772eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Dec 2011 15:24:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: john@calvaedi.com, dan.carpenter@oracle.com, john@Calva.COMjohn@Calva.COM, m
 
 
 The patch titled
-     Subject: sony-laptop: fix scancodes
+     Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2
 has been added to the -mm tree.  Its filename is
-     sony-laptop-fix-scancodes.patch
+     drivers-platform-x86-sony-laptopc-fix-scancodes-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,16 +36,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: John Hughes <john@calvaedi.com>
-Subject: sony-laptop: fix scancodes
-
-The scancodes returned by the sony-laptop driver for function keys did not
-match the scancodes used to remap keys.  Also, since the scancode was sent
-to the input subsystem after the mapped keysym the /lib/udev/keymap
-utility was confused about which scancode to report for which keysym.
-
-This patch fixes the driver so the correct scancode is shown for each key.
- It also adds to the documentation a description of where to find the
-scancodes.
+Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2
 
 Signed-off-by: John Hughes <john@calva.com>
 Cc: Dan Carpenter <dan.carpenter@oracle.com>
@@ -55,62 +46,35 @@ Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/laptops/sony-laptop.txt |    5 +++++
- drivers/platform/x86/sony-laptop.c    |   13 ++++++++-----
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ drivers/platform/x86/sony-laptop.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/laptops/sony-laptop.txt~sony-laptop-fix-scancodes Documentation/laptops/sony-laptop.txt
---- a/Documentation/laptops/sony-laptop.txt~sony-laptop-fix-scancodes
-+++ a/Documentation/laptops/sony-laptop.txt
-@@ -17,6 +17,11 @@ subsystem. See the logs of acpid or /pro
- devices are created by the driver. Additionally, loading the driver with the
- debug option will report all events in the kernel log.
- 
-+The "scancodes" passed to the input system (that can be remapped with udev)
-+are indexes to the table "sony_laptop_input_keycode_map" in the sony-laptop.c
-+module.  For example the "FN/E" key combination (EJECTCD on some models)
-+generates the scancode 20 (0x14).
-+
- Backlight control:
- ------------------
- If your laptop model supports it, you will find sysfs files in the
-diff -puN drivers/platform/x86/sony-laptop.c~sony-laptop-fix-scancodes drivers/platform/x86/sony-laptop.c
---- a/drivers/platform/x86/sony-laptop.c~sony-laptop-fix-scancodes
+diff -puN drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2 drivers/platform/x86/sony-laptop.c
+--- a/drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2
 +++ a/drivers/platform/x86/sony-laptop.c
-@@ -347,6 +347,7 @@ static void sony_laptop_report_input_eve
+@@ -347,7 +347,7 @@ static void sony_laptop_report_input_eve
  	struct input_dev *jog_dev = sony_laptop_input.jog_dev;
  	struct input_dev *key_dev = sony_laptop_input.key_dev;
  	struct sony_laptop_keypress kp = { NULL };
+-	int scancode;
 +	int scancode = -1;
  
  	if (event == SONYPI_EVENT_FNKEY_RELEASED ||
  			event == SONYPI_EVENT_ANYBUTTON_RELEASED) {
-@@ -380,8 +381,8 @@ static void sony_laptop_report_input_eve
- 			dprintk("sony_laptop_report_input_event, event not known: %d\n", event);
- 			break;
- 		}
--		if (sony_laptop_input_index[event] != -1) {
--			kp.key = sony_laptop_input_keycode_map[sony_laptop_input_index[event]];
-+		if ((scancode = sony_laptop_input_index[event]) != -1) {
-+			kp.key = sony_laptop_input_keycode_map[scancode];
- 			if (kp.key != KEY_UNKNOWN)
- 				kp.dev = key_dev;
- 		}
-@@ -389,9 +390,11 @@ static void sony_laptop_report_input_eve
+@@ -391,8 +391,10 @@ static void sony_laptop_report_input_eve
  	}
  
  	if (kp.dev) {
+-		/* we emit the scancode so we can always remap the key */
+-		input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
 +		/* if we have a scancode we emit it so we can always
 +                   remap the key */
 +		if (scancode != -1)
 +			input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
  		input_report_key(kp.dev, kp.key, 1);
--		/* we emit the scancode so we can always remap the key */
--		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
  		input_sync(kp.dev);
  
- 		/* schedule key release */
-@@ -466,7 +469,7 @@ static int sony_laptop_setup_input(struc
+@@ -468,7 +470,7 @@ static int sony_laptop_setup_input(struc
  	jog_dev->name = "Sony Vaio Jogdial";
  	jog_dev->id.bustype = BUS_ISA;
  	jog_dev->id.vendor = PCI_VENDOR_ID_SONY;
@@ -120,10 +84,10 @@ diff -puN drivers/platform/x86/sony-laptop.c~sony-laptop-fix-scancodes drivers/p
  	input_set_capability(jog_dev, EV_KEY, BTN_MIDDLE);
  	input_set_capability(jog_dev, EV_REL, REL_WHEEL);
 _
-Subject: Subject: sony-laptop: fix scancodes
+Subject: Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2
 
 Patches currently in -mm which might be from john@calvaedi.com are
 
-sony-laptop-fix-scancodes.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-v2.patch
 
