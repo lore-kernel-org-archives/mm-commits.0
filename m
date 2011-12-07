@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 07 Dec 2011 14:49:41 -0800
-Message-ID: <201112072249.pB7Mng97010473@wpaz1.hot.corp.google.com>
+Subject: + x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-v2.patch added to -mm tree
+Date: Wed, 07 Dec 2011 15:16:28 -0800
+Message-ID: <201112072316.pB7NGT7A008720@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:52694 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758100Ab1LGWtp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2011 17:49:45 -0500
-Received: by eaak10 with SMTP id k10so23557eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Dec 2011 14:49:44 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57346 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364Ab1LGXQj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Dec 2011 18:16:39 -0500
+Received: by eekc14 with SMTP id c14so24677eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Dec 2011 15:16:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, linus.walleij@stericsson.com
+Cc: dsd@laptop.org, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes
+     Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-v2
 has been added to the -mm tree.  Its filename is
-     rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+     x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,89 +35,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes
+From: Daniel Drake <dsd@laptop.org>
+Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-v2
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+v2: Fix sscanf usage error and add an explanatory comment in the code, both pointed out by Andrew Morton. Thanks!
 
-ERROR: need consistent spacing around '-' (ctx:WxV)
-#42: FILE: drivers/rtc/rtc-ab8500.c:287:
-+		rtccal = ~(calibration -1) | 0x80;
- 		                       ^
-
-total: 1 errors, 0 warnings, 21 lines checked
-
-./patches/rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Linus Walleij <linus.walleij@stericsson.com>
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab8500.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/platform/olpc/olpc-xo15-sci.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ab8500.c~rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes drivers/rtc/rtc-ab8500.c
---- a/drivers/rtc/rtc-ab8500.c~rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes
-+++ a/drivers/rtc/rtc-ab8500.c
-@@ -284,7 +284,7 @@ static int ab8500_rtc_set_calibration(st
- 	if (calibration >= 0)
- 		rtccal = 0x7F & calibration;
- 	else
--		rtccal = ~(calibration -1) | 0x80;
-+		rtccal = ~(calibration - 1) | 0x80;
+diff -puN arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-v2 arch/x86/platform/olpc/olpc-xo15-sci.c
+--- a/arch/x86/platform/olpc/olpc-xo15-sci.c~x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-v2
++++ a/arch/x86/platform/olpc/olpc-xo15-sci.c
+@@ -26,6 +26,17 @@
+ static unsigned long xo15_sci_gpe;
+ static bool lid_wake_on_close;
  
- 	retval = abx500_set_register_interruptible(dev, AB8500_RTC,
- 			AB8500_RTC_CALIB_REG, rtccal);
++/*
++ * The normal ACPI LID wakeup behavior is wake-on-open, but not
++ * wake-on-close. This is implemented as standard by the XO-1.5 DSDT.
++ *
++ * We provide here a sysfs attribute that will additionally enable
++ * wake-on-close behavior. This is useful (e.g.) when we oportunistically
++ * suspend with the display running; if the lid is then closed, we want to
++ * wake up to turn the display off.
++ *
++ * This is controlled through a custom method in the XO-1.5 DSDT.
++ */
+ static int set_lid_wake_behavior(bool wake_on_close)
+ {
+ 	struct acpi_object_list arg_list;
+@@ -39,7 +50,7 @@ static int set_lid_wake_behavior(bool wa
+ 	status = acpi_evaluate_object(NULL, "\\_SB.PCI0.LID.LIDW", &arg_list,
+ 				      NULL);
+ 	if (ACPI_FAILURE(status)) {
+-		pr_warning(PFX "failed to set lid behaviour\n");
++		pr_warning(PFX "failed to set lid behavior\n");
+ 		return 1;
+ 	}
+ 
 _
-Subject: Subject: rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes
+Subject: Subject: x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-v2
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dsd@laptop.org are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-vmscan-use-atomic-long-for-shrinker-batching.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-memblock-add-input-size-checking-to-memblock_find_region.patch
-memblock-add-input-size-checking-to-memblock_find_region-fix.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-v2.patch
+x86-olpc-add-debugfs-interface-for-ec-commands.patch
 
