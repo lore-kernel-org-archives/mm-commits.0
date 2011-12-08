@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix.patch added to -mm tree
-Date: Thu, 08 Dec 2011 13:42:34 -0800
-Message-ID: <201112082142.pB8LgZre012663@wpaz1.hot.corp.google.com>
+Subject: + linux-next-fixup.patch added to -mm tree
+Date: Thu, 08 Dec 2011 15:11:10 -0800
+Message-ID: <201112082311.pB8NBAHG032546@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bw0-f74.google.com ([209.85.214.74]:38398 "EHLO
-	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424Ab1LHVmj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Dec 2011 16:42:39 -0500
-Received: by bkas6 with SMTP id s6so43881bka.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Dec 2011 13:42:37 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:47865 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142Ab1LHXLO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Dec 2011 18:11:14 -0500
+Received: by vbbez10 with SMTP id ez10so280182vbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Dec 2011 15:11:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, miaox@cn.fujitsu.com, paul@paulmenage.org, rientjes@google.com, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix
+     Subject: linux-next-fixup
 has been added to the -mm tree.  Its filename is
-     cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix.patch
+     linux-next-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,41 +36,63 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix
+Subject: linux-next-fixup
 
-while we're there...
-
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Paul Menage <paul@paulmenage.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/stat.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mempolicy.h~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix
-+++ a/include/linux/mempolicy.h
-@@ -258,7 +258,7 @@ static inline bool task_has_mempolicy(st
- 	return task->mempolicy;
+diff -puN fs/proc/stat.c~linux-next-fixup fs/proc/stat.c
+--- a/fs/proc/stat.c~linux-next-fixup
++++ a/fs/proc/stat.c
+@@ -22,29 +22,27 @@
+ #define arch_idle_time(cpu) 0
+ #endif
+ 
+-static cputime64_t get_idle_time(int cpu)
++static u64 get_idle_time(int cpu)
+ {
+-	u64 idle_time = get_cpu_idle_time_us(cpu, NULL);
+-	cputime64_t idle;
++	u64 idle, idle_time = get_cpu_idle_time_us(cpu, NULL);
+ 
+ 	if (idle_time == -1ULL) {
+ 		/* !NO_HZ so we can rely on cpustat.idle */
+-		idle = kstat_cpu(cpu).cpustat.idle;
+-		idle = cputime64_add(idle, arch_idle_time(cpu));
++		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
++		idle += arch_idle_time(cpu);
+ 	} else
+ 		idle = nsecs_to_jiffies64(1000 * idle_time);
+ 
+ 	return idle;
  }
  
--#else
-+#else		/* CONFIG_NUMA */
+-static cputime64_t get_iowait_time(int cpu)
++static u64 get_iowait_time(int cpu)
+ {
+-	u64 iowait_time = get_cpu_iowait_time_us(cpu, NULL);
+-	cputime64_t iowait;
++	u64 iowait, iowait_time = get_cpu_iowait_time_us(cpu, NULL);
  
- struct mempolicy {};
+ 	if (iowait_time == -1ULL)
+ 		/* !NO_HZ so we can rely on cpustat.iowait */
+-		iowait = kstat_cpu(cpu).cpustat.iowait;
++		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
+ 	else
+ 		iowait = nsecs_to_jiffies64(1000 * iowait_time);
  
 _
-Subject: Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix
+Subject: Subject: linux-next-fixup
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 vmscan-use-atomic-long-for-shrinker-batching.patch
 linux-next.patch
+linux-next-fixup.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
