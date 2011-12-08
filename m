@@ -1,26 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch removed from -mm tree
-Date: Thu, 08 Dec 2011 12:16:49 -0800
-Message-ID: <201112082016.pB8KGoZ5029951@wpaz1.hot.corp.google.com>
+Subject: + cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch added to -mm tree
+Date: Thu, 08 Dec 2011 12:19:36 -0800
+Message-ID: <201112082019.pB8KJaLZ020080@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:60903 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912Ab1LHUQx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Dec 2011 15:16:53 -0500
-Received: by ggnp2 with SMTP id p2so249572ggn.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Dec 2011 12:16:52 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:64014 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988Ab1LHUTk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Dec 2011 15:19:40 -0500
+Received: by eekc14 with SMTP id c14so46576eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Dec 2011 12:19:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, miaox@cn.fujitsu.com, paul@paulmenage.org, rientjes@google.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, miaox@cn.fujitsu.com, paul@paulmenage.org, rientjes@google.com, sfr@canb.auug.org.au
 
 
 The patch titled
      Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
 
-This patch was dropped because it was folded into cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -57,15 +67,16 @@ diff -puN kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy
  	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
  	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
 _
+Subject: Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 vmscan-use-atomic-long-for-shrinker-batching.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
 linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
 mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
