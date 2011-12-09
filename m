@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-staging-media-update-f-patterns.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:27 -0800
-Message-ID: <201112092343.pB9NhR9O004596@wpaz9.hot.corp.google.com>
+Subject: + maintainers-staging-westbridge-delete-section.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:30 -0800
+Message-ID: <201112092343.pB9NhUQv013771@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:59959 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754954Ab1LIXn3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:29 -0500
-Received: by mail-yx0-f202.google.com with SMTP id m5so456747yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:28 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:45993 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754957Ab1LIXnd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:33 -0500
+Received: by mail-ee0-f74.google.com with SMTP id c14so77737eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, greg@kroah.com, mchehab@redhat.com
+Cc: joe@perches.com, gregkh@suse.de, odc@cypress.com
 
 
 The patch titled
-     Subject: MAINTAINERS: staging: media: update F: patterns
+     Subject: MAINTAINERS: staging: westbridge: delete section
 has been added to the -mm tree.  Its filename is
-     maintainers-staging-media-update-f-patterns.patch
+     maintainers-staging-westbridge-delete-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,43 +36,37 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: staging: media: update F: patterns
+Subject: MAINTAINERS: staging: westbridge: delete section
 
-commit 4860c73804c ("staging: Move media drivers to staging/media") moved
-the files, update the F: patterns.
+commit 78f23926dff9 ("Staging: delete westbridge code") deleted the files,
+delete the section.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Mauro Carvalho Chehab<mchehab@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: David Cross <odc@cypress.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-staging-media-update-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-staging-media-update-f-patterns
+diff -puN MAINTAINERS~maintainers-staging-westbridge-delete-section MAINTAINERS
+--- a/MAINTAINERS~maintainers-staging-westbridge-delete-section
 +++ a/MAINTAINERS
-@@ -6379,7 +6379,7 @@ STAGING - LIRC (LINUX INFRARED REMOTE CO
- M:	Jarod Wilson <jarod@wilsonet.com>
- W:	http://www.lirc.org/
+@@ -6318,11 +6318,6 @@ M:	Manu Abraham <abraham.manu@gmail.com>
  S:	Odd Fixes
--F:	drivers/staging/lirc/
-+F:	drivers/staging/media/lirc/
+ F:	drivers/staging/crystalhd/
  
- STAGING - NVIDIA COMPLIANT EMBEDDED CONTROLLER INTERFACE (nvec)
- M:	Julian Andres Klode <jak@jak-linux.org>
-@@ -6415,7 +6415,7 @@ F:	drivers/staging/sm7xx/
- STAGING - SOFTLOGIC 6x10 MPEG CODEC
- M:	Ben Collins <bcollins@bluecherry.net>
- S:	Odd Fixes
--F:	drivers/staging/solo6x10/
-+F:	drivers/staging/media/solo6x10/
- 
- STAGING - SPEAKUP CONSOLE SPEECH DRIVER
- M:	William Hubbs <w.d.hubbs@gmail.com>
+-STAGING - CYPRESS WESTBRIDGE SUPPORT
+-M:	David Cross <david.cross@cypress.com>
+-S:	Odd Fixes
+-F:	drivers/staging/westbridge/
+-
+ STAGING - ECHO CANCELLER
+ M:	Steve Underwood <steveu@coppice.org>
+ M:	David Rowe <david@rowetel.com>
 _
-Subject: Subject: MAINTAINERS: staging: media: update F: patterns
+Subject: Subject: MAINTAINERS: staging: westbridge: delete section
 
 Patches currently in -mm which might be from joe@perches.com are
 
