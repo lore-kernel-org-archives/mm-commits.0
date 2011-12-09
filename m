@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-serial-blackfin-update-f-pattern.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:31 -0800
-Message-ID: <201112092343.pB9NhWe3028417@wpaz1.hot.corp.google.com>
+Subject: + maintainers-staging-media-update-f-patterns.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:27 -0800
+Message-ID: <201112092343.pB9NhR9O004596@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:53787 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754974Ab1LIXnd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:33 -0500
-Received: by mail-gy0-f202.google.com with SMTP id r18so415948ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:33 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:59959 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754954Ab1LIXn3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:29 -0500
+Received: by mail-yx0-f202.google.com with SMTP id m5so456747yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, sonic.zhang@analog.com
+Cc: joe@perches.com, greg@kroah.com, mchehab@redhat.com
 
 
 The patch titled
-     Subject: MAINTAINERS: serial:blackfin: update F: pattern
+     Subject: MAINTAINERS: staging: media: update F: patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-serial-blackfin-update-f-pattern.patch
+     maintainers-staging-media-update-f-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,33 +36,43 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: serial:blackfin: update F: pattern
+Subject: MAINTAINERS: staging: media: update F: patterns
 
-commit 0c6967b5a0 ("serial:blackfin: rename Blackfin serial driver to
-bfin_uart.c") renamed the file, update the pattern.
+commit 4860c73804c ("staging: Move media drivers to staging/media") moved
+the files, update the F: patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Sonic Zhang <sonic.zhang@analog.com>
+Acked-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-serial-blackfin-update-f-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-serial-blackfin-update-f-pattern
+diff -puN MAINTAINERS~maintainers-staging-media-update-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-staging-media-update-f-patterns
 +++ a/MAINTAINERS
-@@ -1501,7 +1501,7 @@ M:	Sonic Zhang <sonic.zhang@analog.com>
- L:	uclinux-dist-devel@blackfin.uclinux.org
- W:	http://blackfin.uclinux.org
- S:	Supported
--F:	drivers/tty/serial/bfin_5xx.c
-+F:	drivers/tty/serial/bfin_uart.c
+@@ -6379,7 +6379,7 @@ STAGING - LIRC (LINUX INFRARED REMOTE CO
+ M:	Jarod Wilson <jarod@wilsonet.com>
+ W:	http://www.lirc.org/
+ S:	Odd Fixes
+-F:	drivers/staging/lirc/
++F:	drivers/staging/media/lirc/
  
- BLACKFIN WATCHDOG DRIVER
- M:	Mike Frysinger <vapier.adi@gmail.com>
+ STAGING - NVIDIA COMPLIANT EMBEDDED CONTROLLER INTERFACE (nvec)
+ M:	Julian Andres Klode <jak@jak-linux.org>
+@@ -6415,7 +6415,7 @@ F:	drivers/staging/sm7xx/
+ STAGING - SOFTLOGIC 6x10 MPEG CODEC
+ M:	Ben Collins <bcollins@bluecherry.net>
+ S:	Odd Fixes
+-F:	drivers/staging/solo6x10/
++F:	drivers/staging/media/solo6x10/
+ 
+ STAGING - SPEAKUP CONSOLE SPEECH DRIVER
+ M:	William Hubbs <w.d.hubbs@gmail.com>
 _
-Subject: Subject: MAINTAINERS: serial:blackfin: update F: pattern
+Subject: Subject: MAINTAINERS: staging: media: update F: patterns
 
 Patches currently in -mm which might be from joe@perches.com are
 
