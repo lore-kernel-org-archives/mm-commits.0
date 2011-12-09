@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-sdhci-f-patterns.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:19 -0800
-Message-ID: <201112092343.pB9NhJ8X028242@wpaz1.hot.corp.google.com>
+Subject: + maintainers-update-encrypted-keys-f-patterns.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:25 -0800
+Message-ID: <201112092343.pB9NhP4k028328@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:49985 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754965Ab1LIXnV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:21 -0500
-Received: by mail-gx0-f202.google.com with SMTP id v2so89147ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:21 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:45993 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890Ab1LIXn2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:28 -0500
+Received: by mail-ee0-f74.google.com with SMTP id c14so77737eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, cbouatmailru@gmail.com, cjb@laptop.org, shawn.guo@linaro.org
+Cc: joe@perches.com, zohar@us.ibm.com
 
 
 The patch titled
-     Subject: MAINTAINERS: update sdhci F: patterns
+     Subject: MAINTAINERS: update encrypted-keys F: patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-sdhci-f-patterns.patch
+     maintainers-update-encrypted-keys-f-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,42 +36,34 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update sdhci F: patterns
+Subject: MAINTAINERS: update encrypted-keys F: patterns
 
-commit 38576af1f8c ("mmc: sdhci: make sdhci-of device drivers self
-registered") moved the files around.  Update the patterns.
+commit 61cf45d0199 ("encrypted-keys: create encrypted-keys directory")
+moved the files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: Chris Ball <cjb@laptop.org>
-Acked-by: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-sdhci-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-sdhci-f-patterns
+diff -puN MAINTAINERS~maintainers-update-encrypted-keys-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-encrypted-keys-f-patterns
 +++ a/MAINTAINERS
-@@ -5854,13 +5854,14 @@ L:	linux-mmc@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cjb/mmc.git
- S:	Maintained
- F:	drivers/mmc/host/sdhci.*
-+F:	drivers/mmc/host/sdhci-pltfm.[ch]
+@@ -3900,8 +3900,7 @@ L:	keyrings@linux-nfs.org
+ S:	Supported
+ F:	Documentation/security/keys-trusted-encrypted.txt
+ F:	include/keys/encrypted-type.h
+-F:	security/keys/encrypted.c
+-F:	security/keys/encrypted.h
++F:	security/keys/encrypted-keys/
  
- SECURE DIGITAL HOST CONTROLLER INTERFACE, OPEN FIRMWARE BINDINGS (SDHCI-OF)
- M:	Anton Vorontsov <avorontsov@ru.mvista.com>
- L:	linuxppc-dev@lists.ozlabs.org
- L:	linux-mmc@vger.kernel.org
- S:	Maintained
--F:	drivers/mmc/host/sdhci-of.*
-+F:	drivers/mmc/host/sdhci-pltfm.[ch]
- 
- SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) SAMSUNG DRIVER
- M:	Ben Dooks <ben-linux@fluff.org>
+ KGDB / KDB /debug_core
+ M:	Jason Wessel <jason.wessel@windriver.com>
 _
-Subject: Subject: MAINTAINERS: update sdhci F: patterns
+Subject: Subject: MAINTAINERS: update encrypted-keys F: patterns
 
 Patches currently in -mm which might be from joe@perches.com are
 
