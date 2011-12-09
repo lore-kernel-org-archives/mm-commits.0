@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-encrypted-keys-f-patterns.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:25 -0800
-Message-ID: <201112092343.pB9NhP4k028328@wpaz1.hot.corp.google.com>
+Subject: + maintainers-update-greth-f-patterns.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:23 -0800
+Message-ID: <201112092343.pB9NhOdq028301@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:45993 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890Ab1LIXn2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:28 -0500
-Received: by mail-ee0-f74.google.com with SMTP id c14so77737eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:28 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:53787 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890Ab1LIXnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:25 -0500
+Received: by mail-gy0-f202.google.com with SMTP id r18so415948ghr.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, zohar@us.ibm.com
+Cc: joe@perches.com, jeffrey.t.kirsher@intel.com, kristoffer@gaisler.com
 
 
 The patch titled
-     Subject: MAINTAINERS: update encrypted-keys F: patterns
+     Subject: MAINTAINERS: update greth F: patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-encrypted-keys-f-patterns.patch
+     maintainers-update-greth-f-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,34 +36,34 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update encrypted-keys F: patterns
+Subject: MAINTAINERS: update greth F: patterns
 
-commit 61cf45d0199 ("encrypted-keys: create encrypted-keys directory")
-moved the files, update the patterns.
+commit 1fe003fd424 ("greth: Move the Aeroflex Gaisler driver") moved the
+files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Mimi Zohar <zohar@us.ibm.com>
+Cc: Kristoffer Glembo <kristoffer@gaisler.com>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-encrypted-keys-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-encrypted-keys-f-patterns
+diff -puN MAINTAINERS~maintainers-update-greth-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-greth-f-patterns
 +++ a/MAINTAINERS
-@@ -3900,8 +3900,7 @@ L:	keyrings@linux-nfs.org
- S:	Supported
- F:	Documentation/security/keys-trusted-encrypted.txt
- F:	include/keys/encrypted-type.h
--F:	security/keys/encrypted.c
--F:	security/keys/encrypted.h
-+F:	security/keys/encrypted-keys/
+@@ -2951,7 +2951,7 @@ GRETH 10/100/1G Ethernet MAC device driv
+ M:	Kristoffer Glembo <kristoffer@gaisler.com>
+ L:	netdev@vger.kernel.org
+ S:	Maintained
+-F:	drivers/net/greth*
++F:	drivers/net/ethernet/aeroflex/
  
- KGDB / KDB /debug_core
- M:	Jason Wessel <jason.wessel@windriver.com>
+ GSPCA FINEPIX SUBDRIVER
+ M:	Frank Zago <frank@zago.net>
 _
-Subject: Subject: MAINTAINERS: update encrypted-keys F: patterns
+Subject: Subject: MAINTAINERS: update greth F: patterns
 
 Patches currently in -mm which might be from joe@perches.com are
 
