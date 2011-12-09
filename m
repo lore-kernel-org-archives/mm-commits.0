@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-marvell-ccic-f-patterns.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:16 -0800
-Message-ID: <201112092343.pB9NhGoZ013487@wpaz5.hot.corp.google.com>
+Subject: + maintainers-update-mfd-f-patterns.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:18 -0800
+Message-ID: <201112092343.pB9NhIoP013504@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bw0-f74.google.com ([209.85.214.74]:41395 "EHLO
-	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab1LIXnT (ORCPT
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:53787 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754954Ab1LIXnT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:19 -0500
-Received: by mail-bw0-f74.google.com with SMTP id s6so74076bka.1
+Received: by mail-gy0-f202.google.com with SMTP id r18so415948ghr.1
         for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, corbet@lwn.net, mchehab@redhat.com
+Cc: joe@perches.com, linus.walleij@linaro.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update marvell ccic F: patterns
+     Subject: MAINTAINERS: update mfd F: patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-marvell-ccic-f-patterns.patch
+     maintainers-update-mfd-f-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,34 +36,32 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update marvell ccic F: patterns
+Subject: MAINTAINERS: update mfd F: patterns
 
-Commit f8fc729870ee ("[media] marvell-cam: Move cafe-ccic into its own
-directory") moved the files, update the pattern.
+commit 8959e74399c ("mfd: Delete ab3550 driver") removed the driver,
+update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Acked-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-marvell-ccic-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-marvell-ccic-f-patterns
+diff -puN MAINTAINERS~maintainers-update-mfd-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-mfd-f-patterns
 +++ a/MAINTAINERS
-@@ -1681,7 +1681,7 @@ L:	linux-media@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+@@ -1183,7 +1183,6 @@ L:	linux-arm-kernel@lists.infradead.org 
  S:	Maintained
- F:	Documentation/video4linux/cafe_ccic
--F:	drivers/media/video/cafe_ccic*
-+F:	drivers/media/video/marvell-ccic/
- 
- CAIF NETWORK LAYER
- M:	Sjur Braendeland <sjur.brandeland@stericsson.com>
+ F:	arch/arm/mach-ux500/
+ F:	drivers/dma/ste_dma40*
+-F:	drivers/mfd/ab3550*
+ F:	drivers/mfd/abx500*
+ F:	drivers/mfd/ab8500*
+ F:	drivers/mfd/stmpe*
 _
-Subject: Subject: MAINTAINERS: update marvell ccic F: patterns
+Subject: Subject: MAINTAINERS: update mfd F: patterns
 
 Patches currently in -mm which might be from joe@perches.com are
 
