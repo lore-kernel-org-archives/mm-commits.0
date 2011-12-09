@@ -1,128 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-do-not-overflow-get_idleiowait_time-for-nohz.patch removed from -mm tree
-Date: Fri, 09 Dec 2011 12:08:41 -0800
-Message-ID: <201112092008.pB9K8f8u014816@wpaz1.hot.corp.google.com>
+Subject: [merged] rapidio-tsi721-switch-to-dma_zalloc_coherent.patch removed from -mm tree
+Date: Fri, 09 Dec 2011 12:08:45 -0800
+Message-ID: <201112092008.pB9K8jHj014857@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-yx0-f202.google.com ([209.85.213.202]:51009 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754711Ab1LIUIn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 15:08:43 -0500
-Received: by yenm5 with SMTP id m5so433165yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 12:08:43 -0800 (PST)
+	with ESMTP id S1754711Ab1LIUIq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 15:08:46 -0500
+Received: by mail-yx0-f202.google.com with SMTP id m5so433165yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 12:08:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, adobriyan@gmail.com, arnd@arndb.de, davej@redhat.com, t.artem@mailcity.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: do not overflow get_{idle,iowait}_time for nohz
+     Subject: rapidio/tsi721: switch to dma_zalloc_coherent
 has been removed from the -mm tree.  Its filename was
-     proc-do-not-overflow-get_idleiowait_time-for-nohz.patch
+     rapidio-tsi721-switch-to-dma_zalloc_coherent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: procfs: do not overflow get_{idle,iowait}_time for nohz
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: switch to dma_zalloc_coherent
 
-Since a25cac51 ("proc: Consider NO_HZ when printing idle and iowait
-times") we are reporting idle/io_wait time also while a CPU is tickless. 
-We rely on get_{idle,iowait}_time functions to retrieve proper data.
+Replace the pair dma_alloc_coherent()+memset() with the new
+dma_zalloc_coherent() added by Andrew Morton for kernel version 3.2
 
-These functions, however, use usecs_to_cputime to translate micro seconds
-time to cputime64_t.  This is just an alias to usecs_to_jiffies which
-reduces the data type from u64 to unsigned int and also checks whether the
-given parameter overflows jiffies_to_usecs(MAX_JIFFY_OFFSET) and returns
-MAX_JIFFY_OFFSET in that case.
-
-When do we overflow depends on CONFIG_HZ but especially for CONFIG_HZ_300
-it is quite low (1431649781) so we are getting MAX_JIFFY_OFFSET for
->3000s!  until we overflow unsigned int.  Just for reference CONFIG_HZ_100
-has an overflow window around 20s, CONFIG_HZ_250 ~8s and CONFIG_HZ_1000
-~2s.
-
-This results in a bug when people saw [h]top going mad reporting 100% CPU
-usage even though there was basically no CPU load.  The reason was simply
-that /proc/stat stopped reporting idle/io_wait changes (and reported
-MAX_JIFFY_OFFSET) and so the only change happening was for user system
-time.
-
-Let's use nsecs_to_jiffies64 instead which doesn't reduce the precision to
-32b type and it is much more appropriate for cumulative time values
-(unlike usecs_to_jiffies which intended for timeout calculations).
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Tested-by: Artem S. Tashkinov <t.artem@mailcity.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rapidio/devices/tsi721.c |   17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN fs/proc/stat.c~proc-do-not-overflow-get_idleiowait_time-for-nohz fs/proc/stat.c
---- a/fs/proc/stat.c~proc-do-not-overflow-get_idleiowait_time-for-nohz
-+++ a/fs/proc/stat.c
-@@ -32,7 +32,7 @@ static cputime64_t get_idle_time(int cpu
- 		idle = kstat_cpu(cpu).cpustat.idle;
- 		idle = cputime64_add(idle, arch_idle_time(cpu));
- 	} else
--		idle = usecs_to_cputime(idle_time);
-+		idle = nsecs_to_jiffies64(1000 * idle_time);
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-switch-to-dma_zalloc_coherent drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-switch-to-dma_zalloc_coherent
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -851,14 +851,12 @@ static int tsi721_doorbell_init(struct t
+ 	INIT_WORK(&priv->idb_work, tsi721_db_dpc);
  
- 	return idle;
- }
-@@ -46,7 +46,7 @@ static cputime64_t get_iowait_time(int c
- 		/* !NO_HZ so we can rely on cpustat.iowait */
- 		iowait = kstat_cpu(cpu).cpustat.iowait;
- 	else
--		iowait = usecs_to_cputime(iowait_time);
-+		iowait = nsecs_to_jiffies64(1000 * iowait_time);
+ 	/* Allocate buffer for inbound doorbells queue */
+-	priv->idb_base = dma_alloc_coherent(&priv->pdev->dev,
++	priv->idb_base = dma_zalloc_coherent(&priv->pdev->dev,
+ 				IDB_QSIZE * TSI721_IDB_ENTRY_SIZE,
+ 				&priv->idb_dma, GFP_KERNEL);
+ 	if (!priv->idb_base)
+ 		return -ENOMEM;
  
- 	return iowait;
- }
-_
-
-Patches currently in -mm which might be from mhocko@suse.cz are
-
-origin.patch
-linux-next.patch
-mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
-hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
-hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
-mm-exclude-reserved-pages-from-dirtyable-memory.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-writeback-cleanups-in-preparation-for-per-zone-dirty-limits.patch
-mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
-mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
-btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
-mm-fix-off-by-two-in-__zone_watermark_ok.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-memcg-fix-pgpgin-pgpgout-documentation.patch
-mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
-mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
-mm-memcg-clean-up-fault-accounting.patch
-mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
-mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
-mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
-mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
-page_cgroup-add-helper-function-to-get-swap_cgroup.patch
-
+-	memset(priv->idb_base, 0, IDB_QSIZE * TSI721_IDB_ENTRY_SIZE);
+-
+ 	dev_dbg(&priv->pdev->dev, "Allocated IDB buffer @ %p (phys = %llx)\n",
+ 		priv->idb_base, (unsigned long long)priv->idb_dma);
+ 
+@@ -904,7 +902,7 @@ static int tsi721_bdma_ch_init(struct ts
+ 	 */
+ 
+ 	/* Allocate space for DMA descriptors */
+-	bd_ptr = dma_alloc_coherent(&priv->pdev->dev,
++	bd_ptr = dma_zalloc_coherent(&priv->pdev->dev,
+ 					bd_num * sizeof(struct tsi721_dma_desc),
+ 					&bd_phys, GFP_KERNEL);
+ 	if (!bd_ptr)
+@@ -913,8 +911,6 @@ static int tsi721_bdma_ch_init(struct ts
+ 	priv->bdma[chnum].bd_phys = bd_phys;
+ 	priv->bdma[chnum].bd_base = bd_ptr;
+ 
+-	memset(bd_ptr, 0, bd_num * sizeof(struct tsi721_dma_desc));
+-
+ 	dev_dbg(&priv->pdev->dev, "DMA descriptors @ %p (phys = %llx)\n",
+ 		bd_ptr, (unsigned long long)bd_phys);
+ 
+@@ -922,7 +918,7 @@ static int tsi721_bdma_ch_init(struct ts
+ 	sts_size = (bd_num >= TSI721_DMA_MINSTSSZ) ?
+ 					bd_num : TSI721_DMA_MINSTSSZ;
+ 	sts_size = roundup_pow_of_two(sts_size);
+-	sts_ptr = dma_alloc_coherent(&priv->pdev->dev,
++	sts_ptr = dma_zalloc_coherent(&priv->pdev->dev,
+ 				     sts_size * sizeof(struct tsi721_dma_sts),
+ 				     &sts_phys, GFP_KERNEL);
+ 	if (!sts_ptr) {
+@@ -938,8 +934,6 @@ static int tsi721_bdma_ch_init(struct ts
+ 	priv->bdma[chnum].sts_base = sts_ptr;
+ 	priv->bdma[chnum].sts_size = sts_size;
+ 
+-	memset(sts_ptr, 0, sts_size);
+-
+ 	dev_dbg(&priv->pdev->dev,
+ 		"desc status FIFO @ %p (phys = %llx) size=0x%x\n",
+ 		sts_ptr, (unsigned long long)sts_phys, sts_size);
+@@ -1400,7 +1394,7 @@ static int tsi721_open_outb_mbox(struct 
+ 
+ 	/* Outbound message descriptor status FIFO allocation */
+ 	priv->omsg_ring[mbox].sts_size = roundup_pow_of_two(entries + 1);
+-	priv->omsg_ring[mbox].sts_base = dma_alloc_coherent(&priv->pdev->dev,
++	priv->omsg_ring[mbox].sts_base = dma_zalloc_coherent(&priv->pdev->dev,
+ 			priv->omsg_ring[mbox].sts_size *
+ 						sizeof(struct tsi721_dma_sts),
+ 			&priv->omsg_ring[mbox].sts_phys, GFP_KERNEL);
+@@ -1412,9 +1406,6 @@ static int tsi721_open_outb_mbox(struct 
+ 		goto out_desc;
+ 	}
+ 
+-	memset(priv->omsg_ring[mbox].sts_base, 0,
+-		entries * sizeof(struct tsi721_dma_sts));
