@@ -1,85 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-fixup.patch removed from -mm tree
-Date: Fri, 09 Dec 2011 11:56:27 -0800
-Message-ID: <201112091956.pB9JuSwQ002595@wpaz1.hot.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 09 Dec 2011 11:57:48 -0800
+Message-ID: <201112091957.pB9Jvm8E016461@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bw0-f74.google.com ([209.85.214.74]:42753 "EHLO
-	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761Ab1LIT4c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 14:56:32 -0500
-Received: by bkas6 with SMTP id s6so69193bka.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 11:56:30 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:54147 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753383Ab1LIT5t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 14:57:49 -0500
+Received: by ggnv2 with SMTP id v2so66296ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 11:57:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: linux-next-fixup
-has been removed from the -mm tree.  Its filename was
-     linux-next-fixup.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-fixup
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ drivers/md/raid5.c            |   15 ---------------
+ sound/pci/hda/patch_realtek.c |    6 ------
+ sound/pci/sis7019.c           |    9 ---------
+ 3 files changed, 30 deletions(-)
 
-diff -puN fs/proc/stat.c~linux-next-fixup fs/proc/stat.c
---- a/fs/proc/stat.c~linux-next-fixup
-+++ a/fs/proc/stat.c
-@@ -22,29 +22,27 @@
- #define arch_idle_time(cpu) 0
- #endif
- 
--static cputime64_t get_idle_time(int cpu)
-+static u64 get_idle_time(int cpu)
+diff -puN drivers/md/raid5.c~linux-next-git-rejects drivers/md/raid5.c
+--- a/drivers/md/raid5.c~linux-next-git-rejects
++++ a/drivers/md/raid5.c
+@@ -3160,9 +3160,6 @@ static void analyse_stripe(struct stripe
+ 		}
+ 		if (dev->written)
+ 			s->written++;
+-<<<<<<< HEAD
+-		rdev = rcu_dereference(conf->disks[i].rdev);
+-=======
+ 		/* Prefer to use the replacement for reads, but only
+ 		 * if it is recovered enough and has no bad blocks.
+ 		 */
+@@ -3178,7 +3175,6 @@ static void analyse_stripe(struct stripe
+ 			rdev = rcu_dereference(conf->disks[i].rdev);
+ 			clear_bit(R5_ReadRepl, &dev->flags);
+ 		}
+->>>>>>> linux-next/akpm-end
+ 		if (rdev && test_bit(Faulty, &rdev->flags))
+ 			rdev = NULL;
+ 		if (rdev) {
+@@ -3213,11 +3209,6 @@ static void analyse_stripe(struct stripe
+ 			if (sh->sector + STRIPE_SECTORS <= rdev->recovery_offset)
+ 				set_bit(R5_Insync, &dev->flags);
+ 		}
+-<<<<<<< HEAD
+-		if (rdev && test_bit(R5_WriteError, &dev->flags)) {
+-			clear_bit(R5_Insync, &dev->flags);
+-			if (!test_bit(Faulty, &rdev->flags)) {
+-=======
+ 		if (test_bit(R5_WriteError, &dev->flags)) {
+ 			/* This flag does not apply to '.replacement'
+ 			 * only to .rdev, so make sure to check that*/
+@@ -3226,23 +3217,17 @@ static void analyse_stripe(struct stripe
+ 			if (rdev2 == rdev)
+ 				clear_bit(R5_Insync, &dev->flags);
+ 			if (!test_bit(Faulty, &rdev2->flags)) {
+->>>>>>> linux-next/akpm-end
+ 				s->handle_bad_blocks = 1;
+ 				atomic_inc(&rdev2->nr_pending);
+ 			} else
+ 				clear_bit(R5_WriteError, &dev->flags);
+ 		}
+-<<<<<<< HEAD
+-		if (rdev && test_bit(R5_MadeGood, &dev->flags)) {
+-			if (!test_bit(Faulty, &rdev->flags)) {
+-=======
+ 		if (test_bit(R5_MadeGood, &dev->flags)) {
+ 			/* This flag does not apply to '.replacement'
+ 			 * only to .rdev, so make sure to check that*/
+ 			struct md_rdev *rdev2 = rcu_dereference(
+ 				conf->disks[i].rdev);
+ 			if (rdev2 && !test_bit(Faulty, &rdev2->flags)) {
+->>>>>>> linux-next/akpm-end
+ 				s->handle_bad_blocks = 1;
+ 				atomic_inc(&rdev2->nr_pending);
+ 			} else
+diff -puN sound/pci/hda/patch_realtek.c~linux-next-git-rejects sound/pci/hda/patch_realtek.c
+--- a/sound/pci/hda/patch_realtek.c~linux-next-git-rejects
++++ a/sound/pci/hda/patch_realtek.c
+@@ -3045,11 +3045,8 @@ static int alc_auto_fill_dac_nids(struct
  {
--	u64 idle_time = get_cpu_idle_time_us(cpu, NULL);
--	cputime64_t idle;
-+	u64 idle, idle_time = get_cpu_idle_time_us(cpu, NULL);
+ 	struct alc_spec *spec = codec->spec;
+ 	struct auto_pin_cfg *cfg = &spec->autocfg;
+-<<<<<<< HEAD
+-=======
+ 	unsigned int location, defcfg;
+ 	int num_pins;
+->>>>>>> linux-next/akpm-end
+ 	bool redone = false;
+ 	int i;
  
- 	if (idle_time == -1ULL) {
- 		/* !NO_HZ so we can rely on cpustat.idle */
--		idle = kstat_cpu(cpu).cpustat.idle;
--		idle = cputime64_add(idle, arch_idle_time(cpu));
-+		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
-+		idle += arch_idle_time(cpu);
- 	} else
- 		idle = nsecs_to_jiffies64(1000 * idle_time);
+@@ -3140,8 +3137,6 @@ static int alc_auto_fill_dac_nids(struct
+ 			goto again;
+ 		}
+ 	}
+-<<<<<<< HEAD
+-=======
  
- 	return idle;
+ 	if (!spec->multi_ios &&
+ 	    cfg->line_out_type == AUTO_PIN_SPEAKER_OUT &&
+@@ -3157,7 +3152,6 @@ static int alc_auto_fill_dac_nids(struct
+ 			spec->multiout.num_dacs = num_pins + 1;
+ 		}
+ 	}
+->>>>>>> linux-next/akpm-end
+ 
+ 	return 0;
  }
+diff -puN sound/pci/sis7019.c~linux-next-git-rejects sound/pci/sis7019.c
+--- a/sound/pci/sis7019.c~linux-next-git-rejects
++++ a/sound/pci/sis7019.c
+@@ -1142,22 +1142,13 @@ static int sis_chip_init(struct sis7019 
+ 	/* All done, check for errors.
+ 	 */
+ 	if (!sis->codecs_present) {
+-<<<<<<< HEAD
+-		printk(KERN_ERR "sis7019: could not find any codecs\n");
+-=======
+ 		dev_err(&sis->pci->dev, "could not find any codecs\n");
+->>>>>>> linux-next/akpm-end
+ 		return -EIO;
+ 	}
  
--static cputime64_t get_iowait_time(int cpu)
-+static u64 get_iowait_time(int cpu)
- {
--	u64 iowait_time = get_cpu_iowait_time_us(cpu, NULL);
--	cputime64_t iowait;
-+	u64 iowait, iowait_time = get_cpu_iowait_time_us(cpu, NULL);
+ 	if (sis->codecs_present != codecs) {
+-<<<<<<< HEAD
+-		printk(KERN_WARNING "sis7019: missing codecs, found %0x, expected %0x\n",
+-		       sis->codecs_present, codecs);
+-=======
+ 		dev_warn(&sis->pci->dev, "missing codecs, found %0x, expected %0x\n",
+ 					 sis->codecs_present, codecs);
+->>>>>>> linux-next/akpm-end
+ 	}
  
- 	if (iowait_time == -1ULL)
- 		/* !NO_HZ so we can rely on cpustat.iowait */
--		iowait = kstat_cpu(cpu).cpustat.iowait;
-+		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
- 	else
- 		iowait = nsecs_to_jiffies64(1000 * iowait_time);
- 
+ 	/* Let the hardware know that the audio driver is alive,
 _
+Subject: Subject: linux-next-git-rejects
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
