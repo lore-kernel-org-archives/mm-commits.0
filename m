@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-staging-westbridge-delete-section.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:30 -0800
-Message-ID: <201112092343.pB9NhUQv013771@wpaz5.hot.corp.google.com>
+Subject: + maintainers-brcm80211-update-f-pattern.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:33 -0800
+Message-ID: <201112092343.pB9NhXs5013783@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:45993 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab1LIXnd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:33 -0500
-Received: by mail-ee0-f74.google.com with SMTP id c14so77737eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:32 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:60383 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754983Ab1LIXnj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:39 -0500
+Received: by mail-ey0-f202.google.com with SMTP id d1so22824eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, gregkh@suse.de, odc@cypress.com
+Cc: joe@perches.com, arend@broadcom.com, gregkh@suse.de, linville@tuxdriver.com
 
 
 The patch titled
-     Subject: MAINTAINERS: staging: westbridge: delete section
+     Subject: MAINTAINERS: brcm80211: update F: pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-staging-westbridge-delete-section.patch
+     maintainers-brcm80211-update-f-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,37 +36,35 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: staging: westbridge: delete section
+Subject: MAINTAINERS: brcm80211: update F: pattern
 
-commit 78f23926dff9 ("Staging: delete westbridge code") deleted the files,
-delete the section.
+commit fc2d6e573be ("staging: brcm80211: remove brcm80211 driver from the
+staging tree") moved the files, update the F: pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: David Cross <odc@cypress.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Arend van Spriel <arend@broadcom.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 -----
- 1 file changed, 5 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-staging-westbridge-delete-section MAINTAINERS
---- a/MAINTAINERS~maintainers-staging-westbridge-delete-section
+diff -puN MAINTAINERS~maintainers-brcm80211-update-f-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-brcm80211-update-f-pattern
 +++ a/MAINTAINERS
-@@ -6318,11 +6318,6 @@ M:	Manu Abraham <abraham.manu@gmail.com>
- S:	Odd Fixes
- F:	drivers/staging/crystalhd/
+@@ -1592,7 +1592,7 @@ M:	Franky (Zhenhui) Lin <frankyl@broadco
+ M:	Kan Yan	<kanyan@broadcom.com>
+ L:	linux-wireless@vger.kernel.org
+ S:	Supported
+-F:	drivers/staging/brcm80211/
++F:	drivers/net/wireless/brcm80211/
  
--STAGING - CYPRESS WESTBRIDGE SUPPORT
--M:	David Cross <david.cross@cypress.com>
--S:	Odd Fixes
--F:	drivers/staging/westbridge/
--
- STAGING - ECHO CANCELLER
- M:	Steve Underwood <steveu@coppice.org>
- M:	David Rowe <david@rowetel.com>
+ BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER
+ M:	Bhanu Prakash Gollapudi <bprakash@broadcom.com>
 _
-Subject: Subject: MAINTAINERS: staging: westbridge: delete section
+Subject: Subject: MAINTAINERS: brcm80211: update F: pattern
 
 Patches currently in -mm which might be from joe@perches.com are
 
