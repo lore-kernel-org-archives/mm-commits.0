@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-spi-update-f-patterns.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:38 -0800
-Message-ID: <201112092343.pB9NhdbO004663@wpaz9.hot.corp.google.com>
+Subject: + mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:43 -0800
+Message-ID: <201112092343.pB9NhhUt028491@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:45993 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754984Ab1LIXnl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:41 -0500
-Received: by mail-ee0-f74.google.com with SMTP id c14so77737eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:41 -0800 (PST)
+Received: from mail-bw0-f74.google.com ([209.85.214.74]:41395 "EHLO
+	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754927Ab1LIXnq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:46 -0500
+Received: by mail-bw0-f74.google.com with SMTP id s6so74076bka.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, grant.likely@secretlab.ca
+Cc: aarcange@redhat.com, hughd@google.com, mgorman@suse.de, nai.xia@gmail.com, pluto@agmk.net
 
 
 The patch titled
-     Subject: MAINTAINERS: spi: update F: patterns
+     Subject: mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
 has been added to the -mm tree.  Its filename is
-     maintainers-spi-update-f-patterns.patch
+     mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,97 +35,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: spi: update F: patterns
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
 
-commit ca632f55669 ("spi: reorganize drivers") renamed the files, update
-the F: patterns.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nai Xia <nai.xia@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Pawel Sikora <pluto@agmk.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mmap.c   |    6 +++---
+ mm/mremap.c |   10 +++++++++-
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-spi-update-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-spi-update-f-patterns
-+++ a/MAINTAINERS
-@@ -1153,7 +1153,7 @@ F:	drivers/watchdog/nuc900_wdt.c
- F:	drivers/net/ethernet/nuvoton/w90p910_ether.c
- F:	drivers/mtd/nand/nuc900_nand.c
- F:	drivers/rtc/rtc-nuc900.c
--F:	drivers/spi/spi_nuc900.c
-+F:	drivers/spi/spi-nuc900.c
- F:	drivers/usb/host/ehci-w90x900.c
- F:	drivers/video/nuc900fb.c
- 
-@@ -1357,7 +1357,7 @@ F:	drivers/net/ethernet/cadence/
- ATMEL SPI DRIVER
- M:	Nicolas Ferre <nicolas.ferre@atmel.com>
- S:	Supported
--F:	drivers/spi/atmel_spi.*
-+F:	drivers/spi/spi-atmel.*
- 
- ATMEL USBA UDC DRIVER
- M:	Nicolas Ferre <nicolas.ferre@atmel.com>
-@@ -5336,7 +5336,7 @@ L:	linux-arm-kernel@lists.infradead.org 
- S:	Maintained
- F:	arch/arm/mach-pxa/
- F:	drivers/pcmcia/pxa2xx*
--F:	drivers/spi/pxa2xx*
-+F:	drivers/spi/spi-pxa2xx*
- F:	drivers/usb/gadget/pxa2*
- F:	include/sound/pxa2xx-lib.h
- F:	sound/arm/pxa*
+diff -puN mm/mmap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update mm/mmap.c
+--- a/mm/mmap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
++++ a/mm/mmap.c
+@@ -2355,7 +2355,7 @@ struct vm_area_struct *copy_vma(struct v
+ 	 * If anonymous vma has not yet been faulted, update new pgoff
+ 	 * to match new location, to increase its chance of merging.
+ 	 */
+-	if (!vma->vm_file && !vma->anon_vma) {
++	if (unlikely(!vma->vm_file && !vma->anon_vma)) {
+ 		pgoff = addr >> PAGE_SHIFT;
+ 		faulted_in_anon_vma = false;
+ 	}
+@@ -2367,8 +2367,8 @@ struct vm_area_struct *copy_vma(struct v
+ 		/*
+ 		 * Source vma may have been merged into new_vma
+ 		 */
+-		if (vma_start >= new_vma->vm_start &&
+-		    vma_start < new_vma->vm_end) {
++		if (unlikely(vma_start >= new_vma->vm_start &&
++			     vma_start < new_vma->vm_end)) {
+ 			/*
+ 			 * The only way we can get a vma_merge with
+ 			 * self during an mremap is if the vma hasn't
+diff -puN mm/mremap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update mm/mremap.c
+--- a/mm/mremap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
++++ a/mm/mremap.c
+@@ -221,11 +221,19 @@ static unsigned long move_vma(struct vm_
+ 	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len);
+ 	if (moved_len < old_len) {
+ 		/*
++		 * Before moving the page tables from the new vma to
++		 * the old vma, we need to be sure the old vma is
++		 * queued after new vma in the same_anon_vma list to
++		 * prevent SMP races with rmap_walk (that could lead
++		 * rmap_walk to miss some page table).
++		 */
++		anon_vma_moveto_tail(vma);
++
++		/*
+ 		 * On error, move entries back from new area to old,
+ 		 * which will succeed since page tables still there,
+ 		 * and then proceed to unmap new area instead of old.
+ 		 */
+-		anon_vma_moveto_tail(vma);
+ 		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len);
+ 		vma = new_vma;
+ 		old_len = new_len;
 _
-Subject: Subject: MAINTAINERS: spi: update F: patterns
+Subject: Subject: mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-linux-next.patch
-maintainers-staging-cx25821-add-l-linux-media.patch
-kernelh-neaten-panic-prototype.patch
-linkage-remove-unused-noret_and-macro.patch
-treewide-remove-useless-noret_type-macro-and-uses.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-linkage-remove-unused-attrib_noret-macro.patch
-get_maintainerspl-follow-renames-when-looking-up-commit-signers.patch
-maintainers-update-various-arm-f-patterns.patch
-maintainers-update-adp-gpio-f-patterns.patch
-maintainers-update-bt8xx-gpio-f-patterns.patch
-maintainers-update-marvell-ccic-f-patterns.patch
-maintainers-update-mfd-f-patterns.patch
-maintainers-update-sdhci-f-patterns.patch
-maintainers-update-tulip-f-patterns.patch
-maintainers-update-greth-f-patterns.patch
-maintainers-update-encrypted-keys-f-patterns.patch
-maintainers-staging-media-update-f-patterns.patch
-maintainers-staging-tty-update-f-patterns.patch
-maintainers-staging-westbridge-delete-section.patch
-maintainers-serial-blackfin-update-f-pattern.patch
-maintainers-brcm80211-update-f-pattern.patch
-maintainers-delete-generic_serial-section.patch
-maintainers-spi-update-f-patterns.patch
-checkpatch-update-signature-might-be-better-as-warning.patch
-checkpatch-prefer-__printf-not-__attribute__formatprintf.patch
-checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context.patch
-checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context-fix.patch
-checkpatch-check-for-common-memset-parameter-issues-against-statments.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-is-not-a-valid-modifier.patch
-checkpatch-optimise-statement-scanner-when-mid-statement.patch
-checkpatch-only-apply-kconfig-help-checks-for-options-which-prompt.patch
-checkpatch-fix-export_symbol-handling-following-a-function.patch
-checkpatch-complex-macro-should-allow-the-empty-do-while-loop.patch
-checkpatch-fix-return-is-not-a-function-square-bracket-handling.patch
-checkpatch-fix-complex-macros-handling-of-square-brackets.patch
-checkpatch-ensure-cast-type-is-unique-in-the-context-parser.patch
-checkpatch-typeof-may-have-more-complex-arguments.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
+mm-more-intensive-memory-corruption-debug.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+pm-hibernate-do-not-count-debug-pages-as-savable.patch
+slub-min-order-when-debug_guardpage_minorder-0.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+thp-improve-the-error-code-path.patch
+thp-remove-unnecessary-tlb-flush-for-mprotect.patch
+thp-add-tlb_remove_pmd_tlb_entry.patch
+thp-improve-order-in-lru-list-for-split-huge-page.patch
 
