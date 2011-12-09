@@ -1,150 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-ensure-that-pfn_valid-is-called-once-per-pageblock-when-reserving-pageblocks.patch removed from -mm tree
-Date: Fri, 09 Dec 2011 12:08:32 -0800
-Message-ID: <201112092008.pB9K8Xxg014765@wpaz1.hot.corp.google.com>
+Subject: [merged] mm-vmalloc-check-for-page-allocation-failure-before-vmlist-insertion.patch removed from -mm tree
+Date: Fri, 09 Dec 2011 12:08:37 -0800
+Message-ID: <201112092008.pB9K8b8j014780@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:64268 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754736Ab1LIUIg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 15:08:36 -0500
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:38322 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754711Ab1LIUIl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 15:08:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, aarcange@redhat.com, arve@android.com, bdang@vmware.com, dave@linux.vnet.ibm.com, john.stultz@linaro.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, lnx1138@linux.vnet.ibm.com, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: Ensure that pfn_valid() is called once per pageblock when reserving pageblocks
+     Subject: mm: vmalloc: check for page allocation failure before vmlist insertion
 has been removed from the -mm tree.  Its filename was
-     mm-ensure-that-pfn_valid-is-called-once-per-pageblock-when-reserving-pageblocks.patch
+     mm-vmalloc-check-for-page-allocation-failure-before-vmlist-insertion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: Ensure that pfn_valid() is called once per pageblock when reserving pageblocks
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmalloc: check for page allocation failure before vmlist insertion
 
-setup_zone_migrate_reserve expects that zone->start_pfn starts
-at pageblock_nr_pages aligned pfn otherwise we could access
-beyond an existing memblock resulting in the following panic if
-CONFIG_HOLES_IN_ZONE is not configured and we do not check pfn_valid:
+Commit f5252e00 ("mm: avoid null pointer access in vm_struct via
+/proc/vmallocinfo") adds newly allocated vm_structs to the vmlist after it
+is fully initialised.  Unfortunately, it did not check that
+__vmalloc_area_node() successfully populated the area.  In the event of
+allocation failure, the vmalloc area is freed but the pointer to freed
+memory is inserted into the vmlist leading to a a crash later in
+get_vmalloc_info().
 
-IP: [<c02d331d>] setup_zone_migrate_reserve+0xcd/0x180
-*pdpt = 0000000000000000 *pde = f000ff53f000ff53
-Oops: 0000 [#1] SMP
-Modules linked in:
-Supported: Yes
+This patch adds a check for ____vmalloc_area_node() failure within
+__vmalloc_node_range.  It does not use "goto fail" as in the previous
+error path as a warning was already displayed by __vmalloc_area_node()
+before it called vfree in its failure path.
 
-Pid: 1, comm: swapper Not tainted 3.0.7-0.7-pae #1 VMware, Inc.
-VMware Virtual Platform/440BX Desktop Reference Platform
-EIP: 0060:[<c02d331d>] EFLAGS: 00010006 CPU: 0
-EIP is at setup_zone_migrate_reserve+0xcd/0x180
-EAX: 000c0000 EBX: f5801fc0 ECX: 000c0000 EDX: 00000000
-ESI: 000c01fe EDI: 000c01fe EBP: 00140000 ESP: f2475f58
-DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-Process swapper (pid: 1, ti=f2474000 task=f2472cd0 task.ti=f2474000)
-Stack:
-f4000800 00000000 f4000800 000006b8 00000000 000c6cd5 c02d389c 000003b2
-00036aa9 00000292 f4000830 c08cfe78 00000000 00000000 c08a76f5 c02d3a1f
-c08a771c c08cfe78 c020111b 35310001 00000000 00000000 00000100 f24730c4
-Call Trace:
-[<c02d389c>] __setup_per_zone_wmarks+0xec/0x160
-[<c02d3a1f>] setup_per_zone_wmarks+0xf/0x20
-[<c08a771c>] init_per_zone_wmark_min+0x27/0x86
-[<c020111b>] do_one_initcall+0x2b/0x160
-[<c086639d>] kernel_init+0xbe/0x157
-[<c05cae26>] kernel_thread_helper+0x6/0xd
-Code: a5 39 f5 89 f7 0f 46 fd 39 cf 76 40 8b 03 f6 c4 08 74 32 eb 91 90 89 c8 c1 e8 0e 0f be 80 80 2f 86 c0 8b 14 85 60 2f 86 c0 89 c8 <2b> 82 b4 12 00 00 c1 e0 05 03 82 ac 12 00 00 8b 00 f6 c4 08 0f
-EIP: [<c02d331d>] setup_zone_migrate_reserve+0xcd/0x180 SS:ESP 0068:f2475f58
-CR2: 00000000000012b4
----[ end trace 93d72a36b9146f22 ]---
+Credit goes to Luciano Chavez for doing all the real work of identifying
+exactly where the problem was.
 
-We crashed in pageblock_is_reserved() when accessing pfn 0xc0000 because
-highstart_pfn = 0x36ffe.
+If accepted, this should be considered a -stable candidate.
 
-The issue was introduced in 3.0-rc1 by 6d3163ce ("mm: check if any page in
-a pageblock is reserved before marking it MIGRATE_RESERVE").
-
-Make sure that start_pfn is always aligned to pageblock_nr_pages to ensure
-that pfn_valid s always called at the start of each pageblock. 
-Architectures with holes in pageblocks will be correctly handled by
-pfn_valid_within in pageblock_is_reserved.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Tested-by: Dang Bo <bdang@vmware.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Arve Hjnnevg <arve@android.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>	[3.0+]
+Reported-by: Luciano Chavez <lnx1138@linux.vnet.ibm.com>
+Tested-by: Luciano Chavez <lnx1138@linux.vnet.ibm.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>		[3.1.x+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-ensure-that-pfn_valid-is-called-once-per-pageblock-when-reserving-pageblocks mm/page_alloc.c
---- a/mm/page_alloc.c~mm-ensure-that-pfn_valid-is-called-once-per-pageblock-when-reserving-pageblocks
-+++ a/mm/page_alloc.c
-@@ -3377,9 +3377,15 @@ static void setup_zone_migrate_reserve(s
- 	unsigned long block_migratetype;
- 	int reserve;
+diff -puN mm/vmalloc.c~mm-vmalloc-check-for-page-allocation-failure-before-vmlist-insertion mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-check-for-page-allocation-failure-before-vmlist-insertion
++++ a/mm/vmalloc.c
+@@ -1633,6 +1633,8 @@ void *__vmalloc_node_range(unsigned long
+ 		goto fail;
  
--	/* Get the start pfn, end pfn and the number of blocks to reserve */
-+	/*
-+	 * Get the start pfn, end pfn and the number of blocks to reserve
-+	 * We have to be careful to be aligned to pageblock_nr_pages to
-+	 * make sure that we always check pfn_valid for the first page in
-+	 * the block.
-+	 */
- 	start_pfn = zone->zone_start_pfn;
- 	end_pfn = start_pfn + zone->spanned_pages;
-+	start_pfn = roundup(start_pfn, pageblock_nr_pages);
- 	reserve = roundup(min_wmark_pages(zone), pageblock_nr_pages) >>
- 							pageblock_order;
+ 	addr = __vmalloc_area_node(area, gfp_mask, prot, node, caller);
++	if (!addr)
++		return NULL;
  
+ 	/*
+ 	 * In this function, newly allocated vm_struct is not added
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
 linux-next.patch
 mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
-hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
-hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+mm-more-intensive-memory-corruption-debug.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+pm-hibernate-do-not-count-debug-pages-as-savable.patch
+slub-min-order-when-debug_guardpage_minorder-0.patch
+mm-debug-test-for-online-nid-when-allocating-on-single-node.patch
 mm-exclude-reserved-pages-from-dirtyable-memory.patch
 mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-writeback-cleanups-in-preparation-for-per-zone-dirty-limits.patch
 mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
 mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
 btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
 mm-fix-off-by-two-in-__zone_watermark_ok.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-memcg-fix-pgpgin-pgpgout-documentation.patch
-mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
-mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
-mm-memcg-clean-up-fault-accounting.patch
-mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
-mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
-mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
-mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
-page_cgroup-add-helper-function-to-get-swap_cgroup.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
 
