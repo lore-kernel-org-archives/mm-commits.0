@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-greth-f-patterns.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:23 -0800
-Message-ID: <201112092343.pB9NhOdq028301@wpaz1.hot.corp.google.com>
+Subject: + maintainers-update-tulip-f-patterns.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:21 -0800
+Message-ID: <201112092343.pB9NhLwK013518@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:53787 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890Ab1LIXnZ (ORCPT
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:60383 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721Ab1LIXnZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:25 -0500
-Received: by mail-gy0-f202.google.com with SMTP id r18so415948ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:25 -0800 (PST)
+Received: by mail-ey0-f202.google.com with SMTP id d1so22824eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, jeffrey.t.kirsher@intel.com, kristoffer@gaisler.com
+Cc: joe@perches.com, davem@davemloft.net, davies@maniac.ultranet.com, grundler@parisc-linux.org, jeffrey.t.kirsher@intel.com, tori@unhappy.mine.nu
 
 
 The patch titled
-     Subject: MAINTAINERS: update greth F: patterns
+     Subject: MAINTAINERS: update tulip F: patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-greth-f-patterns.patch
+     maintainers-update-tulip-f-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,34 +36,47 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update greth F: patterns
+Subject: MAINTAINERS: update tulip F: patterns
 
-commit 1fe003fd424 ("greth: Move the Aeroflex Gaisler driver") moved the
+commit a88394cfb58 ("ewrk3/tulip: Move the DEC - Tulip drivers") moved the
 files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Kristoffer Glembo <kristoffer@gaisler.com>
+Acked-by: Grant Grundler <grundler@parisc-linux.org>
 Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Tobias Ringstrom <tori@unhappy.mine.nu>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: David Davies <davies@maniac.ultranet.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-greth-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-greth-f-patterns
+diff -puN MAINTAINERS~maintainers-update-tulip-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-tulip-f-patterns
 +++ a/MAINTAINERS
-@@ -2951,7 +2951,7 @@ GRETH 10/100/1G Ethernet MAC device driv
- M:	Kristoffer Glembo <kristoffer@gaisler.com>
+@@ -2125,7 +2125,7 @@ DAVICOM FAST ETHERNET (DMFE) NETWORK DRI
+ L:	netdev@vger.kernel.org
+ S:	Orphan
+ F:	Documentation/networking/dmfe.txt
+-F:	drivers/net/ethernet/tulip/dmfe.c
++F:	drivers/net/ethernet/dec/tulip/dmfe.c
+ 
+ DC390/AM53C974 SCSI driver
+ M:	Kurt Garloff <garloff@suse.de>
+@@ -6719,7 +6719,7 @@ TULIP NETWORK DRIVERS
+ M:	Grant Grundler <grundler@parisc-linux.org>
  L:	netdev@vger.kernel.org
  S:	Maintained
--F:	drivers/net/greth*
-+F:	drivers/net/ethernet/aeroflex/
+-F:	drivers/net/ethernet/tulip/
++F:	drivers/net/ethernet/dec/tulip/
  
- GSPCA FINEPIX SUBDRIVER
- M:	Frank Zago <frank@zago.net>
+ TUN/TAP driver
+ M:	Maxim Krasnyansky <maxk@qualcomm.com>
 _
-Subject: Subject: MAINTAINERS: update greth F: patterns
+Subject: Subject: MAINTAINERS: update tulip F: patterns
 
 Patches currently in -mm which might be from joe@perches.com are
 
