@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-mfd-f-patterns.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:18 -0800
-Message-ID: <201112092343.pB9NhIoP013504@wpaz5.hot.corp.google.com>
+Subject: + maintainers-update-sdhci-f-patterns.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:19 -0800
+Message-ID: <201112092343.pB9NhJ8X028242@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:53787 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754954Ab1LIXnT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:19 -0500
-Received: by mail-gy0-f202.google.com with SMTP id r18so415948ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:19 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:49985 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754965Ab1LIXnV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:21 -0500
+Received: by mail-gx0-f202.google.com with SMTP id v2so89147ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, linus.walleij@linaro.org
+Cc: joe@perches.com, cbouatmailru@gmail.com, cjb@laptop.org, shawn.guo@linaro.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update mfd F: patterns
+     Subject: MAINTAINERS: update sdhci F: patterns
 has been added to the -mm tree.  Its filename is
-     maintainers-update-mfd-f-patterns.patch
+     maintainers-update-sdhci-f-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,32 +36,42 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update mfd F: patterns
+Subject: MAINTAINERS: update sdhci F: patterns
 
-commit 8959e74399c ("mfd: Delete ab3550 driver") removed the driver,
-update the patterns.
+commit 38576af1f8c ("mmc: sdhci: make sdhci-of device drivers self
+registered") moved the files around.  Update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Chris Ball <cjb@laptop.org>
+Acked-by: Anton Vorontsov <cbouatmailru@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-mfd-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-mfd-f-patterns
+diff -puN MAINTAINERS~maintainers-update-sdhci-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-sdhci-f-patterns
 +++ a/MAINTAINERS
-@@ -1183,7 +1183,6 @@ L:	linux-arm-kernel@lists.infradead.org 
+@@ -5854,13 +5854,14 @@ L:	linux-mmc@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cjb/mmc.git
  S:	Maintained
- F:	arch/arm/mach-ux500/
- F:	drivers/dma/ste_dma40*
--F:	drivers/mfd/ab3550*
- F:	drivers/mfd/abx500*
- F:	drivers/mfd/ab8500*
- F:	drivers/mfd/stmpe*
+ F:	drivers/mmc/host/sdhci.*
++F:	drivers/mmc/host/sdhci-pltfm.[ch]
+ 
+ SECURE DIGITAL HOST CONTROLLER INTERFACE, OPEN FIRMWARE BINDINGS (SDHCI-OF)
+ M:	Anton Vorontsov <avorontsov@ru.mvista.com>
+ L:	linuxppc-dev@lists.ozlabs.org
+ L:	linux-mmc@vger.kernel.org
+ S:	Maintained
+-F:	drivers/mmc/host/sdhci-of.*
++F:	drivers/mmc/host/sdhci-pltfm.[ch]
+ 
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) SAMSUNG DRIVER
+ M:	Ben Dooks <ben-linux@fluff.org>
 _
-Subject: Subject: MAINTAINERS: update mfd F: patterns
+Subject: Subject: MAINTAINERS: update sdhci F: patterns
 
 Patches currently in -mm which might be from joe@perches.com are
 
