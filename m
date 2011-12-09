@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mips-randomize-pie-load-address.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:04 -0800
-Message-ID: <201112092343.pB9Nh5DD004033@wpaz9.hot.corp.google.com>
+Subject: + page_cgroup-add-helper-function-to-get-swap_cgroup.patch added to -mm tree
+Date: Fri, 09 Dec 2011 15:43:02 -0800
+Message-ID: <201112092343.pB9Nh2Wj027895@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:59959 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752442Ab1LIXnI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:08 -0500
-Received: by mail-yx0-f202.google.com with SMTP id m5so456747yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:07 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:53787 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752338Ab1LIXnF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:05 -0500
+Received: by ghrr18 with SMTP id r18so415948ghr.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ddaney.cavm@gmail.com, david.daney@cavium.com, hpa@zytor.com, linux@arm.linux.org.uk, mingo@redhat.com, ralf@linux-mips.org, tglx@linutronix.de, viro@zeniv.linux.org.uk
+Cc: lliubbo@gmail.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: MIPS: randomize PIE load address
+     Subject: page_cgroup: add helper function to get swap_cgroup
 has been added to the -mm tree.  Its filename is
-     mips-randomize-pie-load-address.patch
+     page_cgroup-add-helper-function-to-get-swap_cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,41 +35,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: MIPS: randomize PIE load address
+From: Bob Liu <lliubbo@gmail.com>
+Subject: page_cgroup: add helper function to get swap_cgroup
 
-... by selecting ARCH_BINFMT_ELF_RANDOMIZE_PIE
+There are multiple places which need to get the swap_cgroup address, so
+add a helper function:
 
-Signed-off-by: David Daney <david.daney@cavium.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+static struct swap_cgroup *swap_cgroup_getsc(swp_entry_t ent,
+                                struct swap_cgroup_ctrl **ctrl);
+to simplify the code.
+
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_cgroup.c |   57 ++++++++++++++++++---------------------------
+ 1 file changed, 24 insertions(+), 33 deletions(-)
 
-diff -puN arch/mips/Kconfig~mips-randomize-pie-load-address arch/mips/Kconfig
---- a/arch/mips/Kconfig~mips-randomize-pie-load-address
-+++ a/arch/mips/Kconfig
-@@ -16,6 +16,7 @@ config MIPS
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
-+	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
- 	select RTC_LIB if !MACH_LOONGSON
- 	select GENERIC_ATOMIC64 if !64BIT
- 	select HAVE_DMA_ATTRS
-_
-Subject: Subject: MIPS: randomize PIE load address
-
-Patches currently in -mm which might be from ddaney.cavm@gmail.com are
-
-fs-binfmt_elf-create-kconfig-variable-for-pie-randomization.patch
-mips-randomize-pie-load-address.patch
-
+diff -puN mm/page_cgroup.c~page_cgroup-add-helper-function-to-get-swap_cgroup mm/page_cgroup.c
+--- a/mm/page_cgroup.c~page_cgroup-add-helper-function-to-get-swap_cgroup
++++ a/mm/page_cgroup.c
+@@ -376,6 +376,27 @@ not_enough_page:
+ 	return -ENOMEM;
+ }
+ 
++static struct swap_cgroup *swap_cgroup_getsc(swp_entry_t ent,
++					struct swap_cgroup_ctrl **ctrl)
++{
++	int type = swp_type(ent);
++	unsigned long offset = swp_offset(ent);
++	unsigned long idx = offset / SC_PER_PAGE;
++	unsigned long pos = offset & SC_POS_MASK;
++	struct swap_cgroup_ctrl *temp_ctrl;
++	struct page *mappage;
++	struct swap_cgroup *sc;
++
++	temp_ctrl = &swap_cgroup_ctrl[type];
++	if (ctrl)
++		*ctrl = temp_ctrl;
++
++	mappage = temp_ctrl->map[idx];
++	sc = page_address(mappage);
++	sc += pos;
++	return sc;
++}
++
+ /**
+  * swap_cgroup_cmpxchg - cmpxchg mem_cgroup's id for this swp_entry.
+  * @end: swap entry to be cmpxchged
+@@ -388,21 +409,13 @@ not_enough_page:
+ unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
+ 					unsigned short old, unsigned short new)
+ {
+-	int type = swp_type(ent);
+-	unsigned long offset = swp_offset(ent);
+-	unsigned long idx = offset / SC_PER_PAGE;
+-	unsigned long pos = offset & SC_POS_MASK;
+ 	struct swap_cgroup_ctrl *ctrl;
+-	struct page *mappage;
+ 	struct swap_cgroup *sc;
+ 	unsigned long flags;
+ 	unsigned short retval;
+ 
+-	ctrl = &swap_cgroup_ctrl[type];
++	sc = swap_cgroup_getsc(ent, &ctrl);
+ 
+-	mappage = ctrl->map[idx];
+-	sc = page_address(mappage);
+-	sc += pos;
+ 	spin_lock_irqsave(&ctrl->lock, flags);
+ 	retval = sc->id;
+ 	if (retval == old)
+@@ -423,21 +436,13 @@ unsigned short swap_cgroup_cmpxchg(swp_e
+  */
+ unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
+ {
+-	int type = swp_type(ent);
+-	unsigned long offset = swp_offset(ent);
+-	unsigned long idx = offset / SC_PER_PAGE;
+-	unsigned long pos = offset & SC_POS_MASK;
+ 	struct swap_cgroup_ctrl *ctrl;
+-	struct page *mappage;
+ 	struct swap_cgroup *sc;
+ 	unsigned short old;
+ 	unsigned long flags;
+ 
+-	ctrl = &swap_cgroup_ctrl[type];
++	sc = swap_cgroup_getsc(ent, &ctrl);
+ 
+-	mappage = ctrl->map[idx];
+-	sc = page_address(mappage);
+-	sc += pos;
+ 	spin_lock_irqsave(&ctrl->lock, flags);
+ 	old = sc->id;
+ 	sc->id = id;
+@@ -454,21 +459,7 @@ unsigned short swap_cgroup_record(swp_en
+  */
+ unsigned short lookup_swap_cgroup(swp_entry_t ent)
+ {
+-	int type = swp_type(ent);
+-	unsigned long offset = swp_offset(ent);
+-	unsigned long idx = offset / SC_PER_PAGE;
+-	unsigned long pos = offset & SC_POS_MASK;
+-	struct swap_cgroup_ctrl *ctrl;
+-	struct page *mappage;
+-	struct swap_cgroup *sc;
+-	unsigned short ret;
