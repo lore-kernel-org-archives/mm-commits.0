@@ -1,138 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmscan-use-atomic-long-for-shrinker-batching.patch removed from -mm tree
-Date: Fri, 09 Dec 2011 12:07:44 -0800
-Message-ID: <201112092007.pB9K7iaD014111@wpaz1.hot.corp.google.com>
+Subject: [merged] thp-reduce-khugepaged-freezing-latency.patch removed from -mm tree
+Date: Fri, 09 Dec 2011 12:07:51 -0800
+Message-ID: <201112092007.pB9K7qQV027211@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:38322 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753809Ab1LIUHr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 15:07:47 -0500
-Received: by mail-ee0-f74.google.com with SMTP id c14so73205eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 12:07:46 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:55076 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754691Ab1LIUHy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 15:07:54 -0500
+Received: by mail-gy0-f202.google.com with SMTP id r18so393517ghr.1
+        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 12:07:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@openvz.org, david@fromorbit.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, jslaby@suse.cz, oleg@redhat.com, rjw@suse.com, srivatsa.bhat@linux.vnet.ibm.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: use atomic-long for shrinker batching
+     Subject: thp: reduce khugepaged freezing latency
 has been removed from the -mm tree.  Its filename was
-     vmscan-use-atomic-long-for-shrinker-batching.patch
+     thp-reduce-khugepaged-freezing-latency.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: vmscan: use atomic-long for shrinker batching
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp: reduce khugepaged freezing latency
 
-Use atomic-long operations instead of looping around cmpxchg().
+khugepaged can sometimes cause suspend to fail, requiring that the user
+retry the suspend operation.
 
-[akpm@linux-foundation.org: massage atomic.h inclusions]
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Dave Chinner <david@fromorbit.com>
+Use wait_event_freezable_timeout() instead of
+schedule_timeout_interruptible() to avoid missing freezer wakeups.  A
+try_to_freeze() would have been needed in the khugepaged_alloc_hugepage
+tight loop too in case of the allocation failing repeatedly, and
+wait_event_freezable_timeout will provide it too.
+
+khugepaged would still freeze just fine by trying again the next minute
+but it's better if it freezes immediately.
+
+Reported-by: Jiri Slaby <jslaby@suse.cz>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Tested-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h       |    2 +-
- include/linux/mm.h       |    1 +
- include/linux/shrinker.h |    2 +-
- mm/vmscan.c              |   17 +++++++----------
- 4 files changed, 10 insertions(+), 12 deletions(-)
+ mm/huge_memory.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/fs.h~vmscan-use-atomic-long-for-shrinker-batching include/linux/fs.h
---- a/include/linux/fs.h~vmscan-use-atomic-long-for-shrinker-batching
-+++ a/include/linux/fs.h
-@@ -393,8 +393,8 @@ struct inodes_stat_t {
- #include <linux/semaphore.h>
- #include <linux/fiemap.h>
- #include <linux/rculist_bl.h>
--#include <linux/shrinker.h>
- #include <linux/atomic.h>
-+#include <linux/shrinker.h>
+diff -puN mm/huge_memory.c~thp-reduce-khugepaged-freezing-latency mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-reduce-khugepaged-freezing-latency
++++ a/mm/huge_memory.c
+@@ -2259,12 +2259,8 @@ static void khugepaged_do_scan(struct pa
  
- #include <asm/byteorder.h>
- 
-diff -puN include/linux/mm.h~vmscan-use-atomic-long-for-shrinker-batching include/linux/mm.h
---- a/include/linux/mm.h~vmscan-use-atomic-long-for-shrinker-batching
-+++ a/include/linux/mm.h
-@@ -10,6 +10,7 @@
- #include <linux/mmzone.h>
- #include <linux/rbtree.h>
- #include <linux/prio_tree.h>
-+#include <linux/atomic.h>
- #include <linux/debug_locks.h>
- #include <linux/mm_types.h>
- #include <linux/range.h>
-diff -puN include/linux/shrinker.h~vmscan-use-atomic-long-for-shrinker-batching include/linux/shrinker.h
---- a/include/linux/shrinker.h~vmscan-use-atomic-long-for-shrinker-batching
-+++ a/include/linux/shrinker.h
-@@ -35,7 +35,7 @@ struct shrinker {
- 
- 	/* These are for internal use */
- 	struct list_head list;
--	long nr;	/* objs pending delete */
-+	atomic_long_t nr_in_batch; /* objs pending delete */
- };
- #define DEFAULT_SEEKS 2 /* A good number if you don't know better. */
- extern void register_shrinker(struct shrinker *);
-diff -puN mm/vmscan.c~vmscan-use-atomic-long-for-shrinker-batching mm/vmscan.c
---- a/mm/vmscan.c~vmscan-use-atomic-long-for-shrinker-batching
-+++ a/mm/vmscan.c
-@@ -183,7 +183,7 @@ static unsigned long zone_nr_lru_pages(s
-  */
- void register_shrinker(struct shrinker *shrinker)
+ static void khugepaged_alloc_sleep(void)
  {
--	shrinker->nr = 0;
-+	atomic_long_set(&shrinker->nr_in_batch, 0);
- 	down_write(&shrinker_rwsem);
- 	list_add_tail(&shrinker->list, &shrinker_list);
- 	up_write(&shrinker_rwsem);
-@@ -264,9 +264,7 @@ unsigned long shrink_slab(struct shrink_
- 		 * and zero it so that other concurrent shrinker invocations
- 		 * don't also do this scanning work.
- 		 */
--		do {
--			nr = shrinker->nr;
--		} while (cmpxchg(&shrinker->nr, nr, 0) != nr);
-+		nr = atomic_long_xchg(&shrinker->nr_in_batch, 0);
+-	DEFINE_WAIT(wait);
+-	add_wait_queue(&khugepaged_wait, &wait);
+-	schedule_timeout_interruptible(
+-		msecs_to_jiffies(
+-			khugepaged_alloc_sleep_millisecs));
+-	remove_wait_queue(&khugepaged_wait, &wait);
++	wait_event_freezable_timeout(khugepaged_wait, false,
++			msecs_to_jiffies(khugepaged_alloc_sleep_millisecs));
+ }
  
- 		total_scan = nr;
- 		delta = (4 * nr_pages_scanned) / shrinker->seeks;
-@@ -328,12 +326,11 @@ unsigned long shrink_slab(struct shrink_
- 		 * manner that handles concurrent updates. If we exhausted the
- 		 * scan, there is no need to do an update.
- 		 */
--		do {
--			nr = shrinker->nr;
--			new_nr = total_scan + nr;
--			if (total_scan <= 0)
--				break;
--		} while (cmpxchg(&shrinker->nr, nr, new_nr) != nr);
-+		if (total_scan > 0)
-+			new_nr = atomic_long_add_return(total_scan,
-+					&shrinker->nr_in_batch);
-+		else
-+			new_nr = atomic_long_read(&shrinker->nr_in_batch);
- 
- 		trace_mm_shrink_slab_end(shrinker, shrink_ret, nr, new_nr);
- 	}
+ #ifndef CONFIG_NUMA
+@@ -2313,14 +2309,10 @@ static void khugepaged_loop(void)
+ 		if (unlikely(kthread_should_stop()))
+ 			break;
+ 		if (khugepaged_has_work()) {
+-			DEFINE_WAIT(wait);
+ 			if (!khugepaged_scan_sleep_millisecs)
+ 				continue;
+-			add_wait_queue(&khugepaged_wait, &wait);
+-			schedule_timeout_interruptible(
+-				msecs_to_jiffies(
+-					khugepaged_scan_sleep_millisecs));
+-			remove_wait_queue(&khugepaged_wait, &wait);
++			wait_event_freezable_timeout(khugepaged_wait, false,
++			    msecs_to_jiffies(khugepaged_scan_sleep_millisecs));
+ 		} else if (khugepaged_enabled())
+ 			wait_event_freezable(khugepaged_wait,
+ 					     khugepaged_wait_event());
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-linux-next.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
-mm-add-free_hot_cold_page_list-helper.patch
-mm-add-free_hot_cold_page_list-helper-v2.patch
-mm-add-free_hot_cold_page_list-helper-v3.patch
-mm-remove-unused-pagevec_free.patch
-mm-tracepoint-rename-page-free-events.patch
-mm-tracepoint-fixup-documentation-and-examples.patch
-mm-fix-page-faults-detection-in-swap-token-logic.patch
-mm-account-reaped-page-cache-on-inode-cache-pruning.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
+mm-more-intensive-memory-corruption-debug.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+pm-hibernate-do-not-count-debug-pages-as-savable.patch
+slub-min-order-when-debug_guardpage_minorder-0.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+thp-improve-the-error-code-path.patch
+thp-remove-unnecessary-tlb-flush-for-mprotect.patch
+thp-add-tlb_remove_pmd_tlb_entry.patch
+thp-improve-order-in-lru-list-for-split-huge-page.patch
 
