@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-add-hidepid=-and-gid=-mount-options-fix.patch added to -mm tree
-Date: Mon, 12 Dec 2011 15:13:58 -0800
-Message-ID: <201112122313.pBCNDwJq029798@wpaz1.hot.corp.google.com>
+Subject: + ceph-cifs-nfs-fuse-boolean-and-or-confusion.patch added to -mm tree
+Date: Mon, 12 Dec 2011 15:30:51 -0800
+Message-ID: <201112122330.pBCNUpA9010353@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:36603 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753754Ab1LLXOC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 18:14:02 -0500
-Received: by eekc1 with SMTP id c1so17851eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 15:14:01 -0800 (PST)
+Received: from mail-qw0-f74.google.com ([209.85.216.74]:61220 "EHLO
+	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753171Ab1LLXa4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 18:30:56 -0500
+Received: by qadb14 with SMTP id b14so949078qad.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 15:30:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: segoon@openwall.com, adobriyan@gmail.com, hughd@google.com
+Cc: roel.kluin@gmail.com, Trond.Myklebust@netapp.com, miklos@szeredi.hu, sage@newdream.net, sfrench@samba.org
 
 
 The patch titled
-     Subject: proc: fix task_struct memleak
+     Subject: ceph, cifs, nfs, fuse: boolean and / or confusion
 has been added to the -mm tree.  Its filename is
-     procfs-add-hidepid=-and-gid=-mount-options-fix.patch
+     ceph-cifs-nfs-fuse-boolean-and-or-confusion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,59 +35,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Vasiliy Kulikov <segoon@openwall.com>
-Subject: proc: fix task_struct memleak
+From: roel <roel.kluin@gmail.com>
+Subject: ceph, cifs, nfs, fuse: boolean and / or confusion
 
-proc_pid_permission() doesn't put task_struct on every /proc/$pid/
-access.  A demo from Hugh Dickins:
+The test not SEEK_CUR or not SEEK_SET always evaluates to true.
 
-while :; do ps; grep KernelStack /proc/meminfo; sleep 1; done
-
-Reported-by: Hugh Dickins <hughd@google.com>
-Tested-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+Cc: Sage Weil <sage@newdream.net>
+Cc: Steve French <sfrench@samba.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ fs/ceph/file.c   |    2 +-
+ fs/cifs/cifsfs.c |    2 +-
+ fs/fuse/file.c   |    2 +-
+ fs/nfs/file.c    |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/base.c~procfs-add-hidepid=-and-gid=-mount-options-fix fs/proc/base.c
---- a/fs/proc/base.c~procfs-add-hidepid=-and-gid=-mount-options-fix
-+++ a/fs/proc/base.c
-@@ -649,9 +649,14 @@ static bool has_pid_permissions(struct p
- static int proc_pid_permission(struct inode *inode, int mask)
- {
- 	struct pid_namespace *pid = inode->i_sb->s_fs_info;
--	struct task_struct *task = get_proc_task(inode);
-+	struct task_struct *task;
-+	bool has_perms;
-+
-+	task = get_proc_task(inode);
-+	has_perms = has_pid_permissions(pid, task, 1);
-+	put_task_struct(task);
+diff -puN fs/ceph/file.c~ceph-cifs-nfs-fuse-boolean-and-or-confusion fs/ceph/file.c
+--- a/fs/ceph/file.c~ceph-cifs-nfs-fuse-boolean-and-or-confusion
++++ a/fs/ceph/file.c
+@@ -797,7 +797,7 @@ static loff_t ceph_llseek(struct file *f
  
--	if (!has_pid_permissions(pid, task, 1)) {
-+	if (!has_perms) {
- 		if (pid->hide_pid == 2) {
- 			/*
- 			 * Let's make getdents(), stat(), and open()
+ 	mutex_lock(&inode->i_mutex);
+ 	__ceph_do_pending_vmtruncate(inode);
+-	if (origin != SEEK_CUR || origin != SEEK_SET) {
++	if (origin != SEEK_CUR && origin != SEEK_SET) {
+ 		ret = ceph_do_getattr(inode, CEPH_STAT_CAP_SIZE);
+ 		if (ret < 0) {
+ 			offset = ret;
+diff -puN fs/cifs/cifsfs.c~ceph-cifs-nfs-fuse-boolean-and-or-confusion fs/cifs/cifsfs.c
+--- a/fs/cifs/cifsfs.c~ceph-cifs-nfs-fuse-boolean-and-or-confusion
++++ a/fs/cifs/cifsfs.c
+@@ -703,7 +703,7 @@ static loff_t cifs_llseek(struct file *f
+ 	 * origin == SEEK_END || SEEK_DATA || SEEK_HOLE => we must revalidate
+ 	 * the cached file length
+ 	 */
+-	if (origin != SEEK_SET || origin != SEEK_CUR) {
++	if (origin != SEEK_SET && origin != SEEK_CUR) {
+ 		int rc;
+ 		struct inode *inode = file->f_path.dentry->d_inode;
+ 
+diff -puN fs/fuse/file.c~ceph-cifs-nfs-fuse-boolean-and-or-confusion fs/fuse/file.c
+--- a/fs/fuse/file.c~ceph-cifs-nfs-fuse-boolean-and-or-confusion
++++ a/fs/fuse/file.c
+@@ -1556,7 +1556,7 @@ static loff_t fuse_file_llseek(struct fi
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 
+ 	mutex_lock(&inode->i_mutex);
+-	if (origin != SEEK_CUR || origin != SEEK_SET) {
++	if (origin != SEEK_CUR && origin != SEEK_SET) {
+ 		retval = fuse_update_attributes(inode, NULL, file, NULL);
+ 		if (retval)
+ 			goto exit;
+diff -puN fs/nfs/file.c~ceph-cifs-nfs-fuse-boolean-and-or-confusion fs/nfs/file.c
+--- a/fs/nfs/file.c~ceph-cifs-nfs-fuse-boolean-and-or-confusion
++++ a/fs/nfs/file.c
+@@ -147,7 +147,7 @@ static loff_t nfs_file_llseek(struct fil
+ 	 * origin == SEEK_END || SEEK_DATA || SEEK_HOLE => we must revalidate
+ 	 * the cached file length
+ 	 */
+-	if (origin != SEEK_SET || origin != SEEK_CUR) {
++	if (origin != SEEK_SET && origin != SEEK_CUR) {
+ 		struct inode *inode = filp->f_mapping->host;
+ 
+ 		int retval = nfs_revalidate_file_size(inode, filp);
 _
-Subject: Subject: proc: fix task_struct memleak
+Subject: Subject: ceph, cifs, nfs, fuse: boolean and / or confusion
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from roel.kluin@gmail.com are
 
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
-procfs-introduce-the-proc-pid-map_files-directory.patch
-procfs-parse-mount-options.patch
-procfs-add-hidepid=-and-gid=-mount-options.patch
-procfs-remove-superfluous-debug-output.patch
-procfs-add-hidepid=-and-gid=-mount-options-fix.patch
-c-r-introduce-checkpoint_restore-symbol.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+linux-next.patch
+frv-duplicate-output_buffer-of-e03.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+ceph-cifs-nfs-fuse-boolean-and-or-confusion.patch
 
