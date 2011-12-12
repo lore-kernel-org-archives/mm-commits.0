@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch added to -mm tree
-Date: Mon, 12 Dec 2011 13:54:10 -0800
-Message-ID: <201112122154.pBCLsBgX014255@wpaz1.hot.corp.google.com>
+Subject: + c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch added to -mm tree
+Date: Mon, 12 Dec 2011 13:54:02 -0800
+Message-ID: <201112122154.pBCLs7US029985@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:63409 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754167Ab1LLVyN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 16:54:13 -0500
-Received: by ggnv2 with SMTP id v2so358649ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 13:54:13 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:47242 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754167Ab1LLVyJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 16:54:09 -0500
+Received: by mail-qy0-f202.google.com with SMTP id g15so689996qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 13:54:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@openvz.org, akpm@linux-foundation.org, avagin@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org
 
 
 The patch titled
-     Subject: c/r: prctl: add PR_SET_MM codes to set up mm_struct entries
+     Subject: c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix
 has been added to the -mm tree.  Its filename is
-     c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
+     c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,222 +35,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: c/r: prctl: add PR_SET_MM codes to set up mm_struct entries
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix
 
-When we restore a task we need to set up text, data and data heap sizes
-from userspace to the values a task had at checkpoint time.  This patch
-adds auxilary prctl codes for that.
-
-While most of them have a statistical nature (their values are involved
-into calculation of /proc/<pid>/statm output) the start_brk and brk values
-are used to compute an allowed size of program data segment expansion. 
-Which means an arbitrary changes of this values might be dangerous
-operation.  So to restrict access the following requirements applied to
-prctl calls:
-
- - The process has to have CAP_SYS_ADMIN capability granted.
- - For all opcodes except start_brk/brk members an appropriate
-   VMA area must exist and should fit certain VMA flags,
-   such as:
-   - code segment must be executable but not writable;
-   - data segment must not be executable.
-
-start_brk/brk values must not intersect with data segment and must not
-exceed RLIMIT_DATA resource limit.
-
-Still the main guard is CAP_SYS_ADMIN capability check.
-
-Note the kernel should be compiled with CONFIG_CHECKPOINT_RESTORE support
-otherwise these prctl calls will return -EINVAL.
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/prctl.h |   12 ++++
- kernel/sys.c          |  120 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 132 insertions(+)
+ Documentation/filesystems/proc.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/prctl.h~c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries include/linux/prctl.h
---- a/include/linux/prctl.h~c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries
-+++ a/include/linux/prctl.h
-@@ -102,4 +102,16 @@
+diff -puN Documentation/filesystems/proc.txt~c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix
++++ a/Documentation/filesystems/proc.txt
+@@ -309,7 +309,7 @@ Table 1-4: Contents of the stat files (a
+   cgtime        guest time of the task children in jiffies
+   start_data    address above which program data+bss is placed
+   end_data      address below which program data+bss is placed
+-  start_brk     address above which program heap can be expaned with brk() call
++  start_brk     address above which program heap can be expanded with brk()
+ ..............................................................................
  
- #define PR_MCE_KILL_GET 34
- 
-+/*
-+ * Tune up process memory map specifics.
-+ */
-+#define PR_SET_MM		35
-+# define PR_SET_MM_START_CODE		1
-+# define PR_SET_MM_END_CODE		2
-+# define PR_SET_MM_START_DATA		3
-+# define PR_SET_MM_END_DATA		4
-+# define PR_SET_MM_START_STACK		5
-+# define PR_SET_MM_START_BRK		6
-+# define PR_SET_MM_BRK			7
-+
- #endif /* _LINUX_PRCTL_H */
-diff -puN kernel/sys.c~c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries kernel/sys.c
---- a/kernel/sys.c~c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries
-+++ a/kernel/sys.c
-@@ -1692,6 +1692,123 @@ SYSCALL_DEFINE1(umask, int, mask)
- 	return mask;
- }
- 
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+static int prctl_set_mm(int opt, unsigned long addr,
-+			unsigned long arg4, unsigned long arg5)
-+{
-+	unsigned long rlim = rlimit(RLIMIT_DATA);
-+	unsigned long vm_req_flags;
-+	unsigned long vm_bad_flags;
-+	struct vm_area_struct *vma;
-+	int error = 0;
-+
-+	if (arg4 | arg5)
-+		return -EINVAL;
-+
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	if (addr >= TASK_SIZE)
-+		return -EINVAL;
-+
-+	down_read(&current->mm->mmap_sem);
-+	vma = find_vma(current->mm, addr);
-+
-+	if (opt != PR_SET_MM_START_BRK && opt != PR_SET_MM_BRK) {
-+		/* It must be existing VMA */
-+		if (!vma || vma->vm_start > addr)
-+			goto out;
-+	}
-+
-+	error = -EINVAL;
-+	switch (opt) {
-+	case PR_SET_MM_START_CODE:
-+	case PR_SET_MM_END_CODE:
-+		vm_req_flags = VM_READ | VM_EXEC;
-+		vm_bad_flags = VM_WRITE | VM_MAYSHARE;
-+
-+		if ((vma->vm_flags & vm_req_flags) != vm_req_flags ||
-+		    (vma->vm_flags & vm_bad_flags))
-+			goto out;
-+
-+		if (opt == PR_SET_MM_START_CODE)
-+			current->mm->start_code = addr;
-+		else
-+			current->mm->end_code = addr;
-+		break;
-+
-+	case PR_SET_MM_START_DATA:
-+	case PR_SET_MM_END_DATA:
-+		vm_req_flags = VM_READ | VM_WRITE;
-+		vm_bad_flags = VM_EXEC | VM_MAYSHARE;
-+
-+		if ((vma->vm_flags & vm_req_flags) != vm_req_flags ||
-+		    (vma->vm_flags & vm_bad_flags))
-+			goto out;
-+
-+		if (opt == PR_SET_MM_START_DATA)
-+			current->mm->start_data = addr;
-+		else
-+			current->mm->end_data = addr;
-+		break;
-+
-+	case PR_SET_MM_START_STACK:
-+
-+#ifdef CONFIG_STACK_GROWSUP
-+		vm_req_flags = VM_READ | VM_WRITE | VM_GROWSUP;
-+#else
-+		vm_req_flags = VM_READ | VM_WRITE | VM_GROWSDOWN;
-+#endif
-+		if ((vma->vm_flags & vm_req_flags) != vm_req_flags)
-+			goto out;
-+
-+		current->mm->start_stack = addr;
-+		break;
-+
-+	case PR_SET_MM_START_BRK:
-+		if (addr <= current->mm->end_data)
-+			goto out;
-+
-+		if (rlim < RLIM_INFINITY &&
-+		    (current->mm->brk - addr) +
-+		    (current->mm->end_data - current->mm->start_data) > rlim)
-+			goto out;
-+
-+		current->mm->start_brk = addr;
-+		break;
-+
-+	case PR_SET_MM_BRK:
-+		if (addr <= current->mm->end_data)
-+			goto out;
-+
-+		if (rlim < RLIM_INFINITY &&
-+		    (addr - current->mm->start_brk) +
-+		    (current->mm->end_data - current->mm->start_data) > rlim)
-+			goto out;
-+
-+		current->mm->brk = addr;
-+		break;
-+
-+	default:
-+		error = -EINVAL;
-+		goto out;
-+	}
-+
-+	error = 0;
-+
-+out:
-+	up_read(&current->mm->mmap_sem);
-+
-+	return error;
-+}
-+#else /* CONFIG_CHECKPOINT_RESTORE */
-+static int prctl_set_mm(int opt, unsigned long addr,
-+			unsigned long arg4, unsigned long arg5)
-+{
-+	return -EINVAL;
-+}
-+#endif
-+
- SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
- 		unsigned long, arg4, unsigned long, arg5)
- {
-@@ -1841,6 +1958,9 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 			else
- 				error = PR_MCE_KILL_DEFAULT;
- 			break;
-+		case PR_SET_MM:
-+			error = prctl_set_mm(arg2, arg3, arg4, arg5);
-+			break;
- 		default:
- 			error = -EINVAL;
- 			break;
+ The /proc/PID/maps file containing the currently mapped memory regions and
 _
-Subject: Subject: c/r: prctl: add PR_SET_MM codes to set up mm_struct entries
+Subject: Subject: c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
-procfs-introduce-the-proc-pid-map_files-directory.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+mm-simplify-find_vma_prev-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
 procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-sysctl-add-the-kernelns_last_pid-control.patch
-c-r-introduce-checkpoint_restore-symbol.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
 c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
 c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
 c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
