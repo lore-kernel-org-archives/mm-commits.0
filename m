@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 12 Dec 2011 15:00:10 -0800
-Message-ID: <201112122300.pBCN0ACB010661@wpaz9.hot.corp.google.com>
+Subject: + procfs-add-hidepid=-and-gid=-mount-options-fix.patch added to -mm tree
+Date: Mon, 12 Dec 2011 15:13:58 -0800
+Message-ID: <201112122313.pBCNDwJq029798@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bw0-f74.google.com ([209.85.214.74]:60572 "EHLO
-	mail-bw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750790Ab1LLXAP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 18:00:15 -0500
-Received: by bkas6 with SMTP id s6so150061bka.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 15:00:13 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:36603 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753754Ab1LLXOC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 18:14:02 -0500
+Received: by eekc1 with SMTP id c1so17851eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 15:14:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, penberg@cs.helsinki.fi, rientjes@google.com, sgruszka@redhat.com
+Cc: segoon@openwall.com, adobriyan@gmail.com, hughd@google.com
 
 
 The patch titled
-     Subject: slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes
+     Subject: proc: fix task_struct memleak
 has been added to the -mm tree.  Its filename is
-     slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+     procfs-add-hidepid=-and-gid=-mount-options-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,101 +35,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: proc: fix task_struct memleak
 
-Cc: David Rientjes <rientjes@google.com>
+proc_pid_permission() doesn't put task_struct on every /proc/$pid/
+access.  A demo from Hugh Dickins:
 
-ERROR: trailing whitespace
-#22: FILE: Documentation/ABI/testing/sysfs-kernel-slab:348:
-+^I^Ipossible depending on its characteristics. $
+while :; do ps; grep KernelStack /proc/meminfo; sleep 1; done
 
-total: 1 errors, 0 warnings, 20 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Stanislaw Gruszka <sgruszka@redhat.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Tested-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-slab |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/base.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes Documentation/ABI/testing/sysfs-kernel-slab
---- a/Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes
-+++ a/Documentation/ABI/testing/sysfs-kernel-slab
-@@ -345,7 +345,7 @@ Description:
- 		allocated.  It is writable and can be changed to increase the
- 		number of objects per slab.  If a slab cannot be allocated
- 		because of fragmentation, SLUB will retry with the minimum order
--		possible depending on its characteristics. 
-+		possible depending on its characteristics.
- 		When debug_guardpage_minorder > 0 parameter is specified, the
- 		minimum possible order is used and cannot be changed.
+diff -puN fs/proc/base.c~procfs-add-hidepid=-and-gid=-mount-options-fix fs/proc/base.c
+--- a/fs/proc/base.c~procfs-add-hidepid=-and-gid=-mount-options-fix
++++ a/fs/proc/base.c
+@@ -649,9 +649,14 @@ static bool has_pid_permissions(struct p
+ static int proc_pid_permission(struct inode *inode, int mask)
+ {
+ 	struct pid_namespace *pid = inode->i_sb->s_fs_info;
+-	struct task_struct *task = get_proc_task(inode);
++	struct task_struct *task;
++	bool has_perms;
++
++	task = get_proc_task(inode);
++	has_perms = has_pid_permissions(pid, task, 1);
++	put_task_struct(task);
  
+-	if (!has_pid_permissions(pid, task, 1)) {
++	if (!has_perms) {
+ 		if (pid->hide_pid == 2) {
+ 			/*
+ 			 * Let's make getdents(), stat(), and open()
 _
-Subject: Subject: slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes
+Subject: Subject: proc: fix task_struct memleak
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from segoon@openwall.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
+procfs-parse-mount-options.patch
+procfs-add-hidepid=-and-gid=-mount-options.patch
+procfs-remove-superfluous-debug-output.patch
+procfs-add-hidepid=-and-gid=-mount-options-fix.patch
+c-r-introduce-checkpoint_restore-symbol.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
 c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
 c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
