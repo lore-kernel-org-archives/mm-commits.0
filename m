@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + c-r-introduce-checkpoint_restore-symbol.patch added to -mm tree
-Date: Mon, 12 Dec 2011 13:53:49 -0800
-Message-ID: <201112122153.pBCLroWs029816@wpaz5.hot.corp.google.com>
+Subject: + c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch added to -mm tree
+Date: Mon, 12 Dec 2011 13:53:57 -0800
+Message-ID: <201112122153.pBCLrwSY006155@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:47242 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754175Ab1LLVx4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 16:53:56 -0500
-Received: by qcsg15 with SMTP id g15so689996qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 13:53:55 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:64512 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754167Ab1LLVyD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 16:54:03 -0500
+Received: by eekc1 with SMTP id c1so16287eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 13:54:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gorcunov@openvz.org, adobriyan@gmail.com, avagin@openvz.org, ebiederm@xmissi
 
 
 The patch titled
-     Subject: c/r: introduce CHECKPOINT_RESTORE symbol
+     Subject: c/r: procfs: add start_data, end_data, start_brk members to /proc/$pid/stat v4
 has been added to the -mm tree.  Its filename is
-     c-r-introduce-checkpoint_restore-symbol.patch
+     c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,52 +36,75 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: c/r: introduce CHECKPOINT_RESTORE symbol
+Subject: c/r: procfs: add start_data, end_data, start_brk members to /proc/$pid/stat v4
 
-For checkpoint/restore we need auxilary features being compiled into the
-kernel, such as additional prctl codes, /proc/<pid>/map_files and etc... 
-but same time these features are not mandatory for a regular kernel so
-CHECKPOINT_RESTORE config symbol should bring a way to disable them all at
-once if one wish to get rid of additional functionality.
+The mm->start_code/end_code, mm->start_data/end_data, mm->start_brk are
+involved into calculation of program text/data segment sizes (which might
+be seen in /proc/<pid>/statm) and into brk() call final address.
+
+For restore we need to know all these values.  While
+mm->start_code/end_code already present in /proc/$pid/stat, the rest
+members are not, so this patch brings them in.
+
+The restore procedure of these members is addressed in another patch using
+prctl().
 
 Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Cc: Vasiliy Kulikov <segoon@openwall.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/filesystems/proc.txt |    3 +++
+ fs/proc/array.c                    |    7 +++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN init/Kconfig~c-r-introduce-checkpoint_restore-symbol init/Kconfig
---- a/init/Kconfig~c-r-introduce-checkpoint_restore-symbol
-+++ a/init/Kconfig
-@@ -782,6 +782,17 @@ config DEBUG_BLK_CGROUP
+diff -puN Documentation/filesystems/proc.txt~c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4 Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4
++++ a/Documentation/filesystems/proc.txt
+@@ -307,6 +307,9 @@ Table 1-4: Contents of the stat files (a
+   blkio_ticks   time spent waiting for block IO
+   gtime         guest time of the task in jiffies
+   cgtime        guest time of the task children in jiffies
++  start_data    address above which program data+bss is placed
++  end_data      address below which program data+bss is placed
++  start_brk     address above which program heap can be expaned with brk() call
+ ..............................................................................
  
- endif # CGROUPS
+ The /proc/PID/maps file containing the currently mapped memory regions and
+diff -puN fs/proc/array.c~c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4 fs/proc/array.c
+--- a/fs/proc/array.c~c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4
++++ a/fs/proc/array.c
+@@ -464,7 +464,7 @@ static int do_task_stat(struct seq_file 
  
-+config CHECKPOINT_RESTORE
-+	bool "Checkpoint/restore support" if EXPERT
-+	default n
-+	help
-+	  Enables additional kernel features in a sake of checkpoint/restore.
-+	  In particular it adds auxiliary prctl codes to setup process text,
-+	  data and heap segment sizes, and a few additional /proc filesystem
-+	  entries.
-+
-+	  If unsure, say N here.
-+
- menuconfig NAMESPACES
- 	bool "Namespaces support" if EXPERT
- 	default !EXPERT
+ 	seq_printf(m, "%d (%s) %c %d %d %d %d %d %u %lu \
+ %lu %lu %lu %lu %lu %ld %ld %ld %ld %d 0 %llu %lu %ld %lu %lu %lu %lu %lu \
+-%lu %lu %lu %lu %lu %lu %lu %lu %d %d %u %u %llu %lu %ld\n",
++%lu %lu %lu %lu %lu %lu %lu %lu %d %d %u %u %llu %lu %ld %lu %lu %lu\n",
+ 		pid_nr_ns(pid, ns),
+ 		tcomm,
+ 		state,
+@@ -511,7 +511,10 @@ static int do_task_stat(struct seq_file 
+ 		task->policy,
+ 		(unsigned long long)delayacct_blkio_ticks(task),
+ 		cputime_to_clock_t(gtime),
+-		cputime_to_clock_t(cgtime));
++		cputime_to_clock_t(cgtime),
++		(mm && permitted) ? mm->start_data : 0,
++		(mm && permitted) ? mm->end_data : 0,
++		(mm && permitted) ? mm->start_brk : 0);
+ 	if (mm)
+ 		mmput(mm);
+ 	return 0;
 _
-Subject: Subject: c/r: introduce CHECKPOINT_RESTORE symbol
+Subject: Subject: c/r: procfs: add start_data, end_data, start_brk members to /proc/$pid/stat v4
 
 Patches currently in -mm which might be from gorcunov@openvz.org are
 
