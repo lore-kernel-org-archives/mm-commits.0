@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ld9040c-regulator-control-in-the-driver.patch added to -mm tree
-Date: Fri, 09 Dec 2011 15:43:40 -0800
-Message-ID: <201112092343.pB9NheRB004673@wpaz9.hot.corp.google.com>
+Subject: + c-r-introduce-checkpoint_restore-symbol.patch added to -mm tree
+Date: Mon, 12 Dec 2011 13:53:49 -0800
+Message-ID: <201112122153.pBCLroWs029816@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:33670 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244Ab1LIXnn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Dec 2011 18:43:43 -0500
-Received: by yenm5 with SMTP id m5so456801yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 09 Dec 2011 15:43:42 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:47242 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754175Ab1LLVx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Dec 2011 16:53:56 -0500
+Received: by qcsg15 with SMTP id g15so689996qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Dec 2011 13:53:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dh09.lee@samsung.com, FlorianSchandinat@gmx.de, inki.dae@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net
+Cc: gorcunov@openvz.org, adobriyan@gmail.com, avagin@openvz.org, ebiederm@xmission.com, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org
 
 
 The patch titled
-     Subject: backlight/ld9040.c: regulator control in the driver
+     Subject: c/r: introduce CHECKPOINT_RESTORE symbol
 has been added to the -mm tree.  Its filename is
-     backlight-ld9040c-regulator-control-in-the-driver.patch
+     c-r-introduce-checkpoint_restore-symbol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,155 +35,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Donghwa Lee <dh09.lee@samsung.com>
-Subject: backlight/ld9040.c: regulator control in the driver
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: c/r: introduce CHECKPOINT_RESTORE symbol
 
-This patch supports regulator power control in the driver.  Current ld9040
-driver was controlled power on/off sequence by callback function in the
-board file.  But, by doing this, there's no need to register lcd power
-on/off callback function in the board file.
+For checkpoint/restore we need auxilary features being compiled into the
+kernel, such as additional prctl codes, /proc/<pid>/map_files and etc... 
+but same time these features are not mandatory for a regular kernel so
+CHECKPOINT_RESTORE config symbol should bring a way to disable them all at
+once if one wish to get rid of additional functionality.
 
-Signed-off-by: Donghwa Lee <dh09.lee@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Inki Dae <inki.dae@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ld9040.c |   71 ++++++++++++++++++++++++-----
- 1 file changed, 59 insertions(+), 12 deletions(-)
+ init/Kconfig |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040c-regulator-control-in-the-driver drivers/video/backlight/ld9040.c
---- a/drivers/video/backlight/ld9040.c~backlight-ld9040c-regulator-control-in-the-driver
-+++ a/drivers/video/backlight/ld9040.c
-@@ -31,6 +31,7 @@
- #include <linux/lcd.h>
- #include <linux/backlight.h>
- #include <linux/module.h>
-+#include <linux/regulator/consumer.h>
+diff -puN init/Kconfig~c-r-introduce-checkpoint_restore-symbol init/Kconfig
+--- a/init/Kconfig~c-r-introduce-checkpoint_restore-symbol
++++ a/init/Kconfig
+@@ -782,6 +782,17 @@ config DEBUG_BLK_CGROUP
  
- #include "ld9040_gamma.h"
+ endif # CGROUPS
  
-@@ -53,8 +54,51 @@ struct ld9040 {
- 	struct lcd_device		*ld;
- 	struct backlight_device		*bd;
- 	struct lcd_platform_data	*lcd_pd;
++config CHECKPOINT_RESTORE
++	bool "Checkpoint/restore support" if EXPERT
++	default n
++	help
++	  Enables additional kernel features in a sake of checkpoint/restore.
++	  In particular it adds auxiliary prctl codes to setup process text,
++	  data and heap segment sizes, and a few additional /proc filesystem
++	  entries.
 +
-+	struct mutex			lock;
-+	bool  enabled;
-+};
++	  If unsure, say N here.
 +
-+static struct regulator_bulk_data supplies[] = {
-+	{ .supply = "vdd3", },
-+	{ .supply = "vci", },
- };
- 
-+static void ld9040_regulator_enable(struct ld9040 *lcd)
-+{
-+	int ret = 0;
-+	struct lcd_platform_data *pd = NULL;
-+
-+	pd = lcd->lcd_pd;
-+	mutex_lock(&lcd->lock);
-+	if (!lcd->enabled) {
-+		ret = regulator_bulk_enable(ARRAY_SIZE(supplies), supplies);
-+		if (ret)
-+			goto out;
-+
-+		lcd->enabled = true;
-+	}
-+	mdelay(pd->power_on_delay);
-+out:
-+	mutex_unlock(&lcd->lock);
-+}
-+
-+static void ld9040_regulator_disable(struct ld9040 *lcd)
-+{
-+	int ret = 0;
-+
-+	mutex_lock(&lcd->lock);
-+	if (lcd->enabled) {
-+		ret = regulator_bulk_disable(ARRAY_SIZE(supplies), supplies);
-+		if (ret)
-+			goto out;
-+
-+		lcd->enabled = false;
-+	}
-+out:
-+	mutex_unlock(&lcd->lock);
-+}
-+
- static const unsigned short seq_swreset[] = {
- 	0x01, COMMAND_ONLY,
- 	ENDDEF, 0x00
-@@ -532,13 +576,8 @@ static int ld9040_power_on(struct ld9040
- 		return -EFAULT;
- 	}
- 
--	if (!pd->power_on) {
--		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EFAULT;
--	} else {
--		pd->power_on(lcd->ld, 1);
--		mdelay(pd->power_on_delay);
--	}
-+	/* lcd power on */
-+	ld9040_regulator_enable(lcd);
- 
- 	if (!pd->reset) {
- 		dev_err(lcd->dev, "reset is NULL.\n");
-@@ -582,11 +621,8 @@ static int ld9040_power_off(struct ld904
- 
- 	mdelay(pd->power_off_delay);
- 
--	if (!pd->power_on) {
--		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EFAULT;
--	} else
--		pd->power_on(lcd->ld, 0);
-+	/* lcd power off */
-+	ld9040_regulator_disable(lcd);
- 
- 	return 0;
- }
-@@ -693,6 +729,14 @@ static int ld9040_probe(struct spi_devic
- 		goto out_free_lcd;
- 	}
- 
-+	mutex_init(&lcd->lock);
-+
-+	ret = regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
-+	if (ret) {
-+		dev_err(lcd->dev, "Failed to get regulators: %d\n", ret);
-+		goto out_free_lcd;
-+	}
-+
- 	ld = lcd_device_register("ld9040", &spi->dev, lcd, &ld9040_lcd_ops);
- 	if (IS_ERR(ld)) {
- 		ret = PTR_ERR(ld);
-@@ -739,6 +783,8 @@ static int ld9040_probe(struct spi_devic
- out_unregister_lcd:
- 	lcd_device_unregister(lcd->ld);
- out_free_lcd:
-+	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
-+
- 	kfree(lcd);
- 	return ret;
- }
-@@ -750,6 +796,7 @@ static int __devexit ld9040_remove(struc
- 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
- 	backlight_device_unregister(lcd->bd);
- 	lcd_device_unregister(lcd->ld);
-+	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
- 	kfree(lcd);
- 
- 	return 0;
+ menuconfig NAMESPACES
+ 	bool "Namespaces support" if EXPERT
+ 	default !EXPERT
 _
-Subject: Subject: backlight/ld9040.c: regulator control in the driver
+Subject: Subject: c/r: introduce CHECKPOINT_RESTORE symbol
 
-Patches currently in -mm which might be from dh09.lee@samsung.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 linux-next.patch
-backlight-ld9040c-regulator-control-in-the-driver.patch
+procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+sysctl-add-the-kernelns_last_pid-control.patch
+c-r-introduce-checkpoint_restore-symbol.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
 
