@@ -1,19 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-remove-order-assumption-from-__free_pages_bootmem.patch added to -mm tree
-Date: Tue, 13 Dec 2011 14:05:28 -0800
-Message-ID: <201112132205.pBDM5T2D019218@wpaz9.hot.corp.google.com>
+Subject: + mm-bootmem-try-harder-to-free-pages-in-bulk.patch added to -mm tree
+Date: Tue, 13 Dec 2011 14:05:37 -0800
+Message-ID: <201112132205.pBDM5b0K004037@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:40418 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752388Ab1LMWFd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Dec 2011 17:05:33 -0500
-Received: by lagu2 with SMTP id u2so6283lag.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 14:05:31 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:60864 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752575Ab1LMWFl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 17:05:41 -0500
+Received: by eekc1 with SMTP id c1so6199eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 14:05:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -21,11 +20,9 @@ Cc: hannes@cmpxchg.org, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     Subject: mm: page_alloc: remove order assumption from __free_pages=
-_bootmem()
+     Subject: mm: bootmem: try harder to free pages in bulk
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-remove-order-assumption-from-__free_pages_bootmem.pa=
-tch
+     mm-bootmem-try-harder-to-free-pages-in-bulk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,47 +41,89 @@ otm/
 
 ------------------------------------------------------
 =46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: remove order assumption from __free_pages_boot=
-mem()
+Subject: mm: bootmem: try harder to free pages in bulk
 
-Even though bootmem passes an order with the page to be freed,
-__free_pages_bootmem() assumes that 1 << order is always BITS_PER_LONG
-if non-zero.  While this happens to be true, it's not really robust.
-Remove that assumption and use 1 << order instead.
+The loop that frees pages to the page allocator while bootstrapping tri=
+es
+to free higher-order blocks only when the starting address is aligned t=
+o
+that block size.  Otherwise it will free all pages on that node
+one-by-one.
+
+Change it to free individual pages up to the first aligned block and th=
+en
+try higher-order frees from there.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/bootmem.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-order-assumption-from-__=
-free_pages_bootmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-order-assumption-from-__free=
-_pages_bootmem
-+++ a/mm/page_alloc.c
-@@ -755,12 +755,14 @@ void __meminit __free_pages_bootmem(stru
- 		__free_page(page);
- 	} else {
- 		int loop;
-+		unsigned int nr_pages =3D 1 << order;
-+		unsigned int loop;
+diff -puN mm/bootmem.c~mm-bootmem-try-harder-to-free-pages-in-bulk mm/b=
+ootmem.c
+--- a/mm/bootmem.c~mm-bootmem-try-harder-to-free-pages-in-bulk
++++ a/mm/bootmem.c
+@@ -171,7 +171,6 @@ void __init free_bootmem_late(unsigned l
 =20
- 		prefetchw(page);
--		for (loop =3D 0; loop < (1 << order); loop++) {
-+		for (loop =3D 0; loop < nr_pages; loop++) {
- 			struct page *p =3D &page[loop];
+ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdat=
+a)
+ {
+-	int aligned;
+ 	struct page *page;
+ 	unsigned long start, end, pages, count =3D 0;
 =20
--			if (loop + 1 < (1 << order))
-+			if (loop + 1 < nr_pages)
- 				prefetchw(p + 1);
- 			__ClearPageReserved(p);
- 			set_page_count(p, 0);
+@@ -181,14 +180,8 @@ static unsigned long __init free_all_boo
+ 	start =3D bdata->node_min_pfn;
+ 	end =3D bdata->node_low_pfn;
+=20
+-	/*
+-	 * If the start is aligned to the machines wordsize, we might
+-	 * be able to free pages in bulks of that order.
+-	 */
+-	aligned =3D !(start & (BITS_PER_LONG - 1));
+-
+-	bdebug("nid=3D%td start=3D%lx end=3D%lx aligned=3D%d\n",
+-		bdata - bootmem_node_data, start, end, aligned);
++	bdebug("nid=3D%td start=3D%lx end=3D%lx\n",
++		bdata - bootmem_node_data, start, end);
+=20
+ 	while (start < end) {
+ 		unsigned long *map, idx, vec;
+@@ -196,12 +189,17 @@ static unsigned long __init free_all_boo
+ 		map =3D bdata->node_bootmem_map;
+ 		idx =3D start - bdata->node_min_pfn;
+ 		vec =3D ~map[idx / BITS_PER_LONG];
+-
+-		if (aligned && vec =3D=3D ~0UL) {
++		/*
++		 * If we have a properly aligned and fully unreserved
++		 * BITS_PER_LONG block of pages in front of us, free
++		 * it in one go.
++		 */
++		if (IS_ALIGNED(start, BITS_PER_LONG) && vec =3D=3D ~0UL) {
+ 			int order =3D ilog2(BITS_PER_LONG);
+=20
+ 			__free_pages_bootmem(pfn_to_page(start), order);
+ 			count +=3D BITS_PER_LONG;
++			start +=3D BITS_PER_LONG;
+ 		} else {
+ 			unsigned long off =3D 0;
+=20
+@@ -214,8 +212,8 @@ static unsigned long __init free_all_boo
+ 				vec >>=3D 1;
+ 				off++;
+ 			}
++			start =3D ALIGN(start + 1, BITS_PER_LONG);
+ 		}
+-		start +=3D BITS_PER_LONG;
+ 	}
+=20
+ 	page =3D virt_to_page(bdata->node_bootmem_map);
 _
-Subject: Subject: mm: page_alloc: remove order assumption from __free_p=
-ages_bootmem()
+Subject: Subject: mm: bootmem: try harder to free pages in bulk
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
