@@ -1,28 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bootmem-try-harder-to-free-pages-in-bulk.patch added to -mm tree
-Date: Tue, 13 Dec 2011 14:05:37 -0800
-Message-ID: <201112132205.pBDM5b0K004037@wpaz1.hot.corp.google.com>
+Subject: + page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup.patch added to -mm tree
+Date: Tue, 13 Dec 2011 15:01:54 -0800
+Message-ID: <201112132301.pBDN1sAF013533@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:60864 "EHLO
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56328 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575Ab1LMWFl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 17:05:41 -0500
-Received: by eekc1 with SMTP id c1so6199eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 14:05:39 -0800 (PST)
+	with ESMTP id S1755440Ab1LMXCD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 18:02:03 -0500
+Received: by eekc1 with SMTP id c1so7898eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 15:02:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, u.kleine-koenig@pengutronix.de
+Cc: lliubbo@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: mm: bootmem: try harder to free pages in bulk
+     Subject: page_cgroup: cleanup lookup_swap_cgroup()
 has been added to the -mm tree.  Its filename is
-     mm-bootmem-try-harder-to-free-pages-in-bulk.patch
+     page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,136 +27,167 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-=46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: bootmem: try harder to free pages in bulk
+From: Bob Liu <lliubbo@gmail.com>
+Subject: page_cgroup: cleanup lookup_swap_cgroup()
 
-The loop that frees pages to the page allocator while bootstrapping tri=
-es
-to free higher-order blocks only when the starting address is aligned t=
-o
-that block size.  Otherwise it will free all pages on that node
-one-by-one.
+This patch is based on my previous patch:
+page_cgroup: add helper function to get swap_cgroup
 
-Change it to free individual pages up to the first aligned block and th=
-en
-try higher-order frees from there.
+As Johannes suggested, change the public interface to
+lookup_swap_cgroup_id(), replace swap_cgroup_getsc() with
+lookup_swap_cgroup() and do some extra cleanup.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+ include/linux/page_cgroup.h |    4 +--
+ mm/memcontrol.c             |    4 +--
+ mm/page_cgroup.c            |   37 +++++++++++++---------------------
+ 3 files changed, 19 insertions(+), 26 deletions(-)
 
-diff -puN mm/bootmem.c~mm-bootmem-try-harder-to-free-pages-in-bulk mm/b=
-ootmem.c
---- a/mm/bootmem.c~mm-bootmem-try-harder-to-free-pages-in-bulk
-+++ a/mm/bootmem.c
-@@ -171,7 +171,6 @@ void __init free_bootmem_late(unsigned l
-=20
- static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdat=
-a)
+diff -puN include/linux/page_cgroup.h~page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup
++++ a/include/linux/page_cgroup.h
+@@ -149,7 +149,7 @@ static inline void __init page_cgroup_in
+ extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
+ 					unsigned short old, unsigned short new);
+ extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id);
+-extern unsigned short lookup_swap_cgroup(swp_entry_t ent);
++extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
+ extern int swap_cgroup_swapon(int type, unsigned long max_pages);
+ extern void swap_cgroup_swapoff(int type);
+ #else
+@@ -161,7 +161,7 @@ unsigned short swap_cgroup_record(swp_en
+ }
+ 
+ static inline
+-unsigned short lookup_swap_cgroup(swp_entry_t ent)
++unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
  {
--	int aligned;
- 	struct page *page;
- 	unsigned long start, end, pages, count =3D 0;
-=20
-@@ -181,14 +180,8 @@ static unsigned long __init free_all_boo
- 	start =3D bdata->node_min_pfn;
- 	end =3D bdata->node_low_pfn;
-=20
--	/*
--	 * If the start is aligned to the machines wordsize, we might
--	 * be able to free pages in bulks of that order.
--	 */
--	aligned =3D !(start & (BITS_PER_LONG - 1));
--
--	bdebug("nid=3D%td start=3D%lx end=3D%lx aligned=3D%d\n",
--		bdata - bootmem_node_data, start, end, aligned);
-+	bdebug("nid=3D%td start=3D%lx end=3D%lx\n",
-+		bdata - bootmem_node_data, start, end);
-=20
- 	while (start < end) {
- 		unsigned long *map, idx, vec;
-@@ -196,12 +189,17 @@ static unsigned long __init free_all_boo
- 		map =3D bdata->node_bootmem_map;
- 		idx =3D start - bdata->node_min_pfn;
- 		vec =3D ~map[idx / BITS_PER_LONG];
--
--		if (aligned && vec =3D=3D ~0UL) {
-+		/*
-+		 * If we have a properly aligned and fully unreserved
-+		 * BITS_PER_LONG block of pages in front of us, free
-+		 * it in one go.
-+		 */
-+		if (IS_ALIGNED(start, BITS_PER_LONG) && vec =3D=3D ~0UL) {
- 			int order =3D ilog2(BITS_PER_LONG);
-=20
- 			__free_pages_bootmem(pfn_to_page(start), order);
- 			count +=3D BITS_PER_LONG;
-+			start +=3D BITS_PER_LONG;
- 		} else {
- 			unsigned long off =3D 0;
-=20
-@@ -214,8 +212,8 @@ static unsigned long __init free_all_boo
- 				vec >>=3D 1;
- 				off++;
- 			}
-+			start =3D ALIGN(start + 1, BITS_PER_LONG);
- 		}
--		start +=3D BITS_PER_LONG;
+ 	return 0;
+ }
+diff -puN mm/memcontrol.c~page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup mm/memcontrol.c
+--- a/mm/memcontrol.c~page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup
++++ a/mm/memcontrol.c
+@@ -2405,7 +2405,7 @@ struct mem_cgroup *try_get_mem_cgroup_fr
+ 			memcg = NULL;
+ 	} else if (PageSwapCache(page)) {
+ 		ent.val = page_private(page);
+-		id = lookup_swap_cgroup(ent);
++		id = lookup_swap_cgroup_id(ent);
+ 		rcu_read_lock();
+ 		memcg = mem_cgroup_lookup(id);
+ 		if (memcg && !css_tryget(&memcg->css))
+@@ -5158,7 +5158,7 @@ static int is_target_pte_for_mc(struct v
  	}
-=20
- 	page =3D virt_to_page(bdata->node_bootmem_map);
+ 	/* There is a swap entry and a page doesn't exist or isn't charged */
+ 	if (ent.val && !ret &&
+-			css_id(&mc.from->css) == lookup_swap_cgroup(ent)) {
++			css_id(&mc.from->css) == lookup_swap_cgroup_id(ent)) {
+ 		ret = MC_TARGET_SWAP;
+ 		if (target)
+ 			target->ent = ent;
+diff -puN mm/page_cgroup.c~page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup mm/page_cgroup.c
+--- a/mm/page_cgroup.c~page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup
++++ a/mm/page_cgroup.c
+@@ -334,7 +334,6 @@ struct swap_cgroup {
+ 	unsigned short		id;
+ };
+ #define SC_PER_PAGE	(PAGE_SIZE/sizeof(struct swap_cgroup))
+-#define SC_POS_MASK	(SC_PER_PAGE - 1)
+ 
+ /*
+  * SwapCgroup implements "lookup" and "exchange" operations.
+@@ -376,25 +375,19 @@ not_enough_page:
+ 	return -ENOMEM;
+ }
+ 
+-static struct swap_cgroup *swap_cgroup_getsc(swp_entry_t ent,
+-					struct swap_cgroup_ctrl **ctrl)
++static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
++					struct swap_cgroup_ctrl **ctrlp)
+ {
+-	int type = swp_type(ent);
+-	unsigned long offset = swp_offset(ent);
+-	unsigned long idx = offset / SC_PER_PAGE;
+-	unsigned long pos = offset & SC_POS_MASK;
+-	struct swap_cgroup_ctrl *temp_ctrl;
++	pgoff_t offset = swp_offset(ent);
++	struct swap_cgroup_ctrl *ctrl;
+ 	struct page *mappage;
+-	struct swap_cgroup *sc;
+ 
+-	temp_ctrl = &swap_cgroup_ctrl[type];
+-	if (ctrl)
+-		*ctrl = temp_ctrl;
+-
+-	mappage = temp_ctrl->map[idx];
+-	sc = page_address(mappage);
+-	sc += pos;
+-	return sc;
++	ctrl = &swap_cgroup_ctrl[swp_type(ent)];
++	if (ctrlp)
++		*ctrlp = ctrl;
++
++	mappage = ctrl->map[offset / SC_PER_PAGE];
++	return page_address(mappage) + offset % SC_PER_PAGE;
+ }
+ 
+ /**
+@@ -414,7 +407,7 @@ unsigned short swap_cgroup_cmpxchg(swp_e
+ 	unsigned long flags;
+ 	unsigned short retval;
+ 
+-	sc = swap_cgroup_getsc(ent, &ctrl);
++	sc = lookup_swap_cgroup(ent, &ctrl);
+ 
+ 	spin_lock_irqsave(&ctrl->lock, flags);
+ 	retval = sc->id;
+@@ -441,7 +434,7 @@ unsigned short swap_cgroup_record(swp_en
+ 	unsigned short old;
+ 	unsigned long flags;
+ 
+-	sc = swap_cgroup_getsc(ent, &ctrl);
++	sc = lookup_swap_cgroup(ent, &ctrl);
+ 
+ 	spin_lock_irqsave(&ctrl->lock, flags);
+ 	old = sc->id;
+@@ -452,14 +445,14 @@ unsigned short swap_cgroup_record(swp_en
+ }
+ 
+ /**
+- * lookup_swap_cgroup - lookup mem_cgroup tied to swap entry
++ * lookup_swap_cgroup_id - lookup mem_cgroup id tied to swap entry
+  * @ent: swap entry to be looked up.
+  *
+  * Returns CSS ID of mem_cgroup at success. 0 at failure. (0 is invalid ID)
+  */
+-unsigned short lookup_swap_cgroup(swp_entry_t ent)
++unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
+ {
+-	return swap_cgroup_getsc(ent, NULL)->id;
++	return lookup_swap_cgroup(ent, NULL)->id;
+ }
+ 
+ int swap_cgroup_swapon(int type, unsigned long max_pages)
 _
-Subject: Subject: mm: bootmem: try harder to free pages in bulk
+Subject: Subject: page_cgroup: cleanup lookup_swap_cgroup()
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from lliubbo@gmail.com are
 
 linux-next.patch
-memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
-mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
-vmscan-promote-shared-file-mapped-pages.patch
-vmscan-activate-executable-pages-after-first-usage.patch
-mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
-mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch
-vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
-mm-page_alloc-remove-order-assumption-from-__free_pages_bootmem.patch
-mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.patch
-mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patc=
-h
-mm-bootmem-try-harder-to-free-pages-in-bulk.patch
-cgroups-add-res_counter_write_u64-api.patch
-cgroups-new-resource-counter-inheritance-api.patch
-cgroups-add-previous-cgroup-in-can_attach_task-attach_task-callbacks.pa=
-tch
-cgroups-new-cancel_attach_task-subsystem-callback.patch
-cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor.patc=
-h
-cgroups-add-res-counter-common-ancestor-searching.patch
-res_counter-allow-charge-failure-pointer-to-be-null.patch
-cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.pat=
-ch
-cgroups-allow-subsystems-to-cancel-a-fork.patch
-cgroups-add-a-task-counter-subsystem.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
-memcg-fix-pgpgin-pgpgout-documentation.patch
-mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when=
--necessary.patch
+page_cgroup-add-helper-function-to-get-swap_cgroup.patch
+page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
