@@ -1,62 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] include-log2h-fix-rounddown_pow_of_two1.patch removed from -mm tree
-Date: Tue, 13 Dec 2011 11:18:42 -0800
-Message-ID: <201112131918.pBDJIhNG022590@wpaz5.hot.corp.google.com>
+Subject: [merged] arch-x86-mm-numac-add-constraints-check-for-nid-parameters.patch removed from -mm tree
+Date: Tue, 13 Dec 2011 11:19:44 -0800
+Message-ID: <201112131919.pBDJJi1a027817@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:39317 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:49559 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752318Ab1LMTSs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 14:18:48 -0500
+	with ESMTP id S1752728Ab1LMTTr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 14:19:47 -0500
+Received: by yenm5 with SMTP id m5so600yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 11:19:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreiw@vmware.com, dtor@vmware.com, eike-kernel@sf-tec.de, jj@chaosbits.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: pholasek@redhat.com, anton@redhat.com, hpa@zytor.com, mingo@redhat.com, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/log2.h: fix rounddown_pow_of_two(1)
+     Subject: arch/x86/mm/numa.c: add constraints check for nid parameters
 has been removed from the -mm tree.  Its filename was
-     include-log2h-fix-rounddown_pow_of_two1.patch
+     arch-x86-mm-numac-add-constraints-check-for-nid-parameters.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrei Warkentin <andreiw@vmware.com>
-Subject: include/log2.h: fix rounddown_pow_of_two(1)
+From: Petr Holasek <pholasek@redhat.com>
+Subject: arch/x86/mm/numa.c: add constraints check for nid parameters
 
-1 is a power of two, therefore rounddown_pow_of_two(1) should return 1. 
-It does in case the argument is a variable but in case it's a constant it
-behaves wrong and returns 0.  Probably nobody ever did it so this was
-never noticed, however net/drivers/vmxnet3 with latest GCC does and breaks
-on unicpu systems.
+Add a constraints checks for numa_set_distance().  It emits a warning and
+avoids a store to a negative index in numa_distance[] array.  Negative ids
+can be passed when pxm-to-nids mapping is not properly filled while
+parsing the SRAT.
 
-This is similar to Rolf's patch to roundup_pow_of_two(1).
-
-Cc: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Reviewed-by: Jesper Juhl <jj@chaosbits.net>
-Signed-off-by: Andrei Warkentin <andreiw@vmware.com>
+Signed-off-by: Petr Holasek <pholasek@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Anton Arapov <anton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/log2.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/numa.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/log2.h~include-log2h-fix-rounddown_pow_of_two1 include/linux/log2.h
---- a/include/linux/log2.h~include-log2h-fix-rounddown_pow_of_two1
-+++ a/include/linux/log2.h
-@@ -185,7 +185,7 @@ unsigned long __rounddown_pow_of_two(uns
- #define rounddown_pow_of_two(n)			\
- (						\
- 	__builtin_constant_p(n) ? (		\
--		(n == 1) ? 0 :			\
-+		(n == 1) ? 1 :			\
- 		(1UL << ilog2(n))) :		\
- 	__rounddown_pow_of_two(n)		\
-  )
+diff -puN arch/x86/mm/numa.c~arch-x86-mm-numac-add-constraints-check-for-nid-parameters arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~arch-x86-mm-numac-add-constraints-check-for-nid-parameters
++++ a/arch/x86/mm/numa.c
+@@ -430,8 +430,9 @@ static int __init numa_alloc_distance(vo
+  * calls are ignored until the distance table is reset with
+  * numa_reset_distance().
+  *
+- * If @from or @to is higher than the highest known node at the time of
+- * table creation or @distance doesn't make sense, the call is ignored.
++ * If @from or @to is higher than the highest known node or lower than zero
++ * at the time of table creation or @distance doesn't make sense, the call
++ * is ignored.
+  * This is to allow simplification of specific NUMA config implementations.
+  */
+ void __init numa_set_distance(int from, int to, int distance)
+@@ -439,8 +440,9 @@ void __init numa_set_distance(int from, 
+ 	if (!numa_distance && numa_alloc_distance() < 0)
+ 		return;
+ 
+-	if (from >= numa_distance_cnt || to >= numa_distance_cnt) {
+-		printk_once(KERN_DEBUG "NUMA: Debug: distance out of bound, from=%d to=%d distance=%d\n",
++	if (from >= numa_distance_cnt || to >= numa_distance_cnt ||
++			from < 0 || to < 0) {
++		pr_warn_once("NUMA: Warning: node ids are out of bound, from=%d to=%d distance=%d\n",
+ 			    from, to, distance);
+ 		return;
+ 	}
 _
 
-Patches currently in -mm which might be from andreiw@vmware.com are
+Patches currently in -mm which might be from pholasek@redhat.com are
 
+linux-next.patch
 
