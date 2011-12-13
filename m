@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments.patch added to -mm tree
-Date: Tue, 13 Dec 2011 12:27:56 -0800
-Message-ID: <201112132027.pBDKRvjh026371@wpaz1.hot.corp.google.com>
+Subject: + nilfs2-unbreak-compat-ioctl.patch added to -mm tree
+Date: Tue, 13 Dec 2011 12:27:45 -0800
+Message-ID: <201112132027.pBDKRkBf002848@wpaz5.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:49828 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750786Ab1LMU2A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 15:28:00 -0500
-Received: by eaad1 with SMTP id d1so2699eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 12:27:59 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:37974 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752330Ab1LMUeu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 15:34:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haogangchen@gmail.com, konishi.ryusuke@lab.ntt.co.jp
+Cc: thomas@m3y3r.de, konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: potential integer overflow in nilfs_ioctl_clean_segments()
+     Subject: nilfs2: unbreak compat ioctl
 has been added to the -mm tree.  Its filename is
-     nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments.patch
+     nilfs2-unbreak-compat-ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,50 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Haogang Chen <haogangchen@gmail.com>
-Subject: nilfs2: potential integer overflow in nilfs_ioctl_clean_segments()
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: nilfs2: unbreak compat ioctl
 
-There is a potential integer overflow in nilfs_ioctl_clean_segments(). 
-When a large argv[n].v_nmembs is passed from the userspace, the subsequent
-call to vmalloc() will allocate a buffer smaller than expected, which
-leads to out-of-bound access in nilfs_ioctl_move_blocks() and
-lfs_clean_segments().
+commit 828b1c50ae ("nilfs2: add compat ioctl") incidentally broke all
+other NILFS compat ioctls.  Make them work again.
 
-The following check does not prevent the overflow because nsegs is also
-controlled by the userspace and could be very large.
-
-		if (argv[n].v_nmembs > nsegs * nilfs->ns_blocks_per_segment)
-			goto out_free;
-
-This patch clamps argv[n].v_nmembs to UINT_MAX / argv[n].v_size, and
-returns -EINVAL when overflow.
-
-Signed-off-by: Haogang Chen <haogangchen@gmail.com>
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org> [3.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/nilfs2/ioctl.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN fs/nilfs2/ioctl.c~nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments
+diff -puN fs/nilfs2/ioctl.c~nilfs2-unbreak-compat-ioctl fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-unbreak-compat-ioctl
 +++ a/fs/nilfs2/ioctl.c
-@@ -625,6 +625,9 @@ static int nilfs_ioctl_clean_segments(st
- 		if (argv[n].v_nmembs > nsegs * nilfs->ns_blocks_per_segment)
- 			goto out_free;
- 
-+		if (argv[n].v_nmembs >= UINT_MAX / argv[n].v_size)
-+			goto out_free;
-+
- 		len = argv[n].v_size * argv[n].v_nmembs;
- 		base = (void __user *)(unsigned long)argv[n].v_base;
- 		if (len == 0) {
+@@ -842,6 +842,19 @@ long nilfs_compat_ioctl(struct file *fil
+ 	case FS_IOC32_GETVERSION:
+ 		cmd = FS_IOC_GETVERSION;
+ 		break;
++	case NILFS_IOCTL_CHANGE_CPMODE:
++	case NILFS_IOCTL_DELETE_CHECKPOINT:
++	case NILFS_IOCTL_GET_CPINFO:
++	case NILFS_IOCTL_GET_CPSTAT:
++	case NILFS_IOCTL_GET_SUINFO:
++	case NILFS_IOCTL_GET_SUSTAT:
++	case NILFS_IOCTL_GET_VINFO:
++	case NILFS_IOCTL_GET_BDESCS:
++	case NILFS_IOCTL_CLEAN_SEGMENTS:
++	case NILFS_IOCTL_SYNC:
++	case NILFS_IOCTL_RESIZE:
++	case NILFS_IOCTL_SET_ALLOC_RANGE:
++		break;
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
 _
-Subject: Subject: nilfs2: potential integer overflow in nilfs_ioctl_clean_segments()
+Subject: Subject: nilfs2: unbreak compat ioctl
 
-Patches currently in -mm which might be from haogangchen@gmail.com are
+Patches currently in -mm which might be from thomas@m3y3r.de are
 
 linux-next.patch
-nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments.patch
+nilfs2-unbreak-compat-ioctl.patch
+drivers-memstick-use-kmemdup-rather-than-duplicating-its-implementation.patch
 
