@@ -1,80 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-mm-numac-add-constraints-check-for-nid-parameters.patch removed from -mm tree
-Date: Tue, 13 Dec 2011 11:19:44 -0800
-Message-ID: <201112131919.pBDJJi1a027817@wpaz9.hot.corp.google.com>
+Subject: + nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments.patch added to -mm tree
+Date: Tue, 13 Dec 2011 12:27:56 -0800
+Message-ID: <201112132027.pBDKRvjh026371@wpaz1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:49559 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752728Ab1LMTTr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 14:19:47 -0500
-Received: by yenm5 with SMTP id m5so600yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 11:19:46 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:49828 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750786Ab1LMU2A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 15:28:00 -0500
+Received: by eaad1 with SMTP id d1so2699eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 12:27:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pholasek@redhat.com, anton@redhat.com, hpa@zytor.com, mingo@redhat.com, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: haogangchen@gmail.com, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     Subject: arch/x86/mm/numa.c: add constraints check for nid parameters
-has been removed from the -mm tree.  Its filename was
-     arch-x86-mm-numac-add-constraints-check-for-nid-parameters.patch
+     Subject: nilfs2: potential integer overflow in nilfs_ioctl_clean_segments()
+has been added to the -mm tree.  Its filename is
+     nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Petr Holasek <pholasek@redhat.com>
-Subject: arch/x86/mm/numa.c: add constraints check for nid parameters
+From: Haogang Chen <haogangchen@gmail.com>
+Subject: nilfs2: potential integer overflow in nilfs_ioctl_clean_segments()
 
-Add a constraints checks for numa_set_distance().  It emits a warning and
-avoids a store to a negative index in numa_distance[] array.  Negative ids
-can be passed when pxm-to-nids mapping is not properly filled while
-parsing the SRAT.
+There is a potential integer overflow in nilfs_ioctl_clean_segments(). 
+When a large argv[n].v_nmembs is passed from the userspace, the subsequent
+call to vmalloc() will allocate a buffer smaller than expected, which
+leads to out-of-bound access in nilfs_ioctl_move_blocks() and
+lfs_clean_segments().
 
-Signed-off-by: Petr Holasek <pholasek@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Anton Arapov <anton@redhat.com>
+The following check does not prevent the overflow because nsegs is also
+controlled by the userspace and could be very large.
+
+		if (argv[n].v_nmembs > nsegs * nilfs->ns_blocks_per_segment)
+			goto out_free;
+
+This patch clamps argv[n].v_nmembs to UINT_MAX / argv[n].v_size, and
+returns -EINVAL when overflow.
+
+Signed-off-by: Haogang Chen <haogangchen@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/nilfs2/ioctl.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/mm/numa.c~arch-x86-mm-numac-add-constraints-check-for-nid-parameters arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~arch-x86-mm-numac-add-constraints-check-for-nid-parameters
-+++ a/arch/x86/mm/numa.c
-@@ -430,8 +430,9 @@ static int __init numa_alloc_distance(vo
-  * calls are ignored until the distance table is reset with
-  * numa_reset_distance().
-  *
-- * If @from or @to is higher than the highest known node at the time of
-- * table creation or @distance doesn't make sense, the call is ignored.
-+ * If @from or @to is higher than the highest known node or lower than zero
-+ * at the time of table creation or @distance doesn't make sense, the call
-+ * is ignored.
-  * This is to allow simplification of specific NUMA config implementations.
-  */
- void __init numa_set_distance(int from, int to, int distance)
-@@ -439,8 +440,9 @@ void __init numa_set_distance(int from, 
- 	if (!numa_distance && numa_alloc_distance() < 0)
- 		return;
+diff -puN fs/nilfs2/ioctl.c~nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments
++++ a/fs/nilfs2/ioctl.c
+@@ -625,6 +625,9 @@ static int nilfs_ioctl_clean_segments(st
+ 		if (argv[n].v_nmembs > nsegs * nilfs->ns_blocks_per_segment)
+ 			goto out_free;
  
--	if (from >= numa_distance_cnt || to >= numa_distance_cnt) {
--		printk_once(KERN_DEBUG "NUMA: Debug: distance out of bound, from=%d to=%d distance=%d\n",
-+	if (from >= numa_distance_cnt || to >= numa_distance_cnt ||
-+			from < 0 || to < 0) {
-+		pr_warn_once("NUMA: Warning: node ids are out of bound, from=%d to=%d distance=%d\n",
- 			    from, to, distance);
- 		return;
- 	}
++		if (argv[n].v_nmembs >= UINT_MAX / argv[n].v_size)
++			goto out_free;
++
+ 		len = argv[n].v_size * argv[n].v_nmembs;
+ 		base = (void __user *)(unsigned long)argv[n].v_base;
+ 		if (len == 0) {
 _
+Subject: Subject: nilfs2: potential integer overflow in nilfs_ioctl_clean_segments()
 
-Patches currently in -mm which might be from pholasek@redhat.com are
+Patches currently in -mm which might be from haogangchen@gmail.com are
 
 linux-next.patch
+nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments.patch
 
