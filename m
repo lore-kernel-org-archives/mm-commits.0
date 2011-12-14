@@ -1,194 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor.patch removed from -mm tree
-Date: Wed, 14 Dec 2011 12:06:28 -0800
-Message-ID: <20111214200629.1705610004D@wpzn3.hot.corp.google.com>
+Subject: [obsolete] cgroups-add-res-counter-common-ancestor-searching.patch removed from -mm tree
+Date: Wed, 14 Dec 2011 12:06:31 -0800
+Message-ID: <20111214200632.1B6EA10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:38970 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755481Ab1LNUGa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2011 15:06:30 -0500
-Received: by ghbf20 with SMTP id f20so133516ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Dec 2011 12:06:29 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:55233 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755481Ab1LNUGd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2011 15:06:33 -0500
+Received: by yhjj51 with SMTP id j51so241097yhj.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Dec 2011 12:06:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fweisbec@gmail.com, adityakali@google.com, hannes@cmpxchg.org, htejun@gmail.com, kay.sievers@vrfy.org, kirill@shutemov.name, lizf@cn.fujitsu.com, oleg@redhat.com, paul@paulmenage.org, thockin@hockin.org, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, adityakali@google.com, fweisbec@gmail.com, hannes@cmpxchg.org, htejun@gmail.com, kay.sievers@vrfy.org, lizf@cn.fujitsu.com, oleg@redhat.com, paul@paulmenage.org, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroups: ability to stop res charge propagation on bounded ancestor
+     Subject: cgroups: add res counter common ancestor searching
 has been removed from the -mm tree.  Its filename was
-     cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor.patch
+     cgroups-add-res-counter-common-ancestor-searching.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: cgroups: ability to stop res charge propagation on bounded ancestor
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: cgroups: add res counter common ancestor searching
 
-Moving a task from a cgroup to another may require to substract its
-resource charge from the old cgroup and add it to the new one.
+Add a new API to find the common ancestor between two resource counters. 
+This includes the passed resource counter themselves.
 
-For this to happen, the uncharge/charge propagation can just stop when we
-reach the common ancestor for the two cgroups.  Further the performance
-reasons, we also want to avoid to temporarily overload the common
-ancestors with a non-accurate resource counter usage if we charge first
-the new cgroup and uncharge the old one thereafter.  This is going to be a
-requirement for the coming max number of task subsystem.
-
-To solve this, provide a pair of new API that can charge/uncharge a
-resource counter until we reach a given ancestor.
-
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Acked-by: Paul Menage <paul@paulmenage.org>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <paul@paulmenage.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Aditya Kali <adityakali@google.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Tim Hockin <thockin@hockin.org>
 Cc: Tejun Heo <htejun@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/resource_counter.txt |   18 ++++++++++++++++-
- include/linux/res_counter.h                |   20 ++++++++++++++++---
- kernel/res_counter.c                       |   13 +++++++-----
- 3 files changed, 42 insertions(+), 9 deletions(-)
+ include/linux/res_counter.h |    3 +++
+ kernel/res_counter.c        |   33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+)
 
-diff -puN Documentation/cgroups/resource_counter.txt~cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor Documentation/cgroups/resource_counter.txt
---- a/Documentation/cgroups/resource_counter.txt~cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor
-+++ a/Documentation/cgroups/resource_counter.txt
-@@ -83,7 +83,15 @@ to work with it.
- 	res_counter->lock internally (it must be called with res_counter->lock
- 	held).
- 
-- e. void res_counter_uncharge[_locked]
-+ e. int res_counter_charge_until(struct res_counter *counter,
-+			     struct res_counter *limit, unsigned long val,
-+			     struct res_counter **limit_fail_at)
-+
-+	The same as res_counter_charge(), but the charge propagation to
-+	the hierarchy stops at the limit given in the "limit" parameter.
-+
-+
-+ f. void res_counter_uncharge[_locked]
- 			(struct res_counter *rc, unsigned long val)
- 
- 	When a resource is released (freed) it should be de-accounted
-@@ -92,6 +100,14 @@ to work with it.
- 
- 	The _locked routines imply that the res_counter->lock is taken.
- 
-+
-+ g. void res_counter_uncharge_until(struct res_counter *counter,
-+				struct res_counter *limit,
-+				unsigned long val)
-+
-+	The same as res_counter_charge, but the uncharge propagation to
-+	the hierarchy stops at the limit given in the "limit" parameter.
-+
-  2.1 Other accounting routines
- 
-     There are more routines that may help you with common needs, like
-diff -puN include/linux/res_counter.h~cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor include/linux/res_counter.h
---- a/include/linux/res_counter.h~cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor
+diff -puN include/linux/res_counter.h~cgroups-add-res-counter-common-ancestor-searching include/linux/res_counter.h
+--- a/include/linux/res_counter.h~cgroups-add-res-counter-common-ancestor-searching
 +++ a/include/linux/res_counter.h
-@@ -117,8 +117,16 @@ void res_counter_init(struct res_counter
+@@ -147,6 +147,9 @@ static inline void res_counter_uncharge(
+ 	res_counter_uncharge_until(counter, NULL, val);
+ }
  
- int __must_check res_counter_charge_locked(struct res_counter *counter,
- 		unsigned long val);
--int __must_check res_counter_charge(struct res_counter *counter,
--		unsigned long val, struct res_counter **limit_fail_at);
-+int __must_check res_counter_charge_until(struct res_counter *counter,
-+					  struct res_counter *limit,
-+					  unsigned long val,
-+					  struct res_counter **limit_fail_at);
-+static inline int __must_check
-+res_counter_charge(struct res_counter *counter, unsigned long val,
-+		   struct res_counter **limit_fail_at)
-+{
-+	return res_counter_charge_until(counter, NULL, val, limit_fail_at);
-+}
- 
- /*
-  * uncharge - tell that some portion of the resource is released
-@@ -131,7 +139,13 @@ int __must_check res_counter_charge(stru
-  */
- 
- void res_counter_uncharge_locked(struct res_counter *counter, unsigned long val);
--void res_counter_uncharge(struct res_counter *counter, unsigned long val);
-+void res_counter_uncharge_until(struct res_counter *counter,
-+				struct res_counter *limit, unsigned long val);
-+static inline void res_counter_uncharge(struct res_counter *counter,
-+					unsigned long val)
-+{
-+	res_counter_uncharge_until(counter, NULL, val);
-+}
- 
++struct res_counter *res_counter_common_ancestor(struct res_counter *l,
++						struct res_counter *r);
++
  /**
   * res_counter_margin - calculate chargeable space of a counter
-diff -puN kernel/res_counter.c~cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor kernel/res_counter.c
---- a/kernel/res_counter.c~cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor
+  * @cnt: the counter
+diff -puN kernel/res_counter.c~cgroups-add-res-counter-common-ancestor-searching kernel/res_counter.c
+--- a/kernel/res_counter.c~cgroups-add-res-counter-common-ancestor-searching
 +++ a/kernel/res_counter.c
-@@ -35,8 +35,9 @@ int res_counter_charge_locked(struct res
- 	return 0;
+@@ -91,6 +91,39 @@ void res_counter_uncharge_until(struct r
+ 	local_irq_restore(flags);
  }
  
--int res_counter_charge(struct res_counter *counter, unsigned long val,
--			struct res_counter **limit_fail_at)
-+int res_counter_charge_until(struct res_counter *counter,
-+			     struct res_counter *limit, unsigned long val,
-+			     struct res_counter **limit_fail_at)
- {
- 	int ret;
- 	unsigned long flags;
-@@ -44,7 +45,7 @@ int res_counter_charge(struct res_counte
++/*
++ * Walk through r1 and r2 parents and try to find the closest common one
++ * between both. If none is found, it returns NULL.
++ */
++struct res_counter *
++res_counter_common_ancestor(struct res_counter *r1, struct res_counter *r2)
++{
++	struct res_counter *iter;
++	int r1_depth = 0, r2_depth = 0;
++
++	for (iter = r1; iter; iter = iter->parent)
++		r1_depth++;
++
++	for (iter = r2; iter; iter = iter->parent)
++		r2_depth++;
++
++	while (r1_depth > r2_depth) {
++		r1 = r1->parent;
++		r1_depth--;
++	}
++
++	while (r2_depth > r1_depth) {
++		r2 = r2->parent;
++		r2_depth--;
++	}
++
++	while (r1 != r2) {
++		r1 = r1->parent;
++		r2 = r2->parent;
++	}
++
++	return r1;
++}
  
- 	*limit_fail_at = NULL;
- 	local_irq_save(flags);
--	for (c = counter; c != NULL; c = c->parent) {
-+	for (c = counter; c != limit; c = c->parent) {
- 		spin_lock(&c->lock);
- 		ret = res_counter_charge_locked(c, val);
- 		spin_unlock(&c->lock);
-@@ -74,13 +75,15 @@ void res_counter_uncharge_locked(struct 
- 	counter->usage -= val;
- }
- 
--void res_counter_uncharge(struct res_counter *counter, unsigned long val)
-+void res_counter_uncharge_until(struct res_counter *counter,
-+				struct res_counter *limit,
-+				unsigned long val)
- {
- 	unsigned long flags;
- 	struct res_counter *c;
- 
- 	local_irq_save(flags);
--	for (c = counter; c != NULL; c = c->parent) {
-+	for (c = counter; c != limit; c = c->parent) {
- 		spin_lock(&c->lock);
- 		res_counter_uncharge_locked(c, val);
- 		spin_unlock(&c->lock);
+ static inline unsigned long long *
+ res_counter_member(struct res_counter *counter, int member)
 _
 
-Patches currently in -mm which might be from fweisbec@gmail.com are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
 linux-next.patch
-reiserfs-delay-reiserfs-lock-until-journal-initialization.patch
-reiserfs-dont-lock-journal_init.patch
-reiserfs-dont-lock-root-inode-searching.patch
-cgroups-add-res-counter-common-ancestor-searching.patch
 res_counter-allow-charge-failure-pointer-to-be-null.patch
 cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.patch
 cgroups-allow-subsystems-to-cancel-a-fork.patch
 cgroups-add-a-task-counter-subsystem.patch
-cgroups-add-a-task-counter-subsystem-fix.patch
-cgroup-fix-task-counter-common-ancestor-logic.patch
-cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-selftests-new-x86-breakpoints-selftest.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
+procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
 
