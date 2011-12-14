@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] res_counter-allow-charge-failure-pointer-to-be-null.patch removed from -mm tree
-Date: Wed, 14 Dec 2011 12:06:34 -0800
-Message-ID: <20111214200635.7273720005F@hpza10.eem.corp.google.com>
+Subject: [obsolete] cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.patch removed from -mm tree
+Date: Wed, 14 Dec 2011 12:06:39 -0800
+Message-ID: <20111214200640.16A241E005A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:46725 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755481Ab1LNUGj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2011 15:06:39 -0500
-Received: by eaad1 with SMTP id d1so37548eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Dec 2011 12:06:37 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:55233 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758047Ab1LNUGl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2011 15:06:41 -0500
+Received: by mail-yw0-f74.google.com with SMTP id j51so241097yhj.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Dec 2011 12:06:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fweisbec@gmail.com, adityakali@google.com, hannes@cmpxchg.org, htejun@gmail.com, kay.sievers@vrfy.org, kirill@shutemov.name, lizf@cn.fujitsu.com, oleg@redhat.com, paul@paulmenage.org, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: res_counter: allow charge failure pointer to be null
+     Subject: cgroups: pull up res counter charge failure interpretation to caller
 has been removed from the -mm tree.  Its filename was
-     res_counter-allow-charge-failure-pointer-to-be-null.patch
+     cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.patch
 
 This patch was dropped because it is obsolete
 
@@ -26,10 +26,17 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: res_counter: allow charge failure pointer to be null
+Subject: cgroups: pull up res counter charge failure interpretation to caller
 
-So that callers of res_counter_charge() don't have to create and pass this
-pointer even if they aren't interested in it.
+res_counter_charge() always returns -ENOMEM when the limit is reached and
+the charge thus can't happen.
+
+However it's up to the caller to interpret this failure and return the
+appropriate error value.  The task counter subsystem will need to report
+the user that a fork() has been cancelled because of some limit reached,
+not because we are too short on memory.
+
+Fix this by returning -1 when res_counter_charge() fails.
 
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Paul Menage <paul@paulmenage.org>
@@ -44,31 +51,34 @@ Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/res_counter.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/cgroups/resource_counter.txt |    2 ++
+ kernel/res_counter.c                       |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/res_counter.c~res_counter-allow-charge-failure-pointer-to-be-null kernel/res_counter.c
---- a/kernel/res_counter.c~res_counter-allow-charge-failure-pointer-to-be-null
-+++ a/kernel/res_counter.c
-@@ -43,14 +43,16 @@ int res_counter_charge_until(struct res_
- 	unsigned long flags;
- 	struct res_counter *c, *u;
+diff -puN Documentation/cgroups/resource_counter.txt~cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller Documentation/cgroups/resource_counter.txt
+--- a/Documentation/cgroups/resource_counter.txt~cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller
++++ a/Documentation/cgroups/resource_counter.txt
+@@ -76,6 +76,8 @@ to work with it.
+ 	limit_fail_at parameter is set to the particular res_counter element
+ 	where the charging failed.
  
--	*limit_fail_at = NULL;
-+	if (limit_fail_at)
-+		*limit_fail_at = NULL;
- 	local_irq_save(flags);
- 	for (c = counter; c != limit; c = c->parent) {
- 		spin_lock(&c->lock);
- 		ret = res_counter_charge_locked(c, val);
- 		spin_unlock(&c->lock);
- 		if (ret < 0) {
--			*limit_fail_at = c;
-+			if (limit_fail_at)
-+				*limit_fail_at = c;
- 			goto undo;
- 		}
++	It returns 0 on success and -1 on failure.
++
+  d. int res_counter_charge_locked
+ 			(struct res_counter *rc, unsigned long val)
+ 
+diff -puN kernel/res_counter.c~cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller kernel/res_counter.c
+--- a/kernel/res_counter.c~cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller
++++ a/kernel/res_counter.c
+@@ -26,7 +26,7 @@ int res_counter_charge_locked(struct res
+ {
+ 	if (counter->usage + val > counter->limit) {
+ 		counter->failcnt++;
+-		return -ENOMEM;
++		return -1;
  	}
+ 
+ 	counter->usage += val;
 _
 
 Patches currently in -mm which might be from fweisbec@gmail.com are
@@ -77,7 +87,6 @@ linux-next.patch
 reiserfs-delay-reiserfs-lock-until-journal-initialization.patch
 reiserfs-dont-lock-journal_init.patch
 reiserfs-dont-lock-root-inode-searching.patch
-cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.patch
 cgroups-allow-subsystems-to-cancel-a-fork.patch
 cgroups-add-a-task-counter-subsystem.patch
 cgroups-add-a-task-counter-subsystem-fix.patch
