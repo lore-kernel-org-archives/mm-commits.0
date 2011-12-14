@@ -1,128 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 14 Dec 2011 12:05:49 -0800
-Message-ID: <20111214200551.191FC10004D@wpzn3.hot.corp.google.com>
+Subject: [obsolete] cgroups-add-res_counter_write_u64-api.patch removed from -mm tree
+Date: Wed, 14 Dec 2011 12:06:15 -0800
+Message-ID: <20111214200615.EA8515C0065@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:43647 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755481Ab1LNUF6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2011 15:05:58 -0500
-Received: by yhjj51 with SMTP id j51so241042yhj.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Dec 2011 12:05:57 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:52217 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755481Ab1LNUGT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2011 15:06:19 -0500
+Received: by eekc1 with SMTP id c1so39558eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Dec 2011 12:06:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: fweisbec@gmail.com, adityakali@google.com, hannes@cmpxchg.org, htejun@gmail.com, kay.sievers@vrfy.org, kirill@shutemov.name, lizf@cn.fujitsu.com, oleg@redhat.com, paul@paulmenage.org, thockin@hockin.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: cgroups: add res_counter_write_u64() API
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     cgroups-add-res_counter_write_u64-api.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: cgroups: add res_counter_write_u64() API
 
+Extend the resource counter API with a mirror of res_counter_read_u64() to
+make it handy to update a resource counter value from a cgroup subsystem
+u64 value file.
+
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Acked-by: Paul Menage <paul@paulmenage.org>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Aditya Kali <adityakali@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Tim Hockin <thockin@hockin.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/setup.c  |    3 ---
- drivers/mmc/card/block.c |    4 ----
- 2 files changed, 7 deletions(-)
+ include/linux/res_counter.h |    2 ++
+ kernel/res_counter.c        |   25 +++++++++++++++++++------
+ 2 files changed, 21 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm/kernel/setup.c~linux-next-git-rejects arch/arm/kernel/setup.c
---- a/arch/arm/kernel/setup.c~linux-next-git-rejects
-+++ a/arch/arm/kernel/setup.c
-@@ -910,7 +910,6 @@ void __init setup_arch(char **cmdline_p)
- 	machine_desc = mdesc;
- 	machine_name = mdesc->name;
+diff -puN include/linux/res_counter.h~cgroups-add-res_counter_write_u64-api include/linux/res_counter.h
+--- a/include/linux/res_counter.h~cgroups-add-res_counter_write_u64-api
++++ a/include/linux/res_counter.h
+@@ -82,6 +82,8 @@ int res_counter_memparse_write_strategy(
+ int res_counter_write(struct res_counter *counter, int member,
+ 		      const char *buffer, write_strategy_fn write_strategy);
  
--<<<<<<< HEAD
- #ifdef CONFIG_ZONE_DMA
- 	if (mdesc->dma_zone_size) {
- 		extern unsigned long arm_dma_zone_size;
-@@ -919,10 +918,8 @@ void __init setup_arch(char **cmdline_p)
- #endif
- 	if (mdesc->soft_reboot)
- 		reboot_setup("s");
--=======
- 	if (mdesc->restart_mode)
- 		reboot_setup(&mdesc->restart_mode);
-->>>>>>> linux-next/akpm-end
++void res_counter_write_u64(struct res_counter *counter, int member, u64 val);
++
+ /*
+  * the field descriptors. one for each member of res_counter
+  */
+diff -puN kernel/res_counter.c~cgroups-add-res_counter_write_u64-api kernel/res_counter.c
+--- a/kernel/res_counter.c~cgroups-add-res_counter_write_u64-api
++++ a/kernel/res_counter.c
+@@ -168,12 +168,26 @@ int res_counter_memparse_write_strategy(
+ 	return 0;
+ }
  
- 	init_mm.start_code = (unsigned long) _text;
- 	init_mm.end_code   = (unsigned long) _etext;
-diff -puN drivers/mmc/card/block.c~linux-next-git-rejects drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~linux-next-git-rejects
-+++ a/drivers/mmc/card/block.c
-@@ -1733,11 +1733,7 @@ static const struct mmc_fixup blk_fixups
- 	 * Some Micron MMC cards needs longer data read timeout than
- 	 * indicated in CSD.
- 	 */
--<<<<<<< HEAD
--	MMC_FIXUP(CID_NAME_ANY, 0x13, 0x200, add_quirk_mmc,
--=======
- 	MMC_FIXUP(CID_NAME_ANY, CID_MANFID_MICRON, 0x200, add_quirk_mmc,
-->>>>>>> linux-next/akpm-end
- 		  MMC_QUIRK_LONG_READ_TIME),
++void res_counter_write_u64(struct res_counter *counter, int member, u64 val)
++{
++	unsigned long long *target;
++	unsigned long flags;
++
++	/*
++	 * We need the lock to protect against concurrent add/dec on 32 bits.
++	 * No need to ifdef it's seldom used.
++	 */
++	spin_lock_irqsave(&counter->lock, flags);
++	target = res_counter_member(counter, member);
++	*target = val;
++	spin_unlock_irqrestore(&counter->lock, flags);
++}
++
+ int res_counter_write(struct res_counter *counter, int member,
+ 		      const char *buf, write_strategy_fn write_strategy)
+ {
+ 	char *end;
+-	unsigned long flags;
+-	unsigned long long tmp, *val;
++	unsigned long long tmp;
  
- 	END_FIXUP
+ 	if (write_strategy) {
+ 		if (write_strategy(buf, &tmp))
+@@ -183,9 +197,8 @@ int res_counter_write(struct res_counter
+ 		if (*end != '\0')
+ 			return -EINVAL;
+ 	}
+-	spin_lock_irqsave(&counter->lock, flags);
+-	val = res_counter_member(counter, member);
+-	*val = tmp;
+-	spin_unlock_irqrestore(&counter->lock, flags);
++
++	res_counter_write_u64(counter, member, tmp);
++
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+reiserfs-delay-reiserfs-lock-until-journal-initialization.patch
+reiserfs-dont-lock-journal_init.patch
+reiserfs-dont-lock-root-inode-searching.patch
+cgroups-new-resource-counter-inheritance-api.patch
+cgroups-add-previous-cgroup-in-can_attach_task-attach_task-callbacks.patch
+cgroups-new-cancel_attach_task-subsystem-callback.patch
+cgroups-ability-to-stop-res-charge-propagation-on-bounded-ancestor.patch
+cgroups-add-res-counter-common-ancestor-searching.patch
+res_counter-allow-charge-failure-pointer-to-be-null.patch
+cgroups-pull-up-res-counter-charge-failure-interpretation-to-caller.patch
+cgroups-allow-subsystems-to-cancel-a-fork.patch
+cgroups-add-a-task-counter-subsystem.patch
+cgroups-add-a-task-counter-subsystem-fix.patch
+cgroup-fix-task-counter-common-ancestor-logic.patch
 cgroup-fix-task-counter-common-ancestor-logic-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
 selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+selftests-new-x86-breakpoints-selftest.patch
 
