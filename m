@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mm-page_alloc-remove-order-assumption-from-__free_pages_bootmem.patch removed from -mm tree
-Date: Wed, 14 Dec 2011 12:44:57 -0800
-Message-ID: <20111214204457.77CA31E004D@wpzn4.hot.corp.google.com>
+Subject: [obsolete] mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patch removed from -mm tree
+Date: Wed, 14 Dec 2011 12:45:42 -0800
+Message-ID: <20111214204543.E96F45C007A@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:47008 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755519Ab1LNUo6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2011 15:44:58 -0500
-Received: by yenm5 with SMTP id m5so138681yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Dec 2011 12:44:57 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:54234 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753150Ab1LNUpq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Dec 2011 15:45:46 -0500
+Received: by eaad1 with SMTP id d1so38824eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Dec 2011 12:45:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: remove order assumption from __free_pages=
-_bootmem()
+     Subject: mm: bootmem: drop superfluous range check when freeing pa=
+ges in bulk
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-order-assumption-from-__free_pages_bootmem.pa=
-tch
+     mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk=
+=2Epatch
 
 This patch was dropped because it is obsolete
 
@@ -32,44 +32,45 @@ otm/
 
 ------------------------------------------------------
 =46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: remove order assumption from __free_pages_boot=
-mem()
+Subject: mm: bootmem: drop superfluous range check when freeing pages i=
+n bulk
 
-Even though bootmem passes an order with the page to be freed,
-__free_pages_bootmem() assumes that 1 << order is always BITS_PER_LONG
-if non-zero.  While this happens to be true, it's not really robust.
-Remove that assumption and use 1 << order instead.
+The area node_bootmem_map represents is aligned to BITS_PER_LONG, and a=
+ll
+bits in any aligned word of that map valid.  When the represented area
+extends beyond the end of the node, the non-existant pages will be mark=
+ed
+as reserved.
+
+As a result, when freeing a page block, doing an explicit range check f=
+or
+whether that block is within the node's range is redundant as the bitma=
+p
+is consulted anyway to see whether all pages in the block are unreserve=
+d.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Reported-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/bootmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-order-assumption-from-__=
-free_pages_bootmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-order-assumption-from-__free=
-_pages_bootmem
-+++ a/mm/page_alloc.c
-@@ -755,12 +755,14 @@ void __meminit __free_pages_bootmem(stru
- 		__free_page(page);
- 	} else {
- 		int loop;
-+		unsigned int nr_pages =3D 1 << order;
-+		unsigned int loop;
+diff -puN mm/bootmem.c~mm-bootmem-drop-superfluous-range-check-when-fre=
+eing-pages-in-bulk mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmem-drop-superfluous-range-check-when-freeing=
+-pages-in-bulk
++++ a/mm/bootmem.c
+@@ -197,7 +197,7 @@ static unsigned long __init free_all_boo
+ 		idx =3D start - bdata->node_min_pfn;
+ 		vec =3D ~map[idx / BITS_PER_LONG];
 =20
- 		prefetchw(page);
--		for (loop =3D 0; loop < (1 << order); loop++) {
-+		for (loop =3D 0; loop < nr_pages; loop++) {
- 			struct page *p =3D &page[loop];
+-		if (aligned && vec =3D=3D ~0UL && start + BITS_PER_LONG <=3D end) {
++		if (aligned && vec =3D=3D ~0UL) {
+ 			int order =3D ilog2(BITS_PER_LONG);
 =20
--			if (loop + 1 < (1 << order))
-+			if (loop + 1 < nr_pages)
- 				prefetchw(p + 1);
- 			__ClearPageReserved(p);
- 			set_page_count(p, 0);
+ 			__free_pages_bootmem(pfn_to_page(start), order);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -84,8 +85,6 @@ mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
 mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch
 vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
 mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.patch
-mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patc=
-h
 mm-bootmem-try-harder-to-free-pages-in-bulk.patch
 memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 memcg-fix-pgpgin-pgpgout-documentation.patch
