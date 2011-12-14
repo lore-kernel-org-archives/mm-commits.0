@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super.patch added to -mm tree
-Date: Tue, 13 Dec 2011 15:52:52 -0800
-Message-ID: <201112132352.pBDNqq1U001531@wpaz9.hot.corp.google.com>
+Subject: + memcg-keep-root-group-unchanged-if-creation-fails.patch added to -mm tree
+Date: Tue, 13 Dec 2011 16:48:46 -0800
+Message-ID: <201112140048.pBE0mkx6029040@wpaz9.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:33614 "EHLO
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:60095 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750938Ab1LMXxC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 18:53:02 -0500
-Received: by eekc1 with SMTP id c1so9130eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 15:53:00 -0800 (PST)
+	with ESMTP id S1756408Ab1LNAsx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Dec 2011 19:48:53 -0500
+Received: by eekc1 with SMTP id c1so10385eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Dec 2011 16:48:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tixxdz@opendz.org, lucas.demarchi@profusion.mobi, npiggin@kernel.dk, petr@vandrovec.name, tj@kernel.org, viro@zeniv.linux.org.uk
+Cc: dhillf@gmail.com, aarcange@redhat.com, bsingharora@gmail.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: fs/ncpfs: fix error paths and goto statements in ncp_fill_super()
+     Subject: memcg: keep root group unchanged if creation fails
 has been added to the -mm tree.  Its filename is
-     fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super.patch
+     memcg-keep-root-group-unchanged-if-creation-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,71 +35,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Djalal Harouni <tixxdz@opendz.org>
-Subject: fs/ncpfs: fix error paths and goto statements in ncp_fill_super()
+From: Hillf Danton <dhillf@gmail.com>
+Subject: memcg: keep root group unchanged if creation fails
 
-The label 'out_bdi' should be followed by bdi_destroy() instead of fput()
-which should be after the 'out_fput' label.
+If the request is to create non-root group and we fail to meet it, we
+should leave the root unchanged.
 
-If bdi_setup_and_register() fails then jump to the 'out_fput' label
-instead of the 'out_bdi' one.
-
-If fget(data.info_fd) fails then jump to the previously fixed 'out_bdi'
-label to call bdi_destroy() otherwise the bdi object will not be
-destroyed.
-
-Compile tested only.
-
-Signed-off-by: Djalal Harouni <tixxdz@opendz.org>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Petr Vandrovec <petr@vandrovec.name>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/inode.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ncpfs/inode.c~fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super fs/ncpfs/inode.c
---- a/fs/ncpfs/inode.c~fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super
-+++ a/fs/ncpfs/inode.c
-@@ -548,7 +548,7 @@ static int ncp_fill_super(struct super_b
+diff -puN mm/memcontrol.c~memcg-keep-root-group-unchanged-if-creation-fails mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-keep-root-group-unchanged-if-creation-fails
++++ a/mm/memcontrol.c
+@@ -4951,9 +4951,9 @@ mem_cgroup_create(struct cgroup_subsys *
+ 		int cpu;
+ 		enable_swap_cgroup();
+ 		parent = NULL;
+-		root_mem_cgroup = memcg;
+ 		if (mem_cgroup_soft_limit_tree_init())
+ 			goto free_out;
++		root_mem_cgroup = memcg;
+ 		for_each_possible_cpu(cpu) {
+ 			struct memcg_stock_pcp *stock =
+ 						&per_cpu(memcg_stock, cpu);
+@@ -4992,7 +4992,6 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	return &memcg->css;
+ free_out:
+ 	__mem_cgroup_free(memcg);
+-	root_mem_cgroup = NULL;
+ 	return ERR_PTR(error);
+ }
  
- 	error = bdi_setup_and_register(&server->bdi, "ncpfs", BDI_CAP_MAP_COPY);
- 	if (error)
--		goto out_bdi;
-+		goto out_fput;
- 
- 	server->ncp_filp = ncp_filp;
- 	server->ncp_sock = sock;
-@@ -559,7 +559,7 @@ static int ncp_fill_super(struct super_b
- 		error = -EBADF;
- 		server->info_filp = fget(data.info_fd);
- 		if (!server->info_filp)
--			goto out_fput;
-+			goto out_bdi;
- 		error = -ENOTSOCK;
- 		sock_inode = server->info_filp->f_path.dentry->d_inode;
- 		if (!S_ISSOCK(sock_inode->i_mode))
-@@ -746,9 +746,9 @@ out_nls:
- out_fput2:
- 	if (server->info_filp)
- 		fput(server->info_filp);
--out_fput:
--	bdi_destroy(&server->bdi);
- out_bdi:
-+	bdi_destroy(&server->bdi);
-+out_fput:
- 	/* 23/12/1998 Marcin Dalecki <dalecki@cs.net.pl>:
- 	 * 
- 	 * The previously used put_filp(ncp_filp); was bogus, since
 _
-Subject: Subject: fs/ncpfs: fix error paths and goto statements in ncp_fill_super()
+Subject: Subject: memcg: keep root group unchanged if creation fails
 
-Patches currently in -mm which might be from tixxdz@opendz.org are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
 linux-next.patch
-fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super.patch
+memcg-keep-root-group-unchanged-if-creation-fails.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
 
