@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-driver-for-tca6507-led-controller-fix.patch added to -mm tree
-Date: Thu, 15 Dec 2011 14:27:02 -0800
-Message-ID: <20111215230841.B9B6B100052@wpzn3.hot.corp.google.com>
+Subject: + binary_sysctl-fix-memory-leak.patch added to -mm tree
+Date: Thu, 15 Dec 2011 15:25:35 -0800
+Message-ID: <20111215232535.AD27210004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:40199 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759623Ab1LOXIm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 18:08:42 -0500
-Received: by yenm5 with SMTP id m5so291761yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 15:08:42 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:34326 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759754Ab1LOXZh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 18:25:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, neilb@suse.de, rpurdie@rpsys.net
+Cc: walken@google.com, eparis@redhat.com, hch@infradead.org, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: leds-add-driver-for-tca6507-led-controller-fix
+     Subject: binary_sysctl(): fix memory leak
 has been added to the -mm tree.  Its filename is
-     leds-add-driver-for-tca6507-led-controller-fix.patch
+     binary_sysctl-fix-memory-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,83 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: leds-add-driver-for-tca6507-led-controller-fix
+From: Michel Lespinasse <walken@google.com>
+Subject: binary_sysctl(): fix memory leak
 
-drivers/leds/leds-tca6507.c:167: error: '__mod_i2c_device_table' aliased to undefined symbol 'tca6507'
+binary_sysctl() calls sysctl_getname() which allocates from names_cache
+slab usin __getname()
 
-Cc: NeilBrown <neilb@suse.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+The matching function to free the name is __putname(), and not putname()
+which should be used only to match getname() allocations.
+
+This is because when auditing is enabled, putname() calls audit_putname
+*instead* (not in addition) to __putname().  Then, if a syscall is in
+progress, audit_putname does not release the name - instead, it expects
+the name to get released when the syscall completes, but that will happen
+only if audit_getname() was called previously, i.e.  if the name was
+allocated with getname() rather than the naked __getname().  So,
+__getname() followed by putname() ends up leaking memory.
+
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-tca6507.c |    2 +-
+ kernel/sysctl_binary.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-tca6507.c~leds-add-driver-for-tca6507-led-controller-fix drivers/leds/leds-tca6507.c
---- a/drivers/leds/leds-tca6507.c~leds-add-driver-for-tca6507-led-controller-fix
-+++ a/drivers/leds/leds-tca6507.c
-@@ -158,7 +158,7 @@ static const struct i2c_device_id tca650
- 	{ "tca6507" },
- 	{ }
- };
--MODULE_DEVICE_TABLE(i2c, tca6507);
-+MODULE_DEVICE_TABLE(i2c, tca6507_id);
+diff -puN kernel/sysctl_binary.c~binary_sysctl-fix-memory-leak kernel/sysctl_binary.c
+--- a/kernel/sysctl_binary.c~binary_sysctl-fix-memory-leak
++++ a/kernel/sysctl_binary.c
+@@ -1354,7 +1354,7 @@ static ssize_t binary_sysctl(const int *
  
- static int choose_times(int msec, int *c1p, int *c2p)
- {
+ 	fput(file);
+ out_putname:
+-	putname(pathname);
++	__putname(pathname);
+ out:
+ 	return result;
+ }
 _
-Subject: Subject: leds-add-driver-for-tca6507-led-controller-fix
+Subject: Subject: binary_sysctl(): fix memory leak
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from walken@google.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-add-driver-for-tca6507-led-controller-fix.patch
-leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+binary_sysctl-fix-memory-leak.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
 
