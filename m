@@ -1,85 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch removed from -mm tree
-Date: Thu, 15 Dec 2011 13:28:01 -0800
-Message-ID: <20111215212801.D37B710004D@wpzn3.hot.corp.google.com>
+Subject: + drivers-leds-leds-mc13783c-fix-off-by-one-for-checking-num_leds.patch added to -mm tree
+Date: Thu, 15 Dec 2011 13:29:15 -0800
+Message-ID: <20111215212916.0B1BE5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:49478 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751855Ab1LOV2D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 16:28:03 -0500
-Received: by yenm5 with SMTP id m5so275361yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 13:28:02 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:46788 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751855Ab1LOV3S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 16:29:18 -0500
+Received: by eaad1 with SMTP id d1so71838eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 13:29:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wferi@niif.hu, kashyap.desai@lsi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: axel.lin@gmail.com, philippe.retornaz@epfl.ch, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: drivers/message/fusion/mptbase.c: ensure NUL-termination of MptCallbacksName elements
-has been removed from the -mm tree.  Its filename was
-     drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
+     Subject: drivers/leds/leds-mc13783.c: fix off-by-one for checking num_leds
+has been added to the -mm tree.  Its filename is
+     drivers-leds-leds-mc13783c-fix-off-by-one-for-checking-num_leds.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ferenc Wagner <wferi@niif.hu>
-Subject: drivers/message/fusion/mptbase.c: ensure NUL-termination of MptCallbacksName elements
+From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/leds/leds-mc13783.c: fix off-by-one for checking num_leds
 
-I just stumbled upon this while pondering over
-https://bugzilla.kernel.org/show_bug.cgi?id=26692 and thought this could
-be made better.
+The LED id begins from 0.  Thus the maximum number of leds should be
+MC13783_LED_MAX + 1.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Ferenc Wagner <wferi@niif.hu>
-Cc: Desai <kashyap.desai@lsi.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Philippe Retornaz <philippe.retornaz@epfl.ch>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptbase.c |    7 ++++---
- drivers/message/fusion/mptbase.h |    1 +
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/leds/leds-mc13783.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/message/fusion/mptbase.c~drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements drivers/message/fusion/mptbase.c
---- a/drivers/message/fusion/mptbase.c~drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements
-+++ a/drivers/message/fusion/mptbase.c
-@@ -115,7 +115,8 @@ module_param(mpt_fwfault_debug, int, 060
- MODULE_PARM_DESC(mpt_fwfault_debug,
- 		 "Enable detection of Firmware fault and halt Firmware on fault - (default=0)");
- 
--static char	MptCallbacksName[MPT_MAX_PROTOCOL_DRIVERS][50];
-+static char
-+MptCallbacksName[MPT_MAX_PROTOCOL_DRIVERS][MPT_MAX_CALLBACKNAME_LEN + 1];
- 
- #ifdef MFCNT
- static int mfcounter = 0;
-@@ -717,8 +718,8 @@ mpt_register(MPT_CALLBACK cbfunc, MPT_DR
- 			MptDriverClass[cb_idx] = dclass;
- 			MptEvHandlers[cb_idx] = NULL;
- 			last_drv_idx = cb_idx;
--			memcpy(MptCallbacksName[cb_idx], func_name,
--			    strlen(func_name) > 50 ? 50 : strlen(func_name));
-+			strlcpy(MptCallbacksName[cb_idx], func_name,
-+				MPT_MAX_CALLBACKNAME_LEN+1);
- 			break;
- 		}
+diff -puN drivers/leds/leds-mc13783.c~drivers-leds-leds-mc13783c-fix-off-by-one-for-checking-num_leds drivers/leds/leds-mc13783.c
+--- a/drivers/leds/leds-mc13783.c~drivers-leds-leds-mc13783c-fix-off-by-one-for-checking-num_leds
++++ a/drivers/leds/leds-mc13783.c
+@@ -275,7 +275,7 @@ static int __devinit mc13783_led_probe(s
+ 		return -ENODEV;
  	}
-diff -puN drivers/message/fusion/mptbase.h~drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements drivers/message/fusion/mptbase.h
---- a/drivers/message/fusion/mptbase.h~drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements
-+++ a/drivers/message/fusion/mptbase.h
-@@ -89,6 +89,7 @@
-  */
- #define MPT_MAX_ADAPTERS		18
- #define MPT_MAX_PROTOCOL_DRIVERS	16
-+#define MPT_MAX_CALLBACKNAME_LEN	49
- #define MPT_MAX_BUS			1	/* Do not change */
- #define MPT_MAX_FC_DEVICES		255
- #define MPT_MAX_SCSI_DEVICES		16
+ 
+-	if (pdata->num_leds < 1 || pdata->num_leds > MC13783_LED_MAX) {
++	if (pdata->num_leds < 1 || pdata->num_leds > (MC13783_LED_MAX + 1)) {
+ 		dev_err(&pdev->dev, "Invalid led count %d\n", pdata->num_leds);
+ 		return -EINVAL;
+ 	}
 _
+Subject: Subject: drivers/leds/leds-mc13783.c: fix off-by-one for checking num_leds
 
-Patches currently in -mm which might be from wferi@niif.hu are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
+origin.patch
 linux-next.patch
+backlight-convert-drivers-video-backlight-to-use-module_platform_driver.patch
+leds-convert-led-platform-drivers-to-module_platform_driver.patch
+leds-convert-led-i2c-drivers-to-module_i2c_driver.patch
+leds-convert-leds-dac124s085-to-module_spi_driver.patch
+drivers-leds-leds-lp5523c-remove-unneeded-forward-declaration.patch
+leds-bd2802-use-gpio_request_one.patch
+leds-netxbig-use-gpio_request_one.patch
+drivers-leds-leds-mc13783c-fix-off-by-one-for-checking-num_leds.patch
 
