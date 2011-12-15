@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 15 Dec 2011 12:57:53 -0800
-Message-ID: <20111215205754.048865C0050@hpza9.eem.corp.google.com>
+Subject: + pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch added to -mm tree
+Date: Thu, 15 Dec 2011 13:16:37 -0800
+Message-ID: <20111215211638.2206420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:43795 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751910Ab1LOU54 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 15:57:56 -0500
-Received: by eaad1 with SMTP id d1so71030eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 12:57:54 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:49261 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754146Ab1LOVQk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 16:16:40 -0500
+Received: by eekc1 with SMTP id c1so75178eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 13:16:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: levinsasha928@gmail.com, penberg@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: pipe: fail cleanly when root tries F_SETPIPE_SZ with big size
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,105 +35,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Sasha Levin <levinsasha928@gmail.com>
+Subject: pipe: fail cleanly when root tries F_SETPIPE_SZ with big size
 
+When a user with the CAP_SYS_RESOURCE cap tries to F_SETPIPE_SZ a pipe
+with size bigger than kmalloc() can alloc it spits out an ugly warning:
+
+[    3.651552] ------------[ cut here ]------------
+[    3.652644] WARNING: at mm/page_alloc.c:2095 __alloc_pages_nodemask+0x5d3/0x7a0()
+[    3.654313] Pid: 733, comm: a.out Not tainted 3.2.0-rc1+ #4
+[    3.655568] Call Trace:
+[    3.656207]  [<ffffffff810de163>] ? __alloc_pages_nodemask+0x5d3/0x7a0
+[    3.657698]  [<ffffffff8107a575>] warn_slowpath_common+0x75/0xb0
+[    3.659018]  [<ffffffff8107a675>] warn_slowpath_null+0x15/0x20
+[    3.660468]  [<ffffffff810de163>] __alloc_pages_nodemask+0x5d3/0x7a0
+[    3.665725]  [<ffffffff810f5432>] ? handle_pte_fault+0xf2/0x200
+[    3.667032]  [<ffffffff8167b849>] ? _raw_spin_unlock+0x9/0x40
+[    3.668283]  [<ffffffff810f2d76>] ? __pte_alloc+0x96/0x150
+[    3.669354]  [<ffffffff81121121>] ? get_empty_filp+0x91/0x160
+[    3.670238]  [<ffffffff810f6764>] ? handle_mm_fault+0x1a4/0x360
+[    3.671139]  [<ffffffff810de342>] __get_free_pages+0x12/0x50
+[    3.671972]  [<ffffffff811169fb>] __kmalloc+0x12b/0x150
+[    3.672782]  [<ffffffff811283f5>] pipe_set_size+0x75/0x120
+[    3.673681]  [<ffffffff81129998>] pipe_fcntl+0xf8/0x140
+[    3.674833]  [<ffffffff81130264>] do_fcntl+0x2d4/0x410
+[    3.675960]  [<ffffffff81129722>] ? do_pipe_flags+0xb2/0x100
+[    3.677218]  [<ffffffff81130406>] sys_fcntl+0x66/0xa0
+[    3.678037]  [<ffffffff8167c612>] system_call_fastpath+0x16/0x1b
+[    3.679008] ---[ end trace 432f702e6db7b5ee ]---
+
+Instead, make kcalloc() handle the overflow case and fail quietly.
+
+Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Acked-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/setup.c  |    3 ---
- drivers/mmc/card/block.c |    4 ----
- 2 files changed, 7 deletions(-)
+ fs/pipe.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/kernel/setup.c~linux-next-git-rejects arch/arm/kernel/setup.c
---- a/arch/arm/kernel/setup.c~linux-next-git-rejects
-+++ a/arch/arm/kernel/setup.c
-@@ -910,7 +910,6 @@ void __init setup_arch(char **cmdline_p)
- 	machine_desc = mdesc;
- 	machine_name = mdesc->name;
+diff -puN fs/pipe.c~pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size fs/pipe.c
+--- a/fs/pipe.c~pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size
++++ a/fs/pipe.c
+@@ -1137,7 +1137,7 @@ static long pipe_set_size(struct pipe_in
+ 	if (nr_pages < pipe->nrbufs)
+ 		return -EBUSY;
  
--<<<<<<< HEAD
- #ifdef CONFIG_ZONE_DMA
- 	if (mdesc->dma_zone_size) {
- 		extern unsigned long arm_dma_zone_size;
-@@ -919,10 +918,8 @@ void __init setup_arch(char **cmdline_p)
- #endif
- 	if (mdesc->soft_reboot)
- 		reboot_setup("s");
--=======
- 	if (mdesc->restart_mode)
- 		reboot_setup(&mdesc->restart_mode);
-->>>>>>> linux-next/akpm-end
+-	bufs = kcalloc(nr_pages, sizeof(struct pipe_buffer), GFP_KERNEL);
++	bufs = kcalloc(nr_pages, sizeof(struct pipe_buffer), GFP_KERNEL | __GFP_NOWARN);
+ 	if (unlikely(!bufs))
+ 		return -ENOMEM;
  
- 	init_mm.start_code = (unsigned long) _text;
- 	init_mm.end_code   = (unsigned long) _etext;
-diff -puN drivers/mmc/card/block.c~linux-next-git-rejects drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~linux-next-git-rejects
-+++ a/drivers/mmc/card/block.c
-@@ -1733,11 +1733,7 @@ static const struct mmc_fixup blk_fixups
- 	 * Some Micron MMC cards needs longer data read timeout than
- 	 * indicated in CSD.
- 	 */
--<<<<<<< HEAD
--	MMC_FIXUP(CID_NAME_ANY, 0x13, 0x200, add_quirk_mmc,
--=======
- 	MMC_FIXUP(CID_NAME_ANY, CID_MANFID_MICRON, 0x200, add_quirk_mmc,
-->>>>>>> linux-next/akpm-end
- 		  MMC_QUIRK_LONG_READ_TIME),
- 
- 	END_FIXUP
 _
-Subject: Subject: linux-next-git-rejects
+Subject: Subject: pipe: fail cleanly when root tries F_SETPIPE_SZ with big size
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from levinsasha928@gmail.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch
 
