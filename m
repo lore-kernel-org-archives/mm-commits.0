@@ -1,28 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi_watchdog-restore-settings-when-bmc-reset.patch added to -mm tree
-Date: Thu, 15 Dec 2011 13:19:08 -0800
-Message-ID: <20111215211908.9A6051E004D@wpzn4.hot.corp.google.com>
+Subject: + vmalloc-remove-static-declaration-of-va-from-__get_vm_area_node.patch added to -mm tree
+Date: Thu, 15 Dec 2011 13:24:32 -0800
+Message-ID: <20111215212432.A022910004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:40158 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759505Ab1LOVTJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 16:19:09 -0500
-Received: by yhjj51 with SMTP id j51so384240yhj.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 13:19:09 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:52886 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754146Ab1LOVYd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 16:24:33 -0500
+Received: by yenm5 with SMTP id m5so275013yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 13:24:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cminyard@mvista.com, a.miskiewicz@gmail.com
+Cc: consul.kautuk@gmail.com, rientjes@google.com
 
 
 The patch titled
-     Subject: ipmi_watchdog: restore settings when BMC reset
+     Subject: mm/vmalloc.c: remove static declaration of va from __get_vm_area_node
 has been added to the -mm tree.  Its filename is
-     ipmi_watchdog-restore-settings-when-bmc-reset.patch
+     vmalloc-remove-static-declaration-of-va-from-__get_vm_area_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,138 +27,92 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-=46rom: Corey Minyard <cminyard@mvista.com>
-Subject: ipmi_watchdog: restore settings when BMC reset
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Return-Path: <consul.kautuk@gmail.com>
+X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on z
+X-Spam-Level: 
+X-Spam-Status: No, score=-1.5 required=7.0 tests=BAYES_00,FREEMAIL_FROM,
+	T_DKIM_INVALID autolearn=ham version=3.3.1
+Received: from localhost (localhost [127.0.0.1])
+	by localhost.localdomain (8.14.3/8.14.3) with ESMTP id pB87m4Z2020153
+	for <akpm@localhost>; Wed, 7 Dec 2011 23:48:04 -0800
+X-Original-To: akpm@linux-foundation.org
+Delivered-To: akpm@mail.linuxfoundation.org
+Received: from mail.linuxfoundation.org [140.211.169.12]
+	by localhost with IMAP (fetchmail-6.3.11)
+	for <akpm@localhost> (single-drop); Wed, 07 Dec 2011 23:48:04 -0800 (PST)
+Received: from smtp1.linuxfoundation.org (smtp1.linux-foundation.org [172.17.192.35])
+	by mail.linuxfoundation.org (Postfix) with ESMTP id 6B87B50E
+	for <akpm@linux-foundation.org>; Thu,  8 Dec 2011 07:44:40 +0000 (UTC)
+X-Greylist: domain auto-whitelisted by SQLgrey-1.7.6
+Received: from mail-iy0-f176.google.com (mail-iy0-f176.google.com [209.85.210.176])
+	by smtp1.linuxfoundation.org (Postfix) with ESMTPS id 1A0D61FEB1
+	for <akpm@linux-foundation.org>; Thu,  8 Dec 2011 07:45:21 +0000 (UTC)
+Received: by iakk12 with SMTP id k12so2922405iak.35
+        for <akpm@linux-foundation.org>; Wed, 07 Dec 2011 23:45:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=from:to:cc:subject:date:message-id:x-mailer;
+        bh=/wOBBJXjO/ozzVfRCIOgYDueNyy7272lh/2lnSbdbrk=;
+        b=G1j5gf/hTwjw8AgLxCitKuId89coci8AktZ8XYZNIA4NBHuKO9VRlJKcGKQExn7L9s
+         qbSATU4O1B91Im176mJdnTdJaX1VeLbgpAEAGxsyT6Dds0kvc6eQb/LltZ3dj/+CGADH
+         oDpUMOTa4C05BkKrEuZOkUBZ2iqMVGQiRV9SE=
+Received: by 10.42.161.132 with SMTP id t4mr2673330icx.16.1323330321401;
+        Wed, 07 Dec 2011 23:45:21 -0800 (PST)
+Received: from localhost.localdomain ([125.19.39.117])
+        by mx.google.com with ESMTPS id wn1sm8967105igc.3.2011.12.07.23.45.17
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Wed, 07 Dec 2011 23:45:20 -0800 (PST)
+To: Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>,
+        David Rientjes <rientjes@google.com>,
+        Minchan Kim <minchan.kim@gmail.com>,
+        David Vrabel <david.vrabel@citrix.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+        Kautuk Consul <consul.kautuk@gmail.com>
+Subject: vmalloc: Remove static declaration of va from __get_vm_area_node
+Date: Thu,  8 Dec 2011 13:20:21 +0530
+Message-Id: <1323330621-31254-1-git-send-email-consul.kautuk@gmail.com>
+X-Mailer: git-send-email 1.7.6
 
-If the BMC gets reset, it will return 0x80 response errors.
+Static storage is not required for the struct vmap_area in
+__get_vm_area_node.
 
-In less than a week
-# grep "Error 80 on cmd 22" /var/log/kernel |wc -l
-378681
+Removing "static" to store this variable on the stack instead.
 
-In this case, it is probably a good idea to restore the IPMI settings.
-
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Tested-by: Arkadiusz Mi=C5=9Bkiewicz <a.miskiewicz@gmail.com>
-Reported-by: Arkadiusz Mi=C5=9Bkiewicz <a.miskiewicz@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
 ---
+ mm/vmalloc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
- drivers/char/ipmi/ipmi_watchdog.c |   41 +++++++++++++++++++++++++---
- 1 file changed, 38 insertions(+), 3 deletions(-)
-
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi_watchdog-restore-setti=
-ngs-when-bmc-reset drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi_watchdog-restore-settings-=
-when-bmc-reset
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -139,6 +139,8 @@
- #define IPMI_WDOG_SET_TIMER		0x24
- #define IPMI_WDOG_GET_TIMER		0x25
-=20
-+#define IPMI_WDOG_TIMER_NOT_INIT_RESP	0x80
-+
- /* These are here until the real ones get into the watchdog.h interfac=
-e. */
- #ifndef WDIOC_GETTIMEOUT
- #define	WDIOC_GETTIMEOUT        _IOW(WATCHDOG_IOCTL_BASE, 20, int)
-@@ -596,6 +598,7 @@ static int ipmi_heartbeat(void)
- 	struct kernel_ipmi_msg            msg;
- 	int                               rv;
- 	struct ipmi_system_interface_addr addr;
-+	int				  timeout_retries =3D 0;
-=20
- 	if (ipmi_ignore_heartbeat)
- 		return 0;
-@@ -616,6 +619,7 @@ static int ipmi_heartbeat(void)
-=20
- 	mutex_lock(&heartbeat_lock);
-=20
-+restart:
- 	atomic_set(&heartbeat_tofree, 2);
-=20
- 	/*
-@@ -653,7 +657,33 @@ static int ipmi_heartbeat(void)
- 	/* Wait for the heartbeat to be sent. */
- 	wait_for_completion(&heartbeat_wait);
-=20
--	if (heartbeat_recv_msg.msg.data[0] !=3D 0) {
-+	if (heartbeat_recv_msg.msg.data[0] =3D=3D IPMI_WDOG_TIMER_NOT_INIT_RE=
-SP)  {
-+		timeout_retries++;
-+		if (timeout_retries > 3) {
-+			printk(KERN_ERR PFX ": Unable to restore the IPMI"
-+			       " watchdog's settings, giving up.\n");
-+			rv =3D -EIO;
-+			goto out_unlock;
-+		}
-+
-+		/*
-+		 * The timer was not initialized, that means the BMC was
-+		 * probably reset and lost the watchdog information.  Attempt
-+		 * to restore the timer's info.  Note that we still hold
-+		 * the heartbeat lock, to keep a heartbeat from happening
-+		 * in this process, so must say no heartbeat to avoid a
-+		 * deadlock on this mutex.
-+		 */
-+		rv =3D ipmi_set_timeout(IPMI_SET_TIMEOUT_NO_HB);
-+		if (rv) {
-+			printk(KERN_ERR PFX ": Unable to send the command to"
-+			       " set the watchdog's settings, giving up.\n");
-+			goto out_unlock;
-+		}
-+
-+		/* We might need a new heartbeat, so do it now */
-+		goto restart;
-+	} else if (heartbeat_recv_msg.msg.data[0] !=3D 0) {
- 		/*
- 		 * Got an error in the heartbeat response.  It was already
- 		 * reported in ipmi_wdog_msg_handler, but we should return
-@@ -662,6 +692,7 @@ static int ipmi_heartbeat(void)
- 		rv =3D -EINVAL;
- 	}
-=20
-+out_unlock:
- 	mutex_unlock(&heartbeat_lock);
-=20
- 	return rv;
-@@ -922,11 +953,15 @@ static struct miscdevice ipmi_wdog_miscd
- static void ipmi_wdog_msg_handler(struct ipmi_recv_msg *msg,
- 				  void                 *handler_data)
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 3231bf3..173562c 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -1290,7 +1290,7 @@ static struct vm_struct *__get_vm_area_node(unsigned long size,
+ 		unsigned long align, unsigned long flags, unsigned long start,
+ 		unsigned long end, int node, gfp_t gfp_mask, void *caller)
  {
--	if (msg->msg.data[0] !=3D 0) {
-+	if (msg->msg.cmd =3D=3D IPMI_WDOG_RESET_TIMER &&
-+			msg->msg.data[0] =3D=3D IPMI_WDOG_TIMER_NOT_INIT_RESP)
-+		printk(KERN_INFO PFX "response: The IPMI controller appears"
-+		       " to have been reset, will attempt to reinitialize"
-+		       " the watchdog timer\n");
-+	else if (msg->msg.data[0] !=3D 0)
- 		printk(KERN_ERR PFX "response: Error %x on cmd %x\n",
- 		       msg->msg.data[0],
- 		       msg->msg.cmd);
--	}
-=20
- 	ipmi_free_recv_msg(msg);
- }
-_
-Subject: Subject: ipmi_watchdog: restore settings when BMC reset
+-	static struct vmap_area *va;
++	struct vmap_area *va;
+ 	struct vm_struct *area;
+ 
+ 	BUG_ON(in_interrupt());
+-- 
+1.7.6
+Subject: Subject: mm/vmalloc.c: remove static declaration of va from __get_vm_area_node
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
-ipmi_watchdog-restore-settings-when-bmc-reset.patch
+linux-next.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+vmalloc-remove-static-declaration-of-va-from-__get_vm_area_node.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
