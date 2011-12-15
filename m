@@ -1,118 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-remove-static-declaration-of-va-from-__get_vm_area_node.patch added to -mm tree
-Date: Thu, 15 Dec 2011 13:24:32 -0800
-Message-ID: <20111215212432.A022910004D@wpzn3.hot.corp.google.com>
+Subject: [alternative-merged] drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch removed from -mm tree
+Date: Thu, 15 Dec 2011 13:28:01 -0800
+Message-ID: <20111215212801.D37B710004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:52886 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:49478 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754146Ab1LOVYd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 16:24:33 -0500
-Received: by yenm5 with SMTP id m5so275013yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 13:24:33 -0800 (PST)
+	with ESMTP id S1751855Ab1LOV2D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Dec 2011 16:28:03 -0500
+Received: by yenm5 with SMTP id m5so275361yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Dec 2011 13:28:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: consul.kautuk@gmail.com, rientjes@google.com
+To: wferi@niif.hu, kashyap.desai@lsi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: remove static declaration of va from __get_vm_area_node
-has been added to the -mm tree.  Its filename is
-     vmalloc-remove-static-declaration-of-va-from-__get_vm_area_node.patch
+     Subject: drivers/message/fusion/mptbase.c: ensure NUL-termination of MptCallbacksName elements
+has been removed from the -mm tree.  Its filename was
+     drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Kautuk Consul <consul.kautuk@gmail.com>
-Return-Path: <consul.kautuk@gmail.com>
-X-Spam-Checker-Version: SpamAssassin 3.3.1 (2010-03-16) on z
-X-Spam-Level: 
-X-Spam-Status: No, score=-1.5 required=7.0 tests=BAYES_00,FREEMAIL_FROM,
-	T_DKIM_INVALID autolearn=ham version=3.3.1
-Received: from localhost (localhost [127.0.0.1])
-	by localhost.localdomain (8.14.3/8.14.3) with ESMTP id pB87m4Z2020153
-	for <akpm@localhost>; Wed, 7 Dec 2011 23:48:04 -0800
-X-Original-To: akpm@linux-foundation.org
-Delivered-To: akpm@mail.linuxfoundation.org
-Received: from mail.linuxfoundation.org [140.211.169.12]
-	by localhost with IMAP (fetchmail-6.3.11)
-	for <akpm@localhost> (single-drop); Wed, 07 Dec 2011 23:48:04 -0800 (PST)
-Received: from smtp1.linuxfoundation.org (smtp1.linux-foundation.org [172.17.192.35])
-	by mail.linuxfoundation.org (Postfix) with ESMTP id 6B87B50E
-	for <akpm@linux-foundation.org>; Thu,  8 Dec 2011 07:44:40 +0000 (UTC)
-X-Greylist: domain auto-whitelisted by SQLgrey-1.7.6
-Received: from mail-iy0-f176.google.com (mail-iy0-f176.google.com [209.85.210.176])
-	by smtp1.linuxfoundation.org (Postfix) with ESMTPS id 1A0D61FEB1
-	for <akpm@linux-foundation.org>; Thu,  8 Dec 2011 07:45:21 +0000 (UTC)
-Received: by iakk12 with SMTP id k12so2922405iak.35
-        for <akpm@linux-foundation.org>; Wed, 07 Dec 2011 23:45:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=gamma;
-        h=from:to:cc:subject:date:message-id:x-mailer;
-        bh=/wOBBJXjO/ozzVfRCIOgYDueNyy7272lh/2lnSbdbrk=;
-        b=G1j5gf/hTwjw8AgLxCitKuId89coci8AktZ8XYZNIA4NBHuKO9VRlJKcGKQExn7L9s
-         qbSATU4O1B91Im176mJdnTdJaX1VeLbgpAEAGxsyT6Dds0kvc6eQb/LltZ3dj/+CGADH
-         oDpUMOTa4C05BkKrEuZOkUBZ2iqMVGQiRV9SE=
-Received: by 10.42.161.132 with SMTP id t4mr2673330icx.16.1323330321401;
-        Wed, 07 Dec 2011 23:45:21 -0800 (PST)
-Received: from localhost.localdomain ([125.19.39.117])
-        by mx.google.com with ESMTPS id wn1sm8967105igc.3.2011.12.07.23.45.17
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Wed, 07 Dec 2011 23:45:20 -0800 (PST)
-To: Andrew Morton <akpm@linux-foundation.org>, Joe Perches <joe@perches.com>,
-        David Rientjes <rientjes@google.com>,
-        Minchan Kim <minchan.kim@gmail.com>,
-        David Vrabel <david.vrabel@citrix.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        Kautuk Consul <consul.kautuk@gmail.com>
-Subject: vmalloc: Remove static declaration of va from __get_vm_area_node
-Date: Thu,  8 Dec 2011 13:20:21 +0530
-Message-Id: <1323330621-31254-1-git-send-email-consul.kautuk@gmail.com>
-X-Mailer: git-send-email 1.7.6
+From: Ferenc Wagner <wferi@niif.hu>
+Subject: drivers/message/fusion/mptbase.c: ensure NUL-termination of MptCallbacksName elements
 
-Static storage is not required for the struct vmap_area in
-__get_vm_area_node.
+I just stumbled upon this while pondering over
+https://bugzilla.kernel.org/show_bug.cgi?id=26692 and thought this could
+be made better.
 
-Removing "static" to store this variable on the stack instead.
-
-Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Ferenc Wagner <wferi@niif.hu>
+Cc: Desai <kashyap.desai@lsi.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- mm/vmalloc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index 3231bf3..173562c 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -1290,7 +1290,7 @@ static struct vm_struct *__get_vm_area_node(unsigned long size,
- 		unsigned long align, unsigned long flags, unsigned long start,
- 		unsigned long end, int node, gfp_t gfp_mask, void *caller)
- {
--	static struct vmap_area *va;
-+	struct vmap_area *va;
- 	struct vm_struct *area;
+ drivers/message/fusion/mptbase.c |    7 ++++---
+ drivers/message/fusion/mptbase.h |    1 +
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff -puN drivers/message/fusion/mptbase.c~drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements drivers/message/fusion/mptbase.c
+--- a/drivers/message/fusion/mptbase.c~drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements
++++ a/drivers/message/fusion/mptbase.c
+@@ -115,7 +115,8 @@ module_param(mpt_fwfault_debug, int, 060
+ MODULE_PARM_DESC(mpt_fwfault_debug,
+ 		 "Enable detection of Firmware fault and halt Firmware on fault - (default=0)");
  
- 	BUG_ON(in_interrupt());
--- 
-1.7.6
-Subject: Subject: mm/vmalloc.c: remove static declaration of va from __get_vm_area_node
+-static char	MptCallbacksName[MPT_MAX_PROTOCOL_DRIVERS][50];
++static char
++MptCallbacksName[MPT_MAX_PROTOCOL_DRIVERS][MPT_MAX_CALLBACKNAME_LEN + 1];
+ 
+ #ifdef MFCNT
+ static int mfcounter = 0;
+@@ -717,8 +718,8 @@ mpt_register(MPT_CALLBACK cbfunc, MPT_DR
+ 			MptDriverClass[cb_idx] = dclass;
+ 			MptEvHandlers[cb_idx] = NULL;
+ 			last_drv_idx = cb_idx;
+-			memcpy(MptCallbacksName[cb_idx], func_name,
+-			    strlen(func_name) > 50 ? 50 : strlen(func_name));
++			strlcpy(MptCallbacksName[cb_idx], func_name,
++				MPT_MAX_CALLBACKNAME_LEN+1);
+ 			break;
+ 		}
+ 	}
+diff -puN drivers/message/fusion/mptbase.h~drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements drivers/message/fusion/mptbase.h
+--- a/drivers/message/fusion/mptbase.h~drivers-message-fusion-mptbasec-ensure-nul-termination-of-mptcallbacksname-elements
++++ a/drivers/message/fusion/mptbase.h
+@@ -89,6 +89,7 @@
+  */
+ #define MPT_MAX_ADAPTERS		18
+ #define MPT_MAX_PROTOCOL_DRIVERS	16
++#define MPT_MAX_CALLBACKNAME_LEN	49
+ #define MPT_MAX_BUS			1	/* Do not change */
+ #define MPT_MAX_FC_DEVICES		255
+ #define MPT_MAX_SCSI_DEVICES		16
+_
 
-Patches currently in -mm which might be from consul.kautuk@gmail.com are
+Patches currently in -mm which might be from wferi@niif.hu are
 
 linux-next.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-vmalloc-remove-static-declaration-of-va-from-__get_vm_area_node.patch
 
