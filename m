@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch added to -mm tree
-Date: Fri, 16 Dec 2011 15:30:08 -0800
-Message-ID: <20111216233009.68AB61E004D@wpzn4.hot.corp.google.com>
+Subject: + mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone.patch added to -mm tree
+Date: Fri, 16 Dec 2011 15:30:11 -0800
+Message-ID: <20111216233012.DD4995C0064@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:43186 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462Ab1LPXaK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 18:30:10 -0500
-Received: by mail-yw0-f74.google.com with SMTP id j51so584979yhj.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 15:30:10 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:47864 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963Ab1LPXaQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 18:30:16 -0500
+Received: by eaad1 with SMTP id d1so103923eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 15:30:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, j
 
 
 The patch titled
-     Subject: mm: vmscan: when reclaiming for compaction, ensure there are sufficient free pages available
+     Subject: mm: vmscan: check if reclaim should really abort even if compaction_ready() is true for one zone
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch
+     mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,28 +36,26 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: when reclaiming for compaction, ensure there are sufficient free pages available
+Subject: mm: vmscan: check if reclaim should really abort even if compaction_ready() is true for one zone
 
-In commit e0887c19 ("vmscan: limit direct reclaim for higher order
-allocations"), Rik noted that reclaim was too aggressive when THP was
-enabled.  In his initial patch he used the number of free pages to decide
-if reclaim should abort for compaction.  My feedback was that reclaim and
-compaction should be using the same logic when deciding if reclaim should
-be aborted.
+If compaction can proceed for a given zone, shrink_zones() does not
+reclaim any more pages from it.  After commit [e0c2327: vmscan: abort
+reclaim/compaction if compaction can proceed], do_try_to_free_pages()
+tries to finish as soon as possible once one zone can compact.
 
-Unfortunately, this had the effect of reducing THP success rates when the
-workload included something like streaming reads that continually
-allocated pages.  The window during which compaction could run and return
-a THP was too small.
+This was intended to prevent slabs being shrunk unnecessarily but there
+are side-effects.  One is that a small zone that is ready for compaction
+will abort reclaim even if the chances of successfully allocating a THP
+from that zone is small.  It also means that reclaim can return too early
+even though sc->nr_to_reclaim pages were not reclaimed.
 
-This patch combines Rik's two patches together.  compaction_suitable() is
-still used to decide if reclaim should be aborted to allow compaction is
-used.  However, it will also ensure that there is a reasonable buffer of
-free pages available.  This improves upon the THP allocation success rates
-but bounds the number of pages that are freed for compaction.
+This partially reverts the commit until it is proven that slabs are really
+being shrunk unnecessarily but preserves the check to return 1 to avoid
+OOM if reclaim was aborted prematurely.
 
+[aarcange@redhat.com: This patch replaces a revert from Andrea]
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel<riel@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Dave Jones <davej@redhat.com>
@@ -68,79 +66,82 @@ Cc: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   44 +++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 39 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available
+diff -puN mm/vmscan.c~mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone
 +++ a/mm/vmscan.c
-@@ -2110,6 +2110,42 @@ restart:
- 	throttle_vm_writeout(sc->gfp_mask);
- }
- 
-+/* Returns true if compaction should go ahead for a high-order request */
-+static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
-+{
-+	unsigned long balance_gap, watermark;
-+	bool watermark_ok;
-+
-+	/* Do not consider compaction for orders reclaim is meant to satisfy */
-+	if (sc->order <= PAGE_ALLOC_COSTLY_ORDER)
-+		return false;
-+
-+	/*
-+	 * Compaction takes time to run and there are potentially other
-+	 * callers using the pages just freed. Continue reclaiming until
-+	 * there is a buffer of free pages available to give compaction
-+	 * a reasonable chance of completing and allocating the page
-+	 */
-+	balance_gap = min(low_wmark_pages(zone),
-+		(zone->present_pages + KSWAPD_ZONE_BALANCE_GAP_RATIO-1) /
-+			KSWAPD_ZONE_BALANCE_GAP_RATIO);
-+	watermark = high_wmark_pages(zone) + balance_gap + (2UL << sc->order);
-+	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, 0, 0);
-+
-+	/*
-+	 * If compaction is deferred, reclaim up to a point where
-+	 * compaction will have a chance of success when re-enabled
-+	 */
-+	if (compaction_deferred(zone))
-+		return watermark_ok;
-+
-+	/* If compaction is not ready to start, keep reclaiming */
-+	if (!compaction_suitable(zone, sc->order))
-+		return false;
-+
-+	return watermark_ok;
-+}
-+
- /*
-  * This is the direct reclaim path, for page-allocating processes.  We only
-  * try to reclaim pages from zones which will satisfy the caller's allocation
-@@ -2127,8 +2163,8 @@ restart:
-  * scan then give up on it.
+@@ -2164,7 +2164,8 @@ static inline bool compaction_ready(stru
   *
   * This function returns true if a zone is being reclaimed for a costly
-- * high-order allocation and compaction is either ready to begin or deferred.
-- * This indicates to the caller that it should retry the allocation or fail.
-+ * high-order allocation and compaction is ready to begin. This indicates to
-+ * the caller that it should retry the allocation or fail.
+  * high-order allocation and compaction is ready to begin. This indicates to
+- * the caller that it should retry the allocation or fail.
++ * the caller that it should consider retrying the allocation instead of
++ * further reclaim.
   */
  static bool shrink_zones(int priority, struct zonelist *zonelist,
  					struct scan_control *sc)
-@@ -2162,9 +2198,7 @@ static bool shrink_zones(int priority, s
- 				 * noticable problem, like transparent huge page
+@@ -2173,7 +2174,7 @@ static bool shrink_zones(int priority, s
+ 	struct zone *zone;
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
+-	bool should_abort_reclaim = false;
++	bool aborted_reclaim = false;
+ 
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 					gfp_zone(sc->gfp_mask), sc->nodemask) {
+@@ -2199,7 +2200,7 @@ static bool shrink_zones(int priority, s
  				 * allocations.
  				 */
--				if (sc->order > PAGE_ALLOC_COSTLY_ORDER &&
--					(compaction_suitable(zone, sc->order) ||
--					 compaction_deferred(zone))) {
-+				if (compaction_ready(zone, sc)) {
- 					should_abort_reclaim = true;
+ 				if (compaction_ready(zone, sc)) {
+-					should_abort_reclaim = true;
++					aborted_reclaim = true;
  					continue;
  				}
+ 			}
+@@ -2221,7 +2222,7 @@ static bool shrink_zones(int priority, s
+ 		shrink_zone(priority, zone, sc);
+ 	}
+ 
+-	return should_abort_reclaim;
++	return aborted_reclaim;
+ }
+ 
+ static bool zone_reclaimable(struct zone *zone)
+@@ -2275,7 +2276,7 @@ static unsigned long do_try_to_free_page
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	unsigned long writeback_threshold;
+-	bool should_abort_reclaim;
++	bool aborted_reclaim;
+ 
+ 	get_mems_allowed();
+ 	delayacct_freepages_start();
+@@ -2287,9 +2288,7 @@ static unsigned long do_try_to_free_page
+ 		sc->nr_scanned = 0;
+ 		if (!priority)
+ 			disable_swap_token(sc->mem_cgroup);
+-		should_abort_reclaim = shrink_zones(priority, zonelist, sc);
+-		if (should_abort_reclaim)
+-			break;
++		aborted_reclaim = shrink_zones(priority, zonelist, sc);
+ 
+ 		/*
+ 		 * Don't shrink slabs when reclaiming memory from
+@@ -2356,8 +2355,8 @@ out:
+ 	if (oom_killer_disabled)
+ 		return 0;
+ 
+-	/* Aborting reclaim to try compaction? don't OOM, then */
+-	if (should_abort_reclaim)
++	/* Aborted reclaim to try compaction? don't OOM, then */
++	if (aborted_reclaim)
+ 		return 1;
+ 
+ 	/* top priority shrink_zones still had more to do? don't OOM, then */
 _
-Subject: Subject: mm: vmscan: when reclaiming for compaction, ensure there are sufficient free pages available
+Subject: Subject: mm: vmscan: check if reclaim should really abort even if compaction_ready() is true for one zone
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
