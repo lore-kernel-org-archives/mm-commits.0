@@ -1,318 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] core-kernel-add-refcount-type-and-refcount-misuse-debugging.patch removed from -mm tree
-Date: Fri, 16 Dec 2011 14:01:24 -0800
-Message-ID: <20111216220124.DC7EA1E006E@wpzn4.hot.corp.google.com>
+Subject: + memcg-clear-pc-mem_cgorup-if-necessary.patch added to -mm tree
+Date: Fri, 16 Dec 2011 14:31:22 -0800
+Message-ID: <20111216223123.5C56210004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:33140 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760834Ab1LPWB2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 17:01:28 -0500
-Received: by ggnv2 with SMTP id v2so423034ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 14:01:28 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:40106 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760919Ab1LPWbY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 17:31:24 -0500
+Received: by yenm5 with SMTP id m5so459911yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 14:31:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, a.p.zijlstra@chello.nl, eric.dumazet@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, mszeredi@suse.cz, yinghan@google.com
 
 
 The patch titled
-     Subject: core kernel: add refcount type and refcount misuse debugging
-has been removed from the -mm tree.  Its filename was
-     core-kernel-add-refcount-type-and-refcount-misuse-debugging.patch
+     Subject: memcg: clear pc->mem_cgorup if necessary.
+has been added to the -mm tree.  Its filename is
+     memcg-clear-pc-mem_cgorup-if-necessary.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: core kernel: add refcount type and refcount misuse debugging
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: clear pc->mem_cgorup if necessary.
 
-There is quite a lot of idiomatic code which does
+This is a preparation before removing a flag PCG_ACCT_LRU in page_cgroup
+and reducing atomic ops/complexity in memcg LRU handling.
 
-	if (atomic_dec_and_test(&obj->refcnt))
-		[destroy obj]
+In some cases, pages are added to lru before charge to memcg and pages are
+not classfied to memory cgroup at lru addtion.  Now, the lru where the
+page should be added is determined a bit in page_cgroup->flags and
+pc->mem_cgroup.  I'd like to remove the check of flag.
 
-Bugs like double-frees in this case are dereferred and it may not be
-immediately obvious that double-free has happened.
+To handle the case pc->mem_cgroup may contain stale pointers if pages are
+added to LRU before classification.  This patch resets pc->mem_cgroup to
+root_mem_cgroup before lru additions.
 
-The answer is to wrap reference count debugging to every such operation.
-
-Enter _refcnt_t (non-atomic version), refcnt_t (atomic version)
-datatypes
-and CONFIG_DEBUG_REFCNT config option.
-
-The latter directly checks for
-a) GET on dead object
-b) PUT on dead object (aka double PUT)
-(and indirectly for memory corruptions turning positive integers into
-negative)
-
-All of this has basic idea coming from grsecurity/PaX's
-CONFIG_PAX_REFCOUNT code.
-The main difference is that developer has to opt in into new code.
-
-Differences in code generation if CONFIG_DEBUG_REFCNT is enabled (on x86)
-come from DEC => XADD change (1 byte) and additional comparison+UD2 (~10 bytes).
-If this is a problem refcnt_get/refcnt_put can be uninlined.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Ying Han <yinghan@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-thin.c    |   10 ++--
- fs/proc/generic.c       |    4 -
- fs/proc/internal.h      |    2 
- fs/proc/root.c          |    3 -
- include/linux/proc_fs.h |    4 -
- include/linux/refcnt.h  |   90 ++++++++++++++++++++++++++++++++++++++
- lib/Kconfig.debug       |    3 +
- 7 files changed, 105 insertions(+), 11 deletions(-)
+ include/linux/memcontrol.h |    5 +++++
+ mm/ksm.c                   |    1 +
+ mm/memcontrol.c            |   14 ++++++++++++++
+ mm/swap_state.c            |    1 +
+ 4 files changed, 21 insertions(+)
 
-diff -puN drivers/md/dm-thin.c~core-kernel-add-refcount-type-and-refcount-misuse-debugging drivers/md/dm-thin.c
---- a/drivers/md/dm-thin.c~core-kernel-add-refcount-type-and-refcount-misuse-debugging
-+++ a/drivers/md/dm-thin.c
-@@ -12,6 +12,7 @@
- #include <linux/list.h>
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/refcnt.h>
- #include <linux/slab.h>
+diff -puN include/linux/memcontrol.h~memcg-clear-pc-mem_cgorup-if-necessary include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-clear-pc-mem_cgorup-if-necessary
++++ a/include/linux/memcontrol.h
+@@ -129,6 +129,7 @@ extern void mem_cgroup_print_oom_info(st
+ extern void mem_cgroup_replace_page_cache(struct page *oldpage,
+ 					struct page *newpage);
  
- #define	DM_MSG_PREFIX	"thin"
-@@ -494,7 +495,7 @@ struct pool {
- 	struct workqueue_struct *wq;
- 	struct work_struct worker;
- 
--	unsigned ref_count;
-+	_refcnt_t ref_count;
- 
- 	spinlock_t lock;
- 	struct bio_list deferred_bios;
-@@ -1548,7 +1549,7 @@ static struct pool *pool_create(struct m
- 		err_p = ERR_PTR(-ENOMEM);
- 		goto bad_endio_hook_pool;
- 	}
--	pool->ref_count = 1;
-+	_refcnt_init(&pool->ref_count);
- 	pool->pool_md = pool_md;
- 	pool->md_dev = metadata_dev;
- 	__pool_table_insert(pool);
-@@ -1575,14 +1576,13 @@ bad_pool:
- static void __pool_inc(struct pool *pool)
++extern void mem_cgroup_reset_owner(struct page *page);
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ extern int do_swap_account;
+ #endif
+@@ -391,6 +392,10 @@ static inline void mem_cgroup_replace_pa
+ 				struct page *newpage)
  {
- 	BUG_ON(!mutex_is_locked(&dm_thin_pool_table.mutex));
--	pool->ref_count++;
-+	_refcnt_get(&pool->ref_count);
+ }
++
++static inline void mem_cgroup_reset_owner(struct page *page);
++{
++}
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #if !defined(CONFIG_CGROUP_MEM_RES_CTLR) || !defined(CONFIG_DEBUG_VM)
+diff -puN mm/ksm.c~memcg-clear-pc-mem_cgorup-if-necessary mm/ksm.c
+--- a/mm/ksm.c~memcg-clear-pc-mem_cgorup-if-necessary
++++ a/mm/ksm.c
+@@ -1571,6 +1571,7 @@ struct page *ksm_does_need_to_copy(struc
+ 
+ 	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ 	if (new_page) {
++		mem_cgroup_reset_owner(new_page);
+ 		copy_user_highpage(new_page, page, address, vma);
+ 
+ 		SetPageDirty(new_page);
+diff -puN mm/memcontrol.c~memcg-clear-pc-mem_cgorup-if-necessary mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-clear-pc-mem_cgorup-if-necessary
++++ a/mm/memcontrol.c
+@@ -3106,6 +3106,20 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 	rcu_read_unlock();
  }
  
- static void __pool_dec(struct pool *pool)
- {
- 	BUG_ON(!mutex_is_locked(&dm_thin_pool_table.mutex));
--	BUG_ON(!pool->ref_count);
--	if (!--pool->ref_count)
-+	if (_refcnt_put(&pool->ref_count))
- 		__pool_destroy(pool);
- }
- 
-diff -puN fs/proc/generic.c~core-kernel-add-refcount-type-and-refcount-misuse-debugging fs/proc/generic.c
---- a/fs/proc/generic.c~core-kernel-add-refcount-type-and-refcount-misuse-debugging
-+++ a/fs/proc/generic.c
-@@ -624,7 +624,7 @@ static struct proc_dir_entry *__proc_cre
- 	ent->namelen = len;
- 	ent->mode = mode;
- 	ent->nlink = nlink;
--	atomic_set(&ent->count, 1);
-+	refcnt_init(&ent->refcnt);
- 	ent->pde_users = 0;
- 	spin_lock_init(&ent->pde_unload_lock);
- 	ent->pde_unload_completion = NULL;
-@@ -774,7 +774,7 @@ static void free_proc_entry(struct proc_
- 
- void pde_put(struct proc_dir_entry *pde)
- {
--	if (atomic_dec_and_test(&pde->count))
-+	if (refcnt_put(&pde->refcnt))
- 		free_proc_entry(pde);
- }
- 
-diff -puN fs/proc/internal.h~core-kernel-add-refcount-type-and-refcount-misuse-debugging fs/proc/internal.h
---- a/fs/proc/internal.h~core-kernel-add-refcount-type-and-refcount-misuse-debugging
-+++ a/fs/proc/internal.h
-@@ -110,7 +110,7 @@ void task_mem(struct seq_file *, struct 
- 
- static inline struct proc_dir_entry *pde_get(struct proc_dir_entry *pde)
- {
--	atomic_inc(&pde->count);
-+	refcnt_get(&pde->refcnt);
- 	return pde;
- }
- void pde_put(struct proc_dir_entry *pde);
-diff -puN fs/proc/root.c~core-kernel-add-refcount-type-and-refcount-misuse-debugging fs/proc/root.c
---- a/fs/proc/root.c~core-kernel-add-refcount-type-and-refcount-misuse-debugging
-+++ a/fs/proc/root.c
-@@ -9,6 +9,7 @@
- #include <asm/uaccess.h>
- 
- #include <linux/errno.h>
-+#include <linux/refcnt.h>
- #include <linux/time.h>
- #include <linux/proc_fs.h>
- #include <linux/stat.h>
-@@ -188,7 +189,7 @@ struct proc_dir_entry proc_root = {
- 	.namelen	= 5, 
- 	.mode		= S_IFDIR | S_IRUGO | S_IXUGO, 
- 	.nlink		= 2, 
--	.count		= ATOMIC_INIT(1),
-+	.refcnt		= REFCNT_INIT,
- 	.proc_iops	= &proc_root_inode_operations, 
- 	.proc_fops	= &proc_root_operations,
- 	.parent		= &proc_root,
-diff -puN include/linux/proc_fs.h~core-kernel-add-refcount-type-and-refcount-misuse-debugging include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~core-kernel-add-refcount-type-and-refcount-misuse-debugging
-+++ a/include/linux/proc_fs.h
-@@ -1,11 +1,11 @@
- #ifndef _LINUX_PROC_FS_H
- #define _LINUX_PROC_FS_H
- 
-+#include <linux/refcnt.h>
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/spinlock.h>
- #include <linux/magic.h>
--#include <linux/atomic.h>
- 
- struct net;
- struct completion;
-@@ -69,7 +69,7 @@ struct proc_dir_entry {
- 	void *data;
- 	read_proc_t *read_proc;
- 	write_proc_t *write_proc;
--	atomic_t count;		/* use count */
-+	refcnt_t refcnt;
- 	int pde_users;	/* number of callers into module in progress */
- 	struct completion *pde_unload_completion;
- 	struct list_head pde_openers;	/* who did ->open, but not ->release */
-diff -puN /dev/null include/linux/refcnt.h
---- /dev/null
-+++ a/include/linux/refcnt.h
-@@ -0,0 +1,90 @@
 +/*
-+ * Use these types iff
-+ * a) object is created with refcount 1, and
-+ * b) every GET does +1, and
-+ * c) every PUT does -1, and
-+ * d) once refcount reaches 0, object is destroyed.
-+ *
-+ * Do not use otherwise.
-+ *
-+ * Use underscored version if refcount manipulations are already under
-+ * some sort of locking making additional atomicity unnecessary.
++ * A function for resetting pc->mem_cgroup for newly allocated pages.
++ * This function should be called if the newpage will be added to LRU
++ * before start accounting.
 + */
-+#ifndef _LINUX_REFCNT_H
-+#define _LINUX_REFCNT_H
-+#include <linux/atomic.h>
-+#include <linux/bug.h>
-+#include <linux/types.h>
-+
-+typedef struct {
-+	int n;
-+} _refcnt_t;
-+#define _REFCNT_INIT	((_refcnt_t){ .n = 1 })
-+
-+static inline void _refcnt_init(_refcnt_t *refcnt)
++void mem_cgroup_reset_owner(struct page *newpage)
 +{
-+	refcnt->n = 1;
++	struct page_cgroup *pc;
++
++	pc = lookup_page_cgroup(newpage);
++	VM_BUG_ON(PageCgroupUsed(pc));
++	pc->mem_cgroup = root_mem_cgroup;
 +}
 +
-+static inline void _refcnt_get(_refcnt_t *refcnt)
-+{
-+	if (IS_ENABLED(CONFIG_DEBUG_REFCNT))
-+		BUG_ON(refcnt->n < 1);
-+	refcnt->n++;
-+}
-+
-+/*
-+ * Return 1 if PUT turned out to be last PUT, return 0 otherwise.
-+ *
-+ *	if (_refcnt_put(&obj->refcnt)) {
-+ *		[destroy object]
-+ *	}
-+ */
-+static inline int _refcnt_put(_refcnt_t *refcnt)
-+{
-+	if (IS_ENABLED(CONFIG_DEBUG_REFCNT))
-+		BUG_ON(refcnt->n < 1);
-+	refcnt->n--;
-+	return refcnt->n == 0;
-+}
-+
-+typedef struct {
-+	atomic_t n;
-+} refcnt_t;
-+#define REFCNT_INIT	((refcnt_t){ .n = ATOMIC_INIT(1) })
-+
-+static inline void refcnt_init(refcnt_t *refcnt)
-+{
-+	atomic_set(&refcnt->n, 1);
-+}
-+
-+static inline void refcnt_get(refcnt_t *refcnt)
-+{
-+	if (IS_ENABLED(CONFIG_DEBUG_REFCNT)) {
-+		int rv;
-+
-+		rv = atomic_inc_return(&refcnt->n);
-+		BUG_ON(rv < 2);
-+	} else
-+		atomic_inc(&refcnt->n);
-+}
-+
-+/*
-+ * Return 1 if PUT turned out to be last PUT, return 0 otherwise.
-+ *
-+ *	if (refcnt_put(&obj->refcnt)) {
-+ *		[destroy object]
-+ *	}
-+ */
-+static inline int refcnt_put(refcnt_t *refcnt)
-+{
-+	if (IS_ENABLED(CONFIG_DEBUG_REFCNT)) {
-+		int rv;
-+
-+		rv = atomic_dec_return(&refcnt->n);
-+		BUG_ON(rv < 0);
-+		return rv == 0;
-+	} else
-+		return atomic_dec_and_test(&refcnt->n);
-+}
-+#endif
-diff -puN lib/Kconfig.debug~core-kernel-add-refcount-type-and-refcount-misuse-debugging lib/Kconfig.debug
---- a/lib/Kconfig.debug~core-kernel-add-refcount-type-and-refcount-misuse-debugging
-+++ a/lib/Kconfig.debug
-@@ -1294,3 +1294,6 @@ source "lib/Kconfig.kmemcheck"
+ /**
+  * mem_cgroup_move_swap_account - move swap charge and swap_cgroup's record.
+  * @entry: swap entry to be moved
+diff -puN mm/swap_state.c~memcg-clear-pc-mem_cgorup-if-necessary mm/swap_state.c
+--- a/mm/swap_state.c~memcg-clear-pc-mem_cgorup-if-necessary
++++ a/mm/swap_state.c
+@@ -301,6 +301,7 @@ struct page *read_swap_cache_async(swp_e
+ 			new_page = alloc_page_vma(gfp_mask, vma, addr);
+ 			if (!new_page)
+ 				break;		/* Out of memory */
++			mem_cgroup_reset_owner(new_page);
+ 		}
  
- config TEST_KSTRTOX
- 	tristate "Test kstrto*() family of functions at runtime"
-+
-+config DEBUG_REFCNT
-+	bool "Debug reference count objects"
+ 		/*
 _
+Subject: Subject: memcg: clear pc->mem_cgorup if necessary.
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 linux-next.patch
-ctags-remove-struct-forward-declarations.patch
-procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
-procfs-introduce-the-proc-pid-map_files-directory.patch
-procfs-parse-mount-options.patch
-procfs-add-hidepid=-and-gid=-mount-options.patch
-procfs-remove-superfluous-debug-output.patch
-procfs-add-hidepid=-and-gid=-mount-options-fix.patch
+memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
+memcg-keep-root-group-unchanged-if-creation-fails.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
+mm-exclude-reserved-pages-from-dirtyable-memory.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+mm-writeback-cleanups-in-preparation-for-per-zone-dirty-limits.patch
+mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
+mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
+btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
+mm-simplify-find_vma_prev.patch
+tracepoint-add-tracepoints-for-debugging-oom_score_adj.patch
+mm-add-missing-mutex-lock-arround-notify_change.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+mm-memcg-shorten-preempt-disabled-section-around-event-checks.patch
+documentation-cgroups-memorytxt-fix-typo.patch
+memcg-fix-pgpgin-pgpgout-documentation.patch
+mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
+mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
+mm-memcg-clean-up-fault-accounting.patch
+mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
+mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
+mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
+mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
+page_cgroup-add-helper-function-to-get-swap_cgroup.patch
+page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup.patch
+memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
+oom-memcg-fix-exclusion-of-memcg-threads-after-they-have-detached-their-mm.patch
+memcg-simplify-page-cache-charging.patch
+memcg-simplify-corner-case-handling-of-lru.patch
+memcg-clear-pc-mem_cgorup-if-necessary.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-simplify-lru-handling-by-new-rule.patch
 c-r-introduce-checkpoint_restore-symbol.patch
 c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
 c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
 
