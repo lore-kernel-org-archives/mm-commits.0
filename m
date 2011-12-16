@@ -1,16 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-simplify-page-cache-charging.patch added to -mm tree
-Date: Fri, 16 Dec 2011 14:31:15 -0800
-Message-ID: <20111216223116.9A67B5C0060@hpza9.eem.corp.google.com>
+Subject: + memcg-simplify-lru-handling-by-new-rule.patch added to -mm tree
+Date: Fri, 16 Dec 2011 14:31:28 -0800
+Message-ID: <20111216223129.6953310004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:51918 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752591Ab1LPWbU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Dec 2011 17:31:20 -0500
-Received: by lagu2 with SMTP id u2so115186lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 14:31:18 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:50979 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760907Ab1LPWba (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 17:31:30 -0500
+Received: by ghrr15 with SMTP id r15so169231ghr.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 14:31:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +17,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, hughd@google.com, mhocko
 
 
 The patch titled
-     Subject: memcg: simplify page cache charging
+     Subject: memcg: simplify LRU handling by new rule
 has been added to the -mm tree.  Its filename is
-     memcg-simplify-page-cache-charging.patch
+     memcg-simplify-lru-handling-by-new-rule.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,17 +36,19 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: simplify page cache charging
+Subject: memcg: simplify LRU handling by new rule
 
-This patch is a clean up. No functional/logical changes.
+Now, at LRU handling, memory cgroup needs to do complicated works to see
+valid pc->mem_cgroup, which may be overwritten.
 
-Because of commit ef6a3c6311 ("mm: add replace_page_cache_page()
-function") , FUSE uses replace_page_cache() instead of
-add_to_page_cache().  Then, mem_cgroup_cache_charge() is not called
-against FUSE's pages from splice.
+This patch is for relaxing the protocol. This patch guarantees
+   - when pc->mem_cgroup is overwritten, page must not be on LRU.
 
-So, Now, mem_cgroup_cache_charge() doesn't receive a page on LRU unless
-it's not SwapCache.  For checking, WARN_ON_ONCE(PageLRU(page)) is added.
+By this, LRU routine can believe pc->mem_cgroup and don't need to check
+bits on pc->flags.  This new rule may adds small overheads to swapin.  But
+in most case, lru handling gets faster.
+
+After this patch, PCG_ACCT_LRU bit is obsolete and removed.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Miklos Szeredi <mszeredi@suse.cz>
@@ -58,62 +59,164 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ include/linux/page_cgroup.h |    8 ---
+ mm/memcontrol.c             |   72 ++++++++--------------------------
+ 2 files changed, 17 insertions(+), 63 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-simplify-page-cache-charging mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-page-cache-charging
+diff -puN include/linux/page_cgroup.h~memcg-simplify-lru-handling-by-new-rule include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-simplify-lru-handling-by-new-rule
++++ a/include/linux/page_cgroup.h
+@@ -10,8 +10,6 @@ enum {
+ 	/* flags for mem_cgroup and file and I/O status */
+ 	PCG_MOVE_LOCK, /* For race between move_account v.s. following bits */
+ 	PCG_FILE_MAPPED, /* page is accounted as "mapped" */
+-	/* No lock in page_cgroup */
+-	PCG_ACCT_LRU, /* page has been accounted for (under lru_lock) */
+ 	__NR_PCG_FLAGS,
+ };
+ 
+@@ -75,12 +73,6 @@ TESTPCGFLAG(Used, USED)
+ CLEARPCGFLAG(Used, USED)
+ SETPCGFLAG(Used, USED)
+ 
+-SETPCGFLAG(AcctLRU, ACCT_LRU)
+-CLEARPCGFLAG(AcctLRU, ACCT_LRU)
+-TESTPCGFLAG(AcctLRU, ACCT_LRU)
+-TESTCLEARPCGFLAG(AcctLRU, ACCT_LRU)
+-
+-
+ SETPCGFLAG(FileMapped, FILE_MAPPED)
+ CLEARPCGFLAG(FileMapped, FILE_MAPPED)
+ TESTPCGFLAG(FileMapped, FILE_MAPPED)
+diff -puN mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule
 +++ a/mm/memcontrol.c
-@@ -2792,6 +2792,7 @@ int mem_cgroup_cache_charge(struct page 
- 				gfp_t gfp_mask)
+@@ -1045,30 +1045,8 @@ struct lruvec *mem_cgroup_lru_add_list(s
+ 		return &zone->lruvec;
+ 
+ 	pc = lookup_page_cgroup(page);
+-	VM_BUG_ON(PageCgroupAcctLRU(pc));
+-	/*
+-	 * putback:				charge:
+-	 * SetPageLRU				SetPageCgroupUsed
+-	 * smp_mb				smp_mb
+-	 * PageCgroupUsed && add to memcg LRU	PageLRU && add to memcg LRU
+-	 *
+-	 * Ensure that one of the two sides adds the page to the memcg
+-	 * LRU during a race.
+-	 */
+-	smp_mb();
+-	/*
+-	 * If the page is uncharged, it may be freed soon, but it
+-	 * could also be swap cache (readahead, swapoff) that needs to
+-	 * be reclaimable in the future.  root_mem_cgroup will babysit
+-	 * it for the time being.
+-	 */
+-	if (PageCgroupUsed(pc)) {
+-		/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
+-		smp_rmb();
+-		memcg = pc->mem_cgroup;
+-		SetPageCgroupAcctLRU(pc);
+-	} else
+-		memcg = root_mem_cgroup;
++	memcg = pc->mem_cgroup;
++	VM_BUG_ON(!memcg);
+ 	mz = page_cgroup_zoneinfo(memcg, page);
+ 	/* compound_order() is stabilized through lru_lock */
+ 	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
+@@ -1095,18 +1073,8 @@ void mem_cgroup_lru_del_list(struct page
+ 		return;
+ 
+ 	pc = lookup_page_cgroup(page);
+-	/*
+-	 * root_mem_cgroup babysits uncharged LRU pages, but
+-	 * PageCgroupUsed is cleared when the page is about to get
+-	 * freed.  PageCgroupAcctLRU remembers whether the
+-	 * LRU-accounting happened against pc->mem_cgroup or
+-	 * root_mem_cgroup.
+-	 */
+-	if (TestClearPageCgroupAcctLRU(pc)) {
+-		VM_BUG_ON(!pc->mem_cgroup);
+-		memcg = pc->mem_cgroup;
+-	} else
+-		memcg = root_mem_cgroup;
++	memcg = pc->mem_cgroup;
++	VM_BUG_ON(!memcg);
+ 	mz = page_cgroup_zoneinfo(memcg, page);
+ 	/* huge page split is done under lru_lock. so, we have no races. */
+ 	MEM_CGROUP_ZSTAT(mz, lru) -= 1 << compound_order(page);
+@@ -2459,6 +2427,7 @@ static void __mem_cgroup_commit_charge(s
+ 
+ 	mem_cgroup_charge_statistics(memcg, PageCgroupCache(pc), nr_pages);
+ 	unlock_page_cgroup(pc);
++	WARN_ON_ONCE(PageLRU(page));
+ 	/*
+ 	 * "charge_statistics" updated event counter. Then, check it.
+ 	 * Insert ancestor (and ancestor's ancestors), to softlimit RB-tree.
+@@ -2470,7 +2439,7 @@ static void __mem_cgroup_commit_charge(s
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 
+ #define PCGF_NOCOPY_AT_SPLIT ((1 << PCG_LOCK) | (1 << PCG_MOVE_LOCK) |\
+-			(1 << PCG_ACCT_LRU) | (1 << PCG_MIGRATION))
++			(1 << PCG_MIGRATION))
+ /*
+  * Because tail pages are not marked as "used", set it. We're under
+  * zone->lru_lock, 'splitting on pmd' and compound_lock.
+@@ -2481,6 +2450,8 @@ void mem_cgroup_split_huge_fixup(struct 
  {
- 	struct mem_cgroup *memcg = NULL;
-+	enum charge_type type = MEM_CGROUP_CHARGE_TYPE_CACHE;
- 	int ret;
+ 	struct page_cgroup *head_pc = lookup_page_cgroup(head);
+ 	struct page_cgroup *pc;
++	struct mem_cgroup_per_zone *mz;
++	enum lru_list lru;
+ 	int i;
  
  	if (mem_cgroup_disabled())
-@@ -2801,31 +2802,17 @@ int mem_cgroup_cache_charge(struct page 
- 
- 	if (unlikely(!mm))
- 		mm = &init_mm;
-+	if (!page_is_file_cache(page))
-+		type = MEM_CGROUP_CHARGE_TYPE_SHMEM;
- 
--	if (page_is_file_cache(page)) {
--		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, &memcg, true);
--		if (ret || !memcg)
--			return ret;
--
+@@ -2489,23 +2460,15 @@ void mem_cgroup_split_huge_fixup(struct 
+ 		pc = head_pc + i;
+ 		pc->mem_cgroup = head_pc->mem_cgroup;
+ 		smp_wmb();/* see __commit_charge() */
 -		/*
--		 * FUSE reuses pages without going through the final
--		 * put that would remove them from the LRU list, make
--		 * sure that they get relinked properly.
+-		 * LRU flags cannot be copied because we need to add tail
+-		 * page to LRU by generic call and our hooks will be called.
 -		 */
--		__mem_cgroup_commit_charge_lrucare(page, memcg,
--					MEM_CGROUP_CHARGE_TYPE_CACHE);
--		return ret;
+ 		pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
+ 	}
+-
+-	if (PageCgroupAcctLRU(head_pc)) {
+-		enum lru_list lru;
+-		struct mem_cgroup_per_zone *mz;
+-		/*
+-		 * We hold lru_lock, then, reduce counter directly.
+-		 */
+-		lru = page_lru(head);
+-		mz = page_cgroup_zoneinfo(head_pc->mem_cgroup, head);
+-		MEM_CGROUP_ZSTAT(mz, lru) -= HPAGE_PMD_NR - 1;
 -	}
--	/* shmem */
--	if (PageSwapCache(page)) {
-+	if (!PageSwapCache(page)) {
-+		ret = mem_cgroup_charge_common(page, mm, gfp_mask, type);
-+		WARN_ON_ONCE(PageLRU(page));
-+	} else { /* page is swapcache/shmem */
++	/*
++	 * Tail pages will be added to LRU.
++	 * We hold lru_lock,then,reduce counter directly.
++	 */
++	lru = page_lru(head);
++	mz = page_cgroup_zoneinfo(head_pc->mem_cgroup, head);
++	MEM_CGROUP_ZSTAT(mz, lru) -= HPAGE_PMD_NR - 1;
+ }
+ #endif
+ 
+@@ -2738,10 +2701,9 @@ int mem_cgroup_cache_charge(struct page 
+ 	if (!page_is_file_cache(page))
+ 		type = MEM_CGROUP_CHARGE_TYPE_SHMEM;
+ 
+-	if (!PageSwapCache(page)) {
++	if (!PageSwapCache(page))
+ 		ret = mem_cgroup_charge_common(page, mm, gfp_mask, type);
+-		WARN_ON_ONCE(PageLRU(page));
+-	} else { /* page is swapcache/shmem */
++	else { /* page is swapcache/shmem */
  		ret = mem_cgroup_try_charge_swapin(mm, page, gfp_mask, &memcg);
  		if (!ret)
--			__mem_cgroup_commit_charge_swapin(page, memcg,
--					MEM_CGROUP_CHARGE_TYPE_SHMEM);
--	} else
--		ret = mem_cgroup_charge_common(page, mm, gfp_mask,
--					MEM_CGROUP_CHARGE_TYPE_SHMEM);
--
-+			__mem_cgroup_commit_charge_swapin(page, memcg, type);
-+	}
- 	return ret;
- }
- 
+ 			__mem_cgroup_commit_charge_swapin(page, memcg, type);
 _
-Subject: Subject: memcg: simplify page cache charging
+Subject: Subject: memcg: simplify LRU handling by new rule
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
