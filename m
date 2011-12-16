@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory.patch added to -mm tree
-Date: Fri, 16 Dec 2011 15:29:40 -0800
-Message-ID: <20111216232941.4886C10004D@wpzn3.hot.corp.google.com>
+Subject: + mm-compaction-allow-compaction-to-isolate-dirty-pages.patch added to -mm tree
+Date: Fri, 16 Dec 2011 15:29:35 -0800
+Message-ID: <20111216232936.B773E20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:43186 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462Ab1LPX3o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 18:29:44 -0500
-Received: by yhjj51 with SMTP id j51so584979yhj.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 15:29:44 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:58161 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963Ab1LPX3m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 18:29:42 -0500
+Received: by eekc1 with SMTP id c1so110660eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 15:29:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, j
 
 
 The patch titled
-     Subject: mm: compaction: use synchronous compaction for /proc/sys/vm/compact_memory
+     Subject: mm: compaction: allow compaction to isolate dirty pages
 has been added to the -mm tree.  Its filename is
-     mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory.patch
+     mm-compaction-allow-compaction-to-isolate-dirty-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,13 +36,21 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: compaction: use synchronous compaction for /proc/sys/vm/compact_memory
+Subject: mm: compaction: allow compaction to isolate dirty pages
 
-When asynchronous compaction was introduced, the
-/proc/sys/vm/compact_memory handler should have been updated to always use
-synchronous compaction.  This did not happen so this patch addresses it. 
-The assumption is if a user writes to /proc/sys/vm/compact_memory, they
-are willing for that process to stall.
+Commit 39deaf85 ("mm: compaction: make isolate_lru_page() filter-aware")
+noted that compaction does not migrate dirty or writeback pages and that
+is was meaningless to pick the page and re-add it to the LRU list.
+
+What was missed during review is that asynchronous migration moves dirty
+pages if their ->migratepage callback is migrate_page() because these can
+be moved without blocking.  This potentially impacted hugepage allocation
+success rates by a factor depending on how many dirty pages are in the
+system.
+
+This patch partially reverts 39deaf85 to allow migration to isolate dirty
+pages again.  This increases how much compaction disrupts the LRU but that
+is addressed later in the series.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
@@ -56,22 +64,24 @@ Cc: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/compaction.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory mm/compaction.c
---- a/mm/compaction.c~mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory
+diff -puN mm/compaction.c~mm-compaction-allow-compaction-to-isolate-dirty-pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-allow-compaction-to-isolate-dirty-pages
 +++ a/mm/compaction.c
-@@ -668,6 +668,7 @@ static int compact_node(int nid)
- 			.nr_freepages = 0,
- 			.nr_migratepages = 0,
- 			.order = -1,
-+			.sync = true,
- 		};
+@@ -349,9 +349,6 @@ static isolate_migrate_t isolate_migrate
+ 			continue;
+ 		}
  
- 		zone = &pgdat->node_zones[zoneid];
+-		if (!cc->sync)
+-			mode |= ISOLATE_CLEAN;
+-
+ 		/* Try isolate the page */
+ 		if (__isolate_lru_page(page, mode, 0) != 0)
+ 			continue;
 _
-Subject: Subject: mm: compaction: use synchronous compaction for /proc/sys/vm/compact_memory
+Subject: Subject: mm: compaction: allow compaction to isolate dirty pages
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
