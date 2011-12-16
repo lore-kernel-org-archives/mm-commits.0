@@ -1,159 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch added to -mm tree
-Date: Fri, 16 Dec 2011 14:38:36 -0800
-Message-ID: <20111216223837.30B6C5C0050@hpza9.eem.corp.google.com>
+Subject: [folded] mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch removed from -mm tree
+Date: Fri, 16 Dec 2011 15:03:21 -0800
+Message-ID: <20111216230322.232155C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:42829 "EHLO
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:38388 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964804Ab1LPWik (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 17:38:40 -0500
-Received: by eekc1 with SMTP id c1so109657eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 14:38:38 -0800 (PST)
+	with ESMTP id S1760963Ab1LPXDY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 18:03:24 -0500
+Received: by eekc1 with SMTP id c1so110177eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 15:03:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: boyu.mt@taobao.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
+To: mgorman@suse.de, aarcange@redhat.com, adi@hexapodia.org, alan@lxorguk.ukuu.org.uk, hannes@cmpxchg.org, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan/trace: Add 'file' info to trace_mm_vmscan_lru_isolate()
-has been added to the -mm tree.  Its filename is
-     vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
+     Subject: mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3
+has been removed from the -mm tree.  Its filename was
+     mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Tao Ma <boyu.mt@taobao.com>
-Subject: vmscan/trace: Add 'file' info to trace_mm_vmscan_lru_isolate()
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3
 
-In trace_mm_vmscan_lru_isolate(), we don't output 'file' information to
-the trace event and it is a bit inconvenient for the user to get the real
-information(like pasted below).  mm_vmscan_lru_isolate: isolate_mode=2
-order=0 nr_requested=32 nr_scanned=32 nr_taken=32 contig_taken=0
-contig_dirty=0 contig_failed=0
-
-'active' can be obtained by analyzing mode(Thanks go to Minchan and Mel),
-So this patch adds 'file' to the trace event and it now looks like:
-mm_vmscan_lru_isolate: isolate_mode=2 order=0 nr_requested=32
-nr_scanned=32 nr_taken=32 contig_taken=0 contig_dirty=0 contig_failed=0
-file=0
-
-Signed-off-by: Tao Ma <boyu.mt@taobao.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Andy Isaacson <adi@hexapodia.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   22 ++++++++++++++--------
- mm/vmscan.c                   |    2 +-
- 2 files changed, 15 insertions(+), 9 deletions(-)
+ include/linux/gfp.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/trace/events/vmscan.h~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate
-+++ a/include/trace/events/vmscan.h
-@@ -266,9 +266,10 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
- 		unsigned long nr_lumpy_taken,
- 		unsigned long nr_lumpy_dirty,
- 		unsigned long nr_lumpy_failed,
--		isolate_mode_t isolate_mode),
-+		isolate_mode_t isolate_mode,
-+		int file),
- 
--	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode),
-+	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file),
- 
- 	TP_STRUCT__entry(
- 		__field(int, order)
-@@ -279,6 +280,7 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
- 		__field(unsigned long, nr_lumpy_dirty)
- 		__field(unsigned long, nr_lumpy_failed)
- 		__field(isolate_mode_t, isolate_mode)
-+		__field(int, file)
- 	),
- 
- 	TP_fast_assign(
-@@ -290,9 +292,10 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
- 		__entry->nr_lumpy_dirty = nr_lumpy_dirty;
- 		__entry->nr_lumpy_failed = nr_lumpy_failed;
- 		__entry->isolate_mode = isolate_mode;
-+		__entry->file = file;
- 	),
- 
--	TP_printk("isolate_mode=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu contig_taken=%lu contig_dirty=%lu contig_failed=%lu",
-+	TP_printk("isolate_mode=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu contig_taken=%lu contig_dirty=%lu contig_failed=%lu file=%d",
- 		__entry->isolate_mode,
- 		__entry->order,
- 		__entry->nr_requested,
-@@ -300,7 +303,8 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
- 		__entry->nr_taken,
- 		__entry->nr_lumpy_taken,
- 		__entry->nr_lumpy_dirty,
--		__entry->nr_lumpy_failed)
-+		__entry->nr_lumpy_failed,
-+		__entry->file)
- );
- 
- DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_lru_isolate,
-@@ -312,9 +316,10 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
- 		unsigned long nr_lumpy_taken,
- 		unsigned long nr_lumpy_dirty,
- 		unsigned long nr_lumpy_failed,
--		isolate_mode_t isolate_mode),
-+		isolate_mode_t isolate_mode,
-+		int file),
- 
--	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode)
-+	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file)
- 
- );
- 
-@@ -327,9 +332,10 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
- 		unsigned long nr_lumpy_taken,
- 		unsigned long nr_lumpy_dirty,
- 		unsigned long nr_lumpy_failed,
--		isolate_mode_t isolate_mode),
-+		isolate_mode_t isolate_mode,
-+		int file),
- 
--	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode)
-+	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file)
- 
- );
- 
-diff -puN mm/memcontrol.c~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate mm/memcontrol.c
-diff -puN mm/vmscan.c~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate mm/vmscan.c
---- a/mm/vmscan.c~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate
-+++ a/mm/vmscan.c
-@@ -1234,7 +1234,7 @@ static unsigned long isolate_lru_pages(u
- 			nr_to_scan, scan,
- 			nr_taken,
- 			nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed,
--			mode);
-+			mode, file);
- 	return nr_taken;
- }
+diff -puN include/linux/gfp.h~mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3 include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-do-not-stall-in-synchronous-compaction-for-thp-allocations-v3
++++ a/include/linux/gfp.h
+@@ -89,6 +89,9 @@ struct vm_area_struct;
+  * 1. Do not wake kswapd (hence the flag name)
+  * 2. Do not use stall in synchronous compaction for high-order allocations
+  *    as this may cause the caller to stall writing out pages
++ *
++ * This flag it primarily intended for use with transparent hugepage support.
++ * If the flag is used outside the VM, linux-mm should be cc'd for review.
+  */
+ #define __GFP_NO_KSWAPD	((__force gfp_t)___GFP_NO_KSWAPD)
  
 _
-Subject: Subject: vmscan/trace: Add 'file' info to trace_mm_vmscan_lru_isolate()
 
-Patches currently in -mm which might be from boyu.mt@taobao.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
-fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks.patch
+linux-next.patch
+mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+mm-more-intensive-memory-corruption-debug.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+pm-hibernate-do-not-count-debug-pages-as-savable.patch
+slub-min-order-when-debug_guardpage_minorder-0.patch
+mm-debug-test-for-online-nid-when-allocating-on-single-node.patch
+mm-exclude-reserved-pages-from-dirtyable-memory.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
+mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
+btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+mm-fix-off-by-two-in-__zone_watermark_ok.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
+mm-compaction-allow-compaction-to-isolate-dirty-pages.patch
+mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory.patch
+mm-vmscan-check-if-we-isolated-a-compound-page-during-lumpy-scan.patch
+mm-vmscan-do-not-oom-if-aborting-reclaim-to-start-compaction.patch
+mm-compaction-determine-if-dirty-pages-can-be-migrated-without-blocking-within-migratepage.patch
+mm-compaction-make-isolate_lru_page-filter-aware-again.patch
+mm-page-allocator-do-not-call-direct-reclaim-for-thp-allocations-while-compaction-is-deferred.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
+mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch
+mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone.patch
+mm-isolate-pages-for-immediate-reclaim-on-their-own-lru.patch
 
