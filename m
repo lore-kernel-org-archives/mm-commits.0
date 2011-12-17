@@ -1,25 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch added to -mm tree
-Date: Fri, 16 Dec 2011 15:54:05 -0800
-Message-ID: <20111216235405.A4CC110004D@wpzn3.hot.corp.google.com>
+Subject: + mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.patch added to -mm tree
+Date: Fri, 16 Dec 2011 16:03:24 -0800
+Message-ID: <20111217000325.4555010004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:47771 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752164Ab1LPXyH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 18:54:07 -0500
-Received: by ghrr15 with SMTP id r15so178140ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 15:54:06 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:43393 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752164Ab1LQAD0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 19:03:26 -0500
+Received: by yhjj51 with SMTP id j51so588674yhj.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 16:03:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mszeredi@suse.cz, yinghan@google.com
+Cc: hannes@cmpxchg.org, tj@kernel.org, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     Subject: memcg-clear-pc-mem_cgorup-if-necessary-fix-2
+     Subject: mm: page_alloc: generalize order handling in __free_pages=
+_bootmem()
 has been added to the -mm tree.  Its filename is
-     memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch
+     mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.pa=
+tch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,121 +32,130 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg-clear-pc-mem_cgorup-if-necessary-fix-2
+=46rom: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: generalize order handling in __free_pages_boot=
+mem()
 
-Fix CONFIG_CGROUP_MEM_RES_CTLR=y CONFIG_CGROUP_MEM_RES_CTLR_SWAP=n build:
-move mem_cgroup_reset_owner() up from CONFIG_CGROUP_MEM_RES_CTLR_SWAP block.
+__free_pages_bootmem() used to special-case higher-order frees to save
+individual page checking with free_pages_bulk().
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ying Han <yinghan@google.com>
+Nowadays, both zero order and non-zero order frees use free_pages(), wh=
+ich
+checks each individual page anyway, and so there is little point in mak=
+ing
+the distinction anymore.  The higher-order loop will work just fine for
+zero order pages.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/page_alloc.c |   35 +++++++++++++----------------------
+ 1 file changed, 13 insertions(+), 22 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-2
-+++ a/mm/memcontrol.c
-@@ -3052,6 +3052,20 @@ void mem_cgroup_uncharge_end(void)
- 	batch->memcg = NULL;
+diff -puN mm/page_alloc.c~mm-page_alloc-generalize-order-handling-in-__=
+free_pages_bootmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-generalize-order-handling-in-__free=
+_pages_bootmem
++++ a/mm/page_alloc.c
+@@ -743,32 +743,23 @@ static void __free_pages_ok(struct page=20
+ 	local_irq_restore(flags);
  }
- 
-+/*
-+ * A function for resetting pc->mem_cgroup for newly allocated pages.
-+ * This function should be called if the newpage will be added to LRU
-+ * before start accounting.
-+ */
-+void mem_cgroup_reset_owner(struct page *newpage)
-+{
-+	struct page_cgroup *pc;
-+
-+	pc = lookup_page_cgroup(newpage);
-+	VM_BUG_ON(PageCgroupUsed(pc));
-+	pc->mem_cgroup = root_mem_cgroup;
-+}
-+
- #ifdef CONFIG_SWAP
- /*
-  * called after __delete_from_swap_cache() and drop "page" account.
-@@ -3106,20 +3120,6 @@ void mem_cgroup_uncharge_swap(swp_entry_
- 	rcu_read_unlock();
- }
- 
+=20
 -/*
-- * A function for resetting pc->mem_cgroup for newly allocated pages.
-- * This function should be called if the newpage will be added to LRU
-- * before start accounting.
+- * permit the bootmem allocator to evade page validation on high-order=
+ frees
 - */
--void mem_cgroup_reset_owner(struct page *newpage)
--{
--	struct page_cgroup *pc;
+ void __meminit __free_pages_bootmem(struct page *page, unsigned int or=
+der)
+ {
+-	if (order =3D=3D 0) {
+-		__ClearPageReserved(page);
+-		set_page_count(page, 0);
+-		set_page_refcounted(page);
+-		__free_page(page);
+-	} else {
+-		int loop;
++	unsigned int nr_pages =3D 1 << order;
++	unsigned int loop;
+=20
+-		prefetchw(page);
+-		for (loop =3D 0; loop < (1 << order); loop++) {
+-			struct page *p =3D &page[loop];
 -
--	pc = lookup_page_cgroup(newpage);
--	VM_BUG_ON(PageCgroupUsed(pc));
--	pc->mem_cgroup = root_mem_cgroup;
--}
+-			if (loop + 1 < (1 << order))
+-				prefetchw(p + 1);
+-			__ClearPageReserved(p);
+-			set_page_count(p, 0);
+-		}
 -
- /**
-  * mem_cgroup_move_swap_account - move swap charge and swap_cgroup's record.
-  * @entry: swap entry to be moved
+-		set_page_refcounted(page);
+-		__free_pages(page, order);
++	prefetchw(page);
++	for (loop =3D 0; loop < nr_pages; loop++) {
++		struct page *p =3D &page[loop];
++
++		if (loop + 1 < nr_pages)
++			prefetchw(p + 1);
++		__ClearPageReserved(p);
++		set_page_count(p, 0);
+ 	}
++
++	set_page_refcounted(page);
++	__free_pages(page, order);
+ }
+=20
+=20
 _
-Subject: Subject: memcg-clear-pc-mem_cgorup-if-necessary-fix-2
+Subject: Subject: mm: page_alloc: generalize order handling in __free_p=
+ages_bootmem()
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 linux-next.patch
 memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
 memcg-keep-root-group-unchanged-if-creation-fails.patch
-mm-add-free_hot_cold_page_list-helper.patch
-mm-add-free_hot_cold_page_list-helper-v2.patch
-mm-add-free_hot_cold_page_list-helper-v3.patch
-mm-remove-unused-pagevec_free.patch
-mm-tracepoint-rename-page-free-events.patch
-mm-tracepoint-fixup-documentation-and-examples.patch
-mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
-mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
-mm-simplify-find_vma_prev.patch
-mm-add-missing-mutex-lock-arround-notify_change.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
-mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
-mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
-mm-memcg-clean-up-fault-accounting.patch
-mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
-mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
-mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
-mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
+mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
+vmscan-promote-shared-file-mapped-pages.patch
+vmscan-activate-executable-pages-after-first-usage.patch
+vmscan-add-task-name-to-warn_scan_unevictable-messages.patch
+mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.patch
+mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patc=
+h
+mm-bootmem-try-harder-to-free-pages-in-bulk.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+memcg-fix-pgpgin-pgpgout-documentation.patch
+mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when=
+-necessary.patch
+page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup.patch
 memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
+oom-memcg-fix-exclusion-of-memcg-threads-after-they-have-detached-their=
+-mm.patch
 memcg-simplify-page-cache-charging.patch
 memcg-simplify-corner-case-handling-of-lru.patch
 memcg-clear-pc-mem_cgorup-if-necessary.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch
 memcg-simplify-lru-handling-by-new-rule.patch
-procfs-add-hidepid=-and-gid=-mount-options-fix.patch
-radix_tree-remove-radix_tree_indirect_to_ptr.patch
-prio_tree-debugging-patch.patch
+vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
+revert-mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.pa=
+tch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
