@@ -1,19 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patch added to -mm tree
-Date: Fri, 16 Dec 2011 16:03:27 -0800
-Message-ID: <20111217000328.95C145C0050@hpza9.eem.corp.google.com>
+Subject: + mm-bootmem-try-harder-to-free-pages-in-bulk.patch added to -mm tree
+Date: Fri, 16 Dec 2011 16:03:31 -0800
+Message-ID: <20111217000332.83A445C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58800 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752591Ab1LQADb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Dec 2011 19:03:31 -0500
-Received: by lagu2 with SMTP id u2so116966lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 16:03:29 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:62027 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752591Ab1LQADe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 19:03:34 -0500
+Received: by eekc1 with SMTP id c1so111297eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 16:03:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -21,11 +20,9 @@ Cc: hannes@cmpxchg.org, tj@kernel.org, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     Subject: mm: bootmem: drop superfluous range check when freeing pa=
-ges in bulk
+     Subject: mm: bootmem: try harder to free pages in bulk
 has been added to the -mm tree.  Its filename is
-     mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk=
-=2Epatch
+     mm-bootmem-try-harder-to-free-pages-in-bulk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,22 +41,18 @@ otm/
 
 ------------------------------------------------------
 =46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: bootmem: drop superfluous range check when freeing pages i=
-n bulk
+Subject: mm: bootmem: try harder to free pages in bulk
 
-The area node_bootmem_map represents is aligned to BITS_PER_LONG, and a=
-ll
-bits in any aligned word of that map valid.  When the represented area
-extends beyond the end of the node, the non-existant pages will be mark=
-ed
-as reserved.
+The loop that frees pages to the page allocator while bootstrapping tri=
+es
+to free higher-order blocks only when the starting address is aligned t=
+o
+that block size.  Otherwise it will free all pages on that node
+one-by-one.
 
-As a result, when freeing a page block, doing an explicit range check f=
-or
-whether that block is within the node's range is redundant as the bitma=
-p
-is consulted anyway to see whether all pages in the block are unreserve=
-d.
+Change it to free individual pages up to the first aligned block and th=
+en
+try higher-order frees from there.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
@@ -67,26 +60,71 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/bootmem.c |   22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN mm/bootmem.c~mm-bootmem-drop-superfluous-range-check-when-fre=
-eing-pages-in-bulk mm/bootmem.c
---- a/mm/bootmem.c~mm-bootmem-drop-superfluous-range-check-when-freeing=
--pages-in-bulk
+diff -puN mm/bootmem.c~mm-bootmem-try-harder-to-free-pages-in-bulk mm/b=
+ootmem.c
+--- a/mm/bootmem.c~mm-bootmem-try-harder-to-free-pages-in-bulk
 +++ a/mm/bootmem.c
-@@ -197,7 +197,7 @@ static unsigned long __init free_all_boo
+@@ -171,7 +171,6 @@ void __init free_bootmem_late(unsigned l
+=20
+ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdat=
+a)
+ {
+-	int aligned;
+ 	struct page *page;
+ 	unsigned long start, end, pages, count =3D 0;
+=20
+@@ -181,14 +180,8 @@ static unsigned long __init free_all_boo
+ 	start =3D bdata->node_min_pfn;
+ 	end =3D bdata->node_low_pfn;
+=20
+-	/*
+-	 * If the start is aligned to the machines wordsize, we might
+-	 * be able to free pages in bulks of that order.
+-	 */
+-	aligned =3D !(start & (BITS_PER_LONG - 1));
+-
+-	bdebug("nid=3D%td start=3D%lx end=3D%lx aligned=3D%d\n",
+-		bdata - bootmem_node_data, start, end, aligned);
++	bdebug("nid=3D%td start=3D%lx end=3D%lx\n",
++		bdata - bootmem_node_data, start, end);
+=20
+ 	while (start < end) {
+ 		unsigned long *map, idx, vec;
+@@ -196,12 +189,17 @@ static unsigned long __init free_all_boo
+ 		map =3D bdata->node_bootmem_map;
  		idx =3D start - bdata->node_min_pfn;
  		vec =3D ~map[idx / BITS_PER_LONG];
-=20
--		if (aligned && vec =3D=3D ~0UL && start + BITS_PER_LONG <=3D end) {
-+		if (aligned && vec =3D=3D ~0UL) {
+-
+-		if (aligned && vec =3D=3D ~0UL) {
++		/*
++		 * If we have a properly aligned and fully unreserved
++		 * BITS_PER_LONG block of pages in front of us, free
++		 * it in one go.
++		 */
++		if (IS_ALIGNED(start, BITS_PER_LONG) && vec =3D=3D ~0UL) {
  			int order =3D ilog2(BITS_PER_LONG);
 =20
  			__free_pages_bootmem(pfn_to_page(start), order);
+ 			count +=3D BITS_PER_LONG;
++			start +=3D BITS_PER_LONG;
+ 		} else {
+ 			unsigned long off =3D 0;
+=20
+@@ -214,8 +212,8 @@ static unsigned long __init free_all_boo
+ 				vec >>=3D 1;
+ 				off++;
+ 			}
++			start =3D ALIGN(start + 1, BITS_PER_LONG);
+ 		}
+-		start +=3D BITS_PER_LONG;
+ 	}
+=20
+ 	page =3D virt_to_page(bdata->node_bootmem_map);
 _
-Subject: Subject: mm: bootmem: drop superfluous range check when freein=
-g pages in bulk
+Subject: Subject: mm: bootmem: try harder to free pages in bulk
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
