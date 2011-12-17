@@ -1,18 +1,19 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.patch added to -mm tree
-Date: Fri, 16 Dec 2011 16:03:24 -0800
-Message-ID: <20111217000325.4555010004D@wpzn3.hot.corp.google.com>
+Subject: + mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patch added to -mm tree
+Date: Fri, 16 Dec 2011 16:03:27 -0800
+Message-ID: <20111217000328.95C145C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:43393 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752164Ab1LQAD0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 19:03:26 -0500
-Received: by yhjj51 with SMTP id j51so588674yhj.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 16:03:25 -0800 (PST)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58800 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752591Ab1LQADb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 16 Dec 2011 19:03:31 -0500
+Received: by lagu2 with SMTP id u2so116966lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 16:03:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,11 +21,11 @@ Cc: hannes@cmpxchg.org, tj@kernel.org, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     Subject: mm: page_alloc: generalize order handling in __free_pages=
-_bootmem()
+     Subject: mm: bootmem: drop superfluous range check when freeing pa=
+ges in bulk
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.pa=
-tch
+     mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk=
+=2Epatch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,18 +44,22 @@ otm/
 
 ------------------------------------------------------
 =46rom: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: generalize order handling in __free_pages_boot=
-mem()
+Subject: mm: bootmem: drop superfluous range check when freeing pages i=
+n bulk
 
-__free_pages_bootmem() used to special-case higher-order frees to save
-individual page checking with free_pages_bulk().
+The area node_bootmem_map represents is aligned to BITS_PER_LONG, and a=
+ll
+bits in any aligned word of that map valid.  When the represented area
+extends beyond the end of the node, the non-existant pages will be mark=
+ed
+as reserved.
 
-Nowadays, both zero order and non-zero order frees use free_pages(), wh=
-ich
-checks each individual page anyway, and so there is little point in mak=
-ing
-the distinction anymore.  The higher-order loop will work just fine for
-zero order pages.
+As a result, when freeing a page block, doing an explicit range check f=
+or
+whether that block is within the node's range is redundant as the bitma=
+p
+is consulted anyway to see whether all pages in the block are unreserve=
+d.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
@@ -62,65 +67,26 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   35 +++++++++++++----------------------
- 1 file changed, 13 insertions(+), 22 deletions(-)
+ mm/bootmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-generalize-order-handling-in-__=
-free_pages_bootmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-generalize-order-handling-in-__free=
-_pages_bootmem
-+++ a/mm/page_alloc.c
-@@ -743,32 +743,23 @@ static void __free_pages_ok(struct page=20
- 	local_irq_restore(flags);
- }
+diff -puN mm/bootmem.c~mm-bootmem-drop-superfluous-range-check-when-fre=
+eing-pages-in-bulk mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmem-drop-superfluous-range-check-when-freeing=
+-pages-in-bulk
++++ a/mm/bootmem.c
+@@ -197,7 +197,7 @@ static unsigned long __init free_all_boo
+ 		idx =3D start - bdata->node_min_pfn;
+ 		vec =3D ~map[idx / BITS_PER_LONG];
 =20
--/*
-- * permit the bootmem allocator to evade page validation on high-order=
- frees
-- */
- void __meminit __free_pages_bootmem(struct page *page, unsigned int or=
-der)
- {
--	if (order =3D=3D 0) {
--		__ClearPageReserved(page);
--		set_page_count(page, 0);
--		set_page_refcounted(page);
--		__free_page(page);
--	} else {
--		int loop;
-+	unsigned int nr_pages =3D 1 << order;
-+	unsigned int loop;
+-		if (aligned && vec =3D=3D ~0UL && start + BITS_PER_LONG <=3D end) {
++		if (aligned && vec =3D=3D ~0UL) {
+ 			int order =3D ilog2(BITS_PER_LONG);
 =20
--		prefetchw(page);
--		for (loop =3D 0; loop < (1 << order); loop++) {
--			struct page *p =3D &page[loop];
--
--			if (loop + 1 < (1 << order))
--				prefetchw(p + 1);
--			__ClearPageReserved(p);
--			set_page_count(p, 0);
--		}
--
--		set_page_refcounted(page);
--		__free_pages(page, order);
-+	prefetchw(page);
-+	for (loop =3D 0; loop < nr_pages; loop++) {
-+		struct page *p =3D &page[loop];
-+
-+		if (loop + 1 < nr_pages)
-+			prefetchw(p + 1);
-+		__ClearPageReserved(p);
-+		set_page_count(p, 0);
- 	}
-+
-+	set_page_refcounted(page);
-+	__free_pages(page, order);
- }
-=20
-=20
+ 			__free_pages_bootmem(pfn_to_page(start), order);
 _
-Subject: Subject: mm: page_alloc: generalize order handling in __free_p=
-ages_bootmem()
+Subject: Subject: mm: bootmem: drop superfluous range check when freein=
+g pages in bulk
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
