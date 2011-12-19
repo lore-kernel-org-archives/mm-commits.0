@@ -1,93 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super.patch removed from -mm tree
-Date: Mon, 19 Dec 2011 13:28:44 -0800
-Message-ID: <20111219212845.487C05C0050@hpza9.eem.corp.google.com>
+Subject: [merged] maintainers-staging-westbridge-delete-section.patch removed from -mm tree
+Date: Mon, 19 Dec 2011 13:28:32 -0800
+Message-ID: <20111219212833.2424D5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:64275 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752988Ab1LSV2s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:48 -0500
-Received: by eaad1 with SMTP id d1so176372eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:47 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:49309 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752678Ab1LSV2e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:34 -0500
+Received: by mail-ee0-f74.google.com with SMTP id c1so190513eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tixxdz@opendz.org, lucas.demarchi@profusion.mobi, npiggin@kernel.dk, petr@vandrovec.name, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@suse.de, odc@cypress.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ncpfs: fix error paths and goto statements in ncp_fill_super()
+     Subject: MAINTAINERS: staging: westbridge: delete section
 has been removed from the -mm tree.  Its filename was
-     fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super.patch
+     maintainers-staging-westbridge-delete-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Djalal Harouni <tixxdz@opendz.org>
-Subject: fs/ncpfs: fix error paths and goto statements in ncp_fill_super()
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: staging: westbridge: delete section
 
-The label 'out_bdi' should be followed by bdi_destroy() instead of fput()
-which should be after the 'out_fput' label.
+commit 78f23926dff9 ("Staging: delete westbridge code") deleted the files,
+delete the section.
 
-If bdi_setup_and_register() fails then jump to the 'out_fput' label
-instead of the 'out_bdi' one.
-
-If fget(data.info_fd) fails then jump to the previously fixed 'out_bdi'
-label to call bdi_destroy() otherwise the bdi object will not be
-destroyed.
-
-Compile tested only.
-
-Signed-off-by: Djalal Harouni <tixxdz@opendz.org>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Petr Vandrovec <petr@vandrovec.name>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: David Cross <odc@cypress.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/inode.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ MAINTAINERS |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/ncpfs/inode.c~fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super fs/ncpfs/inode.c
---- a/fs/ncpfs/inode.c~fs-ncpfs-fix-error-paths-and-goto-statements-in-ncp_fill_super
-+++ a/fs/ncpfs/inode.c
-@@ -548,7 +548,7 @@ static int ncp_fill_super(struct super_b
+diff -puN MAINTAINERS~maintainers-staging-westbridge-delete-section MAINTAINERS
+--- a/MAINTAINERS~maintainers-staging-westbridge-delete-section
++++ a/MAINTAINERS
+@@ -6318,11 +6318,6 @@ M:	Manu Abraham <abraham.manu@gmail.com>
+ S:	Odd Fixes
+ F:	drivers/staging/crystalhd/
  
- 	error = bdi_setup_and_register(&server->bdi, "ncpfs", BDI_CAP_MAP_COPY);
- 	if (error)
--		goto out_bdi;
-+		goto out_fput;
- 
- 	server->ncp_filp = ncp_filp;
- 	server->ncp_sock = sock;
-@@ -559,7 +559,7 @@ static int ncp_fill_super(struct super_b
- 		error = -EBADF;
- 		server->info_filp = fget(data.info_fd);
- 		if (!server->info_filp)
--			goto out_fput;
-+			goto out_bdi;
- 		error = -ENOTSOCK;
- 		sock_inode = server->info_filp->f_path.dentry->d_inode;
- 		if (!S_ISSOCK(sock_inode->i_mode))
-@@ -746,9 +746,9 @@ out_nls:
- out_fput2:
- 	if (server->info_filp)
- 		fput(server->info_filp);
--out_fput:
--	bdi_destroy(&server->bdi);
- out_bdi:
-+	bdi_destroy(&server->bdi);
-+out_fput:
- 	/* 23/12/1998 Marcin Dalecki <dalecki@cs.net.pl>:
- 	 * 
- 	 * The previously used put_filp(ncp_filp); was bogus, since
+-STAGING - CYPRESS WESTBRIDGE SUPPORT
+-M:	David Cross <david.cross@cypress.com>
+-S:	Odd Fixes
+-F:	drivers/staging/westbridge/
+-
+ STAGING - ECHO CANCELLER
+ M:	Steve Underwood <steveu@coppice.org>
+ M:	David Rowe <david@rowetel.com>
 _
 
-Patches currently in -mm which might be from tixxdz@opendz.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-notify_change-check-that-i_mutex-is-held.patch
+linux-next.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
+kernelh-neaten-panic-prototype.patch
+linkage-remove-unused-noret_and-macro.patch
+treewide-remove-useless-noret_type-macro-and-uses.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+linkage-remove-unused-attrib_noret-macro.patch
+get_maintainerspl-follow-renames-when-looking-up-commit-signers.patch
+maintainers-update-various-arm-f-patterns.patch
+maintainers-update-adp-gpio-f-patterns.patch
+maintainers-update-bt8xx-gpio-f-patterns.patch
+maintainers-update-marvell-ccic-f-patterns.patch
+maintainers-update-mfd-f-patterns.patch
+maintainers-update-sdhci-f-patterns.patch
+maintainers-update-tulip-f-patterns.patch
+maintainers-update-greth-f-patterns.patch
+maintainers-update-encrypted-keys-f-patterns.patch
+maintainers-staging-media-update-f-patterns.patch
+maintainers-serial-blackfin-update-f-pattern.patch
+maintainers-spi-update-f-patterns.patch
+checkpatch-update-signature-might-be-better-as-warning.patch
+checkpatch-prefer-__printf-not-__attribute__formatprintf.patch
+checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context.patch
+checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context-fix.patch
+checkpatch-check-for-common-memset-parameter-issues-against-statments.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-is-not-a-valid-modifier.patch
+checkpatch-optimise-statement-scanner-when-mid-statement.patch
+checkpatch-only-apply-kconfig-help-checks-for-options-which-prompt.patch
+checkpatch-fix-export_symbol-handling-following-a-function.patch
+checkpatch-complex-macro-should-allow-the-empty-do-while-loop.patch
+checkpatch-fix-return-is-not-a-function-square-bracket-handling.patch
+checkpatch-fix-complex-macros-handling-of-square-brackets.patch
+checkpatch-ensure-cast-type-is-unique-in-the-context-parser.patch
+checkpatch-typeof-may-have-more-complex-arguments.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
 
