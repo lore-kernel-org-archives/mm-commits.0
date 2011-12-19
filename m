@@ -1,101 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-staging-westbridge-delete-section.patch removed from -mm tree
-Date: Mon, 19 Dec 2011 13:28:32 -0800
-Message-ID: <20111219212833.2424D5C0060@hpza9.eem.corp.google.com>
+Subject: [merged] sound-soc-mid-x86-sst_platformc-fix-build.patch removed from -mm tree
+Date: Mon, 19 Dec 2011 13:28:49 -0800
+Message-ID: <20111219212849.9BC8710004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:49309 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678Ab1LSV2e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:34 -0500
-Received: by mail-ee0-f74.google.com with SMTP id c1so190513eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:34 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:65011 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752988Ab1LSV2u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:50 -0500
+Received: by yenm5 with SMTP id m5so814516yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregkh@suse.de, odc@cypress.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: staging: westbridge: delete section
+     Subject: sound/soc/mid-x86/sst_platform.c: fix build
 has been removed from the -mm tree.  Its filename was
-     maintainers-staging-westbridge-delete-section.patch
+     sound-soc-mid-x86-sst_platformc-fix-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: staging: westbridge: delete section
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sound/soc/mid-x86/sst_platform.c: fix build
 
-commit 78f23926dff9 ("Staging: delete westbridge code") deleted the files,
-delete the section.
+sound/soc/mid-x86/sst_platform.c:274: error: 'ret_val' undeclared (first use in this function)
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: David Cross <odc@cypress.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 -----
- 1 file changed, 5 deletions(-)
+ sound/soc/mid-x86/sst_platform.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-staging-westbridge-delete-section MAINTAINERS
---- a/MAINTAINERS~maintainers-staging-westbridge-delete-section
-+++ a/MAINTAINERS
-@@ -6318,11 +6318,6 @@ M:	Manu Abraham <abraham.manu@gmail.com>
- S:	Odd Fixes
- F:	drivers/staging/crystalhd/
+diff -puN sound/soc/mid-x86/sst_platform.c~sound-soc-mid-x86-sst_platformc-fix-build sound/soc/mid-x86/sst_platform.c
+--- a/sound/soc/mid-x86/sst_platform.c~sound-soc-mid-x86-sst_platformc-fix-build
++++ a/sound/soc/mid-x86/sst_platform.c
+@@ -267,6 +267,7 @@ static int sst_platform_open(struct snd_
+ {
+ 	struct snd_pcm_runtime *runtime = substream->runtime;
+ 	struct sst_runtime_stream *stream;
++	int ret_val;
  
--STAGING - CYPRESS WESTBRIDGE SUPPORT
--M:	David Cross <david.cross@cypress.com>
--S:	Odd Fixes
--F:	drivers/staging/westbridge/
--
- STAGING - ECHO CANCELLER
- M:	Steve Underwood <steveu@coppice.org>
- M:	David Rowe <david@rowetel.com>
+ 	pr_debug("sst_platform_open called\n");
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-maintainers-staging-cx25821-add-l-linux-media.patch
-kernelh-neaten-panic-prototype.patch
-linkage-remove-unused-noret_and-macro.patch
-treewide-remove-useless-noret_type-macro-and-uses.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+mm-simplify-find_vma_prev-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
 treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-linkage-remove-unused-attrib_noret-macro.patch
-get_maintainerspl-follow-renames-when-looking-up-commit-signers.patch
-maintainers-update-various-arm-f-patterns.patch
-maintainers-update-adp-gpio-f-patterns.patch
-maintainers-update-bt8xx-gpio-f-patterns.patch
-maintainers-update-marvell-ccic-f-patterns.patch
-maintainers-update-mfd-f-patterns.patch
-maintainers-update-sdhci-f-patterns.patch
-maintainers-update-tulip-f-patterns.patch
-maintainers-update-greth-f-patterns.patch
-maintainers-update-encrypted-keys-f-patterns.patch
-maintainers-staging-media-update-f-patterns.patch
-maintainers-serial-blackfin-update-f-pattern.patch
-maintainers-spi-update-f-patterns.patch
-checkpatch-update-signature-might-be-better-as-warning.patch
-checkpatch-prefer-__printf-not-__attribute__formatprintf.patch
-checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context.patch
-checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context-fix.patch
-checkpatch-check-for-common-memset-parameter-issues-against-statments.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking.patch
+leds-add-driver-for-tca6507-led-controller-fix.patch
+leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
 checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-is-not-a-valid-modifier.patch
-checkpatch-optimise-statement-scanner-when-mid-statement.patch
-checkpatch-only-apply-kconfig-help-checks-for-options-which-prompt.patch
-checkpatch-fix-export_symbol-handling-following-a-function.patch
-checkpatch-complex-macro-should-allow-the-empty-do-while-loop.patch
-checkpatch-fix-return-is-not-a-function-square-bracket-handling.patch
-checkpatch-fix-complex-macros-handling-of-square-brackets.patch
-checkpatch-ensure-cast-type-is-unique-in-the-context-parser.patch
-checkpatch-typeof-may-have-more-complex-arguments.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
 checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+revert-mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
