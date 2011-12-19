@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-staging-tty-update-f-patterns.patch removed from -mm tree
-Date: Mon, 19 Dec 2011 13:28:26 -0800
-Message-ID: <20111219212828.D27335C0060@hpza9.eem.corp.google.com>
+Subject: [merged] maintainers-brcm80211-update-f-pattern.patch removed from -mm tree
+Date: Mon, 19 Dec 2011 13:28:36 -0800
+Message-ID: <20111219212837.1F543200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:49309 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751610Ab1LSV2b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:31 -0500
-Received: by eekc1 with SMTP id c1so190513eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:29 -0800 (PST)
+	with ESMTP id S1752648Ab1LSV2j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:39 -0500
+Received: by mail-ee0-f74.google.com with SMTP id c1so190513eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: joe@perches.com, arend@broadcom.com, gregkh@suse.de, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: staging: tty: update F: patterns
+     Subject: MAINTAINERS: brcm80211: update F: pattern
 has been removed from the -mm tree.  Its filename was
-     maintainers-staging-tty-update-f-patterns.patch
+     maintainers-brcm80211-update-f-pattern.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,75 +26,33 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: staging: tty: update F: patterns
+Subject: MAINTAINERS: brcm80211: update F: pattern
 
-commit 51c9d654c2d ("Staging: delete tty drivers") removed the files,
-delete the sections too.
+commit fc2d6e573be ("staging: brcm80211: remove brcm80211 driver from the
+staging tree") moved the files, update the F: pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Arend van Spriel <arend@broadcom.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-staging-tty-update-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-staging-tty-update-f-patterns
+diff -puN MAINTAINERS~maintainers-brcm80211-update-f-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-brcm80211-update-f-pattern
 +++ a/MAINTAINERS
-@@ -1905,12 +1905,6 @@ L:	platform-driver-x86@vger.kernel.org
- S:	Maintained
- F:	drivers/platform/x86/compal-laptop.c
+@@ -1592,7 +1592,7 @@ M:	Franky (Zhenhui) Lin <frankyl@broadco
+ M:	Kan Yan	<kanyan@broadcom.com>
+ L:	linux-wireless@vger.kernel.org
+ S:	Supported
+-F:	drivers/staging/brcm80211/
++F:	drivers/net/wireless/brcm80211/
  
--COMPUTONE INTELLIPORT MULTIPORT CARD
--W:	http://www.wittsend.com/computone.html
--S:	Orphan
--F:	Documentation/serial/computone.txt
--F:	drivers/staging/tty/ip2/
--
- CONEXANT ACCESSRUNNER USB DRIVER
- M:	Simon Arlott <cxacru@fire.lp0.eu>
- L:	accessrunner-general@lists.sourceforge.net
-@@ -2214,15 +2208,6 @@ F:	drivers/md/dm*
- F:	include/linux/device-mapper.h
- F:	include/linux/dm-*.h
- 
--DIGI INTL. EPCA DRIVER
--M:	"Digi International, Inc" <Eng.Linux@digi.com>
--L:	Eng.Linux@digi.com
--W:	http://www.digi.com
--S:	Orphan
--F:	Documentation/serial/digiepca.txt
--F:	drivers/staging/tty/epca*
--F:	drivers/staging/tty/digi*
--
- DIOLAN U2C-12 I2C DRIVER
- M:	Guenter Roeck <guenter.roeck@ericsson.com>
- L:	linux-i2c@vger.kernel.org
-@@ -5589,11 +5574,6 @@ M:	Maxim Levitsky <maximlevitsky@gmail.c
- S:	Maintained
- F:	drivers/memstick/host/r592.*
- 
--RISCOM8 DRIVER
--S:	Orphan
--F:	Documentation/serial/riscom8.txt
--F:	drivers/staging/tty/riscom8*
--
- ROCKETPORT DRIVER
- P:	Comtrol Corp.
- W:	http://www.comtrol.com
-@@ -6256,11 +6236,6 @@ F:	arch/arm/mach-spear3xx/spear3*0_evb.c
- F:	arch/arm/mach-spear6xx/spear600.c
- F:	arch/arm/mach-spear6xx/spear600_evb.c
- 
--SPECIALIX IO8+ MULTIPORT SERIAL CARD DRIVER
--S:	Orphan
--F:	Documentation/serial/specialix.txt
--F:	drivers/staging/tty/specialix*
--
- SPI SUBSYSTEM
- M:	Grant Likely <grant.likely@secretlab.ca>
- L:	spi-devel-general@lists.sourceforge.net
+ BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER
+ M:	Bhanu Prakash Gollapudi <bprakash@broadcom.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
