@@ -1,123 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + panic-dont-print-redundant-backtraces-on-oops-fix.patch added to -mm tree
-Date: Fri, 16 Dec 2011 16:54:26 -0800
-Message-ID: <20111217005427.63E225C006A@hpza9.eem.corp.google.com>
+Subject: [merged] maintainers-staging-tty-update-f-patterns.patch removed from -mm tree
+Date: Mon, 19 Dec 2011 13:28:26 -0800
+Message-ID: <20111219212828.D27335C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:34138 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752488Ab1LQAy3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Dec 2011 19:54:29 -0500
-Received: by eaad1 with SMTP id d1so105141eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Dec 2011 16:54:28 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:49309 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751610Ab1LSV2b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:31 -0500
+Received: by eekc1 with SMTP id c1so190513eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, holzheu@linux.vnet.ibm.com
+To: joe@perches.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic-dont-print-redundant-backtraces-on-oops-fix
-has been added to the -mm tree.  Its filename is
-     panic-dont-print-redundant-backtraces-on-oops-fix.patch
+     Subject: MAINTAINERS: staging: tty: update F: patterns
+has been removed from the -mm tree.  Its filename was
+     maintainers-staging-tty-update-f-patterns.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: panic-dont-print-redundant-backtraces-on-oops-fix
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: staging: tty: update F: patterns
 
-add comment
+commit 51c9d654c2d ("Staging: delete tty drivers") removed the files,
+delete the sections too.
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    3 +++
- 1 file changed, 3 insertions(+)
+ MAINTAINERS |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN kernel/panic.c~panic-dont-print-redundant-backtraces-on-oops-fix kernel/panic.c
---- a/kernel/panic.c~panic-dont-print-redundant-backtraces-on-oops-fix
-+++ a/kernel/panic.c
-@@ -94,6 +94,9 @@ void panic(const char *fmt, ...)
- 	va_end(args);
- 	printk(KERN_EMERG "Kernel panic - not syncing: %s\n",buf);
- #ifdef CONFIG_DEBUG_BUGVERBOSE
-+	/*
-+	 * Avoid nested stack-dumping if a panic occurs during oops processing
-+	 */
- 	if (!oops_in_progress)
- 		dump_stack();
- #endif
+diff -puN MAINTAINERS~maintainers-staging-tty-update-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-staging-tty-update-f-patterns
++++ a/MAINTAINERS
+@@ -1905,12 +1905,6 @@ L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+ F:	drivers/platform/x86/compal-laptop.c
+ 
+-COMPUTONE INTELLIPORT MULTIPORT CARD
+-W:	http://www.wittsend.com/computone.html
+-S:	Orphan
+-F:	Documentation/serial/computone.txt
+-F:	drivers/staging/tty/ip2/
+-
+ CONEXANT ACCESSRUNNER USB DRIVER
+ M:	Simon Arlott <cxacru@fire.lp0.eu>
+ L:	accessrunner-general@lists.sourceforge.net
+@@ -2214,15 +2208,6 @@ F:	drivers/md/dm*
+ F:	include/linux/device-mapper.h
+ F:	include/linux/dm-*.h
+ 
+-DIGI INTL. EPCA DRIVER
+-M:	"Digi International, Inc" <Eng.Linux@digi.com>
+-L:	Eng.Linux@digi.com
+-W:	http://www.digi.com
+-S:	Orphan
+-F:	Documentation/serial/digiepca.txt
+-F:	drivers/staging/tty/epca*
+-F:	drivers/staging/tty/digi*
+-
+ DIOLAN U2C-12 I2C DRIVER
+ M:	Guenter Roeck <guenter.roeck@ericsson.com>
+ L:	linux-i2c@vger.kernel.org
+@@ -5589,11 +5574,6 @@ M:	Maxim Levitsky <maximlevitsky@gmail.c
+ S:	Maintained
+ F:	drivers/memstick/host/r592.*
+ 
+-RISCOM8 DRIVER
+-S:	Orphan
+-F:	Documentation/serial/riscom8.txt
+-F:	drivers/staging/tty/riscom8*
+-
+ ROCKETPORT DRIVER
+ P:	Comtrol Corp.
+ W:	http://www.comtrol.com
+@@ -6256,11 +6236,6 @@ F:	arch/arm/mach-spear3xx/spear3*0_evb.c
+ F:	arch/arm/mach-spear6xx/spear600.c
+ F:	arch/arm/mach-spear6xx/spear600_evb.c
+ 
+-SPECIALIX IO8+ MULTIPORT SERIAL CARD DRIVER
+-S:	Orphan
+-F:	Documentation/serial/specialix.txt
+-F:	drivers/staging/tty/specialix*
+-
+ SPI SUBSYSTEM
+ M:	Grant Likely <grant.likely@secretlab.ca>
+ L:	spi-devel-general@lists.sourceforge.net
 _
-Subject: Subject: panic-dont-print-redundant-backtraces-on-oops-fix
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-sound-soc-mid-x86-sst_platformc-fix-build.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2.patch
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
+kernelh-neaten-panic-prototype.patch
+linkage-remove-unused-noret_and-macro.patch
+treewide-remove-useless-noret_type-macro-and-uses.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
 treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-add-driver-for-tca6507-led-controller-fix.patch
-leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
+linkage-remove-unused-attrib_noret-macro.patch
+get_maintainerspl-follow-renames-when-looking-up-commit-signers.patch
+maintainers-update-various-arm-f-patterns.patch
+maintainers-update-adp-gpio-f-patterns.patch
+maintainers-update-bt8xx-gpio-f-patterns.patch
+maintainers-update-marvell-ccic-f-patterns.patch
+maintainers-update-mfd-f-patterns.patch
+maintainers-update-sdhci-f-patterns.patch
+maintainers-update-tulip-f-patterns.patch
+maintainers-update-greth-f-patterns.patch
+maintainers-update-encrypted-keys-f-patterns.patch
+maintainers-staging-media-update-f-patterns.patch
+maintainers-serial-blackfin-update-f-pattern.patch
+maintainers-spi-update-f-patterns.patch
+checkpatch-update-signature-might-be-better-as-warning.patch
+checkpatch-prefer-__printf-not-__attribute__formatprintf.patch
+checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context.patch
+checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context-fix.patch
+checkpatch-check-for-common-memset-parameter-issues-against-statments.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking.patch
 checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-is-not-a-valid-modifier.patch
+checkpatch-optimise-statement-scanner-when-mid-statement.patch
+checkpatch-only-apply-kconfig-help-checks-for-options-which-prompt.patch
+checkpatch-fix-export_symbol-handling-following-a-function.patch
+checkpatch-complex-macro-should-allow-the-empty-do-while-loop.patch
+checkpatch-fix-return-is-not-a-function-square-bracket-handling.patch
+checkpatch-fix-complex-macros-handling-of-square-brackets.patch
+checkpatch-ensure-cast-type-is-unique-in-the-context-parser.patch
+checkpatch-typeof-may-have-more-complex-arguments.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
 checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
-revert-mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-panic-dont-print-redundant-backtraces-on-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
