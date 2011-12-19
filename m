@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-brcm80211-update-f-pattern.patch removed from -mm tree
-Date: Mon, 19 Dec 2011 13:28:36 -0800
-Message-ID: <20111219212837.1F543200057@hpza10.eem.corp.google.com>
+Subject: [merged] maintainers-delete-generic_serial-section.patch removed from -mm tree
+Date: Mon, 19 Dec 2011 13:28:40 -0800
+Message-ID: <20111219212841.0B43C20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:49309 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752648Ab1LSV2j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:39 -0500
+	with ESMTP id S1752648Ab1LSV2m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:28:42 -0500
 Received: by mail-ee0-f74.google.com with SMTP id c1so190513eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:38 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:28:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, arend@broadcom.com, gregkh@suse.de, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: brcm80211: update F: pattern
+     Subject: MAINTAINERS: delete generic_serial section
 has been removed from the -mm tree.  Its filename was
-     maintainers-brcm80211-update-f-pattern.patch
+     maintainers-delete-generic_serial-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,33 +26,34 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: brcm80211: update F: pattern
+Subject: MAINTAINERS: delete generic_serial section
 
-commit fc2d6e573be ("staging: brcm80211: remove brcm80211 driver from the
-staging tree") moved the files, update the F: pattern.
+commit bb2a97e9ccd ("Staging: delete generic_serial drivers") removed the
+files, delete the section.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Arend van Spriel <arend@broadcom.com>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-brcm80211-update-f-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-brcm80211-update-f-pattern
+diff -puN MAINTAINERS~maintainers-delete-generic_serial-section MAINTAINERS
+--- a/MAINTAINERS~maintainers-delete-generic_serial-section
 +++ a/MAINTAINERS
-@@ -1592,7 +1592,7 @@ M:	Franky (Zhenhui) Lin <frankyl@broadco
- M:	Kan Yan	<kanyan@broadcom.com>
- L:	linux-wireless@vger.kernel.org
- S:	Supported
--F:	drivers/staging/brcm80211/
-+F:	drivers/net/wireless/brcm80211/
+@@ -184,11 +184,6 @@ S:	Maintained
+ F:	Documentation/filesystems/9p.txt
+ F:	fs/9p/
  
- BROADCOM BNX2FC 10 GIGABIT FCOE DRIVER
- M:	Bhanu Prakash Gollapudi <bprakash@broadcom.com>
+-A2232 SERIAL BOARD DRIVER
+-L:	linux-m68k@lists.linux-m68k.org
+-S:	Orphan
+-F:	drivers/staging/generic_serial/ser_a2232*
+-
+ AACRAID SCSI RAID DRIVER
+ M:	Adaptec OEM Raid Solutions <aacraid@adaptec.com>
+ L:	linux-scsi@vger.kernel.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
