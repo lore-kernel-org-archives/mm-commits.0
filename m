@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-cleanup-for_each_node_state.patch added to -mm tree
-Date: Tue, 20 Dec 2011 15:01:34 -0800
-Message-ID: <20111220230135.B4E725C0060@hpza9.eem.corp.google.com>
+Subject: + page_alloc-break-early-in-check_for_regular_memory.patch added to -mm tree
+Date: Tue, 20 Dec 2011 15:01:38 -0800
+Message-ID: <20111220230139.351CB1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:40327 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752982Ab1LTXBi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 18:01:38 -0500
-Received: by eekc1 with SMTP id c1so221453eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 15:01:37 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:51700 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752991Ab1LTXBk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 18:01:40 -0500
+Received: by yhjj51 with SMTP id j51so1089976yhj.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 15:01:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: lliubbo@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosak
 
 
 The patch titled
-     Subject: memcg: cleanup for_each_node_state()
+     Subject: page_alloc: break early in check_for_regular_memory()
 has been added to the -mm tree.  Its filename is
-     memcg-cleanup-for_each_node_state.patch
+     page_alloc-break-early-in-check_for_regular_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,9 +36,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Bob Liu <lliubbo@gmail.com>
-Subject: memcg: cleanup for_each_node_state()
+Subject: page_alloc: break early in check_for_regular_memory()
 
-We already have for_each_node(node) define in nodemask.h, better to use it.
+If there is a zone below ZONE_NORMAL has present_pages, we can set node
+state to N_NORMAL_MEMORY, no need to loop to end.
 
 Signed-off-by: Bob Liu <lliubbo@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -48,59 +49,26 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-cleanup-for_each_node_state mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-cleanup-for_each_node_state
-+++ a/mm/memcontrol.c
-@@ -570,7 +570,7 @@ static void mem_cgroup_remove_from_trees
- 	struct mem_cgroup_per_zone *mz;
- 	struct mem_cgroup_tree_per_zone *mctz;
+diff -puN mm/page_alloc.c~page_alloc-break-early-in-check_for_regular_memory mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-break-early-in-check_for_regular_memory
++++ a/mm/page_alloc.c
+@@ -4655,8 +4655,10 @@ static void check_for_regular_memory(pg_
  
--	for_each_node_state(node, N_POSSIBLE) {
-+	for_each_node(node) {
- 		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
- 			mz = mem_cgroup_zoneinfo(memcg, node, zone);
- 			mctz = soft_limit_tree_node_zone(node, zone);
-@@ -4857,7 +4857,7 @@ static void __mem_cgroup_free(struct mem
- 	mem_cgroup_remove_from_trees(memcg);
- 	free_css_id(&mem_cgroup_subsys, &memcg->css);
- 
--	for_each_node_state(node, N_POSSIBLE)
-+	for_each_node(node)
- 		free_mem_cgroup_per_zone_info(memcg, node);
- 
- 	free_percpu(memcg->stat);
-@@ -4916,7 +4916,7 @@ static int mem_cgroup_soft_limit_tree_in
- 	struct mem_cgroup_tree_per_zone *rtpz;
- 	int tmp, node, zone;
- 
--	for_each_node_state(node, N_POSSIBLE) {
-+	for_each_node(node) {
- 		tmp = node;
- 		if (!node_state(node, N_NORMAL_MEMORY))
- 			tmp = -1;
-@@ -4935,7 +4935,7 @@ static int mem_cgroup_soft_limit_tree_in
- 	return 0;
- 
- err_cleanup:
--	for_each_node_state(node, N_POSSIBLE) {
-+	for_each_node(node) {
- 		if (!soft_limit_tree.rb_tree_per_node[node])
- 			break;
- 		kfree(soft_limit_tree.rb_tree_per_node[node]);
-@@ -4956,7 +4956,7 @@ mem_cgroup_create(struct cgroup_subsys *
- 	if (!memcg)
- 		return ERR_PTR(error);
- 
--	for_each_node_state(node, N_POSSIBLE)
-+	for_each_node(node)
- 		if (alloc_mem_cgroup_per_zone_info(memcg, node))
- 			goto free_out;
- 
+ 	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
+ 		struct zone *zone = &pgdat->node_zones[zone_type];
+-		if (zone->present_pages)
++		if (zone->present_pages) {
+ 			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
++			break;
++		}
+ 	}
+ #endif
+ }
 _
-Subject: Subject: memcg: cleanup for_each_node_state()
+Subject: Subject: page_alloc: break early in check_for_regular_memory()
 
 Patches currently in -mm which might be from lliubbo@gmail.com are
 
