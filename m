@@ -1,213 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available.patch removed from -mm tree
-Date: Tue, 20 Dec 2011 14:21:47 -0800
-Message-ID: <20111220222147.EED2510004D@wpzn3.hot.corp.google.com>
+Subject: [folded] leds-add-driver-for-tca6507-led-controller-fix.patch removed from -mm tree
+Date: Tue, 20 Dec 2011 14:21:40 -0800
+Message-ID: <20111220222141.382D31E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:63665 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752487Ab1LTWVs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 17:21:48 -0500
-Received: by mail-yw0-f74.google.com with SMTP id j51so1086070yhj.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 14:21:48 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:37818 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753164Ab1LTWVm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 17:21:42 -0500
+Received: by ghrr15 with SMTP id r15so636515ghr.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 14:21:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, neilb@suse.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds-tca6507: allow driver to compile when GPIOLIB is not available.
+     Subject: leds-add-driver-for-tca6507-led-controller-fix
 has been removed from the -mm tree.  Its filename was
-     leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available.patch
+     leds-add-driver-for-tca6507-led-controller-fix.patch
 
 This patch was dropped because it was folded into leds-add-driver-for-tca6507-led-controller.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: leds-tca6507: allow driver to compile when GPIOLIB is not available.
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds-add-driver-for-tca6507-led-controller-fix
 
-This driver can configure the outputs as GPIO line instead of LEDs.  But
-that only works if GPIOLIB is available.  So make that code conditional on
-the library's availability.
+drivers/leds/leds-tca6507.c:167: error: '__mod_i2c_device_table' aliased to undefined symbol 'tca6507'
 
-Also remove the 'teardown' callback as it is never called and should
-never be needed.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-tca6507.c  |   92 ++++++++++++++++++++++-----------
- include/linux/leds-tca6507.h |    3 -
- 2 files changed, 65 insertions(+), 30 deletions(-)
+ drivers/leds/leds-tca6507.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-tca6507.c~leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available drivers/leds/leds-tca6507.c
---- a/drivers/leds/leds-tca6507.c~leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available
+diff -puN drivers/leds/leds-tca6507.c~leds-add-driver-for-tca6507-led-controller-fix drivers/leds/leds-tca6507.c
+--- a/drivers/leds/leds-tca6507.c~leds-add-driver-for-tca6507-led-controller-fix
 +++ a/drivers/leds/leds-tca6507.c
-@@ -155,9 +155,11 @@ struct tca6507_chip {
- 		int			bank;	/* Bank used, or -1 */
- 		int			blink;	/* 1 if we are hardware-blinking */
- 	} leds[NUM_LEDS];
-+#ifdef CONFIG_GPIOLIB
- 	struct gpio_chip		gpio;
- 	const char			*gpio_name[NUM_LEDS];
- 	int				gpio_map[NUM_LEDS];
-+#endif
+@@ -158,7 +158,7 @@ static const struct i2c_device_id tca650
+ 	{ "tca6507" },
+ 	{ }
  };
+-MODULE_DEVICE_TABLE(i2c, tca6507);
++MODULE_DEVICE_TABLE(i2c, tca6507_id);
  
- static const struct i2c_device_id tca6507_id[] = {
-@@ -528,6 +530,7 @@ static int tca6507_blink_set(struct led_
- 	return 0;
- }
- 
-+#ifdef CONFIG_GPIOLIB
- static void tca6507_gpio_set_value(struct gpio_chip *gc,
- 				   unsigned offset, int val)
+ static int choose_times(int msec, int *c1p, int *c2p)
  {
-@@ -551,6 +554,62 @@ static int tca6507_gpio_direction_output
- 	tca6507_gpio_set_value(gc, offset, val);
- 	return 0;
- }
-+static int tca6507_probe_gpios(struct i2c_client *client,
-+			       struct tca6507_chip *tca,
-+			       struct tca6507_platform_data *pdata)
-+{
-+	int err;
-+	int i = 0;
-+	int gpios = 0;
-+
-+	for (i = 0; i < NUM_LEDS; i++)
-+		if (pdata->leds.leds[i].name && pdata->leds.leds[i].flags) {
-+			/* Configure as a gpio */
-+			tca->gpio_name[gpios] = pdata->leds.leds[i].name;
-+			tca->gpio_map[gpios] = i;
-+			gpios++;
-+		}
-+
-+	if (!gpios)
-+		return 0;
-+
-+	tca->gpio.label = "gpio-tca6507";
-+	tca->gpio.names = tca->gpio_name;
-+	tca->gpio.ngpio = gpios;
-+	tca->gpio.base = pdata->gpio_base;
-+	tca->gpio.owner = THIS_MODULE;
-+	tca->gpio.direction_output = tca6507_gpio_direction_output;
-+	tca->gpio.set = tca6507_gpio_set_value;
-+	tca->gpio.dev = &client->dev;
-+	err = gpiochip_add(&tca->gpio);
-+	if (err) {
-+		tca->gpio.ngpio = 0;
-+		return err;
-+	}
-+	if (pdata->setup)
-+		pdata->setup(tca->gpio.base, tca->gpio.ngpio);
-+	return 0;
-+}
-+
-+static void tca6507_remove_gpio(struct tca6507_chip *tca)
-+{
-+	if (tca->gpio.ngpio) {
-+		int err = gpiochip_remove(&tca->gpio);
-+		dev_err(&tca->client->dev, "%s failed, %d\n",
-+			"gpiochip_remove()", err);
-+	}
-+}
-+#else /* CONFIG_GPIOLIB */
-+static int tca6507_probe_gpios(struct i2c_client *client,
-+			       struct tca6507_chip *tca,
-+			       struct tca6507_platform_data *pdata)
-+{
-+	return 0;
-+}
-+static void tca6507_remove_gpio(struct tca6507_chip *tca)
-+{
-+}
-+#endif /* CONFIG_GPIOLIB */
- 
- static int __devinit tca6507_probe(struct i2c_client *client,
- 				   const struct i2c_device_id *id)
-@@ -560,7 +619,6 @@ static int __devinit tca6507_probe(struc
- 	struct tca6507_platform_data *pdata;
- 	int err;
- 	int i = 0;
--	int gpios = 0;
- 
- 	adapter = to_i2c_adapter(client->dev.parent);
- 	pdata = client->dev.platform_data;
-@@ -599,30 +657,10 @@ static int __devinit tca6507_probe(struc
- 			if (err < 0)
- 				goto exit;
- 		}
--		if (pdata->leds.leds[i].name && pdata->leds.leds[i].flags) {
--			/* Configure as a gpio */
--			tca->gpio_name[gpios] = pdata->leds.leds[i].name;
--			tca->gpio_map[gpios] = i;
--			gpios++;
--		}
--	}
--	if (gpios) {
--		tca->gpio.label = "gpio-tca6507";
--		tca->gpio.names = tca->gpio_name;
--		tca->gpio.ngpio = gpios;
--		tca->gpio.base = pdata->gpio_base;
--		tca->gpio.owner = THIS_MODULE;
--		tca->gpio.direction_output = tca6507_gpio_direction_output;
--		tca->gpio.set = tca6507_gpio_set_value;
--		tca->gpio.dev = &client->dev;
--		err = gpiochip_add(&tca->gpio);
--		if (err) {
--			tca->gpio.ngpio = 0;
--			goto exit;
--		}
--		if (pdata->setup)
--			pdata->setup(tca->gpio.base, tca->gpio.ngpio);
- 	}
-+	err = tca6507_probe_gpios(client, tca, pdata);
-+	if (err)
-+		goto exit;
- 	i2c_set_clientdata(client, tca);
- 	/* set all registers to known state - zero */
- 	tca->reg_set = 0x7f;
-@@ -647,11 +685,7 @@ static int __devexit tca6507_remove(stru
- 		if (tca_leds[i].led_cdev.name)
- 			led_classdev_unregister(&tca_leds[i].led_cdev);
- 	}
--	if (tca->gpio.ngpio) {
--		int err = gpiochip_remove(&tca->gpio);
--		dev_err(&tca->client->dev, "%s failed, %d\n",
--			"gpiochip_remove()", err);
--	}
-+	tca6507_remove_gpio(tca);
- 	cancel_work_sync(&tca->work);
- 	kfree(tca);
- 	i2c_set_clientdata(client, NULL);
-diff -puN include/linux/leds-tca6507.h~leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available include/linux/leds-tca6507.h
---- a/include/linux/leds-tca6507.h~leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available
-+++ a/include/linux/leds-tca6507.h
-@@ -24,9 +24,10 @@
- 
- struct tca6507_platform_data {
- 	struct led_platform_data leds;
-+#ifdef CONFIG_GPIOLIB
- 	int gpio_base;
- 	void (*setup)(unsigned gpio_base, unsigned ngpio);
--	void (*teardown)(unsigned gpio_base, unsigned ngpio);
-+#endif
- };
- 
- #define	TCA6507_MAKE_GPIO 1
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+mm-simplify-find_vma_prev-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
 leds-add-driver-for-tca6507-led-controller.patch
-leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available-fix.patch
-leds-tca6507-fix-off-by-one-error.patch
-ipc-provide-generic-compat-versions-of-ipc-syscalls.patch
+leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-simplify-lru-handling-by-new-rule-fix.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
