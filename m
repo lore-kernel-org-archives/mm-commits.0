@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch added to -mm tree
-Date: Tue, 20 Dec 2011 15:17:15 -0800
-Message-ID: <20111220231716.94B8D5C0050@hpza9.eem.corp.google.com>
+Subject: + memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch added to -mm tree
+Date: Tue, 20 Dec 2011 15:30:36 -0800
+Message-ID: <20111220233037.47879100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:59390 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752414Ab1LTXRT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 18:17:19 -0500
-Received: by eekc1 with SMTP id c1so221698eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 15:17:18 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:56504 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752527Ab1LTXai (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 18:30:38 -0500
+Received: by qcsg15 with SMTP id g15so964539qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 15:30:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, rientjes@google.com
+Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mszeredi@suse.cz, yinghan@google.com
 
 
 The patch titled
-     Subject: mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix
+     Subject: memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
+     memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,36 +36,35 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix
+Subject: memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix
 
-use vma_hugecache_offset() directly, per Michal
+ksm.c needs memcontrol.h, per Michal
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/ksm.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix
-+++ a/mm/hugetlb.c
-@@ -2315,7 +2315,7 @@ static int unmap_ref_private(struct mm_s
- 	 * from page cache lookup which is in HPAGE_SIZE units.
- 	 */
- 	address = address & huge_page_mask(h);
--	pgoff = linear_hugepage_index(vma, address);
-+	pgoff = vma_hugecache_offset(hstate, vma, address);
- 	mapping = (struct address_space *)page_private(page);
- 
- 	/*
+diff -puN mm/ksm.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix mm/ksm.c
+--- a/mm/ksm.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix
++++ a/mm/ksm.c
+@@ -28,6 +28,7 @@
+ #include <linux/kthread.h>
+ #include <linux/wait.h>
+ #include <linux/slab.h>
++#include <linux/memcontrol.h>
+ #include <linux/rbtree.h>
+ #include <linux/memory.h>
+ #include <linux/mmu_notifier.h>
 _
-Subject: Subject: mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix
+Subject: Subject: memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -101,6 +100,7 @@ rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
 mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
 memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
 memcg-simplify-lru-handling-by-new-rule-fix.patch
 procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
 workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
