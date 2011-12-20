@@ -1,173 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: + mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix.patch added to -mm tree
-Date: Mon, 19 Dec 2011 13:54:09 -0800
-Message-ID: <20111219215410.5B7BD10008C@wpzn3.hot.corp.google.com>
+Subject: [folded] cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch removed from -mm tree
+Date: Mon, 19 Dec 2011 17:07:39 -0800
+Message-ID: <20111220010740.C3CB820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:64334 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325Ab1LSVyL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 16:54:11 -0500
-Received: by ggnv2 with SMTP id v2so770368ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 13:54:11 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:43158 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752412Ab1LTBHn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 20:07:43 -0500
+Received: by faar15 with SMTP id r15so214417faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 17:07:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, jack@suse.cz, jweiner@redhat.com, minchan.kim@gmail.com, nai.xia@gmail.com, riel@redhat.com
+To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, miaox@cn.fujitsu.com, paul@paulmenage.org, rientjes@google.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: isolate pages for immediate reclaim on their own LRU fix
-has been added to the -mm tree.  Its filename is
-     mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix.patch
+     Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
+has been removed from the -mm tree.  Its filename was
+     cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: isolate pages for immediate reclaim on their own LRU fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
 
-Rename pagevec_putback_immediate_fn to pagevec_putback_from_immediate_fn
-for clarity and alter flow of rotate_reclaimable_page() slightly to avoid
-an unnecessary list reference.
+stupid temporary hack to make it build with CONFIG_NUMA=n
 
-This is a fix to the patch
-mm-isolate-pages-for-immediate-reclaim-on-their-own-lru.patch in mmotm.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Andy Isaacson <adi@hexapodia.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Nai Xia <nai.xia@gmail.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
+Cc: Paul Menage <paul@paulmenage.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ kernel/cpuset.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix mm/swap.c
---- a/mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix
-+++ a/mm/swap.c
-@@ -262,7 +262,7 @@ static void pagevec_move_tail(struct pag
-  * moving a page from the LRU_IMMEDIATE to one of the [in]active_[file|anon]
-  * lists
-  */
--static void pagevec_putback_immediate_fn(struct page *page, void *arg)
-+static void pagevec_putback_from_immediate_fn(struct page *page, void *arg)
- {
- 	struct zone *zone = page_zone(page);
- 
-@@ -272,9 +272,9 @@ static void pagevec_putback_immediate_fn
- 	}
- }
- 
--static void pagevec_putback_immediate(struct pagevec *pvec)
-+static void pagevec_putback_from_immediate(struct pagevec *pvec)
- {
--	pagevec_lru_move_fn(pvec, pagevec_putback_immediate_fn, NULL);
-+	pagevec_lru_move_fn(pvec, pagevec_putback_from_immediate_fn, NULL);
- }
- 
- /*
-@@ -285,7 +285,7 @@ static void pagevec_putback_immediate(st
- void rotate_reclaimable_page(struct page *page)
- {
- 	struct zone *zone = page_zone(page);
--	struct list_head *page_list;
-+	struct list_head *list;
- 	struct pagevec *pvec;
- 	unsigned long flags;
- 
-@@ -302,7 +302,7 @@ void rotate_reclaimable_page(struct page
- 	} else {
- 		pvec = &__get_cpu_var(lru_putback_immediate_pvecs);
- 		if (!pagevec_add(pvec, page))
--			pagevec_putback_immediate(pvec);
-+			pagevec_putback_from_immediate(pvec);
- 	}
- 
- 	/*
-@@ -318,17 +318,21 @@ void rotate_reclaimable_page(struct page
- 	 * problematic due to the problem of deciding when the right time
- 	 * to scan this list is.
+diff -puN kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix
++++ a/kernel/cpuset.c
+@@ -968,7 +968,10 @@ repeat:
+ 	 * tsk does not have a mempolicy, then an empty nodemask will not be
+ 	 * possible when mems_allowed is larger than a word.
  	 */
--	page_list = &zone->lru[LRU_IMMEDIATE].list;
--	if (!zone_page_state(zone, NR_IMMEDIATE) && !list_empty(page_list)) {
-+	if (!zone_page_state(zone, NR_IMMEDIATE)) {
- 		struct page *page;
-+		list = &zone->lru[LRU_IMMEDIATE].list;
- 
--		spin_lock(&zone->lru_lock);
--		while (!list_empty(page_list)) {
--			page = list_entry(page_list->prev, struct page, lru);
--			list_move(&page->lru, &zone->lru[page_lru(page)].list);
--			__count_vm_event(PGRESCUED);
-+		if (!list_empty(list)) {
-+			spin_lock(&zone->lru_lock);
-+			while (!list_empty(list)) {
-+				int lru;
-+				page = list_entry(list->prev, struct page, lru);
-+				lru = page_lru(page);
-+				list_move(&page->lru, &zone->lru[lru].list);
-+				__count_vm_event(PGRESCUED);
-+			}
-+			spin_unlock(&zone->lru_lock);
- 		}
--		spin_unlock(&zone->lru_lock);
- 	}
- 
- 	local_irq_restore(flags);
+-	need_loop = tsk->mempolicy ||
++	need_loop =
++#ifdef CONFIG_NUMA
++		tsk->mempolicy ||
++#endif
+ 			!nodes_intersects(*newmems, tsk->mems_allowed);
+ 	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
+ 	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
 _
-Subject: Subject: mm: isolate pages for immediate reclaim on their own LRU fix
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2.patch
+cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
 linux-next.patch
-mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
 mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
-mm-more-intensive-memory-corruption-debug.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
 mm-more-intensive-memory-corruption-debug-fix.patch
-pm-hibernate-do-not-count-debug-pages-as-savable.patch
-slub-min-order-when-debug_guardpage_minorder-0.patch
-mm-debug-test-for-online-nid-when-allocating-on-single-node.patch
-mm-exclude-reserved-pages-from-dirtyable-memory.patch
 mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
-mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
-btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
-mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
-mm-fix-off-by-two-in-__zone_watermark_ok.patch
-mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
-mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
-mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
+mm-simplify-find_vma_prev-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+leds-add-driver-for-tca6507-led-controller-fix.patch
+leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
 revert-mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
-mm-compaction-allow-compaction-to-isolate-dirty-pages.patch
-mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory.patch
-mm-vmscan-check-if-we-isolated-a-compound-page-during-lumpy-scan.patch
-mm-vmscan-do-not-oom-if-aborting-reclaim-to-start-compaction.patch
-mm-compaction-determine-if-dirty-pages-can-be-migrated-without-blocking-within-migratepage.patch
-mm-compaction-make-isolate_lru_page-filter-aware-again.patch
-mm-page-allocator-do-not-call-direct-reclaim-for-thp-allocations-while-compaction-is-deferred.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
-mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch
-mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone.patch
-mm-isolate-pages-for-immediate-reclaim-on-their-own-lru.patch
-mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
