@@ -1,75 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-tca6507-fix-off-by-one-error.patch removed from -mm tree
-Date: Tue, 20 Dec 2011 14:21:54 -0800
-Message-ID: <20111220222154.DA6BB1E004D@wpzn4.hot.corp.google.com>
+Subject: + mm-vmscanc-consider-swap-space-when-deciding-whether-to-continue-reclaim.patch added to -mm tree
+Date: Tue, 20 Dec 2011 14:25:57 -0800
+Message-ID: <20111220222558.3E0C520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:48864 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752361Ab1LTWVz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 17:21:55 -0500
-Received: by ggnv2 with SMTP id v2so894203ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 14:21:55 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:50519 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230Ab1LTW0D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 17:26:03 -0500
+Received: by eekc1 with SMTP id c1so220742eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 14:25:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: minchan@kernel.org, aarcange@redhat.com, jweiner@redhat.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com
 
 
 The patch titled
-     Subject: leds-tca6507 - fix off by one error.
-has been removed from the -mm tree.  Its filename was
-     leds-tca6507-fix-off-by-one-error.patch
+     Subject: mm/vmscan.c: consider swap space when deciding whether to continue reclaim
+has been added to the -mm tree.  Its filename is
+     mm-vmscanc-consider-swap-space-when-deciding-whether-to-continue-reclaim.patch
 
-This patch was dropped because it was folded into leds-add-driver-for-tca6507-led-controller.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: leds-tca6507 - fix off by one error.
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm/vmscan.c: consider swap space when deciding whether to continue reclaim
 
-When walking the list of possible time codes we can fall off the end.
-Fix that, and also improved the commentary.
+It's pointless to continue reclaiming when we have no swap space and lots
+of anon pages in the inactive list.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: NeilBrown <neilb@suse.de>
+Without this patch, it is possible when swap is disabled to continue
+trying to reclaim when there are only anonymous pages in the system even
+though that will not make any progress.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-tca6507.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/leds-tca6507.c~leds-tca6507-fix-off-by-one-error drivers/leds/leds-tca6507.c
---- a/drivers/leds/leds-tca6507.c~leds-tca6507-fix-off-by-one-error
-+++ a/drivers/leds/leds-tca6507.c
-@@ -172,7 +172,8 @@ static int choose_times(int msec, int *c
- {
- 	/*
- 	 * Choose two timecodes which add to 'msec' as near as possible.
--	 * The first returned should be the larger.
-+	 * The first returned should be the larger and is the 'on' of 'off'
-+	 * time.  The second will be used as a 'fade-on' or 'fade-off' time.
- 	 * If cannot get within 1/8, fail.
- 	 * If two possibilities are equally good (e.g. 512+0, 256+256), choose
- 	 * the first pair so there is more change-time visible (i.e. it is
-@@ -183,7 +184,10 @@ static int choose_times(int msec, int *c
- 	int tmin = msec * 7 / 8;
- 	int diff = 65536;
- 
--	for (c1 = 1; c1 <= TIMECODES; c1++) {
-+	/* We start at '1' to ensure we never even think of choosing a
-+	 * total time of '0'.
-+	 */
-+	for (c1 = 1; c1 < TIMECODES; c1++) {
- 		int t = time_codes[c1];
- 		if (t*2 < tmin)
- 			continue;
+diff -puN mm/vmscan.c~mm-vmscanc-consider-swap-space-when-deciding-whether-to-continue-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscanc-consider-swap-space-when-deciding-whether-to-continue-reclaim
++++ a/mm/vmscan.c
+@@ -2000,8 +2000,9 @@ static inline bool should_continue_recla
+ 	 * inactive lists are large enough, continue reclaiming
+ 	 */
+ 	pages_for_compaction = (2UL << sc->order);
+-	inactive_lru_pages = zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON) +
+-				zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
++	inactive_lru_pages = zone_nr_lru_pages(zone, sc, LRU_INACTIVE_FILE);
++	if (nr_swap_pages > 0)
++		inactive_lru_pages += zone_nr_lru_pages(zone, sc, LRU_INACTIVE_ANON);
+ 	if (sc->nr_reclaimed < pages_for_compaction &&
+ 			inactive_lru_pages > pages_for_compaction)
+ 		return true;
 _
+Subject: Subject: mm/vmscan.c: consider swap space when deciding whether to continue reclaim
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-origin.patch
-linux-next.patch
-leds-add-driver-for-tca6507-led-controller.patch
-ipc-provide-generic-compat-versions-of-ipc-syscalls.patch
+mm-vmscanc-consider-swap-space-when-deciding-whether-to-continue-reclaim.patch
+vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
+mm-compaction-make-isolate_lru_page-filter-aware-again.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix.patch
 
