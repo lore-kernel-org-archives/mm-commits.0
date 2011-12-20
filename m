@@ -1,142 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [folded] cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch removed from -mm tree
-Date: Mon, 19 Dec 2011 17:07:55 -0800
-Message-ID: <20111220010755.E284F10005D@wpzn3.hot.corp.google.com>
+Subject: + mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix.patch added to -mm tree
+Date: Tue, 20 Dec 2011 13:50:44 -0800
+Message-ID: <20111220215045.75A4E1000E6@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:40807 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412Ab1LTBH5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Dec 2011 20:07:57 -0500
-Received: by ggnv2 with SMTP id v2so788532ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Dec 2011 17:07:56 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:41192 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753136Ab1LTVus (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 16:50:48 -0500
+Received: by yhjj51 with SMTP id j51so1082747yhj.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 13:50:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, miaox@cn.fujitsu.com, paul@paulmenage.org, rientjes@google.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mgorman@suse.de, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, jack@suse.cz, jweiner@redhat.com, minchan@kernel.org, nai.xia@gmail.com, riel@redhat.com
 
 
 The patch titled
-     Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix
-has been removed from the -mm tree.  Its filename was
-     cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix.patch
+     Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix
+has been added to the -mm tree.  Its filename is
+     mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix.patch
 
-This patch was dropped because it was folded into cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Paul Menage <paul@paulmenage.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Consistently name enum migrate_mode parameters "mode" instead of "sync".
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel<riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andy Isaacson <adi@hexapodia.org>
+Cc: Nai Xia <nai.xia@gmail.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   13 +++++++++++++
- mm/mempolicy.c  |   12 ------------
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ fs/btrfs/disk-io.c      |    2 +-
+ fs/nfs/write.c          |    2 +-
+ include/linux/migrate.h |    8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix
-+++ a/kernel/cpuset.c
-@@ -123,6 +123,19 @@ static inline struct cpuset *task_cs(str
- 			    struct cpuset, css);
- }
- 
-+#ifdef CONFIG_NUMA
-+static inline bool task_has_mempolicy(struct task_struct *task)
-+{
-+	return task->mempolicy;
-+}
-+#else
-+static inline bool task_has_mempolicy(struct task_struct *task)
-+{
-+	return false;
-+}
-+#endif
-+
-+
- /* bits in struct cpuset flags field */
- typedef enum {
- 	CS_CPU_EXCLUSIVE,
-diff -puN mm/mempolicy.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix mm/mempolicy.c
---- a/mm/mempolicy.c~cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask-fix-2-fix-2-fix
-+++ a/mm/mempolicy.c
-@@ -137,18 +137,6 @@ static const struct mempolicy_operations
- 			enum mpol_rebind_step step);
- } mpol_ops[MPOL_MAX];
- 
--#ifdef CONFIG_NUMA
--static inline bool task_has_mempolicy(struct task_struct *task)
--{
--	return task->mempolicy;
--}
--#else
--static inline bool task_has_mempolicy(struct task_struct *task)
--{
--	return false;
--}
--#endif
--
- /* Check that the nodemask contains at least one populated zone */
- static int is_valid_nodemask(const nodemask_t *nodemask)
+diff -puN fs/btrfs/disk-io.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix fs/btrfs/disk-io.c
+--- a/fs/btrfs/disk-io.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix
++++ a/fs/btrfs/disk-io.c
+@@ -873,7 +873,7 @@ static int btree_submit_bio_hook(struct 
+ #ifdef CONFIG_MIGRATION
+ static int btree_migratepage(struct address_space *mapping,
+ 			struct page *newpage, struct page *page,
+-			enum migrate_mode sync)
++			enum migrate_mode mode)
  {
+ 	/*
+ 	 * we can't safely write a btree page from here,
+diff -puN fs/nfs/write.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix fs/nfs/write.c
+--- a/fs/nfs/write.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix
++++ a/fs/nfs/write.c
+@@ -1711,7 +1711,7 @@ out_error:
+ 
+ #ifdef CONFIG_MIGRATION
+ int nfs_migrate_page(struct address_space *mapping, struct page *newpage,
+-		struct page *page, enum migrate_mode sync)
++		struct page *page, enum migrate_mode mode)
+ {
+ 	/*
+ 	 * If PagePrivate is set, then the page is currently associated with
+diff -puN include/linux/migrate.h~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix
++++ a/include/linux/migrate.h
+@@ -27,10 +27,10 @@ extern int migrate_page(struct address_s
+ 			struct page *, struct page *, enum migrate_mode);
+ extern int migrate_pages(struct list_head *l, new_page_t x,
+ 			unsigned long private, bool offlining,
+-			enum migrate_mode sync);
++			enum migrate_mode mode);
+ extern int migrate_huge_pages(struct list_head *l, new_page_t x,
+ 			unsigned long private, bool offlining,
+-			enum migrate_mode sync);
++			enum migrate_mode mode);
+ 
+ extern int fail_migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+@@ -49,10 +49,10 @@ extern int migrate_huge_page_move_mappin
+ static inline void putback_lru_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private, bool offlining,
+-		enum migrate_mode sync) { return -ENOSYS; }
++		enum migrate_mode mode) { return -ENOSYS; }
+ static inline int migrate_huge_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private, bool offlining,
+-		enum migrate_mode sync) { return -ENOSYS; }
++		enum migrate_mode mode) { return -ENOSYS; }
+ 
+ static inline int migrate_prep(void) { return -ENOSYS; }
+ static inline int migrate_prep_local(void) { return -ENOSYS; }
 _
+Subject: Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-cpusets-stall-when-updating-mems_allowed-for-mempolicy-or-disjoint-nodemask.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
 mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+mm-more-intensive-memory-corruption-debug.patch
 mm-more-intensive-memory-corruption-debug-fix.patch
+pm-hibernate-do-not-count-debug-pages-as-savable.patch
+slub-min-order-when-debug_guardpage_minorder-0.patch
+mm-debug-test-for-online-nid-when-allocating-on-single-node.patch
+mm-exclude-reserved-pages-from-dirtyable-memory.patch
 mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-add-driver-for-tca6507-led-controller-fix.patch
-leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
+mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
+btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+mm-fix-off-by-two-in-__zone_watermark_ok.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
+mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
 revert-mm-do-not-stall-in-synchronous-compaction-for-thp-allocations.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-panic-dont-print-redundant-backtraces-on-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-compaction-allow-compaction-to-isolate-dirty-pages.patch
+mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory.patch
+mm-vmscan-check-if-we-isolated-a-compound-page-during-lumpy-scan.patch
+mm-vmscan-do-not-oom-if-aborting-reclaim-to-start-compaction.patch
+mm-compaction-determine-if-dirty-pages-can-be-migrated-without-blocking-within-migratepage.patch
+mm-compaction-make-isolate_lru_page-filter-aware-again.patch
+mm-page-allocator-do-not-call-direct-reclaim-for-thp-allocations-while-compaction-is-deferred.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix.patch
+mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch
+mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone.patch
+mm-isolate-pages-for-immediate-reclaim-on-their-own-lru.patch
+mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix.patch
 
