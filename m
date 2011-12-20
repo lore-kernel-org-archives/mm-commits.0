@@ -1,122 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [failures] hugetlb-replace-bug-with-build_bug-for-dummy-definitions.patch removed from -mm tree
-Date: Tue, 20 Dec 2011 15:55:00 -0800
-Message-ID: <20111220235501.042EB5C0050@hpza9.eem.corp.google.com>
+Subject: + drivers-rtc-rtc-jz4740c-make-jz4740_rtc_driver-static.patch added to -mm tree
+Date: Tue, 20 Dec 2011 15:56:28 -0800
+Message-ID: <20111220235628.9D72F10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:43897 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753322Ab1LTXzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 18:55:03 -0500
-Received: by eekc1 with SMTP id c1so222315eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 15:55:02 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:39627 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753123Ab1LTX43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 18:56:29 -0500
+Received: by ghrr15 with SMTP id r15so644077ghr.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 15:56:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david.daney@cavium.com, dhowells@redhat.com, dm.n9107@gmail.com, ralf@linux-mips.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: axel.lin@gmail.com, a.zummo@towertech.it, lars@metafoo.de
 
 
 The patch titled
-     Subject: hugetlb: replace BUG() with BUILD_BUG() for dummy definitions
-has been removed from the -mm tree.  Its filename was
-     hugetlb-replace-bug-with-build_bug-for-dummy-definitions.patch
+     Subject: drivers/rtc/rtc-jz4740.c: make jz4740_rtc_driver static
+has been added to the -mm tree.  Its filename is
+     drivers-rtc-rtc-jz4740c-make-jz4740_rtc_driver-static.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Daney <david.daney@cavium.com>
-Subject: hugetlb: replace BUG() with BUILD_BUG() for dummy definitions
+From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/rtc/rtc-jz4740.c: make jz4740_rtc_driver static
 
-The file linux/hugetlb.h has many places where dummy symbols were defined
-so that the main source code would contain fewer:
-
-    #ifdef CONFIG_HUGETLBFS
-
-or
-
-    #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-
-If there were any misuse of these symbols, the only symptom would be an
-OOPS at runtime.  Change the BUG() to BUILD_BUG() to catch any such abuse
-at compile time instead.
-
-Signed-off-by: David Daney <david.daney@cavium.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: DM <dm.n9107@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    8 ++++----
- include/linux/hugetlb.h |   14 +++++++-------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/rtc/rtc-jz4740.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~hugetlb-replace-bug-with-build_bug-for-dummy-definitions include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~hugetlb-replace-bug-with-build_bug-for-dummy-definitions
-+++ a/include/linux/huge_mm.h
-@@ -145,10 +145,10 @@ static inline struct page *compound_tran
- 	}
- 	return page;
- }
--#else /* CONFIG_TRANSPARENT_HUGEPAGE */
--#define HPAGE_PMD_SHIFT ({ BUG(); 0; })
--#define HPAGE_PMD_MASK ({ BUG(); 0; })
--#define HPAGE_PMD_SIZE ({ BUG(); 0; })
-+#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
-+#define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
-+#define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
-+#define HPAGE_PMD_SIZE ({ BUILD_BUG(); 0; })
+diff -puN drivers/rtc/rtc-jz4740.c~drivers-rtc-rtc-jz4740c-make-jz4740_rtc_driver-static drivers/rtc/rtc-jz4740.c
+--- a/drivers/rtc/rtc-jz4740.c~drivers-rtc-rtc-jz4740c-make-jz4740_rtc_driver-static
++++ a/drivers/rtc/rtc-jz4740.c
+@@ -345,7 +345,7 @@ static const struct dev_pm_ops jz4740_pm
+ #define JZ4740_RTC_PM_OPS NULL
+ #endif  /* CONFIG_PM */
  
- #define hpage_nr_pages(x) 1
- 
-diff -puN include/linux/hugetlb.h~hugetlb-replace-bug-with-build_bug-for-dummy-definitions include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-replace-bug-with-build_bug-for-dummy-definitions
-+++ a/include/linux/hugetlb.h
-@@ -85,11 +85,11 @@ static inline unsigned long hugetlb_tota
- 	return 0;
- }
- 
--#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUG(); 0; })
-+#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUILD_BUG(); 0; })
- #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
--#define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
--#define hugetlb_prefault(mapping, vma)		({ BUG(); 0; })
--#define unmap_hugepage_range(vma, start, end, page)	BUG()
-+#define copy_hugetlb_page_range(src, dst, vma)	({ BUILD_BUG(); 0; })
-+#define hugetlb_prefault(mapping, vma)		({ BUILD_BUG(); 0; })
-+#define unmap_hugepage_range(vma, start, end, page)	BUILD_BUG()
- static inline void hugetlb_report_meminfo(struct seq_file *m)
- {
- }
-@@ -100,8 +100,8 @@ static inline void hugetlb_report_meminf
- #define pmd_huge(x)	0
- #define pud_huge(x)	0
- #define is_hugepage_only_range(mm, addr, len)	0
--#define hugetlb_free_pgd_range(tlb, addr, end, floor, ceiling) ({BUG(); 0; })
--#define hugetlb_fault(mm, vma, addr, flags)	({ BUG(); 0; })
-+#define hugetlb_free_pgd_range(tlb, addr, end, f, c) ({BUILD_BUG(); 0; })
-+#define hugetlb_fault(mm, vma, addr, flags)	({ BUILD_BUG(); 0; })
- #define huge_pte_offset(mm, address)	0
- #define dequeue_hwpoisoned_huge_page(page)	0
- static inline void copy_huge_page(struct page *dst, struct page *src)
-@@ -186,7 +186,7 @@ static inline void set_file_hugepages(st
- #else /* !CONFIG_HUGETLBFS */
- 
- #define is_file_hugepages(file)			0
--#define set_file_hugepages(file)		BUG()
-+#define set_file_hugepages(file)		BUILD_BUG()
- static inline struct file *hugetlb_file_setup(const char *name, size_t size,
- 		vm_flags_t acctflag, struct user_struct **user, int creat_flags)
- {
+-struct platform_driver jz4740_rtc_driver = {
++static struct platform_driver jz4740_rtc_driver = {
+ 	.probe	 = jz4740_rtc_probe,
+ 	.remove	 = __devexit_p(jz4740_rtc_remove),
+ 	.driver	 = {
 _
+Subject: Subject: drivers/rtc/rtc-jz4740.c: make jz4740_rtc_driver static
 
-Patches currently in -mm which might be from david.daney@cavium.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
-kernelh-add-build_bug-macro.patch
-kernelh-add-build_bug-macro-v3.patch
-fs-binfmt_elf-create-kconfig-variable-for-pie-randomization.patch
-mips-randomize-pie-load-address.patch
+backlight-convert-drivers-video-backlight-to-use-module_platform_driver.patch
+leds-convert-led-platform-drivers-to-module_platform_driver.patch
+leds-convert-led-i2c-drivers-to-module_i2c_driver.patch
+leds-convert-leds-dac124s085-to-module_spi_driver.patch
+drivers-leds-leds-lp5523c-remove-unneeded-forward-declaration.patch
+leds-bd2802-use-gpio_request_one.patch
+leds-netxbig-use-gpio_request_one.patch
+drivers-leds-leds-mc13783c-fix-off-by-one-for-checking-num_leds.patch
+rtc-convert-drivers-rtc-to-use-module_platform_driver.patch
+drivers-rtc-rtc-mc13xxxc-make-mc13xxx_rtc_idtable-static.patch
+drivers-rtc-rtc-jz4740c-make-jz4740_rtc_driver-static.patch
 
