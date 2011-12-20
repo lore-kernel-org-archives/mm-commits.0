@@ -1,107 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-add-driver-for-tca6507-led-controller-fix.patch removed from -mm tree
-Date: Tue, 20 Dec 2011 14:21:40 -0800
-Message-ID: <20111220222141.382D31E004D@wpzn4.hot.corp.google.com>
+Subject: [folded] leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available-fix.patch removed from -mm tree
+Date: Tue, 20 Dec 2011 14:21:50 -0800
+Message-ID: <20111220222151.40DF25C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:37818 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164Ab1LTWVm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 17:21:42 -0500
-Received: by ghrr15 with SMTP id r15so636515ghr.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 14:21:41 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:40253 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752487Ab1LTWVx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Dec 2011 17:21:53 -0500
+Received: by eekc1 with SMTP id c1so220639eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Dec 2011 14:21:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, neilb@suse.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: neilb@suse.de, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds-add-driver-for-tca6507-led-controller-fix
+     Subject: leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available-fix
 has been removed from the -mm tree.  Its filename was
-     leds-add-driver-for-tca6507-led-controller-fix.patch
+     leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available-fix.patch
 
 This patch was dropped because it was folded into leds-add-driver-for-tca6507-led-controller.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: leds-add-driver-for-tca6507-led-controller-fix
+From: NeilBrown <neilb@suse.de>
+Subject: leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available-fix
 
-drivers/leds/leds-tca6507.c:167: error: '__mod_i2c_device_table' aliased to undefined symbol 'tca6507'
+Argh..
 
-Cc: NeilBrown <neilb@suse.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/leds/leds-tca6507.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-tca6507.c~leds-add-driver-for-tca6507-led-controller-fix drivers/leds/leds-tca6507.c
---- a/drivers/leds/leds-tca6507.c~leds-add-driver-for-tca6507-led-controller-fix
+diff -puN drivers/leds/leds-tca6507.c~leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available-fix drivers/leds/leds-tca6507.c
+--- a/drivers/leds/leds-tca6507.c~leds-tca6507-allow-driver-to-compile-when-gpiolib-is-not-available-fix
 +++ a/drivers/leds/leds-tca6507.c
-@@ -158,7 +158,7 @@ static const struct i2c_device_id tca650
- 	{ "tca6507" },
- 	{ }
- };
--MODULE_DEVICE_TABLE(i2c, tca6507);
-+MODULE_DEVICE_TABLE(i2c, tca6507_id);
+@@ -352,7 +352,7 @@ static int led_prepare(struct tca6507_le
+ 			return 0;
+ 		}
  
- static int choose_times(int msec, int *c1p, int *c2p)
- {
+-		for (i = MASTER; i >= BANK0; i++) {
++		for (i = MASTER; i >= BANK0; i--) {
+ 			int d;
+ 			if (tca->bank[i].level == level ||
+ 			    tca->bank[i].level_use == 0) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
 leds-add-driver-for-tca6507-led-controller.patch
-leds-add-driver-for-tca6507-led-controller-checkpatch-fixes.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
-memcg-simplify-lru-handling-by-new-rule-fix.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-panic-dont-print-redundant-backtraces-on-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+leds-tca6507-fix-off-by-one-error.patch
+ipc-provide-generic-compat-versions-of-ipc-syscalls.patch
 
