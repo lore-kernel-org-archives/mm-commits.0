@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mempool-fix-and-document-synchronization-and-memory-barrier-usage.patch added to -mm tree
-Date: Wed, 21 Dec 2011 12:31:20 -0800
-Message-ID: <20111221203120.C44DF10004D@wpzn3.hot.corp.google.com>
+Subject: + mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch added to -mm tree
+Date: Wed, 21 Dec 2011 12:33:40 -0800
+Message-ID: <20111221211527.65A8B5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:60131 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437Ab1LUUbV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2011 15:31:21 -0500
-Received: by yhjj51 with SMTP id j51so1192246yhj.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2011 12:31:21 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:41993 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750915Ab1LUVPa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2011 16:15:30 -0500
+Received: by eekc1 with SMTP id c1so246126eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2011 13:15:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, dhowells@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, jack@suse.cz, jweiner@redhat.com, mgorman@suse.de, minchan@kernel.org, nai.xia@gmail.com, riel@redhat.com
 
 
 The patch titled
-     Subject: mempool: fix and document synchronization and memory barrier usage
+     Subject: mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
 has been added to the -mm tree.  Its filename is
-     mempool-fix-and-document-synchronization-and-memory-barrier-usage.patch
+     mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,184 +35,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: mempool: fix and document synchronization and memory barrier usage
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
 
-mempool_alloc/free() use undocumented smp_mb()'s.  The code is slightly
-broken and misleading.
+mm/swap.c: In function 'pagevec_putback_from_immediate_fn':
+mm/swap.c:271: error: 'struct zone' has no member named 'lru'
+mm/swap.c: In function 'rotate_reclaimable_page':
+mm/swap.c:323: error: 'struct zone' has no member named 'lru'
+mm/swap.c:331: error: 'struct zone' has no member named 'lru'
+mm/swap.c: In function 'lru_deactivate_fn':
+mm/swap.c:546: error: 'struct zone' has no member named 'lru'
 
-The lockless part is in mempool_free().  It wants to determine whether the
-item being freed needs to be returned to the pool or backing allocator
-without grabbing pool->lock.  Two things need to be guaranteed for correct
-operation.
+Fix it against mm-collect-lru-list-heads-into-struct-lruvec.patch
 
-1. pool->curr_nr + #allocated should never dip below pool->min_nr.
-2. Waiters shouldn't be left dangling.
-
-For #1, The only necessary condition is that curr_nr visible at free is
-from after the allocation of the element being freed (details in the
-comment).  For most cases, this is true without any barrier but there can
-be fringe cases where the allocated pointer is passed to the freeing task
-without going through memory barriers.  To cover this case, wmb is
-necessary before returning from allocation and rmb is necessary before
-reading curr_nr.  IOW,
-
-	ALLOCATING TASK			FREEING TASK
-
-	update pool state after alloc;
-	wmb();
-	pass pointer to freeing task;
-					read pointer;
-					rmb();
-					read pool state to free;
-
-The current code doesn't have wmb after pool update during allocation and
-may theoretically, on machines where unlock doesn't behave as full wmb,
-lead to pool depletion and deadlock.  smp_wmb() needs to be added after
-successful allocation from reserved elements and smp_mb() in
-mempool_free() can be replaced with smp_rmb().
-
-For #2, the waiter needs to add itself to waitqueue and then check the
-wait condition and the waker needs to update the wait condition and then
-wake up.  Because waitqueue operations always go through full spinlock
-synchronization, there is no need for extra memory barriers.
-
-Furthermore, mempool_alloc() is already holding pool->lock when it decides
-that it needs to wait.  There is no reason to do unlock - add waitqueue -
-test condition again.  It can simply add itself to waitqueue while holding
-pool->lock and then unlock and sleep.
-
-This patch adds smp_wmb() after successful allocation from reserved pool,
-replaces smp_mb() in mempool_free() with smp_rmb() and extend pool->lock
-over waitqueue addition.  More importantly, it explains what memory
-barriers do and how the lockless testing is correct.
-
--v2: Oleg pointed out that unlock doesn't imply wmb.  Added explicit
-     smp_wmb() after successful allocation from reserved pool and
-     updated comments accordingly.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Isaacson <adi@hexapodia.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nai Xia <nai.xia@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   61 ++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 48 insertions(+), 13 deletions(-)
+ mm/swap.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/mempool.c~mempool-fix-and-document-synchronization-and-memory-barrier-usage mm/mempool.c
---- a/mm/mempool.c~mempool-fix-and-document-synchronization-and-memory-barrier-usage
-+++ a/mm/mempool.c
-@@ -224,28 +224,31 @@ repeat_alloc:
- 	if (likely(pool->curr_nr)) {
- 		element = remove_element(pool);
- 		spin_unlock_irqrestore(&pool->lock, flags);
-+		/* paired with rmb in mempool_free(), read comment there */
-+		smp_wmb();
- 		return element;
+diff -puN mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2 mm/swap.c
+--- a/mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
++++ a/mm/swap.c
+@@ -268,7 +268,7 @@ static void pagevec_putback_from_immedia
+ 
+ 	if (PageLRU(page)) {
+ 		enum lru_list lru = page_lru(page);
+-		list_move(&page->lru, &zone->lru[lru].list);
++		list_move(&page->lru, &zone->lruvec.lists[lru]);
  	}
--	spin_unlock_irqrestore(&pool->lock, flags);
- 
- 	/* We must not sleep in the GFP_ATOMIC case */
--	if (!(gfp_mask & __GFP_WAIT))
-+	if (!(gfp_mask & __GFP_WAIT)) {
-+		spin_unlock_irqrestore(&pool->lock, flags);
- 		return NULL;
-+	}
- 
--	/* Now start performing page reclaim */
-+	/* Let's wait for someone else to return an element to @pool */
- 	gfp_temp = gfp_mask;
- 	init_wait(&wait);
- 	prepare_to_wait(&pool->wait, &wait, TASK_UNINTERRUPTIBLE);
--	smp_mb();
--	if (!pool->curr_nr) {
--		/*
--		 * FIXME: this should be io_schedule().  The timeout is there
--		 * as a workaround for some DM problems in 2.6.18.
--		 */
--		io_schedule_timeout(5*HZ);
--	}
--	finish_wait(&pool->wait, &wait);
- 
-+	spin_unlock_irqrestore(&pool->lock, flags);
-+
-+	/*
-+	 * FIXME: this should be io_schedule().  The timeout is there as a
-+	 * workaround for some DM problems in 2.6.18.
-+	 */
-+	io_schedule_timeout(5*HZ);
-+
-+	finish_wait(&pool->wait, &wait);
- 	goto repeat_alloc;
  }
- EXPORT_SYMBOL(mempool_alloc);
-@@ -265,7 +268,39 @@ void mempool_free(void *element, mempool
- 	if (unlikely(element == NULL))
- 		return;
  
--	smp_mb();
-+	/*
-+	 * Paired with the wmb in mempool_alloc().  The preceding read is
-+	 * for @element and the following @pool->curr_nr.  This ensures
-+	 * that the visible value of @pool->curr_nr is from after the
-+	 * allocation of @element.  This is necessary for fringe cases
-+	 * where @element was passed to this task without going through
-+	 * barriers.
-+	 *
-+	 * For example, assume @p is %NULL at the beginning and one task
-+	 * performs "p = mempool_alloc(...);" while another task is doing
-+	 * "while (!p) cpu_relax(); mempool_free(p, ...);".  This function
-+	 * may end up using curr_nr value which is from before allocation
-+	 * of @p without the following rmb.
-+	 */
-+	smp_rmb();
-+
-+	/*
-+	 * For correctness, we need a test which is guaranteed to trigger
-+	 * if curr_nr + #allocated == min_nr.  Testing curr_nr < min_nr
-+	 * without locking achieves that and refilling as soon as possible
-+	 * is desirable.
-+	 *
-+	 * Because curr_nr visible here is always a value after the
-+	 * allocation of @element, any task which decremented curr_nr below
-+	 * min_nr is guaranteed to see curr_nr < min_nr unless curr_nr gets
-+	 * incremented to min_nr afterwards.  If curr_nr gets incremented
-+	 * to min_nr after the allocation of @element, the elements
-+	 * allocated after that are subject to the same guarantee.
-+	 *
-+	 * Waiters happen iff curr_nr is 0 and the above guarantee also
-+	 * ensures that there will be frees which return elements to the
-+	 * pool waking up the waiters.
-+	 */
- 	if (pool->curr_nr < pool->min_nr) {
- 		spin_lock_irqsave(&pool->lock, flags);
- 		if (pool->curr_nr < pool->min_nr) {
+@@ -285,7 +285,6 @@ static void pagevec_putback_from_immedia
+ void rotate_reclaimable_page(struct page *page)
+ {
+ 	struct zone *zone = page_zone(page);
+-	struct list_head *list;
+ 	struct pagevec *pvec;
+ 	unsigned long flags;
+ 
+@@ -320,7 +319,7 @@ void rotate_reclaimable_page(struct page
+ 	 */
+ 	if (!zone_page_state(zone, NR_IMMEDIATE)) {
+ 		struct page *page;
+-		list = &zone->lru[LRU_IMMEDIATE].list;
++		struct list_head *list = &zone->lruvec.lists[LRU_IMMEDIATE];
+ 
+ 		if (!list_empty(list)) {
+ 			spin_lock(&zone->lru_lock);
+@@ -328,7 +327,7 @@ void rotate_reclaimable_page(struct page
+ 				int lru;
+ 				page = list_entry(list->prev, struct page, lru);
+ 				lru = page_lru(page);
+-				list_move(&page->lru, &zone->lru[lru].list);
++				list_move(&page->lru, &zone->lruvec.lists[lru]);
+ 				__count_vm_event(PGRESCUED);
+ 			}
+ 			spin_unlock(&zone->lru_lock);
+@@ -543,7 +542,7 @@ static void lru_deactivate_fn(struct pag
+ 		 * Move to the LRU_IMMEDIATE list to avoid being scanned
+ 		 * by page reclaim uselessly.
+ 		 */
+-		list_move_tail(&page->lru, &zone->lru[LRU_IMMEDIATE].list);
++		list_move_tail(&page->lru, &zone->lruvec.lists[LRU_IMMEDIATE]);
+ 		__mod_zone_page_state(zone, NR_IMMEDIATE, 1);
+ 	} else {
+ 		struct lruvec *lruvec;
 _
-Subject: Subject: mempool: fix and document synchronization and memory barrier usage
+Subject: Subject: mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-procfs-do-not-confuse-jiffies-with-cputime64_t.patch
 linux-next.patch
-mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.patch
-mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patch
-mm-bootmem-try-harder-to-free-pages-in-bulk.patch
-mempool-fix-and-document-synchronization-and-memory-barrier-usage.patch
-procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
-procfs-introduce-the-proc-pid-map_files-directory.patch
-procfs-introduce-the-proc-pid-map_files-directory-make-proc-pid-map_files-being-checkpoint_restore-dependent.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+mm-simplify-find_vma_prev-fix.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+leds-add-driver-for-tca6507-led-controller.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
+memcg-simplify-lru-handling-by-new-rule-fix.patch
+memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
+mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
 workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-sysctl-add-the-kernelns_last_pid-control.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
 scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update.patch
 scatterlist-new-helper-functions-update-fix.patch
-c-r-introduce-checkpoint_restore-symbol.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
 c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
 c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
