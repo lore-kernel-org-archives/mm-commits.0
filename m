@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch added to -mm tree
-Date: Wed, 21 Dec 2011 12:33:40 -0800
-Message-ID: <20111221211527.65A8B5C0050@hpza9.eem.corp.google.com>
+Subject: + mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch added to -mm tree
+Date: Wed, 21 Dec 2011 12:43:37 -0800
+Message-ID: <20111221212523.1B85C10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:41993 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750915Ab1LUVPa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2011 16:15:30 -0500
-Received: by eekc1 with SMTP id c1so246126eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2011 13:15:29 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:52875 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752277Ab1LUVZY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2011 16:25:24 -0500
+Received: by ghrr15 with SMTP id r15so736148ghr.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2011 13:25:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, jack@suse.cz, jweiner@redhat.com, mgorman@suse.de, minchan@kernel.org, nai.xia@gmail.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, mgorman@suse.de
 
 
 The patch titled
-     Subject: mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
+     Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch
+     mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -36,82 +36,32 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
+Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix
 
-mm/swap.c: In function 'pagevec_putback_from_immediate_fn':
-mm/swap.c:271: error: 'struct zone' has no member named 'lru'
-mm/swap.c: In function 'rotate_reclaimable_page':
-mm/swap.c:323: error: 'struct zone' has no member named 'lru'
-mm/swap.c:331: error: 'struct zone' has no member named 'lru'
-mm/swap.c: In function 'lru_deactivate_fn':
-mm/swap.c:546: error: 'struct zone' has no member named 'lru'
+fs/nfs/write.c: In function 'nfs_migrate_page':
+fs/nfs/write.c:1729: error: 'sync' undeclared (first use in this function)
 
-Fix it against mm-collect-lru-list-heads-into-struct-lruvec.patch
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Isaacson <adi@hexapodia.org>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <jweiner@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nai Xia <nai.xia@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/nfs/write.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2 mm/swap.c
---- a/mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
-+++ a/mm/swap.c
-@@ -268,7 +268,7 @@ static void pagevec_putback_from_immedia
+diff -puN fs/nfs/write.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix fs/nfs/write.c
+--- a/fs/nfs/write.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix
++++ a/fs/nfs/write.c
+@@ -1726,7 +1726,7 @@ int nfs_migrate_page(struct address_spac
  
- 	if (PageLRU(page)) {
- 		enum lru_list lru = page_lru(page);
--		list_move(&page->lru, &zone->lru[lru].list);
-+		list_move(&page->lru, &zone->lruvec.lists[lru]);
- 	}
+ 	nfs_fscache_release_page(page, GFP_KERNEL);
+ 
+-	return migrate_page(mapping, newpage, page, sync);
++	return migrate_page(mapping, newpage, page, mode);
  }
+ #endif
  
-@@ -285,7 +285,6 @@ static void pagevec_putback_from_immedia
- void rotate_reclaimable_page(struct page *page)
- {
- 	struct zone *zone = page_zone(page);
--	struct list_head *list;
- 	struct pagevec *pvec;
- 	unsigned long flags;
- 
-@@ -320,7 +319,7 @@ void rotate_reclaimable_page(struct page
- 	 */
- 	if (!zone_page_state(zone, NR_IMMEDIATE)) {
- 		struct page *page;
--		list = &zone->lru[LRU_IMMEDIATE].list;
-+		struct list_head *list = &zone->lruvec.lists[LRU_IMMEDIATE];
- 
- 		if (!list_empty(list)) {
- 			spin_lock(&zone->lru_lock);
-@@ -328,7 +327,7 @@ void rotate_reclaimable_page(struct page
- 				int lru;
- 				page = list_entry(list->prev, struct page, lru);
- 				lru = page_lru(page);
--				list_move(&page->lru, &zone->lru[lru].list);
-+				list_move(&page->lru, &zone->lruvec.lists[lru]);
- 				__count_vm_event(PGRESCUED);
- 			}
- 			spin_unlock(&zone->lru_lock);
-@@ -543,7 +542,7 @@ static void lru_deactivate_fn(struct pag
- 		 * Move to the LRU_IMMEDIATE list to avoid being scanned
- 		 * by page reclaim uselessly.
- 		 */
--		list_move_tail(&page->lru, &zone->lru[LRU_IMMEDIATE].list);
-+		list_move_tail(&page->lru, &zone->lruvec.lists[LRU_IMMEDIATE]);
- 		__mod_zone_page_state(zone, NR_IMMEDIATE, 1);
- 	} else {
- 		struct lruvec *lruvec;
 _
-Subject: Subject: mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
+Subject: Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -151,6 +101,7 @@ memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
 memcg-simplify-lru-handling-by-new-rule-fix.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
 mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch
 procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
 workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
