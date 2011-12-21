@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch added to -mm tree
-Date: Wed, 21 Dec 2011 12:43:37 -0800
-Message-ID: <20111221212523.1B85C10004D@wpzn3.hot.corp.google.com>
+Subject: + mm-memcg-lookup_page_cgroup-almost-never-returns-null-fix.patch added to -mm tree
+Date: Wed, 21 Dec 2011 15:53:33 -0800
+Message-ID: <20111221235334.2C88C1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:52875 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277Ab1LUVZY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2011 16:25:24 -0500
-Received: by ghrr15 with SMTP id r15so736148ghr.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2011 13:25:23 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:43241 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752121Ab1LUXxf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2011 18:53:35 -0500
+Received: by ggnv2 with SMTP id v2so1006708ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2011 15:53:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mgorman@suse.de
+Cc: hughd@google.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix
+     Subject: mm-memcg-lookup_page_cgroup-almost-never-returns-null fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
+     mm-memcg-lookup_page_cgroup-almost-never-returns-null-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,95 +29,101 @@ Before you just go and hit "reply", please:
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: mm-memcg-lookup_page_cgroup-almost-never-returns-null fix
 
-fs/nfs/write.c: In function 'nfs_migrate_page':
-fs/nfs/write.c:1729: error: 'sync' undeclared (first use in this function)
+lookup_page_cgroup() returns NULL (or may return NULL) when
+mem_cgroup_disabled(): stop oops in mem_cgroup_update_page_stat().  Let's
+make it explicit for now, probably optimize such checks later.
 
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/nfs/write.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix fs/nfs/write.c
---- a/fs/nfs/write.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix
-+++ a/fs/nfs/write.c
-@@ -1726,7 +1726,7 @@ int nfs_migrate_page(struct address_spac
+diff -puN mm/memcontrol.c~mm-memcg-lookup_page_cgroup-almost-never-returns-null-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-lookup_page_cgroup-almost-never-returns-null-fix
++++ a/mm/memcontrol.c
+@@ -1965,6 +1965,9 @@ void mem_cgroup_update_page_stat(struct 
+ 	bool need_unlock = false;
+ 	unsigned long uninitialized_var(flags);
  
- 	nfs_fscache_release_page(page, GFP_KERNEL);
- 
--	return migrate_page(mapping, newpage, page, sync);
-+	return migrate_page(mapping, newpage, page, mode);
- }
- #endif
- 
++	if (mem_cgroup_disabled())
++		return;
++
+ 	rcu_read_lock();
+ 	memcg = pc->mem_cgroup;
+ 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+@@ -3438,7 +3441,8 @@ static struct page_cgroup *lookup_page_c
+ 	pc = lookup_page_cgroup(page);
+ 	/*
+ 	 * Can be NULL while feeding pages into the page allocator for
+-	 * the first time, i.e. during boot or memory hotplug.
++	 * the first time, i.e. during boot or memory hotplug;
++	 * or when mem_cgroup_disabled().
+ 	 */
+ 	if (likely(pc) && PageCgroupUsed(pc))
+ 		return pc;
 _
-Subject: Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix
+Subject: Subject: mm-memcg-lookup_page_cgroup-almost-never-returns-null fix
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-revert-procfs-do-not-confuse-jiffies-with-cputime64_t.patch
+vfs-__read_cache_page-should-use-gfp-argument-rather-than-gfp_kernel.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-add-driver-for-tca6507-led-controller.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+mm-add-free_hot_cold_page_list-helper.patch
+mm-add-free_hot_cold_page_list-helper-v2.patch
+mm-add-free_hot_cold_page_list-helper-v3.patch
+mm-remove-unused-pagevec_free.patch
+mm-tracepoint-rename-page-free-events.patch
+mm-tracepoint-fixup-documentation-and-examples.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
+mm-simplify-find_vma_prev.patch
+memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
+mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
+mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
+mm-memcg-clean-up-fault-accounting.patch
+mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
+mm-memcg-lookup_page_cgroup-almost-never-returns-null-fix.patch
+mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
+mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
+mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
+memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
+memcg-simplify-page-cache-charging.patch
+memcg-simplify-corner-case-handling-of-lru.patch
+memcg-clear-pc-mem_cgorup-if-necessary.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
+memcg-simplify-lru-handling-by-new-rule.patch
 memcg-simplify-lru-handling-by-new-rule-fix.patch
+memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
-mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-panic-dont-print-redundant-backtraces-on-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+procfs-add-hidepid=-and-gid=-mount-options-fix.patch
+radix_tree-remove-radix_tree_indirect_to_ptr.patch
+radix_tree-take-radix_tree_path-off-stack.patch
+prio_tree-debugging-patch.patch
 
