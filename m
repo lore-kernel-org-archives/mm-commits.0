@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch added to -mm tree
-Date: Wed, 21 Dec 2011 15:54:30 -0800
-Message-ID: <20111222003616.1AC3410004D@wpzn3.hot.corp.google.com>
+Subject: + mempool-fix-first-round-failure-behavior-fix.patch added to -mm tree
+Date: Wed, 21 Dec 2011 17:10:20 -0800
+Message-ID: <20111222011020.90A7210004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:54372 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477Ab1LVAgR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2011 19:36:17 -0500
-Received: by ghrr15 with SMTP id r15so751962ghr.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2011 16:36:17 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:48817 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752826Ab1LVBKV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Dec 2011 20:10:21 -0500
+Received: by ggnv2 with SMTP id v2so1011614ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Dec 2011 17:10:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mgorman@suse.de
+Cc: akpm@linux-foundation.org, tj@kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3
+     Subject: mempool-fix-first-round-failure-behavior-fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
+     mempool-fix-first-round-failure-behavior-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,38 +29,37 @@ Before you just go and hit "reply", please:
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3
+Subject: mempool-fix-first-round-failure-behavior-fix
 
-tra la la
+shorten the lock hold time
 
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/disk-io.c |    2 +-
+ mm/mempool.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/btrfs/disk-io.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3 fs/btrfs/disk-io.c
---- a/fs/btrfs/disk-io.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3
-+++ a/fs/btrfs/disk-io.c
-@@ -888,7 +888,7 @@ static int btree_migratepage(struct addr
- 	if (page_has_private(page) &&
- 	    !try_to_release_page(page, GFP_KERNEL))
- 		return -EAGAIN;
--	return migrate_page(mapping, newpage, page, sync);
-+	return migrate_page(mapping, newpage, page, mode);
- }
- #endif
+diff -puN mm/mempool.c~mempool-fix-first-round-failure-behavior-fix mm/mempool.c
+--- a/mm/mempool.c~mempool-fix-first-round-failure-behavior-fix
++++ a/mm/mempool.c
+@@ -226,8 +226,8 @@ repeat_alloc:
+ 	 * alloc failed with that and @pool was empty, retry immediately.
+ 	 */
+ 	if (gfp_temp != gfp_mask) {
+-		gfp_temp = gfp_mask;
+ 		spin_unlock_irqrestore(&pool->lock, flags);
++		gfp_temp = gfp_mask;
+ 		goto repeat_alloc;
+ 	}
  
 _
-Subject: Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3
+Subject: Subject: mempool-fix-first-round-failure-behavior-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -84,6 +83,7 @@ mm-more-intensive-memory-corruption-debug-fix.patch
 mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
 mm-simplify-find_vma_prev-fix.patch
 mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
+mempool-fix-first-round-failure-behavior-fix.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
