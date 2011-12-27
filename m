@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-use-kstrtoul.patch added to -mm tree
-Date: Tue, 27 Dec 2011 15:04:51 -0800
-Message-ID: <20111227230451.A014C10004D@wpzn3.hot.corp.google.com>
+Subject: + mm-hugetlb-fix-non-atomic-enqueue-of-huge-page.patch added to -mm tree
+Date: Tue, 27 Dec 2011 15:43:57 -0800
+Message-ID: <20111227234357.A73FC1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:58899 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083Ab1L0XEw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Dec 2011 18:04:52 -0500
-Received: by yenm5 with SMTP id m5so1512095yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Dec 2011 15:04:52 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:41000 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630Ab1L0XoA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Dec 2011 18:44:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, rpurdie@rpsys.net
+Cc: dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: use kstrtoul()
+     Subject: mm: hugetlb: fix non-atomic enqueue of huge page
 has been added to the -mm tree.  Its filename is
-     backlight-use-kstrtoul.patch
+     mm-hugetlb-fix-non-atomic-enqueue-of-huge-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,113 +31,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: use kstrtoul()
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm: hugetlb: fix non-atomic enqueue of huge page
 
-The usage of simple_strtoul() or strict_strtoul() is not preferred.  Thus,
-kstrtoul should be used.
+If a huge page is enqueued under the protection of hugetlb_lock, then the
+operation is atomic and safe.
 
-This patch also fixes checkpatch error as follows:
-ERROR: space required after that ',' (ctx:VxV)
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@vger.kernel.org>		[2.6.37+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |    6 +++---
- drivers/video/backlight/lcd.c       |   26 ++++++++++----------------
- 2 files changed, 13 insertions(+), 19 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-use-kstrtoul drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-use-kstrtoul
-+++ a/drivers/video/backlight/backlight.c
-@@ -102,7 +102,7 @@ static void backlight_generate_event(str
- }
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-non-atomic-enqueue-of-huge-page mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-non-atomic-enqueue-of-huge-page
++++ a/mm/hugetlb.c
+@@ -901,7 +901,6 @@ retry:
+ 	h->resv_huge_pages += delta;
+ 	ret = 0;
  
- static ssize_t backlight_show_power(struct device *dev,
--		struct device_attribute *attr,char *buf)
-+		struct device_attribute *attr, char *buf)
- {
- 	struct backlight_device *bd = to_backlight_device(dev);
- 
-@@ -116,7 +116,7 @@ static ssize_t backlight_store_power(str
- 	struct backlight_device *bd = to_backlight_device(dev);
- 	unsigned long power;
- 
--	rc = strict_strtoul(buf, 0, &power);
-+	rc = kstrtoul(buf, 0, &power);
- 	if (rc)
- 		return rc;
- 
-@@ -150,7 +150,7 @@ static ssize_t backlight_store_brightnes
- 	struct backlight_device *bd = to_backlight_device(dev);
- 	unsigned long brightness;
- 
--	rc = strict_strtoul(buf, 0, &brightness);
-+	rc = kstrtoul(buf, 0, &brightness);
- 	if (rc)
- 		return rc;
- 
-diff -puN drivers/video/backlight/lcd.c~backlight-use-kstrtoul drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~backlight-use-kstrtoul
-+++ a/drivers/video/backlight/lcd.c
-@@ -97,19 +97,16 @@ static ssize_t lcd_store_power(struct de
- 		struct device_attribute *attr, const char *buf, size_t count)
- {
- 	int rc = -ENXIO;
--	char *endp;
- 	struct lcd_device *ld = to_lcd_device(dev);
--	int power = simple_strtoul(buf, &endp, 0);
--	size_t size = endp - buf;
-+	unsigned long power;
- 
--	if (isspace(*endp))
--		size++;
--	if (size != count)
--		return -EINVAL;
-+	rc = kstrtoul(buf, 0, &power);
-+	if (rc)
-+		return rc;
- 
- 	mutex_lock(&ld->ops_lock);
- 	if (ld->ops && ld->ops->set_power) {
--		pr_debug("lcd: set power to %d\n", power);
-+		pr_debug("lcd: set power to %lu\n", power);
- 		ld->ops->set_power(ld, power);
- 		rc = count;
+-	spin_unlock(&hugetlb_lock);
+ 	/* Free the needed pages to the hugetlb pool */
+ 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+ 		if ((--needed) < 0)
+@@ -915,6 +914,7 @@ retry:
+ 		VM_BUG_ON(page_count(page));
+ 		enqueue_huge_page(h, page);
  	}
-@@ -136,19 +133,16 @@ static ssize_t lcd_store_contrast(struct
- 		struct device_attribute *attr, const char *buf, size_t count)
- {
- 	int rc = -ENXIO;
--	char *endp;
- 	struct lcd_device *ld = to_lcd_device(dev);
--	int contrast = simple_strtoul(buf, &endp, 0);
--	size_t size = endp - buf;
-+	unsigned long contrast;
++	spin_unlock(&hugetlb_lock);
  
--	if (isspace(*endp))
--		size++;
--	if (size != count)
--		return -EINVAL;
-+	rc = kstrtoul(buf, 0, &contrast);
-+	if (rc)
-+		return rc;
- 
- 	mutex_lock(&ld->ops_lock);
- 	if (ld->ops && ld->ops->set_contrast) {
--		pr_debug("lcd: set contrast to %d\n", contrast);
-+		pr_debug("lcd: set contrast to %lu\n", contrast);
- 		ld->ops->set_contrast(ld, contrast);
- 		rc = count;
- 	}
+ 	/* Free unnecessary surplus pages to the buddy allocator */
+ free:
 _
-Subject: Subject: backlight: use kstrtoul()
+Subject: Subject: mm: hugetlb: fix non-atomic enqueue of huge page
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
+origin.patch
+mm-hugetlb-fix-non-atomic-enqueue-of-huge-page.patch
 linux-next.patch
-drivers-video-backlight-ep93xx_blc-remove-duplicated-header-include.patch
-backlight-use-kstrtoul.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
 
