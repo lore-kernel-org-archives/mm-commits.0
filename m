@@ -1,88 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-fix-integer-overflow-of-points-in-oom_badness.patch removed from -mm tree
-Date: Wed, 28 Dec 2011 14:04:41 -0800
-Message-ID: <20111228220442.57DC05C0076@hpza9.eem.corp.google.com>
+Subject: [merged] ipmi_watchdog-restore-settings-when-bmc-reset.patch removed from -mm tree
+Date: Wed, 28 Dec 2011 14:04:46 -0800
+Message-ID: <20111228220446.B85651E0078@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61594 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754612Ab1L1WEp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:45 -0500
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:64933 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754612Ab1L1WEr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:47 -0500
+Received: by ggnv2 with SMTP id v2so1505512ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2011 14:04:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fhrbata@redhat.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: cminyard@mvista.com, a.miskiewicz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: fix integer overflow of points in oom_badness
+     Subject: ipmi_watchdog: restore settings when BMC reset
 has been removed from the -mm tree.  Its filename was
-     oom-fix-integer-overflow-of-points-in-oom_badness.patch
+     ipmi_watchdog-restore-settings-when-bmc-reset.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-From: Frantisek Hrbata <fhrbata@redhat.com>
-Subject: oom: fix integer overflow of points in oom_badness
+=46rom: Corey Minyard <cminyard@mvista.com>
+Subject: ipmi_watchdog: restore settings when BMC reset
 
-An integer overflow will happen on 64bit archs if task's sum of rss,
-swapents and nr_ptes exceeds (2^31)/1000 value.  This was introduced by
-commit
+If the BMC gets reset, it will return 0x80 response errors.
 
-f755a04 oom: use pte pages in OOM score
+In less than a week
+# grep "Error 80 on cmd 22" /var/log/kernel |wc -l
+378681
 
-where the oom score computation was divided into several steps and it's no
-longer computed as one expression in unsigned long(rss, swapents, nr_pte
-are unsigned long), where the result value assigned to points(int) is in
-range(1..1000).  So there could be an int overflow while computing
+In this case, it is probably a good idea to restore the IPMI settings.
 
-176          points *= 1000;
-
-and points may have negative value. Meaning the oom score for a mem hog task
-will be one.
-
-196          if (points <= 0)
-197                  return 1;
-
-For example:
-[ 3366]     0  3366 35390480 24303939   5       0             0 oom01
-Out of memory: Kill process 3366 (oom01) score 1 or sacrifice child
-
-Here the oom1 process consumes more than 24303939(rss)*4096~=92GB physical
-memory, but it's oom score is one.
-
-In this situation the mem hog task is skipped and oom killer kills another and
-most probably innocent task with oom score greater than one.
-
-The points variable should be of type long instead of int to prevent the
-int overflow.
-
-Signed-off-by: Frantisek Hrbata <fhrbata@redhat.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>		[2.6.36+]
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Tested-by: Arkadiusz Mi=C5=9Bkiewicz <a.miskiewicz@gmail.com>
+Reported-by: Arkadiusz Mi=C5=9Bkiewicz <a.miskiewicz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_watchdog.c |   41 +++++++++++++++++++++++++---
+ 1 file changed, 38 insertions(+), 3 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-fix-integer-overflow-of-points-in-oom_badness mm/oom_kill.c
---- a/mm/oom_kill.c~oom-fix-integer-overflow-of-points-in-oom_badness
-+++ a/mm/oom_kill.c
-@@ -176,7 +176,7 @@ static bool oom_unkillable_task(struct t
- unsigned int oom_badness(struct task_struct *p, struct mem_cgroup *mem,
- 		      const nodemask_t *nodemask, unsigned long totalpages)
- {
--	int points;
-+	long points;
- 
- 	if (oom_unkillable_task(p, mem, nodemask))
+diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi_watchdog-restore-setti=
+ngs-when-bmc-reset drivers/char/ipmi/ipmi_watchdog.c
+--- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi_watchdog-restore-settings-=
+when-bmc-reset
++++ a/drivers/char/ipmi/ipmi_watchdog.c
+@@ -139,6 +139,8 @@
+ #define IPMI_WDOG_SET_TIMER		0x24
+ #define IPMI_WDOG_GET_TIMER		0x25
+=20
++#define IPMI_WDOG_TIMER_NOT_INIT_RESP	0x80
++
+ /* These are here until the real ones get into the watchdog.h interfac=
+e. */
+ #ifndef WDIOC_GETTIMEOUT
+ #define	WDIOC_GETTIMEOUT        _IOW(WATCHDOG_IOCTL_BASE, 20, int)
+@@ -596,6 +598,7 @@ static int ipmi_heartbeat(void)
+ 	struct kernel_ipmi_msg            msg;
+ 	int                               rv;
+ 	struct ipmi_system_interface_addr addr;
++	int				  timeout_retries =3D 0;
+=20
+ 	if (ipmi_ignore_heartbeat)
  		return 0;
+@@ -616,6 +619,7 @@ static int ipmi_heartbeat(void)
+=20
+ 	mutex_lock(&heartbeat_lock);
+=20
++restart:
+ 	atomic_set(&heartbeat_tofree, 2);
+=20
+ 	/*
+@@ -653,7 +657,33 @@ static int ipmi_heartbeat(void)
+ 	/* Wait for the heartbeat to be sent. */
+ 	wait_for_completion(&heartbeat_wait);
+=20
+-	if (heartbeat_recv_msg.msg.data[0] !=3D 0) {
++	if (heartbeat_recv_msg.msg.data[0] =3D=3D IPMI_WDOG_TIMER_NOT_INIT_RE=
+SP)  {
++		timeout_retries++;
++		if (timeout_retries > 3) {
++			printk(KERN_ERR PFX ": Unable to restore the IPMI"
++			       " watchdog's settings, giving up.\n");
++			rv =3D -EIO;
++			goto out_unlock;
++		}
++
++		/*
++		 * The timer was not initialized, that means the BMC was
++		 * probably reset and lost the watchdog information.  Attempt
++		 * to restore the timer's info.  Note that we still hold
++		 * the heartbeat lock, to keep a heartbeat from happening
++		 * in this process, so must say no heartbeat to avoid a
++		 * deadlock on this mutex.
++		 */
++		rv =3D ipmi_set_timeout(IPMI_SET_TIMEOUT_NO_HB);
++		if (rv) {
++			printk(KERN_ERR PFX ": Unable to send the command to"
++			       " set the watchdog's settings, giving up.\n");
++			goto out_unlock;
++		}
++
++		/* We might need a new heartbeat, so do it now */
++		goto restart;
++	} else if (heartbeat_recv_msg.msg.data[0] !=3D 0) {
+ 		/*
+ 		 * Got an error in the heartbeat response.  It was already
+ 		 * reported in ipmi_wdog_msg_handler, but we should return
+@@ -662,6 +692,7 @@ static int ipmi_heartbeat(void)
+ 		rv =3D -EINVAL;
+ 	}
+=20
++out_unlock:
+ 	mutex_unlock(&heartbeat_lock);
+=20
+ 	return rv;
+@@ -922,11 +953,15 @@ static struct miscdevice ipmi_wdog_miscd
+ static void ipmi_wdog_msg_handler(struct ipmi_recv_msg *msg,
+ 				  void                 *handler_data)
+ {
+-	if (msg->msg.data[0] !=3D 0) {
++	if (msg->msg.cmd =3D=3D IPMI_WDOG_RESET_TIMER &&
++			msg->msg.data[0] =3D=3D IPMI_WDOG_TIMER_NOT_INIT_RESP)
++		printk(KERN_INFO PFX "response: The IPMI controller appears"
++		       " to have been reset, will attempt to reinitialize"
++		       " the watchdog timer\n");
++	else if (msg->msg.data[0] !=3D 0)
+ 		printk(KERN_ERR PFX "response: Error %x on cmd %x\n",
+ 		       msg->msg.data[0],
+ 		       msg->msg.cmd);
+-	}
+=20
+ 	ipmi_free_recv_msg(msg);
+ }
 _
 
-Patches currently in -mm which might be from fhrbata@redhat.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
