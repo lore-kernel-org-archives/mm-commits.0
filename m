@@ -1,102 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-an-exiting-task-should-be-allowed-to-create-io_context.patch removed from -mm tree
-Date: Wed, 28 Dec 2011 14:04:57 -0800
-Message-ID: <20111228220458.1BFD5200083@hpza10.eem.corp.google.com>
+Subject: + block-fix-blk_queue_end_tag.patch added to -mm tree
+Date: Wed, 28 Dec 2011 15:52:34 -0800
+Message-ID: <20111228235234.C325E1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:51712 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754612Ab1L1WE7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:59 -0500
-Received: by mail-ey0-f202.google.com with SMTP id k10so176839eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2011 14:04:59 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:59176 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752201Ab1L1Xwg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 18:52:36 -0500
+Received: by yhjj51 with SMTP id j51so1780901yhj.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2011 15:52:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dan.j.williams@intel.com, axboe@kernel.dk, boyu.mt@taobao.com, edmund.nadolski@intel.com, matthew@wil.cx, mroos@ut.ee, tj@kernel.org
 
 
 The patch titled
-     Subject: block: an exiting task should be allowed to create io_context
-has been removed from the -mm tree.  Its filename was
-     block-an-exiting-task-should-be-allowed-to-create-io_context.patch
+     Subject: block: fix blk_queue_end_tag()
+has been added to the -mm tree.  Its filename is
+     block-fix-blk_queue_end_tag.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: block: an exiting task should be allowed to create io_context
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: block: fix blk_queue_end_tag()
 
-While fixing io_context creation / task exit race condition, 6e736be7f2
-"block: make ioc get/put interface more conventional and fix race on
-alloction" also prevented an exiting (%PF_EXITING) task from creating its
-own io_context.  This is incorrect as exit path may issue IOs, e.g.  from
-exit_files(), and if those IOs are the first ones issued by the task,
-io_context needs to be created to process the IOs.
+Commit 5e081591 "block: warn if tag is greater than real_max_depth"
+cleaned up blk_queue_end_tag() to warn when the tag is truly invalid
+(greater than real_max_depth).  However, it changed behavior in the tag <
+max_depth case to not end the request.  Leading to triggering of
+BUG_ON(blk_queued_rq(rq)) in the request completion path:
 
-Combined with the existing problem of io_context / io_cq creation failure
-having the possibility of stalling IO, this problem results in
-deterministic full IO lockup with certain workloads.
+  http://marc.info/?l=linux-kernel&m=132204370518629&w=2
 
-Fix it by allowing io_context creation regardless of %PF_EXITING for
-%current.
+In order to allow blk_queue_resize_tags() to shrink the tag space
+blk_queue_end_tag() must always complete tags with a value less than
+real_max_depth regardless of the current max_depth.  The comment about
+"handling the shrink case" seems to be what prompted changes in this
+space, so remove it and BUG on all invalid tags (made even simpler by
+Matthew's suggestion to use an unsigned compare).
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Tao Ma <boyu.mt@taobao.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Reported-by: Meelis Roos <mroos@ut.ee>
+Reported-by: Ed Nadolski <edmund.nadolski@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-ioc.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ block/blk-tag.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN block/blk-ioc.c~block-an-exiting-task-should-be-allowed-to-create-io_context block/blk-ioc.c
---- a/block/blk-ioc.c~block-an-exiting-task-should-be-allowed-to-create-io_context
-+++ a/block/blk-ioc.c
-@@ -281,9 +281,16 @@ void create_io_context_slowpath(struct t
- 	INIT_HLIST_HEAD(&ioc->icq_list);
- 	INIT_WORK(&ioc->release_work, ioc_release_fn);
+diff -puN block/blk-tag.c~block-fix-blk_queue_end_tag block/blk-tag.c
+--- a/block/blk-tag.c~block-fix-blk_queue_end_tag
++++ a/block/blk-tag.c
+@@ -282,18 +282,9 @@ EXPORT_SYMBOL(blk_queue_resize_tags);
+ void blk_queue_end_tag(struct request_queue *q, struct request *rq)
+ {
+ 	struct blk_queue_tag *bqt = q->queue_tags;
+-	int tag = rq->tag;
++	unsigned tag = rq->tag; /* negative tags invalid */
  
--	/* try to install, somebody might already have beaten us to it */
-+	/*
-+	 * Try to install.  ioc shouldn't be installed if someone else
-+	 * already did or @task, which isn't %current, is exiting.  Note
-+	 * that we need to allow ioc creation on exiting %current as exit
-+	 * path may issue IOs from e.g. exit_files().  The exit path is
-+	 * responsible for not issuing IO after exit_io_context().
-+	 */
- 	task_lock(task);
--	if (!task->io_context && !(task->flags & PF_EXITING))
-+	if (!task->io_context &&
-+	    (task == current || !(task->flags & PF_EXITING)))
- 		task->io_context = ioc;
- 	else
- 		kmem_cache_free(iocontext_cachep, ioc);
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-linux-next.patch
-mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.patch
-mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patch
-mm-bootmem-try-harder-to-free-pages-in-bulk.patch
-mempool-fix-and-document-synchronization-and-memory-barrier-usage.patch
-mempool-drop-unnecessary-and-incorrect-bug_on-from-mempool_destroy.patch
-mempool-fix-first-round-failure-behavior.patch
-mempool-fix-first-round-failure-behavior-fix.patch
-procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
-procfs-introduce-the-proc-pid-map_files-directory.patch
-procfs-introduce-the-proc-pid-map_files-directory-make-proc-pid-map_files-being-checkpoint_restore-dependent.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-sysctl-add-the-kernelns_last_pid-control.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update.patch
-scatterlist-new-helper-functions-update-fix.patch
-c-r-introduce-checkpoint_restore-symbol.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-
+-	BUG_ON(tag == -1);
