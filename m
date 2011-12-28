@@ -1,81 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] binary_sysctl-fix-memory-leak.patch removed from -mm tree
-Date: Wed, 28 Dec 2011 14:04:53 -0800
-Message-ID: <20111228220454.20A335C0076@hpza9.eem.corp.google.com>
+Subject: [merged] block-an-exiting-task-should-be-allowed-to-create-io_context.patch removed from -mm tree
+Date: Wed, 28 Dec 2011 14:04:57 -0800
+Message-ID: <20111228220458.1BFD5200083@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:56781 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754612Ab1L1WE4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:56 -0500
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:51712 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754612Ab1L1WE7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:59 -0500
+Received: by mail-ey0-f202.google.com with SMTP id k10so176839eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2011 14:04:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, eparis@redhat.com, hch@infradead.org, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: tj@kernel.org, akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binary_sysctl(): fix memory leak
+     Subject: block: an exiting task should be allowed to create io_context
 has been removed from the -mm tree.  Its filename was
-     binary_sysctl-fix-memory-leak.patch
+     block-an-exiting-task-should-be-allowed-to-create-io_context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: binary_sysctl(): fix memory leak
+From: Tejun Heo <tj@kernel.org>
+Subject: block: an exiting task should be allowed to create io_context
 
-binary_sysctl() calls sysctl_getname() which allocates from names_cache
-slab usin __getname()
+While fixing io_context creation / task exit race condition, 6e736be7f2
+"block: make ioc get/put interface more conventional and fix race on
+alloction" also prevented an exiting (%PF_EXITING) task from creating its
+own io_context.  This is incorrect as exit path may issue IOs, e.g.  from
+exit_files(), and if those IOs are the first ones issued by the task,
+io_context needs to be created to process the IOs.
 
-The matching function to free the name is __putname(), and not putname()
-which should be used only to match getname() allocations.
+Combined with the existing problem of io_context / io_cq creation failure
+having the possibility of stalling IO, this problem results in
+deterministic full IO lockup with certain workloads.
 
-This is because when auditing is enabled, putname() calls audit_putname
-*instead* (not in addition) to __putname().  Then, if a syscall is in
-progress, audit_putname does not release the name - instead, it expects
-the name to get released when the syscall completes, but that will happen
-only if audit_getname() was called previously, i.e.  if the name was
-allocated with getname() rather than the naked __getname().  So,
-__getname() followed by putname() ends up leaking memory.
+Fix it by allowing io_context creation regardless of %PF_EXITING for
+%current.
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Reported-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_binary.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/blk-ioc.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl_binary.c~binary_sysctl-fix-memory-leak kernel/sysctl_binary.c
---- a/kernel/sysctl_binary.c~binary_sysctl-fix-memory-leak
-+++ a/kernel/sysctl_binary.c
-@@ -1354,7 +1354,7 @@ static ssize_t binary_sysctl(const int *
+diff -puN block/blk-ioc.c~block-an-exiting-task-should-be-allowed-to-create-io_context block/blk-ioc.c
+--- a/block/blk-ioc.c~block-an-exiting-task-should-be-allowed-to-create-io_context
++++ a/block/blk-ioc.c
+@@ -281,9 +281,16 @@ void create_io_context_slowpath(struct t
+ 	INIT_HLIST_HEAD(&ioc->icq_list);
+ 	INIT_WORK(&ioc->release_work, ioc_release_fn);
  
- 	fput(file);
- out_putname:
--	putname(pathname);
-+	__putname(pathname);
- out:
- 	return result;
- }
+-	/* try to install, somebody might already have beaten us to it */
++	/*
++	 * Try to install.  ioc shouldn't be installed if someone else
++	 * already did or @task, which isn't %current, is exiting.  Note
++	 * that we need to allow ioc creation on exiting %current as exit
++	 * path may issue IOs from e.g. exit_files().  The exit path is
++	 * responsible for not issuing IO after exit_io_context().
++	 */
+ 	task_lock(task);
+-	if (!task->io_context && !(task->flags & PF_EXITING))
++	if (!task->io_context &&
++	    (task == current || !(task->flags & PF_EXITING)))
+ 		task->io_context = ioc;
+ 	else
+ 		kmem_cache_free(iocontext_cachep, ioc);
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 linux-next.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-page_alloc-generalize-order-handling-in-__free_pages_bootmem.patch
+mm-bootmem-drop-superfluous-range-check-when-freeing-pages-in-bulk.patch
+mm-bootmem-try-harder-to-free-pages-in-bulk.patch
+mempool-fix-and-document-synchronization-and-memory-barrier-usage.patch
+mempool-drop-unnecessary-and-incorrect-bug_on-from-mempool_destroy.patch
+mempool-fix-first-round-failure-behavior.patch
+mempool-fix-first-round-failure-behavior-fix.patch
+procfs-make-proc_get_link-to-use-dentry-instead-of-inode.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
+procfs-introduce-the-proc-pid-map_files-directory-make-proc-pid-map_files-being-checkpoint_restore-dependent.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+sysctl-add-the-kernelns_last_pid-control.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update.patch
+scatterlist-new-helper-functions-update-fix.patch
+c-r-introduce-checkpoint_restore-symbol.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
 
