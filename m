@@ -1,71 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-unbreak-compat-ioctl.patch removed from -mm tree
-Date: Wed, 28 Dec 2011 14:04:29 -0800
-Message-ID: <20111228220429.A83701E0078@wpzn4.hot.corp.google.com>
+Subject: [merged] memcg-keep-root-group-unchanged-if-creation-fails.patch removed from -mm tree
+Date: Wed, 28 Dec 2011 14:04:32 -0800
+Message-ID: <20111228220433.5398D5C0076@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:49863 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754612Ab1L1WEa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:30 -0500
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:51712 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754612Ab1L1WEg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thomas@m3y3r.de, konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: dhillf@gmail.com, aarcange@redhat.com, bsingharora@gmail.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: unbreak compat ioctl
+     Subject: memcg: keep root group unchanged if creation fails
 has been removed from the -mm tree.  Its filename was
-     nilfs2-unbreak-compat-ioctl.patch
+     memcg-keep-root-group-unchanged-if-creation-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: nilfs2: unbreak compat ioctl
+From: Hillf Danton <dhillf@gmail.com>
+Subject: memcg: keep root group unchanged if creation fails
 
-commit 828b1c50ae ("nilfs2: add compat ioctl") incidentally broke all
-other NILFS compat ioctls.  Make them work again.
+If the request is to create non-root group and we fail to meet it, we
+should leave the root unchanged.
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org> [3.0+]
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/ioctl.c~nilfs2-unbreak-compat-ioctl fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-unbreak-compat-ioctl
-+++ a/fs/nilfs2/ioctl.c
-@@ -842,6 +842,19 @@ long nilfs_compat_ioctl(struct file *fil
- 	case FS_IOC32_GETVERSION:
- 		cmd = FS_IOC_GETVERSION;
- 		break;
-+	case NILFS_IOCTL_CHANGE_CPMODE:
-+	case NILFS_IOCTL_DELETE_CHECKPOINT:
-+	case NILFS_IOCTL_GET_CPINFO:
-+	case NILFS_IOCTL_GET_CPSTAT:
-+	case NILFS_IOCTL_GET_SUINFO:
-+	case NILFS_IOCTL_GET_SUSTAT:
-+	case NILFS_IOCTL_GET_VINFO:
-+	case NILFS_IOCTL_GET_BDESCS:
-+	case NILFS_IOCTL_CLEAN_SEGMENTS:
-+	case NILFS_IOCTL_SYNC:
-+	case NILFS_IOCTL_RESIZE:
-+	case NILFS_IOCTL_SET_ALLOC_RANGE:
-+		break;
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
+diff -puN mm/memcontrol.c~memcg-keep-root-group-unchanged-if-creation-fails mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-keep-root-group-unchanged-if-creation-fails
++++ a/mm/memcontrol.c
+@@ -4907,9 +4907,9 @@ mem_cgroup_create(struct cgroup_subsys *
+ 		int cpu;
+ 		enable_swap_cgroup();
+ 		parent = NULL;
+-		root_mem_cgroup = memcg;
+ 		if (mem_cgroup_soft_limit_tree_init())
+ 			goto free_out;
++		root_mem_cgroup = memcg;
+ 		for_each_possible_cpu(cpu) {
+ 			struct memcg_stock_pcp *stock =
+ 						&per_cpu(memcg_stock, cpu);
+@@ -4948,7 +4948,6 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	return &memcg->css;
+ free_out:
+ 	__mem_cgroup_free(memcg);
+-	root_mem_cgroup = NULL;
+ 	return ERR_PTR(error);
+ }
+ 
 _
 
-Patches currently in -mm which might be from thomas@m3y3r.de are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
+mm-hugetlb-fix-non-atomic-enqueue-of-huge-page.patch
 linux-next.patch
-drivers-memstick-use-kmemdup-rather-than-duplicating-its-implementation.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
+mm-hugetlb-avoid-bogus-counter-of-surplus-huge-page.patch
 
