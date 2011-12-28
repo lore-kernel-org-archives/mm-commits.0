@@ -1,72 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments.patch removed from -mm tree
-Date: Wed, 28 Dec 2011 14:04:37 -0800
-Message-ID: <20111228220438.185905C0076@hpza9.eem.corp.google.com>
+Subject: [merged] oom-fix-integer-overflow-of-points-in-oom_badness.patch removed from -mm tree
+Date: Wed, 28 Dec 2011 14:04:41 -0800
+Message-ID: <20111228220442.57DC05C0076@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:56781 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754612Ab1L1WEk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:40 -0500
-Received: by faar15 with SMTP id r15so405347faa.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Dec 2011 14:04:39 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:61594 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754612Ab1L1WEp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Dec 2011 17:04:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haogangchen@gmail.com, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: fhrbata@redhat.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: potential integer overflow in nilfs_ioctl_clean_segments()
+     Subject: oom: fix integer overflow of points in oom_badness
 has been removed from the -mm tree.  Its filename was
-     nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments.patch
+     oom-fix-integer-overflow-of-points-in-oom_badness.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Haogang Chen <haogangchen@gmail.com>
-Subject: nilfs2: potential integer overflow in nilfs_ioctl_clean_segments()
+From: Frantisek Hrbata <fhrbata@redhat.com>
+Subject: oom: fix integer overflow of points in oom_badness
 
-There is a potential integer overflow in nilfs_ioctl_clean_segments(). 
-When a large argv[n].v_nmembs is passed from the userspace, the subsequent
-call to vmalloc() will allocate a buffer smaller than expected, which
-leads to out-of-bound access in nilfs_ioctl_move_blocks() and
-lfs_clean_segments().
+An integer overflow will happen on 64bit archs if task's sum of rss,
+swapents and nr_ptes exceeds (2^31)/1000 value.  This was introduced by
+commit
 
-The following check does not prevent the overflow because nsegs is also
-controlled by the userspace and could be very large.
+f755a04 oom: use pte pages in OOM score
 
-		if (argv[n].v_nmembs > nsegs * nilfs->ns_blocks_per_segment)
-			goto out_free;
+where the oom score computation was divided into several steps and it's no
+longer computed as one expression in unsigned long(rss, swapents, nr_pte
+are unsigned long), where the result value assigned to points(int) is in
+range(1..1000).  So there could be an int overflow while computing
 
-This patch clamps argv[n].v_nmembs to UINT_MAX / argv[n].v_size, and
-returns -EINVAL when overflow.
+176          points *= 1000;
 
-Signed-off-by: Haogang Chen <haogangchen@gmail.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+and points may have negative value. Meaning the oom score for a mem hog task
+will be one.
+
+196          if (points <= 0)
+197                  return 1;
+
+For example:
+[ 3366]     0  3366 35390480 24303939   5       0             0 oom01
+Out of memory: Kill process 3366 (oom01) score 1 or sacrifice child
+
+Here the oom1 process consumes more than 24303939(rss)*4096~=92GB physical
+memory, but it's oom score is one.
+
+In this situation the mem hog task is skipped and oom killer kills another and
+most probably innocent task with oom score greater than one.
+
+The points variable should be of type long instead of int to prevent the
+int overflow.
+
+Signed-off-by: Frantisek Hrbata <fhrbata@redhat.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>		[2.6.36+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/ioctl.c~nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-potential-integer-overflow-in-nilfs_ioctl_clean_segments
-+++ a/fs/nilfs2/ioctl.c
-@@ -625,6 +625,9 @@ static int nilfs_ioctl_clean_segments(st
- 		if (argv[n].v_nmembs > nsegs * nilfs->ns_blocks_per_segment)
- 			goto out_free;
+diff -puN mm/oom_kill.c~oom-fix-integer-overflow-of-points-in-oom_badness mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-fix-integer-overflow-of-points-in-oom_badness
++++ a/mm/oom_kill.c
+@@ -176,7 +176,7 @@ static bool oom_unkillable_task(struct t
+ unsigned int oom_badness(struct task_struct *p, struct mem_cgroup *mem,
+ 		      const nodemask_t *nodemask, unsigned long totalpages)
+ {
+-	int points;
++	long points;
  
-+		if (argv[n].v_nmembs >= UINT_MAX / argv[n].v_size)
-+			goto out_free;
-+
- 		len = argv[n].v_size * argv[n].v_nmembs;
- 		base = (void __user *)(unsigned long)argv[n].v_base;
- 		if (len == 0) {
+ 	if (oom_unkillable_task(p, mem, nodemask))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from haogangchen@gmail.com are
+Patches currently in -mm which might be from fhrbata@redhat.com are
 
-linux-next.patch
 
