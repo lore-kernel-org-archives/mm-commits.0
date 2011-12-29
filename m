@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-mem_cgroup_print_bad_page.patch added to -mm tree
-Date: Thu, 29 Dec 2011 14:44:40 -0800
-Message-ID: <20111229224441.8ED6120004E@hpza10.eem.corp.google.com>
+Subject: + mm-test-pageswapbacked-in-lumpy-reclaim.patch added to -mm tree
+Date: Thu, 29 Dec 2011 14:45:46 -0800
+Message-ID: <20111229224546.9257110004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:48343 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754714Ab1L2Woo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2011 17:44:44 -0500
-Received: by eekc1 with SMTP id c1so457523eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2011 14:44:42 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:55445 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754742Ab1L2Wpr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2011 17:45:47 -0500
+Received: by ghrr15 with SMTP id r15so1332985ghr.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2011 14:45:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp
+Cc: hughd@google.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     Subject: memcg: fix mem_cgroup_print_bad_page
+     Subject: mm: test PageSwapBacked in lumpy reclaim
 has been added to the -mm tree.  Its filename is
-     memcg-fix-mem_cgroup_print_bad_page.patch
+     mm-test-pageswapbacked-in-lumpy-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: memcg: fix mem_cgroup_print_bad_page
+Subject: mm: test PageSwapBacked in lumpy reclaim
 
-If DEBUG_VM, mem_cgroup_print_bad_page() is called whenever bad_page()
-shows a "Bad page state" message, removes page from circulation, adds a
-taint and continues.  This is at a very low level, often when a spinlock
-is held (sometimes when page table lock is held, for example).
-
-We want to recover from this badness, not make it worse: we must not
-kmalloc memory here, we must not do a cgroup path lookup via dubious
-pointers.  No doubt that code was useful to debug a particular case at one
-time, and may be again, but take it out of the mainline kernel.
+Lumpy reclaim does well to stop at a PageAnon when there's no swap, but
+better is to stop at any PageSwapBacked, which includes shmem/tmpfs too.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-mem_cgroup_print_bad_page mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-mem_cgroup_print_bad_page
-+++ a/mm/memcontrol.c
-@@ -3355,23 +3355,8 @@ void mem_cgroup_print_bad_page(struct pa
+diff -puN mm/vmscan.c~mm-test-pageswapbacked-in-lumpy-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-test-pageswapbacked-in-lumpy-reclaim
++++ a/mm/vmscan.c
+@@ -1166,7 +1166,7 @@ static unsigned long isolate_lru_pages(u
+ 			 * anon page which don't already have a swap slot is
+ 			 * pointless.
+ 			 */
+-			if (nr_swap_pages <= 0 && PageAnon(cursor_page) &&
++			if (nr_swap_pages <= 0 && PageSwapBacked(cursor_page) &&
+ 			    !PageSwapCache(cursor_page))
+ 				break;
  
- 	pc = lookup_page_cgroup_used(page);
- 	if (pc) {
--		int ret = -1;
--		char *path;
--
--		printk(KERN_ALERT "pc:%p pc->flags:%lx pc->mem_cgroup:%p",
-+		printk(KERN_ALERT "pc:%p pc->flags:%lx pc->mem_cgroup:%p\n",
- 		       pc, pc->flags, pc->mem_cgroup);
--
--		path = kmalloc(PATH_MAX, GFP_KERNEL);
--		if (path) {
--			rcu_read_lock();
--			ret = cgroup_path(pc->mem_cgroup->css.cgroup,
--							path, PATH_MAX);
--			rcu_read_unlock();
--		}
--
--		printk(KERN_CONT "(%s)\n",
--				(ret < 0) ? "cannot get the path" : path);
--		kfree(path);
- 	}
- }
- #endif
 _
-Subject: Subject: memcg: fix mem_cgroup_print_bad_page
+Subject: Subject: mm: test PageSwapBacked in lumpy reclaim
 
 Patches currently in -mm which might be from hughd@google.com are
 
@@ -100,6 +74,7 @@ mm-tracepoint-fixup-documentation-and-examples.patch
 mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
 mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
 mm-simplify-find_vma_prev.patch
+mm-test-pageswapbacked-in-lumpy-reclaim.patch
 memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
 mm-memcg-consolidate-hierarchy-iteration-primitives.patch
 mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
