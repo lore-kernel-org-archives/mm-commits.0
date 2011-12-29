@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch added to -mm tree
-Date: Thu, 29 Dec 2011 14:42:57 -0800
-Message-ID: <20111229224258.A303520004E@hpza10.eem.corp.google.com>
+Subject: + memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch added to -mm tree
+Date: Thu, 29 Dec 2011 14:43:54 -0800
+Message-ID: <20111229224355.A931620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:32910 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754714Ab1L2WnB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2011 17:43:01 -0500
-Received: by eekc1 with SMTP id c1so457496eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2011 14:43:00 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:50170 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754714Ab1L2Wn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2011 17:43:58 -0500
+Received: by eaak10 with SMTP id k10so201217eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2011 14:43:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko
 
 
 The patch titled
-     Subject: memcg: fix NULL mem_cgroup_try_charge
+     Subject: memcg: fix page migration to reset_owner
 has been added to the -mm tree.  Its filename is
-     memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch
+     memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: memcg: fix NULL mem_cgroup_try_charge
+Subject: memcg: fix page migration to reset_owner
 
-There is one way out of __mem_cgroup_try_charge() which claims success but
-still leaves memcg NULL, causing oops thereafter: make sure that it is set
-to root_mem_cgroup in this case.
+Usually, migration pages coming to unmap_and_move()'s putback_lru_page()
+have been charged and have pc->mem_cgroup set; but there are several ways
+in which a freshly allocated uncharged page can get there, oopsing when
+added to LRU.  Call mem_cgroup_reset_owner() immediately after allocating.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
@@ -48,25 +49,23 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/migrate.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge
-+++ a/mm/memcontrol.c
-@@ -2248,7 +2248,9 @@ again:
- 		 * task-struct. So, mm->owner can be NULL.
- 		 */
- 		memcg = mem_cgroup_from_task(p);
--		if (!memcg || mem_cgroup_is_root(memcg)) {
-+		if (!memcg)
-+			memcg = root_mem_cgroup;
-+		if (mem_cgroup_is_root(memcg)) {
- 			rcu_read_unlock();
- 			goto done;
- 		}
+diff -puN mm/migrate.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner mm/migrate.c
+--- a/mm/migrate.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner
++++ a/mm/migrate.c
+@@ -777,6 +777,8 @@ static int unmap_and_move(new_page_t get
+ 	if (!newpage)
+ 		return -ENOMEM;
+ 
++	mem_cgroup_reset_owner(newpage);
++
+ 	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
+ 		goto out;
 _
-Subject: Subject: memcg: fix NULL mem_cgroup_try_charge
+Subject: Subject: memcg: fix page migration to reset_owner
 
 Patches currently in -mm which might be from hughd@google.com are
 
@@ -108,13 +107,13 @@ memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix-3.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch
 memcg-simplify-lru-handling-by-new-rule.patch
 memcg-simplify-lru-handling-by-new-rule-fix.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch
 memcg-fix-split_huge_page_refcounts.patch
-memcg-fix-page-migration-to-reset_owner.patch
 memcg-fix-mem_cgroup_print_bad_page.patch
 procfs-add-hidepid=-and-gid=-mount-options-fix.patch
 radix_tree-remove-radix_tree_indirect_to_ptr.patch
