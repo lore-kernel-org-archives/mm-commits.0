@@ -1,166 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix.patch removed from -mm tree
-Date: Thu, 29 Dec 2011 16:10:07 -0800
-Message-ID: <20111230001007.9D49110004D@wpzn3.hot.corp.google.com>
+Subject: [folded] mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch removed from -mm tree
+Date: Thu, 29 Dec 2011 16:10:11 -0800
+Message-ID: <20111230001012.137AB1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:55768 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754879Ab1L3AKJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2011 19:10:09 -0500
-Received: by yenm5 with SMTP id m5so1686809yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2011 16:10:08 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:60428 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754879Ab1L3AKN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Dec 2011 19:10:13 -0500
+Received: by qcsg15 with SMTP id g15so1748441qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Dec 2011 16:10:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, jack@suse.cz, jweiner@redhat.com, minchan.kim@gmail.com, nai.xia@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, jack@suse.cz, jweiner@redhat.com, mgorman@suse.de, minchan@kernel.org, nai.xia@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: isolate pages for immediate reclaim on their own LRU fix
+     Subject: mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix.patch
+     mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch
 
 This patch was dropped because it was folded into mm-isolate-pages-for-immediate-reclaim-on-their-own-lru.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: isolate pages for immediate reclaim on their own LRU fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
 
-Rename pagevec_putback_immediate_fn to pagevec_putback_from_immediate_fn
-for clarity and alter flow of rotate_reclaimable_page() slightly to avoid
-an unnecessary list reference.
+mm/swap.c: In function 'pagevec_putback_from_immediate_fn':
+mm/swap.c:271: error: 'struct zone' has no member named 'lru'
+mm/swap.c: In function 'rotate_reclaimable_page':
+mm/swap.c:323: error: 'struct zone' has no member named 'lru'
+mm/swap.c:331: error: 'struct zone' has no member named 'lru'
+mm/swap.c: In function 'lru_deactivate_fn':
+mm/swap.c:546: error: 'struct zone' has no member named 'lru'
 
-This is a fix to the patch
-mm-isolate-pages-for-immediate-reclaim-on-their-own-lru.patch in mmotm.
+Fix it against mm-collect-lru-list-heads-into-struct-lruvec.patch
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Andy Isaacson <adi@hexapodia.org>
 Cc: Dave Jones <davej@redhat.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Andy Isaacson <adi@hexapodia.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Nai Xia <nai.xia@gmail.com>
 Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nai Xia <nai.xia@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ mm/swap.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix mm/swap.c
---- a/mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix
+diff -puN mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2 mm/swap.c
+--- a/mm/swap.c~mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2
 +++ a/mm/swap.c
-@@ -262,7 +262,7 @@ static void pagevec_move_tail(struct pag
-  * moving a page from the LRU_IMMEDIATE to one of the [in]active_[file|anon]
-  * lists
-  */
--static void pagevec_putback_immediate_fn(struct page *page, void *arg)
-+static void pagevec_putback_from_immediate_fn(struct page *page, void *arg)
- {
- 	struct zone *zone = page_zone(page);
+@@ -268,7 +268,7 @@ static void pagevec_putback_from_immedia
  
-@@ -272,9 +272,9 @@ static void pagevec_putback_immediate_fn
+ 	if (PageLRU(page)) {
+ 		enum lru_list lru = page_lru(page);
+-		list_move(&page->lru, &zone->lru[lru].list);
++		list_move(&page->lru, &zone->lruvec.lists[lru]);
  	}
  }
  
--static void pagevec_putback_immediate(struct pagevec *pvec)
-+static void pagevec_putback_from_immediate(struct pagevec *pvec)
- {
--	pagevec_lru_move_fn(pvec, pagevec_putback_immediate_fn, NULL);
-+	pagevec_lru_move_fn(pvec, pagevec_putback_from_immediate_fn, NULL);
- }
- 
- /*
-@@ -285,7 +285,7 @@ static void pagevec_putback_immediate(st
+@@ -285,7 +285,6 @@ static void pagevec_putback_from_immedia
  void rotate_reclaimable_page(struct page *page)
  {
  	struct zone *zone = page_zone(page);
--	struct list_head *page_list;
-+	struct list_head *list;
+-	struct list_head *list;
  	struct pagevec *pvec;
  	unsigned long flags;
  
-@@ -302,7 +302,7 @@ void rotate_reclaimable_page(struct page
- 	} else {
- 		pvec = &__get_cpu_var(lru_putback_immediate_pvecs);
- 		if (!pagevec_add(pvec, page))
--			pagevec_putback_immediate(pvec);
-+			pagevec_putback_from_immediate(pvec);
- 	}
- 
- 	/*
-@@ -318,17 +318,21 @@ void rotate_reclaimable_page(struct page
- 	 * problematic due to the problem of deciding when the right time
- 	 * to scan this list is.
+@@ -320,7 +319,7 @@ void rotate_reclaimable_page(struct page
  	 */
--	page_list = &zone->lru[LRU_IMMEDIATE].list;
--	if (!zone_page_state(zone, NR_IMMEDIATE) && !list_empty(page_list)) {
-+	if (!zone_page_state(zone, NR_IMMEDIATE)) {
+ 	if (!zone_page_state(zone, NR_IMMEDIATE)) {
  		struct page *page;
-+		list = &zone->lru[LRU_IMMEDIATE].list;
+-		list = &zone->lru[LRU_IMMEDIATE].list;
++		struct list_head *list = &zone->lruvec.lists[LRU_IMMEDIATE];
  
--		spin_lock(&zone->lru_lock);
--		while (!list_empty(page_list)) {
--			page = list_entry(page_list->prev, struct page, lru);
--			list_move(&page->lru, &zone->lru[page_lru(page)].list);
--			__count_vm_event(PGRESCUED);
-+		if (!list_empty(list)) {
-+			spin_lock(&zone->lru_lock);
-+			while (!list_empty(list)) {
-+				int lru;
-+				page = list_entry(list->prev, struct page, lru);
-+				lru = page_lru(page);
-+				list_move(&page->lru, &zone->lru[lru].list);
-+				__count_vm_event(PGRESCUED);
-+			}
-+			spin_unlock(&zone->lru_lock);
- 		}
--		spin_unlock(&zone->lru_lock);
- 	}
- 
- 	local_irq_restore(flags);
+ 		if (!list_empty(list)) {
+ 			spin_lock(&zone->lru_lock);
+@@ -328,7 +327,7 @@ void rotate_reclaimable_page(struct page
+ 				int lru;
+ 				page = list_entry(list->prev, struct page, lru);
+ 				lru = page_lru(page);
+-				list_move(&page->lru, &zone->lru[lru].list);
++				list_move(&page->lru, &zone->lruvec.lists[lru]);
+ 				__count_vm_event(PGRESCUED);
+ 			}
+ 			spin_unlock(&zone->lru_lock);
+@@ -543,7 +542,7 @@ static void lru_deactivate_fn(struct pag
+ 		 * Move to the LRU_IMMEDIATE list to avoid being scanned
+ 		 * by page reclaim uselessly.
+ 		 */
+-		list_move_tail(&page->lru, &zone->lru[LRU_IMMEDIATE].list);
++		list_move_tail(&page->lru, &zone->lruvec.lists[LRU_IMMEDIATE]);
+ 		__mod_zone_page_state(zone, NR_IMMEDIATE, 1);
+ 	} else {
+ 		struct lruvec *lruvec;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-procfs-do-not-confuse-jiffies-with-cputime64_t.patch
 linux-next.patch
-mm-page-writebackc-make-determine_dirtyable_memory-static-again.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
 mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
-mm-more-intensive-memory-corruption-debug.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
 mm-more-intensive-memory-corruption-debug-fix.patch
-pm-hibernate-do-not-count-debug-pages-as-savable.patch
-slub-min-order-when-debug_guardpage_minorder-0.patch
-mm-debug-test-for-online-nid-when-allocating-on-single-node.patch
-mm-exclude-reserved-pages-from-dirtyable-memory.patch
 mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-try-to-distribute-dirty-pages-fairly-across-zones.patch
-mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
-btrfs-pass-__gfp_write-for-buffered-write-page-allocations.patch
-mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
-mm-fix-off-by-two-in-__zone_watermark_ok.patch
-mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
-mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
-mm-vmscanc-consider-swap-space-when-deciding-whether-to-continue-reclaim.patch
-mm-compaction-allow-compaction-to-isolate-dirty-pages.patch
-mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory.patch
-mm-vmscan-check-if-we-isolated-a-compound-page-during-lumpy-scan.patch
-mm-vmscan-do-not-oom-if-aborting-reclaim-to-start-compaction.patch
-mm-compaction-determine-if-dirty-pages-can-be-migrated-without-blocking-within-migratepage.patch
-mm-compaction-make-isolate_lru_page-filter-aware-again.patch
-mm-page-allocator-do-not-call-direct-reclaim-for-thp-allocations-while-compaction-is-deferred.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix.patch
+mm-simplify-find_vma_prev-fix.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
+mempool-fix-first-round-failure-behavior-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+leds-add-driver-for-tca6507-led-controller.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
+memcg-simplify-lru-handling-by-new-rule-fix.patch
+memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
 mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
 mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
-mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch
-mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone.patch
 mm-isolate-pages-for-immediate-reclaim-on-their-own-lru.patch
-mm-isolate-pages-for-immediate-reclaim-on-their-own-lru-fix-2.patch
-radix_tree-take-radix_tree_path-off-stack.patch
-radix_tree-take-radix_tree_path-off-stack-expand-comment-on-optimization.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
