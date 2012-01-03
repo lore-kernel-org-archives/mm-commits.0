@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fewer-underscores-in-____pagevec_lru_add.patch added to -mm tree
-Date: Tue, 03 Jan 2012 15:34:31 -0800
-Message-ID: <20120103233432.476A71E004D@wpzn4.hot.corp.google.com>
+Subject: + mm-enum-lru_list-lru.patch added to -mm tree
+Date: Tue, 03 Jan 2012 15:34:37 -0800
+Message-ID: <20120103233438.A2BDB5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:55859 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755125Ab2ACXed (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 18:34:33 -0500
-Received: by yenm5 with SMTP id m5so2060568yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 15:34:32 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:53120 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754880Ab2ACXek (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 18:34:40 -0500
+Received: by eaak10 with SMTP id k10so312687eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 15:34:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hughd@google.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     Subject: mm: fewer underscores in ____pagevec_lru_add
+     Subject: mm: enum lru_list lru
 has been added to the -mm tree.  Its filename is
-     mm-fewer-underscores-in-____pagevec_lru_add.patch
+     mm-enum-lru_list-lru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,204 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: fewer underscores in ____pagevec_lru_add
+Subject: mm: enum lru_list lru
 
-What's so special about ____pagevec_lru_add() that it needs four leading
-underscores?  Nothing, it just helped to distinguish from
-__pagevec_lru_add() in 2.6.28 development.  Cut two leading underscores.
+Mostly we use "enum lru_list lru": change those few "l"s to "lru"s.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |   10 +++++-----
- mm/swap.c               |   12 ++++++------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ include/linux/mm_inline.h |   26 +++++++++++++-------------
+ include/linux/mmzone.h    |   16 ++++++++--------
+ mm/page_alloc.c           |    6 +++---
+ mm/vmscan.c               |   22 +++++++++++-----------
+ 4 files changed, 35 insertions(+), 35 deletions(-)
 
-diff -puN include/linux/pagevec.h~mm-fewer-underscores-in-____pagevec_lru_add include/linux/pagevec.h
---- a/include/linux/pagevec.h~mm-fewer-underscores-in-____pagevec_lru_add
-+++ a/include/linux/pagevec.h
-@@ -21,7 +21,7 @@ struct pagevec {
- };
+diff -puN include/linux/mm_inline.h~mm-enum-lru_list-lru include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-enum-lru_list-lru
++++ a/include/linux/mm_inline.h
+@@ -22,21 +22,21 @@ static inline int page_is_file_cache(str
+ }
  
- void __pagevec_release(struct pagevec *pvec);
--void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
-+void __pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
- unsigned pagevec_lookup_tag(struct pagevec *pvec,
-@@ -66,22 +66,22 @@ static inline void pagevec_release(struc
- 
- static inline void __pagevec_lru_add_anon(struct pagevec *pvec)
+ static inline void
+-add_page_to_lru_list(struct zone *zone, struct page *page, enum lru_list l)
++add_page_to_lru_list(struct zone *zone, struct page *page, enum lru_list lru)
  {
--	____pagevec_lru_add(pvec, LRU_INACTIVE_ANON);
-+	__pagevec_lru_add(pvec, LRU_INACTIVE_ANON);
+ 	struct lruvec *lruvec;
+ 
+-	lruvec = mem_cgroup_lru_add_list(zone, page, l);
+-	list_add(&page->lru, &lruvec->lists[l]);
+-	__mod_zone_page_state(zone, NR_LRU_BASE + l, hpage_nr_pages(page));
++	lruvec = mem_cgroup_lru_add_list(zone, page, lru);
++	list_add(&page->lru, &lruvec->lists[lru]);
++	__mod_zone_page_state(zone, NR_LRU_BASE + lru, hpage_nr_pages(page));
  }
  
- static inline void __pagevec_lru_add_active_anon(struct pagevec *pvec)
+ static inline void
+-del_page_from_lru_list(struct zone *zone, struct page *page, enum lru_list l)
++del_page_from_lru_list(struct zone *zone, struct page *page, enum lru_list lru)
  {
--	____pagevec_lru_add(pvec, LRU_ACTIVE_ANON);
-+	__pagevec_lru_add(pvec, LRU_ACTIVE_ANON);
+-	mem_cgroup_lru_del_list(page, l);
++	mem_cgroup_lru_del_list(page, lru);
+ 	list_del(&page->lru);
+-	__mod_zone_page_state(zone, NR_LRU_BASE + l, -hpage_nr_pages(page));
++	__mod_zone_page_state(zone, NR_LRU_BASE + lru, -hpage_nr_pages(page));
  }
- 
- static inline void __pagevec_lru_add_file(struct pagevec *pvec)
- {
--	____pagevec_lru_add(pvec, LRU_INACTIVE_FILE);
-+	__pagevec_lru_add(pvec, LRU_INACTIVE_FILE);
- }
- 
- static inline void __pagevec_lru_add_active_file(struct pagevec *pvec)
- {
--	____pagevec_lru_add(pvec, LRU_ACTIVE_FILE);
-+	__pagevec_lru_add(pvec, LRU_ACTIVE_FILE);
- }
- 
- static inline void pagevec_lru_add_file(struct pagevec *pvec)
-diff -puN mm/swap.c~mm-fewer-underscores-in-____pagevec_lru_add mm/swap.c
---- a/mm/swap.c~mm-fewer-underscores-in-____pagevec_lru_add
-+++ a/mm/swap.c
-@@ -378,7 +378,7 @@ void __lru_cache_add(struct page *page, 
- 
- 	page_cache_get(page);
- 	if (!pagevec_add(pvec, page))
--		____pagevec_lru_add(pvec, lru);
-+		__pagevec_lru_add(pvec, lru);
- 	put_cpu_var(lru_add_pvecs);
- }
- EXPORT_SYMBOL(__lru_cache_add);
-@@ -506,7 +506,7 @@ static void drain_cpu_pagevecs(int cpu)
- 	for_each_lru(lru) {
- 		pvec = &pvecs[lru - LRU_BASE];
- 		if (pagevec_count(pvec))
--			____pagevec_lru_add(pvec, lru);
-+			__pagevec_lru_add(pvec, lru);
- 	}
- 
- 	pvec = &per_cpu(lru_rotate_pvecs, cpu);
-@@ -698,7 +698,7 @@ void lru_add_page_tail(struct zone* zone
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
--static void ____pagevec_lru_add_fn(struct page *page, void *arg)
-+static void __pagevec_lru_add_fn(struct page *page, void *arg)
- {
- 	enum lru_list lru = (enum lru_list)arg;
- 	struct zone *zone = page_zone(page);
-@@ -720,14 +720,14 @@ static void ____pagevec_lru_add_fn(struc
-  * Add the passed pages to the LRU, then drop the caller's refcount
-  * on them.  Reinitialises the caller's pagevec.
-  */
--void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru)
-+void __pagevec_lru_add(struct pagevec *pvec, enum lru_list lru)
- {
- 	VM_BUG_ON(is_unevictable_lru(lru));
- 
--	pagevec_lru_move_fn(pvec, ____pagevec_lru_add_fn, (void *)lru);
-+	pagevec_lru_move_fn(pvec, __pagevec_lru_add_fn, (void *)lru);
- }
- 
--EXPORT_SYMBOL(____pagevec_lru_add);
-+EXPORT_SYMBOL(__pagevec_lru_add);
  
  /**
-  * pagevec_lookup - gang pagecache lookup
+@@ -57,21 +57,21 @@ static inline enum lru_list page_lru_bas
+ static inline void
+ del_page_from_lru(struct zone *zone, struct page *page)
+ {
+-	enum lru_list l;
++	enum lru_list lru;
+ 
+ 	if (PageUnevictable(page)) {
+ 		__ClearPageUnevictable(page);
+-		l = LRU_UNEVICTABLE;
++		lru = LRU_UNEVICTABLE;
+ 	} else {
+-		l = page_lru_base_type(page);
++		lru = page_lru_base_type(page);
+ 		if (PageActive(page)) {
+ 			__ClearPageActive(page);
+-			l += LRU_ACTIVE;
++			lru += LRU_ACTIVE;
+ 		}
+ 	}
+-	mem_cgroup_lru_del_list(page, l);
++	mem_cgroup_lru_del_list(page, lru);
+ 	list_del(&page->lru);
+-	__mod_zone_page_state(zone, NR_LRU_BASE + l, -hpage_nr_pages(page));
++	__mod_zone_page_state(zone, NR_LRU_BASE + lru, -hpage_nr_pages(page));
+ }
+ 
+ /**
+diff -puN include/linux/mmzone.h~mm-enum-lru_list-lru include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-enum-lru_list-lru
++++ a/include/linux/mmzone.h
+@@ -140,23 +140,23 @@ enum lru_list {
+ 	NR_LRU_LISTS
+ };
+ 
+-#define for_each_lru(l) for (l = 0; l < NR_LRU_LISTS; l++)
++#define for_each_lru(lru) for (lru = 0; lru < NR_LRU_LISTS; lru++)
+ 
+-#define for_each_evictable_lru(l) for (l = 0; l <= LRU_ACTIVE_FILE; l++)
++#define for_each_evictable_lru(lru) for (lru = 0; lru <= LRU_ACTIVE_FILE; lru++)
+ 
+-static inline int is_file_lru(enum lru_list l)
++static inline int is_file_lru(enum lru_list lru)
+ {
+-	return (l == LRU_INACTIVE_FILE || l == LRU_ACTIVE_FILE);
++	return (lru == LRU_INACTIVE_FILE || lru == LRU_ACTIVE_FILE);
+ }
+ 
+-static inline int is_active_lru(enum lru_list l)
++static inline int is_active_lru(enum lru_list lru)
+ {
+-	return (l == LRU_ACTIVE_ANON || l == LRU_ACTIVE_FILE);
++	return (lru == LRU_ACTIVE_ANON || lru == LRU_ACTIVE_FILE);
+ }
+ 
+-static inline int is_unevictable_lru(enum lru_list l)
++static inline int is_unevictable_lru(enum lru_list lru)
+ {
+-	return (l == LRU_UNEVICTABLE);
++	return (lru == LRU_UNEVICTABLE);
+ }
+ 
+ struct lruvec {
+diff -puN mm/page_alloc.c~mm-enum-lru_list-lru mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-enum-lru_list-lru
++++ a/mm/page_alloc.c
+@@ -4275,7 +4275,7 @@ static void __paginginit free_area_init_
+ 	for (j = 0; j < MAX_NR_ZONES; j++) {
+ 		struct zone *zone = pgdat->node_zones + j;
+ 		unsigned long size, realsize, memmap_pages;
+-		enum lru_list l;
++		enum lru_list lru;
+ 
+ 		size = zone_spanned_pages_in_node(nid, j, zones_size);
+ 		realsize = size - zone_absent_pages_in_node(nid, j,
+@@ -4325,8 +4325,8 @@ static void __paginginit free_area_init_
+ 		zone->zone_pgdat = pgdat;
+ 
+ 		zone_pcp_init(zone);
+-		for_each_lru(l)
+-			INIT_LIST_HEAD(&zone->lruvec.lists[l]);
++		for_each_lru(lru)
++			INIT_LIST_HEAD(&zone->lruvec.lists[lru]);
+ 		zone->reclaim_stat.recent_rotated[0] = 0;
+ 		zone->reclaim_stat.recent_rotated[1] = 0;
+ 		zone->reclaim_stat.recent_scanned[0] = 0;
+diff -puN mm/vmscan.c~mm-enum-lru_list-lru mm/vmscan.c
+--- a/mm/vmscan.c~mm-enum-lru_list-lru
++++ a/mm/vmscan.c
+@@ -1920,7 +1920,7 @@ static void get_scan_count(struct mem_cg
+ 	unsigned long ap, fp;
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
+ 	u64 fraction[2], denominator;
+-	enum lru_list l;
++	enum lru_list lru;
+ 	int noswap = 0;
+ 	bool force_scan = false;
+ 
+@@ -2010,18 +2010,18 @@ static void get_scan_count(struct mem_cg
+ 	fraction[1] = fp;
+ 	denominator = ap + fp + 1;
+ out:
+-	for_each_evictable_lru(l) {
+-		int file = is_file_lru(l);
++	for_each_evictable_lru(lru) {
++		int file = is_file_lru(lru);
+ 		unsigned long scan;
+ 
+-		scan = zone_nr_lru_pages(mz, l);
++		scan = zone_nr_lru_pages(mz, lru);
+ 		if (priority || noswap) {
+ 			scan >>= priority;
+ 			if (!scan && force_scan)
+ 				scan = SWAP_CLUSTER_MAX;
+ 			scan = div64_u64(scan * fraction[file], denominator);
+ 		}
+-		nr[l] = scan;
++		nr[lru] = scan;
+ 	}
+ }
+ 
+@@ -2097,7 +2097,7 @@ static void shrink_mem_cgroup_zone(int p
+ {
+ 	unsigned long nr[NR_LRU_LISTS];
+ 	unsigned long nr_to_scan;
+-	enum lru_list l;
++	enum lru_list lru;
+ 	unsigned long nr_reclaimed, nr_scanned;
+ 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
+ 	struct blk_plug plug;
+@@ -2110,13 +2110,13 @@ restart:
+ 	blk_start_plug(&plug);
+ 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+ 					nr[LRU_INACTIVE_FILE]) {
+-		for_each_evictable_lru(l) {
+-			if (nr[l]) {
++		for_each_evictable_lru(lru) {
++			if (nr[lru]) {
+ 				nr_to_scan = min_t(unsigned long,
+-						   nr[l], SWAP_CLUSTER_MAX);
+-				nr[l] -= nr_to_scan;
++						   nr[lru], SWAP_CLUSTER_MAX);
++				nr[lru] -= nr_to_scan;
+ 
+-				nr_reclaimed += shrink_list(l, nr_to_scan,
++				nr_reclaimed += shrink_list(lru, nr_to_scan,
+ 							    mz, sc, priority);
+ 			}
+ 		}
 _
-Subject: Subject: mm: fewer underscores in ____pagevec_lru_add
+Subject: Subject: mm: enum lru_list lru
 
 Patches currently in -mm which might be from hughd@google.com are
 
