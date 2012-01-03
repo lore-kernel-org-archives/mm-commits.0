@@ -1,103 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ext4-use-proper-little-endian-bitops.patch removed from -mm tree
-Date: Tue, 03 Jan 2012 13:35:53 -0800
-Message-ID: <20120103213553.AC946100052@wpzn3.hot.corp.google.com>
+Subject: [merged] block-fix-blk_queue_end_tag.patch removed from -mm tree
+Date: Tue, 03 Jan 2012 13:35:50 -0800
+Message-ID: <20120103213550.C0F891E0058@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:40908 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab2ACVfy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 16:35:54 -0500
-Received: by yenm5 with SMTP id m5so2048311yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 13:35:54 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:45909 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754125Ab2ACVfw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 16:35:52 -0500
+Received: by ghrr15 with SMTP id r15so1687434ghr.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 13:35:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, tytso@mit.edu, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, axboe@kernel.dk, boyu.mt@taobao.com, edmund.nadolski@intel.com, matthew@wil.cx, mroos@ut.ee, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: use proper little-endian bitops
+     Subject: block: fix blk_queue_end_tag()
 has been removed from the -mm tree.  Its filename was
-     ext4-use-proper-little-endian-bitops.patch
+     block-fix-blk_queue_end_tag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: ext4: use proper little-endian bitops
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: block: fix blk_queue_end_tag()
 
-ext4_{set,clear}_bit() is defined as __test_and_{set,clear}_bit_le() for
-ext4.  Only two ext4_{set,clear}_bit() calls check the return value.  The
-rest of calls ignore the return value and they can be replaced with
-__{set,clear}_bit_le().
+Commit 5e081591 "block: warn if tag is greater than real_max_depth"
+cleaned up blk_queue_end_tag() to warn when the tag is truly invalid
+(greater than real_max_depth).  However, it changed behavior in the tag <
+max_depth case to not end the request.  Leading to triggering of
+BUG_ON(blk_queued_rq(rq)) in the request completion path:
 
-This changes ext4_{set,clear}_bit() from __test_and_{set,clear}_bit_le()
-to __{set,clear}_bit_le() and introduces ext4_test_and_{set,clear}_bit()
-for the two places where old bit needs to be returned.
+  http://marc.info/?l=linux-kernel&m=132204370518629&w=2
 
-This ext4_{set,clear}_bit() change is considered safe, because if someone
-uses these macros without noticing the change, new ext4_{set,clear}_bit
-don't have return value and causes compiler errors where the return value
-is used.
+In order to allow blk_queue_resize_tags() to shrink the tag space
+blk_queue_end_tag() must always complete tags with a value less than
+real_max_depth regardless of the current max_depth.  The comment about
+"handling the shrink case" seems to be what prompted changes in this
+space, so remove it and BUG on all invalid tags (made even simpler by
+Matthew's suggestion to use an unsigned compare).
 
-This also removes unused ext4_find_first_zero_bit().
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Tao Ma <boyu.mt@taobao.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Reported-by: Meelis Roos <mroos@ut.ee>
+Reported-by: Ed Nadolski <edmund.nadolski@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ext4.h   |    7 ++++---
- fs/ext4/ialloc.c |    4 ++--
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ block/blk-tag.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN fs/ext4/ext4.h~ext4-use-proper-little-endian-bitops fs/ext4/ext4.h
---- a/fs/ext4/ext4.h~ext4-use-proper-little-endian-bitops
-+++ a/fs/ext4/ext4.h
-@@ -957,12 +957,13 @@ struct ext4_inode_info {
- #define test_opt2(sb, opt)		(EXT4_SB(sb)->s_mount_opt2 & \
- 					 EXT4_MOUNT2_##opt)
+diff -puN block/blk-tag.c~block-fix-blk_queue_end_tag block/blk-tag.c
+--- a/block/blk-tag.c~block-fix-blk_queue_end_tag
++++ a/block/blk-tag.c
+@@ -282,18 +282,9 @@ EXPORT_SYMBOL(blk_queue_resize_tags);
+ void blk_queue_end_tag(struct request_queue *q, struct request *rq)
+ {
+ 	struct blk_queue_tag *bqt = q->queue_tags;
+-	int tag = rq->tag;
++	unsigned tag = rq->tag; /* negative tags invalid */
  
--#define ext4_set_bit			__test_and_set_bit_le
-+#define ext4_test_and_set_bit		__test_and_set_bit_le
-+#define ext4_set_bit			__set_bit_le
- #define ext4_set_bit_atomic		ext2_set_bit_atomic
--#define ext4_clear_bit			__test_and_clear_bit_le
-+#define ext4_test_and_clear_bit		__test_and_clear_bit_le
-+#define ext4_clear_bit			__clear_bit_le
- #define ext4_clear_bit_atomic		ext2_clear_bit_atomic
- #define ext4_test_bit			test_bit_le
--#define ext4_find_first_zero_bit	find_first_zero_bit_le
- #define ext4_find_next_zero_bit		find_next_zero_bit_le
- #define ext4_find_next_bit		find_next_bit_le
- 
-diff -puN fs/ext4/ialloc.c~ext4-use-proper-little-endian-bitops fs/ext4/ialloc.c
---- a/fs/ext4/ialloc.c~ext4-use-proper-little-endian-bitops
-+++ a/fs/ext4/ialloc.c
-@@ -252,7 +252,7 @@ void ext4_free_inode(handle_t *handle, s
- 		fatal = ext4_journal_get_write_access(handle, bh2);
- 	}
- 	ext4_lock_group(sb, block_group);
--	cleared = ext4_clear_bit(bit, bitmap_bh->b_data);
-+	cleared = ext4_test_and_clear_bit(bit, bitmap_bh->b_data);
- 	if (fatal || !cleared) {
- 		ext4_unlock_group(sb, block_group);
- 		goto out;
-@@ -618,7 +618,7 @@ static int ext4_claim_inode(struct super
- 	 */
- 	down_read(&grp->alloc_sem);
- 	ext4_lock_group(sb, group);
--	if (ext4_set_bit(ino, inode_bitmap_bh->b_data)) {
-+	if (ext4_test_and_set_bit(ino, inode_bitmap_bh->b_data)) {
- 		/* not a free inode */
- 		retval = 1;
- 		goto err_ret;
-_
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-linux-next.patch
-
+-	BUG_ON(tag == -1);
