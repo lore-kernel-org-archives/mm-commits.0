@@ -1,121 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-parse-mount-options-fix.patch added to -mm tree
-Date: Tue, 03 Jan 2012 13:54:13 -0800
-Message-ID: <20120103215414.95DB05C00AA@hpza9.eem.corp.google.com>
+Subject: [folded] procfs-remove-superfluous-debug-output.patch removed from -mm tree
+Date: Tue, 03 Jan 2012 13:57:18 -0800
+Message-ID: <20120103215719.1C1E25C00A9@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:49086 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab2ACVyQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 16:54:16 -0500
-Received: by eekc1 with SMTP id c1so585056eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 13:54:15 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:64231 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754847Ab2ACV5V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 16:57:21 -0500
+Received: by eaak10 with SMTP id k10so310883eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 13:57:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, segoon@openwall.com, viro@zeniv.linux.org.uk
+To: segoon@openwall.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-parse-mount-options-fix
-has been added to the -mm tree.  Its filename is
-     procfs-parse-mount-options-fix.patch
+     Subject: procfs: remove superfluous debug output
+has been removed from the -mm tree.  Its filename was
+     procfs-remove-superfluous-debug-output.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into procfs-add-hidepid=-and-gid=-mount-options.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-parse-mount-options-fix
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: procfs: remove superfluous debug output
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/root.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/proc/inode.c~procfs-parse-mount-options-fix fs/proc/inode.c
---- a/fs/proc/inode.c~procfs-parse-mount-options-fix
-+++ a/fs/proc/inode.c
-@@ -106,7 +106,7 @@ void __init proc_init_inodecache(void)
- 					     init_once);
- }
+diff -puN fs/proc/root.c~procfs-remove-superfluous-debug-output fs/proc/root.c
+--- a/fs/proc/root.c~procfs-remove-superfluous-debug-output
++++ a/fs/proc/root.c
+@@ -53,8 +53,6 @@ static int proc_parse_options(char *opti
+ 	substring_t args[MAX_OPT_ARGS];
+ 	int option;
  
--static int proc_show_options(struct seq_file *seq, struct vfsmount *vfs)
-+static int proc_show_options(struct seq_file *seq, struct dentry *root)
- {
- 	return 0;
- }
-_
-Subject: Subject: procfs-parse-mount-options-fix
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
-mempool-fix-first-round-failure-behavior-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-leds-add-driver-for-tca6507-led-controller.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
-memcg-simplify-lru-handling-by-new-rule-fix.patch
-memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-procfs-parse-mount-options-fix.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-panic-dont-print-redundant-backtraces-on-oops-fix.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-	pr_debug("proc: options = %s\n", options);
