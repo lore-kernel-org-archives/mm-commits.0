@@ -1,74 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-fix-non-atomic-enqueue-of-huge-page.patch removed from -mm tree
-Date: Tue, 03 Jan 2012 13:35:46 -0800
-Message-ID: <20120103213547.175F020004E@hpza10.eem.corp.google.com>
+Subject: [merged] ext4-use-proper-little-endian-bitops.patch removed from -mm tree
+Date: Tue, 03 Jan 2012 13:35:53 -0800
+Message-ID: <20120103213553.AC946100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:32984 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab2ACVft (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 16:35:49 -0500
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:40908 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754125Ab2ACVfy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 16:35:54 -0500
+Received: by yenm5 with SMTP id m5so2048311yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 13:35:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: fix non-atomic enqueue of huge page
+     Subject: ext4: use proper little-endian bitops
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-non-atomic-enqueue-of-huge-page.patch
+     ext4-use-proper-little-endian-bitops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: mm: hugetlb: fix non-atomic enqueue of huge page
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: ext4: use proper little-endian bitops
 
-If a huge page is enqueued under the protection of hugetlb_lock, then the
-operation is atomic and safe.
+ext4_{set,clear}_bit() is defined as __test_and_{set,clear}_bit_le() for
+ext4.  Only two ext4_{set,clear}_bit() calls check the return value.  The
+rest of calls ignore the return value and they can be replaced with
+__{set,clear}_bit_le().
 
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>		[2.6.37+]
+This changes ext4_{set,clear}_bit() from __test_and_{set,clear}_bit_le()
+to __{set,clear}_bit_le() and introduces ext4_test_and_{set,clear}_bit()
+for the two places where old bit needs to be returned.
+
+This ext4_{set,clear}_bit() change is considered safe, because if someone
+uses these macros without noticing the change, new ext4_{set,clear}_bit
+don't have return value and causes compiler errors where the return value
+is used.
+
+This also removes unused ext4_find_first_zero_bit().
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/ext4.h   |    7 ++++---
+ fs/ext4/ialloc.c |    4 ++--
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-non-atomic-enqueue-of-huge-page mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-non-atomic-enqueue-of-huge-page
-+++ a/mm/hugetlb.c
-@@ -901,7 +901,6 @@ retry:
- 	h->resv_huge_pages += delta;
- 	ret = 0;
+diff -puN fs/ext4/ext4.h~ext4-use-proper-little-endian-bitops fs/ext4/ext4.h
+--- a/fs/ext4/ext4.h~ext4-use-proper-little-endian-bitops
++++ a/fs/ext4/ext4.h
+@@ -957,12 +957,13 @@ struct ext4_inode_info {
+ #define test_opt2(sb, opt)		(EXT4_SB(sb)->s_mount_opt2 & \
+ 					 EXT4_MOUNT2_##opt)
  
--	spin_unlock(&hugetlb_lock);
- 	/* Free the needed pages to the hugetlb pool */
- 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
- 		if ((--needed) < 0)
-@@ -915,6 +914,7 @@ retry:
- 		VM_BUG_ON(page_count(page));
- 		enqueue_huge_page(h, page);
+-#define ext4_set_bit			__test_and_set_bit_le
++#define ext4_test_and_set_bit		__test_and_set_bit_le
++#define ext4_set_bit			__set_bit_le
+ #define ext4_set_bit_atomic		ext2_set_bit_atomic
+-#define ext4_clear_bit			__test_and_clear_bit_le
++#define ext4_test_and_clear_bit		__test_and_clear_bit_le
++#define ext4_clear_bit			__clear_bit_le
+ #define ext4_clear_bit_atomic		ext2_clear_bit_atomic
+ #define ext4_test_bit			test_bit_le
+-#define ext4_find_first_zero_bit	find_first_zero_bit_le
+ #define ext4_find_next_zero_bit		find_next_zero_bit_le
+ #define ext4_find_next_bit		find_next_bit_le
+ 
+diff -puN fs/ext4/ialloc.c~ext4-use-proper-little-endian-bitops fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-use-proper-little-endian-bitops
++++ a/fs/ext4/ialloc.c
+@@ -252,7 +252,7 @@ void ext4_free_inode(handle_t *handle, s
+ 		fatal = ext4_journal_get_write_access(handle, bh2);
  	}
-+	spin_unlock(&hugetlb_lock);
- 
- 	/* Free unnecessary surplus pages to the buddy allocator */
- free:
+ 	ext4_lock_group(sb, block_group);
+-	cleared = ext4_clear_bit(bit, bitmap_bh->b_data);
++	cleared = ext4_test_and_clear_bit(bit, bitmap_bh->b_data);
+ 	if (fatal || !cleared) {
+ 		ext4_unlock_group(sb, block_group);
+ 		goto out;
+@@ -618,7 +618,7 @@ static int ext4_claim_inode(struct super
+ 	 */
+ 	down_read(&grp->alloc_sem);
+ 	ext4_lock_group(sb, group);
+-	if (ext4_set_bit(ino, inode_bitmap_bh->b_data)) {
++	if (ext4_test_and_set_bit(ino, inode_bitmap_bh->b_data)) {
+ 		/* not a free inode */
+ 		retval = 1;
+ 		goto err_ret;
 _
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-origin.patch
 linux-next.patch
-hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
-hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
-mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
-mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
-mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
-mm-hugetlb-avoid-bogus-counter-of-surplus-huge-page.patch
-mm-vmscan-fix-typo-in-isolating-lru-pages.patch
 
