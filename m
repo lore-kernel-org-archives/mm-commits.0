@@ -1,69 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-fix-blk_queue_end_tag.patch removed from -mm tree
-Date: Tue, 03 Jan 2012 13:35:50 -0800
-Message-ID: <20120103213550.C0F891E0058@wpzn4.hot.corp.google.com>
+Subject: + procfs-parse-mount-options-fix.patch added to -mm tree
+Date: Tue, 03 Jan 2012 13:54:13 -0800
+Message-ID: <20120103215414.95DB05C00AA@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:45909 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab2ACVfw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 16:35:52 -0500
-Received: by ghrr15 with SMTP id r15so1687434ghr.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 13:35:51 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:49086 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754125Ab2ACVyQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jan 2012 16:54:16 -0500
+Received: by eekc1 with SMTP id c1so585056eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jan 2012 13:54:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, axboe@kernel.dk, boyu.mt@taobao.com, edmund.nadolski@intel.com, matthew@wil.cx, mroos@ut.ee, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, segoon@openwall.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: block: fix blk_queue_end_tag()
-has been removed from the -mm tree.  Its filename was
-     block-fix-blk_queue_end_tag.patch
+     Subject: procfs-parse-mount-options-fix
+has been added to the -mm tree.  Its filename is
+     procfs-parse-mount-options-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: block: fix blk_queue_end_tag()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: procfs-parse-mount-options-fix
 
-Commit 5e081591 "block: warn if tag is greater than real_max_depth"
-cleaned up blk_queue_end_tag() to warn when the tag is truly invalid
-(greater than real_max_depth).  However, it changed behavior in the tag <
-max_depth case to not end the request.  Leading to triggering of
-BUG_ON(blk_queued_rq(rq)) in the request completion path:
-
-  http://marc.info/?l=linux-kernel&m=132204370518629&w=2
-
-In order to allow blk_queue_resize_tags() to shrink the tag space
-blk_queue_end_tag() must always complete tags with a value less than
-real_max_depth regardless of the current max_depth.  The comment about
-"handling the shrink case" seems to be what prompted changes in this
-space, so remove it and BUG on all invalid tags (made even simpler by
-Matthew's suggestion to use an unsigned compare).
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Tao Ma <boyu.mt@taobao.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Reported-by: Meelis Roos <mroos@ut.ee>
-Reported-by: Ed Nadolski <edmund.nadolski@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-tag.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ fs/proc/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN block/blk-tag.c~block-fix-blk_queue_end_tag block/blk-tag.c
---- a/block/blk-tag.c~block-fix-blk_queue_end_tag
-+++ a/block/blk-tag.c
-@@ -282,18 +282,9 @@ EXPORT_SYMBOL(blk_queue_resize_tags);
- void blk_queue_end_tag(struct request_queue *q, struct request *rq)
- {
- 	struct blk_queue_tag *bqt = q->queue_tags;
--	int tag = rq->tag;
-+	unsigned tag = rq->tag; /* negative tags invalid */
+diff -puN fs/proc/inode.c~procfs-parse-mount-options-fix fs/proc/inode.c
+--- a/fs/proc/inode.c~procfs-parse-mount-options-fix
++++ a/fs/proc/inode.c
+@@ -106,7 +106,7 @@ void __init proc_init_inodecache(void)
+ 					     init_once);
+ }
  
--	BUG_ON(tag == -1);
+-static int proc_show_options(struct seq_file *seq, struct vfsmount *vfs)
++static int proc_show_options(struct seq_file *seq, struct dentry *root)
+ {
+ 	return 0;
+ }
+_
+Subject: Subject: procfs-parse-mount-options-fix
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
+mm-more-intensive-memory-corruption-debug-fix.patch
+mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+mm-simplify-find_vma_prev-fix.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
+mempool-fix-first-round-failure-behavior-fix.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+leds-add-driver-for-tca6507-led-controller.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
+memcg-simplify-lru-handling-by-new-rule-fix.patch
+memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
+procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
+procfs-parse-mount-options-fix.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
