@@ -1,78 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-add-udev-events-for-memory-online-offline-fix.patch added to -mm tree
-Date: Thu, 05 Jan 2012 15:49:44 -0800
-Message-ID: <20120105234945.321145C0060@hpza9.eem.corp.google.com>
+Subject: [to-be-updated] tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode.patch removed from -mm tree
+Date: Thu, 05 Jan 2012 15:51:12 -0800
+Message-ID: <20120105235113.8150D5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:43968 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932983Ab2AEXtr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2012 18:49:47 -0500
-Received: by eaak10 with SMTP id k10so29426eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 05 Jan 2012 15:49:46 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:51111 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933024Ab2AEXvQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2012 18:51:16 -0500
+Received: by wgbdq10 with SMTP id dq10so34551wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 05 Jan 2012 15:51:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, greg@kroah.com, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, kay.sievers@vrfy.org
+To: sivanich@sgi.com, john.stultz@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump-add-udev-events-for-memory-online-offline-fix.txt
-has been added to the -mm tree.  Its filename is
-     kdump-add-udev-events-for-memory-online-offline-fix.patch
+     Subject: tick-sched: add specific do_timer_cpu value for nohz off mode
+has been removed from the -mm tree.  Its filename was
+     tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: kdump-add-udev-events-for-memory-online-offline-fix.txt
+From: Dimitri Sivanich <sivanich@sgi.com>
+Subject: tick-sched: add specific do_timer_cpu value for nohz off mode
 
-memory: fix ups for class to subsystem conversion
+Show and modify the tick_do_timer_cpu via sysfs.  This determines the cpu
+on which global time (jiffies) updates occur.  Modification can only be
+done on systems with nohz mode turned off.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+While not necessarily harmful, doing jiffies updates on an application cpu
+does cause some extra overhead that HPC benchmarking people notice.  They
+prefer to have OS activity isolated to certain cpus.  They like
+reproducibility of results, and having jiffies updates bouncing around
+introduces variability.
+
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-devices-system-timekeeping |   16 ++
+ drivers/base/sys.c                                         |   10 -
+ include/linux/sysdev.h                                     |    2 
+ kernel/time/tick-sched.c                                   |   67 ++++++++++
+ 4 files changed, 89 insertions(+), 6 deletions(-)
 
-diff -puN drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline-fix drivers/base/memory.c
---- a/drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline-fix
-+++ a/drivers/base/memory.c
-@@ -303,10 +303,10 @@ static int memory_block_change_state(str
- 	mem->state = to_state;
- 	switch (mem->state) {
- 	case MEM_OFFLINE:
--		kobject_uevent(&mem->sysdev.kobj, KOBJ_OFFLINE);
-+		kobject_uevent(&mem->dev.kobj, KOBJ_OFFLINE);
- 		break;
- 	case MEM_ONLINE:
--		kobject_uevent(&mem->sysdev.kobj, KOBJ_ONLINE);
-+		kobject_uevent(&mem->dev.kobj, KOBJ_ONLINE);
- 		break;
- 	default:
- 		break;
+diff -puN /dev/null Documentation/ABI/testing/sysfs-devices-system-timekeeping
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-devices-system-timekeeping
+@@ -0,0 +1,16 @@
++What:		/sys/devices/system/timekeeping/
++Date:		November 2011
++Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
++Description:	Timekeeping attributes
++
++
++What:		/sys/devices/system/timekeeping/timekeeping0/jiffies_cpu
++Date:		November 2011
++Contact:	Linux kernel mailing list <linux-kernel@vger.kernel.org>
++Description:	Show and modify the kernel's tick_do_timer_cpu.  This
++		determines the cpu on which global time (jiffies) updates
++		occur.  This can only be modified on systems running with
++		the nohz mode turned off (nohz=off).
++
++		Possible values are:
++			0 - <num online cpus>
+diff -puN drivers/base/sys.c~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode drivers/base/sys.c
+--- a/drivers/base/sys.c~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode
++++ a/drivers/base/sys.c
+@@ -331,13 +331,11 @@ void sysdev_unregister(struct sys_device
+ EXPORT_SYMBOL_GPL(sysdev_register);
+ EXPORT_SYMBOL_GPL(sysdev_unregister);
+ 
+-#define to_ext_attr(x) container_of(x, struct sysdev_ext_attribute, attr)
+-
+ ssize_t sysdev_store_ulong(struct sys_device *sysdev,
+ 			   struct sysdev_attribute *attr,
+ 			   const char *buf, size_t size)
+ {
+-	struct sysdev_ext_attribute *ea = to_ext_attr(attr);
++	struct sysdev_ext_attribute *ea = SYSDEV_TO_EXT_ATTR(attr);
+ 	char *end;
+ 	unsigned long new = simple_strtoul(buf, &end, 0);
+ 	if (end == buf)
+@@ -352,7 +350,7 @@ ssize_t sysdev_show_ulong(struct sys_dev
+ 			  struct sysdev_attribute *attr,
+ 			  char *buf)
+ {
+-	struct sysdev_ext_attribute *ea = to_ext_attr(attr);
++	struct sysdev_ext_attribute *ea = SYSDEV_TO_EXT_ATTR(attr);
+ 	return snprintf(buf, PAGE_SIZE, "%lx\n", *(unsigned long *)(ea->var));
+ }
+ EXPORT_SYMBOL_GPL(sysdev_show_ulong);
+@@ -361,7 +359,7 @@ ssize_t sysdev_store_int(struct sys_devi
+ 			   struct sysdev_attribute *attr,
+ 			   const char *buf, size_t size)
+ {
+-	struct sysdev_ext_attribute *ea = to_ext_attr(attr);
++	struct sysdev_ext_attribute *ea = SYSDEV_TO_EXT_ATTR(attr);
+ 	char *end;
+ 	long new = simple_strtol(buf, &end, 0);
+ 	if (end == buf || new > INT_MAX || new < INT_MIN)
+@@ -376,7 +374,7 @@ ssize_t sysdev_show_int(struct sys_devic
+ 			  struct sysdev_attribute *attr,
+ 			  char *buf)
+ {
+-	struct sysdev_ext_attribute *ea = to_ext_attr(attr);
++	struct sysdev_ext_attribute *ea = SYSDEV_TO_EXT_ATTR(attr);
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", *(int *)(ea->var));
+ }
+ EXPORT_SYMBOL_GPL(sysdev_show_int);
+diff -puN include/linux/sysdev.h~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode include/linux/sysdev.h
+--- a/include/linux/sysdev.h~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode
++++ a/include/linux/sysdev.h
+@@ -132,6 +132,8 @@ struct sysdev_ext_attribute {
+ 	void *var;
+ };
+ 
++#define SYSDEV_TO_EXT_ATTR(x) container_of(x, struct sysdev_ext_attribute, attr)
++
+ /*
+  * Support for simple variable sysdev attributes.
+  * The pointer to the variable is stored in a sysdev_ext_attribute
+diff -puN kernel/time/tick-sched.c~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~tick-sched-add-specific-do_timer_cpu-value-for-nohz-off-mode
++++ a/kernel/time/tick-sched.c
+@@ -865,6 +865,73 @@ void tick_cancel_sched_timer(int cpu)
+ }
+ #endif
+ 
++#ifdef CONFIG_SYSFS
++/*
++ * Allow modification of tick_do_timer_cpu when nohz mode is off.
++ */
++static ssize_t sysfs_store_do_timer_cpu(struct sys_device *dev,
++						struct sysdev_attribute *attr,
++						const char *buf, size_t size)
++{
++	struct sysdev_ext_attribute *ea = SYSDEV_TO_EXT_ATTR(attr);
++	unsigned int new;
++	int rv;
++
++#ifdef CONFIG_NO_HZ
++	/* nohz mode not supported */
++	if (tick_nohz_enabled)
++		return -EINVAL;
++#endif
++
++	rv = kstrtouint(buf, 0, &new);
++	if (rv)
++		return rv;
++
++	/* Protect against cpu-hotplug */
++	get_online_cpus();
++
++	if (new >= nr_cpu_ids || !cpu_online(new)) {
++		put_online_cpus();
++		return -ERANGE;
++	}
++
++	*(unsigned int *)(ea->var) = new;
++
++	put_online_cpus();
++
++	return size;
++}
++
++static struct sysdev_ext_attribute attr_jiffies_cpu = {
++			_SYSDEV_ATTR(jiffies_cpu, 0644, sysdev_show_int,
++					sysfs_store_do_timer_cpu),
++			&tick_do_timer_cpu };
++
++static struct sysdev_class timekeeping_sysclass = {
++	.name = "timekeeping",
++};
++
++static struct sys_device device_timekeeping = {
++	.id     = 0,
++	.cls    = &timekeeping_sysclass,
++};
++
++static int __init init_timekeeping_sysfs(void)
++{
++	int error = sysdev_class_register(&timekeeping_sysclass);
++
++	if (!error)
++		error = sysdev_register(&device_timekeeping);
++	if (!error)
++		error = sysdev_create_file(
++				&device_timekeeping,
++				&attr_jiffies_cpu.attr);
++	return error;
++}
++
++device_initcall(init_timekeeping_sysfs);
++#endif /* SYSFS */
++
+ /**
+  * Async notification about clocksource changes
+  */
 _
-Subject: Subject: kdump-add-udev-events-for-memory-online-offline-fix.txt
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from sivanich@sgi.com are
 
-linux-next.patch
-ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch
-consolidate-config_debug_strict_user_copy_checks.patch
-kdump-add-udev-events-for-memory-online-offline-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
 
