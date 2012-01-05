@@ -1,106 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch added to -mm tree
-Date: Wed, 04 Jan 2012 17:09:24 -0800
-Message-ID: <20120105010925.210F320004E@hpza10.eem.corp.google.com>
+Subject: [nacked] mm-vmscanc-check-page-order-when-isolating-lru-pages.patch removed from -mm tree
+Date: Thu, 05 Jan 2012 14:50:42 -0800
+Message-ID: <20120105225044.93BC21E0133@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:41093 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757321Ab2AEBJ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Jan 2012 20:09:27 -0500
-Received: by eaak10 with SMTP id k10so548eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Jan 2012 17:09:26 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:41678 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932617Ab2AEWuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Jan 2012 17:50:46 -0500
+Received: by ghrr15 with SMTP id r15so116792ghr.1
+        for <mm-commits@vger.kernel.org>; Thu, 05 Jan 2012 14:50:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+To: dhillf@gmail.com, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: undo change to page mapcount in fault handler
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
+     Subject: mm/vmscan.c: check page order when isolating lru pages
+has been removed from the -mm tree.  Its filename was
+     mm-vmscanc-check-page-order-when-isolating-lru-pages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was nacked
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hillf Danton <dhillf@gmail.com>
-Subject: mm/hugetlb.c: undo change to page mapcount in fault handler
+Subject: mm/vmscan.c: check page order when isolating lru pages
 
-Page mapcount should be updated only if we are sure that the page ends up
-in the page table otherwise we would leak if we couldn't COW due to
-reservations or if idx is out of bounds.
+Before trying to isolate physically contiguous pages, a check for the page
+order is added.  If it is not a regular page, we should give up the
+attempt.
 
 Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler
-+++ a/mm/hugetlb.c
-@@ -2508,6 +2508,7 @@ static int hugetlb_no_page(struct mm_str
- {
- 	struct hstate *h = hstate_vma(vma);
- 	int ret = VM_FAULT_SIGBUS;
-+	int anon_rmap = 0;
- 	pgoff_t idx;
- 	unsigned long size;
- 	struct page *page;
-@@ -2562,14 +2563,13 @@ retry:
- 			spin_lock(&inode->i_lock);
- 			inode->i_blocks += blocks_per_huge_page(h);
- 			spin_unlock(&inode->i_lock);
--			page_dup_rmap(page);
- 		} else {
- 			lock_page(page);
- 			if (unlikely(anon_vma_prepare(vma))) {
- 				ret = VM_FAULT_OOM;
- 				goto backout_unlocked;
- 			}
--			hugepage_add_new_anon_rmap(page, vma, address);
-+			anon_rmap = 1;
+diff -puN mm/vmscan.c~mm-vmscanc-check-page-order-when-isolating-lru-pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscanc-check-page-order-when-isolating-lru-pages
++++ a/mm/vmscan.c
+@@ -1173,6 +1173,7 @@ static unsigned long isolate_lru_pages(u
+ 		unsigned long end_pfn;
+ 		unsigned long page_pfn;
+ 		int zone_id;
++		unsigned int isolated_pages = 1;
+ 
+ 		page = lru_to_page(src);
+ 		prefetchw_prev_lru_page(page, src, flags);
+@@ -1183,7 +1184,7 @@ static unsigned long isolate_lru_pages(u
+ 		case 0:
+ 			mem_cgroup_lru_del(page);
+ 			list_move(&page->lru, dst);
+-			nr_taken += hpage_nr_pages(page);
++			isolated_pages = hpage_nr_pages(page);
+ 			break;
+ 
+ 		case -EBUSY:
+@@ -1195,8 +1196,12 @@ static unsigned long isolate_lru_pages(u
+ 			BUG();
  		}
- 	} else {
+ 
++		nr_taken += isolated_pages;
+ 		if (!order)
+ 			continue;
++		/* try pfn-based isolation only for regular page */
++		if (isolated_pages != 1)
++			continue;
+ 
  		/*
-@@ -2582,7 +2582,6 @@ retry:
- 			      VM_FAULT_SET_HINDEX(h - hstates);
- 			goto backout_unlocked;
- 		}
--		page_dup_rmap(page);
- 	}
+ 		 * Attempt to take all pages in the order aligned region
+@@ -1238,7 +1243,6 @@ static unsigned long isolate_lru_pages(u
+ 				break;
  
- 	/*
-@@ -2606,6 +2605,10 @@ retry:
- 	if (!huge_pte_none(huge_ptep_get(ptep)))
- 		goto backout;
+ 			if (__isolate_lru_page(cursor_page, mode, file) == 0) {
+-				unsigned int isolated_pages;
  
-+	if (anon_rmap)
-+		hugepage_add_new_anon_rmap(page, vma, address);
-+	else
-+		page_dup_rmap(page);
- 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
- 				&& (vma->vm_flags & VM_SHARED)));
- 	set_huge_pte_at(mm, address, ptep, new_pte);
+ 				mem_cgroup_del_lru(cursor_page);
+ 				list_move(&cursor_page->lru, dst);
 _
-Subject: Subject: mm/hugetlb.c: undo change to page mapcount in fault handler
 
 Patches currently in -mm which might be from dhillf@gmail.com are
 
-origin.patch
 linux-next.patch
 hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
 hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
@@ -110,5 +100,4 @@ mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
 mm-hugetlb-avoid-bogus-counter-of-surplus-huge-page.patch
 mm-vmscan-fix-typo-in-isolating-lru-pages.patch
 mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
-mm-vmscanc-check-page-order-when-isolating-lru-pages.patch
 
