@@ -1,134 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch removed from -mm tree
-Date: Mon, 09 Jan 2012 14:52:50 -0800
-Message-ID: <20120109233502.7CEAC10004D@wpzn3.hot.corp.google.com>
+Subject: - scsi-fix-unused-variable-warning-in-mpt2sas_scsihc.patch removed from -mm tree
+Date: Mon, 09 Jan 2012 14:58:51 -0800
+Message-ID: <20120109234103.DF88F200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:53855 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932169Ab2AIXfD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 18:35:03 -0500
-Received: by ggnv2 with SMTP id v2so472773ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 15:35:02 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:51630 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932137Ab2AIXlG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 18:41:06 -0500
+Received: by faar15 with SMTP id r15so131747faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 15:41:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: rakib.mullick@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
+     Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: fix unused variable warning
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+     scsi-fix-unused-variable-warning-in-mpt2sas_scsihc.patch
 
 This patch was dropped because this couldn't have been tested?
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
+From: Rakib Mullick <rakib.mullick@gmail.com>
+Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: fix unused variable warning
 
+drivers/scsi/mpt2sas/mpt2sas_scsih.c: In function `_scsih_sas_broadcast_primative_event':
+drivers/scsi/mpt2sas/mpt2sas_scsih.c:5729:40: warning: unused variable `event_data'
 
+Signed-off-by: Rakib Mullick <rakib.mullick@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mpt2sas/mpt2sas_scsih.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/mpt2sas/mpt2sas_scsih.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/mpt2sas/mpt2sas_scsih.c~drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly drivers/scsi/mpt2sas/mpt2sas_scsih.c
---- a/drivers/scsi/mpt2sas/mpt2sas_scsih.c~drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly
+diff -puN drivers/scsi/mpt2sas/mpt2sas_scsih.c~scsi-fix-unused-variable-warning-in-mpt2sas_scsihc drivers/scsi/mpt2sas/mpt2sas_scsih.c
+--- a/drivers/scsi/mpt2sas/mpt2sas_scsih.c~scsi-fix-unused-variable-warning-in-mpt2sas_scsihc
 +++ a/drivers/scsi/mpt2sas/mpt2sas_scsih.c
-@@ -5744,7 +5744,7 @@ _scsih_sas_enclosure_dev_status_change_e
- }
+@@ -5763,7 +5763,6 @@ _scsih_sas_broadcast_primative_event(str
+ 	u32 termination_count;
+ 	u32 query_count;
+ 	Mpi2SCSITaskManagementReply_t *mpi_reply;
+-	Mpi2EventDataSasBroadcastPrimitive_t *event_data = fw_event->event_data;
+ 	u16 ioc_status;
+ 	unsigned long flags;
+ 	int r;
+@@ -5772,8 +5771,8 @@ _scsih_sas_broadcast_primative_event(str
  
- /**
-- * _scsih_sas_broadcast_primative_event - handle broadcast events
-+ * _scsih_sas_broadcast_primitive_event - handle broadcast events
-  * @ioc: per adapter object
-  * @fw_event: The fw_event_work object
-  * Context: user.
-@@ -5752,7 +5752,7 @@ _scsih_sas_enclosure_dev_status_change_e
-  * Return nothing.
-  */
- static void
--_scsih_sas_broadcast_primative_event(struct MPT2SAS_ADAPTER *ioc,
-+_scsih_sas_broadcast_primitive_event(struct MPT2SAS_ADAPTER *ioc,
-     struct fw_event_work *fw_event)
- {
- 	struct scsi_cmnd *scmd;
-@@ -7262,7 +7262,7 @@ _firmware_event_work(struct work_struct 
- 		    fw_event);
- 		break;
- 	case MPI2_EVENT_SAS_BROADCAST_PRIMITIVE:
--		_scsih_sas_broadcast_primative_event(ioc,
-+		_scsih_sas_broadcast_primitive_event(ioc,
- 		    fw_event);
- 		break;
- 	case MPI2_EVENT_SAS_ENCL_DEVICE_STATUS_CHANGE:
+ 	mutex_lock(&ioc->tm_cmds.mutex);
+ 	dewtprintk(ioc, printk(MPT2SAS_INFO_FMT "%s: enter: phy number(%d), "
+-	    "width(%d)\n", ioc->name, __func__, event_data->PhyNum,
+-	     event_data->PortWidth));
++	    "width(%d)\n", ioc->name, __func__, fw_event->event_data->PhyNum,
++	     fw_event->event_data->PortWidth));
+ 
+ 	_scsih_block_io_all_device(ioc);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-drivers-video-nvidia-nvidiac-fix-warning.patch
-drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes-checkpatch-fixes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault-fix.patch
-mm-more-intensive-memory-corruption-debug-fix.patch
-mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
-mm-simplify-find_vma_prev-fix.patch
-mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
-mempool-fix-first-round-failure-behavior-fix.patch
-frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
-hpet-factor-timer-allocate-from-open.patch
-drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-backlight-convert-pwm_bl-to-dev_pm_ops-fix.patch
-leds-add-driver-for-tca6507-led-controller.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
-memcg-simplify-lru-handling-by-new-rule-fix.patch
-memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-procfs-parse-mount-options-fix.patch
-procfs-add-hidepid=-and-gid=-mount-options-fix-2.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-panic-dont-print-redundant-backtraces-on-oops-fix.patch
-drivers-parport-parport_pcc-fix-warnings.patch
-scatterlist-new-helper-functions.patch
-scatterlist-new-helper-functions-update-fix.patch
-memstick-add-support-for-legacy-memorysticks-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
