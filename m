@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-parport-parport_pcc-fix-warnings.patch added to -mm tree
-Date: Mon, 09 Jan 2012 13:56:24 -0800
-Message-ID: <20120109223836.659692000AB@hpza10.eem.corp.google.com>
+Subject: + drivers-usb-misc-emi26c-emi62c-fix-warnings.patch added to -mm tree
+Date: Mon, 09 Jan 2012 13:51:19 -0800
+Message-ID: <20120109223332.66BF92000AB@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:59732 "EHLO
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:46381 "EHLO
 	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755874Ab2AIWii (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 17:38:38 -0500
-Received: by eaak10 with SMTP id k10so134979eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 14:38:37 -0800 (PST)
+	with ESMTP id S1755874Ab2AIWjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 17:39:17 -0500
+Received: by eaak10 with SMTP id k10so134994eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 14:39:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     Subject: drivers/parport/parport_pc.c: fix warnings
+     Subject: drivers/usb/misc/emi26.c & emi62.c: fix warnings
 has been added to the -mm tree.  Its filename is
-     drivers-parport-parport_pcc-fix-warnings.patch
+     drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/parport/parport_pc.c: fix warnings
+Subject: drivers/usb/misc/emi26.c & emi62.c: fix warnings
 
-drivers/parport/parport_pc.c: In function '__check_irq':
-drivers/parport/parport_pc.c:3415: warning: return from incompatible pointer type
-drivers/parport/parport_pc.c: In function '__check_dma':
-drivers/parport/parport_pc.c:3417: warning: return from incompatible pointer type
+drivers/usb/misc/emi26.c:40: warning: 'emi26_init' declared 'static' but never defined
+drivers/usb/misc/emi26.c:41: warning: 'emi26_exit' declared 'static' but never defined
+drivers/usb/misc/emi62.c:49: warning: 'emi62_init' declared 'static' but never defined
+drivers/usb/misc/emi62.c:50: warning: 'emi62_exit' declared 'static' but never defined
 
-
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/misc/emi26.c |    3 ---
+ drivers/usb/misc/emi62.c |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~drivers-parport-parport_pcc-fix-warnings drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~drivers-parport-parport_pcc-fix-warnings
-+++ a/drivers/parport/parport_pc.c
-@@ -3404,8 +3404,8 @@ static int __init parport_init_mode_setu
- #endif
+diff -puN drivers/usb/misc/emi26.c~drivers-usb-misc-emi26c-emi62c-fix-warnings drivers/usb/misc/emi26.c
+--- a/drivers/usb/misc/emi26.c~drivers-usb-misc-emi26c-emi62c-fix-warnings
++++ a/drivers/usb/misc/emi26.c
+@@ -37,9 +37,6 @@ static int emi26_set_reset(struct usb_de
+ static int emi26_load_firmware (struct usb_device *dev);
+ static int emi26_probe(struct usb_interface *intf, const struct usb_device_id *id);
+ static void emi26_disconnect(struct usb_interface *intf);
+-static int __init emi26_init (void);
+-static void __exit emi26_exit (void);
+-
  
- #ifdef MODULE
--static const char *irq[PARPORT_PC_MAX_PORTS];
--static const char *dma[PARPORT_PC_MAX_PORTS];
-+static char *irq[PARPORT_PC_MAX_PORTS];
-+static char *dma[PARPORT_PC_MAX_PORTS];
+ /* thanks to drivers/usb/serial/keyspan_pda.c code */
+ static int emi26_writememory (struct usb_device *dev, int address,
+diff -puN drivers/usb/misc/emi62.c~drivers-usb-misc-emi26c-emi62c-fix-warnings drivers/usb/misc/emi62.c
+--- a/drivers/usb/misc/emi62.c~drivers-usb-misc-emi26c-emi62c-fix-warnings
++++ a/drivers/usb/misc/emi62.c
+@@ -46,9 +46,6 @@ static int emi62_set_reset(struct usb_de
+ static int emi62_load_firmware (struct usb_device *dev);
+ static int emi62_probe(struct usb_interface *intf, const struct usb_device_id *id);
+ static void emi62_disconnect(struct usb_interface *intf);
+-static int __init emi62_init (void);
+-static void __exit emi62_exit (void);
+-
  
- MODULE_PARM_DESC(io, "Base I/O address (SPP regs)");
- module_param_array(io, int, NULL, 0);
+ /* thanks to drivers/usb/serial/keyspan_pda.c code */
+ static int emi62_writememory(struct usb_device *dev, int address,
 _
-Subject: Subject: drivers/parport/parport_pc.c: fix warnings
+Subject: Subject: drivers/usb/misc/emi26.c & emi62.c: fix warnings
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -77,7 +90,6 @@ x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
 mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes-checkpatch-fixes.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
-drivers-video-nvidia-nvidiac-fix-warning.patch
 drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
 drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
 slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
@@ -129,5 +141,4 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-drivers-parport-parport_pcc-fix-warnings.patch
 
