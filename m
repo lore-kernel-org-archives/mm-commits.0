@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch added to -mm tree
-Date: Mon, 09 Jan 2012 14:59:52 -0800
-Message-ID: <20120109234205.11F98200057@hpza10.eem.corp.google.com>
+Subject: + a.patch added to -mm tree
+Date: Mon, 09 Jan 2012 15:53:51 -0800
+Message-ID: <20120110003603.3F97E1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:56321 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932137Ab2AIXmI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 18:42:08 -0500
-Received: by wgbdt14 with SMTP id dt14so77989wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 15:42:06 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:63542 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933627Ab2AJAgE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 19:36:04 -0500
+Received: by yenm5 with SMTP id m5so504610yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 16:36:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, mchehab@redhat.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
+     Subject: drivers/block/paride/bpck6.c: fix build
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+     a.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
+Subject: drivers/block/paride/bpck6.c: fix build
 
+i386 allmodconfig:
 
+drivers/block/paride/bpck6.c:24: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'verbose'
+
+We can't use "bool" before declaring the typedef to define it.
+
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mpt2sas/mpt2sas_scsih.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/paride/bpck6.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/scsi/mpt2sas/mpt2sas_scsih.c~drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly drivers/scsi/mpt2sas/mpt2sas_scsih.c
---- a/drivers/scsi/mpt2sas/mpt2sas_scsih.c~drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly
-+++ a/drivers/scsi/mpt2sas/mpt2sas_scsih.c
-@@ -5744,7 +5744,7 @@ _scsih_sas_enclosure_dev_status_change_e
- }
+diff -puN drivers/block/paride/bpck6.c~a drivers/block/paride/bpck6.c
+--- a/drivers/block/paride/bpck6.c~a
++++ a/drivers/block/paride/bpck6.c
+@@ -20,9 +20,6 @@
+ */
  
- /**
-- * _scsih_sas_broadcast_primative_event - handle broadcast events
-+ * _scsih_sas_broadcast_primitive_event - handle broadcast events
-  * @ioc: per adapter object
-  * @fw_event: The fw_event_work object
-  * Context: user.
-@@ -5752,7 +5752,7 @@ _scsih_sas_enclosure_dev_status_change_e
-  * Return nothing.
-  */
- static void
--_scsih_sas_broadcast_primative_event(struct MPT2SAS_ADAPTER *ioc,
-+_scsih_sas_broadcast_primitive_event(struct MPT2SAS_ADAPTER *ioc,
-     struct fw_event_work *fw_event)
- {
- 	struct scsi_cmnd *scmd;
-@@ -7263,7 +7263,7 @@ _firmware_event_work(struct work_struct 
- 		    fw_event);
- 		break;
- 	case MPI2_EVENT_SAS_BROADCAST_PRIMITIVE:
--		_scsih_sas_broadcast_primative_event(ioc,
-+		_scsih_sas_broadcast_primitive_event(ioc,
- 		    fw_event);
- 		break;
- 	case MPI2_EVENT_SAS_ENCL_DEVICE_STATUS_CHANGE:
+ 
+-/* PARAMETERS */
+-static bool verbose; /* set this to 1 to see debugging messages and whatnot */
+-
+ #define BACKPACK_VERSION "2.0.2"
+ 
+ #include <linux/module.h>
+@@ -36,8 +33,8 @@ static bool verbose; /* set this to 1 to
+ #include "ppc6lnx.c"
+ #include "paride.h"
+ 
++static bool verbose; /* set this to 1 to see debugging messages and whatnot */
+  
+-
+ #define PPCSTRUCT(pi) ((Interface *)(pi->private))
+ 
+ /****************************************************************/
 _
-Subject: Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
+Subject: Subject: drivers/block/paride/bpck6.c: fix build
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -141,4 +141,6 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+a.patch
+a.patch
 
