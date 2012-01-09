@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + a.patch added to -mm tree
-Date: Mon, 09 Jan 2012 15:53:51 -0800
-Message-ID: <20120110003603.3F97E1E004D@wpzn4.hot.corp.google.com>
+Subject: + drivers-block-paride-bpck6c-fix-build.patch added to -mm tree
+Date: Mon, 09 Jan 2012 15:54:04 -0800
+Message-ID: <20120110003616.3D4A910004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:63542 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933627Ab2AJAgE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 19:36:04 -0500
-Received: by yenm5 with SMTP id m5so504610yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 16:36:03 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:52811 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933626Ab2AJAgR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 19:36:17 -0500
+Received: by ghrr15 with SMTP id r15so488821ghr.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 16:36:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,7 +19,7 @@ Cc: akpm@linux-foundation.org, mchehab@redhat.com, rusty@rustcorp.com.au
 The patch titled
      Subject: drivers/block/paride/bpck6.c: fix build
 has been added to the -mm tree.  Its filename is
-     a.patch
+     drivers-block-paride-bpck6c-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -50,8 +50,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/block/paride/bpck6.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/block/paride/bpck6.c~a drivers/block/paride/bpck6.c
---- a/drivers/block/paride/bpck6.c~a
+diff -puN drivers/block/paride/bpck6.c~drivers-block-paride-bpck6c-fix-build drivers/block/paride/bpck6.c
+--- a/drivers/block/paride/bpck6.c~drivers-block-paride-bpck6c-fix-build
 +++ a/drivers/block/paride/bpck6.c
 @@ -20,9 +20,6 @@
  */
@@ -141,6 +141,6 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-a.patch
-a.patch
+drivers-block-paride-bpck6c-fix-build.patch
+drivers-block-paride-bpck6c-fix-build.patch
 
