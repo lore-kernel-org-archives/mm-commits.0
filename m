@@ -1,88 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 14:45:13 -0800
-Message-ID: <20120110224513.D3B781E0190@wpzn4.hot.corp.google.com>
+Subject: [folded] mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 14:45:42 -0800
+Message-ID: <20120110224543.3BB531E0260@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:60094 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530Ab2AJWpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:45:15 -0500
-Received: by ggnk3 with SMTP id k3so14763ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:45:15 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:37918 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530Ab2AJWpo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:45:44 -0500
+Received: by yhpp56 with SMTP id p56so13467yhp.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:45:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, hughd@google.com, mgorman@suse.de, nai.xia@gmail.com, pluto@agmk.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-exclude-reserved-pages-from-dirtyable-memory-fix
+     Subject: mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
 has been removed from the -mm tree.  Its filename was
-     mm-exclude-reserved-pages-from-dirtyable-memory-fix.patch
+     mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update.patch
 
-This patch was dropped because it was folded into mm-exclude-reserved-pages-from-dirtyable-memory.patch
+This patch was dropped because it was folded into mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-exclude-reserved-pages-from-dirtyable-memory-fix
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
 
-fix highmem build
-
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Nai Xia <nai.xia@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Pawel Sikora <pluto@agmk.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mmap.c   |    6 +++---
+ mm/mremap.c |   10 +++++++++-
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-exclude-reserved-pages-from-dirtyable-memory-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-exclude-reserved-pages-from-dirtyable-memory-fix
-+++ a/mm/page-writeback.c
-@@ -163,8 +163,7 @@ static unsigned long highmem_dirtyable_m
- 			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
- 
- 		x += zone_page_state(z, NR_FREE_PAGES) +
--		     zone_reclaimable_pages(z) -
--		     zone->dirty_balance_reserve;
-+		     zone_reclaimable_pages(z) - z->dirty_balance_reserve;
+diff -puN mm/mmap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update mm/mmap.c
+--- a/mm/mmap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
++++ a/mm/mmap.c
+@@ -2355,7 +2355,7 @@ struct vm_area_struct *copy_vma(struct v
+ 	 * If anonymous vma has not yet been faulted, update new pgoff
+ 	 * to match new location, to increase its chance of merging.
+ 	 */
+-	if (!vma->vm_file && !vma->anon_vma) {
++	if (unlikely(!vma->vm_file && !vma->anon_vma)) {
+ 		pgoff = addr >> PAGE_SHIFT;
+ 		faulted_in_anon_vma = false;
  	}
- 	/*
- 	 * Make sure that the number of highmem pages is never larger
+@@ -2367,8 +2367,8 @@ struct vm_area_struct *copy_vma(struct v
+ 		/*
+ 		 * Source vma may have been merged into new_vma
+ 		 */
+-		if (vma_start >= new_vma->vm_start &&
+-		    vma_start < new_vma->vm_end) {
++		if (unlikely(vma_start >= new_vma->vm_start &&
++			     vma_start < new_vma->vm_end)) {
+ 			/*
+ 			 * The only way we can get a vma_merge with
+ 			 * self during an mremap is if the vma hasn't
+diff -puN mm/mremap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update mm/mremap.c
+--- a/mm/mremap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma-update
++++ a/mm/mremap.c
+@@ -221,11 +221,19 @@ static unsigned long move_vma(struct vm_
+ 	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len);
+ 	if (moved_len < old_len) {
+ 		/*
++		 * Before moving the page tables from the new vma to
++		 * the old vma, we need to be sure the old vma is
++		 * queued after new vma in the same_anon_vma list to
++		 * prevent SMP races with rmap_walk (that could lead
++		 * rmap_walk to miss some page table).
++		 */
++		anon_vma_moveto_tail(vma);
++
++		/*
+ 		 * On error, move entries back from new area to old,
+ 		 * which will succeed since page tables still there,
+ 		 * and then proceed to unmap new area instead of old.
+ 		 */
+-		anon_vma_moveto_tail(vma);
+ 		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len);
+ 		vma = new_vma;
+ 		old_len = new_len;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
-mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
-mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
+mm-avoid-livelock-on-__gfp_fs-allocations-v2.patch
+hugetlb-detect-race-upon-page-allocation-failure-during-cow.patch
+hugetlb-clarify-hugetlb_instantiation_mutex-usage.patch
 mm-more-intensive-memory-corruption-debug.patch
-mm-exclude-reserved-pages-from-dirtyable-memory.patch
-mm-simplify-find_vma_prev-fix.patch
+pm-hibernate-do-not-count-debug-pages-as-savable.patch
+slub-min-order-when-debug_guardpage_minorder-0.patch
+mm-compaction-push-isolate-search-base-of-compact-control-one-pfn-ahead.patch
+mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
+mm-vmscanc-consider-swap-space-when-deciding-whether-to-continue-reclaim.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
 mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
-mempool-fix-first-round-failure-behavior-fix.patch
-backlight-convert-pwm_bl-to-dev_pm_ops-fix.patch
-leds-add-driver-for-tca6507-led-controller.patch
-checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
-checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
-drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
-procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
-procfs-parse-mount-options-fix.patch
-procfs-add-hidepid=-and-gid=-mount-options-fix-2.patch
-workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
+mm-vmscan-fix-typo-in-isolating-lru-pages.patch
 
