@@ -1,79 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 15:38:39 -0800
-Message-ID: <20120110233840.26CE31E004D@wpzn4.hot.corp.google.com>
+Subject: [folded] slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 15:43:32 -0800
+Message-ID: <20120110234333.4951E1E017F@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:57736 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755381Ab2AJXil (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:38:41 -0500
-Received: by mail-gy0-f202.google.com with SMTP id r15so18071ghr.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:38:40 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:54557 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647Ab2AJXne (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:43:34 -0500
+Received: by yhpp56 with SMTP id p56so19291yhp.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:43:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, john@Calva.COM, john@calva.com, john@calvaedi.com, malattia@linux.it, mjg@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, penberg@cs.helsinki.fi, rientjes@google.com, sgruszka@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
+     Subject: slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+     slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+This patch was dropped because it was folded into slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
+Subject: slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes
 
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
 
-ERROR: code indent should use tabs where possible
-#34: FILE: drivers/platform/x86/sony-laptop.c:395:
-+                   remap the key */$
+ERROR: trailing whitespace
+#22: FILE: Documentation/ABI/testing/sysfs-kernel-slab:348:
++^I^Ipossible depending on its characteristics. $
 
-total: 1 errors, 0 warnings, 28 lines checked
+total: 1 errors, 0 warnings, 20 lines checked
 
 NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
       scripts/cleanfile
 
-./patches/drivers-platform-x86-sony-laptopc-fix-scancodes-v2.patch has style problems, please review.
+./patches/slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: John Hughes <john@Calva.COM>
-Cc: John Hughes <john@calva.com>
-Cc: John Hughes <john@calvaedi.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Mattia Dongili <malattia@linux.it>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Stanislaw Gruszka <sgruszka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/sony-laptop.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-slab |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes drivers/platform/x86/sony-laptop.c
---- a/drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
-+++ a/drivers/platform/x86/sony-laptop.c
-@@ -391,8 +391,10 @@ static void sony_laptop_report_input_eve
- 	}
+diff -puN Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes Documentation/ABI/testing/sysfs-kernel-slab
+--- a/Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes
++++ a/Documentation/ABI/testing/sysfs-kernel-slab
+@@ -345,7 +345,7 @@ Description:
+ 		allocated.  It is writable and can be changed to increase the
+ 		number of objects per slab.  If a slab cannot be allocated
+ 		because of fragmentation, SLUB will retry with the minimum order
+-		possible depending on its characteristics. 
++		possible depending on its characteristics.
+ 		When debug_guardpage_minorder > 0 parameter is specified, the
+ 		minimum possible order is used and cannot be changed.
  
- 	if (kp.dev) {
--		/* if we have a scancode we emit it so we can always
--                   remap the key */
-+		/*
-+		 * If we have a scancode we emit it so we can always remap the
-+		 * key
-+		 */
- 		if (scancode != -1)
- 			input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
- 		input_report_key(kp.dev, kp.key, 1);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,16 +94,16 @@ fs-nfs-nfs4procc-fix-printk-warnings.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-drivers-video-nvidia-nvidiac-fix-warning.patch
 drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
 drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch
 mm.patch
 mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
 frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
 hpet-factor-timer-allocate-from-open.patch
 drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix.patch
 treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+drivers-video-nvidia-nvidiac-fix-warning.patch
 mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
 memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
