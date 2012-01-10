@@ -1,64 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded] user-namespace-make-signalc-respect-user-namespaces-v5-fix-2.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 14:57:58 -0800
-Message-ID: <20120110225758.78EE31000FC@wpzn3.hot.corp.google.com>
+Subject: [folded] workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 14:57:14 -0800
+Message-ID: <20120110225714.E48B65C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:63640 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933376Ab2AJW57 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:57:59 -0500
-Received: by mail-gy0-f202.google.com with SMTP id r15so14601ghr.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:57:59 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:34233 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647Ab2AJW5R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:57:17 -0500
+Received: by eaak10 with SMTP id k10so3666eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:57:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, ebiederm@xmission.com, matthltc@us.ibm.com, oleg@redhat.com, serge@hallyn.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/mqueue: lock() => unlock() typo
+     Subject: workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix
 has been removed from the -mm tree.  Its filename was
-     user-namespace-make-signalc-respect-user-namespaces-v5-fix-2.patch
+     workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix.patch
 
-This patch was dropped because it was folded into user-namespace-make-signalc-respect-user-namespaces-v5.patch
+This patch was dropped because it was folded into workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ipc/mqueue: lock() => unlock() typo
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix
 
-There was a double lock typo introduced in b085f4bd6b21 "user namespace:
-make signal.c respect user namespaces"
+use __printf
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: Serge Hallyn <serge@hallyn.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/workqueue.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN ipc/mqueue.c~user-namespace-make-signalc-respect-user-namespaces-v5-fix-2 ipc/mqueue.c
---- a/ipc/mqueue.c~user-namespace-make-signalc-respect-user-namespaces-v5-fix-2
-+++ a/ipc/mqueue.c
-@@ -557,7 +557,7 @@ static void __do_notify(struct mqueue_in
- 						ns_of_pid(info->notify_owner));
- 			sig_i.si_uid = user_ns_map_uid(info->user->user_ns,
- 						current_cred(), current_uid());
--			rcu_read_lock();
-+			rcu_read_unlock();
+diff -puN include/linux/workqueue.h~workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix include/linux/workqueue.h
+--- a/include/linux/workqueue.h~workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name-fix
++++ a/include/linux/workqueue.h
+@@ -298,8 +298,7 @@ extern struct workqueue_struct *system_f
  
- 			kill_pid_info(info->notify.sigev_signo,
- 				      &sig_i, info->notify_owner);
+ extern struct workqueue_struct *
+ __alloc_workqueue_key(const char *fmt, unsigned int flags, int max_active,
+-		      struct lock_class_key *key, const char *lock_name, ...)
+-	__attribute__((format (printf, 1, 6)));
++	struct lock_class_key *key, const char *lock_name, ...) __printf(1, 6);
+ 
+ /**
+  * alloc_workqueue - allocate a workqueue
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
+mm-more-intensive-memory-corruption-debug.patch
+mm-exclude-reserved-pages-from-dirtyable-memory.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
+mempool-fix-first-round-failure-behavior.patch
+backlight-convert-pwm_bl-to-dev_pm_ops.patch
 leds-add-driver-for-tca6507-led-controller.patch
-user-namespace-make-signalc-respect-user-namespaces-v5.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
+drivers-rtc-rtc-mxcc-make-alarm-work.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch
 
