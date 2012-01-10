@@ -1,55 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded] checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 14:49:28 -0800
-Message-ID: <20120110224929.7B080200079@hpza10.eem.corp.google.com>
+Subject: [folded] drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 14:49:52 -0800
+Message-ID: <20120110224952.C1E6010006E@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:38898 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756539Ab2AJWtb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:49:31 -0500
-Received: by eaak10 with SMTP id k10so3438eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:49:30 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:59642 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756607Ab2AJWtx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:49:53 -0500
+Received: by yhpp56 with SMTP id p56so13906yhp.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:49:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jekhor@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes
+     Subject: drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix
 has been removed from the -mm tree.  Its filename was
-     checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes.patch
+     drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
 
-This patch was dropped because it was folded into checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
+This patch was dropped because it was folded into drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes
+Subject: drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix
 
-Someone doesn't feed checkpatch patches through checkpatch!!
+use conventional comment layout
 
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: Yauhen Kharuzhy <jekhor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-mxc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line-checkpatch-fixes
-+++ a/scripts/checkpatch.pl
-@@ -2226,7 +2226,7 @@ sub process {
- 				ERROR("POINTER_LOCATION",
- 				      "\"(foo$from)\" should be \"(foo$to)\"\n" .  $herecurr);
- 			}
--		} 
-+		}
- 		while ($line =~ m{(\b$NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)($Ident))}g) {
- 			#print "BB<$1>\n";
- 			my ($from, $to, $ident) = ($2, $2, $3);
+diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix
++++ a/drivers/rtc/rtc-mxc.c
+@@ -290,8 +290,8 @@ static int mxc_rtc_read_time(struct devi
+  */
+ static int mxc_rtc_set_mmss(struct device *dev, unsigned long time)
+ {
+-	/* RTC_DAYR register is 9-bit in MX1 SoC,
+-	 * save time and day of year only
++	/*
++	 * TTC_DAYR register is 9-bit in MX1 SoC, save time and day of year only
+ 	 */
+ 	if (cpu_is_mx1()) {
+ 		struct rtc_time tm;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +66,7 @@ backlight-convert-pwm_bl-to-dev_pm_ops.patch
 leds-add-driver-for-tca6507-led-controller.patch
 checkpatch-improve-memset-and-min-max-with-cast-checking.patch
 checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
-drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc-fix.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
 drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
 rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
 rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
