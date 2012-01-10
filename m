@@ -1,59 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 14:46:41 -0800
-Message-ID: <20120110224642.47880200079@hpza10.eem.corp.google.com>
+Subject: [folded] mempool-fix-first-round-failure-behavior-fix.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 14:47:09 -0800
+Message-ID: <20120110224709.D76A21E0451@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:63998 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530Ab2AJWqp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:46:45 -0500
-Received: by eekd41 with SMTP id d41so3088eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:46:44 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:50225 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755542Ab2AJWrK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:47:10 -0500
+Received: by ggnk3 with SMTP id k3so14979ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:47:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix
+     Subject: mempool-fix-first-round-failure-behavior-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix.patch
+     mempool-fix-first-round-failure-behavior-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
+This patch was dropped because it was folded into mempool-fix-first-round-failure-behavior.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix
+Subject: mempool-fix-first-round-failure-behavior-fix
 
-use vma_hugecache_offset() directly, per Michal
+shorten the lock hold time
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ mm/mempool.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma-fix
-+++ a/mm/hugetlb.c
-@@ -2315,7 +2315,7 @@ static int unmap_ref_private(struct mm_s
- 	 * from page cache lookup which is in HPAGE_SIZE units.
+diff -puN mm/mempool.c~mempool-fix-first-round-failure-behavior-fix mm/mempool.c
+--- a/mm/mempool.c~mempool-fix-first-round-failure-behavior-fix
++++ a/mm/mempool.c
+@@ -226,8 +226,8 @@ repeat_alloc:
+ 	 * alloc failed with that and @pool was empty, retry immediately.
  	 */
- 	address = address & huge_page_mask(h);
--	pgoff = linear_hugepage_index(vma, address);
-+	pgoff = vma_hugecache_offset(h, vma, address);
- 	mapping = (struct address_space *)page_private(page);
+ 	if (gfp_temp != gfp_mask) {
+-		gfp_temp = gfp_mask;
+ 		spin_unlock_irqrestore(&pool->lock, flags);
++		gfp_temp = gfp_mask;
+ 		goto repeat_alloc;
+ 	}
  
- 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +60,7 @@ mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
 mm-more-intensive-memory-corruption-debug.patch
 mm-exclude-reserved-pages-from-dirtyable-memory.patch
 mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
-mempool-fix-first-round-failure-behavior-fix.patch
+mempool-fix-first-round-failure-behavior.patch
 backlight-convert-pwm_bl-to-dev_pm_ops-fix.patch
 leds-add-driver-for-tca6507-led-controller.patch
 checkpatch-improve-memset-and-min-max-with-cast-checking-fix.patch
