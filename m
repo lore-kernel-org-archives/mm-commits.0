@@ -1,77 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 15:44:15 -0800
-Message-ID: <20120110234416.28D1510017A@wpzn3.hot.corp.google.com>
+Subject: [obsolete] fs-fix-fs-fs-writebackc-build-error.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 15:44:31 -0800
+Message-ID: <20120110234432.B01B8200183@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:53815 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063Ab2AJXoR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:44:17 -0500
-Received: by ghrr15 with SMTP id r15so18506ghr.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:44:16 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:47781 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063Ab2AJXof (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:44:35 -0500
+Received: by eaak10 with SMTP id k10so5007eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:44:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sgruszka@redhat.com, penberg@cs.helsinki.fi, rientjes@google.com, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: document setting min order with debug_guardpage_minorder > 0
+     Subject: fs: fix fs/fs-writeback.c build error
 has been removed from the -mm tree.  Its filename was
-     slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch
+     fs-fix-fs-fs-writebackc-build-error.patch
 
-This patch was dropped because Rafael wanted changes and I never received them
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stanislaw Gruszka <sgruszka@redhat.com>
-Subject: slub: document setting min order with debug_guardpage_minorder > 0
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: fs: fix fs/fs-writeback.c build error
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+In linux-next, fs/fs-writeback.c no longer #includes <linux/buffer_head.h>,
+which #included <linux/pagemap.h>, so add that latter header file to
+<linux/writeback.h> to fix the build error:
+
+fs/fs-writeback.c:510:11: error: 'PAGE_CACHE_SHIFT' undeclared (first use in this function)
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-slab |    2 ++
- Documentation/vm/slub.txt                   |    4 +++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ include/linux/writeback.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0 Documentation/ABI/testing/sysfs-kernel-slab
---- a/Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0
-+++ a/Documentation/ABI/testing/sysfs-kernel-slab
-@@ -346,6 +346,8 @@ Description:
- 		number of objects per slab.  If a slab cannot be allocated
- 		because of fragmentation, SLUB will retry with the minimum order
- 		possible depending on its characteristics.
-+		When debug_guardpage_minorder > 0 parameter is specified, the
-+		minimum possible order is used and cannot be changed.
+diff -puN include/linux/writeback.h~fs-fix-fs-fs-writebackc-build-error include/linux/writeback.h
+--- a/include/linux/writeback.h~fs-fix-fs-fs-writebackc-build-error
++++ a/include/linux/writeback.h
+@@ -6,6 +6,7 @@
  
- What:		/sys/kernel/slab/cache/order_fallback
- Date:		April 2008
-diff -puN Documentation/vm/slub.txt~slub-document-setting-min-order-with-debug_guardpage_minorder-0 Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~slub-document-setting-min-order-with-debug_guardpage_minorder-0
-+++ a/Documentation/vm/slub.txt
-@@ -131,7 +131,9 @@ slub_min_objects.
- slub_max_order specified the order at which slub_min_objects should no
- longer be checked. This is useful to avoid SLUB trying to generate
- super large order pages to fit slub_min_objects of a slab cache with
--large object sizes into one high order page.
-+large object sizes into one high order page. Setting parameter
-+debug_guardpage_minorder > 0 forces setting slub_max_order to 0, what
-+cause minimum possible order of slabs allocation.
+ #include <linux/sched.h>
+ #include <linux/fs.h>
++#include <linux/pagemap.h>
  
- SLUB Debug output
- -----------------
+ DECLARE_PER_CPU(int, dirty_throttle_leaks);
+ 
 _
 
-Patches currently in -mm which might be from sgruszka@redhat.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
-mm-more-intensive-memory-corruption-debug.patch
-pm-hibernate-do-not-count-debug-pages-as-savable.patch
-slub-min-order-when-debug_guardpage_minorder-0.patch
+leds-add-driver-for-tca6507-led-controller.patch
+procfs-parse-mount-options.patch
+procfs-add-hidepid=-and-gid=-mount-options.patch
 linux-next.patch
+drivers-scsi-megaraidc-fix-sparse-warnings.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
