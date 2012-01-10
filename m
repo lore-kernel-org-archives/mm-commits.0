@@ -1,70 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - frv-duplicate-output_buffer-of-e03.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 15:45:52 -0800
-Message-ID: <20120110234553.5E22E1001B2@wpzn3.hot.corp.google.com>
+Subject: [folded] drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 15:47:28 -0800
+Message-ID: <20120110234729.51F465C024F@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:39958 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751641Ab2AJXpy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:45:54 -0500
-Received: by ggnk3 with SMTP id k3so21108ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:45:53 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:59634 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739Ab2AJXrc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:47:32 -0500
+Received: by eaak10 with SMTP id k10so5109eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:47:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roel.kluin@gmail.com, dhowells@redhat.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, len.brown@intel.com, mingmingx.zhang@intel.com, shaohua.li@intel.com, yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frv: duplicate output_buffer of E03
+     Subject: drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix
 has been removed from the -mm tree.  Its filename was
-     frv-duplicate-output_buffer-of-e03.patch
+     drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix.patch
 
-This patch was dropped because I don't know how to get this merged :(
+This patch was dropped because it was folded into drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Roel Kluin <roel.kluin@gmail.com>
-Subject: frv: duplicate output_buffer of E03
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix
 
-In the case of an error, output_buffer gets an E0X value.  E03 was set in
-two.
+add comment
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: "Li, Shaohua" <shaohua.li@intel.com>
+Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
+Cc: mzha38X <mingmingx.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/gdb-stub.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/idle/intel_idle.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/frv/kernel/gdb-stub.c~frv-duplicate-output_buffer-of-e03 arch/frv/kernel/gdb-stub.c
---- a/arch/frv/kernel/gdb-stub.c~frv-duplicate-output_buffer-of-e03
-+++ a/arch/frv/kernel/gdb-stub.c
-@@ -1936,7 +1936,7 @@ void gdbstub(int sigval)
- 			}
- 
- 			if (temp >= 5) {
--				gdbstub_strcpy(output_buffer,"E03");
-+				gdbstub_strcpy(output_buffer, "E02");
- 				break;
- 			}
- 
-@@ -1964,7 +1964,7 @@ void gdbstub(int sigval)
- 			}
- 
- 			if (temp >= 5) {
--				gdbstub_strcpy(output_buffer,"E03");
-+				gdbstub_strcpy(output_buffer, "E02");
- 				break;
- 			}
- 
+diff -puN drivers/idle/intel_idle.c~drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix drivers/idle/intel_idle.c
+--- a/drivers/idle/intel_idle.c~drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix
++++ a/drivers/idle/intel_idle.c
+@@ -232,6 +232,7 @@ static int get_driver_data(int cstate)
+  * @drv: cpuidle driver
+  * @index: index of cpuidle state
+  *
++ * Must be called under local_irq_disable().
+  */
+ static int intel_idle(struct cpuidle_device *dev,
+ 		struct cpuidle_driver *drv, int index)
 _
 
-Patches currently in -mm which might be from roel.kluin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ceph-cifs-nfs-fuse-boolean-and-or-confusion.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
+mm-more-intensive-memory-corruption-debug.patch
+mm-exclude-reserved-pages-from-dirtyable-memory.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
+mempool-fix-first-round-failure-behavior.patch
+backlight-convert-pwm_bl-to-dev_pm_ops.patch
+leds-add-driver-for-tca6507-led-controller.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
+drivers-rtc-rtc-mxcc-make-alarm-work.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-nfs-nfs4procc-fix-printk-warnings.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+drivers-video-nvidia-nvidiac-fix-warning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
+memcg-simplify-lru-handling-by-new-rule-fix.patch
+memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+drivers-parport-parport_pcc-fix-warnings.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
