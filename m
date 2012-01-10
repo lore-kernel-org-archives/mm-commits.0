@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-paride-bpck6c-fix-build.patch added to -mm tree
-Date: Mon, 09 Jan 2012 15:54:04 -0800
-Message-ID: <20120110003616.3D4A910004D@wpzn3.hot.corp.google.com>
+Subject: + fs-nfs-nfs4procc-fix-printk-warnings.patch added to -mm tree
+Date: Mon, 09 Jan 2012 16:14:57 -0800
+Message-ID: <20120110005709.4F9371E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:52811 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933626Ab2AJAgR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 19:36:17 -0500
-Received: by ghrr15 with SMTP id r15so488821ghr.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 16:36:16 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:58052 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862Ab2AJA5K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jan 2012 19:57:10 -0500
+Received: by yenm5 with SMTP id m5so507198yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jan 2012 16:57:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@redhat.com, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     Subject: drivers/block/paride/bpck6.c: fix build
+     Subject: fs/nfs/nfs4proc.c: fix printk warnings
 has been added to the -mm tree.  Its filename is
-     drivers-block-paride-bpck6c-fix-build.patch
+     fs-nfs-nfs4procc-fix-printk-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/block/paride/bpck6.c: fix build
+Subject: fs/nfs/nfs4proc.c: fix printk warnings
 
 i386 allmodconfig:
 
-drivers/block/paride/bpck6.c:24: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'verbose'
+fs/nfs/nfs4proc.c: In function '__nfs4_get_acl_uncached':
+fs/nfs/nfs4proc.c:3590: warning: format '%ld' expects type 'long int', but argument 4 has type 'size_t'
+fs/nfs/nfs4proc.c:3590: warning: format '%ld' expects type 'long int', but argument 6 has type 'size_t'
 
-We can't use "bool" before declaring the typedef to define it.
-
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/paride/bpck6.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/nfs/nfs4proc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/paride/bpck6.c~drivers-block-paride-bpck6c-fix-build drivers/block/paride/bpck6.c
---- a/drivers/block/paride/bpck6.c~drivers-block-paride-bpck6c-fix-build
-+++ a/drivers/block/paride/bpck6.c
-@@ -20,9 +20,6 @@
- */
+diff -puN fs/nfs/nfs4proc.c~fs-nfs-nfs4procc-fix-printk-warnings fs/nfs/nfs4proc.c
+--- a/fs/nfs/nfs4proc.c~fs-nfs-nfs4procc-fix-printk-warnings
++++ a/fs/nfs/nfs4proc.c
+@@ -3587,7 +3587,7 @@ static ssize_t __nfs4_get_acl_uncached(s
+ 		res.acl_flags |= NFS4_ACL_LEN_REQUEST;
+ 	resp_buf = page_address(pages[0]);
  
- 
--/* PARAMETERS */
--static bool verbose; /* set this to 1 to see debugging messages and whatnot */
--
- #define BACKPACK_VERSION "2.0.2"
- 
- #include <linux/module.h>
-@@ -36,8 +33,8 @@ static bool verbose; /* set this to 1 to
- #include "ppc6lnx.c"
- #include "paride.h"
- 
-+static bool verbose; /* set this to 1 to see debugging messages and whatnot */
-  
--
- #define PPCSTRUCT(pi) ((Interface *)(pi->private))
- 
- /****************************************************************/
+-	dprintk("%s  buf %p buflen %ld npages %d args.acl_len %ld\n",
++	dprintk("%s  buf %p buflen %zu npages %d args.acl_len %zu\n",
+ 		__func__, buf, buflen, npages, args.acl_len);
+ 	ret = nfs4_call_sync(NFS_SERVER(inode)->client, NFS_SERVER(inode),
+ 			     &msg, &args.seq_args, &res.seq_res, 0);
 _
-Subject: Subject: drivers/block/paride/bpck6.c: fix build
+Subject: Subject: fs/nfs/nfs4proc.c: fix printk warnings
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -83,6 +71,7 @@ linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-paride-bpck6c-fix-build.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs-fix.patch
 mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
@@ -141,6 +130,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-drivers-block-paride-bpck6c-fix-build.patch
-drivers-block-paride-bpck6c-fix-build.patch
+fs-nfs-nfs4procc-fix-printk-warnings.patch
 
