@@ -1,82 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-platform-x86-sony-laptopc-fix-scancodes-v2.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 15:38:36 -0800
-Message-ID: <20120110233836.E54A71E004D@wpzn4.hot.corp.google.com>
+Subject: [folded] drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 15:38:39 -0800
+Message-ID: <20120110233840.26CE31E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:59908 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755381Ab2AJXih (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:38:37 -0500
-Received: by yenm5 with SMTP id m5so18361yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:38:37 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:57736 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755381Ab2AJXil (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:38:41 -0500
+Received: by mail-gy0-f202.google.com with SMTP id r15so18071ghr.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:38:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john@calvaedi.com, dan.carpenter@oracle.com, john@Calva.COM, john@calva.com, malattia@linux.it, mjg@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.carpenter@oracle.com, john@Calva.COM, john@calva.com, john@calvaedi.com, malattia@linux.it, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2
+     Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-platform-x86-sony-laptopc-fix-scancodes-v2.patch
+     drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into drivers-platform-x86-sony-laptopc-fix-scancodes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: John Hughes <john@calvaedi.com>
-Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
 
-Signed-off-by: John Hughes <john@calva.com>
 Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mattia Dongili <malattia@linux.it>
+
+ERROR: code indent should use tabs where possible
+#34: FILE: drivers/platform/x86/sony-laptop.c:395:
++                   remap the key */$
+
+total: 1 errors, 0 warnings, 28 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/drivers-platform-x86-sony-laptopc-fix-scancodes-v2.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Cc: John Hughes <john@Calva.COM>
+Cc: John Hughes <john@calva.com>
+Cc: John Hughes <john@calvaedi.com>
 Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Mattia Dongili <malattia@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/sony-laptop.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/platform/x86/sony-laptop.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2 drivers/platform/x86/sony-laptop.c
---- a/drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2
+diff -puN drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes drivers/platform/x86/sony-laptop.c
+--- a/drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes
 +++ a/drivers/platform/x86/sony-laptop.c
-@@ -347,7 +347,7 @@ static void sony_laptop_report_input_eve
- 	struct input_dev *jog_dev = sony_laptop_input.jog_dev;
- 	struct input_dev *key_dev = sony_laptop_input.key_dev;
- 	struct sony_laptop_keypress kp = { NULL };
--	int scancode;
-+	int scancode = -1;
- 
- 	if (event == SONYPI_EVENT_FNKEY_RELEASED ||
- 			event == SONYPI_EVENT_ANYBUTTON_RELEASED) {
 @@ -391,8 +391,10 @@ static void sony_laptop_report_input_eve
  	}
  
  	if (kp.dev) {
--		/* we emit the scancode so we can always remap the key */
--		input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
-+		/* if we have a scancode we emit it so we can always
-+                   remap the key */
-+		if (scancode != -1)
-+			input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
+-		/* if we have a scancode we emit it so we can always
+-                   remap the key */
++		/*
++		 * If we have a scancode we emit it so we can always remap the
++		 * key
++		 */
+ 		if (scancode != -1)
+ 			input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
  		input_report_key(kp.dev, kp.key, 1);
- 		input_sync(kp.dev);
- 
-@@ -468,7 +470,7 @@ static int sony_laptop_setup_input(struc
- 	jog_dev->name = "Sony Vaio Jogdial";
- 	jog_dev->id.bustype = BUS_ISA;
- 	jog_dev->id.vendor = PCI_VENDOR_ID_SONY;
--	key_dev->dev.parent = &acpi_device->dev;
-+	jog_dev->dev.parent = &acpi_device->dev;
- 
- 	input_set_capability(jog_dev, EV_KEY, BTN_MIDDLE);
- 	input_set_capability(jog_dev, EV_REL, REL_WHEEL);
 _
 
-Patches currently in -mm which might be from john@calvaedi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm-reduce-the-amount-of-work-done-when-updating-min_free_kbytes.patch
+mm-hugetlbc-fix-virtual-address-handling-in-hugetlb-fault.patch
+mm-more-intensive-memory-corruption-debug.patch
+mm-exclude-reserved-pages-from-dirtyable-memory.patch
+mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
+mempool-fix-first-round-failure-behavior.patch
+backlight-convert-pwm_bl-to-dev_pm_ops.patch
+leds-add-driver-for-tca6507-led-controller.patch
+checkpatch-improve-memset-and-min-max-with-cast-checking.patch
+checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
+drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
+drivers-rtc-rtc-mxcc-make-alarm-work.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc.patch
+procfs-introduce-the-proc-pid-map_files-directory.patch
+workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-nfs-nfs4procc-fix-printk-warnings.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes-v2-checkpatch-fixes.patch
+drivers-video-nvidia-nvidiac-fix-warning.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
+slub-document-setting-min-order-with-debug_guardpage_minorder-0-checkpatch-fixes.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+frv-duplicate-output_buffer-of-e03-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call-fix.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
+memcg-simplify-lru-handling-by-new-rule-fix.patch
+memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+drivers-parport-parport_pcc-fix-warnings.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
