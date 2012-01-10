@@ -1,69 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded] ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 15:55:02 -0800
-Message-ID: <20120110235503.063CE1E046A@wpzn4.hot.corp.google.com>
+Subject: [folded] ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 15:55:05 -0800
+Message-ID: <20120110235506.0FAB51E0473@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gx0-f202.google.com ([209.85.161.202]:43817 "EHLO
 	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751984Ab2AJXzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:55:03 -0500
-Received: by ggnk3 with SMTP id k3so22249ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:55:03 -0800 (PST)
+	with ESMTP id S1751984Ab2AJXzG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 18:55:06 -0500
+Received: by mail-gx0-f202.google.com with SMTP id k3so22249ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 15:55:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, dledford@redhat.com, mm-commits@vger.kernel.org
+To: akpm@google.com, amwang@redhat.com, dledford@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix
+     Subject: ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch
+     ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix
+From: Andrew Morton <akpm@google.com>
+Subject: ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes
 
-ipc/mqueue.c: In function 'mqueue_get_inode':
-ipc/mqueue.c:154:4: error: implicit declaration of function 'vmalloc'
-ipc/mqueue.c:154:19: warning: assignment makes pointer from integer without=
- a cast
-ipc/mqueue.c: In function 'mqueue_evict_inode':
-ipc/mqueue.c:278:3: error: implicit declaration of function 'vfree'
+Cc: Amerigo Wang <amwang@redhat.com>
 
-Caused by commit 8a53f9442429 ("ipc/mqueue: update maximums for the
-mqueue subsystem").  See Rule 1 in Documentation/SubmitChecklist.
+ERROR: Macros with complex values should be enclosed in parenthesis
+#87: FILE: include/linux/ipc_namespace.h:126:
++#define DFLT_MSGSIZEMAX		1024*1024
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+ERROR: Macros with complex values should be enclosed in parenthesis
+#88: FILE: include/linux/ipc_namespace.h:127:
++#define HARD_MSGSIZEMAX	     16*1024*1024
+
+total: 2 errors, 0 warnings, 75 lines checked
+
+./patches/ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/ipc_namespace.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix
-+++ a/ipc/mqueue.c
-@@ -16,6 +16,7 @@
- #include <linux/capability.h>
- #include <linux/init.h>
- #include <linux/pagemap.h>
-+#include <linux/vmalloc.h>
- #include <linux/file.h>
- #include <linux/mount.h>
- #include <linux/namei.h>
+diff -puN include/linux/ipc_namespace.h~ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-mqueue-update-maximums-for-the-mqueue-subsystem-checkpatch-fixes
++++ a/include/linux/ipc_namespace.h
+@@ -123,8 +123,8 @@ extern int mq_init_ns(struct ipc_namespa
+ #define HARD_MSGMAX		    65536
+ #define MIN_MSGSIZEMAX		      128
+ #define DFLT_MSGSIZE		     8192U
+-#define DFLT_MSGSIZEMAX		1024*1024
+-#define HARD_MSGSIZEMAX	     16*1024*1024
++#define DFLT_MSGSIZEMAX		(1024*1024)
++#define HARD_MSGSIZEMAX	     (16*1024*1024)
+ #else
+ static inline int mq_init_ns(struct ipc_namespace *ns) { return 0; }
+ #endif
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@google.com are
 
-origin.patch
 linux-next.patch
 ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
-kdump-add-udev-events-for-memory-online-offline-fix.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
 
