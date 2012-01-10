@@ -1,61 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch removed from -mm tree
-Date: Tue, 10 Jan 2012 14:53:28 -0800
-Message-ID: <20120110225329.40635100071@wpzn3.hot.corp.google.com>
+Subject: [folded] rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 10 Jan 2012 14:53:59 -0800
+Message-ID: <20120110225400.10D311E007A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:32887 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647Ab2AJWxa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:53:30 -0500
-Received: by yenm5 with SMTP id m5so14339yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:53:29 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:44786 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647Ab2AJWyB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jan 2012 17:54:01 -0500
+Received: by ggnk3 with SMTP id k3so16345ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jan 2012 14:54:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, daniel@caiaq.de, jekhor@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, linus.walleij@stericsson.com, mark.godfrey@stericsson.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-rtc-rtc-mxcc-make-alarm-work-fix
+     Subject: rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-mxcc-make-alarm-work-fix.patch
+     rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into drivers-rtc-rtc-mxcc-make-alarm-work.patch
+This patch was dropped because it was folded into rtc-ab8500-add-calibration-attribute-to-ab8500-rtc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-rtc-rtc-mxcc-make-alarm-work-fix
-
-fix CONFIG_PM=n build
+Subject: rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes
 
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Yauhen Kharuzhy <jekhor@gmail.com>
+
+WARNING: line over 80 characters
+#48: FILE: drivers/rtc/rtc-ab8500.c:268:
++	 * Check that the calibration value (which is in units of 0.5 parts-per-million)
+
+ERROR: need consistent spacing around '-' (ctx:WxV)
+#64: FILE: drivers/rtc/rtc-ab8500.c:284:
++		rtccal = ~(calibration -1) | 0x80;
+ 		                       ^
+
+total: 1 errors, 1 warnings, 139 lines checked
+
+./patches/rtc-ab8500-add-calibration-attribute-to-ab8500-rtc.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
+Cc: Mark Godfrey <mark.godfrey@stericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mxc.c |    2 +-
+ drivers/rtc/rtc-ab8500.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-make-alarm-work-fix drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-make-alarm-work-fix
-+++ a/drivers/rtc/rtc-mxc.c
-@@ -466,12 +466,12 @@ static int mxc_rtc_resume(struct device 
+diff -puN drivers/rtc/rtc-ab8500.c~rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes drivers/rtc/rtc-ab8500.c
+--- a/drivers/rtc/rtc-ab8500.c~rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes
++++ a/drivers/rtc/rtc-ab8500.c
+@@ -281,7 +281,7 @@ static int ab8500_rtc_set_calibration(st
+ 	if (calibration >= 0)
+ 		rtccal = 0x7F & calibration;
+ 	else
+-		rtccal = ~(calibration -1) | 0x80;
++		rtccal = ~(calibration - 1) | 0x80;
  
- 	return 0;
- }
--#endif
- 
- static struct dev_pm_ops mxc_rtc_pm_ops = {
- 	.suspend	= mxc_rtc_suspend,
- 	.resume		= mxc_rtc_resume,
- };
-+#endif
- 
- static struct platform_driver mxc_rtc_driver = {
- 	.driver = {
+ 	retval = abx500_set_register_interruptible(dev, AB8500_RTC,
+ 			AB8500_RTC_CALIB_REG, rtccal);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +86,7 @@ checkpatch-improve-memset-and-min-max-with-cast-checking.patch
 checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
 drivers-rtc-rtc-mxcc-fix-setting-time-for-mx1-soc.patch
 drivers-rtc-rtc-mxcc-make-alarm-work.patch
-rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-checkpatch-fixes.patch
+rtc-ab8500-add-calibration-attribute-to-ab8500-rtc.patch
 rtc-ab8500-add-calibration-attribute-to-ab8500-rtc-v3-checkpatch-fixes.patch
 procfs-introduce-the-proc-pid-map_files-directory-checkpatch-fixes.patch
 procfs-parse-mount-options-fix.patch
