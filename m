@@ -1,177 +1,342 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-ld9040c-regulator-control-in-the-driver.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:29:53 -0800
-Message-ID: <20120111212954.037A120004E@hpza10.eem.corp.google.com>
+Subject: [merged] backlight-convert-drivers-video-backlight-to-use-module_platform_driver.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:29:48 -0800
+Message-ID: <20120111212949.693AC20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:38500 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758121Ab2AKV3z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:55 -0500
-Received: by mail-ee0-f74.google.com with SMTP id d41so44287eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:55 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:62274 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758121Ab2AKV3v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:51 -0500
+Received: by mail-ey0-f202.google.com with SMTP id d12so32568eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dh09.lee@samsung.com, FlorianSchandinat@gmx.de, inki.dae@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, broonie@opensource.wolfsonmicro.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, michael.hennerich@analog.com, mike@compulab.co.il, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight/ld9040.c: regulator control in the driver
+     Subject: backlight: convert drivers/video/backlight/* to use module_platform_driver()
 has been removed from the -mm tree.  Its filename was
-     backlight-ld9040c-regulator-control-in-the-driver.patch
+     backlight-convert-drivers-video-backlight-to-use-module_platform_driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Donghwa Lee <dh09.lee@samsung.com>
-Subject: backlight/ld9040.c: regulator control in the driver
+From: Axel Lin <axel.lin@gmail.com>
+Subject: backlight: convert drivers/video/backlight/* to use module_platform_driver()
 
-This patch supports regulator power control in the driver.  Current ld9040
-driver was controlled power on/off sequence by callback function in the
-board file.  But, by doing this, there's no need to register lcd power
-on/off callback function in the board file.
+Convert the drivers in drivers/video/backlight/* to use the
+module_platform_driver() macro which makes the code smaller and a bit
+simpler.
 
-Signed-off-by: Donghwa Lee <dh09.lee@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Inki Dae <inki.dae@samsung.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Acked-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+Acked-by: H Hartley Sweeten <hsweeten@visionengravers.com>	[ep93xx_bl.c]
+Cc: Mike Rapoport <mike@compulab.co.il>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Acked-by: Michael Hennerich <michael.hennerich@analog.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ld9040.c |   71 ++++++++++++++++++++++++-----
- 1 file changed, 59 insertions(+), 12 deletions(-)
+ drivers/video/backlight/88pm860x_bl.c        |   12 +-----------
+ drivers/video/backlight/adp5520_bl.c         |   12 +-----------
+ drivers/video/backlight/da903x_bl.c          |   12 +-----------
+ drivers/video/backlight/ep93xx_bl.c          |   12 +-----------
+ drivers/video/backlight/generic_bl.c         |   13 +------------
+ drivers/video/backlight/jornada720_bl.c      |   13 +------------
+ drivers/video/backlight/jornada720_lcd.c     |   13 +------------
+ drivers/video/backlight/max8925_bl.c         |   12 +-----------
+ drivers/video/backlight/omap1_bl.c           |   13 +------------
+ drivers/video/backlight/pcf50633-backlight.c |   12 +-----------
+ drivers/video/backlight/platform_lcd.c       |   13 +------------
+ drivers/video/backlight/pwm_bl.c             |   12 +-----------
+ drivers/video/backlight/wm831x_bl.c          |   12 +-----------
+ 13 files changed, 13 insertions(+), 148 deletions(-)
 
-diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040c-regulator-control-in-the-driver drivers/video/backlight/ld9040.c
---- a/drivers/video/backlight/ld9040.c~backlight-ld9040c-regulator-control-in-the-driver
-+++ a/drivers/video/backlight/ld9040.c
-@@ -31,6 +31,7 @@
- #include <linux/lcd.h>
- #include <linux/backlight.h>
- #include <linux/module.h>
-+#include <linux/regulator/consumer.h>
- 
- #include "ld9040_gamma.h"
- 
-@@ -53,8 +54,51 @@ struct ld9040 {
- 	struct lcd_device		*ld;
- 	struct backlight_device		*bd;
- 	struct lcd_platform_data	*lcd_pd;
-+
-+	struct mutex			lock;
-+	bool  enabled;
-+};
-+
-+static struct regulator_bulk_data supplies[] = {
-+	{ .supply = "vdd3", },
-+	{ .supply = "vci", },
+diff -puN drivers/video/backlight/88pm860x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/88pm860x_bl.c
+--- a/drivers/video/backlight/88pm860x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/88pm860x_bl.c
+@@ -270,17 +270,7 @@ static struct platform_driver pm860x_bac
+ 	.remove		= pm860x_backlight_remove,
  };
  
-+static void ld9040_regulator_enable(struct ld9040 *lcd)
-+{
-+	int ret = 0;
-+	struct lcd_platform_data *pd = NULL;
-+
-+	pd = lcd->lcd_pd;
-+	mutex_lock(&lcd->lock);
-+	if (!lcd->enabled) {
-+		ret = regulator_bulk_enable(ARRAY_SIZE(supplies), supplies);
-+		if (ret)
-+			goto out;
-+
-+		lcd->enabled = true;
-+	}
-+	mdelay(pd->power_on_delay);
-+out:
-+	mutex_unlock(&lcd->lock);
-+}
-+
-+static void ld9040_regulator_disable(struct ld9040 *lcd)
-+{
-+	int ret = 0;
-+
-+	mutex_lock(&lcd->lock);
-+	if (lcd->enabled) {
-+		ret = regulator_bulk_disable(ARRAY_SIZE(supplies), supplies);
-+		if (ret)
-+			goto out;
-+
-+		lcd->enabled = false;
-+	}
-+out:
-+	mutex_unlock(&lcd->lock);
-+}
-+
- static const unsigned short seq_swreset[] = {
- 	0x01, COMMAND_ONLY,
- 	ENDDEF, 0x00
-@@ -532,13 +576,8 @@ static int ld9040_power_on(struct ld9040
- 		return -EFAULT;
- 	}
+-static int __init pm860x_backlight_init(void)
+-{
+-	return platform_driver_register(&pm860x_backlight_driver);
+-}
+-module_init(pm860x_backlight_init);
+-
+-static void __exit pm860x_backlight_exit(void)
+-{
+-	platform_driver_unregister(&pm860x_backlight_driver);
+-}
+-module_exit(pm860x_backlight_exit);
++module_platform_driver(pm860x_backlight_driver);
  
--	if (!pd->power_on) {
--		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EFAULT;
--	} else {
--		pd->power_on(lcd->ld, 1);
--		mdelay(pd->power_on_delay);
--	}
-+	/* lcd power on */
-+	ld9040_regulator_enable(lcd);
+ MODULE_DESCRIPTION("Backlight Driver for Marvell Semiconductor 88PM8606");
+ MODULE_AUTHOR("Haojian Zhuang <haojian.zhuang@marvell.com>");
+diff -puN drivers/video/backlight/adp5520_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/adp5520_bl.c
+--- a/drivers/video/backlight/adp5520_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/adp5520_bl.c
+@@ -384,17 +384,7 @@ static struct platform_driver adp5520_bl
+ 	.resume		= adp5520_bl_resume,
+ };
  
- 	if (!pd->reset) {
- 		dev_err(lcd->dev, "reset is NULL.\n");
-@@ -582,11 +621,8 @@ static int ld9040_power_off(struct ld904
+-static int __init adp5520_bl_init(void)
+-{
+-	return platform_driver_register(&adp5520_bl_driver);
+-}
+-module_init(adp5520_bl_init);
+-
+-static void __exit adp5520_bl_exit(void)
+-{
+-	platform_driver_unregister(&adp5520_bl_driver);
+-}
+-module_exit(adp5520_bl_exit);
++module_platform_driver(adp5520_bl_driver);
  
- 	mdelay(pd->power_off_delay);
+ MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
+ MODULE_DESCRIPTION("ADP5520(01) Backlight Driver");
+diff -puN drivers/video/backlight/da903x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/da903x_bl.c
+--- a/drivers/video/backlight/da903x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/da903x_bl.c
+@@ -199,17 +199,7 @@ static struct platform_driver da903x_bac
+ 	.remove		= da903x_backlight_remove,
+ };
  
--	if (!pd->power_on) {
--		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EFAULT;
--	} else
--		pd->power_on(lcd->ld, 0);
-+	/* lcd power off */
-+	ld9040_regulator_disable(lcd);
+-static int __init da903x_backlight_init(void)
+-{
+-	return platform_driver_register(&da903x_backlight_driver);
+-}
+-module_init(da903x_backlight_init);
+-
+-static void __exit da903x_backlight_exit(void)
+-{
+-	platform_driver_unregister(&da903x_backlight_driver);
+-}
+-module_exit(da903x_backlight_exit);
++module_platform_driver(da903x_backlight_driver);
  
- 	return 0;
- }
-@@ -693,6 +729,14 @@ static int ld9040_probe(struct spi_devic
- 		goto out_free_lcd;
- 	}
+ MODULE_DESCRIPTION("Backlight Driver for Dialog Semiconductor DA9030/DA9034");
+ MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>"
+diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/ep93xx_bl.c
+--- a/drivers/video/backlight/ep93xx_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/ep93xx_bl.c
+@@ -144,17 +144,7 @@ static struct platform_driver ep93xxbl_d
+ 	.resume		= ep93xxbl_resume,
+ };
  
-+	mutex_init(&lcd->lock);
-+
-+	ret = regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
-+	if (ret) {
-+		dev_err(lcd->dev, "Failed to get regulators: %d\n", ret);
-+		goto out_free_lcd;
-+	}
-+
- 	ld = lcd_device_register("ld9040", &spi->dev, lcd, &ld9040_lcd_ops);
- 	if (IS_ERR(ld)) {
- 		ret = PTR_ERR(ld);
-@@ -739,6 +783,8 @@ static int ld9040_probe(struct spi_devic
- out_unregister_lcd:
- 	lcd_device_unregister(lcd->ld);
- out_free_lcd:
-+	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
-+
- 	kfree(lcd);
- 	return ret;
- }
-@@ -750,6 +796,7 @@ static int __devexit ld9040_remove(struc
- 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
- 	backlight_device_unregister(lcd->bd);
- 	lcd_device_unregister(lcd->ld);
-+	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
- 	kfree(lcd);
+-static int __init ep93xxbl_init(void)
+-{
+-	return platform_driver_register(&ep93xxbl_driver);
+-}
+-module_init(ep93xxbl_init);
+-
+-static void __exit ep93xxbl_exit(void)
+-{
+-	platform_driver_unregister(&ep93xxbl_driver);
+-}
+-module_exit(ep93xxbl_exit);
++module_platform_driver(ep93xxbl_driver);
  
- 	return 0;
-_
-
-Patches currently in -mm which might be from dh09.lee@samsung.com are
-
-origin.patch
-
+ MODULE_DESCRIPTION("EP93xx Backlight Driver");
+ MODULE_AUTHOR("H Hartley Sweeten <hsweeten@visionengravers.com>");
+diff -puN drivers/video/backlight/generic_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/generic_bl.c
+--- a/drivers/video/backlight/generic_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/generic_bl.c
+@@ -132,18 +132,7 @@ static struct platform_driver genericbl_
+ 	},
+ };
+ 
+-static int __init genericbl_init(void)
+-{
+-	return platform_driver_register(&genericbl_driver);
+-}
+-
+-static void __exit genericbl_exit(void)
+-{
+-	platform_driver_unregister(&genericbl_driver);
+-}
+-
+-module_init(genericbl_init);
+-module_exit(genericbl_exit);
++module_platform_driver(genericbl_driver);
+ 
+ MODULE_AUTHOR("Richard Purdie <rpurdie@rpsys.net>");
+ MODULE_DESCRIPTION("Generic Backlight Driver");
+diff -puN drivers/video/backlight/jornada720_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/jornada720_bl.c
+--- a/drivers/video/backlight/jornada720_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/jornada720_bl.c
+@@ -147,19 +147,8 @@ static struct platform_driver jornada_bl
+ 	},
+ };
+ 
+-static int __init jornada_bl_init(void)
+-{
+-	return platform_driver_register(&jornada_bl_driver);
+-}
+-
+-static void __exit jornada_bl_exit(void)
+-{
+-	platform_driver_unregister(&jornada_bl_driver);
+-}
++module_platform_driver(jornada_bl_driver);
+ 
+ MODULE_AUTHOR("Kristoffer Ericson <kristoffer.ericson>");
+ MODULE_DESCRIPTION("HP Jornada 710/720/728 Backlight driver");
+ MODULE_LICENSE("GPL");
+-
+-module_init(jornada_bl_init);
+-module_exit(jornada_bl_exit);
+diff -puN drivers/video/backlight/jornada720_lcd.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/jornada720_lcd.c
+--- a/drivers/video/backlight/jornada720_lcd.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/jornada720_lcd.c
+@@ -135,19 +135,8 @@ static struct platform_driver jornada_lc
+ 	},
+ };
+ 
+-static int __init jornada_lcd_init(void)
+-{
+-	return platform_driver_register(&jornada_lcd_driver);
+-}
+-
+-static void __exit jornada_lcd_exit(void)
+-{
+-	platform_driver_unregister(&jornada_lcd_driver);
+-}
++module_platform_driver(jornada_lcd_driver);
+ 
+ MODULE_AUTHOR("Kristoffer Ericson <kristoffer.ericson@gmail.com>");
+ MODULE_DESCRIPTION("HP Jornada 710/720/728 LCD driver");
+ MODULE_LICENSE("GPL");
+-
+-module_init(jornada_lcd_init);
+-module_exit(jornada_lcd_exit);
+diff -puN drivers/video/backlight/max8925_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/max8925_bl.c
+--- a/drivers/video/backlight/max8925_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/max8925_bl.c
+@@ -188,17 +188,7 @@ static struct platform_driver max8925_ba
+ 	.remove		= __devexit_p(max8925_backlight_remove),
+ };
+ 
+-static int __init max8925_backlight_init(void)
+-{
+-	return platform_driver_register(&max8925_backlight_driver);
+-}
+-module_init(max8925_backlight_init);
+-
+-static void __exit max8925_backlight_exit(void)
+-{
+-	platform_driver_unregister(&max8925_backlight_driver);
+-};
+-module_exit(max8925_backlight_exit);
++module_platform_driver(max8925_backlight_driver);
+ 
+ MODULE_DESCRIPTION("Backlight Driver for Maxim MAX8925");
+ MODULE_AUTHOR("Haojian Zhuang <haojian.zhuang@marvell.com>");
+diff -puN drivers/video/backlight/omap1_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/omap1_bl.c
+--- a/drivers/video/backlight/omap1_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/omap1_bl.c
+@@ -195,18 +195,7 @@ static struct platform_driver omapbl_dri
+ 	},
+ };
+ 
+-static int __init omapbl_init(void)
+-{
+-	return platform_driver_register(&omapbl_driver);
+-}
+-
+-static void __exit omapbl_exit(void)
+-{
+-	platform_driver_unregister(&omapbl_driver);
+-}
+-
+-module_init(omapbl_init);
+-module_exit(omapbl_exit);
++module_platform_driver(omapbl_driver);
+ 
+ MODULE_AUTHOR("Andrzej Zaborowski <balrog@zabor.org>");
+ MODULE_DESCRIPTION("OMAP LCD Backlight driver");
+diff -puN drivers/video/backlight/pcf50633-backlight.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/pcf50633-backlight.c
+--- a/drivers/video/backlight/pcf50633-backlight.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/pcf50633-backlight.c
+@@ -173,17 +173,7 @@ static struct platform_driver pcf50633_b
+ 	},
+ };
+ 
+-static int __init pcf50633_bl_init(void)
+-{
+-	return platform_driver_register(&pcf50633_bl_driver);
+-}
+-module_init(pcf50633_bl_init);
+-
+-static void __exit pcf50633_bl_exit(void)
+-{
+-	platform_driver_unregister(&pcf50633_bl_driver);
+-}
+-module_exit(pcf50633_bl_exit);
++module_platform_driver(pcf50633_bl_driver);
+ 
+ MODULE_AUTHOR("Lars-Peter Clausen <lars@metafoo.de>");
+ MODULE_DESCRIPTION("PCF50633 backlight driver");
+diff -puN drivers/video/backlight/platform_lcd.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -157,18 +157,7 @@ static struct platform_driver platform_l
+ 	.resume         = platform_lcd_resume,
+ };
+ 
+-static int __init platform_lcd_init(void)
+-{
+-	return platform_driver_register(&platform_lcd_driver);
+-}
+-
+-static void __exit platform_lcd_cleanup(void)
+-{
+-	platform_driver_unregister(&platform_lcd_driver);
+-}
+-
+-module_init(platform_lcd_init);
+-module_exit(platform_lcd_cleanup);
++module_platform_driver(platform_lcd_driver);
+ 
+ MODULE_AUTHOR("Ben Dooks <ben-linux@fluff.org>");
+ MODULE_LICENSE("GPL v2");
+diff -puN drivers/video/backlight/pwm_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/pwm_bl.c
+--- a/drivers/video/backlight/pwm_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/pwm_bl.c
+@@ -207,17 +207,7 @@ static struct platform_driver pwm_backli
+ 	.resume		= pwm_backlight_resume,
+ };
+ 
+-static int __init pwm_backlight_init(void)
+-{
+-	return platform_driver_register(&pwm_backlight_driver);
+-}
+-module_init(pwm_backlight_init);
+-
+-static void __exit pwm_backlight_exit(void)
+-{
+-	platform_driver_unregister(&pwm_backlight_driver);
+-}
+-module_exit(pwm_backlight_exit);
++module_platform_driver(pwm_backlight_driver);
+ 
+ MODULE_DESCRIPTION("PWM based Backlight Driver");
+ MODULE_LICENSE("GPL");
+diff -puN drivers/video/backlight/wm831x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/wm831x_bl.c
+--- a/drivers/video/backlight/wm831x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
++++ a/drivers/video/backlight/wm831x_bl.c
+@@ -236,17 +236,7 @@ static struct platform_driver wm831x_bac
+ 	.remove		= wm831x_backlight_remove,
+ };
+ 
+-static int __init wm831x_backlight_init(void)
+-{
+-	return platform_driver_register(&wm831x_backlight_driver);
+-}
+-module_init(wm831x_backlight_init);
