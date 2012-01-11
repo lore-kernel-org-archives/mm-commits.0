@@ -1,260 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:27:52 -0800
-Message-ID: <20120111212752.F414410004D@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-exclude-reserved-pages-from-dirtyable-memory.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:27:18 -0800
+Message-ID: <20120111212719.0BD6810004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:51433 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934048Ab2AKV1y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:54 -0500
-Received: by ghrr15 with SMTP id r15so137004ghr.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:53 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:58611 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933962Ab2AKV1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:20 -0500
+Received: by mail-yw0-f74.google.com with SMTP id p56so153744yhp.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, mgorman@suse.de, nai.xia@gmail.com, pluto@agmk.net, mm-commits@vger.kernel.org
+To: jweiner@redhat.com, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mremap: enforce rmap src/dst vma ordering in case of vma_merge() succeeding in copy_vma()
+     Subject: mm: exclude reserved pages from dirtyable memory
 has been removed from the -mm tree.  Its filename was
-     mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma.patch
+     mm-exclude-reserved-pages-from-dirtyable-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mremap: enforce rmap src/dst vma ordering in case of vma_merge() succeeding in copy_vma()
+From: Johannes Weiner <jweiner@redhat.com>
+Subject: mm: exclude reserved pages from dirtyable memory
 
-migrate was doing an rmap_walk with speculative lock-less access on
-pagetables.  That could lead it to not serializing properly against mremap
-PT locks.  But a second problem remains in the order of vmas in the
-same_anon_vma list used by the rmap_walk.
+Per-zone dirty limits try to distribute page cache pages allocated for
+writing across zones in proportion to the individual zone sizes, to reduce
+the likelihood of reclaim having to write back individual pages from the
+LRU lists in order to make progress.
 
-If vma_merge succeeds in copy_vma, the src vma could be placed after the
-dst vma in the same_anon_vma list.  That could still lead to migrate
-missing some pte.
 
-This patch adds an anon_vma_moveto_tail() function to force the dst vma at
-the end of the list before mremap starts to solve the problem.
+This patch:
 
-If the mremap is very large and there are a lots of parents or childs
-sharing the anon_vma root lock, this should still scale better than taking
-the anon_vma root lock around every pte copy practically for the whole
-duration of mremap.
+The amount of dirtyable pages should not include the full number of free
+pages: there is a number of reserved pages that the page allocator and
+kswapd always try to keep free.
 
-Update: Hugh noticed special care is needed in the error path where
-move_page_tables goes in the reverse direction, a second
-anon_vma_moveto_tail() call is needed in the error path.
+The closer (reclaimable pages - dirty pages) is to the number of reserved
+pages, the more likely it becomes for reclaim to run into dirty pages:
 
-This program exercises the anon_vma_moveto_tail:
+       +----------+ ---
+       |   anon   |  |
+       +----------+  |
+       |          |  |
+       |          |  -- dirty limit new    -- flusher new
+       |   file   |  |                     |
+       |          |  |                     |
+       |          |  -- dirty limit old    -- flusher old
+       |          |                        |
+       +----------+                       --- reclaim
+       | reserved |
+       +----------+
+       |  kernel  |
+       +----------+
 
-===
+This patch introduces a per-zone dirty reserve that takes both the lowmem
+reserve as well as the high watermark of the zone into account, and a
+global sum of those per-zone values that is subtracted from the global
+amount of dirtyable pages.  The lowmem reserve is unavailable to page
+cache allocations and kswapd tries to keep the high watermark free.  We
+don't want to end up in a situation where reclaim has to clean pages in
+order to balance zones.
 
-int main()
-{
-	static struct timeval oldstamp, newstamp;
-	long diffsec;
-	char *p, *p2, *p3, *p4;
-	if (posix_memalign((void **)&p, 2*1024*1024, SIZE))
-		perror("memalign"), exit(1);
-	if (posix_memalign((void **)&p2, 2*1024*1024, SIZE))
-		perror("memalign"), exit(1);
-	if (posix_memalign((void **)&p3, 2*1024*1024, SIZE))
-		perror("memalign"), exit(1);
+Not treating reserved pages as dirtyable on a global level is only a
+conceptual fix.  In reality, dirty pages are not distributed equally
+across zones and reclaim runs into dirty pages on a regular basis.
 
-	memset(p, 0xff, SIZE);
-	printf("%p\n", p);
-	memset(p2, 0xff, SIZE);
-	memset(p3, 0x77, 4096);
-	if (memcmp(p, p2, SIZE))
-		printf("error\n");
-	p4 = mremap(p+SIZE/2, SIZE/2, SIZE/2, MREMAP_FIXED|MREMAP_MAYMOVE, p3);
-	if (p4 != p3)
-		perror("mremap"), exit(1);
-	p4 = mremap(p4, SIZE/2, SIZE/2, MREMAP_FIXED|MREMAP_MAYMOVE, p+SIZE/2);
-	if (p4 != p+SIZE/2)
-		perror("mremap"), exit(1);
-	if (memcmp(p, p2, SIZE))
-		printf("error\n");
-	printf("ok\n");
+But it is important to get this right before tackling the problem on a
+per-zone level, where the distance between reclaim and the dirty pages is
+mostly much smaller in absolute numbers.
 
-	return 0;
-}
-===
-
-$ perf probe -a anon_vma_moveto_tail
-Add new event:
-  probe:anon_vma_moveto_tail (on anon_vma_moveto_tail)
-
-You can now use it on all perf tools, such as:
-
-        perf record -e probe:anon_vma_moveto_tail -aR sleep 1
-
-$ perf record -e probe:anon_vma_moveto_tail -aR ./anon_vma_moveto_tail
-0x7f2ca2800000
-ok
-[ perf record: Woken up 1 times to write data ]
-[ perf record: Captured and wrote 0.043 MB perf.data (~1860 samples) ]
-$ perf report --stdio
-   100.00%  anon_vma_moveto  [kernel.kallsyms]  [k] anon_vma_moveto_tail
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Nai Xia <nai.xia@gmail.com>
+[akpm@linux-foundation.org: fix highmem build]
+Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Pawel Sikora <pluto@agmk.net>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 
- mm/mmap.c            |   24 +++++++++++++++++++--
- mm/mremap.c          |    9 ++++++++
- mm/rmap.c            |   45 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 76 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    6 ++++++
+ include/linux/swap.h   |    1 +
+ mm/page-writeback.c    |    5 +++--
+ mm/page_alloc.c        |   19 +++++++++++++++++++
+ 4 files changed, 29 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/rmap.h~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma include/linux/rmap.h
---- a/include/linux/rmap.h~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma
-+++ a/include/linux/rmap.h
-@@ -120,6 +120,7 @@ void anon_vma_init(void);	/* create anon
- int  anon_vma_prepare(struct vm_area_struct *);
- void unlink_anon_vmas(struct vm_area_struct *);
- int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
-+void anon_vma_moveto_tail(struct vm_area_struct *);
- int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
- void __anon_vma_link(struct vm_area_struct *);
- 
-diff -puN mm/mmap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma mm/mmap.c
---- a/mm/mmap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma
-+++ a/mm/mmap.c
-@@ -2322,13 +2322,16 @@ struct vm_area_struct *copy_vma(struct v
- 	struct vm_area_struct *new_vma, *prev;
- 	struct rb_node **rb_link, *rb_parent;
- 	struct mempolicy *pol;
-+	bool faulted_in_anon_vma = true;
- 
- 	/*
- 	 * If anonymous vma has not yet been faulted, update new pgoff
- 	 * to match new location, to increase its chance of merging.
+diff -puN include/linux/mmzone.h~mm-exclude-reserved-pages-from-dirtyable-memory include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-exclude-reserved-pages-from-dirtyable-memory
++++ a/include/linux/mmzone.h
+@@ -317,6 +317,12 @@ struct zone {
  	 */
--	if (!vma->vm_file && !vma->anon_vma)
-+	if (unlikely(!vma->vm_file && !vma->anon_vma)) {
- 		pgoff = addr >> PAGE_SHIFT;
-+		faulted_in_anon_vma = false;
-+	}
+ 	unsigned long		lowmem_reserve[MAX_NR_ZONES];
  
- 	find_vma_prepare(mm, addr, &prev, &rb_link, &rb_parent);
- 	new_vma = vma_merge(mm, prev, addr, addr + len, vma->vm_flags,
-@@ -2337,9 +2340,24 @@ struct vm_area_struct *copy_vma(struct v
- 		/*
- 		 * Source vma may have been merged into new_vma
- 		 */
--		if (vma_start >= new_vma->vm_start &&
--		    vma_start < new_vma->vm_end)
-+		if (unlikely(vma_start >= new_vma->vm_start &&
-+			     vma_start < new_vma->vm_end)) {
-+			/*
-+			 * The only way we can get a vma_merge with
-+			 * self during an mremap is if the vma hasn't
-+			 * been faulted in yet and we were allowed to
-+			 * reset the dst vma->vm_pgoff to the
-+			 * destination address of the mremap to allow
-+			 * the merge to happen. mremap must change the
-+			 * vm_pgoff linearity between src and dst vmas
-+			 * (in turn preventing a vma_merge) to be
-+			 * safe. It is only safe to keep the vm_pgoff
-+			 * linear if there are no pages mapped yet.
-+			 */
-+			VM_BUG_ON(faulted_in_anon_vma);
- 			*vmap = new_vma;
-+		} else
-+			anon_vma_moveto_tail(new_vma);
- 	} else {
- 		new_vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
- 		if (new_vma) {
-diff -puN mm/mremap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma mm/mremap.c
---- a/mm/mremap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma
-+++ a/mm/mremap.c
-@@ -221,6 +221,15 @@ static unsigned long move_vma(struct vm_
- 	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len);
- 	if (moved_len < old_len) {
- 		/*
-+		 * Before moving the page tables from the new vma to
-+		 * the old vma, we need to be sure the old vma is
-+		 * queued after new vma in the same_anon_vma list to
-+		 * prevent SMP races with rmap_walk (that could lead
-+		 * rmap_walk to miss some page table).
-+		 */
-+		anon_vma_moveto_tail(vma);
++	/*
++	 * This is a per-zone reserve of pages that should not be
++	 * considered dirtyable memory.
++	 */
++	unsigned long		dirty_balance_reserve;
 +
-+		/*
- 		 * On error, move entries back from new area to old,
- 		 * which will succeed since page tables still there,
- 		 * and then proceed to unmap new area instead of old.
-diff -puN mm/rmap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma mm/rmap.c
---- a/mm/rmap.c~mremap-enforce-rmap-src-dst-vma-ordering-in-case-of-vma_merge-succeeding-in-copy_vma
-+++ a/mm/rmap.c
-@@ -272,6 +272,51 @@ int anon_vma_clone(struct vm_area_struct
+ #ifdef CONFIG_NUMA
+ 	int node;
+ 	/*
+diff -puN include/linux/swap.h~mm-exclude-reserved-pages-from-dirtyable-memory include/linux/swap.h
+--- a/include/linux/swap.h~mm-exclude-reserved-pages-from-dirtyable-memory
++++ a/include/linux/swap.h
+@@ -207,6 +207,7 @@ struct swap_list_t {
+ /* linux/mm/page_alloc.c */
+ extern unsigned long totalram_pages;
+ extern unsigned long totalreserve_pages;
++extern unsigned long dirty_balance_reserve;
+ extern unsigned int nr_free_buffer_pages(void);
+ extern unsigned int nr_free_pagecache_pages(void);
+ 
+diff -puN mm/page-writeback.c~mm-exclude-reserved-pages-from-dirtyable-memory mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-exclude-reserved-pages-from-dirtyable-memory
++++ a/mm/page-writeback.c
+@@ -157,7 +157,7 @@ static unsigned long highmem_dirtyable_m
+ 			&NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
+ 
+ 		x += zone_page_state(z, NR_FREE_PAGES) +
+-		     zone_reclaimable_pages(z);
++		     zone_reclaimable_pages(z) - z->dirty_balance_reserve;
+ 	}
+ 	/*
+ 	 * Make sure that the number of highmem pages is never larger
+@@ -181,7 +181,8 @@ static unsigned long determine_dirtyable
+ {
+ 	unsigned long x;
+ 
+-	x = global_page_state(NR_FREE_PAGES) + global_reclaimable_pages();
++	x = global_page_state(NR_FREE_PAGES) + global_reclaimable_pages() -
++	    dirty_balance_reserve;
+ 
+ 	if (!vm_highmem_is_dirtyable)
+ 		x -= highmem_dirtyable_memory(x);
+diff -puN mm/page_alloc.c~mm-exclude-reserved-pages-from-dirtyable-memory mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-exclude-reserved-pages-from-dirtyable-memory
++++ a/mm/page_alloc.c
+@@ -97,6 +97,14 @@ EXPORT_SYMBOL(node_states);
+ 
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
++/*
++ * When calculating the number of globally allowed dirty pages, there
++ * is a certain number of per-zone reserves that should not be
++ * considered dirtyable memory.  This is the sum of those reserves
++ * over all existing zones that contribute dirtyable memory.
++ */
++unsigned long dirty_balance_reserve __read_mostly;
++
+ int percpu_pagelist_fraction;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
+ 
+@@ -4822,8 +4830,19 @@ static void calculate_totalreserve_pages
+ 			if (max > zone->present_pages)
+ 				max = zone->present_pages;
+ 			reserve_pages += max;
++			/*
++			 * Lowmem reserves are not available to
++			 * GFP_HIGHUSER page cache allocations and
++			 * kswapd tries to balance zones to their high
++			 * watermark.  As a result, neither should be
++			 * regarded as dirtyable memory, to prevent a
++			 * situation where reclaim has to clean pages
++			 * in order to balance the zones.
++			 */
++			zone->dirty_balance_reserve = max;
+ 		}
+ 	}
++	dirty_balance_reserve = reserve_pages;
+ 	totalreserve_pages = reserve_pages;
  }
  
- /*
-+ * Some rmap walk that needs to find all ptes/hugepmds without false
-+ * negatives (like migrate and split_huge_page) running concurrent
-+ * with operations that copy or move pagetables (like mremap() and
-+ * fork()) to be safe. They depend on the anon_vma "same_anon_vma"
-+ * list to be in a certain order: the dst_vma must be placed after the
-+ * src_vma in the list. This is always guaranteed by fork() but
-+ * mremap() needs to call this function to enforce it in case the
-+ * dst_vma isn't newly allocated and chained with the anon_vma_clone()
-+ * function but just an extension of a pre-existing vma through
-+ * vma_merge.
-+ *
-+ * NOTE: the same_anon_vma list can still be changed by other
-+ * processes while mremap runs because mremap doesn't hold the
-+ * anon_vma mutex to prevent modifications to the list while it
-+ * runs. All we need to enforce is that the relative order of this
-+ * process vmas isn't changing (we don't care about other vmas
-+ * order). Each vma corresponds to an anon_vma_chain structure so
-+ * there's no risk that other processes calling anon_vma_moveto_tail()
-+ * and changing the same_anon_vma list under mremap() will screw with
-+ * the relative order of this process vmas in the list, because we
-+ * they can't alter the order of any vma that belongs to this
-+ * process. And there can't be another anon_vma_moveto_tail() running
-+ * concurrently with mremap() coming from this process because we hold
-+ * the mmap_sem for the whole mremap(). fork() ordering dependency
-+ * also shouldn't be affected because fork() only cares that the
-+ * parent vmas are placed in the list before the child vmas and
-+ * anon_vma_moveto_tail() won't reorder vmas from either the fork()
-+ * parent or child.
-+ */
-+void anon_vma_moveto_tail(struct vm_area_struct *dst)
-+{
-+	struct anon_vma_chain *pavc;
-+	struct anon_vma *root = NULL;
-+
-+	list_for_each_entry_reverse(pavc, &dst->anon_vma_chain, same_vma) {
-+		struct anon_vma *anon_vma = pavc->anon_vma;
-+		VM_BUG_ON(pavc->vma != dst);
-+		root = lock_anon_vma_root(root, anon_vma);
-+		list_del(&pavc->same_anon_vma);
-+		list_add_tail(&pavc->same_anon_vma, &anon_vma->head);
-+	}
-+	unlock_anon_vma_root(root);
-+}
-+
-+/*
-  * Attach vma to its own anon_vma, as well as to the anon_vmas that
-  * the corresponding VMA in the parent process is attached to.
-  * Returns 0 on success, non-zero on failure.
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from jweiner@redhat.com are
 
 origin.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
-memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
+mm-add-extra-free-kbytes-tunable.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
+mm-memcg-shorten-preempt-disabled-section-around-event-checks.patch
+mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
+mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
+mm-memcg-clean-up-fault-accounting.patch
+mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
+mm-memcg-lookup_page_cgroup-almost-never-returns-null-fix.patch
+mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
+mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
+page_cgroup-add-helper-function-to-get-swap_cgroup.patch
 thp-improve-the-error-code-path.patch
 thp-remove-unnecessary-tlb-flush-for-mprotect.patch
 thp-add-tlb_remove_pmd_tlb_entry.patch
