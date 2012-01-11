@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-various-arm-f-patterns.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:29:00 -0800
-Message-ID: <20120111212901.0BAC05C0050@hpza9.eem.corp.google.com>
+Subject: [merged] maintainers-update-marvell-ccic-f-patterns.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:29:10 -0800
+Message-ID: <20120111212910.9E79B1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:62274 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932654Ab2AKV3C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:02 -0500
-Received: by mail-ey0-f202.google.com with SMTP id d12so32568eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:01 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:40829 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934068Ab2AKV3L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:11 -0500
+Received: by mail-gy0-f202.google.com with SMTP id r15so137111ghr.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, corbet@lwn.net, mchehab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update various arm F: patterns
+     Subject: MAINTAINERS: update marvell ccic F: patterns
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-various-arm-f-patterns.patch
+     maintainers-update-marvell-ccic-f-patterns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,66 +26,32 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update various arm F: patterns
+Subject: MAINTAINERS: update marvell ccic F: patterns
 
-Track renames and missing or deleted files.
+Commit f8fc729870ee ("[media] marvell-cam: Move cafe-ccic into its own
+directory") moved the files, update the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Acked-by: Mauro Carvalho Chehab<mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-various-arm-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-various-arm-f-patterns
+diff -puN MAINTAINERS~maintainers-update-marvell-ccic-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-marvell-ccic-f-patterns
 +++ a/MAINTAINERS
-@@ -914,7 +914,6 @@ M:	Lennert Buytenhek <kernel@wantstofly.
- M:	Nicolas Pitre <nico@fluxnic.net>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Odd Fixes
--F:	arch/arm/mach-loki/
- F:	arch/arm/mach-kirkwood/
- F:	arch/arm/mach-mv78xx0/
- F:	arch/arm/mach-orion5x/
-@@ -1076,8 +1075,8 @@ L:	linux-arm-kernel@lists.infradead.org 
+@@ -1659,7 +1659,7 @@ L:	linux-media@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
  S:	Maintained
- F:	arch/arm/mach-s5pv210/mach-aquila.c
- F:	arch/arm/mach-s5pv210/mach-goni.c
--F:	arch/arm/mach-exynos4/mach-universal_c210.c
--F:	arch/arm/mach-exynos4/mach-nuri.c
-+F:	arch/arm/mach-exynos/mach-universal_c210.c
-+F:	arch/arm/mach-exynos/mach-nuri.c
+ F:	Documentation/video4linux/cafe_ccic
+-F:	drivers/media/video/cafe_ccic*
++F:	drivers/media/video/marvell-ccic/
  
- ARM/SAMSUNG S5P SERIES FIMC SUPPORT
- M:	Kyungmin Park <kyungmin.park@samsung.com>
-@@ -1105,7 +1104,6 @@ M:	Tomasz Stanislawski <t.stanislaws@sam
- L:	linux-arm-kernel@lists.infradead.org
- L:	linux-media@vger.kernel.org
- S:	Maintained
--F:	arch/arm/plat-s5p/dev-tv.c
- F:	drivers/media/video/s5p-tv/
- 
- ARM/SHMOBILE ARM ARCHITECTURE
-@@ -1140,7 +1138,6 @@ L:	linux-arm-kernel@lists.infradead.org 
- W:	http://www.mcuos.com
- S:	Maintained
- F:	arch/arm/mach-w90x900/
--F:	arch/arm/mach-nuc93x/
- F:	drivers/input/keyboard/w90p910_keypad.c
- F:	drivers/input/touchscreen/w90p910_ts.c
- F:	drivers/watchdog/nuc900_wdt.c
-@@ -6180,9 +6177,7 @@ M:	Viresh Kumar <viresh.kumar@st.com>
- W:	http://www.st.com/spear
- S:	Maintained
- F:	arch/arm/mach-spear*/clock.c
--F:	arch/arm/mach-spear*/include/mach/clkdev.h
- F:	arch/arm/plat-spear/clock.c
--F:	arch/arm/plat-spear/include/plat/clkdev.h
- F:	arch/arm/plat-spear/include/plat/clock.h
- 
- SPEAR PAD MULTIPLEXING SUPPORT
+ CAIF NETWORK LAYER
+ M:	Sjur Braendeland <sjur.brandeland@stericsson.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
