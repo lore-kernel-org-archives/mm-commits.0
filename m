@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mempool-drop-unnecessary-and-incorrect-bug_on-from-mempool_destroy.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:28:31 -0800
-Message-ID: <20120111212832.0CB3720004E@hpza10.eem.corp.google.com>
+Subject: [merged] mempool-fix-first-round-failure-behavior.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:28:35 -0800
+Message-ID: <20120111212835.A3F8610004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:54553 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933955Ab2AKV2d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:28:33 -0500
-Received: by mail-ee0-f74.google.com with SMTP id d41so44236eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:28:32 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:41779 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933955Ab2AKV2g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:28:36 -0500
+Received: by mail-yx0-f202.google.com with SMTP id m1so7466yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:28:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempool: drop unnecessary and incorrect BUG_ON() from mempool_destroy()
+     Subject: mempool: fix first round failure behavior
 has been removed from the -mm tree.  Its filename was
-     mempool-drop-unnecessary-and-incorrect-bug_on-from-mempool_destroy.patch
+     mempool-fix-first-round-failure-behavior.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,79 +26,73 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mempool: drop unnecessary and incorrect BUG_ON() from mempool_destroy()
+Subject: mempool: fix first round failure behavior
 
-mempool_destroy() is a thin wrapper around free_pool().  The only thing it
-adds is BUG_ON(pool->curr_nr != pool->min_nr).  The intention seems to be
-to enforce that all allocated elements are freed; however, the BUG_ON()
-can't achieve that (it doesn't know anything about objects above min_nr)
-and incorrect as mempool_resize() is allowed to leave the pool extended
-but not filled.  Furthermore, panicking is way worse than any memory leak
-and there are better debug tools to track memory leaks.
+mempool modifies gfp_mask so that the backing allocator doesn't try too
+hard or trigger warning message when there's pool to fall back on.  In
+addition, for the first try, it removes __GFP_WAIT and IO, so that it
+doesn't trigger reclaim or wait when allocation can be fulfilled from
+pool; however, when that allocation fails and pool is empty too, it waits
+for the pool to be replenished before retrying.
 
-Drop the BUG_ON() from mempool_destory() and as that leaves the function
-identical to free_pool(), replace it.
+Allocation which could have succeeded after a bit of reclaim has to wait
+on the reserved items and it's not like mempool doesn't retry with
+__GFP_WAIT and IO.  It just does that *after* someone returns an element,
+pointlessly delaying things.
 
+Fix it by retrying immediately if the first round of allocation attempts
+w/o __GFP_WAIT and IO fails.
+
+[akpm@linux-foundation.org: shorten the lock hold time]
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ mm/mempool.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempool.c~mempool-drop-unnecessary-and-incorrect-bug_on-from-mempool_destroy mm/mempool.c
---- a/mm/mempool.c~mempool-drop-unnecessary-and-incorrect-bug_on-from-mempool_destroy
+diff -puN mm/mempool.c~mempool-fix-first-round-failure-behavior mm/mempool.c
+--- a/mm/mempool.c~mempool-fix-first-round-failure-behavior
 +++ a/mm/mempool.c
-@@ -27,7 +27,15 @@ static void *remove_element(mempool_t *p
- 	return pool->elements[--pool->curr_nr];
- }
+@@ -221,14 +221,23 @@ repeat_alloc:
+ 		return element;
+ 	}
  
--static void free_pool(mempool_t *pool)
-+/**
-+ * mempool_destroy - deallocate a memory pool
-+ * @pool:      pointer to the memory pool which was allocated via
-+ *             mempool_create().
-+ *
-+ * Free all reserved elements in @pool and @pool itself.  This function
-+ * only sleeps if the free_fn() function sleeps.
-+ */
-+void mempool_destroy(mempool_t *pool)
- {
- 	while (pool->curr_nr) {
- 		void *element = remove_element(pool);
-@@ -36,6 +44,7 @@ static void free_pool(mempool_t *pool)
- 	kfree(pool->elements);
- 	kfree(pool);
- }
-+EXPORT_SYMBOL(mempool_destroy);
+-	/* We must not sleep in the GFP_ATOMIC case */
++	/*
++	 * We use gfp mask w/o __GFP_WAIT or IO for the first round.  If
++	 * alloc failed with that and @pool was empty, retry immediately.
++	 */
++	if (gfp_temp != gfp_mask) {
++		spin_unlock_irqrestore(&pool->lock, flags);
++		gfp_temp = gfp_mask;
++		goto repeat_alloc;
++	}
++
++	/* We must not sleep if !__GFP_WAIT */
+ 	if (!(gfp_mask & __GFP_WAIT)) {
+ 		spin_unlock_irqrestore(&pool->lock, flags);
+ 		return NULL;
+ 	}
  
- /**
-  * mempool_create - create a memory pool
-@@ -86,7 +95,7 @@ mempool_t *mempool_create_node(int min_n
+ 	/* Let's wait for someone else to return an element to @pool */
+-	gfp_temp = gfp_mask;
+ 	init_wait(&wait);
+ 	prepare_to_wait(&pool->wait, &wait, TASK_UNINTERRUPTIBLE);
  
- 		element = pool->alloc(GFP_KERNEL, pool->pool_data);
- 		if (unlikely(!element)) {
--			free_pool(pool);
-+			mempool_destroy(pool);
- 			return NULL;
- 		}
- 		add_element(pool, element);
-@@ -172,23 +181,6 @@ out:
- EXPORT_SYMBOL(mempool_resize);
- 
- /**
-- * mempool_destroy - deallocate a memory pool
-- * @pool:      pointer to the memory pool which was allocated via
-- *             mempool_create().
-- *
-- * this function only sleeps if the free_fn() function sleeps. The caller
-- * has to guarantee that all elements have been returned to the pool (ie:
-- * freed) prior to calling mempool_destroy().
-- */
--void mempool_destroy(mempool_t *pool)
--{
--	/* Check for outstanding elements */
--	BUG_ON(pool->curr_nr != pool->min_nr);
--	free_pool(pool);
--}
--EXPORT_SYMBOL(mempool_destroy);
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+origin.patch
+linux-next.patch
+sysctl-add-the-kernelns_last_pid-control.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update.patch
+scatterlist-new-helper-functions-update-fix.patch
+c-r-introduce-checkpoint_restore-symbol.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+
