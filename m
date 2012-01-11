@@ -1,198 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] reiserfs-dont-lock-root-inode-searching.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:33:01 -0800
-Message-ID: <20120111213302.2CF1E5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] signal-add-block_sigmask-for-adding-sigmask-to-current-blocked.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:33:08 -0800
+Message-ID: <20120111213309.281FE5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:43465 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932931Ab2AKVdE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:33:04 -0500
+	with ESMTP id S933960Ab2AKVdL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:33:11 -0500
 Received: by mail-ee0-f74.google.com with SMTP id d41so44375eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:33:03 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:33:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fweisbec@gmail.com, Knut_Petersen@t-online.de, hch@lst.de, jack@suse.cz, jeffm@suse.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: matt.fleming@intel.com, davem@davemloft.net, hpa@zytor.com, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reiserfs: don't lock root inode searching
+     Subject: signal: add block_sigmask() for adding sigmask to current->blocked
 has been removed from the -mm tree.  Its filename was
-     reiserfs-dont-lock-root-inode-searching.patch
+     signal-add-block_sigmask-for-adding-sigmask-to-current-blocked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: reiserfs: don't lock root inode searching
+From: Matt Fleming <matt.fleming@intel.com>
+Subject: signal: add block_sigmask() for adding sigmask to current->blocked
 
-Nothing requires that we lock the filesystem until the root inode is
-provided.
+Abstract the code sequence for adding a signal handler's sa_mask to
+current->blocked because the sequence is identical for all architectures. 
+Furthermore, in the past some architectures actually got this code wrong,
+so introduce a wrapper that all architectures can use.
 
-Also iget5_locked() triggers a warning because we are holding the
-filesystem lock while allocating the inode, which result in a lockdep
-suspicion that we have a lock inversion against the reclaim path:
-
-[ 1986.896979] =================================
-[ 1986.896990] [ INFO: inconsistent lock state ]
-[ 1986.896997] 3.1.1-main #8
-[ 1986.897001] ---------------------------------
-[ 1986.897007] inconsistent {RECLAIM_FS-ON-W} -> {IN-RECLAIM_FS-W} usage.
-[ 1986.897016] kswapd0/16 [HC0[0]:SC0[0]:HE1:SE1] takes:
-[ 1986.897023]  (&REISERFS_SB(s)->lock){+.+.?.}, at: [<c01f8bd4>] reiserfs_write_lock+0x20/0x2a
-[ 1986.897044] {RECLAIM_FS-ON-W} state was registered at:
-[ 1986.897050]   [<c014a5b9>] mark_held_locks+0xae/0xd0
-[ 1986.897060]   [<c014aab3>] lockdep_trace_alloc+0x7d/0x91
-[ 1986.897068]   [<c0190ee0>] kmem_cache_alloc+0x1a/0x93
-[ 1986.897078]   [<c01e7728>] reiserfs_alloc_inode+0x13/0x3d
-[ 1986.897088]   [<c01a5b06>] alloc_inode+0x14/0x5f
-[ 1986.897097]   [<c01a5cb9>] iget5_locked+0x62/0x13a
-[ 1986.897106]   [<c01e99e0>] reiserfs_fill_super+0x410/0x8b9
-[ 1986.897114]   [<c01953da>] mount_bdev+0x10b/0x159
-[ 1986.897123]   [<c01e764d>] get_super_block+0x10/0x12
-[ 1986.897131]   [<c0195b38>] mount_fs+0x59/0x12d
-[ 1986.897138]   [<c01a80d1>] vfs_kern_mount+0x45/0x7a
-[ 1986.897147]   [<c01a83e3>] do_kern_mount+0x2f/0xb0
-[ 1986.897155]   [<c01a987a>] do_mount+0x5c2/0x612
-[ 1986.897163]   [<c01a9a72>] sys_mount+0x61/0x8f
-[ 1986.897170]   [<c044060c>] sysenter_do_call+0x12/0x32
-[ 1986.897181] irq event stamp: 7509691
-[ 1986.897186] hardirqs last  enabled at (7509691): [<c0190f34>] kmem_cache_alloc+0x6e/0x93
-[ 1986.897197] hardirqs last disabled at (7509690): [<c0190eea>] kmem_cache_alloc+0x24/0x93
-[ 1986.897209] softirqs last  enabled at (7508896): [<c01294bd>] __do_softirq+0xee/0xfd
-[ 1986.897222] softirqs last disabled at (7508859): [<c01030ed>] do_softirq+0x50/0x9d
-[ 1986.897234]
-[ 1986.897235] other info that might help us debug this:
-[ 1986.897242]  Possible unsafe locking scenario:
-[ 1986.897244]
-[ 1986.897250]        CPU0
-[ 1986.897254]        ----
-[ 1986.897257]   lock(&REISERFS_SB(s)->lock);
-[ 1986.897265] <Interrupt>
-[ 1986.897269]     lock(&REISERFS_SB(s)->lock);
-[ 1986.897276]
-[ 1986.897277]  *** DEADLOCK ***
-[ 1986.897278]
-[ 1986.897286] no locks held by kswapd0/16.
-[ 1986.897291]
-[ 1986.897292] stack backtrace:
-[ 1986.897299] Pid: 16, comm: kswapd0 Not tainted 3.1.1-main #8
-[ 1986.897306] Call Trace:
-[ 1986.897314]  [<c0439e76>] ? printk+0xf/0x11
-[ 1986.897324]  [<c01482d1>] print_usage_bug+0x20e/0x21a
-[ 1986.897332]  [<c01479b8>] ? print_irq_inversion_bug+0x172/0x172
-[ 1986.897341]  [<c014855c>] mark_lock+0x27f/0x483
-[ 1986.897349]  [<c0148d88>] __lock_acquire+0x628/0x1472
-[ 1986.897358]  [<c0149fae>] lock_acquire+0x47/0x5e
-[ 1986.897366]  [<c01f8bd4>] ? reiserfs_write_lock+0x20/0x2a
-[ 1986.897384]  [<c01f8bd4>] ? reiserfs_write_lock+0x20/0x2a
-[ 1986.897397]  [<c043b5ef>] mutex_lock_nested+0x35/0x26f
-[ 1986.897409]  [<c01f8bd4>] ? reiserfs_write_lock+0x20/0x2a
-[ 1986.897421]  [<c01f8bd4>] reiserfs_write_lock+0x20/0x2a
-[ 1986.897433]  [<c01e2edd>] map_block_for_writepage+0xc9/0x590
-[ 1986.897448]  [<c01b1706>] ? create_empty_buffers+0x33/0x8f
-[ 1986.897461]  [<c0121124>] ? get_parent_ip+0xb/0x31
-[ 1986.897472]  [<c043ef7f>] ? sub_preempt_count+0x81/0x8e
-[ 1986.897485]  [<c043cae0>] ? _raw_spin_unlock+0x27/0x3d
-[ 1986.897496]  [<c0121124>] ? get_parent_ip+0xb/0x31
-[ 1986.897508]  [<c01e355d>] reiserfs_writepage+0x1b9/0x3e7
-[ 1986.897521]  [<c0173b40>] ? clear_page_dirty_for_io+0xcb/0xde
-[ 1986.897533]  [<c014a6e3>] ? trace_hardirqs_on_caller+0x108/0x138
-[ 1986.897546]  [<c014a71e>] ? trace_hardirqs_on+0xb/0xd
-[ 1986.897559]  [<c0177b38>] shrink_page_list+0x34f/0x5e2
-[ 1986.897572]  [<c01780a7>] shrink_inactive_list+0x172/0x22c
-[ 1986.897585]  [<c0178464>] shrink_zone+0x303/0x3b1
-[ 1986.897597]  [<c043cae0>] ? _raw_spin_unlock+0x27/0x3d
-[ 1986.897611]  [<c01788c9>] kswapd+0x3b7/0x5f2
-
-The deadlock shouldn't happen since we are doing that allocation in the
-mount path, the filesystem is not available for any reclaim.  Still the
-warning is annoying.
-
-To solve this, acquire the lock later only where we need it, right before
-calling reiserfs_read_locked_inode() that wants to lock to walk the tree.
-
-Reported-by: Knut Petersen <Knut_Petersen@t-online.de>
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ arch/x86/kernel/signal.c |    6 +-----
+ include/linux/signal.h   |    1 +
+ kernel/signal.c          |   21 +++++++++++++++++++++
+ 3 files changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN fs/reiserfs/super.c~reiserfs-dont-lock-root-inode-searching fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-dont-lock-root-inode-searching
-+++ a/fs/reiserfs/super.c
-@@ -1519,9 +1519,7 @@ static int read_super_block(struct super
- static int reread_meta_blocks(struct super_block *s)
+diff -puN arch/x86/kernel/signal.c~signal-add-block_sigmask-for-adding-sigmask-to-current-blocked arch/x86/kernel/signal.c
+--- a/arch/x86/kernel/signal.c~signal-add-block_sigmask-for-adding-sigmask-to-current-blocked
++++ a/arch/x86/kernel/signal.c
+@@ -682,7 +682,6 @@ static int
+ handle_signal(unsigned long sig, siginfo_t *info, struct k_sigaction *ka,
+ 		struct pt_regs *regs)
  {
- 	ll_rw_block(READ, 1, &(SB_BUFFER_WITH_SB(s)));
--	reiserfs_write_unlock(s);
- 	wait_on_buffer(SB_BUFFER_WITH_SB(s));
--	reiserfs_write_lock(s);
- 	if (!buffer_uptodate(SB_BUFFER_WITH_SB(s))) {
- 		reiserfs_warning(s, "reiserfs-2504", "error reading the super");
- 		return 1;
-@@ -1837,24 +1835,14 @@ static int reiserfs_fill_super(struct su
- 				 */
- 	}
+-	sigset_t blocked;
+ 	int ret;
  
--	/*
--	 * This path assumed to be called with the BKL in the old times.
--	 * Now we have inherited the big reiserfs lock from it and many
--	 * reiserfs helpers called in the mount path and elsewhere require
--	 * this lock to be held even if it's not always necessary. Let's be
--	 * conservative and hold it early. The window can be reduced after
--	 * careful review of the code.
--	 */
--	reiserfs_write_lock(s);
--
- 	if (reread_meta_blocks(s)) {
- 		SWARN(silent, s, "jmacd-9",
- 		      "unable to reread meta blocks after journal init");
--		goto error;
-+		goto error_unlocked;
- 	}
+ 	/* Are we from a system call? */
+@@ -733,10 +732,7 @@ handle_signal(unsigned long sig, siginfo
+ 	 */
+ 	regs->flags &= ~X86_EFLAGS_TF;
  
- 	if (replay_only(s))
--		goto error;
-+		goto error_unlocked;
+-	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&blocked, sig);
+-	set_current_blocked(&blocked);
++	block_sigmask(ka, sig);
  
- 	if (bdev_read_only(s->s_bdev) && !(s->s_flags & MS_RDONLY)) {
- 		SWARN(silent, s, "clm-7000",
-@@ -1868,9 +1856,19 @@ static int reiserfs_fill_super(struct su
- 			 reiserfs_init_locked_inode, (void *)(&args));
- 	if (!root_inode) {
- 		SWARN(silent, s, "jmacd-10", "get root inode failed");
--		goto error;
-+		goto error_unlocked;
- 	}
+ 	tracehook_signal_handler(sig, info, ka, regs,
+ 				 test_thread_flag(TIF_SINGLESTEP));
+diff -puN include/linux/signal.h~signal-add-block_sigmask-for-adding-sigmask-to-current-blocked include/linux/signal.h
+--- a/include/linux/signal.h~signal-add-block_sigmask-for-adding-sigmask-to-current-blocked
++++ a/include/linux/signal.h
+@@ -254,6 +254,7 @@ extern void set_current_blocked(const si
+ extern int show_unhandled_signals;
  
-+	/*
-+	 * This path assumed to be called with the BKL in the old times.
-+	 * Now we have inherited the big reiserfs lock from it and many
-+	 * reiserfs helpers called in the mount path and elsewhere require
-+	 * this lock to be held even if it's not always necessary. Let's be
-+	 * conservative and hold it early. The window can be reduced after
-+	 * careful review of the code.
-+	 */
-+	reiserfs_write_lock(s);
+ extern int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka, struct pt_regs *regs, void *cookie);
++extern void block_sigmask(struct k_sigaction *ka, int signr);
+ extern void exit_signals(struct task_struct *tsk);
+ 
+ extern struct kmem_cache *sighand_cachep;
+diff -puN kernel/signal.c~signal-add-block_sigmask-for-adding-sigmask-to-current-blocked kernel/signal.c
+--- a/kernel/signal.c~signal-add-block_sigmask-for-adding-sigmask-to-current-blocked
++++ a/kernel/signal.c
+@@ -2318,6 +2318,27 @@ relock:
+ 	return signr;
+ }
+ 
++/**
++ * block_sigmask - add @ka's signal mask to current->blocked
++ * @ka: action for @signr
++ * @signr: signal that has been successfully delivered
++ *
++ * This function should be called when a signal has succesfully been
++ * delivered. It adds the mask of signals for @ka to current->blocked
++ * so that they are blocked during the execution of the signal
++ * handler. In addition, @signr will be blocked unless %SA_NODEFER is
++ * set in @ka->sa.sa_flags.
++ */
++void block_sigmask(struct k_sigaction *ka, int signr)
++{
++	sigset_t blocked;
 +
- 	if (root_inode->i_state & I_NEW) {
- 		reiserfs_read_locked_inode(root_inode, &args);
- 		unlock_new_inode(root_inode);
++	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
++	if (!(ka->sa.sa_flags & SA_NODEFER))
++		sigaddset(&blocked, signr);
++	set_current_blocked(&blocked);
++}
++
+ /*
+  * It could be that complete_signal() picked us to notify about the
+  * group-wide signal. Other threads should be notified now to take
 _
 
-Patches currently in -mm which might be from fweisbec@gmail.com are
+Patches currently in -mm which might be from matt.fleming@intel.com are
 
 origin.patch
 linux-next.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-selftests-new-x86-breakpoints-selftest.patch
 
