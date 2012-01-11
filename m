@@ -1,118 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-simplify-find_vma_prev.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:27:55 -0800
-Message-ID: <20120111212756.269EF200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:27:32 -0800
+Message-ID: <20120111212732.D953F10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:54553 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933994Ab2AKV16 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:58 -0500
-Received: by mail-ee0-f74.google.com with SMTP id d41so44236eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:57 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:59022 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933993Ab2AKV1e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:34 -0500
+Received: by yenm1 with SMTP id m1so7403yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, shaohua.li@intel.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: jweiner@redhat.com, chris.mason@oracle.com, david@fromorbit.com, fengguang.wu@intel.com, hch@infradead.org, jack@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, riel@redhat.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: simplify find_vma_prev()
+     Subject: mm: filemap: pass __GFP_WRITE from grab_cache_page_write_begin()
 has been removed from the -mm tree.  Its filename was
-     mm-simplify-find_vma_prev.patch
+     mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mm: simplify find_vma_prev()
+From: Johannes Weiner <jweiner@redhat.com>
+Subject: mm: filemap: pass __GFP_WRITE from grab_cache_page_write_begin()
 
-commit 297c5eee37 ("mm: make the vma list be doubly linked") added the
-vm_prev member to vm_area_struct.  We can simplify find_vma_prev() by
-using it.  Also, this change helps to improve page fault performance
-because it has stronger locality of reference.
+Tell the page allocator that pages allocated through
+grab_cache_page_write_begin() are expected to become dirty soon.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   36 ++++++++----------------------------
- 1 file changed, 8 insertions(+), 28 deletions(-)
+ mm/filemap.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-simplify-find_vma_prev mm/mmap.c
---- a/mm/mmap.c~mm-simplify-find_vma_prev
-+++ a/mm/mmap.c
-@@ -1603,39 +1603,19 @@ struct vm_area_struct *find_vma(struct m
- 
- EXPORT_SYMBOL(find_vma);
- 
--/* Same as find_vma, but also return a pointer to the previous VMA in *pprev. */
-+/*
-+ * Same as find_vma, but also return a pointer to the previous VMA in *pprev.
-+ * Note: pprev is set to NULL when return value is NULL.
-+ */
- struct vm_area_struct *
- find_vma_prev(struct mm_struct *mm, unsigned long addr,
- 			struct vm_area_struct **pprev)
+diff -puN mm/filemap.c~mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin mm/filemap.c
+--- a/mm/filemap.c~mm-filemap-pass-__gfp_write-from-grab_cache_page_write_begin
++++ a/mm/filemap.c
+@@ -2351,8 +2351,11 @@ struct page *grab_cache_page_write_begin
+ 					pgoff_t index, unsigned flags)
  {
--	struct vm_area_struct *vma = NULL, *prev = NULL;
--	struct rb_node *rb_node;
--	if (!mm)
--		goto out;
--
--	/* Guard against addr being lower than the first VMA */
--	vma = mm->mmap;
--
--	/* Go through the RB tree quickly. */
--	rb_node = mm->mm_rb.rb_node;
--
--	while (rb_node) {
--		struct vm_area_struct *vma_tmp;
--		vma_tmp = rb_entry(rb_node, struct vm_area_struct, vm_rb);
--
--		if (addr < vma_tmp->vm_end) {
--			rb_node = rb_node->rb_left;
--		} else {
--			prev = vma_tmp;
--			if (!prev->vm_next || (addr < prev->vm_next->vm_end))
--				break;
--			rb_node = rb_node->rb_right;
--		}
--	}
-+	struct vm_area_struct *vma;
+ 	int status;
++	gfp_t gfp_mask;
+ 	struct page *page;
+ 	gfp_t gfp_notmask = 0;
++
++	gfp_mask = mapping_gfp_mask(mapping) | __GFP_WRITE;
+ 	if (flags & AOP_FLAG_NOFS)
+ 		gfp_notmask = __GFP_FS;
+ repeat:
+@@ -2360,7 +2363,7 @@ repeat:
+ 	if (page)
+ 		goto found;
  
--out:
--	*pprev = prev;
--	return prev ? prev->vm_next : vma;
-+	vma = find_vma(mm, addr);
-+	*pprev = vma ? vma->vm_prev : NULL;
-+	return vma;
- }
- 
- /*
+-	page = __page_cache_alloc(mapping_gfp_mask(mapping) & ~gfp_notmask);
++	page = __page_cache_alloc(gfp_mask & ~gfp_notmask);
+ 	if (!page)
+ 		return NULL;
+ 	status = add_to_page_cache_lru(page, mapping, index,
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from jweiner@redhat.com are
 
 origin.patch
-oom-memcg-fix-exclusion-of-memcg-threads-after-they-have-detached-their-mm.patch
-memcg-cleanup-for_each_node_state.patch
-page_alloc-break-early-in-check_for_regular_memory.patch
-page_cgroup-drop-multi-config_memory_hotplug.patch
-vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
-mm-take-pagevecs-off-reclaim-stack.patch
-mm-fewer-underscores-in-____pagevec_lru_add.patch
-mm-no-blank-line-after-export_symbol-in-swapc.patch
-mm-enum-lru_list-lru.patch
-mm-remove-del_page_from_lru-add-page_off_lru.patch
-mm-remove-isolate_pages.patch
-kexec-remove-kmsg_dump_kexec.patch
-ipc-mqueue-simplify-reading-msgqueue-limit.patch
+mm-add-extra-free-kbytes-tunable.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned-checkpatch-fixes.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
+mm-memcg-shorten-preempt-disabled-section-around-event-checks.patch
+mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
+mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
+mm-memcg-clean-up-fault-accounting.patch
+mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
+mm-memcg-lookup_page_cgroup-almost-never-returns-null-fix.patch
+mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
+mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
+page_cgroup-add-helper-function-to-get-swap_cgroup.patch
+thp-improve-the-error-code-path.patch
+thp-remove-unnecessary-tlb-flush-for-mprotect.patch
+thp-add-tlb_remove_pmd_tlb_entry.patch
+thp-improve-order-in-lru-list-for-split-huge-page.patch
+mm-compaction-allow-compaction-to-isolate-dirty-pages.patch
+mm-compaction-use-synchronous-compaction-for-proc-sys-vm-compact_memory.patch
+mm-vmscan-check-if-we-isolated-a-compound-page-during-lumpy-scan.patch
+mm-vmscan-do-not-oom-if-aborting-reclaim-to-start-compaction.patch
+mm-compaction-determine-if-dirty-pages-can-be-migrated-without-blocking-within-migratepage.patch
+mm-compaction-make-isolate_lru_page-filter-aware-again.patch
+mm-page-allocator-do-not-call-direct-reclaim-for-thp-allocations-while-compaction-is-deferred.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix.patch
+mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch
+mm-vmscan-check-if-reclaim-should-really-abort-even-if-compaction_ready-is-true-for-one-zone.patch
 
