@@ -1,259 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-remove-adx-backlight-device-support.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:29:44 -0800
-Message-ID: <20120111212945.19BFC20004E@hpza10.eem.corp.google.com>
+Subject: [merged] backlight-ld9040c-regulator-control-in-the-driver.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:29:53 -0800
+Message-ID: <20120111212954.037A120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:38500 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758160Ab2AKV3q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:46 -0500
+	with ESMTP id S1758121Ab2AKV3z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:55 -0500
 Received: by mail-ee0-f74.google.com with SMTP id d41so44287eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:46 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pebolle@tiscali.nl, rpurdie@rpsys.net, thierry.reding@avionic-design.de, wim@iguana.be, mm-commits@vger.kernel.org
+To: dh09.lee@samsung.com, FlorianSchandinat@gmx.de, inki.dae@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: remove ADX backlight device support
+     Subject: backlight/ld9040.c: regulator control in the driver
 has been removed from the -mm tree.  Its filename was
-     backlight-remove-adx-backlight-device-support.patch
+     backlight-ld9040c-regulator-control-in-the-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: backlight: remove ADX backlight device support
+From: Donghwa Lee <dh09.lee@samsung.com>
+Subject: backlight/ld9040.c: regulator control in the driver
 
-Support for the Avionic Design Xanthos backlight device got added in
-commit 3b96ea9ef8 ("backlight: Add support for the Avionic Design Xanthos
-backlight device.").  That support depends on ARCH_PXA_ADX.  The code that
-should have provided that Kconfig symbol never got submitted.  It has
-never been possible to even build this driver.  Remove it.
+This patch supports regulator power control in the driver.  Current ld9040
+driver was controlled power on/off sequence by callback function in the
+board file.  But, by doing this, there's no need to register lcd power
+on/off callback function in the board file.
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Donghwa Lee <dh09.lee@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Inki Dae <inki.dae@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig  |    8 -
- drivers/video/backlight/Makefile |    1 
- drivers/video/backlight/adx_bl.c |  182 -----------------------------
- 3 files changed, 191 deletions(-)
+ drivers/video/backlight/ld9040.c |   71 ++++++++++++++++++++++++-----
+ 1 file changed, 59 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~backlight-remove-adx-backlight-device-support drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-remove-adx-backlight-device-support
-+++ a/drivers/video/backlight/Kconfig
-@@ -280,14 +280,6 @@ config BACKLIGHT_WM831X
- 	  If you have a backlight driven by the ISINK and DCDC of a
- 	  WM831x PMIC say y to enable the backlight driver for it.
+diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040c-regulator-control-in-the-driver drivers/video/backlight/ld9040.c
+--- a/drivers/video/backlight/ld9040.c~backlight-ld9040c-regulator-control-in-the-driver
++++ a/drivers/video/backlight/ld9040.c
+@@ -31,6 +31,7 @@
+ #include <linux/lcd.h>
+ #include <linux/backlight.h>
+ #include <linux/module.h>
++#include <linux/regulator/consumer.h>
  
--config BACKLIGHT_ADX
--	tristate "Avionic Design Xanthos Backlight Driver"
--	depends on ARCH_PXA_ADX
--	default y
--	help
--	  Say Y to enable the backlight driver on Avionic Design Xanthos-based
--	  boards.
--
- config BACKLIGHT_ADP5520
- 	tristate "Backlight Driver for ADP5520/ADP5501 using WLED"
- 	depends on PMIC_ADP5520
-diff -puN drivers/video/backlight/Makefile~backlight-remove-adx-backlight-device-support drivers/video/backlight/Makefile
---- a/drivers/video/backlight/Makefile~backlight-remove-adx-backlight-device-support
-+++ a/drivers/video/backlight/Makefile
-@@ -32,7 +32,6 @@ obj-$(CONFIG_BACKLIGHT_APPLE)	+= apple_b
- obj-$(CONFIG_BACKLIGHT_TOSA)	+= tosa_bl.o
- obj-$(CONFIG_BACKLIGHT_SAHARA)	+= kb3886_bl.o
- obj-$(CONFIG_BACKLIGHT_WM831X)	+= wm831x_bl.o
--obj-$(CONFIG_BACKLIGHT_ADX)    += adx_bl.o
- obj-$(CONFIG_BACKLIGHT_ADP5520)	+= adp5520_bl.o
- obj-$(CONFIG_BACKLIGHT_ADP8860)	+= adp8860_bl.o
- obj-$(CONFIG_BACKLIGHT_ADP8870)	+= adp8870_bl.o
-diff -puN drivers/video/backlight/adx_bl.c~backlight-remove-adx-backlight-device-support /dev/null
---- a/drivers/video/backlight/adx_bl.c
-+++ /dev/null
-@@ -1,182 +0,0 @@
--/*
-- * linux/drivers/video/backlight/adx.c
-- *
-- * Copyright (C) 2009 Avionic Design GmbH
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * Written by Thierry Reding <thierry.reding@avionic-design.de>
-- */
--
--#include <linux/backlight.h>
--#include <linux/fb.h>
--#include <linux/gfp.h>
--#include <linux/io.h>
--#include <linux/module.h>
--#include <linux/platform_device.h>
--
--/* register definitions */
--#define ADX_BACKLIGHT_CONTROL		0x00
--#define ADX_BACKLIGHT_CONTROL_ENABLE	(1 << 0)
--#define ADX_BACKLIGHT_BRIGHTNESS	0x08
--#define ADX_BACKLIGHT_STATUS		0x10
--#define ADX_BACKLIGHT_ERROR		0x18
--
--struct adxbl {
--	void __iomem *base;
--};
--
--static int adx_backlight_update_status(struct backlight_device *bldev)
--{
--	struct adxbl *bl = bl_get_data(bldev);
--	u32 value;
--
--	value = bldev->props.brightness;
--	writel(value, bl->base + ADX_BACKLIGHT_BRIGHTNESS);
--
--	value = readl(bl->base + ADX_BACKLIGHT_CONTROL);
--
--	if (bldev->props.state & BL_CORE_FBBLANK)
--		value &= ~ADX_BACKLIGHT_CONTROL_ENABLE;
--	else
--		value |= ADX_BACKLIGHT_CONTROL_ENABLE;
--
--	writel(value, bl->base + ADX_BACKLIGHT_CONTROL);
--
--	return 0;
--}
--
--static int adx_backlight_get_brightness(struct backlight_device *bldev)
--{
--	struct adxbl *bl = bl_get_data(bldev);
--	u32 brightness;
--
--	brightness = readl(bl->base + ADX_BACKLIGHT_BRIGHTNESS);
--	return brightness & 0xff;
--}
--
--static int adx_backlight_check_fb(struct backlight_device *bldev, struct fb_info *fb)
--{
--	return 1;
--}
--
--static const struct backlight_ops adx_backlight_ops = {
--	.options = 0,
--	.update_status = adx_backlight_update_status,
--	.get_brightness = adx_backlight_get_brightness,
--	.check_fb = adx_backlight_check_fb,
--};
--
--static int __devinit adx_backlight_probe(struct platform_device *pdev)
--{
--	struct backlight_properties props;
--	struct backlight_device *bldev;
--	struct resource *res;
--	struct adxbl *bl;
--	int ret = 0;
--
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		ret = -ENXIO;
--		goto out;
+ #include "ld9040_gamma.h"
+ 
+@@ -53,8 +54,51 @@ struct ld9040 {
+ 	struct lcd_device		*ld;
+ 	struct backlight_device		*bd;
+ 	struct lcd_platform_data	*lcd_pd;
++
++	struct mutex			lock;
++	bool  enabled;
++};
++
++static struct regulator_bulk_data supplies[] = {
++	{ .supply = "vdd3", },
++	{ .supply = "vci", },
+ };
+ 
++static void ld9040_regulator_enable(struct ld9040 *lcd)
++{
++	int ret = 0;
++	struct lcd_platform_data *pd = NULL;
++
++	pd = lcd->lcd_pd;
++	mutex_lock(&lcd->lock);
++	if (!lcd->enabled) {
++		ret = regulator_bulk_enable(ARRAY_SIZE(supplies), supplies);
++		if (ret)
++			goto out;
++
++		lcd->enabled = true;
++	}
++	mdelay(pd->power_on_delay);
++out:
++	mutex_unlock(&lcd->lock);
++}
++
++static void ld9040_regulator_disable(struct ld9040 *lcd)
++{
++	int ret = 0;
++
++	mutex_lock(&lcd->lock);
++	if (lcd->enabled) {
++		ret = regulator_bulk_disable(ARRAY_SIZE(supplies), supplies);
++		if (ret)
++			goto out;
++
++		lcd->enabled = false;
++	}
++out:
++	mutex_unlock(&lcd->lock);
++}
++
+ static const unsigned short seq_swreset[] = {
+ 	0x01, COMMAND_ONLY,
+ 	ENDDEF, 0x00
+@@ -532,13 +576,8 @@ static int ld9040_power_on(struct ld9040
+ 		return -EFAULT;
+ 	}
+ 
+-	if (!pd->power_on) {
+-		dev_err(lcd->dev, "power_on is NULL.\n");
+-		return -EFAULT;
+-	} else {
+-		pd->power_on(lcd->ld, 1);
+-		mdelay(pd->power_on_delay);
 -	}
--
--	res = devm_request_mem_region(&pdev->dev, res->start,
--			resource_size(res), res->name);
--	if (!res) {
--		ret = -ENXIO;
--		goto out;
--	}
--
--	bl = devm_kzalloc(&pdev->dev, sizeof(*bl), GFP_KERNEL);
--	if (!bl) {
--		ret = -ENOMEM;
--		goto out;
--	}
--
--	bl->base = devm_ioremap_nocache(&pdev->dev, res->start,
--			resource_size(res));
--	if (!bl->base) {
--		ret = -ENXIO;
--		goto out;
--	}
--
--	memset(&props, 0, sizeof(struct backlight_properties));
--	props.type = BACKLIGHT_RAW;
--	props.max_brightness = 0xff;
--	bldev = backlight_device_register(dev_name(&pdev->dev), &pdev->dev,
--					  bl, &adx_backlight_ops, &props);
--	if (IS_ERR(bldev)) {
--		ret = PTR_ERR(bldev);
--		goto out;
--	}
--
--	bldev->props.brightness = 0xff;
--	bldev->props.power = FB_BLANK_UNBLANK;
--
--	platform_set_drvdata(pdev, bldev);
--
--out:
--	return ret;
--}
--
--static int __devexit adx_backlight_remove(struct platform_device *pdev)
--{
--	struct backlight_device *bldev;
--	int ret = 0;
--
--	bldev = platform_get_drvdata(pdev);
--	bldev->props.power = FB_BLANK_UNBLANK;
--	bldev->props.brightness = 0xff;
--	backlight_update_status(bldev);
--	backlight_device_unregister(bldev);
--	platform_set_drvdata(pdev, NULL);
--
--	return ret;
--}
--
--#ifdef CONFIG_PM
--static int adx_backlight_suspend(struct platform_device *pdev,
--		pm_message_t state)
--{
--	return 0;
--}
--
--static int adx_backlight_resume(struct platform_device *pdev)
--{
--	return 0;
--}
--#else
--#define adx_backlight_suspend NULL
--#define adx_backlight_resume NULL
--#endif
--
--static struct platform_driver adx_backlight_driver = {
--	.probe = adx_backlight_probe,
--	.remove = __devexit_p(adx_backlight_remove),
--	.suspend = adx_backlight_suspend,
--	.resume = adx_backlight_resume,
--	.driver = {
--		.name = "adx-backlight",
--		.owner = THIS_MODULE,
--	},
--};
--
--static int __init adx_backlight_init(void)
--{
--	return platform_driver_register(&adx_backlight_driver);
--}
--
--static void __exit adx_backlight_exit(void)
--{
--	platform_driver_unregister(&adx_backlight_driver);
--}
--
--module_init(adx_backlight_init);
--module_exit(adx_backlight_exit);
++	/* lcd power on */
++	ld9040_regulator_enable(lcd);
+ 
+ 	if (!pd->reset) {
+ 		dev_err(lcd->dev, "reset is NULL.\n");
+@@ -582,11 +621,8 @@ static int ld9040_power_off(struct ld904
+ 
+ 	mdelay(pd->power_off_delay);
+ 
+-	if (!pd->power_on) {
+-		dev_err(lcd->dev, "power_on is NULL.\n");
+-		return -EFAULT;
+-	} else
+-		pd->power_on(lcd->ld, 0);
++	/* lcd power off */
++	ld9040_regulator_disable(lcd);
+ 
+ 	return 0;
+ }
+@@ -693,6 +729,14 @@ static int ld9040_probe(struct spi_devic
+ 		goto out_free_lcd;
+ 	}
+ 
++	mutex_init(&lcd->lock);
++
++	ret = regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
++	if (ret) {
++		dev_err(lcd->dev, "Failed to get regulators: %d\n", ret);
++		goto out_free_lcd;
++	}
++
+ 	ld = lcd_device_register("ld9040", &spi->dev, lcd, &ld9040_lcd_ops);
+ 	if (IS_ERR(ld)) {
+ 		ret = PTR_ERR(ld);
+@@ -739,6 +783,8 @@ static int ld9040_probe(struct spi_devic
+ out_unregister_lcd:
+ 	lcd_device_unregister(lcd->ld);
+ out_free_lcd:
++	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
++
+ 	kfree(lcd);
+ 	return ret;
+ }
+@@ -750,6 +796,7 @@ static int __devexit ld9040_remove(struc
+ 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
+ 	backlight_device_unregister(lcd->bd);
+ 	lcd_device_unregister(lcd->ld);
++	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
+ 	kfree(lcd);
+ 
+ 	return 0;
+_
+
+Patches currently in -mm which might be from dh09.lee@samsung.com are
+
+origin.patch
+
