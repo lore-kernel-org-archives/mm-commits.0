@@ -1,97 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-update-signature-might-be-better-as-warning.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:30:55 -0800
-Message-ID: <20120111213056.16DD1200057@hpza10.eem.corp.google.com>
+Subject: [merged] checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:30:59 -0800
+Message-ID: <20120111213059.A5FC41E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:59532 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933921Ab2AKVa5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:30:57 -0500
-Received: by mail-ee0-f74.google.com with SMTP id d41so44333eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:30:56 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:33196 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933921Ab2AKVbA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:31:00 -0500
+Received: by mail-gy0-f202.google.com with SMTP id r15so137318ghr.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:31:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, julia.lawall@lip6.fr, mm-commits@vger.kernel.org
+To: apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: update signature "might be better as" warning
+     Subject: checkpatch: correctly track the end of preprocessor commands in context
 has been removed from the -mm tree.  Its filename was
-     checkpatch-update-signature-might-be-better-as-warning.patch
+     checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: update signature "might be better as" warning
+From: Andy Whitcroft <apw@canonical.com>
+Subject: checkpatch: correctly track the end of preprocessor commands in context
 
-email header lines can look like signature tags.  It's valid to have
-multiple email recipients on a single line but not valid to have multiple
-signatures on a single line.
+When looking for a statement we currently run on through preprocessor
+commands.  This means that a header file with just definitions is parsed
+over and over again combining all of the lines from the current line to
+the end of file leading to severe performance issues.
 
-Validate signatures only when not in the email headers.
+Fix up context accumulation to track preprocessor commands and stop when
+reaching the end of them.  At the same time vastly simplify the #define
+handling.
 
-Clear the $in_commit_log flag when the patch filename appears.
-
-Add '-' to the valid chars in a message header for headers
-like "Message-Id:" and "In-Reply-To:".
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Julia Lawall <julia.lawall@lip6.fr>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   90 +++++++++++++++++-----------------------
+ 1 file changed, 39 insertions(+), 51 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-signature-might-be-better-as-warning scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-signature-might-be-better-as-warning
+diff -puN scripts/checkpatch.pl~checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-correctly-track-the-end-of-preprocessor-commands-in-context
 +++ a/scripts/checkpatch.pl
-@@ -1504,9 +1504,11 @@ sub process {
- 		if ($line =~ /^diff --git.*?(\S+)$/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@;
-+			$in_commit_log = 0;
- 		} elsif ($line =~ /^\+\+\+\s+(\S+)/) {
- 			$realfile = $1;
- 			$realfile =~ s@^([^/]*)/@@;
-+			$in_commit_log = 0;
- 
- 			$p1_prefix = $1;
- 			if (!$file && $tree && $p1_prefix ne '' &&
-@@ -1546,7 +1548,8 @@ sub process {
+@@ -676,6 +676,10 @@ sub ctx_statement_block {
+ 			if ($off >= $len) {
+ 				last;
+ 			}
++			if ($level == 0 && substr($blk, $off) =~ /^.\s*#\s*define/) {
++				$level++;
++				$type = '#';
++			}
  		}
+ 		$p = $c;
+ 		$c = substr($blk, $off, 1);
+@@ -738,6 +742,13 @@ sub ctx_statement_block {
+ 				last;
+ 			}
+ 		}
++		# Preprocessor commands end at the newline unless escaped.
++		if ($type eq '#' && $c eq "\n" && $p ne "\\") {
++			$level--;
++			$type = '';
++			$off++;
++			last;
++		}
+ 		$off++;
+ 	}
+ 	# We are truly at the end, so shuffle to the next line.
+@@ -1801,6 +1812,8 @@ sub process {
+ 			$stat =~ s/\n./\n /g;
+ 			$cond =~ s/\n./\n /g;
  
- # Check signature styles
--		if ($line =~ /^(\s*)($signature_tags)(\s*)(.*)/) {
-+		if (!$in_header_lines &&
-+		    $line =~ /^(\s*)($signature_tags)(\s*)(.*)/) {
- 			my $space_before = $1;
- 			my $sign_off = $2;
- 			my $space_after = $3;
-@@ -1623,7 +1626,7 @@ sub process {
- # Check if it's the start of a commit log
- # (not a header line and we haven't seen the patch filename)
- 		if ($in_header_lines && $realfile =~ /^$/ &&
--		    $rawline !~ /^(commit\b|from\b|\w+:).+$/i) {
-+		    $rawline !~ /^(commit\b|from\b|[\w-]+:).+$/i) {
- 			$in_header_lines = 0;
- 			$in_commit_log = 1;
++#print "stat<$stat>\n";
++
+ 			# Find the real next line.
+ 			$realline_next = $line_nr_next;
+ 			if (defined $realline_next &&
+@@ -2781,47 +2794,13 @@ sub process {
+ 			my $cnt = $realcnt;
+ 			my ($off, $dstat, $dcond, $rest);
+ 			my $ctx = '';
+-
+-			my $args = defined($1);
+-
+-			# Find the end of the macro and limit our statement
+-			# search to that.
+-			while ($cnt > 0 && defined $lines[$ln - 1] &&
+-				$lines[$ln - 1] =~ /^(?:-|..*\\$)/)
+-			{
+-				$ctx .= $rawlines[$ln - 1] . "\n";
+-				$cnt-- if ($lines[$ln - 1] !~ /^-/);
+-				$ln++;
+-			}
+-			$ctx .= $rawlines[$ln - 1];
+-
+ 			($dstat, $dcond, $ln, $cnt, $off) =
+-				ctx_statement_block($linenr, $ln - $linenr + 1, 0);
++				ctx_statement_block($linenr, $realcnt, 0);
++			$ctx = $dstat;
+ 			#print "dstat<$dstat> dcond<$dcond> cnt<$cnt> off<$off>\n";
+ 			#print "LINE<$lines[$ln-1]> len<" . length($lines[$ln-1]) . "\n";
+ 
+-			# Extract the remainder of the define (if any) and
+-			# rip off surrounding spaces, and trailing \'s.
+-			$rest = '';
+-			while ($off != 0 || ($cnt > 0 && $rest =~ /\\\s*$/)) {
+-				#print "ADDING cnt<$cnt> $off <" . substr($lines[$ln - 1], $off) . "> rest<$rest>\n";
+-				if ($off != 0 || $lines[$ln - 1] !~ /^-/) {
+-					$rest .= substr($lines[$ln - 1], $off) . "\n";
+-					$cnt--;
+-				}
+-				$ln++;
+-				$off = 0;
+-			}
+-			$rest =~ s/\\\n.//g;
+-			$rest =~ s/^\s*//s;
+-			$rest =~ s/\s*$//s;
+-
+-			# Clean up the original statement.
+-			if ($args) {
+-				substr($dstat, 0, length($dcond), '');
+-			} else {
+-				$dstat =~ s/^.\s*\#\s*define\s+$Ident\s*//;
+-			}
++			$dstat =~ s/^.\s*\#\s*define\s+$Ident(?:\([^\)]*\))?\s*//;
+ 			$dstat =~ s/$;//g;
+ 			$dstat =~ s/\\\n.//g;
+ 			$dstat =~ s/^\s*//s;
+@@ -2847,23 +2826,32 @@ sub process {
+ 				^\"|\"$
+ 			}x;
+ 			#print "REST<$rest> dstat<$dstat> ctx<$ctx>\n";
+-			if ($rest ne '' && $rest ne ',') {
+-				if ($rest !~ /while\s*\(/ &&
+-				    $dstat !~ /$exceptions/)
+-				{
+-					ERROR("MULTISTATEMENT_MACRO_USE_DO_WHILE",
+-					      "Macros with multiple statements should be enclosed in a do - while loop\n" . "$here\n$ctx\n");
++			if ($dstat ne '' &&
++			    $dstat !~ /^(?:$Ident|-?$Constant),$/ &&			# 10, // foo(),
++			    $dstat !~ /^(?:$Ident|-?$Constant);$/ &&			# foo();
++			    $dstat !~ /^(?:$Ident|-?$Constant)$/ &&			# 10 // foo()
++			    $dstat !~ /$exceptions/ &&
++			    $dstat !~ /^\.$Ident\s*=/ &&				# .foo =
++			    $dstat !~ /^do\s*$Constant\s*while\s*$Constant;$/ &&	# do {...} while (...);
++			    $dstat !~ /^for\s*$Constant$/ &&				# for (...)
++			    $dstat !~ /^for\s*$Constant\s+(?:$Ident|-?$Constant)$/ &&	# for (...) bar()
++			    $dstat !~ /^do\s*{/ &&					# do {...
++			    $dstat !~ /^\({/)						# ({...
++			{
++				$ctx =~ s/\n*$//;
++				my $herectx = $here . "\n";
++				my $cnt = statement_rawlines($ctx);
++
++				for (my $n = 0; $n < $cnt; $n++) {
++					$herectx .= raw_line($linenr, $n) . "\n";
+ 				}
+ 
+-			} elsif ($ctx !~ /;/) {
+-				if ($dstat ne '' &&
+-				    $dstat !~ /^(?:$Ident|-?$Constant)$/ &&
+-				    $dstat !~ /$exceptions/ &&
+-				    $dstat !~ /^\.$Ident\s*=/ &&
+-				    $dstat =~ /$Operators/)
+-				{
++				if ($dstat =~ /;/) {
++					ERROR("MULTISTATEMENT_MACRO_USE_DO_WHILE",
++					      "Macros with multiple statements should be enclosed in a do - while loop\n" . "$herectx");
++				} else {
+ 					ERROR("COMPLEX_MACRO",
+-					      "Macros with complex values should be enclosed in parenthesis\n" . "$here\n$ctx\n");
++					      "Macros with complex values should be enclosed in parenthesis\n" . "$herectx");
+ 				}
+ 			}
  		}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from apw@canonical.com are
 
 origin.patch
-linux-next.patch
-maintainers-staging-cx25821-add-l-linux-media.patch
-kernelh-neaten-panic-prototype.patch
-linkage-remove-unused-noret_and-macro.patch
-treewide-remove-useless-noret_type-macro-and-uses.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-linkage-remove-unused-attrib_noret-macro.patch
 
