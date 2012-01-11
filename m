@@ -1,69 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-prefer-__printf-not-__attribute__formatprintf.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:31:02 -0800
-Message-ID: <20120111213102.9126610004D@wpzn3.hot.corp.google.com>
+Subject: [merged] checkpatch-check-for-common-memset-parameter-issues-against-statments.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:31:05 -0800
+Message-ID: <20120111213106.1E6705C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:42148 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933921Ab2AKVbD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:31:03 -0500
-Received: by mail-yx0-f202.google.com with SMTP id m1so7711yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:31:02 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:44200 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934051Ab2AKVbI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:31:08 -0500
+Received: by eaad12 with SMTP id d12so32631eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:31:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: prefer __printf over __attribute__((format(printf,...)))
+     Subject: checkpatch: check for common memset parameter issues against statments
 has been removed from the -mm tree.  Its filename was
-     checkpatch-prefer-__printf-not-__attribute__formatprintf.patch
+     checkpatch-check-for-common-memset-parameter-issues-against-statments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: prefer __printf over __attribute__((format(printf,...)))
+From: Andy Whitcroft <apw@canonical.com>
+Subject: checkpatch: check for common memset parameter issues against statments
 
-Add a warn for not using __printf.
+Move the memset checks over to work against the statement.  Also add
+checks for 0 and 1 used as lengths.  Generally these indicate badly
+ordered parameters.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-prefer-__printf-not-__attribute__formatprintf scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-prefer-__printf-not-__attribute__formatprintf
+diff -puN scripts/checkpatch.pl~checkpatch-check-for-common-memset-parameter-issues-against-statments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-for-common-memset-parameter-issues-against-statments
 +++ a/scripts/checkpatch.pl
-@@ -3114,6 +3114,12 @@ sub process {
- 			     "__aligned(size) is preferred over __attribute__((aligned(size)))\n" . $herecurr);
+@@ -3120,6 +3120,28 @@ sub process {
+ 			     "Avoid line continuations in quoted strings\n" . $herecurr);
  		}
  
-+# Check for __attribute__ format(printf, prefer __printf
-+		if ($line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*printf/) {
-+			WARN("PREFER_PRINTF",
-+			     "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr);
++# Check for misused memsets
++		if (defined $stat && $stat =~ /\bmemset\s*\((.*)\)/s) {
++			my $args = $1;
++
++			# Flatten any parentheses and braces
++			while ($args =~ s/\([^\(\)]*\)/10/s ||
++			       $args =~ s/\{[^\{\}]*\}/10/s ||
++			       $args =~ s/\[[^\[\]]*\]/10/s)
++			{
++			}
++			# Extract the simplified arguments.
++			my ($ms_addr, $ms_val, $ms_size) =
++						split(/\s*,\s*/, $args);
++			if ($ms_size =~ /^(0x|)0$/i) {
++				ERROR("MEMSET",
++				      "memset size is 3rd argument, not the second.\n" . $herecurr);
++			} elsif ($ms_size =~ /^(0x|)1$/i) {
++				WARN("MEMSET",
++				     "single byte memset is suspicious. Swapped 2nd/3rd argument?\n" . $herecurr);
++			}
 +		}
 +
- # check for sizeof(&)
- 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
- 			WARN("SIZEOF_ADDRESS",
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-origin.patch
-linux-next.patch
-maintainers-staging-cx25821-add-l-linux-media.patch
-kernelh-neaten-panic-prototype.patch
-linkage-remove-unused-noret_and-macro.patch
-treewide-remove-useless-noret_type-macro-and-uses.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn-checkpatch-fixes.patch
-linkage-remove-unused-attrib_noret-macro.patch
-
+ # check for new externs in .c files.
+ 		if ($realfile =~ /\.c$/ && defined $stat &&
+ 		    $stat =~ /^.\s*(?:extern\s+)?$Type\s+($Ident)(\s*)\(/s)
+@@ -3291,12 +3313,6 @@ sub process {
+ 			WARN("EXPORTED_WORLD_WRITABLE",
+ 			     "Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
+ 		}
