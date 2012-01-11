@@ -1,86 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] reiserfs-delete-comments-refering-to-the-bkl.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:32:51 -0800
-Message-ID: <20120111213251.8893B1E004D@wpzn4.hot.corp.google.com>
+Subject: [merged] drivers-rtc-interfacec-fix-alarm-rollover-when-day-or-month-is-out-of-range.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:32:46 -0800
+Message-ID: <20120111213247.3DF1C5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:61363 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758163Ab2AKVcw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:32:52 -0500
-Received: by mail-gx0-f202.google.com with SMTP id k3so134903ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:32:51 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:43465 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758163Ab2AKVcu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:32:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@gnu.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: ben@decadent.org.uk, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, john.stultz@linaro.org, jrnieder@gmail.com, leoweppelman@googlemail.com, mailme667@yahoo.co.uk, mroberto@cpti.cetuc.puc-rio.br, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reiserfs: delete comments referring to the BKL
+     Subject: drivers/rtc/interface.c: fix alarm rollover when day or month is out-of-range
 has been removed from the -mm tree.  Its filename was
-     reiserfs-delete-comments-refering-to-the-bkl.patch
+     drivers-rtc-interfacec-fix-alarm-rollover-when-day-or-month-is-out-of-range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@gnu.org>
-Subject: reiserfs: delete comments referring to the BKL
+From: Ben Hutchings <ben@decadent.org.uk>
+Subject: drivers/rtc/interface.c: fix alarm rollover when day or month is out-of-range
 
-Signed-off-by: Davidlohr Bueso <dave@gnu.org>
-Cc: Jan Kara <jack@suse.cz>
+Commit f44f7f96a20a ("RTC: Initialize kernel state from RTC") introduced a
+potential infinite loop.  If an alarm time contains a wildcard month and
+an invalid day (> 31), or a wildcard year and an invalid month (>= 12),
+the loop searching for the next matching date will never terminate.  Treat
+the invalid values as wildcards.
+
+Fixes <http://bugs.debian.org/646429>, <http://bugs.debian.org/653331>
+
+Reported-by: leo weppelman <leoweppelman@googlemail.com>
+Reported-by: "P. van Gaans" <mailme667@yahoo.co.uk>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Marcelo Roberto Jimenez <mroberto@cpti.cetuc.puc-rio.br>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: John Stultz <john.stultz@linaro.org>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/rtc/interface.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-delete-comments-refering-to-the-bkl fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-delete-comments-refering-to-the-bkl
-+++ a/fs/reiserfs/journal.c
-@@ -2896,14 +2896,13 @@ int journal_transaction_should_end(struc
- 	    journal->j_cnode_free < (journal->j_trans_max * 3)) {
- 		return 1;
+diff -puN drivers/rtc/interface.c~drivers-rtc-interfacec-fix-alarm-rollover-when-day-or-month-is-out-of-range drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~drivers-rtc-interfacec-fix-alarm-rollover-when-day-or-month-is-out-of-range
++++ a/drivers/rtc/interface.c
+@@ -228,11 +228,11 @@ int __rtc_read_alarm(struct rtc_device *
+ 		alarm->time.tm_hour = now.tm_hour;
+ 
+ 	/* For simplicity, only support date rollover for now */
+-	if (alarm->time.tm_mday == -1) {
++	if (alarm->time.tm_mday < 1 || alarm->time.tm_mday > 31) {
+ 		alarm->time.tm_mday = now.tm_mday;
+ 		missing = day;
  	}
--	/* protected by the BKL here */
-+
- 	journal->j_len_alloc += new_alloc;
- 	th->t_blocks_allocated += new_alloc ;
- 	return 0;
- }
- 
--/* this must be called inside a transaction, and requires the
--** kernel_lock to be held
-+/* this must be called inside a transaction
- */
- void reiserfs_block_writes(struct reiserfs_transaction_handle *th)
- {
-@@ -2914,8 +2913,7 @@ void reiserfs_block_writes(struct reiser
- 	return;
- }
- 
--/* this must be called without a transaction started, and does not
--** require BKL
-+/* this must be called without a transaction started
- */
- void reiserfs_allow_writes(struct super_block *s)
- {
-@@ -2924,8 +2922,7 @@ void reiserfs_allow_writes(struct super_
- 	wake_up(&journal->j_join_wait);
- }
- 
--/* this must be called without a transaction started, and does not
--** require BKL
-+/* this must be called without a transaction started
- */
- void reiserfs_wait_on_write_block(struct super_block *s)
- {
+-	if (alarm->time.tm_mon == -1) {
++	if ((unsigned)alarm->time.tm_mon >= 12) {
+ 		alarm->time.tm_mon = now.tm_mon;
+ 		if (missing == none)
+ 			missing = month;
 _
 
-Patches currently in -mm which might be from dave@gnu.org are
+Patches currently in -mm which might be from ben@decadent.org.uk are
 
 origin.patch
 linux-next.patch
-ipc-mqueue-simplify-reading-msgqueue-limit.patch
 
