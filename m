@@ -1,87 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch added to -mm tree
-Date: Wed, 11 Jan 2012 14:13:38 -0800
-Message-ID: <20120111221339.10F7E5C0065@hpza9.eem.corp.google.com>
+Subject: [to-be-updated] drivers-scsi-megaraidc-fix-sparse-warnings.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 14:28:18 -0800
+Message-ID: <20120111222818.E937A100056@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:60460 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932606Ab2AKWNl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 17:13:41 -0500
-Received: by eekd41 with SMTP id d41so45523eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 14:13:40 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:38231 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934130Ab2AKW2U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 17:28:20 -0500
+Received: by ghrr15 with SMTP id r15so144324ghr.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 14:28:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sgruszka@redhat.com, penberg@cs.helsinki.fi, rientjes@google.com, rjw@sisk.pl
+To: rdunlap@xenotime.net, Bo.Yang@lsi.com, James.Bottomley@HansenPartnership.com, aradford@gmail.com, megaraidlinux@lsi.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: document setting min order with debug_guardpage_minorder > 0
-has been added to the -mm tree.  Its filename is
-     slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch
+     Subject: drivers/scsi/megaraid.c: fix sparse warnings
+has been removed from the -mm tree.  Its filename was
+     drivers-scsi-megaraidc-fix-sparse-warnings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stanislaw Gruszka <sgruszka@redhat.com>
-Subject: slub: document setting min order with debug_guardpage_minorder > 0
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: drivers/scsi/megaraid.c: fix sparse warnings
 
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
+Fix sparse warnings of right shift bigger than source value size:
+
+drivers/scsi/megaraid.c:311:65: warning: right shift by bigger than source value
+drivers/scsi/megaraid.c:313:65: warning: right shift by bigger than source value
+drivers/scsi/megaraid.c:317:67: warning: right shift by bigger than source value
+drivers/scsi/megaraid.c:319:67: warning: right shift by bigger than source value
+
+Patch suggestion from email by Al Viro:
+
+"Since both are claimed to be strings, I really suspect that this >> 8 is
+misspelled >> 4 and they have a character followed by pair of two-digit
+packed decimals in there..."
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Neela Syam Kolli <megaraidlinux@lsi.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-slab |    4 ++++
- Documentation/vm/slub.txt                   |    5 ++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/scsi/megaraid.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0 Documentation/ABI/testing/sysfs-kernel-slab
---- a/Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0
-+++ a/Documentation/ABI/testing/sysfs-kernel-slab
-@@ -346,6 +346,10 @@ Description:
- 		number of objects per slab.  If a slab cannot be allocated
- 		because of fragmentation, SLUB will retry with the minimum order
- 		possible depending on its characteristics.
-+		When debug_guardpage_minorder=N (N > 0) parameter is specified
-+		(see Documentation/kernel-parameters.txt), the minimum possible
-+		order is used and this sysfs entry can not be used to change
-+		the order at run time.
- 
- What:		/sys/kernel/slab/cache/order_fallback
- Date:		April 2008
-diff -puN Documentation/vm/slub.txt~slub-document-setting-min-order-with-debug_guardpage_minorder-0 Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~slub-document-setting-min-order-with-debug_guardpage_minorder-0
-+++ a/Documentation/vm/slub.txt
-@@ -131,7 +131,10 @@ slub_min_objects.
- slub_max_order specified the order at which slub_min_objects should no
- longer be checked. This is useful to avoid SLUB trying to generate
- super large order pages to fit slub_min_objects of a slab cache with
--large object sizes into one high order page.
-+large object sizes into one high order page. Setting command line
-+parameter debug_guardpage_minorder=N (N > 0), forces setting
-+slub_max_order to 0, what cause minimum possible order of slabs
-+allocation.
- 
- SLUB Debug output
- -----------------
+diff -puN drivers/scsi/megaraid.c~drivers-scsi-megaraidc-fix-sparse-warnings drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~drivers-scsi-megaraidc-fix-sparse-warnings
++++ a/drivers/scsi/megaraid.c
+@@ -310,15 +310,15 @@ mega_query_adapter(adapter_t *adapter)
+ 	if (adapter->product_info.subsysvid == HP_SUBSYS_VID) {
+ 		sprintf (adapter->fw_version, "%c%d%d.%d%d",
+ 			 adapter->product_info.fw_version[2],
+-			 adapter->product_info.fw_version[1] >> 8,
++			 adapter->product_info.fw_version[1] >> 4,
+ 			 adapter->product_info.fw_version[1] & 0x0f,
+-			 adapter->product_info.fw_version[0] >> 8,
++			 adapter->product_info.fw_version[0] >> 4,
+ 			 adapter->product_info.fw_version[0] & 0x0f);
+ 		sprintf (adapter->bios_version, "%c%d%d.%d%d",
+ 			 adapter->product_info.bios_version[2],
+-			 adapter->product_info.bios_version[1] >> 8,
++			 adapter->product_info.bios_version[1] >> 4,
+ 			 adapter->product_info.bios_version[1] & 0x0f,
+-			 adapter->product_info.bios_version[0] >> 8,
++			 adapter->product_info.bios_version[0] >> 4,
+ 			 adapter->product_info.bios_version[0] & 0x0f);
+ 	} else {
+ 		memcpy(adapter->fw_version,
 _
-Subject: Subject: slub: document setting min order with debug_guardpage_minorder > 0
 
-Patches currently in -mm which might be from sgruszka@redhat.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
 linux-next.patch
-slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
