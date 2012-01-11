@@ -1,108 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-off-by-two-in-__zone_watermark_ok.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:27:48 -0800
-Message-ID: <20120111212749.0CD5120004E@hpza10.eem.corp.google.com>
+Subject: [merged] mm-simplify-find_vma_prev.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:27:55 -0800
+Message-ID: <20120111212756.269EF200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:59956 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933994Ab2AKV1u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:50 -0500
-Received: by mail-ey0-f202.google.com with SMTP id d12so32537eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:50 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:54553 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933994Ab2AKV16 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:58 -0500
+Received: by mail-ee0-f74.google.com with SMTP id d41so44236eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, mgorman@suse.de, shhuiw@gmail.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, a.p.zijlstra@chello.nl, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, shaohua.li@intel.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix off-by-two in __zone_watermark_ok()
+     Subject: mm: simplify find_vma_prev()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-off-by-two-in-__zone_watermark_ok.patch
+     mm-simplify-find_vma_prev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: fix off-by-two in __zone_watermark_ok()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: simplify find_vma_prev()
 
-88f5acf8 ("mm: page allocator: adjust the per-cpu counter threshold when
-memory is low") changed the form how free_pages is calculated but it
-forgot that we used to do free_pages - ((1 << order) - 1) so we ended up
-with off-by-two when calculating free_pages.
+commit 297c5eee37 ("mm: make the vma list be doubly linked") added the
+vm_prev member to vm_area_struct.  We can simplify find_vma_prev() by
+using it.  Also, this change helps to improve page fault performance
+because it has stronger locality of reference.
 
-Reported-by: Wang Sheng-Hui <shhuiw@gmail.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |   36 ++++++++----------------------------
+ 1 file changed, 8 insertions(+), 28 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-off-by-two-in-__zone_watermark_ok mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-off-by-two-in-__zone_watermark_ok
-+++ a/mm/page_alloc.c
-@@ -1525,7 +1525,7 @@ static bool __zone_watermark_ok(struct z
- 	long min = mark;
- 	int o;
+diff -puN mm/mmap.c~mm-simplify-find_vma_prev mm/mmap.c
+--- a/mm/mmap.c~mm-simplify-find_vma_prev
++++ a/mm/mmap.c
+@@ -1603,39 +1603,19 @@ struct vm_area_struct *find_vma(struct m
  
--	free_pages -= (1 << order) + 1;
-+	free_pages -= (1 << order) - 1;
- 	if (alloc_flags & ALLOC_HIGH)
- 		min -= min / 2;
- 	if (alloc_flags & ALLOC_HARDER)
+ EXPORT_SYMBOL(find_vma);
+ 
+-/* Same as find_vma, but also return a pointer to the previous VMA in *pprev. */
++/*
++ * Same as find_vma, but also return a pointer to the previous VMA in *pprev.
++ * Note: pprev is set to NULL when return value is NULL.
++ */
+ struct vm_area_struct *
+ find_vma_prev(struct mm_struct *mm, unsigned long addr,
+ 			struct vm_area_struct **pprev)
+ {
+-	struct vm_area_struct *vma = NULL, *prev = NULL;
+-	struct rb_node *rb_node;
+-	if (!mm)
+-		goto out;
+-
+-	/* Guard against addr being lower than the first VMA */
+-	vma = mm->mmap;
+-
+-	/* Go through the RB tree quickly. */
+-	rb_node = mm->mm_rb.rb_node;
+-
+-	while (rb_node) {
+-		struct vm_area_struct *vma_tmp;
+-		vma_tmp = rb_entry(rb_node, struct vm_area_struct, vm_rb);
+-
+-		if (addr < vma_tmp->vm_end) {
+-			rb_node = rb_node->rb_left;
+-		} else {
+-			prev = vma_tmp;
+-			if (!prev->vm_next || (addr < prev->vm_next->vm_end))
+-				break;
+-			rb_node = rb_node->rb_right;
+-		}
+-	}
++	struct vm_area_struct *vma;
+ 
+-out:
+-	*pprev = prev;
+-	return prev ? prev->vm_next : vma;
++	vma = find_vma(mm, addr);
++	*pprev = vma ? vma->vm_prev : NULL;
++	return vma;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
-memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags-fix.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
-memcg-fix-pgpgin-pgpgout-documentation.patch
-mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
-mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
-mm-memcg-clean-up-fault-accounting.patch
-mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
-mm-memcg-lookup_page_cgroup-almost-never-returns-null-fix.patch
-mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
-mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
-mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
-page_cgroup-add-helper-function-to-get-swap_cgroup.patch
-page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup.patch
-memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
 oom-memcg-fix-exclusion-of-memcg-threads-after-they-have-detached-their-mm.patch
-memcg-simplify-page-cache-charging.patch
-memcg-simplify-corner-case-handling-of-lru.patch
-memcg-clear-pc-mem_cgorup-if-necessary.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-3.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch
-memcg-simplify-lru-handling-by-new-rule.patch
-memcg-simplify-lru-handling-by-new-rule-fix.patch
-memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge.patch
-memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
-memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch
 memcg-cleanup-for_each_node_state.patch
 page_alloc-break-early-in-check_for_regular_memory.patch
 page_cgroup-drop-multi-config_memory_hotplug.patch
-memcg-fix-split_huge_page_refcounts.patch
-memcg-fix-mem_cgroup_print_bad_page.patch
+vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
+mm-take-pagevecs-off-reclaim-stack.patch
+mm-fewer-underscores-in-____pagevec_lru_add.patch
+mm-no-blank-line-after-export_symbol-in-swapc.patch
+mm-enum-lru_list-lru.patch
+mm-remove-del_page_from_lru-add-page_off_lru.patch
+mm-remove-isolate_pages.patch
+kexec-remove-kmsg_dump_kexec.patch
+ipc-mqueue-simplify-reading-msgqueue-limit.patch
 
