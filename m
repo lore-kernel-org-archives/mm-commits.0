@@ -1,342 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-convert-drivers-video-backlight-to-use-module_platform_driver.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:29:48 -0800
-Message-ID: <20120111212949.693AC20004E@hpza10.eem.corp.google.com>
+Subject: [merged] backlight-use-kstrtoul.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:30:00 -0800
+Message-ID: <20120111213000.ED6265C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:62274 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758121Ab2AKV3v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:51 -0500
-Received: by mail-ey0-f202.google.com with SMTP id d12so32568eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:51 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:33294 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758124Ab2AKVaC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:30:02 -0500
+Received: by mail-we0-f202.google.com with SMTP id f1so53608wer.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:30:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, broonie@opensource.wolfsonmicro.com, haojian.zhuang@gmail.com, hsweeten@visionengravers.com, michael.hennerich@analog.com, mike@compulab.co.il, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: convert drivers/video/backlight/* to use module_platform_driver()
+     Subject: backlight: use kstrtoul()
 has been removed from the -mm tree.  Its filename was
-     backlight-convert-drivers-video-backlight-to-use-module_platform_driver.patch
+     backlight-use-kstrtoul.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@gmail.com>
-Subject: backlight: convert drivers/video/backlight/* to use module_platform_driver()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: use kstrtoul()
 
-Convert the drivers in drivers/video/backlight/* to use the
-module_platform_driver() macro which makes the code smaller and a bit
-simpler.
+The usage of simple_strtoul() or strict_strtoul() is not preferred.  Thus,
+kstrtoul should be used.
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Haojian Zhuang <haojian.zhuang@gmail.com>
-Acked-by: H Hartley Sweeten <hsweeten@visionengravers.com>	[ep93xx_bl.c]
-Cc: Mike Rapoport <mike@compulab.co.il>
+This patch also fixes checkpatch error as follows:
+ERROR: space required after that ',' (ctx:VxV)
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Acked-by: Michael Hennerich <michael.hennerich@analog.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/88pm860x_bl.c        |   12 +-----------
- drivers/video/backlight/adp5520_bl.c         |   12 +-----------
- drivers/video/backlight/da903x_bl.c          |   12 +-----------
- drivers/video/backlight/ep93xx_bl.c          |   12 +-----------
- drivers/video/backlight/generic_bl.c         |   13 +------------
- drivers/video/backlight/jornada720_bl.c      |   13 +------------
- drivers/video/backlight/jornada720_lcd.c     |   13 +------------
- drivers/video/backlight/max8925_bl.c         |   12 +-----------
- drivers/video/backlight/omap1_bl.c           |   13 +------------
- drivers/video/backlight/pcf50633-backlight.c |   12 +-----------
- drivers/video/backlight/platform_lcd.c       |   13 +------------
- drivers/video/backlight/pwm_bl.c             |   12 +-----------
- drivers/video/backlight/wm831x_bl.c          |   12 +-----------
- 13 files changed, 13 insertions(+), 148 deletions(-)
+ drivers/video/backlight/backlight.c |    6 +++---
+ drivers/video/backlight/lcd.c       |   26 ++++++++++----------------
+ 2 files changed, 13 insertions(+), 19 deletions(-)
 
-diff -puN drivers/video/backlight/88pm860x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/88pm860x_bl.c
---- a/drivers/video/backlight/88pm860x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/88pm860x_bl.c
-@@ -270,17 +270,7 @@ static struct platform_driver pm860x_bac
- 	.remove		= pm860x_backlight_remove,
- };
+diff -puN drivers/video/backlight/backlight.c~backlight-use-kstrtoul drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-use-kstrtoul
++++ a/drivers/video/backlight/backlight.c
+@@ -102,7 +102,7 @@ static void backlight_generate_event(str
+ }
  
--static int __init pm860x_backlight_init(void)
--{
--	return platform_driver_register(&pm860x_backlight_driver);
--}
--module_init(pm860x_backlight_init);
--
--static void __exit pm860x_backlight_exit(void)
--{
--	platform_driver_unregister(&pm860x_backlight_driver);
--}
--module_exit(pm860x_backlight_exit);
-+module_platform_driver(pm860x_backlight_driver);
+ static ssize_t backlight_show_power(struct device *dev,
+-		struct device_attribute *attr,char *buf)
++		struct device_attribute *attr, char *buf)
+ {
+ 	struct backlight_device *bd = to_backlight_device(dev);
  
- MODULE_DESCRIPTION("Backlight Driver for Marvell Semiconductor 88PM8606");
- MODULE_AUTHOR("Haojian Zhuang <haojian.zhuang@marvell.com>");
-diff -puN drivers/video/backlight/adp5520_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/adp5520_bl.c
---- a/drivers/video/backlight/adp5520_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/adp5520_bl.c
-@@ -384,17 +384,7 @@ static struct platform_driver adp5520_bl
- 	.resume		= adp5520_bl_resume,
- };
+@@ -116,7 +116,7 @@ static ssize_t backlight_store_power(str
+ 	struct backlight_device *bd = to_backlight_device(dev);
+ 	unsigned long power;
  
--static int __init adp5520_bl_init(void)
--{
--	return platform_driver_register(&adp5520_bl_driver);
--}
--module_init(adp5520_bl_init);
--
--static void __exit adp5520_bl_exit(void)
--{
--	platform_driver_unregister(&adp5520_bl_driver);
--}
--module_exit(adp5520_bl_exit);
-+module_platform_driver(adp5520_bl_driver);
+-	rc = strict_strtoul(buf, 0, &power);
++	rc = kstrtoul(buf, 0, &power);
+ 	if (rc)
+ 		return rc;
  
- MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
- MODULE_DESCRIPTION("ADP5520(01) Backlight Driver");
-diff -puN drivers/video/backlight/da903x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/da903x_bl.c
---- a/drivers/video/backlight/da903x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/da903x_bl.c
-@@ -199,17 +199,7 @@ static struct platform_driver da903x_bac
- 	.remove		= da903x_backlight_remove,
- };
+@@ -150,7 +150,7 @@ static ssize_t backlight_store_brightnes
+ 	struct backlight_device *bd = to_backlight_device(dev);
+ 	unsigned long brightness;
  
--static int __init da903x_backlight_init(void)
--{
--	return platform_driver_register(&da903x_backlight_driver);
--}
--module_init(da903x_backlight_init);
--
--static void __exit da903x_backlight_exit(void)
--{
--	platform_driver_unregister(&da903x_backlight_driver);
--}
--module_exit(da903x_backlight_exit);
-+module_platform_driver(da903x_backlight_driver);
+-	rc = strict_strtoul(buf, 0, &brightness);
++	rc = kstrtoul(buf, 0, &brightness);
+ 	if (rc)
+ 		return rc;
  
- MODULE_DESCRIPTION("Backlight Driver for Dialog Semiconductor DA9030/DA9034");
- MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>"
-diff -puN drivers/video/backlight/ep93xx_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/ep93xx_bl.c
---- a/drivers/video/backlight/ep93xx_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/ep93xx_bl.c
-@@ -144,17 +144,7 @@ static struct platform_driver ep93xxbl_d
- 	.resume		= ep93xxbl_resume,
- };
+diff -puN drivers/video/backlight/lcd.c~backlight-use-kstrtoul drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~backlight-use-kstrtoul
++++ a/drivers/video/backlight/lcd.c
+@@ -97,19 +97,16 @@ static ssize_t lcd_store_power(struct de
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+ 	int rc = -ENXIO;
+-	char *endp;
+ 	struct lcd_device *ld = to_lcd_device(dev);
+-	int power = simple_strtoul(buf, &endp, 0);
+-	size_t size = endp - buf;
++	unsigned long power;
  
--static int __init ep93xxbl_init(void)
--{
--	return platform_driver_register(&ep93xxbl_driver);
--}
--module_init(ep93xxbl_init);
--
--static void __exit ep93xxbl_exit(void)
--{
--	platform_driver_unregister(&ep93xxbl_driver);
--}
--module_exit(ep93xxbl_exit);
-+module_platform_driver(ep93xxbl_driver);
+-	if (isspace(*endp))
+-		size++;
+-	if (size != count)
+-		return -EINVAL;
++	rc = kstrtoul(buf, 0, &power);
++	if (rc)
++		return rc;
  
- MODULE_DESCRIPTION("EP93xx Backlight Driver");
- MODULE_AUTHOR("H Hartley Sweeten <hsweeten@visionengravers.com>");
-diff -puN drivers/video/backlight/generic_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/generic_bl.c
---- a/drivers/video/backlight/generic_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/generic_bl.c
-@@ -132,18 +132,7 @@ static struct platform_driver genericbl_
- 	},
- };
+ 	mutex_lock(&ld->ops_lock);
+ 	if (ld->ops && ld->ops->set_power) {
+-		pr_debug("lcd: set power to %d\n", power);
++		pr_debug("lcd: set power to %lu\n", power);
+ 		ld->ops->set_power(ld, power);
+ 		rc = count;
+ 	}
+@@ -136,19 +133,16 @@ static ssize_t lcd_store_contrast(struct
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+ 	int rc = -ENXIO;
+-	char *endp;
+ 	struct lcd_device *ld = to_lcd_device(dev);
+-	int contrast = simple_strtoul(buf, &endp, 0);
+-	size_t size = endp - buf;
++	unsigned long contrast;
  
--static int __init genericbl_init(void)
--{
--	return platform_driver_register(&genericbl_driver);
--}
--
--static void __exit genericbl_exit(void)
--{
--	platform_driver_unregister(&genericbl_driver);
--}
--
--module_init(genericbl_init);
--module_exit(genericbl_exit);
-+module_platform_driver(genericbl_driver);
+-	if (isspace(*endp))
+-		size++;
+-	if (size != count)
+-		return -EINVAL;
++	rc = kstrtoul(buf, 0, &contrast);
++	if (rc)
++		return rc;
  
- MODULE_AUTHOR("Richard Purdie <rpurdie@rpsys.net>");
- MODULE_DESCRIPTION("Generic Backlight Driver");
-diff -puN drivers/video/backlight/jornada720_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/jornada720_bl.c
---- a/drivers/video/backlight/jornada720_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/jornada720_bl.c
-@@ -147,19 +147,8 @@ static struct platform_driver jornada_bl
- 	},
- };
- 
--static int __init jornada_bl_init(void)
--{
--	return platform_driver_register(&jornada_bl_driver);
--}
--
--static void __exit jornada_bl_exit(void)
--{
--	platform_driver_unregister(&jornada_bl_driver);
--}
-+module_platform_driver(jornada_bl_driver);
- 
- MODULE_AUTHOR("Kristoffer Ericson <kristoffer.ericson>");
- MODULE_DESCRIPTION("HP Jornada 710/720/728 Backlight driver");
- MODULE_LICENSE("GPL");
--
--module_init(jornada_bl_init);
--module_exit(jornada_bl_exit);
-diff -puN drivers/video/backlight/jornada720_lcd.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/jornada720_lcd.c
---- a/drivers/video/backlight/jornada720_lcd.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/jornada720_lcd.c
-@@ -135,19 +135,8 @@ static struct platform_driver jornada_lc
- 	},
- };
- 
--static int __init jornada_lcd_init(void)
--{
--	return platform_driver_register(&jornada_lcd_driver);
--}
--
--static void __exit jornada_lcd_exit(void)
--{
--	platform_driver_unregister(&jornada_lcd_driver);
--}
-+module_platform_driver(jornada_lcd_driver);
- 
- MODULE_AUTHOR("Kristoffer Ericson <kristoffer.ericson@gmail.com>");
- MODULE_DESCRIPTION("HP Jornada 710/720/728 LCD driver");
- MODULE_LICENSE("GPL");
--
--module_init(jornada_lcd_init);
--module_exit(jornada_lcd_exit);
-diff -puN drivers/video/backlight/max8925_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/max8925_bl.c
---- a/drivers/video/backlight/max8925_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/max8925_bl.c
-@@ -188,17 +188,7 @@ static struct platform_driver max8925_ba
- 	.remove		= __devexit_p(max8925_backlight_remove),
- };
- 
--static int __init max8925_backlight_init(void)
--{
--	return platform_driver_register(&max8925_backlight_driver);
--}
--module_init(max8925_backlight_init);
--
--static void __exit max8925_backlight_exit(void)
--{
--	platform_driver_unregister(&max8925_backlight_driver);
--};
--module_exit(max8925_backlight_exit);
-+module_platform_driver(max8925_backlight_driver);
- 
- MODULE_DESCRIPTION("Backlight Driver for Maxim MAX8925");
- MODULE_AUTHOR("Haojian Zhuang <haojian.zhuang@marvell.com>");
-diff -puN drivers/video/backlight/omap1_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/omap1_bl.c
---- a/drivers/video/backlight/omap1_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/omap1_bl.c
-@@ -195,18 +195,7 @@ static struct platform_driver omapbl_dri
- 	},
- };
- 
--static int __init omapbl_init(void)
--{
--	return platform_driver_register(&omapbl_driver);
--}
--
--static void __exit omapbl_exit(void)
--{
--	platform_driver_unregister(&omapbl_driver);
--}
--
--module_init(omapbl_init);
--module_exit(omapbl_exit);
-+module_platform_driver(omapbl_driver);
- 
- MODULE_AUTHOR("Andrzej Zaborowski <balrog@zabor.org>");
- MODULE_DESCRIPTION("OMAP LCD Backlight driver");
-diff -puN drivers/video/backlight/pcf50633-backlight.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/pcf50633-backlight.c
---- a/drivers/video/backlight/pcf50633-backlight.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/pcf50633-backlight.c
-@@ -173,17 +173,7 @@ static struct platform_driver pcf50633_b
- 	},
- };
- 
--static int __init pcf50633_bl_init(void)
--{
--	return platform_driver_register(&pcf50633_bl_driver);
--}
--module_init(pcf50633_bl_init);
--
--static void __exit pcf50633_bl_exit(void)
--{
--	platform_driver_unregister(&pcf50633_bl_driver);
--}
--module_exit(pcf50633_bl_exit);
-+module_platform_driver(pcf50633_bl_driver);
- 
- MODULE_AUTHOR("Lars-Peter Clausen <lars@metafoo.de>");
- MODULE_DESCRIPTION("PCF50633 backlight driver");
-diff -puN drivers/video/backlight/platform_lcd.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/platform_lcd.c
---- a/drivers/video/backlight/platform_lcd.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/platform_lcd.c
-@@ -157,18 +157,7 @@ static struct platform_driver platform_l
- 	.resume         = platform_lcd_resume,
- };
- 
--static int __init platform_lcd_init(void)
--{
--	return platform_driver_register(&platform_lcd_driver);
--}
--
--static void __exit platform_lcd_cleanup(void)
--{
--	platform_driver_unregister(&platform_lcd_driver);
--}
--
--module_init(platform_lcd_init);
--module_exit(platform_lcd_cleanup);
-+module_platform_driver(platform_lcd_driver);
- 
- MODULE_AUTHOR("Ben Dooks <ben-linux@fluff.org>");
- MODULE_LICENSE("GPL v2");
-diff -puN drivers/video/backlight/pwm_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/pwm_bl.c
---- a/drivers/video/backlight/pwm_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/pwm_bl.c
-@@ -207,17 +207,7 @@ static struct platform_driver pwm_backli
- 	.resume		= pwm_backlight_resume,
- };
- 
--static int __init pwm_backlight_init(void)
--{
--	return platform_driver_register(&pwm_backlight_driver);
--}
--module_init(pwm_backlight_init);
--
--static void __exit pwm_backlight_exit(void)
--{
--	platform_driver_unregister(&pwm_backlight_driver);
--}
--module_exit(pwm_backlight_exit);
-+module_platform_driver(pwm_backlight_driver);
- 
- MODULE_DESCRIPTION("PWM based Backlight Driver");
- MODULE_LICENSE("GPL");
-diff -puN drivers/video/backlight/wm831x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver drivers/video/backlight/wm831x_bl.c
---- a/drivers/video/backlight/wm831x_bl.c~backlight-convert-drivers-video-backlight-to-use-module_platform_driver
-+++ a/drivers/video/backlight/wm831x_bl.c
-@@ -236,17 +236,7 @@ static struct platform_driver wm831x_bac
- 	.remove		= wm831x_backlight_remove,
- };
- 
--static int __init wm831x_backlight_init(void)
--{
--	return platform_driver_register(&wm831x_backlight_driver);
--}
--module_init(wm831x_backlight_init);
+ 	mutex_lock(&ld->ops_lock);
+ 	if (ld->ops && ld->ops->set_contrast) {
+-		pr_debug("lcd: set contrast to %d\n", contrast);
++		pr_debug("lcd: set contrast to %lu\n", contrast);
+ 		ld->ops->set_contrast(ld, contrast);
+ 		rc = count;
+ 	}
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+origin.patch
+linux-next.patch
+
