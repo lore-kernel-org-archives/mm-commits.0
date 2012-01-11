@@ -1,81 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pm-hibernate-do-not-count-debug-pages-as-savable.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:27:04 -0800
-Message-ID: <20120111212704.B55D11E004D@wpzn4.hot.corp.google.com>
+Subject: [merged] fadvise-only-initiate-writeback-for-specified-range-with-fadv_dontneed.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:27:07 -0800
+Message-ID: <20120111212707.A06EF1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:48989 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933502Ab2AKV1F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:05 -0500
-Received: by mail-gx0-f202.google.com with SMTP id k3so134376ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:05 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:58611 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933502Ab2AKV1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:08 -0500
+Received: by mail-yw0-f74.google.com with SMTP id p56so153744yhp.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sgruszka@redhat.com, aarcange@redhat.com, cl@linux-foundation.org, mgorman@suse.de, penberg@cs.helsinki.fi, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: sbohrer@rgmadvisors.com, jweiner@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: PM/Hibernate: do not count debug pages as savable
+     Subject: fadvise: only initiate writeback for specified range with FADV_DONTNEED
 has been removed from the -mm tree.  Its filename was
-     pm-hibernate-do-not-count-debug-pages-as-savable.patch
+     fadvise-only-initiate-writeback-for-specified-range-with-fadv_dontneed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stanislaw Gruszka <sgruszka@redhat.com>
-Subject: PM/Hibernate: do not count debug pages as savable
+From: Shawn Bohrer <sbohrer@rgmadvisors.com>
+Subject: fadvise: only initiate writeback for specified range with FADV_DONTNEED
 
-When debugging with CONFIG_DEBUG_PAGEALLOC and debug_guardpage_minorder >
-0, we have lot of free pages that are not marked so.  Snapshot code
-account them as savable, what cause hibernate memory preallocation
-failure.
+Previously POSIX_FADV_DONTNEED would start writeback for the entire file
+when the bdi was not write congested.  This negatively impacts performance
+if the file contians dirty pages outside of the requested range.  This
+change uses __filemap_fdatawrite_range() to only initiate writeback for
+the requested range.
 
-It is pretty hard to make hibernate allocation succeed with
-debug_guardpage_minorder=1.  This change at least make it possible when
-system has relatively big amount of RAM.
-
-Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Shawn Bohrer <sbohrer@rgmadvisors.com>
+Acked-by: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/snapshot.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/fadvise.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/power/snapshot.c~pm-hibernate-do-not-count-debug-pages-as-savable kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~pm-hibernate-do-not-count-debug-pages-as-savable
-+++ a/kernel/power/snapshot.c
-@@ -858,6 +858,9 @@ static struct page *saveable_highmem_pag
- 	    PageReserved(page))
- 		return NULL;
+diff -puN mm/fadvise.c~fadvise-only-initiate-writeback-for-specified-range-with-fadv_dontneed mm/fadvise.c
+--- a/mm/fadvise.c~fadvise-only-initiate-writeback-for-specified-range-with-fadv_dontneed
++++ a/mm/fadvise.c
+@@ -117,7 +117,8 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, lof
+ 		break;
+ 	case POSIX_FADV_DONTNEED:
+ 		if (!bdi_write_congested(mapping->backing_dev_info))
+-			filemap_flush(mapping);
++			__filemap_fdatawrite_range(mapping, offset, endbyte,
++						   WB_SYNC_NONE);
  
-+	if (page_is_guard(page))
-+		return NULL;
-+
- 	return page;
- }
- 
-@@ -920,6 +923,9 @@ static struct page *saveable_page(struct
- 	    && (!kernel_page_present(page) || pfn_is_nosave(pfn)))
- 		return NULL;
- 
-+	if (page_is_guard(page))
-+		return NULL;
-+
- 	return page;
- }
- 
+ 		/* First and last FULL page! */
+ 		start_index = (offset+(PAGE_CACHE_SIZE-1)) >> PAGE_CACHE_SHIFT;
 _
 
-Patches currently in -mm which might be from sgruszka@redhat.com are
+Patches currently in -mm which might be from sbohrer@rgmadvisors.com are
 
 origin.patch
-linux-next.patch
 
