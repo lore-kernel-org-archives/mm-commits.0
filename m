@@ -1,85 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:31:44 -0800
-Message-ID: <20120111213144.A6F9D100052@wpzn3.hot.corp.google.com>
+Subject: [merged] crc32-optimize-inner-loop.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:31:47 -0800
+Message-ID: <20120111213147.9E7671E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:61363 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753124Ab2AKVbp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:31:45 -0500
-Received: by ggnk3 with SMTP id k3so134903ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:31:45 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:50460 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753124Ab2AKVbs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:31:48 -0500
+Received: by yenm1 with SMTP id m1so7880yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:31:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: Joakim.Tjernlund@transmode.se, eric.dumazet@gmail.com, fzago@systemfabricworks.com, rpearson@systemfabricworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: catch all occurences of type and cast spacing errors per line
+     Subject: crc32: optimize inner loop
 has been removed from the -mm tree.  Its filename was
-     checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line.patch
+     crc32-optimize-inner-loop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andy Whitcroft <apw@canonical.com>
-Subject: checkpatch: catch all occurences of type and cast spacing errors per line
+From: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Subject: crc32: optimize inner loop
 
-Fix up type and cast spacing checks such that all occurences on a line are
-examined and reported.  For example the line below has a valid cast and a
-bad type, but currently we check the cast first which is good and stop:
+Taking a pointer reference to each row in the crc table matrix, one can
+reduce the inner loop with a few insn's
 
-    u16* bar = (u16 *)baz;
-
-We will also only report one of the errors in this example:
-
-    u16* bar = (u16*)bad;
-
-Move to iterating across all casts and all types, reporting any failure.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Cc: Frank Zago <fzago@systemfabricworks.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ lib/crc32.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-catch-all-occurances-of-type-and-cast-spacing-errors-per-line
-+++ a/scripts/checkpatch.pl
-@@ -2209,8 +2209,9 @@ sub process {
+diff -puN lib/crc32.c~crc32-optimize-inner-loop lib/crc32.c
+--- a/lib/crc32.c~crc32-optimize-inner-loop
++++ a/lib/crc32.c
+@@ -51,20 +51,21 @@ static inline u32
+ crc32_body(u32 crc, unsigned char const *buf, size_t len, const u32 (*tab)[256])
+ {
+ # ifdef __LITTLE_ENDIAN
+-#  define DO_CRC(x) crc = tab[0][(crc ^ (x)) & 255] ^ (crc >> 8)
+-#  define DO_CRC4 crc = tab[3][(crc) & 255] ^ \
+-		tab[2][(crc >> 8) & 255] ^ \
+-		tab[1][(crc >> 16) & 255] ^ \
+-		tab[0][(crc >> 24) & 255]
++#  define DO_CRC(x) crc = t0[(crc ^ (x)) & 255] ^ (crc >> 8)
++#  define DO_CRC4 crc = t3[(crc) & 255] ^ \
++		t2[(crc >> 8) & 255] ^ \
++		t1[(crc >> 16) & 255] ^ \
++		t0[(crc >> 24) & 255]
+ # else
+-#  define DO_CRC(x) crc = tab[0][((crc >> 24) ^ (x)) & 255] ^ (crc << 8)
+-#  define DO_CRC4 crc = tab[0][(crc) & 255] ^ \
+-		tab[1][(crc >> 8) & 255] ^ \
+-		tab[2][(crc >> 16) & 255] ^ \
+-		tab[3][(crc >> 24) & 255]
++#  define DO_CRC(x) crc = t0[((crc >> 24) ^ (x)) & 255] ^ (crc << 8)
++#  define DO_CRC4 crc = t0[(crc) & 255] ^ \
++		t1[(crc >> 8) & 255] ^  \
++		t2[(crc >> 16) & 255] ^	\
++		t3[(crc >> 24) & 255]
+ # endif
+ 	const u32 *b;
+ 	size_t    rem_len;
++	const u32 *t0=tab[0], *t1=tab[1], *t2=tab[2], *t3=tab[3];
  
- # * goes on variable not on type
- 		# (char*[ const])
--		if ($line =~ m{\($NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)\)}) {
--			my ($from, $to) = ($1, $1);
-+		while ($line =~ m{(\($NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)\))}g) {
-+			#print "AA<$1>\n";
-+			my ($from, $to) = ($2, $2);
- 
- 			# Should start with a space.
- 			$to =~ s/^(\S)/ $1/;
-@@ -2225,8 +2226,10 @@ sub process {
- 				ERROR("POINTER_LOCATION",
- 				      "\"(foo$from)\" should be \"(foo$to)\"\n" .  $herecurr);
- 			}
--		} elsif ($line =~ m{\b$NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)($Ident)}) {
--			my ($from, $to, $ident) = ($1, $1, $2);
-+		}
-+		while ($line =~ m{(\b$NonptrType(\s*(?:$Modifier\b\s*|\*\s*)+)($Ident))}g) {
-+			#print "BB<$1>\n";
-+			my ($from, $to, $ident) = ($2, $2, $3);
- 
- 			# Should start with a space.
- 			$to =~ s/^(\S)/ $1/;
+ 	/* Align it */
+ 	if (unlikely((long)buf & 3 && len)) {
 _
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from Joakim.Tjernlund@transmode.se are
 
 origin.patch
 
