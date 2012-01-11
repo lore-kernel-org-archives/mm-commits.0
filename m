@@ -1,365 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-add-hidepid=-and-gid=-mount-options.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:33:24 -0800
-Message-ID: <20120111213325.80ADB5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:33:30 -0800
+Message-ID: <20120111213330.A192A10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:43465 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933960Ab2AKVd2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:33:28 -0500
-Received: by mail-ee0-f74.google.com with SMTP id d41so44375eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:33:27 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:59207 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933960Ab2AKVdb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:33:31 -0500
+Received: by yenm1 with SMTP id m1so8013yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:33:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segooon@gmail.com, adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, hpa@zytor.com, hughd@google.com, jmorris@namei.org, oleg@redhat.com, rdunlap@xenotime.net, segoon@openwall.com, tytso@MIT.EDU, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: tj@kernel.org, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: add hidepid= and gid= mount options
+     Subject: workqueue: make alloc_workqueue() take printf fmt and args for name
 has been removed from the -mm tree.  Its filename was
-     procfs-add-hidepid=-and-gid=-mount-options.patch
+     workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Vasiliy Kulikov <segooon@gmail.com>
-Subject: procfs: add hidepid= and gid= mount options
+From: Tejun Heo <tj@kernel.org>
+Subject: workqueue: make alloc_workqueue() take printf fmt and args for name
 
-Add support for mount options to restrict access to /proc/PID/
-directories.  The default backward-compatible "relaxed" behaviour is left
-untouched.
+alloc_workqueue() currently expects the passed in @name pointer to remain
+accessible.  This is inconvenient and a bit silly given that the whole wq
+is being dynamically allocated.  This patch updates alloc_workqueue() and
+friends to take printf format string instead of opaque string and matching
+varargs at the end.  The name is allocated together with the wq and
+formatted.
 
-The first mount option is called "hidepid" and its value defines how much
-info about processes we want to be available for non-owners:
+alloc_ordered_workqueue() is converted to a macro to unify varargs
+handling with alloc_workqueue(), and, while at it, add comment to
+alloc_workqueue().
 
-hidepid=0 (default) means the old behavior - anybody may read all
-world-readable /proc/PID/* files.
+None of the current in-kernel users pass in string with '%' as constant
+name and this change shouldn't cause any problem.
 
-hidepid=1 means users may not access any /proc/<pid>/ directories, but
-their own.  Sensitive files like cmdline, sched*, status are now protected
-against other users.  As permission checking done in proc_pid_permission()
-and files' permissions are left untouched, programs expecting specific
-files' modes are not confused.
-
-hidepid=2 means hidepid=1 plus all /proc/PID/ will be invisible to other
-users.  It doesn't mean that it hides whether a process exists (it can be
-learned by other means, e.g.  by kill -0 $PID), but it hides process' euid
-and egid.  It compicates intruder's task of gathering info about running
-processes, whether some daemon runs with elevated privileges, whether
-another user runs some sensitive program, whether other users run any
-program at all, etc.
-
-gid=XXX defines a group that will be able to gather all processes' info
-(as in hidepid=0 mode).  This group should be used instead of putting
-nonroot user in sudoers file or something.  However, untrusted users (like
-daemons, etc.) which are not supposed to monitor the tasks in the whole
-system should not be added to the group.
-
-hidepid=1 or higher is designed to restrict access to procfs files, which
-might reveal some sensitive private information like precise keystrokes
-timings:
-
-http://www.openwall.com/lists/oss-security/2011/11/05/3
-
-hidepid=1/2 doesn't break monitoring userspace tools.  ps, top, pgrep, and
-conky gracefully handle EPERM/ENOENT and behave as if the current user is
-the only user running processes.  pstree shows the process subtree which
-contains "pstree" process.
-
-Note: the patch doesn't deal with setuid/setgid issues of keeping
-preopened descriptors of procfs files (like
-https://lkml.org/lkml/2011/2/7/368).  We rely on that the leaked
-information like the scheduling counters of setuid apps doesn't threaten
-anybody's privacy - only the user started the setuid program may read the
-counters.
-
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Theodore Tso <tytso@MIT.EDU>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: James Morris <jmorris@namei.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+[akpm@linux-foundation.org: use __printf]
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   39 +++++++++++++++
- fs/proc/base.c                     |   69 ++++++++++++++++++++++++++-
- fs/proc/inode.c                    |    8 +++
- fs/proc/root.c                     |   21 +++++++-
- include/linux/pid_namespace.h      |    2 
- 5 files changed, 135 insertions(+), 4 deletions(-)
+ include/linux/workqueue.h |   47 +++++++++++++++++++++++-------------
+ kernel/workqueue.c        |   32 ++++++++++++++++--------
+ 2 files changed, 53 insertions(+), 26 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~procfs-add-hidepid=-and-gid=-mount-options Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~procfs-add-hidepid=-and-gid=-mount-options
-+++ a/Documentation/filesystems/proc.txt
-@@ -41,6 +41,8 @@ Table of Contents
-   3.5	/proc/<pid>/mountinfo - Information about mounts
-   3.6	/proc/<pid>/comm  & /proc/<pid>/task/<tid>/comm
+diff -puN include/linux/workqueue.h~workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name include/linux/workqueue.h
+--- a/include/linux/workqueue.h~workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name
++++ a/include/linux/workqueue.h
+@@ -297,32 +297,50 @@ extern struct workqueue_struct *system_u
+ extern struct workqueue_struct *system_freezable_wq;
  
-+  4	Configuring procfs
-+  4.1	Mount options
+ extern struct workqueue_struct *
+-__alloc_workqueue_key(const char *name, unsigned int flags, int max_active,
+-		      struct lock_class_key *key, const char *lock_name);
++__alloc_workqueue_key(const char *fmt, unsigned int flags, int max_active,
++	struct lock_class_key *key, const char *lock_name, ...) __printf(1, 6);
  
- ------------------------------------------------------------------------------
- Preface
-@@ -1542,3 +1544,40 @@ a task to set its own or one of its thre
- is limited in size compared to the cmdline value, so writing anything longer
- then the kernel's TASK_COMM_LEN (currently 16 chars) will result in a truncated
- comm value.
-+
-+
-+------------------------------------------------------------------------------
-+Configuring procfs
-+------------------------------------------------------------------------------
-+
-+4.1	Mount options
-+---------------------
-+
-+The following mount options are supported:
-+
-+	hidepid=	Set /proc/<pid>/ access mode.
-+	gid=		Set the group authorized to learn processes information.
-+
-+hidepid=0 means classic mode - everybody may access all /proc/<pid>/ directories
-+(default).
-+
-+hidepid=1 means users may not access any /proc/<pid>/ directories but their
-+own.  Sensitive files like cmdline, sched*, status are now protected against
-+other users.  This makes it impossible to learn whether any user runs
-+specific program (given the program doesn't reveal itself by its behaviour).
-+As an additional bonus, as /proc/<pid>/cmdline is unaccessible for other users,
-+poorly written programs passing sensitive information via program arguments are
-+now protected against local eavesdroppers.
-+
-+hidepid=2 means hidepid=1 plus all /proc/<pid>/ will be fully invisible to other
-+users.  It doesn't mean that it hides a fact whether a process with a specific
-+pid value exists (it can be learned by other means, e.g. by "kill -0 $PID"),
-+but it hides process' uid and gid, which may be learned by stat()'ing
-+/proc/<pid>/ otherwise.  It greatly complicates an intruder's task of gathering
-+information about running processes, whether some daemon runs with elevated
-+privileges, whether other user runs some sensitive program, whether other users
-+run any program at all, etc.
-+
-+gid= defines a group authorized to learn processes information otherwise
-+prohibited by hidepid=.  If you use some daemon like identd which needs to learn
-+information about processes information, just add identd to this group.
-diff -puN fs/proc/base.c~procfs-add-hidepid=-and-gid=-mount-options fs/proc/base.c
---- a/fs/proc/base.c~procfs-add-hidepid=-and-gid=-mount-options
-+++ a/fs/proc/base.c
-@@ -631,6 +631,50 @@ int proc_setattr(struct dentry *dentry, 
- 	return 0;
- }
- 
-+/*
-+ * May current process learn task's sched/cmdline info (for hide_pid_min=1)
-+ * or euid/egid (for hide_pid_min=2)?
++/**
++ * alloc_workqueue - allocate a workqueue
++ * @fmt: printf format for the name of the workqueue
++ * @flags: WQ_* flags
++ * @max_active: max in-flight work items, 0 for default
++ * @args: args for @fmt
++ *
++ * Allocate a workqueue with the specified parameters.  For detailed
++ * information on WQ_* flags, please refer to Documentation/workqueue.txt.
++ *
++ * The __lock_name macro dance is to guarantee that single lock_class_key
++ * doesn't end up with different namesm, which isn't allowed by lockdep.
++ *
++ * RETURNS:
++ * Pointer to the allocated workqueue on success, %NULL on failure.
 + */
-+static bool has_pid_permissions(struct pid_namespace *pid,
-+				 struct task_struct *task,
-+				 int hide_pid_min)
-+{
-+	if (pid->hide_pid < hide_pid_min)
-+		return true;
-+	if (in_group_p(pid->pid_gid))
-+		return true;
-+	return ptrace_may_access(task, PTRACE_MODE_READ);
-+}
-+
-+
-+static int proc_pid_permission(struct inode *inode, int mask)
-+{
-+	struct pid_namespace *pid = inode->i_sb->s_fs_info;
-+	struct task_struct *task;
-+	bool has_perms;
-+
-+	task = get_proc_task(inode);
-+	has_perms = has_pid_permissions(pid, task, 1);
-+	put_task_struct(task);
-+
-+	if (!has_perms) {
-+		if (pid->hide_pid == 2) {
-+			/*
-+			 * Let's make getdents(), stat(), and open()
-+			 * consistent with each other.  If a process
-+			 * may not stat() a file, it shouldn't be seen
-+			 * in procfs at all.
-+			 */
-+			return -ENOENT;
-+		}
-+
-+		return -EPERM;
-+	}
-+	return generic_permission(inode, mask);
-+}
-+
-+
-+
- static const struct inode_operations proc_def_inode_operations = {
- 	.setattr	= proc_setattr,
- };
-@@ -1615,6 +1659,7 @@ int pid_getattr(struct vfsmount *mnt, st
- 	struct inode *inode = dentry->d_inode;
- 	struct task_struct *task;
- 	const struct cred *cred;
-+	struct pid_namespace *pid = dentry->d_sb->s_fs_info;
- 
- 	generic_fillattr(inode, stat);
- 
-@@ -1623,6 +1668,14 @@ int pid_getattr(struct vfsmount *mnt, st
- 	stat->gid = 0;
- 	task = pid_task(proc_pid(inode), PIDTYPE_PID);
- 	if (task) {
-+		if (!has_pid_permissions(pid, task, 2)) {
-+			rcu_read_unlock();
-+			/*
-+			 * This doesn't prevent learning whether PID exists,
-+			 * it only makes getattr() consistent with readdir().
-+			 */
-+			return -ENOENT;
-+		}
- 		if ((inode->i_mode == (S_IFDIR|S_IRUGO|S_IXUGO)) ||
- 		    task_dumpable(task)) {
- 			cred = __task_cred(task);
-@@ -3119,6 +3172,7 @@ static const struct inode_operations pro
- 	.lookup		= proc_tgid_base_lookup,
- 	.getattr	= pid_getattr,
- 	.setattr	= proc_setattr,
-+	.permission	= proc_pid_permission,
- };
- 
- static void proc_flush_task_mnt(struct vfsmount *mnt, pid_t pid, pid_t tgid)
-@@ -3322,6 +3376,12 @@ static int proc_pid_fill_cache(struct fi
- 				proc_pid_instantiate, iter.task, NULL);
- }
- 
-+static int fake_filldir(void *buf, const char *name, int namelen,
-+			loff_t offset, u64 ino, unsigned d_type)
-+{
-+	return 0;
-+}
-+
- /* for the /proc/ directory itself, after non-process stuff has been done */
- int proc_pid_readdir(struct file * filp, void * dirent, filldir_t filldir)
- {
-@@ -3329,6 +3389,7 @@ int proc_pid_readdir(struct file * filp,
- 	struct task_struct *reaper;
- 	struct tgid_iter iter;
- 	struct pid_namespace *ns;
-+	filldir_t __filldir;
- 
- 	if (filp->f_pos >= PID_MAX_LIMIT + TGID_OFFSET)
- 		goto out_no_task;
-@@ -3350,8 +3411,13 @@ int proc_pid_readdir(struct file * filp,
- 	for (iter = next_tgid(ns, iter);
- 	     iter.task;
- 	     iter.tgid += 1, iter = next_tgid(ns, iter)) {
-+		if (has_pid_permissions(ns, iter.task, 2))
-+			__filldir = filldir;
-+		else
-+			__filldir = fake_filldir;
-+
- 		filp->f_pos = iter.tgid + TGID_OFFSET;
--		if (proc_pid_fill_cache(filp, dirent, filldir, iter) < 0) {
-+		if (proc_pid_fill_cache(filp, dirent, __filldir, iter) < 0) {
- 			put_task_struct(iter.task);
- 			goto out;
- 		}
-@@ -3686,6 +3752,7 @@ static const struct inode_operations pro
- 	.lookup		= proc_task_lookup,
- 	.getattr	= proc_task_getattr,
- 	.setattr	= proc_setattr,
-+	.permission	= proc_pid_permission,
- };
- 
- static const struct file_operations proc_task_operations = {
-diff -puN fs/proc/inode.c~procfs-add-hidepid=-and-gid=-mount-options fs/proc/inode.c
---- a/fs/proc/inode.c~procfs-add-hidepid=-and-gid=-mount-options
-+++ a/fs/proc/inode.c
-@@ -106,6 +106,14 @@ void __init proc_init_inodecache(void)
- 
- static int proc_show_options(struct seq_file *seq, struct dentry *root)
- {
-+	struct super_block *sb = root->d_sb;
-+	struct pid_namespace *pid = sb->s_fs_info;
-+
-+	if (pid->pid_gid)
-+		seq_printf(seq, ",gid=%lu", (unsigned long)pid->pid_gid);
-+	if (pid->hide_pid != 0)
-+		seq_printf(seq, ",hidepid=%u", pid->hide_pid);
-+
- 	return 0;
- }
- 
-diff -puN fs/proc/root.c~procfs-add-hidepid=-and-gid=-mount-options fs/proc/root.c
---- a/fs/proc/root.c~procfs-add-hidepid=-and-gid=-mount-options
-+++ a/fs/proc/root.c
-@@ -38,10 +38,12 @@ static int proc_set_super(struct super_b
- }
- 
- enum {
--	Opt_err,
-+	Opt_gid, Opt_hidepid, Opt_err,
- };
- 
- static const match_table_t tokens = {
-+	{Opt_hidepid, "hidepid=%u"},
-+	{Opt_gid, "gid=%u"},
- 	{Opt_err, NULL},
- };
- 
-@@ -49,8 +51,7 @@ static int proc_parse_options(char *opti
- {
- 	char *p;
- 	substring_t args[MAX_OPT_ARGS];
--
--	pr_debug("proc: options = %s\n", options);
-+	int option;
- 
- 	if (!options)
- 		return 1;
-@@ -63,6 +64,20 @@ static int proc_parse_options(char *opti
- 		args[0].to = args[0].from = 0;
- 		token = match_token(p, tokens, args);
- 		switch (token) {
-+		case Opt_gid:
-+			if (match_int(&args[0], &option))
-+				return 0;
-+			pid->pid_gid = option;
-+			break;
-+		case Opt_hidepid:
-+			if (match_int(&args[0], &option))
-+				return 0;
-+			if (option < 0 || option > 2) {
-+				pr_err("proc: hidepid value must be between 0 and 2.\n");
-+				return 0;
-+			}
-+			pid->hide_pid = option;
-+			break;
- 		default:
- 			pr_err("proc: unrecognized mount option \"%s\" "
- 			       "or missing value\n", p);
-diff -puN include/linux/pid_namespace.h~procfs-add-hidepid=-and-gid=-mount-options include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~procfs-add-hidepid=-and-gid=-mount-options
-+++ a/include/linux/pid_namespace.h
-@@ -30,6 +30,8 @@ struct pid_namespace {
- #ifdef CONFIG_BSD_PROCESS_ACCT
- 	struct bsd_acct_struct *bacct;
+ #ifdef CONFIG_LOCKDEP
+-#define alloc_workqueue(name, flags, max_active)		\
++#define alloc_workqueue(fmt, flags, max_active, args...)	\
+ ({								\
+ 	static struct lock_class_key __key;			\
+ 	const char *__lock_name;				\
+ 								\
+-	if (__builtin_constant_p(name))				\
+-		__lock_name = (name);				\
++	if (__builtin_constant_p(fmt))				\
++		__lock_name = (fmt);				\
+ 	else							\
+-		__lock_name = #name;				\
++		__lock_name = #fmt;				\
+ 								\
+-	__alloc_workqueue_key((name), (flags), (max_active),	\
+-			      &__key, __lock_name);		\
++	__alloc_workqueue_key((fmt), (flags), (max_active),	\
++			      &__key, __lock_name, ##args);	\
+ })
+ #else
+-#define alloc_workqueue(name, flags, max_active)		\
+-	__alloc_workqueue_key((name), (flags), (max_active), NULL, NULL)
++#define alloc_workqueue(fmt, flags, max_active, args...)	\
++	__alloc_workqueue_key((fmt), (flags), (max_active),	\
++			      NULL, NULL, ##args)
  #endif
-+	gid_t pid_gid;
-+	int hide_pid;
+ 
+ /**
+  * alloc_ordered_workqueue - allocate an ordered workqueue
+- * @name: name of the workqueue
++ * @fmt: printf format for the name of the workqueue
+  * @flags: WQ_* flags (only WQ_FREEZABLE and WQ_MEM_RECLAIM are meaningful)
++ * @args: args for @fmt
+  *
+  * Allocate an ordered workqueue.  An ordered workqueue executes at
+  * most one work item at any given time in the queued order.  They are
+@@ -331,11 +349,8 @@ __alloc_workqueue_key(const char *name, 
+  * RETURNS:
+  * Pointer to the allocated workqueue on success, %NULL on failure.
+  */
+-static inline struct workqueue_struct *
+-alloc_ordered_workqueue(const char *name, unsigned int flags)
+-{
+-	return alloc_workqueue(name, WQ_UNBOUND | flags, 1);
+-}
++#define alloc_ordered_workqueue(fmt, flags, args...)		\
++	alloc_workqueue(fmt, WQ_UNBOUND | (flags), 1, ##args)
+ 
+ #define create_workqueue(name)					\
+ 	alloc_workqueue((name), WQ_MEM_RECLAIM, 1)
+diff -puN kernel/workqueue.c~workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-make-alloc_workqueue-take-printf-fmt-and-args-for-name
++++ a/kernel/workqueue.c
+@@ -242,10 +242,10 @@ struct workqueue_struct {
+ 
+ 	int			nr_drainers;	/* W: drain in progress */
+ 	int			saved_max_active; /* W: saved cwq max_active */
+-	const char		*name;		/* I: workqueue name */
+ #ifdef CONFIG_LOCKDEP
+ 	struct lockdep_map	lockdep_map;
+ #endif
++	char			name[];		/* I: workqueue name */
  };
  
- extern struct pid_namespace init_pid_ns;
+ struct workqueue_struct *system_wq __read_mostly;
+@@ -2954,14 +2954,29 @@ static int wq_clamp_max_active(int max_a
+ 	return clamp_val(max_active, 1, lim);
+ }
+ 
+-struct workqueue_struct *__alloc_workqueue_key(const char *name,
++struct workqueue_struct *__alloc_workqueue_key(const char *fmt,
+ 					       unsigned int flags,
+ 					       int max_active,
+ 					       struct lock_class_key *key,
+-					       const char *lock_name)
++					       const char *lock_name, ...)
+ {
++	va_list args, args1;
+ 	struct workqueue_struct *wq;
+ 	unsigned int cpu;
++	size_t namelen;
++
++	/* determine namelen, allocate wq and format name */
++	va_start(args, lock_name);
++	va_copy(args1, args);
++	namelen = vsnprintf(NULL, 0, fmt, args) + 1;
++
++	wq = kzalloc(sizeof(*wq) + namelen, GFP_KERNEL);
++	if (!wq)
++		goto err;
++
++	vsnprintf(wq->name, namelen, fmt, args1);
++	va_end(args);
++	va_end(args1);
+ 
+ 	/*
+ 	 * Workqueues which may be used during memory reclaim should
+@@ -2978,12 +2993,9 @@ struct workqueue_struct *__alloc_workque
+ 		flags |= WQ_HIGHPRI;
+ 
+ 	max_active = max_active ?: WQ_DFL_ACTIVE;
+-	max_active = wq_clamp_max_active(max_active, flags, name);
+-
+-	wq = kzalloc(sizeof(*wq), GFP_KERNEL);
+-	if (!wq)
+-		goto err;
++	max_active = wq_clamp_max_active(max_active, flags, wq->name);
+ 
++	/* init wq */
+ 	wq->flags = flags;
+ 	wq->saved_max_active = max_active;
+ 	mutex_init(&wq->flush_mutex);
+@@ -2991,7 +3003,6 @@ struct workqueue_struct *__alloc_workque
+ 	INIT_LIST_HEAD(&wq->flusher_queue);
+ 	INIT_LIST_HEAD(&wq->flusher_overflow);
+ 
+-	wq->name = name;
+ 	lockdep_init_map(&wq->lockdep_map, lock_name, key, 0);
+ 	INIT_LIST_HEAD(&wq->list);
+ 
+@@ -3020,7 +3031,8 @@ struct workqueue_struct *__alloc_workque
+ 		if (!rescuer)
+ 			goto err;
+ 
+-		rescuer->task = kthread_create(rescuer_thread, wq, "%s", name);
++		rescuer->task = kthread_create(rescuer_thread, wq, "%s",
++					       wq->name);
+ 		if (IS_ERR(rescuer->task))
+ 			goto err;
+ 
 _
 
-Patches currently in -mm which might be from segooon@gmail.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
+linux-next.patch
+sysctl-add-the-kernelns_last_pid-control.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update.patch
+scatterlist-new-helper-functions-update-fix.patch
+c-r-introduce-checkpoint_restore-symbol.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
 
