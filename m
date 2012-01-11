@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-wm831xc-remove-unused-period-irq-handler.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:32:18 -0800
-Message-ID: <20120111213219.0ABD120004E@hpza10.eem.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-wm831xc-convert-to-devm_kzalloc.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:32:22 -0800
+Message-ID: <20120111213222.9B4AC100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:45125 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171Ab2AKVcV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:32:21 -0500
-Received: by wgbdt14 with SMTP id dt14so43003wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:32:19 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:61363 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171Ab2AKVcX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:32:23 -0500
+Received: by mail-gx0-f202.google.com with SMTP id k3so134903ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:32:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: broonie@opensource.wolfsonmicro.com, a.zummo@towertech.it, plagnioj@jcrosoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-wm831x.c: remove unused period IRQ handler
+     Subject: drivers/rtc/rtc-wm831x.c: convert to devm_kzalloc()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-wm831xc-remove-unused-period-irq-handler.patch
+     drivers-rtc-rtc-wm831xc-convert-to-devm_kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,54 +26,51 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: drivers/rtc/rtc-wm831x.c: remove unused period IRQ handler
+Subject: drivers/rtc/rtc-wm831x.c: convert to devm_kzalloc()
 
-Due to changes in the RTC core the period interrupt is now unused so
-delete the code managing it.
+Marginally less code and eliminate the possibility of memory leaks.
 
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-wm831x.c |   20 --------------------
- 1 file changed, 20 deletions(-)
+ drivers/rtc/rtc-wm831x.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-wm831x.c~drivers-rtc-rtc-wm831xc-remove-unused-period-irq-handler drivers/rtc/rtc-wm831x.c
---- a/drivers/rtc/rtc-wm831x.c~drivers-rtc-rtc-wm831xc-remove-unused-period-irq-handler
+diff -puN drivers/rtc/rtc-wm831x.c~drivers-rtc-rtc-wm831xc-convert-to-devm_kzalloc drivers/rtc/rtc-wm831x.c
+--- a/drivers/rtc/rtc-wm831x.c~drivers-rtc-rtc-wm831xc-convert-to-devm_kzalloc
 +++ a/drivers/rtc/rtc-wm831x.c
-@@ -324,15 +324,6 @@ static irqreturn_t wm831x_alm_irq(int ir
- 	return IRQ_HANDLED;
- }
- 
--static irqreturn_t wm831x_per_irq(int irq, void *data)
--{
--	struct wm831x_rtc *wm831x_rtc = data;
--
--	rtc_update_irq(wm831x_rtc->rtc, 1, RTC_IRQF | RTC_UF);
--
--	return IRQ_HANDLED;
--}
--
- static const struct rtc_class_ops wm831x_rtc_ops = {
- 	.read_time = wm831x_rtc_readtime,
- 	.set_mmss = wm831x_rtc_set_mmss,
-@@ -405,7 +396,6 @@ static int wm831x_rtc_probe(struct platf
- {
- 	struct wm831x *wm831x = dev_get_drvdata(pdev->dev.parent);
- 	struct wm831x_rtc *wm831x_rtc;
--	int per_irq = platform_get_irq_byname(pdev, "PER");
+@@ -399,7 +399,7 @@ static int wm831x_rtc_probe(struct platf
  	int alm_irq = platform_get_irq_byname(pdev, "ALM");
  	int ret = 0;
  
-@@ -433,14 +423,6 @@ static int wm831x_rtc_probe(struct platf
- 		goto err;
- 	}
+-	wm831x_rtc = kzalloc(sizeof(*wm831x_rtc), GFP_KERNEL);
++	wm831x_rtc = devm_kzalloc(&pdev->dev, sizeof(*wm831x_rtc), GFP_KERNEL);
+ 	if (wm831x_rtc == NULL)
+ 		return -ENOMEM;
  
--	ret = request_threaded_irq(per_irq, NULL, wm831x_per_irq,
--				   IRQF_TRIGGER_RISING, "RTC period",
--				   wm831x_rtc);
--	if (ret != 0) {
--		dev_err(&pdev->dev, "Failed to request periodic IRQ %d: %d\n",
--			per_irq, ret);
--	}
+@@ -434,7 +434,6 @@ static int wm831x_rtc_probe(struct platf
+ 	return 0;
+ 
+ err:
+-	kfree(wm831x_rtc);
+ 	return ret;
+ }
+ 
+@@ -445,7 +444,6 @@ static int __devexit wm831x_rtc_remove(s
+ 
+ 	free_irq(alm_irq, wm831x_rtc);
+ 	rtc_device_unregister(wm831x_rtc->rtc);
+-	kfree(wm831x_rtc);
+ 
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+
+origin.patch
+linux-next.patch
+
