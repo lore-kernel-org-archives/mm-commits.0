@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-min-order-when-debug_guardpage_minorder-0.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:27:01 -0800
-Message-ID: <20120111212701.B458310004D@wpzn3.hot.corp.google.com>
+Subject: [merged] pm-hibernate-do-not-count-debug-pages-as-savable.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:27:04 -0800
+Message-ID: <20120111212704.B55D11E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:58611 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932749Ab2AKV1C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:02 -0500
-Received: by yhpp56 with SMTP id p56so153744yhp.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:02 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:48989 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933502Ab2AKV1F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:27:05 -0500
+Received: by mail-gx0-f202.google.com with SMTP id k3so134376ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:27:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sgruszka@redhat.com, aarcange@redhat.com, cl@linux.com, mgorman@suse.de, penberg@cs.helsinki.fi, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: sgruszka@redhat.com, aarcange@redhat.com, cl@linux-foundation.org, mgorman@suse.de, penberg@cs.helsinki.fi, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: min order when debug_guardpage_minorder > 0
+     Subject: PM/Hibernate: do not count debug pages as savable
 has been removed from the -mm tree.  Its filename was
-     slub-min-order-when-debug_guardpage_minorder-0.patch
+     pm-hibernate-do-not-count-debug-pages-as-savable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,37 +26,51 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Stanislaw Gruszka <sgruszka@redhat.com>
-Subject: slub: min order when debug_guardpage_minorder > 0
+Subject: PM/Hibernate: do not count debug pages as savable
 
-Disable slub debug facilities and allocate slabs at minimal order when
-debug_guardpage_minorder > 0 to increase probability to catch random
-memory corruption by cpu exception.
+When debugging with CONFIG_DEBUG_PAGEALLOC and debug_guardpage_minorder >
+0, we have lot of free pages that are not marked so.  Snapshot code
+account them as savable, what cause hibernate memory preallocation
+failure.
+
+It is pretty hard to make hibernate allocation succeed with
+debug_guardpage_minorder=1.  This change at least make it possible when
+system has relatively big amount of RAM.
 
 Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Stanislaw Gruszka <sgruszka@redhat.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/power/snapshot.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/slub.c~slub-min-order-when-debug_guardpage_minorder-0 mm/slub.c
---- a/mm/slub.c~slub-min-order-when-debug_guardpage_minorder-0
-+++ a/mm/slub.c
-@@ -3654,6 +3654,9 @@ void __init kmem_cache_init(void)
- 	struct kmem_cache *temp_kmem_cache_node;
- 	unsigned long kmalloc_size;
+diff -puN kernel/power/snapshot.c~pm-hibernate-do-not-count-debug-pages-as-savable kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~pm-hibernate-do-not-count-debug-pages-as-savable
++++ a/kernel/power/snapshot.c
+@@ -858,6 +858,9 @@ static struct page *saveable_highmem_pag
+ 	    PageReserved(page))
+ 		return NULL;
  
-+	if (debug_guardpage_minorder())
-+		slub_max_order = 0;
++	if (page_is_guard(page))
++		return NULL;
 +
- 	kmem_size = offsetof(struct kmem_cache, node) +
- 				nr_node_ids * sizeof(struct kmem_cache_node *);
+ 	return page;
+ }
+ 
+@@ -920,6 +923,9 @@ static struct page *saveable_page(struct
+ 	    && (!kernel_page_present(page) || pfn_is_nosave(pfn)))
+ 		return NULL;
+ 
++	if (page_is_guard(page))
++		return NULL;
++
+ 	return page;
+ }
  
 _
 
