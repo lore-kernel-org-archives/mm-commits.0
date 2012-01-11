@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-serial-blackfin-update-f-pattern.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:29:32 -0800
-Message-ID: <20120111212933.05B5A200057@hpza10.eem.corp.google.com>
+Subject: [merged] maintainers-update-encrypted-keys-f-patterns.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:29:26 -0800
+Message-ID: <20120111212926.9A69210004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:38500 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758121Ab2AKV3f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:35 -0500
-Received: by eekd41 with SMTP id d41so44287eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:34 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:40669 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758156Ab2AKV31 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:27 -0500
+Received: by mail-yw0-f74.google.com with SMTP id p56so153995yhp.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, sonic.zhang@analog.com, mm-commits@vger.kernel.org
+To: joe@perches.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: serial:blackfin: update F: pattern
+     Subject: MAINTAINERS: update encrypted-keys F: patterns
 has been removed from the -mm tree.  Its filename was
-     maintainers-serial-blackfin-update-f-pattern.patch
+     maintainers-update-encrypted-keys-f-patterns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,31 +26,32 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: serial:blackfin: update F: pattern
+Subject: MAINTAINERS: update encrypted-keys F: patterns
 
-commit 0c6967b5a0 ("serial:blackfin: rename Blackfin serial driver to
-bfin_uart.c") renamed the file, update the pattern.
+commit 61cf45d0199 ("encrypted-keys: create encrypted-keys directory")
+moved the files, update the patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Sonic Zhang <sonic.zhang@analog.com>
+Cc: Mimi Zohar <zohar@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-serial-blackfin-update-f-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-serial-blackfin-update-f-pattern
+diff -puN MAINTAINERS~maintainers-update-encrypted-keys-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-encrypted-keys-f-patterns
 +++ a/MAINTAINERS
-@@ -1487,7 +1487,7 @@ M:	Sonic Zhang <sonic.zhang@analog.com>
- L:	uclinux-dist-devel@blackfin.uclinux.org
- W:	http://blackfin.uclinux.org
+@@ -3856,8 +3856,7 @@ L:	keyrings@linux-nfs.org
  S:	Supported
--F:	drivers/tty/serial/bfin_5xx.c
-+F:	drivers/tty/serial/bfin_uart.c
+ F:	Documentation/security/keys-trusted-encrypted.txt
+ F:	include/keys/encrypted-type.h
+-F:	security/keys/encrypted.c
+-F:	security/keys/encrypted.h
++F:	security/keys/encrypted-keys/
  
- BLACKFIN WATCHDOG DRIVER
- M:	Mike Frysinger <vapier.adi@gmail.com>
+ KGDB / KDB /debug_core
+ M:	Jason Wessel <jason.wessel@windriver.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
