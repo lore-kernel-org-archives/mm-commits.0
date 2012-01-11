@@ -1,497 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-introduce-the-proc-pid-map_files-directory.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:33:18 -0800
-Message-ID: <20120111213318.CC9111E004D@wpzn4.hot.corp.google.com>
+Subject: [merged] procfs-parse-mount-options.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:33:21 -0800
+Message-ID: <20120111213321.BDD851E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:53525 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933960Ab2AKVdU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:33:20 -0500
-Received: by qcsg15 with SMTP id g15so136009qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:33:19 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:52712 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933960Ab2AKVdW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:33:22 -0500
+Received: by mail-gy0-f202.google.com with SMTP id r15so137556ghr.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:33:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@parallels.com, adobriyan@gmail.com, gorcunov@openvz.org, kirill@shutemov.name, pavel@ucw.cz, segoon@openwall.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: segooon@gmail.com, adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, greg@kroah.com, hpa@zytor.com, jmorris@namei.org, oleg@redhat.com, rdunlap@xenotime.net, segoon@openwall.com, tytso@MIT.EDU, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: introduce the /proc/<pid>/map_files/ directory
+     Subject: procfs: parse mount options
 has been removed from the -mm tree.  Its filename was
-     procfs-introduce-the-proc-pid-map_files-directory.patch
+     procfs-parse-mount-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Pavel Emelyanov <xemul@parallels.com>
-Subject: procfs: introduce the /proc/<pid>/map_files/ directory
+From: Vasiliy Kulikov <segooon@gmail.com>
+Subject: procfs: parse mount options
 
-This one behaves similarly to the /proc/<pid>/fd/ one - it contains
-symlinks one for each mapping with file, the name of a symlink is
-"vma->vm_start-vma->vm_end", the target is the file.  Opening a symlink
-results in a file that point exactly to the same inode as them vma's one.
+Add support for procfs mount options.  Actual mount options are coming in
+the next patches.
 
-For example the ls -l of some arbitrary /proc/<pid>/map_files/
-
- | lr-x------ 1 root root 64 Aug 26 06:40 7f8f80403000-7f8f80404000 -> /lib64/libc-2.5.so
- | lr-x------ 1 root root 64 Aug 26 06:40 7f8f8061e000-7f8f80620000 -> /lib64/libselinux.so.1
- | lr-x------ 1 root root 64 Aug 26 06:40 7f8f80826000-7f8f80827000 -> /lib64/libacl.so.1.1.0
- | lr-x------ 1 root root 64 Aug 26 06:40 7f8f80a2f000-7f8f80a30000 -> /lib64/librt-2.5.so
- | lr-x------ 1 root root 64 Aug 26 06:40 7f8f80a30000-7f8f80a4c000 -> /lib64/ld-2.5.so
-
-This *helps* checkpointing process in three ways:
-
-1. When dumping a task mappings we do know exact file that is mapped
-   by particular region.  We do this by opening
-   /proc/$pid/map_files/$address symlink the way we do with file
-   descriptors.
-
-2. This also helps in determining which anonymous shared mappings are
-   shared with each other by comparing the inodes of them.
-
-3. When restoring a set of processes in case two of them has a mapping
-   shared, we map the memory by the 1st one and then open its
-   /proc/$pid/map_files/$address file and map it by the 2nd task.
-
-Using /proc/$pid/maps for this is quite inconvenient since it brings
-repeatable re-reading and reparsing for this text file which slows down
-restore procedure significantly.  Also as being pointed in (3) it is a way
-easier to use top level shared mapping in children as
-/proc/$pid/map_files/$address when needed.
-
-[akpm@linux-foundation.org: coding-style fixes]
-[gorcunov@openvz.org: make map_files depend on CHECKPOINT_RESTORE]
-Signed-off-by: Pavel Emelyanov <xemul@parallels.com>
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Reviewed-by: Vasiliy Kulikov <segoon@openwall.com>
-Reviewed-by: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Theodore Tso <tytso@MIT.EDU>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: James Morris <jmorris@namei.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |  355 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/mm.h |   12 +
- 2 files changed, 367 insertions(+)
+ fs/proc/inode.c    |   10 +++++++
+ fs/proc/internal.h |    1 
+ fs/proc/root.c     |   55 +++++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 64 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~procfs-introduce-the-proc-pid-map_files-directory fs/proc/base.c
---- a/fs/proc/base.c~procfs-introduce-the-proc-pid-map_files-directory
-+++ a/fs/proc/base.c
-@@ -83,6 +83,7 @@
- #include <linux/pid_namespace.h>
- #include <linux/fs_struct.h>
+diff -puN fs/proc/inode.c~procfs-parse-mount-options fs/proc/inode.c
+--- a/fs/proc/inode.c~procfs-parse-mount-options
++++ a/fs/proc/inode.c
+@@ -7,6 +7,7 @@
+ #include <linux/time.h>
+ #include <linux/proc_fs.h>
+ #include <linux/kernel.h>
++#include <linux/pid_namespace.h>
+ #include <linux/mm.h>
+ #include <linux/string.h>
+ #include <linux/stat.h>
+@@ -17,7 +18,9 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/sysctl.h>
++#include <linux/seq_file.h>
  #include <linux/slab.h>
-+#include <linux/flex_array.h>
- #ifdef CONFIG_HARDWALL
- #include <asm/hardwall.h>
- #endif
-@@ -134,6 +135,8 @@ struct pid_entry {
- 		NULL, &proc_single_file_operations,	\
- 		{ .proc_show = show } )
++#include <linux/mount.h>
  
-+static int proc_fd_permission(struct inode *inode, int mask);
-+
- /*
-  * Count the number of hardlinks for the pid_entry table, excluding the .
-  * and .. links.
-@@ -2046,6 +2049,355 @@ static const struct file_operations proc
- 	.llseek		= default_llseek,
- };
+ #include <asm/system.h>
+ #include <asm/uaccess.h>
+@@ -101,12 +104,19 @@ void __init proc_init_inodecache(void)
+ 					     init_once);
+ }
  
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+
-+/*
-+ * dname_to_vma_addr - maps a dentry name into two unsigned longs
-+ * which represent vma start and end addresses.
-+ */
-+static int dname_to_vma_addr(struct dentry *dentry,
-+			     unsigned long *start, unsigned long *end)
++static int proc_show_options(struct seq_file *seq, struct dentry *root)
 +{
-+	if (sscanf(dentry->d_name.name, "%lx-%lx", start, end) != 2)
-+		return -EINVAL;
-+
 +	return 0;
 +}
 +
-+static int map_files_d_revalidate(struct dentry *dentry, struct nameidata *nd)
-+{
-+	unsigned long vm_start, vm_end;
-+	bool exact_vma_exists = false;
-+	struct mm_struct *mm = NULL;
-+	struct task_struct *task;
-+	const struct cred *cred;
-+	struct inode *inode;
-+	int status = 0;
-+
-+	if (nd && nd->flags & LOOKUP_RCU)
-+		return -ECHILD;
-+
-+	if (!capable(CAP_SYS_ADMIN)) {
-+		status = -EACCES;
-+		goto out_notask;
-+	}
-+
-+	inode = dentry->d_inode;
-+	task = get_proc_task(inode);
-+	if (!task)
-+		goto out_notask;
-+
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ))
-+		goto out;
-+
-+	mm = get_task_mm(task);
-+	if (!mm)
-+		goto out;
-+
-+	if (!dname_to_vma_addr(dentry, &vm_start, &vm_end)) {
-+		down_read(&mm->mmap_sem);
-+		exact_vma_exists = !!find_exact_vma(mm, vm_start, vm_end);
-+		up_read(&mm->mmap_sem);
-+	}
-+
-+	mmput(mm);
-+
-+	if (exact_vma_exists) {
-+		if (task_dumpable(task)) {
-+			rcu_read_lock();
-+			cred = __task_cred(task);
-+			inode->i_uid = cred->euid;
-+			inode->i_gid = cred->egid;
-+			rcu_read_unlock();
-+		} else {
-+			inode->i_uid = 0;
-+			inode->i_gid = 0;
-+		}
-+		security_task_to_inode(task, inode);
-+		status = 1;
-+	}
-+
-+out:
-+	put_task_struct(task);
-+
-+out_notask:
-+	if (status <= 0)
-+		d_drop(dentry);
-+
-+	return status;
-+}
-+
-+static const struct dentry_operations tid_map_files_dentry_operations = {
-+	.d_revalidate	= map_files_d_revalidate,
-+	.d_delete	= pid_delete_dentry,
-+};
-+
-+static int proc_map_files_get_link(struct dentry *dentry, struct path *path)
-+{
-+	unsigned long vm_start, vm_end;
-+	struct vm_area_struct *vma;
-+	struct task_struct *task;
-+	struct mm_struct *mm;
-+	int rc;
-+
-+	rc = -ENOENT;
-+	task = get_proc_task(dentry->d_inode);
-+	if (!task)
-+		goto out;
-+
-+	mm = get_task_mm(task);
-+	put_task_struct(task);
-+	if (!mm)
-+		goto out;
-+
-+	rc = dname_to_vma_addr(dentry, &vm_start, &vm_end);
-+	if (rc)
-+		goto out_mmput;
-+
-+	down_read(&mm->mmap_sem);
-+	vma = find_exact_vma(mm, vm_start, vm_end);
-+	if (vma && vma->vm_file) {
-+		*path = vma->vm_file->f_path;
-+		path_get(path);
-+		rc = 0;
-+	}
-+	up_read(&mm->mmap_sem);
-+
-+out_mmput:
-+	mmput(mm);
-+out:
-+	return rc;
-+}
-+
-+struct map_files_info {
-+	struct file	*file;
-+	unsigned long	len;
-+	unsigned char	name[4*sizeof(long)+2]; /* max: %lx-%lx\0 */
-+};
-+
-+static struct dentry *
-+proc_map_files_instantiate(struct inode *dir, struct dentry *dentry,
-+			   struct task_struct *task, const void *ptr)
-+{
-+	const struct file *file = ptr;
-+	struct proc_inode *ei;
-+	struct inode *inode;
-+
-+	if (!file)
-+		return ERR_PTR(-ENOENT);
-+
-+	inode = proc_pid_make_inode(dir->i_sb, task);
-+	if (!inode)
-+		return ERR_PTR(-ENOENT);
-+
-+	ei = PROC_I(inode);
-+	ei->op.proc_get_link = proc_map_files_get_link;
-+
-+	inode->i_op = &proc_pid_link_inode_operations;
-+	inode->i_size = 64;
-+	inode->i_mode = S_IFLNK;
-+
-+	if (file->f_mode & FMODE_READ)
-+		inode->i_mode |= S_IRUSR;
-+	if (file->f_mode & FMODE_WRITE)
-+		inode->i_mode |= S_IWUSR;
-+
-+	d_set_d_op(dentry, &tid_map_files_dentry_operations);
-+	d_add(dentry, inode);
-+
-+	return NULL;
-+}
-+
-+static struct dentry *proc_map_files_lookup(struct inode *dir,
-+		struct dentry *dentry, struct nameidata *nd)
-+{
-+	unsigned long vm_start, vm_end;
-+	struct vm_area_struct *vma;
-+	struct task_struct *task;
-+	struct dentry *result;
-+	struct mm_struct *mm;
-+
-+	result = ERR_PTR(-EACCES);
-+	if (!capable(CAP_SYS_ADMIN))
-+		goto out;
-+
-+	result = ERR_PTR(-ENOENT);
-+	task = get_proc_task(dir);
-+	if (!task)
-+		goto out;
-+
-+	result = ERR_PTR(-EACCES);
-+	if (lock_trace(task))
-+		goto out_put_task;
-+
-+	result = ERR_PTR(-ENOENT);
-+	if (dname_to_vma_addr(dentry, &vm_start, &vm_end))
-+		goto out_unlock;
-+
-+	mm = get_task_mm(task);
-+	if (!mm)
-+		goto out_unlock;
-+
-+	down_read(&mm->mmap_sem);
-+	vma = find_exact_vma(mm, vm_start, vm_end);
-+	if (!vma)
-+		goto out_no_vma;
-+
-+	result = proc_map_files_instantiate(dir, dentry, task, vma->vm_file);
-+
-+out_no_vma:
-+	up_read(&mm->mmap_sem);
-+	mmput(mm);
-+out_unlock:
-+	unlock_trace(task);
-+out_put_task:
-+	put_task_struct(task);
-+out:
-+	return result;
-+}
-+
-+static const struct inode_operations proc_map_files_inode_operations = {
-+	.lookup		= proc_map_files_lookup,
-+	.permission	= proc_fd_permission,
-+	.setattr	= proc_setattr,
-+};
-+
-+static int
-+proc_map_files_readdir(struct file *filp, void *dirent, filldir_t filldir)
-+{
-+	struct dentry *dentry = filp->f_path.dentry;
-+	struct inode *inode = dentry->d_inode;
-+	struct vm_area_struct *vma;
-+	struct task_struct *task;
-+	struct mm_struct *mm;
-+	ino_t ino;
-+	int ret;
-+
-+	ret = -EACCES;
-+	if (!capable(CAP_SYS_ADMIN))
-+		goto out;
-+
-+	ret = -ENOENT;
-+	task = get_proc_task(inode);
-+	if (!task)
-+		goto out;
-+
-+	ret = -EACCES;
-+	if (lock_trace(task))
-+		goto out_put_task;
-+
-+	ret = 0;
-+	switch (filp->f_pos) {
-+	case 0:
-+		ino = inode->i_ino;
-+		if (filldir(dirent, ".", 1, 0, ino, DT_DIR) < 0)
-+			goto out_unlock;
-+		filp->f_pos++;
-+	case 1:
-+		ino = parent_ino(dentry);
-+		if (filldir(dirent, "..", 2, 1, ino, DT_DIR) < 0)
-+			goto out_unlock;
-+		filp->f_pos++;
-+	default:
-+	{
-+		unsigned long nr_files, pos, i;
-+		struct flex_array *fa = NULL;
-+		struct map_files_info info;
-+		struct map_files_info *p;
-+
-+		mm = get_task_mm(task);
-+		if (!mm)
-+			goto out_unlock;
-+		down_read(&mm->mmap_sem);
-+
-+		nr_files = 0;
-+
-+		/*
-+		 * We need two passes here:
-+		 *
-+		 *  1) Collect vmas of mapped files with mmap_sem taken
-+		 *  2) Release mmap_sem and instantiate entries
-+		 *
-+		 * otherwise we get lockdep complained, since filldir()
-+		 * routine might require mmap_sem taken in might_fault().
-+		 */
-+
-+		for (vma = mm->mmap, pos = 2; vma; vma = vma->vm_next) {
-+			if (vma->vm_file && ++pos > filp->f_pos)
-+				nr_files++;
-+		}
-+
-+		if (nr_files) {
-+			fa = flex_array_alloc(sizeof(info), nr_files,
-+						GFP_KERNEL);
-+			if (!fa || flex_array_prealloc(fa, 0, nr_files,
-+							GFP_KERNEL)) {
-+				ret = -ENOMEM;
-+				if (fa)
-+					flex_array_free(fa);
-+				up_read(&mm->mmap_sem);
-+				mmput(mm);
-+				goto out_unlock;
-+			}
-+			for (i = 0, vma = mm->mmap, pos = 2; vma;
-+					vma = vma->vm_next) {
-+				if (!vma->vm_file)
-+					continue;
-+				if (++pos <= filp->f_pos)
-+					continue;
-+
-+				get_file(vma->vm_file);
-+				info.file = vma->vm_file;
-+				info.len = snprintf(info.name,
-+						sizeof(info.name), "%lx-%lx",
-+						vma->vm_start, vma->vm_end);
-+				if (flex_array_put(fa, i++, &info, GFP_KERNEL))
-+					BUG();
-+			}
-+		}
-+		up_read(&mm->mmap_sem);
-+
-+		for (i = 0; i < nr_files; i++) {
-+			p = flex_array_get(fa, i);
-+			ret = proc_fill_cache(filp, dirent, filldir,
-+					      p->name, p->len,
-+					      proc_map_files_instantiate,
-+					      task, p->file);
-+			if (ret)
-+				break;
-+			filp->f_pos++;
-+			fput(p->file);
-+		}
-+		for (; i < nr_files; i++) {
-+			/*
-+			 * In case of error don't forget
-+			 * to put rest of file refs.
-+			 */
-+			p = flex_array_get(fa, i);
-+			fput(p->file);
-+		}
-+		if (fa)
-+			flex_array_free(fa);
-+		mmput(mm);
-+	}
-+	}
-+
-+out_unlock:
-+	unlock_trace(task);
-+out_put_task:
-+	put_task_struct(task);
-+out:
-+	return ret;
-+}
-+
-+static const struct file_operations proc_map_files_operations = {
-+	.read		= generic_read_dir,
-+	.readdir	= proc_map_files_readdir,
-+	.llseek		= default_llseek,
-+};
-+
-+#endif /* CONFIG_CHECKPOINT_RESTORE */
-+
+ static const struct super_operations proc_sops = {
+ 	.alloc_inode	= proc_alloc_inode,
+ 	.destroy_inode	= proc_destroy_inode,
+ 	.drop_inode	= generic_delete_inode,
+ 	.evict_inode	= proc_evict_inode,
+ 	.statfs		= simple_statfs,
++	.remount_fs	= proc_remount,
++	.show_options	= proc_show_options,
+ };
+ 
+ static void __pde_users_dec(struct proc_dir_entry *pde)
+diff -puN fs/proc/internal.h~procfs-parse-mount-options fs/proc/internal.h
+--- a/fs/proc/internal.h~procfs-parse-mount-options
++++ a/fs/proc/internal.h
+@@ -117,6 +117,7 @@ void pde_put(struct proc_dir_entry *pde)
+ 
+ int proc_fill_super(struct super_block *);
+ struct inode *proc_get_inode(struct super_block *, struct proc_dir_entry *);
++int proc_remount(struct super_block *sb, int *flags, char *data);
+ 
  /*
-  * /proc/pid/fd needs a special permission handler so that a process can still
-  * access /proc/self/fd after it has executed a setuid().
-@@ -2661,6 +3013,9 @@ static const struct inode_operations pro
- static const struct pid_entry tgid_base_stuff[] = {
- 	DIR("task",       S_IRUGO|S_IXUGO, proc_task_inode_operations, proc_task_operations),
- 	DIR("fd",         S_IRUSR|S_IXUSR, proc_fd_inode_operations, proc_fd_operations),
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+	DIR("map_files",  S_IRUSR|S_IXUSR, proc_map_files_inode_operations, proc_map_files_operations),
-+#endif
- 	DIR("fdinfo",     S_IRUSR|S_IXUSR, proc_fdinfo_inode_operations, proc_fdinfo_operations),
- 	DIR("ns",	  S_IRUSR|S_IXUGO, proc_ns_dir_inode_operations, proc_ns_dir_operations),
- #ifdef CONFIG_NET
-diff -puN include/linux/mm.h~procfs-introduce-the-proc-pid-map_files-directory include/linux/mm.h
---- a/include/linux/mm.h~procfs-introduce-the-proc-pid-map_files-directory
-+++ a/include/linux/mm.h
-@@ -1482,6 +1482,18 @@ static inline unsigned long vma_pages(st
- 	return (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+  * These are generic /proc routines that use the internal
+diff -puN fs/proc/root.c~procfs-parse-mount-options fs/proc/root.c
+--- a/fs/proc/root.c~procfs-parse-mount-options
++++ a/fs/proc/root.c
+@@ -18,6 +18,7 @@
+ #include <linux/bitops.h>
+ #include <linux/mount.h>
+ #include <linux/pid_namespace.h>
++#include <linux/parser.h>
+ 
+ #include "internal.h"
+ 
+@@ -36,6 +37,48 @@ static int proc_set_super(struct super_b
+ 	return err;
  }
  
-+/* Look up the first VMA which exactly match the interval vm_start ... vm_end */
-+static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
-+				unsigned long vm_start, unsigned long vm_end)
++enum {
++	Opt_err,
++};
++
++static const match_table_t tokens = {
++	{Opt_err, NULL},
++};
++
++static int proc_parse_options(char *options, struct pid_namespace *pid)
 +{
-+	struct vm_area_struct *vma = find_vma(mm, vm_start);
++	char *p;
++	substring_t args[MAX_OPT_ARGS];
 +
-+	if (vma && (vma->vm_start != vm_start || vma->vm_end != vm_end))
-+		vma = NULL;
++	pr_debug("proc: options = %s\n", options);
 +
-+	return vma;
++	if (!options)
++		return 1;
++
++	while ((p = strsep(&options, ",")) != NULL) {
++		int token;
++		if (!*p)
++			continue;
++
++		args[0].to = args[0].from = 0;
++		token = match_token(p, tokens, args);
++		switch (token) {
++		default:
++			pr_err("proc: unrecognized mount option \"%s\" "
++			       "or missing value\n", p);
++			return 0;
++		}
++	}
++
++	return 1;
 +}
 +
- #ifdef CONFIG_MMU
- pgprot_t vm_get_page_prot(unsigned long vm_flags);
- #else
++int proc_remount(struct super_block *sb, int *flags, char *data)
++{
++	struct pid_namespace *pid = sb->s_fs_info;
++	return !proc_parse_options(data, pid);
++}
++
+ static struct dentry *proc_mount(struct file_system_type *fs_type,
+ 	int flags, const char *dev_name, void *data)
+ {
+@@ -43,11 +86,15 @@ static struct dentry *proc_mount(struct 
+ 	struct super_block *sb;
+ 	struct pid_namespace *ns;
+ 	struct proc_inode *ei;
++	char *options;
+ 
+-	if (flags & MS_KERNMOUNT)
++	if (flags & MS_KERNMOUNT) {
+ 		ns = (struct pid_namespace *)data;
+-	else
++		options = NULL;
++	} else {
+ 		ns = current->nsproxy->pid_ns;
++		options = data;
++	}
+ 
+ 	sb = sget(fs_type, proc_test_super, proc_set_super, ns);
+ 	if (IS_ERR(sb))
+@@ -55,6 +102,10 @@ static struct dentry *proc_mount(struct 
+ 
+ 	if (!sb->s_root) {
+ 		sb->s_flags = flags;
++		if (!proc_parse_options(options, ns)) {
++			deactivate_locked_super(sb);
++			return ERR_PTR(-EINVAL);
++		}
+ 		err = proc_fill_super(sb);
+ 		if (err) {
+ 			deactivate_locked_super(sb);
 _
 
-Patches currently in -mm which might be from xemul@parallels.com are
+Patches currently in -mm which might be from segooon@gmail.com are
 
 origin.patch
-sysctl-add-the-kernelns_last_pid-control.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
 
