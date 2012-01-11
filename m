@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-staging-media-update-f-patterns.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:29:29 -0800
-Message-ID: <20120111212929.A02ED10004D@wpzn3.hot.corp.google.com>
+Subject: [merged] maintainers-spi-update-f-patterns.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:29:36 -0800
+Message-ID: <20120111212937.05E9720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:48989 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758121Ab2AKV3a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:30 -0500
-Received: by mail-gx0-f202.google.com with SMTP id k3so134376ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:30 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:33294 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758121Ab2AKV3j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:29:39 -0500
+Received: by werf1 with SMTP id f1so53608wer.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:29:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, greg@kroah.com, mchehab@redhat.com, mm-commits@vger.kernel.org
+To: joe@perches.com, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: staging: media: update F: patterns
+     Subject: MAINTAINERS: spi: update F: patterns
 has been removed from the -mm tree.  Its filename was
-     maintainers-staging-media-update-f-patterns.patch
+     maintainers-spi-update-f-patterns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,41 +26,49 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: staging: media: update F: patterns
+Subject: MAINTAINERS: spi: update F: patterns
 
-commit 4860c73804c ("staging: Move media drivers to staging/media") moved
-the files, update the F: patterns.
+commit ca632f55669 ("spi: reorganize drivers") renamed the files, update
+the F: patterns.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Mauro Carvalho Chehab<mchehab@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-staging-media-update-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-staging-media-update-f-patterns
+diff -puN MAINTAINERS~maintainers-spi-update-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-spi-update-f-patterns
 +++ a/MAINTAINERS
-@@ -6300,7 +6300,7 @@ STAGING - LIRC (LINUX INFRARED REMOTE CO
- M:	Jarod Wilson <jarod@wilsonet.com>
- W:	http://www.lirc.org/
- S:	Odd Fixes
--F:	drivers/staging/lirc/
-+F:	drivers/staging/media/lirc/
+@@ -1144,7 +1144,7 @@ F:	drivers/watchdog/nuc900_wdt.c
+ F:	drivers/net/ethernet/nuvoton/w90p910_ether.c
+ F:	drivers/mtd/nand/nuc900_nand.c
+ F:	drivers/rtc/rtc-nuc900.c
+-F:	drivers/spi/spi_nuc900.c
++F:	drivers/spi/spi-nuc900.c
+ F:	drivers/usb/host/ehci-w90x900.c
+ F:	drivers/video/nuc900fb.c
  
- STAGING - NVIDIA COMPLIANT EMBEDDED CONTROLLER INTERFACE (nvec)
- M:	Julian Andres Klode <jak@jak-linux.org>
-@@ -6336,7 +6336,7 @@ F:	drivers/staging/sm7xx/
- STAGING - SOFTLOGIC 6x10 MPEG CODEC
- M:	Ben Collins <bcollins@bluecherry.net>
- S:	Odd Fixes
--F:	drivers/staging/solo6x10/
-+F:	drivers/staging/media/solo6x10/
+@@ -1348,7 +1348,7 @@ F:	drivers/net/ethernet/cadence/
+ ATMEL SPI DRIVER
+ M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+ S:	Supported
+-F:	drivers/spi/atmel_spi.*
++F:	drivers/spi/spi-atmel.*
  
- STAGING - SPEAKUP CONSOLE SPEECH DRIVER
- M:	William Hubbs <w.d.hubbs@gmail.com>
+ ATMEL USBA UDC DRIVER
+ M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+@@ -5308,7 +5308,7 @@ T:	git git://git.linaro.org/people/ycmia
+ S:	Maintained
+ F:	arch/arm/mach-pxa/
+ F:	drivers/pcmcia/pxa2xx*
+-F:	drivers/spi/pxa2xx*
++F:	drivers/spi/spi-pxa2xx*
+ F:	drivers/usb/gadget/pxa2*
+ F:	include/sound/pxa2xx-lib.h
+ F:	sound/arm/pxa*
 _
 
 Patches currently in -mm which might be from joe@perches.com are
