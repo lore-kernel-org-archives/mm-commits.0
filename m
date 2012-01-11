@@ -1,72 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:28:13 -0800
-Message-ID: <20120111212814.28EB4200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-mempolicyc-mpol_equal-use-bool.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:28:17 -0800
+Message-ID: <20120111212817.986BA1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:54553 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934037Ab2AKV2Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:28:16 -0500
-Received: by mail-ee0-f74.google.com with SMTP id d41so44236eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:28:15 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:41779 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933921Ab2AKV2S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:28:18 -0500
+Received: by yenm1 with SMTP id m1so7466yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:28:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, wilsons@start.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: fix pgoff computation when unmapping page from vma
+     Subject: mm/mempolicy.c: mpol_equal(): use bool
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma.patch
+     mm-mempolicyc-mpol_equal-use-bool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: mm: hugetlb: fix pgoff computation when unmapping page from vma
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm/mempolicy.c: mpol_equal(): use bool
 
-The computation for pgoff is incorrect, at least with
+mpol_equal() logically returns a boolean.  Use a bool type to slightly
+improve readability.
 
-	(vma->vm_pgoff >> PAGE_SHIFT)
-
-involved.  It is fixed with the available method if HPAGE_SIZE is
-concerned in page cache lookup.
-
-[akpm@linux-foundation.org: use vma_hugecache_offset() directly, per Michal]
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Stephen Wilson <wilsons@start.ca>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/mempolicy.h |   10 +++++-----
+ mm/mempolicy.c            |   14 +++++++-------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-pgoff-computation-when-unmapping-page-from-vma
-+++ a/mm/hugetlb.c
-@@ -2315,8 +2315,7 @@ static int unmap_ref_private(struct mm_s
- 	 * from page cache lookup which is in HPAGE_SIZE units.
- 	 */
- 	address = address & huge_page_mask(h);
--	pgoff = ((address - vma->vm_start) >> PAGE_SHIFT)
--		+ (vma->vm_pgoff >> PAGE_SHIFT);
-+	pgoff = vma_hugecache_offset(h, vma, address);
- 	mapping = (struct address_space *)page_private(page);
+diff -puN include/linux/mempolicy.h~mm-mempolicyc-mpol_equal-use-bool include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicyc-mpol_equal-use-bool
++++ a/include/linux/mempolicy.h
+@@ -164,11 +164,11 @@ static inline void mpol_get(struct mempo
+ 		atomic_inc(&pol->refcnt);
+ }
  
- 	/*
+-extern int __mpol_equal(struct mempolicy *a, struct mempolicy *b);
+-static inline int mpol_equal(struct mempolicy *a, struct mempolicy *b)
++extern bool __mpol_equal(struct mempolicy *a, struct mempolicy *b);
++static inline bool mpol_equal(struct mempolicy *a, struct mempolicy *b)
+ {
+ 	if (a == b)
+-		return 1;
++		return true;
+ 	return __mpol_equal(a, b);
+ }
+ 
+@@ -257,9 +257,9 @@ static inline int vma_migratable(struct 
+ 
+ struct mempolicy {};
+ 
+-static inline int mpol_equal(struct mempolicy *a, struct mempolicy *b)
++static inline bool mpol_equal(struct mempolicy *a, struct mempolicy *b)
+ {
+-	return 1;
++	return true;
+ }
+ 
+ static inline void mpol_put(struct mempolicy *p)
+diff -puN mm/mempolicy.c~mm-mempolicyc-mpol_equal-use-bool mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicyc-mpol_equal-use-bool
++++ a/mm/mempolicy.c
+@@ -1983,28 +1983,28 @@ struct mempolicy *__mpol_cond_copy(struc
+ }
+ 
+ /* Slow path of a mempolicy comparison */
+-int __mpol_equal(struct mempolicy *a, struct mempolicy *b)
++bool __mpol_equal(struct mempolicy *a, struct mempolicy *b)
+ {
+ 	if (!a || !b)
+-		return 0;
++		return false;
+ 	if (a->mode != b->mode)
+-		return 0;
++		return false;
+ 	if (a->flags != b->flags)
+-		return 0;
++		return false;
+ 	if (mpol_store_user_nodemask(a))
+ 		if (!nodes_equal(a->w.user_nodemask, b->w.user_nodemask))
+-			return 0;
++			return false;
+ 
+ 	switch (a->mode) {
+ 	case MPOL_BIND:
+ 		/* Fall through */
+ 	case MPOL_INTERLEAVE:
+-		return nodes_equal(a->v.nodes, b->v.nodes);
++		return !!nodes_equal(a->v.nodes, b->v.nodes);
+ 	case MPOL_PREFERRED:
+ 		return a->v.preferred_node == b->v.preferred_node;
+ 	default:
+ 		BUG();
+-		return 0;
++		return false;
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
+oom-memcg-fix-exclusion-of-memcg-threads-after-they-have-detached-their-mm.patch
+memcg-cleanup-for_each_node_state.patch
+page_alloc-break-early-in-check_for_regular_memory.patch
+page_cgroup-drop-multi-config_memory_hotplug.patch
+vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
+mm-take-pagevecs-off-reclaim-stack.patch
+mm-fewer-underscores-in-____pagevec_lru_add.patch
+mm-no-blank-line-after-export_symbol-in-swapc.patch
+mm-enum-lru_list-lru.patch
+mm-remove-del_page_from_lru-add-page_off_lru.patch
+mm-remove-isolate_pages.patch
+kexec-remove-kmsg_dump_kexec.patch
+ipc-mqueue-simplify-reading-msgqueue-limit.patch
 
