@@ -1,121 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-remove-redundant-spi-driver-bus-initialization.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:32:38 -0800
-Message-ID: <20120111213239.176D05C0063@hpza9.eem.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-twlc-add-dt-support-for-rtc-inside-twl4030-twl6030.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:32:42 -0800
+Message-ID: <20120111213243.0BAB85C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ey0-f202.google.com ([209.85.215.202]:60913 "EHLO
 	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758163Ab2AKVcl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:32:41 -0500
-Received: by eaad12 with SMTP id d12so32668eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:32:40 -0800 (PST)
+	with ESMTP id S1758163Ab2AKVco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:32:44 -0500
+Received: by mail-ey0-f202.google.com with SMTP id d12so32668eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:32:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lars@metafoo.de, a.zummo@towertech.it, grant.likely@secretlab.ca, john.stultz@linaro.org, mm-commits@vger.kernel.org
+To: b-cousson@ti.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/: remove redundant spi driver bus initialization
+     Subject: drivers/rtc/rtc-twl.c: add DT support for RTC inside twl4030/twl6030
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-remove-redundant-spi-driver-bus-initialization.patch
+     drivers-rtc-rtc-twlc-add-dt-support-for-rtc-inside-twl4030-twl6030.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: drivers/rtc/: remove redundant spi driver bus initialization
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: drivers/rtc/rtc-twl.c: add DT support for RTC inside twl4030/twl6030
 
-In ancient times it was necessary to manually initialize the bus field of
-an spi_driver to spi_bus_type.  These days this is done in
-spi_driver_register(), so we can drop the manual assignment.
+Add the DT support for the TI rtc-twl present in the twl4030 and twl6030
+devices.
 
-The patch was generated using the following coccinelle semantic patch:
-// <smpl>
-@@
-identifier _driver;
-@@
-struct spi_driver _driver = {
-	.driver = {
--		.bus = &spi_bus_type,
-	},
-};
-// </smpl>
-
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t93.c  |    1 -
- drivers/rtc/rtc-m41t94.c  |    1 -
- drivers/rtc/rtc-max6902.c |    1 -
- drivers/rtc/rtc-pcf2123.c |    1 -
- drivers/rtc/rtc-rs5c348.c |    1 -
- 5 files changed, 5 deletions(-)
+ Documentation/devicetree/bindings/rtc/twl-rtc.txt |   12 ++++++++++++
+ drivers/rtc/rtc-twl.c                             |   10 ++++++++--
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-m41t93.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization drivers/rtc/rtc-m41t93.c
---- a/drivers/rtc/rtc-m41t93.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization
-+++ a/drivers/rtc/rtc-m41t93.c
-@@ -200,7 +200,6 @@ static int __devexit m41t93_remove(struc
- static struct spi_driver m41t93_driver = {
- 	.driver = {
- 		.name	= "rtc-m41t93",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/twl-rtc.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/rtc/twl-rtc.txt
+@@ -0,0 +1,12 @@
++* TI twl RTC
++
++The TWL family (twl4030/6030) contains a RTC.
++
++Required properties:
++- compatible : Should be twl4030-rtc
++
++Examples:
++
++rtc@0 {
++    compatible = "ti,twl4030-rtc";
++};
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-add-dt-support-for-rtc-inside-twl4030-twl6030 drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-add-dt-support-for-rtc-inside-twl4030-twl6030
++++ a/drivers/rtc/rtc-twl.c
+@@ -550,6 +550,11 @@ static int twl_rtc_resume(struct platfor
+ #define twl_rtc_resume  NULL
+ #endif
+ 
++static const struct of_device_id twl_rtc_of_match[] = {
++	{.compatible = "ti,twl4030-rtc", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
+ MODULE_ALIAS("platform:twl_rtc");
+ 
+ static struct platform_driver twl4030rtc_driver = {
+@@ -559,8 +564,9 @@ static struct platform_driver twl4030rtc
+ 	.suspend	= twl_rtc_suspend,
+ 	.resume		= twl_rtc_resume,
+ 	.driver		= {
+-		.owner	= THIS_MODULE,
+-		.name	= "twl_rtc",
++		.owner		= THIS_MODULE,
++		.name		= "twl_rtc",
++		.of_match_table = twl_rtc_of_match,
  	},
- 	.probe	= m41t93_probe,
-diff -puN drivers/rtc/rtc-m41t94.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization drivers/rtc/rtc-m41t94.c
---- a/drivers/rtc/rtc-m41t94.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization
-+++ a/drivers/rtc/rtc-m41t94.c
-@@ -147,7 +147,6 @@ static int __devexit m41t94_remove(struc
- static struct spi_driver m41t94_driver = {
- 	.driver = {
- 		.name	= "rtc-m41t94",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= m41t94_probe,
-diff -puN drivers/rtc/rtc-max6902.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization drivers/rtc/rtc-max6902.c
---- a/drivers/rtc/rtc-max6902.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization
-+++ a/drivers/rtc/rtc-max6902.c
-@@ -154,7 +154,6 @@ static int __devexit max6902_remove(stru
- static struct spi_driver max6902_driver = {
- 	.driver = {
- 		.name	= "rtc-max6902",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= max6902_probe,
-diff -puN drivers/rtc/rtc-pcf2123.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -340,7 +340,6 @@ static int __devexit pcf2123_remove(stru
- static struct spi_driver pcf2123_driver = {
- 	.driver	= {
- 			.name	= "rtc-pcf2123",
--			.bus	= &spi_bus_type,
- 			.owner	= THIS_MODULE,
- 	},
- 	.probe	= pcf2123_probe,
-diff -puN drivers/rtc/rtc-rs5c348.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization drivers/rtc/rtc-rs5c348.c
---- a/drivers/rtc/rtc-rs5c348.c~drivers-rtc-remove-redundant-spi-driver-bus-initialization
-+++ a/drivers/rtc/rtc-rs5c348.c
-@@ -229,7 +229,6 @@ static int __devexit rs5c348_remove(stru
- static struct spi_driver rs5c348_driver = {
- 	.driver = {
- 		.name	= "rtc-rs5c348",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= rs5c348_probe,
+ };
+ 
 _
 
-Patches currently in -mm which might be from lars@metafoo.de are
+Patches currently in -mm which might be from b-cousson@ti.com are
 
 origin.patch
 linux-next.patch
