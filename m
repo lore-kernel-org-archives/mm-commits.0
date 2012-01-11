@@ -1,81 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-convert-wm8350-driver-to-devm_kzalloc.patch removed from -mm tree
-Date: Wed, 11 Jan 2012 13:30:47 -0800
-Message-ID: <20120111213047.EE7185C0060@hpza9.eem.corp.google.com>
+Subject: [merged] btree-export-btree_get_prev-so-modules-can-use-btree_for_each.patch removed from -mm tree
+Date: Wed, 11 Jan 2012 13:30:51 -0800
+Message-ID: <20120111213052.0370B200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:59532 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933921Ab2AKVat (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:30:49 -0500
+	with ESMTP id S933921Ab2AKVax (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jan 2012 16:30:53 -0500
 Received: by mail-ee0-f74.google.com with SMTP id d41so44333eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:30:48 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jan 2012 13:30:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: steve@purestorage.com, joern@logfs.org, roland@purestorage.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds: convert wm8350 driver to devm_kzalloc()
+     Subject: btree: export btree_get_prev() so modules can use btree_for_each
 has been removed from the -mm tree.  Its filename was
-     leds-convert-wm8350-driver-to-devm_kzalloc.patch
+     btree-export-btree_get_prev-so-modules-can-use-btree_for_each.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: leds: convert wm8350 driver to devm_kzalloc()
+From: Steve Hodgson <steve@purestorage.com>
+Subject: btree: export btree_get_prev() so modules can use btree_for_each
 
-Saves a small amount of code and systematically eliminates leaks.
+The btree_for_each API is implemented with macros that internally call
+btree_get_prev(), so if btree_get_prev() isn't exported then modules fail
+to link if they try to use one of the btree_for_each macros.  Since the
+rest of the btree API is exported, we should keep things orthogonal and
+make this work too.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Steve Hodgson <steve@purestorage.com>
+Acked-by: Joern Engel <joern@logfs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-wm8350.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ lib/btree.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/leds-wm8350.c~leds-convert-wm8350-driver-to-devm_kzalloc drivers/leds/leds-wm8350.c
---- a/drivers/leds/leds-wm8350.c~leds-convert-wm8350-driver-to-devm_kzalloc
-+++ a/drivers/leds/leds-wm8350.c
-@@ -227,7 +227,7 @@ static int wm8350_led_probe(struct platf
- 		goto err_isink;
+diff -puN lib/btree.c~btree-export-btree_get_prev-so-modules-can-use-btree_for_each lib/btree.c
+--- a/lib/btree.c~btree-export-btree_get_prev-so-modules-can-use-btree_for_each
++++ a/lib/btree.c
+@@ -357,6 +357,7 @@ miss:
  	}
- 
--	led = kzalloc(sizeof(*led), GFP_KERNEL);
-+	led = devm_kzalloc(&pdev->dev, sizeof(*led), GFP_KERNEL);
- 	if (led == NULL) {
- 		ret = -ENOMEM;
- 		goto err_dcdc;
-@@ -259,12 +259,10 @@ static int wm8350_led_probe(struct platf
- 
- 	ret = led_classdev_register(&pdev->dev, &led->cdev);
- 	if (ret < 0)
--		goto err_led;
-+		goto err_dcdc;
- 
- 	return 0;
- 
-- err_led:
--	kfree(led);
-  err_dcdc:
- 	regulator_put(dcdc);
-  err_isink:
-@@ -281,7 +279,6 @@ static int wm8350_led_remove(struct plat
- 	wm8350_led_disable(led);
- 	regulator_put(led->dcdc);
- 	regulator_put(led->isink);
--	kfree(led);
- 	return 0;
+ 	return NULL;
  }
++EXPORT_SYMBOL_GPL(btree_get_prev);
  
+ static int getpos(struct btree_geo *geo, unsigned long *node,
+ 		unsigned long *key)
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from steve@purestorage.com are
 
 origin.patch
-linux-next.patch
 
