@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-update-the-correct-soft-limit-tree-during-migration.patch added to -mm tree
-Date: Fri, 13 Jan 2012 14:48:29 -0800
-Message-ID: <20120113224829.AF06810004D@wpzn3.hot.corp.google.com>
+Subject: + bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch added to -mm tree
+Date: Fri, 13 Jan 2012 14:56:02 -0800
+Message-ID: <20120113225603.A5D3B5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:34523 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932932Ab2AMWsa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 17:48:30 -0500
-Received: by ggnk3 with SMTP id k3so368021ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 14:48:30 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:53146 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754143Ab2AMW4H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 17:56:07 -0500
+Received: by wgbdt14 with SMTP id dt14so109041wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 14:56:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, robert.richter@amd.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm: memcg: update the correct soft limit tree during migration
+     Subject: bitops: rename for_each_set_bit_cont() in favor of analogous list.h function
 has been added to the -mm tree.  Its filename is
-     mm-memcg-update-the-correct-soft-limit-tree-during-migration.patch
+     bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: update the correct soft limit tree during migration
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: bitops: rename for_each_set_bit_cont() in favor of analogous list.h function
 
-end_migration() passes the old page instead of the new page to commit the
-charge.  This page descriptor is not used for committing itself, though,
-since we also pass the (correct) page_cgroup descriptor.  But it's used to
-find the soft limit tree through the page's zone, so the soft limit tree
-of the old page's zone is updated instead of that of the new page's, which
-might get slightly out of date until the next charge reaches the ratelimit
-point.
+This renames for_each_set_bit_cont() to for_each_set_bit_from() because it
+is analogous to list_for_each_entry_from() in list.h rather than
+list_for_each_entry_continue().
 
-This glitch has been present since '5564e88 memcg: condense
-page_cgroup-to-page lookup points'.
+This doesn't remove for_each_set_bit_cont() for now.
 
-This fixes a bug that I introduced in 2.6.38.  It's benign enough (to
-my knowledge) that we probably don't want this for stable.
-
-Reported-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Robert Richter <robert.richter@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/cpu/perf_event.c       |    4 ++--
+ include/linux/bitops.h                 |    5 ++++-
+ tools/perf/util/include/linux/bitops.h |    2 +-
+ 3 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-update-the-correct-soft-limit-tree-during-migration mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-update-the-correct-soft-limit-tree-during-migration
-+++ a/mm/memcontrol.c
-@@ -3247,7 +3247,7 @@ int mem_cgroup_prepare_migration(struct 
- 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
- 	else
- 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
--	__mem_cgroup_commit_charge(memcg, page, 1, pc, ctype);
-+	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, ctype);
- 	return ret;
- }
+diff -puN arch/x86/kernel/cpu/perf_event.c~bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function arch/x86/kernel/cpu/perf_event.c
+--- a/arch/x86/kernel/cpu/perf_event.c~bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function
++++ a/arch/x86/kernel/cpu/perf_event.c
+@@ -577,14 +577,14 @@ static bool __perf_sched_find_counter(st
+ 	/* Prefer fixed purpose counters */
+ 	if (x86_pmu.num_counters_fixed) {
+ 		idx = X86_PMC_IDX_FIXED;
+-		for_each_set_bit_cont(idx, c->idxmsk, X86_PMC_IDX_MAX) {
++		for_each_set_bit_from(idx, c->idxmsk, X86_PMC_IDX_MAX) {
+ 			if (!__test_and_set_bit(idx, sched->state.used))
+ 				goto done;
+ 		}
+ 	}
+ 	/* Grab the first unused counter starting with idx */
+ 	idx = sched->state.counter;
+-	for_each_set_bit_cont(idx, c->idxmsk, X86_PMC_IDX_FIXED) {
++	for_each_set_bit_from(idx, c->idxmsk, X86_PMC_IDX_FIXED) {
+ 		if (!__test_and_set_bit(idx, sched->state.used))
+ 			goto done;
+ 	}
+diff -puN include/linux/bitops.h~bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function include/linux/bitops.h
+--- a/include/linux/bitops.h~bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function
++++ a/include/linux/bitops.h
+@@ -27,11 +27,14 @@ extern unsigned long __sw_hweight64(__u6
+ 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
  
+ /* same as for_each_set_bit() but use bit as value to start with */
+-#define for_each_set_bit_cont(bit, addr, size) \
++#define for_each_set_bit_from(bit, addr, size) \
+ 	for ((bit) = find_next_bit((addr), (size), (bit));	\
+ 	     (bit) < (size);					\
+ 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
+ 
++#define for_each_set_bit_cont(bit, addr, size) \
++	for_each_set_bit_from(bit, addr, size)
++
+ static __inline__ int get_bitmask_order(unsigned int count)
+ {
+ 	int order;
+diff -puN tools/perf/util/include/linux/bitops.h~bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function tools/perf/util/include/linux/bitops.h
+--- a/tools/perf/util/include/linux/bitops.h~bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function
++++ a/tools/perf/util/include/linux/bitops.h
+@@ -15,7 +15,7 @@
+ 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
+ 
+ /* same as for_each_set_bit() but use bit as value to start with */
+-#define for_each_set_bit_cont(bit, addr, size) \
++#define for_each_set_bit_from(bit, addr, size) \
+ 	for ((bit) = find_next_bit((addr), (size), (bit));	\
+ 	     (bit) < (size);					\
+ 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
 _
-Subject: Subject: mm: memcg: update the correct soft limit tree during migration
+Subject: Subject: bitops: rename for_each_set_bit_cont() in favor of analogous list.h function
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-mm-memcg-update-the-correct-soft-limit-tree-during-migration.patch
+bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch
+bitops-remove-for_each_set_bit_cont.patch
+bitops-introduce-for_each_clear_bit.patch
+mtd-use-for_each_clear_bit.patch
+s390-char-use-for_each_clear_bit.patch
+uwb-use-for_each_clear_bit.patch
+x86-use-for_each_clear_bit_from.patch
 
