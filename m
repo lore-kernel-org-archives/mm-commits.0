@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:49:08 -0800
-Message-ID: <20120113004909.4E7125C0050@hpza9.eem.corp.google.com>
+Subject: [folded] memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:49:24 -0800
+Message-ID: <20120113004925.04A211E0058@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:49371 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756690Ab2AMAtM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:49:12 -0500
-Received: by eaad12 with SMTP id d12so69427eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:49:10 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:46803 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756690Ab2AMAtZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:49:25 -0500
+Received: by mail-yw0-f74.google.com with SMTP id j52so7021yhj.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:49:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mszeredi@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
+To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-clear-pc-mem_cgorup-if-necessary-fix-2
+     Subject: memcg: fix page migration to reset_owner
 has been removed from the -mm tree.  Its filename was
-     memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch
+     memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch
 
 This patch was dropped because it was folded into memcg-clear-pc-mem_cgorup-if-necessary.patch
 
@@ -26,68 +26,36 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: memcg-clear-pc-mem_cgorup-if-necessary-fix-2
+Subject: memcg: fix page migration to reset_owner
 
-Fix CONFIG_CGROUP_MEM_RES_CTLR=y CONFIG_CGROUP_MEM_RES_CTLR_SWAP=n build:
-move mem_cgroup_reset_owner() up from CONFIG_CGROUP_MEM_RES_CTLR_SWAP block.
+Usually, migration pages coming to unmap_and_move()'s putback_lru_page()
+have been charged and have pc->mem_cgroup set; but there are several ways
+in which a freshly allocated uncharged page can get there, oopsing when
+added to LRU.  Call mem_cgroup_reset_owner() immediately after allocating.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/migrate.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-2
-+++ a/mm/memcontrol.c
-@@ -3050,6 +3050,20 @@ void mem_cgroup_uncharge_end(void)
- 	batch->memcg = NULL;
- }
+diff -puN mm/migrate.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner mm/migrate.c
+--- a/mm/migrate.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner
++++ a/mm/migrate.c
+@@ -777,6 +777,8 @@ static int unmap_and_move(new_page_t get
+ 	if (!newpage)
+ 		return -ENOMEM;
  
-+/*
-+ * A function for resetting pc->mem_cgroup for newly allocated pages.
-+ * This function should be called if the newpage will be added to LRU
-+ * before start accounting.
-+ */
-+void mem_cgroup_reset_owner(struct page *newpage)
-+{
-+	struct page_cgroup *pc;
++	mem_cgroup_reset_owner(newpage);
 +
-+	pc = lookup_page_cgroup(newpage);
-+	VM_BUG_ON(PageCgroupUsed(pc));
-+	pc->mem_cgroup = root_mem_cgroup;
-+}
-+
- #ifdef CONFIG_SWAP
- /*
-  * called after __delete_from_swap_cache() and drop "page" account.
-@@ -3104,20 +3118,6 @@ void mem_cgroup_uncharge_swap(swp_entry_
- 	rcu_read_unlock();
- }
- 
--/*
-- * A function for resetting pc->mem_cgroup for newly allocated pages.
-- * This function should be called if the newpage will be added to LRU
-- * before start accounting.
-- */
--void mem_cgroup_reset_owner(struct page *newpage)
--{
--	struct page_cgroup *pc;
--
--	pc = lookup_page_cgroup(newpage);
--	VM_BUG_ON(PageCgroupUsed(pc));
--	pc->mem_cgroup = root_mem_cgroup;
--}
--
- /**
-  * mem_cgroup_move_swap_account - move swap charge and swap_cgroup's record.
-  * @entry: swap entry to be moved
+ 	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
+ 		goto out;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -115,9 +83,6 @@ memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
 memcg-simplify-page-cache-charging.patch
 memcg-simplify-corner-case-handling-of-lru.patch
 memcg-clear-pc-mem_cgorup-if-necessary.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-3.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch
 memcg-simplify-lru-handling-by-new-rule.patch
 memcg-simplify-lru-handling-by-new-rule-fix.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge.patch
