@@ -1,61 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] init-kconfig-fix-dependency-for-cgroup_sched.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:31:17 -0800
-Message-ID: <20120113203118.D16421E004D@wpzn4.hot.corp.google.com>
+Subject: [merged] proc-fix-null-pointer-deref-in-proc_pid_permission.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:31:21 -0800
+Message-ID: <20120113203122.2B0B020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:46655 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725Ab2AMUbU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:31:20 -0500
-Received: by yenl1 with SMTP id l1so71982yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:31:19 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56633 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759018Ab2AMUbZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:31:25 -0500
+Received: by eeke50 with SMTP id e50so23612eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:31:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: festevam@gmail.com, a.p.zijlstra@chello.nl, fabio.estevam@freescale.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: xtfeng@gmail.com, dannyfeng@tencent.com, rientjes@google.com, segoon@openwall.com, viro@zeniv.linux.org.uk, wilsons@start.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/Kconfig: fix dependency for CGROUP_SCHED
+     Subject: proc: fix null pointer deref in proc_pid_permission()
 has been removed from the -mm tree.  Its filename was
-     init-kconfig-fix-dependency-for-cgroup_sched.patch
+     proc-fix-null-pointer-deref-in-proc_pid_permission.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Fabio Estevam <festevam@gmail.com>
-Subject: init/Kconfig: fix dependency for CGROUP_SCHED
+From: Xiaotian Feng <xtfeng@gmail.com>
+Subject: proc: fix null pointer deref in proc_pid_permission()
 
-Fix the following build warning:
+get_proc_task() can fail to search the task and return NULL,
+put_task_struct() will then bomb the kernel with following oops:
 
-warning: (SCHED_AUTOGROUP) selects CGROUP_SCHED which has unmet direct dependencies (CGROUPS && EXPERIMENTAL)
+[ 1870.574045] BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
+[ 1870.574065] IP: [<ffffffff81217d34>] proc_pid_permission+0x64/0xe0
+[ 1870.574088] PGD 112075067 PUD 112814067 PMD 0
+[ 1870.574106] Oops: 0002 [#1] PREEMPT SMP
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+This is a regression introduced by commit 0499680a ("procfs: add hidepid=
+and gid= mount options").  The kernel should return -ESRCH if
+get_proc_task() failed.
+
+Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: Stephen Wilson <wilsons@start.ca>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ fs/proc/base.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN init/Kconfig~init-kconfig-fix-dependency-for-cgroup_sched init/Kconfig
---- a/init/Kconfig~init-kconfig-fix-dependency-for-cgroup_sched
-+++ a/init/Kconfig
-@@ -713,7 +713,6 @@ config CGROUP_PERF
+diff -puN fs/proc/base.c~proc-fix-null-pointer-deref-in-proc_pid_permission fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-null-pointer-deref-in-proc_pid_permission
++++ a/fs/proc/base.c
+@@ -654,6 +654,8 @@ static int proc_pid_permission(struct in
+ 	bool has_perms;
  
- menuconfig CGROUP_SCHED
- 	bool "Group CPU scheduler"
--	depends on EXPERIMENTAL
- 	default n
- 	help
- 	  This feature lets CPU scheduler recognize task groups and control CPU
+ 	task = get_proc_task(inode);
++	if (!task)
++		return -ESRCH;
+ 	has_perms = has_pid_permissions(pid, task, 1);
+ 	put_task_struct(task);
+ 
 _
 
-Patches currently in -mm which might be from festevam@gmail.com are
+Patches currently in -mm which might be from xtfeng@gmail.com are
 
 origin.patch
-linux-next.patch
 
