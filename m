@@ -1,497 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: [merged] epoll-limit-paths.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:32:16 -0800
-Message-ID: <20120113203217.4BBDE5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:32:20 -0800
+Message-ID: <20120113203220.C208B10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:56633 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759083Ab2AMUcT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:32:19 -0500
-Received: by mail-ee0-f74.google.com with SMTP id e50so23612eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:32:18 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:36212 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759086Ab2AMUcV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:32:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@redhat.com, davidel@xmailserver.org, nelhage@ksplice.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, mszeredi@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: limit paths
+     Subject: memcg: add mem_cgroup_replace_page_cache() to fix LRU issue
 has been removed from the -mm tree.  Its filename was
-     epoll-limit-paths.patch
+     memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@redhat.com>
-Subject: epoll: limit paths
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: add mem_cgroup_replace_page_cache() to fix LRU issue
 
-The current epoll code can be tickled to run basically indefinitely in
-both loop detection path check (on ep_insert()), and in the wakeup paths. 
-The programs that tickle this behavior set up deeply linked networks of
-epoll file descriptors that cause the epoll algorithms to traverse them
-indefinitely.  A couple of these sample programs have been previously
-posted in this thread: https://lkml.org/lkml/2011/2/25/297.
+Commit ef6a3c6311 ("mm: add replace_page_cache_page() function") added a
+function replace_page_cache_page().  This function replaces a page in the
+radix-tree with a new page.  WHen doing this, memory cgroup needs to fix
+up the accounting information.  memcg need to check PCG_USED bit etc.
 
-To fix the loop detection path check algorithms, I simply keep track of
-the epoll nodes that have been already visited.  Thus, the loop detection
-becomes proportional to the number of epoll file descriptor and links. 
-This dramatically decreases the run-time of the loop check algorithm.  In
-one diabolical case I tried it reduced the run-time from 15 mintues (all
-in kernel time) to .3 seconds.
+In some(many?) cases, 'newpage' is on LRU before calling
+replace_page_cache().  So, memcg's LRU accounting information should be
+fixed, too.
 
-Fixing the wakeup paths could be done at wakeup time in a similar manner
-by keeping track of nodes that have already been visited, but the
-complexity is harder, since there can be multiple wakeups on different
-cpus...Thus, I've opted to limit the number of possible wakeup paths when
-the paths are created.
+This patch adds mem_cgroup_replace_page_cache() and removes the old hooks.
+ In that function, old pages will be unaccounted without touching
+res_counter and new page will be accounted to the memcg (of old page). 
+WHen overwriting pc->mem_cgroup of newpage, take zone->lru_lock and avoid
+races with LRU handling.
 
-This is accomplished, by noting that the end file descriptor points that
-are found during the loop detection pass (from the newly added link), are
-actually the sources for wakeup events.  I keep a list of these file
-descriptors and limit the number and length of these paths that emanate
-from these 'source file descriptors'.  In the current implemetation I
-allow 1000 paths of length 1, 500 of length 2, 100 of length 3, 50 of
-length 4 and 10 of length 5.  Note that it is sufficient to check the
-'source file descriptors' reachable from the newly added link, since no
-other 'source file descriptors' will have newly added links.  This allows
-us to check only the wakeup paths that may have gotten too long, and not
-re-check all possible wakeup paths on the system.
+Background:
+  replace_page_cache_page() is called by FUSE code in its splice() handling.
+  Here, 'newpage' is replacing oldpage but this newpage is not a newly allocated
+  page and may be on LRU. LRU mis-accounting will be critical for memory cgroup
+  because rmdir() checks the whole LRU is empty and there is no account leak.
+  If a page is on the other LRU than it should be, rmdir() will fail.
 
-In terms of the path limit selection, I think its first worth noting that
-the most common case for epoll, is probably the model where you have 1
-epoll file descriptor that is monitoring n number of 'source file
-descriptors'.  In this case, each 'source file descriptor' has a 1 path of
-length 1.  Thus, I believe that the limits I'm proposing are quite
-reasonable and in fact may be too generous.  Thus, I'm hoping that the
-proposed limits will not prevent any workloads that currently work to
-fail.
+This bug was added in March 2011, but no bug report yet.  I guess there
+are not many people who use memcg and FUSE at the same time with upstream
+kernels.
 
-In terms of locking, I have extended the use of the 'epmutex' to all
-epoll_ctl add and remove operations.  Currently its only used in a subset
-of the add paths.  I need to hold the epmutex, so that we can correctly
-traverse a coherent graph, to check the number of paths.  I believe that
-this additional locking is probably ok, since its in the setup/teardown
-paths, and doesn't affect the running paths, but it certainly is going to
-add some extra overhead.  Also, worth noting is that the epmuex was
-recently added to the ep_ctl add operations in the initial path loop
-detection code using the argument that it was not on a critical path.
+The result of this bug is that admin cannot destroy a memcg because of
+account leak.  So, no panic, no deadlock.  And, even if an active cgroup
+exist, umount can succseed.  So no problem at shutdown.
 
-Another thing to note here, is the length of epoll chains that is allowed.
-Currently, eventpoll.c defines:
-
-/* Maximum number of nesting allowed inside epoll sets */
-#define EP_MAX_NESTS 4
-
-This basically means that I am limited to a graph depth of 5 (EP_MAX_NESTS
-+ 1).  However, this limit is currently only enforced during the loop
-check detection code, and only when the epoll file descriptors are added
-in a certain order.  Thus, this limit is currently easily bypassed.  The
-newly added check for wakeup paths, stricly limits the wakeup paths to a
-length of 5, regardless of the order in which ep's are linked together. 
-Thus, a side-effect of the new code is a more consistent enforcement of
-the graph depth.
-
-Thus far, I've tested this, using the sample programs previously
-mentioned, which now either return quickly or return -EINVAL.  I've also
-testing using the piptest.c epoll tester, which showed no difference in
-performance.  I've also created a number of different epoll networks and
-tested that they behave as expectded.
-
-I believe this solves the original diabolical test cases, while still
-preserving the sane epoll nesting.
-
-Signed-off-by: Jason Baron <jbaron@redhat.com>
-Cc: Nelson Elhage <nelhage@ksplice.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c            |  234 ++++++++++++++++++++++++++++++++----
- include/linux/eventpoll.h |    1 
- include/linux/fs.h        |    1 
- 3 files changed, 211 insertions(+), 25 deletions(-)
+ include/linux/memcontrol.h |    6 ++++
+ mm/filemap.c               |   18 +-------------
+ mm/memcontrol.c            |   44 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 52 insertions(+), 16 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-limit-paths fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-limit-paths
-+++ a/fs/eventpoll.c
-@@ -197,6 +197,12 @@ struct eventpoll {
+diff -puN include/linux/memcontrol.h~memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue
++++ a/include/linux/memcontrol.h
+@@ -122,6 +122,8 @@ struct zone_reclaim_stat*
+ mem_cgroup_get_reclaim_stat_from_page(struct page *page);
+ extern void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
+ 					struct task_struct *p);
++extern void mem_cgroup_replace_page_cache(struct page *oldpage,
++					struct page *newpage);
  
- 	/* The user that created the eventpoll descriptor */
- 	struct user_struct *user;
-+
-+	struct file *file;
-+
-+	/* used to optimize loop detection check */
-+	int visited;
-+	struct list_head visited_list_link;
- };
- 
- /* Wait structure used by the poll hooks */
-@@ -255,6 +261,15 @@ static struct kmem_cache *epi_cache __re
- /* Slab cache used to allocate "struct eppoll_entry" */
- static struct kmem_cache *pwq_cache __read_mostly;
- 
-+/* Visited nodes during ep_loop_check(), so we can unset them when we finish */
-+static LIST_HEAD(visited_list);
-+
-+/*
-+ * List of files with newly added links, where we may need to limit the number
-+ * of emanating paths. Protected by the epmutex.
-+ */
-+static LIST_HEAD(tfile_check_list);
-+
- #ifdef CONFIG_SYSCTL
- 
- #include <linux/sysctl.h>
-@@ -276,6 +291,12 @@ ctl_table epoll_table[] = {
- };
- #endif /* CONFIG_SYSCTL */
- 
-+static const struct file_operations eventpoll_fops;
-+
-+static inline int is_file_epoll(struct file *f)
-+{
-+	return f->f_op == &eventpoll_fops;
-+}
- 
- /* Setup the structure that is used as key for the RB tree */
- static inline void ep_set_ffd(struct epoll_filefd *ffd,
-@@ -711,12 +732,6 @@ static const struct file_operations even
- 	.llseek		= noop_llseek,
- };
- 
--/* Fast test to see if the file is an eventpoll file */
--static inline int is_file_epoll(struct file *f)
--{
--	return f->f_op == &eventpoll_fops;
--}
--
- /*
-  * This is called from eventpoll_release() to unlink files from the eventpoll
-  * interface. We need to have this facility to cleanup correctly files that are
-@@ -926,6 +941,99 @@ static void ep_rbtree_insert(struct even
- 	rb_insert_color(&epi->rbn, &ep->rbr);
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ extern int do_swap_account;
+@@ -369,6 +371,10 @@ static inline
+ void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
+ {
  }
- 
-+
-+
-+#define PATH_ARR_SIZE 5
-+/*
-+ * These are the number paths of length 1 to 5, that we are allowing to emanate
-+ * from a single file of interest. For example, we allow 1000 paths of length
-+ * 1, to emanate from each file of interest. This essentially represents the
-+ * potential wakeup paths, which need to be limited in order to avoid massive
-+ * uncontrolled wakeup storms. The common use case should be a single ep which
-+ * is connected to n file sources. In this case each file source has 1 path
-+ * of length 1. Thus, the numbers below should be more than sufficient. These
-+ * path limits are enforced during an EPOLL_CTL_ADD operation, since a modify
-+ * and delete can't add additional paths. Protected by the epmutex.
-+ */
-+static const int path_limits[PATH_ARR_SIZE] = { 1000, 500, 100, 50, 10 };
-+static int path_count[PATH_ARR_SIZE];
-+
-+static int path_count_inc(int nests)
++static inline void mem_cgroup_replace_page_cache(struct page *oldpage,
++				struct page *newpage)
 +{
-+	if (++path_count[nests] > path_limits[nests])
-+		return -1;
-+	return 0;
 +}
-+
-+static void path_count_init(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < PATH_ARR_SIZE; i++)
-+		path_count[i] = 0;
-+}
-+
-+static int reverse_path_check_proc(void *priv, void *cookie, int call_nests)
-+{
-+	int error = 0;
-+	struct file *file = priv;
-+	struct file *child_file;
-+	struct epitem *epi;
-+
-+	list_for_each_entry(epi, &file->f_ep_links, fllink) {
-+		child_file = epi->ep->file;
-+		if (is_file_epoll(child_file)) {
-+			if (list_empty(&child_file->f_ep_links)) {
-+				if (path_count_inc(call_nests)) {
-+					error = -1;
-+					break;
-+				}
-+			} else {
-+				error = ep_call_nested(&poll_loop_ncalls,
-+							EP_MAX_NESTS,
-+							reverse_path_check_proc,
-+							child_file, child_file,
-+							current);
-+			}
-+			if (error != 0)
-+				break;
-+		} else {
-+			printk(KERN_ERR "reverse_path_check_proc: "
-+				"file is not an ep!\n");
-+		}
-+	}
-+	return error;
-+}
-+
-+/**
-+ * reverse_path_check - The tfile_check_list is list of file *, which have
-+ *                      links that are proposed to be newly added. We need to
-+ *                      make sure that those added links don't add too many
-+ *                      paths such that we will spend all our time waking up
-+ *                      eventpoll objects.
-+ *
-+ * Returns: Returns zero if the proposed links don't create too many paths,
-+ *	    -1 otherwise.
-+ */
-+static int reverse_path_check(void)
-+{
-+	int length = 0;
-+	int error = 0;
-+	struct file *current_file;
-+
-+	/* let's call this for all tfiles */
-+	list_for_each_entry(current_file, &tfile_check_list, f_tfile_llink) {
-+		length++;
-+		path_count_init();
-+		error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
-+					reverse_path_check_proc, current_file,
-+					current_file, current);
-+		if (error)
-+			break;
-+	}
-+	return error;
-+}
-+
- /*
-  * Must be called with "mtx" held.
-  */
-@@ -987,6 +1095,11 @@ static int ep_insert(struct eventpoll *e
- 	 */
- 	ep_rbtree_insert(ep, epi);
+ #endif /* CONFIG_CGROUP_MEM_CONT */
  
-+	/* now check if we've created too many backpaths */
-+	error = -EINVAL;
-+	if (reverse_path_check())
-+		goto error_remove_epi;
-+
- 	/* We have to drop the new item inside our item list to keep track of it */
- 	spin_lock_irqsave(&ep->lock, flags);
+ #if !defined(CONFIG_CGROUP_MEM_RES_CTLR) || !defined(CONFIG_DEBUG_VM)
+diff -puN mm/filemap.c~memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue mm/filemap.c
+--- a/mm/filemap.c~memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue
++++ a/mm/filemap.c
+@@ -393,24 +393,11 @@ EXPORT_SYMBOL(filemap_write_and_wait_ran
+ int replace_page_cache_page(struct page *old, struct page *new, gfp_t gfp_mask)
+ {
+ 	int error;
+-	struct mem_cgroup *memcg = NULL;
  
-@@ -1011,6 +1124,14 @@ static int ep_insert(struct eventpoll *e
+ 	VM_BUG_ON(!PageLocked(old));
+ 	VM_BUG_ON(!PageLocked(new));
+ 	VM_BUG_ON(new->mapping);
  
- 	return 0;
- 
-+error_remove_epi:
-+	spin_lock(&tfile->f_lock);
-+	if (ep_is_linked(&epi->fllink))
-+		list_del_init(&epi->fllink);
-+	spin_unlock(&tfile->f_lock);
-+
-+	rb_erase(&epi->rbn, &ep->rbr);
-+
- error_unregister:
- 	ep_unregister_pollwait(ep, epi);
- 
-@@ -1275,18 +1396,36 @@ static int ep_loop_check_proc(void *priv
- 	int error = 0;
- 	struct file *file = priv;
- 	struct eventpoll *ep = file->private_data;
-+	struct eventpoll *ep_tovisit;
- 	struct rb_node *rbp;
- 	struct epitem *epi;
- 
- 	mutex_lock_nested(&ep->mtx, call_nests + 1);
-+	ep->visited = 1;
-+	list_add(&ep->visited_list_link, &visited_list);
- 	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
- 		epi = rb_entry(rbp, struct epitem, rbn);
- 		if (unlikely(is_file_epoll(epi->ffd.file))) {
-+			ep_tovisit = epi->ffd.file->private_data;
-+			if (ep_tovisit->visited)
-+				continue;
- 			error = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
--					       ep_loop_check_proc, epi->ffd.file,
--					       epi->ffd.file->private_data, current);
-+					ep_loop_check_proc, epi->ffd.file,
-+					ep_tovisit, current);
- 			if (error != 0)
- 				break;
-+		} else {
-+			/*
-+			 * If we've reached a file that is not associated with
-+			 * an ep, then we need to check if the newly added
-+			 * links are going to add too many wakeup paths. We do
-+			 * this by adding it to the tfile_check_list, if it's
-+			 * not already there, and calling reverse_path_check()
-+			 * during ep_insert().
-+			 */
-+			if (list_empty(&epi->ffd.file->f_tfile_llink))
-+				list_add(&epi->ffd.file->f_tfile_llink,
-+					 &tfile_check_list);
- 		}
+-	/*
+-	 * This is not page migration, but prepare_migration and
+-	 * end_migration does enough work for charge replacement.
+-	 *
+-	 * In the longer term we probably want a specialized function
+-	 * for moving the charge from old to new in a more efficient
+-	 * manner.
+-	 */
+-	error = mem_cgroup_prepare_migration(old, new, &memcg, gfp_mask);
+-	if (error)
+-		return error;
+-
+ 	error = radix_tree_preload(gfp_mask & ~__GFP_HIGHMEM);
+ 	if (!error) {
+ 		struct address_space *mapping = old->mapping;
+@@ -432,13 +419,12 @@ int replace_page_cache_page(struct page 
+ 		if (PageSwapBacked(new))
+ 			__inc_zone_page_state(new, NR_SHMEM);
+ 		spin_unlock_irq(&mapping->tree_lock);
++		/* mem_cgroup codes must not be called under tree_lock */
++		mem_cgroup_replace_page_cache(old, new);
+ 		radix_tree_preload_end();
+ 		if (freepage)
+ 			freepage(old);
+ 		page_cache_release(old);
+-		mem_cgroup_end_migration(memcg, old, new, true);
+-	} else {
+-		mem_cgroup_end_migration(memcg, old, new, false);
  	}
- 	mutex_unlock(&ep->mtx);
-@@ -1307,8 +1446,31 @@ static int ep_loop_check_proc(void *priv
-  */
- static int ep_loop_check(struct eventpoll *ep, struct file *file)
- {
--	return ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
-+	int ret;
-+	struct eventpoll *ep_cur, *ep_next;
-+
-+	ret = ep_call_nested(&poll_loop_ncalls, EP_MAX_NESTS,
- 			      ep_loop_check_proc, file, ep, current);
-+	/* clear visited list */
-+	list_for_each_entry_safe(ep_cur, ep_next, &visited_list,
-+							visited_list_link) {
-+		ep_cur->visited = 0;
-+		list_del(&ep_cur->visited_list_link);
-+	}
-+	return ret;
-+}
-+
-+static void clear_tfile_check_list(void)
-+{
-+	struct file *file;
-+
-+	/* first clear the tfile_check_list */
-+	while (!list_empty(&tfile_check_list)) {
-+		file = list_first_entry(&tfile_check_list, struct file,
-+					f_tfile_llink);
-+		list_del_init(&file->f_tfile_llink);
-+	}
-+	INIT_LIST_HEAD(&tfile_check_list);
- }
  
- /*
-@@ -1316,8 +1478,9 @@ static int ep_loop_check(struct eventpol
-  */
- SYSCALL_DEFINE1(epoll_create1, int, flags)
- {
--	int error;
-+	int error, fd;
- 	struct eventpoll *ep = NULL;
-+	struct file *file;
- 
- 	/* Check the EPOLL_* constant for consistency.  */
- 	BUILD_BUG_ON(EPOLL_CLOEXEC != O_CLOEXEC);
-@@ -1334,11 +1497,25 @@ SYSCALL_DEFINE1(epoll_create1, int, flag
- 	 * Creates all the items needed to setup an eventpoll file. That is,
- 	 * a file structure and a free file descriptor.
- 	 */
--	error = anon_inode_getfd("[eventpoll]", &eventpoll_fops, ep,
-+	fd = get_unused_fd_flags(O_RDWR | (flags & O_CLOEXEC));
-+	if (fd < 0) {
-+		error = fd;
-+		goto out_free_ep;
-+	}
-+	file = anon_inode_getfile("[eventpoll]", &eventpoll_fops, ep,
- 				 O_RDWR | (flags & O_CLOEXEC));
--	if (error < 0)
--		ep_free(ep);
--
-+	if (IS_ERR(file)) {
-+		error = PTR_ERR(file);
-+		goto out_free_fd;
-+	}
-+	fd_install(fd, file);
-+	ep->file = file;
-+	return fd;
-+
-+out_free_fd:
-+	put_unused_fd(fd);
-+out_free_ep:
-+	ep_free(ep);
  	return error;
+diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue
++++ a/mm/memcontrol.c
+@@ -3432,6 +3432,50 @@ void mem_cgroup_end_migration(struct mem
+ 	cgroup_release_and_wakeup_rmdir(&memcg->css);
  }
  
-@@ -1404,21 +1581,27 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	/*
- 	 * When we insert an epoll file descriptor, inside another epoll file
- 	 * descriptor, there is the change of creating closed loops, which are
--	 * better be handled here, than in more critical paths.
-+	 * better be handled here, than in more critical paths. While we are
-+	 * checking for loops we also determine the list of files reachable
-+	 * and hang them on the tfile_check_list, so we can check that we
-+	 * haven't created too many possible wakeup paths.
- 	 *
--	 * We hold epmutex across the loop check and the insert in this case, in
--	 * order to prevent two separate inserts from racing and each doing the
--	 * insert "at the same time" such that ep_loop_check passes on both
--	 * before either one does the insert, thereby creating a cycle.
-+	 * We need to hold the epmutex across both ep_insert and ep_remove
-+	 * b/c we want to make sure we are looking at a coherent view of
-+	 * epoll network.
- 	 */
--	if (unlikely(is_file_epoll(tfile) && op == EPOLL_CTL_ADD)) {
-+	if (op == EPOLL_CTL_ADD || op == EPOLL_CTL_DEL) {
- 		mutex_lock(&epmutex);
- 		did_lock_epmutex = 1;
--		error = -ELOOP;
--		if (ep_loop_check(ep, tfile) != 0)
--			goto error_tgt_fput;
- 	}
--
-+	if (op == EPOLL_CTL_ADD) {
-+		if (is_file_epoll(tfile)) {
-+			error = -ELOOP;
-+			if (ep_loop_check(ep, tfile) != 0)
-+				goto error_tgt_fput;
-+		} else
-+			list_add(&tfile->f_tfile_llink, &tfile_check_list);
-+	}
- 
- 	mutex_lock_nested(&ep->mtx, 0);
- 
-@@ -1437,6 +1620,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 			error = ep_insert(ep, &epds, tfile, fd);
- 		} else
- 			error = -EEXIST;
-+		clear_tfile_check_list();
- 		break;
- 	case EPOLL_CTL_DEL:
- 		if (epi)
-@@ -1455,7 +1639,7 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	mutex_unlock(&ep->mtx);
- 
- error_tgt_fput:
--	if (unlikely(did_lock_epmutex))
-+	if (did_lock_epmutex)
- 		mutex_unlock(&epmutex);
- 
- 	fput(tfile);
-diff -puN include/linux/eventpoll.h~epoll-limit-paths include/linux/eventpoll.h
---- a/include/linux/eventpoll.h~epoll-limit-paths
-+++ a/include/linux/eventpoll.h
-@@ -61,6 +61,7 @@ struct file;
- static inline void eventpoll_init_file(struct file *file)
++/*
++ * At replace page cache, newpage is not under any memcg but it's on
++ * LRU. So, this function doesn't touch res_counter but handles LRU
++ * in correct way. Both pages are locked so we cannot race with uncharge.
++ */
++void mem_cgroup_replace_page_cache(struct page *oldpage,
++				  struct page *newpage)
++{
++	struct mem_cgroup *memcg;
++	struct page_cgroup *pc;
++	struct zone *zone;
++	enum charge_type type = MEM_CGROUP_CHARGE_TYPE_CACHE;
++	unsigned long flags;
++
++	if (mem_cgroup_disabled())
++		return;
++
++	pc = lookup_page_cgroup(oldpage);
++	/* fix accounting on old pages */
++	lock_page_cgroup(pc);
++	memcg = pc->mem_cgroup;
++	mem_cgroup_charge_statistics(memcg, PageCgroupCache(pc), -1);
++	ClearPageCgroupUsed(pc);
++	unlock_page_cgroup(pc);
++
++	if (PageSwapBacked(oldpage))
++		type = MEM_CGROUP_CHARGE_TYPE_SHMEM;
++
++	zone = page_zone(newpage);
++	pc = lookup_page_cgroup(newpage);
++	/*
++	 * Even if newpage->mapping was NULL before starting replacement,
++	 * the newpage may be on LRU(or pagevec for LRU) already. We lock
++	 * LRU while we overwrite pc->mem_cgroup.
++	 */
++	spin_lock_irqsave(&zone->lru_lock, flags);
++	if (PageLRU(newpage))
++		del_page_from_lru_list(zone, newpage, page_lru(newpage));
++	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, type);
++	if (PageLRU(newpage))
++		add_page_to_lru_list(zone, newpage, page_lru(newpage));
++	spin_unlock_irqrestore(&zone->lru_lock, flags);
++}
++
+ #ifdef CONFIG_DEBUG_VM
+ static struct page_cgroup *lookup_page_cgroup_used(struct page *page)
  {
- 	INIT_LIST_HEAD(&file->f_ep_links);
-+	INIT_LIST_HEAD(&file->f_tfile_llink);
- }
- 
- 
-diff -puN include/linux/fs.h~epoll-limit-paths include/linux/fs.h
---- a/include/linux/fs.h~epoll-limit-paths
-+++ a/include/linux/fs.h
-@@ -1001,6 +1001,7 @@ struct file {
- #ifdef CONFIG_EPOLL
- 	/* Used by fs/eventpoll.c to link all the hooks to this file */
- 	struct list_head	f_ep_links;
-+	struct list_head	f_tfile_llink;
- #endif /* #ifdef CONFIG_EPOLL */
- 	struct address_space	*f_mapping;
- #ifdef CONFIG_DEBUG_WRITECOUNT
 _
 
-Patches currently in -mm which might be from jbaron@redhat.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
+mm-fix-null-ptr-dereference-in-__count_immobile_pages.patch
+mm-__count_immobile_pages-make-sure-the-node-is-online.patch
+mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
 
