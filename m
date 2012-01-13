@@ -1,103 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:49:24 -0800
-Message-ID: <20120113004925.04A211E0058@wpzn4.hot.corp.google.com>
+Subject: [folded] memcg-simplify-lru-handling-by-new-rule-fix.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:54:05 -0800
+Message-ID: <20120113005406.1E47B20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:46803 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756690Ab2AMAtZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:49:25 -0500
-Received: by mail-yw0-f74.google.com with SMTP id j52so7021yhj.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:49:25 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:56142 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756275Ab2AMAyJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:54:09 -0500
+Received: by wibhq12 with SMTP id hq12so87018wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:54:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mszeredi@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix page migration to reset_owner
+     Subject: memcg-simplify-lru-handling-by-new-rule-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch
+     memcg-simplify-lru-handling-by-new-rule-fix.patch
 
-This patch was dropped because it was folded into memcg-clear-pc-mem_cgorup-if-necessary.patch
+This patch was dropped because it was folded into memcg-simplify-lru-handling-by-new-rule.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg: fix page migration to reset_owner
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-simplify-lru-handling-by-new-rule-fix
 
-Usually, migration pages coming to unmap_and_move()'s putback_lru_page()
-have been charged and have pc->mem_cgroup set; but there are several ways
-in which a freshly allocated uncharged page can get there, oopsing when
-added to LRU.  Call mem_cgroup_reset_owner() immediately after allocating.
+remove unneeded VM_BUG_ON(), restore hannes's christmas tree
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner mm/migrate.c
---- a/mm/migrate.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner
-+++ a/mm/migrate.c
-@@ -777,6 +777,8 @@ static int unmap_and_move(new_page_t get
- 	if (!newpage)
- 		return -ENOMEM;
+diff -puN mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule-fix
++++ a/mm/memcontrol.c
+@@ -1041,7 +1041,6 @@ struct lruvec *mem_cgroup_lru_add_list(s
  
-+	mem_cgroup_reset_owner(newpage);
-+
- 	if (page_count(page) == 1) {
- 		/* page was freed from under us. So we are done. */
- 		goto out;
+ 	pc = lookup_page_cgroup(page);
+ 	memcg = pc->mem_cgroup;
+-	VM_BUG_ON(!memcg);
+ 	mz = page_cgroup_zoneinfo(memcg, page);
+ 	/* compound_order() is stabilized through lru_lock */
+ 	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
+@@ -2447,8 +2446,8 @@ static void __mem_cgroup_commit_charge(s
+ void mem_cgroup_split_huge_fixup(struct page *head)
+ {
+ 	struct page_cgroup *head_pc = lookup_page_cgroup(head);
+-	struct page_cgroup *pc;
+ 	struct mem_cgroup_per_zone *mz;
++	struct page_cgroup *pc;
+ 	enum lru_list lru;
+ 	int i;
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+drivers-video-nvidia-nvidiac-fix-warning.patch
+pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch
 mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
-mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
-mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
-mm-memcg-clean-up-fault-accounting.patch
-mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
-mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
-mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
-mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
-memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
-memcg-simplify-page-cache-charging.patch
-memcg-simplify-corner-case-handling-of-lru.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 memcg-clear-pc-mem_cgorup-if-necessary.patch
 memcg-simplify-lru-handling-by-new-rule.patch
-memcg-simplify-lru-handling-by-new-rule-fix.patch
-memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
-memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch
-memcg-fix-split_huge_page_refcounts.patch
-memcg-fix-mem_cgroup_print_bad_page.patch
-mm-take-pagevecs-off-reclaim-stack.patch
-mm-fewer-underscores-in-____pagevec_lru_add.patch
-mm-no-blank-line-after-export_symbol-in-swapc.patch
-mm-enum-lru_list-lru.patch
-mm-remove-del_page_from_lru-add-page_off_lru.patch
-mm-remove-isolate_pages.patch
-mm-rearrange-putback_inactive_pages.patch
-radix_tree-remove-radix_tree_indirect_to_ptr.patch
-radix_tree-take-radix_tree_path-off-stack.patch
-radix_tree-take-radix_tree_path-off-stack-expand-comment-on-optimization.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+drivers-parport-parport_pcc-fix-warnings.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
 
