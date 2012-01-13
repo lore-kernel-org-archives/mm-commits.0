@@ -1,100 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-improve-order-in-lru-list-for-split-huge-page.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:34:44 -0800
-Message-ID: <20120113203445.26C7220004E@hpza10.eem.corp.google.com>
+Subject: [merged] vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:34:47 -0800
+Message-ID: <20120113203448.7967520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:57647 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759026Ab2AMUer (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:34:47 -0500
-Received: by mail-ee0-f74.google.com with SMTP id e50so23684eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:34:46 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:47686 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753853Ab2AMUev (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:34:51 -0500
+Received: by wgbdt14 with SMTP id dt14so106230wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:34:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, aarcange@redhat.com, jweiner@redhat.com, minchan.kim@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: boyu.mt@taobao.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: improve order in lru list for split huge page
+     Subject: vmscan/trace: Add 'file' info to trace_mm_vmscan_lru_isolate()
 has been removed from the -mm tree.  Its filename was
-     thp-improve-order-in-lru-list-for-split-huge-page.patch
+     vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: thp: improve order in lru list for split huge page
+From: Tao Ma <boyu.mt@taobao.com>
+Subject: vmscan/trace: Add 'file' info to trace_mm_vmscan_lru_isolate()
 
-Put the tail subpages of an isolated hugepage under splitting in the
-lru reclaim head as they supposedly should be isolated too next.
+In trace_mm_vmscan_lru_isolate(), we don't output 'file' information to
+the trace event and it is a bit inconvenient for the user to get the real
+information(like pasted below).  mm_vmscan_lru_isolate: isolate_mode=2
+order=0 nr_requested=32 nr_scanned=32 nr_taken=32 contig_taken=0
+contig_dirty=0 contig_failed=0
 
-Queues the subpages in physical order in the lru for non isolated
-hugepages under splitting. That might provide some theoretical cache
-benefit to the buddy allocator later.
+'active' can be obtained by analyzing mode(Thanks go to Minchan and Mel),
+So this patch adds 'file' to the trace event and it now looks like:
+mm_vmscan_lru_isolate: isolate_mode=2 order=0 nr_requested=32
+nr_scanned=32 nr_taken=32 contig_taken=0 contig_dirty=0 contig_failed=0
+file=0
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Tao Ma <boyu.mt@taobao.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 ++---
- mm/swap.c        |    2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ include/trace/events/vmscan.h |   22 ++++++++++++++--------
+ mm/vmscan.c                   |    2 +-
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-improve-order-in-lru-list-for-split-huge-page mm/huge_memory.c
---- a/mm/huge_memory.c~thp-improve-order-in-lru-list-for-split-huge-page
-+++ a/mm/huge_memory.c
-@@ -1228,7 +1228,6 @@ static int __split_huge_page_splitting(s
- static void __split_huge_page_refcount(struct page *page)
- {
- 	int i;
--	unsigned long head_index = page->index;
- 	struct zone *zone = page_zone(page);
- 	int zonestat;
- 	int tail_count = 0;
-@@ -1239,7 +1238,7 @@ static void __split_huge_page_refcount(s
- 	/* complete memcg works before add pages to LRU */
- 	mem_cgroup_split_huge_fixup(page);
+diff -puN include/trace/events/vmscan.h~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate
++++ a/include/trace/events/vmscan.h
+@@ -266,9 +266,10 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		unsigned long nr_lumpy_taken,
+ 		unsigned long nr_lumpy_dirty,
+ 		unsigned long nr_lumpy_failed,
+-		isolate_mode_t isolate_mode),
++		isolate_mode_t isolate_mode,
++		int file),
  
--	for (i = 1; i < HPAGE_PMD_NR; i++) {
-+	for (i = HPAGE_PMD_NR - 1; i >= 1; i--) {
- 		struct page *page_tail = page + i;
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode),
++	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file),
  
- 		/* tail_page->_mapcount cannot change */
-@@ -1302,7 +1301,7 @@ static void __split_huge_page_refcount(s
- 		BUG_ON(page_tail->mapping);
- 		page_tail->mapping = page->mapping;
+ 	TP_STRUCT__entry(
+ 		__field(int, order)
+@@ -279,6 +280,7 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		__field(unsigned long, nr_lumpy_dirty)
+ 		__field(unsigned long, nr_lumpy_failed)
+ 		__field(isolate_mode_t, isolate_mode)
++		__field(int, file)
+ 	),
  
--		page_tail->index = ++head_index;
-+		page_tail->index = page->index + i;
+ 	TP_fast_assign(
+@@ -290,9 +292,10 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		__entry->nr_lumpy_dirty = nr_lumpy_dirty;
+ 		__entry->nr_lumpy_failed = nr_lumpy_failed;
+ 		__entry->isolate_mode = isolate_mode;
++		__entry->file = file;
+ 	),
  
- 		BUG_ON(!PageAnon(page_tail));
- 		BUG_ON(!PageUptodate(page_tail));
-diff -puN mm/swap.c~thp-improve-order-in-lru-list-for-split-huge-page mm/swap.c
---- a/mm/swap.c~thp-improve-order-in-lru-list-for-split-huge-page
-+++ a/mm/swap.c
-@@ -681,7 +681,7 @@ void lru_add_page_tail(struct zone* zone
- 		if (likely(PageLRU(page)))
- 			list_add(&page_tail->lru, page->lru.prev);
- 		else
--			list_add(&page_tail->lru, &lruvec->lists[lru]);
-+			list_add(&page_tail->lru, lruvec->lists[lru].prev);
- 		__mod_zone_page_state(zone, NR_LRU_BASE + lru,
- 				      hpage_nr_pages(page_tail));
- 	} else {
+-	TP_printk("isolate_mode=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu contig_taken=%lu contig_dirty=%lu contig_failed=%lu",
++	TP_printk("isolate_mode=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu contig_taken=%lu contig_dirty=%lu contig_failed=%lu file=%d",
+ 		__entry->isolate_mode,
+ 		__entry->order,
+ 		__entry->nr_requested,
+@@ -300,7 +303,8 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		__entry->nr_taken,
+ 		__entry->nr_lumpy_taken,
+ 		__entry->nr_lumpy_dirty,
+-		__entry->nr_lumpy_failed)
++		__entry->nr_lumpy_failed,
++		__entry->file)
+ );
+ 
+ DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_lru_isolate,
+@@ -312,9 +316,10 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
+ 		unsigned long nr_lumpy_taken,
+ 		unsigned long nr_lumpy_dirty,
+ 		unsigned long nr_lumpy_failed,
+-		isolate_mode_t isolate_mode),
++		isolate_mode_t isolate_mode,
++		int file),
+ 
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode)
++	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file)
+ 
+ );
+ 
+@@ -327,9 +332,10 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
+ 		unsigned long nr_lumpy_taken,
+ 		unsigned long nr_lumpy_dirty,
+ 		unsigned long nr_lumpy_failed,
+-		isolate_mode_t isolate_mode),
++		isolate_mode_t isolate_mode,
++		int file),
+ 
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode)
++	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file)
+ 
+ );
+ 
+diff -puN mm/vmscan.c~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate
++++ a/mm/vmscan.c
+@@ -1234,7 +1234,7 @@ static unsigned long isolate_lru_pages(u
+ 			nr_to_scan, scan,
+ 			nr_taken,
+ 			nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed,
+-			mode);
++			mode, file);
+ 	return nr_taken;
+ }
+ 
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from boyu.mt@taobao.com are
 
 origin.patch
-linux-next.patch
-intel_idle-fix-api-misuse.patch
-intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
-drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
 
