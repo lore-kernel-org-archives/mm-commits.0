@@ -1,139 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmx86um-move-cmpxchg_double-config-option.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:31:59 -0800
-Message-ID: <20120113203159.B4AFE1E004D@wpzn4.hot.corp.google.com>
+Subject: [merged] drivers-video-nvidia-nvidiac-fix-warning.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:32:02 -0800
+Message-ID: <20120113203202.997941E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:55751 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759074Ab2AMUcA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:32:00 -0500
-Received: by yenl1 with SMTP id l1so72024yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:32:00 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:36212 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759075Ab2AMUcD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:32:03 -0500
+Received: by mail-yw0-f74.google.com with SMTP id j52so101798yhj.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:32:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, cl@linux.com, hpa@zytor.com, mingo@elte.hu, penberg@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, FlorianSchandinat@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,x86,um: move CMPXCHG_DOUBLE config option
+     Subject: drivers/video/nvidia/nvidia.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     mmx86um-move-cmpxchg_double-config-option.patch
+     drivers-video-nvidia-nvidiac-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: mm,x86,um: move CMPXCHG_DOUBLE config option
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/video/nvidia/nvidia.c: fix warning
 
-Move CMPXCHG_DOUBLE and rename it to HAVE_CMPXCHG_DOUBLE so architectures
-can simply select the option if it is supported.
+drivers/video/nvidia/nvidia.c:1602: warning: return from incompatible pointer type
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Fix the int/bool confusion in there.
+
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig         |    3 +++
- arch/x86/Kconfig     |    1 +
- arch/x86/Kconfig.cpu |    3 ---
- arch/x86/um/Kconfig  |    4 ----
- mm/slub.c            |    9 ++++++---
- 5 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/video/nvidia/nvidia.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/Kconfig~mmx86um-move-cmpxchg_double-config-option arch/Kconfig
---- a/arch/Kconfig~mmx86um-move-cmpxchg_double-config-option
-+++ a/arch/Kconfig
-@@ -196,4 +196,7 @@ config HAVE_ALIGNED_STRUCT_PAGE
- config HAVE_CMPXCHG_LOCAL
- 	bool
- 
-+config HAVE_CMPXCHG_DOUBLE
-+	bool
-+
- source "kernel/gcov/Kconfig"
-diff -puN arch/x86/Kconfig~mmx86um-move-cmpxchg_double-config-option arch/x86/Kconfig
---- a/arch/x86/Kconfig~mmx86um-move-cmpxchg_double-config-option
-+++ a/arch/x86/Kconfig
-@@ -62,6 +62,7 @@ config X86
- 	select ANON_INODES
- 	select HAVE_ALIGNED_STRUCT_PAGE if SLUB && !M386
- 	select HAVE_CMPXCHG_LOCAL if !M386
-+	select HAVE_CMPXCHG_DOUBLE
- 	select HAVE_ARCH_KMEMCHECK
- 	select HAVE_USER_RETURN_NOTIFIER
- 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
-diff -puN arch/x86/Kconfig.cpu~mmx86um-move-cmpxchg_double-config-option arch/x86/Kconfig.cpu
---- a/arch/x86/Kconfig.cpu~mmx86um-move-cmpxchg_double-config-option
-+++ a/arch/x86/Kconfig.cpu
-@@ -309,9 +309,6 @@ config X86_INTERNODE_CACHE_SHIFT
- config X86_CMPXCHG
- 	def_bool X86_64 || (X86_32 && !M386)
- 
--config CMPXCHG_DOUBLE
--	def_bool y
--
- config X86_L1_CACHE_SHIFT
- 	int
- 	default "7" if MPENTIUM4 || MPSC
-diff -puN arch/x86/um/Kconfig~mmx86um-move-cmpxchg_double-config-option arch/x86/um/Kconfig
---- a/arch/x86/um/Kconfig~mmx86um-move-cmpxchg_double-config-option
-+++ a/arch/x86/um/Kconfig
-@@ -6,10 +6,6 @@ menu "UML-specific options"
- 
- menu "Host processor type and features"
- 
--config CMPXCHG_DOUBLE
--	bool
--	default n
--
- source "arch/x86/Kconfig.cpu"
- 
- endmenu
-diff -puN mm/slub.c~mmx86um-move-cmpxchg_double-config-option mm/slub.c
---- a/mm/slub.c~mmx86um-move-cmpxchg_double-config-option
-+++ a/mm/slub.c
-@@ -366,7 +366,8 @@ static inline bool __cmpxchg_double_slab
- 		const char *n)
- {
- 	VM_BUG_ON(!irqs_disabled());
--#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-+#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-+    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (s->flags & __CMPXCHG_DOUBLE) {
- 		if (cmpxchg_double(&page->freelist, &page->counters,
- 			freelist_old, counters_old,
-@@ -400,7 +401,8 @@ static inline bool cmpxchg_double_slab(s
- 		void *freelist_new, unsigned long counters_new,
- 		const char *n)
- {
--#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-+#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-+    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (s->flags & __CMPXCHG_DOUBLE) {
- 		if (cmpxchg_double(&page->freelist, &page->counters,
- 			freelist_old, counters_old,
-@@ -3014,7 +3016,8 @@ static int kmem_cache_open(struct kmem_c
- 		}
- 	}
- 
--#if defined(CONFIG_CMPXCHG_DOUBLE) && defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-+#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-+    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (system_has_cmpxchg_double() && (s->flags & SLAB_DEBUG_FLAGS) == 0)
- 		/* Enable fast mode */
- 		s->flags |= __CMPXCHG_DOUBLE;
+diff -puN drivers/video/nvidia/nvidia.c~drivers-video-nvidia-nvidiac-fix-warning drivers/video/nvidia/nvidia.c
+--- a/drivers/video/nvidia/nvidia.c~drivers-video-nvidia-nvidiac-fix-warning
++++ a/drivers/video/nvidia/nvidia.c
+@@ -81,7 +81,7 @@ static int vram __devinitdata = 0;
+ static int bpp __devinitdata = 8;
+ static int reverse_i2c __devinitdata;
+ #ifdef CONFIG_MTRR
+-static int nomtrr __devinitdata = 0;
++static bool nomtrr __devinitdata = false;
+ #endif
+ #ifdef CONFIG_PMAC_BACKLIGHT
+ static int backlight __devinitdata = 1;
+@@ -1509,7 +1509,7 @@ static int __devinit nvidiafb_setup(char
+ 			backlight = simple_strtoul(this_opt+10, NULL, 0);
+ #ifdef CONFIG_MTRR
+ 		} else if (!strncmp(this_opt, "nomtrr", 6)) {
+-			nomtrr = 1;
++			nomtrr = true;
+ #endif
+ 		} else if (!strncmp(this_opt, "fpdither:", 9)) {
+ 			fpdither = simple_strtol(this_opt+9, NULL, 0);
+@@ -1599,7 +1599,7 @@ MODULE_PARM_DESC(bpp, "pixel width in bi
+ module_param(reverse_i2c, int, 0);
+ MODULE_PARM_DESC(reverse_i2c, "reverse port assignment of the i2c bus");
+ #ifdef CONFIG_MTRR
+-module_param(nomtrr, bool, 0);
++module_param(nomtrr, bool, false);
+ MODULE_PARM_DESC(nomtrr, "Disables MTRR support (0 or 1=disabled) "
+ 		 "(default=0)");
+ #endif
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-ipc-provide-generic-compat-versions-of-ipc-syscalls.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+drivers-scsi-megaraidc-fix-sparse-warnings-checkpatch-fixes.patch
+drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
+scatterlist-new-helper-functions.patch
+scatterlist-new-helper-functions-update-fix.patch
+memstick-add-support-for-legacy-memorysticks-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
