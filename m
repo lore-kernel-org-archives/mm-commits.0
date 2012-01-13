@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-remove-unnecessary-tlb-flush-for-mprotect.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:34:37 -0800
-Message-ID: <20120113203438.1B1435C0050@hpza9.eem.corp.google.com>
+Subject: [merged] thp-improve-the-error-code-path.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:34:34 -0800
+Message-ID: <20120113203434.AB5331E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:37836 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725Ab2AMUek (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:34:40 -0500
-Received: by mail-ey0-f202.google.com with SMTP id d12so25396eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:34:39 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:54107 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932858Ab2AMUef (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:34:35 -0500
+Received: by yhjj52 with SMTP id j52so102018yhj.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:34:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: shaohua.li@intel.com, aarcange@redhat.com, jweiner@redhat.com, minchan.kim@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: remove unnecessary tlb flush for mprotect
+     Subject: thp: improve the error code path
 has been removed from the -mm tree.  Its filename was
-     thp-remove-unnecessary-tlb-flush-for-mprotect.patch
+     thp-improve-the-error-code-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,10 +26,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Shaohua Li <shaohua.li@intel.com>
-Subject: thp: remove unnecessary tlb flush for mprotect
+Subject: thp: improve the error code path
 
-change_protection() will do TLB flush later, don't need duplicate tlb
-flush.
+Improve the error code path.  Delete unnecessary sysfs file for example. 
+Also remove the #ifdef xxx to make code better.
 
 Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
@@ -39,20 +39,112 @@ Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/huge_memory.c |   71 +++++++++++++++++++++++++++++++--------------
+ 1 file changed, 50 insertions(+), 21 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-remove-unnecessary-tlb-flush-for-mprotect mm/huge_memory.c
---- a/mm/huge_memory.c~thp-remove-unnecessary-tlb-flush-for-mprotect
+diff -puN mm/huge_memory.c~thp-improve-the-error-code-path mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-improve-the-error-code-path
 +++ a/mm/huge_memory.c
-@@ -1145,7 +1145,6 @@ int change_huge_pmd(struct vm_area_struc
- 			entry = pmd_modify(entry, newprot);
- 			set_pmd_at(mm, addr, pmd, entry);
- 			spin_unlock(&vma->vm_mm->page_table_lock);
--			flush_tlb_range(vma, addr, addr + HPAGE_PMD_SIZE);
- 			ret = 1;
- 		}
- 	} else
+@@ -487,41 +487,68 @@ static struct attribute_group khugepaged
+ 	.attrs = khugepaged_attr,
+ 	.name = "khugepaged",
+ };
+-#endif /* CONFIG_SYSFS */
+ 
+-static int __init hugepage_init(void)
++static int __init hugepage_init_sysfs(struct kobject **hugepage_kobj)
+ {
+ 	int err;
+-#ifdef CONFIG_SYSFS
+-	static struct kobject *hugepage_kobj;
+-#endif
+-
+-	err = -EINVAL;
+-	if (!has_transparent_hugepage()) {
+-		transparent_hugepage_flags = 0;
+-		goto out;
+-	}
+ 
+-#ifdef CONFIG_SYSFS
+-	err = -ENOMEM;
+-	hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
+-	if (unlikely(!hugepage_kobj)) {
++	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
++	if (unlikely(!*hugepage_kobj)) {
+ 		printk(KERN_ERR "hugepage: failed kobject create\n");
+-		goto out;
++		return -ENOMEM;
+ 	}
+ 
+-	err = sysfs_create_group(hugepage_kobj, &hugepage_attr_group);
++	err = sysfs_create_group(*hugepage_kobj, &hugepage_attr_group);
+ 	if (err) {
+ 		printk(KERN_ERR "hugepage: failed register hugeage group\n");
+-		goto out;
++		goto delete_obj;
+ 	}
+ 
+-	err = sysfs_create_group(hugepage_kobj, &khugepaged_attr_group);
++	err = sysfs_create_group(*hugepage_kobj, &khugepaged_attr_group);
+ 	if (err) {
+ 		printk(KERN_ERR "hugepage: failed register hugeage group\n");
+-		goto out;
++		goto remove_hp_group;
++	}
++
++	return 0;
++
++remove_hp_group:
++	sysfs_remove_group(*hugepage_kobj, &hugepage_attr_group);
++delete_obj:
++	kobject_put(*hugepage_kobj);
++	return err;
++}
++
++static void __init hugepage_exit_sysfs(struct kobject *hugepage_kobj)
++{
++	sysfs_remove_group(hugepage_kobj, &khugepaged_attr_group);
++	sysfs_remove_group(hugepage_kobj, &hugepage_attr_group);
++	kobject_put(hugepage_kobj);
++}
++#else
++static inline int hugepage_init_sysfs(struct kobject **hugepage_kobj)
++{
++	return 0;
++}
++
++static inline void hugepage_exit_sysfs(struct kobject *hugepage_kobj)
++{
++}
++#endif /* CONFIG_SYSFS */
++
++static int __init hugepage_init(void)
++{
++	int err;
++	struct kobject *hugepage_kobj;
++
++	if (!has_transparent_hugepage()) {
++		transparent_hugepage_flags = 0;
++		return -EINVAL;
+ 	}
+-#endif
++
++	err = hugepage_init_sysfs(&hugepage_kobj);
++	if (err)
++		return err;
+ 
+ 	err = khugepaged_slab_init();
+ 	if (err)
+@@ -545,7 +572,9 @@ static int __init hugepage_init(void)
+ 
+ 	set_recommended_min_free_kbytes();
+ 
++	return 0;
+ out:
++	hugepage_exit_sysfs(hugepage_kobj);
+ 	return err;
+ }
+ module_init(hugepage_init)
 _
 
 Patches currently in -mm which might be from shaohua.li@intel.com are
