@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kdump-crashk_res-init-check-for-sys-kernel-kexec_crash_size.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:36:22 -0800
-Message-ID: <20120113203623.2F24B20004E@hpza10.eem.corp.google.com>
+Subject: [merged] kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:36:27 -0800
+Message-ID: <20120113203628.15F345C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:57647 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUgZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:25 -0500
-Received: by mail-ee0-f74.google.com with SMTP id e50so23684eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:24 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:42927 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932798Ab2AMUga (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:30 -0500
+Received: by eaad12 with SMTP id d12so25473eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holzheu@linux.vnet.ibm.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, vgoyal@redhat.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: holzheu@linux.vnet.ibm.com, cmetcalf@tilera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: crashk_res init check for /sys/kernel/kexec_crash_size
+     Subject: kdump: fix crash_kexec()/smp_send_stop() race in panic()
 has been removed from the -mm tree.  Its filename was
-     kdump-crashk_res-init-check-for-sys-kernel-kexec_crash_size.patch
+     kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,49 +26,83 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: kdump: crashk_res init check for /sys/kernel/kexec_crash_size
+Subject: kdump: fix crash_kexec()/smp_send_stop() race in panic()
 
-Currently it is possible to set the crash_size via the sysfs
-/sys/kernel/kexec_crash_size even if no crash kernel memory has been
-defined with the "crashkernel" parameter.  In this case "crashk_res" is
-not initialized and crashk_res.start = crashk_res.end = 0.  Unfortunately
-resource_size(&crashk_res) returns 1 in this case.  This breaks the s390
-implementation of crash_(un)map_reserved_pages().
+When two CPUs call panic at the same time there is a possible race
+condition that can stop kdump.  The first CPU calls crash_kexec() and the
+second CPU calls smp_send_stop() in panic() before crash_kexec() finished
+on the first CPU.  So the second CPU stops the first CPU and therefore
+kdump fails:
 
-To fix the problem the correct "old_size" is now calculated in
-crash_shrink_memory().  "old_size is set to "0" if crashk_res is not
-initialized.  With this change crash_shrink_memory() will do nothing, when
-"crashk_res" is not initialized.  It will return "0" for "echo 0 >
-/sys/kernel/kexec_crash_size" and -EINVAL for "echo [not zero] >
-/sys/kernel/kexec_crash_size".
+1st CPU:
+panic()->crash_kexec()->mutex_trylock(&kexec_mutex)-> do kdump
 
-In addition to that this patch also simplifies the "ret = -EINVAL" vs. 
-"ret = 0" logic as suggested by Simon Horman.
+2nd CPU:
+panic()->crash_kexec()->kexec_mutex already held by 1st CPU
+       ->smp_send_stop()-> stop 1st CPU (stop kdump)
+
+This patch fixes the problem by introducing a spinlock in panic that
+allows only one CPU to process crash_kexec() and the subsequent panic
+code.
+
+All other CPUs call the weak function panic_smp_self_stop() that stops the
+CPU itself.  This function can be overloaded by architecture code.  For
+example "tile" can use their lower-power "nap" instruction for that.
 
 Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Reviewed-by: Dave Young <dyoung@redhat.com>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-Reviewed-by: Simon Horman <horms@verge.net.au>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ kernel/panic.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kexec.c~kdump-crashk_res-init-check-for-sys-kernel-kexec_crash_size kernel/kexec.c
---- a/kernel/kexec.c~kdump-crashk_res-init-check-for-sys-kernel-kexec_crash_size
-+++ a/kernel/kexec.c
-@@ -1129,6 +1129,7 @@ int crash_shrink_memory(unsigned long ne
- {
- 	int ret = 0;
- 	unsigned long start, end;
-+	unsigned long old_size;
- 	struct resource *ram_res;
+diff -puN kernel/panic.c~kdump-fix-crash_kexec-smp_send_stop-race-in-panic kernel/panic.c
+--- a/kernel/panic.c~kdump-fix-crash_kexec-smp_send_stop-race-in-panic
++++ a/kernel/panic.c
+@@ -49,6 +49,15 @@ static long no_blink(int state)
+ long (*panic_blink)(int state);
+ EXPORT_SYMBOL(panic_blink);
  
- 	mutex_lock(&kexec_mutex);
-@@ -1139,11 +1140,9 @@ int crash_shrink_memory(unsigned long ne
- 	}
- 	start = crashk_res.start;
- 	end = crashk_res.end;
++/*
++ * Stop ourself in panic -- architecture code may override this
++ */
++void __weak panic_smp_self_stop(void)
++{
++	while (1)
++		cpu_relax();
++}
++
+ /**
+  *	panic - halt the system
+  *	@fmt: The text string to print
+@@ -59,6 +68,7 @@ EXPORT_SYMBOL(panic_blink);
+  */
+ void panic(const char *fmt, ...)
+ {
++	static DEFINE_SPINLOCK(panic_lock);
+ 	static char buf[1024];
+ 	va_list args;
+ 	long i, i_next = 0;
+@@ -68,8 +78,14 @@ void panic(const char *fmt, ...)
+ 	 * It's possible to come here directly from a panic-assertion and
+ 	 * not have preempt disabled. Some functions called from here want
+ 	 * preempt to be disabled. No point enabling it later though...
++	 *
++	 * Only one CPU is allowed to execute the panic code from here. For
++	 * multiple parallel invocations of panic, all other CPUs either
++	 * stop themself or will wait until they are stopped by the 1st CPU
++	 * with smp_send_stop().
+ 	 */
+-	preempt_disable();
++	if (!spin_trylock(&panic_lock))
++		panic_smp_self_stop();
+ 
+ 	console_verbose();
+ 	bust_spinlocks(1);
+_
+
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+
+origin.patch
+
