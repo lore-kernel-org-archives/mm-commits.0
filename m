@@ -1,108 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:36:27 -0800
-Message-ID: <20120113203628.15F345C0050@hpza9.eem.corp.google.com>
+Subject: [merged] include-linux-crash_dumph-needs-elfh.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:36:30 -0800
+Message-ID: <20120113203630.EC9FB10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:42927 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:30 -0500
-Received: by eaad12 with SMTP id d12so25473eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:28 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:63424 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932798Ab2AMUgc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holzheu@linux.vnet.ibm.com, cmetcalf@tilera.com, mm-commits@vger.kernel.org
+To: festevam@gmail.com, fabio.estevam@freescale.com, rmk@arm.linux.org.uk, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: fix crash_kexec()/smp_send_stop() race in panic()
+     Subject: include/linux/crash_dump.h needs elf.h
 has been removed from the -mm tree.  Its filename was
-     kdump-fix-crash_kexec-smp_send_stop-race-in-panic.patch
+     include-linux-crash_dumph-needs-elfh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: kdump: fix crash_kexec()/smp_send_stop() race in panic()
+From: Fabio Estevam <festevam@gmail.com>
+Subject: include/linux/crash_dump.h needs elf.h
 
-When two CPUs call panic at the same time there is a possible race
-condition that can stop kdump.  The first CPU calls crash_kexec() and the
-second CPU calls smp_send_stop() in panic() before crash_kexec() finished
-on the first CPU.  So the second CPU stops the first CPU and therefore
-kdump fails:
+Building an ARM target we get the following warnings:
 
-1st CPU:
-panic()->crash_kexec()->mutex_trylock(&kexec_mutex)-> do kdump
+CC      arch/arm/kernel/setup.o
+In file included from arch/arm/kernel/setup.c:39:
+arch/arm/include/asm/elf.h:102:1: warning: "vmcore_elf64_check_arch" redefined
+In file included from arch/arm/kernel/setup.c:24:
+include/linux/crash_dump.h:30:1: warning: this is the location of the previous definition
 
-2nd CPU:
-panic()->crash_kexec()->kexec_mutex already held by 1st CPU
-       ->smp_send_stop()-> stop 1st CPU (stop kdump)
+Quoting Russell King:
 
-This patch fixes the problem by introducing a spinlock in panic that
-allows only one CPU to process crash_kexec() and the subsequent panic
-code.
+"linux/crash_dump.h makes no attempt to include asm/elf.h, but it depends
+on stuff in asm/elf.h to determine how stuff inside this file is defined
+at parse time.
 
-All other CPUs call the weak function panic_smp_self_stop() that stops the
-CPU itself.  This function can be overloaded by architecture code.  For
-example "tile" can use their lower-power "nap" instruction for that.
+So, if asm/elf.h is included after linux/crash_dump.h or not at all, you
+get a different result from the situation where asm/elf.h is included
+before."
 
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+So add elf.h header to crash_dump.h to avoid this problem.
+
+The original discussion about this can be found at:
+http://www.spinics.net/lists/arm-kernel/msg154113.html
+
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: <stable@vger.kernel.org>	[3.2.1]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ include/linux/crash_dump.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/panic.c~kdump-fix-crash_kexec-smp_send_stop-race-in-panic kernel/panic.c
---- a/kernel/panic.c~kdump-fix-crash_kexec-smp_send_stop-race-in-panic
-+++ a/kernel/panic.c
-@@ -49,6 +49,15 @@ static long no_blink(int state)
- long (*panic_blink)(int state);
- EXPORT_SYMBOL(panic_blink);
+diff -puN include/linux/crash_dump.h~include-linux-crash_dumph-needs-elfh include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~include-linux-crash_dumph-needs-elfh
++++ a/include/linux/crash_dump.h
+@@ -5,6 +5,7 @@
+ #include <linux/kexec.h>
+ #include <linux/device.h>
+ #include <linux/proc_fs.h>
++#include <linux/elf.h>
  
-+/*
-+ * Stop ourself in panic -- architecture code may override this
-+ */
-+void __weak panic_smp_self_stop(void)
-+{
-+	while (1)
-+		cpu_relax();
-+}
-+
- /**
-  *	panic - halt the system
-  *	@fmt: The text string to print
-@@ -59,6 +68,7 @@ EXPORT_SYMBOL(panic_blink);
-  */
- void panic(const char *fmt, ...)
- {
-+	static DEFINE_SPINLOCK(panic_lock);
- 	static char buf[1024];
- 	va_list args;
- 	long i, i_next = 0;
-@@ -68,8 +78,14 @@ void panic(const char *fmt, ...)
- 	 * It's possible to come here directly from a panic-assertion and
- 	 * not have preempt disabled. Some functions called from here want
- 	 * preempt to be disabled. No point enabling it later though...
-+	 *
-+	 * Only one CPU is allowed to execute the panic code from here. For
-+	 * multiple parallel invocations of panic, all other CPUs either
-+	 * stop themself or will wait until they are stopped by the 1st CPU
-+	 * with smp_send_stop().
- 	 */
--	preempt_disable();
-+	if (!spin_trylock(&panic_lock))
-+		panic_smp_self_stop();
- 
- 	console_verbose();
- 	bust_spinlocks(1);
+ #define ELFCORE_ADDR_MAX	(-1ULL)
+ #define ELFCORE_ADDR_ERR	(-2ULL)
 _
 
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+Patches currently in -mm which might be from festevam@gmail.com are
 
 origin.patch
+linux-next.patch
 
