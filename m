@@ -1,78 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:57:18 -0800
-Message-ID: <20120113005719.B540420004E@hpza10.eem.corp.google.com>
+Subject: [folded] kdump-add-udev-events-for-memory-online-offline-fix.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:57:47 -0800
+Message-ID: <20120113005748.5200F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:37964 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756426Ab2AMA5V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:57:21 -0500
-Received: by werg1 with SMTP id g1so28wer.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:57:20 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:50202 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756275Ab2AMA5u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:57:50 -0500
+Received: by wgbdt14 with SMTP id dt14so80379wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:57:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, consul.kautuk@gmail.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, greg@kroah.com, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
+     Subject: kdump-add-udev-events-for-memory-online-offline-fix.txt
 has been removed from the -mm tree.  Its filename was
-     mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+     kdump-add-udev-events-for-memory-online-offline-fix.patch
 
-This patch was dropped because it was folded into mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
+This patch was dropped because it was folded into kdump-add-udev-events-for-memory-online-offline.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: kdump-add-udev-events-for-memory-online-offline-fix.txt
 
-remove now-unneeded tests
+memory: fix ups for class to subsystem conversion
 
-Cc: Kautuk Consul <consul.kautuk@gmail.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/base/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
-+++ a/mm/vmalloc.c
-@@ -2476,10 +2476,8 @@ found:
- 
- err_free:
- 	for (area = 0; area < nr_vms; area++) {
--		if (vas)
--			kfree(vas[area]);
--		if (vms)
--			kfree(vms[area]);
-+		kfree(vas[area]);
-+		kfree(vms[area]);
- 	}
- err_free2:
- 	kfree(vas);
+diff -puN drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline-fix drivers/base/memory.c
+--- a/drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline-fix
++++ a/drivers/base/memory.c
+@@ -303,10 +303,10 @@ static int memory_block_change_state(str
+ 	mem->state = to_state;
+ 	switch (mem->state) {
+ 	case MEM_OFFLINE:
+-		kobject_uevent(&mem->sysdev.kobj, KOBJ_OFFLINE);
++		kobject_uevent(&mem->dev.kobj, KOBJ_OFFLINE);
+ 		break;
+ 	case MEM_ONLINE:
+-		kobject_uevent(&mem->sysdev.kobj, KOBJ_ONLINE);
++		kobject_uevent(&mem->dev.kobj, KOBJ_ONLINE);
+ 		break;
+ 	default:
+ 		break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
-drivers-video-nvidia-nvidiac-fix-warning.patch
-pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
-memcg-clear-pc-mem_cgorup-if-necessary.patch
-memcg-simplify-lru-handling-by-new-rule.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
-kexec-remove-kmsg_dump_kexec.patch
-panic-dont-print-redundant-backtraces-on-oops-fix.patch
-drivers-parport-parport_pcc-fix-warnings.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+kdump-add-udev-events-for-memory-online-offline.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
 
