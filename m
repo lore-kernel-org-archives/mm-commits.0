@@ -1,108 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-clear-pc-mem_cgorup-if-necessary-comments.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:49:18 -0800
-Message-ID: <20120113004918.DDB0D1E004D@wpzn4.hot.corp.google.com>
+Subject: [folded] memcg-clear-pc-mem_cgorup-if-necessary-fix-3.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:49:21 -0800
+Message-ID: <20120113004921.F1D251E005A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-yw0-f74.google.com ([209.85.213.74]:46803 "EHLO
 	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756690Ab2AMAtT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:49:19 -0500
-Received: by yhjj52 with SMTP id j52so7021yhj.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:49:19 -0800 (PST)
+	with ESMTP id S1756690Ab2AMAtW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:49:22 -0500
+Received: by mail-yw0-f74.google.com with SMTP id j52so7021yhj.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:49:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-clear-pc-mem_cgorup-if-necessary-comments
+     Subject: memcg-clear-pc-mem_cgorup-if-necessary fix 3
 has been removed from the -mm tree.  Its filename was
-     memcg-clear-pc-mem_cgorup-if-necessary-comments.patch
+     memcg-clear-pc-mem_cgorup-if-necessary-fix-3.patch
 
 This patch was dropped because it was folded into memcg-clear-pc-mem_cgorup-if-necessary.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: memcg-clear-pc-mem_cgorup-if-necessary-comments
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg-clear-pc-mem_cgorup-if-necessary fix 3
 
-Add comments to the clearing sites.
+lookup_page_cgroup() returns NULL (or may return NULL) when
+mem_cgroup_disabled(): stop oops in mem_cgroup_reset_owner().  Let's make
+it explicit for now, probably optimize such checks later.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c        |    9 +++++++++
- mm/swap_state.c |    9 +++++++++
- 2 files changed, 18 insertions(+)
+ mm/memcontrol.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/ksm.c~memcg-clear-pc-mem_cgorup-if-necessary-comments mm/ksm.c
---- a/mm/ksm.c~memcg-clear-pc-mem_cgorup-if-necessary-comments
-+++ a/mm/ksm.c
-@@ -1572,6 +1572,15 @@ struct page *ksm_does_need_to_copy(struc
+diff -puN mm/memcontrol.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-3 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-clear-pc-mem_cgorup-if-necessary-fix-3
++++ a/mm/memcontrol.c
+@@ -3059,6 +3059,9 @@ void mem_cgroup_reset_owner(struct page 
+ {
+ 	struct page_cgroup *pc;
  
- 	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
- 	if (new_page) {
-+		/*
-+		 * The memcg-specific accounting when moving
-+		 * pages around the LRU lists relies on the
-+		 * page's owner (memcg) to be valid.  Usually,
-+		 * pages are assigned to a new owner before
-+		 * being put on the LRU list, but since this
-+		 * is not the case here, the stale owner from
-+		 * a previous allocation cycle must be reset.
-+		 */
- 		mem_cgroup_reset_owner(new_page);
- 		copy_user_highpage(new_page, page, address, vma);
- 
-diff -puN mm/swap_state.c~memcg-clear-pc-mem_cgorup-if-necessary-comments mm/swap_state.c
---- a/mm/swap_state.c~memcg-clear-pc-mem_cgorup-if-necessary-comments
-+++ a/mm/swap_state.c
-@@ -300,6 +300,15 @@ struct page *read_swap_cache_async(swp_e
- 			new_page = alloc_page_vma(gfp_mask, vma, addr);
- 			if (!new_page)
- 				break;		/* Out of memory */
-+			/*
-+			 * The memcg-specific accounting when moving
-+			 * pages around the LRU lists relies on the
-+			 * page's owner (memcg) to be valid.  Usually,
-+			 * pages are assigned to a new owner before
-+			 * being put on the LRU list, but since this
-+			 * is not the case here, the stale owner from
-+			 * a previous allocation cycle must be reset.
-+			 */
- 			mem_cgroup_reset_owner(new_page);
- 		}
- 
++	if (mem_cgroup_disabled())
++		return;
++
+ 	pc = lookup_page_cgroup(newpage);
+ 	VM_BUG_ON(PageCgroupUsed(pc));
+ 	pc->mem_cgroup = root_mem_cgroup;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
 memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
-memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
-memcg-fix-pgpgin-pgpgout-documentation.patch
+mm-memcg-consolidate-hierarchy-iteration-primitives.patch
+mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
+mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
+mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
+mm-collect-lru-list-heads-into-struct-lruvec.patch
+mm-make-per-memcg-lru-lists-exclusive.patch
+mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
+mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
+mm-memcg-clean-up-fault-accounting.patch
+mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
 mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
+mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
+mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
 memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
-oom-memcg-fix-exclusion-of-memcg-threads-after-they-have-detached-their-mm.patch
 memcg-simplify-page-cache-charging.patch
 memcg-simplify-corner-case-handling-of-lru.patch
 memcg-clear-pc-mem_cgorup-if-necessary.patch
-memcg-clear-pc-mem_cgorup-if-necessary-fix-3.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch
 memcg-simplify-lru-handling-by-new-rule.patch
 memcg-simplify-lru-handling-by-new-rule-fix.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch
-memcg-cleanup-for_each_node_state.patch
-page_alloc-break-early-in-check_for_regular_memory.patch
-page_cgroup-drop-multi-config_memory_hotplug.patch
-vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
 memcg-fix-split_huge_page_refcounts.patch
 memcg-fix-mem_cgroup_print_bad_page.patch
+mm-take-pagevecs-off-reclaim-stack.patch
+mm-fewer-underscores-in-____pagevec_lru_add.patch
+mm-no-blank-line-after-export_symbol-in-swapc.patch
+mm-enum-lru_list-lru.patch
+mm-remove-del_page_from_lru-add-page_off_lru.patch
+mm-remove-isolate_pages.patch
 mm-rearrange-putback_inactive_pages.patch
+radix_tree-remove-radix_tree_indirect_to_ptr.patch
+radix_tree-take-radix_tree_path-off-stack.patch
+radix_tree-take-radix_tree_path-off-stack-expand-comment-on-optimization.patch
 
