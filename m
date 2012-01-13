@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch added to -mm tree
-Date: Fri, 13 Jan 2012 15:16:32 -0800
-Message-ID: <20120113231633.925695C0060@hpza9.eem.corp.google.com>
+Subject: + xen-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch added to -mm tree
+Date: Fri, 13 Jan 2012 15:16:36 -0800
+Message-ID: <20120113231637.351ED1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:62264 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753535Ab2AMXQf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 18:16:35 -0500
-Received: by eaad12 with SMTP id d12so29015eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 15:16:34 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:61204 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753535Ab2AMXQi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 18:16:38 -0500
+Received: by ggnk3 with SMTP id k3so370679ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 15:16:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alex.shi@intel.com, davem@davemloft.net, eric.dumazet@gmail.com, kaber@trash.net
+Cc: alex.shi@intel.com, cl@gentwo.org, jeremy@goop.org, tj@kernel.org
 
 
 The patch titled
-     Subject: net: use this_cpu_xxx replace percpu_xxx funcs
+     Subject: xen: use this_cpu_xxx replace percpu_xxx funcs
 has been added to the -mm tree.  Its filename is
-     net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
+     xen-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,195 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alex Shi <alex.shi@intel.com>
-Subject: net: use this_cpu_xxx replace percpu_xxx funcs
+Subject: xen: use this_cpu_xxx replace percpu_xxx funcs
 
 percpu_xxx funcs are duplicated with this_cpu_xxx funcs, so replace them
 for further code clean up.
 
-And in preempt safe scenario, __this_cpu_xxx funcs has a bit better
-performance since __this_cpu_xxx has no redundant preempt_disable()
+I don't know much of xen code.  But, since the code is in x86
+architecture, the percpu_xxx is exactly same as this_cpu_xxx serials
+functions.  So, the change is safe.
 
 Signed-off-by: Alex Shi <alex.shi@intel.com>
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Patrick McHardy <kaber@trash.net>
+Acked-by: Christoph Lameter <cl@gentwo.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/xt_TEE.c |   12 ++++++------
- net/socket.c           |    4 ++--
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ arch/x86/xen/enlighten.c  |    6 +++---
+ arch/x86/xen/irq.c        |    8 ++++----
+ arch/x86/xen/mmu.c        |   20 ++++++++++----------
+ arch/x86/xen/multicalls.h |    2 +-
+ arch/x86/xen/smp.c        |    2 +-
+ 5 files changed, 19 insertions(+), 19 deletions(-)
 
-diff -puN net/netfilter/xt_TEE.c~net-use-this_cpu_xxx-replace-percpu_xxx-funcs net/netfilter/xt_TEE.c
---- a/net/netfilter/xt_TEE.c~net-use-this_cpu_xxx-replace-percpu_xxx-funcs
-+++ a/net/netfilter/xt_TEE.c
-@@ -87,7 +87,7 @@ tee_tg4(struct sk_buff *skb, const struc
- 	const struct xt_tee_tginfo *info = par->targinfo;
- 	struct iphdr *iph;
+diff -puN arch/x86/xen/enlighten.c~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs arch/x86/xen/enlighten.c
+--- a/arch/x86/xen/enlighten.c~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs
++++ a/arch/x86/xen/enlighten.c
+@@ -777,11 +777,11 @@ static DEFINE_PER_CPU(unsigned long, xen
  
--	if (percpu_read(tee_active))
-+	if (__this_cpu_read(tee_active))
- 		return XT_CONTINUE;
- 	/*
- 	 * Copy the skb, and route the copy. Will later return %XT_CONTINUE for
-@@ -124,9 +124,9 @@ tee_tg4(struct sk_buff *skb, const struc
- 	ip_send_check(iph);
- 
- 	if (tee_tg_route4(skb, info)) {
--		percpu_write(tee_active, true);
-+		__this_cpu_write(tee_active, true);
- 		ip_local_out(skb);
--		percpu_write(tee_active, false);
-+		__this_cpu_write(tee_active, false);
- 	} else {
- 		kfree_skb(skb);
- 	}
-@@ -167,7 +167,7 @@ tee_tg6(struct sk_buff *skb, const struc
+ static unsigned long xen_read_cr0(void)
  {
- 	const struct xt_tee_tginfo *info = par->targinfo;
+-	unsigned long cr0 = percpu_read(xen_cr0_value);
++	unsigned long cr0 = this_cpu_read(xen_cr0_value);
  
--	if (percpu_read(tee_active))
-+	if (__this_cpu_read(tee_active))
- 		return XT_CONTINUE;
- 	skb = pskb_copy(skb, GFP_ATOMIC);
- 	if (skb == NULL)
-@@ -185,9 +185,9 @@ tee_tg6(struct sk_buff *skb, const struc
- 		--iph->hop_limit;
+ 	if (unlikely(cr0 == 0)) {
+ 		cr0 = native_read_cr0();
+-		percpu_write(xen_cr0_value, cr0);
++		this_cpu_write(xen_cr0_value, cr0);
  	}
- 	if (tee_tg_route6(skb, info)) {
--		percpu_write(tee_active, true);
-+		__this_cpu_write(tee_active, true);
- 		ip6_local_out(skb);
--		percpu_write(tee_active, false);
-+		__this_cpu_write(tee_active, false);
- 	} else {
- 		kfree_skb(skb);
- 	}
-diff -puN net/socket.c~net-use-this_cpu_xxx-replace-percpu_xxx-funcs net/socket.c
---- a/net/socket.c~net-use-this_cpu_xxx-replace-percpu_xxx-funcs
-+++ a/net/socket.c
-@@ -479,7 +479,7 @@ static struct socket *sock_alloc(void)
- 	inode->i_uid = current_fsuid();
- 	inode->i_gid = current_fsgid();
  
--	percpu_add(sockets_in_use, 1);
-+	this_cpu_add(sockets_in_use, 1);
- 	return sock;
+ 	return cr0;
+@@ -791,7 +791,7 @@ static void xen_write_cr0(unsigned long 
+ {
+ 	struct multicall_space mcs;
+ 
+-	percpu_write(xen_cr0_value, cr0);
++	this_cpu_write(xen_cr0_value, cr0);
+ 
+ 	/* Only pay attention to cr0.TS; everything else is
+ 	   ignored. */
+diff -puN arch/x86/xen/irq.c~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs arch/x86/xen/irq.c
+--- a/arch/x86/xen/irq.c~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs
++++ a/arch/x86/xen/irq.c
+@@ -26,7 +26,7 @@ static unsigned long xen_save_fl(void)
+ 	struct vcpu_info *vcpu;
+ 	unsigned long flags;
+ 
+-	vcpu = percpu_read(xen_vcpu);
++	vcpu = this_cpu_read(xen_vcpu);
+ 
+ 	/* flag has opposite sense of mask */
+ 	flags = !vcpu->evtchn_upcall_mask;
+@@ -50,7 +50,7 @@ static void xen_restore_fl(unsigned long
+ 	   make sure we're don't switch CPUs between getting the vcpu
+ 	   pointer and updating the mask. */
+ 	preempt_disable();
+-	vcpu = percpu_read(xen_vcpu);
++	vcpu = this_cpu_read(xen_vcpu);
+ 	vcpu->evtchn_upcall_mask = flags;
+ 	preempt_enable_no_resched();
+ 
+@@ -72,7 +72,7 @@ static void xen_irq_disable(void)
+ 	   make sure we're don't switch CPUs between getting the vcpu
+ 	   pointer and updating the mask. */
+ 	preempt_disable();
+-	percpu_read(xen_vcpu)->evtchn_upcall_mask = 1;
++	this_cpu_read(xen_vcpu)->evtchn_upcall_mask = 1;
+ 	preempt_enable_no_resched();
+ }
+ PV_CALLEE_SAVE_REGS_THUNK(xen_irq_disable);
+@@ -86,7 +86,7 @@ static void xen_irq_enable(void)
+ 	   the caller is confused and is trying to re-enable interrupts
+ 	   on an indeterminate processor. */
+ 
+-	vcpu = percpu_read(xen_vcpu);
++	vcpu = this_cpu_read(xen_vcpu);
+ 	vcpu->evtchn_upcall_mask = 0;
+ 
+ 	/* Doesn't matter if we get preempted here, because any
+diff -puN arch/x86/xen/mmu.c~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs arch/x86/xen/mmu.c
+--- a/arch/x86/xen/mmu.c~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs
++++ a/arch/x86/xen/mmu.c
+@@ -1071,14 +1071,14 @@ static void drop_other_mm_ref(void *info
+ 	struct mm_struct *mm = info;
+ 	struct mm_struct *active_mm;
+ 
+-	active_mm = percpu_read(cpu_tlbstate.active_mm);
++	active_mm = this_cpu_read(cpu_tlbstate.active_mm);
+ 
+-	if (active_mm == mm && percpu_read(cpu_tlbstate.state) != TLBSTATE_OK)
++	if (active_mm == mm && this_cpu_read(cpu_tlbstate.state) != TLBSTATE_OK)
+ 		leave_mm(smp_processor_id());
+ 
+ 	/* If this cpu still has a stale cr3 reference, then make sure
+ 	   it has been flushed. */
+-	if (percpu_read(xen_current_cr3) == __pa(mm->pgd))
++	if (this_cpu_read(xen_current_cr3) == __pa(mm->pgd))
+ 		load_cr3(swapper_pg_dir);
  }
  
-@@ -522,7 +522,7 @@ void sock_release(struct socket *sock)
- 	if (rcu_dereference_protected(sock->wq, 1)->fasync_list)
- 		printk(KERN_ERR "sock_release: fasync list not empty!\n");
+@@ -1185,17 +1185,17 @@ static void __init xen_pagetable_setup_d
  
--	percpu_sub(sockets_in_use, 1);
-+	this_cpu_sub(sockets_in_use, 1);
- 	if (!sock->file) {
- 		iput(SOCK_INODE(sock));
- 		return;
+ static void xen_write_cr2(unsigned long cr2)
+ {
+-	percpu_read(xen_vcpu)->arch.cr2 = cr2;
++	this_cpu_read(xen_vcpu)->arch.cr2 = cr2;
+ }
+ 
+ static unsigned long xen_read_cr2(void)
+ {
+-	return percpu_read(xen_vcpu)->arch.cr2;
++	return this_cpu_read(xen_vcpu)->arch.cr2;
+ }
+ 
+ unsigned long xen_read_cr2_direct(void)
+ {
+-	return percpu_read(xen_vcpu_info.arch.cr2);
++	return this_cpu_read(xen_vcpu_info.arch.cr2);
+ }
+ 
+ static void xen_flush_tlb(void)
+@@ -1278,12 +1278,12 @@ static void xen_flush_tlb_others(const s
+ 
+ static unsigned long xen_read_cr3(void)
+ {
+-	return percpu_read(xen_cr3);
++	return this_cpu_read(xen_cr3);
+ }
+ 
+ static void set_current_cr3(void *v)
+ {
+-	percpu_write(xen_current_cr3, (unsigned long)v);
++	this_cpu_write(xen_current_cr3, (unsigned long)v);
+ }
+ 
+ static void __xen_write_cr3(bool kernel, unsigned long cr3)
+@@ -1306,7 +1306,7 @@ static void __xen_write_cr3(bool kernel,
+ 	xen_extend_mmuext_op(&op);
+ 
+ 	if (kernel) {
+-		percpu_write(xen_cr3, cr3);
++		this_cpu_write(xen_cr3, cr3);
+ 
+ 		/* Update xen_current_cr3 once the batch has actually
+ 		   been submitted. */
+@@ -1322,7 +1322,7 @@ static void xen_write_cr3(unsigned long 
+ 
+ 	/* Update while interrupts are disabled, so its atomic with
+ 	   respect to ipis */
+-	percpu_write(xen_cr3, cr3);
++	this_cpu_write(xen_cr3, cr3);
+ 
+ 	__xen_write_cr3(true, cr3);
+ 
+diff -puN arch/x86/xen/multicalls.h~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs arch/x86/xen/multicalls.h
+--- a/arch/x86/xen/multicalls.h~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs
++++ a/arch/x86/xen/multicalls.h
+@@ -47,7 +47,7 @@ static inline void xen_mc_issue(unsigned
+ 		xen_mc_flush();
+ 
+ 	/* restore flags saved in xen_mc_batch */
+-	local_irq_restore(percpu_read(xen_mc_irq_flags));
++	local_irq_restore(this_cpu_read(xen_mc_irq_flags));
+ }
+ 
+ /* Set up a callback to be called when the current batch is flushed */
+diff -puN arch/x86/xen/smp.c~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs arch/x86/xen/smp.c
+--- a/arch/x86/xen/smp.c~xen-use-this_cpu_xxx-replace-percpu_xxx-funcs
++++ a/arch/x86/xen/smp.c
+@@ -76,7 +76,7 @@ static void __cpuinit cpu_bringup(void)
+ 	xen_setup_cpu_clockevents();
+ 
+ 	set_cpu_online(cpu, true);
+-	percpu_write(cpu_state, CPU_ONLINE);
++	this_cpu_write(cpu_state, CPU_ONLINE);
+ 	wmb();
+ 
+ 	/* We can take interrupts now: we're officially "up". */
 _
-Subject: Subject: net: use this_cpu_xxx replace percpu_xxx funcs
+Subject: Subject: xen: use this_cpu_xxx replace percpu_xxx funcs
 
 Patches currently in -mm which might be from alex.shi@intel.com are
 
