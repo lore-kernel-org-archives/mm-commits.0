@@ -1,69 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] panic-dont-print-redundant-backtraces-on-oops.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:36:42 -0800
-Message-ID: <20120113203643.1127A20004E@hpza10.eem.corp.google.com>
+Subject: [merged] fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:36:50 -0800
+Message-ID: <20120113203650.A960E1E0058@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:42927 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUgo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:44 -0500
-Received: by mail-ey0-f202.google.com with SMTP id d12so25473eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:44 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:63424 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932798Ab2AMUgv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:51 -0500
+Received: by mail-yw0-f74.google.com with SMTP id j52so102213yhj.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, holzheu@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: boyu.mt@taobao.com, hch@lst.de, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: don't print redundant backtraces on oops
+     Subject: fs/direct-io.c: calculate fs_count correctly in get_more_blocks()
 has been removed from the -mm tree.  Its filename was
-     panic-dont-print-redundant-backtraces-on-oops.patch
+     fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: panic: don't print redundant backtraces on oops
+From: Tao Ma <boyu.mt@taobao.com>
+Subject: fs/direct-io.c: calculate fs_count correctly in get_more_blocks()
 
-When an oops causes a panic and panic prints another backtrace it's pretty
-common to have the original oops data be scrolled away on a 80x50 screen.
+In get_more_blocks(), we use dio_count to calcuate fs_count and do some
+tricky things to increase fs_count if dio_count isn't aligned.  But
+actually it still has some corner cases that can't be coverd.  See the
+following example:
 
-The second backtrace is quite redundant and not needed anyways.
+	dio_write foo -s 1024 -w 4096
 
-So don't print the panic backtrace when oops_in_progress is true.
+(direct write 4096 bytes at offset 1024).  The same goes if the offset
+isn't aligned to fs_blocksize.
 
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+In this case, the old calculation counts fs_count to be 1, but actually we
+will write into 2 different blocks (if fs_blocksize=4096).  The old code
+just works, since it will call get_block twice (and may have to allocate
+and create extents twice for filesystems like ext4).  So we'd better call
+get_block just once with the proper fs_count.
+
+Signed-off-by: Tao Ma <boyu.mt@taobao.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/direct-io.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN kernel/panic.c~panic-dont-print-redundant-backtraces-on-oops kernel/panic.c
---- a/kernel/panic.c~panic-dont-print-redundant-backtraces-on-oops
-+++ a/kernel/panic.c
-@@ -94,7 +94,11 @@ void panic(const char *fmt, ...)
- 	va_end(args);
- 	printk(KERN_EMERG "Kernel panic - not syncing: %s\n",buf);
- #ifdef CONFIG_DEBUG_BUGVERBOSE
--	dump_stack();
-+	/*
-+	 * Avoid nested stack-dumping if a panic occurs during oops processing
-+	 */
-+	if (!oops_in_progress)
-+		dump_stack();
- #endif
+diff -puN fs/direct-io.c~fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks fs/direct-io.c
+--- a/fs/direct-io.c~fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks
++++ a/fs/direct-io.c
+@@ -580,9 +580,8 @@ static int get_more_blocks(struct dio *d
+ {
+ 	int ret;
+ 	sector_t fs_startblk;	/* Into file, in filesystem-sized blocks */
++	sector_t fs_endblk;	/* Into file, in filesystem-sized blocks */
+ 	unsigned long fs_count;	/* Number of filesystem-sized blocks */
+-	unsigned long dio_count;/* Number of dio_block-sized blocks */
+-	unsigned long blkmask;
+ 	int create;
  
  	/*
+@@ -593,11 +592,9 @@ static int get_more_blocks(struct dio *d
+ 	if (ret == 0) {
+ 		BUG_ON(sdio->block_in_file >= sdio->final_block_in_request);
+ 		fs_startblk = sdio->block_in_file >> sdio->blkfactor;
+-		dio_count = sdio->final_block_in_request - sdio->block_in_file;
+-		fs_count = dio_count >> sdio->blkfactor;
+-		blkmask = (1 << sdio->blkfactor) - 1;
+-		if (dio_count & blkmask)	
+-			fs_count++;
++		fs_endblk = (sdio->final_block_in_request - 1) >>
++					sdio->blkfactor;
++		fs_count = fs_endblk - fs_startblk + 1;
+ 
+ 		map_bh->b_state = 0;
+ 		map_bh->b_size = fs_count << dio->inode->i_blkbits;
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from boyu.mt@taobao.com are
 
 origin.patch
-linux-next.patch
 
