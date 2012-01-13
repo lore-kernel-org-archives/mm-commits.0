@@ -1,100 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:54:24 -0800
-Message-ID: <20120113005424.D09965C0050@hpza9.eem.corp.google.com>
+Subject: [folded] memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:54:17 -0800
+Message-ID: <20120113005417.F1F3D1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:56142 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756729Ab2AMAy0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:54:26 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hq12so87018wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:54:26 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:37231 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756312Ab2AMAyT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:54:19 -0500
+Received: by yhjj52 with SMTP id j52so8025yhj.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:54:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mszeredi@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix NULL mem_cgroup_try_charge
+     Subject: memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch
+     memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
 
 This patch was dropped because it was folded into memcg-simplify-lru-handling-by-new-rule.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg: fix NULL mem_cgroup_try_charge
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix
 
-There is one way out of __mem_cgroup_try_charge() which claims success but
-still leaves memcg NULL, causing oops thereafter: make sure that it is set
-to root_mem_cgroup in this case.
+clean up code comment
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge
+diff -puN mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix
 +++ a/mm/memcontrol.c
-@@ -2257,7 +2257,9 @@ again:
- 		 * task-struct. So, mm->owner can be NULL.
- 		 */
- 		memcg = mem_cgroup_from_task(p);
--		if (!memcg || mem_cgroup_is_root(memcg)) {
-+		if (!memcg)
-+			memcg = root_mem_cgroup;
-+		if (mem_cgroup_is_root(memcg)) {
- 			rcu_read_unlock();
- 			goto done;
- 		}
+@@ -2190,20 +2190,19 @@ static int mem_cgroup_do_charge(struct m
+  * 3. call memory reclaim if necessary.
+  *
+  * In some special case, if the task is fatal, fatal_signal_pending() or
+- * TIF_MEMDIE, this functoion returns -EINTR with filling *ptr as
+- * root_mem_cgroup. There are 2 reasons for this. 1st is that
+- * fatal threads should quit as soon as possible without any hazards.
+- * 2nd is that all page should have valid pc->mem_cgroup if it will be
+- * used. If mm is NULL and the caller doesn't pass valid memcg pointer,
+- * that's treated as charge to root_mem_cgroup.
++ * has TIF_MEMDIE, this function returns -EINTR while writing root_mem_cgroup
++ * to *ptr. There are two reasons for this. 1: fatal threads should quit as soon
++ * as possible without any hazards. 2: all pages should have a valid
++ * pc->mem_cgroup. If mm is NULL and the caller doesn't pass a valid memcg
++ * pointer, that is treated as a charge to root_mem_cgroup.
+  *
+- * So, try_charge will return
+- *  0       ...  at success. filling *ptr with a valid memcg pointer.
++ * So __mem_cgroup_try_charge() will return
++ *  0       ...  on success, filling *ptr with a valid memcg pointer.
+  *  -ENOMEM ...  charge failure because of resource limits.
+  *  -EINTR  ...  if thread is fatal. *ptr is filled with root_mem_cgroup.
+  *
+- * Unlike exported interface, "oom" parameter is added. if oom==true,
+- * oom-killer can be invoked.
++ * Unlike the exported interface, an "oom" parameter is added. if oom==true,
++ * the oom-killer can be invoked.
+  */
+ static int __mem_cgroup_try_charge(struct mm_struct *mm,
+ 				   gfp_t gfp_mask,
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+drivers-video-nvidia-nvidiac-fix-warning.patch
+pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch
 mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
-mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
-mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
-mm-memcg-clean-up-fault-accounting.patch
-mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
-mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
-mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
-mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
-memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
-memcg-simplify-page-cache-charging.patch
-memcg-simplify-corner-case-handling-of-lru.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 memcg-clear-pc-mem_cgorup-if-necessary.patch
 memcg-simplify-lru-handling-by-new-rule.patch
-memcg-fix-split_huge_page_refcounts.patch
-memcg-fix-mem_cgroup_print_bad_page.patch
-mm-take-pagevecs-off-reclaim-stack.patch
-mm-fewer-underscores-in-____pagevec_lru_add.patch
-mm-no-blank-line-after-export_symbol-in-swapc.patch
-mm-enum-lru_list-lru.patch
-mm-remove-del_page_from_lru-add-page_off_lru.patch
-mm-remove-isolate_pages.patch
-mm-rearrange-putback_inactive_pages.patch
-radix_tree-remove-radix_tree_indirect_to_ptr.patch
-radix_tree-take-radix_tree_path-off-stack.patch
-radix_tree-take-radix_tree_path-off-stack-expand-comment-on-optimization.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops-fix.patch
+drivers-parport-parport_pcc-fix-warnings.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
 
