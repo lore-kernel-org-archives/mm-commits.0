@@ -1,102 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded] radix_tree-take-radix_tree_path-off-stack-expand-comment-on-optimization.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:59:29 -0800
-Message-ID: <20120113005930.153D1100052@wpzn3.hot.corp.google.com>
+Subject: [folded] c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:59:49 -0800
+Message-ID: <20120113005949.B62FD1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:57904 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756426Ab2AMA7b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:59:31 -0500
-Received: by yhjj52 with SMTP id j52so8571yhj.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:59:30 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:59181 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756426Ab2AMA7v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:59:51 -0500
+Received: by ghrr18 with SMTP id r18so124779ghr.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:59:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, david@fromorbit.com, jack@suse.cz, mgorman@suse.de, nai.xia@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix_tree: expand comment on optimization
+     Subject: c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix
 has been removed from the -mm tree.  Its filename was
-     radix_tree-take-radix_tree_path-off-stack-expand-comment-on-optimization.patch
+     c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
 
-This patch was dropped because it was folded into radix_tree-take-radix_tree_path-off-stack.patch
+This patch was dropped because it was folded into c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: radix_tree: expand comment on optimization
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix
 
-Expand comment on optimization in radix_tree_range_tag_if_tagged(),
-along the lines proposed by Dave Chinner.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nai Xia <nai.xia@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/radix-tree.c~radix_tree-take-radix_tree_path-off-stack-expand-comment-on-optimization lib/radix-tree.c
---- a/lib/radix-tree.c~radix_tree-take-radix_tree_path-off-stack-expand-comment-on-optimization
-+++ a/lib/radix-tree.c
-@@ -703,7 +703,13 @@ unsigned long radix_tree_range_tag_if_ta
- 			node = node->parent;
- 		}
+diff -puN Documentation/filesystems/proc.txt~c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix
++++ a/Documentation/filesystems/proc.txt
+@@ -309,7 +309,7 @@ Table 1-4: Contents of the stat files (a
+   cgtime        guest time of the task children in jiffies
+   start_data    address above which program data+bss is placed
+   end_data      address below which program data+bss is placed
+-  start_brk     address above which program heap can be expaned with brk() call
++  start_brk     address above which program heap can be expanded with brk()
+ ..............................................................................
  
--		/* optimization: no need to walk up from this node again */
-+		/*
-+		 * Small optimization: now clear that node pointer.
-+		 * Since all of this slot's ancestors now have the tag set
-+		 * from setting it above, we have no further need to walk
-+		 * back up the tree setting tags, until we update slot to
-+		 * point to another radix_tree_node.
-+		 */
- 		node = NULL;
- 
- next:
+ The /proc/PID/maps file containing the currently mapped memory regions and
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
-mm-memcg-consolidate-hierarchy-iteration-primitives.patch
-mm-vmscan-distinguish-global-reclaim-from-global-lru-scanning.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+drivers-video-nvidia-nvidiac-fix-warning.patch
+pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch
 mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
-mm-memcg-per-priority-per-zone-hierarchy-scan-generations.patch
-mm-move-memcg-hierarchy-reclaim-to-generic-reclaim-code.patch
-mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
-mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
-mm-collect-lru-list-heads-into-struct-lruvec.patch
-mm-make-per-memcg-lru-lists-exclusive.patch
-mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
-mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
-mm-unify-remaining-mem_cont-mem-etc-variable-names-to-memcg.patch
-mm-memcg-clean-up-fault-accounting.patch
-mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
-mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
-mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
-mm-memcg-remove-unneeded-checks-from-uncharge_page.patch
-memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
-memcg-simplify-page-cache-charging.patch
-memcg-simplify-corner-case-handling-of-lru.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 memcg-clear-pc-mem_cgorup-if-necessary.patch
 memcg-simplify-lru-handling-by-new-rule.patch
-memcg-fix-split_huge_page_refcounts.patch
-memcg-fix-mem_cgroup_print_bad_page.patch
-mm-take-pagevecs-off-reclaim-stack.patch
-mm-fewer-underscores-in-____pagevec_lru_add.patch
-mm-no-blank-line-after-export_symbol-in-swapc.patch
-mm-enum-lru_list-lru.patch
-mm-remove-del_page_from_lru-add-page_off_lru.patch
-mm-remove-isolate_pages.patch
-mm-rearrange-putback_inactive_pages.patch
-radix_tree-remove-radix_tree_indirect_to_ptr.patch
-radix_tree-take-radix_tree_path-off-stack.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops.patch
+drivers-parport-parport_pcc-fix-warnings.patch
+dio-optimize-cache-misses-in-the-submission-path-v2.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
 
