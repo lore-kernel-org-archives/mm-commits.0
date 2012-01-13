@@ -1,78 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-crash_dumph-needs-elfh.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:36:30 -0800
-Message-ID: <20120113203630.EC9FB10004D@wpzn3.hot.corp.google.com>
+Subject: [merged] kdump-add-udev-events-for-memory-online-offline.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:36:33 -0800
+Message-ID: <20120113203634.445E820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:63424 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUgc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:32 -0500
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:42927 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932798Ab2AMUgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:36 -0500
+Received: by mail-ey0-f202.google.com with SMTP id d12so25473eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: festevam@gmail.com, fabio.estevam@freescale.com, rmk@arm.linux.org.uk, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, greg@kroah.com, haveblue@us.ibm.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, schwidefsky@de.ibm.com, sfr@canb.auug.org.au, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/crash_dump.h needs elf.h
+     Subject: kdump: add udev events for memory online/offline
 has been removed from the -mm tree.  Its filename was
-     include-linux-crash_dumph-needs-elfh.patch
+     kdump-add-udev-events-for-memory-online-offline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Fabio Estevam <festevam@gmail.com>
-Subject: include/linux/crash_dump.h needs elf.h
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: kdump: add udev events for memory online/offline
 
-Building an ARM target we get the following warnings:
+Currently no udev events for memory hotplug "online" and "offline" are
+generated:
 
-CC      arch/arm/kernel/setup.o
-In file included from arch/arm/kernel/setup.c:39:
-arch/arm/include/asm/elf.h:102:1: warning: "vmcore_elf64_check_arch" redefined
-In file included from arch/arm/kernel/setup.c:24:
-include/linux/crash_dump.h:30:1: warning: this is the location of the previous definition
+# udevadm monitor
+# echo offline > /sys/devices/system/memory/memory4/state
+==> No event
 
-Quoting Russell King:
+When kdump is loaded, kexec detects the current memory configuration and
+stores it in the pre-allocated ELF core header.  Therefore, for kdump it
+is necessary to reload the kdump kernel with kexec when the memory
+configuration changes (e.g.  for online/offline hotplug memory).
 
-"linux/crash_dump.h makes no attempt to include asm/elf.h, but it depends
-on stuff in asm/elf.h to determine how stuff inside this file is defined
-at parse time.
+In order to do this automatically, udev rules should be used.  This kernel
+patch adds udev events for "online" and "offline".  Together with this
+kernel patch, the following udev rules for online/offline have to be added
+to "/etc/udev/rules.d/98-kexec.rules":
 
-So, if asm/elf.h is included after linux/crash_dump.h or not at all, you
-get a different result from the situation where asm/elf.h is included
-before."
+SUBSYSTEM=="memory", ACTION=="online", PROGRAM="/etc/init.d/kdump restart"
+SUBSYSTEM=="memory", ACTION=="offline", PROGRAM="/etc/init.d/kdump restart"
 
-So add elf.h header to crash_dump.h to avoid this problem.
-
-The original discussion about this can be found at:
-http://www.spinics.net/lists/arm-kernel/msg154113.html
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: <stable@vger.kernel.org>	[3.2.1]
+[sfr@canb.auug.org.au: fixups for class to subsystem conversion]
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_dump.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/memory.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/crash_dump.h~include-linux-crash_dumph-needs-elfh include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~include-linux-crash_dumph-needs-elfh
-+++ a/include/linux/crash_dump.h
-@@ -5,6 +5,7 @@
- #include <linux/kexec.h>
- #include <linux/device.h>
- #include <linux/proc_fs.h>
-+#include <linux/elf.h>
+diff -puN drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline drivers/base/memory.c
+--- a/drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline
++++ a/drivers/base/memory.c
+@@ -295,11 +295,22 @@ static int memory_block_change_state(str
  
- #define ELFCORE_ADDR_MAX	(-1ULL)
- #define ELFCORE_ADDR_ERR	(-2ULL)
+ 	ret = memory_block_action(mem->start_section_nr, to_state);
+ 
+-	if (ret)
++	if (ret) {
+ 		mem->state = from_state_req;
+-	else
+-		mem->state = to_state;
++		goto out;
++	}
+ 
++	mem->state = to_state;
++	switch (mem->state) {
++	case MEM_OFFLINE:
++		kobject_uevent(&mem->dev.kobj, KOBJ_OFFLINE);
++		break;
++	case MEM_ONLINE:
++		kobject_uevent(&mem->dev.kobj, KOBJ_ONLINE);
++		break;
++	default:
++		break;
++	}
+ out:
+ 	mutex_unlock(&mem->state_mutex);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from festevam@gmail.com are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
 origin.patch
-linux-next.patch
 
