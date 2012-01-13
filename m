@@ -1,189 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-split_huge_page_refcounts.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:35:35 -0800
-Message-ID: <20120113203536.285715C0060@hpza9.eem.corp.google.com>
+Subject: [merged] mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:35:29 -0800
+Message-ID: <20120113203529.D3A181E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:37836 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759071Ab2AMUfi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:35:38 -0500
-Received: by mail-ey0-f202.google.com with SMTP id d12so25396eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:35:37 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:42894 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759067Ab2AMUfb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:35:31 -0500
+Received: by yhjj52 with SMTP id j52so102112yhj.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:35:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: mgorman@suse.de, aarcange@redhat.com, adi@hexapodia.org, davej@redhat.com, jack@suse.cz, jweiner@redhat.com, minchan.kim@gmail.com, nai.xia@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix split_huge_page_refcounts()
+     Subject: mm: vmscan: when reclaiming for compaction, ensure there are sufficient free pages available
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-split_huge_page_refcounts.patch
+     mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg: fix split_huge_page_refcounts()
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmscan: when reclaiming for compaction, ensure there are sufficient free pages available
 
-This patch started off as a cleanup: __split_huge_page_refcounts() has to
-cope with two scenarios, when the hugepage being split is already on LRU,
-and when it is not; but why does it have to split that accounting across
-three different sites?  Consolidate it in lru_add_page_tail(), handling
-evictable and unevictable alike, and use standard add_page_to_lru_list()
-when accounting is needed (when the head is not yet on LRU).
+In commit e0887c19 ("vmscan: limit direct reclaim for higher order
+allocations"), Rik noted that reclaim was too aggressive when THP was
+enabled.  In his initial patch he used the number of free pages to decide
+if reclaim should abort for compaction.  My feedback was that reclaim and
+compaction should be using the same logic when deciding if reclaim should
+be aborted.
 
-But a recent regression in -next, I guess the removal of PageCgroupAcctLRU
-test from mem_cgroup_split_huge_fixup(), makes this now a necessary fix:
-under load, the MEM_CGROUP_ZSTAT count was wrapping to a huge number,
-messing up reclaim calculations and causing a freeze at rmdir of cgroup.
+Unfortunately, this had the effect of reducing THP success rates when the
+workload included something like streaming reads that continually
+allocated pages.  The window during which compaction could run and return
+a THP was too small.
 
-Add a VM_BUG_ON to mem_cgroup_lru_del_list() when we're about to wrap that
-count - this has not been the only such incident.  Document that
-lru_add_page_tail() is for Transparent HugePages by #ifdef around it.
+This patch combines Rik's two patches together.  compaction_suitable() is
+still used to decide if reclaim should be aborted to allow compaction is
+used.  However, it will also ensure that there is a reasonable buffer of
+free pages available.  This improves upon the THP allocation success rates
+but bounds the number of pages that are freed for compaction.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel<riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andy Isaacson <adi@hexapodia.org>
+Cc: Nai Xia <nai.xia@gmail.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 ----------
- mm/memcontrol.c  |   12 ++----------
- mm/swap.c        |   29 +++++++++++++++++++----------
- 3 files changed, 21 insertions(+), 30 deletions(-)
+ mm/vmscan.c |   44 +++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 39 insertions(+), 5 deletions(-)
 
-diff -puN mm/huge_memory.c~memcg-fix-split_huge_page_refcounts mm/huge_memory.c
---- a/mm/huge_memory.c~memcg-fix-split_huge_page_refcounts
-+++ a/mm/huge_memory.c
-@@ -1229,7 +1229,6 @@ static void __split_huge_page_refcount(s
- {
- 	int i;
- 	struct zone *zone = page_zone(page);
--	int zonestat;
- 	int tail_count = 0;
- 
- 	/* prevent PageLRU to go away from under us, and freeze lru stats */
-@@ -1317,15 +1316,6 @@ static void __split_huge_page_refcount(s
- 	__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
- 	__mod_zone_page_state(zone, NR_ANON_PAGES, HPAGE_PMD_NR);
- 
--	/*
--	 * A hugepage counts for HPAGE_PMD_NR pages on the LRU statistics,
--	 * so adjust those appropriately if this page is on the LRU.
--	 */
--	if (PageLRU(page)) {
--		zonestat = NR_LRU_BASE + page_lru(page);
--		__mod_zone_page_state(zone, zonestat, -(HPAGE_PMD_NR-1));
--	}
--
- 	ClearPageCompound(page);
- 	compound_unlock(page);
- 	spin_unlock_irq(&zone->lru_lock);
-diff -puN mm/memcontrol.c~memcg-fix-split_huge_page_refcounts mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-split_huge_page_refcounts
-+++ a/mm/memcontrol.c
-@@ -1071,6 +1071,7 @@ void mem_cgroup_lru_del_list(struct page
- 	VM_BUG_ON(!memcg);
- 	mz = page_cgroup_zoneinfo(memcg, page);
- 	/* huge page split is done under lru_lock. so, we have no races. */
-+	VM_BUG_ON(MEM_CGROUP_ZSTAT(mz, lru) < (1 << compound_order(page)));
- 	MEM_CGROUP_ZSTAT(mz, lru) -= 1 << compound_order(page);
+diff -puN mm/vmscan.c~mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-when-reclaiming-for-compaction-ensure-there-are-sufficient-free-pages-available
++++ a/mm/vmscan.c
+@@ -2163,6 +2163,42 @@ static void shrink_zone(int priority, st
+ 	} while (memcg);
  }
  
-@@ -2465,9 +2466,7 @@ static void __mem_cgroup_commit_charge(s
- void mem_cgroup_split_huge_fixup(struct page *head)
- {
- 	struct page_cgroup *head_pc = lookup_page_cgroup(head);
--	struct mem_cgroup_per_zone *mz;
- 	struct page_cgroup *pc;
--	enum lru_list lru;
- 	int i;
- 
- 	if (mem_cgroup_disabled())
-@@ -2478,15 +2477,8 @@ void mem_cgroup_split_huge_fixup(struct 
- 		smp_wmb();/* see __commit_charge() */
- 		pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
- 	}
--	/*
--	 * Tail pages will be added to LRU.
--	 * We hold lru_lock,then,reduce counter directly.
--	 */
--	lru = page_lru(head);
--	mz = page_cgroup_zoneinfo(head_pc->mem_cgroup, head);
--	MEM_CGROUP_ZSTAT(mz, lru) -= HPAGE_PMD_NR - 1;
- }
--#endif
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- /**
-  * mem_cgroup_move_account - move account of the page
-diff -puN mm/swap.c~memcg-fix-split_huge_page_refcounts mm/swap.c
---- a/mm/swap.c~memcg-fix-split_huge_page_refcounts
-+++ a/mm/swap.c
-@@ -650,6 +650,7 @@ void __pagevec_release(struct pagevec *p
- 
- EXPORT_SYMBOL(__pagevec_release);
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /* used by __split_huge_page_refcount() */
- void lru_add_page_tail(struct zone* zone,
- 		       struct page *page, struct page *page_tail)
-@@ -666,8 +667,6 @@ void lru_add_page_tail(struct zone* zone
- 	SetPageLRU(page_tail);
- 
- 	if (page_evictable(page_tail, NULL)) {
--		struct lruvec *lruvec;
--
- 		if (PageActive(page)) {
- 			SetPageActive(page_tail);
- 			active = 1;
-@@ -677,18 +676,28 @@ void lru_add_page_tail(struct zone* zone
- 			lru = LRU_INACTIVE_ANON;
- 		}
- 		update_page_reclaim_stat(zone, page_tail, file, active);
--		lruvec = mem_cgroup_lru_add_list(zone, page_tail, lru);
--		if (likely(PageLRU(page)))
--			list_add(&page_tail->lru, page->lru.prev);
--		else
--			list_add(&page_tail->lru, lruvec->lists[lru].prev);
--		__mod_zone_page_state(zone, NR_LRU_BASE + lru,
--				      hpage_nr_pages(page_tail));
- 	} else {
- 		SetPageUnevictable(page_tail);
--		add_page_to_lru_list(zone, page_tail, LRU_UNEVICTABLE);
-+		lru = LRU_UNEVICTABLE;
-+	}
++/* Returns true if compaction should go ahead for a high-order request */
++static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
++{
++	unsigned long balance_gap, watermark;
++	bool watermark_ok;
 +
-+	if (likely(PageLRU(page)))
-+		list_add_tail(&page_tail->lru, &page->lru);
-+	else {
-+		struct list_head *list_head;
-+		/*
-+		 * Head page has not yet been counted, as an hpage,
-+		 * so we must account for each subpage individually.
-+		 *
-+		 * Use the standard add function to put page_tail on the list,
-+		 * but then correct its position so they all end up in order.
-+		 */
-+		add_page_to_lru_list(zone, page_tail, lru);
-+		list_head = page_tail->lru.prev;
-+		list_move_tail(&page_tail->lru, list_head);
- 	}
- }
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
- static void ____pagevec_lru_add_fn(struct page *page, void *arg)
- {
++	/* Do not consider compaction for orders reclaim is meant to satisfy */
++	if (sc->order <= PAGE_ALLOC_COSTLY_ORDER)
++		return false;
++
++	/*
++	 * Compaction takes time to run and there are potentially other
++	 * callers using the pages just freed. Continue reclaiming until
++	 * there is a buffer of free pages available to give compaction
++	 * a reasonable chance of completing and allocating the page
++	 */
++	balance_gap = min(low_wmark_pages(zone),
++		(zone->present_pages + KSWAPD_ZONE_BALANCE_GAP_RATIO-1) /
++			KSWAPD_ZONE_BALANCE_GAP_RATIO);
++	watermark = high_wmark_pages(zone) + balance_gap + (2UL << sc->order);
++	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, 0, 0);
++
++	/*
++	 * If compaction is deferred, reclaim up to a point where
++	 * compaction will have a chance of success when re-enabled
++	 */
++	if (compaction_deferred(zone))
++		return watermark_ok;
++
++	/* If compaction is not ready to start, keep reclaiming */
++	if (!compaction_suitable(zone, sc->order))
++		return false;
++
++	return watermark_ok;
++}
++
+ /*
+  * This is the direct reclaim path, for page-allocating processes.  We only
+  * try to reclaim pages from zones which will satisfy the caller's allocation
+@@ -2180,8 +2216,8 @@ static void shrink_zone(int priority, st
+  * scan then give up on it.
+  *
+  * This function returns true if a zone is being reclaimed for a costly
+- * high-order allocation and compaction is either ready to begin or deferred.
+- * This indicates to the caller that it should retry the allocation or fail.
++ * high-order allocation and compaction is ready to begin. This indicates to
++ * the caller that it should retry the allocation or fail.
+  */
+ static bool shrink_zones(int priority, struct zonelist *zonelist,
+ 					struct scan_control *sc)
+@@ -2215,9 +2251,7 @@ static bool shrink_zones(int priority, s
+ 				 * noticable problem, like transparent huge page
+ 				 * allocations.
+ 				 */
+-				if (sc->order > PAGE_ALLOC_COSTLY_ORDER &&
+-					(compaction_suitable(zone, sc->order) ||
+-					 compaction_deferred(zone))) {
++				if (compaction_ready(zone, sc)) {
+ 					should_abort_reclaim = true;
+ 					continue;
+ 				}
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-linux-next.patch
-prio_tree-debugging-patch.patch
+mm-fix-null-ptr-dereference-in-__count_immobile_pages.patch
+mm-__count_immobile_pages-make-sure-the-node-is-online.patch
 
