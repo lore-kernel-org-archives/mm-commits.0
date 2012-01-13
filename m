@@ -1,235 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-remove-unused-node-section-info-from-pc-flags.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:33:03 -0800
-Message-ID: <20120113203309.70EEA5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:33:14 -0800
+Message-ID: <20120113203315.2E1B95C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:49326 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759096Ab2AMUdN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:33:13 -0500
-Received: by eeke50 with SMTP id e50so23664eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:33:12 -0800 (PST)
+	with ESMTP id S1759096Ab2AMUdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:33:17 -0500
+Received: by mail-ee0-f74.google.com with SMTP id e50so23664eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:33:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jweiner@redhat.com, bsingharora@gmail.com, gthelen@google.com, hch@infradead.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com, walken@google.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, bsingharora@gmail.com, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: remove unused node/section info from pc->flags
+     Subject: memcg: make mem_cgroup_split_huge_fixup() more efficient
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-remove-unused-node-section-info-from-pc-flags.patch
+     memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Johannes Weiner <jweiner@redhat.com>
-Subject: mm: memcg: remove unused node/section info from pc->flags
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: make mem_cgroup_split_huge_fixup() more efficient
 
-To find the page corresponding to a certain page_cgroup, the pc->flags
-encoded the node or section ID with the base array to compare the pc
-pointer to.
+In split_huge_page(), mem_cgroup_split_huge_fixup() is called to handle
+page_cgroup modifcations.  It takes move_lock_page_cgroup() and modifies
+page_cgroup and LRU accounting jobs and called HPAGE_PMD_SIZE - 1 times.
 
-Now that the per-memory cgroup LRU lists link page descriptors directly,
-there is no longer any code that knows the struct page_cgroup of a PFN but
-not the struct page.
+But thinking again,
+  - compound_lock() is held at move_accout...then, it's not necessary
+    to take move_lock_page_cgroup().
+  - LRU is locked and all tail pages will go into the same LRU as
+    head is now on.
+  - page_cgroup is contiguous in huge page range.
 
-[hughd@google.com: remove unused node/section info from pc->flags fix]
-Signed-off-by: Johannes Weiner <jweiner@redhat.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+This patch fixes mem_cgroup_split_huge_fixup() as to be called once per
+hugepage and reduce costs for spliting.
+
+[akpm@linux-foundation.org: fix typo, per Michal]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |   33 -------------------
- mm/page_cgroup.c            |   59 ++++------------------------------
- 2 files changed, 7 insertions(+), 85 deletions(-)
+ include/linux/memcontrol.h |    5 ++---
+ mm/huge_memory.c           |    3 ++-
+ mm/memcontrol.c            |   34 +++++++++++++++++-----------------
+ 3 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/page_cgroup.h~mm-memcg-remove-unused-node-section-info-from-pc-flags include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~mm-memcg-remove-unused-node-section-info-from-pc-flags
-+++ a/include/linux/page_cgroup.h
-@@ -121,39 +121,6 @@ static inline void move_unlock_page_cgro
- 	local_irq_restore(*flags);
- }
+diff -puN include/linux/memcontrol.h~memcg-make-mem_cgroup_split_huge_fixup-more-efficient include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-make-mem_cgroup_split_huge_fixup-more-efficient
++++ a/include/linux/memcontrol.h
+@@ -163,7 +163,7 @@ u64 mem_cgroup_get_limit(struct mem_cgro
  
--#ifdef CONFIG_SPARSEMEM
--#define PCG_ARRAYID_WIDTH	SECTIONS_SHIFT
--#else
--#define PCG_ARRAYID_WIDTH	NODES_SHIFT
--#endif
--
--#if (PCG_ARRAYID_WIDTH > BITS_PER_LONG - NR_PCG_FLAGS)
--#error Not enough space left in pc->flags to store page_cgroup array IDs
--#endif
--
--/* pc->flags: ARRAY-ID | FLAGS */
--
--#define PCG_ARRAYID_MASK	((1UL << PCG_ARRAYID_WIDTH) - 1)
--
--#define PCG_ARRAYID_OFFSET	(BITS_PER_LONG - PCG_ARRAYID_WIDTH)
--/*
-- * Zero the shift count for non-existent fields, to prevent compiler
-- * warnings and ensure references are optimized away.
-- */
--#define PCG_ARRAYID_SHIFT	(PCG_ARRAYID_OFFSET * (PCG_ARRAYID_WIDTH != 0))
--
--static inline void set_page_cgroup_array_id(struct page_cgroup *pc,
--					    unsigned long id)
--{
--	pc->flags &= ~(PCG_ARRAYID_MASK << PCG_ARRAYID_SHIFT);
--	pc->flags |= (id & PCG_ARRAYID_MASK) << PCG_ARRAYID_SHIFT;
--}
--
--static inline unsigned long page_cgroup_array_id(struct page_cgroup *pc)
--{
--	return (pc->flags >> PCG_ARRAYID_SHIFT) & PCG_ARRAYID_MASK;
--}
--
- #else /* CONFIG_CGROUP_MEM_RES_CTLR */
- struct page_cgroup;
+ void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail);
++void mem_cgroup_split_huge_fixup(struct page *head);
+ #endif
  
-diff -puN mm/page_cgroup.c~mm-memcg-remove-unused-node-section-info-from-pc-flags mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-memcg-remove-unused-node-section-info-from-pc-flags
-+++ a/mm/page_cgroup.c
-@@ -11,12 +11,6 @@
- #include <linux/swapops.h>
- #include <linux/kmemleak.h>
- 
--static void __meminit init_page_cgroup(struct page_cgroup *pc, unsigned long id)
--{
--	pc->flags = 0;
--	set_page_cgroup_array_id(pc, id);
--	pc->mem_cgroup = NULL;
--}
- static unsigned long total_usage;
- 
- #if !defined(CONFIG_SPARSEMEM)
-@@ -41,28 +35,13 @@ struct page_cgroup *lookup_page_cgroup(s
- 	return base + offset;
- }
- 
--struct page *lookup_cgroup_page(struct page_cgroup *pc)
--{
--	unsigned long pfn;
--	struct page *page;
--	pg_data_t *pgdat;
--
--	pgdat = NODE_DATA(page_cgroup_array_id(pc));
--	pfn = pc - pgdat->node_page_cgroup + pgdat->node_start_pfn;
--	page = pfn_to_page(pfn);
--	VM_BUG_ON(pc != lookup_page_cgroup(page));
--	return page;
--}
--
- static int __init alloc_node_page_cgroup(int nid)
- {
--	struct page_cgroup *base, *pc;
-+	struct page_cgroup *base;
- 	unsigned long table_size;
--	unsigned long start_pfn, nr_pages, index;
-+	unsigned long nr_pages;
- 
--	start_pfn = NODE_DATA(nid)->node_start_pfn;
- 	nr_pages = NODE_DATA(nid)->node_spanned_pages;
--
- 	if (!nr_pages)
- 		return 0;
- 
-@@ -72,10 +51,6 @@ static int __init alloc_node_page_cgroup
- 			table_size, PAGE_SIZE, __pa(MAX_DMA_ADDRESS));
- 	if (!base)
- 		return -ENOMEM;
--	for (index = 0; index < nr_pages; index++) {
--		pc = base + index;
--		init_page_cgroup(pc, nid);
--	}
- 	NODE_DATA(nid)->node_page_cgroup = base;
- 	total_usage += table_size;
+ #ifdef CONFIG_DEBUG_VM
+@@ -379,8 +379,7 @@ u64 mem_cgroup_get_limit(struct mem_cgro
  	return 0;
-@@ -116,23 +91,10 @@ struct page_cgroup *lookup_page_cgroup(s
- 	return section->page_cgroup + pfn;
  }
  
--struct page *lookup_cgroup_page(struct page_cgroup *pc)
--{
--	struct mem_section *section;
--	struct page *page;
--	unsigned long nr;
--
--	nr = page_cgroup_array_id(pc);
--	section = __nr_to_section(nr);
--	page = pfn_to_page(pc - section->page_cgroup);
--	VM_BUG_ON(pc != lookup_page_cgroup(page));
--	return page;
--}
--
- static void *__meminit alloc_page_cgroup(size_t size, int nid)
+-static inline void mem_cgroup_split_huge_fixup(struct page *head,
+-						struct page *tail)
++static inline void mem_cgroup_split_huge_fixup(struct page *head)
  {
-+	gfp_t flags = GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN;
- 	void *addr = NULL;
--	gfp_t flags = GFP_KERNEL | __GFP_NOWARN;
- 
- 	addr = alloc_pages_exact_nid(nid, size, flags);
- 	if (addr) {
-@@ -141,9 +103,9 @@ static void *__meminit alloc_page_cgroup
- 	}
- 
- 	if (node_state(nid, N_HIGH_MEMORY))
--		addr = vmalloc_node(size, nid);
-+		addr = vzalloc_node(size, nid);
- 	else
--		addr = vmalloc(size);
-+		addr = vzalloc(size);
- 
- 	return addr;
  }
-@@ -166,14 +128,11 @@ static void free_page_cgroup(void *addr)
  
- static int __meminit init_section_page_cgroup(unsigned long pfn, int nid)
- {
--	struct page_cgroup *base, *pc;
- 	struct mem_section *section;
-+	struct page_cgroup *base;
- 	unsigned long table_size;
--	unsigned long nr;
--	int index;
+diff -puN mm/huge_memory.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient mm/huge_memory.c
+--- a/mm/huge_memory.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient
++++ a/mm/huge_memory.c
+@@ -1207,6 +1207,8 @@ static void __split_huge_page_refcount(s
+ 	/* prevent PageLRU to go away from under us, and freeze lru stats */
+ 	spin_lock_irq(&zone->lru_lock);
+ 	compound_lock(page);
++	/* complete memcg works before add pages to LRU */
++	mem_cgroup_split_huge_fixup(page);
  
--	nr = pfn_to_section_nr(pfn);
--	section = __nr_to_section(nr);
-+	section = __pfn_to_section(pfn);
+ 	for (i = 1; i < HPAGE_PMD_NR; i++) {
+ 		struct page *page_tail = page + i;
+@@ -1278,7 +1280,6 @@ static void __split_huge_page_refcount(s
+ 		BUG_ON(!PageDirty(page_tail));
+ 		BUG_ON(!PageSwapBacked(page_tail));
  
- 	if (section->page_cgroup)
- 		return 0;
-@@ -193,10 +152,6 @@ static int __meminit init_section_page_c
- 		return -ENOMEM;
+-		mem_cgroup_split_huge_fixup(page, page_tail);
+ 
+ 		lru_add_page_tail(zone, page, page_tail);
  	}
+diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient
++++ a/mm/memcontrol.c
+@@ -2553,39 +2553,39 @@ static void __mem_cgroup_commit_charge(s
+ 			(1 << PCG_ACCT_LRU) | (1 << PCG_MIGRATION))
+ /*
+  * Because tail pages are not marked as "used", set it. We're under
+- * zone->lru_lock, 'splitting on pmd' and compund_lock.
++ * zone->lru_lock, 'splitting on pmd' and compound_lock.
++ * charge/uncharge will be never happen and move_account() is done under
++ * compound_lock(), so we don't have to take care of races.
+  */
+-void mem_cgroup_split_huge_fixup(struct page *head, struct page *tail)
++void mem_cgroup_split_huge_fixup(struct page *head)
+ {
+ 	struct page_cgroup *head_pc = lookup_page_cgroup(head);
+-	struct page_cgroup *tail_pc = lookup_page_cgroup(tail);
+-	unsigned long flags;
++	struct page_cgroup *pc;
++	int i;
  
--	for (index = 0; index < PAGES_PER_SECTION; index++) {
--		pc = base + index;
--		init_page_cgroup(pc, nr);
--	}
- 	/*
- 	 * The passed "pfn" may not be aligned to SECTION.  For the calculation
- 	 * we need to apply a mask.
-_
-
-Patches currently in -mm which might be from jweiner@redhat.com are
-
-origin.patch
-mm-add-extra-free-kbytes-tunable.patch
-
+ 	if (mem_cgroup_disabled())
+ 		return;
+-	/*
+-	 * We have no races with charge/uncharge but will have races with
+-	 * page state accounting.
+-	 */
+-	move_lock_page_cgroup(head_pc, &flags);
++	for (i = 1; i < HPAGE_PMD_NR; i++) {
++		pc = head_pc + i;
++		pc->mem_cgroup = head_pc->mem_cgroup;
++		smp_wmb();/* see __commit_charge() */
++		/*
++		 * LRU flags cannot be copied because we need to add tail
++		 * page to LRU by generic call and our hooks will be called.
++		 */
++		pc->flags = head_pc->flags & ~PCGF_NOCOPY_AT_SPLIT;
++	}
+ 
+-	tail_pc->mem_cgroup = head_pc->mem_cgroup;
+-	smp_wmb(); /* see __commit_charge() */
+ 	if (PageCgroupAcctLRU(head_pc)) {
+ 		enum lru_list lru;
+ 		struct mem_cgroup_per_zone *mz;
