@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-initialize-before-using-a-hlist.patch added to -mm tree
-Date: Fri, 13 Jan 2012 13:43:44 -0800
-Message-ID: <20120113214344.A7834100100@wpzn3.hot.corp.google.com>
+Subject: + fsnotify-dont-bug-in-fsnotify_destroy_mark.patch added to -mm tree
+Date: Fri, 13 Jan 2012 13:48:25 -0800
+Message-ID: <20120113214825.A3FD710016D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:37230 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754048Ab2AMVnp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 16:43:45 -0500
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:38787 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754048Ab2AMVs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 16:48:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ananth@in.ibm.com, jkenisto@us.ibm.com, masami.hiramatsu.pt@hitachi.com, srinivasa@in.ibm.com, stable@vger.kernel.org
+Cc: mszeredi@suse.cz, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: kprobes: initialize before using a hlist
+     Subject: fsnotify: don't BUG in fsnotify_destroy_mark()
 has been added to the -mm tree.  Its filename is
-     kprobes-initialize-before-using-a-hlist.patch
+     fsnotify-dont-bug-in-fsnotify_destroy_mark.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,52 +31,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Subject: kprobes: initialize before using a hlist
+From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: fsnotify: don't BUG in fsnotify_destroy_mark()
 
-Commit ef53d9c5e ("kprobes: improve kretprobe scalability with hashed
-locking") introduced a bug where we can potentially leak
-kretprobe_instances since we initialize a hlist head after having used it.
+Removing the parent of a watched file results in "kernel BUG at
+fs/notify/mark.c:139".
 
-Initialize the hlist head before using it.
+To reproduce
 
-Reported by: Jim Keniston <jkenisto@us.ibm.com>
-Acked-by: Jim Keniston <jkenisto@us.ibm.com>
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Acked-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+  add "-w /tmp/audit/dir/watched_file" to audit.rules
+  rm -rf /tmp/audit/dir
+
+This is caused by fsnotify_destroy_mark() being called without an
+extra reference taken by the caller.
+
+Reported by Francesco Cosoleto here:
+
+  https://bugzilla.novell.com/show_bug.cgi?id=689860
+
+Fix by removing the BUG_ON and adding a comment about not accessing mark after
+the iput.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: <stable@vger.kernel.org>
-Cc: Srinivasa D S <srinivasa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/notify/mark.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-initialize-before-using-a-hlist kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-initialize-before-using-a-hlist
-+++ a/kernel/kprobes.c
-@@ -1077,6 +1077,7 @@ void __kprobes kprobe_flush_task(struct 
- 		/* Early boot.  kretprobe_table_locks not yet initialized. */
- 		return;
+diff -puN fs/notify/mark.c~fsnotify-dont-bug-in-fsnotify_destroy_mark fs/notify/mark.c
+--- a/fs/notify/mark.c~fsnotify-dont-bug-in-fsnotify_destroy_mark
++++ a/fs/notify/mark.c
+@@ -124,9 +124,6 @@ void fsnotify_destroy_mark(struct fsnoti
  
-+	INIT_HLIST_HEAD(&empty_rp);
- 	hash = hash_ptr(tk, KPROBE_HASH_BITS);
- 	head = &kretprobe_inst_table[hash];
- 	kretprobe_table_lock(hash, &flags);
-@@ -1085,7 +1086,6 @@ void __kprobes kprobe_flush_task(struct 
- 			recycle_rp_inst(ri, &empty_rp);
- 	}
- 	kretprobe_table_unlock(hash, &flags);
--	INIT_HLIST_HEAD(&empty_rp);
- 	hlist_for_each_entry_safe(ri, node, tmp, &empty_rp, hlist) {
- 		hlist_del(&ri->hlist);
- 		kfree(ri);
-_
-Subject: Subject: kprobes: initialize before using a hlist
-
-Patches currently in -mm which might be from ananth@in.ibm.com are
-
-origin.patch
-linux-next.patch
-kprobes-initialize-before-using-a-hlist.patch
-
+ 	mark->flags &= ~FSNOTIFY_MARK_FLAG_ALIVE;
+ 
+-	/* 1 from caller and 1 for being on i_list/g_list */
+-	BUG_ON(atomic_read(&mark->refcnt) < 2);
