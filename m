@@ -1,56 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [folded] panic-dont-print-redundant-backtraces-on-oops-fix.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:58:18 -0800
-Message-ID: <20120113005819.1400E5C0063@hpza9.eem.corp.google.com>
+Subject: [folded] dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:58:45 -0800
+Message-ID: <20120113005845.B38C61E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:36893 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756275Ab2AMA6V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:58:21 -0500
-Received: by wibhq12 with SMTP id hq12so87123wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:58:20 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:52901 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756312Ab2AMA6q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:58:46 -0500
+Received: by yhjj52 with SMTP id j52so8480yhj.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:58:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, holzheu@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic-dont-print-redundant-backtraces-on-oops-fix
+     Subject: dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     panic-dont-print-redundant-backtraces-on-oops-fix.patch
+     dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into panic-dont-print-redundant-backtraces-on-oops.patch
+This patch was dropped because it was folded into dio-optimize-cache-misses-in-the-submission-path-v2.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: panic-dont-print-redundant-backtraces-on-oops-fix
+Subject: dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes
 
-add comment
+ERROR: trailing whitespace
+#63: FILE: fs/direct-io.c:1109:
++^I/* $
+
+ERROR: trailing whitespace
+#80: FILE: fs/direct-io.c:1127:
++^I^Iif (unlikely((addr & blocksize_mask) || $
+
+WARNING: suspect code indent for conditional statements (24, 33)
+#82: FILE: fs/direct-io.c:1129:
+ 			if (bdev)
++				 blkbits = blksize_bits(
+
+ERROR: trailing whitespace
+#99: FILE: fs/direct-io.c:1319:
++^Istruct block_device *bdev, const struct iovec *iov, loff_t offset, $
+
+ERROR: trailing whitespace
+#103: FILE: fs/direct-io.c:1323:
++^I/* $
+
+ERROR: trailing whitespace
+#108: FILE: fs/direct-io.c:1328:
++^I * $
+
+total: 5 errors, 1 warnings, 80 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/dio-optimize-cache-misses-in-the-submission-path-v2.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/direct-io.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/panic.c~panic-dont-print-redundant-backtraces-on-oops-fix kernel/panic.c
---- a/kernel/panic.c~panic-dont-print-redundant-backtraces-on-oops-fix
-+++ a/kernel/panic.c
-@@ -94,6 +94,9 @@ void panic(const char *fmt, ...)
- 	va_end(args);
- 	printk(KERN_EMERG "Kernel panic - not syncing: %s\n",buf);
- #ifdef CONFIG_DEBUG_BUGVERBOSE
+diff -puN fs/direct-io.c~dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes fs/direct-io.c
+--- a/fs/direct-io.c~dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes
++++ a/fs/direct-io.c
+@@ -1109,7 +1109,7 @@ do_blockdev_direct_IO(int rw, struct kio
+ 	if (rw & WRITE)
+ 		rw = WRITE_ODIRECT;
+ 
+-	/* 
 +	/*
-+	 * Avoid nested stack-dumping if a panic occurs during oops processing
-+	 */
- 	if (!oops_in_progress)
- 		dump_stack();
- #endif
+ 	 * Avoid references to bdev if not absolutely needed to give
+ 	 * the early prefetch in the caller enough time.
+ 	 */
+@@ -1127,10 +1127,10 @@ do_blockdev_direct_IO(int rw, struct kio
+ 		addr = (unsigned long)iov[seg].iov_base;
+ 		size = iov[seg].iov_len;
+ 		end += size;
+-		if (unlikely((addr & blocksize_mask) || 
+-			     (size & blocksize_mask)))  {
++		if (unlikely((addr & blocksize_mask) ||
++			     (size & blocksize_mask))) {
+ 			if (bdev)
+-				 blkbits = blksize_bits(
++				blkbits = blksize_bits(
+ 					 bdev_logical_block_size(bdev));
+ 			blocksize_mask = (1 << blkbits) - 1;
+ 			if ((addr & blocksize_mask) || (size & blocksize_mask))
+@@ -1319,16 +1319,16 @@ out:
+ 
+ ssize_t
+ __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+-	struct block_device *bdev, const struct iovec *iov, loff_t offset, 
++	struct block_device *bdev, const struct iovec *iov, loff_t offset,
+ 	unsigned long nr_segs, get_block_t get_block, dio_iodone_t end_io,
+ 	dio_submit_t submit_io,	int flags)
+ {
+-	/* 
++	/*
+ 	 * The block device state is needed in the end to finally
+ 	 * submit everything.  Since it's likely to be cache cold
+ 	 * prefetch it here as first thing to hide some of the
+ 	 * latency.
+-	 * 
++	 *
+ 	 * Attempt to prefetch the pieces we likely need later.
+ 	 */
+ 	prefetch(&bdev->bd_disk->part_tbl);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +135,7 @@ mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
 kexec-remove-kmsg_dump_kexec.patch
 panic-dont-print-redundant-backtraces-on-oops.patch
 drivers-parport-parport_pcc-fix-warnings.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+dio-optimize-cache-misses-in-the-submission-path-v2.patch
 selftests-new-very-basic-kernel-selftests-directory.patch
 c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
 c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
