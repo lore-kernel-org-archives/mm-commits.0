@@ -1,67 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kdump-add-udev-events-for-memory-online-offline-fix.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:57:47 -0800
-Message-ID: <20120113005748.5200F20004E@hpza10.eem.corp.google.com>
+Subject: [folded] panic-dont-print-redundant-backtraces-on-oops-fix.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:58:18 -0800
+Message-ID: <20120113005819.1400E5C0063@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:50202 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756275Ab2AMA5u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:57:50 -0500
-Received: by wgbdt14 with SMTP id dt14so80379wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:57:49 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:36893 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756275Ab2AMA6V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:58:21 -0500
+Received: by wibhq12 with SMTP id hq12so87123wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:58:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, greg@kroah.com, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, holzheu@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump-add-udev-events-for-memory-online-offline-fix.txt
+     Subject: panic-dont-print-redundant-backtraces-on-oops-fix
 has been removed from the -mm tree.  Its filename was
-     kdump-add-udev-events-for-memory-online-offline-fix.patch
+     panic-dont-print-redundant-backtraces-on-oops-fix.patch
 
-This patch was dropped because it was folded into kdump-add-udev-events-for-memory-online-offline.patch
+This patch was dropped because it was folded into panic-dont-print-redundant-backtraces-on-oops.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: kdump-add-udev-events-for-memory-online-offline-fix.txt
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: panic-dont-print-redundant-backtraces-on-oops-fix
 
-memory: fix ups for class to subsystem conversion
+add comment
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/panic.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline-fix drivers/base/memory.c
---- a/drivers/base/memory.c~kdump-add-udev-events-for-memory-online-offline-fix
-+++ a/drivers/base/memory.c
-@@ -303,10 +303,10 @@ static int memory_block_change_state(str
- 	mem->state = to_state;
- 	switch (mem->state) {
- 	case MEM_OFFLINE:
--		kobject_uevent(&mem->sysdev.kobj, KOBJ_OFFLINE);
-+		kobject_uevent(&mem->dev.kobj, KOBJ_OFFLINE);
- 		break;
- 	case MEM_ONLINE:
--		kobject_uevent(&mem->sysdev.kobj, KOBJ_ONLINE);
-+		kobject_uevent(&mem->dev.kobj, KOBJ_ONLINE);
- 		break;
- 	default:
- 		break;
+diff -puN kernel/panic.c~panic-dont-print-redundant-backtraces-on-oops-fix kernel/panic.c
+--- a/kernel/panic.c~panic-dont-print-redundant-backtraces-on-oops-fix
++++ a/kernel/panic.c
+@@ -94,6 +94,9 @@ void panic(const char *fmt, ...)
+ 	va_end(args);
+ 	printk(KERN_EMERG "Kernel panic - not syncing: %s\n",buf);
+ #ifdef CONFIG_DEBUG_BUGVERBOSE
++	/*
++	 * Avoid nested stack-dumping if a panic occurs during oops processing
++	 */
+ 	if (!oops_in_progress)
+ 		dump_stack();
+ #endif
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-kdump-add-udev-events-for-memory-online-offline.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-fix.patch
+treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
+drivers-video-nvidia-nvidiac-fix-warning.patch
+pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch
+mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+memcg-clear-pc-mem_cgorup-if-necessary.patch
+memcg-simplify-lru-handling-by-new-rule.patch
+mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
+kexec-remove-kmsg_dump_kexec.patch
+panic-dont-print-redundant-backtraces-on-oops.patch
+drivers-parport-parport_pcc-fix-warnings.patch
+dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
+selftests-new-very-basic-kernel-selftests-directory.patch
+c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
+c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
+fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
 
