@@ -1,77 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kprobes-silence-debug_strict_user_copy_checks=y-warning.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:31:25 -0800
-Message-ID: <20120113203126.26AF320004E@hpza10.eem.corp.google.com>
+Subject: [merged] linkage-remove-unused-noret_and-macro.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:31:32 -0800
+Message-ID: <20120113203133.051BB5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ey0-f202.google.com ([209.85.215.202]:64132 "EHLO
 	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759049Ab2AMUb2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:31:28 -0500
-Received: by eaad12 with SMTP id d12so25335eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:31:27 -0800 (PST)
+	with ESMTP id S1759061Ab2AMUbe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:31:34 -0500
+Received: by mail-ey0-f202.google.com with SMTP id d12so25335eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:31:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, masami.hiramatsu.pt@hitachi.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes: silence DEBUG_STRICT_USER_COPY_CHECKS=y warning
+     Subject: include/linux/linkage.h: remove unused NORET_AND macro
 has been removed from the -mm tree.  Its filename was
-     kprobes-silence-debug_strict_user_copy_checks=y-warning.patch
+     linkage-remove-unused-noret_and-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: kprobes: silence DEBUG_STRICT_USER_COPY_CHECKS=y warning
+From: Joe Perches <joe@perches.com>
+Subject: include/linux/linkage.h: remove unused NORET_AND macro
 
-Enabling DEBUG_STRICT_USER_COPY_CHECKS causes the following warning:
+The only use in kernel.h is gone so remove the macro.
 
-In file included from arch/x86/include/asm/uaccess.h:573,
-                 from kernel/kprobes.c:55:
-In function 'copy_from_user',
-    inlined from 'write_enabled_file_bool' at
-    kernel/kprobes.c:2191:
-arch/x86/include/asm/uaccess_64.h:65:
-warning: call to 'copy_from_user_overflow' declared with
-attribute warning: copy_from_user() buffer size is not provably
-correct
-
-presumably due to buf_size being signed causing GCC to fail to see that
-buf_size can't become negative.
-
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: David S. Miller <davem@davemloft.net>
-Acked-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/linkage.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/kprobes.c~kprobes-silence-debug_strict_user_copy_checks=y-warning kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-silence-debug_strict_user_copy_checks=y-warning
-+++ a/kernel/kprobes.c
-@@ -2198,7 +2198,7 @@ static ssize_t write_enabled_file_bool(s
- 	       const char __user *user_buf, size_t count, loff_t *ppos)
- {
- 	char buf[32];
--	int buf_size;
-+	size_t buf_size;
+diff -puN include/linux/linkage.h~linkage-remove-unused-noret_and-macro include/linux/linkage.h
+--- a/include/linux/linkage.h~linkage-remove-unused-noret_and-macro
++++ a/include/linux/linkage.h
+@@ -90,6 +90,5 @@
  
- 	buf_size = min(count, (sizeof(buf)-1));
- 	if (copy_from_user(buf, user_buf, buf_size))
+ #define NORET_TYPE    /**/
+ #define ATTRIB_NORET  __attribute__((noreturn))
+-#define NORET_AND     noreturn,
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-debugobjects-fix-selftest-for-static-warnings.patch
-drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
 
