@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-pvscsi-maintainers-update.patch added to -mm tree
-Date: Fri, 13 Jan 2012 14:01:26 -0800
-Message-ID: <20120113220126.9909C1E0066@wpzn4.hot.corp.google.com>
+Subject: + drivers-video-backlight-adp88x0_blc-fix-bit-testing-logic.patch added to -mm tree
+Date: Fri, 13 Jan 2012 14:11:08 -0800
+Message-ID: <20120113221108.8F42A100073@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:65104 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752050Ab2AMWB1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 17:01:27 -0500
-Received: by ghrr18 with SMTP id r18so215699ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 14:01:27 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:50540 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756018Ab2AMWLJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 17:11:09 -0500
+Received: by yenl1 with SMTP id l1so81755yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 14:11:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akataria@vmware.com, James.Bottomley@HansenPartnership.com, arvindkumar@vmware.com
+Cc: axel.lin@gmail.com, michael.hennerich@analog.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: MAINTAINERS: pvscsi maintainers update
+     Subject: drivers/video/backlight/adp88x0_bl.c: fix bit testing logic
 has been added to the -mm tree.  Its filename is
-     maintainers-pvscsi-maintainers-update.patch
+     drivers-video-backlight-adp88x0_blc-fix-bit-testing-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alok N Kataria <akataria@vmware.com>
-Subject: MAINTAINERS: pvscsi maintainers update
+From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/video/backlight/adp88x0_bl.c: fix bit testing logic
 
-Welcome to Arvind Kumar, our new pvscsi maintainer.
+We need to write new value if the bit mask fields of new value is not
+equal to old value.  It does not make sense to write new value only when
+all the bit_mask bits are zero.
 
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
-Cc: Arvind Kumar <arvindkumar@vmware.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/adp8860_bl.c |    2 +-
+ drivers/video/backlight/adp8870_bl.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-pvscsi-maintainers-update MAINTAINERS
---- a/MAINTAINERS~maintainers-pvscsi-maintainers-update
-+++ a/MAINTAINERS
-@@ -7220,7 +7220,7 @@ S:	Maintained
- F:	drivers/net/vmxnet3/
+diff -puN drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp88x0_blc-fix-bit-testing-logic drivers/video/backlight/adp8860_bl.c
+--- a/drivers/video/backlight/adp8860_bl.c~drivers-video-backlight-adp88x0_blc-fix-bit-testing-logic
++++ a/drivers/video/backlight/adp8860_bl.c
+@@ -146,7 +146,7 @@ static int adp8860_set_bits(struct i2c_c
  
- VMware PVSCSI driver
--M:	Alok Kataria <akataria@vmware.com>
-+M:	Arvind Kumar <arvindkumar@vmware.com>
- M:	VMware PV-Drivers <pv-drivers@vmware.com>
- L:	linux-scsi@vger.kernel.org
- S:	Maintained
+ 	ret = adp8860_read(client, reg, &reg_val);
+ 
+-	if (!ret && ((reg_val & bit_mask) == 0)) {
++	if (!ret && ((reg_val & bit_mask) != bit_mask)) {
+ 		reg_val |= bit_mask;
+ 		ret = adp8860_write(client, reg, reg_val);
+ 	}
+diff -puN drivers/video/backlight/adp8870_bl.c~drivers-video-backlight-adp88x0_blc-fix-bit-testing-logic drivers/video/backlight/adp8870_bl.c
+--- a/drivers/video/backlight/adp8870_bl.c~drivers-video-backlight-adp88x0_blc-fix-bit-testing-logic
++++ a/drivers/video/backlight/adp8870_bl.c
+@@ -160,7 +160,7 @@ static int adp8870_set_bits(struct i2c_c
+ 
+ 	ret = adp8870_read(client, reg, &reg_val);
+ 
+-	if (!ret && ((reg_val & bit_mask) == 0)) {
++	if (!ret && ((reg_val & bit_mask) != bit_mask)) {
+ 		reg_val |= bit_mask;
+ 		ret = adp8870_write(client, reg, reg_val);
+ 	}
 _
-Subject: Subject: MAINTAINERS: pvscsi maintainers update
+Subject: Subject: drivers/video/backlight/adp88x0_bl.c: fix bit testing logic
 
-Patches currently in -mm which might be from akataria@vmware.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
-maintainers-pvscsi-maintainers-update.patch
+origin.patch
+linux-next.patch
+drivers-video-backlight-adp88x0_blc-fix-bit-testing-logic.patch
 
