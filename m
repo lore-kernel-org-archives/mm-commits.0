@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:33:43 -0800
-Message-ID: <20120113203343.BA12410004D@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-memcg-remove-unneeded-checks-from-newpage_charge.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:33:49 -0800
+Message-ID: <20120113203350.21C5020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:49865 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759096Ab2AMUdo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:33:44 -0500
-Received: by yenl1 with SMTP id l1so72157yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:33:44 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:37836 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759098Ab2AMUdw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:33:52 -0500
+Received: by mail-ey0-f202.google.com with SMTP id d12so25396eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:33:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jweiner@redhat.com, bsingharora@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: lookup_page_cgroup (almost) never returns NULL
+     Subject: mm: memcg: remove unneeded checks from newpage_charge()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-lookup_page_cgroup-almost-never-returns-null.patch
+     mm-memcg-remove-unneeded-checks-from-newpage_charge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,75 +26,51 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Johannes Weiner <jweiner@redhat.com>
-Subject: mm: memcg: lookup_page_cgroup (almost) never returns NULL
+Subject: mm: memcg: remove unneeded checks from newpage_charge()
 
-Pages have their corresponding page_cgroup descriptors set up before they
-are used in userspace, and thus managed by a memory cgroup.
+All callsites pass in freshly allocated pages and a valid mm.  As a
+result, all checks pertaining to the page's mapcount, page->mapping or the
+fallback to init_mm are unneeded.
 
-The only time where lookup_page_cgroup() can return NULL is in the
-CONFIG_DEBUG_VM-only page sanity checking code that executes while feeding
-pages into the page allocator for the first time.
-
-Remove the NULL checks against lookup_page_cgroup() results from all
-callsites where we know that corresponding page_cgroup descriptors must be
-allocated, and add a comment to the callsite that actually does have to
-check the return value.
-
-[hughd@google.com: stop oops in mem_cgroup_update_page_stat()]
 Signed-off-by: Johannes Weiner <jweiner@redhat.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-lookup_page_cgroup-almost-never-returns-null mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-lookup_page_cgroup-almost-never-returns-null
+diff -puN mm/memcontrol.c~mm-memcg-remove-unneeded-checks-from-newpage_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-remove-unneeded-checks-from-newpage_charge
 +++ a/mm/memcontrol.c
-@@ -1960,7 +1960,7 @@ void mem_cgroup_update_page_stat(struct 
- 	bool need_unlock = false;
- 	unsigned long uninitialized_var(flags);
+@@ -2748,19 +2748,11 @@ int mem_cgroup_newpage_charge(struct pag
+ {
+ 	if (mem_cgroup_disabled())
+ 		return 0;
+-	/*
+-	 * If already mapped, we don't have to account.
+-	 * If page cache, page->mapping has address_space.
+-	 * But page->mapping may have out-of-use anon_vma pointer,
+-	 * detecit it by PageAnon() check. newly-mapped-anon's page->mapping
+-	 * is NULL.
+-  	 */
+-	if (page_mapped(page) || (page->mapping && !PageAnon(page)))
+-		return 0;
+-	if (unlikely(!mm))
+-		mm = &init_mm;
++	VM_BUG_ON(page_mapped(page));
++	VM_BUG_ON(page->mapping && !PageAnon(page));
++	VM_BUG_ON(!mm);
+ 	return mem_cgroup_charge_common(page, mm, gfp_mask,
+-				MEM_CGROUP_CHARGE_TYPE_MAPPED);
++					MEM_CGROUP_CHARGE_TYPE_MAPPED);
+ }
  
--	if (unlikely(!pc))
-+	if (mem_cgroup_disabled())
- 		return;
- 
- 	rcu_read_lock();
-@@ -2735,8 +2735,6 @@ static int mem_cgroup_charge_common(stru
- 	}
- 
- 	pc = lookup_page_cgroup(page);
--	BUG_ON(!pc); /* XXX: remove this and move pc lookup into commit */
--
- 	ret = __mem_cgroup_try_charge(mm, gfp_mask, nr_pages, &memcg, oom);
- 	if (ret || !memcg)
- 		return ret;
-@@ -3008,7 +3006,7 @@ __mem_cgroup_uncharge_common(struct page
- 	 * Check if our page_cgroup is valid
- 	 */
- 	pc = lookup_page_cgroup(page);
--	if (unlikely(!pc || !PageCgroupUsed(pc)))
-+	if (unlikely(!PageCgroupUsed(pc)))
- 		return NULL;
- 
- 	lock_page_cgroup(pc);
-@@ -3436,6 +3434,11 @@ static struct page_cgroup *lookup_page_c
- 	struct page_cgroup *pc;
- 
- 	pc = lookup_page_cgroup(page);
-+	/*
-+	 * Can be NULL while feeding pages into the page allocator for
-+	 * the first time, i.e. during boot or memory hotplug;
-+	 * or when mem_cgroup_disabled().
-+	 */
- 	if (likely(pc) && PageCgroupUsed(pc))
- 		return pc;
- 	return NULL;
+ static void
 _
 
 Patches currently in -mm which might be from jweiner@redhat.com are
