@@ -1,125 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kdump-add-missing-ram-resource-in-crash_shrink_memory.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:36:19 -0800
-Message-ID: <20120113203619.C527610004D@wpzn3.hot.corp.google.com>
+Subject: [merged] kexec-remove-kmsg_dump_kexec.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:36:16 -0800
+Message-ID: <20120113203616.B397E1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:57534 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUgU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:20 -0500
-Received: by ggnk3 with SMTP id k3so355913ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:20 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:56060 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932798Ab2AMUgR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:17 -0500
+Received: by mail-yx0-f202.google.com with SMTP id l1so72336yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, ebiederm@xmission.com, jarod@redhat.com, kosaki.motohiro@jp.fujitsu.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: add missing RAM resource in crash_shrink_memory()
+     Subject: kexec: remove KMSG_DUMP_KEXEC
 has been removed from the -mm tree.  Its filename was
-     kdump-add-missing-ram-resource-in-crash_shrink_memory.patch
+     kexec-remove-kmsg_dump_kexec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: kdump: add missing RAM resource in crash_shrink_memory()
+From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: kexec: remove KMSG_DUMP_KEXEC
 
-When shrinking crashkernel memory using /sys/kernel/kexec_crash_size for
-the newly added memory no RAM resource is created at the moment.
+KMSG_DUMP_KEXEC is useless because we already save kernel messages inside
+/proc/vmcore, and it is unsafe to allow modules to do other stuffs in a
+crash dump scenario.
 
-Example:
-
-$ cat /proc/iomem
-00000000-bfffffff : System RAM
-  00000000-005b7ac3 : Kernel code
-  005b7ac4-009743bf : Kernel data
-  009bb000-00a85c33 : Kernel bss
-c0000000-cfffffff : Crash kernel
-d0000000-ffffffff : System RAM
-
-$ echo 0 > /sys/kernel/kexec_crash_size
-$ cat /proc/iomem
-00000000-bfffffff : System RAM
-  00000000-005b7ac3 : Kernel code
-  005b7ac4-009743bf : Kernel data
-  009bb000-00a85c33 : Kernel bss
-                                 <<-- here is System RAM missing
-d0000000-ffffffff : System RAM
-
-One result of this bug is that the memory chunk can never be set offline
-using memory hotplug.  With this patch I insert a new "System RAM"
-resource for the released memory.  Then the upper example looks like the
-following:
-
-$ echo 0 > /sys/kernel/kexec_crash_size
-$ cat /proc/iomem
-00000000-bfffffff : System RAM
-  00000000-005b7ac3 : Kernel code
-  005b7ac4-009743bf : Kernel data
-  009bb000-00a85c33 : Kernel bss
-c0000000-cfffffff : System RAM   <<-- new rescoure
-d0000000-ffffffff : System RAM
-
-And now I can set chunk c0000000-cfffffff offline.
-
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+[akpm@linux-foundation.org: fix powerpc build]
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Reported-by: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Jarod Wilson <jarod@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/powerpc/platforms/pseries/nvram.c |    1 -
+ drivers/char/ramoops.c                 |    3 +--
+ drivers/mtd/mtdoops.c                  |    3 +--
+ include/linux/kmsg_dump.h              |    1 -
+ kernel/kexec.c                         |    3 ---
+ 5 files changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN kernel/kexec.c~kdump-add-missing-ram-resource-in-crash_shrink_memory kernel/kexec.c
---- a/kernel/kexec.c~kdump-add-missing-ram-resource-in-crash_shrink_memory
+diff -puN arch/powerpc/platforms/pseries/nvram.c~kexec-remove-kmsg_dump_kexec arch/powerpc/platforms/pseries/nvram.c
+--- a/arch/powerpc/platforms/pseries/nvram.c~kexec-remove-kmsg_dump_kexec
++++ a/arch/powerpc/platforms/pseries/nvram.c
+@@ -638,7 +638,6 @@ static void oops_to_nvram(struct kmsg_du
+ 		/* These are almost always orderly shutdowns. */
+ 		return;
+ 	case KMSG_DUMP_OOPS:
+-	case KMSG_DUMP_KEXEC:
+ 		break;
+ 	case KMSG_DUMP_PANIC:
+ 		panicking = true;
+diff -puN drivers/char/ramoops.c~kexec-remove-kmsg_dump_kexec drivers/char/ramoops.c
+--- a/drivers/char/ramoops.c~kexec-remove-kmsg_dump_kexec
++++ a/drivers/char/ramoops.c
+@@ -83,8 +83,7 @@ static void ramoops_do_dump(struct kmsg_
+ 	struct timeval timestamp;
+ 
+ 	if (reason != KMSG_DUMP_OOPS &&
+-	    reason != KMSG_DUMP_PANIC &&
+-	    reason != KMSG_DUMP_KEXEC)
++	    reason != KMSG_DUMP_PANIC)
+ 		return;
+ 
+ 	/* Only dump oopses if dump_oops is set */
+diff -puN drivers/mtd/mtdoops.c~kexec-remove-kmsg_dump_kexec drivers/mtd/mtdoops.c
+--- a/drivers/mtd/mtdoops.c~kexec-remove-kmsg_dump_kexec
++++ a/drivers/mtd/mtdoops.c
+@@ -315,8 +315,7 @@ static void mtdoops_do_dump(struct kmsg_
+ 	char *dst;
+ 
+ 	if (reason != KMSG_DUMP_OOPS &&
+-	    reason != KMSG_DUMP_PANIC &&
+-	    reason != KMSG_DUMP_KEXEC)
++	    reason != KMSG_DUMP_PANIC)
+ 		return;
+ 
+ 	/* Only dump oopses if dump_oops is set */
+diff -puN include/linux/kmsg_dump.h~kexec-remove-kmsg_dump_kexec include/linux/kmsg_dump.h
+--- a/include/linux/kmsg_dump.h~kexec-remove-kmsg_dump_kexec
++++ a/include/linux/kmsg_dump.h
+@@ -18,7 +18,6 @@
+ enum kmsg_dump_reason {
+ 	KMSG_DUMP_OOPS,
+ 	KMSG_DUMP_PANIC,
+-	KMSG_DUMP_KEXEC,
+ 	KMSG_DUMP_RESTART,
+ 	KMSG_DUMP_HALT,
+ 	KMSG_DUMP_POWEROFF,
+diff -puN kernel/kexec.c~kexec-remove-kmsg_dump_kexec kernel/kexec.c
+--- a/kernel/kexec.c~kexec-remove-kmsg_dump_kexec
 +++ a/kernel/kexec.c
-@@ -1129,6 +1129,7 @@ int crash_shrink_memory(unsigned long ne
- {
- 	int ret = 0;
- 	unsigned long start, end;
-+	struct resource *ram_res;
+@@ -32,7 +32,6 @@
+ #include <linux/console.h>
+ #include <linux/vmalloc.h>
+ #include <linux/swap.h>
+-#include <linux/kmsg_dump.h>
+ #include <linux/syscore_ops.h>
  
- 	mutex_lock(&kexec_mutex);
+ #include <asm/page.h>
+@@ -1094,8 +1093,6 @@ void crash_kexec(struct pt_regs *regs)
+ 		if (kexec_crash_image) {
+ 			struct pt_regs fixed_regs;
  
-@@ -1146,6 +1147,12 @@ int crash_shrink_memory(unsigned long ne
- 		goto unlock;
- 	}
- 
-+	ram_res = kzalloc(sizeof(*ram_res), GFP_KERNEL);
-+	if (!ram_res) {
-+		ret = -ENOMEM;
-+		goto unlock;
-+	}
-+
- 	start = roundup(start, KEXEC_CRASH_MEM_ALIGN);
- 	end = roundup(start + new_size, KEXEC_CRASH_MEM_ALIGN);
- 
-@@ -1154,7 +1161,15 @@ int crash_shrink_memory(unsigned long ne
- 
- 	if ((start == end) && (crashk_res.parent != NULL))
- 		release_resource(&crashk_res);
-+
-+	ram_res->start = end;
-+	ram_res->end = crashk_res.end;
-+	ram_res->flags = IORESOURCE_BUSY | IORESOURCE_MEM;
-+	ram_res->name = "System RAM";
-+
- 	crashk_res.end = end - 1;
-+
-+	insert_resource(&iomem_resource, ram_res);
- 	crash_unmap_reserved_pages();
- 
- unlock:
-_
-
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
-
-origin.patch
-
+-			kmsg_dump(KMSG_DUMP_KEXEC);
