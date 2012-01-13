@@ -1,427 +1,503 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix_tree-take-radix_tree_path-off-stack.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:37:05 -0800
-Message-ID: <20120113203705.CE70810004D@wpzn3.hot.corp.google.com>
+Subject: [merged] selftests-new-x86-breakpoints-selftest.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:37:13 -0800
+Message-ID: <20120113203714.2C2C920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:43612 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUhH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:37:07 -0500
-Received: by yenl1 with SMTP id l1so72435yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:37:06 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57647 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932798Ab2AMUhQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:37:16 -0500
+Received: by mail-ee0-f74.google.com with SMTP id e50so23684eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:37:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, david@fromorbit.com, jack@suse.cz, mgorman@suse.de, nai.xia@gmail.com, mm-commits@vger.kernel.org
+To: fweisbec@gmail.com, hpa@zytor.com, jason.wessel@windriver.com, mingo@elte.hu, mmarek@suse.cz, sam@ravnborg.org, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix_tree: take radix_tree_path off stack
+     Subject: selftests: new x86 breakpoints selftest
 has been removed from the -mm tree.  Its filename was
-     radix_tree-take-radix_tree_path-off-stack.patch
+     selftests-new-x86-breakpoints-selftest.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: radix_tree: take radix_tree_path off stack
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: selftests: new x86 breakpoints selftest
 
-Down, down in the deepest depths of GFP_NOIO page reclaim, we have
-shrink_page_list() calling __remove_mapping() calling __delete_from_
-swap_cache() or __delete_from_page_cache().
+Bring a first selftest in the relevant directory.  This tests several
+combinations of breakpoints and watchpoints in x86, as well as icebp traps
+and int3 traps.  Given the amount of breakpoint regressions we raised
+after we merged the generic breakpoint infrastructure, such selftest
+became necessary and can still serve today as a basis for new patches that
+touch the do_debug() path.
 
-You would not expect those to need much stack, but in fact they call
-radix_tree_delete(): which declares a 192-byte radix_tree_path array on
-its stack (to record the node,offsets it visits when descending, in case
-it needs to ascend to update them).  And if any tag is still set [1], that
-calls radix_tree_tag_clear(), which declares a further such 192-byte
-radix_tree_path array on the stack.  (At least we have interrupts disabled
-here, so won't then be pushing registers too.)
-
-That was probably a good choice when most users were 32-bit (array of half
-the size), and adding fields to radix_tree_node would have bloated it
-unnecessarily.  But nowadays many are 64-bit, and each radix_tree_node
-contains a struct rcu_head, which is only used when freeing; whereas the
-radix_tree_path info is only used for updating the tree (deleting,
-clearing tags or setting tags if tagged) when a lock must be held, of no
-interest when accessing the tree locklessly.
-
-So add a parent pointer to the radix_tree_node, in union with the
-rcu_head, and remove all uses of the radix_tree_path.  There would be
-space in that union to save the offset when descending as before (we can
-argue that a lock must already be held to exclude other users), but
-recalculating it when ascending is both easy (a constant shift and a
-constant mask) and uncommon, so it seems better just to do that.
-
-Two little optimizations: no need to decrement height when descending,
-adjusting shift is enough; and once radix_tree_tag_if_tagged() has set tag
-on a node and its ancestors, it need not ascend from that node again.
-
-perf on the radix tree test harness reports radix_tree_insert() as 2%
-slower (now having to set parent), but radix_tree_delete() 24% faster. 
-Surely that's an exaggeration from rtth's artificially low map shift 3,
-but forcing it back to 6 still rates radix_tree_delete() 8% faster.
-
-[1] Can a pagecache tag (dirty, writeback or towrite) actually still be
-set at the time of radix_tree_delete()?  Perhaps not if the filesystem is
-well-behaved.  But although I've not tracked any stack overflow down to
-this cause, I have observed a curious case in which a dirty tag is set and
-left set on tmpfs: page migration's migrate_page_copy() happens to use
-__set_page_dirty_nobuffers() to set PageDirty on the newpage, and that
-sets PAGECACHE_TAG_DIRTY as a side-effect - harmless to a filesystem which
-doesn't use tags, except for this stack depth issue.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nai Xia <nai.xia@gmail.com>
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |  154 ++++++++++++++++++++++-----------------------
- 1 file changed, 76 insertions(+), 78 deletions(-)
+ tools/testing/selftests/Makefile                      |    2 
+ tools/testing/selftests/breakpoints/Makefile          |   20 
+ tools/testing/selftests/breakpoints/breakpoint_test.c |  394 ++++++++++
+ tools/testing/selftests/run_tests                     |    2 
+ 4 files changed, 416 insertions(+), 2 deletions(-)
 
-diff -puN lib/radix-tree.c~radix_tree-take-radix_tree_path-off-stack lib/radix-tree.c
---- a/lib/radix-tree.c~radix_tree-take-radix_tree_path-off-stack
-+++ a/lib/radix-tree.c
-@@ -48,16 +48,14 @@
- struct radix_tree_node {
- 	unsigned int	height;		/* Height from the bottom */
- 	unsigned int	count;
--	struct rcu_head	rcu_head;
-+	union {
-+		struct radix_tree_node *parent;	/* Used when ascending tree */
-+		struct rcu_head	rcu_head;	/* Used when freeing node */
-+	};
- 	void __rcu	*slots[RADIX_TREE_MAP_SIZE];
- 	unsigned long	tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS];
- };
+diff -puN tools/testing/selftests/Makefile~selftests-new-x86-breakpoints-selftest tools/testing/selftests/Makefile
+--- a/tools/testing/selftests/Makefile~selftests-new-x86-breakpoints-selftest
++++ a/tools/testing/selftests/Makefile
+@@ -1,4 +1,4 @@
+-TARGETS =
++TARGETS = breakpoints
  
--struct radix_tree_path {
--	struct radix_tree_node *node;
--	int offset;
--};
--
- #define RADIX_TREE_INDEX_BITS  (8 /* CHAR_BIT */ * sizeof(unsigned long))
- #define RADIX_TREE_MAX_PATH (DIV_ROUND_UP(RADIX_TREE_INDEX_BITS, \
- 					  RADIX_TREE_MAP_SHIFT))
-@@ -256,6 +254,7 @@ static inline unsigned long radix_tree_m
- static int radix_tree_extend(struct radix_tree_root *root, unsigned long index)
- {
- 	struct radix_tree_node *node;
-+	struct radix_tree_node *slot;
- 	unsigned int height;
- 	int tag;
- 
-@@ -274,18 +273,23 @@ static int radix_tree_extend(struct radi
- 		if (!(node = radix_tree_node_alloc(root)))
- 			return -ENOMEM;
- 
--		/* Increase the height.  */
--		node->slots[0] = indirect_to_ptr(root->rnode);
--
- 		/* Propagate the aggregated tag info into the new root */
- 		for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++) {
- 			if (root_tag_get(root, tag))
- 				tag_set(node, tag, 0);
- 		}
- 
-+		/* Increase the height.  */
- 		newheight = root->height+1;
- 		node->height = newheight;
- 		node->count = 1;
-+		node->parent = NULL;
-+		slot = root->rnode;
-+		if (newheight > 1) {
-+			slot = indirect_to_ptr(slot);
-+			slot->parent = node;
+ all:
+ 	for TARGET in $(TARGETS); do \
+diff -puN /dev/null tools/testing/selftests/breakpoints/Makefile
+--- /dev/null
++++ a/tools/testing/selftests/breakpoints/Makefile
+@@ -0,0 +1,20 @@
++# Taken from perf makefile
++uname_M := $(shell uname -m 2>/dev/null || echo not)
++ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
++ifeq ($(ARCH),i386)
++        ARCH := x86
++endif
++ifeq ($(ARCH),x86_64)
++	ARCH := x86
++endif
++
++
++all:
++ifeq ($(ARCH),x86)
++	gcc breakpoint_test.c -o run_test
++else
++	echo "Not an x86 target, can't build breakpoints selftests"
++endif
++
++clean:
++	rm -fr run_test
+diff -puN /dev/null tools/testing/selftests/breakpoints/breakpoint_test.c
+--- /dev/null
++++ a/tools/testing/selftests/breakpoints/breakpoint_test.c
+@@ -0,0 +1,394 @@
++/*
++ * Copyright (C) 2011 Red Hat, Inc., Frederic Weisbecker <fweisbec@redhat.com>
++ *
++ * Licensed under the terms of the GNU GPL License version 2
++ *
++ * Selftests for breakpoints (and more generally the do_debug() path) in x86.
++ */
++
++
++#include <sys/ptrace.h>
++#include <unistd.h>
++#include <stddef.h>
++#include <sys/user.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <signal.h>
++#include <sys/types.h>
++#include <sys/wait.h>
++
++
++/* Breakpoint access modes */
++enum {
++	BP_X = 1,
++	BP_RW = 2,
++	BP_W = 4,
++};
++
++static pid_t child_pid;
++
++/*
++ * Ensures the child and parent are always "talking" about
++ * the same test sequence. (ie: that we haven't forgotten
++ * to call check_trapped() somewhere).
++ */
++static int nr_tests;
++
++static void set_breakpoint_addr(void *addr, int n)
++{
++	int ret;
++
++	ret = ptrace(PTRACE_POKEUSER, child_pid,
++		     offsetof(struct user, u_debugreg[n]), addr);
++	if (ret) {
++		perror("Can't set breakpoint addr\n");
++		exit(-1);
++	}
++}
++
++static void toggle_breakpoint(int n, int type, int len,
++			      int local, int global, int set)
++{
++	int ret;
++
++	int xtype, xlen;
++	unsigned long vdr7, dr7;
++
++	switch (type) {
++	case BP_X:
++		xtype = 0;
++		break;
++	case BP_W:
++		xtype = 1;
++		break;
++	case BP_RW:
++		xtype = 3;
++		break;
++	}
++
++	switch (len) {
++	case 1:
++		xlen = 0;
++		break;
++	case 2:
++		xlen = 4;
++		break;
++	case 4:
++		xlen = 0xc;
++		break;
++	case 8:
++		xlen = 8;
++		break;
++	}
++
++	dr7 = ptrace(PTRACE_PEEKUSER, child_pid,
++		     offsetof(struct user, u_debugreg[7]), 0);
++
++	vdr7 = (xlen | xtype) << 16;
++	vdr7 <<= 4 * n;
++
++	if (local) {
++		vdr7 |= 1 << (2 * n);
++		vdr7 |= 1 << 8;
++	}
++	if (global) {
++		vdr7 |= 2 << (2 * n);
++		vdr7 |= 1 << 9;
++	}
++
++	if (set)
++		dr7 |= vdr7;
++	else
++		dr7 &= ~vdr7;
++
++	ret = ptrace(PTRACE_POKEUSER, child_pid,
++		     offsetof(struct user, u_debugreg[7]), dr7);
++	if (ret) {
++		perror("Can't set dr7");
++		exit(-1);
++	}
++}
++
++/* Dummy variables to test read/write accesses */
++static unsigned long long dummy_var[4];
++
++/* Dummy functions to test execution accesses */
++static void dummy_func(void) { }
++static void dummy_func1(void) { }
++static void dummy_func2(void) { }
++static void dummy_func3(void) { }
++
++static void (*dummy_funcs[])(void) = {
++	dummy_func,
++	dummy_func1,
++	dummy_func2,
++	dummy_func3,
++};
++
++static int trapped;
++
++static void check_trapped(void)
++{
++	/*
++	 * If we haven't trapped, wake up the parent
++	 * so that it notices the failure.
++	 */
++	if (!trapped)
++		kill(getpid(), SIGUSR1);
++	trapped = 0;
++
++	nr_tests++;
++}
++
++static void write_var(int len)
++{
++	char *pcval; short *psval; int *pival; long long *plval;
++	int i;
++
++	for (i = 0; i < 4; i++) {
++		switch (len) {
++		case 1:
++			pcval = (char *)&dummy_var[i];
++			*pcval = 0xff;
++			break;
++		case 2:
++			psval = (short *)&dummy_var[i];
++			*psval = 0xffff;
++			break;
++		case 4:
++			pival = (int *)&dummy_var[i];
++			*pival = 0xffffffff;
++			break;
++		case 8:
++			plval = (long long *)&dummy_var[i];
++			*plval = 0xffffffffffffffffLL;
++			break;
 +		}
-+		node->slots[0] = slot;
- 		node = ptr_to_indirect(node);
- 		rcu_assign_pointer(root->rnode, node);
- 		root->height = newheight;
-@@ -331,6 +335,7 @@ int radix_tree_insert(struct radix_tree_
- 			if (!(slot = radix_tree_node_alloc(root)))
- 				return -ENOMEM;
- 			slot->height = height;
-+			slot->parent = node;
- 			if (node) {
- 				rcu_assign_pointer(node->slots[offset], slot);
- 				node->count++;
-@@ -504,47 +509,41 @@ EXPORT_SYMBOL(radix_tree_tag_set);
- void *radix_tree_tag_clear(struct radix_tree_root *root,
- 			unsigned long index, unsigned int tag)
- {
--	/*
--	 * The radix tree path needs to be one longer than the maximum path
--	 * since the "list" is null terminated.
--	 */
--	struct radix_tree_path path[RADIX_TREE_MAX_PATH + 1], *pathp = path;
-+	struct radix_tree_node *node = NULL;
- 	struct radix_tree_node *slot = NULL;
- 	unsigned int height, shift;
-+	int uninitialized_var(offset);
- 
- 	height = root->height;
- 	if (index > radix_tree_maxindex(height))
- 		goto out;
- 
--	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
--	pathp->node = NULL;
-+	shift = height * RADIX_TREE_MAP_SHIFT;
- 	slot = indirect_to_ptr(root->rnode);
- 
--	while (height > 0) {
--		int offset;
--
-+	while (shift) {
- 		if (slot == NULL)
- 			goto out;
- 
-+		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
--		pathp[1].offset = offset;
--		pathp[1].node = slot;
-+		node = slot;
- 		slot = slot->slots[offset];
--		pathp++;
--		shift -= RADIX_TREE_MAP_SHIFT;
--		height--;
- 	}
- 
- 	if (slot == NULL)
- 		goto out;
- 
--	while (pathp->node) {
--		if (!tag_get(pathp->node, tag, pathp->offset))
-+	while (node) {
-+		if (!tag_get(node, tag, offset))
- 			goto out;
--		tag_clear(pathp->node, tag, pathp->offset);
--		if (any_tag_set(pathp->node, tag))
-+		tag_clear(node, tag, offset);
-+		if (any_tag_set(node, tag))
- 			goto out;
--		pathp--;
++		check_trapped();
++	}
++}
 +
-+		index >>= RADIX_TREE_MAP_SHIFT;
-+		offset = index & RADIX_TREE_MAP_MASK;
-+		node = node->parent;
- 	}
- 
- 	/* clear the root's tag bit */
-@@ -646,8 +645,7 @@ unsigned long radix_tree_range_tag_if_ta
- 		unsigned int iftag, unsigned int settag)
- {
- 	unsigned int height = root->height;
--	struct radix_tree_path path[height];
--	struct radix_tree_path *pathp = path;
-+	struct radix_tree_node *node = NULL;
- 	struct radix_tree_node *slot;
- 	unsigned int shift;
- 	unsigned long tagged = 0;
-@@ -671,14 +669,8 @@ unsigned long radix_tree_range_tag_if_ta
- 	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
- 	slot = indirect_to_ptr(root->rnode);
- 
--	/*
--	 * we fill the path from (root->height - 2) to 0, leaving the index at
--	 * (root->height - 1) as a terminator. Zero the node in the terminator
--	 * so that we can use this to end walk loops back up the path.
--	 */
--	path[height - 1].node = NULL;
--
- 	for (;;) {
-+		unsigned long upindex;
- 		int offset;
- 
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
-@@ -686,12 +678,10 @@ unsigned long radix_tree_range_tag_if_ta
- 			goto next;
- 		if (!tag_get(slot, iftag, offset))
- 			goto next;
--		if (height > 1) {
-+		if (shift) {
- 			/* Go down one level */
--			height--;
- 			shift -= RADIX_TREE_MAP_SHIFT;
--			path[height - 1].node = slot;
--			path[height - 1].offset = offset;
-+			node = slot;
- 			slot = slot->slots[offset];
- 			continue;
- 		}
-@@ -701,15 +691,27 @@ unsigned long radix_tree_range_tag_if_ta
- 		tag_set(slot, settag, offset);
- 
- 		/* walk back up the path tagging interior nodes */
--		pathp = &path[0];
--		while (pathp->node) {
-+		upindex = index;
-+		while (node) {
-+			upindex >>= RADIX_TREE_MAP_SHIFT;
-+			offset = upindex & RADIX_TREE_MAP_MASK;
++static void read_var(int len)
++{
++	char cval; short sval; int ival; long long lval;
++	int i;
 +
- 			/* stop if we find a node with the tag already set */
--			if (tag_get(pathp->node, settag, pathp->offset))
-+			if (tag_get(node, settag, offset))
- 				break;
--			tag_set(pathp->node, settag, pathp->offset);
--			pathp++;
-+			tag_set(node, settag, offset);
-+			node = node->parent;
- 		}
- 
-+		/*
-+		 * Small optimization: now clear that node pointer.
-+		 * Since all of this slot's ancestors now have the tag set
-+		 * from setting it above, we have no further need to walk
-+		 * back up the tree setting tags, until we update slot to
-+		 * point to another radix_tree_node.
-+		 */
-+		node = NULL;
-+
- next:
- 		/* Go to next item at level determined by 'shift' */
- 		index = ((index >> shift) + 1) << shift;
-@@ -724,8 +726,7 @@ next:
- 			 * last_index is guaranteed to be in the tree, what
- 			 * we do below cannot wander astray.
- 			 */
--			slot = path[height - 1].node;
--			height++;
-+			slot = slot->parent;
- 			shift += RADIX_TREE_MAP_SHIFT;
- 		}
- 	}
-@@ -1299,7 +1300,7 @@ static inline void radix_tree_shrink(str
- 	/* try to shrink tree height */
- 	while (root->height > 0) {
- 		struct radix_tree_node *to_free = root->rnode;
--		void *newptr;
-+		struct radix_tree_node *slot;
- 
- 		BUG_ON(!radix_tree_is_indirect_ptr(to_free));
- 		to_free = indirect_to_ptr(to_free);
-@@ -1320,10 +1321,12 @@ static inline void radix_tree_shrink(str
- 		 * (to_free->slots[0]), it will be safe to dereference the new
- 		 * one (root->rnode) as far as dependent read barriers go.
- 		 */
--		newptr = to_free->slots[0];
--		if (root->height > 1)
--			newptr = ptr_to_indirect(newptr);
--		root->rnode = newptr;
-+		slot = to_free->slots[0];
-+		if (root->height > 1) {
-+			slot->parent = NULL;
-+			slot = ptr_to_indirect(slot);
++	for (i = 0; i < 4; i++) {
++		switch (len) {
++		case 1:
++			cval = *(char *)&dummy_var[i];
++			break;
++		case 2:
++			sval = *(short *)&dummy_var[i];
++			break;
++		case 4:
++			ival = *(int *)&dummy_var[i];
++			break;
++		case 8:
++			lval = *(long long *)&dummy_var[i];
++			break;
 +		}
-+		root->rnode = slot;
- 		root->height--;
- 
- 		/*
-@@ -1363,16 +1366,12 @@ static inline void radix_tree_shrink(str
-  */
- void *radix_tree_delete(struct radix_tree_root *root, unsigned long index)
- {
--	/*
--	 * The radix tree path needs to be one longer than the maximum path
--	 * since the "list" is null terminated.
--	 */
--	struct radix_tree_path path[RADIX_TREE_MAX_PATH + 1], *pathp = path;
-+	struct radix_tree_node *node = NULL;
- 	struct radix_tree_node *slot = NULL;
- 	struct radix_tree_node *to_free;
- 	unsigned int height, shift;
- 	int tag;
--	int offset;
-+	int uninitialized_var(offset);
- 
- 	height = root->height;
- 	if (index > radix_tree_maxindex(height))
-@@ -1385,39 +1384,35 @@ void *radix_tree_delete(struct radix_tre
- 		goto out;
- 	}
- 	slot = indirect_to_ptr(slot);
--
--	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
--	pathp->node = NULL;
-+	shift = height * RADIX_TREE_MAP_SHIFT;
- 
- 	do {
- 		if (slot == NULL)
- 			goto out;
- 
--		pathp++;
-+		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
--		pathp->offset = offset;
--		pathp->node = slot;
-+		node = slot;
- 		slot = slot->slots[offset];
--		shift -= RADIX_TREE_MAP_SHIFT;
--		height--;
--	} while (height > 0);
-+	} while (shift);
- 
- 	if (slot == NULL)
- 		goto out;
- 
- 	/*
--	 * Clear all tags associated with the just-deleted item
-+	 * Clear all tags associated with the item to be deleted.
-+	 * This way of doing it would be inefficient, but seldom is any set.
- 	 */
- 	for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++) {
--		if (tag_get(pathp->node, tag, pathp->offset))
-+		if (tag_get(node, tag, offset))
- 			radix_tree_tag_clear(root, index, tag);
- 	}
- 
- 	to_free = NULL;
- 	/* Now free the nodes we do not need anymore */
--	while (pathp->node) {
--		pathp->node->slots[pathp->offset] = NULL;
--		pathp->node->count--;
-+	while (node) {
-+		node->slots[offset] = NULL;
-+		node->count--;
- 		/*
- 		 * Queue the node for deferred freeing after the
- 		 * last reference to it disappears (set NULL, above).
-@@ -1425,17 +1420,20 @@ void *radix_tree_delete(struct radix_tre
- 		if (to_free)
- 			radix_tree_node_free(to_free);
- 
--		if (pathp->node->count) {
--			if (pathp->node == indirect_to_ptr(root->rnode))
-+		if (node->count) {
-+			if (node == indirect_to_ptr(root->rnode))
- 				radix_tree_shrink(root);
- 			goto out;
- 		}
- 
- 		/* Node with zero slots in use so free it */
--		to_free = pathp->node;
--		pathp--;
-+		to_free = node;
- 
-+		index >>= RADIX_TREE_MAP_SHIFT;
-+		offset = index & RADIX_TREE_MAP_MASK;
-+		node = node->parent;
- 	}
++		check_trapped();
++	}
++}
 +
- 	root_tag_clear_all(root);
- 	root->height = 0;
- 	root->rnode = NULL;
++/*
++ * Do the r/w/x accesses to trigger the breakpoints. And run
++ * the usual traps.
++ */
++static void trigger_tests(void)
++{
++	int len, local, global, i;
++	char val;
++	int ret;
++
++	ret = ptrace(PTRACE_TRACEME, 0, NULL, 0);
++	if (ret) {
++		perror("Can't be traced?\n");
++		return;
++	}
++
++	/* Wake up father so that it sets up the first test */
++	kill(getpid(), SIGUSR1);
++
++	/* Test instruction breakpoints */
++	for (local = 0; local < 2; local++) {
++		for (global = 0; global < 2; global++) {
++			if (!local && !global)
++				continue;
++
++			for (i = 0; i < 4; i++) {
++				dummy_funcs[i]();
++				check_trapped();
++			}
++		}
++	}
++
++	/* Test write watchpoints */
++	for (len = 1; len <= sizeof(long); len <<= 1) {
++		for (local = 0; local < 2; local++) {
++			for (global = 0; global < 2; global++) {
++				if (!local && !global)
++					continue;
++				write_var(len);
++			}
++		}
++	}
++
++	/* Test read/write watchpoints (on read accesses) */
++	for (len = 1; len <= sizeof(long); len <<= 1) {
++		for (local = 0; local < 2; local++) {
++			for (global = 0; global < 2; global++) {
++				if (!local && !global)
++					continue;
++				read_var(len);
++			}
++		}
++	}
++
++	/* Icebp trap */
++	asm(".byte 0xf1\n");
++	check_trapped();
++
++	/* Int 3 trap */
++	asm("int $3\n");
++	check_trapped();
++
++	kill(getpid(), SIGUSR1);
++}
++
++static void check_success(const char *msg)
++{
++	const char *msg2;
++	int child_nr_tests;
++	int status;
++
++	/* Wait for the child to SIGTRAP */
++	wait(&status);
++
++	msg2 = "Failed";
++
++	if (WSTOPSIG(status) == SIGTRAP) {
++		child_nr_tests = ptrace(PTRACE_PEEKDATA, child_pid,
++					&nr_tests, 0);
++		if (child_nr_tests == nr_tests)
++			msg2 = "Ok";
++		if (ptrace(PTRACE_POKEDATA, child_pid, &trapped, 1)) {
++			perror("Can't poke\n");
++			exit(-1);
++		}
++	}
++
++	nr_tests++;
++
++	printf("%s [%s]\n", msg, msg2);
++}
++
++static void launch_instruction_breakpoints(char *buf, int local, int global)
++{
++	int i;
++
++	for (i = 0; i < 4; i++) {
++		set_breakpoint_addr(dummy_funcs[i], i);
++		toggle_breakpoint(i, BP_X, 1, local, global, 1);
++		ptrace(PTRACE_CONT, child_pid, NULL, 0);
++		sprintf(buf, "Test breakpoint %d with local: %d global: %d",
++			i, local, global);
++		check_success(buf);
++		toggle_breakpoint(i, BP_X, 1, local, global, 0);
++	}
++}
++
++static void launch_watchpoints(char *buf, int mode, int len,
++			       int local, int global)
++{
++	const char *mode_str;
++	int i;
++
++	if (mode == BP_W)
++		mode_str = "write";
++	else
++		mode_str = "read";
++
++	for (i = 0; i < 4; i++) {
++		set_breakpoint_addr(&dummy_var[i], i);
++		toggle_breakpoint(i, mode, len, local, global, 1);
++		ptrace(PTRACE_CONT, child_pid, NULL, 0);
++		sprintf(buf, "Test %s watchpoint %d with len: %d local: "
++			"%d global: %d", mode_str, i, len, local, global);
++		check_success(buf);
++		toggle_breakpoint(i, mode, len, local, global, 0);
++	}
++}
++
++/* Set the breakpoints and check the child successfully trigger them */
++static void launch_tests(void)
++{
++	char buf[1024];
++	int len, local, global, i;
++
++	/* Instruction breakpoints */
++	for (local = 0; local < 2; local++) {
++		for (global = 0; global < 2; global++) {
++			if (!local && !global)
++				continue;
++			launch_instruction_breakpoints(buf, local, global);
++		}
++	}
++
++	/* Write watchpoint */
++	for (len = 1; len <= sizeof(long); len <<= 1) {
++		for (local = 0; local < 2; local++) {
++			for (global = 0; global < 2; global++) {
++				if (!local && !global)
++					continue;
++				launch_watchpoints(buf, BP_W, len,
++						   local, global);
++			}
++		}
++	}
++
++	/* Read-Write watchpoint */
++	for (len = 1; len <= sizeof(long); len <<= 1) {
++		for (local = 0; local < 2; local++) {
++			for (global = 0; global < 2; global++) {
++				if (!local && !global)
++					continue;
++				launch_watchpoints(buf, BP_RW, len,
++						   local, global);
++			}
++		}
++	}
++
++	/* Icebp traps */
++	ptrace(PTRACE_CONT, child_pid, NULL, 0);
++	check_success("Test icebp");
++
++	/* Int 3 traps */
++	ptrace(PTRACE_CONT, child_pid, NULL, 0);
++	check_success("Test int 3 trap");
++
++	ptrace(PTRACE_CONT, child_pid, NULL, 0);
++}
++
++int main(int argc, char **argv)
++{
++	pid_t pid;
++	int ret;
++
++	pid = fork();
++	if (!pid) {
++		trigger_tests();
++		return 0;
++	}
++
++	child_pid = pid;
++
++	wait(NULL);
++
++	launch_tests();
++
++	wait(NULL);
++
++	return 0;
++}
+diff -puN tools/testing/selftests/run_tests~selftests-new-x86-breakpoints-selftest tools/testing/selftests/run_tests
+--- a/tools/testing/selftests/run_tests~selftests-new-x86-breakpoints-selftest
++++ a/tools/testing/selftests/run_tests
+@@ -1,6 +1,6 @@
+ #!/bin/bash
+ 
+-TARGETS=
++TARGETS=breakpoints
+ 
+ for TARGET in $TARGETS
+ do
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
 origin.patch
 linux-next.patch
-prio_tree-debugging-patch.patch
 
