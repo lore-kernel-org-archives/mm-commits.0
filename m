@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + uwb-use-for_each_clear_bit.patch added to -mm tree
-Date: Fri, 13 Jan 2012 14:56:22 -0800
-Message-ID: <20120113225622.82977100052@wpzn3.hot.corp.google.com>
+Subject: + x86-use-for_each_clear_bit_from.patch added to -mm tree
+Date: Fri, 13 Jan 2012 14:56:25 -0800
+Message-ID: <20120113225625.925A110004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:65188 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932966Ab2AMW4X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 17:56:23 -0500
-Received: by ghbg20 with SMTP id g20so1101ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 14:56:22 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:33463 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932966Ab2AMW40 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 17:56:26 -0500
+Received: by mail-gx0-f202.google.com with SMTP id k3so368945ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 14:56:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, david.vrabel@csr.com, stefano.panella@csr.com
+Cc: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: uwb: use for_each_clear_bit()
+     Subject: x86: use for_each_clear_bit_from()
 has been added to the -mm tree.  Its filename is
-     uwb-use-for_each_clear_bit.patch
+     x86-use-for_each_clear_bit_from.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: uwb: use for_each_clear_bit()
+Subject: x86: use for_each_clear_bit_from()
 
 Use for_each_clear_bit() to iterate over all the cleared bit in a
 memory region.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Stefano Panella <stefano.panella@csr.com>
-Cc: David Vrabel <david.vrabel@csr.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/allocator.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/x86/kernel/irqinit.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/uwb/allocator.c~uwb-use-for_each_clear_bit drivers/uwb/allocator.c
---- a/drivers/uwb/allocator.c~uwb-use-for_each_clear_bit
-+++ a/drivers/uwb/allocator.c
-@@ -334,10 +334,8 @@ int uwb_rsv_find_best_allocation(struct 
+diff -puN arch/x86/kernel/irqinit.c~x86-use-for_each_clear_bit_from arch/x86/kernel/irqinit.c
+--- a/arch/x86/kernel/irqinit.c~x86-use-for_each_clear_bit_from
++++ a/arch/x86/kernel/irqinit.c
+@@ -306,10 +306,10 @@ void __init native_init_IRQ(void)
+ 	 * us. (some of these will be overridden and become
+ 	 * 'special' SMP interrupts)
+ 	 */
+-	for (i = FIRST_EXTERNAL_VECTOR; i < NR_VECTORS; i++) {
++	i = FIRST_EXTERNAL_VECTOR;
++	for_each_clear_bit_from(i, used_vectors, NR_VECTORS) {
+ 		/* IA32_SYSCALL_VECTOR could be used in trap_init already. */
+-		if (!test_bit(i, used_vectors))
+-			set_intr_gate(i, interrupt[i-FIRST_EXTERNAL_VECTOR]);
++		set_intr_gate(i, interrupt[i - FIRST_EXTERNAL_VECTOR]);
+ 	}
  
- 
- 	/* fill the not available vector from the available bm */
--	for (bit_index = 0; bit_index < UWB_NUM_MAS; bit_index++) {
--		if (!test_bit(bit_index, available->bm))
--			ai->bm[bit_index] = UWB_RSV_MAS_NOT_AVAIL;
--	}
-+	for_each_clear_bit(bit_index, available->bm, UWB_NUM_MAS)
-+		ai->bm[bit_index] = UWB_RSV_MAS_NOT_AVAIL;
- 
- 	if (ai->max_interval == 1) {
- 		get_row_descriptors(ai);
+ 	if (!acpi_ioapic && !of_ioapic)
 _
-Subject: Subject: uwb: use for_each_clear_bit()
+Subject: Subject: x86: use for_each_clear_bit_from()
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
