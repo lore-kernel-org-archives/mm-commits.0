@@ -1,54 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:55:59 -0800
-Message-ID: <20120113005600.4A33020004E@hpza10.eem.corp.google.com>
+Subject: [folded] mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:57:18 -0800
+Message-ID: <20120113005719.B540420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:60111 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756322Ab2AMA4C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:56:02 -0500
-Received: by eaad12 with SMTP id d12so69553eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:56:01 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:37964 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756426Ab2AMA5V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:57:21 -0500
+Received: by werg1 with SMTP id g1so28wer.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:57:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgorman@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, consul.kautuk@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3
+     Subject: mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
+     mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
+This patch was dropped because it was folded into mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3
+Subject: mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
 
-tra la la
+remove now-unneeded tests
 
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Kautuk Consul <consul.kautuk@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/disk-io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/btrfs/disk-io.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3 fs/btrfs/disk-io.c
---- a/fs/btrfs/disk-io.c~mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3
-+++ a/fs/btrfs/disk-io.c
-@@ -888,7 +888,7 @@ static int btree_migratepage(struct addr
- 	if (page_has_private(page) &&
- 	    !try_to_release_page(page, GFP_KERNEL))
- 		return -EAGAIN;
--	return migrate_page(mapping, newpage, page, sync);
-+	return migrate_page(mapping, newpage, page, mode);
- }
- #endif
+diff -puN mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix
++++ a/mm/vmalloc.c
+@@ -2476,10 +2476,8 @@ found:
  
+ err_free:
+ 	for (area = 0; area < nr_vms; area++) {
+-		if (vas)
+-			kfree(vas[area]);
+-		if (vms)
+-			kfree(vms[area]);
++		kfree(vas[area]);
++		kfree(vms[area]);
+ 	}
+ err_free2:
+ 	kfree(vas);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +66,7 @@ memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
 memcg-clear-pc-mem_cgorup-if-necessary.patch
 memcg-simplify-lru-handling-by-new-rule.patch
 mm-compaction-introduce-sync-light-migration-for-use-by-compaction.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
+mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
 kexec-remove-kmsg_dump_kexec.patch
 panic-dont-print-redundant-backtraces-on-oops-fix.patch
 drivers-parport-parport_pcc-fix-warnings.patch
