@@ -1,80 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] parisc-exec-remove-redundant-set_fsuser_ds.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:32:08 -0800
-Message-ID: <20120113203208.9733B10004D@wpzn3.hot.corp.google.com>
+Subject: [merged] slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:32:11 -0800
+Message-ID: <20120113203211.A4BC010004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:55751 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756187Ab2AMUcJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:32:09 -0500
-Received: by mail-yx0-f202.google.com with SMTP id l1so72024yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:32:09 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:51298 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756187Ab2AMUcM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:32:12 -0500
+Received: by ghrr18 with SMTP id r18so207082ghr.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:32:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minipli@googlemail.com, deller@gmx.de, kyle@mcmartin.ca, mm-commits@vger.kernel.org
+To: sgruszka@redhat.com, penberg@cs.helsinki.fi, rientjes@google.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parisc, exec: remove redundant set_fs(USER_DS)
+     Subject: slub: document setting min order with debug_guardpage_minorder > 0
 has been removed from the -mm tree.  Its filename was
-     parisc-exec-remove-redundant-set_fsuser_ds.patch
+     slub-document-setting-min-order-with-debug_guardpage_minorder-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mathias Krause <minipli@googlemail.com>
-Subject: parisc, exec: remove redundant set_fs(USER_DS)
+From: Stanislaw Gruszka <sgruszka@redhat.com>
+Subject: slub: document setting min order with debug_guardpage_minorder > 0
 
-The address limit is already set in flush_old_exec() so those calls to
-set_fs(USER_DS) are redundant.
-
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Helge Deller <deller@gmx.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/processor.h |    2 --
- arch/parisc/kernel/process.c        |    1 -
- 2 files changed, 3 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-slab |    4 ++++
+ Documentation/vm/slub.txt                   |    5 ++++-
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/parisc/include/asm/processor.h~parisc-exec-remove-redundant-set_fsuser_ds arch/parisc/include/asm/processor.h
---- a/arch/parisc/include/asm/processor.h~parisc-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/parisc/include/asm/processor.h
-@@ -196,7 +196,6 @@ typedef unsigned int elf_caddr_t;
- 	/* offset pc for priv. level */			\
- 	pc |= 3;					\
- 							\
--	set_fs(USER_DS);				\
- 	regs->iasq[0] = spaceid;			\
- 	regs->iasq[1] = spaceid;			\
- 	regs->iaoq[0] = pc;				\
-@@ -299,7 +298,6 @@ on downward growing arches, it looks lik
- 	elf_addr_t pc = (elf_addr_t)new_pc | 3;		\
- 	elf_caddr_t *argv = (elf_caddr_t *)bprm->exec + 1;	\
- 							\
--	set_fs(USER_DS);				\
- 	regs->iasq[0] = spaceid;			\
- 	regs->iasq[1] = spaceid;			\
- 	regs->iaoq[0] = pc;				\
-diff -puN arch/parisc/kernel/process.c~parisc-exec-remove-redundant-set_fsuser_ds arch/parisc/kernel/process.c
---- a/arch/parisc/kernel/process.c~parisc-exec-remove-redundant-set_fsuser_ds
-+++ a/arch/parisc/kernel/process.c
-@@ -192,7 +192,6 @@ void flush_thread(void)
- 	/* Only needs to handle fpu stuff or perf monitors.
- 	** REVISIT: several arches implement a "lazy fpu state".
- 	*/
--	set_fs(USER_DS);
- }
+diff -puN Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0 Documentation/ABI/testing/sysfs-kernel-slab
+--- a/Documentation/ABI/testing/sysfs-kernel-slab~slub-document-setting-min-order-with-debug_guardpage_minorder-0
++++ a/Documentation/ABI/testing/sysfs-kernel-slab
+@@ -346,6 +346,10 @@ Description:
+ 		number of objects per slab.  If a slab cannot be allocated
+ 		because of fragmentation, SLUB will retry with the minimum order
+ 		possible depending on its characteristics.
++		When debug_guardpage_minorder=N (N > 0) parameter is specified
++		(see Documentation/kernel-parameters.txt), the minimum possible
++		order is used and this sysfs entry can not be used to change
++		the order at run time.
  
- void release_thread(struct task_struct *dead_task)
+ What:		/sys/kernel/slab/cache/order_fallback
+ Date:		April 2008
+diff -puN Documentation/vm/slub.txt~slub-document-setting-min-order-with-debug_guardpage_minorder-0 Documentation/vm/slub.txt
+--- a/Documentation/vm/slub.txt~slub-document-setting-min-order-with-debug_guardpage_minorder-0
++++ a/Documentation/vm/slub.txt
+@@ -131,7 +131,10 @@ slub_min_objects.
+ slub_max_order specified the order at which slub_min_objects should no
+ longer be checked. This is useful to avoid SLUB trying to generate
+ super large order pages to fit slub_min_objects of a slab cache with
+-large object sizes into one high order page.
++large object sizes into one high order page. Setting command line
++parameter debug_guardpage_minorder=N (N > 0), forces setting
++slub_max_order to 0, what cause minimum possible order of slabs
++allocation.
+ 
+ SLUB Debug output
+ -----------------
 _
 
-Patches currently in -mm which might be from minipli@googlemail.com are
+Patches currently in -mm which might be from sgruszka@redhat.com are
 
 origin.patch
-arm-exec-remove-redundant-set_fsuser_ds.patch
+linux-next.patch
 
