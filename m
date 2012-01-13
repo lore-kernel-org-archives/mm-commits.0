@@ -1,78 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch removed from -mm tree
-Date: Thu, 12 Jan 2012 16:46:22 -0800
-Message-ID: <20120113004623.66D815C0060@hpza9.eem.corp.google.com>
+Subject: [folded] mm-memcg-clean-up-fault-accounting-fix.patch removed from -mm tree
+Date: Thu, 12 Jan 2012 16:46:49 -0800
+Message-ID: <20120113004650.29E0F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:58672 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756690Ab2AMAqZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:46:25 -0500
-Received: by wibhq12 with SMTP id hq12so86803wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:46:24 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:33315 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756690Ab2AMAqw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jan 2012 19:46:52 -0500
+Received: by wgbdt14 with SMTP id dt14so80115wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jan 2012 16:46:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix
+     Subject: mm: memcg: clean up fault accounting fix
 has been removed from the -mm tree.  Its filename was
-     memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix.patch
+     mm-memcg-clean-up-fault-accounting-fix.patch
 
-This patch was dropped because it was folded into memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+This patch was dropped because it was folded into mm-memcg-clean-up-fault-accounting.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: clean up fault accounting fix
 
-fix typo, per Michal
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Knucklehead <hannes@cmpxchg.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-mem_cgroup_split_huge_fixup-more-efficient-fix
+diff -puN mm/memcontrol.c~mm-memcg-clean-up-fault-accounting-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-clean-up-fault-accounting-fix
 +++ a/mm/memcontrol.c
-@@ -2553,7 +2553,7 @@ static void __mem_cgroup_commit_charge(s
- 			(1 << PCG_ACCT_LRU) | (1 << PCG_MIGRATION))
- /*
-  * Because tail pages are not marked as "used", set it. We're under
-- * zone->lru_lock, 'splitting on pmd' and compund_lock.
-+ * zone->lru_lock, 'splitting on pmd' and compound_lock.
-  * charge/uncharge will be never happen and move_account() is done under
-  * compound_lock(), so we don't have to take care of races.
-  */
+@@ -968,10 +968,10 @@ void mem_cgroup_count_vm_event(struct mm
+ 		goto out;
+ 
+ 	switch (idx) {
+-	case PGMAJFAULT:
++	case PGFAULT:
+ 		this_cpu_inc(memcg->stat->events[MEM_CGROUP_EVENTS_PGFAULT]);
+ 		break;
+-	case PGFAULT:
++	case PGMAJFAULT:
+ 		this_cpu_inc(memcg->stat->events[MEM_CGROUP_EVENTS_PGMAJFAULT]);
+ 		break;
+ 	default:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-treewide-convert-uses-of-attrib_noreturn-to-__noreturn.patch
-drivers-video-nvidia-nvidiac-fix-warning.patch
-pipe-fail-cleanly-when-root-tries-f_setpipe_sz-with-big-size.patch
-mm-vmscan-distinguish-between-memcg-triggering-reclaim-and-memcg-being-scanned.patch
+memcg-add-mem_cgroup_replace_page_cache-to-fix-lru-issue.patch
 memcg-make-mem_cgroup_split_huge_fixup-more-efficient.patch
+memcg-fix-pgpgin-pgpgout-documentation.patch
+mm-memcg-clean-up-fault-accounting.patch
+mm-page_cgroup-check-page_cgroup-arrays-in-lookup_page_cgroup-only-when-necessary.patch
+page_cgroup-add-helper-function-to-get-swap_cgroup-cleanup.patch
+memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
+oom-memcg-fix-exclusion-of-memcg-threads-after-they-have-detached-their-mm.patch
+memcg-simplify-page-cache-charging.patch
+memcg-simplify-corner-case-handling-of-lru.patch
+memcg-clear-pc-mem_cgorup-if-necessary.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-2.patch
 memcg-clear-pc-mem_cgorup-if-necessary-fix-2-fix.patch
+memcg-clear-pc-mem_cgorup-if-necessary-comments.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-3.patch
+memcg-clear-pc-mem_cgorup-if-necessary-fix-page-migration-to-reset_owner.patch
+memcg-simplify-lru-handling-by-new-rule.patch
 memcg-simplify-lru-handling-by-new-rule-fix.patch
+memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge.patch
 memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix.patch
-mm-compaction-introduce-sync-light-migration-for-use-by-compaction-fix-fix-3.patch
-mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path-fix.patch
-kexec-remove-kmsg_dump_kexec.patch
-panic-dont-print-redundant-backtraces-on-oops-fix.patch
-drivers-parport-parport_pcc-fix-warnings.patch
-dio-optimize-cache-misses-in-the-submission-path-v2-checkpatch-fixes.patch
-selftests-new-very-basic-kernel-selftests-directory.patch
-c-r-procfs-add-start_data-end_data-start_brk-members-to-proc-pid-stat-v4-fix.patch
-c-r-prctl-add-pr_set_mm-codes-to-set-up-mm_struct-entries-fix.patch
-fixed-use-of-rounddown_pow_of_two-in-ramoops.patch
+memcg-simplify-lru-handling-by-new-rule-memcg-return-eintr-at-bypassing-try_charge-fix-null-mem_cgroup_try_charge.patch
+memcg-cleanup-for_each_node_state.patch
+page_alloc-break-early-in-check_for_regular_memory.patch
+page_cgroup-drop-multi-config_memory_hotplug.patch
+vmscan-trace-add-file-info-to-trace_mm_vmscan_lru_isolate.patch
+memcg-fix-split_huge_page_refcounts.patch
+memcg-fix-mem_cgroup_print_bad_page.patch
+mm-rearrange-putback_inactive_pages.patch
 
