@@ -1,67 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-pgpgin-pgpgout-documentation.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:33:27 -0800
-Message-ID: <20120113203328.11CC95C0050@hpza9.eem.corp.google.com>
+Subject: [merged] mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:33:31 -0800
+Message-ID: <20120113203331.B87411E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:49326 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759098Ab2AMUd3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:33:29 -0500
-Received: by mail-ee0-f74.google.com with SMTP id e50so23664eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:33:29 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:58777 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759098Ab2AMUdd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:33:33 -0500
+Received: by qcsc20 with SMTP id c20so97363qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:33:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghan@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: jweiner@redhat.com, bsingharora@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix pgpgin/pgpgout documentation
+     Subject: mm: oom_kill: remove memcg argument from oom_kill_task()
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-pgpgin-pgpgout-documentation.patch
+     mm-oom_kill-remove-memcg-argument-from-oom_kill_task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ying Han <yinghan@google.com>
-Subject: memcg: fix pgpgin/pgpgout documentation
+From: Johannes Weiner <jweiner@redhat.com>
+Subject: mm: oom_kill: remove memcg argument from oom_kill_task()
 
-The two memcg stats pgpgin/pgpgout have different meaning than the ones in
-vmstat, which indicates that we picked a bad naming for them.  It might be
-late to change the stat name, but better documentation is always helpful.
+The memcg argument of oom_kill_task() hasn't been used since 341aea2
+'oom-kill: remove boost_dying_task_prio()'.  Kill it.
 
-Signed-off-by: Ying Han <yinghan@google.com>
+Signed-off-by: Johannes Weiner <jweiner@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-fix-pgpgin-pgpgout-documentation Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-fix-pgpgin-pgpgout-documentation
-+++ a/Documentation/cgroups/memory.txt
-@@ -410,8 +410,11 @@ memory.stat file includes following stat
- cache		- # of bytes of page cache memory.
- rss		- # of bytes of anonymous and swap cache memory.
- mapped_file	- # of bytes of mapped file (includes tmpfs/shmem)
--pgpgin		- # of pages paged in (equivalent to # of charging events).
--pgpgout		- # of pages paged out (equivalent to # of uncharging events).
-+pgpgin		- # of charging events to the memory cgroup. The charging
-+		event happens each time a page is accounted as either mapped
-+		anon page(RSS) or cache page(Page Cache) to the cgroup.
-+pgpgout		- # of uncharging events to the memory cgroup. The uncharging
-+		event happens each time a page is unaccounted from the cgroup.
- swap		- # of bytes of swap usage
- inactive_anon	- # of bytes of anonymous memory and swap cache memory on
- 		LRU list.
+diff -puN mm/oom_kill.c~mm-oom_kill-remove-memcg-argument-from-oom_kill_task mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-remove-memcg-argument-from-oom_kill_task
++++ a/mm/oom_kill.c
+@@ -434,7 +434,7 @@ static void dump_header(struct task_stru
+ }
+ 
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+-static int oom_kill_task(struct task_struct *p, struct mem_cgroup *mem)
++static int oom_kill_task(struct task_struct *p)
+ {
+ 	struct task_struct *q;
+ 	struct mm_struct *mm;
+@@ -533,7 +533,7 @@ static int oom_kill_process(struct task_
+ 		}
+ 	} while_each_thread(p, t);
+ 
+-	return oom_kill_task(victim, mem);
++	return oom_kill_task(victim);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from yinghan@google.com are
+Patches currently in -mm which might be from jweiner@redhat.com are
 
 origin.patch
+mm-add-extra-free-kbytes-tunable.patch
 
