@@ -1,91 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:36:50 -0800
-Message-ID: <20120113203650.A960E1E0058@wpzn4.hot.corp.google.com>
+Subject: [merged] vfs-cache-request_queue-in-struct-block_device.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:36:53 -0800
+Message-ID: <20120113203654.1B78D5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:63424 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUgv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:51 -0500
-Received: by mail-yw0-f74.google.com with SMTP id j52so102213yhj.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:51 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57647 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932798Ab2AMUg4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:56 -0500
+Received: by mail-ee0-f74.google.com with SMTP id e50so23684eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: boyu.mt@taobao.com, hch@lst.de, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, axboe@kernel.dk, hch@lst.de, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/direct-io.c: calculate fs_count correctly in get_more_blocks()
+     Subject: vfs: cache request_queue in struct block_device
 has been removed from the -mm tree.  Its filename was
-     fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks.patch
+     vfs-cache-request_queue-in-struct-block_device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Tao Ma <boyu.mt@taobao.com>
-Subject: fs/direct-io.c: calculate fs_count correctly in get_more_blocks()
+From: Andi Kleen <ak@linux.intel.com>
+Subject: vfs: cache request_queue in struct block_device
 
-In get_more_blocks(), we use dio_count to calcuate fs_count and do some
-tricky things to increase fs_count if dio_count isn't aligned.  But
-actually it still has some corner cases that can't be coverd.  See the
-following example:
+This makes it possible to get from the inode to the request_queue with one
+less cache miss.  Used in followon optimization.
 
-	dio_write foo -s 1024 -w 4096
+The livetime of the pointer is the same as the gendisk.
 
-(direct write 4096 bytes at offset 1024).  The same goes if the offset
-isn't aligned to fs_blocksize.
+This assumes that the queue will always stay the same in the gendisk while
+it's visible to block_devices.  I think that's safe correct?
 
-In this case, the old calculation counts fs_count to be 1, but actually we
-will write into 2 different blocks (if fs_blocksize=4096).  The old code
-just works, since it will call get_block twice (and may have to allocate
-and create extents twice for filesystems like ext4).  So we'd better call
-get_block just once with the proper fs_count.
-
-Signed-off-by: Tao Ma <boyu.mt@taobao.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/block_dev.c     |    3 +++
+ include/linux/fs.h |    2 ++
+ 2 files changed, 5 insertions(+)
 
-diff -puN fs/direct-io.c~fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks fs/direct-io.c
---- a/fs/direct-io.c~fs-direct-ioc-calcuate-fs_count-correctly-in-get_more_blocks
-+++ a/fs/direct-io.c
-@@ -580,9 +580,8 @@ static int get_more_blocks(struct dio *d
- {
- 	int ret;
- 	sector_t fs_startblk;	/* Into file, in filesystem-sized blocks */
-+	sector_t fs_endblk;	/* Into file, in filesystem-sized blocks */
- 	unsigned long fs_count;	/* Number of filesystem-sized blocks */
--	unsigned long dio_count;/* Number of dio_block-sized blocks */
--	unsigned long blkmask;
- 	int create;
+diff -puN fs/block_dev.c~vfs-cache-request_queue-in-struct-block_device fs/block_dev.c
+--- a/fs/block_dev.c~vfs-cache-request_queue-in-struct-block_device
++++ a/fs/block_dev.c
+@@ -1139,6 +1139,7 @@ static int __blkdev_get(struct block_dev
+ 	mutex_lock_nested(&bdev->bd_mutex, for_part);
+ 	if (!bdev->bd_openers) {
+ 		bdev->bd_disk = disk;
++		bdev->bd_queue = disk->queue;
+ 		bdev->bd_contains = bdev;
+ 		if (!partno) {
+ 			struct backing_dev_info *bdi;
+@@ -1159,6 +1160,7 @@ static int __blkdev_get(struct block_dev
+ 					disk_put_part(bdev->bd_part);
+ 					bdev->bd_part = NULL;
+ 					bdev->bd_disk = NULL;
++					bdev->bd_queue = NULL;
+ 					mutex_unlock(&bdev->bd_mutex);
+ 					disk_unblock_events(disk);
+ 					put_disk(disk);
+@@ -1232,6 +1234,7 @@ static int __blkdev_get(struct block_dev
+ 	disk_put_part(bdev->bd_part);
+ 	bdev->bd_disk = NULL;
+ 	bdev->bd_part = NULL;
++	bdev->bd_queue = NULL;
+ 	bdev_inode_switch_bdi(bdev->bd_inode, &default_backing_dev_info);
+ 	if (bdev != bdev->bd_contains)
+ 		__blkdev_put(bdev->bd_contains, mode, 1);
+diff -puN include/linux/fs.h~vfs-cache-request_queue-in-struct-block_device include/linux/fs.h
+--- a/include/linux/fs.h~vfs-cache-request_queue-in-struct-block_device
++++ a/include/linux/fs.h
+@@ -660,6 +660,7 @@ struct address_space {
+ 	 * must be enforced here for CRIS, to let the least significant bit
+ 	 * of struct page's "mapping" pointer be used for PAGE_MAPPING_ANON.
+ 	 */
++struct request_queue;
  
+ struct block_device {
+ 	dev_t			bd_dev;  /* not a kdev_t - it's a search key */
+@@ -682,6 +683,7 @@ struct block_device {
+ 	unsigned		bd_part_count;
+ 	int			bd_invalidated;
+ 	struct gendisk *	bd_disk;
++	struct request_queue *  bd_queue;
+ 	struct list_head	bd_list;
  	/*
-@@ -593,11 +592,9 @@ static int get_more_blocks(struct dio *d
- 	if (ret == 0) {
- 		BUG_ON(sdio->block_in_file >= sdio->final_block_in_request);
- 		fs_startblk = sdio->block_in_file >> sdio->blkfactor;
--		dio_count = sdio->final_block_in_request - sdio->block_in_file;
--		fs_count = dio_count >> sdio->blkfactor;
--		blkmask = (1 << sdio->blkfactor) - 1;
--		if (dio_count & blkmask)	
--			fs_count++;
-+		fs_endblk = (sdio->final_block_in_request - 1) >>
-+					sdio->blkfactor;
-+		fs_count = fs_endblk - fs_startblk + 1;
- 
- 		map_bh->b_state = 0;
- 		map_bh->b_size = fs_count << dio->inode->i_blkbits;
+ 	 * Private data.  You must have bd_claim'ed the block_device
 _
 
-Patches currently in -mm which might be from boyu.mt@taobao.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
+linux-next.patch
 
