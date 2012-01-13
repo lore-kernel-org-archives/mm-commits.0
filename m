@@ -1,71 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-fix-null-pointer-deref-in-proc_pid_permission.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:31:21 -0800
-Message-ID: <20120113203122.2B0B020004E@hpza10.eem.corp.google.com>
+Subject: [merged] kernelh-neaten-panic-prototype.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:31:29 -0800
+Message-ID: <20120113203129.9125010004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:56633 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759018Ab2AMUbZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:31:25 -0500
-Received: by eeke50 with SMTP id e50so23612eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:31:23 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:52529 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759051Ab2AMUba (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:31:30 -0500
+Received: by ggnk3 with SMTP id k3so355515ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:31:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xtfeng@gmail.com, dannyfeng@tencent.com, rientjes@google.com, segoon@openwall.com, viro@zeniv.linux.org.uk, wilsons@start.ca, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: fix null pointer deref in proc_pid_permission()
+     Subject: kernel.h: neaten panic prototype
 has been removed from the -mm tree.  Its filename was
-     proc-fix-null-pointer-deref-in-proc_pid_permission.patch
+     kernelh-neaten-panic-prototype.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Xiaotian Feng <xtfeng@gmail.com>
-Subject: proc: fix null pointer deref in proc_pid_permission()
+From: Joe Perches <joe@perches.com>
+Subject: kernel.h: neaten panic prototype
 
-get_proc_task() can fail to search the task and return NULL,
-put_task_struct() will then bomb the kernel with following oops:
+Use __printf macro.
+Convert NORET_AND to ATTRIB_NORET.
+Use the normal kernel style for pointer arguments.
 
-[ 1870.574045] BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
-[ 1870.574065] IP: [<ffffffff81217d34>] proc_pid_permission+0x64/0xe0
-[ 1870.574088] PGD 112075067 PUD 112814067 PMD 0
-[ 1870.574106] Oops: 0002 [#1] PREEMPT SMP
-
-This is a regression introduced by commit 0499680a ("procfs: add hidepid=
-and gid= mount options").  The kernel should return -ESRCH if
-get_proc_task() failed.
-
-Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
-Cc: Stephen Wilson <wilsons@start.ca>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/kernel.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~proc-fix-null-pointer-deref-in-proc_pid_permission fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-null-pointer-deref-in-proc_pid_permission
-+++ a/fs/proc/base.c
-@@ -654,6 +654,8 @@ static int proc_pid_permission(struct in
- 	bool has_perms;
+diff -puN include/linux/kernel.h~kernelh-neaten-panic-prototype include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-neaten-panic-prototype
++++ a/include/linux/kernel.h
+@@ -185,8 +185,9 @@ static inline void might_fault(void)
  
- 	task = get_proc_task(inode);
-+	if (!task)
-+		return -ESRCH;
- 	has_perms = has_pid_permissions(pid, task, 1);
- 	put_task_struct(task);
- 
+ extern struct atomic_notifier_head panic_notifier_list;
+ extern long (*panic_blink)(int state);
+-NORET_TYPE void panic(const char * fmt, ...)
+-	__attribute__ ((NORET_AND format (printf, 1, 2))) __cold;
++NORET_TYPE __printf(1, 2)
++void panic(const char *fmt, ...)
++	ATTRIB_NORET __cold;
+ extern void oops_enter(void);
+ extern void oops_exit(void);
+ void print_oops_end_marker(void);
 _
 
-Patches currently in -mm which might be from xtfeng@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+linux-next.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
 
