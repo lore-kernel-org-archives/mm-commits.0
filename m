@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:32:45 -0800
-Message-ID: <20120113203245.E1DB910004D@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:32:49 -0800
+Message-ID: <20120113203249.EFACF1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:50902 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759096Ab2AMUcr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:32:47 -0500
-Received: by qcsc20 with SMTP id c20so97309qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:32:47 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:60119 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759097Ab2AMUcv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:32:51 -0500
+Received: by yenl1 with SMTP id l1so72097yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:32:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jweiner@redhat.com, bsingharora@gmail.com, gthelen@google.com, hch@infradead.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, minchan.kim@gmail.com, nishimura@mxp.nes.nec.co.jp, riel@redhat.com, walken@google.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: remove optimization of keeping the root_mem_cgroup LRU lists empty
+     Subject: mm: vmscan: convert global reclaim to per-memcg LRU lists
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty.patch
+     mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,21 +26,19 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Johannes Weiner <jweiner@redhat.com>
-Subject: mm: memcg: remove optimization of keeping the root_mem_cgroup LRU lists empty
-
-root_mem_cgroup, lacking a configurable limit, was never subject to limit
-reclaim, so the pages charged to it could be kept off its LRU lists.  They
-would be found on the global per-zone LRU lists upon physical memory
-pressure and it made sense to avoid uselessly linking them to both lists.
+Subject: mm: vmscan: convert global reclaim to per-memcg LRU lists
 
 The global per-zone LRU lists are about to go away on memcg-enabled
-kernels, with all pages being exclusively linked to their respective
-per-memcg LRU lists.  As a result, pages of the root_mem_cgroup must also
-be linked to its LRU lists again.  This is purely about the LRU list,
-root_mem_cgroup is still not charged.
+kernels, global reclaim must be able to find its pages on the per-memcg
+LRU lists.
 
-The overhead is temporary until the double-LRU scheme is going away
-completely.
+Since the LRU pages of a zone are distributed over all existing memory
+cgroups, a scan target for a zone is complete when all memory cgroups are
+scanned for their proportional share of a zone's memory.
+
+The forced scanning of small scan targets from kswapd is limited to zones
+marked unreclaimable, otherwise kswapd can quickly overreclaim by
+force-scanning the LRU lists of multiple memory cgroups.
 
 Signed-off-by: Johannes Weiner <jweiner@redhat.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -58,60 +56,80 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ mm/vmscan.c |   39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-remove-optimization-of-keeping-the-root_mem_cgroup-lru-lists-empty
-+++ a/mm/memcontrol.c
-@@ -1031,8 +1031,6 @@ void mem_cgroup_del_lru_list(struct page
- 	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
- 	/* huge page split is done under lru_lock. so, we have no races. */
- 	MEM_CGROUP_ZSTAT(mz, lru) -= 1 << compound_order(page);
--	if (mem_cgroup_is_root(pc->mem_cgroup))
--		return;
- 	VM_BUG_ON(list_empty(&pc->lru));
- 	list_del_init(&pc->lru);
- }
-@@ -1057,13 +1055,11 @@ void mem_cgroup_rotate_reclaimable_page(
- 		return;
+diff -puN mm/vmscan.c~mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-convert-global-reclaim-to-per-memcg-lru-lists
++++ a/mm/vmscan.c
+@@ -1886,7 +1886,7 @@ static void get_scan_count(struct mem_cg
+ 	 * latencies, so it's better to scan a minimum amount there as
+ 	 * well.
+ 	 */
+-	if (current_is_kswapd())
++	if (current_is_kswapd() && mz->zone->all_unreclaimable)
+ 		force_scan = true;
+ 	if (!global_reclaim(sc))
+ 		force_scan = true;
+@@ -2111,16 +2111,6 @@ static void shrink_zone(int priority, st
+ 	};
+ 	struct mem_cgroup *memcg;
  
- 	pc = lookup_page_cgroup(page);
--	/* unused or root page is not rotated. */
-+	/* unused page is not rotated. */
- 	if (!PageCgroupUsed(pc))
- 		return;
- 	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
- 	smp_rmb();
--	if (mem_cgroup_is_root(pc->mem_cgroup))
+-	if (global_reclaim(sc)) {
+-		struct mem_cgroup_zone mz = {
+-			.mem_cgroup = NULL,
+-			.zone = zone,
+-		};
+-
+-		shrink_mem_cgroup_zone(priority, &mz, sc);
 -		return;
- 	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
- 	list_move_tail(&pc->lru, &mz->lists[lru]);
- }
-@@ -1077,13 +1073,11 @@ void mem_cgroup_rotate_lru_list(struct p
- 		return;
+-	}
+-
+ 	memcg = mem_cgroup_iter(root, NULL, &reclaim);
+ 	do {
+ 		struct mem_cgroup_zone mz = {
+@@ -2134,6 +2124,10 @@ static void shrink_zone(int priority, st
+ 		 * scanned it with decreasing priority levels until
+ 		 * nr_to_reclaim had been reclaimed.  This priority
+ 		 * cycle is thus over after a single memcg.
++		 *
++		 * Direct reclaim and kswapd, on the other hand, have
++		 * to scan all memory cgroups to fulfill the overall
++		 * scan target for the zone.
+ 		 */
+ 		if (!global_reclaim(sc)) {
+ 			mem_cgroup_iter_break(root, memcg);
+@@ -2478,13 +2472,24 @@ unsigned long try_to_free_mem_cgroup_pag
+ static void age_active_anon(struct zone *zone, struct scan_control *sc,
+ 			    int priority)
+ {
+-	struct mem_cgroup_zone mz = {
+-		.mem_cgroup = NULL,
+-		.zone = zone,
+-	};
++	struct mem_cgroup *memcg;
++
++	if (!total_swap_pages)
++		return;
++
++	memcg = mem_cgroup_iter(NULL, NULL, NULL);
++	do {
++		struct mem_cgroup_zone mz = {
++			.mem_cgroup = memcg,
++			.zone = zone,
++		};
++
++		if (inactive_anon_is_low(&mz))
++			shrink_active_list(SWAP_CLUSTER_MAX, &mz,
++					   sc, priority, 0);
  
- 	pc = lookup_page_cgroup(page);
--	/* unused or root page is not rotated. */
-+	/* unused page is not rotated. */
- 	if (!PageCgroupUsed(pc))
- 		return;
- 	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
- 	smp_rmb();
--	if (mem_cgroup_is_root(pc->mem_cgroup))
--		return;
- 	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
- 	list_move(&pc->lru, &mz->lists[lru]);
- }
-@@ -1115,8 +1109,6 @@ void mem_cgroup_add_lru_list(struct page
- 	/* huge page split is done under lru_lock. so, we have no races. */
- 	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
- 	SetPageCgroupAcctLRU(pc);
--	if (mem_cgroup_is_root(pc->mem_cgroup))
--		return;
- 	list_add(&pc->lru, &mz->lists[lru]);
+-	if (inactive_anon_is_low(&mz))
+-		shrink_active_list(SWAP_CLUSTER_MAX, &mz, sc, priority, 0);
++		memcg = mem_cgroup_iter(NULL, memcg, NULL);
++	} while (memcg);
  }
  
+ /*
 _
 
 Patches currently in -mm which might be from jweiner@redhat.com are
