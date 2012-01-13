@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + bitops-remove-for_each_set_bit_cont.patch added to -mm tree
-Date: Fri, 13 Jan 2012 14:56:06 -0800
-Message-ID: <20120113225607.204221E004D@wpzn4.hot.corp.google.com>
+Subject: + mtd-use-for_each_clear_bit.patch added to -mm tree
+Date: Fri, 13 Jan 2012 14:56:14 -0800
+Message-ID: <20120113225615.C062E20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:49254 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932942Ab2AMW4I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 17:56:08 -0500
-Received: by yenl1 with SMTP id l1so85783yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 14:56:07 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:34568 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932936Ab2AMW4R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 17:56:17 -0500
+Received: by eaad12 with SMTP id d12so28630eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 14:56:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, hpa@zytor.com, mingo@redhat.com, robert.richter@amd.com, tglx@linutronix.de
+Cc: akinobu.mita@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     Subject: bitops: remove for_each_set_bit_cont()
+     Subject: mtd: use for_each_clear_bit()
 has been added to the -mm tree.  Its filename is
-     bitops-remove-for_each_set_bit_cont.patch
+     mtd-use-for_each_clear_bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: bitops: remove for_each_set_bit_cont()
+Subject: mtd: use for_each_clear_bit()
 
-Remove for_each_set_bit_cont() after confirming that no one uses
-for_each_set_bit_cont() anymore.
+Use for_each_clear_bit() to iterate over all the cleared bit in a
+memory region.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Robert Richter <robert.richter@amd.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/mtd/chips/cfi_cmdset_0001.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bitops.h~bitops-remove-for_each_set_bit_cont include/linux/bitops.h
---- a/include/linux/bitops.h~bitops-remove-for_each_set_bit_cont
-+++ a/include/linux/bitops.h
-@@ -32,9 +32,6 @@ extern unsigned long __sw_hweight64(__u6
- 	     (bit) < (size);					\
- 	     (bit) = find_next_bit((addr), (size), (bit) + 1))
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-use-for_each_clear_bit drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-use-for_each_clear_bit
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -2526,12 +2526,10 @@ static void cfi_intelext_restore_locks(s
+ 		if (!region->lockmap)
+ 			continue;
  
--#define for_each_set_bit_cont(bit, addr, size) \
--	for_each_set_bit_from(bit, addr, size)
+-		for (block = 0; block < region->numblocks; block++) {
++		for_each_clear_bit(block, region->lockmap, region->numblocks) {
+ 			len = region->erasesize;
+ 			adr = region->offset + block * len;
