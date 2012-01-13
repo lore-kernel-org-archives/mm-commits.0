@@ -1,191 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page_cgroup-add-helper-function-to-get-swap_cgroup.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:33:56 -0800
-Message-ID: <20120113203357.1BEB05C0050@hpza9.eem.corp.google.com>
+Subject: [merged] memcg-clean-up-soft_limit_tree-if-allocation-fails.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:34:00 -0800
+Message-ID: <20120113203401.2CEAA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ey0-f202.google.com ([209.85.215.202]:37836 "EHLO
 	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759098Ab2AMUd6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:33:58 -0500
+	with ESMTP id S1759096Ab2AMUeD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:34:03 -0500
 Received: by mail-ey0-f202.google.com with SMTP id d12so25396eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:33:58 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:34:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lliubbo@gmail.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, aarcange@redhat.com, bsingharora@gmail.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page_cgroup: add helper function to get swap_cgroup
+     Subject: memcg: free entries in soft_limit_tree if allocation fails
 has been removed from the -mm tree.  Its filename was
-     page_cgroup-add-helper-function-to-get-swap_cgroup.patch
+     memcg-clean-up-soft_limit_tree-if-allocation-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Bob Liu <lliubbo@gmail.com>
-Subject: page_cgroup: add helper function to get swap_cgroup
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: free entries in soft_limit_tree if allocation fails
 
-There are multiple places which need to get the swap_cgroup address, so
-add a helper function:
+If we are not able to allocate tree nodes for all NUMA nodes then we
+should release those that were allocated.
 
-static struct swap_cgroup *swap_cgroup_getsc(swp_entry_t ent,
-                                struct swap_cgroup_ctrl **ctrl);
-to simplify the code.
-
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |    4 +-
- mm/memcontrol.c             |    4 +-
- mm/page_cgroup.c            |   56 ++++++++++++----------------------
- 3 files changed, 24 insertions(+), 40 deletions(-)
+ mm/memcontrol.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/page_cgroup.h~page_cgroup-add-helper-function-to-get-swap_cgroup include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~page_cgroup-add-helper-function-to-get-swap_cgroup
-+++ a/include/linux/page_cgroup.h
-@@ -149,7 +149,7 @@ static inline void __init page_cgroup_in
- extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
- 					unsigned short old, unsigned short new);
- extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id);
--extern unsigned short lookup_swap_cgroup(swp_entry_t ent);
-+extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
- extern int swap_cgroup_swapon(int type, unsigned long max_pages);
- extern void swap_cgroup_swapoff(int type);
- #else
-@@ -161,7 +161,7 @@ unsigned short swap_cgroup_record(swp_en
- }
- 
- static inline
--unsigned short lookup_swap_cgroup(swp_entry_t ent)
-+unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
- {
- 	return 0;
- }
-diff -puN mm/memcontrol.c~page_cgroup-add-helper-function-to-get-swap_cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~page_cgroup-add-helper-function-to-get-swap_cgroup
+diff -puN mm/memcontrol.c~memcg-clean-up-soft_limit_tree-if-allocation-fails mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-clean-up-soft_limit_tree-if-allocation-fails
 +++ a/mm/memcontrol.c
-@@ -2474,7 +2474,7 @@ struct mem_cgroup *try_get_mem_cgroup_fr
- 			memcg = NULL;
- 	} else if (PageSwapCache(page)) {
- 		ent.val = page_private(page);
--		id = lookup_swap_cgroup(ent);
-+		id = lookup_swap_cgroup_id(ent);
- 		rcu_read_lock();
- 		memcg = mem_cgroup_lookup(id);
- 		if (memcg && !css_tryget(&memcg->css))
-@@ -5264,7 +5264,7 @@ static int is_target_pte_for_mc(struct v
+@@ -4960,7 +4960,7 @@ static int mem_cgroup_soft_limit_tree_in
+ 			tmp = -1;
+ 		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, tmp);
+ 		if (!rtpn)
+-			return 1;
++			goto err_cleanup;
+ 
+ 		soft_limit_tree.rb_tree_per_node[node] = rtpn;
+ 
+@@ -4971,6 +4971,16 @@ static int mem_cgroup_soft_limit_tree_in
+ 		}
  	}
- 	/* There is a swap entry and a page doesn't exist or isn't charged */
- 	if (ent.val && !ret &&
--			css_id(&mc.from->css) == lookup_swap_cgroup(ent)) {
-+			css_id(&mc.from->css) == lookup_swap_cgroup_id(ent)) {
- 		ret = MC_TARGET_SWAP;
- 		if (target)
- 			target->ent = ent;
-diff -puN mm/page_cgroup.c~page_cgroup-add-helper-function-to-get-swap_cgroup mm/page_cgroup.c
---- a/mm/page_cgroup.c~page_cgroup-add-helper-function-to-get-swap_cgroup
-+++ a/mm/page_cgroup.c
-@@ -334,7 +334,6 @@ struct swap_cgroup {
- 	unsigned short		id;
- };
- #define SC_PER_PAGE	(PAGE_SIZE/sizeof(struct swap_cgroup))
--#define SC_POS_MASK	(SC_PER_PAGE - 1)
- 
- /*
-  * SwapCgroup implements "lookup" and "exchange" operations.
-@@ -376,6 +375,21 @@ not_enough_page:
- 	return -ENOMEM;
+ 	return 0;
++
++err_cleanup:
++	for_each_node_state(node, N_POSSIBLE) {
++		if (!soft_limit_tree.rb_tree_per_node[node])
++			break;
++		kfree(soft_limit_tree.rb_tree_per_node[node]);
++		soft_limit_tree.rb_tree_per_node[node] = NULL;
++	}
++	return 1;
++
  }
  
-+static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
-+					struct swap_cgroup_ctrl **ctrlp)
-+{
-+	pgoff_t offset = swp_offset(ent);
-+	struct swap_cgroup_ctrl *ctrl;
-+	struct page *mappage;
-+
-+	ctrl = &swap_cgroup_ctrl[swp_type(ent)];
-+	if (ctrlp)
-+		*ctrlp = ctrl;
-+
-+	mappage = ctrl->map[offset / SC_PER_PAGE];
-+	return page_address(mappage) + offset % SC_PER_PAGE;
-+}
-+
- /**
-  * swap_cgroup_cmpxchg - cmpxchg mem_cgroup's id for this swp_entry.
-  * @end: swap entry to be cmpxchged
-@@ -388,21 +402,13 @@ not_enough_page:
- unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
- 					unsigned short old, unsigned short new)
- {
--	int type = swp_type(ent);
--	unsigned long offset = swp_offset(ent);
--	unsigned long idx = offset / SC_PER_PAGE;
--	unsigned long pos = offset & SC_POS_MASK;
- 	struct swap_cgroup_ctrl *ctrl;
--	struct page *mappage;
- 	struct swap_cgroup *sc;
- 	unsigned long flags;
- 	unsigned short retval;
- 
--	ctrl = &swap_cgroup_ctrl[type];
-+	sc = lookup_swap_cgroup(ent, &ctrl);
- 
--	mappage = ctrl->map[idx];
--	sc = page_address(mappage);
--	sc += pos;
- 	spin_lock_irqsave(&ctrl->lock, flags);
- 	retval = sc->id;
- 	if (retval == old)
-@@ -423,21 +429,13 @@ unsigned short swap_cgroup_cmpxchg(swp_e
-  */
- unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
- {
--	int type = swp_type(ent);
--	unsigned long offset = swp_offset(ent);
--	unsigned long idx = offset / SC_PER_PAGE;
--	unsigned long pos = offset & SC_POS_MASK;
- 	struct swap_cgroup_ctrl *ctrl;
--	struct page *mappage;
- 	struct swap_cgroup *sc;
- 	unsigned short old;
- 	unsigned long flags;
- 
--	ctrl = &swap_cgroup_ctrl[type];
-+	sc = lookup_swap_cgroup(ent, &ctrl);
- 
--	mappage = ctrl->map[idx];
--	sc = page_address(mappage);
--	sc += pos;
- 	spin_lock_irqsave(&ctrl->lock, flags);
- 	old = sc->id;
- 	sc->id = id;
-@@ -447,28 +445,14 @@ unsigned short swap_cgroup_record(swp_en
- }
- 
- /**
-- * lookup_swap_cgroup - lookup mem_cgroup tied to swap entry
-+ * lookup_swap_cgroup_id - lookup mem_cgroup id tied to swap entry
-  * @ent: swap entry to be looked up.
-  *
-  * Returns CSS ID of mem_cgroup at success. 0 at failure. (0 is invalid ID)
-  */
--unsigned short lookup_swap_cgroup(swp_entry_t ent)
-+unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
- {
--	int type = swp_type(ent);
--	unsigned long offset = swp_offset(ent);
--	unsigned long idx = offset / SC_PER_PAGE;
--	unsigned long pos = offset & SC_POS_MASK;
--	struct swap_cgroup_ctrl *ctrl;
--	struct page *mappage;
--	struct swap_cgroup *sc;
--	unsigned short ret;
+ static struct cgroup_subsys_state * __ref
+_
+
+Patches currently in -mm which might be from mhocko@suse.cz are
+
+origin.patch
+mm-fix-null-ptr-dereference-in-__count_immobile_pages.patch
+mm-__count_immobile_pages-make-sure-the-node-is-online.patch
+mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
+
