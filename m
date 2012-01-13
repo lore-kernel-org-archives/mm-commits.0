@@ -1,76 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpumask-update-setup_node_to_cpumask_map-comments.patch removed from -mm tree
-Date: Fri, 13 Jan 2012 12:36:12 -0800
-Message-ID: <20120113203613.0914E5C0060@hpza9.eem.corp.google.com>
+Subject: [merged] mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch removed from -mm tree
+Date: Fri, 13 Jan 2012 12:36:08 -0800
+Message-ID: <20120113203609.0BF0D5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ww0-f74.google.com ([74.125.82.74]:40171 "EHLO
 	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUgO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:14 -0500
+	with ESMTP id S1759146Ab2AMUgK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 15:36:10 -0500
 Received: by mail-ww0-f74.google.com with SMTP id dt14so106252wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:13 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 12:36:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gaowanlong@cn.fujitsu.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: consul.kautuk@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpumask: update setup_node_to_cpumask_map() comments
+     Subject: mm/vmalloc.c: eliminate extra loop in pcpu_get_vm_areas error path
 has been removed from the -mm tree.  Its filename was
-     cpumask-update-setup_node_to_cpumask_map-comments.patch
+     mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Subject: cpumask: update setup_node_to_cpumask_map() comments
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Subject: mm/vmalloc.c: eliminate extra loop in pcpu_get_vm_areas error path
 
-node_to_cpumask() has been replaced by cpumask_of_node(), and wholly
-removed since commit 29c337a0 ("cpumask: remove obsolete node_to_cpumask
-now everyone uses cpumask_of_node").
+If either of the vas or vms arrays are not properly kzalloced, then the
+code jumps to the err_free label.
 
-So update the comments for setup_node_to_cpumask_map().
+The err_free label runs a loop to check and free each of the array members
+of the vas and vms arrays which is not required for this situation as none
+of the array members have been allocated till this point.
 
-Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Eliminate the extra loop we have to go through by introducing a new label
+err_free2 and then jumping to it.
+
+[akpm@linux-foundation.org: remove now-unneeded tests]
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/numa.c |    2 +-
- arch/x86/mm/numa.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/mm/numa.c~cpumask-update-setup_node_to_cpumask_map-comments arch/powerpc/mm/numa.c
---- a/arch/powerpc/mm/numa.c~cpumask-update-setup_node_to_cpumask_map-comments
-+++ a/arch/powerpc/mm/numa.c
-@@ -58,7 +58,7 @@ static int distance_lookup_table[MAX_NUM
-  * Allocate node_to_cpumask_map based on number of available nodes
-  * Requires node_possible_map to be valid.
-  *
-- * Note: node_to_cpumask() is not valid until after this is done.
-+ * Note: cpumask_of_node() is not valid until after this is done.
-  */
- static void __init setup_node_to_cpumask_map(void)
- {
-diff -puN arch/x86/mm/numa.c~cpumask-update-setup_node_to_cpumask_map-comments arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~cpumask-update-setup_node_to_cpumask_map-comments
-+++ a/arch/x86/mm/numa.c
-@@ -110,7 +110,7 @@ void __cpuinit numa_clear_node(int cpu)
-  * Allocate node_to_cpumask_map based on number of available nodes
-  * Requires node_possible_map to be valid.
-  *
-- * Note: node_to_cpumask() is not valid until after this is done.
-+ * Note: cpumask_of_node() is not valid until after this is done.
-  * (Use CONFIG_DEBUG_PER_CPU_MAPS to check this.)
-  */
- void __init setup_node_to_cpumask_map(void)
+diff -puN mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-eliminate-extra-loop-in-pcpu_get_vm_areas-error-path
++++ a/mm/vmalloc.c
+@@ -2378,7 +2378,7 @@ struct vm_struct **pcpu_get_vm_areas(con
+ 	vms = kzalloc(sizeof(vms[0]) * nr_vms, GFP_KERNEL);
+ 	vas = kzalloc(sizeof(vas[0]) * nr_vms, GFP_KERNEL);
+ 	if (!vas || !vms)
+-		goto err_free;
++		goto err_free2;
+ 
+ 	for (area = 0; area < nr_vms; area++) {
+ 		vas[area] = kzalloc(sizeof(struct vmap_area), GFP_KERNEL);
+@@ -2476,11 +2476,10 @@ found:
+ 
+ err_free:
+ 	for (area = 0; area < nr_vms; area++) {
+-		if (vas)
+-			kfree(vas[area]);
+-		if (vms)
+-			kfree(vms[area]);
++		kfree(vas[area]);
++		kfree(vms[area]);
+ 	}
++err_free2:
+ 	kfree(vas);
+ 	kfree(vms);
+ 	return NULL;
 _
 
-Patches currently in -mm which might be from gaowanlong@cn.fujitsu.com are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
 origin.patch
-linux-next.patch
 
