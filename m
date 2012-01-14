@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch added to -mm tree
-Date: Fri, 13 Jan 2012 16:48:38 -0800
-Message-ID: <20120114004839.C539F5C0060@hpza9.eem.corp.google.com>
+Subject: + mm-oom-fold-oom_kill_task-into-oom_kill_process.patch added to -mm tree
+Date: Fri, 13 Jan 2012 16:48:42 -0800
+Message-ID: <20120114004843.281F1100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:42007 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754099Ab2ANAsm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 19:48:42 -0500
-Received: by eaad12 with SMTP id d12so30547eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 16:48:40 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:63060 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754099Ab2ANAso (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 19:48:44 -0500
+Received: by qcsc20 with SMTP id c20so120524qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 16:48:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fuji
 
 
 The patch titled
-     Subject: mm, oom: avoid looping when chosen thread detaches its mm
+     Subject: mm, oom: fold oom_kill_task() into oom_kill_process()
 has been added to the -mm tree.  Its filename is
-     mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
+     mm-oom-fold-oom_kill_task-into-oom_kill_process.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,133 +34,140 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: avoid looping when chosen thread detaches its mm
+Subject: mm, oom: fold oom_kill_task() into oom_kill_process()
 
-oom_kill_task() returns non-zero iff the chosen process does not have any
-threads with an attached ->mm.
+oom_kill_task() has a single caller, so fold it into its parent function,
+oom_kill_process().  Slightly reduces the number of lines in the oom
+killer.
 
-In such a case, it's better to just return to the page allocator and retry
-the allocation because memory could have been freed in the interim and the
-oom condition may no longer exist.  It's unnecessary to loop in the oom
-killer and find another thread to kill.
-
-This allows both oom_kill_task() and oom_kill_process() to be converted to
-void functions.  If the oom condition persists, the oom killer will be
-recalled.
-
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   56 +++++++++++++++++-------------------------------
- 1 file changed, 20 insertions(+), 36 deletions(-)
+ mm/oom_kill.c |   85 +++++++++++++++++++++---------------------------
+ 1 file changed, 38 insertions(+), 47 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm
+diff -puN mm/oom_kill.c~mm-oom-fold-oom_kill_task-into-oom_kill_process mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-fold-oom_kill_task-into-oom_kill_process
 +++ a/mm/oom_kill.c
-@@ -434,14 +434,14 @@ static void dump_header(struct task_stru
+@@ -434,52 +434,6 @@ static void dump_header(struct task_stru
  }
  
  #define K(x) ((x) << (PAGE_SHIFT-10))
--static int oom_kill_task(struct task_struct *p)
-+static void oom_kill_task(struct task_struct *p)
- {
- 	struct task_struct *q;
- 	struct mm_struct *mm;
- 
- 	p = find_lock_task_mm(p);
- 	if (!p)
--		return 1;
-+		return;
- 
- 	/* mm cannot be safely dereferenced after task_unlock(p) */
- 	mm = p->mm;
-@@ -477,15 +477,13 @@ static int oom_kill_task(struct task_str
- 
- 	set_tsk_thread_flag(p, TIF_MEMDIE);
- 	force_sig(SIGKILL, p);
+-static void oom_kill_task(struct task_struct *p)
+-{
+-	struct task_struct *q;
+-	struct mm_struct *mm;
 -
--	return 0;
- }
- #undef K
- 
--static int oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
--			    unsigned int points, unsigned long totalpages,
--			    struct mem_cgroup *memcg, nodemask_t *nodemask,
--			    const char *message)
-+static void oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
-+			     unsigned int points, unsigned long totalpages,
-+			     struct mem_cgroup *memcg, nodemask_t *nodemask,
-+			     const char *message)
- {
+-	p = find_lock_task_mm(p);
+-	if (!p)
+-		return;
+-
+-	/* mm cannot be safely dereferenced after task_unlock(p) */
+-	mm = p->mm;
+-
+-	pr_err("Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
+-		task_pid_nr(p), p->comm, K(p->mm->total_vm),
+-		K(get_mm_counter(p->mm, MM_ANONPAGES)),
+-		K(get_mm_counter(p->mm, MM_FILEPAGES)));
+-	task_unlock(p);
+-
+-	/*
+-	 * Kill all user processes sharing p->mm in other thread groups, if any.
+-	 * They don't get access to memory reserves or a higher scheduler
+-	 * priority, though, to avoid depletion of all memory or task
+-	 * starvation.  This prevents mm->mmap_sem livelock when an oom killed
+-	 * task cannot exit because it requires the semaphore and its contended
+-	 * by another thread trying to allocate memory itself.  That thread will
+-	 * now get access to memory reserves since it has a pending fatal
+-	 * signal.
+-	 */
+-	for_each_process(q)
+-		if (q->mm == mm && !same_thread_group(q, p) &&
+-		    !(q->flags & PF_KTHREAD)) {
+-			if (q->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+-				continue;
+-
+-			task_lock(q);	/* Protect ->comm from prctl() */
+-			pr_err("Kill process %d (%s) sharing same memory\n",
+-				task_pid_nr(q), q->comm);
+-			task_unlock(q);
+-			force_sig(SIGKILL, q);
+-		}
+-
+-	set_tsk_thread_flag(p, TIF_MEMDIE);
+-	force_sig(SIGKILL, p);
+-}
+-#undef K
+-
+ static void oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
+ 			     unsigned int points, unsigned long totalpages,
+ 			     struct mem_cgroup *memcg, nodemask_t *nodemask,
+@@ -488,6 +442,7 @@ static void oom_kill_process(struct task
  	struct task_struct *victim = p;
  	struct task_struct *child;
-@@ -501,7 +499,7 @@ static int oom_kill_process(struct task_
- 	 */
- 	if (p->flags & PF_EXITING) {
- 		set_tsk_thread_flag(p, TIF_MEMDIE);
--		return 0;
-+		return;
- 	}
+ 	struct task_struct *t = p;
++	struct mm_struct *mm;
+ 	unsigned int victim_points = 0;
  
- 	task_lock(p);
-@@ -533,7 +531,7 @@ static int oom_kill_process(struct task_
+ 	if (printk_ratelimit())
+@@ -531,8 +486,44 @@ static void oom_kill_process(struct task
  		}
  	} while_each_thread(p, t);
  
--	return oom_kill_task(victim);
-+	oom_kill_task(victim);
+-	oom_kill_task(victim);
++	victim = find_lock_task_mm(victim);
++	if (!victim)
++		return;
++
++	/* mm cannot safely be dereferenced after task_unlock(victim) */
++	mm = victim->mm;
++	pr_err("Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
++		task_pid_nr(victim), victim->comm, K(victim->mm->total_vm),
++		K(get_mm_counter(victim->mm, MM_ANONPAGES)),
++		K(get_mm_counter(victim->mm, MM_FILEPAGES)));
++	task_unlock(victim);
++
++	/*
++	 * Kill all user processes sharing victim->mm in other thread groups, if
++	 * any.  They don't get access to memory reserves, though, to avoid
++	 * depletion of all memory.  This prevents mm->mmap_sem livelock when an
++	 * oom killed thread cannot exit because it requires the semaphore and
++	 * its contended by another thread trying to allocate memory itself.
++	 * That thread will now get access to memory reserves since it has a
++	 * pending fatal signal.
++	 */
++	for_each_process(p)
++		if (p->mm == mm && !same_thread_group(p, victim) &&
++		    !(p->flags & PF_KTHREAD)) {
++			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
++				continue;
++
++			task_lock(p);	/* Protect ->comm from prctl() */
++			pr_err("Kill process %d (%s) sharing same memory\n",
++				task_pid_nr(p), p->comm);
++			task_unlock(p);
++			force_sig(SIGKILL, p);
++		}
++
++	set_tsk_thread_flag(victim, TIF_MEMDIE);
++	force_sig(SIGKILL, victim);
  }
++#undef K
  
  /*
-@@ -580,15 +578,10 @@ void mem_cgroup_out_of_memory(struct mem
- 	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0, NULL);
- 	limit = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT;
- 	read_lock(&tasklist_lock);
--retry:
- 	p = select_bad_process(&points, limit, memcg, NULL);
--	if (!p || PTR_ERR(p) == -1UL)
--		goto out;
--
--	if (oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
--				"Memory cgroup out of memory"))
--		goto retry;
--out:
-+	if (p && PTR_ERR(p) != -1UL)
-+		oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
-+				 "Memory cgroup out of memory");
- 	read_unlock(&tasklist_lock);
- }
- #endif
-@@ -745,33 +738,24 @@ void out_of_memory(struct zonelist *zone
- 	if (sysctl_oom_kill_allocating_task &&
- 	    !oom_unkillable_task(current, NULL, nodemask) &&
- 	    current->mm) {
--		/*
--		 * oom_kill_process() needs tasklist_lock held.  If it returns
--		 * non-zero, current could not be killed so we must fallback to
--		 * the tasklist scan.
--		 */
--		if (!oom_kill_process(current, gfp_mask, order, 0, totalpages,
--				NULL, nodemask,
--				"Out of memory (oom_kill_allocating_task)"))
--			goto out;
-+		oom_kill_process(current, gfp_mask, order, 0, totalpages, NULL,
-+				 nodemask,
-+				 "Out of memory (oom_kill_allocating_task)");
-+		goto out;
- 	}
- 
--retry:
- 	p = select_bad_process(&points, totalpages, NULL, mpol_mask);
--	if (PTR_ERR(p) == -1UL)
--		goto out;
--
- 	/* Found nothing?!?! Either we hang forever, or we panic. */
- 	if (!p) {
- 		dump_header(NULL, gfp_mask, order, NULL, mpol_mask);
- 		read_unlock(&tasklist_lock);
- 		panic("Out of memory and no killable processes...\n");
- 	}
+  * Determines whether the kernel must panic because of the panic_on_oom sysctl.
+_
+Subject: Subject: mm, oom: fold oom_kill_task() into oom_kill_process()
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+origin.patch
+mm-fix-null-ptr-dereference-in-__count_immobile_pages.patch
+proc-clear_refs-do-not-clear-reserved-pages.patch
+mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
+mm-oom-fold-oom_kill_task-into-oom_kill_process.patch
+mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting.patch
+
