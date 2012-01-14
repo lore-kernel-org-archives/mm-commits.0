@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch added to -mm tree
-Date: Fri, 13 Jan 2012 16:39:54 -0800
-Message-ID: <20120114003955.8AA295C0060@hpza9.eem.corp.google.com>
+Subject: + mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch added to -mm tree
+Date: Fri, 13 Jan 2012 16:48:38 -0800
+Message-ID: <20120114004839.C539F5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:62089 "EHLO
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:42007 "EHLO
 	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753988Ab2ANAj5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 19:39:57 -0500
-Received: by mail-ey0-f202.google.com with SMTP id d12so30424eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 16:39:56 -0800 (PST)
+	with ESMTP id S1754099Ab2ANAsm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 19:48:42 -0500
+Received: by eaad12 with SMTP id d12so30547eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 16:48:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, kay.sievers@vrfy.org, lennart@poettering.net, oleg@redhat.com
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
+     Subject: mm, oom: avoid looping when chosen thread detaches its mm
 has been added to the -mm tree.  Its filename is
-     prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+     mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,134 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: avoid looping when chosen thread detaches its mm
 
-add lengthy code comment from Oleg
+oom_kill_task() returns non-zero iff the chosen process does not have any
+threads with an attached ->mm.
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Lennart Poettering <lennart@poettering.net>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+In such a case, it's better to just return to the page allocator and retry
+the allocation because memory could have been freed in the interim and the
+oom condition may no longer exist.  It's unnecessary to loop in the oom
+killer and find another thread to kill.
+
+This allows both oom_kill_task() and oom_kill_process() to be converted to
+void functions.  If the oom condition persists, the oom killer will be
+recalled.
+
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   56 +++++++++++++++++-------------------------------
+ 1 file changed, 20 insertions(+), 36 deletions(-)
 
-diff -puN kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix kernel/exit.c
---- a/kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
-+++ a/kernel/exit.c
-@@ -724,7 +724,13 @@ static struct task_struct *find_new_reap
- 	} else if (father->signal->has_child_subreaper) {
- 		struct task_struct *reaper;
+diff -puN mm/oom_kill.c~mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm
++++ a/mm/oom_kill.c
+@@ -434,14 +434,14 @@ static void dump_header(struct task_stru
+ }
  
--		/* find the first ancestor marked as child_subreaper */
-+		/*
-+		 * Find the first ancestor marked as child_subreaper.
-+		 * Note that the code below checks same_thread_group(reaper,
-+		 * pid_ns->child_reaper).  This is what we need to DTRT in a
-+		 * PID namespace. However we still need the check above, see
-+		 * http://marc.info/?l=linux-kernel&m=131385460420380
-+		 */
- 		for (reaper = father->real_parent;
- 		     reaper != &init_task;
- 		     reaper = reaper->real_parent) {
-_
-Subject: Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-mm-fix-warnings-regarding-enum-migrate_mode.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
-drivers-scsi-megaraidc-fix-sparse-warnings-checkpatch-fixes.patch
-drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-audit-treat-s_id-as-an-untrusted-string.patch
-hpet-factor-timer-allocate-from-open.patch
-drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+-static int oom_kill_task(struct task_struct *p)
++static void oom_kill_task(struct task_struct *p)
+ {
+ 	struct task_struct *q;
+ 	struct mm_struct *mm;
+ 
+ 	p = find_lock_task_mm(p);
+ 	if (!p)
+-		return 1;
++		return;
+ 
+ 	/* mm cannot be safely dereferenced after task_unlock(p) */
+ 	mm = p->mm;
+@@ -477,15 +477,13 @@ static int oom_kill_task(struct task_str
+ 
+ 	set_tsk_thread_flag(p, TIF_MEMDIE);
+ 	force_sig(SIGKILL, p);
+-
+-	return 0;
+ }
+ #undef K
+ 
+-static int oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
+-			    unsigned int points, unsigned long totalpages,
+-			    struct mem_cgroup *memcg, nodemask_t *nodemask,
+-			    const char *message)
++static void oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
++			     unsigned int points, unsigned long totalpages,
++			     struct mem_cgroup *memcg, nodemask_t *nodemask,
++			     const char *message)
+ {
+ 	struct task_struct *victim = p;
+ 	struct task_struct *child;
+@@ -501,7 +499,7 @@ static int oom_kill_process(struct task_
+ 	 */
+ 	if (p->flags & PF_EXITING) {
+ 		set_tsk_thread_flag(p, TIF_MEMDIE);
+-		return 0;
++		return;
+ 	}
+ 
+ 	task_lock(p);
+@@ -533,7 +531,7 @@ static int oom_kill_process(struct task_
+ 		}
+ 	} while_each_thread(p, t);
+ 
+-	return oom_kill_task(victim);
++	oom_kill_task(victim);
+ }
+ 
+ /*
+@@ -580,15 +578,10 @@ void mem_cgroup_out_of_memory(struct mem
+ 	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0, NULL);
+ 	limit = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT;
+ 	read_lock(&tasklist_lock);
+-retry:
+ 	p = select_bad_process(&points, limit, memcg, NULL);
+-	if (!p || PTR_ERR(p) == -1UL)
+-		goto out;
+-
+-	if (oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
+-				"Memory cgroup out of memory"))
+-		goto retry;
+-out:
++	if (p && PTR_ERR(p) != -1UL)
++		oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
++				 "Memory cgroup out of memory");
+ 	read_unlock(&tasklist_lock);
+ }
+ #endif
+@@ -745,33 +738,24 @@ void out_of_memory(struct zonelist *zone
+ 	if (sysctl_oom_kill_allocating_task &&
+ 	    !oom_unkillable_task(current, NULL, nodemask) &&
+ 	    current->mm) {
+-		/*
+-		 * oom_kill_process() needs tasklist_lock held.  If it returns
+-		 * non-zero, current could not be killed so we must fallback to
+-		 * the tasklist scan.
+-		 */
+-		if (!oom_kill_process(current, gfp_mask, order, 0, totalpages,
+-				NULL, nodemask,
+-				"Out of memory (oom_kill_allocating_task)"))
+-			goto out;
++		oom_kill_process(current, gfp_mask, order, 0, totalpages, NULL,
++				 nodemask,
++				 "Out of memory (oom_kill_allocating_task)");
++		goto out;
+ 	}
+ 
+-retry:
+ 	p = select_bad_process(&points, totalpages, NULL, mpol_mask);
+-	if (PTR_ERR(p) == -1UL)
+-		goto out;
+-
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+ 	if (!p) {
+ 		dump_header(NULL, gfp_mask, order, NULL, mpol_mask);
+ 		read_unlock(&tasklist_lock);
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
