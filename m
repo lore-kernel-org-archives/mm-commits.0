@@ -1,25 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-define-kexec_note_bytes-arch-specific-for-s390x.patch added to -mm tree
-Date: Fri, 13 Jan 2012 15:58:55 -0800
-Message-ID: <20120113235856.417BE2000A0@hpza10.eem.corp.google.com>
+Subject: + drivers-acpi-apei-einjc-allow-empty-trigger-error-action-table.patch added to -mm tree
+Date: Fri, 13 Jan 2012 16:10:12 -0800
+Message-ID: <20120114001013.0E4232000AC@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:36171 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab2AMX67 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 18:58:59 -0500
-Received: by wgbdt14 with SMTP id dt14so110009wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 15:58:57 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:42860 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751912Ab2ANAKP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 19:10:15 -0500
+Received: by eaad12 with SMTP id d12so29971eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 16:10:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, horms@verge.net.au, schwidefsky@de.ibm.com, vgoyal@redhat.com
+Cc: niklas.soderlund@ericsson.com, lenb@kernel.org, ying.huang@intel.com
 
 
 The patch titled
-     Subject: kdump: define KEXEC_NOTE_BYTES arch specific for s390x
+     Subject: drivers/acpi/apei/einj.c: allow empty Trigger Error Actio=
+n Table
 has been added to the -mm tree.  Its filename is
-     kdump-define-kexec_note_bytes-arch-specific-for-s390x.patch
+     drivers-acpi-apei-einjc-allow-empty-trigger-error-action-table.pat=
+ch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,82 +32,85 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Subject: kdump: define KEXEC_NOTE_BYTES arch specific for s390x
+=46rom: Niklas S=F6derlund <niklas.soderlund@ericsson.com>
+Subject: drivers/acpi/apei/einj.c: allow empty Trigger Error Action Tab=
+le
 
-kdump only allocates memory for the prstatus ELF note.  For s390x, besides
-of prstatus multiple ELF notes for various different register types are
-stored.  Therefore the currently allocated memory is not sufficient.  With
-this patch the KEXEC_NOTE_BYTES macro can be defined by architecture code
-and for s390x it is set to the correct size now.
+When troubleshooting some BIOS code I encounter strange errors about
+firmware bugs.  On closer inspection I found that the Trigger table
+returned from the firmware was empty but the header looked OK:
 
-Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Reviewed-by: Simon Horman <horms@verge.net.au>
+header_size =3D 16
+table_size =3D 16
+entry_count =3D 0
+
+When looking at einj.c I found that this header would result in the err=
+or
+I was receiving.  I took a quick look at the docs and from what I can t=
+ell
+this is a valid header, yes?
+
+According to the ACPI spec [1] section 18.6.4 the TRIGGER_ERROR action
+table can consists of zero elements.
+
+[1] Advanced Configuration and Power Interface Specification
+    Revision 5.0, December 6, 2011
+	http://www.acpi.info/DOWNLOADS/ACPIspec50.pdf
+
+Signed-off-by: Niklas S=F6derlund <niklas.soderlund@ericsson.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/kexec.h |   18 ++++++++++++++++++
- include/linux/kexec.h         |    2 ++
- 2 files changed, 20 insertions(+)
+ drivers/acpi/apei/einj.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/s390/include/asm/kexec.h~kdump-define-kexec_note_bytes-arch-specific-for-s390x arch/s390/include/asm/kexec.h
---- a/arch/s390/include/asm/kexec.h~kdump-define-kexec_note_bytes-arch-specific-for-s390x
-+++ a/arch/s390/include/asm/kexec.h
-@@ -42,6 +42,24 @@
- /* The native architecture */
- #define KEXEC_ARCH KEXEC_ARCH_S390
- 
-+/*
-+ * Size for s390x ELF notes per CPU
-+ *
-+ * Seven notes plus zero note at the end: prstatus, fpregset, timer,
-+ * tod_cmp, tod_reg, control regs, and prefix
-+ */
-+#define KEXEC_NOTE_BYTES \
-+	(ALIGN(sizeof(struct elf_note), 4) * 8 + \
-+	 ALIGN(sizeof("CORE"), 4) * 7 + \
-+	 ALIGN(sizeof(struct elf_prstatus), 4) + \
-+	 ALIGN(sizeof(elf_fpregset_t), 4) + \
-+	 ALIGN(sizeof(u64), 4) + \
-+	 ALIGN(sizeof(u64), 4) + \
-+	 ALIGN(sizeof(u32), 4) + \
-+	 ALIGN(sizeof(u64) * 16, 4) + \
-+	 ALIGN(sizeof(u32), 4) \
-+	)
+diff -puN drivers/acpi/apei/einj.c~drivers-acpi-apei-einjc-allow-empty-=
+trigger-error-action-table drivers/acpi/apei/einj.c
+--- a/drivers/acpi/apei/einj.c~drivers-acpi-apei-einjc-allow-empty-trig=
+ger-error-action-table
++++ a/drivers/acpi/apei/einj.c
+@@ -184,7 +184,7 @@ static int einj_check_trigger_header(str
+ 	if (trigger_tab->header_size !=3D sizeof(struct acpi_einj_trigger))
+ 		return -EINVAL;
+ 	if (trigger_tab->table_size > PAGE_SIZE ||
+-	    trigger_tab->table_size <=3D trigger_tab->header_size)
++	    trigger_tab->table_size < trigger_tab->header_size)
+ 		return -EINVAL;
+ 	if (trigger_tab->entry_count !=3D
+ 	    (trigger_tab->table_size - trigger_tab->header_size) /
+@@ -225,6 +225,11 @@ static int __einj_error_trigger(u64 trig
+ 			   "The trigger error action table is invalid\n");
+ 		goto out_rel_header;
+ 	}
 +
- /* Provide a dummy definition to avoid build failures. */
- static inline void crash_setup_regs(struct pt_regs *newregs,
- 					struct pt_regs *oldregs) { }
-diff -puN include/linux/kexec.h~kdump-define-kexec_note_bytes-arch-specific-for-s390x include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-define-kexec_note_bytes-arch-specific-for-s390x
-+++ a/include/linux/kexec.h
-@@ -50,9 +50,11 @@
-  * note header.  For kdump, the code in vmcore.c runs in the context
-  * of the second kernel to combine them into one note.
-  */
-+#ifndef KEXEC_NOTE_BYTES
- #define KEXEC_NOTE_BYTES ( (KEXEC_NOTE_HEAD_BYTES * 2) +		\
- 			    KEXEC_CORE_NOTE_NAME_BYTES +		\
- 			    KEXEC_CORE_NOTE_DESC_BYTES )
-+#endif
- 
- /*
-  * This structure is used to hold the arguments that are used when loading
++	/* No action structures in the TRIGGER_ERROR table, nothing to do */
++	if (!trigger_tab->entry_count)
++		goto out_rel_header;
++
+ 	rc =3D -EIO;
+ 	table_size =3D trigger_tab->table_size;
+ 	r =3D request_mem_region(trigger_paddr + sizeof(*trigger_tab),
 _
-Subject: Subject: kdump: define KEXEC_NOTE_BYTES arch specific for s390x
+Subject: Subject: drivers/acpi/apei/einj.c: allow empty Trigger Error A=
+ction Table
 
-Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
+Patches currently in -mm which might be from niklas.soderlund@ericsson.=
+com are
 
-origin.patch
-kdump-define-kexec_note_bytes-arch-specific-for-s390x.patch
+linux-next.patch
+drivers-acpi-apei-einjc-allow-empty-trigger-error-action-table.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
