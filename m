@@ -1,30 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-apei-einjc-allow-empty-trigger-error-action-table.patch added to -mm tree
-Date: Fri, 13 Jan 2012 16:10:12 -0800
-Message-ID: <20120114001013.0E4232000AC@hpza10.eem.corp.google.com>
+Subject: + audit-treat-s_id-as-an-untrusted-string.patch added to -mm tree
+Date: Fri, 13 Jan 2012 16:15:20 -0800
+Message-ID: <20120114001521.169D62000B6@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:42860 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751912Ab2ANAKP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 19:10:15 -0500
-Received: by eaad12 with SMTP id d12so29971eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 16:10:14 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:60784 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751269Ab2ANAPX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jan 2012 19:15:23 -0500
+Received: by eeke50 with SMTP id e50so28593eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jan 2012 16:15:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: niklas.soderlund@ericsson.com, lenb@kernel.org, ying.huang@intel.com
+Cc: keescook@chromium.org, akpm@linux-foundation.org, jmorris@namei.org, viro@zeniv.linux.org.uk, zohar@us.ibm.com
 
 
 The patch titled
-     Subject: drivers/acpi/apei/einj.c: allow empty Trigger Error Actio=
-n Table
+     Subject: audit: treat s_id as an untrusted string
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-apei-einjc-allow-empty-trigger-error-action-table.pat=
-ch
+     audit-treat-s_id-as-an-untrusted-string.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,85 +27,101 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Niklas S=F6derlund <niklas.soderlund@ericsson.com>
-Subject: drivers/acpi/apei/einj.c: allow empty Trigger Error Action Tab=
-le
+From: Kees Cook <keescook@chromium.org>
+Subject: audit: treat s_id as an untrusted string
 
-When troubleshooting some BIOS code I encounter strange errors about
-firmware bugs.  On closer inspection I found that the Trigger table
-returned from the firmware was empty but the header looked OK:
+The use of s_id should go through the untrusted string path, just to be
+extra careful.
 
-header_size =3D 16
-table_size =3D 16
-entry_count =3D 0
-
-When looking at einj.c I found that this header would result in the err=
-or
-I was receiving.  I took a quick look at the docs and from what I can t=
-ell
-this is a valid header, yes?
-
-According to the ACPI spec [1] section 18.6.4 the TRIGGER_ERROR action
-table can consists of zero elements.
-
-[1] Advanced Configuration and Power Interface Specification
-    Revision 5.0, December 6, 2011
-	http://www.acpi.info/DOWNLOADS/ACPIspec50.pdf
-
-Signed-off-by: Niklas S=F6derlund <niklas.soderlund@ericsson.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Mimi Zohar <zohar@us.ibm.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/apei/einj.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ security/integrity/ima/ima_audit.c |    8 +++++---
+ security/lsm_audit.c               |   23 +++++++++++++----------
+ 2 files changed, 18 insertions(+), 13 deletions(-)
 
-diff -puN drivers/acpi/apei/einj.c~drivers-acpi-apei-einjc-allow-empty-=
-trigger-error-action-table drivers/acpi/apei/einj.c
---- a/drivers/acpi/apei/einj.c~drivers-acpi-apei-einjc-allow-empty-trig=
-ger-error-action-table
-+++ a/drivers/acpi/apei/einj.c
-@@ -184,7 +184,7 @@ static int einj_check_trigger_header(str
- 	if (trigger_tab->header_size !=3D sizeof(struct acpi_einj_trigger))
- 		return -EINVAL;
- 	if (trigger_tab->table_size > PAGE_SIZE ||
--	    trigger_tab->table_size <=3D trigger_tab->header_size)
-+	    trigger_tab->table_size < trigger_tab->header_size)
- 		return -EINVAL;
- 	if (trigger_tab->entry_count !=3D
- 	    (trigger_tab->table_size - trigger_tab->header_size) /
-@@ -225,6 +225,11 @@ static int __einj_error_trigger(u64 trig
- 			   "The trigger error action table is invalid\n");
- 		goto out_rel_header;
+diff -puN security/integrity/ima/ima_audit.c~audit-treat-s_id-as-an-untrusted-string security/integrity/ima/ima_audit.c
+--- a/security/integrity/ima/ima_audit.c~audit-treat-s_id-as-an-untrusted-string
++++ a/security/integrity/ima/ima_audit.c
+@@ -56,9 +56,11 @@ void integrity_audit_msg(int audit_msgno
+ 		audit_log_format(ab, " name=");
+ 		audit_log_untrustedstring(ab, fname);
  	}
-+
-+	/* No action structures in the TRIGGER_ERROR table, nothing to do */
-+	if (!trigger_tab->entry_count)
-+		goto out_rel_header;
-+
- 	rc =3D -EIO;
- 	table_size =3D trigger_tab->table_size;
- 	r =3D request_mem_region(trigger_paddr + sizeof(*trigger_tab),
+-	if (inode)
+-		audit_log_format(ab, " dev=%s ino=%lu",
+-				 inode->i_sb->s_id, inode->i_ino);
++	if (inode) {
++		audit_log_format(ab, " dev=");
++		audit_log_untrustedstring(ab, inode->i_sb->s_id);
++		audit_log_format(ab, " ino=%lu", inode->i_ino);
++	}
+ 	audit_log_format(ab, " res=%d", !result ? 0 : 1);
+ 	audit_log_end(ab);
+ }
+diff -puN security/lsm_audit.c~audit-treat-s_id-as-an-untrusted-string security/lsm_audit.c
+--- a/security/lsm_audit.c~audit-treat-s_id-as-an-untrusted-string
++++ a/security/lsm_audit.c
+@@ -235,10 +235,11 @@ static void dump_common_audit_data(struc
+ 		audit_log_d_path(ab, "path=", &a->u.path);
+ 
+ 		inode = a->u.path.dentry->d_inode;
+-		if (inode)
+-			audit_log_format(ab, " dev=%s ino=%lu",
+-					inode->i_sb->s_id,
+-					inode->i_ino);
++		if (inode) {
++			audit_log_format(ab, " dev=");
++			audit_log_untrustedstring(ab, inode->i_sb->s_id);
++			audit_log_format(ab, " ino=%lu", inode->i_ino);
++		}
+ 		break;
+ 	}
+ 	case LSM_AUDIT_DATA_DENTRY: {
+@@ -248,10 +249,11 @@ static void dump_common_audit_data(struc
+ 		audit_log_untrustedstring(ab, a->u.dentry->d_name.name);
+ 
+ 		inode = a->u.dentry->d_inode;
+-		if (inode)
+-			audit_log_format(ab, " dev=%s ino=%lu",
+-					inode->i_sb->s_id,
+-					inode->i_ino);
++		if (inode) {
++			audit_log_format(ab, " dev=");
++			audit_log_untrustedstring(ab, inode->i_sb->s_id);
++			audit_log_format(ab, " ino=%lu", inode->i_ino);
++		}
+ 		break;
+ 	}
+ 	case LSM_AUDIT_DATA_INODE: {
+@@ -266,8 +268,9 @@ static void dump_common_audit_data(struc
+ 					 dentry->d_name.name);
+ 			dput(dentry);
+ 		}
+-		audit_log_format(ab, " dev=%s ino=%lu", inode->i_sb->s_id,
+-				 inode->i_ino);
++		audit_log_format(ab, " dev=");
++		audit_log_untrustedstring(ab, inode->i_sb->s_id);
++		audit_log_format(ab, " ino=%lu", inode->i_ino);
+ 		break;
+ 	}
+ 	case LSM_AUDIT_DATA_TASK:
 _
-Subject: Subject: drivers/acpi/apei/einj.c: allow empty Trigger Error A=
-ction Table
+Subject: Subject: audit: treat s_id as an untrusted string
 
-Patches currently in -mm which might be from niklas.soderlund@ericsson.=
-com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
+origin.patch
 linux-next.patch
-drivers-acpi-apei-einjc-allow-empty-trigger-error-action-table.patch
+audit-treat-s_id-as-an-untrusted-string.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
