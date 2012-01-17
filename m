@@ -1,64 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fsnotify-dont-bug-in-fsnotify_destroy_mark.patch removed from -mm tree
-Date: Tue, 17 Jan 2012 13:01:22 -0800
-Message-ID: <20120117210123.13E7020004E@hpza10.eem.corp.google.com>
+Subject: + geos-platform-driver-for-geos-and-geos2-single-board-computers.patch added to -mm tree
+Date: Tue, 17 Jan 2012 14:07:56 -0800
+Message-ID: <20120117220757.25FA5200084@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:37788 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752819Ab2AQVIM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 16:08:12 -0500
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:57386 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755728Ab2AQWIA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 17:08:00 -0500
+Received: by eaaf1 with SMTP id f1so72837eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 14:07:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: philipp@redfish-solutions.com, a.zummo@towertech.it, dilinger@queued.net, ed@wildgooses.com, mjg@redhat.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: fsnotify: don't BUG in fsnotify_destroy_mark()
-has been removed from the -mm tree.  Its filename was
-     fsnotify-dont-bug-in-fsnotify_destroy_mark.patch
+     Subject: geos: platform driver for Geos and Geos2 single-board computers
+has been added to the -mm tree.  Its filename is
+     geos-platform-driver-for-geos-and-geos2-single-board-computers.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Miklos Szeredi <mszeredi@suse.cz>
-Subject: fsnotify: don't BUG in fsnotify_destroy_mark()
+From: "Philip A. Prindeville" <philipp@redfish-solutions.com>
+Subject: geos: platform driver for Geos and Geos2 single-board computers
 
-Removing the parent of a watched file results in "kernel BUG at
-fs/notify/mark.c:139".
+Platform driver for Traverse Technologies Geos and Geos2 single-board
+computers.  Uses SMBIOS to identify platform.  Based on progressive
+revisions of the leds-net5501 driver that was rewritten by Ed Wildgoose as
+a platform driver.
 
-To reproduce
+Supports GPIO-based LEDs (3) and 1 polled button which is typically used
+for a soft reset.
 
-  add "-w /tmp/audit/dir/watched_file" to audit.rules
-  rm -rf /tmp/audit/dir
-
-This is caused by fsnotify_destroy_mark() being called without an
-extra reference taken by the caller.
-
-Reported by Francesco Cosoleto here:
-
-  https://bugzilla.novell.com/show_bug.cgi?id=689860
-
-Fix by removing the BUG_ON and adding a comment about not accessing mark after
-the iput.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
+Reviewed-by: Ed Wildgoose <ed@wildgooses.com>
+Acked-by: Andres Salomon <dilinger@queued.net>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/mark.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/x86/Kconfig                 |    7 +
+ arch/x86/platform/geode/Makefile |    1 
+ arch/x86/platform/geode/geos.c   |  128 +++++++++++++++++++++++++++++
+ 3 files changed, 136 insertions(+)
 
-diff -puN fs/notify/mark.c~fsnotify-dont-bug-in-fsnotify_destroy_mark fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-dont-bug-in-fsnotify_destroy_mark
-+++ a/fs/notify/mark.c
-@@ -124,9 +124,6 @@ void fsnotify_destroy_mark(struct fsnoti
+diff -puN arch/x86/Kconfig~geos-platform-driver-for-geos-and-geos2-single-board-computers arch/x86/Kconfig
+--- a/arch/x86/Kconfig~geos-platform-driver-for-geos-and-geos2-single-board-computers
++++ a/arch/x86/Kconfig
+@@ -2168,6 +2168,13 @@ config ALIX
  
- 	mark->flags &= ~FSNOTIFY_MARK_FLAG_ALIVE;
+ 	  Note: You have to set alix.force=1 for boards with Award BIOS.
  
--	/* 1 from caller and 1 for being on i_list/g_list */
--	BUG_ON(atomic_read(&mark->refcnt) < 2);
++config GEOS
++	bool "Traverse Technologies GEOS System Support (LEDS, GPIO, etc)"
++	select GPIOLIB
++	depends on DMI
++	---help---
++	  This option enables system support for the Traverse Technologies GEOS.
++
+ endif # X86_32
+ 
+ config AMD_NB
+diff -puN arch/x86/platform/geode/Makefile~geos-platform-driver-for-geos-and-geos2-single-board-computers arch/x86/platform/geode/Makefile
+--- a/arch/x86/platform/geode/Makefile~geos-platform-driver-for-geos-and-geos2-single-board-computers
++++ a/arch/x86/platform/geode/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_ALIX)		+= alix.o
++obj-$(CONFIG_GEOS)		+= geos.o
+diff -puN /dev/null arch/x86/platform/geode/geos.c
+--- /dev/null
++++ a/arch/x86/platform/geode/geos.c
+@@ -0,0 +1,128 @@
++/*
++ * System Specific setup for Traverse Technologies GEOS.
++ * At the moment this means setup of GPIO control of LEDs.
++ *
++ * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
++ * Copyright (C) 2011 Ed Wildgoose <kernel@wildgooses.com>
++ *                and Philip Prindeville <philipp@redfish-solutions.com>
++ *
++ * TODO: There are large similarities with leds-net5501.c
++ * by Alessandro Zummo <a.zummo@towertech.it>
++ * In the future leds-net5501.c should be migrated over to platform
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/string.h>
++#include <linux/module.h>
++#include <linux/leds.h>
++#include <linux/platform_device.h>
++#include <linux/gpio.h>
++#include <linux/input.h>
++#include <linux/gpio_keys.h>
++#include <linux/dmi.h>
++
++#include <asm/geode.h>
++
++static struct gpio_keys_button geos_gpio_buttons[] = {
++	{
++		.code = KEY_RESTART,
++		.gpio = 3,
++		.active_low = 1,
++		.desc = "Reset button",
++		.type = EV_KEY,
++		.wakeup = 0,
++		.debounce_interval = 100,
++		.can_disable = 0,
++	}
++};
++static struct gpio_keys_platform_data geos_buttons_data = {
++	.buttons = geos_gpio_buttons,
++	.nbuttons = ARRAY_SIZE(geos_gpio_buttons),
++	.poll_interval = 20,
++};
++
++static struct platform_device geos_buttons_dev = {
++	.name = "gpio-keys-polled",
++	.id = 1,
++	.dev = {
++		.platform_data = &geos_buttons_data,
++	}
++};
++
++static struct gpio_led geos_leds[] = {
++	{
++		.name = "geos:1",
++		.gpio = 6,
++		.default_trigger = "default-on",
++		.active_low = 1,
++	},
++	{
++		.name = "geos:2",
++		.gpio = 25,
++		.default_trigger = "default-off",
++		.active_low = 1,
++	},
++	{
++		.name = "geos:3",
++		.gpio = 27,
++		.default_trigger = "default-off",
++		.active_low = 1,
++	},
++};
++
++static struct gpio_led_platform_data geos_leds_data = {
++	.num_leds = ARRAY_SIZE(geos_leds),
++	.leds = geos_leds,
++};
++
++static struct platform_device geos_leds_dev = {
++	.name = "leds-gpio",
++	.id = -1,
++	.dev.platform_data = &geos_leds_data,
++};
++
++static struct __initdata platform_device *geos_devs[] = {
++	&geos_buttons_dev,
++	&geos_leds_dev,
++};
++
++static void __init register_geos(void)
++{
++	/* Setup LED control through leds-gpio driver */
++	platform_add_devices(geos_devs, ARRAY_SIZE(geos_devs));
++}
++
++static int __init geos_init(void)
++{
++	const char *vendor, *product;
++
++	if (!is_geode())
++		return 0;
++
++	vendor = dmi_get_system_info(DMI_SYS_VENDOR);
++	if (!vendor || strcmp(vendor, "Traverse Technologies"))
++		return 0;
++
++	product = dmi_get_system_info(DMI_PRODUCT_NAME);
++	if (!product || strcmp(product, "Geos"))
++		return 0;
++
++	printk(KERN_INFO "%s: system is recognized as \"%s %s\"\n",
++	       KBUILD_MODNAME, vendor, product);
++
++	register_geos();
++
++	return 0;
++}
++
++module_init(geos_init);
++
++MODULE_AUTHOR("Philip Prindeville <philipp@redfish-solutions.com>");
++MODULE_DESCRIPTION("Traverse Technologies Geos System Setup");
++MODULE_LICENSE("GPL");
+_
+Subject: Subject: geos: platform driver for Geos and Geos2 single-board computers
+
+Patches currently in -mm which might be from philipp@redfish-solutions.com are
+
+geos-platform-driver-for-geos-and-geos2-single-board-computers.patch
+
