@@ -1,73 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] merge_configsh-fix-bug-in-final-check.patch removed from -mm tree
-Date: Tue, 17 Jan 2012 13:01:07 -0800
-Message-ID: <20120117210108.257F25C0060@hpza9.eem.corp.google.com>
+Subject: [merged] drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch removed from -mm tree
+Date: Tue, 17 Jan 2012 13:01:11 -0800
+Message-ID: <20120117210112.0EF705C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:43842 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755118Ab2AQVBK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 16:01:10 -0500
-Received: by eaaf1 with SMTP id f1so70829eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 13:01:09 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:56418 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755118Ab2AQVBO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 16:01:14 -0500
+Received: by werc1 with SMTP id c1so78022wer.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 13:01:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.stultz@linaro.org, dvhart@linux.intel.com, lacombar@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: sboyd@codeaurora.org, James.Bottomley@HansenPartnership.com, dgilbert@interlog.com, dougg@torque.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: merge_config.sh: fix bug in final check
+     Subject: drivers/scsi/sg.c: convert to kstrtoul_from_user()
 has been removed from the -mm tree.  Its filename was
-     merge_configsh-fix-bug-in-final-check.patch
+     drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: merge_config.sh: fix bug in final check
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: drivers/scsi/sg.c: convert to kstrtoul_from_user()
 
-Arnaud Lacombe pointed out the final checking that the requested configs
-were included in the final .config was broken.
+Instead of open coding this function use kstrtoul_from_user() directly.
 
-The example was that if you had a fragment that disabled
-CONFIG_DECOMPRESS_GZIP applied to a normal defconfig, there would be no
-final warning that CONFIG_DECOMPRESS_GZIP was acutally set in the final
-.config.
-
-This bug was introduced by me in v3 of the original patch, and the
-following patch reverts the invalid change.
-
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Reported-by: Arnaud Lacombe <lacombar@gmail.com>
-Cc: Darren Hart <dvhart@linux.intel.com>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Arnaud Lacombe <lacombar@gmail.com>
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Doug Gilbert <dgilbert@interlog.com>
+Cc: Douglas Gilbert <dougg@torque.net>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/merge_config.sh |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/sg.c |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN scripts/kconfig/merge_config.sh~merge_configsh-fix-bug-in-final-check scripts/kconfig/merge_config.sh
---- a/scripts/kconfig/merge_config.sh~merge_configsh-fix-bug-in-final-check
-+++ a/scripts/kconfig/merge_config.sh
-@@ -104,8 +104,8 @@ make KCONFIG_ALLCONFIG=$TMP_FILE $ALLTAR
- # Check all specified config values took (might have missed-dependency issues)
- for CFG in $(sed -n "$SED_CONFIG_EXP" $TMP_FILE); do
+diff -puN drivers/scsi/sg.c~drivers-scsi-sgc-convert-to-kstrtoul_from_user drivers/scsi/sg.c
+--- a/drivers/scsi/sg.c~drivers-scsi-sgc-convert-to-kstrtoul_from_user
++++ a/drivers/scsi/sg.c
+@@ -2368,16 +2368,15 @@ static ssize_t 
+ sg_proc_write_adio(struct file *filp, const char __user *buffer,
+ 		   size_t count, loff_t *off)
+ {
+-	int num;
+-	char buff[11];
++	int err;
++	unsigned long num;
  
--	REQUESTED_VAL=$(sed -n "$SED_CONFIG_EXP" $TMP_FILE | grep -w -e "$CFG")
--	ACTUAL_VAL=$(sed -n "$SED_CONFIG_EXP" .config | grep -w -e "$CFG")
-+	REQUESTED_VAL=$(grep -w -e "$CFG" $TMP_FILE)
-+	ACTUAL_VAL=$(grep -w -e "$CFG" .config)
- 	if [ "x$REQUESTED_VAL" != "x$ACTUAL_VAL" ] ; then
- 		echo "Value requested for $CFG not in final .config"
- 		echo "Requested value:  $REQUESTED_VAL"
+ 	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+ 		return -EACCES;
+-	num = (count < 10) ? count : 10;
+-	if (copy_from_user(buff, buffer, num))
+-		return -EFAULT;
+-	buff[num] = '\0';
+-	sg_allow_dio = simple_strtoul(buff, NULL, 10) ? 1 : 0;
++	err = kstrtoul_from_user(buffer, count, 0, &num);
++	if (err)
++		return err;
++	sg_allow_dio = num ? 1 : 0;
+ 	return count;
+ }
+ 
+@@ -2390,17 +2389,15 @@ static ssize_t 
+ sg_proc_write_dressz(struct file *filp, const char __user *buffer,
+ 		     size_t count, loff_t *off)
+ {
+-	int num;
++	int err;
+ 	unsigned long k = ULONG_MAX;
+-	char buff[11];
+ 
+ 	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
+ 		return -EACCES;
+-	num = (count < 10) ? count : 10;
+-	if (copy_from_user(buff, buffer, num))
+-		return -EFAULT;
+-	buff[num] = '\0';
+-	k = simple_strtoul(buff, NULL, 10);
++
++	err = kstrtoul_from_user(buffer, count, 0, &k);
++	if (err)
++		return err;
+ 	if (k <= 1048576) {	/* limit "big buff" to 1 MB */
+ 		sg_big_buff = k;
+ 		return count;
 _
 
-Patches currently in -mm which might be from john.stultz@linaro.org are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
 origin.patch
 linux-next.patch
+debugobjects-fix-selftest-for-static-warnings.patch
 
