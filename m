@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + irqs-fix-handling-of-pending-irqs-at-request-time.patch added to -mm tree
-Date: Tue, 17 Jan 2012 14:39:58 -0800
-Message-ID: <20120117223958.B191C10004D@wpzn3.hot.corp.google.com>
+Subject: + mm-config-menu-move-zone_dma-under-a-menu.patch added to -mm tree
+Date: Tue, 17 Jan 2012 15:32:39 -0800
+Message-ID: <20120117233239.9F9B71E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qw0-f74.google.com ([209.85.216.74]:38717 "EHLO
-	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241Ab2AQWj7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 17:39:59 -0500
-Received: by qadb12 with SMTP id b12so595376qad.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 14:39:59 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:33147 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755252Ab2AQXck (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 18:32:40 -0500
+Received: by yenl12 with SMTP id l12so128627yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 15:32:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@arm.linux.org.uk, mingo@elte.hu, rmk+kernel@arm.linux.org.uk, tglx@linutronix.de
+Cc: rdunlap@xenotime.net, rientjes@google.com
 
 
 The patch titled
-     Subject: irqs: fix handling of pending IRQs at request time
+     Subject: mm: config menu: move ZONE_DMA under a menu
 has been added to the -mm tree.  Its filename is
-     irqs-fix-handling-of-pending-irqs-at-request-time.patch
+     mm-config-menu-move-zone_dma-under-a-menu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: irqs: fix handling of pending IRQs at request time
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: mm: config menu: move ZONE_DMA under a menu
 
-When an interrupt is marked as pending, and then subsequently requested,
-the interrupt is not delivered to the handler.  The pending status is
-entirely ignored, and is left set.  The patch below ensures that this
-pending status is acted upon while requesting the interrupt.
+Move the ZONE_DMA kconfig symbol under a menu item instead of having it
+listed before everything else in "make {xconfig | gconfig | nconfig |
+menuconfig}".
 
-This matters for two reasons:
+This drops the first line of the top-level kernel config menu
+(in 3.2) below and moves it under "Processor type and features".
 
-1. If a suspend/resume cycle subsequently occurs, upon resume, we call
-   check_irq_resend() while the interrupt layer is resuming.  This notices
-   the pending IRQ, and tries to deliver it.
+          [*] DMA memory allocation support
+              General setup  --->
+          [*] Enable loadable module support  --->
+          [*] Enable the block layer  --->
+              Processor type and features  --->
+              Power management and ACPI options  --->
+              Bus options (PCI etc.)  --->
+              Executable file formats / Emulations  --->
 
-   However, at this time, the device drivers have not been resumed.  If
-   the device is behind a serial bus which has not been configured, this
-   can cause the kernel to hang or timeout while trying to access the
-   inaccessible device.
-
-2. If the device whose interrupt is being requested has already asserted
-   its interrupt signal (and is holding it at its own active level) we
-   need to process that interrupt to clear down the interrupt, to allow
-   an edge-triggered interrupt input to respond to subsequent activations.
-
-This can be caused by an interrupt occuring after free_irq(), the flow
-handler noticing that it's been disabled, and recording an IRQS_PENDING
-status, or by use of the probe_irq_*() functions.  Either gets us to the
-state where we have IRQS_PENDING set, and remaining set indefinitely after
-a subsequent request_irq() succeeds.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/Kconfig |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN kernel/irq/manage.c~fix-handling-of-pending-irqs-at-request-time kernel/irq/manage.c
---- a/kernel/irq/manage.c~fix-handling-of-pending-irqs-at-request-time
-+++ a/kernel/irq/manage.c
-@@ -1026,9 +1026,10 @@ __setup_irq(unsigned int irq, struct irq
- 		if (new->flags & IRQF_ONESHOT)
- 			desc->istate |= IRQS_ONESHOT;
+diff -puN arch/x86/Kconfig~mm-config-menu-move-zone_dma-under-a-menu arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-config-menu-move-zone_dma-under-a-menu
++++ a/arch/x86/Kconfig
+@@ -125,16 +125,6 @@ config HAVE_LATENCYTOP_SUPPORT
+ config MMU
+ 	def_bool y
  
--		if (irq_settings_can_autoenable(desc))
-+		if (irq_settings_can_autoenable(desc)) {
- 			irq_startup(desc);
--		else
-+			check_irq_resend(desc, irq);
-+		} else
- 			/* Undo nested disables: */
- 			desc->depth = 1;
+-config ZONE_DMA
+-	bool "DMA memory allocation support" if EXPERT
+-	default y
+-	help
+-	  DMA memory allocation support allows devices with less than 32-bit
+-	  addressing to allocate within the first 16MB of address space.
+-	  Disable if no such devices will be used.
+-
+-	  If unsure, say Y.
+-
+ config SBUS
+ 	bool
  
+@@ -258,6 +248,16 @@ source "kernel/Kconfig.freezer"
+ 
+ menu "Processor type and features"
+ 
++config ZONE_DMA
++	bool "DMA memory allocation support" if EXPERT
++	default y
++	help
++	  DMA memory allocation support allows devices with less than 32-bit
++	  addressing to allocate within the first 16MB of address space.
++	  Disable if no such devices will be used.
++
++	  If unsure, say Y.
++
+ source "kernel/time/Kconfig"
+ 
+ config SMP
 _
-Subject: Subject: irqs: fix handling of pending IRQs at request time
+Subject: Subject: mm: config menu: move ZONE_DMA under a menu
 
-Patches currently in -mm which might be from linux@arm.linux.org.uk are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
 linux-next.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-fix-long-term-regression-in-genirq-irq_set_irq_type-handling.patch
-irqs-fix-handling-of-pending-irqs-at-request-time.patch
+mm-config-menu-move-zone_dma-under-a-menu.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
