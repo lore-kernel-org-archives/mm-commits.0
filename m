@@ -1,99 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch removed from -mm tree
-Date: Tue, 17 Jan 2012 13:01:11 -0800
-Message-ID: <20120117210112.0EF705C0050@hpza9.eem.corp.google.com>
+Subject: [merged] drivers-scsi-megaraidc-fix-sparse-warnings.patch removed from -mm tree
+Date: Tue, 17 Jan 2012 13:01:15 -0800
+Message-ID: <20120117210115.9E9E010004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:56418 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755118Ab2AQVBO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 16:01:14 -0500
-Received: by werc1 with SMTP id c1so78022wer.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 13:01:13 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:45426 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755118Ab2AQVBQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 16:01:16 -0500
+Received: by ggnv2 with SMTP id v2so245323ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 13:01:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, James.Bottomley@HansenPartnership.com, dgilbert@interlog.com, dougg@torque.net, mm-commits@vger.kernel.org
+To: aradford@gmail.com, Bo.Yang@lsi.com, James.Bottomley@HansenPartnership.com, megaraidlinux@lsi.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/scsi/sg.c: convert to kstrtoul_from_user()
+     Subject: drivers/scsi/megaraid.c: fix sparse warnings
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-sgc-convert-to-kstrtoul_from_user.patch
+     drivers-scsi-megaraidc-fix-sparse-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: drivers/scsi/sg.c: convert to kstrtoul_from_user()
+From: adam radford <aradford@gmail.com>
+Subject: drivers/scsi/megaraid.c: fix sparse warnings
 
-Instead of open coding this function use kstrtoul_from_user() directly.
+The following patch for the older megaraid driver fixes some sparse
+warnings.
 
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Doug Gilbert <dgilbert@interlog.com>
-Cc: Douglas Gilbert <dougg@torque.net>
+Signed-off-by: Adam Radford <aradford@gmail.com>
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Neela Syam Kolli <megaraidlinux@lsi.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: <Bo.Yang@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sg.c |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ drivers/scsi/megaraid.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/sg.c~drivers-scsi-sgc-convert-to-kstrtoul_from_user drivers/scsi/sg.c
---- a/drivers/scsi/sg.c~drivers-scsi-sgc-convert-to-kstrtoul_from_user
-+++ a/drivers/scsi/sg.c
-@@ -2368,16 +2368,15 @@ static ssize_t 
- sg_proc_write_adio(struct file *filp, const char __user *buffer,
- 		   size_t count, loff_t *off)
- {
--	int num;
--	char buff[11];
-+	int err;
-+	unsigned long num;
+diff -puN drivers/scsi/megaraid.c~drivers-scsi-megaraidc-fix-sparse-warnings drivers/scsi/megaraid.c
+--- a/drivers/scsi/megaraid.c~drivers-scsi-megaraidc-fix-sparse-warnings
++++ a/drivers/scsi/megaraid.c
+@@ -306,19 +306,22 @@ mega_query_adapter(adapter_t *adapter)
+ 	adapter->host->sg_tablesize = adapter->sglen;
  
- 	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
- 		return -EACCES;
--	num = (count < 10) ? count : 10;
--	if (copy_from_user(buff, buffer, num))
--		return -EFAULT;
--	buff[num] = '\0';
--	sg_allow_dio = simple_strtoul(buff, NULL, 10) ? 1 : 0;
-+	err = kstrtoul_from_user(buffer, count, 0, &num);
-+	if (err)
-+		return err;
-+	sg_allow_dio = num ? 1 : 0;
- 	return count;
- }
  
-@@ -2390,17 +2389,15 @@ static ssize_t 
- sg_proc_write_dressz(struct file *filp, const char __user *buffer,
- 		     size_t count, loff_t *off)
- {
--	int num;
-+	int err;
- 	unsigned long k = ULONG_MAX;
--	char buff[11];
- 
- 	if (!capable(CAP_SYS_ADMIN) || !capable(CAP_SYS_RAWIO))
- 		return -EACCES;
--	num = (count < 10) ? count : 10;
--	if (copy_from_user(buff, buffer, num))
--		return -EFAULT;
--	buff[num] = '\0';
--	k = simple_strtoul(buff, NULL, 10);
-+
-+	err = kstrtoul_from_user(buffer, count, 0, &k);
-+	if (err)
-+		return err;
- 	if (k <= 1048576) {	/* limit "big buff" to 1 MB */
- 		sg_big_buff = k;
- 		return count;
+-	/* use HP firmware and bios version encoding */
++	/* use HP firmware and bios version encoding
++	   Note: fw_version[0|1] and bios_version[0|1] were originally shifted
++	   right 8 bits making them zero. This 0 value was hardcoded to fix 
++	   sparse warnings. */
+ 	if (adapter->product_info.subsysvid == HP_SUBSYS_VID) {
+ 		sprintf (adapter->fw_version, "%c%d%d.%d%d",
+ 			 adapter->product_info.fw_version[2],
+-			 adapter->product_info.fw_version[1] >> 8,
++			 0,
+ 			 adapter->product_info.fw_version[1] & 0x0f,
+-			 adapter->product_info.fw_version[0] >> 8,
++			 0,
+ 			 adapter->product_info.fw_version[0] & 0x0f);
+ 		sprintf (adapter->bios_version, "%c%d%d.%d%d",
+ 			 adapter->product_info.bios_version[2],
+-			 adapter->product_info.bios_version[1] >> 8,
++			 0,
+ 			 adapter->product_info.bios_version[1] & 0x0f,
+-			 adapter->product_info.bios_version[0] >> 8,
++			 0,
+ 			 adapter->product_info.bios_version[0] & 0x0f);
+ 	} else {
+ 		memcpy(adapter->fw_version,
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from aradford@gmail.com are
 
-origin.patch
 linux-next.patch
-debugobjects-fix-selftest-for-static-warnings.patch
 
