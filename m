@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch added to -mm tree
-Date: Wed, 18 Jan 2012 15:50:15 -0800
-Message-ID: <20120118235016.0EA8820004E@hpza10.eem.corp.google.com>
+Subject: + score-fix-off-by-one-index-into-syscall-table.patch added to -mm tree
+Date: Wed, 18 Jan 2012 15:52:40 -0800
+Message-ID: <20120118235240.AFEDD10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:58600 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753491Ab2ARXuS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 18:50:18 -0500
-Received: by eekb15 with SMTP id b15so140213eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2012 15:50:17 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:38913 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753491Ab2ARXwl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 18:52:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com
+Cc: drosenberg@vsecurity.com, arnd@arndb.de, eugeneteo@kernel.sg, lennox.wu@gmail.com, liqin.chen@sunplusct.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: cleanup with s/reclaim_mode/isolate_mode/
+     Subject: score: fix off-by-one index into syscall table
 has been added to the -mm tree.  Its filename is
-     mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
+     score-fix-off-by-one-index-into-syscall-table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +31,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: mm/vmscan.c: cleanup with s/reclaim_mode/isolate_mode/
+From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: score: fix off-by-one index into syscall table
 
-With tons of reclaim_mode (defined as one field of struct scan_control)
-already in the file, it is clearer to rename the local reclaim_mode when
-setting up the isolation mode.
+If the provided system call number is equal to __NR_syscalls, the current
+check will pass and a function pointer just after the system call table
+may be called, since sys_call_table is an array with total size
+__NR_syscalls.
 
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Rik van Riel<riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Whether or not this is a security bug depends on what the compiler puts
+immediately after the system call table.  It's likely that this won't do
+anything bad because there is an additional NULL check on the syscall
+entry, but if there happens to be a non-NULL value immediately after the
+system call table, this may result in local privilege escalation.
+
+Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: <stable@vger.kernel.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ arch/score/kernel/entry.S |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode
-+++ a/mm/vmscan.c
-@@ -1509,7 +1509,7 @@ shrink_inactive_list(unsigned long nr_to
- 	unsigned long nr_file;
- 	unsigned long nr_dirty = 0;
- 	unsigned long nr_writeback = 0;
--	isolate_mode_t reclaim_mode = ISOLATE_INACTIVE;
-+	isolate_mode_t isolate_mode = ISOLATE_INACTIVE;
- 	struct zone *zone = mz->zone;
+diff -puN arch/score/kernel/entry.S~score-fix-off-by-one-index-into-syscall-table arch/score/kernel/entry.S
+--- a/arch/score/kernel/entry.S~score-fix-off-by-one-index-into-syscall-table
++++ a/arch/score/kernel/entry.S
+@@ -408,7 +408,7 @@ ENTRY(handle_sys)
+ 	sw	r9, [r0, PT_EPC]
  
- 	while (unlikely(too_many_isolated(zone, file, sc))) {
-@@ -1522,20 +1522,20 @@ shrink_inactive_list(unsigned long nr_to
+ 	cmpi.c	r27, __NR_syscalls 	# check syscall number
+-	bgtu	illegal_syscall
++	bgeu	illegal_syscall
  
- 	set_reclaim_mode(priority, sc, false);
- 	if (sc->reclaim_mode & RECLAIM_MODE_LUMPYRECLAIM)
--		reclaim_mode |= ISOLATE_ACTIVE;
-+		isolate_mode |= ISOLATE_ACTIVE;
- 
- 	lru_add_drain();
- 
- 	if (!sc->may_unmap)
--		reclaim_mode |= ISOLATE_UNMAPPED;
-+		isolate_mode |= ISOLATE_UNMAPPED;
- 	if (!sc->may_writepage)
--		reclaim_mode |= ISOLATE_CLEAN;
-+		isolate_mode |= ISOLATE_CLEAN;
- 
- 	spin_lock_irq(&zone->lru_lock);
- 
- 	nr_taken = isolate_lru_pages(nr_to_scan, mz, &page_list,
- 				     &nr_scanned, sc->order,
--				     reclaim_mode, 0, file);
-+				     isolate_mode, 0, file);
- 	if (global_reclaim(sc)) {
- 		zone->pages_scanned += nr_scanned;
- 		if (current_is_kswapd())
-@@ -1699,21 +1699,21 @@ static void shrink_active_list(unsigned 
- 	struct page *page;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
- 	unsigned long nr_rotated = 0;
--	isolate_mode_t reclaim_mode = ISOLATE_ACTIVE;
-+	isolate_mode_t isolate_mode = ISOLATE_ACTIVE;
- 	struct zone *zone = mz->zone;
- 
- 	lru_add_drain();
- 
- 	if (!sc->may_unmap)
--		reclaim_mode |= ISOLATE_UNMAPPED;
-+		isolate_mode |= ISOLATE_UNMAPPED;
- 	if (!sc->may_writepage)
--		reclaim_mode |= ISOLATE_CLEAN;
-+		isolate_mode |= ISOLATE_CLEAN;
- 
- 	spin_lock_irq(&zone->lru_lock);
- 
- 	nr_taken = isolate_lru_pages(nr_to_scan, mz, &l_hold,
- 				     &nr_scanned, sc->order,
--				     reclaim_mode, 1, file);
-+				     isolate_mode, 1, file);
- 	if (global_reclaim(sc))
- 		zone->pages_scanned += nr_scanned;
- 
+ 	slli	r8, r27, 2		# get syscall routine
+ 	la	r11, sys_call_table
 _
-Subject: Subject: mm/vmscan.c: cleanup with s/reclaim_mode/isolate_mode/
+Subject: Subject: score: fix off-by-one index into syscall table
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
 origin.patch
-mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
-mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
+score-fix-off-by-one-index-into-syscall-table.patch
 
