@@ -1,150 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch removed from -mm tree
-Date: Tue, 17 Jan 2012 16:22:52 -0800
-Message-ID: <20120118002252.E930710004D@wpzn3.hot.corp.google.com>
+Subject: + vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts.patch added to -mm tree
+Date: Wed, 18 Jan 2012 12:40:44 -0800
+Message-ID: <20120118204045.2511D10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:59451 "EHLO
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:56876 "EHLO
 	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754224Ab2ARAWy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 19:22:54 -0500
-Received: by yhjj52 with SMTP id j52so535284yhj.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 16:22:53 -0800 (PST)
+	with ESMTP id S1751828Ab2ARUkq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 15:40:46 -0500
+Received: by yhjj52 with SMTP id j52so641745yhj.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2012 12:40:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, lenb@kernel.org, trenn@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sivanich@sgi.com, davem@davemloft.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: intel_idle: disable auto_demotion for hotplugged CPUs
-has been removed from the -mm tree.  Its filename was
-     intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
+     Subject: vfs: fix panic in __d_lookup() with high dentry hashtable counts
+has been added to the -mm tree.  Its filename is
+     vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: intel_idle: disable auto_demotion for hotplugged CPUs
+From: Dimitri Sivanich <sivanich@sgi.com>
+Subject: vfs: fix panic in __d_lookup() with high dentry hashtable counts
 
-auto_demotion_disable is called only for online CPUs.  For hotplugged
-CPUs, we should disable it too.
+When the number of dentry cache hash table entries gets too high
+(2147483648 entries), as happens by default on a 16TB system, use of a
+signed integer in the dcache_init() initialization loop prevents the
+dentry_hashtable from getting initialized, causing a panic in
+__d_lookup().  Fix this in dcache_init() and similar areas.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/idle/intel_idle.c |   53 ++++++++++++++++++++++--------------
- 1 file changed, 33 insertions(+), 20 deletions(-)
+ fs/dcache.c     |    8 ++++----
+ fs/inode.c      |    8 ++++----
+ kernel/pid.c    |    4 ++--
+ mm/page_alloc.c |    1 +
+ net/ipv4/tcp.c  |    5 +++--
+ 5 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus drivers/idle/intel_idle.c
---- a/drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus
-+++ a/drivers/idle/intel_idle.c
-@@ -297,33 +297,42 @@ static void __setup_broadcast_timer(void
- 	clockevents_notify(reason, &cpu);
- }
+diff -puN fs/dcache.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts fs/dcache.c
+--- a/fs/dcache.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts
++++ a/fs/dcache.c
+@@ -2981,7 +2981,7 @@ __setup("dhash_entries=", set_dhash_entr
  
--static int setup_broadcast_cpuhp_notify(struct notifier_block *n,
-+static void auto_demotion_disable(void *dummy)
-+{
-+	unsigned long long msr_bits;
-+
-+	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
-+	msr_bits &= ~auto_demotion_disable_flags;
-+	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
-+}
-+
-+static void __intel_idle_notify_handler(void *arg)
-+{
-+	if (auto_demotion_disable_flags)
-+		auto_demotion_disable(NULL);
-+
-+	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
-+		__setup_broadcast_timer((void *)true);
-+}
-+
-+static int setup_intelidle_cpuhp_notify(struct notifier_block *n,
- 		unsigned long action, void *hcpu)
+ static void __init dcache_init_early(void)
  {
- 	int hotcpu = (unsigned long)hcpu;
+-	int loop;
++	unsigned int loop;
  
- 	switch (action & 0xf) {
- 	case CPU_ONLINE:
--		smp_call_function_single(hotcpu, __setup_broadcast_timer,
--			(void *)true, 1);
-+		smp_call_function_single(hotcpu, __intel_idle_notify_handler,
-+			NULL, 1);
- 		break;
- 	}
- 	return NOTIFY_OK;
+ 	/* If hashes are distributed across NUMA nodes, defer
+ 	 * hash allocation until vmalloc space is available.
+@@ -2999,13 +2999,13 @@ static void __init dcache_init_early(voi
+ 					&d_hash_mask,
+ 					0);
+ 
+-	for (loop = 0; loop < (1 << d_hash_shift); loop++)
++	for (loop = 0; loop < (1U << d_hash_shift); loop++)
+ 		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
  }
  
--static struct notifier_block setup_broadcast_notifier = {
--	.notifier_call = setup_broadcast_cpuhp_notify,
-+static struct notifier_block setup_intelidle_notifier = {
-+	.notifier_call = setup_intelidle_cpuhp_notify,
- };
+ static void __init dcache_init(void)
+ {
+-	int loop;
++	unsigned int loop;
  
--static void auto_demotion_disable(void *dummy)
--{
--	unsigned long long msr_bits;
--
--	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
--	msr_bits &= ~auto_demotion_disable_flags;
--	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
--}
--
- /*
-  * intel_idle_probe()
+ 	/* 
+ 	 * A constructor could be added for stable state like the lists,
+@@ -3029,7 +3029,7 @@ static void __init dcache_init(void)
+ 					&d_hash_mask,
+ 					0);
+ 
+-	for (loop = 0; loop < (1 << d_hash_shift); loop++)
++	for (loop = 0; loop < (1U << d_hash_shift); loop++)
+ 		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
+ }
+ 
+diff -puN fs/inode.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts fs/inode.c
+--- a/fs/inode.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts
++++ a/fs/inode.c
+@@ -1568,7 +1568,7 @@ __setup("ihash_entries=", set_ihash_entr
   */
-@@ -393,10 +402,8 @@ static int intel_idle_probe(void)
+ void __init inode_init_early(void)
+ {
+-	int loop;
++	unsigned int loop;
  
- 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
- 		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
--	else {
-+	else
- 		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
--		register_cpu_notifier(&setup_broadcast_notifier);
--	}
+ 	/* If hashes are distributed across NUMA nodes, defer
+ 	 * hash allocation until vmalloc space is available.
+@@ -1586,13 +1586,13 @@ void __init inode_init_early(void)
+ 					&i_hash_mask,
+ 					0);
  
- 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
- 		" model 0x%X\n", boot_cpu_data.x86_model);
-@@ -559,6 +566,10 @@ static int __init intel_idle_init(void)
- 		return retval;
+-	for (loop = 0; loop < (1 << i_hash_shift); loop++)
++	for (loop = 0; loop < (1U << i_hash_shift); loop++)
+ 		INIT_HLIST_HEAD(&inode_hashtable[loop]);
+ }
+ 
+ void __init inode_init(void)
+ {
+-	int loop;
++	unsigned int loop;
+ 
+ 	/* inode slab cache */
+ 	inode_cachep = kmem_cache_create("inode_cache",
+@@ -1616,7 +1616,7 @@ void __init inode_init(void)
+ 					&i_hash_mask,
+ 					0);
+ 
+-	for (loop = 0; loop < (1 << i_hash_shift); loop++)
++	for (loop = 0; loop < (1U << i_hash_shift); loop++)
+ 		INIT_HLIST_HEAD(&inode_hashtable[loop]);
+ }
+ 
+diff -puN kernel/pid.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts kernel/pid.c
+--- a/kernel/pid.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts
++++ a/kernel/pid.c
+@@ -541,12 +541,12 @@ struct pid *find_ge_pid(int nr, struct p
+  */
+ void __init pidhash_init(void)
+ {
+-	int i, pidhash_size;
++	unsigned int i, pidhash_size;
+ 
+ 	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
+ 					   HASH_EARLY | HASH_SMALL,
+ 					   &pidhash_shift, NULL, 4096);
+-	pidhash_size = 1 << pidhash_shift;
++	pidhash_size = 1U << pidhash_shift;
+ 
+ 	for (i = 0; i < pidhash_size; i++)
+ 		INIT_HLIST_HEAD(&pid_hash[i]);
+diff -puN mm/page_alloc.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts mm/page_alloc.c
+--- a/mm/page_alloc.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts
++++ a/mm/page_alloc.c
+@@ -5430,6 +5430,7 @@ void *__init alloc_large_system_hash(con
+ 		max = ((unsigned long long)nr_all_pages << PAGE_SHIFT) >> 4;
+ 		do_div(max, bucketsize);
  	}
++	max = min(max, 0x80000000ULL);
  
-+	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
-+	    LAPIC_TIMER_ALWAYS_RELIABLE)
-+		register_cpu_notifier(&setup_intelidle_notifier);
-+
- 	return 0;
- }
+ 	if (numentries > max)
+ 		numentries = max;
+diff -puN net/ipv4/tcp.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts net/ipv4/tcp.c
+--- a/net/ipv4/tcp.c~vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts
++++ a/net/ipv4/tcp.c
+@@ -3216,7 +3216,8 @@ void __init tcp_init(void)
+ {
+ 	struct sk_buff *skb = NULL;
+ 	unsigned long limit;
+-	int i, max_share, cnt;
++	int max_share, cnt;
++	unsigned int i;
+ 	unsigned long jiffy = jiffies;
  
-@@ -567,10 +578,12 @@ static void __exit intel_idle_exit(void)
- 	intel_idle_cpuidle_devices_uninit();
- 	cpuidle_unregister_driver(&intel_idle_driver);
- 
--	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
-+	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
- 		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
--		unregister_cpu_notifier(&setup_broadcast_notifier);
--	}
-+
-+	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
-+	    LAPIC_TIMER_ALWAYS_RELIABLE)
-+		unregister_cpu_notifier(&setup_intelidle_notifier);
- 
- 	return;
- }
+ 	BUILD_BUG_ON(sizeof(struct tcp_skb_cb) > sizeof(skb->cb));
+@@ -3259,7 +3260,7 @@ void __init tcp_init(void)
+ 					&tcp_hashinfo.bhash_size,
+ 					NULL,
+ 					64 * 1024);
+-	tcp_hashinfo.bhash_size = 1 << tcp_hashinfo.bhash_size;
++	tcp_hashinfo.bhash_size = 1U << tcp_hashinfo.bhash_size;
+ 	for (i = 0; i < tcp_hashinfo.bhash_size; i++) {
+ 		spin_lock_init(&tcp_hashinfo.bhash[i].lock);
+ 		INIT_HLIST_HEAD(&tcp_hashinfo.bhash[i].chain);
 _
+Subject: Subject: vfs: fix panic in __d_lookup() with high dentry hashtable counts
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from sivanich@sgi.com are
 
-origin.patch
-linux-next.patch
-intel_idle-fix-api-misuse.patch
-drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
+vfs-fix-panic-in-__d_lookup-with-high-dentry-hashtable-counts.patch
 
