@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-rss-count-leakage-during-migration.patch added to -mm tree
-Date: Wed, 18 Jan 2012 15:21:56 -0800
-Message-ID: <20120118232157.32F4F1E004D@wpzn4.hot.corp.google.com>
+Subject: + mm-add-rss-counters-consistency-check.patch added to -mm tree
+Date: Wed, 18 Jan 2012 15:21:59 -0800
+Message-ID: <20120118232200.8D37E20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:60889 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492Ab2ARXV6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 18:21:58 -0500
-Received: by yhjj52 with SMTP id j52so660594yhj.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2012 15:21:57 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:62738 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752492Ab2ARXWC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 18:22:02 -0500
+Received: by eaaf1 with SMTP id f1so109757eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2012 15:22:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Subject: mm: fix rss count leakage during migration
+     Subject: mm: add rss counters consistency check
 has been added to the -mm tree.  Its filename is
-     mm-fix-rss-count-leakage-during-migration.patch
+     mm-add-rss-counters-consistency-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: fix rss count leakage during migration
+Subject: mm: add rss counters consistency check
 
-Memory migration fills a pte with a migration entry and it doesn't update
-the rss counters.  Then it replaces the migration entry with the new page
-(or the old one if migration failed).  But between these two passes this
-pte can be unmaped, or a task can fork a child and it will get a copy of
-this migration entry.  Nobody accounts for this in the rss counters.
+Warn about non-zero rss counters at final mmdrop.
 
-This patch properly adjust rss counters for migration entries in
-zap_pte_range() and copy_one_pte().  Thus we avoid extra atomic operations
-on the migration fast-path.
+This check will prevent reoccurences of bugs such as that fixed in "mm:
+fix rss count leakage during migration".
+
+I didn't hide this check under CONFIG_VM_DEBUG because it rather small and
+rss counters cover whole page-table management, so this is a good
+invariant.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Hugh Dickins <hughd@google.com>
@@ -52,65 +51,49 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   37 ++++++++++++++++++++++++++++---------
- 1 file changed, 28 insertions(+), 9 deletions(-)
+ kernel/fork.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-rss-count-leakage-during-migration mm/memory.c
---- a/mm/memory.c~mm-fix-rss-count-leakage-during-migration
-+++ a/mm/memory.c
-@@ -878,15 +878,24 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 			}
- 			if (likely(!non_swap_entry(entry)))
- 				rss[MM_SWAPENTS]++;
--			else if (is_write_migration_entry(entry) &&
--					is_cow_mapping(vm_flags)) {
--				/*
--				 * COW mappings require pages in both parent
--				 * and child to be set to read.
--				 */
--				make_migration_entry_read(&entry);
--				pte = swp_entry_to_pte(entry);
--				set_pte_at(src_mm, addr, src_pte, pte);
-+			else if (is_migration_entry(entry)) {
-+				page = migration_entry_to_page(entry);
-+
-+				if (PageAnon(page))
-+					rss[MM_ANONPAGES]++;
-+				else
-+					rss[MM_FILEPAGES]++;
-+
-+				if (is_write_migration_entry(entry) &&
-+				    is_cow_mapping(vm_flags)) {
-+					/*
-+					 * COW mappings require pages in both
-+					 * parent and child to be set to read.
-+					 */
-+					make_migration_entry_read(&entry);
-+					pte = swp_entry_to_pte(entry);
-+					set_pte_at(src_mm, addr, src_pte, pte);
-+				}
- 			}
- 		}
- 		goto out_set_pte;
-@@ -1191,6 +1200,16 @@ again:
+diff -puN kernel/fork.c~mm-add-rss-counters-consistency-check kernel/fork.c
+--- a/kernel/fork.c~mm-add-rss-counters-consistency-check
++++ a/kernel/fork.c
+@@ -514,6 +514,23 @@ static struct mm_struct *mm_init(struct 
+ 	return NULL;
+ }
  
- 			if (!non_swap_entry(entry))
- 				rss[MM_SWAPENTS]--;
-+			else if (is_migration_entry(entry)) {
-+				struct page *page;
++static void check_mm(struct mm_struct *mm)
++{
++	int i;
 +
-+				page = migration_entry_to_page(entry);
++	for (i = 0; i < NR_MM_COUNTERS; i++) {
++		long x = atomic_long_read(&mm->rss_stat.count[i]);
 +
-+				if (PageAnon(page))
-+					rss[MM_ANONPAGES]--;
-+				else
-+					rss[MM_FILEPAGES]--;
-+			}
- 			if (unlikely(!free_swap_and_cache(entry)))
- 				print_bad_pte(vma, addr, ptent, NULL);
- 		}
++		if (unlikely(x))
++			printk(KERN_ALERT "BUG: Bad rss-counter state "
++					  "mm:%p idx:%d val:%ld\n", mm, i, x);
++	}
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	VM_BUG_ON(mm->pmd_huge_pte);
++#endif
++}
++
+ /*
+  * Allocate and initialize an mm_struct.
+  */
+@@ -541,9 +558,7 @@ void __mmdrop(struct mm_struct *mm)
+ 	mm_free_pgd(mm);
+ 	destroy_context(mm);
+ 	mmu_notifier_mm_destroy(mm);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	VM_BUG_ON(mm->pmd_huge_pte);
+-#endif
++	check_mm(mm);
+ 	free_mm(mm);
+ }
+ EXPORT_SYMBOL_GPL(__mmdrop);
 _
-Subject: Subject: mm: fix rss count leakage during migration
+Subject: Subject: mm: add rss counters consistency check
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
