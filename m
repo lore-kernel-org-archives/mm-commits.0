@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-rss-counters-consistency-check.patch added to -mm tree
-Date: Wed, 18 Jan 2012 15:21:59 -0800
-Message-ID: <20120118232200.8D37E20004E@hpza10.eem.corp.google.com>
+Subject: + mm-postpone-migrated-page-mapping-reset.patch added to -mm tree
+Date: Wed, 18 Jan 2012 15:22:03 -0800
+Message-ID: <20120118232204.7BA245C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:62738 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492Ab2ARXWC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 18:22:02 -0500
-Received: by eaaf1 with SMTP id f1so109757eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2012 15:22:01 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:54922 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752707Ab2ARXWG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 18:22:06 -0500
+Received: by eekb15 with SMTP id b15so139703eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2012 15:22:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Subject: mm: add rss counters consistency check
+     Subject: mm: postpone migrated page mapping reset
 has been added to the -mm tree.  Its filename is
-     mm-add-rss-counters-consistency-check.patch
+     mm-postpone-migrated-page-mapping-reset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: add rss counters consistency check
+Subject: mm: postpone migrated page mapping reset
 
-Warn about non-zero rss counters at final mmdrop.
-
-This check will prevent reoccurences of bugs such as that fixed in "mm:
-fix rss count leakage during migration".
-
-I didn't hide this check under CONFIG_VM_DEBUG because it rather small and
-rss counters cover whole page-table management, so this is a good
-invariant.
+Postpone resetting page->mapping until the final remove_migration_ptes(). 
+Otherwise the expression PageAnon(migration_entry_to_page(entry)) does not
+work.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Hugh Dickins <hughd@google.com>
@@ -51,49 +46,30 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~mm-add-rss-counters-consistency-check kernel/fork.c
---- a/kernel/fork.c~mm-add-rss-counters-consistency-check
-+++ a/kernel/fork.c
-@@ -514,6 +514,23 @@ static struct mm_struct *mm_init(struct 
- 	return NULL;
- }
+diff -puN mm/migrate.c~mm-postpone-migrated-page-mapping-reset mm/migrate.c
+--- a/mm/migrate.c~mm-postpone-migrated-page-mapping-reset
++++ a/mm/migrate.c
+@@ -445,7 +445,6 @@ void migrate_page_copy(struct page *newp
+ 	ClearPageSwapCache(page);
+ 	ClearPagePrivate(page);
+ 	set_page_private(page, 0);
+-	page->mapping = NULL;
  
-+static void check_mm(struct mm_struct *mm)
-+{
-+	int i;
-+
-+	for (i = 0; i < NR_MM_COUNTERS; i++) {
-+		long x = atomic_long_read(&mm->rss_stat.count[i]);
-+
-+		if (unlikely(x))
-+			printk(KERN_ALERT "BUG: Bad rss-counter state "
-+					  "mm:%p idx:%d val:%ld\n", mm, i, x);
-+	}
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	VM_BUG_ON(mm->pmd_huge_pte);
-+#endif
-+}
-+
- /*
-  * Allocate and initialize an mm_struct.
-  */
-@@ -541,9 +558,7 @@ void __mmdrop(struct mm_struct *mm)
- 	mm_free_pgd(mm);
- 	destroy_context(mm);
- 	mmu_notifier_mm_destroy(mm);
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	VM_BUG_ON(mm->pmd_huge_pte);
--#endif
-+	check_mm(mm);
- 	free_mm(mm);
- }
- EXPORT_SYMBOL_GPL(__mmdrop);
+ 	/*
+ 	 * If any waiters have accumulated on the new page then
+@@ -667,6 +666,7 @@ static int move_to_new_page(struct page 
+ 	} else {
+ 		if (remap_swapcache)
+ 			remove_migration_ptes(page, newpage);
++		page->mapping = NULL;
+ 	}
+ 
+ 	unlock_page(newpage);
 _
-Subject: Subject: mm: add rss counters consistency check
+Subject: Subject: mm: postpone migrated page mapping reset
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
