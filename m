@@ -1,110 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: + mm-config-menu-move-zone_dma-under-a-menu.patch added to -mm tree
-Date: Tue, 17 Jan 2012 15:32:39 -0800
-Message-ID: <20120117233239.9F9B71E004D@wpzn4.hot.corp.google.com>
+Subject: [alternative-merged] intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch removed from -mm tree
+Date: Tue, 17 Jan 2012 16:22:52 -0800
+Message-ID: <20120118002252.E930710004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:33147 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755252Ab2AQXck (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 18:32:40 -0500
-Received: by yenl12 with SMTP id l12so128627yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 15:32:40 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:59451 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754224Ab2ARAWy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jan 2012 19:22:54 -0500
+Received: by yhjj52 with SMTP id j52so535284yhj.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jan 2012 16:22:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, rientjes@google.com
+To: shaohua.li@intel.com, lenb@kernel.org, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: config menu: move ZONE_DMA under a menu
-has been added to the -mm tree.  Its filename is
-     mm-config-menu-move-zone_dma-under-a-menu.patch
+     Subject: intel_idle: disable auto_demotion for hotplugged CPUs
+has been removed from the -mm tree.  Its filename was
+     intel_idle-disable-auto_demotion-for-hotplugged-cpus.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an alternative patch was merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: mm: config menu: move ZONE_DMA under a menu
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: intel_idle: disable auto_demotion for hotplugged CPUs
 
-Move the ZONE_DMA kconfig symbol under a menu item instead of having it
-listed before everything else in "make {xconfig | gconfig | nconfig |
-menuconfig}".
+auto_demotion_disable is called only for online CPUs.  For hotplugged
+CPUs, we should disable it too.
 
-This drops the first line of the top-level kernel config menu
-(in 3.2) below and moves it under "Processor type and features".
-
-          [*] DMA memory allocation support
-              General setup  --->
-          [*] Enable loadable module support  --->
-          [*] Enable the block layer  --->
-              Processor type and features  --->
-              Power management and ACPI options  --->
-              Bus options (PCI etc.)  --->
-              Executable file formats / Emulations  --->
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/idle/intel_idle.c |   53 ++++++++++++++++++++++--------------
+ 1 file changed, 33 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86/Kconfig~mm-config-menu-move-zone_dma-under-a-menu arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-config-menu-move-zone_dma-under-a-menu
-+++ a/arch/x86/Kconfig
-@@ -125,16 +125,6 @@ config HAVE_LATENCYTOP_SUPPORT
- config MMU
- 	def_bool y
+diff -puN drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus drivers/idle/intel_idle.c
+--- a/drivers/idle/intel_idle.c~intel_idle-disable-auto_demotion-for-hotplugged-cpus
++++ a/drivers/idle/intel_idle.c
+@@ -297,33 +297,42 @@ static void __setup_broadcast_timer(void
+ 	clockevents_notify(reason, &cpu);
+ }
  
--config ZONE_DMA
--	bool "DMA memory allocation support" if EXPERT
--	default y
--	help
--	  DMA memory allocation support allows devices with less than 32-bit
--	  addressing to allocate within the first 16MB of address space.
--	  Disable if no such devices will be used.
--
--	  If unsure, say Y.
--
- config SBUS
- 	bool
- 
-@@ -258,6 +248,16 @@ source "kernel/Kconfig.freezer"
- 
- menu "Processor type and features"
- 
-+config ZONE_DMA
-+	bool "DMA memory allocation support" if EXPERT
-+	default y
-+	help
-+	  DMA memory allocation support allows devices with less than 32-bit
-+	  addressing to allocate within the first 16MB of address space.
-+	  Disable if no such devices will be used.
+-static int setup_broadcast_cpuhp_notify(struct notifier_block *n,
++static void auto_demotion_disable(void *dummy)
++{
++	unsigned long long msr_bits;
 +
-+	  If unsure, say Y.
++	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
++	msr_bits &= ~auto_demotion_disable_flags;
++	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
++}
 +
- source "kernel/time/Kconfig"
++static void __intel_idle_notify_handler(void *arg)
++{
++	if (auto_demotion_disable_flags)
++		auto_demotion_disable(NULL);
++
++	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
++		__setup_broadcast_timer((void *)true);
++}
++
++static int setup_intelidle_cpuhp_notify(struct notifier_block *n,
+ 		unsigned long action, void *hcpu)
+ {
+ 	int hotcpu = (unsigned long)hcpu;
  
- config SMP
+ 	switch (action & 0xf) {
+ 	case CPU_ONLINE:
+-		smp_call_function_single(hotcpu, __setup_broadcast_timer,
+-			(void *)true, 1);
++		smp_call_function_single(hotcpu, __intel_idle_notify_handler,
++			NULL, 1);
+ 		break;
+ 	}
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block setup_broadcast_notifier = {
+-	.notifier_call = setup_broadcast_cpuhp_notify,
++static struct notifier_block setup_intelidle_notifier = {
++	.notifier_call = setup_intelidle_cpuhp_notify,
+ };
+ 
+-static void auto_demotion_disable(void *dummy)
+-{
+-	unsigned long long msr_bits;
+-
+-	rdmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
+-	msr_bits &= ~auto_demotion_disable_flags;
+-	wrmsrl(MSR_NHM_SNB_PKG_CST_CFG_CTL, msr_bits);
+-}
+-
+ /*
+  * intel_idle_probe()
+  */
+@@ -393,10 +402,8 @@ static int intel_idle_probe(void)
+ 
+ 	if (boot_cpu_has(X86_FEATURE_ARAT))	/* Always Reliable APIC Timer */
+ 		lapic_timer_reliable_states = LAPIC_TIMER_ALWAYS_RELIABLE;
+-	else {
++	else
+ 		on_each_cpu(__setup_broadcast_timer, (void *)true, 1);
+-		register_cpu_notifier(&setup_broadcast_notifier);
+-	}
+ 
+ 	pr_debug(PREFIX "v" INTEL_IDLE_VERSION
+ 		" model 0x%X\n", boot_cpu_data.x86_model);
+@@ -559,6 +566,10 @@ static int __init intel_idle_init(void)
+ 		return retval;
+ 	}
+ 
++	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
++	    LAPIC_TIMER_ALWAYS_RELIABLE)
++		register_cpu_notifier(&setup_intelidle_notifier);
++
+ 	return 0;
+ }
+ 
+@@ -567,10 +578,12 @@ static void __exit intel_idle_exit(void)
+ 	intel_idle_cpuidle_devices_uninit();
+ 	cpuidle_unregister_driver(&intel_idle_driver);
+ 
+-	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE) {
++	if (lapic_timer_reliable_states != LAPIC_TIMER_ALWAYS_RELIABLE)
+ 		on_each_cpu(__setup_broadcast_timer, (void *)false, 1);
+-		unregister_cpu_notifier(&setup_broadcast_notifier);
+-	}
++
++	if (auto_demotion_disable_flags || lapic_timer_reliable_states !=
++	    LAPIC_TIMER_ALWAYS_RELIABLE)
++		unregister_cpu_notifier(&setup_intelidle_notifier);
+ 
+ 	return;
+ }
 _
-Subject: Subject: mm: config menu: move ZONE_DMA under a menu
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
 linux-next.patch
-mm-config-menu-move-zone_dma-under-a-menu.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+intel_idle-fix-api-misuse.patch
+drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
 
