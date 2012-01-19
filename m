@@ -1,64 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch removed from -mm tree
-Date: Thu, 19 Jan 2012 12:32:11 -0800
-Message-ID: <20120119203212.2B13B5C0063@hpza9.eem.corp.google.com>
+Subject: + prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch added to -mm tree
+Date: Thu, 19 Jan 2012 12:41:10 -0800
+Message-ID: <20120119212336.7894E10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:44120 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932705Ab2ASUcN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2012 15:32:13 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so11507eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2012 12:32:13 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:51616 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993Ab2ASVXh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2012 16:23:37 -0500
+Received: by yenr8 with SMTP id r8so40604yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2012 13:23:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yanmin_zhang@linux.intel.com, len.brown@intel.com, mingmingx.zhang@intel.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, kay.sievers@vrfy.org, lennart@poettering.net, oleg@redhat.com
 
 
 The patch titled
-     Subject: drivers/idle/intel_idle.c: remove redundant local_irq_disable() call
-has been removed from the -mm tree.  Its filename was
-     drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
+     Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix
+has been added to the -mm tree.  Its filename is
+     prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Subject: drivers/idle/intel_idle.c: remove redundant local_irq_disable() call
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix
 
-irq disabling happens earlier in process_32.c:cpu_idle.  Basically,
-cpuidle_state->enter is called, cpu irq is disabled.  cpuidle_state->enter
-would turn on irq when exiting.
+fix conflict with PR_SET_MM
 
-intel_idle doesn't follow this assumption.  Although it doesn't cause real
-issue, it misleads developers.  Remove the call to local_irq_disable() at
-entry.
-
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: mzha38X <mingmingx.zhang@intel.com>
-Cc: "Li, Shaohua" <shaohua.li@intel.com>
-Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Lennart Poettering <lennart@poettering.net>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/idle/intel_idle.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/prctl.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/idle/intel_idle.c~drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call drivers/idle/intel_idle.c
---- a/drivers/idle/intel_idle.c~drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call
-+++ a/drivers/idle/intel_idle.c
-@@ -232,6 +232,7 @@ static int get_driver_data(int cstate)
-  * @drv: cpuidle driver
-  * @index: index of cpuidle state
-  *
-+ * Must be called under local_irq_disable().
-  */
- static int intel_idle(struct cpuidle_device *dev,
- 		struct cpuidle_driver *drv, int index)
-@@ -247,8 +248,6 @@ static int intel_idle(struct cpuidle_dev
+diff -puN include/linux/prctl.h~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix include/linux/prctl.h
+--- a/include/linux/prctl.h~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix
++++ a/include/linux/prctl.h
+@@ -114,7 +114,7 @@
+ # define PR_SET_MM_START_BRK		6
+ # define PR_SET_MM_BRK			7
  
- 	cstate = (((eax) >> MWAIT_SUBSTATE_SIZE) & MWAIT_CSTATE_MASK) + 1;
+-#define PR_SET_CHILD_SUBREAPER 35
+-#define PR_GET_CHILD_SUBREAPER 36
++#define PR_SET_CHILD_SUBREAPER 36
++#define PR_GET_CHILD_SUBREAPER 37
  
--	local_irq_disable();
+ #endif /* _LINUX_PRCTL_H */
+_
+Subject: Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+mm-fix-warnings-regarding-enum-migrate_mode.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
