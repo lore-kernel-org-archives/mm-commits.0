@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch added to -mm tree
-Date: Thu, 19 Jan 2012 12:41:10 -0800
-Message-ID: <20120119212336.7894E10004D@wpzn3.hot.corp.google.com>
+Subject: + arch-x86-kernel-nmi_selftestc-needs-percpuh.patch added to -mm tree
+Date: Thu, 19 Jan 2012 13:25:32 -0800
+Message-ID: <20120119220759.0F87D20005F@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:51616 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993Ab2ASVXh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2012 16:23:37 -0500
-Received: by yenr8 with SMTP id r8so40604yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2012 13:23:37 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:64965 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635Ab2ASWIB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jan 2012 17:08:01 -0500
+Received: by eaaf1 with SMTP id f1so13596eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jan 2012 14:08:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, kay.sievers@vrfy.org, lennart@poettering.net, oleg@redhat.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix
+     Subject: arch/x86/kernel/nmi_selftest.c needs percpu.h
 has been added to the -mm tree.  Its filename is
-     prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+     arch-x86-kernel-nmi_selftestc-needs-percpuh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix
+Subject: arch/x86/kernel/nmi_selftest.c needs percpu.h
 
-fix conflict with PR_SET_MM
+x86_64 allmodconfig:
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Lennart Poettering <lennart@poettering.net>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+arch/x86/kernel/nmi_selftest.c: In function 'test_nmi_ipi_callback':
+arch/x86/kernel/nmi_selftest.c:53: error: implicit declaration of function 'this_cpu_read'
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/prctl.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/nmi_selftest.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/prctl.h~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix include/linux/prctl.h
---- a/include/linux/prctl.h~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix
-+++ a/include/linux/prctl.h
-@@ -114,7 +114,7 @@
- # define PR_SET_MM_START_BRK		6
- # define PR_SET_MM_BRK			7
+diff -puN arch/x86/kernel/nmi_selftest.c~arch-x86-kernel-nmi_selftestc-needs-percpuh arch/x86/kernel/nmi_selftest.c
+--- a/arch/x86/kernel/nmi_selftest.c~arch-x86-kernel-nmi_selftestc-needs-percpuh
++++ a/arch/x86/kernel/nmi_selftest.c
+@@ -12,6 +12,7 @@
+ #include <linux/smp.h>
+ #include <linux/cpumask.h>
+ #include <linux/delay.h>
++#include <linux/percpu.h>
  
--#define PR_SET_CHILD_SUBREAPER 35
--#define PR_GET_CHILD_SUBREAPER 36
-+#define PR_SET_CHILD_SUBREAPER 36
-+#define PR_GET_CHILD_SUBREAPER 37
- 
- #endif /* _LINUX_PRCTL_H */
+ #include <asm/apic.h>
+ #include <asm/nmi.h>
 _
-Subject: Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix
+Subject: Subject: arch/x86/kernel/nmi_selftest.c needs percpu.h
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -71,6 +71,7 @@ mm-fix-warnings-regarding-enum-migrate_mode.patch
 linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-kernel-nmi_selftestc-needs-percpuh.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
