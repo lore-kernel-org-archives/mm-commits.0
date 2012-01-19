@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + score-fix-off-by-one-index-into-syscall-table.patch added to -mm tree
-Date: Wed, 18 Jan 2012 15:52:40 -0800
-Message-ID: <20120118235240.AFEDD10004D@wpzn3.hot.corp.google.com>
+Subject: + crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch added to -mm tree
+Date: Wed, 18 Jan 2012 16:12:54 -0800
+Message-ID: <20120119001255.229C810004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:38913 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753491Ab2ARXwl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 18:52:41 -0500
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:48134 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753988Ab2ASAM4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jan 2012 19:12:56 -0500
+Received: by ghbg20 with SMTP id g20so497461ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jan 2012 16:12:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drosenberg@vsecurity.com, arnd@arndb.de, eugeneteo@kernel.sg, lennox.wu@gmail.com, liqin.chen@sunplusct.com, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, djwong@us.ibm.com, linux@horizon.com, rpearson@systemfabricworks.com
 
 
 The patch titled
-     Subject: score: fix off-by-one index into syscall table
+     Subject: crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix
 has been added to the -mm tree.  Its filename is
-     score-fix-off-by-one-index-into-syscall-table.patch
+     crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,49 +33,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Rosenberg <drosenberg@vsecurity.com>
-Subject: score: fix off-by-one index into syscall table
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix
 
-If the provided system call number is equal to __NR_syscalls, the current
-check will pass and a function pointer just after the system call table
-may be called, since sys_call_table is an array with total size
-__NR_syscalls.
+fix typo, per George
 
-Whether or not this is a security bug depends on what the compiler puts
-immediately after the system call table.  It's likely that this won't do
-anything bad because there is an additional NULL check on the syscall
-entry, but if there happens to be a non-NULL value immediately after the
-system call table, this may result in local privilege escalation.
-
-Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: <stable@vger.kernel.org>
-Cc: Chen Liqin <liqin.chen@sunplusct.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
+Cc: George Spelvin <linux@horizon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/score/kernel/entry.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/crc32.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/score/kernel/entry.S~score-fix-off-by-one-index-into-syscall-table arch/score/kernel/entry.S
---- a/arch/score/kernel/entry.S~score-fix-off-by-one-index-into-syscall-table
-+++ a/arch/score/kernel/entry.S
-@@ -408,7 +408,7 @@ ENTRY(handle_sys)
- 	sw	r9, [r0, PT_EPC]
+diff -puN Documentation/crc32.txt~crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix Documentation/crc32.txt
+--- a/Documentation/crc32.txt~crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix
++++ a/Documentation/crc32.txt
+@@ -29,8 +29,8 @@ is sent last.  And when appending a CRC 
+ do it in the right order, matching the endianness.
  
- 	cmpi.c	r27, __NR_syscalls 	# check syscall number
--	bgtu	illegal_syscall
-+	bgeu	illegal_syscall
- 
- 	slli	r8, r27, 2		# get syscall routine
- 	la	r11, sys_call_table
+ Just like with ordinary division, you proceed one digit (bit) at a time.
+-Each step of the division, division, you take one more digit (bit) of the
+-dividend and append it to the current remainder.  Then you figure out the
++Each step of the division you take one more digit (bit) of the dividend
++and append it to the current remainder.  Then you figure out the
+ appropriate multiple of the divisor to subtract to being the remainder
+ back into range.  In binary, this is easy - it has to be either 0 or 1,
+ and to make the XOR cancel, it's just a copy of bit 32 of the remainder.
 _
-Subject: Subject: score: fix off-by-one index into syscall table
+Subject: Subject: crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-score-fix-off-by-one-index-into-syscall-table.patch
+mm-fix-warnings-regarding-enum-migrate_mode.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+audit-treat-s_id-as-an-untrusted-string.patch
+hpet-factor-timer-allocate-from-open.patch
+drivers-idle-intel_idlec-remove-redundant-local_irq_disable-call.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
