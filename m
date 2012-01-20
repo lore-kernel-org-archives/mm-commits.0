@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-hpsac-use-find_first_zero_bit.patch added to -mm tree
-Date: Fri, 20 Jan 2012 15:09:26 -0800
-Message-ID: <20120120230926.AA7421E0058@wpzn4.hot.corp.google.com>
+Subject: + ocfs2-use-find_last_bit.patch added to -mm tree
+Date: Fri, 20 Jan 2012 15:12:51 -0800
+Message-ID: <20120120231252.36F931E0058@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:49070 "EHLO
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:41736 "EHLO
 	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756233Ab2ATXJ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:09:27 -0500
-Received: by ggnv2 with SMTP id v2so90752ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:09:27 -0800 (PST)
+	with ESMTP id S1756247Ab2ATXMx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:12:53 -0500
+Received: by ggnv2 with SMTP id v2so90974ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:12:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, JBottomley@parallels.com, scameron@beardog.cce.hp.com
+Cc: akinobu.mita@gmail.com, jlbec@evilplan.org, mfasheh@suse.com
 
 
 The patch titled
-     Subject: drivers/scsi/hpsa.c: use find_first_zero_bit()
+     Subject: ocfs2: use find_last_bit()
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-hpsac-use-find_first_zero_bit.patch
+     ocfs2-use-find_last_bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: drivers/scsi/hpsa.c: use find_first_zero_bit()
+Subject: ocfs2: use find_last_bit()
 
-Use find_first_zero_bit to find the first cleared bit in a memory region.
-
-This also includes the following minor changes.
-- Use bitmap_zero
-- Reduce unnecessary atomic bitops usage
+We already have find_last_bit().  So just use it as described in the
+comment.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
-Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hpsa.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   20 +++-----------------
+ 1 file changed, 3 insertions(+), 17 deletions(-)
 
-diff -puN drivers/scsi/hpsa.c~drivers-scsi-hpsac-use-find_first_zero_bit drivers/scsi/hpsa.c
---- a/drivers/scsi/hpsa.c~drivers-scsi-hpsac-use-find_first_zero_bit
-+++ a/drivers/scsi/hpsa.c
-@@ -577,21 +577,19 @@ static int hpsa_find_target_lun(struct c
- 	int i, found = 0;
- 	DECLARE_BITMAP(lun_taken, HPSA_MAX_DEVICES);
- 
--	memset(&lun_taken[0], 0, HPSA_MAX_DEVICES >> 3);
-+	bitmap_zero(lun_taken, HPSA_MAX_DEVICES);
- 
- 	for (i = 0; i < h->ndevices; i++) {
- 		if (h->dev[i]->bus == bus && h->dev[i]->target != -1)
--			set_bit(h->dev[i]->target, lun_taken);
-+			__set_bit(h->dev[i]->target, lun_taken);
- 	}
- 
--	for (i = 0; i < HPSA_MAX_DEVICES; i++) {
--		if (!test_bit(i, lun_taken)) {
--			/* *bus = 1; */
--			*target = i;
--			*lun = 0;
--			found = 1;
--			break;
--		}
-+	i = find_first_zero_bit(lun_taken, HPSA_MAX_DEVICES);
-+	if (i < HPSA_MAX_DEVICES) {
-+		/* *bus = 1; */
-+		*target = i;
-+		*lun = 0;
-+		found = 1;
- 	}
- 	return !found;
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-use-find_last_bit fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-use-find_last_bit
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -956,23 +956,9 @@ out:
+ 	return changed;
  }
-_
-Subject: Subject: drivers/scsi/hpsa.c: use find_first_zero_bit()
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-drivers-scsi-hpsac-use-find_first_zero_bit.patch
-bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch
-bitops-remove-for_each_set_bit_cont.patch
-bitops-introduce-for_each_clear_bit.patch
-mtd-use-for_each_clear_bit.patch
-s390-char-use-for_each_clear_bit.patch
-uwb-use-for_each_clear_bit.patch
-x86-use-for_each_clear_bit_from.patch
-sysctl-use-bitmap-library-functions.patch
-
+ 
+-/* This could be faster if we just implmented a find_last_bit, but I
+- * don't think the circumstances warrant it. */
+-static int o2hb_highest_node(unsigned long *nodes,
+-			     int numbits)
+-{
+-	int highest, node;
+-
+-	highest = numbits;
+-	node = -1;
+-	while ((node = find_next_bit(nodes, numbits, node + 1)) != -1) {
+-		if (node >= numbits)
+-			break;
+-
+-		highest = node;
+-	}
