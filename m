@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch added to -mm tree
-Date: Fri, 20 Jan 2012 15:43:01 -0800
-Message-ID: <20120120234301.EA0941E005A@wpzn4.hot.corp.google.com>
+Subject: + idr-make-idr_get_next-good-for-rcu_read_lock.patch added to -mm tree
+Date: Fri, 20 Jan 2012 15:48:51 -0800
+Message-ID: <20120120234852.8D39820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:56675 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754643Ab2ATXnC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:43:02 -0500
-Received: by yhjj52 with SMTP id j52so104699yhj.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:43:02 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:55252 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753663Ab2ATXsz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:48:55 -0500
+Received: by wibhm11 with SMTP id hm11so51737wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:48:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com
+Cc: hughd@google.com, eric.dumazet@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, tj@kernel.org
 
 
 The patch titled
-     Subject: memcg: remove unnecessary thp check in page stat accounting
+     Subject: idr: make idr_get_next() good for rcu_read_lock()
 has been added to the -mm tree.  Its filename is
-     memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
+     idr-make-idr_get_next-good-for-rcu_read_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: remove unnecessary thp check in page stat accounting
+From: Hugh Dickins <hughd@google.com>
+Subject: idr: make idr_get_next() good for rcu_read_lock()
 
-e94c8a9cbce1ae ("memcg: make mem_cgroup_split_huge_fixup() more
-efficient") removed move_lock_page_cgroup().  So we do not have to check
-PageTransHuge in mem_cgroup_update_page_stat() and fallback into the
-locked accounting because both move_account() and thp split are done with
-compound_lock so they cannot race.
+Make one small adjustment to idr_get_next(): take the height from the top
+layer (stable under RCU) instead of from the root (unprotected by RCU), as
+idr_find() does: so that it can be used with RCU locking.  Copied comment
+on RCU locking from idr_find().
 
-The race between update vs.  move is protected by mem_cgroup_stealed.
-
-PageTransHuge pages shouldn't appear in this code path currently because
-we are tracking only file pages at the moment but later we are planning
-to track also other pages (e.g. mlocked ones).
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/idr.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-unnecessary-thp-check-in-page-stat-accounting mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-unnecessary-thp-check-in-page-stat-accounting
-+++ a/mm/memcontrol.c
-@@ -1864,7 +1864,7 @@ void mem_cgroup_update_page_stat(struct 
- 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
- 		goto out;
- 	/* pc->mem_cgroup is unstable ? */
--	if (unlikely(mem_cgroup_stealed(memcg)) || PageTransHuge(page)) {
-+	if (unlikely(mem_cgroup_stealed(memcg))) {
- 		/* take a lock against to access pc->mem_cgroup */
- 		move_lock_page_cgroup(pc, &flags);
- 		need_unlock = true;
+diff -puN lib/idr.c~idr-make-idr_get_next-good-for-rcu_read_lock lib/idr.c
+--- a/lib/idr.c~idr-make-idr_get_next-good-for-rcu_read_lock
++++ a/lib/idr.c
+@@ -595,8 +595,10 @@ EXPORT_SYMBOL(idr_for_each);
+  * Returns pointer to registered object with id, which is next number to
+  * given id. After being looked up, *@nextidp will be updated for the next
+  * iteration.
++ *
++ * This function can be called under rcu_read_lock(), given that the leaf
++ * pointers lifetimes are correctly managed.
+  */
+-
+ void *idr_get_next(struct idr *idp, int *nextidp)
+ {
+ 	struct idr_layer *p, *pa[MAX_LEVEL];
+@@ -605,11 +607,11 @@ void *idr_get_next(struct idr *idp, int 
+ 	int n, max;
+ 
+ 	/* find first ent */
+-	n = idp->layers * IDR_BITS;
+-	max = 1 << n;
+ 	p = rcu_dereference_raw(idp->top);
+ 	if (!p)
+ 		return NULL;
++	n = (p->layer + 1) * IDR_BITS;
++	max = 1 << n;
+ 
+ 	while (id < max) {
+ 		while (n > 0 && p) {
 _
-Subject: Subject: memcg: remove unnecessary thp check in page stat accounting
+Subject: Subject: idr: make idr_get_next() good for rcu_read_lock()
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-fix-null-ptr-dereference-in-__count_immobile_pages.patch
-mm-__count_immobile_pages-make-sure-the-node-is-online.patch
+proc-clear_refs-do-not-clear-reserved-pages.patch
 mm-memcg-update-the-correct-soft-limit-tree-during-migration.patch
-mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
+shm_unlock-fix-long-unpreemptible-section.patch
+shm_unlock-fix-unevictable-pages-stranded-after-swap.patch
 mm-fix-rss-count-leakage-during-migration.patch
-mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
-mm-oom-fold-oom_kill_task-into-oom_kill_process.patch
-mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting.patch
 mm-add-rss-counters-consistency-check.patch
 mm-postpone-migrated-page-mapping-reset.patch
-mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
-mm-make-get_mm_counter-static-inline.patch
 memcg-replace-mem_cont-by-mem_res_ctlr.patch
 memcg-replace-mem-and-mem_cont-stragglers.patch
 memcg-lru_size-instead-of-mem_cgroup_zstat.patch
 memcg-enum-lru_list-lru.patch
 memcg-remove-redundant-returns.patch
-memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
-proc-speedup-proc-stat-handling.patch
+idr-make-idr_get_next-good-for-rcu_read_lock.patch
+cgroup-revert-ss_id_lock-to-spinlock.patch
+memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
+prio_tree-debugging-patch.patch
 
