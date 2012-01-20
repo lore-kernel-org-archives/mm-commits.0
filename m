@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch added to -mm tree
-Date: Fri, 20 Jan 2012 15:21:53 -0800
-Message-ID: <20120120232154.498D05C0050@hpza9.eem.corp.google.com>
+Subject: + rtc-convert-rtc-spi-drivers-to-module_spi_driver.patch added to -mm tree
+Date: Fri, 20 Jan 2012 15:23:30 -0800
+Message-ID: <20120120232330.D53C75C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:58955 "EHLO
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:34498 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756516Ab2ATXV5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:21:57 -0500
-Received: by eekb15 with SMTP id b15so41019eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:21:55 -0800 (PST)
+	with ESMTP id S1753447Ab2ATXXe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:23:34 -0500
+Received: by eekb15 with SMTP id b15so41054eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:23:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, Durgadoss.r@intel.com, dsd@laptop.org, hong.liu@intel.com, mjg@redhat.com
+Cc: axel.lin@gmail.com, Kim.Heino@bluegiga.com, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, chrisv@cyberswitching.com, damm@opensource.se, denzzzhome@yahoo.com, mpfj@mimc.co.uk, n.voss@weinmann.de, raph@raphnet.net
 
 
 The patch titled
-     From: Axel Lin <axel.lin@gmail.com>
+     Subject: rtc: convert rtc spi drivers to module_spi_driver
 has been added to the -mm tree.  Its filename is
-     platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch
+     rtc-convert-rtc-spi-drivers-to-module_spi_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,229 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Axel Lin <axel.lin@gmail.com>
-Subject: platform-drivers-x86: convert drivers/platform/x86/* to use module_platform_driver()
+Subject: rtc: convert rtc spi drivers to module_spi_driver
 
-Convert the drivers in drivers/platform/x86/* to use the
-module_platform_driver() macro which makes the code smaller and a bit
-simpler.
+Factor out some boilerplate code for spi driver registration into
+module_spi_driver.
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Hong Liu <hong.liu@intel.com>
-Acked-by: Durgadoss R <Durgadoss.r@intel.com>
-Cc: Daniel Drake <dsd@laptop.org>
-Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Mark Jackson <mpfj@mimc.co.uk>
+Cc: Dennis Aberilla <denzzzhome@yahoo.com>
+Cc: Nikolaus Voss <n.voss@weinmann.de>
+Cc: "Kim B. Heino" <Kim.Heino@bluegiga.com>
+Cc: Raphael Assenat <raph@raphnet.net>
+Cc: Chris Verges <chrisv@cyberswitching.com>
+Cc: Magnus Damm <damm@opensource.se>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/intel_mid_powerbtn.c |   12 +-----------
- drivers/platform/x86/intel_mid_thermal.c  |   13 +------------
- drivers/platform/x86/xo1-rfkill.c         |   13 +------------
- 3 files changed, 3 insertions(+), 35 deletions(-)
+ drivers/rtc/rtc-ds1305.c  |   12 +-----------
+ drivers/rtc/rtc-ds1390.c  |   12 +-----------
+ drivers/rtc/rtc-ds3234.c  |   12 +-----------
+ drivers/rtc/rtc-m41t93.c  |   12 +-----------
+ drivers/rtc/rtc-m41t94.c  |   14 +-------------
+ drivers/rtc/rtc-max6902.c |   12 +-----------
+ drivers/rtc/rtc-pcf2123.c |   13 +------------
+ drivers/rtc/rtc-r9701.c   |   12 +-----------
+ drivers/rtc/rtc-rs5c348.c |   13 +------------
+ 9 files changed, 9 insertions(+), 103 deletions(-)
 
-diff -puN drivers/platform/x86/intel_mid_powerbtn.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver drivers/platform/x86/intel_mid_powerbtn.c
---- a/drivers/platform/x86/intel_mid_powerbtn.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver
-+++ a/drivers/platform/x86/intel_mid_powerbtn.c
-@@ -118,17 +118,7 @@ static struct platform_driver mfld_pb_dr
- 	.remove	= __devexit_p(mfld_pb_remove),
+diff -puN drivers/rtc/rtc-ds1305.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -814,17 +814,7 @@ static struct spi_driver ds1305_driver =
+ 	/* REVISIT add suspend/resume */
  };
  
--static int __init mfld_pb_init(void)
+-static int __init ds1305_init(void)
 -{
--	return platform_driver_register(&mfld_pb_driver);
+-	return spi_register_driver(&ds1305_driver);
 -}
--module_init(mfld_pb_init);
+-module_init(ds1305_init);
 -
--static void __exit mfld_pb_exit(void)
+-static void __exit ds1305_exit(void)
 -{
--	platform_driver_unregister(&mfld_pb_driver);
+-	spi_unregister_driver(&ds1305_driver);
 -}
--module_exit(mfld_pb_exit);
-+module_platform_driver(mfld_pb_driver);
+-module_exit(ds1305_exit);
++module_spi_driver(ds1305_driver);
  
- MODULE_AUTHOR("Hong Liu <hong.liu@intel.com>");
- MODULE_DESCRIPTION("Intel Medfield Power Button Driver");
-diff -puN drivers/platform/x86/intel_mid_thermal.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver drivers/platform/x86/intel_mid_thermal.c
---- a/drivers/platform/x86/intel_mid_thermal.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver
-+++ a/drivers/platform/x86/intel_mid_thermal.c
-@@ -565,18 +565,7 @@ static struct platform_driver mid_therma
- 	.id_table = therm_id_table,
- };
- 
--static int __init mid_thermal_module_init(void)
--{
--	return platform_driver_register(&mid_thermal_driver);
--}
--
--static void __exit mid_thermal_module_exit(void)
--{
--	platform_driver_unregister(&mid_thermal_driver);
--}
--
--module_init(mid_thermal_module_init);
--module_exit(mid_thermal_module_exit);
-+module_platform_driver(mid_thermal_driver);
- 
- MODULE_AUTHOR("Durgadoss R <durgadoss.r@intel.com>");
- MODULE_DESCRIPTION("Intel Medfield Platform Thermal Driver");
-diff -puN drivers/platform/x86/xo1-rfkill.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver drivers/platform/x86/xo1-rfkill.c
---- a/drivers/platform/x86/xo1-rfkill.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver
-+++ a/drivers/platform/x86/xo1-rfkill.c
-@@ -67,19 +67,8 @@ static struct platform_driver xo1_rfkill
- 	.remove		= __devexit_p(xo1_rfkill_remove),
- };
- 
--static int __init xo1_rfkill_init(void)
--{
--	return platform_driver_register(&xo1_rfkill_driver);
--}
--
--static void __exit xo1_rfkill_exit(void)
--{
--	platform_driver_unregister(&xo1_rfkill_driver);
--}
-+module_platform_driver(xo1_rfkill_driver);
- 
- MODULE_AUTHOR("Daniel Drake <dsd@laptop.org>");
+ MODULE_DESCRIPTION("RTC driver for DS1305 and DS1306 chips");
  MODULE_LICENSE("GPL");
- MODULE_ALIAS("platform:xo1-rfkill");
+diff -puN drivers/rtc/rtc-ds1390.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-ds1390.c
+--- a/drivers/rtc/rtc-ds1390.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-ds1390.c
+@@ -175,17 +175,7 @@ static struct spi_driver ds1390_driver =
+ 	.remove = __devexit_p(ds1390_remove),
+ };
+ 
+-static __init int ds1390_init(void)
+-{
+-	return spi_register_driver(&ds1390_driver);
+-}
+-module_init(ds1390_init);
+-
+-static __exit void ds1390_exit(void)
+-{
+-	spi_unregister_driver(&ds1390_driver);
+-}
+-module_exit(ds1390_exit);
++module_spi_driver(ds1390_driver);
+ 
+ MODULE_DESCRIPTION("Dallas/Maxim DS1390/93/94 SPI RTC driver");
+ MODULE_AUTHOR("Mark Jackson <mpfj@mimc.co.uk>");
+diff -puN drivers/rtc/rtc-ds3234.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-ds3234.c
+--- a/drivers/rtc/rtc-ds3234.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-ds3234.c
+@@ -173,17 +173,7 @@ static struct spi_driver ds3234_driver =
+ 	.remove = __devexit_p(ds3234_remove),
+ };
+ 
+-static __init int ds3234_init(void)
+-{
+-	return spi_register_driver(&ds3234_driver);
+-}
+-module_init(ds3234_init);
+-
+-static __exit void ds3234_exit(void)
+-{
+-	spi_unregister_driver(&ds3234_driver);
+-}
+-module_exit(ds3234_exit);
++module_spi_driver(ds3234_driver);
+ 
+ MODULE_DESCRIPTION("DS3234 SPI RTC driver");
+ MODULE_AUTHOR("Dennis Aberilla <denzzzhome@yahoo.com>");
+diff -puN drivers/rtc/rtc-m41t93.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-m41t93.c
+--- a/drivers/rtc/rtc-m41t93.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-m41t93.c
+@@ -206,17 +206,7 @@ static struct spi_driver m41t93_driver =
+ 	.remove = __devexit_p(m41t93_remove),
+ };
+ 
+-static __init int m41t93_init(void)
+-{
+-	return spi_register_driver(&m41t93_driver);
+-}
+-module_init(m41t93_init);
+-
+-static __exit void m41t93_exit(void)
+-{
+-	spi_unregister_driver(&m41t93_driver);
+-}
+-module_exit(m41t93_exit);
++module_spi_driver(m41t93_driver);
+ 
+ MODULE_AUTHOR("Nikolaus Voss <n.voss@weinmann.de>");
+ MODULE_DESCRIPTION("Driver for ST M41T93 SPI RTC");
+diff -puN drivers/rtc/rtc-m41t94.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-m41t94.c
+--- a/drivers/rtc/rtc-m41t94.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-m41t94.c
+@@ -153,19 +153,7 @@ static struct spi_driver m41t94_driver =
+ 	.remove = __devexit_p(m41t94_remove),
+ };
+ 
+-static __init int m41t94_init(void)
+-{
+-	return spi_register_driver(&m41t94_driver);
+-}
+-
+-module_init(m41t94_init);
+-
+-static __exit void m41t94_exit(void)
+-{
+-	spi_unregister_driver(&m41t94_driver);
+-}
+-
+-module_exit(m41t94_exit);
++module_spi_driver(m41t94_driver);
+ 
+ MODULE_AUTHOR("Kim B. Heino <Kim.Heino@bluegiga.com>");
+ MODULE_DESCRIPTION("Driver for ST M41T94 SPI RTC");
+diff -puN drivers/rtc/rtc-max6902.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-max6902.c
+--- a/drivers/rtc/rtc-max6902.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-max6902.c
+@@ -160,17 +160,7 @@ static struct spi_driver max6902_driver 
+ 	.remove = __devexit_p(max6902_remove),
+ };
+ 
+-static __init int max6902_init(void)
+-{
+-	return spi_register_driver(&max6902_driver);
+-}
+-module_init(max6902_init);
+-
+-static __exit void max6902_exit(void)
+-{
+-	spi_unregister_driver(&max6902_driver);
+-}
+-module_exit(max6902_exit);
++module_spi_driver(max6902_driver);
+ 
+ MODULE_DESCRIPTION ("max6902 spi RTC driver");
+ MODULE_AUTHOR ("Raphael Assenat");
+diff -puN drivers/rtc/rtc-pcf2123.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-pcf2123.c
+--- a/drivers/rtc/rtc-pcf2123.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-pcf2123.c
+@@ -346,20 +346,9 @@ static struct spi_driver pcf2123_driver 
+ 	.remove	= __devexit_p(pcf2123_remove),
+ };
+ 
+-static int __init pcf2123_init(void)
+-{
+-	return spi_register_driver(&pcf2123_driver);
+-}
+-
+-static void __exit pcf2123_exit(void)
+-{
+-	spi_unregister_driver(&pcf2123_driver);
+-}
++module_spi_driver(pcf2123_driver);
+ 
+ MODULE_AUTHOR("Chris Verges <chrisv@cyberswitching.com>");
+ MODULE_DESCRIPTION("NXP PCF2123 RTC driver");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
+-
+-module_init(pcf2123_init);
+-module_exit(pcf2123_exit);
+diff -puN drivers/rtc/rtc-r9701.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-r9701.c
+--- a/drivers/rtc/rtc-r9701.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-r9701.c
+@@ -159,17 +159,7 @@ static struct spi_driver r9701_driver = 
+ 	.remove = __devexit_p(r9701_remove),
+ };
+ 
+-static __init int r9701_init(void)
+-{
+-	return spi_register_driver(&r9701_driver);
+-}
+-module_init(r9701_init);
+-
+-static __exit void r9701_exit(void)
+-{
+-	spi_unregister_driver(&r9701_driver);
+-}
+-module_exit(r9701_exit);
++module_spi_driver(r9701_driver);
+ 
+ MODULE_DESCRIPTION("r9701 spi RTC driver");
+ MODULE_AUTHOR("Magnus Damm <damm@opensource.se>");
+diff -puN drivers/rtc/rtc-rs5c348.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver drivers/rtc/rtc-rs5c348.c
+--- a/drivers/rtc/rtc-rs5c348.c~rtc-convert-rtc-spi-drivers-to-module_spi_driver
++++ a/drivers/rtc/rtc-rs5c348.c
+@@ -235,18 +235,7 @@ static struct spi_driver rs5c348_driver 
+ 	.remove	= __devexit_p(rs5c348_remove),
+ };
+ 
+-static __init int rs5c348_init(void)
+-{
+-	return spi_register_driver(&rs5c348_driver);
+-}
+-
+-static __exit void rs5c348_exit(void)
+-{
+-	spi_unregister_driver(&rs5c348_driver);
+-}
