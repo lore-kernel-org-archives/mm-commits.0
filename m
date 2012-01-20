@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-percpu-vmc-use-bitmap_clear.patch added to -mm tree
-Date: Fri, 20 Jan 2012 15:13:40 -0800
-Message-ID: <20120120231340.EBBED5C0060@hpza9.eem.corp.google.com>
+Subject: + platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch added to -mm tree
+Date: Fri, 20 Jan 2012 15:21:53 -0800
+Message-ID: <20120120232154.498D05C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:54096 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755038Ab2ATXNn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:13:43 -0500
-Received: by wgbdr1 with SMTP id dr1so39269wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:13:42 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:58955 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756516Ab2ATXV5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:21:57 -0500
+Received: by eekb15 with SMTP id b15so41019eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:21:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, cl@linux-foundation.org, tj@kernel.org
+Cc: axel.lin@gmail.com, Durgadoss.r@intel.com, dsd@laptop.org, hong.liu@intel.com, mjg@redhat.com
 
 
 The patch titled
-     Subject: mm/percpu-vm.c: use bitmap_clear()
+     From: Axel Lin <axel.lin@gmail.com>
 has been added to the -mm tree.  Its filename is
-     mm-percpu-vmc-use-bitmap_clear.patch
+     platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mm/percpu-vm.c: use bitmap_clear()
+From: Axel Lin <axel.lin@gmail.com>
+Subject: platform-drivers-x86: convert drivers/platform/x86/* to use module_platform_driver()
 
-Use bitmap_clear() rather than clearing individual bits in a memory region.
+Convert the drivers in drivers/platform/x86/* to use the
+module_platform_driver() macro which makes the code smaller and a bit
+simpler.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Hong Liu <hong.liu@intel.com>
+Acked-by: Durgadoss R <Durgadoss.r@intel.com>
+Cc: Daniel Drake <dsd@laptop.org>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu-vm.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/platform/x86/intel_mid_powerbtn.c |   12 +-----------
+ drivers/platform/x86/intel_mid_thermal.c  |   13 +------------
+ drivers/platform/x86/xo1-rfkill.c         |   13 +------------
+ 3 files changed, 3 insertions(+), 35 deletions(-)
 
-diff -puN mm/percpu-vm.c~mm-percpu-vmc-use-bitmap_clear mm/percpu-vm.c
---- a/mm/percpu-vm.c~mm-percpu-vmc-use-bitmap_clear
-+++ a/mm/percpu-vm.c
-@@ -184,8 +184,7 @@ static void pcpu_unmap_pages(struct pcpu
- 				   page_end - page_start);
- 	}
+diff -puN drivers/platform/x86/intel_mid_powerbtn.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver drivers/platform/x86/intel_mid_powerbtn.c
+--- a/drivers/platform/x86/intel_mid_powerbtn.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver
++++ a/drivers/platform/x86/intel_mid_powerbtn.c
+@@ -118,17 +118,7 @@ static struct platform_driver mfld_pb_dr
+ 	.remove	= __devexit_p(mfld_pb_remove),
+ };
  
--	for (i = page_start; i < page_end; i++)
--		__clear_bit(i, populated);
-+	bitmap_clear(populated, page_start, page_end - page_start);
- }
+-static int __init mfld_pb_init(void)
+-{
+-	return platform_driver_register(&mfld_pb_driver);
+-}
+-module_init(mfld_pb_init);
+-
+-static void __exit mfld_pb_exit(void)
+-{
+-	platform_driver_unregister(&mfld_pb_driver);
+-}
+-module_exit(mfld_pb_exit);
++module_platform_driver(mfld_pb_driver);
  
- /**
-_
-Subject: Subject: mm/percpu-vm.c: use bitmap_clear()
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-mm-percpu-vmc-use-bitmap_clear.patch
-ocfs2-use-find_last_bit.patch
-ocfs2-use-bitmap_weight.patch
-drivers-scsi-hpsac-use-find_first_zero_bit.patch
-bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch
-bitops-remove-for_each_set_bit_cont.patch
-bitops-introduce-for_each_clear_bit.patch
-mtd-use-for_each_clear_bit.patch
-s390-char-use-for_each_clear_bit.patch
-uwb-use-for_each_clear_bit.patch
-x86-use-for_each_clear_bit_from.patch
-sysctl-use-bitmap-library-functions.patch
-
+ MODULE_AUTHOR("Hong Liu <hong.liu@intel.com>");
+ MODULE_DESCRIPTION("Intel Medfield Power Button Driver");
+diff -puN drivers/platform/x86/intel_mid_thermal.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver drivers/platform/x86/intel_mid_thermal.c
+--- a/drivers/platform/x86/intel_mid_thermal.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver
++++ a/drivers/platform/x86/intel_mid_thermal.c
+@@ -565,18 +565,7 @@ static struct platform_driver mid_therma
+ 	.id_table = therm_id_table,
+ };
+ 
+-static int __init mid_thermal_module_init(void)
+-{
+-	return platform_driver_register(&mid_thermal_driver);
+-}
+-
+-static void __exit mid_thermal_module_exit(void)
+-{
+-	platform_driver_unregister(&mid_thermal_driver);
+-}
+-
+-module_init(mid_thermal_module_init);
+-module_exit(mid_thermal_module_exit);
++module_platform_driver(mid_thermal_driver);
+ 
+ MODULE_AUTHOR("Durgadoss R <durgadoss.r@intel.com>");
+ MODULE_DESCRIPTION("Intel Medfield Platform Thermal Driver");
+diff -puN drivers/platform/x86/xo1-rfkill.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver drivers/platform/x86/xo1-rfkill.c
+--- a/drivers/platform/x86/xo1-rfkill.c~platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver
++++ a/drivers/platform/x86/xo1-rfkill.c
+@@ -67,19 +67,8 @@ static struct platform_driver xo1_rfkill
+ 	.remove		= __devexit_p(xo1_rfkill_remove),
+ };
+ 
+-static int __init xo1_rfkill_init(void)
+-{
+-	return platform_driver_register(&xo1_rfkill_driver);
+-}
+-
+-static void __exit xo1_rfkill_exit(void)
+-{
+-	platform_driver_unregister(&xo1_rfkill_driver);
+-}
++module_platform_driver(xo1_rfkill_driver);
+ 
+ MODULE_AUTHOR("Daniel Drake <dsd@laptop.org>");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("platform:xo1-rfkill");
