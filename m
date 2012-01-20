@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-remoteproc-f-typo.patch added to -mm tree
-Date: Fri, 20 Jan 2012 14:41:49 -0800
-Message-ID: <20120120224150.003155C0050@hpza9.eem.corp.google.com>
+Subject: + proc-speedup-proc-stat-handling.patch added to -mm tree
+Date: Fri, 20 Jan 2012 14:56:06 -0800
+Message-ID: <20120120225607.3B786200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:42061 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755708Ab2ATWlw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 17:41:52 -0500
-Received: by eekb15 with SMTP id b15so40137eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 14:41:50 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:60999 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756555Ab2ATW4K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 17:56:10 -0500
+Received: by eaaf1 with SMTP id f1so36170eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 14:56:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, ohad@wizery.com
+Cc: eric.dumazet@gmail.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, linux@arm.linux.org.uk, mingo@elte.hu, pjt@google.com
 
 
 The patch titled
-     Subject: MAINTAINERS: fix REMOTEPROC F: typo
+     Subject: proc:  speedup /proc/stat handling
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-remoteproc-f-typo.patch
+     proc-speedup-proc-stat-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,123 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: fix REMOTEPROC F: typo
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: proc:  speedup /proc/stat handling
 
-remoteproc.txt should have been .h
+On a typical 16 cpus machine, "cat /proc/stat" gives more than 4096 bytes,
+and is slow :
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>
+# strace -T -o /tmp/STRACE cat /proc/stat | wc -c
+5826
+# grep "cpu " /tmp/STRACE
+read(0, "cpu  1949310 19 2144714 12117253"..., 32768) = 5826 <0.001504>
+
+Thats partly because show_stat() must be called twice since initial
+buffer size is too small (4096 bytes for less than 32 possible cpus)
+
+Fix this by :
+
+1) Taking into account nr_irqs in the initial buffer sizing.
+
+2) Using ksize() to allow better filling of initial buffer.
+
+3) Reduce the bloat on "intr ..." line :
+   Dont output trailing " 0" values at the end of irq range.
+
+An alternative to 1) would be to remember the largest m->count reached
+in show_stat()
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Turner <pjt@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/stat.c |   33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-fix-remoteproc-f-typo MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-remoteproc-f-typo
-+++ a/MAINTAINERS
-@@ -5562,7 +5562,7 @@ M:	Ohad Ben-Cohen <ohad@wizery.com>
- S:	Maintained
- F:	drivers/remoteproc/
- F:	Documentation/remoteproc.txt
--F:	include/linux/remoteproc.txt
-+F:	include/linux/remoteproc.h
+diff -puN fs/proc/stat.c~proc-speedup-proc-stat-handling fs/proc/stat.c
+--- a/fs/proc/stat.c~proc-speedup-proc-stat-handling
++++ a/fs/proc/stat.c
+@@ -49,6 +49,20 @@ static u64 get_iowait_time(int cpu)
+ 	return iowait;
+ }
  
- RFKILL
- M:	Johannes Berg <johannes@sipsolutions.net>
++/*
++ * Most irqs at the end of the range are never used.
++ * Find the upper limit, to not output trailing " 0" values
++ */
++static int highest_irq_used(void)
++{
++	int nr;
++
++	for (nr = nr_irqs; nr; nr--)
++		if (kstat_irqs(nr - 1))
++			break;
++	return nr;
++}
++
+ static int show_stat(struct seq_file *p, void *v)
+ {
+ 	int i, j;
+@@ -129,10 +143,10 @@ static int show_stat(struct seq_file *p,
+ 			(unsigned long long)cputime64_to_clock_t(guest_nice));
+ 	}
+ 	seq_printf(p, "intr %llu", (unsigned long long)sum);
+-
+-	/* sum again ? it could be updated? */
+-	for_each_irq_nr(j)
+-		seq_printf(p, " %u", kstat_irqs(j));
++	/* Note that the "sum" value can already be obsolete. */
++	j = highest_irq_used();
++	for (i = 0; i < j; i++)
++		seq_printf(p, " %u", kstat_irqs(i));
+ 
+ 	seq_printf(p,
+ 		"\nctxt %llu\n"
+@@ -157,14 +171,17 @@ static int show_stat(struct seq_file *p,
+ 
+ static int stat_open(struct inode *inode, struct file *file)
+ {
+-	unsigned size = 4096 * (1 + num_possible_cpus() / 32);
++	unsigned size = 1024 + 128 * num_possible_cpus();
+ 	char *buf;
+ 	struct seq_file *m;
+ 	int res;
+ 
++	/* minimum size to display a 0 count per interrupt : 2 bytes */
++	size += 2 * nr_irqs;
++
+ 	/* don't ask for more than the kmalloc() max size */
+-	if (size > KMALLOC_MAX_SIZE)
+-		size = KMALLOC_MAX_SIZE;
++	size = min_t(unsigned, size, KMALLOC_MAX_SIZE);
++
+ 	buf = kmalloc(size, GFP_KERNEL);
+ 	if (!buf)
+ 		return -ENOMEM;
+@@ -173,7 +190,7 @@ static int stat_open(struct inode *inode
+ 	if (!res) {
+ 		m = file->private_data;
+ 		m->buf = buf;
+-		m->size = size;
++		m->size = ksize(buf);
+ 	} else
+ 		kfree(buf);
+ 	return res;
 _
-Subject: Subject: MAINTAINERS: fix REMOTEPROC F: typo
+Subject: Subject: proc:  speedup /proc/stat handling
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from eric.dumazet@gmail.com are
 
-maintainers-update-partitions-block-f-patterns.patch
-maintainers-remove-imx5-section.patch
-maintainers-remove-staging-sections.patch
-maintainers-update-lguest-f-patterns.patch
+shm_unlock-fix-long-unpreemptible-section.patch
+shm_unlock-fix-unevictable-pages-stranded-after-swap.patch
 linux-next.patch
-maintainers-staging-cx25821-add-l-linux-media.patch
-maintainers-fix-remoteproc-f-typo.patch
+net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
+proc-speedup-proc-stat-handling.patch
 
