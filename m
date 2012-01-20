@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-scsi-hpsac-use-find_first_zero_bit.patch added to -mm tree
-Date: Fri, 20 Jan 2012 15:09:13 -0800
-Message-ID: <20120120230913.A06C71E0058@wpzn4.hot.corp.google.com>
+Date: Fri, 20 Jan 2012 15:09:26 -0800
+Message-ID: <20120120230926.AA7421E0058@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:49747 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756233Ab2ATXJO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:09:14 -0500
-Received: by yenr8 with SMTP id r8so95460yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:09:14 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:49070 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756233Ab2ATXJ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:09:27 -0500
+Received: by ggnv2 with SMTP id v2so90752ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:09:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -43,7 +43,7 @@ This also includes the following minor changes.
 - Reduce unnecessary atomic bitops usage
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Acked-by: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
 Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
