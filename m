@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + proc-speedup-proc-stat-handling.patch added to -mm tree
-Date: Fri, 20 Jan 2012 14:56:06 -0800
-Message-ID: <20120120225607.3B786200057@hpza10.eem.corp.google.com>
+Subject: + sysctl-use-bitmap-library-functions.patch added to -mm tree
+Date: Fri, 20 Jan 2012 15:08:27 -0800
+Message-ID: <20120120230828.17BFC5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:60999 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756555Ab2ATW4K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 17:56:10 -0500
-Received: by eaaf1 with SMTP id f1so36170eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 14:56:09 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:36086 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756233Ab2ATXI3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:08:29 -0500
+Received: by eekb15 with SMTP id b15so40724eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:08:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.dumazet@gmail.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, linux@arm.linux.org.uk, mingo@elte.hu, pjt@google.com
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     Subject: proc:  speedup /proc/stat handling
+     Subject: sysctl: use bitmap library functions
 has been added to the -mm tree.  Its filename is
-     proc-speedup-proc-stat-handling.patch
+     sysctl-use-bitmap-library-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,123 +33,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: proc:  speedup /proc/stat handling
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: sysctl: use bitmap library functions
 
-On a typical 16 cpus machine, "cat /proc/stat" gives more than 4096 bytes,
-and is slow :
+Use bitmap_set() instead of using set_bit() for each bit.  This conversion
+is valid because the bitmap is private in the function call and atomic
+bitops were unnecessary.
 
-# strace -T -o /tmp/STRACE cat /proc/stat | wc -c
-5826
-# grep "cpu " /tmp/STRACE
-read(0, "cpu  1949310 19 2144714 12117253"..., 32768) = 5826 <0.001504>
+This also includes minor change.
+- Use bitmap_copy() for shorter typing
 
-Thats partly because show_stat() must be called twice since initial
-buffer size is too small (4096 bytes for less than 32 possible cpus)
-
-Fix this by :
-
-1) Taking into account nr_irqs in the initial buffer sizing.
-
-2) Using ksize() to allow better filling of initial buffer.
-
-3) Reduce the bloat on "intr ..." line :
-   Dont output trailing " 0" values at the end of irq range.
-
-An alternative to 1) would be to remember the largest m->count reached
-in show_stat()
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Turner <pjt@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |   33 +++++++++++++++++++++++++--------
- 1 file changed, 25 insertions(+), 8 deletions(-)
+ kernel/sysctl.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/stat.c~proc-speedup-proc-stat-handling fs/proc/stat.c
---- a/fs/proc/stat.c~proc-speedup-proc-stat-handling
-+++ a/fs/proc/stat.c
-@@ -49,6 +49,20 @@ static u64 get_iowait_time(int cpu)
- 	return iowait;
- }
+diff -puN kernel/sysctl.c~sysctl-use-bitmap-library-functions kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-use-bitmap-library-functions
++++ a/kernel/sysctl.c
+@@ -58,6 +58,7 @@
+ #include <linux/oom.h>
+ #include <linux/kmod.h>
+ #include <linux/capability.h>
++#include <linux/bitmap.h>
  
-+/*
-+ * Most irqs at the end of the range are never used.
-+ * Find the upper limit, to not output trailing " 0" values
-+ */
-+static int highest_irq_used(void)
-+{
-+	int nr;
-+
-+	for (nr = nr_irqs; nr; nr--)
-+		if (kstat_irqs(nr - 1))
-+			break;
-+	return nr;
-+}
-+
- static int show_stat(struct seq_file *p, void *v)
- {
- 	int i, j;
-@@ -129,10 +143,10 @@ static int show_stat(struct seq_file *p,
- 			(unsigned long long)cputime64_to_clock_t(guest_nice));
- 	}
- 	seq_printf(p, "intr %llu", (unsigned long long)sum);
+ #include <asm/uaccess.h>
+ #include <asm/processor.h>
+@@ -2891,9 +2892,7 @@ int proc_do_large_bitmap(struct ctl_tabl
+ 				}
+ 			}
+ 
+-			while (val_a <= val_b)
+-				set_bit(val_a++, tmp_bitmap);
 -
--	/* sum again ? it could be updated? */
--	for_each_irq_nr(j)
--		seq_printf(p, " %u", kstat_irqs(j));
-+	/* Note that the "sum" value can already be obsolete. */
-+	j = highest_irq_used();
-+	for (i = 0; i < j; i++)
-+		seq_printf(p, " %u", kstat_irqs(i));
- 
- 	seq_printf(p,
- 		"\nctxt %llu\n"
-@@ -157,14 +171,17 @@ static int show_stat(struct seq_file *p,
- 
- static int stat_open(struct inode *inode, struct file *file)
- {
--	unsigned size = 4096 * (1 + num_possible_cpus() / 32);
-+	unsigned size = 1024 + 128 * num_possible_cpus();
- 	char *buf;
- 	struct seq_file *m;
- 	int res;
- 
-+	/* minimum size to display a 0 count per interrupt : 2 bytes */
-+	size += 2 * nr_irqs;
-+
- 	/* don't ask for more than the kmalloc() max size */
--	if (size > KMALLOC_MAX_SIZE)
--		size = KMALLOC_MAX_SIZE;
-+	size = min_t(unsigned, size, KMALLOC_MAX_SIZE);
-+
- 	buf = kmalloc(size, GFP_KERNEL);
- 	if (!buf)
- 		return -ENOMEM;
-@@ -173,7 +190,7 @@ static int stat_open(struct inode *inode
- 	if (!res) {
- 		m = file->private_data;
- 		m->buf = buf;
--		m->size = size;
-+		m->size = ksize(buf);
- 	} else
- 		kfree(buf);
- 	return res;
++			bitmap_set(tmp_bitmap, val_a, val_b - val_a + 1);
+ 			first = 0;
+ 			proc_skip_char(&kbuf, &left, '\n');
+ 		}
+@@ -2936,8 +2935,7 @@ int proc_do_large_bitmap(struct ctl_tabl
+ 			if (*ppos)
+ 				bitmap_or(bitmap, bitmap, tmp_bitmap, bitmap_len);
+ 			else
+-				memcpy(bitmap, tmp_bitmap,
+-					BITS_TO_LONGS(bitmap_len) * sizeof(unsigned long));
++				bitmap_copy(bitmap, tmp_bitmap, bitmap_len);
+ 		}
+ 		kfree(tmp_bitmap);
+ 		*lenp -= left;
 _
-Subject: Subject: proc:  speedup /proc/stat handling
+Subject: Subject: sysctl: use bitmap library functions
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-shm_unlock-fix-long-unpreemptible-section.patch
-shm_unlock-fix-unevictable-pages-stranded-after-swap.patch
-linux-next.patch
-net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
-proc-speedup-proc-stat-handling.patch
+bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch
+bitops-remove-for_each_set_bit_cont.patch
+bitops-introduce-for_each_clear_bit.patch
+mtd-use-for_each_clear_bit.patch
+s390-char-use-for_each_clear_bit.patch
+uwb-use-for_each_clear_bit.patch
+x86-use-for_each_clear_bit_from.patch
+sysctl-use-bitmap-library-functions.patch
 
