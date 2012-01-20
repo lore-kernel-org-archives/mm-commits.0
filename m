@@ -1,101 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-config-menu-move-zone_dma-under-a-menu.patch removed from -mm tree
-Date: Fri, 20 Jan 2012 11:40:05 -0800
-Message-ID: <20120120194006.E65265C0050@hpza9.eem.corp.google.com>
+Subject: + x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix-2.patch added to -mm tree
+Date: Fri, 20 Jan 2012 12:16:01 -0800
+Message-ID: <20120120201602.75EC21E005A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:49456 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754940Ab2ATTkJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 14:40:09 -0500
-Received: by eekb15 with SMTP id b15so35530eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 11:40:07 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:53458 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754913Ab2ATUQE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 15:16:04 -0500
+Received: by ghbg20 with SMTP id g20so74405ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 12:16:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sfr@canb.auug.org.au, alex.shi@intel.com
 
 
 The patch titled
-     Subject: mm: config menu: move ZONE_DMA under a menu
-has been removed from the -mm tree.  Its filename was
-     mm-config-menu-move-zone_dma-under-a-menu.patch
+     Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix-2
+has been added to the -mm tree.  Its filename is
+     x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: mm: config menu: move ZONE_DMA under a menu
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix-2
 
-Move the ZONE_DMA kconfig symbol under a menu item instead of having it
-listed before everything else in "make {xconfig | gconfig | nconfig |
-menuconfig}".
+arch/x86/include/asm/desc.h: fix smp_processor_id's need for this_cpu_read
 
-This drops the first line of the top-level kernel config menu
-(in 3.2) below and moves it under "Processor type and features".
-
-          [*] DMA memory allocation support
-              General setup  --->
-          [*] Enable loadable module support  --->
-          [*] Enable the block layer  --->
-              Processor type and features  --->
-              Power management and ACPI options  --->
-              Bus options (PCI etc.)  --->
-              Executable file formats / Emulations  --->
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Alex Shi <alex.shi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/desc.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/Kconfig~mm-config-menu-move-zone_dma-under-a-menu arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-config-menu-move-zone_dma-under-a-menu
-+++ a/arch/x86/Kconfig
-@@ -125,16 +125,6 @@ config HAVE_LATENCYTOP_SUPPORT
- config MMU
- 	def_bool y
+diff -puN arch/x86/include/asm/desc.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix-2 arch/x86/include/asm/desc.h
+--- a/arch/x86/include/asm/desc.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix-2
++++ a/arch/x86/include/asm/desc.h
+@@ -6,6 +6,7 @@
+ #include <asm/mmu.h>
  
--config ZONE_DMA
--	bool "DMA memory allocation support" if EXPERT
--	default y
--	help
--	  DMA memory allocation support allows devices with less than 32-bit
--	  addressing to allocate within the first 16MB of address space.
--	  Disable if no such devices will be used.
--
--	  If unsure, say Y.
--
- config SBUS
- 	bool
+ #include <linux/smp.h>
++#include <linux/percpu.h>
  
-@@ -258,6 +248,16 @@ source "kernel/Kconfig.freezer"
- 
- menu "Processor type and features"
- 
-+config ZONE_DMA
-+	bool "DMA memory allocation support" if EXPERT
-+	default y
-+	help
-+	  DMA memory allocation support allows devices with less than 32-bit
-+	  addressing to allocate within the first 16MB of address space.
-+	  Disable if no such devices will be used.
-+
-+	  If unsure, say Y.
-+
- source "kernel/time/Kconfig"
- 
- config SMP
+ static inline void fill_ldt(struct desc_struct *desc, const struct user_desc *info)
+ {
 _
+Subject: Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix-2
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-origin.patch
 linux-next.patch
-ramoops-use-pstore-interface.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix-2.patch
 
