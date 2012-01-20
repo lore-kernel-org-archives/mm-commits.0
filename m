@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-imx5-section.patch added to -mm tree
-Date: Fri, 20 Jan 2012 14:40:56 -0800
-Message-ID: <20120120224057.9CCC420004E@hpza10.eem.corp.google.com>
+Subject: + maintainers-remove-staging-sections.patch added to -mm tree
+Date: Fri, 20 Jan 2012 14:41:00 -0800
+Message-ID: <20120120224101.9C0945C0063@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:33977 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756297Ab2ATWlA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 17:41:00 -0500
-Received: by eekb15 with SMTP id b15so40121eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 14:40:58 -0800 (PST)
+	with ESMTP id S1756405Ab2ATWlD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 17:41:03 -0500
+Received: by mail-ee0-f74.google.com with SMTP id b15so40121eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 14:41:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, amit.kucheria@canonical.com, s.hauer@pengutronix.de
+Cc: joe@perches.com, mchehab@redhat.com
 
 
 The patch titled
-     Subject: MAINTAINERS: remove iMX5 section
+     Subject: MAINTAINERS: remove staging sections
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-imx5-section.patch
+     maintainers-remove-staging-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove iMX5 section
+Subject: MAINTAINERS: remove staging sections
 
-commit 784a90c0a7d8f5 ("ARM i.MX: Merge i.MX5 support into mach-imx")
-merged the files, remove the iMX5 section.
+Two commits moved files from staging to drivers/media/
+
+commit d6ce55de3abcc ("[media] move cx25821 out of staging")
+commit be30497085080 ("[media] move tm6000 to drivers/media/video")
+
+Remove the sections.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Amit Kucheria <amit.kucheria@canonical.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ------
- 1 file changed, 6 deletions(-)
+ MAINTAINERS |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-imx5-section MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-imx5-section
+diff -puN MAINTAINERS~maintainers-remove-staging-sections MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-staging-sections
 +++ a/MAINTAINERS
-@@ -789,12 +789,6 @@ F:	arch/arm/mach-mx*/
- F:	arch/arm/mach-imx/
- F:	arch/arm/plat-mxc/
+@@ -6382,11 +6382,6 @@ M:	Omar Ramirez Luna <omar.ramirez@ti.co
+ S:	Odd Fixes
+ F:	drivers/staging/tidspbridge/
  
--ARM/FREESCALE IMX51
--M:	Amit Kucheria <amit.kucheria@canonical.com>
--L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--S:	Maintained
--F:	arch/arm/mach-mx5/
+-STAGING - TRIDENT TVMASTER TMxxxx USB VIDEO CAPTURE DRIVERS
+-L:	linux-media@vger.kernel.org
+-S:	Odd Fixes
+-F:	drivers/staging/tm6000/
