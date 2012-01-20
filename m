@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-use-find_last_bit.patch added to -mm tree
-Date: Fri, 20 Jan 2012 15:12:51 -0800
-Message-ID: <20120120231252.36F931E0058@wpzn4.hot.corp.google.com>
+Subject: + ocfs2-use-bitmap_weight.patch added to -mm tree
+Date: Fri, 20 Jan 2012 15:12:54 -0800
+Message-ID: <20120120231255.A604520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:41736 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756247Ab2ATXMx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:12:53 -0500
-Received: by ggnv2 with SMTP id v2so90974ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:12:52 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:47376 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756466Ab2ATXM6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:12:58 -0500
+Received: by bkas6 with SMTP id s6so54117bka.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:12:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akinobu.mita@gmail.com, jlbec@evilplan.org, mfasheh@suse.com
 
 
 The patch titled
-     Subject: ocfs2: use find_last_bit()
+     Subject: ocfs2: use bitmap_weight()
 has been added to the -mm tree.  Its filename is
-     ocfs2-use-find_last_bit.patch
+     ocfs2-use-bitmap_weight.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: ocfs2: use find_last_bit()
+Subject: ocfs2: use bitmap_weight()
 
-We already have find_last_bit().  So just use it as described in the
-comment.
+Use bitmap_weight() instead of reinventing the wheel.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -45,28 +44,98 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   20 +++-----------------
- 1 file changed, 3 insertions(+), 17 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-use-find_last_bit fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-use-find_last_bit
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-use-bitmap_weight fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-use-bitmap_weight
 +++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -956,23 +956,9 @@ out:
- 	return changed;
- }
+@@ -35,6 +35,7 @@
+ #include <linux/time.h>
+ #include <linux/debugfs.h>
+ #include <linux/slab.h>
++#include <linux/bitmap.h>
  
--/* This could be faster if we just implmented a find_last_bit, but I
-- * don't think the circumstances warrant it. */
--static int o2hb_highest_node(unsigned long *nodes,
--			     int numbits)
+ #include "heartbeat.h"
+ #include "tcp.h"
+@@ -282,15 +283,6 @@ struct o2hb_bio_wait_ctxt {
+ 	int               wc_error;
+ };
+ 
+-static int o2hb_pop_count(void *map, int count)
 -{
--	int highest, node;
+-	int i = -1, pop = 0;
 -
--	highest = numbits;
--	node = -1;
--	while ((node = find_next_bit(nodes, numbits, node + 1)) != -1) {
--		if (node >= numbits)
--			break;
+-	while ((i = find_next_bit(map, count, i + 1)) < count)
+-		pop++;
+-	return pop;
+-}
 -
--		highest = node;
--	}
+ static void o2hb_write_timeout(struct work_struct *work)
+ {
+ 	int failed, quorum;
+@@ -307,9 +299,9 @@ static void o2hb_write_timeout(struct wo
+ 		spin_lock_irqsave(&o2hb_live_lock, flags);
+ 		if (test_bit(reg->hr_region_num, o2hb_quorum_region_bitmap))
+ 			set_bit(reg->hr_region_num, o2hb_failed_region_bitmap);
+-		failed = o2hb_pop_count(&o2hb_failed_region_bitmap,
++		failed = bitmap_weight(o2hb_failed_region_bitmap,
+ 					O2NM_MAX_REGIONS);
+-		quorum = o2hb_pop_count(&o2hb_quorum_region_bitmap,
++		quorum = bitmap_weight(o2hb_quorum_region_bitmap,
+ 					O2NM_MAX_REGIONS);
+ 		spin_unlock_irqrestore(&o2hb_live_lock, flags);
+ 
+@@ -771,7 +763,7 @@ static void o2hb_set_quorum_device(struc
+ 	 * If global heartbeat active, unpin all regions if the
+ 	 * region count > CUT_OFF
+ 	 */
+-	if (o2hb_pop_count(&o2hb_quorum_region_bitmap,
++	if (bitmap_weight(o2hb_quorum_region_bitmap,
+ 			   O2NM_MAX_REGIONS) > O2HB_PIN_CUT_OFF)
+ 		o2hb_region_unpin(NULL);
+ unlock:
+@@ -1819,7 +1811,7 @@ static ssize_t o2hb_region_dev_write(str
+ 	live_threshold = O2HB_LIVE_THRESHOLD;
+ 	if (o2hb_global_heartbeat_active()) {
+ 		spin_lock(&o2hb_live_lock);
+-		if (o2hb_pop_count(&o2hb_region_bitmap, O2NM_MAX_REGIONS) == 1)
++		if (bitmap_weight(o2hb_region_bitmap, O2NM_MAX_REGIONS) == 1)
+ 			live_threshold <<= 1;
+ 		spin_unlock(&o2hb_live_lock);
+ 	}
+@@ -2170,7 +2162,7 @@ static void o2hb_heartbeat_group_drop_it
+ 	if (!o2hb_dependent_users)
+ 		goto unlock;
+ 
+-	if (o2hb_pop_count(&o2hb_quorum_region_bitmap,
++	if (bitmap_weight(o2hb_quorum_region_bitmap,
+ 			   O2NM_MAX_REGIONS) <= O2HB_PIN_CUT_OFF)
+ 		o2hb_region_pin(NULL);
+ 
+@@ -2464,7 +2456,7 @@ static int o2hb_region_inc_user(const ch
+ 	if (o2hb_dependent_users > 1)
+ 		goto unlock;
+ 
+-	if (o2hb_pop_count(&o2hb_quorum_region_bitmap,
++	if (bitmap_weight(o2hb_quorum_region_bitmap,
+ 			   O2NM_MAX_REGIONS) <= O2HB_PIN_CUT_OFF)
+ 		ret = o2hb_region_pin(NULL);
+ 
+_
+Subject: Subject: ocfs2: use bitmap_weight()
+
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
+
+ocfs2-use-find_last_bit.patch
+ocfs2-use-bitmap_weight.patch
+drivers-scsi-hpsac-use-find_first_zero_bit.patch
+bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch
+bitops-remove-for_each_set_bit_cont.patch
+bitops-introduce-for_each_clear_bit.patch
+mtd-use-for_each_clear_bit.patch
+s390-char-use-for_each_clear_bit.patch
+uwb-use-for_each_clear_bit.patch
+x86-use-for_each_clear_bit_from.patch
+sysctl-use-bitmap-library-functions.patch
+
