@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + magich-move-some-fs-magic-numbers-into-magich.patch added to -mm tree
-Date: Fri, 20 Jan 2012 15:58:58 -0800
-Message-ID: <20120120235859.054095C0050@hpza9.eem.corp.google.com>
+Subject: + include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch added to -mm tree
+Date: Fri, 20 Jan 2012 16:25:46 -0800
+Message-ID: <20120121002546.8E93E1E005F@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:38916 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756172Ab2ATX7B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 18:59:01 -0500
-Received: by eekb15 with SMTP id b15so41804eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 15:58:59 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:55407 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751196Ab2AUAZr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 19:25:47 -0500
+Received: by ggnv2 with SMTP id v2so95111ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 16:25:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: muthu.lkml@gmail.com, muthur@gmail.com
+Cc: joe@perches.com
 
 
 The patch titled
-     Subject: magic.h: move some FS magic numbers into magic.h
+     Subject: include/ and checkpatch: prefer __scanf to __attribute__((format(scanf,...)
 has been added to the -mm tree.  Its filename is
-     magich-move-some-fs-magic-numbers-into-magich.patch
+     include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,155 +33,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muthu Kumar <muthu.lkml@gmail.com>
-Subject: magic.h: move some FS magic numbers into magic.h
+From: Joe Perches <joe@perches.com>
+Subject: include/ and checkpatch: prefer __scanf to __attribute__((format(scanf,...)
 
-- Move open-coded filesystem magic numbers into magic.h
+It's equivalent to __printf, so prefer __scanf.
 
-- Rearrange magic.h so that the filesystem-related constants are grouped
-  together.
-
-Signed-off-by: Muthukumar R <muthur@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdchar.c     |    2 +-
- fs/binfmt_misc.c          |    3 ++-
- fs/block_dev.c            |    3 ++-
- fs/pipe.c                 |    1 +
- include/linux/magic.h     |   18 ++++++++++++------
- include/linux/pipe_fs_i.h |    2 --
- 6 files changed, 18 insertions(+), 11 deletions(-)
+ include/linux/compiler-gcc.h |    3 ++-
+ include/linux/kernel.h       |    8 ++++----
+ include/xen/xenbus.h         |    4 ++--
+ scripts/checkpatch.pl        |    6 ++++++
+ 4 files changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN drivers/mtd/mtdchar.c~magich-move-some-fs-magic-numbers-into-magich drivers/mtd/mtdchar.c
---- a/drivers/mtd/mtdchar.c~magich-move-some-fs-magic-numbers-into-magich
-+++ a/drivers/mtd/mtdchar.c
-@@ -31,13 +31,13 @@
- #include <linux/compat.h>
- #include <linux/mount.h>
- #include <linux/blkpg.h>
-+#include <linux/magic.h>
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
- #include <linux/mtd/map.h>
+diff -puN include/linux/compiler-gcc.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
++++ a/include/linux/compiler-gcc.h
+@@ -87,7 +87,8 @@
+  */
+ #define __pure				__attribute__((pure))
+ #define __aligned(x)			__attribute__((aligned(x)))
+-#define __printf(a,b)			__attribute__((format(printf,a,b)))
++#define __printf(a, b)			__attribute__((format(printf, a, b)))
++#define __scanf(a, b)			__attribute__((format(scanf, a, b)))
+ #define  noinline			__attribute__((noinline))
+ #define __attribute_const__		__attribute__((__const__))
+ #define __maybe_unused			__attribute__((unused))
+diff -puN include/linux/kernel.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/linux/kernel.h
+--- a/include/linux/kernel.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
++++ a/include/linux/kernel.h
+@@ -315,10 +315,10 @@ extern __printf(2, 3)
+ char *kasprintf(gfp_t gfp, const char *fmt, ...);
+ extern char *kvasprintf(gfp_t gfp, const char *fmt, va_list args);
  
- #include <asm/uaccess.h>
+-extern int sscanf(const char *, const char *, ...)
+-	__attribute__ ((format (scanf, 2, 3)));
+-extern int vsscanf(const char *, const char *, va_list)
+-	__attribute__ ((format (scanf, 2, 0)));
++extern __scanf(2, 3)
++int sscanf(const char *, const char *, ...);
++extern __scanf(2, 0)
++int vsscanf(const char *, const char *, va_list);
  
--#define MTD_INODE_FS_MAGIC 0x11307854
- static DEFINE_MUTEX(mtd_mutex);
- static struct vfsmount *mtd_inode_mnt __read_mostly;
+ extern int get_option(char **str, int *pint);
+ extern char *get_options(const char *str, int nints, int *ints);
+diff -puN include/xen/xenbus.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/xen/xenbus.h
+--- a/include/xen/xenbus.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
++++ a/include/xen/xenbus.h
+@@ -139,9 +139,9 @@ int xenbus_transaction_start(struct xenb
+ int xenbus_transaction_end(struct xenbus_transaction t, int abort);
  
-diff -puN fs/binfmt_misc.c~magich-move-some-fs-magic-numbers-into-magich fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~magich-move-some-fs-magic-numbers-into-magich
-+++ a/fs/binfmt_misc.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/sched.h>
-+#include <linux/magic.h>
- #include <linux/binfmts.h>
- #include <linux/slab.h>
- #include <linux/ctype.h>
-@@ -699,7 +700,7 @@ static int bm_fill_super(struct super_bl
- 		[3] = {"register", &bm_register_operations, S_IWUSR},
- 		/* last one */ {""}
- 	};
--	int err = simple_fill_super(sb, 0x42494e4d, bm_files);
-+	int err = simple_fill_super(sb, BINFMTFS_MAGIC, bm_files);
- 	if (!err)
- 		sb->s_op = &s_ops;
- 	return err;
-diff -puN fs/block_dev.c~magich-move-some-fs-magic-numbers-into-magich fs/block_dev.c
---- a/fs/block_dev.c~magich-move-some-fs-magic-numbers-into-magich
-+++ a/fs/block_dev.c
-@@ -16,6 +16,7 @@
- #include <linux/blkdev.h>
- #include <linux/module.h>
- #include <linux/blkpg.h>
-+#include <linux/magic.h>
- #include <linux/buffer_head.h>
- #include <linux/swap.h>
- #include <linux/pagevec.h>
-@@ -506,7 +507,7 @@ static const struct super_operations bde
- static struct dentry *bd_mount(struct file_system_type *fs_type,
- 	int flags, const char *dev_name, void *data)
- {
--	return mount_pseudo(fs_type, "bdev:", &bdev_sops, NULL, 0x62646576);
-+	return mount_pseudo(fs_type, "bdev:", &bdev_sops, NULL, BDEVFS_MAGIC);
- }
+ /* Single read and scanf: returns -errno or num scanned if > 0. */
++__scanf(4, 5)
+ int xenbus_scanf(struct xenbus_transaction t,
+-		 const char *dir, const char *node, const char *fmt, ...)
+-	__attribute__((format(scanf, 4, 5)));
++		 const char *dir, const char *node, const char *fmt, ...);
  
- static struct file_system_type bd_type = {
-diff -puN fs/pipe.c~magich-move-some-fs-magic-numbers-into-magich fs/pipe.c
---- a/fs/pipe.c~magich-move-some-fs-magic-numbers-into-magich
-+++ a/fs/pipe.c
-@@ -13,6 +13,7 @@
- #include <linux/fs.h>
- #include <linux/log2.h>
- #include <linux/mount.h>
-+#include <linux/magic.h>
- #include <linux/pipe_fs_i.h>
- #include <linux/uio.h>
- #include <linux/highmem.h>
-diff -puN include/linux/magic.h~magich-move-some-fs-magic-numbers-into-magich include/linux/magic.h
---- a/include/linux/magic.h~magich-move-some-fs-magic-numbers-into-magich
-+++ a/include/linux/magic.h
-@@ -9,7 +9,6 @@
- #define CRAMFS_MAGIC		0x28cd3d45	/* some random number */
- #define CRAMFS_MAGIC_WEND	0x453dcd28	/* magic number with the wrong endianess */
- #define DEBUGFS_MAGIC          0x64626720
--#define SYSFS_MAGIC		0x62656572
- #define SECURITYFS_MAGIC	0x73636673
- #define SELINUX_MAGIC		0xf97cff8c
- #define RAMFS_MAGIC		0x858458f6	/* some random number */
-@@ -27,7 +26,6 @@
- #define HPFS_SUPER_MAGIC	0xf995e849
- #define ISOFS_SUPER_MAGIC	0x9660
- #define JFFS2_SUPER_MAGIC	0x72b6
--#define ANON_INODE_FS_MAGIC	0x09041934
- #define PSTOREFS_MAGIC		0x6165676C
+ /* Single printf and write: returns -errno or 0. */
+ __printf(4, 5)
+diff -puN scripts/checkpatch.pl~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
++++ a/scripts/checkpatch.pl
+@@ -3117,6 +3117,12 @@ sub process {
+ 			     "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr);
+ 		}
  
- #define MINIX_SUPER_MAGIC	0x137F		/* minix v1 fs, 14 char names */
-@@ -40,7 +38,6 @@
- #define NCP_SUPER_MAGIC		0x564c		/* Guess, what 0x564c is :-) */
- #define NFS_SUPER_MAGIC		0x6969
- #define OPENPROM_SUPER_MAGIC	0x9fa1
--#define PROC_SUPER_MAGIC	0x9fa0
- #define QNX4_SUPER_MAGIC	0x002f		/* qnx4 fs detection */
- 
- #define REISERFS_SUPER_MAGIC	0x52654973	/* used by gcc */
-@@ -51,15 +48,24 @@
- #define REISER2FS_JR_SUPER_MAGIC_STRING	"ReIsEr3Fs"
- 
- #define SMB_SUPER_MAGIC		0x517B
--#define USBDEVICE_SUPER_MAGIC	0x9fa2
- #define CGROUP_SUPER_MAGIC	0x27e0eb
- 
--#define FUTEXFS_SUPER_MAGIC	0xBAD1DEA
- 
- #define STACK_END_MAGIC		0x57AC6E9D
- 
-+#define V9FS_MAGIC		0x01021997
++# Check for __attribute__ format(scanf, prefer __scanf
++		if ($line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\b/) {
++			WARN("PREFER_SCANF",
++			     "__scanf(string-index, first-to-check) is preferred over __attribute__((format(scanf, string-index, first-to-check)))\n" . $herecurr);
++		}
 +
-+#define BDEVFS_MAGIC            0x62646576
-+#define BINFMTFS_MAGIC          0x42494e4d
- #define DEVPTS_SUPER_MAGIC	0x1cd1
-+#define FUTEXFS_SUPER_MAGIC	0xBAD1DEA
-+#define PIPEFS_MAGIC            0x50495045
-+#define PROC_SUPER_MAGIC	0x9fa0
- #define SOCKFS_MAGIC		0x534F434B
--#define V9FS_MAGIC		0x01021997
-+#define SYSFS_MAGIC		0x62656572
-+#define USBDEVICE_SUPER_MAGIC	0x9fa2
-+#define MTD_INODE_FS_MAGIC      0x11307854
-+#define ANON_INODE_FS_MAGIC	0x09041934
-+
- 
- #endif /* __LINUX_MAGIC_H__ */
-diff -puN include/linux/pipe_fs_i.h~magich-move-some-fs-magic-numbers-into-magich include/linux/pipe_fs_i.h
---- a/include/linux/pipe_fs_i.h~magich-move-some-fs-magic-numbers-into-magich
-+++ a/include/linux/pipe_fs_i.h
-@@ -1,8 +1,6 @@
- #ifndef _LINUX_PIPE_FS_I_H
- #define _LINUX_PIPE_FS_I_H
- 
--#define PIPEFS_MAGIC 0x50495045
+ # check for sizeof(&)
+ 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
+ 			WARN("SIZEOF_ADDRESS",
+_
+Subject: Subject: include/ and checkpatch: prefer __scanf to __attribute__((format(scanf,...)
+
+Patches currently in -mm which might be from joe@perches.com are
+
+maintainers-update-partitions-block-f-patterns.patch
+maintainers-remove-imx5-section.patch
+maintainers-remove-staging-sections.patch
+maintainers-update-lguest-f-patterns.patch
+linux-next.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
+maintainers-fix-remoteproc-f-typo.patch
+include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
+
