@@ -1,69 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] score-fix-off-by-one-index-into-syscall-table.patch removed from -mm tree
-Date: Mon, 23 Jan 2012 12:22:04 -0800
-Message-ID: <20120123202204.B82A61E0058@wpzn4.hot.corp.google.com>
+Subject: + crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch added to -mm tree
+Date: Mon, 23 Jan 2012 13:17:36 -0800
+Message-ID: <20120123211737.0BE3A20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:61933 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754410Ab2AWUWF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2012 15:22:05 -0500
+Received: from mail-pz0-f74.google.com ([209.85.210.74]:45603 "EHLO
+	mail-pz0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753325Ab2AWVRk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2012 16:17:40 -0500
+Received: by dado15 with SMTP id o15so140060dad.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jan 2012 13:17:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drosenberg@vsecurity.com, arnd@arndb.de, eugeneteo@kernel.sg, lennox.wu@gmail.com, liqin.chen@sunplusct.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: djwong@us.ibm.com, herbert@gondor.apana.org.au, rdunlap@xenotime.net, rpearson@systemfabricworks.com
 
 
 The patch titled
-     Subject: score: fix off-by-one index into syscall table
-has been removed from the -mm tree.  Its filename was
-     score-fix-off-by-one-index-into-syscall-table.patch
+     Subject: crc32: Don't reference unnecessary crc32 tables in single-bit mode
+has been added to the -mm tree.  Its filename is
+     crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Rosenberg <drosenberg@vsecurity.com>
-Subject: score: fix off-by-one index into syscall table
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: crc32: Don't reference unnecessary crc32 tables in single-bit mode
 
-If the provided system call number is equal to __NR_syscalls, the current
-check will pass and a function pointer just after the system call table
-may be called, since sys_call_table is an array with total size
-__NR_syscalls.
+When compiling with single bit mode (CRC32_BIT=y) we shouldn't reference
+the crc32 tables, since they aren't built in single-bit mode.  Many thanks
+to Randy Dunlap for finding this bug:
+http://marc.info/?l=linux-kernel&m=132709702422141&w=2
 
-Whether or not this is a security bug depends on what the compiler puts
-immediately after the system call table.  It's likely that this won't do
-anything bad because there is an additional NULL check on the syscall
-entry, but if there happens to be a non-NULL value immediately after the
-system call table, this may result in local privilege escalation.
-
-Signed-off-by: Dan Rosenberg <drosenberg@vsecurity.com>
-Cc: <stable@vger.kernel.org>
-Cc: Chen Liqin <liqin.chen@sunplusct.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/score/kernel/entry.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/crc32.c |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN arch/score/kernel/entry.S~score-fix-off-by-one-index-into-syscall-table arch/score/kernel/entry.S
---- a/arch/score/kernel/entry.S~score-fix-off-by-one-index-into-syscall-table
-+++ a/arch/score/kernel/entry.S
-@@ -408,7 +408,7 @@ ENTRY(handle_sys)
- 	sw	r9, [r0, PT_EPC]
+diff -puN lib/crc32.c~crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode lib/crc32.c
+--- a/lib/crc32.c~crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode
++++ a/lib/crc32.c
+@@ -174,16 +174,26 @@ static inline u32 __pure crc32_le_generi
+ 	return crc;
+ }
  
- 	cmpi.c	r27, __NR_syscalls 	# check syscall number
--	bgtu	illegal_syscall
-+	bgeu	illegal_syscall
++#if CRC_LE_BITS == 1
++u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
++{
++	return crc32_le_generic(crc, p, len, NULL, CRCPOLY_LE);
++}
++u32 __pure __crc32c_le(u32 crc, unsigned char const *p, size_t len)
++{
++	return crc32_le_generic(crc, p, len, NULL, CRC32C_POLY_LE);
++}
++#else
+ u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
+ {
+ 	return crc32_le_generic(crc, p, len, crc32table_le, CRCPOLY_LE);
+ }
+-EXPORT_SYMBOL(crc32_le);
+-
+ u32 __pure __crc32c_le(u32 crc, unsigned char const *p, size_t len)
+ {
+ 	return crc32_le_generic(crc, p, len, crc32ctable_le, CRC32C_POLY_LE);
+ }
++#endif
++EXPORT_SYMBOL(crc32_le);
+ EXPORT_SYMBOL(__crc32c_le);
  
- 	slli	r8, r27, 2		# get syscall routine
- 	la	r11, sys_call_table
+ /**
+@@ -233,10 +243,17 @@ static inline u32 __pure crc32_be_generi
+ 	return crc;
+ }
+ 
++#if CRC_LE_BITS == 1
++u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
++{
++	return crc32_be_generic(crc, p, len, NULL, CRCPOLY_BE);
++}
++#else
+ u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
+ {
+ 	return crc32_be_generic(crc, p, len, crc32table_be, CRCPOLY_BE);
+ }
++#endif
+ EXPORT_SYMBOL(crc32_be);
+ 
+ #ifdef CONFIG_CRC32_SELFTEST
 _
+Subject: Subject: crc32: Don't reference unnecessary crc32 tables in single-bit mode
 
-Patches currently in -mm which might be from drosenberg@vsecurity.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-origin.patch
+linux-next.patch
+crc32-removed-two-instances-of-trailing-whitespaces.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+crc32-simplify-unit-test-code.patch
+crc32-miscellaneous-cleanups.patch
+crc32-fix-mixing-of-endian-specific-types.patch
+crc32-make-crc__bits-definition-correspond-to-actual-bit-counts.patch
+crc32-add-slice-by-8-algorithm-to-existing-code.patch
+crc32-optimize-loop-counter-for-x86.patch
+crc32-add-note-about-this-patchset-to-crc32c.patch
+crc32-bolt-on-crc32c.patch
+crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch
+crypto-crc32c-should-use-library-implementation.patch
+crc32-add-self-test-code-for-crc32c.patch
+crc32-select-an-algorithm-via-kconfig.patch
 
