@@ -1,96 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch removed from -mm tree
-Date: Mon, 23 Jan 2012 12:21:45 -0800
-Message-ID: <20120123202145.9BB241E0058@wpzn4.hot.corp.google.com>
+Subject: [merged] kdump-define-kexec_note_bytes-arch-specific-for-s390x.patch removed from -mm tree
+Date: Mon, 23 Jan 2012 12:21:48 -0800
+Message-ID: <20120123202148.C14F910004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gy0-f202.google.com ([209.85.160.202]:58337 "EHLO
 	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754338Ab2AWUVq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2012 15:21:46 -0500
+	with ESMTP id S1754346Ab2AWUVt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2012 15:21:49 -0500
 Received: by mail-gy0-f202.google.com with SMTP id g20so288772ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jan 2012 12:21:46 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jan 2012 12:21:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: holzheu@linux.vnet.ibm.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, horms@verge.net.au, schwidefsky@de.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: undo change to page mapcount in fault handler
+     Subject: kdump: define KEXEC_NOTE_BYTES arch specific for s390x
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler.patch
+     kdump-define-kexec_note_bytes-arch-specific-for-s390x.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: mm/hugetlb.c: undo change to page mapcount in fault handler
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: kdump: define KEXEC_NOTE_BYTES arch specific for s390x
 
-Page mapcount should be updated only if we are sure that the page ends up
-in the page table otherwise we would leak if we couldn't COW due to
-reservations or if idx is out of bounds.
+kdump only allocates memory for the prstatus ELF note.  For s390x, besides
+of prstatus multiple ELF notes for various different register types are
+stored.  Therefore the currently allocated memory is not sufficient.  With
+this patch the KEXEC_NOTE_BYTES macro can be defined by architecture code
+and for s390x it is set to the correct size now.
 
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Reviewed-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/s390/include/asm/kexec.h |   18 ++++++++++++++++++
+ include/linux/kexec.h         |    2 ++
+ 2 files changed, 20 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-undo-change-to-page-mapcount-in-fault-handler
-+++ a/mm/hugetlb.c
-@@ -2508,6 +2508,7 @@ static int hugetlb_no_page(struct mm_str
- {
- 	struct hstate *h = hstate_vma(vma);
- 	int ret = VM_FAULT_SIGBUS;
-+	int anon_rmap = 0;
- 	pgoff_t idx;
- 	unsigned long size;
- 	struct page *page;
-@@ -2562,14 +2563,13 @@ retry:
- 			spin_lock(&inode->i_lock);
- 			inode->i_blocks += blocks_per_huge_page(h);
- 			spin_unlock(&inode->i_lock);
--			page_dup_rmap(page);
- 		} else {
- 			lock_page(page);
- 			if (unlikely(anon_vma_prepare(vma))) {
- 				ret = VM_FAULT_OOM;
- 				goto backout_unlocked;
- 			}
--			hugepage_add_new_anon_rmap(page, vma, address);
-+			anon_rmap = 1;
- 		}
- 	} else {
- 		/*
-@@ -2582,7 +2582,6 @@ retry:
- 			      VM_FAULT_SET_HINDEX(h - hstates);
- 			goto backout_unlocked;
- 		}
--		page_dup_rmap(page);
- 	}
+diff -puN arch/s390/include/asm/kexec.h~kdump-define-kexec_note_bytes-arch-specific-for-s390x arch/s390/include/asm/kexec.h
+--- a/arch/s390/include/asm/kexec.h~kdump-define-kexec_note_bytes-arch-specific-for-s390x
++++ a/arch/s390/include/asm/kexec.h
+@@ -42,6 +42,24 @@
+ /* The native architecture */
+ #define KEXEC_ARCH KEXEC_ARCH_S390
  
- 	/*
-@@ -2606,6 +2605,10 @@ retry:
- 	if (!huge_pte_none(huge_ptep_get(ptep)))
- 		goto backout;
++/*
++ * Size for s390x ELF notes per CPU
++ *
++ * Seven notes plus zero note at the end: prstatus, fpregset, timer,
++ * tod_cmp, tod_reg, control regs, and prefix
++ */
++#define KEXEC_NOTE_BYTES \
++	(ALIGN(sizeof(struct elf_note), 4) * 8 + \
++	 ALIGN(sizeof("CORE"), 4) * 7 + \
++	 ALIGN(sizeof(struct elf_prstatus), 4) + \
++	 ALIGN(sizeof(elf_fpregset_t), 4) + \
++	 ALIGN(sizeof(u64), 4) + \
++	 ALIGN(sizeof(u64), 4) + \
++	 ALIGN(sizeof(u32), 4) + \
++	 ALIGN(sizeof(u64) * 16, 4) + \
++	 ALIGN(sizeof(u32), 4) \
++	)
++
+ /* Provide a dummy definition to avoid build failures. */
+ static inline void crash_setup_regs(struct pt_regs *newregs,
+ 					struct pt_regs *oldregs) { }
+diff -puN include/linux/kexec.h~kdump-define-kexec_note_bytes-arch-specific-for-s390x include/linux/kexec.h
+--- a/include/linux/kexec.h~kdump-define-kexec_note_bytes-arch-specific-for-s390x
++++ a/include/linux/kexec.h
+@@ -50,9 +50,11 @@
+  * note header.  For kdump, the code in vmcore.c runs in the context
+  * of the second kernel to combine them into one note.
+  */
++#ifndef KEXEC_NOTE_BYTES
+ #define KEXEC_NOTE_BYTES ( (KEXEC_NOTE_HEAD_BYTES * 2) +		\
+ 			    KEXEC_CORE_NOTE_NAME_BYTES +		\
+ 			    KEXEC_CORE_NOTE_DESC_BYTES )
++#endif
  
-+	if (anon_rmap)
-+		hugepage_add_new_anon_rmap(page, vma, address);
-+	else
-+		page_dup_rmap(page);
- 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
- 				&& (vma->vm_flags & VM_SHARED)));
- 	set_huge_pte_at(mm, address, ptep, new_pte);
+ /*
+  * This structure is used to hold the arguments that are used when loading
 _
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
 origin.patch
-mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
 
