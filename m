@@ -1,126 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch added to -mm tree
-Date: Fri, 20 Jan 2012 16:25:46 -0800
-Message-ID: <20120121002546.8E93E1E005F@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-__count_immobile_pages-make-sure-the-node-is-online.patch removed from -mm tree
+Date: Mon, 23 Jan 2012 12:21:17 -0800
+Message-ID: <20120123202117.B34FF1E0058@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:55407 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751196Ab2AUAZr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jan 2012 19:25:47 -0500
-Received: by ggnv2 with SMTP id v2so95111ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jan 2012 16:25:46 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:58337 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754217Ab2AWUVS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2012 15:21:18 -0500
+Received: by ghbg20 with SMTP id g20so288772ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jan 2012 12:21:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+To: mhocko@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/ and checkpatch: prefer __scanf to __attribute__((format(scanf,...)
-has been added to the -mm tree.  Its filename is
-     include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
+     Subject: mm: __count_immobile_pages(): make sure the node is online
+has been removed from the -mm tree.  Its filename was
+     mm-__count_immobile_pages-make-sure-the-node-is-online.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: include/ and checkpatch: prefer __scanf to __attribute__((format(scanf,...)
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mm: __count_immobile_pages(): make sure the node is online
 
-It's equivalent to __printf, so prefer __scanf.
+page_zone() requires an online node otherwise we are accessing NULL
+NODE_DATA.  This is not an issue at the moment because node_zones are
+located at the structure beginning but this might change in the future so
+better be careful about that.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    3 ++-
- include/linux/kernel.h       |    8 ++++----
- include/xen/xenbus.h         |    4 ++--
- scripts/checkpatch.pl        |    6 ++++++
- 4 files changed, 14 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
-+++ a/include/linux/compiler-gcc.h
-@@ -87,7 +87,8 @@
-  */
- #define __pure				__attribute__((pure))
- #define __aligned(x)			__attribute__((aligned(x)))
--#define __printf(a,b)			__attribute__((format(printf,a,b)))
-+#define __printf(a, b)			__attribute__((format(printf, a, b)))
-+#define __scanf(a, b)			__attribute__((format(scanf, a, b)))
- #define  noinline			__attribute__((noinline))
- #define __attribute_const__		__attribute__((__const__))
- #define __maybe_unused			__attribute__((unused))
-diff -puN include/linux/kernel.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/linux/kernel.h
---- a/include/linux/kernel.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
-+++ a/include/linux/kernel.h
-@@ -315,10 +315,10 @@ extern __printf(2, 3)
- char *kasprintf(gfp_t gfp, const char *fmt, ...);
- extern char *kvasprintf(gfp_t gfp, const char *fmt, va_list args);
+diff -puN mm/page_alloc.c~mm-__count_immobile_pages-make-sure-the-node-is-online mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-__count_immobile_pages-make-sure-the-node-is-online
++++ a/mm/page_alloc.c
+@@ -5413,15 +5413,22 @@ __count_immobile_pages(struct zone *zone
  
--extern int sscanf(const char *, const char *, ...)
--	__attribute__ ((format (scanf, 2, 3)));
--extern int vsscanf(const char *, const char *, va_list)
--	__attribute__ ((format (scanf, 2, 0)));
-+extern __scanf(2, 3)
-+int sscanf(const char *, const char *, ...);
-+extern __scanf(2, 0)
-+int vsscanf(const char *, const char *, va_list);
+ bool is_pageblock_removable_nolock(struct page *page)
+ {
+-	struct zone *zone = page_zone(page);
+-	unsigned long pfn = page_to_pfn(page);
++	struct zone *zone;
++	unsigned long pfn;
  
- extern int get_option(char **str, int *pint);
- extern char *get_options(const char *str, int nints, int *ints);
-diff -puN include/xen/xenbus.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/xen/xenbus.h
---- a/include/xen/xenbus.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
-+++ a/include/xen/xenbus.h
-@@ -139,9 +139,9 @@ int xenbus_transaction_start(struct xenb
- int xenbus_transaction_end(struct xenbus_transaction t, int abort);
- 
- /* Single read and scanf: returns -errno or num scanned if > 0. */
-+__scanf(4, 5)
- int xenbus_scanf(struct xenbus_transaction t,
--		 const char *dir, const char *node, const char *fmt, ...)
--	__attribute__((format(scanf, 4, 5)));
-+		 const char *dir, const char *node, const char *fmt, ...);
- 
- /* Single printf and write: returns -errno or 0. */
- __printf(4, 5)
-diff -puN scripts/checkpatch.pl~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
-+++ a/scripts/checkpatch.pl
-@@ -3117,6 +3117,12 @@ sub process {
- 			     "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr);
- 		}
- 
-+# Check for __attribute__ format(scanf, prefer __scanf
-+		if ($line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\b/) {
-+			WARN("PREFER_SCANF",
-+			     "__scanf(string-index, first-to-check) is preferred over __attribute__((format(scanf, string-index, first-to-check)))\n" . $herecurr);
-+		}
+ 	/*
+ 	 * We have to be careful here because we are iterating over memory
+ 	 * sections which are not zone aware so we might end up outside of
+ 	 * the zone but still within the section.
++	 * We have to take care about the node as well. If the node is offline
++	 * its NODE_DATA will be NULL - see page_zone.
+ 	 */
+-	if (!zone || zone->zone_start_pfn > pfn ||
++	if (!node_online(page_to_nid(page)))
++		return false;
 +
- # check for sizeof(&)
- 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
- 			WARN("SIZEOF_ADDRESS",
++	zone = page_zone(page);
++	pfn = page_to_pfn(page);
++	if (zone->zone_start_pfn > pfn ||
+ 			zone->zone_start_pfn + zone->spanned_pages <= pfn)
+ 		return false;
+ 
 _
-Subject: Subject: include/ and checkpatch: prefer __scanf to __attribute__((format(scanf,...)
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-maintainers-update-partitions-block-f-patterns.patch
-maintainers-remove-imx5-section.patch
-maintainers-remove-staging-sections.patch
-maintainers-update-lguest-f-patterns.patch
+origin.patch
 linux-next.patch
-maintainers-staging-cx25821-add-l-linux-media.patch
-maintainers-fix-remoteproc-f-typo.patch
-include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
+mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
+mm-oom-fold-oom_kill_task-into-oom_kill_process.patch
+mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting.patch
+memcg-replace-mem_cont-by-mem_res_ctlr.patch
+memcg-replace-mem-and-mem_cont-stragglers.patch
+memcg-lru_size-instead-of-mem_cgroup_zstat.patch
+memcg-enum-lru_list-lru.patch
+memcg-remove-redundant-returns.patch
+memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
 
