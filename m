@@ -1,109 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-adp5520_blc-use-devm_-functions.patch added to -mm tree
-Date: Mon, 23 Jan 2012 13:21:28 -0800
-Message-ID: <20120123212128.98BCA10004D@wpzn3.hot.corp.google.com>
+Subject: [obsolete] revert-procfs-do-not-confuse-jiffies-with-cputime64_t.patch removed from -mm tree
+Date: Tue, 24 Jan 2012 14:19:36 -0800
+Message-ID: <20120124221937.74CA91013E6@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:43618 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753181Ab2AWVV3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jan 2012 16:21:29 -0500
-Received: by ghbg20 with SMTP id g20so295708ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jan 2012 13:21:29 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:45209 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751767Ab2AXWTi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2012 17:19:38 -0500
+Received: by vbbfo1 with SMTP id fo1so163505vbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2012 14:19:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Julia.Lawall@lip6.fr, FlorianSchandinat@gmx.de, broonie@opensource.wolfsonmicro.com, dp@opensource.wolfsonmicro.com, michael.hennerich@analog.com, rpurdie@rpsys.net
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/adp5520_bl.c: use devm_ functions
-has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-adp5520_blc-use-devm_-functions.patch
+     Subject: revert procfs-do-not-confuse-jiffies-with-cputime64_t
+has been removed from the -mm tree.  Its filename was
+     revert-procfs-do-not-confuse-jiffies-with-cputime64_t.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: drivers/video/backlight/adp5520_bl.c: use devm_ functions
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert procfs-do-not-confuse-jiffies-with-cputime64_t
 
-The various devm_ functions allocate memory that is released when a driver
-detaches.  This patch uses these functions for data that is allocated in
-the probe function of a platform device and is only freed in the remove
-function.
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Dimitris Papastamos <dp@opensource.wolfsonmicro.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Acked-by: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp5520_bl.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/ia64/include/asm/cputime.h    |    1 -
+ arch/powerpc/include/asm/cputime.h |    2 --
+ arch/s390/include/asm/cputime.h    |    2 --
+ fs/proc/stat.c                     |    4 ++--
+ include/asm-generic/cputime.h      |    1 -
+ 5 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-use-devm_-functions drivers/video/backlight/adp5520_bl.c
---- a/drivers/video/backlight/adp5520_bl.c~drivers-video-backlight-adp5520_blc-use-devm_-functions
-+++ a/drivers/video/backlight/adp5520_bl.c
-@@ -289,7 +289,7 @@ static int __devinit adp5520_bl_probe(st
- 	struct adp5520_bl *data;
- 	int ret = 0;
+diff -puN arch/ia64/include/asm/cputime.h~revert-procfs-do-not-confuse-jiffies-with-cputime64_t arch/ia64/include/asm/cputime.h
+--- a/arch/ia64/include/asm/cputime.h~revert-procfs-do-not-confuse-jiffies-with-cputime64_t
++++ a/arch/ia64/include/asm/cputime.h
+@@ -60,7 +60,6 @@ typedef u64 cputime64_t;
+  */
+ #define cputime_to_usecs(__ct)		((__ct) / NSEC_PER_USEC)
+ #define usecs_to_cputime(__usecs)	((__usecs) * NSEC_PER_USEC)
+-#define usecs_to_cputime64(__usecs)	usecs_to_cputime(__usecs)
  
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
- 	if (data == NULL)
- 		return -ENOMEM;
- 
-@@ -298,7 +298,6 @@ static int __devinit adp5520_bl_probe(st
- 
- 	if (data->pdata  == NULL) {
- 		dev_err(&pdev->dev, "missing platform data\n");
--		kfree(data);
- 		return -ENODEV;
- 	}
- 
-@@ -314,7 +313,6 @@ static int __devinit adp5520_bl_probe(st
- 				       &adp5520_bl_ops, &props);
- 	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "failed to register backlight\n");
--		kfree(data);
- 		return PTR_ERR(bl);
- 	}
- 
-@@ -326,7 +324,6 @@ static int __devinit adp5520_bl_probe(st
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to register sysfs\n");
- 		backlight_device_unregister(bl);
--		kfree(data);
- 	}
- 
- 	platform_set_drvdata(pdev, bl);
-@@ -348,7 +345,6 @@ static int __devexit adp5520_bl_remove(s
- 				&adp5520_bl_attr_group);
- 
- 	backlight_device_unregister(bl);
--	kfree(data);
- 
- 	return 0;
+ /*
+  * Convert cputime <-> seconds
+diff -puN arch/powerpc/include/asm/cputime.h~revert-procfs-do-not-confuse-jiffies-with-cputime64_t arch/powerpc/include/asm/cputime.h
+--- a/arch/powerpc/include/asm/cputime.h~revert-procfs-do-not-confuse-jiffies-with-cputime64_t
++++ a/arch/powerpc/include/asm/cputime.h
+@@ -150,8 +150,6 @@ static inline cputime_t usecs_to_cputime
+ 	return ct;
  }
+ 
+-#define usecs_to_cputime64(us)		usecs_to_cputime(us)
+-
+ /*
+  * Convert cputime <-> seconds
+  */
+diff -puN arch/s390/include/asm/cputime.h~revert-procfs-do-not-confuse-jiffies-with-cputime64_t arch/s390/include/asm/cputime.h
+--- a/arch/s390/include/asm/cputime.h~revert-procfs-do-not-confuse-jiffies-with-cputime64_t
++++ a/arch/s390/include/asm/cputime.h
+@@ -87,8 +87,6 @@ usecs_to_cputime(const unsigned int m)
+ 	return (cputime_t) m * 4096;
+ }
+ 
+-#define usecs_to_cputime64(m)		usecs_to_cputime(m)
+-
+ /*
+  * Convert cputime to milliseconds and back.
+  */
+diff -puN fs/proc/stat.c~revert-procfs-do-not-confuse-jiffies-with-cputime64_t fs/proc/stat.c
+--- a/fs/proc/stat.c~revert-procfs-do-not-confuse-jiffies-with-cputime64_t
++++ a/fs/proc/stat.c
+@@ -32,7 +32,7 @@ static cputime64_t get_idle_time(int cpu
+ 		idle = kstat_cpu(cpu).cpustat.idle;
+ 		idle = cputime64_add(idle, arch_idle_time(cpu));
+ 	} else
+-		idle = usecs_to_cputime64(idle_time);
++		idle = nsecs_to_jiffies64(1000 * idle_time);
+ 
+ 	return idle;
+ }
+@@ -46,7 +46,7 @@ static cputime64_t get_iowait_time(int c
+ 		/* !NO_HZ so we can rely on cpustat.iowait */
+ 		iowait = kstat_cpu(cpu).cpustat.iowait;
+ 	else
+-		iowait = usecs_to_cputime64(iowait_time);
++		iowait = nsecs_to_jiffies64(1000 * iowait_time);
+ 
+ 	return iowait;
+ }
+diff -puN include/asm-generic/cputime.h~revert-procfs-do-not-confuse-jiffies-with-cputime64_t include/asm-generic/cputime.h
+--- a/include/asm-generic/cputime.h~revert-procfs-do-not-confuse-jiffies-with-cputime64_t
++++ a/include/asm-generic/cputime.h
+@@ -40,7 +40,6 @@ typedef u64 cputime64_t;
+  */
+ #define cputime_to_usecs(__ct)		jiffies_to_usecs(__ct)
+ #define usecs_to_cputime(__msecs)	usecs_to_jiffies(__msecs)
+-#define usecs_to_cputime64(__msecs)	nsecs_to_jiffies64((__msecs) * 1000)
+ 
+ /*
+  * Convert cputime to seconds and back.
 _
-Subject: Subject: drivers/video/backlight/adp5520_bl.c: use devm_ functions
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-drivers-video-backlight-wm831x_blc-use-devm_-functions.patch
-drivers-video-backlight-use-devm_-functions.patch
-drivers-video-backlight-adp5520_blc-use-devm_-functions.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
