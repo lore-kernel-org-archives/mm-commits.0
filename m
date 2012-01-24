@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-thermal_sys-fix-build-warning.patch added to -mm tree
-Date: Tue, 24 Jan 2012 14:40:47 -0800
-Message-ID: <20120124224047.65B46A03A5@akpm.mtv.corp.google.com>
+Subject: + thermal-thermal_sys-fix-build-warning-fix.patch added to -mm tree
+Date: Tue, 24 Jan 2012 14:42:17 -0800
+Message-ID: <20120124224217.636B0A03A5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:61687 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752182Ab2AXWks (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2012 17:40:48 -0500
-Received: by yenr8 with SMTP id r8so445683yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2012 14:40:47 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:38169 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752270Ab2AXWmT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2012 17:42:19 -0500
+Received: by faaa19 with SMTP id a19so163956faa.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2012 14:42:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: festevam@gmail.com, durgadoss.r@intel.com, fabio.estevam@freescale.com, guenter.roeck@ericsson.com, khali@linux-fr.org
+Cc: akpm@linux-foundation.org, durgadoss.r@intel.com, fabio.estevam@freescale.com, festevam@gmail.com, guenter.roeck@ericsson.com, khali@linux-fr.org
 
 
 The patch titled
-     Subject: drivers/thermal/thermal_sys.c: fix build warning
+     Subject: thermal-thermal_sys-fix-build-warning-fix
 has been added to the -mm tree.  Its filename is
-     thermal-thermal_sys-fix-build-warning.patch
+     thermal-thermal_sys-fix-build-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabio Estevam <festevam@gmail.com>
-Subject: drivers/thermal/thermal_sys.c: fix build warning
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thermal-thermal_sys-fix-build-warning-fix
 
-With CONFIG_NET=n:
+make thermal_event_seqnum local to generate_netlink_event()
 
-drivers/thermal/thermal_sys.c:63: warning: 'thermal_event_seqnum' defined but not used
-
-Move 'thermal_event_seqnum' definition inside the '#ifdef CONFIG_NET'
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Acked-by: Durgadoss R <durgadoss.r@intel.com>
+Cc: Durgadoss R <durgadoss.r@intel.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Fabio Estevam <festevam@gmail.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_sys.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/thermal/thermal_sys.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/thermal/thermal_sys.c~thermal-thermal_sys-fix-build-warning drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal-thermal_sys-fix-build-warning
+diff -puN drivers/thermal/thermal_sys.c~thermal-thermal_sys-fix-build-warning-fix drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-thermal_sys-fix-build-warning-fix
 +++ a/drivers/thermal/thermal_sys.c
-@@ -60,8 +60,6 @@ static LIST_HEAD(thermal_tz_list);
- static LIST_HEAD(thermal_cdev_list);
- static DEFINE_MUTEX(thermal_list_lock);
+@@ -1302,8 +1302,6 @@ static struct genl_multicast_group therm
+ 	.name = THERMAL_GENL_MCAST_GROUP_NAME,
+ };
  
 -static unsigned int thermal_event_seqnum;
+-
+ int thermal_generate_netlink_event(u32 orig, enum events event)
+ {
+ 	struct sk_buff *skb;
+@@ -1312,6 +1310,7 @@ int thermal_generate_netlink_event(u32 o
+ 	void *msg_header;
+ 	int size;
+ 	int result;
++	static unsigned int thermal_event_seqnum;
+ 
+ 	/* allocate memory */
+ 	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
+_
+Subject: Subject: thermal-thermal_sys-fix-build-warning-fix
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+drivers-usb-misc-emi26c-emi62c-fix-warnings.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+thermal-thermal_sys-fix-build-warning-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
