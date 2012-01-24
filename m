@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
 Subject: + thermal-thermal_sys-fix-build-warning.patch added to -mm tree
-Date: Tue, 24 Jan 2012 14:39:51 -0800
-Message-ID: <20120124223951.9BDCCA03A5@akpm.mtv.corp.google.com>
+Date: Tue, 24 Jan 2012 14:40:47 -0800
+Message-ID: <20120124224047.65B46A03A5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:61387 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870Ab2AXWjy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2012 17:39:54 -0500
-Received: by faaa19 with SMTP id a19so163875faa.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2012 14:39:52 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61687 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182Ab2AXWks (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2012 17:40:48 -0500
+Received: by yenr8 with SMTP id r8so445683yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2012 14:40:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: festevam@gmail.com, fabio.estevam@freescale.com
+Cc: festevam@gmail.com, durgadoss.r@intel.com, fabio.estevam@freescale.com, guenter.roeck@ericsson.com, khali@linux-fr.org
 
 
 The patch titled
-     Subject: thermal: thermal_sys: Fix build warning
+     Subject: drivers/thermal/thermal_sys.c: fix build warning
 has been added to the -mm tree.  Its filename is
      thermal-thermal_sys-fix-build-warning.patch
 
@@ -34,22 +34,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabio Estevam <festevam@gmail.com>
-Subject: thermal: thermal_sys: Fix build warning
+Subject: drivers/thermal/thermal_sys.c: fix build warning
 
-Fix the following build warning:
+With CONFIG_NET=n:
 
 drivers/thermal/thermal_sys.c:63: warning: 'thermal_event_seqnum' defined but not used
-
-,which happens when CONFIG_NET is not set.
 
 Move 'thermal_event_seqnum' definition inside the '#ifdef CONFIG_NET'
 
 Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
-Change since v1:
-- Sent corrupted patch in v1, and fixed now
-
-index dd9a574..11f5955 100644
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Acked-by: Durgadoss R <durgadoss.r@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
