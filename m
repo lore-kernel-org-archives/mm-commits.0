@@ -1,71 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch added to -mm tree
-Date: Tue, 24 Jan 2012 16:20:29 -0800
-Message-ID: <20120125002029.A58F0A009D@akpm.mtv.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 25 Jan 2012 12:40:41 -0800
+Message-ID: <20120125204045.A89DFA02DD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:43526 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab2AYAUc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2012 19:20:32 -0500
-Received: by eekb15 with SMTP id b15so188684eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2012 16:20:30 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:64512 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321Ab2AYUkr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2012 15:40:47 -0500
+Received: by qcsd17 with SMTP id d17so505714qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2012 12:40:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oleg@redhat.com, vda.linux@googlemail.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix
-has been added to the -mm tree.  Its filename is
-     kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix
+Subject: linux-next-git-rejects
 
-add 0x to hex number output
-
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/pci/hda/hda_intel.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN kernel/exit.c~kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix kernel/exit.c
---- a/kernel/exit.c~kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix
-+++ a/kernel/exit.c
-@@ -711,7 +711,7 @@ static struct task_struct *find_new_reap
- 	if (unlikely(pid_ns->child_reaper == father)) {
- 		write_unlock_irq(&tasklist_lock);
- 		if (unlikely(pid_ns == &init_pid_ns)) {
--			panic("Attempted to kill init! exitcode=%08x\n",
-+			panic("Attempted to kill init! exitcode=0x%08x\n",
- 				father->signal->group_exit_code ?:
- 					father->exit_code);
- 		}
+diff -puN sound/pci/hda/hda_intel.c~linux-next-git-rejects sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~linux-next-git-rejects
++++ a/sound/pci/hda/hda_intel.c
+@@ -2776,11 +2776,6 @@ static int __devinit azx_create(struct s
+ 	}
+ 
+ 	/* disable buffer size rounding to 128-byte multiples if supported */
+-<<<<<<< HEAD
+-	chip->align_buffer_size = align_buffer_size;
+-	if (chip->driver_caps & AZX_DCAPS_BUFSIZE)
+-		chip->align_buffer_size = 0;
+-=======
+ 	if (align_buffer_size >= 0)
+ 		chip->align_buffer_size = !!align_buffer_size;
+ 	else {
+@@ -2791,7 +2786,6 @@ static int __devinit azx_create(struct s
+ 		else
+ 			chip->align_buffer_size = 1;
+ 	}
+->>>>>>> linux-next/akpm-end
+ 
+ 	/* allow 64bit DMA address if supported by H/W */
+ 	if ((gcap & ICH6_GCAP_64OK) && !pci_set_dma_mask(pci, DMA_BIT_MASK(64)))
 _
-Subject: Subject: kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
