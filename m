@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + proc-speedup-proc-stat-handling.patch added to -mm tree
-Date: Tue, 24 Jan 2012 16:13:15 -0800
-Message-ID: <20120125001316.2E1A3A009D@akpm.mtv.corp.google.com>
+Subject: + kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch added to -mm tree
+Date: Tue, 24 Jan 2012 16:20:26 -0800
+Message-ID: <20120125002027.7D23DA009D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:47922 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754474Ab2AYANS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2012 19:13:18 -0500
-Received: by bkas6 with SMTP id s6so228392bka.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2012 16:13:17 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:59886 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754956Ab2AYAU2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jan 2012 19:20:28 -0500
+Received: by yenr8 with SMTP id r8so456613yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jan 2012 16:20:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.dumazet@gmail.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, linux@arm.linux.org.uk, mingo@elte.hu, pjt@google.com
+Cc: vda.linux@googlemail.com, oleg@redhat.com
 
 
 The patch titled
-     Subject: proc:  speedup /proc/stat handling
+     Subject: kernel/exit.c: if init dies, log a signal which killed it, if any
 has been added to the -mm tree.  Its filename is
-     proc-speedup-proc-stat-handling.patch
+     kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: proc:  speedup /proc/stat handling
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: kernel/exit.c: if init dies, log a signal which killed it, if any
 
-On a typical 16 cpus machine, "cat /proc/stat" gives more than 4096 bytes,
-and is slow :
+I just received another user's pleas for help when their init mysteriously
+died.  I again explained that they need to check whether it died because
+of bad instruction, a segv, or something else.  Which was an annoying
+detour into writing a trivial C program to spawn his init and print its
+exit code:
 
-# strace -T -o /tmp/STRACE cat /proc/stat | wc -c
-5826
-# grep "cpu " /tmp/STRACE
-read(0, "cpu  1949310 19 2144714 12117253"..., 32768) = 5826 <0.001504>
+http://lists.busybox.net/pipermail/busybox/2012-January/077172.html
 
-Thats partly because show_stat() must be called twice since initial
-buffer size is too small (4096 bytes for less than 32 possible cpus)
+I hear you saying "just test it under /bin/sh".  Well, the crashing init
+_was_ /bin/sh.
 
-Fix this by :
+Which prompted me to make kernel do this first step automatically.  We can
+print exit code, which makes it possible to see that death was from e.g. 
+SIGILL without writing test programs.
 
-1) Taking into account nr_irqs in the initial buffer sizing.
-
-2) Using ksize() to allow better filling of initial buffer.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Turner <pjt@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |    7 +++++--
+ kernel/exit.c |    7 +++++--
  1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/stat.c~proc-speedup-proc-stat-handling fs/proc/stat.c
---- a/fs/proc/stat.c~proc-speedup-proc-stat-handling
-+++ a/fs/proc/stat.c
-@@ -157,11 +157,14 @@ static int show_stat(struct seq_file *p,
+diff -puN kernel/exit.c~kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any kernel/exit.c
+--- a/kernel/exit.c~kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any
++++ a/kernel/exit.c
+@@ -710,8 +710,11 @@ static struct task_struct *find_new_reap
  
- static int stat_open(struct inode *inode, struct file *file)
- {
--	unsigned size = 4096 * (1 + num_possible_cpus() / 32);
-+	unsigned size = 1024 + 128 * num_possible_cpus();
- 	char *buf;
- 	struct seq_file *m;
- 	int res;
+ 	if (unlikely(pid_ns->child_reaper == father)) {
+ 		write_unlock_irq(&tasklist_lock);
+-		if (unlikely(pid_ns == &init_pid_ns))
+-			panic("Attempted to kill init!");
++		if (unlikely(pid_ns == &init_pid_ns)) {
++			panic("Attempted to kill init! exitcode=%08x\n",
++				father->signal->group_exit_code ?:
++					father->exit_code);
++		}
  
-+	/* minimum size to display an interrupt count : 2 bytes */
-+	size += 2 * nr_irqs;
-+
- 	/* don't ask for more than the kmalloc() max size */
- 	if (size > KMALLOC_MAX_SIZE)
- 		size = KMALLOC_MAX_SIZE;
-@@ -173,7 +176,7 @@ static int stat_open(struct inode *inode
- 	if (!res) {
- 		m = file->private_data;
- 		m->buf = buf;
--		m->size = size;
-+		m->size = ksize(buf);
- 	} else
- 		kfree(buf);
- 	return res;
+ 		zap_pid_ns_processes(pid_ns);
+ 		write_lock_irq(&tasklist_lock);
 _
-Subject: Subject: proc:  speedup /proc/stat handling
+Subject: Subject: kernel/exit.c: if init dies, log a signal which killed it, if any
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
-origin.patch
-linux-next.patch
-net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
-idr-make-idr_get_next-good-for-rcu_read_lock.patch
-cgroup-revert-ss_id_lock-to-spinlock.patch
-memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
-proc-speedup-proc-stat-handling.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
 
