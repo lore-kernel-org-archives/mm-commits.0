@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + make-swapin-readahead-skip-over-holes.patch added to -mm tree
-Date: Wed, 25 Jan 2012 17:23:31 -0800
-Message-ID: <20120126012331.6D596A0245@akpm.mtv.corp.google.com>
+Subject: + make-swapin-readahead-skip-over-holes-fix.patch added to -mm tree
+Date: Wed, 25 Jan 2012 17:23:33 -0800
+Message-ID: <20120126012333.DCD10A0245@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-qy0-f202.google.com ([209.85.216.202]:35245 "EHLO
 	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083Ab2AZBXd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2012 20:23:33 -0500
-Received: by qcsd17 with SMTP id d17so9297qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2012 17:23:32 -0800 (PST)
+	with ESMTP id S1752028Ab2AZBXe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jan 2012 20:23:34 -0500
+Received: by mail-qy0-f202.google.com with SMTP id d17so9297qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jan 2012 17:23:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@gmail.com, mgorman@suse.de, minchan.kim@gmail.com, z@drze.net
+Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, z@drze.net
 
 
 The patch titled
-     Subject: mm: make swapin readahead skip over holes
+     Subject: make-swapin-readahead-skip-over-holes-fix
 has been added to the -mm tree.  Its filename is
-     make-swapin-readahead-skip-over-holes.patch
+     make-swapin-readahead-skip-over-holes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,146 +33,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: mm: make swapin readahead skip over holes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: make-swapin-readahead-skip-over-holes-fix
 
-Ever since abandoning the virtual scan of processes, for scalability
-reasons, swap space has been a little more fragmented than before.  This
-can lead to the situation where a large memory user is killed, swap space
-ends up full of "holes" and swapin readahead is totally ineffective.
+fix it for page_cluster >= 32
 
-On my home system, after killing a leaky firefox it took over an hour to
-page just under 2GB of memory back in, slowing the virtual machines down
-to a crawl.
-
-This patch makes swapin readahead simply skip over holes, instead of
-stopping at them.  This allows the system to swap things back in at rates
-of several MB/second, instead of a few hundred kB/second.
-
-The checks done in valid_swaphandles are already done in
-read_swap_cache_async as well, allowing us to remove a fair amount of
-code.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: Adrian Drzewieki <z@drze.net>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/swap_state.c      |   24 ++++++++----------
- mm/swapfile.c        |   52 -----------------------------------------
- 3 files changed, 11 insertions(+), 66 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~make-swapin-readahead-skip-over-holes include/linux/swap.h
---- a/include/linux/swap.h~make-swapin-readahead-skip-over-holes
-+++ a/include/linux/swap.h
-@@ -329,7 +329,6 @@ extern long total_swap_pages;
- extern void si_swapinfo(struct sysinfo *);
- extern swp_entry_t get_swap_page(void);
- extern swp_entry_t get_swap_page_of_type(int);
--extern int valid_swaphandles(swp_entry_t, unsigned long *);
- extern int add_swap_count_continuation(swp_entry_t, gfp_t);
- extern void swap_shmem_alloc(swp_entry_t);
- extern int swap_duplicate(swp_entry_t);
-diff -puN mm/swap_state.c~make-swapin-readahead-skip-over-holes mm/swap_state.c
---- a/mm/swap_state.c~make-swapin-readahead-skip-over-holes
+diff -puN mm/swap_state.c~make-swapin-readahead-skip-over-holes-fix mm/swap_state.c
+--- a/mm/swap_state.c~make-swapin-readahead-skip-over-holes-fix
 +++ a/mm/swap_state.c
-@@ -382,25 +382,23 @@ struct page *read_swap_cache_async(swp_e
- struct page *swapin_readahead(swp_entry_t entry, gfp_t gfp_mask,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
--	int nr_pages;
+@@ -385,7 +385,7 @@ struct page *swapin_readahead(swp_entry_
  	struct page *page;
--	unsigned long offset;
--	unsigned long end_offset;
-+	unsigned long offset = swp_offset(entry);
-+	unsigned long start_offset, end_offset;
-+	unsigned long mask = (1 << page_cluster) - 1;
+ 	unsigned long offset = swp_offset(entry);
+ 	unsigned long start_offset, end_offset;
+-	unsigned long mask = (1 << page_cluster) - 1;
++	unsigned long mask = (1UL << page_cluster) - 1;
  
--	/*
--	 * Get starting offset for readaround, and number of pages to read.
--	 * Adjust starting address by readbehind (for NUMA interleave case)?
--	 * No, it's very unlikely that swap layout would follow vma layout,
--	 * more likely that neighbouring swap pages came from the same node:
--	 * so use the same "addr" to choose the same node for each swap read.
--	 */
--	nr_pages = valid_swaphandles(entry, &offset);
--	for (end_offset = offset + nr_pages; offset < end_offset; offset++) {
-+	/* Read a page_cluster sized and aligned cluster around offset. */
-+	start_offset = offset & ~mask;
-+	end_offset = offset | mask;
-+	if (!start_offset)	/* First page is swap header. */
-+		start_offset++;
-+
-+	for (offset = start_offset; offset <= end_offset ; offset++) {
- 		/* Ok, do the async read-ahead now */
- 		page = read_swap_cache_async(swp_entry(swp_type(entry), offset),
- 						gfp_mask, vma, addr);
- 		if (!page)
--			break;
-+			continue;
- 		page_cache_release(page);
- 	}
- 	lru_add_drain();	/* Push any new pages onto the LRU now */
-diff -puN mm/swapfile.c~make-swapin-readahead-skip-over-holes mm/swapfile.c
---- a/mm/swapfile.c~make-swapin-readahead-skip-over-holes
-+++ a/mm/swapfile.c
-@@ -2290,58 +2290,6 @@ int swapcache_prepare(swp_entry_t entry)
- }
- 
- /*
-- * swap_lock prevents swap_map being freed. Don't grab an extra
-- * reference on the swaphandle, it doesn't matter if it becomes unused.
-- */
--int valid_swaphandles(swp_entry_t entry, unsigned long *offset)
--{
--	struct swap_info_struct *si;
--	int our_page_cluster = page_cluster;
--	pgoff_t target, toff;
--	pgoff_t base, end;
--	int nr_pages = 0;
--
--	if (!our_page_cluster)	/* no readahead */
--		return 0;
--
--	si = swap_info[swp_type(entry)];
--	target = swp_offset(entry);
--	base = (target >> our_page_cluster) << our_page_cluster;
--	end = base + (1 << our_page_cluster);
--	if (!base)		/* first page is swap header */
--		base++;
--
--	spin_lock(&swap_lock);
--	if (end > si->max)	/* don't go beyond end of map */
--		end = si->max;
--
--	/* Count contiguous allocated slots above our target */
--	for (toff = target; ++toff < end; nr_pages++) {
--		/* Don't read in free or bad pages */
--		if (!si->swap_map[toff])
--			break;
--		if (swap_count(si->swap_map[toff]) == SWAP_MAP_BAD)
--			break;
--	}
--	/* Count contiguous allocated slots below our target */
--	for (toff = target; --toff >= base; nr_pages++) {
--		/* Don't read in free or bad pages */
--		if (!si->swap_map[toff])
--			break;
--		if (swap_count(si->swap_map[toff]) == SWAP_MAP_BAD)
--			break;
--	}
--	spin_unlock(&swap_lock);
--
--	/*
--	 * Indicate starting offset, and return number of pages to get:
--	 * if only 1, say 0, since there's then no readahead to be done.
--	 */
--	*offset = ++toff;
--	return nr_pages? ++nr_pages: 0;
--}
+ 	/* Read a page_cluster sized and aligned cluster around offset. */
+ 	start_offset = offset & ~mask;
+_
+Subject: Subject: make-swapin-readahead-skip-over-holes-fix
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+thermal-thermal_sys-fix-build-warning-fix.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
