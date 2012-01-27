@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thermal_sys-kernel-style-cleanups.patch added to -mm tree
-Date: Thu, 26 Jan 2012 16:55:05 -0800
-Message-ID: <20120127005505.DF478A049C@akpm.mtv.corp.google.com>
+Subject: + thermal_sys-remove-obfuscating-used-once-macros.patch added to -mm tree
+Date: Thu, 26 Jan 2012 16:55:03 -0800
+Message-ID: <20120127005503.D8012A049C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:49909 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754532Ab2A0AzI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2012 19:55:08 -0500
-Received: by eaaf1 with SMTP id f1so62993eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2012 16:55:06 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:45730 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377Ab2A0A5q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2012 19:57:46 -0500
+Received: by ggnk1 with SMTP id k1so139715ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2012 16:57:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: joe@perches.com, jj@chaosbits.net, lenb@kernel.org
 
 
 The patch titled
-     Subject: thermal_sys: kernel style cleanups
+     Subject: thermal_sys: remove obfuscating used-once macros
 has been added to the -mm tree.  Its filename is
-     thermal_sys-kernel-style-cleanups.patch
+     thermal_sys-remove-obfuscating-used-once-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: thermal_sys: kernel style cleanups
+Subject: thermal_sys: remove obfuscating used-once macros
 
-Just a few tidies to make it more like most kernel sources.
-
-A couple of long lines still remain.
+These don't add any value as they are used only once and the surrounding
+code uses similar variable.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Reviewed-by: Jesper Juhl <jj@chaosbits.net>
+Cc: Jesper Juhl <jj@chaosbits.net>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_sys.c |   30 +++++++++++++-----------------
- 1 file changed, 13 insertions(+), 17 deletions(-)
+ drivers/thermal/thermal_sys.c |   32 ++++++++++++--------------------
+ 1 file changed, 12 insertions(+), 20 deletions(-)
 
-diff -puN drivers/thermal/thermal_sys.c~thermal_sys-kernel-style-cleanups drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal_sys-kernel-style-cleanups
+diff -puN drivers/thermal/thermal_sys.c~thermal_sys-remove-obfuscating-used-once-macros drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal_sys-remove-obfuscating-used-once-macros
 +++ a/drivers/thermal/thermal_sys.c
-@@ -64,7 +64,7 @@ static int get_idr(struct idr *idr, stru
- {
- 	int err;
+@@ -310,22 +310,6 @@ static struct device_attribute trip_poin
+ 	__ATTR(trip_point_11_temp, 0444, trip_point_temp_show, NULL),
+ };
  
--      again:
-+again:
- 	if (unlikely(idr_pre_get(idr, GFP_KERNEL) == 0))
- 		return -ENOMEM;
- 
-@@ -816,15 +816,14 @@ int thermal_zone_bind_cooling_device(str
- 		return 0;
- 
- 	device_remove_file(&tz->device, &dev->attr);
--      remove_symbol_link:
-+remove_symbol_link:
- 	sysfs_remove_link(&tz->device.kobj, dev->name);
--      release_idr:
-+release_idr:
- 	release_idr(&tz->idr, &tz->lock, dev->id);
--      free_mem:
-+free_mem:
- 	kfree(dev);
- 	return result;
- }
+-#define TRIP_POINT_ATTR_ADD(_dev, _index, result)     \
+-do {    \
+-	result = device_create_file(_dev,	\
+-				&trip_point_attrs[_index * 2]);	\
+-	if (result)	\
+-		break;	\
+-	result = device_create_file(_dev,	\
+-			&trip_point_attrs[_index * 2 + 1]);	\
+-} while (0)
 -
- EXPORT_SYMBOL(thermal_zone_bind_cooling_device);
- 
- /**
-@@ -854,14 +853,13 @@ int thermal_zone_unbind_cooling_device(s
- 
- 	return -ENODEV;
- 
--      unbind:
-+unbind:
- 	device_remove_file(&tz->device, &pos->attr);
- 	sysfs_remove_link(&tz->device.kobj, pos->name);
- 	release_idr(&tz->idr, &tz->lock, pos->id);
- 	kfree(pos);
- 	return 0;
- }
+-#define TRIP_POINT_ATTR_REMOVE(_dev, _index)	\
+-do {	\
+-	device_remove_file(_dev, &trip_point_attrs[_index * 2]);	\
+-	device_remove_file(_dev, &trip_point_attrs[_index * 2 + 1]);	\
+-} while (0)
 -
- EXPORT_SYMBOL(thermal_zone_unbind_cooling_device);
+ /* sys I/F for cooling device */
+ #define to_cooling_device(_dev)	\
+ 	container_of(_dev, struct thermal_cooling_device, device)
+@@ -1196,7 +1180,12 @@ struct thermal_zone_device *thermal_zone
+ 	}
  
- static void thermal_release(struct device *dev)
-@@ -869,7 +867,8 @@ static void thermal_release(struct devic
- 	struct thermal_zone_device *tz;
- 	struct thermal_cooling_device *cdev;
+ 	for (count = 0; count < trips; count++) {
+-		TRIP_POINT_ATTR_ADD(&tz->device, count, result);
++		result = device_create_file(&tz->device,
++					    &trip_point_attrs[count * 2]);
++		if (result)
++			break;
++		result = device_create_file(&tz->device,
++					    &trip_point_attrs[count * 2 + 1]);
+ 		if (result)
+ 			goto unregister;
+ 		tz->ops->get_trip_type(tz, count, &trip_type);
+@@ -1276,9 +1265,12 @@ void thermal_zone_device_unregister(stru
+ 	if (tz->ops->get_mode)
+ 		device_remove_file(&tz->device, &dev_attr_mode);
  
--	if (!strncmp(dev_name(dev), "thermal_zone", sizeof "thermal_zone" - 1)) {
-+	if (!strncmp(dev_name(dev), "thermal_zone",
-+		     sizeof("thermal_zone") - 1)) {
- 		tz = to_thermal_zone(dev);
- 		kfree(tz);
- 	} else {
-@@ -889,8 +888,9 @@ static struct class thermal_class = {
-  * @devdata:	device private data.
-  * @ops:		standard thermal cooling devices callbacks.
-  */
--struct thermal_cooling_device *thermal_cooling_device_register(
--     char *type, void *devdata, const struct thermal_cooling_device_ops *ops)
-+struct thermal_cooling_device *
-+thermal_cooling_device_register(char *type, void *devdata,
-+				const struct thermal_cooling_device_ops *ops)
- {
- 	struct thermal_cooling_device *cdev;
- 	struct thermal_zone_device *pos;
-@@ -955,12 +955,11 @@ struct thermal_cooling_device *thermal_c
- 	if (!result)
- 		return cdev;
- 
--      unregister:
-+unregister:
- 	release_idr(&thermal_cdev_idr, &thermal_idr_lock, cdev->id);
- 	device_unregister(&cdev->device);
- 	return ERR_PTR(result);
- }
+-	for (count = 0; count < tz->trips; count++)
+-		TRIP_POINT_ATTR_REMOVE(&tz->device, count);
 -
- EXPORT_SYMBOL(thermal_cooling_device_register);
- 
- /**
-@@ -1005,7 +1004,6 @@ void thermal_cooling_device_unregister(s
- 	device_unregister(&cdev->device);
- 	return;
- }
--
- EXPORT_SYMBOL(thermal_cooling_device_unregister);
- 
- /**
-@@ -1081,7 +1079,7 @@ void thermal_zone_device_update(struct t
- 
- 	tz->last_temperature = temp;
- 
--      leave:
-+leave:
- 	if (tz->passive)
- 		thermal_zone_device_set_polling(tz, tz->passive_delay);
- 	else if (tz->polling_delay)
-@@ -1221,12 +1219,11 @@ struct thermal_zone_device *thermal_zone
- 	if (!result)
- 		return tz;
- 
--      unregister:
-+unregister:
++	for (count = 0; count < tz->trips; count++) {
++		device_remove_file(&tz->device,
++				   &trip_point_attrs[count * 2]);
++		device_remove_file(&tz->device,
++				   &trip_point_attrs[count * 2 + 1]);
++	}
+ 	thermal_remove_hwmon_sysfs(tz);
  	release_idr(&thermal_tz_idr, &thermal_idr_lock, tz->id);
- 	device_unregister(&tz->device);
- 	return ERR_PTR(result);
- }
--
- EXPORT_SYMBOL(thermal_zone_device_register);
- 
- /**
-@@ -1278,7 +1275,6 @@ void thermal_zone_device_unregister(stru
- 	device_unregister(&tz->device);
- 	return;
- }
+ 	idr_destroy(&tz->idr);
+_
+Subject: Subject: thermal_sys: remove obfuscating used-once macros
+
+Patches currently in -mm which might be from joe@perches.com are
+
+origin.patch
+maintainers-update-partitions-block-f-patterns.patch
+maintainers-remove-imx5-section.patch
+maintainers-remove-staging-sections.patch
+maintainers-update-lguest-f-patterns.patch
+linux-next.patch
+thermal_sys-remove-unnecessary-line-continuations.patch
+thermal_sys-remove-obfuscating-used-once-macros.patch
+thermal_sys-kernel-style-cleanups.patch
+thermal_sys-convert-printks-to-pr_level.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
+maintainers-fix-remoteproc-f-typo.patch
+include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
+
