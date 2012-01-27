@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-kswapd-carefully-call-compaction-fix.patch added to -mm tree
-Date: Fri, 27 Jan 2012 15:38:13 -0800
-Message-ID: <20120127233814.075C4A0128@akpm.mtv.corp.google.com>
+Subject: + vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch added to -mm tree
+Date: Fri, 27 Jan 2012 15:38:09 -0800
+Message-ID: <20120127233810.2B509A0128@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:50748 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942Ab2A0XiO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jan 2012 18:38:14 -0500
-Received: by mail-yx0-f202.google.com with SMTP id r8so216449yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jan 2012 15:38:14 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:57274 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751942Ab2A0XiL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jan 2012 18:38:11 -0500
+Received: by ghrr20 with SMTP id r20so81264ghr.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Jan 2012 15:38:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com
+Cc: riel@redhat.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com
 
 
 The patch titled
-     Subject: vmscan-kswapd-carefully-call-compaction-fix
+     Subject: vmscan: reclaim at order 0 when compaction is enabled
 has been added to the -mm tree.  Its filename is
-     vmscan-kswapd-carefully-call-compaction-fix.patch
+     vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,187 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmscan-kswapd-carefully-call-compaction-fix
+From: Rik van Riel <riel@redhat.com>
+Subject: vmscan: reclaim at order 0 when compaction is enabled
 
-reduce scope of zones_need_compaction
+When built with CONFIG_COMPACTION, kswapd should not try to free
+contiguous pages, because it is not trying hard enough to have a real
+chance at being successful, but still disrupts the LRU enough to break
+other things.
 
+Do not do higher order page isolation unless we really are in lumpy
+reclaim mode.
+
+Stop reclaiming pages once we have enough free pages that compaction can
+deal with things, and we hit the normal order 0 watermarks used by kswapd.
+
+Also remove a line of code that increments balanced right before exiting
+the function.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   47 ++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 30 insertions(+), 17 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-kswapd-carefully-call-compaction-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-kswapd-carefully-call-compaction-fix
+diff -puN mm/vmscan.c~vmscan-reclaim-at-order-0-when-compaction-is-enabled mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-reclaim-at-order-0-when-compaction-is-enabled
 +++ a/mm/vmscan.c
-@@ -2672,7 +2672,6 @@ static unsigned long balance_pgdat(pg_da
- 	int priority;
- 	int i;
- 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
--	int zones_need_compaction = 1;
- 	unsigned long total_scanned;
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
- 	unsigned long nr_soft_reclaimed;
-@@ -2920,6 +2919,8 @@ out:
- 	 * and it is potentially going to sleep here.
- 	 */
- 	if (order) {
-+		int zones_need_compaction = 1;
-+
+@@ -1138,7 +1138,7 @@ int __isolate_lru_page(struct page *page
+  * @mz:		The mem_cgroup_zone to pull pages from.
+  * @dst:	The temp list to put pages on to.
+  * @nr_scanned:	The number of pages that were scanned.
+- * @order:	The caller's attempted allocation order
++ * @sc:		The scan_control struct for this reclaim session
+  * @mode:	One of the LRU isolation modes
+  * @active:	True [1] if isolating active pages
+  * @file:	True [1] if isolating file [!anon] pages
+@@ -1147,8 +1147,8 @@ int __isolate_lru_page(struct page *page
+  */
+ static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
+ 		struct mem_cgroup_zone *mz, struct list_head *dst,
+-		unsigned long *nr_scanned, int order, isolate_mode_t mode,
+-		int active, int file)
++		unsigned long *nr_scanned, struct scan_control *sc,
++		isolate_mode_t mode, int active, int file)
+ {
+ 	struct lruvec *lruvec;
+ 	struct list_head *src;
+@@ -1194,7 +1194,7 @@ static unsigned long isolate_lru_pages(u
+ 			BUG();
+ 		}
+ 
+-		if (!order)
++		if (!sc->order || !(sc->reclaim_mode & RECLAIM_MODE_LUMPYRECLAIM))
+ 			continue;
+ 
+ 		/*
+@@ -1208,8 +1208,8 @@ static unsigned long isolate_lru_pages(u
+ 		 */
+ 		zone_id = page_zone_id(page);
+ 		page_pfn = page_to_pfn(page);
+-		pfn = page_pfn & ~((1 << order) - 1);
+-		end_pfn = pfn + (1 << order);
++		pfn = page_pfn & ~((1 << sc->order) - 1);
++		end_pfn = pfn + (1 << sc->order);
+ 		for (; pfn < end_pfn; pfn++) {
+ 			struct page *cursor_page;
+ 
+@@ -1275,7 +1275,7 @@ static unsigned long isolate_lru_pages(u
+ 
+ 	*nr_scanned = scan;
+ 
+-	trace_mm_vmscan_lru_isolate(order,
++	trace_mm_vmscan_lru_isolate(sc->order,
+ 			nr_to_scan, scan,
+ 			nr_taken,
+ 			nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed,
+@@ -1533,9 +1533,8 @@ shrink_inactive_list(unsigned long nr_to
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+-	nr_taken = isolate_lru_pages(nr_to_scan, mz, &page_list,
+-				     &nr_scanned, sc->order,
+-				     isolate_mode, 0, file);
++	nr_taken = isolate_lru_pages(nr_to_scan, mz, &page_list, &nr_scanned,
++				     sc, isolate_mode, 0, file);
+ 	if (global_reclaim(sc)) {
+ 		zone->pages_scanned += nr_scanned;
+ 		if (current_is_kswapd())
+@@ -1711,8 +1710,7 @@ static void shrink_active_list(unsigned 
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+-	nr_taken = isolate_lru_pages(nr_to_scan, mz, &l_hold,
+-				     &nr_scanned, sc->order,
++	nr_taken = isolate_lru_pages(nr_to_scan, mz, &l_hold, &nr_scanned, sc,
+ 				     isolate_mode, 1, file);
+ 	if (global_reclaim(sc))
+ 		zone->pages_scanned += nr_scanned;
+@@ -2758,7 +2756,7 @@ loop_again:
+ 		 */
  		for (i = 0; i <= end_zone; i++) {
  			struct zone *zone = pgdat->node_zones + i;
+-			int nr_slab;
++			int nr_slab, testorder;
+ 			unsigned long balance_gap;
+ 
+ 			if (!populated_zone(zone))
+@@ -2791,7 +2789,20 @@ loop_again:
+ 				(zone->present_pages +
+ 					KSWAPD_ZONE_BALANCE_GAP_RATIO-1) /
+ 				KSWAPD_ZONE_BALANCE_GAP_RATIO);
+-			if (!zone_watermark_ok_safe(zone, order,
++			/*
++			 * Kswapd reclaims only single pages with compaction
++			 * enabled. Trying too hard to reclaim until contiguous
++			 * free pages have become available can hurt performance
++			 * by evicting too much useful data from memory.
++			 * Do not reclaim more than needed for compaction.
++			 */
++			testorder = order;
++			if (COMPACTION_BUILD && order &&
++					compaction_suitable(zone, order) !=
++						COMPACT_SKIPPED)
++				testorder = 0;
++
++			if (!zone_watermark_ok_safe(zone, testorder,
+ 					high_wmark_pages(zone) + balance_gap,
+ 					end_zone, 0)) {
+ 				shrink_zone(priority, zone, &sc);
+@@ -2820,7 +2831,7 @@ loop_again:
+ 				continue;
+ 			}
+ 
+-			if (!zone_watermark_ok_safe(zone, order,
++			if (!zone_watermark_ok_safe(zone, testorder,
+ 					high_wmark_pages(zone), end_zone, 0)) {
+ 				all_zones_ok = 0;
+ 				/*
+@@ -2917,6 +2928,10 @@ out:
+ 			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
+ 				continue;
+ 
++			/* Would compaction fail due to lack of free memory? */
++			if (compaction_suitable(zone, order) == COMPACT_SKIPPED)
++				goto loop_again;
++
+ 			/* Confirm the zone is balanced for order-0 */
+ 			if (!zone_watermark_ok(zone, 0,
+ 					high_wmark_pages(zone), 0, 0)) {
+@@ -2926,8 +2941,6 @@ out:
+ 
+ 			/* If balanced, clear the congested flag */
+ 			zone_clear_flag(zone, ZONE_CONGESTED);
+-			if (i <= *classzone_idx)
+-				balanced += zone->present_pages;
+ 		}
+ 	}
  
 _
-Subject: Subject: vmscan-kswapd-carefully-call-compaction-fix
+Subject: Subject: vmscan: reclaim at order 0 when compaction is enabled
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-memcontrolc-fix-warning-with-config_numa=n.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-alix2-supplement-driver-to-include-gpio-button-support-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning-fix.patch
-drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
-mm.patch
+mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+make-swapin-readahead-skip-over-holes.patch
 make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
+vmscan-kswapd-carefully-call-compaction.patch
 vmscan-kswapd-carefully-call-compaction-fix.patch
+vmscan-only-defer-compaction-for-failed-order-and-higher.patch
+mm-fix-page-faults-detection-in-swap-token-logic.patch
+mm-add-extra-free-kbytes-tunable.patch
+mm-add-extra-free-kbytes-tunable-update.patch
 mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
