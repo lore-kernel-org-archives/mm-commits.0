@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + bio-dont-overflow-in-bio_get_nr_vecs.patch added to -mm tree
-Date: Thu, 26 Jan 2012 16:07:02 -0800
-Message-ID: <20120127000702.C0780A026F@akpm.mtv.corp.google.com>
+Subject: + thermal_sys-remove-unnecessary-line-continuations.patch added to -mm tree
+Date: Thu, 26 Jan 2012 16:55:00 -0800
+Message-ID: <20120127005501.79DC3A049C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:61530 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754350Ab2A0AHD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2012 19:07:03 -0500
-Received: by yhjj52 with SMTP id j52so121874yhj.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2012 16:07:03 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:43795 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754532Ab2A0AzE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Jan 2012 19:55:04 -0500
+Received: by wibhm11 with SMTP id hm11so79228wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Jan 2012 16:55:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kent.overstreet@gmail.com, Valdis.Kletnieks@vt.edu, axboe@kernel.dk, koverstreet@google.com, tj@kernel.org
+Cc: joe@perches.com, jj@chaosbits.net, lenb@kernel.org
 
 
 The patch titled
-     Subject: bio: don't overflow in bio_get_nr_vecs()
+     Subject: thermal_sys: remove unnecessary line continuations
 has been added to the -mm tree.  Its filename is
-     bio-dont-overflow-in-bio_get_nr_vecs.patch
+     thermal_sys-remove-unnecessary-line-continuations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <kent.overstreet@gmail.com>
-Subject: bio: don't overflow in bio_get_nr_vecs()
+From: Joe Perches <joe@perches.com>
+Subject: thermal_sys: remove unnecessary line continuations
 
-There were two places bio_get_nr_vecs() could overflow:
+Line continations are not necessary in function calls or statements. 
+Remove them.
 
-First, it did a left shift to convert from sectors to bytes immediately
-before dividing by PAGE_SIZE.  If PAGE_SIZE ever was less than 512 a great
-many things would break, so dividing by PAGE_SIZE >> 9 is safe and will
-generate smaller code too.
-
-The nastier overflow was in the DIV_ROUND_UP() (that's what the code was
-effectively doing, anyways).  If n + d overflowed, the whole thing would
-return 0 which breaks things rather effectively.
-
-bio_get_nr_vecs() doesn't claim to give an exact value anyways, so the
-DIV_ROUND_UP() is silly; we could do a straight divide except if a
-device's queue_max_sectors was less than PAGE_SIZE we'd return 0.  So we
-just add 1; this should always be safe - things will break badly if
-bio_get_nr_vecs() returns > BIO_MAX_PAGES (bio_alloc() will suddenly start
-failing) but it's queue_max_segments that must guard against this, if
-queue_max_sectors is preventing this from happen things are going to
-explode on architectures with different PAGE_SIZE.
-
-Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Jesper Juhl <jj@chaosbits.net>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/thermal/thermal_sys.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN fs/bio.c~bio-dont-overflow-in-bio_get_nr_vecs fs/bio.c
---- a/fs/bio.c~bio-dont-overflow-in-bio_get_nr_vecs
-+++ a/fs/bio.c
-@@ -505,13 +505,9 @@ EXPORT_SYMBOL(bio_clone);
- int bio_get_nr_vecs(struct block_device *bdev)
- {
- 	struct request_queue *q = bdev_get_queue(bdev);
--	int nr_pages;
--
--	nr_pages = ((queue_max_sectors(q) << 9) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (nr_pages > queue_max_segments(q))
--		nr_pages = queue_max_segments(q);
+diff -puN drivers/thermal/thermal_sys.c~thermal_sys-remove-unnecessary-line-continuations drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal_sys-remove-unnecessary-line-continuations
++++ a/drivers/thermal/thermal_sys.c
+@@ -281,8 +281,7 @@ passive_show(struct device *dev, struct 
+ static DEVICE_ATTR(type, 0444, type_show, NULL);
+ static DEVICE_ATTR(temp, 0444, temp_show, NULL);
+ static DEVICE_ATTR(mode, 0644, mode_show, mode_store);
+-static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, \
+-		   passive_store);
++static DEVICE_ATTR(passive, S_IRUGO | S_IWUSR, passive_show, passive_store);
+ 
+ static struct device_attribute trip_point_attrs[] = {
+ 	__ATTR(trip_point_0_type, 0444, trip_point_type_show, NULL),
+@@ -1313,8 +1312,8 @@ int thermal_generate_netlink_event(u32 o
+ 	static unsigned int thermal_event_seqnum;
+ 
+ 	/* allocate memory */
+-	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
+-				nla_total_size(0);
++	size = nla_total_size(sizeof(struct thermal_genl_event)) +
++	       nla_total_size(0);
+ 
+ 	skb = genlmsg_new(size, GFP_ATOMIC);
+ 	if (!skb)
+@@ -1330,8 +1329,8 @@ int thermal_generate_netlink_event(u32 o
+ 	}
+ 
+ 	/* fill the data */
+-	attr = nla_reserve(skb, THERMAL_GENL_ATTR_EVENT, \
+-			sizeof(struct thermal_genl_event));
++	attr = nla_reserve(skb, THERMAL_GENL_ATTR_EVENT,
++			   sizeof(struct thermal_genl_event));
+ 
+ 	if (!attr) {
+ 		nlmsg_free(skb);
+_
+Subject: Subject: thermal_sys: remove unnecessary line continuations
+
+Patches currently in -mm which might be from joe@perches.com are
+
+origin.patch
+maintainers-update-partitions-block-f-patterns.patch
+maintainers-remove-imx5-section.patch
+maintainers-remove-staging-sections.patch
+maintainers-update-lguest-f-patterns.patch
+linux-next.patch
+thermal_sys-remove-unnecessary-line-continuations.patch
+thermal_sys-remove-obfuscating-used-once-macros.patch
+thermal_sys-kernel-style-cleanups.patch
+thermal_sys-convert-printks-to-pr_level.patch
+maintainers-staging-cx25821-add-l-linux-media.patch
+maintainers-fix-remoteproc-f-typo.patch
+include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
+
