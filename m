@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + alix2-supplement-driver-to-include-gpio-button-support.patch added to -mm tree
-Date: Fri, 27 Jan 2012 14:26:45 -0800
-Message-ID: <20120127222646.1BE4CA00AA@akpm.mtv.corp.google.com>
+Subject: + kcore-make-get_sparsemem_vmemmap_info-static.patch added to -mm tree
+Date: Fri, 27 Jan 2012 15:05:08 -0800
+Message-ID: <20120127230508.7FF9AA01F8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:54663 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755303Ab2A0W0r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jan 2012 17:26:47 -0500
-Received: by qcsd17 with SMTP id d17so224540qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jan 2012 14:26:46 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:48320 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253Ab2A0XFJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jan 2012 18:05:09 -0500
+Received: by ghrr20 with SMTP id r20so79262ghr.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Jan 2012 15:05:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp@redfish-solutions.com, dilinger@queued.net, hpa@zytor.com, kernel@wildgooses.com, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de
+Cc: tixxdz@opendz.org
 
 
 The patch titled
-     Subject: alix2: supplement driver to include GPIO button support
+     Subject: fs/proc/kcore.c: make get_sparsemem_vmemmap_info() static
 has been added to the -mm tree.  Its filename is
-     alix2-supplement-driver-to-include-gpio-button-support.patch
+     kcore-make-get_sparsemem_vmemmap_info-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,182 +33,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Philip Prindeville <philipp@redfish-solutions.com>
-Subject: alix2: supplement driver to include GPIO button support
+From: Djalal Harouni <tixxdz@opendz.org>
+Subject: fs/proc/kcore.c: make get_sparsemem_vmemmap_info() static
 
-GPIO 24 is used in reference designs as a soft-reset button, and the alix2
-is no exception.  Add it as a gpio-button.
+get_sparsemem_vmemmap_info() is only used inside fs/proc/kcore.c
 
-Use symbolic values to describe BIOS addresses.
-
-Record the model number.
-
-Signed-off-by: Philip A. Prindeville <philipp@redfish-solutions.com>
-Acked-by: Ed Wildgoose <kernel@wildgooses.com>
-Acked-by: Andres Salomon <dilinger@queued.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Djalal Harouni <tixxdz@opendz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/geode/alix.c |   78 +++++++++++++++++++++++++++----
- 1 file changed, 68 insertions(+), 10 deletions(-)
+ fs/proc/kcore.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio-button-support arch/x86/platform/geode/alix.c
---- a/arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio-button-support
-+++ a/arch/x86/platform/geode/alix.c
-@@ -6,6 +6,7 @@
-  *
-  * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
-  * Copyright (C) 2011 Ed Wildgoose <kernel@wildgooses.com>
-+ *                and Philip Prindeville <philipp@redfish-solutions.com>
-  *
-  * TODO: There are large similarities with leds-net5501.c
-  * by Alessandro Zummo <a.zummo@towertech.it>
-@@ -24,14 +25,47 @@
- #include <linux/leds.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
-+#include <linux/input.h>
-+#include <linux/gpio_keys.h>
-+#include <linux/dmi.h>
+diff -puN fs/proc/kcore.c~kcore-make-get_sparsemem_vmemmap_info-static fs/proc/kcore.c
+--- a/fs/proc/kcore.c~kcore-make-get_sparsemem_vmemmap_info-static
++++ a/fs/proc/kcore.c
+@@ -157,7 +157,8 @@ static int kcore_update_ram(void)
  
- #include <asm/geode.h>
- 
-+#define BIOS_SIGNATURE_TINYBIOS		0xf0000
-+#define BIOS_SIGNATURE_COREBOOT		0x500
-+#define BIOS_REGION_SIZE		0x10000
-+
- static bool force = 0;
- module_param(force, bool, 0444);
- /* FIXME: Award bios is not automatically detected as Alix platform */
- MODULE_PARM_DESC(force, "Force detection as ALIX.2/ALIX.3 platform");
- 
-+static struct gpio_keys_button alix_gpio_buttons[] = {
-+	{
-+		.code = KEY_RESTART,
-+		.gpio = 24,
-+		.active_low = 1,
-+		.desc = "Reset button",
-+		.type = EV_KEY,
-+		.wakeup = 0,
-+		.debounce_interval = 100,
-+		.can_disable = 0,
-+	}
-+};
-+static struct gpio_keys_platform_data alix_buttons_data = {
-+	.buttons = alix_gpio_buttons,
-+	.nbuttons = ARRAY_SIZE(alix_gpio_buttons),
-+	.poll_interval = 20,
-+};
-+
-+static struct platform_device alix_buttons_dev = {
-+	.name = "gpio-keys-polled",
-+	.id = 1,
-+	.dev = {
-+		.platform_data = &alix_buttons_data,
-+	}
-+};
-+
- static struct gpio_led alix_leds[] = {
- 	{
- 		.name = "alix:1",
-@@ -64,17 +98,22 @@ static struct platform_device alix_leds_
- 	.dev.platform_data = &alix_leds_data,
- };
- 
-+static struct __initdata platform_device *alix_devs[] = {
-+	&alix_buttons_dev,
-+	&alix_leds_dev,
-+};
-+
- static void __init register_alix(void)
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ /* calculate vmemmap's address from given system ram pfn and register it */
+-int get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
++static int
++get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
  {
- 	/* Setup LED control through leds-gpio driver */
--	platform_device_register(&alix_leds_dev);
-+	platform_add_devices(alix_devs, ARRAY_SIZE(alix_devs));
+ 	unsigned long pfn = __pa(ent->addr) >> PAGE_SHIFT;
+ 	unsigned long nr_pages = ent->size >> PAGE_SHIFT;
+@@ -189,7 +190,8 @@ int get_sparsemem_vmemmap_info(struct kc
+ 
  }
- 
--static int __init alix_present(unsigned long bios_phys,
-+static bool __init alix_present(unsigned long bios_phys,
- 				const char *alix_sig,
- 				size_t alix_sig_len)
+ #else
+-int get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
++static int
++get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
  {
--	const size_t bios_len = 0x00010000;
-+	const size_t bios_len = BIOS_REGION_SIZE;
- 	const char *bios_virt;
- 	const char *scan_end;
- 	const char *p;
-@@ -84,7 +123,7 @@ static int __init alix_present(unsigned 
- 		printk(KERN_NOTICE "%s: forced to skip BIOS test, "
- 		       "assume system is ALIX.2/ALIX.3\n",
- 		       KBUILD_MODNAME);
--		return 1;
-+		return true;
- 	}
- 
- 	bios_virt = phys_to_virt(bios_phys);
-@@ -109,18 +148,36 @@ static int __init alix_present(unsigned 
- 			*a = '\0';
- 
- 		tail = p + alix_sig_len;
--		if ((tail[0] == '2' || tail[0] == '3')) {
-+		if ((tail[0] == '2' || tail[0] == '3' || tail[0] == '6')) {
- 			printk(KERN_INFO
- 			       "%s: system is recognized as \"%s\"\n",
- 			       KBUILD_MODNAME, name);
--			return 1;
-+			return true;
- 		}
- 	}
- 
--	return 0;
-+	return false;
-+}
-+
-+static bool __init alix_present_dmi(void)
-+{
-+	char *vendor, *product;
-+
-+	vendor = dmi_get_system_info(DMI_SYS_VENDOR);
-+	if (!vendor || strcmp(vendor, "PC Engines"))
-+		return false;
-+
-+	product = dmi_get_system_info(DMI_PRODUCT_NAME);
-+	if (!product || (strcmp(product, "ALIX.2D") && strcmp(product, "ALIX.6")))
-+		return false;
-+
-+	printk(KERN_INFO "%s: system is recognized as \"%s %s\"\n",
-+	       KBUILD_MODNAME, vendor, product);
-+
-+	return true;
+ 	return 1;
  }
- 
--static int __init alix_init(void)
-+static int  __init alix_init(void)
- {
- 	const char tinybios_sig[] = "PC Engines ALIX.";
- 	const char coreboot_sig[] = "PC Engines\0ALIX.";
-@@ -128,8 +185,9 @@ static int __init alix_init(void)
- 	if (!is_geode())
- 		return 0;
- 
--	if (alix_present(0xf0000, tinybios_sig, sizeof(tinybios_sig) - 1) ||
--	    alix_present(0x500, coreboot_sig, sizeof(coreboot_sig) - 1))
-+	if (alix_present(BIOS_SIGNATURE_TINYBIOS, tinybios_sig, sizeof(tinybios_sig) - 1) ||
-+	    alix_present(BIOS_SIGNATURE_COREBOOT, coreboot_sig, sizeof(coreboot_sig) - 1) ||
-+	    alix_present_dmi())
- 		register_alix();
- 
- 	return 0;
 _
-Subject: Subject: alix2: supplement driver to include GPIO button support
+Subject: Subject: fs/proc/kcore.c: make get_sparsemem_vmemmap_info() static
 
-Patches currently in -mm which might be from philipp@redfish-solutions.com are
+Patches currently in -mm which might be from tixxdz@opendz.org are
 
-geos-platform-driver-for-geos-and-geos2-single-board-computers.patch
-alix2-supplement-driver-to-include-gpio-button-support.patch
-alix2-supplement-driver-to-include-gpio-button-support-fix.patch
+origin.patch
+kcore-make-get_sparsemem_vmemmap_info-static.patch
+notify_change-check-that-i_mutex-is-held.patch
 
