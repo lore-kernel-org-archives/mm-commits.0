@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-twlc-enable-rtc-irrespective-of-its-prior-state.patch added to -mm tree
-Date: Fri, 27 Jan 2012 16:41:52 -0800
-Message-ID: <20120128004153.139E4A01C7@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-twlc-simplify-rtc-interrupt-clearing.patch added to -mm tree
+Date: Fri, 27 Jan 2012 16:41:54 -0800
+Message-ID: <20120128004154.D28CBA01C7@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:47582 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751893Ab2A1Alz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jan 2012 19:41:55 -0500
-Received: by eekb15 with SMTP id b15so119135eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jan 2012 16:41:54 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:65310 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751893Ab2A1Al4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jan 2012 19:41:56 -0500
+Received: by eaaf1 with SMTP id f1so108974eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Jan 2012 16:41:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: vbyravarasu@nvidia.com, a.zummo@towertech.it
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-twl.c: enable RTC irrespective of its prior state
+     Subject: drivers/rtc/rtc-twl.c: simplify RTC interrupt clearing
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-twlc-enable-rtc-irrespective-of-its-prior-state.patch
+     drivers-rtc-rtc-twlc-simplify-rtc-interrupt-clearing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Venu Byravarasu <vbyravarasu@nvidia.com>
-Subject: drivers/rtc/rtc-twl.c: enable RTC irrespective of its prior state
+Subject: drivers/rtc/rtc-twl.c: simplify RTC interrupt clearing
 
-As part of probe, before enabling RTC, RTC_CTRL register is read to check
-if it is already running.  If RTC is used by kernel alone, then this read
-is not required.  Even if RTC was enabled already by boot loader, setting
-STOP_RTC bit again should not harm.  Hence removed unwanted read
-operation.
+For clearing RTC interrupt, programming ALARM bit only is sufficient, as
+all other bits are any way not affected by writing 0 to them.
+
+Hence removed unwanted OR operation.
 
 Signed-off-by: Venu Byravarasu <vbyravarasu@nvidia.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-twl.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-twl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-enable-rtc-irrespective-of-its-prior-state drivers/rtc/rtc-twl.c
---- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-enable-rtc-irrespective-of-its-prior-state
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-simplify-rtc-interrupt-clearing drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-simplify-rtc-interrupt-clearing
 +++ a/drivers/rtc/rtc-twl.c
-@@ -457,19 +457,11 @@ static int __devinit twl_rtc_probe(struc
- 			REG_INT_MSK_STS_A);
- 	}
+@@ -384,7 +384,7 @@ static irqreturn_t twl_rtc_interrupt(int
+ 	else
+ 		events |= RTC_IRQF | RTC_UF;
  
--	/* Check RTC module status, Enable if it is off */
--	ret = twl_rtc_read_u8(&rd_reg, REG_RTC_CTRL_REG);
-+	dev_info(&pdev->dev, "Enabling TWL-RTC\n");
-+	ret = twl_rtc_write_u8(BIT_RTC_CTRL_REG_STOP_RTC_M, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		goto out1;
- 
--	if (!(rd_reg & BIT_RTC_CTRL_REG_STOP_RTC_M)) {
--		dev_info(&pdev->dev, "Enabling TWL-RTC.\n");
--		rd_reg = BIT_RTC_CTRL_REG_STOP_RTC_M;
--		ret = twl_rtc_write_u8(rd_reg, REG_RTC_CTRL_REG);
--		if (ret < 0)
--			goto out1;
--	}
+-	res = twl_rtc_write_u8(rd_reg | BIT_RTC_STATUS_REG_ALARM_M,
++	res = twl_rtc_write_u8(BIT_RTC_STATUS_REG_ALARM_M,
+ 				   REG_RTC_STATUS_REG);
+ 	if (res)
+ 		goto out;
+_
+Subject: Subject: drivers/rtc/rtc-twl.c: simplify RTC interrupt clearing
+
+Patches currently in -mm which might be from vbyravarasu@nvidia.com are
+
+drivers-rtc-rtc-twlc-optimize-irq-bit-access.patch
+drivers-rtc-rtc-twlc-enable-rtc-irrespective-of-its-prior-state.patch
+drivers-rtc-rtc-twlc-simplify-rtc-interrupt-clearing.patch
+drivers-rtc-rtc-twlc-return-correct-rtc-event-from-isr.patch
+
