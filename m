@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arm-move-arm-over-to-generic-on_each_cpu_mask.patch added to -mm tree
-Date: Fri, 27 Jan 2012 16:15:39 -0800
-Message-ID: <20120128001539.CF6F7A043A@akpm.mtv.corp.google.com>
+Subject: + smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch added to -mm tree
+Date: Fri, 27 Jan 2012 16:15:45 -0800
+Message-ID: <20120128001545.C06E8A043A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:62652 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586Ab2A1APm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jan 2012 19:15:42 -0500
-Received: by werb13 with SMTP id b13so141805wer.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Jan 2012 16:15:41 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:52838 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752586Ab2A1APq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Jan 2012 19:15:46 -0500
+Received: by mail-yx0-f202.google.com with SMTP id r8so218726yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Jan 2012 16:15:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gilad@benyossef.com, a.p.zijlstra@chello.nl, linux@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, gilad@benyossef.com
 
 
 The patch titled
-     Subject: arm: move arm over to generic on_each_cpu_mask
+     Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-fix
 has been added to the -mm tree.  Its filename is
-     arm-move-arm-over-to-generic-on_each_cpu_mask.patch
+     smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,87 +33,123 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gilad Ben-Yossef <gilad@benyossef.com>
-Subject: arm: move arm over to generic on_each_cpu_mask
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-fix
 
-Note that the generic version is a little different then the Arm one:
+s/gfpflags/gfp_flags/
 
-1. It has the mask as first parameter
-2. It calls the function on the calling CPU with interrupts disabled,
-   but this should be OK since the function is called on the other CPUs
-   with interrupts disabled anyway.
-
-Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Gilad Ben-Yossef <gilad@benyossef.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/smp_tlb.c |   20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+ include/linux/smp.h |   20 ++++++++++----------
+ kernel/smp.c        |    8 ++++----
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN arch/arm/kernel/smp_tlb.c~arm-move-arm-over-to-generic-on_each_cpu_mask arch/arm/kernel/smp_tlb.c
---- a/arch/arm/kernel/smp_tlb.c~arm-move-arm-over-to-generic-on_each_cpu_mask
-+++ a/arch/arm/kernel/smp_tlb.c
-@@ -13,18 +13,6 @@
- #include <asm/smp_plat.h>
- #include <asm/tlbflush.h>
- 
--static void on_each_cpu_mask(void (*func)(void *), void *info, int wait,
--	const struct cpumask *mask)
--{
--	preempt_disable();
--
--	smp_call_function_many(mask, func, info, wait);
--	if (cpumask_test_cpu(smp_processor_id(), mask))
--		func(info);
--
--	preempt_enable();
--}
--
- /**********************************************************************/
+diff -puN include/linux/smp.h~smp-add-func-to-ipi-cpus-based-on-parameter-func-fix include/linux/smp.h
+--- a/include/linux/smp.h~smp-add-func-to-ipi-cpus-based-on-parameter-func-fix
++++ a/include/linux/smp.h
+@@ -115,7 +115,7 @@ void on_each_cpu_mask(const struct cpuma
+  */
+ void on_each_cpu_cond(bool (*cond_func)(int cpu, void *info),
+ 		smp_call_func_t func, void *info, bool wait,
+-		gfp_t gfpflags);
++		gfp_t gfp_flags);
  
  /*
-@@ -87,7 +75,7 @@ void flush_tlb_all(void)
- void flush_tlb_mm(struct mm_struct *mm)
+  * Mark the boot cpu "online" so that it can call console drivers in
+@@ -162,15 +162,15 @@ static inline int up_smp_call_function(s
+ 			local_irq_enable();		\
+ 		}					\
+ 	} while (0)
+-#define on_each_cpu_cond(cond_func, func, info, wait, gfpflags) \
+-	do {						\
+-		preempt_disable();			\
+-		if (cond_func(0, info)) {		\
+-			local_irq_disable();		\
+-			(func)(info);			\
+-			local_irq_enable();		\
+-		}					\
+-		preempt_enable();			\
++#define on_each_cpu_cond(cond_func, func, info, wait, gfp_flags)\
++	do {							\
++		preempt_disable();				\
++		if (cond_func(0, info)) {			\
++			local_irq_disable();			\
++			(func)(info);				\
++			local_irq_enable();			\
++		}						\
++		preempt_enable();				\
+ 	} while (0)
+ 
+ static inline void smp_send_reschedule(int cpu) { }
+diff -puN kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-fix kernel/smp.c
+--- a/kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-fix
++++ a/kernel/smp.c
+@@ -746,7 +746,7 @@ EXPORT_SYMBOL(on_each_cpu_mask);
+  * @info:	An arbitrary pointer to pass to both functions.
+  * @wait:	If true, wait (atomically) until function has
+  *		completed on other CPUs.
+- * @gfpflags:	GFP flags to use when allocating the cpumask
++ * @gfp_flags:	GFP flags to use when allocating the cpumask
+  *		used internally by the function.
+  *
+  * The function might sleep if the GFP flags indicates a non
+@@ -757,14 +757,14 @@ EXPORT_SYMBOL(on_each_cpu_mask);
+  */
+ void on_each_cpu_cond(bool (*cond_func)(int cpu, void *info),
+ 			smp_call_func_t func, void *info, bool wait,
+-			gfp_t gfpflags)
++			gfp_t gfp_flags)
  {
- 	if (tlb_ops_need_broadcast())
--		on_each_cpu_mask(ipi_flush_tlb_mm, mm, 1, mm_cpumask(mm));
-+		on_each_cpu_mask(mm_cpumask(mm), ipi_flush_tlb_mm, mm, 1);
- 	else
- 		local_flush_tlb_mm(mm);
- }
-@@ -98,7 +86,8 @@ void flush_tlb_page(struct vm_area_struc
- 		struct tlb_args ta;
- 		ta.ta_vma = vma;
- 		ta.ta_start = uaddr;
--		on_each_cpu_mask(ipi_flush_tlb_page, &ta, 1, mm_cpumask(vma->vm_mm));
-+		on_each_cpu_mask(mm_cpumask(vma->vm_mm), ipi_flush_tlb_page,
-+					&ta, 1);
- 	} else
- 		local_flush_tlb_page(vma, uaddr);
- }
-@@ -121,7 +110,8 @@ void flush_tlb_range(struct vm_area_stru
- 		ta.ta_vma = vma;
- 		ta.ta_start = start;
- 		ta.ta_end = end;
--		on_each_cpu_mask(ipi_flush_tlb_range, &ta, 1, mm_cpumask(vma->vm_mm));
-+		on_each_cpu_mask(mm_cpumask(vma->vm_mm), ipi_flush_tlb_range,
-+					&ta, 1);
- 	} else
- 		local_flush_tlb_range(vma, start, end);
- }
+ 	cpumask_var_t cpus;
+ 	int cpu, ret;
+ 
+-	might_sleep_if(gfpflags & __GFP_WAIT);
++	might_sleep_if(gfp_flags & __GFP_WAIT);
+ 
+-	if (likely(zalloc_cpumask_var(&cpus, (gfpflags|__GFP_NOWARN)))) {
++	if (likely(zalloc_cpumask_var(&cpus, (gfp_flags|__GFP_NOWARN)))) {
+ 		preempt_disable();
+ 		for_each_online_cpu(cpu)
+ 			if (cond_func(cpu, info))
 _
-Subject: Subject: arm: move arm over to generic on_each_cpu_mask
+Subject: Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-fix
 
-Patches currently in -mm which might be from gilad@benyossef.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-smp-introduce-a-generic-on_each_cpu_mask-function.patch
-arm-move-arm-over-to-generic-on_each_cpu_mask.patch
-tile-move-tile-to-use-generic-on_each_cpu_mask.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-memcontrolc-fix-warning-with-config_numa=n.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+alix2-supplement-driver-to-include-gpio-button-support-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning-fix.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
 smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
-fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
-mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
