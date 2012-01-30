@@ -1,28 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] drivers-base-memoryc-fix-memory_dev_init-long-delay.patch removed from -mm tree
-Date: Mon, 30 Jan 2012 13:56:02 -0800
-Message-ID: <20120130215602.CF218A00B1@akpm.mtv.corp.google.com>
+Subject: + drivers-base-memoryc-fix-memory_dev_init-long-delay.patch added to -mm tree
+Date: Mon, 30 Jan 2012 13:57:12 -0800
+Message-ID: <20120130215712.72BC3A00B1@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:61906 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527Ab2A3V4F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2012 16:56:05 -0500
-Received: by faaa19 with SMTP id a19so224387faa.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2012 13:56:04 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:47939 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752914Ab2A3V5N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2012 16:57:13 -0500
+Received: by yhjj52 with SMTP id j52so455391yhj.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2012 13:57:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, gregkh@suse.de, holt@sgi.com, kay.sievers@vrfy.org, nfont@austin.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: yinghai@kernel.org, gregkh@suse.de, holt@sgi.com, kay.sievers@vrfy.org, nfont@austin.ibm.com
 
 
 The patch titled
      Subject: drivers/base/memory.c: fix memory_dev_init() long delay
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      drivers-base-memoryc-fix-memory_dev_init-long-delay.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Yinghai Lu <yinghai@kernel.org>
@@ -77,28 +85,20 @@ One system with 2048g ram, reported soft lockup on recent kernel.
 [   61.618060] Code: 10 48 83 3b 00 eb e8 4c 89 f2 44 89 fe 4c 89 ef e8 e1 fe ff ff 65 48 8b 04 25 40 bc 00 00 c7 80 cc 06 00 00 00 00 00 00 41 54 9d <5e> 5b 41 5c 41 5d 41 5e 41 5f 5d c3 55 48 89 e5 41 57 41 89 cf
 [   89.285380] memory_dev_init done
 
-Found we should find the memory_block for BOOT path.
+Finally it takes about 55s to create 16400 memory entries.
 
 Root cause: for x86_64, 2048g (with 2g hole at [2g,4g), and TOP2 will be 2050g), will have 16400 memory block.
 
-find_memory_block/subsys_find_device_by_id will be expensive with that much entries.
+find_memory_block/subsys_find_device_by_id will be expensive with that many entries.
 
-Actually, we don't need to find that memory block for BOOT case.
+Actually, we don't need to find that memory block for BOOT path.
 
-Skip that make it get back to normal.
+Skip that finding make it get back to normal.
 
 [   34.466696] cpu_dev_init done
 [   35.290080] memory_dev_init done
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Nathan Fontenot <nfont@austin.ibm.com>
-Cc: Robin Holt <holt@sgi.com>
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: drivers-base-memoryc-fix-memory_dev_init-long-delay-v2
-
--v2: check the sections_per_block, and update cc list
+Also solved the delay with topology_init when sections_per_block is not 1.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
@@ -108,35 +108,107 @@ Cc: Robin Holt <holt@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/base/memory.c |   31 ++++++++++++++++++++++++++-----
+ drivers/base/node.c   |    8 ++++++++
+ 2 files changed, 34 insertions(+), 5 deletions(-)
 
 diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-memory_dev_init-long-delay drivers/base/memory.c
 --- a/drivers/base/memory.c~drivers-base-memoryc-fix-memory_dev_init-long-delay
 +++ a/drivers/base/memory.c
-@@ -574,12 +574,16 @@ static int init_memory_block(struct memo
+@@ -572,19 +572,36 @@ static int init_memory_block(struct memo
+ }
+ 
  static int add_memory_section(int nid, struct mem_section *section,
++			struct memory_block **mem_p,
  			unsigned long state, enum mem_add_context context)
  {
 -	struct memory_block *mem;
 +	struct memory_block *mem = NULL;
++	int scn_nr = __section_nr(section);
  	int ret = 0;
  
  	mutex_lock(&mem_sysfs_mutex);
  
 -	mem = find_memory_block(section);
-+	if (context == BOOT && sections_per_block == 1) {
-+		/* don't need to find memory block in this case */
++	if (context == BOOT) {
++		/* same memory block ? */
++		if (mem_p && *mem_p)
++			if (scn_nr >= (*mem_p)->start_section_nr &&
++			    scn_nr <= (*mem_p)->end_section_nr) {
++				mem = *mem_p;
++				kobject_get(&mem->dev.kobj);
++			}
 +	} else
 +		mem = find_memory_block(section);
 +
  	if (mem) {
  		mem->section_count++;
  		kobject_put(&mem->dev.kobj);
+-	} else
++	} else {
+ 		ret = init_memory_block(&mem, section, state);
++		/* store memory_block pointer for next loop */
++		if (!ret && context == BOOT)
++			if (mem_p)
++				*mem_p = mem;
++	}
+ 
+ 	if (!ret) {
+ 		if (context == HOTPLUG &&
+@@ -627,7 +644,7 @@ int remove_memory_block(unsigned long no
+  */
+ int register_new_memory(int nid, struct mem_section *section)
+ {
+-	return add_memory_section(nid, section, MEM_OFFLINE, HOTPLUG);
++	return add_memory_section(nid, section, NULL, MEM_OFFLINE, HOTPLUG);
+ }
+ 
+ int unregister_memory_section(struct mem_section *section)
+@@ -647,6 +664,7 @@ int __init memory_dev_init(void)
+ 	int ret;
+ 	int err;
+ 	unsigned long block_sz;
++	struct memory_block *mem = NULL;
+ 
+ 	ret = subsys_system_register(&memory_subsys, NULL);
+ 	if (ret)
+@@ -662,7 +680,10 @@ int __init memory_dev_init(void)
+ 	for (i = 0; i < NR_MEM_SECTIONS; i++) {
+ 		if (!present_section_nr(i))
+ 			continue;
+-		err = add_memory_section(0, __nr_to_section(i), MEM_ONLINE,
++		/* don't need to reuse memory_block if only one per block */
++		err = add_memory_section(0, __nr_to_section(i),
++				 (sections_per_block == 1) ? NULL : &mem,
++					 MEM_ONLINE,
+ 					 BOOT);
+ 		if (!ret)
+ 			ret = err;
+diff -puN drivers/base/node.c~drivers-base-memoryc-fix-memory_dev_init-long-delay drivers/base/node.c
+--- a/drivers/base/node.c~drivers-base-memoryc-fix-memory_dev_init-long-delay
++++ a/drivers/base/node.c
+@@ -456,7 +456,15 @@ static int link_mem_sections(int nid)
+ 		if (!present_section_nr(section_nr))
+ 			continue;
+ 		mem_sect = __nr_to_section(section_nr);
++
++		/* same memblock ? */
++		if (mem_blk)
++			if ((section_nr >= mem_blk->start_section_nr) &&
++			    (section_nr <= mem_blk->end_section_nr))
++				continue;
++
+ 		mem_blk = find_memory_block_hinted(mem_sect, mem_blk);
++
+ 		ret = register_mem_sect_under_node(mem_blk, nid);
+ 		if (!err)
+ 			err = ret;
 _
+Subject: Subject: drivers/base/memory.c: fix memory_dev_init() long delay
 
 Patches currently in -mm which might be from yinghai@kernel.org are
 
 linux-next.patch
+drivers-base-memoryc-fix-memory_dev_init-long-delay.patch
 x86-mm-fix-the-size-calculation-of-mapping-tables.patch
 
