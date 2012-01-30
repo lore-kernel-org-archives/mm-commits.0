@@ -1,36 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-memoryc-fix-memory_dev_init-long-delay-v2.patch added to -mm tree
-Date: Mon, 30 Jan 2012 13:54:46 -0800
-Message-ID: <20120130215447.0FC42A00B1@akpm.mtv.corp.google.com>
+Subject: [folded] drivers-base-memoryc-fix-memory_dev_init-long-delay-v2.patch removed from -mm tree
+Date: Mon, 30 Jan 2012 13:55:50 -0800
+Message-ID: <20120130215550.C86EEA00B1@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:52355 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752028Ab2A3Vyt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2012 16:54:49 -0500
-Received: by eekb15 with SMTP id b15so236854eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2012 13:54:48 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:56682 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752028Ab2A3Vzv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2012 16:55:51 -0500
+Received: by ggnk1 with SMTP id k1so446270ggn.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2012 13:55:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, gregkh@suse.de, holt@sgi.com, kay.sievers@vrfy.org, nfont@austin.ibm.com
+To: yinghai@kernel.org, gregkh@suse.de, holt@sgi.com, kay.sievers@vrfy.org, nfont@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: drivers-base-memoryc-fix-memory_dev_init-long-delay-v2
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      drivers-base-memoryc-fix-memory_dev_init-long-delay-v2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into drivers-base-memoryc-fix-memory_dev_init-long-delay.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Yinghai Lu <yinghai@kernel.org>
@@ -65,12 +57,10 @@ diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-memory_dev_init-long-de
  
  	if (mem) {
 _
-Subject: Subject: drivers-base-memoryc-fix-memory_dev_init-long-delay-v2
 
 Patches currently in -mm which might be from yinghai@kernel.org are
 
 linux-next.patch
 drivers-base-memoryc-fix-memory_dev_init-long-delay.patch
-drivers-base-memoryc-fix-memory_dev_init-long-delay-v2.patch
 x86-mm-fix-the-size-calculation-of-mapping-tables.patch
 
