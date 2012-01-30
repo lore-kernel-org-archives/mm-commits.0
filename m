@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch added to -mm tree
-Date: Mon, 30 Jan 2012 12:43:25 -0800
-Message-ID: <20120130204325.8B023A00AA@akpm.mtv.corp.google.com>
+Subject: + lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held.patch added to -mm tree
+Date: Mon, 30 Jan 2012 12:54:36 -0800
+Message-ID: <20120130205436.9954BA0342@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:33418 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894Ab2A3Un0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2012 15:43:26 -0500
-Received: by yhjj52 with SMTP id j52so433408yhj.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2012 12:43:26 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:46560 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290Ab2A3Uyi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2012 15:54:38 -0500
+Received: by eaaf1 with SMTP id f1so216265eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2012 12:54:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: philipp@redfish-solutions.com, a.zummo@towertech.it, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, rpurdie@rpsys.net, tglx@linutronix.de
+Cc: xiyou.wangcong@gmail.com, arnd@arndb.de, dyoung@redhat.com, greg@kroah.com, prarit@redhat.com
 
 
 The patch titled
-     Subject: x86: net5501: platform driver for Soekris Engineering net5501 single-board computer
+     Subject: lkdtm: avoid calling lkdtm_do_action() with spinlock held
 has been added to the -mm tree.  Its filename is
-     net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+     lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,308 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Philip Prindeville <philipp@redfish-solutions.com>
-Subject: x86: net5501: platform driver for Soekris Engineering net5501 single-board computer
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: lkdtm: avoid calling lkdtm_do_action() with spinlock held
 
-Platform driver for Soekris Engineering net5501 single-board computer. 
-Probes well-known locations in ROM for BIOS signature to confirm correct
-platform.  Registers 1 LED and 1 GPIO-based button (typically used for
-soft reset).
+lkdtm_do_action() may call sleeping functions like kmalloc(), so do not
+call it with spin lock held.
 
-Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Andres Salomon <dilinger@queued.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
+Reviewed-by: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                  |    6 +
- arch/x86/platform/geode/Makefile  |    1 
- arch/x86/platform/geode/net5501.c |  154 ++++++++++++++++++++++++++++
- drivers/leds/leds-net5501.c       |   97 -----------------
- 4 files changed, 161 insertions(+), 97 deletions(-)
+ drivers/misc/lkdtm.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer arch/x86/Kconfig
---- a/arch/x86/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer
-+++ a/arch/x86/Kconfig
-@@ -2177,6 +2177,12 @@ config GEOS
- 	---help---
- 	  This option enables system support for the Traverse Technologies GEOS.
+diff -puN drivers/misc/lkdtm.c~lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held drivers/misc/lkdtm.c
+--- a/drivers/misc/lkdtm.c~lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held
++++ a/drivers/misc/lkdtm.c
+@@ -354,6 +354,7 @@ static void lkdtm_do_action(enum ctype w
+ static void lkdtm_handler(void)
+ {
+ 	unsigned long flags;
++	bool do_it = false;
  
-+config NET5501
-+	bool "Soekris Engineering net5501 System Support (LEDS, GPIO, etc)"
-+	select GPIOLIB
-+	---help---
-+	  This option enables system support for the Soekris Engineering net5501.
-+
- endif # X86_32
+ 	spin_lock_irqsave(&count_lock, flags);
+ 	count--;
+@@ -361,10 +362,13 @@ static void lkdtm_handler(void)
+ 			cp_name_to_str(cpoint), cp_type_to_str(cptype), count);
  
- config AMD_NB
-diff -puN arch/x86/platform/geode/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer arch/x86/platform/geode/Makefile
---- a/arch/x86/platform/geode/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer
-+++ a/arch/x86/platform/geode/Makefile
-@@ -1,2 +1,3 @@
- obj-$(CONFIG_ALIX)		+= alix.o
-+obj-$(CONFIG_NET5501)		+= net5501.o
- obj-$(CONFIG_GEOS)		+= geos.o
-diff -puN /dev/null arch/x86/platform/geode/net5501.c
---- /dev/null
-+++ a/arch/x86/platform/geode/net5501.c
-@@ -0,0 +1,154 @@
-+/*
-+ * System Specific setup for Soekris net5501
-+ * At the moment this means setup of GPIO control of LEDs and buttons
-+ * on net5501 boards.
-+ *
-+ *
-+ * Copyright (C) 2008-2009 Tower Technologies
-+ * Written by Alessandro Zummo <a.zummo@towertech.it>
-+ *
-+ * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
-+ * Copyright (C) 2011 Ed Wildgoose <kernel@wildgooses.com>
-+ *                and Philip Prindeville <philipp@redfish-solutions.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation.
-+ */
+ 	if (count == 0) {
+-		lkdtm_do_action(cptype);
++		do_it = true;
+ 		count = cpoint_count;
+ 	}
+ 	spin_unlock_irqrestore(&count_lock, flags);
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/string.h>
-+#include <linux/module.h>
-+#include <linux/leds.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio.h>
-+#include <linux/input.h>
-+#include <linux/gpio_keys.h>
-+
-+#include <asm/geode.h>
-+
-+#define BIOS_REGION_BASE		0xffff0000
-+#define BIOS_REGION_SIZE		0x00010000
-+
-+static struct gpio_keys_button net5501_gpio_buttons[] = {
-+	{
-+		.code = KEY_RESTART,
-+		.gpio = 24,
-+		.active_low = 1,
-+		.desc = "Reset button",
-+		.type = EV_KEY,
-+		.wakeup = 0,
-+		.debounce_interval = 100,
-+		.can_disable = 0,
-+	}
-+};
-+static struct gpio_keys_platform_data net5501_buttons_data = {
-+	.buttons = net5501_gpio_buttons,
-+	.nbuttons = ARRAY_SIZE(net5501_gpio_buttons),
-+	.poll_interval = 20,
-+};
-+
-+static struct platform_device net5501_buttons_dev = {
-+	.name = "gpio-keys-polled",
-+	.id = 1,
-+	.dev = {
-+		.platform_data = &net5501_buttons_data,
-+	}
-+};
-+
-+static struct gpio_led net5501_leds[] = {
-+	{
-+		.name = "net5501:1",
-+		.gpio = 6,
-+		.default_trigger = "default-on",
-+		.active_low = 1,
-+	},
-+};
-+
-+static struct gpio_led_platform_data net5501_leds_data = {
-+	.num_leds = ARRAY_SIZE(net5501_leds),
-+	.leds = net5501_leds,
-+};
-+
-+static struct platform_device net5501_leds_dev = {
-+	.name = "leds-gpio",
-+	.id = -1,
-+	.dev.platform_data = &net5501_leds_data,
-+};
-+
-+static struct __initdata platform_device *net5501_devs[] = {
-+	&net5501_buttons_dev,
-+	&net5501_leds_dev,
-+};
-+
-+static void __init register_net5501(void)
-+{
-+	/* Setup LED control through leds-gpio driver */
-+	platform_add_devices(net5501_devs, ARRAY_SIZE(net5501_devs));
-+}
-+
-+struct net5501_board {
-+	u16	offset;
-+	u16	len;
-+	char	*sig;
-+};
-+
-+static struct net5501_board __initdata boards[] = {
-+	{ 0xb7b, 7, "net5501" },	/* net5501 v1.33/1.33c */
-+	{ 0xb1f, 7, "net5501" },	/* net5501 v1.32i */
-+};
-+
-+static bool __init net5501_present(void)
-+{
-+	int i;
-+	unsigned char *rombase, *bios;
-+	bool found = false;
-+
-+	rombase = ioremap(BIOS_REGION_BASE, BIOS_REGION_SIZE - 1);
-+	if (!rombase) {
-+		printk(KERN_ERR "%s: failed to get rombase\n", KBUILD_MODNAME);
-+		return found;
-+	}
-+
-+	bios = rombase + 0x20;	/* null terminated */
-+
-+	if (memcmp(bios, "comBIOS", 7))
-+		goto unmap;
-+
-+	for (i = 0; i < ARRAY_SIZE(boards); i++) {
-+		unsigned char *model = rombase + boards[i].offset;
-+
-+		if (!memcmp(model, boards[i].sig, boards[i].len)) {
-+			printk(KERN_INFO "%s: system is recognized as \"%s\"\n",
-+			       KBUILD_MODNAME, model);
-+
-+			found = true;
-+			break;
-+		}
-+	}
-+
-+unmap:
-+	iounmap(rombase);
-+	return found;
-+}
-+
-+static int __init net5501_init(void)
-+{
-+	if (!is_geode())
-+		return 0;
-+
-+	if (!net5501_present())
-+		return 0;
-+
-+	register_net5501();
-+
-+	return 0;
-+}
-+
-+module_init(net5501_init);
-+
-+MODULE_AUTHOR("Philip Prindeville <philipp@redfish-solutions.com>");
-+MODULE_DESCRIPTION("Soekris net5501 System Setup");
-+MODULE_LICENSE("GPL");
-diff -puN drivers/leds/leds-net5501.c~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer /dev/null
---- a/drivers/leds/leds-net5501.c
-+++ /dev/null
-@@ -1,97 +0,0 @@
--/*
-- * Soekris board support code
-- *
-- * Copyright (C) 2008-2009 Tower Technologies
-- * Written by Alessandro Zummo <a.zummo@towertech.it>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2
-- * as published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/io.h>
--#include <linux/string.h>
--#include <linux/leds.h>
--#include <linux/platform_device.h>
--#include <linux/gpio.h>
--#include <linux/module.h>
--
--#include <asm/geode.h>
--
--static const struct gpio_led net5501_leds[] = {
--	{
--		.name = "error",
--		.gpio = 6,
--		.default_trigger = "default-on",
--	},
--};
--
--static struct gpio_led_platform_data net5501_leds_data = {
--	.num_leds = ARRAY_SIZE(net5501_leds),
--	.leds = net5501_leds,
--};
--
--static struct platform_device net5501_leds_dev = {
--	.name = "leds-gpio",
--	.id = -1,
--	.dev.platform_data = &net5501_leds_data,
--};
--
--static void __init init_net5501(void)
--{
--	platform_device_register(&net5501_leds_dev);
--}
--
--struct soekris_board {
--	u16	offset;
--	char	*sig;
--	u8	len;
--	void	(*init)(void);
--};
--
--static struct soekris_board __initdata boards[] = {
--	{ 0xb7b, "net5501", 7, init_net5501 },	/* net5501 v1.33/1.33c */
--	{ 0xb1f, "net5501", 7, init_net5501 },	/* net5501 v1.32i */
--};
--
--static int __init soekris_init(void)
--{
--	int i;
--	unsigned char *rombase, *bios;
--
--	if (!is_geode())
--		return 0;
--
--	rombase = ioremap(0xffff0000, 0xffff);
--	if (!rombase) {
--		printk(KERN_INFO "Soekris net5501 LED driver failed to get rombase");
--		return 0;
--	}
--
--	bios = rombase + 0x20;	/* null terminated */
--
--	if (strncmp(bios, "comBIOS", 7))
--		goto unmap;
--
--	for (i = 0; i < ARRAY_SIZE(boards); i++) {
--		unsigned char *model = rombase + boards[i].offset;
--
--		if (strncmp(model, boards[i].sig, boards[i].len) == 0) {
--			printk(KERN_INFO "Soekris %s: %s\n", model, bios);
--
--			if (boards[i].init)
--				boards[i].init();
--			break;
--		}
--	}
--
--unmap:
--	iounmap(rombase);
--	return 0;
--}
--
--arch_initcall(soekris_init);
++	if (do_it)
++		lkdtm_do_action(cptype);
+ }
+ 
+ static int lkdtm_register_cpoint(enum cname which)
+_
+Subject: Subject: lkdtm: avoid calling lkdtm_do_action() with spinlock held
+
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+
+origin.patch
+linux-next.patch
+lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held.patch
+x86-mm-fix-the-size-calculation-of-mapping-tables.patch
+
