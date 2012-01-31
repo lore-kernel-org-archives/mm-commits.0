@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-add-support-for-bcm20702a0.patch added to -mm tree
-Date: Mon, 30 Jan 2012 15:54:23 -0800
-Message-ID: <20120130235424.1B51FA00B3@akpm.mtv.corp.google.com>
+Subject: + loop-zero-fill-bio-instead-of-return-eio-for-partial-read.patch added to -mm tree
+Date: Mon, 30 Jan 2012 16:01:00 -0800
+Message-ID: <20120131000100.DF1B9A02E6@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:55323 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960Ab2A3Xy0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2012 18:54:26 -0500
-Received: by eekb15 with SMTP id b15so240339eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2012 15:54:25 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:57523 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752526Ab2AaABG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jan 2012 19:01:06 -0500
+Received: by yenr8 with SMTP id r8so459654yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jan 2012 16:01:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: james.leddy@canonical.com, marcel@holtmann.org
+Cc: dyoung@redhat.com, axboe@kernel.dk, dmonakhov@sw.ru, jmoyer@redhat.com
 
 
 The patch titled
-     Subject: bluetooth: add support for BCM20702A0 [0a5c:21e6]
+     Subject: loop: zero fill bio instead of return -EIO for partial read
 has been added to the -mm tree.  Its filename is
-     bluetooth-add-support-for-bcm20702a0.patch
+     loop-zero-fill-bio-instead-of-return-eio-for-partial-read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "James M. Leddy" <james.leddy@canonical.com>
-Subject: bluetooth: add support for BCM20702A0 [0a5c:21e6]
+From: Dave Young <dyoung@redhat.com>
+Subject: loop: zero fill bio instead of return -EIO for partial read
 
-Add another vendor specific ID for BCM20702A0.  This has been tested and
-works on hardware with this device.
+commit 8268f5a741 ("deny partial write for loop dev fd") tried to fix the
+loop device partial read information leak problem.  But it changed the
+semantics of read behavior.  When we read beyond the end of the device we
+should get 0 bytes, which is normal behavior, we should not just return
+-EIO
 
-output of usb-devices:
-T: Bus=01 Lev=02 Prnt=02 Port=03 Cnt=04 Dev#= 6 Spd=12 MxCh= 0
-D: Ver= 2.00 Cls=ff(vend.) Sub=01 Prot=01 MxPS=64 #Cfgs= 1
-P: Vendor=0a5c ProdID=21e6 Rev=01.12
-S: Manufacturer=Broadcom Corp
-S: Product=BCM20702A0
-S: SerialNumber=D0DF9AFB227B
-C: #Ifs= 4 Cfg#= 1 Atr=e0 MxPwr=0mA
-I: If#= 0 Alt= 0 #EPs= 3 Cls=ff(vend.) Sub=01 Prot=01 Driver=(none)
-I: If#= 1 Alt= 0 #EPs= 2 Cls=ff(vend.) Sub=01 Prot=01 Driver=(none)
-I: If#= 2 Alt= 0 #EPs= 2 Cls=ff(vend.) Sub=ff Prot=ff Driver=(none)
-I: If#= 3 Alt= 0 #EPs= 0 Cls=fe(app. ) Sub=01 Prot=01 Driver=(none)
+Instead of returning -EIO, zero out the bio to avoid information leak in
+case of partail read.
 
-Signed-off-by: James M. Leddy <james.leddy@canonical.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Dave Young <dyoung@redhat.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Dmitry Monakhov <dmonakhov@sw.ru>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/btusb.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/loop.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN drivers/bluetooth/btusb.c~bluetooth-add-support-for-bcm20702a0 drivers/bluetooth/btusb.c
---- a/drivers/bluetooth/btusb.c~bluetooth-add-support-for-bcm20702a0
-+++ a/drivers/bluetooth/btusb.c
-@@ -102,6 +102,7 @@ static struct usb_device_id btusb_table[
+diff -puN drivers/block/loop.c~loop-zero-fill-bio-instead-of-return-eio-for-partial-read drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-zero-fill-bio-instead-of-return-eio-for-partial-read
++++ a/drivers/block/loop.c
+@@ -356,14 +356,14 @@ lo_direct_splice_actor(struct pipe_inode
+ 	return __splice_from_pipe(pipe, sd, lo_splice_actor);
+ }
  
- 	/* Broadcom BCM20702A0 */
- 	{ USB_DEVICE(0x0a5c, 0x21e3) },
-+	{ USB_DEVICE(0x0a5c, 0x21e6) },
- 	{ USB_DEVICE(0x413c, 0x8197) },
+-static int
++static ssize_t
+ do_lo_receive(struct loop_device *lo,
+ 	      struct bio_vec *bvec, int bsize, loff_t pos)
+ {
+ 	struct lo_read_data cookie;
+ 	struct splice_desc sd;
+ 	struct file *file;
+-	long retval;
++	ssize_t retval;
  
- 	{ }	/* Terminating entry */
+ 	cookie.lo = lo;
+ 	cookie.page = bvec->bv_page;
+@@ -379,26 +379,28 @@ do_lo_receive(struct loop_device *lo,
+ 	file = lo->lo_backing_file;
+ 	retval = splice_direct_to_actor(file, &sd, lo_direct_splice_actor);
+ 
+-	if (retval < 0)
+-		return retval;
+-	if (retval != bvec->bv_len)
+-		return -EIO;
+-	return 0;
++	return retval;
+ }
+ 
+ static int
+ lo_receive(struct loop_device *lo, struct bio *bio, int bsize, loff_t pos)
+ {
+ 	struct bio_vec *bvec;
+-	int i, ret = 0;
++	ssize_t s;
++	int i;
+ 
+ 	bio_for_each_segment(bvec, bio, i) {
+-		ret = do_lo_receive(lo, bvec, bsize, pos);
+-		if (ret < 0)
++		s = do_lo_receive(lo, bvec, bsize, pos);
++		if (s < 0)
++			return s;
++
++		if (s != bvec->bv_len) {
++			zero_fill_bio(bio);
+ 			break;
++		}
+ 		pos += bvec->bv_len;
+ 	}
+-	return ret;
++	return 0;
+ }
+ 
+ static int do_bio_filebacked(struct loop_device *lo, struct bio *bio)
 _
-Subject: Subject: bluetooth: add support for BCM20702A0 [0a5c:21e6]
+Subject: Subject: loop: zero fill bio instead of return -EIO for partial read
 
-Patches currently in -mm which might be from james.leddy@canonical.com are
+Patches currently in -mm which might be from dyoung@redhat.com are
 
-bluetooth-add-support-for-bcm20702a0.patch
+lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held.patch
+loop-zero-fill-bio-instead-of-return-eio-for-partial-read.patch
 
