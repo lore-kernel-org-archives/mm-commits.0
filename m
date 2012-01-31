@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-clean-up-proc-pid-environ-handling.patch added to -mm tree
-Date: Tue, 31 Jan 2012 12:37:47 -0800
-Message-ID: <20120131203747.C7781A0159@akpm.mtv.corp.google.com>
+Subject: + mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration.patch added to -mm tree
+Date: Tue, 31 Jan 2012 12:40:38 -0800
+Message-ID: <20120131204038.CDFFFA0159@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:61770 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753564Ab2AaUhs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 15:37:48 -0500
-Received: by yhgm50 with SMTP id m50so55069yhg.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2012 12:37:48 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61933 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755219Ab2AaUkk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 15:40:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, adobriyan@gmail.com
+Cc: mgorman@suse.de, herbert.van.den.bergh@oracle.com, mina86@mina86.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: clean up /proc/<pid>/environ handling
+     Subject: mm: compaction: check pfn_valid when entering a new MAX_ORDER_NR_PAGES block during isolation for migration
 has been added to the -mm tree.  Its filename is
-     proc-clean-up-proc-pid-environ-handling.patch
+     mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +31,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: proc: clean up /proc/<pid>/environ handling
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: compaction: check pfn_valid when entering a new MAX_ORDER_NR_PAGES block during isolation for migration
 
-Similar to e268337dfe2 ("proc: clean up and fix /proc/<pid>/mem
-handling"), move the check of permission to open(), this will simplify
-read() code.
+When isolating for migration, migration starts at the start of a zone
+which is not necessarily pageblock aligned.  Further, it stops isolating
+when COMPACT_CLUSTER_MAX pages are isolated so migrate_pfn is generally
+not aligned.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+The problem is that pfn_valid is only called on the first PFN being
+checked.  Lets say we have a case like this
+
+H = MAX_ORDER_NR_PAGES boundary
+| = pageblock boundary
+m = cc->migrate_pfn
+f = cc->free_pfn
+o = memory hole
+
+H------|------H------|----m-Hoooooo|ooooooH-f----|------H
+
+The migrate_pfn is just below a memory hole and the free scanner is beyond
+the hole.  When isolate_migratepages started, it scans from migrate_pfn to
+migrate_pfn+pageblock_nr_pages which is now in a memory hole.  It checks
+pfn_valid() on the first PFN but then scans into the hole where there are
+not necessarily valid struct pages.
+
+This patch ensures that isolate_migratepages calls pfn_valid when
+necessary.
+
+Reported-and-tested-by: Herbert van den Bergh <herbert.van.den.bergh@oracle.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   55 +++++++++++++++++++++++++++++------------------
- 1 file changed, 35 insertions(+), 20 deletions(-)
+ mm/compaction.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN fs/proc/base.c~proc-clean-up-proc-pid-environ-handling fs/proc/base.c
---- a/fs/proc/base.c~proc-clean-up-proc-pid-environ-handling
-+++ a/fs/proc/base.c
-@@ -835,28 +835,38 @@ static const struct file_operations proc
- 	.release	= mem_release,
- };
+diff -puN mm/compaction.c~mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration
++++ a/mm/compaction.c
+@@ -313,6 +313,19 @@ static isolate_migrate_t isolate_migrate
+ 		} else if (!locked)
+ 			spin_lock_irq(&zone->lru_lock);
  
-+static int environ_open(struct inode *inode, struct file *file)
-+{
-+	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
-+	struct mm_struct *mm;
++		/*
++		 * migrate_pfn does not necessarily start aligned to a
++		 * pageblock. Ensure that pfn_valid is called when moving
++		 * into a new MAX_ORDER_NR_PAGES range in case of large
++		 * memory holes within the zone
++		 */
++		if ((low_pfn & (MAX_ORDER_NR_PAGES - 1)) == 0) {
++			if (!pfn_valid(low_pfn)) {
++				low_pfn += MAX_ORDER_NR_PAGES - 1;
++				continue;
++			}
++		}
 +
-+	if (!task)
-+		return -ESRCH;
-+
-+	mm = mm_for_maps(task);
-+	put_task_struct(task);
-+
-+	if (!mm)
-+		return -ENOENT;
-+	if (IS_ERR(mm))
-+		return PTR_ERR(mm);
-+
-+	file->private_data = mm;
-+
-+	return 0;
-+}
-+
- static ssize_t environ_read(struct file *file, char __user *buf,
- 			size_t count, loff_t *ppos)
- {
--	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
- 	char *page;
- 	unsigned long src = *ppos;
--	int ret = -ESRCH;
--	struct mm_struct *mm;
-+	int ret = 0;
-+	struct mm_struct *mm = file->private_data;
- 
--	if (!task)
--		goto out_no_task;
--
--	ret = -ENOMEM;
- 	page = (char *)__get_free_page(GFP_TEMPORARY);
- 	if (!page)
--		goto out;
--
--
--	mm = mm_for_maps(task);
--	ret = PTR_ERR(mm);
--	if (!mm || IS_ERR(mm))
--		goto out_free;
-+		return -ENOMEM;
- 
- 	ret = 0;
- 	while (count > 0) {
-@@ -870,7 +880,7 @@ static ssize_t environ_read(struct file 
- 		max_len = (count > PAGE_SIZE) ? PAGE_SIZE : count;
- 		this_len = (this_len > max_len) ? max_len : this_len;
- 
--		retval = access_process_vm(task, (mm->env_start + src),
-+		retval = access_remote_vm(mm, (mm->env_start + src),
- 			page, this_len, 0);
- 
- 		if (retval <= 0) {
-@@ -890,18 +900,23 @@ static ssize_t environ_read(struct file 
- 	}
- 	*ppos = src;
- 
--	mmput(mm);
--out_free:
- 	free_page((unsigned long) page);
--out:
--	put_task_struct(task);
--out_no_task:
- 	return ret;
- }
- 
-+static int environ_release(struct inode *inode, struct file *file)
-+{
-+	struct mm_struct *mm = file->private_data;
-+
-+	mmput(mm);
-+	return 0;
-+}
-+
- static const struct file_operations proc_environ_operations = {
-+	.open		= environ_open,
- 	.read		= environ_read,
- 	.llseek		= generic_file_llseek,
-+	.release	= environ_release,
- };
- 
- static ssize_t oom_adjust_read(struct file *file, char __user *buf,
+ 		if (!pfn_valid_within(low_pfn))
+ 			continue;
+ 		nr_scanned++;
 _
-Subject: Subject: proc: clean up /proc/<pid>/environ handling
+Subject: Subject: mm: compaction: check pfn_valid when entering a new MAX_ORDER_NR_PAGES block during isolation for migration
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-linux-next.patch
-lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held.patch
-x86-mm-fix-the-size-calculation-of-mapping-tables.patch
-kcore-make-get_sparsemem_vmemmap_info-static.patch
-proc-clean-up-proc-pid-environ-handling.patch
+mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+make-swapin-readahead-skip-over-holes.patch
 
