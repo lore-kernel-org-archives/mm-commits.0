@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + leds-lp5521-redefinition-of-register-bits.patch added to -mm tree
-Date: Tue, 31 Jan 2012 12:15:09 -0800
-Message-ID: <20120131201510.06F47A00B3@akpm.mtv.corp.google.com>
+Subject: + readahead-fix-pipeline-break-caused-by-block-plug.patch added to -mm tree
+Date: Tue, 31 Jan 2012 12:21:57 -0800
+Message-ID: <20120131202157.B631DA00B3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:54441 "EHLO
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:48664 "EHLO
 	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753710Ab2AaUPM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 15:15:12 -0500
-Received: by wgbds12 with SMTP id ds12so15839wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2012 12:15:11 -0800 (PST)
+	with ESMTP id S1752530Ab2AaUWA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 15:22:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Milo.Kim@ti.com, arun.murthy@stericsson.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, srinidhi.kasagar@stericsson.com
+Cc: shaohua.li@intel.com, axboe@kernel.dk, eric.dumazet@gmail.com, fengguang.wu@intel.com, hch@infradead.org, herbert@13thfloor.at, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-lp5521.c: redefinition of register bits
+     Subject: readahead: fix pipeline break caused by block plug
 has been added to the -mm tree.  Its filename is
-     leds-lp5521-redefinition-of-register-bits.patch
+     readahead-fix-pipeline-break-caused-by-block-plug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +31,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: drivers/leds/leds-lp5521.c: redefinition of register bits
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: readahead: fix pipeline break caused by block plug
 
-For better readability, values of LP5521_REG_ENABLE register were
-redefined= .  Additional definitions: LP5521_ENABLE_DEFAULT and
-LP5521_ENABLE_RUN_PROGRAM= .
+Herbert Poetzl reported a performance regression since 2.6.39.  The test
+is a simple dd read, but with big block size.  The reason is:
 
-Use definition rather than hard code value.
-: 0x3F -> 'LP5521_CMD_DIRECT'
+T1: ra (A, A+128k), (A+128k, A+256k)
+T2: lock_page for page A, submit the 256k
+T3: hit page A+128K, ra (A+256k, A+384). the range isn't submitted
+because of plug and there isn't any lock_page till we hit page A+256k
+because all pages from A to A+256k is in memory
+T4: hit page A+256k, ra (A+384, A+ 512). Because of plug, the range isn't
+submitted again.
+T5: lock_page A+256k, so (A+256k, A+512k) will be submitted. The task is
+waitting for (A+256k, A+512k) finish.
 
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Arun MURTHY <arun.murthy@stericsson.com>
-Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+There is no request to disk in T3 and T4, so readahead pipeline breaks.
+
+We really don't need block plug for generic_file_aio_read() for buffered
+I/O.  The readahead already has plug and has fine grained control when I/O
+should be submitted.  Deleting plug for buffered I/O fixes the regression.
+
+One side effect is plug makes the request size 256k, the size is 128k
+without it.  This is because default ra size is 128k and not a reason we
+need plug here.
+
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Reported-by: Herbert Poetzl <herbert@13thfloor.at>
+Tested-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ mm/filemap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-redefinition-of-register-bits drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~leds-lp5521-redefinition-of-register-bits
-+++ a/drivers/leds/leds-lp5521.c
-@@ -81,6 +81,10 @@
- #define LP5521_MASTER_ENABLE		0x40	/* Chip master enable */
- #define LP5521_LOGARITHMIC_PWM		0x80	/* Logarithmic PWM adjustment */
- #define LP5521_EXEC_RUN			0x2A
-+#define LP5521_ENABLE_DEFAULT	\
-+	(LP5521_MASTER_ENABLE | LP5521_LOGARITHMIC_PWM)
-+#define LP5521_ENABLE_RUN_PROGRAM	\
-+	(LP5521_ENABLE_DEFAULT | LP5521_EXEC_RUN)
+diff -puN mm/filemap.c~readahead-fix-pipeline-break-caused-by-block-plug mm/filemap.c
+--- a/mm/filemap.c~readahead-fix-pipeline-break-caused-by-block-plug
++++ a/mm/filemap.c
+@@ -1400,15 +1400,12 @@ generic_file_aio_read(struct kiocb *iocb
+ 	unsigned long seg = 0;
+ 	size_t count;
+ 	loff_t *ppos = &iocb->ki_pos;
+-	struct blk_plug plug;
  
- /* Status */
- #define LP5521_EXT_CLK_USED		0x08
-@@ -237,7 +241,7 @@ static int lp5521_configure(struct i2c_c
- 	lp5521_init_engine(chip);
+ 	count = 0;
+ 	retval = generic_segment_checks(iov, &nr_segs, &count, VERIFY_WRITE);
+ 	if (retval)
+ 		return retval;
  
- 	/* Set all PWMs to direct control mode */
--	ret = lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
-+	ret = lp5521_write(client, LP5521_REG_OP_MODE, LP5521_CMD_DIRECT);
- 
- 	cfg = chip->pdata->update_config ?
- 		: (LP5521_PWRSAVE_EN | LP5521_CP_MODE_AUTO | LP5521_R_TO_BATT);
-@@ -250,8 +254,7 @@ static int lp5521_configure(struct i2c_c
- 
- 	/* Set engines are set to run state when OP_MODE enables engines */
- 	ret |= lp5521_write(client, LP5521_REG_ENABLE,
--			LP5521_MASTER_ENABLE | LP5521_LOGARITHMIC_PWM |
--			LP5521_EXEC_RUN);
-+			LP5521_ENABLE_RUN_PROGRAM);
- 	/* enable takes 500us. 1 - 2 ms leaves some margin */
- 	usleep_range(1000, 2000);
- 
-@@ -302,8 +305,7 @@ static int lp5521_detect(struct i2c_clie
- 	int ret;
- 	u8 buf;
- 
--	ret = lp5521_write(client, LP5521_REG_ENABLE,
--			LP5521_MASTER_ENABLE | LP5521_LOGARITHMIC_PWM);
-+	ret = lp5521_write(client, LP5521_REG_ENABLE, LP5521_ENABLE_DEFAULT);
- 	if (ret)
- 		return ret;
- 	/* enable takes 500us. 1 - 2 ms leaves some margin */
-@@ -311,7 +313,7 @@ static int lp5521_detect(struct i2c_clie
- 	ret = lp5521_read(client, LP5521_REG_ENABLE, &buf);
- 	if (ret)
- 		return ret;
--	if (buf != (LP5521_MASTER_ENABLE | LP5521_LOGARITHMIC_PWM))
-+	if (buf != LP5521_ENABLE_DEFAULT)
- 		return -ENODEV;
- 
- 	return 0;
-@@ -576,8 +578,7 @@ static void lp5521_run_led_pattern(int m
- 		return;
- 
- 	if (mode == PATTERN_OFF) {
--		lp5521_write(cl, LP5521_REG_ENABLE,
--			LP5521_MASTER_ENABLE | LP5521_LOGARITHMIC_PWM);
-+		lp5521_write(cl, LP5521_REG_ENABLE, LP5521_ENABLE_DEFAULT);
- 		usleep_range(1000, 2000);
- 		lp5521_write(cl, LP5521_REG_OP_MODE, LP5521_CMD_DIRECT);
- 	} else {
-@@ -599,9 +600,7 @@ static void lp5521_run_led_pattern(int m
- 
- 		lp5521_write(cl, LP5521_REG_OP_MODE, LP5521_CMD_RUN);
- 		usleep_range(1000, 2000);
--		lp5521_write(cl, LP5521_REG_ENABLE,
--			LP5521_MASTER_ENABLE | LP5521_LOGARITHMIC_PWM |
--			LP5521_EXEC_RUN);
-+		lp5521_write(cl, LP5521_REG_ENABLE, LP5521_ENABLE_RUN_PROGRAM);
+-	blk_start_plug(&plug);
+-
+ 	/* coalesce the iovecs and go direct-to-BIO for O_DIRECT */
+ 	if (filp->f_flags & O_DIRECT) {
+ 		loff_t size;
+@@ -1424,8 +1421,12 @@ generic_file_aio_read(struct kiocb *iocb
+ 			retval = filemap_write_and_wait_range(mapping, pos,
+ 					pos + iov_length(iov, nr_segs) - 1);
+ 			if (!retval) {
++				struct blk_plug plug;
++
++				blk_start_plug(&plug);
+ 				retval = mapping->a_ops->direct_IO(READ, iocb,
+ 							iov, pos, nr_segs);
++				blk_finish_plug(&plug);
+ 			}
+ 			if (retval > 0) {
+ 				*ppos = pos + retval;
+@@ -1481,7 +1482,6 @@ generic_file_aio_read(struct kiocb *iocb
+ 			break;
  	}
+ out:
+-	blk_finish_plug(&plug);
+ 	return retval;
  }
- 
+ EXPORT_SYMBOL(generic_file_aio_read);
 _
-Subject: Subject: drivers/leds/leds-lp5521.c: redefinition of register bits
+Subject: Subject: readahead: fix pipeline break caused by block plug
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
-backlight-new-backlight-driver-for-lp855x-devices.patch
-leds-lp5521-add-name-in-the-lp5521_led_config.patch
-leds-lp5521-add-update_config-in-the-lp5521_platform_data.patch
-leds-lp5521-support-led-pattern-data.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-leds-lp5521-redefinition-of-register-bits.patch
+origin.patch
+linux-next.patch
+readahead-fix-pipeline-break-caused-by-block-plug.patch
 
