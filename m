@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch added to -mm tree
-Date: Tue, 31 Jan 2012 12:52:58 -0800
-Message-ID: <20120131213542.082D05C0050@hpza9.eem.corp.google.com>
+Subject: + net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch added to -mm tree
+Date: Tue, 31 Jan 2012 13:33:43 -0800
+Message-ID: <20120131221627.36348100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:44699 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754971Ab2AaVfq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 16:35:46 -0500
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:45493 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753269Ab2AaWQ3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 17:16:29 -0500
+Received: by yenl2 with SMTP id l2so73866yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2012 14:16:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, jiang.liu@huawei.com, jkenisto@us.ibm.com, liuj97@gmail.com, masami.hiramatsu.pt@hitachi.com, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, philipp@redfish-solutions.com, rpurdie@rpsys.net, tglx@linutronix.de
 
 
 The patch titled
-     Subject: kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
+     Subject: net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
 has been added to the -mm tree.  Its filename is
-     kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
+     net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,47 +34,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
+Subject: net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
 
-use raw_spin_lock/unlock
+remove Kconfig and Makefile detritus from drivers/leds/
 
-kernel/kprobes.c: In function 'pre_handler_kretprobe':
-kernel/kprobes.c:1677: warning: passing argument 1 of 'spinlock_check' from incompatible pointer type
-include/linux/spinlock.h:272: note: expected 'struct spinlock_t *' but argument is of type 'struct raw_spinlock_t *'
-kernel/kprobes.c:1679: warning: passing argument 1 of 'spin_unlock_irqrestore' from incompatible pointer type
-include/linux/spinlock.h:338: note: expected 'struct spinlock_t *' but argument is of type 'struct raw_spinlock_t *'
+make[2]: *** No rule to make target `drivers/leds/leds-net5501.c', needed by `drivers/leds/leds-net5501.o'.  Stop.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <stable@vger.kernel.org>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Philip Prindeville <philipp@redfish-solutions.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/leds/Kconfig  |   10 ----------
+ drivers/leds/Makefile |    1 -
+ 2 files changed, 11 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
-+++ a/kernel/kprobes.c
-@@ -1674,9 +1674,9 @@ static int __kprobes pre_handler_kretpro
- 		ri->task = current;
+diff -puN drivers/leds/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
++++ a/drivers/leds/Kconfig
+@@ -89,16 +89,6 @@ config LEDS_NET48XX
+ 	  This option enables support for the Soekris net4801 and net4826 error
+ 	  LED.
  
- 		if (rp->entry_handler && rp->entry_handler(ri, regs)) {
--			spin_lock_irqsave(&rp->lock, flags);
-+			raw_spin_lock_irqsave(&rp->lock, flags);
- 			hlist_add_head(&ri->hlist, &rp->free_instances);
--			spin_unlock_irqrestore(&rp->lock, flags);
-+			raw_spin_unlock_irqrestore(&rp->lock, flags);
- 			return 0;
- 		}
- 
+-config LEDS_NET5501
+-	tristate "LED Support for Soekris net5501 series Error LED"
+-	depends on LEDS_TRIGGERS
+-	depends on X86 && GPIO_CS5535
+-	select LEDS_TRIGGER_DEFAULT_ON
+-	default n
+-	help
+-	  Add support for the Soekris net5501 board (detection, error led
+-	  and GPIO).
+-
+ config LEDS_FSG
+ 	tristate "LED Support for the Freecom FSG-3"
+ 	depends on LEDS_CLASS
+diff -puN drivers/leds/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix drivers/leds/Makefile
+--- a/drivers/leds/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
++++ a/drivers/leds/Makefile
+@@ -14,7 +14,6 @@ obj-$(CONFIG_LEDS_MIKROTIK_RB532)	+= led
+ obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
+ obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-ams-delta.o
+ obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
+-obj-$(CONFIG_LEDS_NET5501)		+= leds-net5501.o
+ obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
+ obj-$(CONFIG_LEDS_COBALT_QUBE)		+= leds-cobalt-qube.o
+ obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
 _
-Subject: Subject: kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
+Subject: Subject: net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -87,6 +102,7 @@ kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 alix2-supplement-driver-to-include-gpio-button-support-fix.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
 fs-btrfs-inode-mapc-fix-warnings.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
