@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-nvmec-stop-breaking-my-i386-build.patch added to -mm tree
-Date: Tue, 31 Jan 2012 14:22:46 -0800
-Message-ID: <20120131230528.AE4E21E005A@wpzn4.hot.corp.google.com>
+Subject: + drivers-cpufreq-gx-suspmodc-fix-build.patch added to -mm tree
+Date: Tue, 31 Jan 2012 14:39:46 -0800
+Message-ID: <20120131232229.4A89D200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:42162 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753256Ab2AaXF3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 18:05:29 -0500
-Received: by ggnp1 with SMTP id p1so75070ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2012 15:05:29 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57702 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753727Ab2AaXWc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 18:22:32 -0500
+Received: by eekb15 with SMTP id b15so21543eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2012 15:22:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, matthew.r.wilcox@intel.com
+Cc: akpm@linux-foundation.org, ak@linux.intel.com, davej@redhat.com, gregkh@suse.de, hpa@zytor.com, kay.sievers@vrfy.org, trenn@suse.de
 
 
 The patch titled
-     Subject: drivers/block/nvme.c: stop breaking my i386 build
+     Subject: drivers/cpufreq/gx-suspmod.c: fix build
 has been added to the -mm tree.  Its filename is
-     drivers-block-nvmec-stop-breaking-my-i386-build.patch
+     drivers-cpufreq-gx-suspmodc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/block/nvme.c: stop breaking my i386 build
+Subject: drivers/cpufreq/gx-suspmod.c: fix build
 
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+i386 allmodconfig:
+
+drivers/cpufreq/gx-suspmod.c:175:35: error: macro "MODULE_DEVICE_TABLE" requires 2 arguments, but only 1 given
+drivers/cpufreq/gx-suspmod.c:175: warning: data definition has no type or storage class
+drivers/cpufreq/gx-suspmod.c:175: warning: type defaults to 'int' in declaration of 'MODULE_DEVICE_TABLE'
+
+How did this get through??
+
+The patch is a guess.
+
+Cc: Dave Jones <davej@redhat.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/cpufreq/gx-suspmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/nvme.c~drivers-block-nvmec-stop-breaking-my-i386-build drivers/block/nvme.c
-diff -puN drivers/block/Kconfig~drivers-block-nvmec-stop-breaking-my-i386-build drivers/block/Kconfig
---- a/drivers/block/Kconfig~drivers-block-nvmec-stop-breaking-my-i386-build
-+++ a/drivers/block/Kconfig
-@@ -320,6 +320,7 @@ config BLK_DEV_NBD
- config BLK_DEV_NVME
- 	tristate "NVM Express block device"
- 	depends on PCI
-+	depends on X86_64
- 	---help---
- 	  The NVM Express driver is for solid state drives directly
- 	  connected to the PCI or PCI Express bus.  If you know you
+diff -puN drivers/cpufreq/gx-suspmod.c~drivers-cpufreq-gx-suspmodc-fix-build drivers/cpufreq/gx-suspmod.c
+--- a/drivers/cpufreq/gx-suspmod.c~drivers-cpufreq-gx-suspmodc-fix-build
++++ a/drivers/cpufreq/gx-suspmod.c
+@@ -172,7 +172,7 @@ static struct pci_device_id gx_chipset_t
+ 	{ PCI_VDEVICE(CYRIX, PCI_DEVICE_ID_CYRIX_5510), },
+ 	{ 0, },
+ };
+-MODULE_DEVICE_TABLE(gx_chipset_tbl);
++MODULE_DEVICE_TABLE(x86cpu, gx_chipset_tbl);
+ 
+ static void gx_write_byte(int reg, int value)
+ {
 _
-Subject: Subject: drivers/block/nvme.c: stop breaking my i386 build
+Subject: Subject: drivers/cpufreq/gx-suspmod.c: fix build
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -66,6 +81,7 @@ linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-cpufreq-gx-suspmodc-fix-build.patch
 mm-memcontrolc-fix-warning-with-config_numa=n.patch
 mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch
 kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
