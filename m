@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch added to -mm tree
-Date: Tue, 31 Jan 2012 13:33:43 -0800
-Message-ID: <20120131221627.36348100052@wpzn3.hot.corp.google.com>
+Subject: + drivers-leds-leds-lp5523c-constify-some-data.patch added to -mm tree
+Date: Tue, 31 Jan 2012 14:06:04 -0800
+Message-ID: <20120131224847.13E2A20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:45493 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753269Ab2AaWQ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 17:16:29 -0500
-Received: by yenl2 with SMTP id l2so73866yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2012 14:16:29 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:62149 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753613Ab2AaWst (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jan 2012 17:48:49 -0500
+Received: by eaaf1 with SMTP id f1so23808eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jan 2012 14:48:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, philipp@redfish-solutions.com, rpurdie@rpsys.net, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
+     Subject: drivers/leds/leds-lp5523.c: constify some data
 has been added to the -mm tree.  Its filename is
-     net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
+     drivers-leds-leds-lp5523c-constify-some-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
+Subject: drivers/leds/leds-lp5523.c: constify some data
 
-remove Kconfig and Makefile detritus from drivers/leds/
+Saves ~50 bytes text and speeds things up.
 
-make[2]: *** No rule to make target `drivers/leds/leds-net5501.c', needed by `drivers/leds/leds-net5501.o'.  Stop.
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Philip Prindeville <philipp@redfish-solutions.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig  |   10 ----------
- drivers/leds/Makefile |    1 -
- 2 files changed, 11 deletions(-)
+ drivers/leds/leds-lp5523.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/leds/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
-+++ a/drivers/leds/Kconfig
-@@ -89,16 +89,6 @@ config LEDS_NET48XX
- 	  This option enables support for the Soekris net4801 and net4826 error
- 	  LED.
+diff -puN drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-constify-some-data drivers/leds/leds-lp5523.c
+--- a/drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-constify-some-data
++++ a/drivers/leds/leds-lp5523.c
+@@ -152,7 +152,7 @@ static inline struct lp5523_chip *led_to
  
--config LEDS_NET5501
--	tristate "LED Support for Soekris net5501 series Error LED"
--	depends on LEDS_TRIGGERS
--	depends on X86 && GPIO_CS5535
--	select LEDS_TRIGGER_DEFAULT_ON
--	default n
--	help
--	  Add support for the Soekris net5501 board (detection, error led
--	  and GPIO).
--
- config LEDS_FSG
- 	tristate "LED Support for the Freecom FSG-3"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix drivers/leds/Makefile
---- a/drivers/leds/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
-+++ a/drivers/leds/Makefile
-@@ -14,7 +14,6 @@ obj-$(CONFIG_LEDS_MIKROTIK_RB532)	+= led
- obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
- obj-$(CONFIG_LEDS_AMS_DELTA)		+= leds-ams-delta.o
- obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
--obj-$(CONFIG_LEDS_NET5501)		+= leds-net5501.o
- obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
- obj-$(CONFIG_LEDS_COBALT_QUBE)		+= leds-cobalt-qube.o
- obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
+ static int lp5523_set_mode(struct lp5523_engine *engine, u8 mode);
+ static int lp5523_set_engine_mode(struct lp5523_engine *engine, u8 mode);
+-static int lp5523_load_program(struct lp5523_engine *engine, u8 *pattern);
++static int lp5523_load_program(struct lp5523_engine *engine, const u8 *pattern);
+ 
+ static void lp5523_led_brightness_work(struct work_struct *work);
+ 
+@@ -196,7 +196,7 @@ static int lp5523_configure(struct i2c_c
+ 	u8 status;
+ 
+ 	/* one pattern per engine setting led mux start and stop addresses */
+-	u8 pattern[][LP5523_PROGRAM_LENGTH] =  {
++	static const u8 pattern[][LP5523_PROGRAM_LENGTH] =  {
+ 		{ 0x9c, 0x30, 0x9c, 0xb0, 0x9d, 0x80, 0xd8, 0x00, 0},
+ 		{ 0x9c, 0x40, 0x9c, 0xc0, 0x9d, 0x80, 0xd8, 0x00, 0},
+ 		{ 0x9c, 0x50, 0x9c, 0xd0, 0x9d, 0x80, 0xd8, 0x00, 0},
+@@ -301,7 +301,7 @@ static int lp5523_load_mux(struct lp5523
+ 	return ret;
+ }
+ 
+-static int lp5523_load_program(struct lp5523_engine *engine, u8 *pattern)
++static int lp5523_load_program(struct lp5523_engine *engine, const u8 *pattern)
+ {
+ 	struct lp5523_chip *chip = engine_to_lp5523(engine);
+ 	struct i2c_client *client = chip->client;
 _
-Subject: Subject: net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix
+Subject: Subject: drivers/leds/leds-lp5523.c: constify some data
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -132,4 +121,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
 
