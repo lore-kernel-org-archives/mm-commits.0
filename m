@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + smp-start-up-non-boot-cpus-asynchronously-fix.patch added to -mm tree
-Date: Wed, 01 Feb 2012 15:01:15 -0800
-Message-ID: <20120201230116.1D62CA016E@akpm.mtv.corp.google.com>
+Subject: + fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch added to -mm tree
+Date: Wed, 01 Feb 2012 15:22:59 -0800
+Message-ID: <20120201232259.A8935A03A7@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:49506 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754847Ab2BAXBS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 18:01:18 -0500
-Received: by wgbds12 with SMTP id ds12so60998wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 15:01:17 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:64918 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752234Ab2BAXXA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 18:23:00 -0500
+Received: by ghrr17 with SMTP id r17so194574ghr.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 15:23:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, arjan@infradead.org, arjan@linux.intel.com, hpa@zytor.com, miltonm@bga.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, daniel.lezcano@free.fr, ebiederm@xmission.com, richard@nod.at
 
 
 The patch titled
-     Subject: smp-start-up-non-boot-cpus-asynchronously-fix
+     Subject: fs/proc/namespaces.c: prevent crash when ns_entries[] is empty
 has been added to the -mm tree.  Its filename is
-     smp-start-up-non-boot-cpus-asynchronously-fix.patch
+     fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: smp-start-up-non-boot-cpus-asynchronously-fix
+Subject: fs/proc/namespaces.c: prevent crash when ns_entries[] is empty
 
-- fix
+If CONFIG_NET_NS, CONFIG_UTS_NS and CONFIG_IPC_NS are disabled,
+ns_entries[] becomes empty and things like
+ns_entries[ARRAY_SIZE(ns_entries) - 1] will explode.
 
-   kernel/smp.c: In function 'smp_init':
-   kernel/smp.c:696: warning: cast to pointer from integer of different size
-
-- remove space-after-typecast (neener neener)
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Milton Miller <miltonm@bga.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Richard Weinberger <richard@nod.at>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/namespaces.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/smp.c~smp-start-up-non-boot-cpus-asynchronously-fix kernel/smp.c
---- a/kernel/smp.c~smp-start-up-non-boot-cpus-asynchronously-fix
-+++ a/kernel/smp.c
-@@ -668,7 +668,7 @@ void __init setup_nr_cpu_ids(void)
+diff -puN fs/proc/namespaces.c~fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty fs/proc/namespaces.c
+--- a/fs/proc/namespaces.c~fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty
++++ a/fs/proc/namespaces.c
+@@ -156,15 +156,15 @@ static struct dentry *proc_ns_dir_lookup
+ 	if (!ptrace_may_access(task, PTRACE_MODE_READ))
+ 		goto out;
  
- void __init async_cpu_up(void *data, async_cookie_t cookie)
- {
--	unsigned long nr = (unsigned long) data;
-+	unsigned long nr = (unsigned long)data;
- 	/*
- 	 * we can only up one cpu at a time, as enforced by the hotplug
- 	 * lock; it's better to wait for all earlier CPUs to be done before
-@@ -693,7 +693,7 @@ void __init smp_init(void)
- 		if (num_online_cpus() >= setup_max_cpus)
+-	last = &ns_entries[ARRAY_SIZE(ns_entries) - 1];
+-	for (entry = ns_entries; entry <= last; entry++) {
++	last = &ns_entries[ARRAY_SIZE(ns_entries)];
++	for (entry = ns_entries; entry < last; entry++) {
+ 		if (strlen((*entry)->name) != len)
+ 			continue;
+ 		if (!memcmp(dentry->d_name.name, (*entry)->name, len))
  			break;
- 		if (!cpu_online(cpu))
--			async_schedule(async_cpu_up, (void *) cpu);
-+			async_schedule(async_cpu_up, (void *)(long)cpu);
  	}
+ 	error = ERR_PTR(-ENOENT);
+-	if (entry > last)
++	if (entry == last)
+ 		goto out;
  
- 	/* Any cleanup work */
+ 	error = proc_ns_instantiate(dir, dentry, task, *entry);
 _
-Subject: Subject: smp-start-up-non-boot-cpus-asynchronously-fix
+Subject: Subject: fs/proc/namespaces.c: prevent crash when ns_entries[] is empty
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -127,6 +120,7 @@ procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
 procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
 seq_file-add-seq_set_overflow-seq_overflow-fix.patch
 smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
 notify_change-check-that-i_mutex-is-held.patch
 journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
