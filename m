@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch added to -mm tree
-Date: Wed, 01 Feb 2012 14:45:50 -0800
-Message-ID: <20120201224551.14953A03A7@akpm.mtv.corp.google.com>
+Subject: + ramoops-use-pstore-interface-fix.patch added to -mm tree
+Date: Wed, 01 Feb 2012 14:53:05 -0800
+Message-ID: <20120201225305.969AEA0110@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:53912 "EHLO
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56930 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757739Ab2BAWpx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 17:45:53 -0500
-Received: by eekb15 with SMTP id b15so52682eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 14:45:51 -0800 (PST)
+	with ESMTP id S1754241Ab2BAWxH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 17:53:07 -0500
+Received: by eekb15 with SMTP id b15so52831eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 14:53:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mingo@redhat.com, tglx@linutronix.de
+Cc: rdunlap@xenotime.net, greg@kroah.com, keescook@chromium.org
 
 
 The patch titled
-     Subject: mm: do not reset cached_hole_size when vma is unmapped
+     Subject: ramoops: fix printk format warnings
 has been added to the -mm tree.  Its filename is
-     mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+     ramoops-use-pstore-interface-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: mm: do not reset cached_hole_size when vma is unmapped
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: ramoops: fix printk format warnings
 
-In the current code, cached_hole_size is set to the maximum value if the
-unmapped vma is less that free_area_cache so the next search will search
-from the base address.
+Fix printk format warnings for phys_addr_t type variables:
 
-Actually, we can keep cached_hole_size so that if the next required size
-is more than cached_hole_size, it can search from free_area_cache.
+drivers/char/ramoops.c:246:3: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'phys_addr_t'
+drivers/char/ramoops.c:273:2: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'phys_addr_t'
 
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/char/ramoops.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-do-not-reset-cached_hole_size-when-vma-is-unmapped mm/mmap.c
---- a/mm/mmap.c~mm-do-not-reset-cached_hole_size-when-vma-is-unmapped
-+++ a/mm/mmap.c
-@@ -1446,10 +1446,8 @@ void arch_unmap_area(struct mm_struct *m
- 	/*
- 	 * Is this a new hole at the lowest possible address?
- 	 */
--	if (addr >= TASK_UNMAPPED_BASE && addr < mm->free_area_cache) {
-+	if (addr >= TASK_UNMAPPED_BASE && addr < mm->free_area_cache)
- 		mm->free_area_cache = addr;
--		mm->cached_hole_size = ~0UL;
--	}
- }
+diff -puN drivers/char/ramoops.c~ramoops-use-pstore-interface-fix drivers/char/ramoops.c
+--- a/drivers/char/ramoops.c~ramoops-use-pstore-interface-fix
++++ a/drivers/char/ramoops.c
+@@ -244,7 +244,7 @@ static int __init ramoops_probe(struct p
  
- /*
+ 	if (!request_mem_region(cxt->phys_addr, cxt->size, "ramoops")) {
+ 		pr_err("request mem region (0x%lx@0x%llx) failed\n",
+-			cxt->size, cxt->phys_addr);
++			cxt->size, (unsigned long long)cxt->phys_addr);
+ 		err = -EINVAL;
+ 		goto fail_buf;
+ 	}
+@@ -271,7 +271,8 @@ static int __init ramoops_probe(struct p
+ 	dump_oops = pdata->dump_oops;
+ 
+ 	pr_info("attached 0x%lx@0x%llx (%ux0x%zx)\n",
+-		cxt->size, cxt->phys_addr, cxt->max_count, cxt->record_size);
++		cxt->size, (unsigned long long)cxt->phys_addr,
++		cxt->max_count, cxt->record_size);
+ 
+ 	return 0;
+ 
 _
-Subject: Subject: mm: do not reset cached_hole_size when vma is unmapped
+Subject: Subject: ramoops: fix printk format warnings
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
-hugetlbfs-fix-hugetlb_get_unmapped_area.patch
-hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
-hugetlb-try-to-search-again-if-it-is-really-needed.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
-mm-search-from-free_area_cache-for-the-bigger-size.patch
+origin.patch
+linux-next.patch
+crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
