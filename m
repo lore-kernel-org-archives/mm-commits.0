@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-make-compact_control-order-signed-fix.patch added to -mm tree
-Date: Wed, 01 Feb 2012 13:24:24 -0800
-Message-ID: <20120201212425.0A675A0367@akpm.mtv.corp.google.com>
+Subject: + seq_file-add-seq_set_overflow-seq_overflow-fix.patch added to -mm tree
+Date: Wed, 01 Feb 2012 13:09:55 -0800
+Message-ID: <20120201210955.F033BA016E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:62272 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932737Ab2BAVY0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 16:24:26 -0500
-Received: by yenl2 with SMTP id l2so191440yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 13:24:25 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:41928 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757283Ab2BAVJ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 16:09:58 -0500
+Received: by eekb15 with SMTP id b15so50211eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 13:09:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, dan.carpenter@oracle.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com
+Cc: akpm@linux-foundation.org, eric.dumazet@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm-compaction-make-compact_control-order-signed-fix
+     Subject: seq_file-add-seq_set_overflow-seq_overflow-fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-make-compact_control-order-signed-fix.patch
+     seq_file-add-seq_set_overflow-seq_overflow-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-make-compact_control-order-signed-fix
+Subject: seq_file-add-seq_set_overflow-seq_overflow-fix
 
-make __compact_pgdat()'s comparison match other code sites
+tweak code comment
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/seq_file.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-make-compact_control-order-signed-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-make-compact_control-order-signed-fix
-+++ a/mm/compaction.c
-@@ -686,7 +686,7 @@ static int __compact_pgdat(pg_data_t *pg
- 		INIT_LIST_HEAD(&cc->freepages);
- 		INIT_LIST_HEAD(&cc->migratepages);
+diff -puN fs/seq_file.c~seq_file-add-seq_set_overflow-seq_overflow-fix fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-add-seq_set_overflow-seq_overflow-fix
++++ a/fs/seq_file.c
+@@ -15,9 +15,9 @@
  
--		if (cc->order < 0 || !compaction_deferred(zone, cc->order))
-+		if (cc->order == -1 || !compaction_deferred(zone, cc->order))
- 			compact_zone(zone, cc);
  
- 		if (cc->order > 0) {
+ /*
+- * seq file has a buffer but it may overflow. At overflow, larger buffer
+- * is re-allocated and all data will be printed, again.
+- * Now, overflow check is done by m->count == m->size.
++ * seq_files have a buffer which can may overflow. When this happens a larger
++ * buffer is reallocated and all the data will be printed again.
++ * The overflow state is true when m->count == m->size.
+  */
+ static bool seq_overflow(struct seq_file *m)
+ {
 _
-Subject: Subject: mm-compaction-make-compact_control-order-signed-fix
+Subject: Subject: seq_file-add-seq_set_overflow-seq_overflow-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -89,7 +91,6 @@ drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
 mm.patch
 make-swapin-readahead-skip-over-holes-fix.patch
 vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
 mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
 memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
 prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
