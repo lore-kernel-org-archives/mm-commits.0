@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + seq_file-add-seq_set_overflow-seq_overflow-fix.patch added to -mm tree
-Date: Wed, 01 Feb 2012 13:09:55 -0800
-Message-ID: <20120201210955.F033BA016E@akpm.mtv.corp.google.com>
+Subject: + cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus.patch added to -mm tree
+Date: Wed, 01 Feb 2012 14:01:33 -0800
+Message-ID: <20120201220133.AF7ECA018F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:41928 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757283Ab2BAVJ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 16:09:58 -0500
-Received: by eekb15 with SMTP id b15so50211eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 13:09:57 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:38560 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756693Ab2BAWBf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 17:01:35 -0500
+Received: by yenl2 with SMTP id l2so196445yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 14:01:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eric.dumazet@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, viro@zeniv.linux.org.uk
+Cc: venki@google.com, kosaki.motohiro@jp.fujitsu.com, rusty@rustcorp.com.au, srivatsa.bhat@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: seq_file-add-seq_set_overflow-seq_overflow-fix
+     Subject: cpumask: avoid mask based num_possible_cpus() and num_online_cpus()
 has been added to the -mm tree.  Its filename is
-     seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+     cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: seq_file-add-seq_set_overflow-seq_overflow-fix
+From: Venkatesh Pallipadi <venki@google.com>
+Subject: cpumask: avoid mask based num_possible_cpus() and num_online_cpus()
 
-tweak code comment
+The kernel's notion of possible cpus (from include/linux/cpumask.h) is
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+ *     cpu_possible_mask- has bit 'cpu' set iff cpu is populatable
+ *  The cpu_possible_mask is fixed at boot time, as the set of CPU id's
+ *  that it is possible might ever be plugged in at anytime during the
+ *  life of that system boot.
+
+ #define num_possible_cpus()     cpumask_weight(cpu_possible_mask)
+
+and on x86 cpumask_weight() calls hweight64 and hweight64 (on older
+kernels and systems with !X86_FEATURE_POPCNT) or a popcnt based
+alternative.
+
+i.e, We needlessly go through this mask based calculation everytime
+num_possible_cpus() is called.
+
+The problem is there with cpu_online_mask() as well, which is a fixed
+value at boot time in !CONFIG_HOTPLUG_CPU case and should not change that
+often even in HOTPLUG case.
+
+Though most of the callers of these two routines are at init time (with
+only a few runtime calls), it is cleaner to use variables and not go
+through this repeated mask based calculation.
+
+Signed-off-by: Venkatesh Pallipadi <venki@google.com>
+Acked-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/cpumask.h |    9 +++++++--
+ kernel/cpu.c            |   13 +++++++++++++
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-add-seq_set_overflow-seq_overflow-fix fs/seq_file.c
---- a/fs/seq_file.c~seq_file-add-seq_set_overflow-seq_overflow-fix
-+++ a/fs/seq_file.c
-@@ -15,9 +15,9 @@
+diff -puN include/linux/cpumask.h~cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus
++++ a/include/linux/cpumask.h
+@@ -27,6 +27,9 @@ typedef struct cpumask { DECLARE_BITMAP(
+ extern int nr_cpu_ids;
+ #endif
  
++extern unsigned int nr_online_cpus;
++extern unsigned int nr_possible_cpus;
++
+ #ifdef CONFIG_CPUMASK_OFFSTACK
+ /* Assuming NR_CPUS is huge, a runtime limit is more efficient.  Also,
+  * not all bits may be allocated. */
+@@ -81,8 +84,10 @@ extern const struct cpumask *const cpu_p
+ extern const struct cpumask *const cpu_active_mask;
  
- /*
-- * seq file has a buffer but it may overflow. At overflow, larger buffer
-- * is re-allocated and all data will be printed, again.
-- * Now, overflow check is done by m->count == m->size.
-+ * seq_files have a buffer which can may overflow. When this happens a larger
-+ * buffer is reallocated and all the data will be printed again.
-+ * The overflow state is true when m->count == m->size.
-  */
- static bool seq_overflow(struct seq_file *m)
+ #if NR_CPUS > 1
+-#define num_online_cpus()	cpumask_weight(cpu_online_mask)
+-#define num_possible_cpus()	cpumask_weight(cpu_possible_mask)
++
++#define num_online_cpus()	(nr_online_cpus)
++#define num_possible_cpus()	(nr_possible_cpus)
++
+ #define num_present_cpus()	cpumask_weight(cpu_present_mask)
+ #define num_active_cpus()	cpumask_weight(cpu_active_mask)
+ #define cpu_online(cpu)		cpumask_test_cpu((cpu), cpu_online_mask)
+diff -puN kernel/cpu.c~cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus kernel/cpu.c
+--- a/kernel/cpu.c~cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus
++++ a/kernel/cpu.c
+@@ -604,9 +604,13 @@ EXPORT_SYMBOL(cpu_all_bits);
+ #ifdef CONFIG_INIT_ALL_POSSIBLE
+ static DECLARE_BITMAP(cpu_possible_bits, CONFIG_NR_CPUS) __read_mostly
+ 	= CPU_BITS_ALL;
++unsigned int nr_possible_cpus __read_mostly = CONFIG_NR_CPUS;
+ #else
+ static DECLARE_BITMAP(cpu_possible_bits, CONFIG_NR_CPUS) __read_mostly;
++unsigned int nr_possible_cpus __read_mostly;
+ #endif
++EXPORT_SYMBOL(nr_possible_cpus);
++
+ const struct cpumask *const cpu_possible_mask = to_cpumask(cpu_possible_bits);
+ EXPORT_SYMBOL(cpu_possible_mask);
+ 
+@@ -614,6 +618,9 @@ static DECLARE_BITMAP(cpu_online_bits, C
+ const struct cpumask *const cpu_online_mask = to_cpumask(cpu_online_bits);
+ EXPORT_SYMBOL(cpu_online_mask);
+ 
++unsigned int nr_online_cpus __read_mostly;
++EXPORT_SYMBOL(nr_online_cpus);
++
+ static DECLARE_BITMAP(cpu_present_bits, CONFIG_NR_CPUS) __read_mostly;
+ const struct cpumask *const cpu_present_mask = to_cpumask(cpu_present_bits);
+ EXPORT_SYMBOL(cpu_present_mask);
+@@ -628,6 +635,8 @@ void set_cpu_possible(unsigned int cpu, 
+ 		cpumask_set_cpu(cpu, to_cpumask(cpu_possible_bits));
+ 	else
+ 		cpumask_clear_cpu(cpu, to_cpumask(cpu_possible_bits));
++
++	nr_possible_cpus = cpumask_weight(cpu_possible_mask);
+ }
+ 
+ void set_cpu_present(unsigned int cpu, bool present)
+@@ -644,6 +653,8 @@ void set_cpu_online(unsigned int cpu, bo
+ 		cpumask_set_cpu(cpu, to_cpumask(cpu_online_bits));
+ 	else
+ 		cpumask_clear_cpu(cpu, to_cpumask(cpu_online_bits));
++
++	nr_online_cpus = cpumask_weight(cpu_online_mask);
+ }
+ 
+ void set_cpu_active(unsigned int cpu, bool active)
+@@ -662,9 +673,11 @@ void init_cpu_present(const struct cpuma
+ void init_cpu_possible(const struct cpumask *src)
  {
+ 	cpumask_copy(to_cpumask(cpu_possible_bits), src);
++	nr_possible_cpus = cpumask_weight(cpu_possible_mask);
+ }
+ 
+ void init_cpu_online(const struct cpumask *src)
+ {
+ 	cpumask_copy(to_cpumask(cpu_online_bits), src);
++	nr_online_cpus = cpumask_weight(cpu_online_mask);
+ }
 _
-Subject: Subject: seq_file-add-seq_set_overflow-seq_overflow-fix
+Subject: Subject: cpumask: avoid mask based num_possible_cpus() and num_online_cpus()
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from venki@google.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-cpufreq-gx-suspmodc-fix-build.patch
-mm-memcontrolc-fix-warning-with-config_numa=n.patch
-mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch
-kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-alix2-supplement-driver-to-include-gpio-button-support-fix.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning-fix.patch
-drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus.patch
 
