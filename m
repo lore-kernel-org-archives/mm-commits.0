@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-add-driver-for-pca9663-i2c-chip-fix-2.patch added to -mm tree
-Date: Thu, 02 Feb 2012 15:24:33 -0800
-Message-ID: <20120202232434.39E45A03A7@akpm.mtv.corp.google.com>
+Subject: + backlight-lp855x_blc-small-cleanups.patch added to -mm tree
+Date: Thu, 02 Feb 2012 15:47:13 -0800
+Message-ID: <20120202234713.D41E3A0291@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:62000 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755916Ab2BBXYf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 18:24:35 -0500
-Received: by yenl2 with SMTP id l2so330456yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 15:24:34 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:43898 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932190Ab2BBXrQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 18:47:16 -0500
+Received: by eekb15 with SMTP id b15so93091eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 15:47:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pmeerw@pmeerw.net
+Cc: axel.lin@gmail.com, milo.kim@ti.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: drivers-leds-add-driver-for-pca9663-i2c-chip-fix-2
+     Subject: backlight/lp855x_bl.c: small cleanups
 has been added to the -mm tree.  Its filename is
-     drivers-leds-add-driver-for-pca9663-i2c-chip-fix-2.patch
+     backlight-lp855x_blc-small-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Meerwald <pmeerw@pmeerw.net>
-Subject: drivers-leds-add-driver-for-pca9663-i2c-chip-fix-2
+From: Axel Lin <axel.lin@gmail.com>
+Subject: backlight/lp855x_bl.c: small cleanups
 
+- Make lp855x_bl_update_status() return 0 instead of
+  bl->props.brightness.  It looks pointless to return bl->props.brightness
+  for lp855x_bl_update_status.  Make it return 0 on success.
 
+- Use devm_kzalloc to save a few error handling code.
 
+- Use module_i2c_driver
+
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: "Milo(Woogyom) Kim" <milo.kim@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/backlight/lp855x_bl.c |   25 +++++--------------------
+ 1 file changed, 5 insertions(+), 20 deletions(-)
 
-diff -puN drivers/leds/Kconfig~drivers-leds-add-driver-for-pca9663-i2c-chip-fix-2 drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~drivers-leds-add-driver-for-pca9663-i2c-chip-fix-2
-+++ a/drivers/leds/Kconfig
-@@ -234,12 +234,12 @@ config LEDS_PCA955X
- 	  LED driver chips accessed via the I2C bus.  Supported
- 	  devices include PCA9550, PCA9551, PCA9552, and PCA9553.
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x_blc-small-cleanups drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x_blc-small-cleanups
++++ a/drivers/video/backlight/lp855x_bl.c
+@@ -132,7 +132,7 @@ static int lp855x_bl_update_status(struc
+ 		lp855x_write_byte(lp, BRIGHTNESS_CTRL, val);
+ 	}
  
--config LEDS_PCA9663
--	tristate "LED support for PCA9663 I2C chip"
-+config LEDS_PCA9633
-+	tristate "LED support for PCA9633 I2C chip"
- 	depends on LEDS_CLASS
- 	depends on I2C
- 	help
--	  This option enables support for LEDs connected to the PCA9663
-+	  This option enables support for LEDs connected to the PCA9633
- 	  LED driver chip accessed via the I2C bus.
+-	return bl->props.brightness;
++	return 0;
+ }
  
- config LEDS_WM831X_STATUS
-_
-Subject: Subject: drivers-leds-add-driver-for-pca9663-i2c-chip-fix-2
-
-Patches currently in -mm which might be from pmeerw@pmeerw.net are
-
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix-2.patch
-
+ static int lp855x_bl_get_brightness(struct backlight_device *bl)
+@@ -242,7 +242,7 @@ static int lp855x_probe(struct i2c_clien
+ 	if (!i2c_check_functionality(cl->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
+ 		return -EIO;
+ 
+-	lp = kzalloc(sizeof(struct lp855x), GFP_KERNEL);
++	lp = devm_kzalloc(&cl->dev, sizeof(struct lp855x), GFP_KERNEL);
+ 	if (!lp)
+ 		return -ENOMEM;
+ 
+@@ -276,14 +276,11 @@ static int lp855x_probe(struct i2c_clien
+ 	}
+ 
+ 	backlight_update_status(lp->bl);
+-	return ret;
++	return 0;
+ 
+-err_dev:
+-	kfree(lp);
+-	return ret;
+ err_sysfs:
+ 	lp855x_backlight_unregister(lp);
+-	kfree(lp);
++err_dev:
+ 	return ret;
+ }
+ 
+@@ -295,7 +292,6 @@ static int __devexit lp855x_remove(struc
+ 	backlight_update_status(lp->bl);
+ 	sysfs_remove_group(&lp->dev->kobj, &lp855x_attr_group);
+ 	lp855x_backlight_unregister(lp);
+-	kfree(lp);
+ 
+ 	return 0;
+ }
+@@ -319,18 +315,7 @@ static struct i2c_driver lp855x_driver =
+ 	.id_table = lp855x_ids,
+ };
+ 
+-static int __init lp855x_init(void)
+-{
+-	return i2c_add_driver(&lp855x_driver);
+-}
+-
+-static void __exit lp855x_exit(void)
+-{
+-	i2c_del_driver(&lp855x_driver);
+-}
