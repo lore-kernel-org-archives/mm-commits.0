@@ -1,97 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-max8925c-fix-alarm-enabled-mistake-in-max8925_rtc_read_alarm-max8925_rtc_set_alarm.patch added to -mm tree
-Date: Wed, 01 Feb 2012 16:05:06 -0800
-Message-ID: <20120202000506.E85C5A0110@akpm.mtv.corp.google.com>
+Subject: [merged] sunrpc-fix-statsh-for-config_proc_fs-not-enabled.patch removed from -mm tree
+Date: Thu, 02 Feb 2012 12:11:20 -0800
+Message-ID: <20120202201121.78B8CA016E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:62598 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753018Ab2BBAFJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Feb 2012 19:05:09 -0500
-Received: by wicr5 with SMTP id r5so77272wic.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Feb 2012 16:05:07 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:46123 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753727Ab2BBULX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 15:11:23 -0500
+Received: by yenl2 with SMTP id l2so304251yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 12:11:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kliu5@marvell.com, a.zummo@towertech.it, haojian.zhuang@marvell.com
+To: rdunlap@xenotime.net, Trond.Myklebust@netapp.com, skinsbursky@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-max8925.c: fix alarm->enabled mistake in max8925_rtc_read_alarm/max8925_rtc_set_alarm
-has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-max8925c-fix-alarm-enabled-mistake-in-max8925_rtc_read_alarm-max8925_rtc_set_alarm.patch
+     Subject: sunrpc: fix stats.h for CONFIG_PROC_FS not enabled
+has been removed from the -mm tree.  Its filename was
+     sunrpc-fix-statsh-for-config_proc_fs-not-enabled.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Kevin Liu <kliu5@marvell.com>
-Subject: drivers/rtc/rtc-max8925.c: fix alarm->enabled mistake in max8925_rtc_read_alarm/max8925_rtc_set_alarm
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: sunrpc: fix stats.h for CONFIG_PROC_FS not enabled
 
-max8925_rtc_read_alarm() should set alrm->enabled based on both
-ALARM_IRQ_MASK and ALARM_CTRL setting.  max8925_rtc_set_alarm() should
-enable/disable alarm according to ALARM_CTRL reg setting.
+Fix build errors in linux/sunrpc/stats.h when CONFIG_PROC_FS
+is not enabled:
+- add parameter names to inline functions
+- fix placement of '(' in rpc_proc_unregister()
 
-Signed-off-by: Kevin Liu <kliu5@marvell.com>
-Signed-off-by: Haojian Zhuang <haojian.zhuang@marvell.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Fixes these errors:
+include/linux/sunrpc/stats.h:72:63: error: parameter name omitted
+include/linux/sunrpc/stats.h:73:46: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'net'
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max8925.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ include/linux/sunrpc/stats.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-fix-alarm-enabled-mistake-in-max8925_rtc_read_alarm-max8925_rtc_set_alarm drivers/rtc/rtc-max8925.c
---- a/drivers/rtc/rtc-max8925.c~drivers-rtc-rtc-max8925c-fix-alarm-enabled-mistake-in-max8925_rtc_read_alarm-max8925_rtc_set_alarm
-+++ a/drivers/rtc/rtc-max8925.c
-@@ -193,10 +193,17 @@ static int max8925_rtc_read_alarm(struct
- 	ret = max8925_reg_read(info->rtc, MAX8925_RTC_IRQ_MASK);
- 	if (ret < 0)
- 		goto out;
--	if ((ret & ALARM0_IRQ) == 0)
--		alrm->enabled = 1;
--	else
-+	if (ret & ALARM0_IRQ) {
- 		alrm->enabled = 0;
-+	} else {
-+		ret = max8925_reg_read(info->rtc, MAX8925_ALARM0_CNTL);
-+		if (ret < 0)
-+			goto out;
-+		if (!ret)
-+			alrm->enabled = 0;
-+		else
-+			alrm->enabled = 1;
-+	}
- 	ret = max8925_reg_read(info->rtc, MAX8925_RTC_STATUS);
- 	if (ret < 0)
- 		goto out;
-@@ -221,8 +228,11 @@ static int max8925_rtc_set_alarm(struct 
- 	ret = max8925_bulk_write(info->rtc, MAX8925_ALARM0_SEC, TIME_NUM, buf);
- 	if (ret < 0)
- 		goto out;
--	/* only enable alarm on year/month/day/hour/min/sec */
--	ret = max8925_reg_write(info->rtc, MAX8925_ALARM0_CNTL, 0x77);
-+	if (alrm->enabled)
-+		/* only enable alarm on year/month/day/hour/min/sec */
-+		ret = max8925_reg_write(info->rtc, MAX8925_ALARM0_CNTL, 0x77);
-+	else
-+		ret = max8925_reg_write(info->rtc, MAX8925_ALARM0_CNTL, 0x0);
- 	if (ret < 0)
- 		goto out;
- out:
+diff -puN include/linux/sunrpc/stats.h~sunrpc-fix-statsh-for-config_proc_fs-not-enabled include/linux/sunrpc/stats.h
+--- a/include/linux/sunrpc/stats.h~sunrpc-fix-statsh-for-config_proc_fs-not-enabled
++++ a/include/linux/sunrpc/stats.h
+@@ -69,8 +69,8 @@ void			svc_seq_show(struct seq_file *,
+ 				     const struct svc_stat *);
+ #else
+ 
+-static inline struct proc_dir_entry *rpc_proc_register(struct net *, struct rpc_stat *s) { return NULL; }
+-static inline void rpc_proc_unregisterstruct net *, (const char *p) {}
++static inline struct proc_dir_entry *rpc_proc_register(struct net *net, struct rpc_stat *s) { return NULL; }
++static inline void rpc_proc_unregister(struct net *net, const char *p) {}
+ static inline void rpc_proc_zero(const struct rpc_program *p) {}
+ 
+ static inline struct proc_dir_entry *svc_proc_register(struct net *net, struct svc_stat *s,
 _
-Subject: Subject: drivers/rtc/rtc-max8925.c: fix alarm->enabled mistake in max8925_rtc_read_alarm/max8925_rtc_set_alarm
 
-Patches currently in -mm which might be from kliu5@marvell.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
-drivers-rtc-rtc-max8925c-fix-max8925_rtc_read_alarm-return-value-error.patch
-drivers-rtc-rtc-max8925c-fix-alarm-enabled-mistake-in-max8925_rtc_read_alarm-max8925_rtc_set_alarm.patch
+origin.patch
+linux-next.patch
+crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
