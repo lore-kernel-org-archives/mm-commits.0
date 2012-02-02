@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lp855x_blc-small-cleanups.patch added to -mm tree
-Date: Thu, 02 Feb 2012 15:47:13 -0800
-Message-ID: <20120202234713.D41E3A0291@akpm.mtv.corp.google.com>
+Subject: + backlight-lp855x_blc-check-platform-data-in-lp855x_probe.patch added to -mm tree
+Date: Thu, 02 Feb 2012 15:47:11 -0800
+Message-ID: <20120202234712.0DA0FA0291@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:43898 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932190Ab2BBXrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 18:47:16 -0500
-Received: by eekb15 with SMTP id b15so93091eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 15:47:14 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:58209 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755272Ab2BBXrN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 18:47:13 -0500
+Received: by yenl2 with SMTP id l2so332118yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 15:47:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: axel.lin@gmail.com, milo.kim@ti.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight/lp855x_bl.c: small cleanups
+     Subject: backlight/lp855x_bl.c: check platform data in lp855x_probe()
 has been added to the -mm tree.  Its filename is
-     backlight-lp855x_blc-small-cleanups.patch
+     backlight-lp855x_blc-check-platform-data-in-lp855x_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Axel Lin <axel.lin@gmail.com>
-Subject: backlight/lp855x_bl.c: small cleanups
+Subject: backlight/lp855x_bl.c: check platform data in lp855x_probe()
 
-- Make lp855x_bl_update_status() return 0 instead of
-  bl->props.brightness.  It looks pointless to return bl->props.brightness
-  for lp855x_bl_update_status.  Make it return 0 on success.
-
-- Use devm_kzalloc to save a few error handling code.
-
-- Use module_i2c_driver
+The reset of the code assumes pdata is not NULL.  Add checking for pdata
+in lp855x_probe(), this prevents NULL dereference if pdata is NULL.
 
 Signed-off-by: Axel Lin <axel.lin@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
@@ -50,65 +45,48 @@ Cc: "Milo(Woogyom) Kim" <milo.kim@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |   25 +++++--------------------
- 1 file changed, 5 insertions(+), 20 deletions(-)
+ drivers/video/backlight/lp855x_bl.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x_blc-small-cleanups drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x_blc-small-cleanups
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x_blc-check-platform-data-in-lp855x_probe drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x_blc-check-platform-data-in-lp855x_probe
 +++ a/drivers/video/backlight/lp855x_bl.c
-@@ -132,7 +132,7 @@ static int lp855x_bl_update_status(struc
- 		lp855x_write_byte(lp, BRIGHTNESS_CTRL, val);
- 	}
+@@ -231,9 +231,14 @@ static int lp855x_probe(struct i2c_clien
+ {
+ 	struct lp855x *lp;
+ 	struct lp855x_platform_data *pdata = cl->dev.platform_data;
+-	enum lp855x_brightness_ctrl_mode mode = pdata->mode;
++	enum lp855x_brightness_ctrl_mode mode;
+ 	int ret;
  
--	return bl->props.brightness;
-+	return 0;
- }
- 
- static int lp855x_bl_get_brightness(struct backlight_device *bl)
-@@ -242,7 +242,7 @@ static int lp855x_probe(struct i2c_clien
++	if (!pdata) {
++		dev_err(&cl->dev, "no platform data supplied\n");
++		return -EINVAL;
++	}
++
  	if (!i2c_check_functionality(cl->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
  		return -EIO;
  
--	lp = kzalloc(sizeof(struct lp855x), GFP_KERNEL);
-+	lp = devm_kzalloc(&cl->dev, sizeof(struct lp855x), GFP_KERNEL);
+@@ -241,6 +246,7 @@ static int lp855x_probe(struct i2c_clien
  	if (!lp)
  		return -ENOMEM;
  
-@@ -276,14 +276,11 @@ static int lp855x_probe(struct i2c_clien
- 	}
- 
- 	backlight_update_status(lp->bl);
--	return ret;
-+	return 0;
- 
--err_dev:
--	kfree(lp);
--	return ret;
- err_sysfs:
- 	lp855x_backlight_unregister(lp);
--	kfree(lp);
-+err_dev:
- 	return ret;
- }
- 
-@@ -295,7 +292,6 @@ static int __devexit lp855x_remove(struc
- 	backlight_update_status(lp->bl);
- 	sysfs_remove_group(&lp->dev->kobj, &lp855x_attr_group);
- 	lp855x_backlight_unregister(lp);
--	kfree(lp);
- 
- 	return 0;
- }
-@@ -319,18 +315,7 @@ static struct i2c_driver lp855x_driver =
- 	.id_table = lp855x_ids,
- };
- 
--static int __init lp855x_init(void)
--{
--	return i2c_add_driver(&lp855x_driver);
--}
--
--static void __exit lp855x_exit(void)
--{
--	i2c_del_driver(&lp855x_driver);
--}
++	mode = pdata->mode;
+ 	lp->client = cl;
+ 	lp->dev = &cl->dev;
+ 	lp->pdata = pdata;
+_
+Subject: Subject: backlight/lp855x_bl.c: check platform data in lp855x_probe()
+
+Patches currently in -mm which might be from axel.lin@gmail.com are
+
+linux-next.patch
+platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch
+backlight-convert-backlight-i2c-drivers-to-module_i2c_driver.patch
+backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
+backlight-new-backlight-driver-for-lp855x-devices-fix.patch
+backlight-lp855x_blc-check-platform-data-in-lp855x_probe.patch
+backlight-lp855x_blc-small-cleanups.patch
+rtc-convert-rtc-spi-drivers-to-module_spi_driver.patch
+rtc-convert-rtc-i2c-drivers-to-module_i2c_driver.patch
+
