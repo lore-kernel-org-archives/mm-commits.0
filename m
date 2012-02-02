@@ -1,62 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-fix-memset-parameters-in-setup_sysctl_set.patch removed from -mm tree
-Date: Thu, 02 Feb 2012 12:11:26 -0800
-Message-ID: <20120202201126.5CB93A016E@akpm.mtv.corp.google.com>
+Subject: + avr32-select-generic-atomic64_t-support.patch added to -mm tree
+Date: Thu, 02 Feb 2012 12:27:09 -0800
+Message-ID: <20120202202709.85387A00B3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:37649 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753727Ab2BBUL2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 15:11:28 -0500
-Received: by eaae13 with SMTP id e13so59313eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 12:11:27 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:34122 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176Ab2BBU1L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 15:27:11 -0500
+Received: by vbbfp1 with SMTP id fp1so357008vbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 12:27:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: fabio.baltieri@gmail.com, egtvedt@samfundet.no, hskinnemoen@gmail.com
 
 
 The patch titled
-     Subject: sysctl: fix memset parameters in setup_sysctl_set()
-has been removed from the -mm tree.  Its filename was
-     sysctl-fix-memset-parameters-in-setup_sysctl_set.patch
+     Subject: avr32: select generic atomic64_t support
+has been added to the -mm tree.  Its filename is
+     avr32-select-generic-atomic64_t-support.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: sysctl: fix memset parameters in setup_sysctl_set()
+From: Fabio Baltieri <fabio.baltieri@gmail.com>
+Subject: avr32: select generic atomic64_t support
 
-The current code is a nop.
+Enable use of the generic atomic64 implementation on AVR32 platforms. 
+Without this the kernel fails to build as the architecture does not
+provide its version.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Fabio Baltieri <fabio.baltieri@gmail.com>
+Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/avr32/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-fix-memset-parameters-in-setup_sysctl_set fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-fix-memset-parameters-in-setup_sysctl_set
-+++ a/fs/proc/proc_sysctl.c
-@@ -1547,7 +1547,7 @@ void setup_sysctl_set(struct ctl_table_s
- 	struct ctl_table_root *root,
- 	int (*is_seen)(struct ctl_table_set *))
- {
--	memset(set, sizeof(*set), 0);
-+	memset(set, 0, sizeof(*set));
- 	set->is_seen = is_seen;
- 	init_header(&set->dir.header, root, set, NULL, root_table);
- }
+diff -puN arch/avr32/Kconfig~avr32-select-generic-atomic64_t-support arch/avr32/Kconfig
+--- a/arch/avr32/Kconfig~avr32-select-generic-atomic64_t-support
++++ a/arch/avr32/Kconfig
+@@ -8,6 +8,7 @@ config AVR32
+ 	select HAVE_KPROBES
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_IRQ_PROBE
++	select GENERIC_ATOMIC64
+ 	select HARDIRQS_SW_RESEND
+ 	select GENERIC_IRQ_SHOW
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
 _
+Subject: Subject: avr32: select generic atomic64_t support
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from fabio.baltieri@gmail.com are
 
-origin.patch
-linux-next.patch
-mm-compaction-make-compact_control-order-signed.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-drivers-leds-leds-tca6507c-cleanup-error-handling-in-tca6507_probe.patch
+avr32-select-generic-atomic64_t-support.patch
 
