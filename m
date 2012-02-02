@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-add-driver-for-pca9663-i2c-chip.patch added to -mm tree
-Date: Thu, 02 Feb 2012 14:08:44 -0800
-Message-ID: <20120202220846.163AAA035C@akpm.mtv.corp.google.com>
+Subject: + drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch added to -mm tree
+Date: Thu, 02 Feb 2012 14:08:48 -0800
+Message-ID: <20120202220849.21A90A035C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:49250 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933481Ab2BBWIt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 17:08:49 -0500
-Received: by wicr5 with SMTP id r5so120258wic.1
-        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 14:08:47 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:61564 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933479Ab2BBWIv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 17:08:51 -0500
+Received: by eekb15 with SMTP id b15so90854eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 14:08:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: p.meerwald@bct-electronic.com, lars@metafoo.de, rpurdie@rpsys.net
+Cc: akpm@linux-foundation.org, lars@metafoo.de, p.meerwald@bct-electronic.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: drivers/leds: add driver for PCA9663 I2C chip
+     Subject: drivers-leds-add-driver-for-pca9663-i2c-chip-fix
 has been added to the -mm tree.  Its filename is
-     drivers-leds-add-driver-for-pca9663-i2c-chip.patch
+     drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,256 +33,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Meerwald <p.meerwald@bct-electronic.com>
-Subject: drivers/leds: add driver for PCA9663 I2C chip
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-leds-add-driver-for-pca9663-i2c-chip-fix
 
-Driver for the PCA9633 I2C chip supporting four LEDs and 255 brightness
-levels.
+fix kcalloc() call
 
-Signed-off-by: Peter Meerwald <p.meerwald@bct-electronic.com>
 Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Peter Meerwald <p.meerwald@bct-electronic.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig        |    8 +
- drivers/leds/Makefile       |    1 
- drivers/leds/leds-pca9633.c |  195 ++++++++++++++++++++++++++++++++++
- 3 files changed, 204 insertions(+)
+ drivers/leds/leds-pca9633.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/Kconfig~drivers-leds-add-driver-for-pca9663-i2c-chip drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~drivers-leds-add-driver-for-pca9663-i2c-chip
-+++ a/drivers/leds/Kconfig
-@@ -234,6 +234,14 @@ config LEDS_PCA955X
- 	  LED driver chips accessed via the I2C bus.  Supported
- 	  devices include PCA9550, PCA9551, PCA9552, and PCA9553.
- 
-+config LEDS_PCA9663
-+	tristate "LED support for PCA9663 I2C chip"
-+	depends on LEDS_CLASS
-+	depends on I2C
-+	help
-+	  This option enables support for LEDs connected to the PCA9663
-+	  LED driver chip accessed via the I2C bus.
-+
- config LEDS_WM831X_STATUS
- 	tristate "LED support for status LEDs on WM831x PMICs"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/Makefile~drivers-leds-add-driver-for-pca9663-i2c-chip drivers/leds/Makefile
---- a/drivers/leds/Makefile~drivers-leds-add-driver-for-pca9663-i2c-chip
-+++ a/drivers/leds/Makefile
-@@ -30,6 +30,7 @@ obj-$(CONFIG_LEDS_HP6XX)		+= leds-hp6xx.
- obj-$(CONFIG_LEDS_OT200)		+= leds-ot200.o
- obj-$(CONFIG_LEDS_FSG)			+= leds-fsg.o
- obj-$(CONFIG_LEDS_PCA955X)		+= leds-pca955x.o
-+obj-$(CONFIG_LEDS_PCA9633)		+= leds-pca9633.o
- obj-$(CONFIG_LEDS_DA903X)		+= leds-da903x.o
- obj-$(CONFIG_LEDS_WM831X_STATUS)	+= leds-wm831x-status.o
- obj-$(CONFIG_LEDS_WM8350)		+= leds-wm8350.o
-diff -puN /dev/null drivers/leds/leds-pca9633.c
---- /dev/null
+diff -puN drivers/leds/leds-pca9633.c~drivers-leds-add-driver-for-pca9663-i2c-chip-fix drivers/leds/leds-pca9633.c
+--- a/drivers/leds/leds-pca9633.c~drivers-leds-add-driver-for-pca9663-i2c-chip-fix
 +++ a/drivers/leds/leds-pca9633.c
-@@ -0,0 +1,195 @@
-+/*
-+ * Copyright 2011 bct electronic GmbH
-+ *
-+ * Author: Peter Meerwald <p.meerwald@bct-electronic.com>
-+ *
-+ * Based on leds-pca955x.c
-+ *
-+ * This file is subject to the terms and conditions of version 2 of
-+ * the GNU General Public License.  See the file COPYING in the main
-+ * directory of this archive for more details.
-+ *
-+ * LED driver for the PCA9633 I2C LED driver (7-bit slave address 0x62)
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/string.h>
-+#include <linux/ctype.h>
-+#include <linux/leds.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include <linux/workqueue.h>
-+#include <linux/slab.h>
-+
-+/* LED select registers determine the source that drives LED outputs */
-+#define PCA9633_LED_OFF		0x0	/* LED driver off */
-+#define PCA9633_LED_ON		0x1	/* LED driver on */
-+#define PCA9633_LED_PWM		0x2	/* Controlled through PWM */
-+#define PCA9633_LED_GRP_PWM	0x3	/* Controlled through PWM/GRPPWM */
-+
-+#define PCA9633_MODE1		0x00
-+#define PCA9633_MODE2		0x01
-+#define PCA9633_PWM_BASE	0x02
-+#define PCA9633_LEDOUT		0x08
-+
-+static const struct i2c_device_id pca9633_id[] = {
-+	{ "pca9633", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, pca9633_id);
-+
-+struct pca9633_led {
-+	struct i2c_client *client;
-+	struct work_struct work;
-+	enum led_brightness brightness;
-+	struct led_classdev led_cdev;
-+	int led_num; /* 0 .. 3 potentially */
-+	char name[32];
-+};
-+
-+static void pca9633_led_work(struct work_struct *work)
-+{
-+	struct pca9633_led *pca9633 = container_of(work,
-+		struct pca9633_led, work);
-+	u8 ledout = i2c_smbus_read_byte_data(pca9633->client, PCA9633_LEDOUT);
-+	int shift = 2 * pca9633->led_num;
-+	u8 mask = 0x3 << shift;
-+
-+	switch (pca9633->brightness) {
-+	case LED_FULL:
-+		i2c_smbus_write_byte_data(pca9633->client, PCA9633_LEDOUT,
-+			(ledout & ~mask) | (PCA9633_LED_ON << shift));
-+		break;
-+	case LED_OFF:
-+		i2c_smbus_write_byte_data(pca9633->client, PCA9633_LEDOUT,
-+			ledout & ~mask);
-+		break;
-+	default:
-+		i2c_smbus_write_byte_data(pca9633->client,
-+			PCA9633_PWM_BASE + pca9633->led_num,
-+			pca9633->brightness);
-+		i2c_smbus_write_byte_data(pca9633->client, PCA9633_LEDOUT,
-+			(ledout & ~mask) | (PCA9633_LED_PWM << shift));
-+		break;
-+	}
-+}
-+
-+static void pca9633_led_set(struct led_classdev *led_cdev,
-+	enum led_brightness value)
-+{
-+	struct pca9633_led *pca9633;
-+
-+	pca9633 = container_of(led_cdev, struct pca9633_led, led_cdev);
-+
-+	pca9633->brightness = value;
-+
-+	/*
-+	 * Must use workqueue for the actual I/O since I2C operations
-+	 * can sleep.
-+	 */
-+	schedule_work(&pca9633->work);
-+}
-+
-+static int __devinit pca9633_probe(struct i2c_client *client,
-+					const struct i2c_device_id *id)
-+{
-+	struct pca9633_led *pca9633;
-+	struct i2c_adapter *adapter;
-+	struct led_platform_data *pdata;
-+	int i, err;
-+
-+	adapter = to_i2c_adapter(client->dev.parent);
-+	pdata = client->dev.platform_data;
-+
-+	if (pdata) {
-+		if (pdata->num_leds <= 0 || pdata->num_leds > 4) {
-+			dev_err(&client->dev, "board info must claim at most 4 LEDs");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	pca9633 = kcalloc(sizeof(*pca9633) * 4, GFP_KERNEL);
-+	if (!pca9633)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, pca9633);
-+
-+	for (i = 0; i < 4; i++) {
-+		pca9633[i].client = client;
-+		pca9633[i].led_num = i;
-+
-+		/* Platform data can specify LED names and default triggers */
-+		if (pdata && i < pdata->num_leds) {
-+			if (pdata->leds[i].name)
-+				snprintf(pca9633[i].name,
-+					 sizeof(pca9633[i].name), "pca9633:%s",
-+					 pdata->leds[i].name);
-+			if (pdata->leds[i].default_trigger)
-+				pca9633[i].led_cdev.default_trigger =
-+					pdata->leds[i].default_trigger;
-+		} else {
-+			snprintf(pca9633[i].name, sizeof(pca9633[i].name),
-+				 "pca9633:%d", i);
-+		}
-+
-+		pca9633[i].led_cdev.name = pca9633[i].name;
-+		pca9633[i].led_cdev.brightness_set = pca9633_led_set;
-+
-+		INIT_WORK(&pca9633[i].work, pca9633_led_work);
-+
-+		err = led_classdev_register(&client->dev, &pca9633[i].led_cdev);
-+		if (err < 0)
-+			goto exit;
-+	}
-+
-+	/* Disable LED all-call address and set normal mode */
-+	i2c_smbus_write_byte_data(client, PCA9633_MODE1, 0x00);
-+
-+	/* Turn off LEDs */
-+	i2c_smbus_write_byte_data(client, PCA9633_LEDOUT, 0x00);
-+
-+	return 0;
-+
-+exit:
-+	while (i--) {
-+		led_classdev_unregister(&pca9633[i].led_cdev);
-+		cancel_work_sync(&pca9633[i].work);
-+	}
-+
-+	kfree(pca9633);
-+
-+	return err;
-+}
-+
-+static int __devexit pca9633_remove(struct i2c_client *client)
-+{
-+	struct pca9633_led *pca9633 = i2c_get_clientdata(client);
-+	int i;
-+
-+	for (i = 0; i < 4; i++) {
-+		led_classdev_unregister(&pca9633[i].led_cdev);
-+		cancel_work_sync(&pca9633[i].work);
-+	}
-+
-+	kfree(pca9633);
-+
-+	return 0;
-+}
-+
-+static struct i2c_driver pca9633_driver = {
-+	.driver = {
-+		.name	= "leds-pca9633",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= pca9633_probe,
-+	.remove	= __devexit_p(pca9633_remove),
-+	.id_table = pca9633_id,
-+};
-+
-+module_i2c_driver(pca9633_driver);
-+
-+MODULE_AUTHOR("Peter Meerwald <p.meerwald@bct-electronic.com>");
-+MODULE_DESCRIPTION("PCA9633 LED driver");
-+MODULE_LICENSE("GPL v2");
+@@ -110,7 +110,7 @@ static int __devinit pca9633_probe(struc
+ 		}
+ 	}
+ 
+-	pca9633 = kcalloc(sizeof(*pca9633) * 4, GFP_KERNEL);
++	pca9633 = kcalloc(sizeof(*pca9633), 4, GFP_KERNEL);
+ 	if (!pca9633)
+ 		return -ENOMEM;
+ 
 _
-Subject: Subject: drivers/leds: add driver for PCA9663 I2C chip
+Subject: Subject: drivers-leds-add-driver-for-pca9663-i2c-chip-fix
 
-Patches currently in -mm which might be from p.meerwald@bct-electronic.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-leds-add-driver-for-pca9663-i2c-chip.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-cpufreq-gx-suspmodc-fix-build.patch
+mm-memcontrolc-fix-warning-with-config_numa=n.patch
+mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch
+kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+alix2-supplement-driver-to-include-gpio-button-support-fix.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning-fix.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
 drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
