@@ -1,60 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch removed from -mm tree
-Date: Fri, 03 Feb 2012 15:30:31 -0800
-Message-ID: <20120203233032.4A03FA01D6@akpm.mtv.corp.google.com>
+Subject: [folded] kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch removed from -mm tree
+Date: Fri, 03 Feb 2012 15:31:04 -0800
+Message-ID: <20120203233105.16C0AA01D6@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:56201 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477Ab2BCXae (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2012 18:30:34 -0500
-Received: by eekb15 with SMTP id b15so129033eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 03 Feb 2012 15:30:33 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:40757 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754477Ab2BCXbI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2012 18:31:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, carsteno@de.ibm.com, cotte@de.ibm.com, hughd@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, jiang.liu@huawei.com, jkenisto@us.ibm.com, liuj97@gmail.com, masami.hiramatsu.pt@hitachi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix
+     Subject: kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
 has been removed from the -mm tree.  Its filename was
-     mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch
+     kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
 
-This patch was dropped because it was folded into mm-filemap_xipc-fix-race-condition-in-xip_file_fault.patch
+This patch was dropped because it was folded into kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix
+Subject: kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
 
-use conventional (and consistent) comment layout
+use raw_spin_lock/unlock
 
-Cc: Carsten Otte <carsteno@de.ibm.com>
-Cc: Carsten Otte <cotte@de.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
+kernel/kprobes.c: In function 'pre_handler_kretprobe':
+kernel/kprobes.c:1677: warning: passing argument 1 of 'spinlock_check' from incompatible pointer type
+include/linux/spinlock.h:272: note: expected 'struct spinlock_t *' but argument is of type 'struct raw_spinlock_t *'
+kernel/kprobes.c:1679: warning: passing argument 1 of 'spin_unlock_irqrestore' from incompatible pointer type
+include/linux/spinlock.h:338: note: expected 'struct spinlock_t *' but argument is of type 'struct raw_spinlock_t *'
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <stable@vger.kernel.org>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/kprobes.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/filemap_xip.c~mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix
-+++ a/mm/filemap_xip.c
-@@ -263,8 +263,10 @@ found:
- 							xip_pfn);
- 		if (err == -ENOMEM)
- 			return VM_FAULT_OOM;
--		/* err == -EBUSY is fine, we've raced against another thread
--		   that faulted-in the same page */
-+		/*
-+		 * err == -EBUSY is fine, we've raced against another thread
-+		 * that faulted-in the same page
-+		 */
- 		if (err != -EBUSY)
- 			BUG_ON(err);
- 		return VM_FAULT_NOPAGE;
+diff -puN kernel/kprobes.c~kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
++++ a/kernel/kprobes.c
+@@ -1674,9 +1674,9 @@ static int __kprobes pre_handler_kretpro
+ 		ri->task = current;
+ 
+ 		if (rp->entry_handler && rp->entry_handler(ri, regs)) {
+-			spin_lock_irqsave(&rp->lock, flags);
++			raw_spin_lock_irqsave(&rp->lock, flags);
+ 			hlist_add_head(&ri->hlist, &rp->free_instances);
+-			spin_unlock_irqrestore(&rp->lock, flags);
++			raw_spin_unlock_irqrestore(&rp->lock, flags);
+ 			return 0;
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +70,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 mm-memcontrolc-fix-warning-with-config_numa=n.patch
 mm-filemap_xipc-fix-race-condition-in-xip_file_fault.patch
-kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
+kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe.patch
 linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
