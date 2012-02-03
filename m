@@ -1,121 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-cpufreq-gx-suspmodc-fix-build.patch removed from -mm tree
-Date: Fri, 03 Feb 2012 11:28:22 -0800
-Message-ID: <20120203192823.E782EA02DE@akpm.mtv.corp.google.com>
+Subject: + ipmi-decreases-the-ipmi-message-transaction-time-in-interrupt-mode.patch added to -mm tree
+Date: Fri, 03 Feb 2012 11:52:16 -0800
+Message-ID: <20120203195217.478BDA00B3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:36323 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753916Ab2BCT20 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2012 14:28:26 -0500
-Received: by ghrr17 with SMTP id r17so391107ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 03 Feb 2012 11:28:25 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:40204 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754509Ab2BCTwT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2012 14:52:19 -0500
+Received: by eaag13 with SMTP id g13so11683eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 03 Feb 2012 11:52:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, davej@redhat.com, gregkh@suse.de, hpa@zytor.com, kay.sievers@vrfy.org, trenn@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: srinivas_g_gowda@dell.com, cminyard@mvista.com
 
 
 The patch titled
-     Subject: drivers/cpufreq/gx-suspmod.c: fix build
-has been removed from the -mm tree.  Its filename was
-     drivers-cpufreq-gx-suspmodc-fix-build.patch
+     Subject: ipmi: decrease the IPMI message transaction time in interrupt mode
+has been added to the -mm tree.  Its filename is
+     ipmi-decreases-the-ipmi-message-transaction-time-in-interrupt-mode.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/cpufreq/gx-suspmod.c: fix build
+From: Srinivas_Gowda <srinivas_g_gowda@dell.com>
+Subject: ipmi: decrease the IPMI message transaction time in interrupt mode
 
-i386 allmodconfig:
+Call the event handler immediately after starting the next message.
 
-drivers/cpufreq/gx-suspmod.c:175:35: error: macro "MODULE_DEVICE_TABLE" requires 2 arguments, but only 1 given
-drivers/cpufreq/gx-suspmod.c:175: warning: data definition has no type or storage class
-drivers/cpufreq/gx-suspmod.c:175: warning: type defaults to 'int' in declaration of 'MODULE_DEVICE_TABLE'
+This change considerably decreases the IPMI transaction time (cuts off
+~9ms for a single ipmitool transaction).
 
-How did this get through??
-
-The patch is a guess.
-
-Cc: Dave Jones <davej@redhat.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Srinivas_Gowda <srinivas_g_gowda@dell.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/gx-suspmod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_si_intf.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/cpufreq/gx-suspmod.c~drivers-cpufreq-gx-suspmodc-fix-build drivers/cpufreq/gx-suspmod.c
---- a/drivers/cpufreq/gx-suspmod.c~drivers-cpufreq-gx-suspmodc-fix-build
-+++ a/drivers/cpufreq/gx-suspmod.c
-@@ -172,7 +172,7 @@ static struct pci_device_id gx_chipset_t
- 	{ PCI_VDEVICE(CYRIX, PCI_DEVICE_ID_CYRIX_5510), },
- 	{ 0, },
- };
--MODULE_DEVICE_TABLE(gx_chipset_tbl);
-+MODULE_DEVICE_TABLE(x86cpu, gx_chipset_tbl);
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-decreases-the-ipmi-message-transaction-time-in-interrupt-mode drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-decreases-the-ipmi-message-transaction-time-in-interrupt-mode
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -932,8 +932,10 @@ static void sender(void                *
+ 	spin_unlock_irqrestore(&smi_info->msg_lock, flags);
  
- static void gx_write_byte(int reg, int value)
- {
+ 	spin_lock_irqsave(&smi_info->si_lock, flags);
+-	if (smi_info->si_state == SI_NORMAL && smi_info->curr_msg == NULL)
++	if (smi_info->si_state == SI_NORMAL && smi_info->curr_msg == NULL) {
+ 		start_next_msg(smi_info);
++		smi_event_handler(smi_info, 0);
++	}
+ 	spin_unlock_irqrestore(&smi_info->si_lock, flags);
+ }
+ 
 _
+Subject: Subject: ipmi: decrease the IPMI message transaction time in interrupt mode
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from srinivas_g_gowda@dell.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-mm-memcontrolc-fix-warning-with-config_numa=n.patch
-mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch
-kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-alix2-supplement-driver-to-include-gpio-button-support-fix.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning-fix.patch
-drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ipmi-decreases-the-ipmi-message-transaction-time-in-interrupt-mode.patch
 
