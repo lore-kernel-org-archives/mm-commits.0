@@ -1,73 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + alix2-supplement-driver-to-include-gpio-button-support-fix-2.patch added to -mm tree
-Date: Fri, 03 Feb 2012 14:34:06 -0800
-Message-ID: <20120203223406.96934A035C@akpm.mtv.corp.google.com>
+Subject: [folded] mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch removed from -mm tree
+Date: Fri, 03 Feb 2012 15:30:31 -0800
+Message-ID: <20120203233032.4A03FA01D6@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:50351 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753664Ab2BCWeI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2012 17:34:08 -0500
-Received: by qcsp5 with SMTP id p5so469707qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 03 Feb 2012 14:34:07 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56201 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754477Ab2BCXae (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2012 18:30:34 -0500
+Received: by eekb15 with SMTP id b15so129033eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 03 Feb 2012 15:30:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: philipp@redfish-solutions.com, jkosina@suse.cz
+To: akpm@linux-foundation.org, carsteno@de.ibm.com, cotte@de.ibm.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alix2-supplement-driver-to-include-gpio-button-support-fix-2
-has been added to the -mm tree.  Its filename is
-     alix2-supplement-driver-to-include-gpio-button-support-fix-2.patch
+     Subject: mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix
+has been removed from the -mm tree.  Its filename was
+     mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into mm-filemap_xipc-fix-race-condition-in-xip_file_fault.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Philip A. Prindeville" <philipp@redfish-solutions.com>
-Subject: alix2-supplement-driver-to-include-gpio-button-support-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix
 
-The pointers returned by dmi_get_system_info(), etc. are to invariant
-strings, i.e. read-only.
+use conventional (and consistent) comment layout
 
-Signed-off-by: Philip A. Prindeville <philipp@redfish-solutions.com>
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Carsten Otte <carsteno@de.ibm.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/geode/alix.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap_xip.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio-button-support-fix-2 arch/x86/platform/geode/alix.c
---- a/arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio-button-support-fix-2
-+++ a/arch/x86/platform/geode/alix.c
-@@ -161,7 +161,7 @@ static bool __init alix_present(unsigned
- 
- static bool __init alix_present_dmi(void)
- {
--	char *vendor, *product;
-+	const char *vendor, *product;
- 
- 	vendor = dmi_get_system_info(DMI_SYS_VENDOR);
- 	if (!vendor || strcmp(vendor, "PC Engines"))
+diff -puN mm/filemap_xip.c~mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix
++++ a/mm/filemap_xip.c
+@@ -263,8 +263,10 @@ found:
+ 							xip_pfn);
+ 		if (err == -ENOMEM)
+ 			return VM_FAULT_OOM;
+-		/* err == -EBUSY is fine, we've raced against another thread
+-		   that faulted-in the same page */
++		/*
++		 * err == -EBUSY is fine, we've raced against another thread
++		 * that faulted-in the same page
++		 */
+ 		if (err != -EBUSY)
+ 			BUG_ON(err);
+ 		return VM_FAULT_NOPAGE;
 _
-Subject: Subject: alix2-supplement-driver-to-include-gpio-button-support-fix-2
 
-Patches currently in -mm which might be from philipp@redfish-solutions.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-geos-platform-driver-for-geos-and-geos2-single-board-computers.patch
-alix2-supplement-driver-to-include-gpio-button-support.patch
+origin.patch
+mm-memcontrolc-fix-warning-with-config_numa=n.patch
+mm-filemap_xipc-fix-race-condition-in-xip_file_fault.patch
+kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 alix2-supplement-driver-to-include-gpio-button-support-fix.patch
-alix2-supplement-driver-to-include-gpio-button-support-fix-2.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
 net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning-fix.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
