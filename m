@@ -1,75 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 02 Feb 2012 16:11:29 -0800
-Message-ID: <20120203001129.E204AA0342@akpm.mtv.corp.google.com>
+Subject: [alternative-merged] drivers-cpufreq-gx-suspmodc-fix-build.patch removed from -mm tree
+Date: Fri, 03 Feb 2012 11:28:22 -0800
+Message-ID: <20120203192823.E782EA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:55599 "EHLO
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:36323 "EHLO
 	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754821Ab2BCALb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Feb 2012 19:11:31 -0500
-Received: by ghrr17 with SMTP id r17so314768ghr.1
-        for <mm-commits@vger.kernel.org>; Thu, 02 Feb 2012 16:11:30 -0800 (PST)
+	with ESMTP id S1753916Ab2BCT20 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2012 14:28:26 -0500
+Received: by ghrr17 with SMTP id r17so391107ghr.1
+        for <mm-commits@vger.kernel.org>; Fri, 03 Feb 2012 11:28:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, daniel.lezcano@free.fr
+To: akpm@linux-foundation.org, ak@linux.intel.com, davej@redhat.com, gregkh@suse.de, hpa@zytor.com, kay.sievers@vrfy.org, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+     Subject: drivers/cpufreq/gx-suspmod.c: fix build
+has been removed from the -mm tree.  Its filename was
+     drivers-cpufreq-gx-suspmodc-fix-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an alternative patch was merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes
+Subject: drivers/cpufreq/gx-suspmod.c: fix build
 
-ERROR: space required before the open parenthesis '('
-#111: FILE: kernel/pid_namespace.c:233:
-+	switch(cmd) {
+i386 allmodconfig:
 
-total: 1 errors, 0 warnings, 95 lines checked
+drivers/cpufreq/gx-suspmod.c:175:35: error: macro "MODULE_DEVICE_TABLE" requires 2 arguments, but only 1 given
+drivers/cpufreq/gx-suspmod.c:175: warning: data definition has no type or storage class
+drivers/cpufreq/gx-suspmod.c:175: warning: type defaults to 'int' in declaration of 'MODULE_DEVICE_TABLE'
 
-./patches/pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch has style problems, please review.
+How did this get through??
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
+The patch is a guess.
 
-Please run checkpatch prior to sending patches
-
-Cc: Daniel Lezcano <daniel.lezcano@free.fr>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    2 +-
+ drivers/cpufreq/gx-suspmod.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/pid_namespace.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes
-+++ a/kernel/pid_namespace.c
-@@ -230,7 +230,7 @@ int reboot_pid_ns(struct pid_namespace *
- 	if (pid_ns == &init_pid_ns)
- 		return 0;
+diff -puN drivers/cpufreq/gx-suspmod.c~drivers-cpufreq-gx-suspmodc-fix-build drivers/cpufreq/gx-suspmod.c
+--- a/drivers/cpufreq/gx-suspmod.c~drivers-cpufreq-gx-suspmodc-fix-build
++++ a/drivers/cpufreq/gx-suspmod.c
+@@ -172,7 +172,7 @@ static struct pci_device_id gx_chipset_t
+ 	{ PCI_VDEVICE(CYRIX, PCI_DEVICE_ID_CYRIX_5510), },
+ 	{ 0, },
+ };
+-MODULE_DEVICE_TABLE(gx_chipset_tbl);
++MODULE_DEVICE_TABLE(x86cpu, gx_chipset_tbl);
  
--	switch(cmd) {
-+	switch (cmd) {
- 	case LINUX_REBOOT_CMD_RESTART2:
- 	case LINUX_REBOOT_CMD_RESTART:
- 		pid_ns->reboot = SIGHUP;
+ static void gx_write_byte(int reg, int value)
+ {
 _
-Subject: Subject: pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -79,7 +72,6 @@ linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-cpufreq-gx-suspmodc-fix-build.patch
 mm-memcontrolc-fix-warning-with-config_numa=n.patch
 mm-filemap_xipc-fix-race-condition-in-xip_file_fault-fix.patch
 kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
