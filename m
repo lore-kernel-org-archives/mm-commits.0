@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-maintainer-entry-for-exynos-dp-driver.patch added to -mm tree
-Date: Mon, 06 Feb 2012 15:10:51 -0800
-Message-ID: <20120206231051.78486A01D6@akpm.mtv.corp.google.com>
+Subject: + smp-add-func-to-ipi-cpus-based-on-parameter-func-update.patch added to -mm tree
+Date: Mon, 06 Feb 2012 15:31:07 -0800
+Message-ID: <20120206233108.39B0CA01F8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:53562 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756064Ab2BFXKx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 18:10:53 -0500
-Received: by faaa19 with SMTP id a19so212910faa.1
-        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 15:10:52 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:56913 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753394Ab2BFXbJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 18:31:09 -0500
+Received: by yenm1 with SMTP id m1so41573yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 15:31:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, FlorianSchandinat@gmx.de, dh09.lee@samsung.com, inki.dae@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net
+Cc: gilad@benyossef.com, srivatsa.bhat@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: MAINTAINERS: add maintainer entry for Exynos DP driver
+     Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-update
 has been added to the -mm tree.  Its filename is
-     maintainers-add-maintainer-entry-for-exynos-dp-driver.patch
+     smp-add-func-to-ipi-cpus-based-on-parameter-func-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: MAINTAINERS: add maintainer entry for Exynos DP driver
+From: Gilad Ben-Yossef <gilad@benyossef.com>
+Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-update
 
-Add maintainer entry for Exynos DP driver which can be used for Samsung
-Exynos SoC series.
+Add the on_each_cpu_cond() function that wraps on_each_cpu_mask()
+and calculates the cpumask of cpus to IPI by calling a function supplied
+as a parameter in order to determine whether to IPI each specific cpu.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Donghwa Lee <dh09.lee@samsung.com>
-Cc: Inki Dae <inki.dae@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+The function works around allocation failure of cpumask variable in
+CONFIG_CPUMASK_OFFSTACK=y by itereating over cpus sending an IPI a
+time via smp_call_function_single().
+
+The function is useful since it allows to seperate the specific
+code that decided in each case whether to IPI a specific cpu for
+a specific request from the common boilerplate code of handling
+creating the mask, handling failures etc.
+
+Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
+Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/smp.h |    4 ++++
+ kernel/smp.c        |    2 ++
+ 2 files changed, 6 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-add-maintainer-entry-for-exynos-dp-driver MAINTAINERS
---- a/MAINTAINERS~maintainers-add-maintainer-entry-for-exynos-dp-driver
-+++ a/MAINTAINERS
-@@ -2632,6 +2632,12 @@ M:	Mimi Zohar <zohar@us.ibm.com>
- S:	Supported
- F:	security/integrity/evm/
- 
-+EXYNOS DP DRIVER
-+M:	Jingoo Han <jg1.han@samsung.com>
-+L:	linux-fbdev@vger.kernel.org
-+S:	Maintained
-+F:	drivers/video/exynos/exynos_dp*
-+
- F71805F HARDWARE MONITORING DRIVER
- M:	Jean Delvare <khali@linux-fr.org>
- L:	lm-sensors@lm-sensors.org
+diff -puN include/linux/smp.h~smp-add-func-to-ipi-cpus-based-on-parameter-func-update include/linux/smp.h
+--- a/include/linux/smp.h~smp-add-func-to-ipi-cpus-based-on-parameter-func-update
++++ a/include/linux/smp.h
+@@ -162,6 +162,10 @@ static inline int up_smp_call_function(s
+ 			local_irq_enable();		\
+ 		}					\
+ 	} while (0)
++/*
++ * Preemption is disabled here to make sure the cond_func is called under the
++ * same condtions in UP and SMP.
++ */
+ #define on_each_cpu_cond(cond_func, func, info, wait, gfp_flags)\
+ 	do {							\
+ 		preempt_disable();				\
+diff -puN kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-update kernel/smp.c
+--- a/kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-update
++++ a/kernel/smp.c
+@@ -771,6 +771,8 @@ EXPORT_SYMBOL(on_each_cpu_mask);
+  * The function might sleep if the GFP flags indicates a non
+  * atomic allocation is allowed.
+  *
++ * Preemption is disabled to protect against a hotplug event.
++ *
+  * You must not call this function with disabled interrupts or
+  * from a hardware interrupt handler or from a bottom half handler.
+  */
 _
-Subject: Subject: MAINTAINERS: add maintainer entry for Exynos DP driver
+Subject: Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-update
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from gilad@benyossef.com are
 
-maintainers-add-maintainer-entry-for-exynos-dp-driver.patch
-linux-next.patch
-video-support-mipi-dsi-controller-driver.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
-video-support-dp-controller-driver.patch
-backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
+smp-introduce-a-generic-on_each_cpu_mask-function.patch
+arm-move-arm-over-to-generic-on_each_cpu_mask.patch
+tile-move-tile-to-use-generic-on_each_cpu_mask.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update.patch
+slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
+fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist-update.patch
 
