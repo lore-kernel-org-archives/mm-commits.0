@@ -1,68 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-tty-vt-vt_ioctlc-fix-kdfontop-32bit-compatibility-layer.patch removed from -mm tree
-Date: Mon, 06 Feb 2012 12:31:29 -0800
-Message-ID: <20120206203129.809F0A0308@akpm.mtv.corp.google.com>
+Subject: [merged] kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe.patch removed from -mm tree
+Date: Mon, 06 Feb 2012 12:31:31 -0800
+Message-ID: <20120206203131.7E85AA0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:33821 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755536Ab2BFUba (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:30 -0500
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:36504 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755536Ab2BFUbc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samuel.thibault@ens-lyon.org, arnd@arndb.de, art@ified.ca, gregkh@suse.de, jolsa@redhat.com, jslaby@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: liuj97@gmail.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, jiang.liu@huawei.com, jkenisto@us.ibm.com, masami.hiramatsu.pt@hitachi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/tty/vt/vt_ioctl.c: fix KDFONTOP 32bit compatibility layer
+     Subject: kprobes: fix a memory leak in function pre_handler_kretprobe()
 has been removed from the -mm tree.  Its filename was
-     drivers-tty-vt-vt_ioctlc-fix-kdfontop-32bit-compatibility-layer.patch
+     kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: drivers/tty/vt/vt_ioctl.c: fix KDFONTOP 32bit compatibility layer
+From: Jiang Liu <liuj97@gmail.com>
+Subject: kprobes: fix a memory leak in function pre_handler_kretprobe()
 
-KDFONTOP(GET) currently fails with EIO when being run in a 32bit userland
-with a 64bit kernel if the font width is not 8.
+In function pre_handler_kretprobe(), the allocated kretprobe_instance
+object will get leaked if the entry_handler callback returns non-zero. 
+This may cause all the preallocated kretprobe_instance objects exhausted.
 
-This is because of the setting of the KD_FONT_FLAG_OLD flag, which makes
-con_font_get return EIO in such case.  
+This issue can be reproduced by changing
+samples/kprobes/kretprobe_example.c to probe "mutex_unlock".  And the fix
+is straightforward: just put the allocated kretprobe_instance object back
+onto the free_instances list.
 
-This flag should *not* be set for KDFONTOP, since it's actually the whole
-point of this flag (see comment in con_font_set for instance).
-
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Arthur Taylor <art@ified.ca>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Jiri Olsa <jolsa@redhat.com>
+[akpm@linux-foundation.org: use raw_spin_lock/unlock]
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Acked-by: Jim Keniston <jkenisto@us.ibm.com>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt_ioctl.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/kprobes.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/tty/vt/vt_ioctl.c~drivers-tty-vt-vt_ioctlc-fix-kdfontop-32bit-compatibility-layer drivers/tty/vt/vt_ioctl.c
---- a/drivers/tty/vt/vt_ioctl.c~drivers-tty-vt-vt_ioctlc-fix-kdfontop-32bit-compatibility-layer
-+++ a/drivers/tty/vt/vt_ioctl.c
-@@ -1463,7 +1463,6 @@ compat_kdfontop_ioctl(struct compat_cons
- 	if (!perm && op->op != KD_FONT_OP_GET)
- 		return -EPERM;
- 	op->data = compat_ptr(((struct compat_console_font_op *)op)->data);
--	op->flags |= KD_FONT_FLAG_OLD;
- 	i = con_font_op(vc, op);
- 	if (i)
- 		return i;
+diff -puN kernel/kprobes.c~kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe
++++ a/kernel/kprobes.c
+@@ -1673,8 +1673,12 @@ static int __kprobes pre_handler_kretpro
+ 		ri->rp = rp;
+ 		ri->task = current;
+ 
+-		if (rp->entry_handler && rp->entry_handler(ri, regs))
++		if (rp->entry_handler && rp->entry_handler(ri, regs)) {
++			raw_spin_lock_irqsave(&rp->lock, flags);
++			hlist_add_head(&ri->hlist, &rp->free_instances);
++			raw_spin_unlock_irqrestore(&rp->lock, flags);
+ 			return 0;
++		}
+ 
+ 		arch_prepare_kretprobe(ri, regs);
+ 
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from liuj97@gmail.com are
 
 origin.patch
-linux-next.patch
 
