@@ -1,122 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] readahead-fix-pipeline-break-caused-by-block-plug.patch removed from -mm tree
-Date: Mon, 06 Feb 2012 12:31:33 -0800
-Message-ID: <20120206203133.BF739A0308@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-tty-vt-vt_ioctlc-fix-kdfontop-32bit-compatibility-layer.patch removed from -mm tree
+Date: Mon, 06 Feb 2012 12:31:29 -0800
+Message-ID: <20120206203129.809F0A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gx0-f202.google.com ([209.85.161.202]:33821 "EHLO
 	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755536Ab2BFUbe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:34 -0500
+	with ESMTP id S1755536Ab2BFUba (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, axboe@kernel.dk, eric.dumazet@gmail.com, fengguang.wu@intel.com, hch@infradead.org, herbert@13thfloor.at, stable@vger.kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: samuel.thibault@ens-lyon.org, arnd@arndb.de, art@ified.ca, gregkh@suse.de, jolsa@redhat.com, jslaby@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: readahead: fix pipeline break caused by block plug
+     Subject: drivers/tty/vt/vt_ioctl.c: fix KDFONTOP 32bit compatibility layer
 has been removed from the -mm tree.  Its filename was
-     readahead-fix-pipeline-break-caused-by-block-plug.patch
+     drivers-tty-vt-vt_ioctlc-fix-kdfontop-32bit-compatibility-layer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Shaohua Li <shaohua.li@intel.com>
-Subject: readahead: fix pipeline break caused by block plug
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: drivers/tty/vt/vt_ioctl.c: fix KDFONTOP 32bit compatibility layer
 
-Herbert Poetzl reported a performance regression since 2.6.39.  The test
-is a simple dd read, but with big block size.  The reason is:
+KDFONTOP(GET) currently fails with EIO when being run in a 32bit userland
+with a 64bit kernel if the font width is not 8.
 
-T1: ra (A, A+128k), (A+128k, A+256k)
-T2: lock_page for page A, submit the 256k
-T3: hit page A+128K, ra (A+256k, A+384). the range isn't submitted
-because of plug and there isn't any lock_page till we hit page A+256k
-because all pages from A to A+256k is in memory
-T4: hit page A+256k, ra (A+384, A+ 512). Because of plug, the range isn't
-submitted again.
-T5: lock_page A+256k, so (A+256k, A+512k) will be submitted. The task is
-waitting for (A+256k, A+512k) finish.
+This is because of the setting of the KD_FONT_FLAG_OLD flag, which makes
+con_font_get return EIO in such case.  
 
-There is no request to disk in T3 and T4, so readahead pipeline breaks.
+This flag should *not* be set for KDFONTOP, since it's actually the whole
+point of this flag (see comment in con_font_set for instance).
 
-We really don't need block plug for generic_file_aio_read() for buffered
-I/O.  The readahead already has plug and has fine grained control when I/O
-should be submitted.  Deleting plug for buffered I/O fixes the regression.
-
-One side effect is plug makes the request size 256k, the size is 128k
-without it.  This is because default ra size is 128k and not a reason we
-need plug here.
-
-Vivek said:
-
-: We submit some readahead IO to device request queue but because of nested
-: plug, queue never gets unplugged.  When read logic reaches a page which is
-: not in page cache, it waits for page to be read from the disk
-: (lock_page_killable()) and that time we flush the plug list.
-: 
-: So effectively read ahead logic is kind of broken in parts because of
-: nested plugging.  Removing top level plug (generic_file_aio_read()) for
-: buffered reads, will allow unplugging queue earlier for readahead.
-
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Reported-by: Herbert Poetzl <herbert@13thfloor.at>
-Tested-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Arthur Taylor <art@ified.ca>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Jiri Olsa <jolsa@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/tty/vt/vt_ioctl.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/filemap.c~readahead-fix-pipeline-break-caused-by-block-plug mm/filemap.c
---- a/mm/filemap.c~readahead-fix-pipeline-break-caused-by-block-plug
-+++ a/mm/filemap.c
-@@ -1400,15 +1400,12 @@ generic_file_aio_read(struct kiocb *iocb
- 	unsigned long seg = 0;
- 	size_t count;
- 	loff_t *ppos = &iocb->ki_pos;
--	struct blk_plug plug;
- 
- 	count = 0;
- 	retval = generic_segment_checks(iov, &nr_segs, &count, VERIFY_WRITE);
- 	if (retval)
- 		return retval;
- 
--	blk_start_plug(&plug);
--
- 	/* coalesce the iovecs and go direct-to-BIO for O_DIRECT */
- 	if (filp->f_flags & O_DIRECT) {
- 		loff_t size;
-@@ -1424,8 +1421,12 @@ generic_file_aio_read(struct kiocb *iocb
- 			retval = filemap_write_and_wait_range(mapping, pos,
- 					pos + iov_length(iov, nr_segs) - 1);
- 			if (!retval) {
-+				struct blk_plug plug;
-+
-+				blk_start_plug(&plug);
- 				retval = mapping->a_ops->direct_IO(READ, iocb,
- 							iov, pos, nr_segs);
-+				blk_finish_plug(&plug);
- 			}
- 			if (retval > 0) {
- 				*ppos = pos + retval;
-@@ -1481,7 +1482,6 @@ generic_file_aio_read(struct kiocb *iocb
- 			break;
- 	}
- out:
--	blk_finish_plug(&plug);
- 	return retval;
- }
- EXPORT_SYMBOL(generic_file_aio_read);
+diff -puN drivers/tty/vt/vt_ioctl.c~drivers-tty-vt-vt_ioctlc-fix-kdfontop-32bit-compatibility-layer drivers/tty/vt/vt_ioctl.c
+--- a/drivers/tty/vt/vt_ioctl.c~drivers-tty-vt-vt_ioctlc-fix-kdfontop-32bit-compatibility-layer
++++ a/drivers/tty/vt/vt_ioctl.c
+@@ -1463,7 +1463,6 @@ compat_kdfontop_ioctl(struct compat_cons
+ 	if (!perm && op->op != KD_FONT_OP_GET)
+ 		return -EPERM;
+ 	op->data = compat_ptr(((struct compat_console_font_op *)op)->data);
+-	op->flags |= KD_FONT_FLAG_OLD;
+ 	i = con_font_op(vc, op);
+ 	if (i)
+ 		return i;
 _
 
-Patches currently in -mm which might be from shaohua.li@intel.com are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 
 origin.patch
 linux-next.patch
