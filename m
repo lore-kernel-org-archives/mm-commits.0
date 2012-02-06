@@ -1,204 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-base-memoryc-fix-memory_dev_init-long-delay.patch removed from -mm tree
-Date: Mon, 06 Feb 2012 12:31:39 -0800
-Message-ID: <20120206203139.9D816A0308@akpm.mtv.corp.google.com>
+Subject: + compact_pgdat-workaround-lockdep-warning-in-kswapd.patch added to -mm tree
+Date: Mon, 06 Feb 2012 12:46:59 -0800
+Message-ID: <20120206204659.C54F0A01C7@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:42747 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755587Ab2BFUbl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:41 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so211736eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 12:31:40 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:45152 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755363Ab2BFUrA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:47:00 -0500
+Received: by ghrr17 with SMTP id r17so617628ghr.1
+        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 12:47:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, gregkh@suse.de, holt@sgi.com, kay.sievers@vrfy.org, nfont@austin.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hughd@google.com, mel@csn.ul.ie, riel@redhat.com, tj@kernel.org
 
 
 The patch titled
-     Subject: drivers/base/memory.c: fix memory_dev_init() long delay
-has been removed from the -mm tree.  Its filename was
-     drivers-base-memoryc-fix-memory_dev_init-long-delay.patch
+     Subject: compact_pgdat: workaround lockdep warning in kswapd
+has been added to the -mm tree.  Its filename is
+     compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: drivers/base/memory.c: fix memory_dev_init() long delay
+From: Hugh Dickins <hughd@google.com>
+Subject: compact_pgdat: workaround lockdep warning in kswapd
 
-One system with 2048g ram, reported soft lockup on recent kernel.
+I get this lockdep warning from swapping load on linux-next (20120201 but
+I expect the same from more recent days):
 
-[   34.426749] cpu_dev_init done
-[   61.166399] BUG: soft lockup - CPU#0 stuck for 22s! [swapper/0:1]
-[   61.166733] Modules linked in:
-[   61.166904] irq event stamp: 1935610
-[   61.178431] hardirqs last  enabled at (1935609): [<ffffffff81ce8c05>] mutex_lock_nested+0x299/0x2b4
-[   61.178923] hardirqs last disabled at (1935610): [<ffffffff81cf2bab>] apic_timer_interrupt+0x6b/0x80
-[   61.198767] softirqs last  enabled at (1935476): [<ffffffff8106e59c>] __do_softirq+0x195/0x1ab
-[   61.218604] softirqs last disabled at (1935471): [<ffffffff81cf359c>] call_softirq+0x1c/0x30
-[   61.238408] CPU 0
-[   61.238549] Modules linked in:
-[   61.238744]
-[   61.238825] Pid: 1, comm: swapper/0 Not tainted 3.3.0-rc1-tip-yh-02076-g962f689-dirty #171
-[   61.278212] RIP: 0010:[<ffffffff810b3e3a>]  [<ffffffff810b3e3a>] lock_release+0x90/0x9c
-[   61.278627] RSP: 0018:ffff883f64dbfd70  EFLAGS: 00000246
-[   61.298287] RAX: ffff883f64dc0000 RBX: 0000000000000000 RCX: 000000000000008b
-[   61.298690] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-[   61.318383] RBP: ffff883f64dbfda0 R08: 0000000000000001 R09: 000000000000008b
-[   61.338215] R10: 0000000000000000 R11: 0000000000000000 R12: ffff883f64dbfd10
-[   61.338610] R13: ffff883f64dc0708 R14: ffff883f64dc0708 R15: ffffffff81095657
-[   61.358299] FS:  0000000000000000(0000) GS:ffff883f7d600000(0000) knlGS:0000000000000000
-[   61.378118] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[   61.378450] CR2: 0000000000000000 CR3: 00000000024af000 CR4: 00000000000007f0
-[   61.398144] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   61.417918] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[   61.418260] Process swapper/0 (pid: 1, threadinfo ffff883f64dbe000, task ffff883f64dc0000)
-[   61.445358] Stack:
-[   61.445511]  0000000000000002 ffff897f649ba168 ffff883f64dbfe10 ffff88ff64bb57a8
-[   61.458040]  0000000000000000 0000000000000000 ffff883f64dbfdc0 ffffffff81ceb1b4
-[   61.458491]  000000000011608c ffff88ff64bb58a8 ffff883f64dbfdf0 ffffffff81c57638
-[   61.478215] Call Trace:
-[   61.478367]  [<ffffffff81ceb1b4>] _raw_spin_unlock+0x21/0x2e
-[   61.497994]  [<ffffffff81c57638>] klist_next+0x9e/0xbc
-[   61.498264]  [<ffffffff8148ba99>] next_device+0xe/0x1e
-[   61.517867]  [<ffffffff8148c0cc>] subsys_find_device_by_id+0xb7/0xd6
-[   61.518197]  [<ffffffff81498846>] find_memory_block_hinted+0x3d/0x66
-[   61.537927]  [<ffffffff8149887f>] find_memory_block+0x10/0x12
-[   61.538193]  [<ffffffff814988b6>] add_memory_section+0x35/0x9e
-[   61.557932]  [<ffffffff827fecef>] memory_dev_init+0x68/0xda
-[   61.558227]  [<ffffffff827fec01>] driver_init+0x97/0xa7
-[   61.577853]  [<ffffffff827cdf3c>] kernel_init+0xf6/0x1c0
-[   61.578140]  [<ffffffff81cf34a4>] kernel_thread_helper+0x4/0x10
-[   61.597850]  [<ffffffff81ceb59d>] ? retint_restore_args+0xe/0xe
-[   61.598144]  [<ffffffff827cde46>] ? start_kernel+0x3ab/0x3ab
-[   61.617826]  [<ffffffff81cf34a0>] ? gs_change+0xb/0xb
-[   61.618060] Code: 10 48 83 3b 00 eb e8 4c 89 f2 44 89 fe 4c 89 ef e8 e1 fe ff ff 65 48 8b 04 25 40 bc 00 00 c7 80 cc 06 00 00 00 00 00 00 41 54 9d <5e> 5b 41 5c 41 5d 41 5e 41 5f 5d c3 55 48 89 e5 41 57 41 89 cf
-[   89.285380] memory_dev_init done
+=================================
+[ INFO: inconsistent lock state ]
+3.3.0-rc2-next-20120201 #5 Not tainted
+---------------------------------
+inconsistent {RECLAIM_FS-ON-W} -> {IN-RECLAIM_FS-W} usage.
+kswapd0/28 [HC0[0]:SC0[0]:HE1:SE1] takes:
+ (pcpu_alloc_mutex){+.+.?.}, at: [<ffffffff810d6684>] pcpu_alloc+0x67/0x325
+{RECLAIM_FS-ON-W} state was registered at:
+  [<ffffffff81099b75>] mark_held_locks+0xd7/0x103
+  [<ffffffff8109a13c>] lockdep_trace_alloc+0x85/0x9e
+  [<ffffffff810f6bdc>] __kmalloc+0x6c/0x14b
+  [<ffffffff810d57fd>] pcpu_mem_zalloc+0x59/0x62
+  [<ffffffff810d5d16>] pcpu_extend_area_map+0x26/0xb1
+  [<ffffffff810d679f>] pcpu_alloc+0x182/0x325
+  [<ffffffff810d694d>] __alloc_percpu+0xb/0xd
+  [<ffffffff8142ebfd>] snmp_mib_init+0x1e/0x2e
+  [<ffffffff8185cd8d>] ipv4_mib_init_net+0x7a/0x184
+  [<ffffffff813dc963>] ops_init.clone.0+0x6b/0x73
+  [<ffffffff813dc9cc>] register_pernet_operations+0x61/0xa0
+  [<ffffffff813dca8e>] register_pernet_subsys+0x29/0x42
+  [<ffffffff8185d044>] inet_init+0x1ad/0x252
+  [<ffffffff810002e3>] do_one_initcall+0x7a/0x12f
+  [<ffffffff81832bc5>] kernel_init+0x9d/0x11e
+  [<ffffffff814e51e4>] kernel_thread_helper+0x4/0x10
+irq event stamp: 656613
+hardirqs last  enabled at (656613): [<ffffffff814e0ddc>] __mutex_unlock_slowpath+0x104/0x128
+hardirqs last disabled at (656612): [<ffffffff814e0d34>] __mutex_unlock_slowpath+0x5c/0x128
+softirqs last  enabled at (655568): [<ffffffff8105b4a5>] __do_softirq+0x120/0x136
+softirqs last disabled at (654757): [<ffffffff814e52dc>] call_softirq+0x1c/0x30
 
-Finally it takes about 55s to create 16400 memory entries.
+other info that might help us debug this:
+ Possible unsafe locking scenario:
 
-Root cause: for x86_64, 2048g (with 2g hole at [2g,4g), and TOP2 will be 2050g), will have 16400 memory block.
+       CPU0
+       ----
+  lock(pcpu_alloc_mutex);
+  <Interrupt>
+    lock(pcpu_alloc_mutex);
 
-find_memory_block/subsys_find_device_by_id will be expensive with that many entries.
+ *** DEADLOCK ***
 
-Actually, we don't need to find that memory block for BOOT path.
+no locks held by kswapd0/28.
 
-Skip that finding make it get back to normal.
+stack backtrace:
+Pid: 28, comm: kswapd0 Not tainted 3.3.0-rc2-next-20120201 #5
+Call Trace:
+ [<ffffffff810981f4>] print_usage_bug+0x1bf/0x1d0
+ [<ffffffff81096c3e>] ? print_irq_inversion_bug+0x1d9/0x1d9
+ [<ffffffff810982c0>] mark_lock_irq+0xbb/0x22e
+ [<ffffffff810c5399>] ? free_hot_cold_page+0x13d/0x14f
+ [<ffffffff81098684>] mark_lock+0x251/0x331
+ [<ffffffff81098893>] mark_irqflags+0x12f/0x141
+ [<ffffffff81098e32>] __lock_acquire+0x58d/0x753
+ [<ffffffff810d6684>] ? pcpu_alloc+0x67/0x325
+ [<ffffffff81099433>] lock_acquire+0x54/0x6a
+ [<ffffffff810d6684>] ? pcpu_alloc+0x67/0x325
+ [<ffffffff8107a5b8>] ? add_preempt_count+0xa9/0xae
+ [<ffffffff814e0a21>] mutex_lock_nested+0x5e/0x315
+ [<ffffffff810d6684>] ? pcpu_alloc+0x67/0x325
+ [<ffffffff81098f81>] ? __lock_acquire+0x6dc/0x753
+ [<ffffffff810c9fb0>] ? __pagevec_release+0x2c/0x2c
+ [<ffffffff810d6684>] pcpu_alloc+0x67/0x325
+ [<ffffffff810c9fb0>] ? __pagevec_release+0x2c/0x2c
+ [<ffffffff810d694d>] __alloc_percpu+0xb/0xd
+ [<ffffffff8106c35e>] schedule_on_each_cpu+0x23/0x110
+ [<ffffffff810c9fcb>] lru_add_drain_all+0x10/0x12
+ [<ffffffff810f126f>] __compact_pgdat+0x20/0x182
+ [<ffffffff810f15c2>] compact_pgdat+0x27/0x29
+ [<ffffffff810c306b>] ? zone_watermark_ok+0x1a/0x1c
+ [<ffffffff810cdf6f>] balance_pgdat+0x732/0x751
+ [<ffffffff810ce0ed>] kswapd+0x15f/0x178
+ [<ffffffff810cdf8e>] ? balance_pgdat+0x751/0x751
+ [<ffffffff8106fd11>] kthread+0x84/0x8c
+ [<ffffffff814e51e4>] kernel_thread_helper+0x4/0x10
+ [<ffffffff810787ed>] ? finish_task_switch+0x85/0xea
+ [<ffffffff814e3861>] ? retint_restore_args+0xe/0xe
+ [<ffffffff8106fc8d>] ? __init_kthread_worker+0x56/0x56
+ [<ffffffff814e51e0>] ? gs_change+0xb/0xb
 
-[   34.466696] cpu_dev_init done
-[   35.290080] memory_dev_init done
+The RECLAIM_FS notations indicate that it's doing the GFP_FS checking that
+Nick hacked into lockdep a while back: I think we're intended to read that
+"<Interrupt>" in the DEADLOCK scenario as "<Direct reclaim>".
 
-Also solved the delay with topology_init when sections_per_block is not 1.
+I'm hazy, I have not reached any conclusion as to whether it's right to
+complain or not; but I believe it's uneasy about kswapd now doing the
+mutex_lock(&pcpu_alloc_mutex) which lru_add_drain_all() entails.  Nor have
+I reached any conclusion as to whether it's important for kswapd to do
+that draining or not.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Nathan Fontenot <nfont@austin.ibm.com>
-Cc: Robin Holt <holt@sgi.com>
+But so as not to get blocked on this, with lockdep disabled from giving
+further reports, here's a patch which removes the lru_add_drain_all() from
+kswapd's callpath (and calls it only once from compact_nodes(), instead of
+once per node).
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   31 ++++++++++++++++++++++++++-----
- drivers/base/node.c   |    8 ++++++++
- 2 files changed, 34 insertions(+), 5 deletions(-)
+ mm/compaction.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-memory_dev_init-long-delay drivers/base/memory.c
---- a/drivers/base/memory.c~drivers-base-memoryc-fix-memory_dev_init-long-delay
-+++ a/drivers/base/memory.c
-@@ -572,19 +572,36 @@ static int init_memory_block(struct memo
+diff -puN mm/compaction.c~compact_pgdat-workaround-lockdep-warning-in-kswapd mm/compaction.c
+--- a/mm/compaction.c~compact_pgdat-workaround-lockdep-warning-in-kswapd
++++ a/mm/compaction.c
+@@ -671,9 +671,6 @@ static int __compact_pgdat(pg_data_t *pg
+ 	int zoneid;
+ 	struct zone *zone;
+ 
+-	/* Flush pending updates to the LRU lists */
+-	lru_add_drain_all();
+-
+ 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+ 
+ 		zone = &pgdat->node_zones[zoneid];
+@@ -718,17 +715,12 @@ int compact_pgdat(pg_data_t *pgdat, int 
+ 
+ static int compact_node(int nid)
+ {
+-	pg_data_t *pgdat;
+ 	struct compact_control cc = {
+ 		.order = -1,
+ 		.sync = true,
+ 	};
+ 
+-	if (nid < 0 || nid >= nr_node_ids || !node_online(nid))
+-		return -EINVAL;
+-	pgdat = NODE_DATA(nid);
+-
+-	return __compact_pgdat(pgdat, &cc);
++	return __compact_pgdat(NODE_DATA(nid), &cc);
  }
  
- static int add_memory_section(int nid, struct mem_section *section,
-+			struct memory_block **mem_p,
- 			unsigned long state, enum mem_add_context context)
+ /* Compact all nodes in the system */
+@@ -736,6 +728,9 @@ static int compact_nodes(void)
  {
--	struct memory_block *mem;
-+	struct memory_block *mem = NULL;
-+	int scn_nr = __section_nr(section);
- 	int ret = 0;
+ 	int nid;
  
- 	mutex_lock(&mem_sysfs_mutex);
- 
--	mem = find_memory_block(section);
-+	if (context == BOOT) {
-+		/* same memory block ? */
-+		if (mem_p && *mem_p)
-+			if (scn_nr >= (*mem_p)->start_section_nr &&
-+			    scn_nr <= (*mem_p)->end_section_nr) {
-+				mem = *mem_p;
-+				kobject_get(&mem->dev.kobj);
-+			}
-+	} else
-+		mem = find_memory_block(section);
++	/* Flush pending updates to the LRU lists */
++	lru_add_drain_all();
 +
- 	if (mem) {
- 		mem->section_count++;
- 		kobject_put(&mem->dev.kobj);
--	} else
-+	} else {
- 		ret = init_memory_block(&mem, section, state);
-+		/* store memory_block pointer for next loop */
-+		if (!ret && context == BOOT)
-+			if (mem_p)
-+				*mem_p = mem;
+ 	for_each_online_node(nid)
+ 		compact_node(nid);
+ 
+@@ -768,7 +763,14 @@ ssize_t sysfs_compact_node(struct device
+ 			struct device_attribute *attr,
+ 			const char *buf, size_t count)
+ {
+-	compact_node(dev->id);
++	int nid = dev->id;
++
++	if (nid >= 0 && nid < nr_node_ids && node_online(nid)) {
++		/* Flush pending updates to the LRU lists */
++		lru_add_drain_all();
++
++		compact_node(nid);
 +	}
  
- 	if (!ret) {
- 		if (context == HOTPLUG &&
-@@ -627,7 +644,7 @@ int remove_memory_block(unsigned long no
-  */
- int register_new_memory(int nid, struct mem_section *section)
- {
--	return add_memory_section(nid, section, MEM_OFFLINE, HOTPLUG);
-+	return add_memory_section(nid, section, NULL, MEM_OFFLINE, HOTPLUG);
+ 	return count;
  }
- 
- int unregister_memory_section(struct mem_section *section)
-@@ -647,6 +664,7 @@ int __init memory_dev_init(void)
- 	int ret;
- 	int err;
- 	unsigned long block_sz;
-+	struct memory_block *mem = NULL;
- 
- 	ret = subsys_system_register(&memory_subsys, NULL);
- 	if (ret)
-@@ -662,7 +680,10 @@ int __init memory_dev_init(void)
- 	for (i = 0; i < NR_MEM_SECTIONS; i++) {
- 		if (!present_section_nr(i))
- 			continue;
--		err = add_memory_section(0, __nr_to_section(i), MEM_ONLINE,
-+		/* don't need to reuse memory_block if only one per block */
-+		err = add_memory_section(0, __nr_to_section(i),
-+				 (sections_per_block == 1) ? NULL : &mem,
-+					 MEM_ONLINE,
- 					 BOOT);
- 		if (!ret)
- 			ret = err;
-diff -puN drivers/base/node.c~drivers-base-memoryc-fix-memory_dev_init-long-delay drivers/base/node.c
---- a/drivers/base/node.c~drivers-base-memoryc-fix-memory_dev_init-long-delay
-+++ a/drivers/base/node.c
-@@ -456,7 +456,15 @@ static int link_mem_sections(int nid)
- 		if (!present_section_nr(section_nr))
- 			continue;
- 		mem_sect = __nr_to_section(section_nr);
-+
-+		/* same memblock ? */
-+		if (mem_blk)
-+			if ((section_nr >= mem_blk->start_section_nr) &&
-+			    (section_nr <= mem_blk->end_section_nr))
-+				continue;
-+
- 		mem_blk = find_memory_block_hinted(mem_sect, mem_blk);
-+
- 		ret = register_mem_sect_under_node(mem_blk, nid);
- 		if (!err)
- 			err = ret;
 _
+Subject: Subject: compact_pgdat: workaround lockdep warning in kswapd
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from hughd@google.com are
 
+origin.patch
 linux-next.patch
-x86-mm-fix-the-size-calculation-of-mapping-tables.patch
+mm-add-rss-counters-consistency-check.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+make-swapin-readahead-skip-over-holes.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
+memcg-replace-mem_cont-by-mem_res_ctlr.patch
+memcg-replace-mem-and-mem_cont-stragglers.patch
+memcg-lru_size-instead-of-mem_cgroup_zstat.patch
+memcg-enum-lru_list-lru.patch
+memcg-remove-redundant-returns.patch
+idr-make-idr_get_next-good-for-rcu_read_lock.patch
+cgroup-revert-ss_id_lock-to-spinlock.patch
+memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
+memcg-remove-pcg_cache-page_cgroup-flag.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prio_tree-debugging-patch.patch
 
