@@ -1,81 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held.patch removed from -mm tree
-Date: Mon, 06 Feb 2012 12:31:27 -0800
-Message-ID: <20120206203127.66ED8A0308@akpm.mtv.corp.google.com>
+Subject: [merged] mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration.patch removed from -mm tree
+Date: Mon, 06 Feb 2012 12:31:36 -0800
+Message-ID: <20120206203136.E6E81A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:36504 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755530Ab2BFUb2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:28 -0500
-Received: by ghrr17 with SMTP id r17so616238ghr.1
-        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 12:31:27 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:33821 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755566Ab2BFUbh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, arnd@arndb.de, dyoung@redhat.com, greg@kroah.com, prarit@redhat.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, herbert.van.den.bergh@oracle.com, mina86@mina86.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lkdtm: avoid calling lkdtm_do_action() with spinlock held
+     Subject: mm: compaction: check pfn_valid when entering a new MAX_ORDER_NR_PAGES block during isolation for migration
 has been removed from the -mm tree.  Its filename was
-     lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held.patch
+     mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: lkdtm: avoid calling lkdtm_do_action() with spinlock held
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: compaction: check pfn_valid when entering a new MAX_ORDER_NR_PAGES block during isolation for migration
 
-lkdtm_do_action() may call sleeping functions like kmalloc(), so do not
-call it with spin lock held.
+When isolating for migration, migration starts at the start of a zone
+which is not necessarily pageblock aligned.  Further, it stops isolating
+when COMPACT_CLUSTER_MAX pages are isolated so migrate_pfn is generally
+not aligned.  This allows isolate_migratepages() to call pfn_to_page() on
+an invalid PFN which can result in a crash.  This was originally reported
+against a 3.0-based kernel with the following trace in a crash dump.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
-Reviewed-by: Dave Young <dyoung@redhat.com>
+PID: 9902   TASK: d47aecd0  CPU: 0   COMMAND: "memcg_process_s"
+ #0 [d72d3ad0] crash_kexec at c028cfdb
+ #1 [d72d3b24] oops_end at c05c5322
+ #2 [d72d3b38] __bad_area_nosemaphore at c0227e60
+ #3 [d72d3bec] bad_area at c0227fb6
+ #4 [d72d3c00] do_page_fault at c05c72ec
+ #5 [d72d3c80] error_code (via page_fault) at c05c47a4
+    EAX: 00000000  EBX: 000c0000  ECX: 00000001  EDX: 00000807  EBP: 000c0000 
+    DS:  007b      ESI: 00000001  ES:  007b      EDI: f3000a80  GS:  6f50
+    CS:  0060      EIP: c030b15a  ERR: ffffffff  EFLAGS: 00010002 
+ #6 [d72d3cb4] isolate_migratepages at c030b15a
+ #7 [d72d3d14] zone_watermark_ok at c02d26cb
+ #8 [d72d3d2c] compact_zone at c030b8de
+ #9 [d72d3d68] compact_zone_order at c030bba1
+#10 [d72d3db4] try_to_compact_pages at c030bc84
+#11 [d72d3ddc] __alloc_pages_direct_compact at c02d61e7
+#12 [d72d3e08] __alloc_pages_slowpath at c02d66c7
+#13 [d72d3e78] __alloc_pages_nodemask at c02d6a97
+#14 [d72d3eb8] alloc_pages_vma at c030a845
+#15 [d72d3ed4] do_huge_pmd_anonymous_page at c03178eb
+#16 [d72d3f00] handle_mm_fault at c02f36c6
+#17 [d72d3f30] do_page_fault at c05c70ed
+#18 [d72d3fb0] error_code (via page_fault) at c05c47a4
+    EAX: b71ff000  EBX: 00000001  ECX: 00001600  EDX: 00000431 
+    DS:  007b      ESI: 08048950  ES:  007b      EDI: bfaa3788
+    SS:  007b      ESP: bfaa36e0  EBP: bfaa3828  GS:  6f50
+    CS:  0073      EIP: 080487c8  ERR: ffffffff  EFLAGS: 00010202 
+
+It was also reported by Herbert van den Bergh against 3.1-based kernel
+with the following snippet from the console log.
+
+BUG: unable to handle kernel paging request at 01c00008
+IP: [<c0522399>] isolate_migratepages+0x119/0x390
+*pdpt = 000000002f7ce001 *pde = 0000000000000000
+
+It is expected that it also affects 3.2.x and current mainline.
+
+The problem is that pfn_valid is only called on the first PFN being
+checked and that PFN is not necessarily aligned.  Lets say we have a case
+like this
+
+H = MAX_ORDER_NR_PAGES boundary
+| = pageblock boundary
+m = cc->migrate_pfn
+f = cc->free_pfn
+o = memory hole
+
+H------|------H------|----m-Hoooooo|ooooooH-f----|------H
+
+The migrate_pfn is just below a memory hole and the free scanner is beyond
+the hole.  When isolate_migratepages started, it scans from migrate_pfn to
+migrate_pfn+pageblock_nr_pages which is now in a memory hole.  It checks
+pfn_valid() on the first PFN but then scans into the hole where there are
+not necessarily valid struct pages.
+
+This patch ensures that isolate_migratepages calls pfn_valid when
+necessary.
+
+Reported-by: Herbert van den Bergh <herbert.van.den.bergh@oracle.com>
+Tested-by: Herbert van den Bergh <herbert.van.den.bergh@oracle.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lkdtm.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/compaction.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN drivers/misc/lkdtm.c~lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held drivers/misc/lkdtm.c
---- a/drivers/misc/lkdtm.c~lkdtm-avoid-calling-lkdtm_do_action-with-spin-lock-held
-+++ a/drivers/misc/lkdtm.c
-@@ -354,6 +354,7 @@ static void lkdtm_do_action(enum ctype w
- static void lkdtm_handler(void)
- {
- 	unsigned long flags;
-+	bool do_it = false;
+diff -puN mm/compaction.c~mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration
++++ a/mm/compaction.c
+@@ -313,6 +313,19 @@ static isolate_migrate_t isolate_migrate
+ 		} else if (!locked)
+ 			spin_lock_irq(&zone->lru_lock);
  
- 	spin_lock_irqsave(&count_lock, flags);
- 	count--;
-@@ -361,10 +362,13 @@ static void lkdtm_handler(void)
- 			cp_name_to_str(cpoint), cp_type_to_str(cptype), count);
- 
- 	if (count == 0) {
--		lkdtm_do_action(cptype);
-+		do_it = true;
- 		count = cpoint_count;
- 	}
- 	spin_unlock_irqrestore(&count_lock, flags);
++		/*
++		 * migrate_pfn does not necessarily start aligned to a
++		 * pageblock. Ensure that pfn_valid is called when moving
++		 * into a new MAX_ORDER_NR_PAGES range in case of large
++		 * memory holes within the zone
++		 */
++		if ((low_pfn & (MAX_ORDER_NR_PAGES - 1)) == 0) {
++			if (!pfn_valid(low_pfn)) {
++				low_pfn += MAX_ORDER_NR_PAGES - 1;
++				continue;
++			}
++		}
 +
-+	if (do_it)
-+		lkdtm_do_action(cptype);
- }
- 
- static int lkdtm_register_cpoint(enum cname which)
+ 		if (!pfn_valid_within(low_pfn))
+ 			continue;
+ 		nr_scanned++;
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-linux-next.patch
-x86-mm-fix-the-size-calculation-of-mapping-tables.patch
-nmi-watchdog-do-not-use-cpp-symbol-in-kconfig.patch
-kcore-make-get_sparsemem_vmemmap_info-static.patch
-proc-clean-up-proc-pid-environ-handling.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+make-swapin-readahead-skip-over-holes.patch
 
