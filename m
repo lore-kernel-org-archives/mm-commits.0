@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + compact_pgdat-workaround-lockdep-warning-in-kswapd.patch added to -mm tree
-Date: Mon, 06 Feb 2012 12:46:59 -0800
-Message-ID: <20120206204659.C54F0A01C7@akpm.mtv.corp.google.com>
+Subject: + intel_scu_ipc-remove-moorestown-support.patch added to -mm tree
+Date: Mon, 06 Feb 2012 13:01:04 -0800
+Message-ID: <20120206210104.EEEC4A016E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:45152 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755363Ab2BFUrA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:47:00 -0500
-Received: by ghrr17 with SMTP id r17so617628ghr.1
-        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 12:47:00 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:36779 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752217Ab2BFVBI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 16:01:08 -0500
+Received: by faaa19 with SMTP id a19so210542faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 13:01:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, mel@csn.ul.ie, riel@redhat.com, tj@kernel.org
+Cc: alan@linux.intel.com, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: compact_pgdat: workaround lockdep warning in kswapd
+     Subject: intel_scu_ipc: remove Moorestown support
 has been added to the -mm tree.  Its filename is
-     compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
+     intel_scu_ipc-remove-moorestown-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,195 +33,337 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: compact_pgdat: workaround lockdep warning in kswapd
+From: Alan Cox <alan@linux.intel.com>
+Subject: intel_scu_ipc: remove Moorestown support
 
-I get this lockdep warning from swapping load on linux-next (20120201 but
-I expect the same from more recent days):
+All the production devices use the PC compatible version of this device so
+don't use the SCU interfaces or the SCU firmware interfaces.
 
-=================================
-[ INFO: inconsistent lock state ]
-3.3.0-rc2-next-20120201 #5 Not tainted
----------------------------------
-inconsistent {RECLAIM_FS-ON-W} -> {IN-RECLAIM_FS-W} usage.
-kswapd0/28 [HC0[0]:SC0[0]:HE1:SE1] takes:
- (pcpu_alloc_mutex){+.+.?.}, at: [<ffffffff810d6684>] pcpu_alloc+0x67/0x325
-{RECLAIM_FS-ON-W} state was registered at:
-  [<ffffffff81099b75>] mark_held_locks+0xd7/0x103
-  [<ffffffff8109a13c>] lockdep_trace_alloc+0x85/0x9e
-  [<ffffffff810f6bdc>] __kmalloc+0x6c/0x14b
-  [<ffffffff810d57fd>] pcpu_mem_zalloc+0x59/0x62
-  [<ffffffff810d5d16>] pcpu_extend_area_map+0x26/0xb1
-  [<ffffffff810d679f>] pcpu_alloc+0x182/0x325
-  [<ffffffff810d694d>] __alloc_percpu+0xb/0xd
-  [<ffffffff8142ebfd>] snmp_mib_init+0x1e/0x2e
-  [<ffffffff8185cd8d>] ipv4_mib_init_net+0x7a/0x184
-  [<ffffffff813dc963>] ops_init.clone.0+0x6b/0x73
-  [<ffffffff813dc9cc>] register_pernet_operations+0x61/0xa0
-  [<ffffffff813dca8e>] register_pernet_subsys+0x29/0x42
-  [<ffffffff8185d044>] inet_init+0x1ad/0x252
-  [<ffffffff810002e3>] do_one_initcall+0x7a/0x12f
-  [<ffffffff81832bc5>] kernel_init+0x9d/0x11e
-  [<ffffffff814e51e4>] kernel_thread_helper+0x4/0x10
-irq event stamp: 656613
-hardirqs last  enabled at (656613): [<ffffffff814e0ddc>] __mutex_unlock_slowpath+0x104/0x128
-hardirqs last disabled at (656612): [<ffffffff814e0d34>] __mutex_unlock_slowpath+0x5c/0x128
-softirqs last  enabled at (655568): [<ffffffff8105b4a5>] __do_softirq+0x120/0x136
-softirqs last disabled at (654757): [<ffffffff814e52dc>] call_softirq+0x1c/0x30
+Delete lots of code and conditional paths
 
-other info that might help us debug this:
- Possible unsafe locking scenario:
-
-       CPU0
-       ----
-  lock(pcpu_alloc_mutex);
-  <Interrupt>
-    lock(pcpu_alloc_mutex);
-
- *** DEADLOCK ***
-
-no locks held by kswapd0/28.
-
-stack backtrace:
-Pid: 28, comm: kswapd0 Not tainted 3.3.0-rc2-next-20120201 #5
-Call Trace:
- [<ffffffff810981f4>] print_usage_bug+0x1bf/0x1d0
- [<ffffffff81096c3e>] ? print_irq_inversion_bug+0x1d9/0x1d9
- [<ffffffff810982c0>] mark_lock_irq+0xbb/0x22e
- [<ffffffff810c5399>] ? free_hot_cold_page+0x13d/0x14f
- [<ffffffff81098684>] mark_lock+0x251/0x331
- [<ffffffff81098893>] mark_irqflags+0x12f/0x141
- [<ffffffff81098e32>] __lock_acquire+0x58d/0x753
- [<ffffffff810d6684>] ? pcpu_alloc+0x67/0x325
- [<ffffffff81099433>] lock_acquire+0x54/0x6a
- [<ffffffff810d6684>] ? pcpu_alloc+0x67/0x325
- [<ffffffff8107a5b8>] ? add_preempt_count+0xa9/0xae
- [<ffffffff814e0a21>] mutex_lock_nested+0x5e/0x315
- [<ffffffff810d6684>] ? pcpu_alloc+0x67/0x325
- [<ffffffff81098f81>] ? __lock_acquire+0x6dc/0x753
- [<ffffffff810c9fb0>] ? __pagevec_release+0x2c/0x2c
- [<ffffffff810d6684>] pcpu_alloc+0x67/0x325
- [<ffffffff810c9fb0>] ? __pagevec_release+0x2c/0x2c
- [<ffffffff810d694d>] __alloc_percpu+0xb/0xd
- [<ffffffff8106c35e>] schedule_on_each_cpu+0x23/0x110
- [<ffffffff810c9fcb>] lru_add_drain_all+0x10/0x12
- [<ffffffff810f126f>] __compact_pgdat+0x20/0x182
- [<ffffffff810f15c2>] compact_pgdat+0x27/0x29
- [<ffffffff810c306b>] ? zone_watermark_ok+0x1a/0x1c
- [<ffffffff810cdf6f>] balance_pgdat+0x732/0x751
- [<ffffffff810ce0ed>] kswapd+0x15f/0x178
- [<ffffffff810cdf8e>] ? balance_pgdat+0x751/0x751
- [<ffffffff8106fd11>] kthread+0x84/0x8c
- [<ffffffff814e51e4>] kernel_thread_helper+0x4/0x10
- [<ffffffff810787ed>] ? finish_task_switch+0x85/0xea
- [<ffffffff814e3861>] ? retint_restore_args+0xe/0xe
- [<ffffffff8106fc8d>] ? __init_kthread_worker+0x56/0x56
- [<ffffffff814e51e0>] ? gs_change+0xb/0xb
-
-The RECLAIM_FS notations indicate that it's doing the GFP_FS checking that
-Nick hacked into lockdep a while back: I think we're intended to read that
-"<Interrupt>" in the DEADLOCK scenario as "<Direct reclaim>".
-
-I'm hazy, I have not reached any conclusion as to whether it's right to
-complain or not; but I believe it's uneasy about kswapd now doing the
-mutex_lock(&pcpu_alloc_mutex) which lru_add_drain_all() entails.  Nor have
-I reached any conclusion as to whether it's important for kswapd to do
-that draining or not.
-
-But so as not to get blocked on this, with lockdep disabled from giving
-further reports, here's a patch which removes the lru_add_drain_all() from
-kswapd's callpath (and calls it only once from compact_nodes(), instead of
-once per node).
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ drivers/platform/x86/intel_scu_ipc.c     |  210 ++-------------------
+ drivers/platform/x86/intel_scu_ipcutil.c |   32 ---
+ 2 files changed, 31 insertions(+), 211 deletions(-)
 
-diff -puN mm/compaction.c~compact_pgdat-workaround-lockdep-warning-in-kswapd mm/compaction.c
---- a/mm/compaction.c~compact_pgdat-workaround-lockdep-warning-in-kswapd
-+++ a/mm/compaction.c
-@@ -671,9 +671,6 @@ static int __compact_pgdat(pg_data_t *pg
- 	int zoneid;
- 	struct zone *zone;
+diff -puN drivers/platform/x86/intel_scu_ipc.c~intel_scu_ipc-remove-moorestown-support drivers/platform/x86/intel_scu_ipc.c
+--- a/drivers/platform/x86/intel_scu_ipc.c~intel_scu_ipc-remove-moorestown-support
++++ a/drivers/platform/x86/intel_scu_ipc.c
+@@ -159,7 +159,7 @@ static inline int busy_loop(void) /* Wai
+ /* Read/Write power control(PMIC in Langwell, MSIC in PenWell) registers */
+ static int pwr_reg_rdwr(u16 *addr, u8 *data, u32 count, u32 op, u32 id)
+ {
+-	int i, nc, bytes, d;
++	int nc;
+ 	u32 offset = 0;
+ 	int err;
+ 	u8 cbuf[IPC_WWBUF_SIZE] = { };
+@@ -174,55 +174,34 @@ static int pwr_reg_rdwr(u16 *addr, u8 *d
+ 		return -ENODEV;
+ 	}
  
--	/* Flush pending updates to the LRU lists */
--	lru_add_drain_all();
+-	if (platform != MRST_CPU_CHIP_PENWELL) {
+-		bytes = 0;
+-		d = 0;
+-		for (i = 0; i < count; i++) {
+-			cbuf[bytes++] = addr[i];
+-			cbuf[bytes++] = addr[i] >> 8;
+-			if (id != IPC_CMD_PCNTRL_R)
+-				cbuf[bytes++] = data[d++];
+-			if (id == IPC_CMD_PCNTRL_M)
+-				cbuf[bytes++] = data[d++];
+-		}
+-		for (i = 0; i < bytes; i += 4)
+-			ipc_data_writel(wbuf[i/4], i);
+-		ipc_command(bytes << 16 |  id << 12 | 0 << 8 | op);
+-	} else {
+-		for (nc = 0; nc < count; nc++, offset += 2) {
+-			cbuf[offset] = addr[nc];
+-			cbuf[offset + 1] = addr[nc] >> 8;
+-		}
 -
- 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
- 
- 		zone = &pgdat->node_zones[zoneid];
-@@ -718,17 +715,12 @@ int compact_pgdat(pg_data_t *pgdat, int 
- 
- static int compact_node(int nid)
- {
--	pg_data_t *pgdat;
- 	struct compact_control cc = {
- 		.order = -1,
- 		.sync = true,
- 	};
- 
--	if (nid < 0 || nid >= nr_node_ids || !node_online(nid))
--		return -EINVAL;
--	pgdat = NODE_DATA(nid);
--
--	return __compact_pgdat(pgdat, &cc);
-+	return __compact_pgdat(NODE_DATA(nid), &cc);
- }
- 
- /* Compact all nodes in the system */
-@@ -736,6 +728,9 @@ static int compact_nodes(void)
- {
- 	int nid;
- 
-+	/* Flush pending updates to the LRU lists */
-+	lru_add_drain_all();
-+
- 	for_each_online_node(nid)
- 		compact_node(nid);
- 
-@@ -768,7 +763,14 @@ ssize_t sysfs_compact_node(struct device
- 			struct device_attribute *attr,
- 			const char *buf, size_t count)
- {
--	compact_node(dev->id);
-+	int nid = dev->id;
-+
-+	if (nid >= 0 && nid < nr_node_ids && node_online(nid)) {
-+		/* Flush pending updates to the LRU lists */
-+		lru_add_drain_all();
-+
-+		compact_node(nid);
+-		if (id == IPC_CMD_PCNTRL_R) {
+-			for (nc = 0, offset = 0; nc < count; nc++, offset += 4)
+-				ipc_data_writel(wbuf[nc], offset);
+-			ipc_command((count*2) << 16 |  id << 12 | 0 << 8 | op);
+-		} else if (id == IPC_CMD_PCNTRL_W) {
+-			for (nc = 0; nc < count; nc++, offset += 1)
+-				cbuf[offset] = data[nc];
+-			for (nc = 0, offset = 0; nc < count; nc++, offset += 4)
+-				ipc_data_writel(wbuf[nc], offset);
+-			ipc_command((count*3) << 16 |  id << 12 | 0 << 8 | op);
+-		} else if (id == IPC_CMD_PCNTRL_M) {
+-			cbuf[offset] = data[0];
+-			cbuf[offset + 1] = data[1];
+-			ipc_data_writel(wbuf[0], 0); /* Write wbuff */
+-			ipc_command(4 << 16 |  id << 12 | 0 << 8 | op);
+-		}
++	for (nc = 0; nc < count; nc++, offset += 2) {
++		cbuf[offset] = addr[nc];
++		cbuf[offset + 1] = addr[nc] >> 8;
 +	}
++
++	if (id == IPC_CMD_PCNTRL_R) {
++		for (nc = 0, offset = 0; nc < count; nc++, offset += 4)
++			ipc_data_writel(wbuf[nc], offset);
++		ipc_command((count*2) << 16 |  id << 12 | 0 << 8 | op);
++	} else if (id == IPC_CMD_PCNTRL_W) {
++		for (nc = 0; nc < count; nc++, offset += 1)
++			cbuf[offset] = data[nc];
++		for (nc = 0, offset = 0; nc < count; nc++, offset += 4)
++			ipc_data_writel(wbuf[nc], offset);
++		ipc_command((count*3) << 16 |  id << 12 | 0 << 8 | op);
++	} else if (id == IPC_CMD_PCNTRL_M) {
++		cbuf[offset] = data[0];
++		cbuf[offset + 1] = data[1];
++		ipc_data_writel(wbuf[0], 0); /* Write wbuff */
++		ipc_command(4 << 16 |  id << 12 | 0 << 8 | op);
+ 	}
  
- 	return count;
+ 	err = busy_loop();
+ 	if (id == IPC_CMD_PCNTRL_R) { /* Read rbuf */
+ 		/* Workaround: values are read as 0 without memcpy_fromio */
+ 		memcpy_fromio(cbuf, ipcdev.ipc_base + 0x90, 16);
+-		if (platform != MRST_CPU_CHIP_PENWELL) {
+-			for (nc = 0, offset = 2; nc < count; nc++, offset += 3)
+-				data[nc] = ipc_data_readb(offset);
+-		} else {
+-			for (nc = 0; nc < count; nc++)
+-				data[nc] = ipc_data_readb(nc);
+-		}
++		for (nc = 0; nc < count; nc++)
++			data[nc] = ipc_data_readb(nc);
+ 	}
+ 	mutex_unlock(&ipclock);
+ 	return err;
+@@ -503,148 +482,6 @@ int intel_scu_ipc_i2c_cntrl(u32 addr, u3
  }
+ EXPORT_SYMBOL(intel_scu_ipc_i2c_cntrl);
+ 
+-#define IPC_FW_LOAD_ADDR 0xFFFC0000 /* Storage location for FW image */
+-#define IPC_FW_UPDATE_MBOX_ADDR 0xFFFFDFF4 /* Mailbox between ipc and scu */
+-#define IPC_MAX_FW_SIZE 262144 /* 256K storage size for loading the FW image */
+-#define IPC_FW_MIP_HEADER_SIZE 2048 /* Firmware MIP header size */
+-/* IPC inform SCU to get ready for update process */
+-#define IPC_CMD_FW_UPDATE_READY  0x10FE
+-/* IPC inform SCU to go for update process */
+-#define IPC_CMD_FW_UPDATE_GO     0x20FE
+-/* Status code for fw update */
+-#define IPC_FW_UPDATE_SUCCESS	0x444f4e45 /* Status code 'DONE' */
+-#define IPC_FW_UPDATE_BADN	0x4241444E /* Status code 'BADN' */
+-#define IPC_FW_TXHIGH		0x54784849 /* Status code 'IPC_FW_TXHIGH' */
+-#define IPC_FW_TXLOW		0x54784c4f /* Status code 'IPC_FW_TXLOW' */
+-
+-struct fw_update_mailbox {
+-	u32    status;
+-	u32    scu_flag;
+-	u32    driver_flag;
+-};
+-
+-
+-/**
+- *	intel_scu_ipc_fw_update	-	 Firmware update utility
+- *	@buffer: firmware buffer
+- *	@length: size of firmware buffer
+- *
+- *	This function provides an interface to load the firmware into
+- *	the SCU. Returns 0 on success or -1 on failure
+- */
+-int intel_scu_ipc_fw_update(u8 *buffer, u32 length)
+-{
+-	void __iomem *fw_update_base;
+-	struct fw_update_mailbox __iomem *mailbox = NULL;
+-	int retry_cnt = 0;
+-	u32 status;
+-
+-	mutex_lock(&ipclock);
+-	fw_update_base = ioremap_nocache(IPC_FW_LOAD_ADDR, (128*1024));
+-	if (fw_update_base == NULL) {
+-		mutex_unlock(&ipclock);
+-		return -ENOMEM;
+-	}
+-	mailbox = ioremap_nocache(IPC_FW_UPDATE_MBOX_ADDR,
+-					sizeof(struct fw_update_mailbox));
+-	if (mailbox == NULL) {
+-		iounmap(fw_update_base);
+-		mutex_unlock(&ipclock);
+-		return -ENOMEM;
+-	}
+-
+-	ipc_command(IPC_CMD_FW_UPDATE_READY);
+-
+-	/* Intitialize mailbox */
+-	writel(0, &mailbox->status);
+-	writel(0, &mailbox->scu_flag);
+-	writel(0, &mailbox->driver_flag);
+-
+-	/* Driver copies the 2KB MIP header to SRAM at 0xFFFC0000*/
+-	memcpy_toio(fw_update_base, buffer, 0x800);
+-
+-	/* Driver sends "FW Update" IPC command (CMD_ID 0xFE; MSG_ID 0x02).
+-	* Upon receiving this command, SCU will write the 2K MIP header
+-	* from 0xFFFC0000 into NAND.
+-	* SCU will write a status code into the Mailbox, and then set scu_flag.
+-	*/
+-
+-	ipc_command(IPC_CMD_FW_UPDATE_GO);
+-
+-	/*Driver stalls until scu_flag is set */
+-	while (readl(&mailbox->scu_flag) != 1) {
+-		rmb();
+-		mdelay(1);
+-	}
+-
+-	/* Driver checks Mailbox status.
+-	 * If the status is 'BADN', then abort (bad NAND).
+-	 * If the status is 'IPC_FW_TXLOW', then continue.
+-	 */
+-	while (readl(&mailbox->status) != IPC_FW_TXLOW) {
+-		rmb();
+-		mdelay(10);
+-	}
+-	mdelay(10);
+-
+-update_retry:
+-	if (retry_cnt > 5)
+-		goto update_end;
+-
+-	if (readl(&mailbox->status) != IPC_FW_TXLOW)
+-		goto update_end;
+-	buffer = buffer + 0x800;
+-	memcpy_toio(fw_update_base, buffer, 0x20000);
+-	writel(1, &mailbox->driver_flag);
+-	while (readl(&mailbox->scu_flag) == 1) {
+-		rmb();
+-		mdelay(1);
+-	}
+-
+-	/* check for 'BADN' */
+-	if (readl(&mailbox->status) == IPC_FW_UPDATE_BADN)
+-		goto update_end;
+-
+-	while (readl(&mailbox->status) != IPC_FW_TXHIGH) {
+-		rmb();
+-		mdelay(10);
+-	}
+-	mdelay(10);
+-
+-	if (readl(&mailbox->status) != IPC_FW_TXHIGH)
+-		goto update_end;
+-
+-	buffer = buffer + 0x20000;
+-	memcpy_toio(fw_update_base, buffer, 0x20000);
+-	writel(0, &mailbox->driver_flag);
+-
+-	while (mailbox->scu_flag == 0) {
+-		rmb();
+-		mdelay(1);
+-	}
+-
+-	/* check for 'BADN' */
+-	if (readl(&mailbox->status) == IPC_FW_UPDATE_BADN)
+-		goto update_end;
+-
+-	if (readl(&mailbox->status) == IPC_FW_TXLOW) {
+-		++retry_cnt;
+-		goto update_retry;
+-	}
+-
+-update_end:
+-	status = readl(&mailbox->status);
+-
+-	iounmap(fw_update_base);
+-	iounmap(mailbox);
+-	mutex_unlock(&ipclock);
+-
+-	if (status == IPC_FW_UPDATE_SUCCESS)
+-		return 0;
+-	return -EIO;
+-}
+-EXPORT_SYMBOL(intel_scu_ipc_fw_update);
+-
+ /*
+  * Interrupt handler gets called when ioc bit of IPC_COMMAND_REG set to 1
+  * When ioc bit is set to 1, caller api must wait for interrupt handler called
+@@ -727,7 +564,6 @@ static void ipc_remove(struct pci_dev *p
+ }
+ 
+ static DEFINE_PCI_DEVICE_TABLE(pci_ids) = {
+-	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x080e)},
+ 	{PCI_DEVICE(PCI_VENDOR_ID_INTEL, 0x082a)},
+ 	{ 0,}
+ };
+diff -puN drivers/platform/x86/intel_scu_ipcutil.c~intel_scu_ipc-remove-moorestown-support drivers/platform/x86/intel_scu_ipcutil.c
+--- a/drivers/platform/x86/intel_scu_ipcutil.c~intel_scu_ipc-remove-moorestown-support
++++ a/drivers/platform/x86/intel_scu_ipcutil.c
+@@ -26,13 +26,10 @@
+ 
+ static int major;
+ 
+-#define MAX_FW_SIZE 264192
+-
+ /* ioctl commnds */
+ #define	INTE_SCU_IPC_REGISTER_READ	0
+ #define INTE_SCU_IPC_REGISTER_WRITE	1
+ #define INTE_SCU_IPC_REGISTER_UPDATE	2
+-#define INTE_SCU_IPC_FW_UPDATE		0xA2
+ 
+ struct scu_ipc_data {
+ 	u32     count;  /* No. of registers */
+@@ -88,27 +85,14 @@ static long scu_ipc_ioctl(struct file *f
+ 	if (!capable(CAP_SYS_RAWIO))
+ 		return -EPERM;
+ 
+-	if (cmd == INTE_SCU_IPC_FW_UPDATE) {
+-			u8 *fwbuf = kmalloc(MAX_FW_SIZE, GFP_KERNEL);
+-			if (fwbuf == NULL)
+-				return -ENOMEM;
+-			if (copy_from_user(fwbuf, (u8 *)arg, MAX_FW_SIZE)) {
+-				kfree(fwbuf);
+-				return -EFAULT;
+-			}
+-			ret = intel_scu_ipc_fw_update(fwbuf, MAX_FW_SIZE);
+-			kfree(fwbuf);
+-			return ret;
+-	} else {
+-		if (copy_from_user(&data, argp, sizeof(struct scu_ipc_data)))
+-			return -EFAULT;
+-		ret = scu_reg_access(cmd, &data);
+-		if (ret < 0)
+-			return ret;
+-		if (copy_to_user(argp, &data, sizeof(struct scu_ipc_data)))
+-			return -EFAULT;
+-		return 0;
+-	}
++	if (copy_from_user(&data, argp, sizeof(struct scu_ipc_data)))
++		return -EFAULT;
++	ret = scu_reg_access(cmd, &data);
++	if (ret < 0)
++		return ret;
++	if (copy_to_user(argp, &data, sizeof(struct scu_ipc_data)))
++		return -EFAULT;
++	return 0;
+ }
+ 
+ static const struct file_operations scu_ipc_fops = {
 _
-Subject: Subject: compact_pgdat: workaround lockdep warning in kswapd
+Subject: Subject: intel_scu_ipc: remove Moorestown support
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from alan@linux.intel.com are
 
-origin.patch
 linux-next.patch
-mm-add-rss-counters-consistency-check.patch
-mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
-make-swapin-readahead-skip-over-holes.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
-memcg-replace-mem_cont-by-mem_res_ctlr.patch
-memcg-replace-mem-and-mem_cont-stragglers.patch
-memcg-lru_size-instead-of-mem_cgroup_zstat.patch
-memcg-enum-lru_list-lru.patch
-memcg-remove-redundant-returns.patch
-idr-make-idr_get_next-good-for-rcu_read_lock.patch
-cgroup-revert-ss_id_lock-to-spinlock.patch
-memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
-memcg-remove-pcg_cache-page_cgroup-flag.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-prio_tree-debugging-patch.patch
+platform-x86-kill-off-moorestown.patch
+intel_scu_ipc-remove-moorestown-support.patch
+platform-x86-intel_mid_thermal-add-msic_thermal-alias.patch
+platform-x86-intel_mid_thermal-convert-to-use-intel-msic-api.patch
+platform-x86-intel_mid_thermal-turn-off-thermistor-voltage-by-default.patch
+intel_mid_powerbtn-use-msic-read-write-instead-of-ipc_scu.patch
+intel_mid_powerbtn-mark-irq-as-irqf_no_suspend.patch
 
