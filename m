@@ -1,78 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [folded] kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch removed from -mm tree
-Date: Fri, 03 Feb 2012 15:31:04 -0800
-Message-ID: <20120203233105.16C0AA01D6@akpm.mtv.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 06 Feb 2012 12:28:43 -0800
+Message-ID: <20120206202845.5331EA0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fx0-f74.google.com ([209.85.161.74]:40757 "EHLO
-	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477Ab2BCXbI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Feb 2012 18:31:08 -0500
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:43606 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755521Ab2BFU2s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:28:48 -0500
+Received: by eekb15 with SMTP id b15so211677eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 12:28:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, jiang.liu@huawei.com, jkenisto@us.ibm.com, liuj97@gmail.com, masami.hiramatsu.pt@hitachi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
+Subject: linux-next-git-rejects
 
-use raw_spin_lock/unlock
-
-kernel/kprobes.c: In function 'pre_handler_kretprobe':
-kernel/kprobes.c:1677: warning: passing argument 1 of 'spinlock_check' from incompatible pointer type
-include/linux/spinlock.h:272: note: expected 'struct spinlock_t *' but argument is of type 'struct raw_spinlock_t *'
-kernel/kprobes.c:1679: warning: passing argument 1 of 'spin_unlock_irqrestore' from incompatible pointer type
-include/linux/spinlock.h:338: note: expected 'struct spinlock_t *' but argument is of type 'struct raw_spinlock_t *'
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <stable@vger.kernel.org>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ sound/soc/codecs/wm5100.c |   91 ------------------------------------
+ 1 file changed, 91 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe-fix
-+++ a/kernel/kprobes.c
-@@ -1674,9 +1674,9 @@ static int __kprobes pre_handler_kretpro
- 		ri->task = current;
+diff -puN sound/soc/codecs/wm5100.c~linux-next-git-rejects sound/soc/codecs/wm5100.c
+--- a/sound/soc/codecs/wm5100.c~linux-next-git-rejects
++++ a/sound/soc/codecs/wm5100.c
+@@ -1263,83 +1263,6 @@ static const __devinitdata struct reg_de
+ 	{ WM5100_AUDIO_IF_3_19, 1 },
+ };
  
- 		if (rp->entry_handler && rp->entry_handler(ri, regs)) {
--			spin_lock_irqsave(&rp->lock, flags);
-+			raw_spin_lock_irqsave(&rp->lock, flags);
- 			hlist_add_head(&ri->hlist, &rp->free_instances);
--			spin_unlock_irqrestore(&rp->lock, flags);
-+			raw_spin_unlock_irqrestore(&rp->lock, flags);
- 			return 0;
+-<<<<<<< HEAD
+-static int wm5100_set_bias_level(struct snd_soc_codec *codec,
+-				 enum snd_soc_bias_level level)
+-{
+-	struct wm5100_priv *wm5100 = snd_soc_codec_get_drvdata(codec);
+-	int ret, i;
+-
+-	switch (level) {
+-	case SND_SOC_BIAS_ON:
+-		break;
+-
+-	case SND_SOC_BIAS_PREPARE:
+-		break;
+-
+-	case SND_SOC_BIAS_STANDBY:
+-		if (codec->dapm.bias_level == SND_SOC_BIAS_OFF) {
+-			ret = regulator_bulk_enable(ARRAY_SIZE(wm5100->core_supplies),
+-						    wm5100->core_supplies);
+-			if (ret != 0) {
+-				dev_err(codec->dev,
+-					"Failed to enable supplies: %d\n",
+-					ret);
+-				return ret;
+-			}
+-
+-			if (wm5100->pdata.ldo_ena) {
+-				gpio_set_value_cansleep(wm5100->pdata.ldo_ena,
+-							1);
+-				msleep(2);
+-			}
+-
+-			regcache_cache_only(wm5100->regmap, false);
+-
+-			switch (wm5100->rev) {
+-			case 0:
+-				regcache_cache_bypass(wm5100->regmap, true);
+-				snd_soc_write(codec, 0x11, 0x3);
+-				snd_soc_write(codec, 0x203, 0xc);
+-				snd_soc_write(codec, 0x206, 0);
+-				snd_soc_write(codec, 0x207, 0xf0);
+-				snd_soc_write(codec, 0x208, 0x3c);
+-				snd_soc_write(codec, 0x209, 0);
+-				snd_soc_write(codec, 0x211, 0x20d8);
+-				snd_soc_write(codec, 0x11, 0);
+-
+-				for (i = 0;
+-				     i < ARRAY_SIZE(wm5100_reva_patches);
+-				     i++)
+-					snd_soc_write(codec,
+-						      wm5100_reva_patches[i].reg,
+-						      wm5100_reva_patches[i].val);
+-				regcache_cache_bypass(wm5100->regmap, false);
+-				break;
+-			default:
+-				break;
+-			}
+-
+-			regcache_sync(wm5100->regmap);
+-		}
+-		break;
+-
+-	case SND_SOC_BIAS_OFF:
+-		regcache_cache_only(wm5100->regmap, true);
+-		regcache_mark_dirty(wm5100->regmap);
+-		if (wm5100->pdata.ldo_ena)
+-			gpio_set_value_cansleep(wm5100->pdata.ldo_ena, 0);
+-		regulator_bulk_disable(ARRAY_SIZE(wm5100->core_supplies),
+-				       wm5100->core_supplies);
+-		break;
+-	}
+-	codec->dapm.bias_level = level;
+-
+-	return 0;
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-end
+ static int wm5100_dai_to_base(struct snd_soc_dai *dai)
+ {
+ 	switch (dai->id) {
+@@ -2174,21 +2097,7 @@ static void wm5100_micd_irq(struct wm510
+ 			snd_soc_jack_report(wm5100->jack, SND_JACK_BTN_0,
+ 					    SND_JACK_BTN_0);
+ 		} else if (wm5100->jack_detecting) {
+-<<<<<<< HEAD
+-			dev_dbg(codec->dev, "Headphone detected\n");
+-			wm5100->jack_detecting = false;
+-			snd_soc_jack_report(wm5100->jack, SND_JACK_HEADPHONE,
+-					    SND_JACK_HEADPHONE);
+-
+-			/* Increase the detection rate a bit for
+-			 * responsiveness.
+-			 */
+-			snd_soc_update_bits(codec, WM5100_MIC_DETECT_1,
+-					    WM5100_ACCDET_RATE_MASK,
+-					    7 << WM5100_ACCDET_RATE_SHIFT);
+-=======
+ 			wm5100_report_headphone(wm5100);
+->>>>>>> linux-next/akpm-end
  		}
- 
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-memcontrolc-fix-warning-with-config_numa=n.patch
-mm-filemap_xipc-fix-race-condition-in-xip_file_fault.patch
-kprobes-fix-a-memory-leak-in-function-pre_handler_kretprobe.patch
 linux-next.patch
-linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
