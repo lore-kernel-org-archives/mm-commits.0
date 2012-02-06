@@ -1,135 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration.patch removed from -mm tree
-Date: Mon, 06 Feb 2012 12:31:36 -0800
-Message-ID: <20120206203136.E6E81A0308@akpm.mtv.corp.google.com>
+Subject: [merged] readahead-fix-pipeline-break-caused-by-block-plug.patch removed from -mm tree
+Date: Mon, 06 Feb 2012 12:31:33 -0800
+Message-ID: <20120206203133.BF739A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gx0-f202.google.com ([209.85.161.202]:33821 "EHLO
 	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755566Ab2BFUbh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:37 -0500
+	with ESMTP id S1755536Ab2BFUbe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 15:31:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, herbert.van.den.bergh@oracle.com, mina86@mina86.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: shaohua.li@intel.com, axboe@kernel.dk, eric.dumazet@gmail.com, fengguang.wu@intel.com, hch@infradead.org, herbert@13thfloor.at, stable@vger.kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: check pfn_valid when entering a new MAX_ORDER_NR_PAGES block during isolation for migration
+     Subject: readahead: fix pipeline break caused by block plug
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration.patch
+     readahead-fix-pipeline-break-caused-by-block-plug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: compaction: check pfn_valid when entering a new MAX_ORDER_NR_PAGES block during isolation for migration
+From: Shaohua Li <shaohua.li@intel.com>
+Subject: readahead: fix pipeline break caused by block plug
 
-When isolating for migration, migration starts at the start of a zone
-which is not necessarily pageblock aligned.  Further, it stops isolating
-when COMPACT_CLUSTER_MAX pages are isolated so migrate_pfn is generally
-not aligned.  This allows isolate_migratepages() to call pfn_to_page() on
-an invalid PFN which can result in a crash.  This was originally reported
-against a 3.0-based kernel with the following trace in a crash dump.
+Herbert Poetzl reported a performance regression since 2.6.39.  The test
+is a simple dd read, but with big block size.  The reason is:
 
-PID: 9902   TASK: d47aecd0  CPU: 0   COMMAND: "memcg_process_s"
- #0 [d72d3ad0] crash_kexec at c028cfdb
- #1 [d72d3b24] oops_end at c05c5322
- #2 [d72d3b38] __bad_area_nosemaphore at c0227e60
- #3 [d72d3bec] bad_area at c0227fb6
- #4 [d72d3c00] do_page_fault at c05c72ec
- #5 [d72d3c80] error_code (via page_fault) at c05c47a4
-    EAX: 00000000  EBX: 000c0000  ECX: 00000001  EDX: 00000807  EBP: 000c0000 
-    DS:  007b      ESI: 00000001  ES:  007b      EDI: f3000a80  GS:  6f50
-    CS:  0060      EIP: c030b15a  ERR: ffffffff  EFLAGS: 00010002 
- #6 [d72d3cb4] isolate_migratepages at c030b15a
- #7 [d72d3d14] zone_watermark_ok at c02d26cb
- #8 [d72d3d2c] compact_zone at c030b8de
- #9 [d72d3d68] compact_zone_order at c030bba1
-#10 [d72d3db4] try_to_compact_pages at c030bc84
-#11 [d72d3ddc] __alloc_pages_direct_compact at c02d61e7
-#12 [d72d3e08] __alloc_pages_slowpath at c02d66c7
-#13 [d72d3e78] __alloc_pages_nodemask at c02d6a97
-#14 [d72d3eb8] alloc_pages_vma at c030a845
-#15 [d72d3ed4] do_huge_pmd_anonymous_page at c03178eb
-#16 [d72d3f00] handle_mm_fault at c02f36c6
-#17 [d72d3f30] do_page_fault at c05c70ed
-#18 [d72d3fb0] error_code (via page_fault) at c05c47a4
-    EAX: b71ff000  EBX: 00000001  ECX: 00001600  EDX: 00000431 
-    DS:  007b      ESI: 08048950  ES:  007b      EDI: bfaa3788
-    SS:  007b      ESP: bfaa36e0  EBP: bfaa3828  GS:  6f50
-    CS:  0073      EIP: 080487c8  ERR: ffffffff  EFLAGS: 00010202 
+T1: ra (A, A+128k), (A+128k, A+256k)
+T2: lock_page for page A, submit the 256k
+T3: hit page A+128K, ra (A+256k, A+384). the range isn't submitted
+because of plug and there isn't any lock_page till we hit page A+256k
+because all pages from A to A+256k is in memory
+T4: hit page A+256k, ra (A+384, A+ 512). Because of plug, the range isn't
+submitted again.
+T5: lock_page A+256k, so (A+256k, A+512k) will be submitted. The task is
+waitting for (A+256k, A+512k) finish.
 
-It was also reported by Herbert van den Bergh against 3.1-based kernel
-with the following snippet from the console log.
+There is no request to disk in T3 and T4, so readahead pipeline breaks.
 
-BUG: unable to handle kernel paging request at 01c00008
-IP: [<c0522399>] isolate_migratepages+0x119/0x390
-*pdpt = 000000002f7ce001 *pde = 0000000000000000
+We really don't need block plug for generic_file_aio_read() for buffered
+I/O.  The readahead already has plug and has fine grained control when I/O
+should be submitted.  Deleting plug for buffered I/O fixes the regression.
 
-It is expected that it also affects 3.2.x and current mainline.
+One side effect is plug makes the request size 256k, the size is 128k
+without it.  This is because default ra size is 128k and not a reason we
+need plug here.
 
-The problem is that pfn_valid is only called on the first PFN being
-checked and that PFN is not necessarily aligned.  Lets say we have a case
-like this
+Vivek said:
 
-H = MAX_ORDER_NR_PAGES boundary
-| = pageblock boundary
-m = cc->migrate_pfn
-f = cc->free_pfn
-o = memory hole
+: We submit some readahead IO to device request queue but because of nested
+: plug, queue never gets unplugged.  When read logic reaches a page which is
+: not in page cache, it waits for page to be read from the disk
+: (lock_page_killable()) and that time we flush the plug list.
+: 
+: So effectively read ahead logic is kind of broken in parts because of
+: nested plugging.  Removing top level plug (generic_file_aio_read()) for
+: buffered reads, will allow unplugging queue earlier for readahead.
 
-H------|------H------|----m-Hoooooo|ooooooH-f----|------H
-
-The migrate_pfn is just below a memory hole and the free scanner is beyond
-the hole.  When isolate_migratepages started, it scans from migrate_pfn to
-migrate_pfn+pageblock_nr_pages which is now in a memory hole.  It checks
-pfn_valid() on the first PFN but then scans into the hole where there are
-not necessarily valid struct pages.
-
-This patch ensures that isolate_migratepages calls pfn_valid when
-necessary.
-
-Reported-by: Herbert van den Bergh <herbert.van.den.bergh@oracle.com>
-Tested-by: Herbert van den Bergh <herbert.van.den.bergh@oracle.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Reported-by: Herbert Poetzl <herbert@13thfloor.at>
+Tested-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/filemap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration mm/compaction.c
---- a/mm/compaction.c~mm-compaction-check-pfn_valid-when-entering-a-new-max_order_nr_pages-block-during-isolation-for-migration
-+++ a/mm/compaction.c
-@@ -313,6 +313,19 @@ static isolate_migrate_t isolate_migrate
- 		} else if (!locked)
- 			spin_lock_irq(&zone->lru_lock);
+diff -puN mm/filemap.c~readahead-fix-pipeline-break-caused-by-block-plug mm/filemap.c
+--- a/mm/filemap.c~readahead-fix-pipeline-break-caused-by-block-plug
++++ a/mm/filemap.c
+@@ -1400,15 +1400,12 @@ generic_file_aio_read(struct kiocb *iocb
+ 	unsigned long seg = 0;
+ 	size_t count;
+ 	loff_t *ppos = &iocb->ki_pos;
+-	struct blk_plug plug;
  
-+		/*
-+		 * migrate_pfn does not necessarily start aligned to a
-+		 * pageblock. Ensure that pfn_valid is called when moving
-+		 * into a new MAX_ORDER_NR_PAGES range in case of large
-+		 * memory holes within the zone
-+		 */
-+		if ((low_pfn & (MAX_ORDER_NR_PAGES - 1)) == 0) {
-+			if (!pfn_valid(low_pfn)) {
-+				low_pfn += MAX_ORDER_NR_PAGES - 1;
-+				continue;
-+			}
-+		}
+ 	count = 0;
+ 	retval = generic_segment_checks(iov, &nr_segs, &count, VERIFY_WRITE);
+ 	if (retval)
+ 		return retval;
+ 
+-	blk_start_plug(&plug);
+-
+ 	/* coalesce the iovecs and go direct-to-BIO for O_DIRECT */
+ 	if (filp->f_flags & O_DIRECT) {
+ 		loff_t size;
+@@ -1424,8 +1421,12 @@ generic_file_aio_read(struct kiocb *iocb
+ 			retval = filemap_write_and_wait_range(mapping, pos,
+ 					pos + iov_length(iov, nr_segs) - 1);
+ 			if (!retval) {
++				struct blk_plug plug;
 +
- 		if (!pfn_valid_within(low_pfn))
- 			continue;
- 		nr_scanned++;
++				blk_start_plug(&plug);
+ 				retval = mapping->a_ops->direct_IO(READ, iocb,
+ 							iov, pos, nr_segs);
++				blk_finish_plug(&plug);
+ 			}
+ 			if (retval > 0) {
+ 				*ppos = pos + retval;
+@@ -1481,7 +1482,6 @@ generic_file_aio_read(struct kiocb *iocb
+ 			break;
+ 	}
+ out:
+-	blk_finish_plug(&plug);
+ 	return retval;
+ }
+ EXPORT_SYMBOL(generic_file_aio_read);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from shaohua.li@intel.com are
 
 origin.patch
-mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
-make-swapin-readahead-skip-over-holes.patch
+linux-next.patch
 
