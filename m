@@ -1,65 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-leds-gpioc-use-linux-gpioh-rather-than-asm-gpioh.patch added to -mm tree
-Date: Mon, 06 Feb 2012 16:12:56 -0800
-Message-ID: <20120207001256.4D7D7A00B1@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] maintainers-add-maintainer-entry-for-exynos-dp-driver.patch removed from -mm tree
+Date: Tue, 07 Feb 2012 12:45:45 -0800
+Message-ID: <20120207204547.47D9CA0341@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:40057 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756065Ab2BGAM6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Feb 2012 19:12:58 -0500
-Received: by eaag13 with SMTP id g13so92393eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 06 Feb 2012 16:12:57 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:61342 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756533Ab2BGUpt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2012 15:45:49 -0500
+Received: by ggnp1 with SMTP id p1so732976ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 Feb 2012 12:45:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, rpurdie@rpsys.net
+To: jg1.han@samsung.com, FlorianSchandinat@gmx.de, dh09.lee@samsung.com, inki.dae@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-gpio.c: use linux/gpio.h rather than asm/gpio.h
-has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-gpioc-use-linux-gpioh-rather-than-asm-gpioh.patch
+     Subject: MAINTAINERS: add maintainer entry for Exynos DP driver
+has been removed from the -mm tree.  Its filename was
+     maintainers-add-maintainer-entry-for-exynos-dp-driver.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: drivers/leds/leds-gpio.c: use linux/gpio.h rather than asm/gpio.h
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: MAINTAINERS: add maintainer entry for Exynos DP driver
 
-Direct usage of the asm include has long been deprecated by the
-introduction of gpiolib.
+Add maintainer entry for Exynos DP driver which can be used for Samsung
+Exynos SoC series.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Donghwa Lee <dh09.lee@samsung.com>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-gpio.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/leds/leds-gpio.c~drivers-leds-leds-gpioc-use-linux-gpioh-rather-than-asm-gpioh drivers/leds/leds-gpio.c
---- a/drivers/leds/leds-gpio.c~drivers-leds-leds-gpioc-use-linux-gpioh-rather-than-asm-gpioh
-+++ a/drivers/leds/leds-gpio.c
-@@ -13,6 +13,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-+#include <linux/gpio.h>
- #include <linux/leds.h>
- #include <linux/of_platform.h>
- #include <linux/of_gpio.h>
-@@ -20,8 +21,6 @@
- #include <linux/workqueue.h>
- #include <linux/module.h>
+diff -puN MAINTAINERS~maintainers-add-maintainer-entry-for-exynos-dp-driver MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-maintainer-entry-for-exynos-dp-driver
++++ a/MAINTAINERS
+@@ -2632,6 +2632,12 @@ M:	Mimi Zohar <zohar@us.ibm.com>
+ S:	Supported
+ F:	security/integrity/evm/
  
--#include <asm/gpio.h>
++EXYNOS DP DRIVER
++M:	Jingoo Han <jg1.han@samsung.com>
++L:	linux-fbdev@vger.kernel.org
++S:	Maintained
++F:	drivers/video/exynos/exynos_dp*
++
+ F71805F HARDWARE MONITORING DRIVER
+ M:	Jean Delvare <khali@linux-fr.org>
+ L:	lm-sensors@lm-sensors.org
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+linux-next.patch
+video-support-mipi-dsi-controller-driver.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
+video-support-dp-controller-driver.patch
+backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
+
