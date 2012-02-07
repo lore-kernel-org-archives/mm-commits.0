@@ -1,109 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] leds-lm3530-set-the-max_brightness-to-127.patch removed from -mm tree
-Date: Tue, 07 Feb 2012 14:55:29 -0800
-Message-ID: <20120207225530.3FDD8A035C@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch removed from -mm tree
+Date: Tue, 07 Feb 2012 14:55:34 -0800
+Message-ID: <20120207225534.5DA4CA035C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:39403 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755748Ab2BGWzc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2012 17:55:32 -0500
-Received: by eekb15 with SMTP id b15so253857eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 Feb 2012 14:55:31 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:54683 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757153Ab2BGWzf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2012 17:55:35 -0500
+Received: by ggnp1 with SMTP id p1so748323ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 Feb 2012 14:55:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Milo.Kim@ti.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds-lm3530: set the max_brightness to 127
+     Subject: leds-lm3530-replace-i2c_client-with-led_classdev-fix
 has been removed from the -mm tree.  Its filename was
-     leds-lm3530-set-the-max_brightness-to-127.patch
+     leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: leds-lm3530: set the max_brightness to 127
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds-lm3530-replace-i2c_client-with-led_classdev-fix
 
-Only 7 bits are used for updating the brightness.  (register address :
-A0h) So the max_brightness property of lm3530 should be set to 127.
+fix 80-column fixes more nicely
 
-On initializing registers, maximum initial brightness is limited to
-'max_brightness'.
-
-Division-by-two is removed on updating the brightness.  This arithmetic is
-not necessary because the range of brightness is 0 ~ 127= .
-
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Cc: Milo(Woogyom) Kim <milo.kim@ti.com>
 Cc: Linus Walleij <linus.walleij@linaro.org>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3530.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/leds/leds-lm3530.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/leds/leds-lm3530.c~leds-lm3530-set-the-max_brightness-to-127 drivers/leds/leds-lm3530.c
---- a/drivers/leds/leds-lm3530.c~leds-lm3530-set-the-max_brightness-to-127
+diff -puN drivers/leds/leds-lm3530.c~leds-lm3530-replace-i2c_client-with-led_classdev-fix drivers/leds/leds-lm3530.c
+--- a/drivers/leds/leds-lm3530.c~leds-lm3530-replace-i2c_client-with-led_classdev-fix
 +++ a/drivers/leds/leds-lm3530.c
-@@ -80,6 +80,9 @@
- #define LM3530_DEF_ZT_3			(0x33)
- #define LM3530_DEF_ZT_4			(0x19)
+@@ -298,10 +298,10 @@ static ssize_t lm3530_mode_get(struct de
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+-	struct lm3530_data *drvdata =
+-	    container_of(led_cdev, struct lm3530_data, led_dev);
++	struct lm3530_data *drvdata;
+ 	int i, len = 0;
  
-+/* 7 bits are used for the brightness : LM3530_BRT_CTRL_REG */
-+#define MAX_BRIGHTNESS			(127)
-+
- struct lm3530_mode_map {
- 	const char *mode;
- 	enum lm3530_mode mode_val;
-@@ -207,6 +210,9 @@ static int lm3530_init_registers(struct 
- 	else
- 		brightness = drvdata->brightness = pltfm->brt_val;
++	drvdata = container_of(led_cdev, struct lm3530_data, led_dev);
+ 	for (i = 0; i < ARRAY_SIZE(mode_map); i++)
+ 		if (drvdata->mode == mode_map[i].mode_val)
+ 			len += sprintf(buf + len, "[%s] ", mode_map[i].mode);
+@@ -317,10 +317,10 @@ static ssize_t lm3530_mode_set(struct de
+ 				   *attr, const char *buf, size_t size)
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+-	struct lm3530_data *drvdata =
+-	    container_of(led_cdev, struct lm3530_data, led_dev);
++	struct lm3530_data *drvdata;
+ 	int mode, err;
  
-+	if (brightness > drvdata->led_dev.max_brightness)
-+		brightness = drvdata->led_dev.max_brightness;
-+
- 	reg_val[0] = gen_config;	/* LM3530_GEN_CONFIG */
- 	reg_val[1] = als_config;	/* LM3530_ALS_CONFIG */
- 	reg_val[2] = brt_ramp;		/* LM3530_BRT_RAMP_RATE */
-@@ -264,12 +270,12 @@ static void lm3530_brightness_set(struct
- 
- 		/* set the brightness in brightness control register*/
- 		err = i2c_smbus_write_byte_data(drvdata->client,
--				LM3530_BRT_CTRL_REG, brt_val / 2);
-+				LM3530_BRT_CTRL_REG, brt_val);
- 		if (err)
- 			dev_err(&drvdata->client->dev,
- 				"Unable to set brightness: %d\n", err);
- 		else
--			drvdata->brightness = brt_val / 2;
-+			drvdata->brightness = brt_val;
- 
- 		if (brt_val == 0) {
- 			err = regulator_disable(drvdata->regulator);
-@@ -380,6 +386,7 @@ static int __devinit lm3530_probe(struct
- 	drvdata->enable = false;
- 	drvdata->led_dev.name = LM3530_LED_DEV;
- 	drvdata->led_dev.brightness_set = lm3530_brightness_set;
-+	drvdata->led_dev.max_brightness = MAX_BRIGHTNESS;
- 
- 	i2c_set_clientdata(client, drvdata);
- 
++	drvdata = container_of(led_cdev, struct lm3530_data, led_dev);
+ 	mode = lm3530_get_mode_from_str(buf);
+ 	if (mode < 0) {
+ 		dev_err(dev, "Invalid mode\n");
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-backlight-new-backlight-driver-for-lp855x-devices.patch
-leds-lp5521-add-name-in-the-lp5521_led_config.patch
-leds-lp5521-add-update_config-in-the-lp5521_platform_data.patch
-leds-lp5521-support-led-pattern-data.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+alix2-supplement-driver-to-include-gpio-button-support-fix.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-fix.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning-fix.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
 leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-leds-lp5521-redefinition-of-register-bits.patch
-leds-lm3530-replace-i2c_client-with-led_classdev.patch
-leds-lm3530-support-pwm-input-mode.patch
-leds-lm3530-remove-lm3530_als_zone_reg-code.patch
-leds-lm3530-replace-pltfm-with-pdata.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
