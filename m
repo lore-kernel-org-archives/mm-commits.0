@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + leds-lm3530-support-pwm-input-mode.patch added to -mm tree
-Date: Tue, 07 Feb 2012 12:53:52 -0800
-Message-ID: <20120207205352.D0D0BA035C@akpm.mtv.corp.google.com>
+Subject: + leds-lm3530-remove-lm3530_als_zone_reg-code.patch added to -mm tree
+Date: Tue, 07 Feb 2012 12:53:54 -0800
+Message-ID: <20120207205355.03B54A035C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:57746 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756533Ab2BGUxz (ORCPT
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:49290 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756830Ab2BGUxz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Feb 2012 15:53:55 -0500
-Received: by eekb15 with SMTP id b15so251068eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 07 Feb 2012 12:53:53 -0800 (PST)
+Received: by mail-yx0-f202.google.com with SMTP id m1so150927yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 07 Feb 2012 12:53:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: Milo.Kim@ti.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.ne
 
 
 The patch titled
-     Subject: leds-lm3530: support pwm input mode
+     Subject: leds-lm3530: remove LM3530_ALS_ZONE_REG code
 has been added to the -mm tree.  Its filename is
-     leds-lm3530-support-pwm-input-mode.patch
+     leds-lm3530-remove-lm3530_als_zone_reg-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: leds-lm3530: support pwm input mode
+Subject: leds-lm3530: remove LM3530_ALS_ZONE_REG code
 
-* add 'struct lm3530_pwm_data' in the platform data
-  The pwm data is the platform specific functions which generate the pwm.
-  The pwm data is only valid when brightness is pwm input mode.
-  Functions should be implemented by the pwm driver.
-  pwm_set_intensity() : set duty of pwm.
-  pwm_get_intensity() : get current the brightness.
-
-* brightness control by pwm
-  If the control mode is pwm, then brightness is changed by the duty of
-  pwm=.  So pwm platform function should be called in lm3530_brightness_set().
-
-* do not update brightness register when pwm input mode
-  In pwm input mode, brightness register is not used.
-  If any value is updated in this register, then the led will be off.
-
-* when input mode is changed, set duty of pwm to 0 if unnecessary.
+LM3530_ALS_ZONE_REG is read-only register.
+Writing this register is not necessary.
 
 Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
 Cc: Linus Walleij <linus.walleij@linaro.org>
@@ -59,111 +45,69 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3530.c |   28 ++++++++++++++++++++--------
- include/linux/led-lm3530.h |    9 +++++++++
- 2 files changed, 29 insertions(+), 8 deletions(-)
+ drivers/leds/leds-lm3530.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN drivers/leds/leds-lm3530.c~leds-lm3530-support-pwm-input-mode drivers/leds/leds-lm3530.c
---- a/drivers/leds/leds-lm3530.c~leds-lm3530-support-pwm-input-mode
+diff -puN drivers/leds/leds-lm3530.c~leds-lm3530-remove-lm3530_als_zone_reg-code drivers/leds/leds-lm3530.c
+--- a/drivers/leds/leds-lm3530.c~leds-lm3530-remove-lm3530_als_zone_reg-code
 +++ a/drivers/leds/leds-lm3530.c
-@@ -157,6 +157,7 @@ static int lm3530_init_registers(struct 
- 	u32 als_vmin, als_vmax, als_vstep;
- 	struct lm3530_platform_data *pltfm = drvdata->pdata;
- 	struct i2c_client *client = drvdata->client;
-+	struct lm3530_pwm_data *pwm = &pltfm->pwm_data;
+@@ -26,7 +26,6 @@
+ #define LM3530_GEN_CONFIG		0x10
+ #define LM3530_ALS_CONFIG		0x20
+ #define LM3530_BRT_RAMP_RATE		0x30
+-#define LM3530_ALS_ZONE_REG		0x40
+ #define LM3530_ALS_IMP_SELECT		0x41
+ #define LM3530_BRT_CTRL_REG		0xA0
+ #define LM3530_ALS_ZB0_REG		0x60
+@@ -38,7 +37,7 @@
+ #define LM3530_ALS_Z2T_REG		0x72
+ #define LM3530_ALS_Z3T_REG		0x73
+ #define LM3530_ALS_Z4T_REG		0x74
+-#define LM3530_REG_MAX			15
++#define LM3530_REG_MAX			14
  
- 	gen_config = (pltfm->brt_ramp_law << LM3530_RAMP_LAW_SHIFT) |
- 			((pltfm->max_current & 7) << LM3530_MAX_CURR_SHIFT);
-@@ -240,6 +241,15 @@ static int lm3530_init_registers(struct 
- 	}
+ /* General Control Register */
+ #define LM3530_EN_I2C_SHIFT		(0)
+@@ -118,7 +117,6 @@ static const u8 lm3530_reg[LM3530_REG_MA
+ 	LM3530_GEN_CONFIG,
+ 	LM3530_ALS_CONFIG,
+ 	LM3530_BRT_RAMP_RATE,
+-	LM3530_ALS_ZONE_REG,
+ 	LM3530_ALS_IMP_SELECT,
+ 	LM3530_BRT_CTRL_REG,
+ 	LM3530_ALS_ZB0_REG,
+@@ -217,18 +215,17 @@ static int lm3530_init_registers(struct 
+ 	reg_val[0] = gen_config;	/* LM3530_GEN_CONFIG */
+ 	reg_val[1] = als_config;	/* LM3530_ALS_CONFIG */
+ 	reg_val[2] = brt_ramp;		/* LM3530_BRT_RAMP_RATE */
+-	reg_val[3] = 0x00;		/* LM3530_ALS_ZONE_REG */
+-	reg_val[4] = als_imp_sel;	/* LM3530_ALS_IMP_SELECT */
+-	reg_val[5] = brightness;	/* LM3530_BRT_CTRL_REG */
+-	reg_val[6] = zones[0];		/* LM3530_ALS_ZB0_REG */
+-	reg_val[7] = zones[1];		/* LM3530_ALS_ZB1_REG */
+-	reg_val[8] = zones[2];		/* LM3530_ALS_ZB2_REG */
+-	reg_val[9] = zones[3];		/* LM3530_ALS_ZB3_REG */
+-	reg_val[10] = LM3530_DEF_ZT_0;	/* LM3530_ALS_Z0T_REG */
+-	reg_val[11] = LM3530_DEF_ZT_1;	/* LM3530_ALS_Z1T_REG */
+-	reg_val[12] = LM3530_DEF_ZT_2;	/* LM3530_ALS_Z2T_REG */
+-	reg_val[13] = LM3530_DEF_ZT_3;	/* LM3530_ALS_Z3T_REG */
+-	reg_val[14] = LM3530_DEF_ZT_4;	/* LM3530_ALS_Z4T_REG */
++	reg_val[3] = als_imp_sel;	/* LM3530_ALS_IMP_SELECT */
++	reg_val[4] = brightness;	/* LM3530_BRT_CTRL_REG */
++	reg_val[5] = zones[0];		/* LM3530_ALS_ZB0_REG */
++	reg_val[6] = zones[1];		/* LM3530_ALS_ZB1_REG */
++	reg_val[7] = zones[2];		/* LM3530_ALS_ZB2_REG */
++	reg_val[8] = zones[3];		/* LM3530_ALS_ZB3_REG */
++	reg_val[9] = LM3530_DEF_ZT_0;	/* LM3530_ALS_Z0T_REG */
++	reg_val[10] = LM3530_DEF_ZT_1;	/* LM3530_ALS_Z1T_REG */
++	reg_val[11] = LM3530_DEF_ZT_2;	/* LM3530_ALS_Z2T_REG */
++	reg_val[12] = LM3530_DEF_ZT_3;	/* LM3530_ALS_Z3T_REG */
++	reg_val[13] = LM3530_DEF_ZT_4;	/* LM3530_ALS_Z4T_REG */
  
- 	for (i = 0; i < LM3530_REG_MAX; i++) {
-+		/* do not update brightness register when pwm mode */
-+		if (lm3530_reg[i] == LM3530_BRT_CTRL_REG &&
-+		    drvdata->mode == LM3530_BL_MODE_PWM) {
-+			if (pwm->pwm_set_intensity)
-+				pwm->pwm_set_intensity(reg_val[i],
-+					drvdata->led_dev.max_brightness);
-+			continue;
-+		}
-+
- 		ret = i2c_smbus_write_byte_data(client,
- 				lm3530_reg[i], reg_val[i]);
- 		if (ret)
-@@ -255,6 +265,9 @@ static void lm3530_brightness_set(struct
- 	int err;
- 	struct lm3530_data *drvdata =
- 	    container_of(led_cdev, struct lm3530_data, led_dev);
-+	struct lm3530_platform_data *pdata = drvdata->pdata;
-+	struct lm3530_pwm_data *pwm = &pdata->pwm_data;
-+	u8 max_brightness = led_cdev->max_brightness;
- 
- 	switch (drvdata->mode) {
- 	case LM3530_BL_MODE_MANUAL:
-@@ -288,6 +301,8 @@ static void lm3530_brightness_set(struct
- 	case LM3530_BL_MODE_ALS:
- 		break;
- 	case LM3530_BL_MODE_PWM:
-+		if (pwm->pwm_set_intensity)
-+			pwm->pwm_set_intensity(brt_val, max_brightness);
- 		break;
- 	default:
- 		break;
-@@ -327,14 +342,11 @@ static ssize_t lm3530_mode_set(struct de
- 		return -EINVAL;
- 	}
- 
--	if (mode == LM3530_BL_MODE_MANUAL)
--		drvdata->mode = LM3530_BL_MODE_MANUAL;
--	else if (mode == LM3530_BL_MODE_ALS)
--		drvdata->mode = LM3530_BL_MODE_ALS;
--	else if (mode == LM3530_BL_MODE_PWM) {
--		dev_err(dev, "PWM mode not supported\n");
--		return -EINVAL;
--	}
-+	drvdata->mode = mode;
-+
-+	/* set pwm to low if unnecessary */
-+	if (mode != LM3530_BL_MODE_PWM && pwm->pwm_set_intensity)
-+		pwm->pwm_set_intensity(0, max_brightness);
- 
- 	err = lm3530_init_registers(drvdata);
- 	if (err) {
-diff -puN include/linux/led-lm3530.h~leds-lm3530-support-pwm-input-mode include/linux/led-lm3530.h
---- a/include/linux/led-lm3530.h~leds-lm3530-support-pwm-input-mode
-+++ a/include/linux/led-lm3530.h
-@@ -72,6 +72,12 @@ enum lm3530_als_mode {
- 	LM3530_INPUT_CEIL,	/* Max of ALS1 and ALS2 */
- };
- 
-+/* PWM Platform Specific Data */
-+struct lm3530_pwm_data {
-+	void (*pwm_set_intensity) (int brightness, int max_brightness);
-+	int (*pwm_get_intensity) (int max_brightness);
-+};
-+
- /**
-  * struct lm3530_platform_data
-  * @mode: mode of operation i.e. Manual, ALS or PWM
-@@ -87,6 +93,7 @@ enum lm3530_als_mode {
-  * @als_vmin: als input voltage calibrated for max brightness in mV
-  * @als_vmax: als input voltage calibrated for min brightness in mV
-  * @brt_val: brightness value (0-255)
-+ * @pwm_data: PWM control functions (only valid when the mode is PWM)
-  */
- struct lm3530_platform_data {
- 	enum lm3530_mode mode;
-@@ -107,6 +114,8 @@ struct lm3530_platform_data {
- 	u32 als_vmax;
- 
- 	u8 brt_val;
-+
-+	struct lm3530_pwm_data pwm_data;
- };
- 
- #endif	/* _LINUX_LED_LM3530_H__ */
+ 	if (!drvdata->enable) {
+ 		ret = regulator_enable(drvdata->regulator);
 _
-Subject: Subject: leds-lm3530: support pwm input mode
+Subject: Subject: leds-lm3530: remove LM3530_ALS_ZONE_REG code
 
 Patches currently in -mm which might be from Milo.Kim@ti.com are
 
