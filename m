@@ -1,80 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 08 Feb 2012 11:57:40 -0800
-Message-ID: <20120208195741.81E86A00B1@akpm.mtv.corp.google.com>
+Subject: [folded] alix2-supplement-driver-to-include-gpio-button-support-fix.patch removed from -mm tree
+Date: Wed, 08 Feb 2012 12:40:11 -0800
+Message-ID: <20120208204011.75923A03DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:60410 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755866Ab2BHT5p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 14:57:45 -0500
-Received: by eaaf13 with SMTP id f13so27842eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 11:57:43 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:63189 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956Ab2BHUkO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 15:40:14 -0500
+Received: by bkcjk13 with SMTP id jk13so38233bkc.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 12:40:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, dilinger@queued.net, kernel@wildgooses.com, philipp@redfish-solutions.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: alix2-supplement-driver-to-include-gpio-button-support-fix
+has been removed from the -mm tree.  Its filename was
+     alix2-supplement-driver-to-include-gpio-button-support-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into alix2-supplement-driver-to-include-gpio-button-support.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: alix2-supplement-driver-to-include-gpio-button-support-fix
 
+make Andres happy!
+
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Ed Wildgoose <kernel@wildgooses.com>
+Cc: Philip A. Prindeville <philipp@redfish-solutions.com>
+Cc: Philip Prindeville <philipp@redfish-solutions.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/board-omap4panda.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/x86/platform/geode/alix.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/mach-omap2/board-omap4panda.c~linux-next-git-rejects arch/arm/mach-omap2/board-omap4panda.c
---- a/arch/arm/mach-omap2/board-omap4panda.c~linux-next-git-rejects
-+++ a/arch/arm/mach-omap2/board-omap4panda.c
-@@ -526,8 +526,6 @@ void omap4_panda_display_init(void)
- 	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
- 	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
- 	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
--<<<<<<< HEAD
--=======
+diff -puN arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio-button-support-fix arch/x86/platform/geode/alix.c
+--- a/arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio-button-support-fix
++++ a/arch/x86/platform/geode/alix.c
+@@ -177,7 +177,7 @@ static bool __init alix_present_dmi(void
+ 	return true;
  }
  
- static void omap4_panda_init_rev(void)
-@@ -542,7 +540,6 @@ static void omap4_panda_init_rev(void)
- 		/* ASoC audio configuration */
- 		panda_abe_audio_data.card_name = "PandaBoardES";
- 	}
-->>>>>>> linux-next/akpm-end
- }
- 
- static void __init omap4_panda_init(void)
+-static int  __init alix_init(void)
++static int __init alix_init(void)
+ {
+ 	const char tinybios_sig[] = "PC Engines ALIX.";
+ 	const char coreboot_sig[] = "PC Engines\0ALIX.";
 _
-Subject: Subject: linux-next-git-rejects
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-alix2-supplement-driver-to-include-gpio-button-support-fix.patch
+alix2-supplement-driver-to-include-gpio-button-support.patch
 net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer-fix.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
 fs-btrfs-inode-mapc-fix-warnings.patch
@@ -117,5 +107,4 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-linux-next-git-rejects.patch
 
