@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-use-generic-posix_typesh.patch added to -mm tree
-Date: Wed, 08 Feb 2012 15:48:21 -0800
-Message-ID: <20120208234821.5C130A023F@akpm.mtv.corp.google.com>
+Subject: + h8300-use-generic-posix_typesh.patch added to -mm tree
+Date: Wed, 08 Feb 2012 15:48:19 -0800
+Message-ID: <20120208234819.4A124A023F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:61249 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757826Ab2BHXsW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:22 -0500
-Received: by mail-yx0-f202.google.com with SMTP id m1so118795yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:21 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:35351 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757830Ab2BHXsV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:21 -0500
+Received: by eaaf13 with SMTP id f13so32186eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hpa@zytor.com, fenghua.yu@intel.com, tony.luck@intel.com
+Cc: hpa@zytor.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: ia64: use generic posix_types.h
+     Subject: h8300: use generic posix_types.h
 has been added to the -mm tree.  Its filename is
-     ia64-use-generic-posix_typesh.patch
+     h8300-use-generic-posix_typesh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: ia64: use generic posix_types.h
+Subject: h8300: use generic posix_types.h
 
-Change the ia64 architecture to use <asm-generic/posix_types.h>.
+Change the h8300 architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/posix_types.h |  121 --------------------------
- 1 file changed, 3 insertions(+), 118 deletions(-)
+ arch/h8300/include/asm/posix_types.h |   49 ++++---------------------
+ 1 file changed, 9 insertions(+), 40 deletions(-)
 
-diff -puN arch/ia64/include/asm/posix_types.h~ia64-use-generic-posix_typesh arch/ia64/include/asm/posix_types.h
---- a/arch/ia64/include/asm/posix_types.h~ia64-use-generic-posix_typesh
-+++ a/arch/ia64/include/asm/posix_types.h
-@@ -1,126 +1,11 @@
- #ifndef _ASM_IA64_POSIX_TYPES_H
- #define _ASM_IA64_POSIX_TYPES_H
+diff -puN arch/h8300/include/asm/posix_types.h~h8300-use-generic-posix_typesh arch/h8300/include/asm/posix_types.h
+--- a/arch/h8300/include/asm/posix_types.h~h8300-use-generic-posix_typesh
++++ a/arch/h8300/include/asm/posix_types.h
+@@ -7,54 +7,23 @@
+  * assume GCC is being used.
+  */
  
--/*
-- * This file is generally used by user-level software, so you need to
-- * be a little careful about namespace pollution etc.  Also, we cannot
-- * assume GCC is being used.
-- *
-- * Based on <asm-alpha/posix_types.h>.
-- *
-- * Modified 1998-2000, 2003
-- *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
-- */
--
 -typedef unsigned long	__kernel_ino_t;
--typedef unsigned int	__kernel_mode_t;
- typedef unsigned int	__kernel_nlink_t;
+ typedef unsigned short	__kernel_mode_t;
++#define __kernel_mode_t __kernel_mode_t
++
+ typedef unsigned short	__kernel_nlink_t;
 -typedef long		__kernel_off_t;
--typedef long long	__kernel_loff_t;
 -typedef int		__kernel_pid_t;
--typedef int		__kernel_ipc_pid_t;
--typedef unsigned int	__kernel_uid_t;
--typedef unsigned int	__kernel_gid_t;
--typedef unsigned long	__kernel_size_t;
--typedef long		__kernel_ssize_t;
--typedef long		__kernel_ptrdiff_t;
++#define __kernel_nlink_t __kernel_nlink_t
++
+ typedef unsigned short	__kernel_ipc_pid_t;
++#define __kernel_ipc_pid_t __kernel_ipc_pid_t
++
+ typedef unsigned short	__kernel_uid_t;
+ typedef unsigned short	__kernel_gid_t;
+-typedef unsigned int	__kernel_size_t;
+-typedef int		__kernel_ssize_t;
+-typedef int		__kernel_ptrdiff_t;
 -typedef long		__kernel_time_t;
 -typedef long		__kernel_suseconds_t;
 -typedef long		__kernel_clock_t;
@@ -84,104 +77,44 @@ diff -puN arch/ia64/include/asm/posix_types.h~ia64-use-generic-posix_typesh arch
 -typedef int		__kernel_clockid_t;
 -typedef int		__kernel_daddr_t;
 -typedef char *		__kernel_caddr_t;
--typedef unsigned long	__kernel_sigset_t;	/* at least 32 bits */
 -typedef unsigned short	__kernel_uid16_t;
 -typedef unsigned short	__kernel_gid16_t;
+-typedef unsigned int	__kernel_uid32_t;
+-typedef unsigned int	__kernel_gid32_t;
++#define __kernel_uid_t __kernel_uid_t
+ 
+ typedef unsigned short	__kernel_old_uid_t;
+ typedef unsigned short	__kernel_old_gid_t;
++#define __kernel_old_uid_t __kernel_old_uid_t
+ 
+-#ifdef __GNUC__
+-typedef long long	__kernel_loff_t;
+-#endif
 -
 -typedef struct {
 -	int	val[2];
 -} __kernel_fsid_t;
 -
--typedef __kernel_uid_t __kernel_old_uid_t;
--typedef __kernel_gid_t __kernel_old_gid_t;
--typedef __kernel_uid_t __kernel_uid32_t;
--typedef __kernel_gid_t __kernel_gid32_t;
+-#if defined(__KERNEL__)
 -
--typedef unsigned int	__kernel_old_dev_t;
--
--# ifdef __KERNEL__
--
--#  ifndef __GNUC__
--
+-#undef	__FD_SET
 -#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+-
+-#undef	__FD_CLR
 -#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
--#define	__FD_ISSET(d, set)	(((set)->fds_bits[__FDELT(d)] & __FDMASK(d)) != 0)
--#define	__FD_ZERO(set)	\
--  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
-+#define __kernel_nlink_t __kernel_nlink_t
- 
--#  else /* !__GNUC__ */
 -
--/* With GNU C, use inline functions instead so args are evaluated only once: */
+-#undef	__FD_ISSET
+-#define	__FD_ISSET(d, set)	(!!((set)->fds_bits[__FDELT(d)] & __FDMASK(d)))
 -
--#undef __FD_SET
--static __inline__ void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
--{
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
--}
+-#undef	__FD_ZERO
+-#define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
 -
--#undef __FD_CLR
--static __inline__ void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
--{
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
--}
--
--#undef __FD_ISSET
--static __inline__ int __FD_ISSET(unsigned long fd, const __kernel_fd_set *p)
--{ 
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
--}
--
--/*
-- * This will unroll the loop for the normal constant case (8 ints,
-- * for a 256-bit fd_set)
-- */
--#undef __FD_ZERO
--static __inline__ void __FD_ZERO(__kernel_fd_set *p)
--{
--	unsigned long *tmp = p->fds_bits;
--	int i;
--
--	if (__builtin_constant_p(__FDSET_LONGS)) {
--		switch (__FDSET_LONGS) {
--		      case 16:
--			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
--			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
--			tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
--			tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
--			return;
--
--		      case 8:
--			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
--			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
--			return;
-+typedef unsigned long	__kernel_sigset_t;	/* at least 32 bits */
- 
--		      case 4:
--			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
--			return;
--		}
--	}
--	i = __FDSET_LONGS;
--	while (i) {
--		i--;
--		*tmp = 0;
--		tmp++;
--	}
--}
+-#endif /* defined(__KERNEL__) */
 +#include <asm-generic/posix_types.h>
  
--#  endif /* !__GNUC__ */
--# endif /* __KERNEL__ */
- #endif /* _ASM_IA64_POSIX_TYPES_H */
+ #endif
 _
-Subject: Subject: ia64: use generic posix_types.h
+Subject: Subject: h8300: use generic posix_types.h
 
 Patches currently in -mm which might be from hpa@zytor.com are
 
