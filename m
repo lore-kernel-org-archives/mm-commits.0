@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arm-use-generic-posix_typesh.patch added to -mm tree
-Date: Wed, 08 Feb 2012 15:48:10 -0800
-Message-ID: <20120208234810.C14E7A023F@akpm.mtv.corp.google.com>
+Subject: + cris-use-generic-posix_typesh.patch added to -mm tree
+Date: Wed, 08 Feb 2012 15:48:14 -0800
+Message-ID: <20120208234814.E0346A023F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:53300 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754853Ab2BHXsL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:11 -0500
-Received: by ggnp1 with SMTP id p1so121141ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:11 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:47263 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757794Ab2BHXsP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:15 -0500
+Received: by yhgm50 with SMTP id m50so124086yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hpa@zytor.com, linux@arm.linux.org.uk
+Cc: hpa@zytor.com, jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     Subject: arm: use generic posix_types.h
+     Subject: cris: use generic posix_types.h
 has been added to the -mm tree.  Its filename is
-     arm-use-generic-posix_typesh.patch
+     cris-use-generic-posix_typesh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,90 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: arm: use generic posix_types.h
+Subject: cris: use generic posix_types.h
 
-Change the arm architecture to use <asm-generic/posix_types.h>.
+Change the cris architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Mikael Starvik <starvik@axis.com>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/posix_types.h |   55 ++++-----------------------
- 1 file changed, 9 insertions(+), 46 deletions(-)
+ arch/cris/include/asm/posix_types.h |   50 +++++---------------------
+ 1 file changed, 10 insertions(+), 40 deletions(-)
 
-diff -puN arch/arm/include/asm/posix_types.h~arm-use-generic-posix_typesh arch/arm/include/asm/posix_types.h
---- a/arch/arm/include/asm/posix_types.h~arm-use-generic-posix_typesh
-+++ a/arch/arm/include/asm/posix_types.h
-@@ -19,59 +19,22 @@
+diff -puN arch/cris/include/asm/posix_types.h~cris-use-generic-posix_typesh arch/cris/include/asm/posix_types.h
+--- a/arch/cris/include/asm/posix_types.h~cris-use-generic-posix_typesh
++++ a/arch/cris/include/asm/posix_types.h
+@@ -12,55 +12,25 @@
   * assume GCC is being used.
   */
  
--typedef unsigned long		__kernel_ino_t;
- typedef unsigned short		__kernel_mode_t;
+-typedef unsigned long	__kernel_ino_t;
+ typedef unsigned short	__kernel_mode_t;
 +#define __kernel_mode_t __kernel_mode_t
 +
- typedef unsigned short		__kernel_nlink_t;
--typedef long			__kernel_off_t;
--typedef int			__kernel_pid_t;
+ typedef unsigned short	__kernel_nlink_t;
+-typedef long		__kernel_off_t;
+-typedef int		__kernel_pid_t;
 +#define __kernel_nlink_t __kernel_nlink_t
 +
- typedef unsigned short		__kernel_ipc_pid_t;
+ typedef unsigned short  __kernel_ipc_pid_t;
 +#define __kernel_ipc_pid_t __kernel_ipc_pid_t
 +
- typedef unsigned short		__kernel_uid_t;
- typedef unsigned short		__kernel_gid_t;
--typedef unsigned int		__kernel_size_t;
--typedef int			__kernel_ssize_t;
--typedef int			__kernel_ptrdiff_t;
--typedef long			__kernel_time_t;
--typedef long			__kernel_suseconds_t;
--typedef long			__kernel_clock_t;
--typedef int			__kernel_timer_t;
--typedef int			__kernel_clockid_t;
--typedef int			__kernel_daddr_t;
--typedef char *			__kernel_caddr_t;
--typedef unsigned short		__kernel_uid16_t;
--typedef unsigned short		__kernel_gid16_t;
--typedef unsigned int		__kernel_uid32_t;
--typedef unsigned int		__kernel_gid32_t;
+ typedef unsigned short	__kernel_uid_t;
+ typedef unsigned short	__kernel_gid_t;
 +#define __kernel_uid_t __kernel_uid_t
++
+ typedef __SIZE_TYPE__	__kernel_size_t;
+ typedef long		__kernel_ssize_t;
+ typedef int		__kernel_ptrdiff_t;
+-typedef long		__kernel_time_t;
+-typedef long            __kernel_suseconds_t;
+-typedef long		__kernel_clock_t;
+-typedef int		__kernel_timer_t;
+-typedef int		__kernel_clockid_t;
+-typedef int		__kernel_daddr_t;
+-typedef char *		__kernel_caddr_t;
+-typedef unsigned short  __kernel_uid16_t;
+-typedef unsigned short  __kernel_gid16_t;
+-typedef unsigned int    __kernel_uid32_t;
+-typedef unsigned int    __kernel_gid32_t;
++#define __kernel_size_t __kernel_size_t
  
--typedef unsigned short		__kernel_old_uid_t;
--typedef unsigned short		__kernel_old_gid_t;
- typedef unsigned short		__kernel_old_dev_t;
-+#define __kernel_old_dev_t __kernel_old_dev_t
- 
+-typedef unsigned short  __kernel_old_uid_t;
+-typedef unsigned short  __kernel_old_gid_t;
+ typedef unsigned short	__kernel_old_dev_t;
+-
 -#ifdef __GNUC__
--typedef long long		__kernel_loff_t;
+-typedef long long	__kernel_loff_t;
 -#endif
 -
 -typedef struct {
 -	int	val[2];
 -} __kernel_fsid_t;
 -
--#if defined(__KERNEL__)
+-#ifdef __KERNEL__
 -
 -#undef	__FD_SET
--#define __FD_SET(fd, fdsetp) \
--		(((fd_set *)(fdsetp))->fds_bits[(fd) >> 5] |= (1<<((fd) & 31)))
+-#define __FD_SET(fd,fdsetp) set_bit(fd, (void *)(fdsetp))
 -
 -#undef	__FD_CLR
--#define __FD_CLR(fd, fdsetp) \
--		(((fd_set *)(fdsetp))->fds_bits[(fd) >> 5] &= ~(1<<((fd) & 31)))
+-#define __FD_CLR(fd,fdsetp) clear_bit(fd, (void *)(fdsetp))
 -
 -#undef	__FD_ISSET
--#define __FD_ISSET(fd, fdsetp) \
--		((((fd_set *)(fdsetp))->fds_bits[(fd) >> 5] & (1<<((fd) & 31))) != 0)
+-#define __FD_ISSET(fd,fdsetp) test_bit(fd, (void *)(fdsetp))
 -
 -#undef	__FD_ZERO
--#define __FD_ZERO(fdsetp) \
--		(memset (fdsetp, 0, sizeof (*(fd_set *)(fdsetp))))
+-#define __FD_ZERO(fdsetp) memset((void *)(fdsetp), 0, __FDSET_LONGS << 2)
 -
--#endif
-+#include <asm-generic/posix_types.h>
+-#endif /* __KERNEL__ */
++#define __kernel_old_dev_t __kernel_old_dev_t
  
- #endif
+ #endif /* __ARCH_CRIS_POSIX_TYPES_H */
 _
-Subject: Subject: arm: use generic posix_types.h
+Subject: Subject: cris: use generic posix_types.h
 
 Patches currently in -mm which might be from hpa@zytor.com are
 
