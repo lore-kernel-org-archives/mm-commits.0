@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-generic-posix_typesh.patch added to -mm tree
-Date: Wed, 08 Feb 2012 15:48:42 -0800
-Message-ID: <20120208234842.DAA28A023F@akpm.mtv.corp.google.com>
+Subject: + x86-use-generic-posix_typesh.patch added to -mm tree
+Date: Wed, 08 Feb 2012 15:48:40 -0800
+Message-ID: <20120208234840.D293CA04F8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:35351 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757833Ab2BHXso (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:44 -0500
-Received: by mail-ey0-f202.google.com with SMTP id f13so32186eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:43 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:55386 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757833Ab2BHXsn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:43 -0500
+Received: by werb13 with SMTP id b13so42019wer.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hpa@zytor.com, chris@zankel.net
+Cc: hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Subject: xtensa: use generic posix_types.h
+     Subject: x86: use generic posix_types.h
 has been added to the -mm tree.  Its filename is
-     xtensa-use-generic-posix_typesh.patch
+     x86-use-generic-posix_typesh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: xtensa: use generic posix_types.h
+Subject: x86: use generic posix_types.h
 
-Change the xtensa architecture to use <asm-generic/posix_types.h>.
+Change the x86 architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/posix_types.h |   97 +-----------------------
- 1 file changed, 7 insertions(+), 90 deletions(-)
+ arch/x86/include/asm/posix_types_32.h |   75 ++--------------
+ arch/x86/include/asm/posix_types_64.h |  106 ------------------------
+ 2 files changed, 12 insertions(+), 169 deletions(-)
 
-diff -puN arch/xtensa/include/asm/posix_types.h~xtensa-use-generic-posix_typesh arch/xtensa/include/asm/posix_types.h
---- a/arch/xtensa/include/asm/posix_types.h~xtensa-use-generic-posix_typesh
-+++ a/arch/xtensa/include/asm/posix_types.h
-@@ -19,104 +19,21 @@
+diff -puN arch/x86/include/asm/posix_types_32.h~x86-use-generic-posix_typesh arch/x86/include/asm/posix_types_32.h
+--- a/arch/x86/include/asm/posix_types_32.h~x86-use-generic-posix_typesh
++++ a/arch/x86/include/asm/posix_types_32.h
+@@ -7,79 +7,22 @@
   * assume GCC is being used.
   */
  
 -typedef unsigned long	__kernel_ino_t;
--typedef unsigned int	__kernel_mode_t;
--typedef unsigned long	__kernel_nlink_t;
+ typedef unsigned short	__kernel_mode_t;
++#define __kernel_mode_t __kernel_mode_t
++
+ typedef unsigned short	__kernel_nlink_t;
 -typedef long		__kernel_off_t;
 -typedef int		__kernel_pid_t;
++#define __kernel_nlink_t __kernel_nlink_t
++
  typedef unsigned short	__kernel_ipc_pid_t;
--typedef unsigned int	__kernel_uid_t;
--typedef unsigned int	__kernel_gid_t;
 +#define __kernel_ipc_pid_t __kernel_ipc_pid_t
 +
- typedef unsigned int	__kernel_size_t;
- typedef int		__kernel_ssize_t;
- typedef long		__kernel_ptrdiff_t;
+ typedef unsigned short	__kernel_uid_t;
+ typedef unsigned short	__kernel_gid_t;
+-typedef unsigned int	__kernel_size_t;
+-typedef int		__kernel_ssize_t;
+-typedef int		__kernel_ptrdiff_t;
 -typedef long		__kernel_time_t;
 -typedef long		__kernel_suseconds_t;
 -typedef long		__kernel_clock_t;
@@ -77,12 +83,10 @@ diff -puN arch/xtensa/include/asm/posix_types.h~xtensa-use-generic-posix_typesh 
 -typedef unsigned short	__kernel_gid16_t;
 -typedef unsigned int	__kernel_uid32_t;
 -typedef unsigned int	__kernel_gid32_t;
-+#define __kernel_size_t __kernel_size_t
++#define __kernel_uid_t __kernel_uid_t
  
- typedef unsigned short	__kernel_old_uid_t;
- typedef unsigned short	__kernel_old_gid_t;
-+#define __kernel_old_uid_t __kernel_old_uid_t
-+
+-typedef unsigned short	__kernel_old_uid_t;
+-typedef unsigned short	__kernel_old_gid_t;
  typedef unsigned short	__kernel_old_dev_t;
 +#define __kernel_old_dev_t __kernel_old_dev_t
  
@@ -94,21 +98,97 @@ diff -puN arch/xtensa/include/asm/posix_types.h~xtensa-use-generic-posix_typesh 
 -	int	val[2];
 -} __kernel_fsid_t;
 -
--#ifndef __GNUC__
--
--#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
--#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
--#define	__FD_ISSET(d, set)	(!!((set)->fds_bits[__FDELT(d)] & __FDMASK(d)))
--#define	__FD_ZERO(set)	\
--  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
--
--#else /* __GNUC__ */
--
 -#if defined(__KERNEL__)
--/* With GNU C, use inline functions instead so args are evaluated only once: */
+-
+-#undef	__FD_SET
+-#define __FD_SET(fd,fdsetp)					\
+-	asm volatile("btsl %1,%0":				\
+-		     "+m" (*(__kernel_fd_set *)(fdsetp))	\
+-		     : "r" ((int)(fd)))
+-
+-#undef	__FD_CLR
+-#define __FD_CLR(fd,fdsetp)					\
+-	asm volatile("btrl %1,%0":				\
+-		     "+m" (*(__kernel_fd_set *)(fdsetp))	\
+-		     : "r" ((int) (fd)))
+-
+-#undef	__FD_ISSET
+-#define __FD_ISSET(fd,fdsetp)					\
+-	(__extension__						\
+-	 ({							\
+-	 unsigned char __result;				\
+-	 asm volatile("btl %1,%2 ; setb %0"			\
+-		      : "=q" (__result)				\
+-		      : "r" ((int)(fd)),			\
+-			"m" (*(__kernel_fd_set *)(fdsetp)));	\
+-	 __result;						\
+-}))
+-
+-#undef	__FD_ZERO
+-#define __FD_ZERO(fdsetp)					\
+-do {								\
+-	int __d0, __d1;						\
+-	asm volatile("cld ; rep ; stosl"			\
+-		     : "=m" (*(__kernel_fd_set *)(fdsetp)),	\
+-		       "=&c" (__d0), "=&D" (__d1)		\
+-		     : "a" (0), "1" (__FDSET_LONGS),		\
+-		       "2" ((__kernel_fd_set *)(fdsetp))	\
+-		     : "memory");				\
+-} while (0)
+-
+-#endif /* defined(__KERNEL__) */
++#include <asm-generic/posix_types.h>
+ 
+ #endif /* _ASM_X86_POSIX_TYPES_32_H */
+diff -puN arch/x86/include/asm/posix_types_64.h~x86-use-generic-posix_typesh arch/x86/include/asm/posix_types_64.h
+--- a/arch/x86/include/asm/posix_types_64.h~x86-use-generic-posix_typesh
++++ a/arch/x86/include/asm/posix_types_64.h
+@@ -7,113 +7,13 @@
+  * assume GCC is being used.
+  */
+ 
+-typedef unsigned long	__kernel_ino_t;
+-typedef unsigned int	__kernel_mode_t;
+-typedef unsigned long	__kernel_nlink_t;
+-typedef long		__kernel_off_t;
+-typedef int		__kernel_pid_t;
+-typedef int		__kernel_ipc_pid_t;
+-typedef unsigned int	__kernel_uid_t;
+-typedef unsigned int	__kernel_gid_t;
+-typedef unsigned long	__kernel_size_t;
+-typedef long		__kernel_ssize_t;
+-typedef long		__kernel_ptrdiff_t;
+-typedef long		__kernel_time_t;
+-typedef long		__kernel_suseconds_t;
+-typedef long		__kernel_clock_t;
+-typedef int		__kernel_timer_t;
+-typedef int		__kernel_clockid_t;
+-typedef int		__kernel_daddr_t;
+-typedef char *		__kernel_caddr_t;
+-typedef unsigned short	__kernel_uid16_t;
+-typedef unsigned short	__kernel_gid16_t;
+-
+-#ifdef __GNUC__
+-typedef long long	__kernel_loff_t;
+-#endif
+-
+-typedef struct {
+-	int	val[2];
+-} __kernel_fsid_t;
+-
+ typedef unsigned short __kernel_old_uid_t;
+ typedef unsigned short __kernel_old_gid_t;
+-typedef __kernel_uid_t __kernel_uid32_t;
+-typedef __kernel_gid_t __kernel_gid32_t;
++#define __kernel_old_uid_t __kernel_old_uid_t
+ 
+ typedef unsigned long	__kernel_old_dev_t;
++#define __kernel_old_dev_t __kernel_old_dev_t
+ 
+-#ifdef __KERNEL__
 -
 -#undef __FD_SET
--static __inline__ void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+-static inline void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
 -{
 -	unsigned long _tmp = fd / __NFDBITS;
 -	unsigned long _rem = fd % __NFDBITS;
@@ -116,7 +196,7 @@ diff -puN arch/xtensa/include/asm/posix_types.h~xtensa-use-generic-posix_typesh 
 -}
 -
 -#undef __FD_CLR
--static __inline__ void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
+-static inline void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
 -{
 -	unsigned long _tmp = fd / __NFDBITS;
 -	unsigned long _rem = fd % __NFDBITS;
@@ -124,7 +204,7 @@ diff -puN arch/xtensa/include/asm/posix_types.h~xtensa-use-generic-posix_typesh 
 -}
 -
 -#undef __FD_ISSET
--static __inline__ int __FD_ISSET(unsigned long fd, __kernel_fd_set *p)
+-static inline int __FD_ISSET(unsigned long fd, __const__ __kernel_fd_set *p)
 -{
 -	unsigned long _tmp = fd / __NFDBITS;
 -	unsigned long _rem = fd % __NFDBITS;
@@ -132,21 +212,40 @@ diff -puN arch/xtensa/include/asm/posix_types.h~xtensa-use-generic-posix_typesh 
 -}
 -
 -/*
-- * This will unroll the loop for the normal constant case (8 ints,
-- * for a 256-bit fd_set)
+- * This will unroll the loop for the normal constant cases (8 or 32 longs,
+- * for 256 and 1024-bit fd_sets respectively)
 - */
 -#undef __FD_ZERO
--static __inline__ void __FD_ZERO(__kernel_fd_set *p)
+-static inline void __FD_ZERO(__kernel_fd_set *p)
 -{
--	unsigned int *tmp = (unsigned int *)p->fds_bits;
+-	unsigned long *tmp = p->fds_bits;
 -	int i;
 -
 -	if (__builtin_constant_p(__FDSET_LONGS)) {
 -		switch (__FDSET_LONGS) {
--			case 8:
--				tmp[0] = 0; tmp[1] = 0; tmp[2] = 0; tmp[3] = 0;
--				tmp[4] = 0; tmp[5] = 0; tmp[6] = 0; tmp[7] = 0;
--				return;
+-		case 32:
+-			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			tmp[16] = 0; tmp[17] = 0; tmp[18] = 0; tmp[19] = 0;
+-			tmp[20] = 0; tmp[21] = 0; tmp[22] = 0; tmp[23] = 0;
+-			tmp[24] = 0; tmp[25] = 0; tmp[26] = 0; tmp[27] = 0;
+-			tmp[28] = 0; tmp[29] = 0; tmp[30] = 0; tmp[31] = 0;
+-			return;
+-		case 16:
+-			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			return;
+-		case 8:
+-			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			return;
+-		case 4:
+-			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			return;
 -		}
 -	}
 -	i = __FDSET_LONGS;
@@ -156,13 +255,13 @@ diff -puN arch/xtensa/include/asm/posix_types.h~xtensa-use-generic-posix_typesh 
 -		tmp++;
 -	}
 -}
+-
+-#endif /* defined(__KERNEL__) */
 +#include <asm-generic/posix_types.h>
  
--#endif /* defined(__KERNEL__) */
--#endif /* __GNUC__ */
- #endif /* _XTENSA_POSIX_TYPES_H */
+ #endif /* _ASM_X86_POSIX_TYPES_64_H */
 _
-Subject: Subject: xtensa: use generic posix_types.h
+Subject: Subject: x86: use generic posix_types.h
 
 Patches currently in -mm which might be from hpa@zytor.com are
 
