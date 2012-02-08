@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-use-generic-posix_typesh.patch added to -mm tree
-Date: Wed, 08 Feb 2012 15:48:33 -0800
-Message-ID: <20120208234833.75C17A023F@akpm.mtv.corp.google.com>
+Subject: + parisc-use-generic-posix_typesh.patch added to -mm tree
+Date: Wed, 08 Feb 2012 15:48:30 -0800
+Message-ID: <20120208234830.D6D7FA023F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:59946 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757793Ab2BHXsf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:35 -0500
-Received: by mail-ww0-f74.google.com with SMTP id ds12so34874wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:34 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61249 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757793Ab2BHXsb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:31 -0500
+Received: by mail-yx0-f202.google.com with SMTP id m1so118795yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hpa@zytor.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: hpa@zytor.com, deller@gmx.de, jejb@parisc-linux.org, kyle@mcmartin.ca
 
 
 The patch titled
-     Subject: powerpc: use generic posix_types.h
+     Subject: parisc: use generic posix_types.h
 has been added to the -mm tree.  Its filename is
-     powerpc-use-generic-posix_typesh.patch
+     parisc-use-generic-posix_typesh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,106 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: powerpc: use generic posix_types.h
+Subject: parisc: use generic posix_types.h
 
-Change the powerpc architecture to use <asm-generic/posix_types.h>.
+Change the parisc architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Helge Deller <deller@gmx.de>
+Cc: James Bottomley <jejb@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/posix_types.h |  120 +----------------------
- 1 file changed, 10 insertions(+), 110 deletions(-)
+ arch/parisc/include/asm/posix_types.h |  119 +-----------------------
+ 1 file changed, 9 insertions(+), 110 deletions(-)
 
-diff -puN arch/powerpc/include/asm/posix_types.h~powerpc-use-generic-posix_typesh arch/powerpc/include/asm/posix_types.h
---- a/arch/powerpc/include/asm/posix_types.h~powerpc-use-generic-posix_typesh
-+++ a/arch/powerpc/include/asm/posix_types.h
-@@ -7,122 +7,22 @@
+diff -puN arch/parisc/include/asm/posix_types.h~parisc-use-generic-posix_typesh arch/parisc/include/asm/posix_types.h
+--- a/arch/parisc/include/asm/posix_types.h~parisc-use-generic-posix_typesh
++++ a/arch/parisc/include/asm/posix_types.h
+@@ -6,123 +6,22 @@
+  * be a little careful about namespace pollution etc.  Also, we cannot
   * assume GCC is being used.
   */
- 
--typedef unsigned long	__kernel_ino_t;
--typedef unsigned int	__kernel_mode_t;
--typedef long		__kernel_off_t;
--typedef int		__kernel_pid_t;
--typedef unsigned int	__kernel_uid_t;
--typedef unsigned int	__kernel_gid_t;
--typedef long		__kernel_ptrdiff_t;
--typedef long		__kernel_time_t;
--typedef long		__kernel_clock_t;
--typedef int		__kernel_timer_t;
--typedef int		__kernel_clockid_t;
--typedef long		__kernel_suseconds_t;
--typedef int		__kernel_daddr_t;
--typedef char *		__kernel_caddr_t;
--typedef unsigned short	__kernel_uid16_t;
--typedef unsigned short	__kernel_gid16_t;
--typedef unsigned int	__kernel_uid32_t;
--typedef unsigned int	__kernel_gid32_t;
--typedef unsigned int	__kernel_old_uid_t;
--typedef unsigned int	__kernel_old_gid_t;
--
- #ifdef __powerpc64__
--typedef unsigned long  	__kernel_nlink_t;
--typedef int             __kernel_ipc_pid_t;
--typedef unsigned long	__kernel_size_t;
--typedef long		__kernel_ssize_t;
- typedef unsigned long	__kernel_old_dev_t;
-+#define __kernel_old_dev_t __kernel_old_dev_t
- #else
--typedef unsigned short	__kernel_nlink_t;
--typedef short		__kernel_ipc_pid_t;
- typedef unsigned int	__kernel_size_t;
--typedef int		__kernel_ssize_t;
--typedef unsigned int	__kernel_old_dev_t;
--#endif
--
--#ifdef __powerpc64__
--typedef long long	__kernel_loff_t;
+-typedef unsigned long		__kernel_ino_t;
++
+ typedef unsigned short		__kernel_mode_t;
++#define __kernel_mode_t __kernel_mode_t
++
+ typedef unsigned short		__kernel_nlink_t;
+-typedef long			__kernel_off_t;
+-typedef int			__kernel_pid_t;
++#define __kernel_nlink_t __kernel_nlink_t
++
+ typedef unsigned short		__kernel_ipc_pid_t;
+-typedef unsigned int		__kernel_uid_t;
+-typedef unsigned int		__kernel_gid_t;
+-typedef int			__kernel_suseconds_t;
+-typedef long			__kernel_clock_t;
+-typedef int			__kernel_timer_t;
+-typedef int			__kernel_clockid_t;
+-typedef int			__kernel_daddr_t;
+-/* Note these change from narrow to wide kernels */
+-#ifdef CONFIG_64BIT
+-typedef unsigned long		__kernel_size_t;
+-typedef long			__kernel_ssize_t;
+-typedef long			__kernel_ptrdiff_t;
 -#else
+-typedef unsigned int		__kernel_size_t;
+-typedef int			__kernel_ssize_t;
+-typedef int			__kernel_ptrdiff_t;
+-#endif
+-typedef long			__kernel_time_t;
+-typedef char *			__kernel_caddr_t;
++#define __kernel_ipc_pid_t __kernel_ipc_pid_t
+ 
+-typedef unsigned short		__kernel_uid16_t;
+-typedef unsigned short		__kernel_gid16_t;
+-typedef unsigned int		__kernel_uid32_t;
+-typedef unsigned int		__kernel_gid32_t;
++typedef int			__kernel_suseconds_t;
++#define __kernel_suseconds_t __kernel_suseconds_t
+ 
 -#ifdef __GNUC__
--typedef long long	__kernel_loff_t;
+-typedef long long		__kernel_loff_t;
+ typedef long long		__kernel_off64_t;
+ typedef unsigned long long	__kernel_ino64_t;
 -#endif
--#endif
+-
+-typedef unsigned int		__kernel_old_dev_t;
 -
 -typedef struct {
 -	int	val[2];
 -} __kernel_fsid_t;
 -
--#ifndef __GNUC__
--
--#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
--#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
--#define	__FD_ISSET(d, set)	(((set)->fds_bits[__FDELT(d)] & __FDMASK(d)) != 0)
--#define	__FD_ZERO(set)	\
--  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
--
--#else /* __GNUC__ */
+-/* compatibility stuff */
+-typedef __kernel_uid_t __kernel_old_uid_t;
+-typedef __kernel_gid_t __kernel_old_gid_t;
 -
 -#if defined(__KERNEL__)
--/* With GNU C, use inline functions instead so args are evaluated only once: */
 -
 -#undef __FD_SET
--static __inline__ void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+-static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
 -{
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
+-	unsigned long __tmp = __fd / __NFDBITS;
+-	unsigned long __rem = __fd % __NFDBITS;
+-	__fdsetp->fds_bits[__tmp] |= (1UL<<__rem);
 -}
 -
 -#undef __FD_CLR
--static __inline__ void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
+-static __inline__ void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
 -{
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
+-	unsigned long __tmp = __fd / __NFDBITS;
+-	unsigned long __rem = __fd % __NFDBITS;
+-	__fdsetp->fds_bits[__tmp] &= ~(1UL<<__rem);
 -}
 -
 -#undef __FD_ISSET
--static __inline__ int __FD_ISSET(unsigned long fd, __kernel_fd_set *p)
+-static __inline__ int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
 -{ 
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
+-	unsigned long __tmp = __fd / __NFDBITS;
+-	unsigned long __rem = __fd % __NFDBITS;
+-	return (__p->fds_bits[__tmp] & (1UL<<__rem)) != 0;
 -}
 -
 -/*
@@ -144,47 +141,51 @@ diff -puN arch/powerpc/include/asm/posix_types.h~powerpc-use-generic-posix_types
 - * for a 256-bit fd_set)
 - */
 -#undef __FD_ZERO
--static __inline__ void __FD_ZERO(__kernel_fd_set *p)
+-static __inline__ void __FD_ZERO(__kernel_fd_set *__p)
 -{
--	unsigned long *tmp = (unsigned long *)p->fds_bits;
--	int i;
-+typedef int		__kernel_size_t;
-+typedef long		__kernel_ptrdiff_t;
-+#define __kernel_size_t __kernel_size_t
- 
+-	unsigned long *__tmp = __p->fds_bits;
+-	int __i;
+-
 -	if (__builtin_constant_p(__FDSET_LONGS)) {
 -		switch (__FDSET_LONGS) {
--		      case 16:
--			tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
--			tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
-+typedef unsigned short	__kernel_nlink_t;
-+#define __kernel_nlink_t __kernel_nlink_t
- 
--		      case 8:
--			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
-+typedef short		__kernel_ipc_pid_t;
-+#define __kernel_ipc_pid_t __kernel_ipc_pid_t
-+#endif
- 
--		      case 4:
--			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-		case 16:
+-			__tmp[ 0] = 0; __tmp[ 1] = 0;
+-			__tmp[ 2] = 0; __tmp[ 3] = 0;
+-			__tmp[ 4] = 0; __tmp[ 5] = 0;
+-			__tmp[ 6] = 0; __tmp[ 7] = 0;
+-			__tmp[ 8] = 0; __tmp[ 9] = 0;
+-			__tmp[10] = 0; __tmp[11] = 0;
+-			__tmp[12] = 0; __tmp[13] = 0;
+-			__tmp[14] = 0; __tmp[15] = 0;
+-			return;
+-
+-		case 8:
+-			__tmp[ 0] = 0; __tmp[ 1] = 0;
+-			__tmp[ 2] = 0; __tmp[ 3] = 0;
+-			__tmp[ 4] = 0; __tmp[ 5] = 0;
+-			__tmp[ 6] = 0; __tmp[ 7] = 0;
+-			return;
+-
+-		case 4:
+-			__tmp[ 0] = 0; __tmp[ 1] = 0;
+-			__tmp[ 2] = 0; __tmp[ 3] = 0;
 -			return;
 -		}
 -	}
--	i = __FDSET_LONGS;
--	while (i) {
--		i--;
--		*tmp = 0;
--		tmp++;
+-	__i = __FDSET_LONGS;
+-	while (__i) {
+-		__i--;
+-		*__tmp = 0;
+-		__tmp++;
 -	}
 -}
-+#include <asm-generic/posix_types.h>
  
 -#endif /* defined(__KERNEL__) */
--#endif /* __GNUC__ */
- #endif /* _ASM_POWERPC_POSIX_TYPES_H */
++#include <asm-generic/posix_types.h>
+ 
+ #endif
 _
-Subject: Subject: powerpc: use generic posix_types.h
+Subject: Subject: parisc: use generic posix_types.h
 
 Patches currently in -mm which might be from hpa@zytor.com are
 
