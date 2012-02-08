@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + posix_types-make-__kernel_id32_t-default-to-unsigned-int.patch added to -mm tree
-Date: Wed, 08 Feb 2012 15:47:55 -0800
-Message-ID: <20120208234755.C5485A023F@akpm.mtv.corp.google.com>
+Subject: + avr32-use-generic-posix_typesh.patch added to -mm tree
+Date: Wed, 08 Feb 2012 15:48:12 -0800
+Message-ID: <20120208234812.CF617A023F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:64722 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757701Ab2BHXsC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:02 -0500
-Received: by eekb15 with SMTP id b15so36807eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:00 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:53300 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757793Ab2BHXsN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 18:48:13 -0500
+Received: by mail-gx0-f202.google.com with SMTP id p1so121141ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 15:48:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hpa@zytor.com, arnd@arndb.de, benh@kernel.crashing.org, chris@zankel.net, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, fenghua.yu@intel.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hskinnemoen@gmail.com, ink@jurassic.park.msu.ru, jejb@parisc-linux.org, jesper.nilsson@axis.com, kyle@mcmartin.ca, lethal@linux-sh.org, linux@arm.linux.org.uk, mattst88@gmail.com, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tglx@linutronix.de, tony.luck@intel.com, yasutake.koichi@jp.panasonic.com, ysato@users.sourceforge.jp
+Cc: hpa@zytor.com, egtvedt@samfundet.no, hskinnemoen@gmail.com
 
 
 The patch titled
-     Subject: posix_types: make __kernel_[ug]id32_t default to unsigned int
+     Subject: avr32: use generic posix_types.h
 has been added to the -mm tree.  Its filename is
-     posix_types-make-__kernel_id32_t-default-to-unsigned-int.patch
+     avr32-use-generic-posix_typesh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,148 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: posix_types: make __kernel_[ug]id32_t default to unsigned int
+Subject: avr32: use generic posix_types.h
 
-All ports use unsigned int for __kernel_[ug]id32_t, but not all ports use
-unsigned int for __kernel_[ug]id_t.  Thus, change the default for the "32"
-types so ports don't need to override them.
+Change the avr32 architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
 Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Helge Deller <deller@gmx.de>
-Cc: James Bottomley <jejb@parisc-linux.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/posix_types.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/avr32/include/asm/posix_types.h |  107 ++-----------------------
+ 1 file changed, 11 insertions(+), 96 deletions(-)
 
-diff -puN include/asm-generic/posix_types.h~posix_types-make-__kernel_id32_t-default-to-unsigned-int include/asm-generic/posix_types.h
---- a/include/asm-generic/posix_types.h~posix_types-make-__kernel_id32_t-default-to-unsigned-int
-+++ a/include/asm-generic/posix_types.h
-@@ -44,8 +44,8 @@ typedef int		__kernel_daddr_t;
- #endif
+diff -puN arch/avr32/include/asm/posix_types.h~avr32-use-generic-posix_typesh arch/avr32/include/asm/posix_types.h
+--- a/arch/avr32/include/asm/posix_types.h~avr32-use-generic-posix_typesh
++++ a/arch/avr32/include/asm/posix_types.h
+@@ -14,112 +14,27 @@
+  * assume GCC is being used.
+  */
  
- #ifndef __kernel_uid32_t
--typedef __kernel_uid_t	__kernel_uid32_t;
--typedef __kernel_gid_t	__kernel_gid32_t;
-+typedef unsigned int	__kernel_uid32_t;
-+typedef unsigned int	__kernel_gid32_t;
- #endif
+-typedef unsigned long   __kernel_ino_t;
+ typedef unsigned short  __kernel_mode_t;
++#define __kernel_mode_t __kernel_mode_t
++
+ typedef unsigned short  __kernel_nlink_t;
+-typedef long            __kernel_off_t;
+-typedef int             __kernel_pid_t;
++#define __kernel_nlink_t __kernel_nlink_t
++
+ typedef unsigned short  __kernel_ipc_pid_t;
+-typedef unsigned int	__kernel_uid_t;
+-typedef unsigned int	__kernel_gid_t;
++#define __kernel_ipc_pid_t __kernel_ipc_pid_t
++
+ typedef unsigned long	__kernel_size_t;
+ typedef long		__kernel_ssize_t;
+ typedef int             __kernel_ptrdiff_t;
+-typedef long            __kernel_time_t;
+-typedef long            __kernel_suseconds_t;
+-typedef long            __kernel_clock_t;
+-typedef int             __kernel_timer_t;
+-typedef int             __kernel_clockid_t;
+-typedef int             __kernel_daddr_t;
+-typedef char *          __kernel_caddr_t;
+-typedef unsigned short  __kernel_uid16_t;
+-typedef unsigned short  __kernel_gid16_t;
+-typedef unsigned int    __kernel_uid32_t;
+-typedef unsigned int    __kernel_gid32_t;
++#define __kernel_size_t __kernel_size_t
  
- #ifndef __kernel_old_uid_t
+ typedef unsigned short  __kernel_old_uid_t;
+ typedef unsigned short  __kernel_old_gid_t;
+-typedef unsigned short  __kernel_old_dev_t;
++#define __kernel_old_uid_t __kernel_old_uid_t
+ 
+-#ifdef __GNUC__
+-typedef long long       __kernel_loff_t;
+-#endif
+-
+-typedef struct {
+-    int     val[2];
+-} __kernel_fsid_t;
+-
+-#if defined(__KERNEL__)
+-
+-#undef  __FD_SET
+-static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+-{
+-    unsigned long __tmp = __fd / __NFDBITS;
+-    unsigned long __rem = __fd % __NFDBITS;
+-    __fdsetp->fds_bits[__tmp] |= (1UL<<__rem);
+-}
+-
+-#undef  __FD_CLR
+-static __inline__ void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
+-{
+-    unsigned long __tmp = __fd / __NFDBITS;
+-    unsigned long __rem = __fd % __NFDBITS;
+-    __fdsetp->fds_bits[__tmp] &= ~(1UL<<__rem);
+-}
+-
+-
+-#undef  __FD_ISSET
+-static __inline__ int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
+-{
+-    unsigned long __tmp = __fd / __NFDBITS;
+-    unsigned long __rem = __fd % __NFDBITS;
+-    return (__p->fds_bits[__tmp] & (1UL<<__rem)) != 0;
+-}
+-
+-/*
+- * This will unroll the loop for the normal constant case (8 ints,
+- * for a 256-bit fd_set)
+- */
+-#undef  __FD_ZERO
+-static __inline__ void __FD_ZERO(__kernel_fd_set *__p)
+-{
+-    unsigned long *__tmp = __p->fds_bits;
+-    int __i;
+-
+-    if (__builtin_constant_p(__FDSET_LONGS)) {
+-        switch (__FDSET_LONGS) {
+-            case 16:
+-                __tmp[ 0] = 0; __tmp[ 1] = 0;
+-                __tmp[ 2] = 0; __tmp[ 3] = 0;
+-                __tmp[ 4] = 0; __tmp[ 5] = 0;
+-                __tmp[ 6] = 0; __tmp[ 7] = 0;
+-                __tmp[ 8] = 0; __tmp[ 9] = 0;
+-                __tmp[10] = 0; __tmp[11] = 0;
+-                __tmp[12] = 0; __tmp[13] = 0;
+-                __tmp[14] = 0; __tmp[15] = 0;
+-                return;
+-
+-            case 8:
+-                __tmp[ 0] = 0; __tmp[ 1] = 0;
+-                __tmp[ 2] = 0; __tmp[ 3] = 0;
+-                __tmp[ 4] = 0; __tmp[ 5] = 0;
+-                __tmp[ 6] = 0; __tmp[ 7] = 0;
+-                return;
+-
+-            case 4:
+-                __tmp[ 0] = 0; __tmp[ 1] = 0;
+-                __tmp[ 2] = 0; __tmp[ 3] = 0;
+-                return;
+-        }
+-    }
+-    __i = __FDSET_LONGS;
+-    while (__i) {
+-        __i--;
+-        *__tmp = 0;
+-        __tmp++;
+-    }
+-}
++typedef unsigned short  __kernel_old_dev_t;
++#define __kernel_old_dev_t __kernel_old_dev_t
+ 
+-#endif /* defined(__KERNEL__) */
++#include <asm-generic/posix_types.h>
+ 
+ #endif /* __ASM_AVR32_POSIX_TYPES_H */
 _
-Subject: Subject: posix_types: make __kernel_[ug]id32_t default to unsigned int
+Subject: Subject: avr32: use generic posix_types.h
 
 Patches currently in -mm which might be from hpa@zytor.com are
 
