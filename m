@@ -1,80 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded] video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 08 Feb 2012 12:46:16 -0800
-Message-ID: <20120208204617.0087FA03DE@akpm.mtv.corp.google.com>
+Subject: [folded] thermal-thermal_sys-fix-build-warning-fix.patch removed from -mm tree
+Date: Wed, 08 Feb 2012 12:49:23 -0800
+Message-ID: <20120208204924.23DC4A03DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:44348 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2BHUqS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 15:46:18 -0500
-Received: by ghrr17 with SMTP id r17so93553ghr.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 12:46:17 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:52517 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188Ab2BHUtZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Feb 2012 15:49:25 -0500
+Received: by ggnp1 with SMTP id p1so102147ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 08 Feb 2012 12:49:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, FlorianSchandinat@gmx.de, dh09.lee@samsung.com, inki.dae@samsung.com, jg1.han@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, durgadoss.r@intel.com, fabio.estevam@freescale.com, festevam@gmail.com, guenter.roeck@ericsson.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes
+     Subject: thermal-thermal_sys-fix-build-warning-fix
 has been removed from the -mm tree.  Its filename was
-     video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes.patch
+     thermal-thermal_sys-fix-build-warning-fix.patch
 
-This patch was dropped because it was folded into video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi.patch
+This patch was dropped because it was folded into thermal-thermal_sys-fix-build-warning.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes
+Subject: thermal-thermal_sys-fix-build-warning-fix
 
-Cc: Donghwa Lee <dh09.lee@samsung.com>
+make thermal_event_seqnum local to generate_netlink_event()
 
-WARNING: please write a paragraph that describes the config symbol fully
-#32: FILE: drivers/video/exynos/Kconfig:16:
- config EXYNOS_MIPI_DSI
-
-WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
-+	msleep(1);
-WARNING: struct backlight_ops should normally be const
-#787: FILE: drivers/video/exynos/s6e8ax0.c:727:
-+static struct backlight_ops s6e8ax0_backlight_ops = {
-
-WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
-+	msleep(5);
-total: 0 errors, 4 warnings, 941 lines checked
-
-./patches/video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Donghwa Lee <dh09.lee@samsung.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Inki Dae <inki.dae@samsung.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Durgadoss R <durgadoss.r@intel.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Fabio Estevam <festevam@gmail.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/exynos/s6e8ax0.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/thermal/thermal_sys.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/exynos/s6e8ax0.c~video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes drivers/video/exynos/s6e8ax0.c
---- a/drivers/video/exynos/s6e8ax0.c~video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi-checkpatch-fixes
-+++ a/drivers/video/exynos/s6e8ax0.c
-@@ -724,7 +724,7 @@ static struct lcd_ops s6e8ax0_lcd_ops = 
- 	.get_power = s6e8ax0_get_power,
+diff -puN drivers/thermal/thermal_sys.c~thermal-thermal_sys-fix-build-warning-fix drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-thermal_sys-fix-build-warning-fix
++++ a/drivers/thermal/thermal_sys.c
+@@ -1302,8 +1302,6 @@ static struct genl_multicast_group therm
+ 	.name = THERMAL_GENL_MCAST_GROUP_NAME,
  };
  
--static struct backlight_ops s6e8ax0_backlight_ops = {
-+static const struct backlight_ops s6e8ax0_backlight_ops = {
- 	.get_brightness = s6e8ax0_get_brightness,
- 	.update_status = s6e8ax0_set_brightness,
- };
+-static unsigned int thermal_event_seqnum;
+-
+ int thermal_generate_netlink_event(u32 orig, enum events event)
+ {
+ 	struct sk_buff *skb;
+@@ -1312,6 +1310,7 @@ int thermal_generate_netlink_event(u32 o
+ 	void *msg_header;
+ 	int size;
+ 	int result;
++	static unsigned int thermal_event_seqnum;
+ 
+ 	/* allocate memory */
+ 	size = nla_total_size(sizeof(struct thermal_genl_event)) + \
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +79,7 @@ x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
 fs-btrfs-inode-mapc-fix-warnings.patch
 video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi.patch
 hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning-fix.patch
+thermal-thermal_sys-fix-build-warning.patch
 drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
 mm.patch
 make-swapin-readahead-skip-over-holes-fix.patch
