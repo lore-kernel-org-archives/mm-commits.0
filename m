@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + slab-introduce-kmalloc_array.patch added to -mm tree
-Date: Thu, 09 Feb 2012 13:24:40 -0800
-Message-ID: <20120209212442.588AAA023F@akpm.mtv.corp.google.com>
+Date: Thu, 09 Feb 2012 13:25:12 -0800
+Message-ID: <20120209212512.6DFE3A023F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:60748 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758083Ab2BIVYo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2012 16:24:44 -0500
-Received: by qcsp5 with SMTP id p5so238251qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 09 Feb 2012 13:24:43 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:61598 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754122Ab2BIVZN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2012 16:25:13 -0500
+Received: by yhgm50 with SMTP id m50so244932yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 09 Feb 2012 13:25:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xi.wang@gmail.com, akpm@linux-foundation.org, axboe@kernel.dk, penberg@kernel.org
+Cc: xi.wang@gmail.com, akpm@linux-foundation.org, axboe@kernel.dk, dan.carpenter@oracle.com, penberg@kernel.org
 
 
 The patch titled
@@ -43,6 +43,7 @@ Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Suggested-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Xi Wang <xi.wang@gmail.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
