@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + slab-introduce-kmalloc_array.patch added to -mm tree
-Date: Thu, 09 Feb 2012 13:25:12 -0800
-Message-ID: <20120209212512.6DFE3A023F@akpm.mtv.corp.google.com>
+Subject: + smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch added to -mm tree
+Date: Thu, 09 Feb 2012 14:28:43 -0800
+Message-ID: <20120209222843.CBD85A00B3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:61598 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754122Ab2BIVZN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2012 16:25:13 -0500
-Received: by yhgm50 with SMTP id m50so244932yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 09 Feb 2012 13:25:12 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:38100 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932175Ab2BIW2q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2012 17:28:46 -0500
+Received: by eekb15 with SMTP id b15so71855eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 09 Feb 2012 14:28:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xi.wang@gmail.com, akpm@linux-foundation.org, axboe@kernel.dk, dan.carpenter@oracle.com, penberg@kernel.org
+Cc: akpm@linux-foundation.org, gilad@benyossef.com
 
 
 The patch titled
-     Subject: slab: introduce kmalloc_array()
+     Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix
 has been added to the -mm tree.  Its filename is
-     slab-introduce-kmalloc_array.patch
+     smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xi Wang <xi.wang@gmail.com>
-Subject: slab: introduce kmalloc_array()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix
 
-Introduce a kmalloc_array() wrapper that performs integer overflow
-checking without zeroing the memory.
+s/CPU/CPUs, use all 80 cols in comment
 
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Suggested-by: Jens Axboe <axboe@kernel.dk>
-Signed-off-by: Xi Wang <xi.wang@gmail.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Gilad Ben-Yossef <gilad@benyossef.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ kernel/smp.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/slab.h~slab-introduce-kmalloc_array include/linux/slab.h
---- a/include/linux/slab.h~slab-introduce-kmalloc_array
-+++ a/include/linux/slab.h
-@@ -190,7 +190,7 @@ size_t ksize(const void *);
- #endif
- 
- /**
-- * kcalloc - allocate memory for an array. The memory is set to zero.
-+ * kmalloc_array - allocate memory for an array.
-  * @n: number of elements.
-  * @size: element size.
-  * @flags: the type of memory to allocate.
-@@ -240,11 +240,22 @@ size_t ksize(const void *);
-  * for general use, and so are not documented here. For a full list of
-  * potential flags, always refer to linux/gfp.h.
-  */
--static inline void *kcalloc(size_t n, size_t size, gfp_t flags)
-+static inline void *kmalloc_array(size_t n, size_t size, gfp_t flags)
- {
- 	if (size != 0 && n > ULONG_MAX / size)
- 		return NULL;
--	return __kmalloc(n * size, flags | __GFP_ZERO);
-+	return __kmalloc(n * size, flags);
-+}
-+
-+/**
-+ * kcalloc - allocate memory for an array. The memory is set to zero.
-+ * @n: number of elements.
-+ * @size: element size.
-+ * @flags: the type of memory to allocate (see kmalloc).
-+ */
-+static inline void *kcalloc(size_t n, size_t size, gfp_t flags)
-+{
-+	return kmalloc_array(n, size, flags | __GFP_ZERO);
- }
- 
- #if !defined(CONFIG_NUMA) && !defined(CONFIG_SLOB)
+diff -puN kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix kernel/smp.c
+--- a/kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix
++++ a/kernel/smp.c
+@@ -771,9 +771,8 @@ EXPORT_SYMBOL(on_each_cpu_mask);
+  * The function might sleep if the GFP flags indicates a non
+  * atomic allocation is allowed.
+  *
+- * Preemption is disabled to protect against CPU going offline but not
+- * online. CPUs going online during the call will not be seen or sent
+- * an IPI.
++ * Preemption is disabled to protect against CPUs going offline but not online.
++ * CPUs going online during the call will not be seen or sent an IPI.
+  *
+  * You must not call this function with disabled interrupts or
+  * from a hardware interrupt handler or from a bottom half handler.
 _
-Subject: Subject: slab: introduce kmalloc_array()
+Subject: Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix
 
-Patches currently in -mm which might be from xi.wang@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
 slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
