@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch added to -mm tree
-Date: Thu, 09 Feb 2012 14:28:43 -0800
-Message-ID: <20120209222843.CBD85A00B3@akpm.mtv.corp.google.com>
+Subject: + smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch added to -mm tree
+Date: Thu, 09 Feb 2012 14:28:41 -0800
+Message-ID: <20120209222841.AAE3FA00B3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:38100 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932175Ab2BIW2q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2012 17:28:46 -0500
-Received: by eekb15 with SMTP id b15so71855eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 09 Feb 2012 14:28:45 -0800 (PST)
+Received: from mail-fx0-f74.google.com ([209.85.161.74]:57804 "EHLO
+	mail-fx0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932175Ab2BIW2o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Feb 2012 17:28:44 -0500
+Received: by faaa19 with SMTP id a19so66385faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 09 Feb 2012 14:28:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gilad@benyossef.com
+Cc: gilad@benyossef.com, a.p.zijlstra@chello.nl, akpm@linux-foundation.org, andi@firstfloor.org, avi@redhat.com, cl@linux-foundation.org, cmetcalf@tilera.com, fweisbec@gmail.com, kosaki.motohiro@gmail.com, levinsasha928@gmail.com, linux@arm.linux.org.uk, miltonm@bga.com, mina86@mina86.com, mpm@selenic.com, penberg@kernel.org, riel@redhat.com, srivatsa.bhat@linux.vnet.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix
+     Subject: smp: add func to IPI cpus based on parameter func
 has been added to the -mm tree.  Its filename is
-     smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+     smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix
+From: Gilad Ben-Yossef <gilad@benyossef.com>
+Subject: smp: add func to IPI cpus based on parameter func
 
-s/CPU/CPUs, use all 80 cols in comment
+Add the on_each_cpu_cond() function that wraps on_each_cpu_mask()
+and calculates the cpumask of cpus to IPI by calling a function supplied
+as a parameter in order to determine whether to IPI each specific cpu.
 
-Cc: Gilad Ben-Yossef <gilad@benyossef.com>
+The function works around allocation failure of cpumask variable in
+CONFIG_CPUMASK_OFFSTACK=y by itereating over cpus sending an IPI a
+time via smp_call_function_single().
+
+The function is useful since it allows to seperate the specific
+code that decided in each case whether to IPI a specific cpu for
+a specific request from the common boilerplate code of handling
+creating the mask, handling failures etc.
+
+Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: linux-mm@kvack.org
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Sasha Levin <levinsasha928@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Kosaki Motohiro <kosaki.motohiro@gmail.com>
+Cc: Milton Miller <miltonm@bga.com>
+---
+
+index d0adb78..46e2267 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/smp.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix kernel/smp.c
---- a/kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix
+diff -puN kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-v9 kernel/smp.c
+--- a/kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func-v9
 +++ a/kernel/smp.c
-@@ -771,9 +771,8 @@ EXPORT_SYMBOL(on_each_cpu_mask);
+@@ -771,7 +771,9 @@ EXPORT_SYMBOL(on_each_cpu_mask);
   * The function might sleep if the GFP flags indicates a non
   * atomic allocation is allowed.
   *
-- * Preemption is disabled to protect against CPU going offline but not
-- * online. CPUs going online during the call will not be seen or sent
-- * an IPI.
-+ * Preemption is disabled to protect against CPUs going offline but not online.
-+ * CPUs going online during the call will not be seen or sent an IPI.
+- * Preemption is disabled to protect against a hotplug event.
++ * Preemption is disabled to protect against CPU going offline but not
++ * online. CPUs going online during the call will not be seen or sent
++ * an IPI.
   *
   * You must not call this function with disabled interrupts or
   * from a hardware interrupt handler or from a bottom half handler.
 _
-Subject: Subject: smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix
+Subject: Subject: smp: add func to IPI cpus based on parameter func
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gilad@benyossef.com are
 
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-posix_types-remove-fd_set-macros-checkpatch-fixes.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-introduce-a-generic-on_each_cpu_mask-function.patch
+arm-move-arm-over-to-generic-on_each_cpu_mask.patch
+tile-move-tile-to-use-generic-on_each_cpu_mask.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
 smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update.patch
 smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
 smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
 smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
+fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist-update.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist-v9.patch
 
