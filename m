@@ -1,120 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] loop-zero-fill-bio-instead-of-return-eio-for-partial-read.patch removed from -mm tree
-Date: Mon, 13 Feb 2012 13:12:44 -0800
-Message-ID: <20120213211244.7783AA02E6@akpm.mtv.corp.google.com>
+Subject: [merged] bio-dont-overflow-in-bio_get_nr_vecs.patch removed from -mm tree
+Date: Mon, 13 Feb 2012 13:12:40 -0800
+Message-ID: <20120213211241.9E0E7A02E6@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-qw0-f74.google.com ([209.85.216.74]:43432 "EHLO
 	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755901Ab2BMVMp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 16:12:45 -0500
-Received: by mail-qw0-f74.google.com with SMTP id b12so731294qad.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 13:12:44 -0800 (PST)
+	with ESMTP id S1755901Ab2BMVMo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 16:12:44 -0500
+Received: by qadb12 with SMTP id b12so731294qad.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 13:12:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dyoung@redhat.com, axboe@kernel.dk, dmonakhov@sw.ru, jmoyer@redhat.com, mm-commits@vger.kernel.org
+To: kent.overstreet@gmail.com, Valdis.Kletnieks@vt.edu, axboe@kernel.dk, koverstreet@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loop: zero fill bio instead of return -EIO for partial read
+     Subject: bio: don't overflow in bio_get_nr_vecs()
 has been removed from the -mm tree.  Its filename was
-     loop-zero-fill-bio-instead-of-return-eio-for-partial-read.patch
+     bio-dont-overflow-in-bio_get_nr_vecs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dave Young <dyoung@redhat.com>
-Subject: loop: zero fill bio instead of return -EIO for partial read
+From: Kent Overstreet <kent.overstreet@gmail.com>
+Subject: bio: don't overflow in bio_get_nr_vecs()
 
-commit 8268f5a741 ("deny partial write for loop dev fd") tried to fix the
-loop device partial read information leak problem.  But it changed the
-semantics of read behavior.  When we read beyond the end of the device we
-should get 0 bytes, which is normal behavior, we should not just return
--EIO
+There were two places bio_get_nr_vecs() could overflow:
 
-Instead of returning -EIO, zero out the bio to avoid information leak in
-case of partail read.
+First, it did a left shift to convert from sectors to bytes immediately
+before dividing by PAGE_SIZE.  If PAGE_SIZE ever was less than 512 a great
+many things would break, so dividing by PAGE_SIZE >> 9 is safe and will
+generate smaller code too.
 
-Signed-off-by: Dave Young <dyoung@redhat.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Tested-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dmitry Monakhov <dmonakhov@sw.ru>
+The nastier overflow was in the DIV_ROUND_UP() (that's what the code was
+effectively doing, anyways).  If n + d overflowed, the whole thing would
+return 0 which breaks things rather effectively.
+
+bio_get_nr_vecs() doesn't claim to give an exact value anyways, so the
+DIV_ROUND_UP() is silly; we could do a straight divide except if a
+device's queue_max_sectors was less than PAGE_SIZE we'd return 0.  So we
+just add 1; this should always be safe - things will break badly if
+bio_get_nr_vecs() returns > BIO_MAX_PAGES (bio_alloc() will suddenly start
+failing) but it's queue_max_segments that must guard against this, if
+queue_max_sectors is preventing this from happen things are going to
+explode on architectures with different PAGE_SIZE.
+
+Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Tejun Heo <tj@kernel.org>
+Acked-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ fs/bio.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-zero-fill-bio-instead-of-return-eio-for-partial-read drivers/block/loop.c
---- a/drivers/block/loop.c~loop-zero-fill-bio-instead-of-return-eio-for-partial-read
-+++ a/drivers/block/loop.c
-@@ -356,14 +356,14 @@ lo_direct_splice_actor(struct pipe_inode
- 	return __splice_from_pipe(pipe, sd, lo_splice_actor);
- }
- 
--static int
-+static ssize_t
- do_lo_receive(struct loop_device *lo,
- 	      struct bio_vec *bvec, int bsize, loff_t pos)
+diff -puN fs/bio.c~bio-dont-overflow-in-bio_get_nr_vecs fs/bio.c
+--- a/fs/bio.c~bio-dont-overflow-in-bio_get_nr_vecs
++++ a/fs/bio.c
+@@ -505,13 +505,9 @@ EXPORT_SYMBOL(bio_clone);
+ int bio_get_nr_vecs(struct block_device *bdev)
  {
- 	struct lo_read_data cookie;
- 	struct splice_desc sd;
- 	struct file *file;
--	long retval;
-+	ssize_t retval;
- 
- 	cookie.lo = lo;
- 	cookie.page = bvec->bv_page;
-@@ -379,26 +379,28 @@ do_lo_receive(struct loop_device *lo,
- 	file = lo->lo_backing_file;
- 	retval = splice_direct_to_actor(file, &sd, lo_direct_splice_actor);
- 
--	if (retval < 0)
--		return retval;
--	if (retval != bvec->bv_len)
--		return -EIO;
--	return 0;
-+	return retval;
- }
- 
- static int
- lo_receive(struct loop_device *lo, struct bio *bio, int bsize, loff_t pos)
- {
- 	struct bio_vec *bvec;
--	int i, ret = 0;
-+	ssize_t s;
-+	int i;
- 
- 	bio_for_each_segment(bvec, bio, i) {
--		ret = do_lo_receive(lo, bvec, bsize, pos);
--		if (ret < 0)
-+		s = do_lo_receive(lo, bvec, bsize, pos);
-+		if (s < 0)
-+			return s;
-+
-+		if (s != bvec->bv_len) {
-+			zero_fill_bio(bio);
- 			break;
-+		}
- 		pos += bvec->bv_len;
- 	}
--	return ret;
-+	return 0;
- }
- 
- static int do_bio_filebacked(struct loop_device *lo, struct bio *bio)
-_
-
-Patches currently in -mm which might be from dyoung@redhat.com are
-
-origin.patch
-linux-next.patch
-selftests-launch-individual-selftests-from-the-main-makefile.patch
-move-page-typesc-from-documentation-to-tools-vm.patch
-move-slabinfoc-to-tools-vm.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-
+ 	struct request_queue *q = bdev_get_queue(bdev);
+-	int nr_pages;
+-
+-	nr_pages = ((queue_max_sectors(q) << 9) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	if (nr_pages > queue_max_segments(q))
+-		nr_pages = queue_max_segments(q);
