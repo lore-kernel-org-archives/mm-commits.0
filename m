@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-mca-section.patch added to -mm tree
-Date: Mon, 13 Feb 2012 14:36:47 -0800
-Message-ID: <20120213223647.6325FA0560@akpm.mtv.corp.google.com>
+Subject: + drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch added to -mm tree
+Date: Mon, 13 Feb 2012 14:40:03 -0800
+Message-ID: <20120213224003.B0950A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:50823 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754809Ab2BMWgu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Feb 2012 17:36:50 -0500
-Received: by lahl5 with SMTP id l5so174541lah.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 14:36:48 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:36947 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751386Ab2BMWkF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 17:40:05 -0500
+Received: by yhgm50 with SMTP id m50so643363yhg.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 14:40:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, greg.pearson@hp.com
+Cc: axel.lin@gmail.com, milo.kim@ti.com, rpurdie@rpsys.net, shreshthakumar.sahu@stericsson.com
 
 
 The patch titled
-     Subject: MAINTAINERS: Update MCA section
+     Subject: drivers/leds/leds-lm3530.c: move the code setting gen_config to one place
 has been added to the -mm tree.  Its filename is
-     maintainers-update-mca-section.patch
+     drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: Update MCA section
+From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/leds/leds-lm3530.c: move the code setting gen_config to one place
 
-The MCA section included a file referring to Machine Check rather than
-Microchannel.
+Improve the readability by moving the code setting gen_config to one
+place.
 
-Rename the section to spell out Microchannel and drop the bad file
-reference.
-
-Reported-by: Greg Pearson <greg.pearson@hp.com>
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
+Cc: "Milo(Woogyom) Kim" <milo.kim@ti.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/leds/leds-lm3530.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-mca-section MAINTAINERS
---- a/MAINTAINERS~maintainers-update-mca-section
-+++ a/MAINTAINERS
-@@ -4363,6 +4363,13 @@ T:	git git://git.monstr.eu/linux-2.6-mic
- S:	Supported
- F:	arch/microblaze/
+diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place drivers/leds/leds-lm3530.c
+--- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place
++++ a/drivers/leds/leds-lm3530.c
+@@ -160,9 +160,16 @@ static int lm3530_init_registers(struct 
+ 	gen_config = (pdata->brt_ramp_law << LM3530_RAMP_LAW_SHIFT) |
+ 			((pdata->max_current & 7) << LM3530_MAX_CURR_SHIFT);
  
-+MICROCHANNEL ARCHITECTURE (MCA)
-+M:	James Bottomley <James.Bottomley@HansenPartnership.com>
-+S:	Maintained
-+F:	Documentation/mca.txt
-+F:	drivers/mca/
-+F:	include/linux/mca*
-+
- MICROTEK X6 SCANNER
- M:	Oliver Neukum <oliver@neukum.name>
- S:	Maintained
-@@ -4384,14 +4391,6 @@ M:	Thomas Langer <thomas.langer@lantiq.c
- S:	Maintained
- F:	arch/mips/lantiq/*
+-	if (drvdata->mode == LM3530_BL_MODE_MANUAL ||
+-	    drvdata->mode == LM3530_BL_MODE_ALS)
+-		gen_config |= (LM3530_ENABLE_I2C);
++	switch (drvdata->mode) {
++	case LM3530_BL_MODE_MANUAL:
++	case LM3530_BL_MODE_ALS:
++		gen_config |= LM3530_ENABLE_I2C;
++		break;
++	case LM3530_BL_MODE_PWM:
++		gen_config |= LM3530_ENABLE_PWM | LM3530_ENABLE_PWM_SIMPLE |
++			      (pltfm->pwm_pol_hi << LM3530_PWM_POL_SHIFT);
++		break;
++	}
  
--MISCELLANEOUS MCA-SUPPORT
--M:	James Bottomley <James.Bottomley@HansenPartnership.com>
--S:	Maintained
--F:	Documentation/ia64/mca.txt
--F:	Documentation/mca.txt
--F:	drivers/mca/
--F:	include/linux/mca*
+ 	if (drvdata->mode == LM3530_BL_MODE_ALS) {
+ 		if (pdata->als_vmax == 0) {
+@@ -196,11 +203,6 @@ static int lm3530_init_registers(struct 
+ 
+ 	}
+ 
+-	if (drvdata->mode == LM3530_BL_MODE_PWM)
+-		gen_config |= (LM3530_ENABLE_PWM) |
+-				(pdata->pwm_pol_hi << LM3530_PWM_POL_SHIFT) |
+-				(LM3530_ENABLE_PWM_SIMPLE);
