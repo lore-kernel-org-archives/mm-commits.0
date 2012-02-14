@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch added to -mm tree
-Date: Tue, 14 Feb 2012 13:07:54 -0800
-Message-ID: <20120214210754.923A9A01FC@akpm.mtv.corp.google.com>
+Subject: + kmsg_dump-dont-run-on-non-error-paths-by-default.patch added to -mm tree
+Date: Tue, 14 Feb 2012 13:09:10 -0800
+Message-ID: <20120214210910.8D905A01FC@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qw0-f74.google.com ([209.85.216.74]:46252 "EHLO
-	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761132Ab2BNVH4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 16:07:56 -0500
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:41209 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932294Ab2BNVJL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 16:09:11 -0500
+Received: by ghrr17 with SMTP id r17so53665ghr.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 13:09:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, cl@linux.com, hannes@cmpxchg.org, mgorman@suse.de, riel@redhat.com, smf.linux@ntlworld.com, stable@vger.kernel.org
+Cc: mjg@redhat.com, Artem.Bityutskiy@nokia.com, dwmw2@infradead.org, dzickus@redhat.com, kosaki.motohiro@jp.fujitsu.com, marco.stornelli@gmail.com, seiji.aguchi@hds.com, vgoyal@redhat.com
 
 
 The patch titled
-     Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
+     Subject: kmsg_dump: don't run on non-error paths by default
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
+     kmsg_dump-dont-run-on-non-error-paths-by-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,103 +33,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mel@csn.ul.ie>
-Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
+From: Matthew Garrett <mjg@redhat.com>
+Subject: kmsg_dump: don't run on non-error paths by default
 
-Stuart Foster reported on https://bugzilla.kernel.org/show_bug.cgi?id=42578
-that copying large amounts of data from NTFS caused an OOM kill on 32-bit
-X86 with 16G of memory. Andrew Morton correctly identified that the problem
-was NTFS was using 512 blocks meaning each page had 8 buffer_heads in low
-memory pinning it.
+Since 04c6862c055fb687c9 ("kmsg_dump: add kmsg_dump() calls to the reboot,
+halt, poweroff and emergency_restart paths"), kmsg_dump() gets run on
+normal paths including poweroff and reboot.  This is less than ideal given
+pstore implementations that can only represent single backtraces, since a
+reboot may overwrite a stored oops before it's been picked up by
+userspace.  In addition, some pstore backends may have low performance and
+provide a significant delay in reboot as a result.
 
-In the past, direct reclaim used to scan highmem even if the allocating
-process did not specify __GFP_HIGHMEM but not any more.  kswapd no longer
-will reclaim from zones that are above the high watermark.  The intention
-in both cases was to minimise unnecessary reclaim.  The downside is on
-machines with large amounts of highmem that lowmem can be fully consumed
-by buffer_heads with nothing trying to free them.
+This patch adds a printk.always_kmsg_dump kernel parameter (which can also
+be changed from userspace).  Without it, the code will only be run on
+failure paths rather than on normal paths.  The option can be enabled in
+environments where there's a desire to attempt to audit whether or not a
+reboot was cleanly requested or not.
 
-The following patch is based on a suggestion by Andrew Morton to extend
-the buffer_heads_over_limit case to force kswapd and direct reclaim to
-scan the highmem zone regardless of the allocation request or watermarks.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=42578
-
-Reported-by: Stuart Foster <smf.linux@ntlworld.com>
-Tested-by: Stuart Foster <smf.linux@ntlworld.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: stable <stable@vger.kernel.org>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Acked-by: Seiji Aguchi <seiji.aguchi@hds.com>
+Cc: Seiji Aguchi <seiji.aguchi@hds.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Marco Stornelli <marco.stornelli@gmail.com>
+Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    6 ++++++
+ include/linux/kmsg_dump.h           |    9 +++++++--
+ kernel/printk.c                     |    6 ++++++
+ 3 files changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem
-+++ a/mm/vmscan.c
-@@ -2238,6 +2238,14 @@ static bool shrink_zones(int priority, s
- 	unsigned long nr_soft_scanned;
- 	bool aborted_reclaim = false;
+diff -puN Documentation/kernel-parameters.txt~kmsg_dump-dont-run-on-non-error-paths-by-default Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~kmsg_dump-dont-run-on-non-error-paths-by-default
++++ a/Documentation/kernel-parameters.txt
+@@ -2227,6 +2227,12 @@ bytes respectively. Such letter suffixes
  
-+	/*
-+	 * If the number of buffer_heads in the machine exceeds the maximum
-+	 * allowed level, force direct reclaim to scan the highmem zone as
-+	 * highmem pages could be pinning lowmem pages storing buffer_heads
-+	 */
-+	if (buffer_heads_over_limit)
-+		sc->gfp_mask |= __GFP_HIGHMEM;
+ 			default: off.
+ 
++	printk.always_kmsg_dump=
++			Trigger kmsg_dump for cases other than kernel oops or
++			panics
++			Format: <bool>  (1/Y/y=enable, 0/N/n=disable)
++			default: disabled
 +
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 					gfp_zone(sc->gfp_mask), sc->nodemask) {
- 		if (!populated_zone(zone))
-@@ -2727,6 +2735,17 @@ loop_again:
- 			 */
- 			age_active_anon(zone, &sc, priority);
+ 	printk.time=	Show timing data prefixed to each printk message line
+ 			Format: <bool>  (1/Y/y=enable, 0/N/n=disable)
  
-+			/*
-+			 * If the number of buffer_heads in the machine
-+			 * exceeds the maximum allowed level and this node
-+			 * has a highmem zone, force kswapd to reclaim from
-+			 * it to relieve lowmem pressure.
-+			 */
-+			if (buffer_heads_over_limit && is_highmem_idx(i)) {
-+				end_zone = i;
-+				break;
-+			}
+diff -puN include/linux/kmsg_dump.h~kmsg_dump-dont-run-on-non-error-paths-by-default include/linux/kmsg_dump.h
+--- a/include/linux/kmsg_dump.h~kmsg_dump-dont-run-on-non-error-paths-by-default
++++ a/include/linux/kmsg_dump.h
+@@ -15,13 +15,18 @@
+ #include <linux/errno.h>
+ #include <linux/list.h>
+ 
++/*
++ * Keep this list arranged in rough order of priority. Anything listed after
++ * KMSG_DUMP_OOPS will not be logged by default unless printk.always_kmsg_dump
++ * is passed to the kernel.
++ */
+ enum kmsg_dump_reason {
+-	KMSG_DUMP_OOPS,
+ 	KMSG_DUMP_PANIC,
++	KMSG_DUMP_OOPS,
++	KMSG_DUMP_EMERG,
+ 	KMSG_DUMP_RESTART,
+ 	KMSG_DUMP_HALT,
+ 	KMSG_DUMP_POWEROFF,
+-	KMSG_DUMP_EMERG,
+ };
+ 
+ /**
+diff -puN kernel/printk.c~kmsg_dump-dont-run-on-non-error-paths-by-default kernel/printk.c
+--- a/kernel/printk.c~kmsg_dump-dont-run-on-non-error-paths-by-default
++++ a/kernel/printk.c
+@@ -702,6 +702,9 @@ static bool printk_time = 0;
+ #endif
+ module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
+ 
++static bool always_kmsg_dump;
++module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
 +
- 			if (!zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone), 0, 0)) {
- 				end_zone = i;
-@@ -2802,7 +2821,8 @@ loop_again:
- 						COMPACT_SKIPPED)
- 				testorder = 0;
+ /* Check if we have any console registered that can be called early in boot. */
+ static int have_callable_console(void)
+ {
+@@ -1732,6 +1735,9 @@ void kmsg_dump(enum kmsg_dump_reason rea
+ 	unsigned long l1, l2;
+ 	unsigned long flags;
  
--			if (!zone_watermark_ok_safe(zone, testorder,
-+			if ((buffer_heads_over_limit && is_highmem_idx(i)) ||
-+				    !zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone) + balance_gap,
- 					end_zone, 0)) {
- 				shrink_zone(priority, zone, &sc);
++	if ((reason > KMSG_DUMP_OOPS) && !always_kmsg_dump)
++		return;
++
+ 	/* Theoretically, the log could move on after we do this, but
+ 	   there's not a lot we can do about that. The new messages
+ 	   will overwrite the start of what we dump. */
 _
-Subject: Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
+Subject: Subject: kmsg_dump: don't run on non-error paths by default
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from mjg@redhat.com are
 
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
-vmscan-kswapd-carefully-call-compaction.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-vmscan-only-defer-compaction-for-failed-order-and-higher.patch
-compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
-mm-compaction-make-compact_control-order-signed.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
-smp-introduce-a-generic-on_each_cpu_mask-function.patch
-slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
-mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+kmsg_dump-dont-run-on-non-error-paths-by-default.patch
+acerhdf-add-support-for-aspire-1410-bios-v13314.patch
+acerhdf-add-support-for-new-hardware.patch
+acerhdf-lowered-default-temp-fanon-fanoff-values.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+geos-platform-driver-for-geos-and-geos2-single-board-computers.patch
+platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+platform-x86-kill-off-moorestown.patch
+intel_scu_ipc-remove-moorestown-support.patch
+platform-x86-intel_mid_thermal-add-msic_thermal-alias.patch
+platform-x86-intel_mid_thermal-convert-to-use-intel-msic-api.patch
+platform-x86-intel_mid_thermal-turn-off-thermistor-voltage-by-default.patch
+intel_mid_powerbtn-use-msic-read-write-instead-of-ipc_scu.patch
+intel_mid_powerbtn-mark-irq-as-irqf_no_suspend.patch
+alix2-supplement-driver-to-include-gpio-button-support.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+hrtimers-special-case-zero-length-sleeps.patch
+ipmi-increase-kcs-timeouts.patch
 
