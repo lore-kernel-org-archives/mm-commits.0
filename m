@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch added to -mm tree
-Date: Mon, 13 Feb 2012 16:46:19 -0800
-Message-ID: <20120214004619.F339EA00AA@akpm.mtv.corp.google.com>
+Subject: + signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch added to -mm tree
+Date: Mon, 13 Feb 2012 16:46:23 -0800
+Message-ID: <20120214004623.E0A81A00AA@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:32790 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751158Ab2BNAqW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 19:46:22 -0500
-Received: by eaaf13 with SMTP id f13so167364eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 16:46:21 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:45423 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753366Ab2BNAqZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 19:46:25 -0500
+Received: by mail-ww0-f74.google.com with SMTP id ds12so179742wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 16:46:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, anton.vorontsov@linaro.org, ebiederm@xmission.com, kosaki.m
 
 
 The patch titled
-     Subject: signal: cosmetic, s/from_ancestor_ns/force/ in prepare_signal() paths
+     Subject: signal: zap_pid_ns_processes: s/SEND_SIG_NOINFO/SEND_SIG_FORCED/
 has been added to the -mm tree.  Its filename is
-     signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+     signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: cosmetic, s/from_ancestor_ns/force/ in prepare_signal() paths
+Subject: signal: zap_pid_ns_processes: s/SEND_SIG_NOINFO/SEND_SIG_FORCED/
 
-Cosmetic, rename the from_ancestor_ns argument in prepare_signal() paths. 
-After the previous change it doesn't match the reality.
+Change zap_pid_ns_processes() to use SEND_SIG_FORCED, it looks more clear
+compared to SEND_SIG_NOINFO which relies on from_ancestor_ns logic
+send_signal().
+
+It is also more efficient if we need to kill a lot of tasks because it
+doesn't alloc sigqueue.
+
+While at it, add the __fatal_signal_pending(task) check as a minor
+optimization.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -48,75 +55,30 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ kernel/pid_namespace.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN kernel/signal.c~signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths kernel/signal.c
---- a/kernel/signal.c~signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths
-+++ a/kernel/signal.c
-@@ -58,21 +58,20 @@ static int sig_handler_ignored(void __us
- 		(handler == SIG_DFL && sig_kernel_ignore(sig));
- }
+diff -puN kernel/pid_namespace.c~signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced
++++ a/kernel/pid_namespace.c
+@@ -168,13 +168,9 @@ void zap_pid_ns_processes(struct pid_nam
+ 	while (nr > 0) {
+ 		rcu_read_lock();
  
--static int sig_task_ignored(struct task_struct *t, int sig,
--		int from_ancestor_ns)
-+static int sig_task_ignored(struct task_struct *t, int sig, bool force)
- {
- 	void __user *handler;
+-		/*
+-		 * Any nested-container's init processes won't ignore the
+-		 * SEND_SIG_NOINFO signal, see send_signal()->si_fromuser().
+-		 */
+ 		task = pid_task(find_vpid(nr), PIDTYPE_PID);
+-		if (task)
+-			send_sig_info(SIGKILL, SEND_SIG_NOINFO, task);
++		if (task && !__fatal_signal_pending(task))
++			send_sig_info(SIGKILL, SEND_SIG_FORCED, task);
  
- 	handler = sig_handler(t, sig);
+ 		rcu_read_unlock();
  
- 	if (unlikely(t->signal->flags & SIGNAL_UNKILLABLE) &&
--			handler == SIG_DFL && !from_ancestor_ns)
-+			handler == SIG_DFL && !force)
- 		return 1;
- 
- 	return sig_handler_ignored(handler, sig);
- }
- 
--static int sig_ignored(struct task_struct *t, int sig, int from_ancestor_ns)
-+static int sig_ignored(struct task_struct *t, int sig, bool force)
- {
- 	/*
- 	 * Blocked signals are never ignored, since the
-@@ -82,7 +81,7 @@ static int sig_ignored(struct task_struc
- 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
- 		return 0;
- 
--	if (!sig_task_ignored(t, sig, from_ancestor_ns))
-+	if (!sig_task_ignored(t, sig, force))
- 		return 0;
- 
- 	/*
-@@ -855,7 +854,7 @@ static void ptrace_trap_notify(struct ta
-  * Returns true if the signal should be actually delivered, otherwise
-  * it should be dropped.
-  */
--static int prepare_signal(int sig, struct task_struct *p, int from_ancestor_ns)
-+static int prepare_signal(int sig, struct task_struct *p, bool force)
- {
- 	struct signal_struct *signal = p->signal;
- 	struct task_struct *t;
-@@ -915,7 +914,7 @@ static int prepare_signal(int sig, struc
- 		}
- 	}
- 
--	return !sig_ignored(p, sig, from_ancestor_ns);
-+	return !sig_ignored(p, sig, force);
- }
- 
- /*
-@@ -1602,7 +1601,7 @@ int send_sigqueue(struct sigqueue *q, st
- 
- 	ret = 1; /* the signal is ignored */
- 	result = TRACE_SIGNAL_IGNORED;
--	if (!prepare_signal(sig, t, 0))
-+	if (!prepare_signal(sig, t, false))
- 		goto out;
- 
- 	ret = 0;
 _
-Subject: Subject: signal: cosmetic, s/from_ancestor_ns/force/ in prepare_signal() paths
+Subject: Subject: signal: zap_pid_ns_processes: s/SEND_SIG_NOINFO/SEND_SIG_FORCED/
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
