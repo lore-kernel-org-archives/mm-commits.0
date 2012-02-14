@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch added to -mm tree
-Date: Tue, 14 Feb 2012 12:38:38 -0800
-Message-ID: <20120214203838.8E4D8A0295@akpm.mtv.corp.google.com>
+Date: Tue, 14 Feb 2012 13:07:54 -0800
+Message-ID: <20120214210754.923A9A01FC@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:49194 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757259Ab2BNUij (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 15:38:39 -0500
+Received: from mail-qw0-f74.google.com ([209.85.216.74]:46252 "EHLO
+	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761132Ab2BNVH4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 16:07:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -63,8 +63,8 @@ Cc: stable <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ mm/vmscan.c |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
 diff -puN mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem mm/vmscan.c
 --- a/mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem
@@ -102,6 +102,16 @@ diff -puN mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buff
  			if (!zone_watermark_ok_safe(zone, order,
  					high_wmark_pages(zone), 0, 0)) {
  				end_zone = i;
+@@ -2802,7 +2821,8 @@ loop_again:
+ 						COMPACT_SKIPPED)
+ 				testorder = 0;
+ 
+-			if (!zone_watermark_ok_safe(zone, testorder,
++			if ((buffer_heads_over_limit && is_highmem_idx(i)) ||
++				    !zone_watermark_ok_safe(zone, order,
+ 					high_wmark_pages(zone) + balance_gap,
+ 					end_zone, 0)) {
+ 				shrink_zone(priority, zone, &sc);
 _
 Subject: Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
 
