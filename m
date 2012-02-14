@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-replace-page_migration-with-is_enabledconfig_migration.patch added to -mm tree
-Date: Mon, 13 Feb 2012 16:26:39 -0800
-Message-ID: <20120214002639.E31DDA0128@akpm.mtv.corp.google.com>
+Subject: + signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch added to -mm tree
+Date: Mon, 13 Feb 2012 16:46:16 -0800
+Message-ID: <20120214004617.5C75EA00AA@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:42098 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756140Ab2BNA0l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 19:26:41 -0500
-Received: by yhgm50 with SMTP id m50so654325yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 16:26:40 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:45423 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751158Ab2BNAqU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 19:46:20 -0500
+Received: by wgbds12 with SMTP id ds12so179742wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 16:46:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org
+Cc: oleg@redhat.com, anton.vorontsov@linaro.org, ebiederm@xmission.com, kosaki.motohiro@gmail.com, rientjes@google.com, tj@kernel.org
 
 
 The patch titled
-     Subject: mm: replace PAGE_MIGRATION with IS_ENABLED(CONFIG_MIGRATION)
+     Subject: signal: give SEND_SIG_FORCED more power to beat SIGNAL_UNKILLABLE
 has been added to the -mm tree.  Its filename is
-     mm-replace-page_migration-with-is_enabledconfig_migration.patch
+     signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: replace PAGE_MIGRATION with IS_ENABLED(CONFIG_MIGRATION)
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: signal: give SEND_SIG_FORCED more power to beat SIGNAL_UNKILLABLE
 
-Since 2a11c8e ("kconfig: Introduce IS_ENABLED(), IS_BUILTIN() and
-IS_MODULE()") there is a generic grep-friendly method for checking config
-options in C expressions.
+force_sig_info() and friends have the special semantics for synchronous
+signals, this interface should not be used if the target is not current. 
+And it needs the fixes, in particular the clearing of SIGNAL_UNKILLABLE is
+not exactly right.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+However there are callers which have to use force_ exactly because it
+clears SIGNAL_UNKILLABLE and thus it can kill the CLONE_NEWPID tasks,
+although this is almost always is wrong by various reasons.
+
+With this patch SEND_SIG_FORCED ignores SIGNAL_UNKILLABLE, like we do if
+the signal comes from the ancestor namespace.
+
+This makes the naming in prepare_signal() paths insane, fixed by the next
+cleanup.
+
+Note: this only affects SIGKILL/SIGSTOP, but this is enough for
+force_sig() abusers.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 --
- mm/mprotect.c           |    2 +-
- mm/rmap.c               |    7 ++++---
- 3 files changed, 5 insertions(+), 6 deletions(-)
+ kernel/signal.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/migrate.h~mm-replace-page_migration-with-is_enabledconfig_migration include/linux/migrate.h
---- a/include/linux/migrate.h~mm-replace-page_migration-with-is_enabledconfig_migration
-+++ a/include/linux/migrate.h
-@@ -8,7 +8,6 @@
- typedef struct page *new_page_t(struct page *, unsigned long private, int **);
+diff -puN kernel/signal.c~signal-give-send_sig_forced-more-power-to-beat-signal_unkillable kernel/signal.c
+--- a/kernel/signal.c~signal-give-send_sig_forced-more-power-to-beat-signal_unkillable
++++ a/kernel/signal.c
+@@ -1059,7 +1059,8 @@ static int __send_signal(int sig, struct
+ 	assert_spin_locked(&t->sighand->siglock);
  
- #ifdef CONFIG_MIGRATION
--#define PAGE_MIGRATION 1
+ 	result = TRACE_SIGNAL_IGNORED;
+-	if (!prepare_signal(sig, t, from_ancestor_ns))
++	if (!prepare_signal(sig, t,
++			from_ancestor_ns || (info == SEND_SIG_FORCED)))
+ 		goto ret;
  
- extern void putback_lru_pages(struct list_head *l);
- extern int migrate_page(struct address_space *,
-@@ -32,7 +31,6 @@ extern void migrate_page_copy(struct pag
- extern int migrate_huge_page_move_mapping(struct address_space *mapping,
- 				  struct page *newpage, struct page *page);
- #else
--#define PAGE_MIGRATION 0
- 
- static inline void putback_lru_pages(struct list_head *l) {}
- static inline int migrate_pages(struct list_head *l, new_page_t x,
-diff -puN mm/mprotect.c~mm-replace-page_migration-with-is_enabledconfig_migration mm/mprotect.c
---- a/mm/mprotect.c~mm-replace-page_migration-with-is_enabledconfig_migration
-+++ a/mm/mprotect.c
-@@ -60,7 +60,7 @@ static void change_pte_range(struct mm_s
- 				ptent = pte_mkwrite(ptent);
- 
- 			ptep_modify_prot_commit(mm, addr, pte, ptent);
--		} else if (PAGE_MIGRATION && !pte_file(oldpte)) {
-+		} else if (IS_ENABLED(CONFIG_MIGRATION) && !pte_file(oldpte)) {
- 			swp_entry_t entry = pte_to_swp_entry(oldpte);
- 
- 			if (is_write_migration_entry(entry)) {
-diff -puN mm/rmap.c~mm-replace-page_migration-with-is_enabledconfig_migration mm/rmap.c
---- a/mm/rmap.c~mm-replace-page_migration-with-is_enabledconfig_migration
-+++ a/mm/rmap.c
-@@ -1282,7 +1282,7 @@ int try_to_unmap_one(struct page *page, 
- 			}
- 			dec_mm_counter(mm, MM_ANONPAGES);
- 			inc_mm_counter(mm, MM_SWAPENTS);
--		} else if (PAGE_MIGRATION) {
-+		} else if (IS_ENABLED(CONFIG_MIGRATION)) {
- 			/*
- 			 * Store the pfn of the page in a special migration
- 			 * pte. do_swap_page() will wait until the migration
-@@ -1293,7 +1293,8 @@ int try_to_unmap_one(struct page *page, 
- 		}
- 		set_pte_at(mm, address, pte, swp_entry_to_pte(entry));
- 		BUG_ON(pte_file(*pte));
--	} else if (PAGE_MIGRATION && (TTU_ACTION(flags) == TTU_MIGRATION)) {
-+	} else if (IS_ENABLED(CONFIG_MIGRATION) &&
-+		   (TTU_ACTION(flags) == TTU_MIGRATION)) {
- 		/* Establish migration entry for a file page */
- 		swp_entry_t entry;
- 		entry = make_migration_entry(page, pte_write(pteval));
-@@ -1499,7 +1500,7 @@ static int try_to_unmap_anon(struct page
- 		 * locking requirements of exec(), migration skips
- 		 * temporary VMAs until after exec() completes.
- 		 */
--		if (PAGE_MIGRATION && (flags & TTU_MIGRATION) &&
-+		if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION) &&
- 				is_vma_temporary_stack(vma))
- 			continue;
- 
+ 	pending = group ? &t->signal->shared_pending : &t->pending;
 _
-Subject: Subject: mm: replace PAGE_MIGRATION with IS_ENABLED(CONFIG_MIGRATION)
+Subject: Subject: signal: give SEND_SIG_FORCED more power to beat SIGNAL_UNKILLABLE
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-mm-add-rss-counters-consistency-check.patch
-mm-make-get_mm_counter-static-inline.patch
-mm-replace-page_migration-with-is_enabledconfig_migration.patch
-mm-fix-page-faults-detection-in-swap-token-logic.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+usermodehelper-use-umh_wait_proc-consistently.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
 
