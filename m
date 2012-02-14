@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + softirq-reduce-invoke_softirq-code-duplication.patch added to -mm tree
-Date: Mon, 13 Feb 2012 14:42:42 -0800
-Message-ID: <20120213224242.AD459A00AB@akpm.mtv.corp.google.com>
+Subject: + mm-replace-page_migration-with-is_enabledconfig_migration.patch added to -mm tree
+Date: Mon, 13 Feb 2012 16:26:39 -0800
+Message-ID: <20120214002639.E31DDA0128@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:39736 "EHLO
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:42098 "EHLO
 	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639Ab2BMWmn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 17:42:43 -0500
-Received: by yhgm50 with SMTP id m50so643627yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 14:42:43 -0800 (PST)
+	with ESMTP id S1756140Ab2BNA0l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 19:26:41 -0500
+Received: by yhgm50 with SMTP id m50so654325yhg.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 16:26:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: khlebnikov@openvz.org
 
 
 The patch titled
-     Subject: softirq: reduce invoke_softirq() code duplication
+     Subject: mm: replace PAGE_MIGRATION with IS_ENABLED(CONFIG_MIGRATION)
 has been added to the -mm tree.  Its filename is
-     softirq-reduce-invoke_softirq-code-duplication.patch
+     mm-replace-page_migration-with-is_enabledconfig_migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: softirq: reduce invoke_softirq() code duplication
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm: replace PAGE_MIGRATION with IS_ENABLED(CONFIG_MIGRATION)
 
-The two invoke_softirq() variants are identical except for a single
-line. So move the #ifdef __ARCH_IRQ_EXIT_IRQS_DISABLED inside one of
-the functions and get rid of the other one.
+Since 2a11c8e ("kconfig: Introduce IS_ENABLED(), IS_BUILTIN() and
+IS_MODULE()") there is a generic grep-friendly method for checking config
+options in C expressions.
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softirq.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ include/linux/migrate.h |    2 --
+ mm/mprotect.c           |    2 +-
+ mm/rmap.c               |    7 ++++---
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN kernel/softirq.c~softirq-reduce-invoke_softirq-code-duplication kernel/softirq.c
---- a/kernel/softirq.c~softirq-reduce-invoke_softirq-code-duplication
-+++ a/kernel/softirq.c
-@@ -310,31 +310,21 @@ void irq_enter(void)
- 	__irq_enter();
- }
+diff -puN include/linux/migrate.h~mm-replace-page_migration-with-is_enabledconfig_migration include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-replace-page_migration-with-is_enabledconfig_migration
++++ a/include/linux/migrate.h
+@@ -8,7 +8,6 @@
+ typedef struct page *new_page_t(struct page *, unsigned long private, int **);
  
--#ifdef __ARCH_IRQ_EXIT_IRQS_DISABLED
- static inline void invoke_softirq(void)
- {
--	if (!force_irqthreads)
-+	if (!force_irqthreads) {
-+#ifdef __ARCH_IRQ_EXIT_IRQS_DISABLED
- 		__do_softirq();
--	else {
--		__local_bh_disable((unsigned long)__builtin_return_address(0),
--				SOFTIRQ_OFFSET);
--		wakeup_softirqd();
--		__local_bh_enable(SOFTIRQ_OFFSET);
--	}
--}
+ #ifdef CONFIG_MIGRATION
+-#define PAGE_MIGRATION 1
+ 
+ extern void putback_lru_pages(struct list_head *l);
+ extern int migrate_page(struct address_space *,
+@@ -32,7 +31,6 @@ extern void migrate_page_copy(struct pag
+ extern int migrate_huge_page_move_mapping(struct address_space *mapping,
+ 				  struct page *newpage, struct page *page);
  #else
--static inline void invoke_softirq(void)
--{
--	if (!force_irqthreads)
- 		do_softirq();
--	else {
-+#endif
-+	} else {
- 		__local_bh_disable((unsigned long)__builtin_return_address(0),
- 				SOFTIRQ_OFFSET);
- 		wakeup_softirqd();
- 		__local_bh_enable(SOFTIRQ_OFFSET);
- 	}
- }
--#endif
+-#define PAGE_MIGRATION 0
  
- /*
-  * Exit an interrupt context. Process softirqs if needed and possible:
+ static inline void putback_lru_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+diff -puN mm/mprotect.c~mm-replace-page_migration-with-is_enabledconfig_migration mm/mprotect.c
+--- a/mm/mprotect.c~mm-replace-page_migration-with-is_enabledconfig_migration
++++ a/mm/mprotect.c
+@@ -60,7 +60,7 @@ static void change_pte_range(struct mm_s
+ 				ptent = pte_mkwrite(ptent);
+ 
+ 			ptep_modify_prot_commit(mm, addr, pte, ptent);
+-		} else if (PAGE_MIGRATION && !pte_file(oldpte)) {
++		} else if (IS_ENABLED(CONFIG_MIGRATION) && !pte_file(oldpte)) {
+ 			swp_entry_t entry = pte_to_swp_entry(oldpte);
+ 
+ 			if (is_write_migration_entry(entry)) {
+diff -puN mm/rmap.c~mm-replace-page_migration-with-is_enabledconfig_migration mm/rmap.c
+--- a/mm/rmap.c~mm-replace-page_migration-with-is_enabledconfig_migration
++++ a/mm/rmap.c
+@@ -1282,7 +1282,7 @@ int try_to_unmap_one(struct page *page, 
+ 			}
+ 			dec_mm_counter(mm, MM_ANONPAGES);
+ 			inc_mm_counter(mm, MM_SWAPENTS);
+-		} else if (PAGE_MIGRATION) {
++		} else if (IS_ENABLED(CONFIG_MIGRATION)) {
+ 			/*
+ 			 * Store the pfn of the page in a special migration
+ 			 * pte. do_swap_page() will wait until the migration
+@@ -1293,7 +1293,8 @@ int try_to_unmap_one(struct page *page, 
+ 		}
+ 		set_pte_at(mm, address, pte, swp_entry_to_pte(entry));
+ 		BUG_ON(pte_file(*pte));
+-	} else if (PAGE_MIGRATION && (TTU_ACTION(flags) == TTU_MIGRATION)) {
++	} else if (IS_ENABLED(CONFIG_MIGRATION) &&
++		   (TTU_ACTION(flags) == TTU_MIGRATION)) {
+ 		/* Establish migration entry for a file page */
+ 		swp_entry_t entry;
+ 		entry = make_migration_entry(page, pte_write(pteval));
+@@ -1499,7 +1500,7 @@ static int try_to_unmap_anon(struct page
+ 		 * locking requirements of exec(), migration skips
+ 		 * temporary VMAs until after exec() completes.
+ 		 */
+-		if (PAGE_MIGRATION && (flags & TTU_MIGRATION) &&
++		if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION) &&
+ 				is_vma_temporary_stack(vma))
+ 			continue;
+ 
 _
-Subject: Subject: softirq: reduce invoke_softirq() code duplication
+Subject: Subject: mm: replace PAGE_MIGRATION with IS_ENABLED(CONFIG_MIGRATION)
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 linux-next.patch
-softirq-reduce-invoke_softirq-code-duplication.patch
-posix_types-make-__kernel_id32_t-default-to-unsigned-int.patch
-posix_types-make-it-possible-to-override-__kernel_fsid_t.patch
-s390-use-generic-posix_typesh.patch
-posix_types-remove-fd_set-macros.patch
-bitops-introduce-for_each_clear_bit.patch
-s390-char-use-for_each_clear_bit.patch
-ipc-provide-generic-compat-versions-of-ipc-syscalls.patch
+mm-add-rss-counters-consistency-check.patch
+mm-make-get_mm_counter-static-inline.patch
+mm-replace-page_migration-with-is_enabledconfig_migration.patch
+mm-fix-page-faults-detection-in-swap-token-logic.patch
 
