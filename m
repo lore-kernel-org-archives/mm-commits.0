@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch added to -mm tree
-Date: Mon, 13 Feb 2012 16:46:21 -0800
-Message-ID: <20120214004622.0966DA00AA@akpm.mtv.corp.google.com>
+Subject: + signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch added to -mm tree
+Date: Mon, 13 Feb 2012 16:46:19 -0800
+Message-ID: <20120214004619.F339EA00AA@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:41934 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682Ab2BNAqX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 19:46:23 -0500
-Received: by yhgm50 with SMTP id m50so655974yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 16:46:22 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:32790 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751158Ab2BNAqW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 19:46:22 -0500
+Received: by eaaf13 with SMTP id f13so167364eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 16:46:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, anton.vorontsov@linaro.org, ebiederm@xmission.com, kosaki.m
 
 
 The patch titled
-     Subject: signal: oom_kill_task: use SEND_SIG_FORCED instead of force_sig()
+     Subject: signal: cosmetic, s/from_ancestor_ns/force/ in prepare_signal() paths
 has been added to the -mm tree.  Its filename is
-     signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+     signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: oom_kill_task: use SEND_SIG_FORCED instead of force_sig()
+Subject: signal: cosmetic, s/from_ancestor_ns/force/ in prepare_signal() paths
 
-Change oom_kill_task() to use do_send_sig_info(SEND_SIG_FORCED) instead of
-force_sig(SIGKILL).  With the recent changes we do not need force_ to kill
-the CLONE_NEWPID tasks.
-
-And this is more correct.  force_sig() can race with the exiting thread
-even if oom_kill_task() checks p->mm != NULL, while do_send_sig_info(group
-=> true) kille the whole process.
+Cosmetic, rename the from_ancestor_ns argument in prepare_signal() paths. 
+After the previous change it doesn't match the reality.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
@@ -53,28 +48,75 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/signal.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN mm/oom_kill.c~signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig mm/oom_kill.c
---- a/mm/oom_kill.c~signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig
-+++ a/mm/oom_kill.c
-@@ -517,11 +517,11 @@ static void oom_kill_process(struct task
- 			pr_err("Kill process %d (%s) sharing same memory\n",
- 				task_pid_nr(p), p->comm);
- 			task_unlock(p);
--			force_sig(SIGKILL, p);
-+			do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
- 		}
- 
- 	set_tsk_thread_flag(victim, TIF_MEMDIE);
--	force_sig(SIGKILL, victim);
-+	do_send_sig_info(SIGKILL, SEND_SIG_FORCED, victim, true);
+diff -puN kernel/signal.c~signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths kernel/signal.c
+--- a/kernel/signal.c~signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths
++++ a/kernel/signal.c
+@@ -58,21 +58,20 @@ static int sig_handler_ignored(void __us
+ 		(handler == SIG_DFL && sig_kernel_ignore(sig));
  }
- #undef K
  
+-static int sig_task_ignored(struct task_struct *t, int sig,
+-		int from_ancestor_ns)
++static int sig_task_ignored(struct task_struct *t, int sig, bool force)
+ {
+ 	void __user *handler;
+ 
+ 	handler = sig_handler(t, sig);
+ 
+ 	if (unlikely(t->signal->flags & SIGNAL_UNKILLABLE) &&
+-			handler == SIG_DFL && !from_ancestor_ns)
++			handler == SIG_DFL && !force)
+ 		return 1;
+ 
+ 	return sig_handler_ignored(handler, sig);
+ }
+ 
+-static int sig_ignored(struct task_struct *t, int sig, int from_ancestor_ns)
++static int sig_ignored(struct task_struct *t, int sig, bool force)
+ {
+ 	/*
+ 	 * Blocked signals are never ignored, since the
+@@ -82,7 +81,7 @@ static int sig_ignored(struct task_struc
+ 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
+ 		return 0;
+ 
+-	if (!sig_task_ignored(t, sig, from_ancestor_ns))
++	if (!sig_task_ignored(t, sig, force))
+ 		return 0;
+ 
+ 	/*
+@@ -855,7 +854,7 @@ static void ptrace_trap_notify(struct ta
+  * Returns true if the signal should be actually delivered, otherwise
+  * it should be dropped.
+  */
+-static int prepare_signal(int sig, struct task_struct *p, int from_ancestor_ns)
++static int prepare_signal(int sig, struct task_struct *p, bool force)
+ {
+ 	struct signal_struct *signal = p->signal;
+ 	struct task_struct *t;
+@@ -915,7 +914,7 @@ static int prepare_signal(int sig, struc
+ 		}
+ 	}
+ 
+-	return !sig_ignored(p, sig, from_ancestor_ns);
++	return !sig_ignored(p, sig, force);
+ }
+ 
+ /*
+@@ -1602,7 +1601,7 @@ int send_sigqueue(struct sigqueue *q, st
+ 
+ 	ret = 1; /* the signal is ignored */
+ 	result = TRACE_SIGNAL_IGNORED;
+-	if (!prepare_signal(sig, t, 0))
++	if (!prepare_signal(sig, t, false))
+ 		goto out;
+ 
+ 	ret = 0;
 _
-Subject: Subject: signal: oom_kill_task: use SEND_SIG_FORCED instead of force_sig()
+Subject: Subject: signal: cosmetic, s/from_ancestor_ns/force/ in prepare_signal() paths
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
