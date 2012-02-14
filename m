@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-crash-out-of-memory-error-by-x-when-using-ntfs-file-system-on-external-usb-hard-drive.patch added to -mm tree
-Date: Tue, 14 Feb 2012 12:37:46 -0800
-Message-ID: <20120214203747.0BD6DA0295@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch added to -mm tree
+Date: Tue, 14 Feb 2012 12:38:38 -0800
+Message-ID: <20120214203838.8E4D8A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:54094 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:49194 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757213Ab2BNUhs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 15:37:48 -0500
+	with ESMTP id S1757259Ab2BNUij (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 15:38:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mel@csn.ul.ie, cl@linux.com, hannes@cmpxchg.org, mgorman@suse.de, riel@redha
 
 
 The patch titled
-     mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
+     Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
 has been added to the -mm tree.  Its filename is
-     kernel-crash-out-of-memory-error-by-x-when-using-ntfs-file-system-on-external-usb-hard-drive.patch
+     mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,7 +32,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mel@csn.ul.ie>
-mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
+Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
 
 Stuart Foster reported on https://bugzilla.kernel.org/show_bug.cgi?id=42578
 that copying large amounts of data from NTFS caused an OOM kill on 32-bit
@@ -66,8 +66,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/vmscan.c |   19 +++++++++++++++++++
  1 file changed, 19 insertions(+)
 
-diff -puN mm/vmscan.c~kernel-crash-out-of-memory-error-by-x-when-using-ntfs-file-system-on-external-usb-hard-drive mm/vmscan.c
---- a/mm/vmscan.c~kernel-crash-out-of-memory-error-by-x-when-using-ntfs-file-system-on-external-usb-hard-drive
+diff -puN mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem
 +++ a/mm/vmscan.c
 @@ -2238,6 +2238,14 @@ static bool shrink_zones(int priority, s
  	unsigned long nr_soft_scanned;
@@ -103,7 +103,7 @@ diff -puN mm/vmscan.c~kernel-crash-out-of-memory-error-by-x-when-using-ntfs-file
  					high_wmark_pages(zone), 0, 0)) {
  				end_zone = i;
 _
-Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
+Subject: Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
 
 Patches currently in -mm which might be from mel@csn.ul.ie are
 
@@ -115,7 +115,7 @@ vmscan-only-defer-compaction-for-failed-order-and-higher.patch
 compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
 mm-compaction-make-compact_control-order-signed.patch
 mm-compaction-make-compact_control-order-signed-fix.patch
-kernel-crash-out-of-memory-error-by-x-when-using-ntfs-file-system-on-external-usb-hard-drive.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
 smp-introduce-a-generic-on_each_cpu_mask-function.patch
 slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
 mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
