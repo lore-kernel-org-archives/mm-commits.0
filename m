@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch added to -mm tree
-Date: Mon, 13 Feb 2012 16:46:23 -0800
-Message-ID: <20120214004623.E0A81A00AA@akpm.mtv.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 14 Feb 2012 12:20:00 -0800
+Message-ID: <20120214202002.290A0A0201@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:45423 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753366Ab2BNAqZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Feb 2012 19:46:25 -0500
-Received: by mail-ww0-f74.google.com with SMTP id ds12so179742wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 13 Feb 2012 16:46:25 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:59135 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757071Ab2BNUUE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 15:20:04 -0500
+Received: by ghrr17 with SMTP id r17so46791ghr.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 12:20:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, anton.vorontsov@linaro.org, ebiederm@xmission.com, kosaki.motohiro@gmail.com, rientjes@google.com, tj@kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: signal: zap_pid_ns_processes: s/SEND_SIG_NOINFO/SEND_SIG_FORCED/
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: zap_pid_ns_processes: s/SEND_SIG_NOINFO/SEND_SIG_FORCED/
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Change zap_pid_ns_processes() to use SEND_SIG_FORCED, it looks more clear
-compared to SEND_SIG_NOINFO which relies on from_ancestor_ns logic
-send_signal().
-
-It is also more efficient if we need to kill a lot of tasks because it
-doesn't alloc sigqueue.
-
-While at it, add the __fatal_signal_pending(task) check as a minor
-optimization.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ sound/soc/sh/fsi.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/pid_namespace.c~signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced
-+++ a/kernel/pid_namespace.c
-@@ -168,13 +168,9 @@ void zap_pid_ns_processes(struct pid_nam
- 	while (nr > 0) {
- 		rcu_read_lock();
+diff -puN sound/soc/sh/fsi.c~linux-next-git-rejects sound/soc/sh/fsi.c
+--- a/sound/soc/sh/fsi.c~linux-next-git-rejects
++++ a/sound/soc/sh/fsi.c
+@@ -1210,11 +1210,7 @@ static int fsi_hw_free(struct snd_pcm_su
+ static snd_pcm_uframes_t fsi_pointer(struct snd_pcm_substream *substream)
+ {
+ 	struct fsi_priv *fsi = fsi_get_priv(substream);
+-<<<<<<< HEAD
+-	struct fsi_stream *io = fsi_get_stream(fsi, fsi_is_play(substream));
+-=======
+ 	struct fsi_stream *io = fsi_stream_get(fsi, substream);
+->>>>>>> linux-next/akpm-end
  
--		/*
--		 * Any nested-container's init processes won't ignore the
--		 * SEND_SIG_NOINFO signal, see send_signal()->si_fromuser().
--		 */
- 		task = pid_task(find_vpid(nr), PIDTYPE_PID);
--		if (task)
--			send_sig_info(SIGKILL, SEND_SIG_NOINFO, task);
-+		if (task && !__fatal_signal_pending(task))
-+			send_sig_info(SIGKILL, SEND_SIG_FORCED, task);
- 
- 		rcu_read_unlock();
- 
+ 	return fsi_sample2frame(fsi, io->buff_sample_pos);
+ }
 _
-Subject: Subject: signal: zap_pid_ns_processes: s/SEND_SIG_NOINFO/SEND_SIG_FORCED/
+Subject: Subject: linux-next-git-rejects
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+video-backlight-support-s6e8ax0-panel-driver-based-on-mipi-dsi.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
 prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
 prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
 kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-use-umh_wait_proc-consistently.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
 pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
