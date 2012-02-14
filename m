@@ -1,2936 +1,2977 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-support-mipi-dsi-controller-driver.patch removed from -mm tree
-Date: Tue, 14 Feb 2012 12:21:05 -0800
-Message-ID: <20120214202105.81130A03F9@akpm.mtv.corp.google.com>
+Subject: [merged] video-support-dp-controller-driver.patch removed from -mm tree
+Date: Tue, 14 Feb 2012 12:21:09 -0800
+Message-ID: <20120214202109.6424BA04FD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-qy0-f202.google.com ([209.85.216.202]:63574 "EHLO
 	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757144Ab2BNUVH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 15:21:07 -0500
-Received: by qcsp5 with SMTP id p5so44712qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 12:21:06 -0800 (PST)
+	with ESMTP id S1757144Ab2BNUVK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 15:21:10 -0500
+Received: by mail-qy0-f202.google.com with SMTP id p5so44712qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 12:21:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dh09.lee@samsung.com, FlorianSchandinat@gmx.de, inki.dae@samsung.com, jg1.han@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, FlorianSchandinat@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video: support MIPI-DSI controller driver
+     Subject: video: support DP controller driver
 has been removed from the -mm tree.  Its filename was
-     video-support-mipi-dsi-controller-driver.patch
+     video-support-dp-controller-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Donghwa Lee <dh09.lee@samsung.com>
-Subject: video: support MIPI-DSI controller driver
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: video: support DP controller driver
 
-Samsung S5PC210 and EXYNOS SoC platform has MIPI-DSI controller and
-MIPI-DSI based LCD Panel could be used with it.  This patch supports
-MIPI-DSI driver based Samsung SoC chip.
+Samsung EXYNOS SoC such Exynos5 has DP controller and embedded DP panel
+can be used.  This patch supports DP driver based on Samsung EXYNOS SoC
+chip.
 
-LCD panel driver based MIPI-DSI should be registered to MIPI-DSI driver at
-machine code and LCD panel driver specific function registered to
-mipi_dsim_ddi structure at lcd panel init function called system init.  In
-the MIPI-DSI driver, find lcd panel driver by using registered lcd panel
-name, and then initialize lcd panel driver.
-
-Signed-off-by: Donghwa Lee <dh09.lee@samsung.com>
-Signed-off-by: Inki Dae <inki.dae@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig                           |    2 
- drivers/video/Makefile                          |    2 
- drivers/video/exynos/Kconfig                    |   22 
- drivers/video/exynos/Makefile                   |    6 
- drivers/video/exynos/exynos_mipi_dsi.c          |  600 +++++++++
- drivers/video/exynos/exynos_mipi_dsi_common.c   |  896 ++++++++++++++
- drivers/video/exynos/exynos_mipi_dsi_common.h   |   46 
- drivers/video/exynos/exynos_mipi_dsi_lowlevel.c |  618 +++++++++
- drivers/video/exynos/exynos_mipi_dsi_lowlevel.h |  112 +
- drivers/video/exynos/exynos_mipi_dsi_regs.h     |  149 ++
- include/video/exynos_mipi_dsim.h                |  359 +++++
- 11 files changed, 2811 insertions(+), 1 deletion(-)
+ drivers/video/exynos/exynos_dp_core.c | 1058 +++++++++++++++++++++
+ drivers/video/exynos/exynos_dp_core.h |  206 ++++
+ drivers/video/exynos/exynos_dp_reg.c  | 1173 ++++++++++++++++++++++++
+ drivers/video/exynos/exynos_dp_reg.h  |  335 ++++++
+ include/video/exynos_dp.h             |  131 ++
+ 5 files changed, 2903 insertions(+)
 
-diff -puN drivers/video/Kconfig~video-support-mipi-dsi-controller-driver drivers/video/Kconfig
---- a/drivers/video/Kconfig~video-support-mipi-dsi-controller-driver
-+++ a/drivers/video/Kconfig
-@@ -2411,7 +2411,7 @@ config FB_PUV3_UNIGFX
- 
- source "drivers/video/omap/Kconfig"
- source "drivers/video/omap2/Kconfig"
--
-+source "drivers/video/exynos/Kconfig"
- source "drivers/video/backlight/Kconfig"
- 
- if VT
-diff -puN drivers/video/Makefile~video-support-mipi-dsi-controller-driver drivers/video/Makefile
---- a/drivers/video/Makefile~video-support-mipi-dsi-controller-driver
-+++ a/drivers/video/Makefile
-@@ -15,6 +15,8 @@ obj-$(CONFIG_VT)		  += console/
- obj-$(CONFIG_LOGO)		  += logo/
- obj-y				  += backlight/
- 
-+obj-$(CONFIG_EXYNOS_VIDEO)     += exynos/
-+
- obj-$(CONFIG_FB_CFB_FILLRECT)  += cfbfillrect.o
- obj-$(CONFIG_FB_CFB_COPYAREA)  += cfbcopyarea.o
- obj-$(CONFIG_FB_CFB_IMAGEBLIT) += cfbimgblt.o
-diff -puN /dev/null drivers/video/exynos/Kconfig
+diff -puN drivers/video/exynos/Kconfig~video-support-dp-controller-driver drivers/video/exynos/Kconfig
+diff -puN drivers/video/exynos/Makefile~video-support-dp-controller-driver drivers/video/exynos/Makefile
+diff -puN /dev/null drivers/video/exynos/exynos_dp_core.c
 --- /dev/null
-+++ a/drivers/video/exynos/Kconfig
-@@ -0,0 +1,22 @@
-+#
-+# Exynos Video configuration
-+#
-+
-+menuconfig EXYNOS_VIDEO
-+	bool "Exynos Video driver support"
-+	help
-+	  This enables support for EXYNOS Video device.
-+
-+if EXYNOS_VIDEO
-+
-+#
-+# MIPI DSI driver
-+#
-+
-+config EXYNOS_MIPI_DSI
-+	bool "EXYNOS MIPI DSI driver support."
-+	depends on (ARCH_S5PV210 || ARCH_EXYNOS)
-+	help
-+	  This enables support for MIPI-DSI device.
-+
-+endif # EXYNOS_VIDEO
-diff -puN /dev/null drivers/video/exynos/Makefile
---- /dev/null
-+++ a/drivers/video/exynos/Makefile
-@@ -0,0 +1,6 @@
-+#
-+# Makefile for the exynos video drivers.
-+#
-+
-+obj-$(CONFIG_EXYNOS_MIPI_DSI)		+= exynos_mipi_dsi.o exynos_mipi_dsi_common.o \
-+				     	exynos_mipi_dsi_lowlevel.o
-diff -puN /dev/null drivers/video/exynos/exynos_mipi_dsi.c
---- /dev/null
-+++ a/drivers/video/exynos/exynos_mipi_dsi.c
-@@ -0,0 +1,600 @@
-+/* linux/drivers/video/exynos/exynos_mipi_dsi.c
-+ *
-+ * Samsung SoC MIPI-DSIM driver.
-+ *
-+ * Copyright (c) 2012 Samsung Electronics Co., Ltd
-+ *
-+ * InKi Dae, <inki.dae@samsung.com>
-+ * Donghwa Lee, <dh09.lee@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/clk.h>
-+#include <linux/mutex.h>
-+#include <linux/wait.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/fb.h>
-+#include <linux/ctype.h>
-+#include <linux/platform_device.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/memory.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/kthread.h>
-+#include <linux/notifier.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/pm_runtime.h>
-+
-+#include <video/exynos_mipi_dsim.h>
-+
-+#include <plat/fb.h>
-+
-+#include "exynos_mipi_dsi_common.h"
-+#include "exynos_mipi_dsi_lowlevel.h"
-+
-+struct mipi_dsim_ddi {
-+	int				bus_id;
-+	struct list_head		list;
-+	struct mipi_dsim_lcd_device	*dsim_lcd_dev;
-+	struct mipi_dsim_lcd_driver	*dsim_lcd_drv;
-+};
-+
-+static LIST_HEAD(dsim_ddi_list);
-+
-+static DEFINE_MUTEX(mipi_dsim_lock);
-+
-+static struct mipi_dsim_platform_data *to_dsim_plat(struct platform_device
-+							*pdev)
-+{
-+	return pdev->dev.platform_data;
-+}
-+
-+static struct regulator_bulk_data supplies[] = {
-+	{ .supply = "vdd10", },
-+	{ .supply = "vdd18", },
-+};
-+
-+static int exynos_mipi_regulator_enable(struct mipi_dsim_device *dsim)
-+{
-+	int ret;
-+
-+	mutex_lock(&dsim->lock);
-+	ret = regulator_bulk_enable(ARRAY_SIZE(supplies), supplies);
-+	mutex_unlock(&dsim->lock);
-+
-+	return ret;
-+}
-+
-+static int exynos_mipi_regulator_disable(struct mipi_dsim_device *dsim)
-+{
-+	int ret;
-+
-+	mutex_lock(&dsim->lock);
-+	ret = regulator_bulk_disable(ARRAY_SIZE(supplies), supplies);
-+	mutex_unlock(&dsim->lock);
-+
-+	return ret;
-+}
-+
-+/* update all register settings to MIPI DSI controller. */
-+static void exynos_mipi_update_cfg(struct mipi_dsim_device *dsim)
-+{
-+	/*
-+	 * data from Display controller(FIMD) is not transferred in video mode
-+	 * but in case of command mode, all settings is not updated to
-+	 * registers.
-+	 */
-+	exynos_mipi_dsi_stand_by(dsim, 0);
-+
-+	exynos_mipi_dsi_init_dsim(dsim);
-+	exynos_mipi_dsi_init_link(dsim);
-+
-+	exynos_mipi_dsi_set_hs_enable(dsim);
-+
-+	/* set display timing. */
-+	exynos_mipi_dsi_set_display_mode(dsim, dsim->dsim_config);
-+
-+	/*
-+	 * data from Display controller(FIMD) is transferred in video mode
-+	 * but in case of command mode, all settigs is updated to registers.
-+	 */
-+	exynos_mipi_dsi_stand_by(dsim, 1);
-+}
-+
-+static int exynos_mipi_dsi_early_blank_mode(struct mipi_dsim_device *dsim,
-+		int power)
-+{
-+	struct mipi_dsim_lcd_driver *client_drv = dsim->dsim_lcd_drv;
-+	struct mipi_dsim_lcd_device *client_dev = dsim->dsim_lcd_dev;
-+
-+	switch (power) {
-+	case FB_BLANK_POWERDOWN:
-+		if (dsim->suspended)
-+			return 0;
-+
-+		if (client_drv && client_drv->suspend)
-+			client_drv->suspend(client_dev);
-+
-+		clk_disable(dsim->clock);
-+
-+		exynos_mipi_regulator_disable(dsim);
-+
-+		dsim->suspended = true;
-+
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
-+{
-+	struct platform_device *pdev = to_platform_device(dsim->dev);
-+	struct mipi_dsim_lcd_driver *client_drv = dsim->dsim_lcd_drv;
-+	struct mipi_dsim_lcd_device *client_dev = dsim->dsim_lcd_dev;
-+
-+	switch (power) {
-+	case FB_BLANK_UNBLANK:
-+		if (!dsim->suspended)
-+			return 0;
-+
-+		/* lcd panel power on. */
-+		if (client_drv && client_drv->power_on)
-+			client_drv->power_on(client_dev, 1);
-+
-+		exynos_mipi_regulator_disable(dsim);
-+
-+		/* enable MIPI-DSI PHY. */
-+		if (dsim->pd->phy_enable)
-+			dsim->pd->phy_enable(pdev, true);
-+
-+		clk_enable(dsim->clock);
-+
-+		exynos_mipi_update_cfg(dsim);
-+
-+		/* set lcd panel sequence commands. */
-+		if (client_drv && client_drv->set_sequence)
-+			client_drv->set_sequence(client_dev);
-+
-+		dsim->suspended = false;
-+
-+		break;
-+	case FB_BLANK_NORMAL:
-+		/* TODO. */
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+int exynos_mipi_dsi_register_lcd_device(struct mipi_dsim_lcd_device *lcd_dev)
-+{
-+	struct mipi_dsim_ddi *dsim_ddi;
-+
-+	if (!lcd_dev->name) {
-+		pr_err("dsim_lcd_device name is NULL.\n");
-+		return -EFAULT;
-+	}
-+
-+	dsim_ddi = kzalloc(sizeof(struct mipi_dsim_ddi), GFP_KERNEL);
-+	if (!dsim_ddi) {
-+		pr_err("failed to allocate dsim_ddi object.\n");
-+		return -ENOMEM;
-+	}
-+
-+	dsim_ddi->dsim_lcd_dev = lcd_dev;
-+
-+	mutex_lock(&mipi_dsim_lock);
-+	list_add_tail(&dsim_ddi->list, &dsim_ddi_list);
-+	mutex_unlock(&mipi_dsim_lock);
-+
-+	return 0;
-+}
-+
-+struct mipi_dsim_ddi *exynos_mipi_dsi_find_lcd_device(struct mipi_dsim_lcd_driver *lcd_drv)
-+{
-+	struct mipi_dsim_ddi *dsim_ddi, *next;
-+	struct mipi_dsim_lcd_device *lcd_dev;
-+
-+	mutex_lock(&mipi_dsim_lock);
-+
-+	list_for_each_entry_safe(dsim_ddi, next, &dsim_ddi_list, list) {
-+		if (!dsim_ddi)
-+			goto out;
-+
-+		lcd_dev = dsim_ddi->dsim_lcd_dev;
-+		if (!lcd_dev)
-+			continue;
-+
-+		if ((strcmp(lcd_drv->name, lcd_dev->name)) == 0) {
-+			/**
-+			 * bus_id would be used to identify
-+			 * connected bus.
-+			 */
-+			dsim_ddi->bus_id = lcd_dev->bus_id;
-+			mutex_unlock(&mipi_dsim_lock);
-+
-+			return dsim_ddi;
-+		}
-+
-+		list_del(&dsim_ddi->list);
-+		kfree(dsim_ddi);
-+	}
-+
-+out:
-+	mutex_unlock(&mipi_dsim_lock);
-+
-+	return NULL;
-+}
-+
-+int exynos_mipi_dsi_register_lcd_driver(struct mipi_dsim_lcd_driver *lcd_drv)
-+{
-+	struct mipi_dsim_ddi *dsim_ddi;
-+
-+	if (!lcd_drv->name) {
-+		pr_err("dsim_lcd_driver name is NULL.\n");
-+		return -EFAULT;
-+	}
-+
-+	dsim_ddi = exynos_mipi_dsi_find_lcd_device(lcd_drv);
-+	if (!dsim_ddi) {
-+		pr_err("mipi_dsim_ddi object not found.\n");
-+		return -EFAULT;
-+	}
-+
-+	dsim_ddi->dsim_lcd_drv = lcd_drv;
-+
-+	pr_info("registered panel driver(%s) to mipi-dsi driver.\n",
-+		lcd_drv->name);
-+
-+	return 0;
-+
-+}
-+
-+struct mipi_dsim_ddi *exynos_mipi_dsi_bind_lcd_ddi(struct mipi_dsim_device *dsim,
-+						const char *name)
-+{
-+	struct mipi_dsim_ddi *dsim_ddi, *next;
-+	struct mipi_dsim_lcd_driver *lcd_drv;
-+	struct mipi_dsim_lcd_device *lcd_dev;
-+	int ret;
-+
-+	mutex_lock(&dsim->lock);
-+
-+	list_for_each_entry_safe(dsim_ddi, next, &dsim_ddi_list, list) {
-+		lcd_drv = dsim_ddi->dsim_lcd_drv;
-+		lcd_dev = dsim_ddi->dsim_lcd_dev;
-+		if (!lcd_drv || !lcd_dev ||
-+			(dsim->id != dsim_ddi->bus_id))
-+				continue;
-+
-+		dev_dbg(dsim->dev, "lcd_drv->id = %d, lcd_dev->id = %d\n",
-+				lcd_drv->id, lcd_dev->id);
-+		dev_dbg(dsim->dev, "lcd_dev->bus_id = %d, dsim->id = %d\n",
-+				lcd_dev->bus_id, dsim->id);
-+
-+		if ((strcmp(lcd_drv->name, name) == 0)) {
-+			lcd_dev->master = dsim;
-+
-+			lcd_dev->dev.parent = dsim->dev;
-+			dev_set_name(&lcd_dev->dev, "%s", lcd_drv->name);
-+
-+			ret = device_register(&lcd_dev->dev);
-+			if (ret < 0) {
-+				dev_err(dsim->dev,
-+					"can't register %s, status %d\n",
-+					dev_name(&lcd_dev->dev), ret);
-+				mutex_unlock(&dsim->lock);
-+
-+				return NULL;
-+			}
-+
-+			dsim->dsim_lcd_dev = lcd_dev;
-+			dsim->dsim_lcd_drv = lcd_drv;
-+
-+			mutex_unlock(&dsim->lock);
-+
-+			return dsim_ddi;
-+		}
-+	}
-+
-+	mutex_unlock(&dsim->lock);
-+
-+	return NULL;
-+}
-+
-+/* define MIPI-DSI Master operations. */
-+static struct mipi_dsim_master_ops master_ops = {
-+	.cmd_read			= exynos_mipi_dsi_rd_data,
-+	.cmd_write			= exynos_mipi_dsi_wr_data,
-+	.get_dsim_frame_done		= exynos_mipi_dsi_get_frame_done_status,
-+	.clear_dsim_frame_done		= exynos_mipi_dsi_clear_frame_done,
-+	.set_early_blank_mode		= exynos_mipi_dsi_early_blank_mode,
-+	.set_blank_mode			= exynos_mipi_dsi_blank_mode,
-+};
-+
-+static int exynos_mipi_dsi_probe(struct platform_device *pdev)
-+{
-+	struct resource *res;
-+	struct mipi_dsim_device *dsim;
-+	struct mipi_dsim_config *dsim_config;
-+	struct mipi_dsim_platform_data *dsim_pd;
-+	struct mipi_dsim_ddi *dsim_ddi;
-+	int ret = -EINVAL;
-+
-+	dsim = kzalloc(sizeof(struct mipi_dsim_device), GFP_KERNEL);
-+	if (!dsim) {
-+		dev_err(&pdev->dev, "failed to allocate dsim object.\n");
-+		return -ENOMEM;
-+	}
-+
-+	dsim->pd = to_dsim_plat(pdev);
-+	dsim->dev = &pdev->dev;
-+	dsim->id = pdev->id;
-+
-+	/* get mipi_dsim_platform_data. */
-+	dsim_pd = (struct mipi_dsim_platform_data *)dsim->pd;
-+	if (dsim_pd == NULL) {
-+		dev_err(&pdev->dev, "failed to get platform data for dsim.\n");
-+		goto err_clock_get;
-+	}
-+	/* get mipi_dsim_config. */
-+	dsim_config = dsim_pd->dsim_config;
-+	if (dsim_config == NULL) {
-+		dev_err(&pdev->dev, "failed to get dsim config data.\n");
-+		goto err_clock_get;
-+	}
-+
-+	dsim->dsim_config = dsim_config;
-+	dsim->master_ops = &master_ops;
-+
-+	mutex_init(&dsim->lock);
-+
-+	ret = regulator_bulk_get(&pdev->dev, ARRAY_SIZE(supplies), supplies);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to get regulators: %d\n", ret);
-+		goto err_clock_get;
-+	}
-+
-+	dsim->clock = clk_get(&pdev->dev, "dsim0");
-+	if (IS_ERR(dsim->clock)) {
-+		dev_err(&pdev->dev, "failed to get dsim clock source\n");
-+		goto err_clock_get;
-+	}
-+
-+	clk_enable(dsim->clock);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_err(&pdev->dev, "failed to get io memory region\n");
-+		goto err_platform_get;
-+	}
-+
-+	dsim->res = request_mem_region(res->start, resource_size(res),
-+					dev_name(&pdev->dev));
-+	if (!dsim->res) {
-+		dev_err(&pdev->dev, "failed to request io memory region\n");
-+		ret = -ENOMEM;
-+		goto err_mem_region;
-+	}
-+
-+	dsim->reg_base = ioremap(res->start, resource_size(res));
-+	if (!dsim->reg_base) {
-+		dev_err(&pdev->dev, "failed to remap io region\n");
-+		ret = -ENOMEM;
-+		goto err_ioremap;
-+	}
-+
-+	mutex_init(&dsim->lock);
-+
-+	/* bind lcd ddi matched with panel name. */
-+	dsim_ddi = exynos_mipi_dsi_bind_lcd_ddi(dsim, dsim_pd->lcd_panel_name);
-+	if (!dsim_ddi) {
-+		dev_err(&pdev->dev, "mipi_dsim_ddi object not found.\n");
-+		goto err_bind;
-+	}
-+
-+	dsim->irq = platform_get_irq(pdev, 0);
-+	if (dsim->irq < 0) {
-+		dev_err(&pdev->dev, "failed to request dsim irq resource\n");
-+		ret = -EINVAL;
-+		goto err_platform_get_irq;
-+	}
-+
-+	ret = request_irq(dsim->irq, exynos_mipi_dsi_interrupt_handler,
-+			IRQF_SHARED, pdev->name, dsim);
-+	if (ret != 0) {
-+		dev_err(&pdev->dev, "failed to request dsim irq\n");
-+		ret = -EINVAL;
-+		goto err_bind;
-+	}
-+
-+	init_completion(&dsim_wr_comp);
-+	init_completion(&dsim_rd_comp);
-+
-+	/* enable interrupt */
-+	exynos_mipi_dsi_init_interrupt(dsim);
-+
-+	/* initialize mipi-dsi client(lcd panel). */
-+	if (dsim_ddi->dsim_lcd_drv && dsim_ddi->dsim_lcd_drv->probe)
-+		dsim_ddi->dsim_lcd_drv->probe(dsim_ddi->dsim_lcd_dev);
-+
-+	/* in case that mipi got enabled at bootloader. */
-+	if (dsim_pd->enabled)
-+		goto out;
-+
-+	/* lcd panel power on. */
-+	if (dsim_ddi->dsim_lcd_drv && dsim_ddi->dsim_lcd_drv->power_on)
-+		dsim_ddi->dsim_lcd_drv->power_on(dsim_ddi->dsim_lcd_dev, 1);
-+
-+	exynos_mipi_regulator_enable(dsim);
-+
-+	/* enable MIPI-DSI PHY. */
-+	if (dsim->pd->phy_enable)
-+		dsim->pd->phy_enable(pdev, true);
-+
-+	exynos_mipi_update_cfg(dsim);
-+
-+	/* set lcd panel sequence commands. */
-+	if (dsim_ddi->dsim_lcd_drv && dsim_ddi->dsim_lcd_drv->set_sequence)
-+		dsim_ddi->dsim_lcd_drv->set_sequence(dsim_ddi->dsim_lcd_dev);
-+
-+	dsim->suspended = false;
-+
-+out:
-+	platform_set_drvdata(pdev, dsim);
-+
-+	dev_dbg(&pdev->dev, "mipi-dsi driver(%s mode) has been probed.\n",
-+		(dsim_config->e_interface == DSIM_COMMAND) ?
-+			"CPU" : "RGB");
-+
-+	return 0;
-+
-+err_bind:
-+	iounmap(dsim->reg_base);
-+
-+err_ioremap:
-+	release_mem_region(dsim->res->start, resource_size(dsim->res));
-+
-+err_mem_region:
-+	release_resource(dsim->res);
-+
-+err_platform_get:
-+	clk_disable(dsim->clock);
-+	clk_put(dsim->clock);
-+err_clock_get:
-+	kfree(dsim);
-+
-+err_platform_get_irq:
-+	return ret;
-+}
-+
-+static int __devexit exynos_mipi_dsi_remove(struct platform_device *pdev)
-+{
-+	struct mipi_dsim_device *dsim = platform_get_drvdata(pdev);
-+	struct mipi_dsim_ddi *dsim_ddi, *next;
-+	struct mipi_dsim_lcd_driver *dsim_lcd_drv;
-+
-+	iounmap(dsim->reg_base);
-+
-+	clk_disable(dsim->clock);
-+	clk_put(dsim->clock);
-+
-+	release_resource(dsim->res);
-+	release_mem_region(dsim->res->start, resource_size(dsim->res));
-+
-+	list_for_each_entry_safe(dsim_ddi, next, &dsim_ddi_list, list) {
-+		if (dsim_ddi) {
-+			if (dsim->id != dsim_ddi->bus_id)
-+				continue;
-+
-+			dsim_lcd_drv = dsim_ddi->dsim_lcd_drv;
-+
-+			if (dsim_lcd_drv->remove)
-+				dsim_lcd_drv->remove(dsim_ddi->dsim_lcd_dev);
-+
-+			kfree(dsim_ddi);
-+		}
-+	}
-+
-+	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
-+	kfree(dsim);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int exynos_mipi_dsi_suspend(struct platform_device *pdev,
-+		pm_message_t state)
-+{
-+	struct mipi_dsim_device *dsim = platform_get_drvdata(pdev);
-+	struct mipi_dsim_lcd_driver *client_drv = dsim->dsim_lcd_drv;
-+	struct mipi_dsim_lcd_device *client_dev = dsim->dsim_lcd_dev;
-+
-+	disable_irq(dsim->irq);
-+
-+	if (dsim->suspended)
-+		return 0;
-+
-+	if (client_drv && client_drv->suspend)
-+		client_drv->suspend(client_dev);
-+
-+	/* enable MIPI-DSI PHY. */
-+	if (dsim->pd->phy_enable)
-+		dsim->pd->phy_enable(pdev, false);
-+
-+	clk_disable(dsim->clock);
-+
-+	exynos_mipi_regulator_disable(dsim);
-+
-+	dsim->suspended = true;
-+
-+	return 0;
-+}
-+
-+static int exynos_mipi_dsi_resume(struct platform_device *pdev)
-+{
-+	struct mipi_dsim_device *dsim = platform_get_drvdata(pdev);
-+	struct mipi_dsim_lcd_driver *client_drv = dsim->dsim_lcd_drv;
-+	struct mipi_dsim_lcd_device *client_dev = dsim->dsim_lcd_dev;
-+
-+	enable_irq(dsim->irq);
-+
-+	if (!dsim->suspended)
-+		return 0;
-+
-+	/* lcd panel power on. */
-+	if (client_drv && client_drv->power_on)
-+		client_drv->power_on(client_dev, 1);
-+
-+	exynos_mipi_regulator_enable(dsim);
-+
-+	/* enable MIPI-DSI PHY. */
-+	if (dsim->pd->phy_enable)
-+		dsim->pd->phy_enable(pdev, true);
-+
-+	clk_enable(dsim->clock);
-+
-+	exynos_mipi_update_cfg(dsim);
-+
-+	/* set lcd panel sequence commands. */
-+	if (client_drv && client_drv->set_sequence)
-+		client_drv->set_sequence(client_dev);
-+
-+	dsim->suspended = false;
-+
-+	return 0;
-+}
-+#else
-+#define exynos_mipi_dsi_suspend NULL
-+#define exynos_mipi_dsi_resume NULL
-+#endif
-+
-+static struct platform_driver exynos_mipi_dsi_driver = {
-+	.probe = exynos_mipi_dsi_probe,
-+	.remove = __devexit_p(exynos_mipi_dsi_remove),
-+	.suspend = exynos_mipi_dsi_suspend,
-+	.resume = exynos_mipi_dsi_resume,
-+	.driver = {
-+		   .name = "exynos-mipi-dsim",
-+		   .owner = THIS_MODULE,
-+	},
-+};
-+
-+module_platform_driver(exynos_mipi_dsi_driver);
-+
-+MODULE_AUTHOR("InKi Dae <inki.dae@samsung.com>");
-+MODULE_DESCRIPTION("Samusung SoC MIPI-DSI driver");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null drivers/video/exynos/exynos_mipi_dsi_common.c
---- /dev/null
-+++ a/drivers/video/exynos/exynos_mipi_dsi_common.c
-@@ -0,0 +1,896 @@
-+/* linux/drivers/video/exynos/exynos_mipi_dsi_common.c
-+ *
-+ * Samsung SoC MIPI-DSI common driver.
-+ *
-+ * Copyright (c) 2012 Samsung Electronics Co., Ltd
-+ *
-+ * InKi Dae, <inki.dae@samsung.com>
-+ * Donghwa Lee, <dh09.lee@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/mutex.h>
-+#include <linux/wait.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/fb.h>
-+#include <linux/ctype.h>
-+#include <linux/platform_device.h>
-+#include <linux/io.h>
-+#include <linux/memory.h>
-+#include <linux/delay.h>
-+#include <linux/kthread.h>
-+
-+#include <video/mipi_display.h>
-+#include <video/exynos_mipi_dsim.h>
-+
-+#include <mach/map.h>
-+
-+#include "exynos_mipi_dsi_regs.h"
-+#include "exynos_mipi_dsi_lowlevel.h"
-+#include "exynos_mipi_dsi_common.h"
-+
-+#define MIPI_FIFO_TIMEOUT	msecs_to_jiffies(250)
-+#define MIPI_RX_FIFO_READ_DONE  0x30800002
-+#define MIPI_MAX_RX_FIFO        20
-+#define MHZ			(1000 * 1000)
-+#define FIN_HZ			(24 * MHZ)
-+
-+#define DFIN_PLL_MIN_HZ		(6 * MHZ)
-+#define DFIN_PLL_MAX_HZ		(12 * MHZ)
-+
-+#define DFVCO_MIN_HZ		(500 * MHZ)
-+#define DFVCO_MAX_HZ		(1000 * MHZ)
-+
-+#define TRY_GET_FIFO_TIMEOUT	(5000 * 2)
-+#define TRY_FIFO_CLEAR		(10)
-+
-+/* MIPI-DSIM status types. */
-+enum {
-+	DSIM_STATE_INIT,	/* should be initialized. */
-+	DSIM_STATE_STOP,	/* CPU and LCDC are LP mode. */
-+	DSIM_STATE_HSCLKEN,	/* HS clock was enabled. */
-+	DSIM_STATE_ULPS
-+};
-+
-+/* define DSI lane types. */
-+enum {
-+	DSIM_LANE_CLOCK = (1 << 0),
-+	DSIM_LANE_DATA0 = (1 << 1),
-+	DSIM_LANE_DATA1 = (1 << 2),
-+	DSIM_LANE_DATA2 = (1 << 3),
-+	DSIM_LANE_DATA3 = (1 << 4)
-+};
-+
-+static unsigned int dpll_table[15] = {
-+	100, 120, 170, 220, 270,
-+	320, 390, 450, 510, 560,
-+	640, 690, 770, 870, 950
-+};
-+
-+irqreturn_t exynos_mipi_dsi_interrupt_handler(int irq, void *dev_id)
-+{
-+	unsigned int intsrc = 0;
-+	unsigned int intmsk = 0;
-+	struct mipi_dsim_device *dsim = NULL;
-+
-+	dsim = dev_id;
-+	if (!dsim) {
-+		dev_dbg(dsim->dev, KERN_ERR "%s:error: wrong parameter\n",
-+							__func__);
-+		return IRQ_HANDLED;
-+	}
-+
-+	intsrc = exynos_mipi_dsi_read_interrupt(dsim);
-+	intmsk = exynos_mipi_dsi_read_interrupt_mask(dsim);
-+
-+	intmsk = ~(intmsk) & intsrc;
-+
-+	switch (intmsk) {
-+	case INTMSK_RX_DONE:
-+		complete(&dsim_rd_comp);
-+		dev_dbg(dsim->dev, "MIPI INTMSK_RX_DONE\n");
-+		break;
-+	case INTMSK_FIFO_EMPTY:
-+		complete(&dsim_wr_comp);
-+		dev_dbg(dsim->dev, "MIPI INTMSK_FIFO_EMPTY\n");
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	exynos_mipi_dsi_clear_interrupt(dsim, intmsk);
-+
-+	return IRQ_HANDLED;
-+}
-+
++++ a/drivers/video/exynos/exynos_dp_core.c
+@@ -0,0 +1,1058 @@
 +/*
-+ * write long packet to mipi dsi slave
-+ * @dsim: mipi dsim device structure.
-+ * @data0: packet data to send.
-+ * @data1: size of packet data
++ * Samsung SoC DP (Display Port) interface driver.
++ *
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ * Author: Jingoo Han <jg1.han@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
 + */
-+static void exynos_mipi_dsi_long_data_wr(struct mipi_dsim_device *dsim,
-+		const unsigned char *data0, unsigned int data_size)
-+{
-+	unsigned int data_cnt = 0, payload = 0;
-+
-+	/* in case that data count is more then 4 */
-+	for (data_cnt = 0; data_cnt < data_size; data_cnt += 4) {
-+		/*
-+		 * after sending 4bytes per one time,
-+		 * send remainder data less then 4.
-+		 */
-+		if ((data_size - data_cnt) < 4) {
-+			if ((data_size - data_cnt) == 3) {
-+				payload = data0[data_cnt] |
-+				    data0[data_cnt + 1] << 8 |
-+					data0[data_cnt + 2] << 16;
-+			dev_dbg(dsim->dev, "count = 3 payload = %x, %x %x %x\n",
-+				payload, data0[data_cnt],
-+				data0[data_cnt + 1],
-+				data0[data_cnt + 2]);
-+			} else if ((data_size - data_cnt) == 2) {
-+				payload = data0[data_cnt] |
-+					data0[data_cnt + 1] << 8;
-+			dev_dbg(dsim->dev,
-+				"count = 2 payload = %x, %x %x\n", payload,
-+				data0[data_cnt],
-+				data0[data_cnt + 1]);
-+			} else if ((data_size - data_cnt) == 1) {
-+				payload = data0[data_cnt];
-+			}
-+
-+			exynos_mipi_dsi_wr_tx_data(dsim, payload);
-+		/* send 4bytes per one time. */
-+		} else {
-+			payload = data0[data_cnt] |
-+				data0[data_cnt + 1] << 8 |
-+				data0[data_cnt + 2] << 16 |
-+				data0[data_cnt + 3] << 24;
-+
-+			dev_dbg(dsim->dev,
-+				"count = 4 payload = %x, %x %x %x %x\n",
-+				payload, *(u8 *)(data0 + data_cnt),
-+				data0[data_cnt + 1],
-+				data0[data_cnt + 2],
-+				data0[data_cnt + 3]);
-+
-+			exynos_mipi_dsi_wr_tx_data(dsim, payload);
-+		}
-+	}
-+}
-+
-+int exynos_mipi_dsi_wr_data(struct mipi_dsim_device *dsim, unsigned int data_id,
-+	const unsigned char *data0, unsigned int data_size)
-+{
-+	unsigned int check_rx_ack = 0;
-+
-+	if (dsim->state == DSIM_STATE_ULPS) {
-+		dev_err(dsim->dev, "state is ULPS.\n");
-+
-+		return -EINVAL;
-+	}
-+
-+	/* FIXME!!! why does it need this delay? */
-+	msleep(20);
-+
-+	mutex_lock(&dsim->lock);
-+
-+	switch (data_id) {
-+	/* short packet types of packet types for command. */
-+	case MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM:
-+	case MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM:
-+	case MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM:
-+	case MIPI_DSI_DCS_SHORT_WRITE:
-+	case MIPI_DSI_DCS_SHORT_WRITE_PARAM:
-+	case MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE:
-+		exynos_mipi_dsi_wr_tx_header(dsim, data_id, data0[0], data0[1]);
-+		if (check_rx_ack) {
-+			/* process response func should be implemented */
-+			mutex_unlock(&dsim->lock);
-+			return 0;
-+		} else {
-+			mutex_unlock(&dsim->lock);
-+			return -EINVAL;
-+		}
-+
-+	/* general command */
-+	case MIPI_DSI_COLOR_MODE_OFF:
-+	case MIPI_DSI_COLOR_MODE_ON:
-+	case MIPI_DSI_SHUTDOWN_PERIPHERAL:
-+	case MIPI_DSI_TURN_ON_PERIPHERAL:
-+		exynos_mipi_dsi_wr_tx_header(dsim, data_id, data0[0], data0[1]);
-+		if (check_rx_ack) {
-+			/* process response func should be implemented. */
-+			mutex_unlock(&dsim->lock);
-+			return 0;
-+		} else {
-+			mutex_unlock(&dsim->lock);
-+			return -EINVAL;
-+		}
-+
-+	/* packet types for video data */
-+	case MIPI_DSI_V_SYNC_START:
-+	case MIPI_DSI_V_SYNC_END:
-+	case MIPI_DSI_H_SYNC_START:
-+	case MIPI_DSI_H_SYNC_END:
-+	case MIPI_DSI_END_OF_TRANSMISSION:
-+		mutex_unlock(&dsim->lock);
-+		return 0;
-+
-+	/* long packet type and null packet */
-+	case MIPI_DSI_NULL_PACKET:
-+	case MIPI_DSI_BLANKING_PACKET:
-+		mutex_unlock(&dsim->lock);
-+		return 0;
-+	case MIPI_DSI_GENERIC_LONG_WRITE:
-+	case MIPI_DSI_DCS_LONG_WRITE:
-+	{
-+		unsigned int size, payload = 0;
-+		INIT_COMPLETION(dsim_wr_comp);
-+
-+		size = data_size * 4;
-+
-+		/* if data count is less then 4, then send 3bytes data.  */
-+		if (data_size < 4) {
-+			payload = data0[0] |
-+				data0[1] << 8 |
-+				data0[2] << 16;
-+
-+			exynos_mipi_dsi_wr_tx_data(dsim, payload);
-+
-+			dev_dbg(dsim->dev, "count = %d payload = %x,%x %x %x\n",
-+				data_size, payload, data0[0],
-+				data0[1], data0[2]);
-+
-+		/* in case that data count is more then 4 */
-+		} else
-+			exynos_mipi_dsi_long_data_wr(dsim, data0, data_size);
-+
-+		/* put data into header fifo */
-+		exynos_mipi_dsi_wr_tx_header(dsim, data_id, data_size & 0xff,
-+			(data_size & 0xff00) >> 8);
-+
-+		if (!wait_for_completion_interruptible_timeout(&dsim_wr_comp,
-+							MIPI_FIFO_TIMEOUT)) {
-+			dev_warn(dsim->dev, "command write timeout.\n");
-+			mutex_unlock(&dsim->lock);
-+			return -EAGAIN;
-+		}
-+
-+		if (check_rx_ack) {
-+			/* process response func should be implemented. */
-+			mutex_unlock(&dsim->lock);
-+			return 0;
-+		} else {
-+			mutex_unlock(&dsim->lock);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	/* packet typo for video data */
-+	case MIPI_DSI_PACKED_PIXEL_STREAM_16:
-+	case MIPI_DSI_PACKED_PIXEL_STREAM_18:
-+	case MIPI_DSI_PIXEL_STREAM_3BYTE_18:
-+	case MIPI_DSI_PACKED_PIXEL_STREAM_24:
-+		if (check_rx_ack) {
-+			/* process response func should be implemented. */
-+			mutex_unlock(&dsim->lock);
-+			return 0;
-+		} else {
-+			mutex_unlock(&dsim->lock);
-+			return -EINVAL;
-+		}
-+	default:
-+		dev_warn(dsim->dev,
-+			"data id %x is not supported current DSI spec.\n",
-+			data_id);
-+
-+		mutex_unlock(&dsim->lock);
-+		return -EINVAL;
-+	}
-+
-+	mutex_unlock(&dsim->lock);
-+	return 0;
-+}
-+
-+static unsigned int exynos_mipi_dsi_long_data_rd(struct mipi_dsim_device *dsim,
-+		unsigned int req_size, unsigned int rx_data, u8 *rx_buf)
-+{
-+	unsigned int rcv_pkt, i, j;
-+	u16 rxsize;
-+
-+	/* for long packet */
-+	rxsize = (u16)((rx_data & 0x00ffff00) >> 8);
-+	dev_dbg(dsim->dev, "mipi dsi rx size : %d\n", rxsize);
-+	if (rxsize != req_size) {
-+		dev_dbg(dsim->dev,
-+			"received size mismatch received: %d, requested: %d\n",
-+			rxsize, req_size);
-+		goto err;
-+	}
-+
-+	for (i = 0; i < (rxsize >> 2); i++) {
-+		rcv_pkt = exynos_mipi_dsi_rd_rx_fifo(dsim);
-+		dev_dbg(dsim->dev, "received pkt : %08x\n", rcv_pkt);
-+		for (j = 0; j < 4; j++) {
-+			rx_buf[(i * 4) + j] =
-+					(u8)(rcv_pkt >> (j * 8)) & 0xff;
-+			dev_dbg(dsim->dev, "received value : %02x\n",
-+					(rcv_pkt >> (j * 8)) & 0xff);
-+		}
-+	}
-+	if (rxsize % 4) {
-+		rcv_pkt = exynos_mipi_dsi_rd_rx_fifo(dsim);
-+		dev_dbg(dsim->dev, "received pkt : %08x\n", rcv_pkt);
-+		for (j = 0; j < (rxsize % 4); j++) {
-+			rx_buf[(i * 4) + j] =
-+					(u8)(rcv_pkt >> (j * 8)) & 0xff;
-+			dev_dbg(dsim->dev, "received value : %02x\n",
-+					(rcv_pkt >> (j * 8)) & 0xff);
-+		}
-+	}
-+
-+	return rxsize;
-+
-+err:
-+	return -EINVAL;
-+}
-+
-+static unsigned int exynos_mipi_dsi_response_size(unsigned int req_size)
-+{
-+	switch (req_size) {
-+	case 1:
-+		return MIPI_DSI_RX_GENERIC_SHORT_READ_RESPONSE_1BYTE;
-+	case 2:
-+		return MIPI_DSI_RX_GENERIC_SHORT_READ_RESPONSE_2BYTE;
-+	default:
-+		return MIPI_DSI_RX_GENERIC_LONG_READ_RESPONSE;
-+	}
-+}
-+
-+int exynos_mipi_dsi_rd_data(struct mipi_dsim_device *dsim, unsigned int data_id,
-+	unsigned int data0, unsigned int req_size, u8 *rx_buf)
-+{
-+	unsigned int rx_data, rcv_pkt, i;
-+	u8 response = 0;
-+	u16 rxsize;
-+
-+	if (dsim->state == DSIM_STATE_ULPS) {
-+		dev_err(dsim->dev, "state is ULPS.\n");
-+
-+		return -EINVAL;
-+	}
-+
-+	/* FIXME!!! */
-+	msleep(20);
-+
-+	mutex_lock(&dsim->lock);
-+	INIT_COMPLETION(dsim_rd_comp);
-+	exynos_mipi_dsi_rd_tx_header(dsim,
-+		MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE, req_size);
-+
-+	response = exynos_mipi_dsi_response_size(req_size);
-+
-+	switch (data_id) {
-+	case MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM:
-+	case MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM:
-+	case MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM:
-+	case MIPI_DSI_DCS_READ:
-+		exynos_mipi_dsi_rd_tx_header(dsim,
-+			data_id, data0);
-+		/* process response func should be implemented. */
-+		break;
-+	default:
-+		dev_warn(dsim->dev,
-+			"data id %x is not supported current DSI spec.\n",
-+			data_id);
-+
-+		return -EINVAL;
-+	}
-+
-+	if (!wait_for_completion_interruptible_timeout(&dsim_rd_comp,
-+				MIPI_FIFO_TIMEOUT)) {
-+		pr_err("RX done interrupt timeout\n");
-+		mutex_unlock(&dsim->lock);
-+		return 0;
-+	}
-+
-+	msleep(20);
-+
-+	rx_data = exynos_mipi_dsi_rd_rx_fifo(dsim);
-+
-+	if ((u8)(rx_data & 0xff) != response) {
-+		printk(KERN_ERR
-+			"mipi dsi wrong response rx_data : %x, response:%x\n",
-+			rx_data, response);
-+		goto clear_rx_fifo;
-+	}
-+
-+	if (req_size <= 2) {
-+		/* for short packet */
-+		for (i = 0; i < req_size; i++)
-+			rx_buf[i] = (rx_data >> (8 + (i * 8))) & 0xff;
-+		rxsize = req_size;
-+	} else {
-+		/* for long packet */
-+		rxsize = exynos_mipi_dsi_long_data_rd(dsim, req_size, rx_data,
-+							rx_buf);
-+		if (rxsize != req_size)
-+			goto clear_rx_fifo;
-+	}
-+
-+	rcv_pkt = exynos_mipi_dsi_rd_rx_fifo(dsim);
-+
-+	msleep(20);
-+
-+	if (rcv_pkt != MIPI_RX_FIFO_READ_DONE) {
-+		dev_info(dsim->dev,
-+			"Can't found RX FIFO READ DONE FLAG : %x\n", rcv_pkt);
-+		goto clear_rx_fifo;
-+	}
-+
-+	mutex_unlock(&dsim->lock);
-+
-+	return rxsize;
-+
-+clear_rx_fifo:
-+	i = 0;
-+	while (1) {
-+		rcv_pkt = exynos_mipi_dsi_rd_rx_fifo(dsim);
-+		if ((rcv_pkt == MIPI_RX_FIFO_READ_DONE)
-+				|| (i > MIPI_MAX_RX_FIFO))
-+			break;
-+		dev_dbg(dsim->dev,
-+				"mipi dsi clear rx fifo : %08x\n", rcv_pkt);
-+		i++;
-+	}
-+	dev_info(dsim->dev,
-+		"mipi dsi rx done count : %d, rcv_pkt : %08x\n", i, rcv_pkt);
-+
-+	mutex_unlock(&dsim->lock);
-+
-+	return 0;
-+}
-+
-+static int exynos_mipi_dsi_pll_on(struct mipi_dsim_device *dsim,
-+				unsigned int enable)
-+{
-+	int sw_timeout;
-+
-+	if (enable) {
-+		sw_timeout = 1000;
-+
-+		exynos_mipi_dsi_enable_pll(dsim, 1);
-+		while (1) {
-+			sw_timeout--;
-+			if (exynos_mipi_dsi_is_pll_stable(dsim))
-+				return 0;
-+			if (sw_timeout == 0)
-+				return -EINVAL;
-+		}
-+	} else
-+		exynos_mipi_dsi_enable_pll(dsim, 0);
-+
-+	return 0;
-+}
-+
-+static unsigned long exynos_mipi_dsi_change_pll(struct mipi_dsim_device *dsim,
-+	unsigned int pre_divider, unsigned int main_divider,
-+	unsigned int scaler)
-+{
-+	unsigned long dfin_pll, dfvco, dpll_out;
-+	unsigned int i, freq_band = 0xf;
-+
-+	dfin_pll = (FIN_HZ / pre_divider);
-+
-+	/******************************************************
-+	 *	Serial Clock(=ByteClk X 8)	FreqBand[3:0] *
-+	 ******************************************************
-+	 *	~ 99.99 MHz			0000
-+	 *	100 ~ 119.99 MHz		0001
-+	 *	120 ~ 159.99 MHz		0010
-+	 *	160 ~ 199.99 MHz		0011
-+	 *	200 ~ 239.99 MHz		0100
-+	 *	140 ~ 319.99 MHz		0101
-+	 *	320 ~ 389.99 MHz		0110
-+	 *	390 ~ 449.99 MHz		0111
-+	 *	450 ~ 509.99 MHz		1000
-+	 *	510 ~ 559.99 MHz		1001
-+	 *	560 ~ 639.99 MHz		1010
-+	 *	640 ~ 689.99 MHz		1011
-+	 *	690 ~ 769.99 MHz		1100
-+	 *	770 ~ 869.99 MHz		1101
-+	 *	870 ~ 949.99 MHz		1110
-+	 *	950 ~ 1000 MHz			1111
-+	 ******************************************************/
-+	if (dfin_pll < DFIN_PLL_MIN_HZ || dfin_pll > DFIN_PLL_MAX_HZ) {
-+		dev_warn(dsim->dev, "fin_pll range should be 6MHz ~ 12MHz\n");
-+		exynos_mipi_dsi_enable_afc(dsim, 0, 0);
-+	} else {
-+		if (dfin_pll < 7 * MHZ)
-+			exynos_mipi_dsi_enable_afc(dsim, 1, 0x1);
-+		else if (dfin_pll < 8 * MHZ)
-+			exynos_mipi_dsi_enable_afc(dsim, 1, 0x0);
-+		else if (dfin_pll < 9 * MHZ)
-+			exynos_mipi_dsi_enable_afc(dsim, 1, 0x3);
-+		else if (dfin_pll < 10 * MHZ)
-+			exynos_mipi_dsi_enable_afc(dsim, 1, 0x2);
-+		else if (dfin_pll < 11 * MHZ)
-+			exynos_mipi_dsi_enable_afc(dsim, 1, 0x5);
-+		else
-+			exynos_mipi_dsi_enable_afc(dsim, 1, 0x4);
-+	}
-+
-+	dfvco = dfin_pll * main_divider;
-+	dev_dbg(dsim->dev, "dfvco = %lu, dfin_pll = %lu, main_divider = %d\n",
-+				dfvco, dfin_pll, main_divider);
-+	if (dfvco < DFVCO_MIN_HZ || dfvco > DFVCO_MAX_HZ)
-+		dev_warn(dsim->dev, "fvco range should be 500MHz ~ 1000MHz\n");
-+
-+	dpll_out = dfvco / (1 << scaler);
-+	dev_dbg(dsim->dev, "dpll_out = %lu, dfvco = %lu, scaler = %d\n",
-+		dpll_out, dfvco, scaler);
-+
-+	for (i = 0; i < ARRAY_SIZE(dpll_table); i++) {
-+		if (dpll_out < dpll_table[i] * MHZ) {
-+			freq_band = i;
-+			break;
-+		}
-+	}
-+
-+	dev_dbg(dsim->dev, "freq_band = %d\n", freq_band);
-+
-+	exynos_mipi_dsi_pll_freq(dsim, pre_divider, main_divider, scaler);
-+
-+	exynos_mipi_dsi_hs_zero_ctrl(dsim, 0);
-+	exynos_mipi_dsi_prep_ctrl(dsim, 0);
-+
-+	/* Freq Band */
-+	exynos_mipi_dsi_pll_freq_band(dsim, freq_band);
-+
-+	/* Stable time */
-+	exynos_mipi_dsi_pll_stable_time(dsim, dsim->dsim_config->pll_stable_time);
-+
-+	/* Enable PLL */
-+	dev_dbg(dsim->dev, "FOUT of mipi dphy pll is %luMHz\n",
-+		(dpll_out / MHZ));
-+
-+	return dpll_out;
-+}
-+
-+static int exynos_mipi_dsi_set_clock(struct mipi_dsim_device *dsim,
-+	unsigned int byte_clk_sel, unsigned int enable)
-+{
-+	unsigned int esc_div;
-+	unsigned long esc_clk_error_rate;
-+	unsigned long hs_clk = 0, byte_clk = 0, escape_clk = 0;
-+
-+	if (enable) {
-+		dsim->e_clk_src = byte_clk_sel;
-+
-+		/* Escape mode clock and byte clock source */
-+		exynos_mipi_dsi_set_byte_clock_src(dsim, byte_clk_sel);
-+
-+		/* DPHY, DSIM Link : D-PHY clock out */
-+		if (byte_clk_sel == DSIM_PLL_OUT_DIV8) {
-+			hs_clk = exynos_mipi_dsi_change_pll(dsim,
-+				dsim->dsim_config->p, dsim->dsim_config->m,
-+				dsim->dsim_config->s);
-+			if (hs_clk == 0) {
-+				dev_err(dsim->dev,
-+					"failed to get hs clock.\n");
-+				return -EINVAL;
-+			}
-+
-+			byte_clk = hs_clk / 8;
-+			exynos_mipi_dsi_enable_pll_bypass(dsim, 0);
-+			exynos_mipi_dsi_pll_on(dsim, 1);
-+		/* DPHY : D-PHY clock out, DSIM link : external clock out */
-+		} else if (byte_clk_sel == DSIM_EXT_CLK_DIV8) {
-+			dev_warn(dsim->dev, "this project is not support\n");
-+			dev_warn(dsim->dev,
-+				"external clock source for MIPI DSIM.\n");
-+		} else if (byte_clk_sel == DSIM_EXT_CLK_BYPASS) {
-+			dev_warn(dsim->dev, "this project is not support\n");
-+			dev_warn(dsim->dev,
-+				"external clock source for MIPI DSIM\n");
-+		}
-+
-+		/* escape clock divider */
-+		esc_div = byte_clk / (dsim->dsim_config->esc_clk);
-+		dev_dbg(dsim->dev,
-+			"esc_div = %d, byte_clk = %lu, esc_clk = %lu\n",
-+			esc_div, byte_clk, dsim->dsim_config->esc_clk);
-+		if ((byte_clk / esc_div) >= (20 * MHZ) ||
-+				(byte_clk / esc_div) >
-+					dsim->dsim_config->esc_clk)
-+			esc_div += 1;
-+
-+		escape_clk = byte_clk / esc_div;
-+		dev_dbg(dsim->dev,
-+			"escape_clk = %lu, byte_clk = %lu, esc_div = %d\n",
-+			escape_clk, byte_clk, esc_div);
-+
-+		/* enable escape clock. */
-+		exynos_mipi_dsi_enable_byte_clock(dsim, 1);
-+
-+		/* enable byte clk and escape clock */
-+		exynos_mipi_dsi_set_esc_clk_prs(dsim, 1, esc_div);
-+		/* escape clock on lane */
-+		exynos_mipi_dsi_enable_esc_clk_on_lane(dsim,
-+			(DSIM_LANE_CLOCK | dsim->data_lane), 1);
-+
-+		dev_dbg(dsim->dev, "byte clock is %luMHz\n",
-+			(byte_clk / MHZ));
-+		dev_dbg(dsim->dev, "escape clock that user's need is %lu\n",
-+			(dsim->dsim_config->esc_clk / MHZ));
-+		dev_dbg(dsim->dev, "escape clock divider is %x\n", esc_div);
-+		dev_dbg(dsim->dev, "escape clock is %luMHz\n",
-+			((byte_clk / esc_div) / MHZ));
-+
-+		if ((byte_clk / esc_div) > escape_clk) {
-+			esc_clk_error_rate = escape_clk /
-+				(byte_clk / esc_div);
-+			dev_warn(dsim->dev, "error rate is %lu over.\n",
-+				(esc_clk_error_rate / 100));
-+		} else if ((byte_clk / esc_div) < (escape_clk)) {
-+			esc_clk_error_rate = (byte_clk / esc_div) /
-+				escape_clk;
-+			dev_warn(dsim->dev, "error rate is %lu under.\n",
-+				(esc_clk_error_rate / 100));
-+		}
-+	} else {
-+		exynos_mipi_dsi_enable_esc_clk_on_lane(dsim,
-+			(DSIM_LANE_CLOCK | dsim->data_lane), 0);
-+		exynos_mipi_dsi_set_esc_clk_prs(dsim, 0, 0);
-+
-+		/* disable escape clock. */
-+		exynos_mipi_dsi_enable_byte_clock(dsim, 0);
-+
-+		if (byte_clk_sel == DSIM_PLL_OUT_DIV8)
-+			exynos_mipi_dsi_pll_on(dsim, 0);
-+	}
-+
-+	return 0;
-+}
-+
-+int exynos_mipi_dsi_init_dsim(struct mipi_dsim_device *dsim)
-+{
-+	dsim->state = DSIM_STATE_INIT;
-+
-+	switch (dsim->dsim_config->e_no_data_lane) {
-+	case DSIM_DATA_LANE_1:
-+		dsim->data_lane = DSIM_LANE_DATA0;
-+		break;
-+	case DSIM_DATA_LANE_2:
-+		dsim->data_lane = DSIM_LANE_DATA0 | DSIM_LANE_DATA1;
-+		break;
-+	case DSIM_DATA_LANE_3:
-+		dsim->data_lane = DSIM_LANE_DATA0 | DSIM_LANE_DATA1 |
-+			DSIM_LANE_DATA2;
-+		break;
-+	case DSIM_DATA_LANE_4:
-+		dsim->data_lane = DSIM_LANE_DATA0 | DSIM_LANE_DATA1 |
-+			DSIM_LANE_DATA2 | DSIM_LANE_DATA3;
-+		break;
-+	default:
-+		dev_info(dsim->dev, "data lane is invalid.\n");
-+		return -EINVAL;
-+	};
-+
-+	exynos_mipi_dsi_sw_reset(dsim);
-+	exynos_mipi_dsi_func_reset(dsim);
-+
-+	exynos_mipi_dsi_dp_dn_swap(dsim, 0);
-+
-+	return 0;
-+}
-+
-+void exynos_mipi_dsi_init_interrupt(struct mipi_dsim_device *dsim)
-+{
-+	unsigned int src = 0;
-+
-+	src = (INTSRC_SFR_FIFO_EMPTY | INTSRC_RX_DATA_DONE);
-+	exynos_mipi_dsi_set_interrupt(dsim, src, 1);
-+
-+	src = 0;
-+	src = ~(INTMSK_RX_DONE | INTMSK_FIFO_EMPTY);
-+	exynos_mipi_dsi_set_interrupt_mask(dsim, src, 1);
-+}
-+
-+int exynos_mipi_dsi_enable_frame_done_int(struct mipi_dsim_device *dsim,
-+	unsigned int enable)
-+{
-+	/* enable only frame done interrupt */
-+	exynos_mipi_dsi_set_interrupt_mask(dsim, INTMSK_FRAME_DONE, enable);
-+
-+	return 0;
-+}
-+
-+void exynos_mipi_dsi_stand_by(struct mipi_dsim_device *dsim,
-+		unsigned int enable)
-+{
-+
-+	/* consider Main display and Sub display. */
-+
-+	exynos_mipi_dsi_set_main_stand_by(dsim, enable);
-+}
-+
-+int exynos_mipi_dsi_set_display_mode(struct mipi_dsim_device *dsim,
-+	struct mipi_dsim_config *dsim_config)
-+{
-+	struct mipi_dsim_platform_data *dsim_pd;
-+	struct fb_videomode *timing;
-+
-+	dsim_pd = (struct mipi_dsim_platform_data *)dsim->pd;
-+	timing = (struct fb_videomode *)dsim_pd->lcd_panel_info;
-+
-+	/* in case of VIDEO MODE (RGB INTERFACE), it sets polarities. */
-+	if (dsim_config->e_interface == (u32) DSIM_VIDEO) {
-+		if (dsim_config->auto_vertical_cnt == 0) {
-+			exynos_mipi_dsi_set_main_disp_vporch(dsim,
-+				dsim_config->cmd_allow,
-+				timing->upper_margin,
-+				timing->lower_margin);
-+			exynos_mipi_dsi_set_main_disp_hporch(dsim,
-+				timing->left_margin,
-+				timing->right_margin);
-+			exynos_mipi_dsi_set_main_disp_sync_area(dsim,
-+				timing->vsync_len,
-+				timing->hsync_len);
-+		}
-+	}
-+
-+	exynos_mipi_dsi_set_main_disp_resol(dsim, timing->xres,
-+			timing->yres);
-+
-+	exynos_mipi_dsi_display_config(dsim, dsim_config);
-+
-+	dev_info(dsim->dev, "lcd panel ==> width = %d, height = %d\n",
-+			timing->xres, timing->yres);
-+
-+	return 0;
-+}
-+
-+int exynos_mipi_dsi_init_link(struct mipi_dsim_device *dsim)
-+{
-+	unsigned int time_out = 100;
-+
-+	switch (dsim->state) {
-+	case DSIM_STATE_INIT:
-+		exynos_mipi_dsi_init_fifo_pointer(dsim, 0x1f);
-+
-+		/* dsi configuration */
-+		exynos_mipi_dsi_init_config(dsim);
-+		exynos_mipi_dsi_enable_lane(dsim, DSIM_LANE_CLOCK, 1);
-+		exynos_mipi_dsi_enable_lane(dsim, dsim->data_lane, 1);
-+
-+		/* set clock configuration */
-+		exynos_mipi_dsi_set_clock(dsim, dsim->dsim_config->e_byte_clk, 1);
-+
-+		/* check clock and data lane state are stop state */
-+		while (!(exynos_mipi_dsi_is_lane_state(dsim))) {
-+			time_out--;
-+			if (time_out == 0) {
-+				dev_err(dsim->dev,
-+					"DSI Master is not stop state.\n");
-+				dev_err(dsim->dev,
-+					"Check initialization process\n");
-+
-+				return -EINVAL;
-+			}
-+		}
-+		if (time_out != 0) {
-+			dev_info(dsim->dev,
-+				"DSI Master driver has been completed.\n");
-+			dev_info(dsim->dev, "DSI Master state is stop state\n");
-+		}
-+
-+		dsim->state = DSIM_STATE_STOP;
-+
-+		/* BTA sequence counters */
-+		exynos_mipi_dsi_set_stop_state_counter(dsim,
-+			dsim->dsim_config->stop_holding_cnt);
-+		exynos_mipi_dsi_set_bta_timeout(dsim,
-+			dsim->dsim_config->bta_timeout);
-+		exynos_mipi_dsi_set_lpdr_timeout(dsim,
-+			dsim->dsim_config->rx_timeout);
-+
-+		return 0;
-+	default:
-+		dev_info(dsim->dev, "DSI Master is already init.\n");
-+		return 0;
-+	}
-+
-+	return 0;
-+}
-+
-+int exynos_mipi_dsi_set_hs_enable(struct mipi_dsim_device *dsim)
-+{
-+	if (dsim->state != DSIM_STATE_STOP) {
-+		dev_warn(dsim->dev, "DSIM is not in stop state.\n");
-+		return 0;
-+	}
-+
-+	if (dsim->e_clk_src == DSIM_EXT_CLK_BYPASS) {
-+		dev_warn(dsim->dev, "clock source is external bypass.\n");
-+		return 0;
-+	}
-+
-+	dsim->state = DSIM_STATE_HSCLKEN;
-+
-+	 /* set LCDC and CPU transfer mode to HS. */
-+	exynos_mipi_dsi_set_lcdc_transfer_mode(dsim, 0);
-+	exynos_mipi_dsi_set_cpu_transfer_mode(dsim, 0);
-+	exynos_mipi_dsi_enable_hs_clock(dsim, 1);
-+
-+	return 0;
-+}
-+
-+int exynos_mipi_dsi_set_data_transfer_mode(struct mipi_dsim_device *dsim,
-+		unsigned int mode)
-+{
-+	if (mode) {
-+		if (dsim->state != DSIM_STATE_HSCLKEN) {
-+			dev_err(dsim->dev, "HS Clock lane is not enabled.\n");
-+			return -EINVAL;
-+		}
-+
-+		exynos_mipi_dsi_set_lcdc_transfer_mode(dsim, 0);
-+	} else {
-+		if (dsim->state == DSIM_STATE_INIT || dsim->state ==
-+			DSIM_STATE_ULPS) {
-+			dev_err(dsim->dev,
-+				"DSI Master is not STOP or HSDT state.\n");
-+			return -EINVAL;
-+		}
-+
-+		exynos_mipi_dsi_set_cpu_transfer_mode(dsim, 0);
-+	}
-+
-+	return 0;
-+}
-+
-+int exynos_mipi_dsi_get_frame_done_status(struct mipi_dsim_device *dsim)
-+{
-+	return _exynos_mipi_dsi_get_frame_done_status(dsim);
-+}
-+
-+int exynos_mipi_dsi_clear_frame_done(struct mipi_dsim_device *dsim)
-+{
-+	_exynos_mipi_dsi_clear_frame_done(dsim);
-+
-+	return 0;
-+}
-+
-+int exynos_mipi_dsi_fifo_clear(struct mipi_dsim_device *dsim,
-+				unsigned int val)
-+{
-+	int try = TRY_FIFO_CLEAR;
-+
-+	exynos_mipi_dsi_sw_reset_release(dsim);
-+	exynos_mipi_dsi_func_reset(dsim);
-+
-+	do {
-+		if (exynos_mipi_dsi_get_sw_reset_release(dsim)) {
-+			exynos_mipi_dsi_init_interrupt(dsim);
-+			dev_dbg(dsim->dev, "reset release done.\n");
-+			return 0;
-+		}
-+	} while (--try);
-+
-+	dev_err(dsim->dev, "failed to clear dsim fifo.\n");
-+	return -EAGAIN;
-+}
-+
-+MODULE_AUTHOR("InKi Dae <inki.dae@samsung.com>");
-+MODULE_DESCRIPTION("Samusung SoC MIPI-DSI common driver");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null drivers/video/exynos/exynos_mipi_dsi_common.h
---- /dev/null
-+++ a/drivers/video/exynos/exynos_mipi_dsi_common.h
-@@ -0,0 +1,46 @@
-+/* linux/drivers/video/exynos_mipi_dsi_common.h
-+ *
-+ * Header file for Samsung SoC MIPI-DSI common driver.
-+ *
-+ * Copyright (c) 2012 Samsung Electronics Co., Ltd
-+ *
-+ * InKi Dae <inki.dae@samsung.com>
-+ * Donghwa Lee <dh09.lee@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
-+
-+#ifndef _EXYNOS_MIPI_DSI_COMMON_H
-+#define _EXYNOS_MIPI_DSI_COMMON_H
-+
-+static DECLARE_COMPLETION(dsim_rd_comp);
-+static DECLARE_COMPLETION(dsim_wr_comp);
-+
-+int exynos_mipi_dsi_wr_data(struct mipi_dsim_device *dsim, unsigned int data_id,
-+	const unsigned char *data0, unsigned int data_size);
-+int exynos_mipi_dsi_rd_data(struct mipi_dsim_device *dsim, unsigned int data_id,
-+	unsigned int data0, unsigned int req_size, u8 *rx_buf);
-+irqreturn_t exynos_mipi_dsi_interrupt_handler(int irq, void *dev_id);
-+void exynos_mipi_dsi_init_interrupt(struct mipi_dsim_device *dsim);
-+int exynos_mipi_dsi_init_dsim(struct mipi_dsim_device *dsim);
-+void exynos_mipi_dsi_stand_by(struct mipi_dsim_device *dsim,
-+		unsigned int enable);
-+int exynos_mipi_dsi_set_display_mode(struct mipi_dsim_device *dsim,
-+			struct mipi_dsim_config *dsim_info);
-+int exynos_mipi_dsi_init_link(struct mipi_dsim_device *dsim);
-+int exynos_mipi_dsi_set_hs_enable(struct mipi_dsim_device *dsim);
-+int exynos_mipi_dsi_set_data_transfer_mode(struct mipi_dsim_device *dsim,
-+		unsigned int mode);
-+int exynos_mipi_dsi_enable_frame_done_int(struct mipi_dsim_device *dsim,
-+	unsigned int enable);
-+int exynos_mipi_dsi_get_frame_done_status(struct mipi_dsim_device *dsim);
-+int exynos_mipi_dsi_clear_frame_done(struct mipi_dsim_device *dsim);
-+
-+extern struct fb_info *registered_fb[FB_MAX] __read_mostly;
-+
-+int exynos_mipi_dsi_fifo_clear(struct mipi_dsim_device *dsim,
-+				unsigned int val);
-+
-+#endif /* _EXYNOS_MIPI_DSI_COMMON_H */
-diff -puN /dev/null drivers/video/exynos/exynos_mipi_dsi_lowlevel.c
---- /dev/null
-+++ a/drivers/video/exynos/exynos_mipi_dsi_lowlevel.c
-@@ -0,0 +1,618 @@
-+/* linux/drivers/video/exynos/exynos_mipi_dsi_lowlevel.c
-+ *
-+ * Samsung SoC MIPI-DSI lowlevel driver.
-+ *
-+ * Copyright (c) 2012 Samsung Electronics Co., Ltd
-+ *
-+ * InKi Dae, <inki.dae@samsung.com>
-+ * Donghwa Lee, <dh09.lee@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
 +
 +#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/mutex.h>
-+#include <linux/wait.h>
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/ctype.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/err.h>
++#include <linux/clk.h>
 +#include <linux/io.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
 +
-+#include <video/exynos_mipi_dsim.h>
++#include <video/exynos_dp.h>
 +
-+#include <mach/map.h>
++#include <plat/cpu.h>
 +
-+#include "exynos_mipi_dsi_regs.h"
++#include "exynos_dp_core.h"
 +
-+void exynos_mipi_dsi_func_reset(struct mipi_dsim_device *dsim)
++static int exynos_dp_init_dp(struct exynos_dp_device *dp)
 +{
-+	unsigned int reg;
++	exynos_dp_reset(dp);
 +
-+	reg = readl(dsim->reg_base + EXYNOS_DSIM_SWRST);
++	/* SW defined function Normal operation */
++	exynos_dp_enable_sw_function(dp);
 +
-+	reg |= DSIM_FUNCRST;
++	exynos_dp_config_interrupt(dp);
++	exynos_dp_init_analog_func(dp);
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_SWRST);
++	exynos_dp_init_hpd(dp);
++	exynos_dp_init_aux(dp);
++
++	return 0;
 +}
 +
-+void exynos_mipi_dsi_sw_reset(struct mipi_dsim_device *dsim)
++static int exynos_dp_detect_hpd(struct exynos_dp_device *dp)
 +{
-+	unsigned int reg;
++	int timeout_loop = 0;
 +
-+	reg = readl(dsim->reg_base + EXYNOS_DSIM_SWRST);
++	exynos_dp_init_hpd(dp);
 +
-+	reg |= DSIM_SWRST;
++	udelay(200);
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_SWRST);
++	while (exynos_dp_get_plug_in_status(dp) != 0) {
++		timeout_loop++;
++		if (DP_TIMEOUT_LOOP_COUNT < timeout_loop) {
++			dev_err(dp->dev, "failed to get hpd plug status\n");
++			return -ETIMEDOUT;
++		}
++		udelay(10);
++	}
++
++	return 0;
 +}
 +
-+void exynos_mipi_dsi_sw_reset_release(struct mipi_dsim_device *dsim)
++static unsigned char exynos_dp_calc_edid_check_sum(unsigned char *edid_data)
 +{
-+	unsigned int reg;
++	int i;
++	unsigned char sum = 0;
 +
-+	reg = readl(dsim->reg_base + EXYNOS_DSIM_INTSRC);
++	for (i = 0; i < EDID_BLOCK_LENGTH; i++)
++		sum = sum + edid_data[i];
 +
-+	reg |= INTSRC_SW_RST_RELEASE;
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_INTSRC);
++	return sum;
 +}
 +
-+int exynos_mipi_dsi_get_sw_reset_release(struct mipi_dsim_device *dsim)
++static int exynos_dp_read_edid(struct exynos_dp_device *dp)
 +{
-+	return (readl(dsim->reg_base + EXYNOS_DSIM_INTSRC)) &
-+			INTSRC_SW_RST_RELEASE;
++	unsigned char edid[EDID_BLOCK_LENGTH * 2];
++	unsigned int extend_block = 0;
++	unsigned char sum;
++	unsigned char test_vector;
++	int retval;
++
++	/*
++	 * EDID device address is 0x50.
++	 * However, if necessary, you must have set upper address
++	 * into E-EDID in I2C device, 0x30.
++	 */
++
++	/* Read Extension Flag, Number of 128-byte EDID extension blocks */
++	exynos_dp_read_byte_from_i2c(dp, I2C_EDID_DEVICE_ADDR,
++				EDID_EXTENSION_FLAG,
++				&extend_block);
++
++	if (extend_block > 0) {
++		dev_dbg(dp->dev, "EDID data includes a single extension!\n");
++
++		/* Read EDID data */
++		retval = exynos_dp_read_bytes_from_i2c(dp, I2C_EDID_DEVICE_ADDR,
++						EDID_HEADER_PATTERN,
++						EDID_BLOCK_LENGTH,
++						&edid[EDID_HEADER_PATTERN]);
++		if (retval != 0) {
++			dev_err(dp->dev, "EDID Read failed!\n");
++			return -EIO;
++		}
++		sum = exynos_dp_calc_edid_check_sum(edid);
++		if (sum != 0) {
++			dev_err(dp->dev, "EDID bad checksum!\n");
++			return -EIO;
++		}
++
++		/* Read additional EDID data */
++		retval = exynos_dp_read_bytes_from_i2c(dp,
++				I2C_EDID_DEVICE_ADDR,
++				EDID_BLOCK_LENGTH,
++				EDID_BLOCK_LENGTH,
++				&edid[EDID_BLOCK_LENGTH]);
++		if (retval != 0) {
++			dev_err(dp->dev, "EDID Read failed!\n");
++			return -EIO;
++		}
++		sum = exynos_dp_calc_edid_check_sum(&edid[EDID_BLOCK_LENGTH]);
++		if (sum != 0) {
++			dev_err(dp->dev, "EDID bad checksum!\n");
++			return -EIO;
++		}
++
++		exynos_dp_read_byte_from_dpcd(dp, DPCD_ADDR_TEST_REQUEST,
++					&test_vector);
++		if (test_vector & DPCD_TEST_EDID_READ) {
++			exynos_dp_write_byte_to_dpcd(dp,
++				DPCD_ADDR_TEST_EDID_CHECKSUM,
++				edid[EDID_BLOCK_LENGTH + EDID_CHECKSUM]);
++			exynos_dp_write_byte_to_dpcd(dp,
++				DPCD_ADDR_TEST_RESPONSE,
++				DPCD_TEST_EDID_CHECKSUM_WRITE);
++		}
++	} else {
++		dev_info(dp->dev, "EDID data does not include any extensions.\n");
++
++		/* Read EDID data */
++		retval = exynos_dp_read_bytes_from_i2c(dp,
++				I2C_EDID_DEVICE_ADDR,
++				EDID_HEADER_PATTERN,
++				EDID_BLOCK_LENGTH,
++				&edid[EDID_HEADER_PATTERN]);
++		if (retval != 0) {
++			dev_err(dp->dev, "EDID Read failed!\n");
++			return -EIO;
++		}
++		sum = exynos_dp_calc_edid_check_sum(edid);
++		if (sum != 0) {
++			dev_err(dp->dev, "EDID bad checksum!\n");
++			return -EIO;
++		}
++
++		exynos_dp_read_byte_from_dpcd(dp,
++			DPCD_ADDR_TEST_REQUEST,
++			&test_vector);
++		if (test_vector & DPCD_TEST_EDID_READ) {
++			exynos_dp_write_byte_to_dpcd(dp,
++				DPCD_ADDR_TEST_EDID_CHECKSUM,
++				edid[EDID_CHECKSUM]);
++			exynos_dp_write_byte_to_dpcd(dp,
++				DPCD_ADDR_TEST_RESPONSE,
++				DPCD_TEST_EDID_CHECKSUM_WRITE);
++		}
++	}
++
++	dev_err(dp->dev, "EDID Read success!\n");
++	return 0;
 +}
 +
-+unsigned int exynos_mipi_dsi_read_interrupt_mask(struct mipi_dsim_device *dsim)
++static int exynos_dp_handle_edid(struct exynos_dp_device *dp)
 +{
-+	unsigned int reg;
++	u8 buf[12];
++	int i;
++	int retval;
 +
-+	reg = readl(dsim->reg_base + EXYNOS_DSIM_INTMSK);
++	/* Read DPCD DPCD_ADDR_DPCD_REV~RECEIVE_PORT1_CAP_1 */
++	exynos_dp_read_bytes_from_dpcd(dp,
++		DPCD_ADDR_DPCD_REV,
++		12, buf);
++
++	/* Read EDID */
++	for (i = 0; i < 3; i++) {
++		retval = exynos_dp_read_edid(dp);
++		if (retval == 0)
++			break;
++	}
++
++	return retval;
++}
++
++static void exynos_dp_enable_rx_to_enhanced_mode(struct exynos_dp_device *dp,
++						bool enable)
++{
++	u8 data;
++
++	exynos_dp_read_byte_from_dpcd(dp, DPCD_ADDR_LANE_COUNT_SET, &data);
++
++	if (enable)
++		exynos_dp_write_byte_to_dpcd(dp, DPCD_ADDR_LANE_COUNT_SET,
++			DPCD_ENHANCED_FRAME_EN |
++			DPCD_LANE_COUNT_SET(data));
++	else
++		exynos_dp_write_byte_to_dpcd(dp, DPCD_ADDR_LANE_COUNT_SET,
++			DPCD_LANE_COUNT_SET(data));
++}
++
++static int exynos_dp_is_enhanced_mode_available(struct exynos_dp_device *dp)
++{
++	u8 data;
++	int retval;
++
++	exynos_dp_read_byte_from_dpcd(dp, DPCD_ADDR_MAX_LANE_COUNT, &data);
++	retval = DPCD_ENHANCED_FRAME_CAP(data);
++
++	return retval;
++}
++
++static void exynos_dp_set_enhanced_mode(struct exynos_dp_device *dp)
++{
++	u8 data;
++
++	data = exynos_dp_is_enhanced_mode_available(dp);
++	exynos_dp_enable_rx_to_enhanced_mode(dp, data);
++	exynos_dp_enable_enhanced_mode(dp, data);
++}
++
++static void exynos_dp_training_pattern_dis(struct exynos_dp_device *dp)
++{
++	exynos_dp_set_training_pattern(dp, DP_NONE);
++
++	exynos_dp_write_byte_to_dpcd(dp,
++		DPCD_ADDR_TRAINING_PATTERN_SET,
++		DPCD_TRAINING_PATTERN_DISABLED);
++}
++
++static void exynos_dp_set_lane_lane_pre_emphasis(struct exynos_dp_device *dp,
++					int pre_emphasis, int lane)
++{
++	switch (lane) {
++	case 0:
++		exynos_dp_set_lane0_pre_emphasis(dp, pre_emphasis);
++		break;
++	case 1:
++		exynos_dp_set_lane1_pre_emphasis(dp, pre_emphasis);
++		break;
++
++	case 2:
++		exynos_dp_set_lane2_pre_emphasis(dp, pre_emphasis);
++		break;
++
++	case 3:
++		exynos_dp_set_lane3_pre_emphasis(dp, pre_emphasis);
++		break;
++	}
++}
++
++static void exynos_dp_link_start(struct exynos_dp_device *dp)
++{
++	u8 buf[5];
++	int lane;
++	int lane_count;
++
++	lane_count = dp->link_train.lane_count;
++
++	dp->link_train.lt_state = CLOCK_RECOVERY;
++	dp->link_train.eq_loop = 0;
++
++	for (lane = 0; lane < lane_count; lane++)
++		dp->link_train.cr_loop[lane] = 0;
++
++	/* Set sink to D0 (Sink Not Ready) mode. */
++	exynos_dp_write_byte_to_dpcd(dp, DPCD_ADDR_SINK_POWER_STATE,
++				DPCD_SET_POWER_STATE_D0);
++
++	/* Set link rate and count as you want to establish*/
++	exynos_dp_set_link_bandwidth(dp, dp->link_train.link_rate);
++	exynos_dp_set_lane_count(dp, dp->link_train.lane_count);
++
++	/* Setup RX configuration */
++	buf[0] = dp->link_train.link_rate;
++	buf[1] = dp->link_train.lane_count;
++	exynos_dp_write_bytes_to_dpcd(dp, DPCD_ADDR_LINK_BW_SET,
++				2, buf);
++
++	/* Set TX pre-emphasis to minimum */
++	for (lane = 0; lane < lane_count; lane++)
++		exynos_dp_set_lane_lane_pre_emphasis(dp,
++			PRE_EMPHASIS_LEVEL_0, lane);
++
++	/* Set training pattern 1 */
++	exynos_dp_set_training_pattern(dp, TRAINING_PTN1);
++
++	/* Set RX training pattern */
++	buf[0] = DPCD_SCRAMBLING_DISABLED |
++		 DPCD_TRAINING_PATTERN_1;
++	exynos_dp_write_byte_to_dpcd(dp,
++		DPCD_ADDR_TRAINING_PATTERN_SET, buf[0]);
++
++	for (lane = 0; lane < lane_count; lane++)
++		buf[lane] = DPCD_PRE_EMPHASIS_PATTERN2_LEVEL0 |
++			    DPCD_VOLTAGE_SWING_PATTERN1_LEVEL0;
++	exynos_dp_write_bytes_to_dpcd(dp,
++		DPCD_ADDR_TRAINING_PATTERN_SET,
++		lane_count, buf);
++}
++
++static unsigned char exynos_dp_get_lane_status(u8 link_status[6], int lane)
++{
++	int shift = (lane & 1) * 4;
++	u8 link_value = link_status[lane>>1];
++
++	return (link_value >> shift) & 0xf;
++}
++
++static int exynos_dp_clock_recovery_ok(u8 link_status[6], int lane_count)
++{
++	int lane;
++	u8 lane_status;
++
++	for (lane = 0; lane < lane_count; lane++) {
++		lane_status = exynos_dp_get_lane_status(link_status, lane);
++		if ((lane_status & DPCD_LANE_CR_DONE) == 0)
++			return -EINVAL;
++	}
++	return 0;
++}
++
++static int exynos_dp_channel_eq_ok(u8 link_status[6], int lane_count)
++{
++	int lane;
++	u8 lane_align;
++	u8 lane_status;
++
++	lane_align = link_status[2];
++	if ((lane_align == DPCD_INTERLANE_ALIGN_DONE) == 0)
++		return -EINVAL;
++
++	for (lane = 0; lane < lane_count; lane++) {
++		lane_status = exynos_dp_get_lane_status(link_status, lane);
++		lane_status &= DPCD_CHANNEL_EQ_BITS;
++		if (lane_status != DPCD_CHANNEL_EQ_BITS)
++			return -EINVAL;
++	}
++	return 0;
++}
++
++static unsigned char exynos_dp_get_adjust_request_voltage(u8 adjust_request[2],
++							int lane)
++{
++	int shift = (lane & 1) * 4;
++	u8 link_value = adjust_request[lane>>1];
++
++	return (link_value >> shift) & 0x3;
++}
++
++static unsigned char exynos_dp_get_adjust_request_pre_emphasis(
++					u8 adjust_request[2],
++					int lane)
++{
++	int shift = (lane & 1) * 4;
++	u8 link_value = adjust_request[lane>>1];
++
++	return ((link_value >> shift) & 0xc) >> 2;
++}
++
++static void exynos_dp_set_lane_link_training(struct exynos_dp_device *dp,
++					u8 training_lane_set, int lane)
++{
++	switch (lane) {
++	case 0:
++		exynos_dp_set_lane0_link_training(dp, training_lane_set);
++		break;
++	case 1:
++		exynos_dp_set_lane1_link_training(dp, training_lane_set);
++		break;
++
++	case 2:
++		exynos_dp_set_lane2_link_training(dp, training_lane_set);
++		break;
++
++	case 3:
++		exynos_dp_set_lane3_link_training(dp, training_lane_set);
++		break;
++	}
++}
++
++static unsigned int exynos_dp_get_lane_link_training(
++				struct exynos_dp_device *dp,
++				int lane)
++{
++	u32 reg;
++
++	switch (lane) {
++	case 0:
++		reg = exynos_dp_get_lane0_link_training(dp);
++		break;
++	case 1:
++		reg = exynos_dp_get_lane1_link_training(dp);
++		break;
++	case 2:
++		reg = exynos_dp_get_lane2_link_training(dp);
++		break;
++	case 3:
++		reg = exynos_dp_get_lane3_link_training(dp);
++		break;
++	}
 +
 +	return reg;
 +}
 +
-+void exynos_mipi_dsi_set_interrupt_mask(struct mipi_dsim_device *dsim,
-+		unsigned int mode, unsigned int mask)
++static void exynos_dp_reduce_link_rate(struct exynos_dp_device *dp)
 +{
-+	unsigned int reg = 0;
-+
-+	if (mask)
-+		reg |= mode;
-+	else
-+		reg &= ~mode;
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_INTMSK);
-+}
-+
-+void exynos_mipi_dsi_init_fifo_pointer(struct mipi_dsim_device *dsim,
-+		unsigned int cfg)
-+{
-+	unsigned int reg;
-+
-+	reg = readl(dsim->reg_base + EXYNOS_DSIM_FIFOCTRL);
-+
-+	writel(reg & ~(cfg), dsim->reg_base + EXYNOS_DSIM_FIFOCTRL);
-+	mdelay(10);
-+	reg |= cfg;
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_FIFOCTRL);
-+}
-+
-+/*
-+ * this function set PLL P, M and S value in D-PHY
-+ */
-+void exynos_mipi_dsi_set_phy_tunning(struct mipi_dsim_device *dsim,
-+		unsigned int value)
-+{
-+	writel(DSIM_AFC_CTL(value), dsim->reg_base + EXYNOS_DSIM_PHYACCHR);
-+}
-+
-+void exynos_mipi_dsi_set_main_stand_by(struct mipi_dsim_device *dsim,
-+		unsigned int enable)
-+{
-+	unsigned int reg;
-+
-+	reg = readl(dsim->reg_base + EXYNOS_DSIM_MDRESOL);
-+
-+	reg &= ~DSIM_MAIN_STAND_BY;
-+
-+	if (enable)
-+		reg |= DSIM_MAIN_STAND_BY;
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_MDRESOL);
-+}
-+
-+void exynos_mipi_dsi_set_main_disp_resol(struct mipi_dsim_device *dsim,
-+	unsigned int width_resol, unsigned int height_resol)
-+{
-+	unsigned int reg;
-+
-+	/* standby should be set after configuration so set to not ready*/
-+	reg = (readl(dsim->reg_base + EXYNOS_DSIM_MDRESOL)) &
-+		~(DSIM_MAIN_STAND_BY);
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_MDRESOL);
-+
-+	reg &= ~((0x7ff << 16) | (0x7ff << 0));
-+	reg |= DSIM_MAIN_VRESOL(height_resol) | DSIM_MAIN_HRESOL(width_resol);
-+
-+	reg |= DSIM_MAIN_STAND_BY;
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_MDRESOL);
-+}
-+
-+void exynos_mipi_dsi_set_main_disp_vporch(struct mipi_dsim_device *dsim,
-+	unsigned int cmd_allow, unsigned int vfront, unsigned int vback)
-+{
-+	unsigned int reg;
-+
-+	reg = (readl(dsim->reg_base + EXYNOS_DSIM_MVPORCH)) &
-+		~((DSIM_CMD_ALLOW_MASK) | (DSIM_STABLE_VFP_MASK) |
-+		(DSIM_MAIN_VBP_MASK));
-+
-+	reg |= (DSIM_CMD_ALLOW_SHIFT(cmd_allow & 0xf) |
-+		DSIM_STABLE_VFP_SHIFT(vfront & 0x7ff) |
-+		DSIM_MAIN_VBP_SHIFT(vback & 0x7ff));
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_MVPORCH);
-+}
-+
-+void exynos_mipi_dsi_set_main_disp_hporch(struct mipi_dsim_device *dsim,
-+	unsigned int front, unsigned int back)
-+{
-+	unsigned int reg;
-+
-+	reg = (readl(dsim->reg_base + EXYNOS_DSIM_MHPORCH)) &
-+		~((DSIM_MAIN_HFP_MASK) | (DSIM_MAIN_HBP_MASK));
-+
-+	reg |= DSIM_MAIN_HFP_SHIFT(front) | DSIM_MAIN_HBP_SHIFT(back);
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_MHPORCH);
-+}
-+
-+void exynos_mipi_dsi_set_main_disp_sync_area(struct mipi_dsim_device *dsim,
-+	unsigned int vert, unsigned int hori)
-+{
-+	unsigned int reg;
-+
-+	reg = (readl(dsim->reg_base + EXYNOS_DSIM_MSYNC)) &
-+		~((DSIM_MAIN_VSA_MASK) | (DSIM_MAIN_HSA_MASK));
-+
-+	reg |= (DSIM_MAIN_VSA_SHIFT(vert & 0x3ff) |
-+		DSIM_MAIN_HSA_SHIFT(hori));
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_MSYNC);
-+}
-+
-+void exynos_mipi_dsi_set_sub_disp_resol(struct mipi_dsim_device *dsim,
-+	unsigned int vert, unsigned int hori)
-+{
-+	unsigned int reg;
-+
-+	reg = (readl(dsim->reg_base + EXYNOS_DSIM_SDRESOL)) &
-+		~(DSIM_SUB_STANDY_MASK);
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_SDRESOL);
-+
-+	reg &= ~(DSIM_SUB_VRESOL_MASK) | ~(DSIM_SUB_HRESOL_MASK);
-+	reg |= (DSIM_SUB_VRESOL_SHIFT(vert & 0x7ff) |
-+		DSIM_SUB_HRESOL_SHIFT(hori & 0x7ff));
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_SDRESOL);
-+
-+	reg |= DSIM_SUB_STANDY_SHIFT(1);
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_SDRESOL);
-+}
-+
-+void exynos_mipi_dsi_init_config(struct mipi_dsim_device *dsim)
-+{
-+	struct mipi_dsim_config *dsim_config = dsim->dsim_config;
-+
-+	unsigned int cfg = (readl(dsim->reg_base + EXYNOS_DSIM_CONFIG)) &
-+		~((1 << 28) | (0x1f << 20) | (0x3 << 5));
-+
-+	cfg =	((DSIM_AUTO_FLUSH(dsim_config->auto_flush)) |
-+		(DSIM_EOT_DISABLE(dsim_config->eot_disable)) |
-+		(DSIM_AUTO_MODE_SHIFT(dsim_config->auto_vertical_cnt)) |
-+		(DSIM_HSE_MODE_SHIFT(dsim_config->hse)) |
-+		(DSIM_HFP_MODE_SHIFT(dsim_config->hfp)) |
-+		(DSIM_HBP_MODE_SHIFT(dsim_config->hbp)) |
-+		(DSIM_HSA_MODE_SHIFT(dsim_config->hsa)) |
-+		(DSIM_NUM_OF_DATALANE_SHIFT(dsim_config->e_no_data_lane)));
-+
-+	writel(cfg, dsim->reg_base + EXYNOS_DSIM_CONFIG);
-+}
-+
-+void exynos_mipi_dsi_display_config(struct mipi_dsim_device *dsim,
-+				struct mipi_dsim_config *dsim_config)
-+{
-+	u32 reg = (readl(dsim->reg_base + EXYNOS_DSIM_CONFIG)) &
-+		~((0x3 << 26) | (1 << 25) | (0x3 << 18) | (0x7 << 12) |
-+		(0x3 << 16) | (0x7 << 8));
-+
-+	if (dsim_config->e_interface == DSIM_VIDEO)
-+		reg |= (1 << 25);
-+	else if (dsim_config->e_interface == DSIM_COMMAND)
-+		reg &= ~(1 << 25);
-+	else {
-+		dev_err(dsim->dev, "unknown lcd type.\n");
-+		return;
++	if (dp->link_train.link_rate == LINK_RATE_2_70GBPS) {
++		/* set to reduced bit rate */
++		dp->link_train.link_rate = LINK_RATE_1_62GBPS;
++		dev_err(dp->dev, "set to bandwidth %.2x\n",
++			dp->link_train.link_rate);
++		dp->link_train.lt_state = START;
++	} else {
++		exynos_dp_training_pattern_dis(dp);
++		/* set enhanced mode if available */
++		exynos_dp_set_enhanced_mode(dp);
++		dp->link_train.lt_state = FAILED;
 +	}
-+
-+	/* main lcd */
-+	reg |= ((u8) (dsim_config->e_burst_mode) & 0x3) << 26 |
-+		((u8) (dsim_config->e_virtual_ch) & 0x3) << 18 |
-+		((u8) (dsim_config->e_pixel_format) & 0x7) << 12;
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_CONFIG);
 +}
 +
-+void exynos_mipi_dsi_enable_lane(struct mipi_dsim_device *dsim, unsigned int lane,
-+	unsigned int enable)
++static void exynos_dp_get_adjust_train(struct exynos_dp_device *dp,
++				u8 adjust_request[2])
 +{
-+	unsigned int reg;
++	int lane;
++	int lane_count;
++	u8 voltage_swing;
++	u8 pre_emphasis;
++	u8 training_lane;
 +
-+	reg = readl(dsim->reg_base + EXYNOS_DSIM_CONFIG);
++	lane_count = dp->link_train.lane_count;
++	for (lane = 0; lane < lane_count; lane++) {
++		voltage_swing = exynos_dp_get_adjust_request_voltage(
++						adjust_request, lane);
++		pre_emphasis = exynos_dp_get_adjust_request_pre_emphasis(
++						adjust_request, lane);
++		training_lane = DPCD_VOLTAGE_SWING_SET(voltage_swing) |
++				DPCD_PRE_EMPHASIS_SET(pre_emphasis);
 +
-+	if (enable)
-+		reg |= DSIM_LANE_ENx(lane);
-+	else
-+		reg &= ~DSIM_LANE_ENx(lane);
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_CONFIG);
++		if (voltage_swing == VOLTAGE_LEVEL_3 ||
++		   pre_emphasis == PRE_EMPHASIS_LEVEL_3) {
++			training_lane |= DPCD_MAX_SWING_REACHED;
++			training_lane |= DPCD_MAX_PRE_EMPHASIS_REACHED;
++		}
++		dp->link_train.training_lane[lane] = training_lane;
++	}
 +}
 +
-+
-+void exynos_mipi_dsi_set_data_lane_number(struct mipi_dsim_device *dsim,
-+	unsigned int count)
++static int exynos_dp_check_max_cr_loop(struct exynos_dp_device *dp,
++					u8 voltage_swing)
 +{
-+	unsigned int cfg;
++	int lane;
++	int lane_count;
 +
-+	/* get the data lane number. */
-+	cfg = DSIM_NUM_OF_DATALANE_SHIFT(count);
-+
-+	writel(cfg, dsim->reg_base + EXYNOS_DSIM_CONFIG);
++	lane_count = dp->link_train.lane_count;
++	for (lane = 0; lane < lane_count; lane++) {
++		if (voltage_swing == VOLTAGE_LEVEL_3 ||
++			dp->link_train.cr_loop[lane] == MAX_CR_LOOP)
++			return -EINVAL;
++	}
++	return 0;
 +}
 +
-+void exynos_mipi_dsi_enable_afc(struct mipi_dsim_device *dsim, unsigned int enable,
-+	unsigned int afc_code)
++static int exynos_dp_process_clock_recovery(struct exynos_dp_device *dp)
 +{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_PHYACCHR);
++	u8 data;
++	u8 link_status[6];
++	int lane;
++	int lane_count;
++	u8 buf[5];
 +
-+	if (enable) {
-+		reg |= (1 << 14);
-+		reg &= ~(0x7 << 5);
-+		reg |= (afc_code & 0x7) << 5;
-+	} else
-+		reg &= ~(1 << 14);
++	u8 *adjust_request;
++	u8 voltage_swing;
++	u8 pre_emphasis;
++	u8 training_lane;
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PHYACCHR);
-+}
++	udelay(100);
 +
-+void exynos_mipi_dsi_enable_pll_bypass(struct mipi_dsim_device *dsim,
-+	unsigned int enable)
-+{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_CLKCTRL)) &
-+		~(DSIM_PLL_BYPASS_SHIFT(0x1));
++	exynos_dp_read_bytes_from_dpcd(dp, DPCD_ADDR_LANE0_1_STATUS,
++				6, link_status);
++	lane_count = dp->link_train.lane_count;
 +
-+	reg |= DSIM_PLL_BYPASS_SHIFT(enable);
++	if (exynos_dp_clock_recovery_ok(link_status, lane_count) == 0) {
++		/* set training pattern 2 for EQ */
++		exynos_dp_set_training_pattern(dp, TRAINING_PTN2);
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_CLKCTRL);
-+}
++		adjust_request = link_status + (DPCD_ADDR_ADJUST_REQUEST_LANE0_1
++						- DPCD_ADDR_LANE0_1_STATUS);
 +
-+void exynos_mipi_dsi_set_pll_pms(struct mipi_dsim_device *dsim, unsigned int p,
-+	unsigned int m, unsigned int s)
-+{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_PLLCTRL);
++		exynos_dp_get_adjust_train(dp, adjust_request);
 +
-+	reg |= ((p & 0x3f) << 13) | ((m & 0x1ff) << 4) | ((s & 0x7) << 1);
++		buf[0] = DPCD_SCRAMBLING_DISABLED |
++			 DPCD_TRAINING_PATTERN_2;
++		exynos_dp_write_byte_to_dpcd(dp,
++			DPCD_ADDR_TRAINING_LANE0_SET,
++			buf[0]);
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PLLCTRL);
-+}
++		for (lane = 0; lane < lane_count; lane++) {
++			exynos_dp_set_lane_link_training(dp,
++				dp->link_train.training_lane[lane],
++				lane);
++			buf[lane] = dp->link_train.training_lane[lane];
++			exynos_dp_write_byte_to_dpcd(dp,
++				DPCD_ADDR_TRAINING_LANE0_SET + lane,
++				buf[lane]);
++		}
++		dp->link_train.lt_state = EQUALIZER_TRAINING;
++	} else {
++		exynos_dp_read_byte_from_dpcd(dp,
++			DPCD_ADDR_ADJUST_REQUEST_LANE0_1,
++			&data);
++		adjust_request[0] = data;
 +
-+void exynos_mipi_dsi_pll_freq_band(struct mipi_dsim_device *dsim,
-+		unsigned int freq_band)
-+{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_PLLCTRL)) &
-+		~(DSIM_FREQ_BAND_SHIFT(0x1f));
++		exynos_dp_read_byte_from_dpcd(dp,
++			DPCD_ADDR_ADJUST_REQUEST_LANE2_3,
++			&data);
++		adjust_request[1] = data;
 +
-+	reg |= DSIM_FREQ_BAND_SHIFT(freq_band & 0x1f);
++		for (lane = 0; lane < lane_count; lane++) {
++			training_lane = exynos_dp_get_lane_link_training(
++							dp, lane);
++			voltage_swing = exynos_dp_get_adjust_request_voltage(
++							adjust_request, lane);
++			pre_emphasis = exynos_dp_get_adjust_request_pre_emphasis(
++							adjust_request, lane);
++			if ((DPCD_VOLTAGE_SWING_GET(training_lane) == voltage_swing) &&
++			    (DPCD_PRE_EMPHASIS_GET(training_lane) == pre_emphasis))
++				dp->link_train.cr_loop[lane]++;
++			dp->link_train.training_lane[lane] = training_lane;
++		}
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PLLCTRL);
-+}
++		if (exynos_dp_check_max_cr_loop(dp, voltage_swing) != 0) {
++			exynos_dp_reduce_link_rate(dp);
++		} else {
++			exynos_dp_get_adjust_train(dp, adjust_request);
 +
-+void exynos_mipi_dsi_pll_freq(struct mipi_dsim_device *dsim,
-+		unsigned int pre_divider, unsigned int main_divider,
-+		unsigned int scaler)
-+{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_PLLCTRL)) &
-+		~(0x7ffff << 1);
-+
-+	reg |= (pre_divider & 0x3f) << 13 | (main_divider & 0x1ff) << 4 |
-+		(scaler & 0x7) << 1;
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PLLCTRL);
-+}
-+
-+void exynos_mipi_dsi_pll_stable_time(struct mipi_dsim_device *dsim,
-+	unsigned int lock_time)
-+{
-+	writel(lock_time, dsim->reg_base + EXYNOS_DSIM_PLLTMR);
-+}
-+
-+void exynos_mipi_dsi_enable_pll(struct mipi_dsim_device *dsim, unsigned int enable)
-+{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_PLLCTRL)) &
-+		~(DSIM_PLL_EN_SHIFT(0x1));
-+
-+	reg |= DSIM_PLL_EN_SHIFT(enable & 0x1);
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PLLCTRL);
-+}
-+
-+void exynos_mipi_dsi_set_byte_clock_src(struct mipi_dsim_device *dsim,
-+		unsigned int src)
-+{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_CLKCTRL)) &
-+		~(DSIM_BYTE_CLK_SRC_SHIFT(0x3));
-+
-+	reg |= (DSIM_BYTE_CLK_SRC_SHIFT(src));
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_CLKCTRL);
-+}
-+
-+void exynos_mipi_dsi_enable_byte_clock(struct mipi_dsim_device *dsim,
-+		unsigned int enable)
-+{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_CLKCTRL)) &
-+		~(DSIM_BYTE_CLKEN_SHIFT(0x1));
-+
-+	reg |= DSIM_BYTE_CLKEN_SHIFT(enable);
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_CLKCTRL);
-+}
-+
-+void exynos_mipi_dsi_set_esc_clk_prs(struct mipi_dsim_device *dsim,
-+		unsigned int enable, unsigned int prs_val)
-+{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_CLKCTRL)) &
-+		~(DSIM_ESC_CLKEN_SHIFT(0x1) | 0xffff);
-+
-+	reg |= DSIM_ESC_CLKEN_SHIFT(enable);
-+	if (enable)
-+		reg |= prs_val;
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_CLKCTRL);
-+}
-+
-+void exynos_mipi_dsi_enable_esc_clk_on_lane(struct mipi_dsim_device *dsim,
-+		unsigned int lane_sel, unsigned int enable)
-+{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_CLKCTRL);
-+
-+	if (enable)
-+		reg |= DSIM_LANE_ESC_CLKEN(lane_sel);
-+	else
-+
-+		reg &= ~DSIM_LANE_ESC_CLKEN(lane_sel);
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_CLKCTRL);
-+}
-+
-+void exynos_mipi_dsi_force_dphy_stop_state(struct mipi_dsim_device *dsim,
-+	unsigned int enable)
-+{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_ESCMODE)) &
-+		~(DSIM_FORCE_STOP_STATE_SHIFT(0x1));
-+
-+	reg |= (DSIM_FORCE_STOP_STATE_SHIFT(enable & 0x1));
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_ESCMODE);
-+}
-+
-+unsigned int exynos_mipi_dsi_is_lane_state(struct mipi_dsim_device *dsim)
-+{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_STATUS);
-+
-+	/**
-+	 * check clock and data lane states.
-+	 * if MIPI-DSI controller was enabled at bootloader then
-+	 * TX_READY_HS_CLK is enabled otherwise STOP_STATE_CLK.
-+	 * so it should be checked for two case.
-+	 */
-+	if ((reg & DSIM_STOP_STATE_DAT(0xf)) &&
-+			((reg & DSIM_STOP_STATE_CLK) ||
-+			 (reg & DSIM_TX_READY_HS_CLK)))
-+		return 1;
++			for (lane = 0; lane < lane_count; lane++) {
++				exynos_dp_set_lane_link_training(dp,
++					dp->link_train.training_lane[lane],
++					lane);
++				buf[lane] = dp->link_train.training_lane[lane];
++				exynos_dp_write_byte_to_dpcd(dp,
++					DPCD_ADDR_TRAINING_LANE0_SET + lane,
++					buf[lane]);
++			}
++		}
++	}
 +
 +	return 0;
 +}
 +
-+void exynos_mipi_dsi_set_stop_state_counter(struct mipi_dsim_device *dsim,
-+		unsigned int cnt_val)
++static int exynos_dp_process_equalizer_training(struct exynos_dp_device *dp)
 +{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_ESCMODE)) &
-+		~(DSIM_STOP_STATE_CNT_SHIFT(0x7ff));
++	u8 link_status[6];
++	int lane;
++	int lane_count;
++	u8 buf[5];
++	u32 reg;
 +
-+	reg |= (DSIM_STOP_STATE_CNT_SHIFT(cnt_val & 0x7ff));
++	u8 *adjust_request;
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_ESCMODE);
++	udelay(400);
++
++	exynos_dp_read_bytes_from_dpcd(dp, DPCD_ADDR_LANE0_1_STATUS,
++				6, link_status);
++	lane_count = dp->link_train.lane_count;
++
++	if (exynos_dp_clock_recovery_ok(link_status, lane_count) == 0) {
++		adjust_request = link_status + (DPCD_ADDR_ADJUST_REQUEST_LANE0_1
++						- DPCD_ADDR_LANE0_1_STATUS);
++
++		if (exynos_dp_channel_eq_ok(link_status, lane_count) == 0) {
++			/* traing pattern Set to Normal */
++			exynos_dp_training_pattern_dis(dp);
++
++			dev_info(dp->dev, "Link Training success!\n");
++
++			exynos_dp_get_link_bandwidth(dp, &reg);
++			dp->link_train.link_rate = reg;
++			dev_dbg(dp->dev, "final bandwidth = %.2x\n",
++				dp->link_train.link_rate);
++
++			exynos_dp_get_lane_count(dp, &reg);
++			dp->link_train.lane_count = reg;
++			dev_dbg(dp->dev, "final lane count = %.2x\n",
++				dp->link_train.lane_count);
++			/* set enhanced mode if available */
++			exynos_dp_set_enhanced_mode(dp);
++
++			dp->link_train.lt_state = FINISHED;
++		} else {
++			/* not all locked */
++			dp->link_train.eq_loop++;
++
++			if (dp->link_train.eq_loop > MAX_EQ_LOOP) {
++				exynos_dp_reduce_link_rate(dp);
++			} else {
++				exynos_dp_get_adjust_train(dp, adjust_request);
++
++				for (lane = 0; lane < lane_count; lane++) {
++					exynos_dp_set_lane_link_training(dp,
++						dp->link_train.training_lane[lane],
++						lane);
++					buf[lane] = dp->link_train.training_lane[lane];
++					exynos_dp_write_byte_to_dpcd(dp,
++						DPCD_ADDR_TRAINING_LANE0_SET + lane,
++						buf[lane]);
++				}
++			}
++		}
++	} else {
++		exynos_dp_reduce_link_rate(dp);
++	}
++
++	return 0;
 +}
 +
-+void exynos_mipi_dsi_set_bta_timeout(struct mipi_dsim_device *dsim,
-+		unsigned int timeout)
++static void exynos_dp_get_max_rx_bandwidth(struct exynos_dp_device *dp,
++			u8 *bandwidth)
 +{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_TIMEOUT)) &
-+		~(DSIM_BTA_TOUT_SHIFT(0xff));
++	u8 data;
 +
-+	reg |= (DSIM_BTA_TOUT_SHIFT(timeout));
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_TIMEOUT);
++	/*
++	 * For DP rev.1.1, Maximum link rate of Main Link lanes
++	 * 0x06 = 1.62 Gbps, 0x0a = 2.7 Gbps
++	 */
++	exynos_dp_read_byte_from_dpcd(dp, DPCD_ADDR_MAX_LINK_RATE, &data);
++	*bandwidth = data;
 +}
 +
-+void exynos_mipi_dsi_set_lpdr_timeout(struct mipi_dsim_device *dsim,
-+		unsigned int timeout)
++static void exynos_dp_get_max_rx_lane_count(struct exynos_dp_device *dp,
++			u8 *lane_count)
 +{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_TIMEOUT)) &
-+		~(DSIM_LPDR_TOUT_SHIFT(0xffff));
++	u8 data;
 +
-+	reg |= (DSIM_LPDR_TOUT_SHIFT(timeout));
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_TIMEOUT);
++	/*
++	 * For DP rev.1.1, Maximum number of Main Link lanes
++	 * 0x01 = 1 lane, 0x02 = 2 lanes, 0x04 = 4 lanes
++	 */
++	exynos_dp_read_byte_from_dpcd(dp, DPCD_ADDR_MAX_LANE_COUNT, &data);
++	*lane_count = DPCD_MAX_LANE_COUNT(data);
 +}
 +
-+void exynos_mipi_dsi_set_cpu_transfer_mode(struct mipi_dsim_device *dsim,
-+		unsigned int lp)
++static void exynos_dp_init_training(struct exynos_dp_device *dp,
++			enum link_lane_count_type max_lane,
++			enum link_rate_type max_rate)
 +{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_ESCMODE);
++	/*
++	 * MACRO_RST must be applied after the PLL_LOCK to avoid
++	 * the DP inter pair skew issue for at least 10 us
++	 */
++	exynos_dp_reset_macro(dp);
 +
-+	reg &= ~DSIM_CMD_LPDT_LP;
++	/* Initialize by reading RX's DPCD */
++	exynos_dp_get_max_rx_bandwidth(dp, &dp->link_train.link_rate);
++	exynos_dp_get_max_rx_lane_count(dp, &dp->link_train.lane_count);
 +
-+	if (lp)
-+		reg |= DSIM_CMD_LPDT_LP;
++	if ((dp->link_train.link_rate != LINK_RATE_1_62GBPS) &&
++	   (dp->link_train.link_rate != LINK_RATE_2_70GBPS)) {
++		dev_err(dp->dev, "Rx Max Link Rate is abnormal :%x !\n",
++			dp->link_train.link_rate);
++		dp->link_train.link_rate = LINK_RATE_1_62GBPS;
++	}
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_ESCMODE);
++	if (dp->link_train.lane_count == 0) {
++		dev_err(dp->dev, "Rx Max Lane count is abnormal :%x !\n",
++			dp->link_train.lane_count);
++		dp->link_train.lane_count = (u8)LANE_COUNT1;
++	}
++
++	/* Setup TX lane count & rate */
++	if (dp->link_train.lane_count > max_lane)
++		dp->link_train.lane_count = max_lane;
++	if (dp->link_train.link_rate > max_rate)
++		dp->link_train.link_rate = max_rate;
++
++	/* All DP analog module power up */
++	exynos_dp_set_analog_power_down(dp, POWER_ALL, 0);
 +}
 +
-+void exynos_mipi_dsi_set_lcdc_transfer_mode(struct mipi_dsim_device *dsim,
-+		unsigned int lp)
++static int exynos_dp_sw_link_training(struct exynos_dp_device *dp)
 +{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_ESCMODE);
++	int retval = 0;
++	int training_finished;
 +
-+	reg &= ~DSIM_TX_LPDT_LP;
++	/* Turn off unnecessary lane */
++	if (dp->link_train.lane_count == 1)
++		exynos_dp_set_analog_power_down(dp, CH1_BLOCK, 1);
 +
-+	if (lp)
-+		reg |= DSIM_TX_LPDT_LP;
++	training_finished = 0;
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_ESCMODE);
++	dp->link_train.lt_state = START;
++
++	/* Process here */
++	while (!training_finished) {
++		switch (dp->link_train.lt_state) {
++		case START:
++			exynos_dp_link_start(dp);
++			break;
++		case CLOCK_RECOVERY:
++			exynos_dp_process_clock_recovery(dp);
++			break;
++		case EQUALIZER_TRAINING:
++			exynos_dp_process_equalizer_training(dp);
++			break;
++		case FINISHED:
++			training_finished = 1;
++			break;
++		case FAILED:
++			return -EREMOTEIO;
++		}
++	}
++
++	return retval;
 +}
 +
-+void exynos_mipi_dsi_enable_hs_clock(struct mipi_dsim_device *dsim,
-+		unsigned int enable)
++static int exynos_dp_set_link_train(struct exynos_dp_device *dp,
++				u32 count,
++				u32 bwtype)
 +{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_CLKCTRL)) &
-+		~(DSIM_TX_REQUEST_HSCLK_SHIFT(0x1));
++	int i;
++	int retval;
 +
-+	reg |= DSIM_TX_REQUEST_HSCLK_SHIFT(enable);
++	for (i = 0; i < DP_TIMEOUT_LOOP_COUNT; i++) {
++		exynos_dp_init_training(dp, count, bwtype);
++		retval = exynos_dp_sw_link_training(dp);
++		if (retval == 0)
++			break;
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_CLKCTRL);
++		udelay(100);
++	}
++
++	return retval;
 +}
 +
-+void exynos_mipi_dsi_dp_dn_swap(struct mipi_dsim_device *dsim,
-+		unsigned int swap_en)
++static int exynos_dp_config_video(struct exynos_dp_device *dp,
++			struct video_info *video_info)
 +{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_PHYACCHR1);
++	int retval = 0;
++	int timeout_loop = 0;
++	int done_count = 0;
 +
-+	reg &= ~(0x3 << 0);
-+	reg |= (swap_en & 0x3) << 0;
++	exynos_dp_config_video_slave_mode(dp, video_info);
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PHYACCHR1);
++	exynos_dp_set_video_color_format(dp, video_info->color_depth,
++			video_info->color_space,
++			video_info->dynamic_range,
++			video_info->ycbcr_coeff);
++
++	if (exynos_dp_get_pll_lock_status(dp) == PLL_UNLOCKED) {
++		dev_err(dp->dev, "PLL is not locked yet.\n");
++		return -EINVAL;
++	}
++
++	for (;;) {
++		timeout_loop++;
++		if (exynos_dp_is_slave_video_stream_clock_on(dp) == 0)
++			break;
++		if (DP_TIMEOUT_LOOP_COUNT < timeout_loop) {
++			dev_err(dp->dev, "Timeout of video streamclk ok\n");
++			return -ETIMEDOUT;
++		}
++
++		mdelay(100);
++	}
++
++	/* Set to use the register calculated M/N video */
++	exynos_dp_set_video_cr_mn(dp, CALCULATED_M, 0, 0);
++
++	/* For video bist, Video timing must be generated by register */
++	exynos_dp_set_video_timing_mode(dp, VIDEO_TIMING_FROM_CAPTURE);
++
++	/* Disable video mute */
++	exynos_dp_enable_video_mute(dp, 0);
++
++	/* Configure video slave mode */
++	exynos_dp_enable_video_master(dp, 0);
++
++	/* Enable video */
++	exynos_dp_start_video(dp);
++
++	timeout_loop = 0;
++
++	for (;;) {
++		timeout_loop++;
++		if (exynos_dp_is_video_stream_on(dp) == 0) {
++			done_count++;
++			if (done_count > 10)
++				break;
++		} else if (done_count) {
++			done_count = 0;
++		}
++		if (DP_TIMEOUT_LOOP_COUNT < timeout_loop) {
++			dev_err(dp->dev, "Timeout of video streamclk ok\n");
++			return -ETIMEDOUT;
++		}
++
++		mdelay(100);
++	}
++
++	if (retval != 0)
++		dev_err(dp->dev, "Video stream is not detected!\n");
++
++	return retval;
 +}
 +
-+void exynos_mipi_dsi_hs_zero_ctrl(struct mipi_dsim_device *dsim,
-+		unsigned int hs_zero)
++static void exynos_dp_enable_scramble(struct exynos_dp_device *dp, bool enable)
 +{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_PLLCTRL)) &
-+		~(0xf << 28);
++	u8 data;
 +
-+	reg |= ((hs_zero & 0xf) << 28);
++	if (enable) {
++		exynos_dp_enable_scrambling(dp);
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PLLCTRL);
++		exynos_dp_read_byte_from_dpcd(dp,
++			DPCD_ADDR_TRAINING_PATTERN_SET,
++			&data);
++		exynos_dp_write_byte_to_dpcd(dp,
++			DPCD_ADDR_TRAINING_PATTERN_SET,
++			(u8)(data & ~DPCD_SCRAMBLING_DISABLED));
++	} else {
++		exynos_dp_disable_scrambling(dp);
++
++		exynos_dp_read_byte_from_dpcd(dp,
++			DPCD_ADDR_TRAINING_PATTERN_SET,
++			&data);
++		exynos_dp_write_byte_to_dpcd(dp,
++			DPCD_ADDR_TRAINING_PATTERN_SET,
++			(u8)(data | DPCD_SCRAMBLING_DISABLED));
++	}
 +}
 +
-+void exynos_mipi_dsi_prep_ctrl(struct mipi_dsim_device *dsim, unsigned int prep)
++static irqreturn_t exynos_dp_irq_handler(int irq, void *arg)
 +{
-+	unsigned int reg = (readl(dsim->reg_base + EXYNOS_DSIM_PLLCTRL)) &
-+		~(0x7 << 20);
++	struct exynos_dp_device *dp = arg;
 +
-+	reg |= ((prep & 0x7) << 20);
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PLLCTRL);
++	dev_err(dp->dev, "exynos_dp_irq_handler\n");
++	return IRQ_HANDLED;
 +}
 +
-+unsigned int exynos_mipi_dsi_read_interrupt(struct mipi_dsim_device *dsim)
++static int __devinit exynos_dp_probe(struct platform_device *pdev)
 +{
-+	return readl(dsim->reg_base + EXYNOS_DSIM_INTSRC);
++	struct resource *res;
++	struct exynos_dp_device *dp;
++	struct exynos_dp_platdata *pdata;
++
++	int ret = 0;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata) {
++		dev_err(&pdev->dev, "no platform data\n");
++		return -EINVAL;
++	}
++
++	dp = kzalloc(sizeof(struct exynos_dp_device), GFP_KERNEL);
++	if (!dp) {
++		dev_err(&pdev->dev, "no memory for device data\n");
++		return -ENOMEM;
++	}
++
++	dp->dev = &pdev->dev;
++
++	dp->clock = clk_get(&pdev->dev, "dp");
++	if (IS_ERR(dp->clock)) {
++		dev_err(&pdev->dev, "failed to get clock\n");
++		ret = PTR_ERR(dp->clock);
++		goto err_dp;
++	}
++
++	clk_enable(dp->clock);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(&pdev->dev, "failed to get registers\n");
++		ret = -EINVAL;
++		goto err_clock;
++	}
++
++	res = request_mem_region(res->start, resource_size(res),
++				dev_name(&pdev->dev));
++	if (!res) {
++		dev_err(&pdev->dev, "failed to request registers region\n");
++		ret = -EINVAL;
++		goto err_clock;
++	}
++
++	dp->res = res;
++
++	dp->reg_base = ioremap(res->start, resource_size(res));
++	if (!dp->reg_base) {
++		dev_err(&pdev->dev, "failed to ioremap\n");
++		ret = -ENOMEM;
++		goto err_req_region;
++	}
++
++	dp->irq = platform_get_irq(pdev, 0);
++	if (!dp->irq) {
++		dev_err(&pdev->dev, "failed to get irq\n");
++		ret = -ENODEV;
++		goto err_ioremap;
++	}
++
++	ret = request_irq(dp->irq, exynos_dp_irq_handler, 0,
++			"exynos-dp", dp);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to request irq\n");
++		goto err_ioremap;
++	}
++
++	dp->video_info = pdata->video_info;
++	if (pdata->phy_init)
++		pdata->phy_init();
++
++	exynos_dp_init_dp(dp);
++
++	ret = exynos_dp_detect_hpd(dp);
++	if (ret) {
++		dev_err(&pdev->dev, "unable to detect hpd\n");
++		goto err_irq;
++	}
++
++	exynos_dp_handle_edid(dp);
++
++	ret = exynos_dp_set_link_train(dp, dp->video_info->lane_count,
++				dp->video_info->link_rate);
++	if (ret) {
++		dev_err(&pdev->dev, "unable to do link train\n");
++		goto err_irq;
++	}
++
++	exynos_dp_enable_scramble(dp, 1);
++	exynos_dp_enable_rx_to_enhanced_mode(dp, 1);
++	exynos_dp_enable_enhanced_mode(dp, 1);
++
++	exynos_dp_set_lane_count(dp, dp->video_info->lane_count);
++	exynos_dp_set_link_bandwidth(dp, dp->video_info->link_rate);
++
++	exynos_dp_init_video(dp);
++	ret = exynos_dp_config_video(dp, dp->video_info);
++	if (ret) {
++		dev_err(&pdev->dev, "unable to config video\n");
++		goto err_irq;
++	}
++
++	platform_set_drvdata(pdev, dp);
++
++	return 0;
++
++err_irq:
++	free_irq(dp->irq, dp);
++err_ioremap:
++	iounmap(dp->reg_base);
++err_req_region:
++	release_mem_region(res->start, resource_size(res));
++err_clock:
++	clk_put(dp->clock);
++err_dp:
++	kfree(dp);
++
++	return ret;
 +}
 +
-+void exynos_mipi_dsi_clear_interrupt(struct mipi_dsim_device *dsim,
-+					unsigned int src)
++static int __devexit exynos_dp_remove(struct platform_device *pdev)
 +{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_INTSRC);
++	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
++	struct exynos_dp_device *dp = platform_get_drvdata(pdev);
 +
-+	reg |= src;
++	if (pdata && pdata->phy_exit)
++		pdata->phy_exit();
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_INTSRC);
++	free_irq(dp->irq, dp);
++	iounmap(dp->reg_base);
++
++	clk_disable(dp->clock);
++	clk_put(dp->clock);
++
++	release_mem_region(dp->res->start, resource_size(dp->res));
++
++	kfree(dp);
++
++	return 0;
 +}
 +
-+void exynos_mipi_dsi_set_interrupt(struct mipi_dsim_device *dsim,
-+					unsigned int src, unsigned int enable)
++#ifdef CONFIG_PM_SLEEP
++static int exynos_dp_suspend(struct device *dev)
 +{
-+	unsigned int reg = 0;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
++	struct exynos_dp_device *dp = platform_get_drvdata(pdev);
 +
-+	if (enable)
-+		reg |= src;
-+	else
-+		reg &= ~src;
++	if (pdata && pdata->phy_exit)
++		pdata->phy_exit();
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_INTSRC);
++	clk_disable(dp->clock);
++
++	return 0;
 +}
 +
-+unsigned int exynos_mipi_dsi_is_pll_stable(struct mipi_dsim_device *dsim)
++static int exynos_dp_resume(struct device *dev)
 +{
-+	unsigned int reg;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
++	struct exynos_dp_device *dp = platform_get_drvdata(pdev);
 +
-+	reg = readl(dsim->reg_base + EXYNOS_DSIM_STATUS);
++	if (pdata && pdata->phy_init)
++		pdata->phy_init();
 +
-+	return reg & (1 << 31) ? 1 : 0;
++	clk_enable(dp->clock);
++
++	exynos_dp_init_dp(dp);
++
++	exynos_dp_detect_hpd(dp);
++	exynos_dp_handle_edid(dp);
++
++	exynos_dp_set_link_train(dp, dp->video_info->lane_count,
++				dp->video_info->link_rate);
++
++	exynos_dp_enable_scramble(dp, 1);
++	exynos_dp_enable_rx_to_enhanced_mode(dp, 1);
++	exynos_dp_enable_enhanced_mode(dp, 1);
++
++	exynos_dp_set_lane_count(dp, dp->video_info->lane_count);
++	exynos_dp_set_link_bandwidth(dp, dp->video_info->link_rate);
++
++	exynos_dp_init_video(dp);
++	exynos_dp_config_video(dp, dp->video_info);
++
++	return 0;
 +}
++#endif
 +
-+unsigned int exynos_mipi_dsi_get_fifo_state(struct mipi_dsim_device *dsim)
-+{
-+	return readl(dsim->reg_base + EXYNOS_DSIM_FIFOCTRL) & ~(0x1f);
-+}
++static const struct dev_pm_ops exynos_dp_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(exynos_dp_suspend, exynos_dp_resume)
++};
 +
-+void exynos_mipi_dsi_wr_tx_header(struct mipi_dsim_device *dsim,
-+	unsigned int di, unsigned int data0, unsigned int data1)
-+{
-+	unsigned int reg = (data1 << 16) | (data0 << 8) | ((di & 0x3f) << 0);
++static struct platform_driver exynos_dp_driver = {
++	.probe		= exynos_dp_probe,
++	.remove		= __devexit_p(exynos_dp_remove),
++	.driver		= {
++		.name	= "exynos-dp",
++		.owner	= THIS_MODULE,
++		.pm	= &exynos_dp_pm_ops,
++	},
++};
 +
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PKTHDR);
-+}
++module_platform_driver(exynos_dp_driver);
 +
-+void exynos_mipi_dsi_rd_tx_header(struct mipi_dsim_device *dsim,
-+	unsigned int di, unsigned int data0)
-+{
-+	unsigned int reg = (data0 << 8) | (di << 0);
-+
-+	writel(reg, dsim->reg_base + EXYNOS_DSIM_PKTHDR);
-+}
-+
-+unsigned int exynos_mipi_dsi_rd_rx_fifo(struct mipi_dsim_device *dsim)
-+{
-+	return readl(dsim->reg_base + EXYNOS_DSIM_RXFIFO);
-+}
-+
-+unsigned int _exynos_mipi_dsi_get_frame_done_status(struct mipi_dsim_device *dsim)
-+{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_INTSRC);
-+
-+	return (reg & INTSRC_FRAME_DONE) ? 1 : 0;
-+}
-+
-+void _exynos_mipi_dsi_clear_frame_done(struct mipi_dsim_device *dsim)
-+{
-+	unsigned int reg = readl(dsim->reg_base + EXYNOS_DSIM_INTSRC);
-+
-+	writel(reg | INTSRC_FRAME_DONE, dsim->reg_base +
-+		EXYNOS_DSIM_INTSRC);
-+}
-+
-+void exynos_mipi_dsi_wr_tx_data(struct mipi_dsim_device *dsim,
-+		unsigned int tx_data)
-+{
-+	writel(tx_data, dsim->reg_base + EXYNOS_DSIM_PAYLOAD);
-+}
-diff -puN /dev/null drivers/video/exynos/exynos_mipi_dsi_lowlevel.h
++MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
++MODULE_DESCRIPTION("Samsung SoC DP Driver");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null drivers/video/exynos/exynos_dp_core.h
 --- /dev/null
-+++ a/drivers/video/exynos/exynos_mipi_dsi_lowlevel.h
-@@ -0,0 +1,112 @@
-+/* linux/drivers/video/exynos/exynos_mipi_dsi_lowlevel.h
++++ a/drivers/video/exynos/exynos_dp_core.h
+@@ -0,0 +1,206 @@
++/*
++ * Header file for Samsung DP (Display Port) interface driver.
 + *
-+ * Header file for Samsung SoC MIPI-DSI lowlevel driver.
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ * Author: Jingoo Han <jg1.han@samsung.com>
 + *
-+ * Copyright (c) 2012 Samsung Electronics Co., Ltd
-+ *
-+ * InKi Dae <inki.dae@samsung.com>
-+ * Donghwa Lee <dh09.lee@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
 +
-+#ifndef _EXYNOS_MIPI_DSI_LOWLEVEL_H
-+#define _EXYNOS_MIPI_DSI_LOWLEVEL_H
++#ifndef _EXYNOS_DP_CORE_H
++#define _EXYNOS_DP_CORE_H
 +
-+void exynos_mipi_dsi_func_reset(struct mipi_dsim_device *dsim);
-+void exynos_mipi_dsi_sw_reset(struct mipi_dsim_device *dsim);
-+void exynos_mipi_dsi_sw_reset_release(struct mipi_dsim_device *dsim);
-+int exynos_mipi_dsi_get_sw_reset_release(struct mipi_dsim_device *dsim);
-+void exynos_mipi_dsi_set_interrupt_mask(struct mipi_dsim_device *dsim,
-+	unsigned int mode, unsigned int mask);
-+void exynos_mipi_dsi_set_data_lane_number(struct mipi_dsim_device *dsim,
-+					unsigned int count);
-+void exynos_mipi_dsi_init_fifo_pointer(struct mipi_dsim_device *dsim,
-+					unsigned int cfg);
-+void exynos_mipi_dsi_set_phy_tunning(struct mipi_dsim_device *dsim,
-+				unsigned int value);
-+void exynos_mipi_dsi_set_phy_tunning(struct mipi_dsim_device *dsim,
-+				unsigned int value);
-+void exynos_mipi_dsi_set_main_stand_by(struct mipi_dsim_device *dsim,
-+		unsigned int enable);
-+void exynos_mipi_dsi_set_main_disp_resol(struct mipi_dsim_device *dsim,
-+		unsigned int width_resol, unsigned int height_resol);
-+void exynos_mipi_dsi_set_main_disp_vporch(struct mipi_dsim_device *dsim,
-+	unsigned int cmd_allow, unsigned int vfront, unsigned int vback);
-+void exynos_mipi_dsi_set_main_disp_hporch(struct mipi_dsim_device *dsim,
-+			unsigned int front, unsigned int back);
-+void exynos_mipi_dsi_set_main_disp_sync_area(struct mipi_dsim_device *dsim,
-+				unsigned int vert, unsigned int hori);
-+void exynos_mipi_dsi_set_sub_disp_resol(struct mipi_dsim_device *dsim,
-+				unsigned int vert, unsigned int hori);
-+void exynos_mipi_dsi_init_config(struct mipi_dsim_device *dsim);
-+void exynos_mipi_dsi_display_config(struct mipi_dsim_device *dsim,
-+				struct mipi_dsim_config *dsim_config);
-+void exynos_mipi_dsi_set_data_lane_number(struct mipi_dsim_device *dsim,
-+				unsigned int count);
-+void exynos_mipi_dsi_enable_lane(struct mipi_dsim_device *dsim, unsigned int lane,
-+				unsigned int enable);
-+void exynos_mipi_dsi_enable_afc(struct mipi_dsim_device *dsim, unsigned int enable,
-+				unsigned int afc_code);
-+void exynos_mipi_dsi_enable_pll_bypass(struct mipi_dsim_device *dsim,
-+				unsigned int enable);
-+void exynos_mipi_dsi_set_pll_pms(struct mipi_dsim_device *dsim, unsigned int p,
-+				unsigned int m, unsigned int s);
-+void exynos_mipi_dsi_pll_freq_band(struct mipi_dsim_device *dsim,
-+				unsigned int freq_band);
-+void exynos_mipi_dsi_pll_freq(struct mipi_dsim_device *dsim,
-+			unsigned int pre_divider, unsigned int main_divider,
-+			unsigned int scaler);
-+void exynos_mipi_dsi_pll_stable_time(struct mipi_dsim_device *dsim,
-+			unsigned int lock_time);
-+void exynos_mipi_dsi_enable_pll(struct mipi_dsim_device *dsim,
-+					unsigned int enable);
-+void exynos_mipi_dsi_set_byte_clock_src(struct mipi_dsim_device *dsim,
-+					unsigned int src);
-+void exynos_mipi_dsi_enable_byte_clock(struct mipi_dsim_device *dsim,
-+					unsigned int enable);
-+void exynos_mipi_dsi_set_esc_clk_prs(struct mipi_dsim_device *dsim,
-+				unsigned int enable, unsigned int prs_val);
-+void exynos_mipi_dsi_enable_esc_clk_on_lane(struct mipi_dsim_device *dsim,
-+				unsigned int lane_sel, unsigned int enable);
-+void exynos_mipi_dsi_force_dphy_stop_state(struct mipi_dsim_device *dsim,
-+				unsigned int enable);
-+unsigned int exynos_mipi_dsi_is_lane_state(struct mipi_dsim_device *dsim);
-+void exynos_mipi_dsi_set_stop_state_counter(struct mipi_dsim_device *dsim,
-+				unsigned int cnt_val);
-+void exynos_mipi_dsi_set_bta_timeout(struct mipi_dsim_device *dsim,
-+				unsigned int timeout);
-+void exynos_mipi_dsi_set_lpdr_timeout(struct mipi_dsim_device *dsim,
-+				unsigned int timeout);
-+void exynos_mipi_dsi_set_lcdc_transfer_mode(struct mipi_dsim_device *dsim,
-+					unsigned int lp);
-+void exynos_mipi_dsi_set_cpu_transfer_mode(struct mipi_dsim_device *dsim,
-+					unsigned int lp);
-+void exynos_mipi_dsi_enable_hs_clock(struct mipi_dsim_device *dsim,
-+				unsigned int enable);
-+void exynos_mipi_dsi_dp_dn_swap(struct mipi_dsim_device *dsim,
-+				unsigned int swap_en);
-+void exynos_mipi_dsi_hs_zero_ctrl(struct mipi_dsim_device *dsim,
-+				unsigned int hs_zero);
-+void exynos_mipi_dsi_prep_ctrl(struct mipi_dsim_device *dsim, unsigned int prep);
-+unsigned int exynos_mipi_dsi_read_interrupt(struct mipi_dsim_device *dsim);
-+unsigned int exynos_mipi_dsi_read_interrupt_mask(struct mipi_dsim_device *dsim);
-+void exynos_mipi_dsi_clear_interrupt(struct mipi_dsim_device *dsim,
-+					unsigned int src);
-+void exynos_mipi_dsi_set_interrupt(struct mipi_dsim_device *dsim,
-+					unsigned int src, unsigned int enable);
-+unsigned int exynos_mipi_dsi_is_pll_stable(struct mipi_dsim_device *dsim);
-+unsigned int exynos_mipi_dsi_get_fifo_state(struct mipi_dsim_device *dsim);
-+unsigned int _exynos_mipi_dsi_get_frame_done_status(struct mipi_dsim_device *dsim);
-+void _exynos_mipi_dsi_clear_frame_done(struct mipi_dsim_device *dsim);
-+void exynos_mipi_dsi_wr_tx_header(struct mipi_dsim_device *dsim, unsigned int di,
-+				unsigned int data0, unsigned int data1);
-+void exynos_mipi_dsi_wr_tx_data(struct mipi_dsim_device *dsim,
-+		unsigned int tx_data);
-+void exynos_mipi_dsi_rd_tx_header(struct mipi_dsim_device *dsim,
-+		unsigned int data0, unsigned int data1);
-+unsigned int exynos_mipi_dsi_rd_rx_fifo(struct mipi_dsim_device *dsim);
++struct link_train {
++	int eq_loop;
++	int cr_loop[4];
 +
-+#endif /* _EXYNOS_MIPI_DSI_LOWLEVEL_H */
-diff -puN /dev/null drivers/video/exynos/exynos_mipi_dsi_regs.h
++	u8 link_rate;
++	u8 lane_count;
++	u8 training_lane[4];
++
++	enum link_training_state lt_state;
++};
++
++struct exynos_dp_device {
++	struct device		*dev;
++	struct resource		*res;
++	struct clk		*clock;
++	unsigned int		irq;
++	void __iomem		*reg_base;
++
++	struct video_info	*video_info;
++	struct link_train	link_train;
++};
++
++/* exynos_dp_reg.c */
++void exynos_dp_enable_video_mute(struct exynos_dp_device *dp, bool enable);
++void exynos_dp_stop_video(struct exynos_dp_device *dp);
++void exynos_dp_lane_swap(struct exynos_dp_device *dp, bool enable);
++void exynos_dp_init_interrupt(struct exynos_dp_device *dp);
++void exynos_dp_reset(struct exynos_dp_device *dp);
++void exynos_dp_config_interrupt(struct exynos_dp_device *dp);
++u32 exynos_dp_get_pll_lock_status(struct exynos_dp_device *dp);
++void exynos_dp_set_pll_power_down(struct exynos_dp_device *dp, bool enable);
++void exynos_dp_set_analog_power_down(struct exynos_dp_device *dp,
++				enum analog_power_block block,
++				bool enable);
++void exynos_dp_init_analog_func(struct exynos_dp_device *dp);
++void exynos_dp_init_hpd(struct exynos_dp_device *dp);
++void exynos_dp_reset_aux(struct exynos_dp_device *dp);
++void exynos_dp_init_aux(struct exynos_dp_device *dp);
++int exynos_dp_get_plug_in_status(struct exynos_dp_device *dp);
++void exynos_dp_enable_sw_function(struct exynos_dp_device *dp);
++int exynos_dp_start_aux_transaction(struct exynos_dp_device *dp);
++int exynos_dp_write_byte_to_dpcd(struct exynos_dp_device *dp,
++				unsigned int reg_addr,
++				unsigned char data);
++int exynos_dp_read_byte_from_dpcd(struct exynos_dp_device *dp,
++				unsigned int reg_addr,
++				unsigned char *data);
++int exynos_dp_write_bytes_to_dpcd(struct exynos_dp_device *dp,
++				unsigned int reg_addr,
++				unsigned int count,
++				unsigned char data[]);
++int exynos_dp_read_bytes_from_dpcd(struct exynos_dp_device *dp,
++				unsigned int reg_addr,
++				unsigned int count,
++				unsigned char data[]);
++int exynos_dp_select_i2c_device(struct exynos_dp_device *dp,
++				unsigned int device_addr,
++				unsigned int reg_addr);
++int exynos_dp_read_byte_from_i2c(struct exynos_dp_device *dp,
++				unsigned int device_addr,
++				unsigned int reg_addr,
++				unsigned int *data);
++int exynos_dp_read_bytes_from_i2c(struct exynos_dp_device *dp,
++				unsigned int device_addr,
++				unsigned int reg_addr,
++				unsigned int count,
++				unsigned char edid[]);
++void exynos_dp_set_link_bandwidth(struct exynos_dp_device *dp, u32 bwtype);
++void exynos_dp_get_link_bandwidth(struct exynos_dp_device *dp, u32 *bwtype);
++void exynos_dp_set_lane_count(struct exynos_dp_device *dp, u32 count);
++void exynos_dp_get_lane_count(struct exynos_dp_device *dp, u32 *count);
++void exynos_dp_set_link_bandwidth(struct exynos_dp_device *dp, u32 bwtype);
++void exynos_dp_get_link_bandwidth(struct exynos_dp_device *dp, u32 *bwtype);
++void exynos_dp_set_lane_count(struct exynos_dp_device *dp, u32 count);
++void exynos_dp_get_lane_count(struct exynos_dp_device *dp, u32 *count);
++void exynos_dp_enable_enhanced_mode(struct exynos_dp_device *dp, bool enable);
++void exynos_dp_set_training_pattern(struct exynos_dp_device *dp,
++				 enum pattern_set pattern);
++void exynos_dp_set_lane0_pre_emphasis(struct exynos_dp_device *dp, u32 level);
++void exynos_dp_set_lane1_pre_emphasis(struct exynos_dp_device *dp, u32 level);
++void exynos_dp_set_lane2_pre_emphasis(struct exynos_dp_device *dp, u32 level);
++void exynos_dp_set_lane3_pre_emphasis(struct exynos_dp_device *dp, u32 level);
++void exynos_dp_set_lane0_link_training(struct exynos_dp_device *dp,
++				u32 training_lane);
++void exynos_dp_set_lane1_link_training(struct exynos_dp_device *dp,
++				u32 training_lane);
++void exynos_dp_set_lane2_link_training(struct exynos_dp_device *dp,
++				u32 training_lane);
++void exynos_dp_set_lane3_link_training(struct exynos_dp_device *dp,
++				u32 training_lane);
++u32 exynos_dp_get_lane0_link_training(struct exynos_dp_device *dp);
++u32 exynos_dp_get_lane1_link_training(struct exynos_dp_device *dp);
++u32 exynos_dp_get_lane2_link_training(struct exynos_dp_device *dp);
++u32 exynos_dp_get_lane3_link_training(struct exynos_dp_device *dp);
++void exynos_dp_reset_macro(struct exynos_dp_device *dp);
++int exynos_dp_init_video(struct exynos_dp_device *dp);
++
++void exynos_dp_set_video_color_format(struct exynos_dp_device *dp,
++				u32 color_depth,
++				u32 color_space,
++				u32 dynamic_range,
++				u32 ycbcr_coeff);
++int exynos_dp_is_slave_video_stream_clock_on(struct exynos_dp_device *dp);
++void exynos_dp_set_video_cr_mn(struct exynos_dp_device *dp,
++			enum clock_recovery_m_value_type type,
++			u32 m_value,
++			u32 n_value);
++void exynos_dp_set_video_timing_mode(struct exynos_dp_device *dp, u32 type);
++void exynos_dp_enable_video_master(struct exynos_dp_device *dp, bool enable);
++void exynos_dp_start_video(struct exynos_dp_device *dp);
++int exynos_dp_is_video_stream_on(struct exynos_dp_device *dp);
++void exynos_dp_config_video_slave_mode(struct exynos_dp_device *dp,
++			struct video_info *video_info);
++void exynos_dp_enable_scrambling(struct exynos_dp_device *dp);
++void exynos_dp_disable_scrambling(struct exynos_dp_device *dp);
++
++/* I2C EDID Chip ID, Slave Address */
++#define I2C_EDID_DEVICE_ADDR			0x50
++#define I2C_E_EDID_DEVICE_ADDR			0x30
++
++#define EDID_BLOCK_LENGTH			0x80
++#define EDID_HEADER_PATTERN			0x00
++#define EDID_EXTENSION_FLAG			0x7e
++#define EDID_CHECKSUM				0x7f
++
++/* Definition for DPCD Register */
++#define DPCD_ADDR_DPCD_REV			0x0000
++#define DPCD_ADDR_MAX_LINK_RATE			0x0001
++#define DPCD_ADDR_MAX_LANE_COUNT		0x0002
++#define DPCD_ADDR_LINK_BW_SET			0x0100
++#define DPCD_ADDR_LANE_COUNT_SET		0x0101
++#define DPCD_ADDR_TRAINING_PATTERN_SET		0x0102
++#define DPCD_ADDR_TRAINING_LANE0_SET		0x0103
++#define DPCD_ADDR_LANE0_1_STATUS		0x0202
++#define DPCD_ADDR_LANE_ALIGN__STATUS_UPDATED	0x0204
++#define DPCD_ADDR_ADJUST_REQUEST_LANE0_1	0x0206
++#define DPCD_ADDR_ADJUST_REQUEST_LANE2_3	0x0207
++#define DPCD_ADDR_TEST_REQUEST			0x0218
++#define DPCD_ADDR_TEST_RESPONSE			0x0260
++#define DPCD_ADDR_TEST_EDID_CHECKSUM		0x0261
++#define DPCD_ADDR_SINK_POWER_STATE		0x0600
++
++/* DPCD_ADDR_MAX_LANE_COUNT */
++#define DPCD_ENHANCED_FRAME_CAP(x)		(((x) >> 7) & 0x1)
++#define DPCD_MAX_LANE_COUNT(x)			((x) & 0x1f)
++
++/* DPCD_ADDR_LANE_COUNT_SET */
++#define DPCD_ENHANCED_FRAME_EN			(0x1 << 7)
++#define DPCD_LANE_COUNT_SET(x)			((x) & 0x1f)
++
++/* DPCD_ADDR_TRAINING_PATTERN_SET */
++#define DPCD_SCRAMBLING_DISABLED		(0x1 << 5)
++#define DPCD_SCRAMBLING_ENABLED			(0x0 << 5)
++#define DPCD_TRAINING_PATTERN_2			(0x2 << 0)
++#define DPCD_TRAINING_PATTERN_1			(0x1 << 0)
++#define DPCD_TRAINING_PATTERN_DISABLED		(0x0 << 0)
++
++/* DPCD_ADDR_TRAINING_LANE0_SET */
++#define DPCD_MAX_PRE_EMPHASIS_REACHED		(0x1 << 5)
++#define DPCD_PRE_EMPHASIS_SET(x)		(((x) & 0x3) << 3)
++#define DPCD_PRE_EMPHASIS_GET(x)		(((x) >> 3) & 0x3)
++#define DPCD_PRE_EMPHASIS_PATTERN2_LEVEL0	(0x0 << 3)
++#define DPCD_MAX_SWING_REACHED			(0x1 << 2)
++#define DPCD_VOLTAGE_SWING_SET(x)		(((x) & 0x3) << 0)
++#define DPCD_VOLTAGE_SWING_GET(x)		(((x) >> 0) & 0x3)
++#define DPCD_VOLTAGE_SWING_PATTERN1_LEVEL0	(0x0 << 0)
++
++/* DPCD_ADDR_LANE0_1_STATUS */
++#define DPCD_LANE_SYMBOL_LOCKED			(0x1 << 2)
++#define DPCD_LANE_CHANNEL_EQ_DONE		(0x1 << 1)
++#define DPCD_LANE_CR_DONE			(0x1 << 0)
++#define DPCD_CHANNEL_EQ_BITS			(DPCD_LANE_CR_DONE|	\
++						 DPCD_LANE_CHANNEL_EQ_DONE|\
++						 DPCD_LANE_SYMBOL_LOCKED)
++
++/* DPCD_ADDR_LANE_ALIGN__STATUS_UPDATED */
++#define DPCD_LINK_STATUS_UPDATED		(0x1 << 7)
++#define DPCD_DOWNSTREAM_PORT_STATUS_CHANGED	(0x1 << 6)
++#define DPCD_INTERLANE_ALIGN_DONE		(0x1 << 0)
++
++/* DPCD_ADDR_TEST_REQUEST */
++#define DPCD_TEST_EDID_READ			(0x1 << 2)
++
++/* DPCD_ADDR_TEST_RESPONSE */
++#define DPCD_TEST_EDID_CHECKSUM_WRITE		(0x1 << 2)
++
++/* DPCD_ADDR_SINK_POWER_STATE */
++#define DPCD_SET_POWER_STATE_D0			(0x1 << 0)
++#define DPCD_SET_POWER_STATE_D4			(0x2 << 0)
++
++#endif /* _EXYNOS_DP_CORE_H */
+diff -puN /dev/null drivers/video/exynos/exynos_dp_reg.c
 --- /dev/null
-+++ a/drivers/video/exynos/exynos_mipi_dsi_regs.h
-@@ -0,0 +1,149 @@
-+/* linux/driver/video/exynos/exynos_mipi_dsi_regs.h
++++ a/drivers/video/exynos/exynos_dp_reg.c
+@@ -0,0 +1,1173 @@
++/*
++ * Samsung DP (Display port) register interface driver.
 + *
-+ * Register definition file for Samsung MIPI-DSIM driver
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ * Author: Jingoo Han <jg1.han@samsung.com>
 + *
-+ * Copyright (c) 2012 Samsung Electronics Co., Ltd
-+ *
-+ * InKi Dae <inki.dae@samsung.com>
-+ * Donghwa Lee <dh09.lee@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
-+
-+#ifndef _EXYNOS_MIPI_DSI_REGS_H
-+#define _EXYNOS_MIPI_DSI_REGS_H
-+
-+#define EXYNOS_DSIM_STATUS		0x0	/* Status register */
-+#define EXYNOS_DSIM_SWRST		0x4	/* Software reset register */
-+#define EXYNOS_DSIM_CLKCTRL		0x8	/* Clock control register */
-+#define EXYNOS_DSIM_TIMEOUT		0xc	/* Time out register */
-+#define EXYNOS_DSIM_CONFIG		0x10	/* Configuration register */
-+#define EXYNOS_DSIM_ESCMODE		0x14	/* Escape mode register */
-+
-+/* Main display image resolution register */
-+#define EXYNOS_DSIM_MDRESOL		0x18
-+#define EXYNOS_DSIM_MVPORCH		0x1c	/* Main display Vporch register */
-+#define EXYNOS_DSIM_MHPORCH		0x20	/* Main display Hporch register */
-+#define EXYNOS_DSIM_MSYNC		0x24	/* Main display sync area register */
-+
-+/* Sub display image resolution register */
-+#define EXYNOS_DSIM_SDRESOL		0x28
-+#define EXYNOS_DSIM_INTSRC		0x2c	/* Interrupt source register */
-+#define EXYNOS_DSIM_INTMSK		0x30	/* Interrupt mask register */
-+#define EXYNOS_DSIM_PKTHDR		0x34	/* Packet Header FIFO register */
-+#define EXYNOS_DSIM_PAYLOAD		0x38	/* Payload FIFO register */
-+#define EXYNOS_DSIM_RXFIFO		0x3c	/* Read FIFO register */
-+#define EXYNOS_DSIM_FIFOTHLD		0x40	/* FIFO threshold level register */
-+#define EXYNOS_DSIM_FIFOCTRL		0x44	/* FIFO status and control register */
-+
-+/* FIFO memory AC characteristic register */
-+#define EXYNOS_DSIM_PLLCTRL		0x4c	/* PLL control register */
-+#define EXYNOS_DSIM_PLLTMR		0x50	/* PLL timer register */
-+#define EXYNOS_DSIM_PHYACCHR		0x54	/* D-PHY AC characteristic register */
-+#define EXYNOS_DSIM_PHYACCHR1		0x58	/* D-PHY AC characteristic register1 */
-+
-+/* DSIM_STATUS */
-+#define DSIM_STOP_STATE_DAT(x)		(((x) & 0xf) << 0)
-+#define DSIM_STOP_STATE_CLK		(1 << 8)
-+#define DSIM_TX_READY_HS_CLK		(1 << 10)
-+
-+/* DSIM_SWRST */
-+#define DSIM_FUNCRST			(1 << 16)
-+#define DSIM_SWRST			(1 << 0)
-+
-+/* EXYNOS_DSIM_TIMEOUT */
-+#define DSIM_LPDR_TOUT_SHIFT(x)		((x) << 0)
-+#define DSIM_BTA_TOUT_SHIFT(x)		((x) << 16)
-+
-+/* EXYNOS_DSIM_CLKCTRL */
-+#define DSIM_LANE_ESC_CLKEN(x)		(((x) & 0x1f) << 19)
-+#define DSIM_BYTE_CLKEN_SHIFT(x)	((x) << 24)
-+#define DSIM_BYTE_CLK_SRC_SHIFT(x)	((x) <<	25)
-+#define DSIM_PLL_BYPASS_SHIFT(x)	((x) <<	27)
-+#define DSIM_ESC_CLKEN_SHIFT(x)		((x) << 28)
-+#define DSIM_TX_REQUEST_HSCLK_SHIFT(x)	((x) << 31)
-+
-+/* EXYNOS_DSIM_CONFIG */
-+#define DSIM_LANE_ENx(x)		(((x) & 0x1f) << 0)
-+#define DSIM_NUM_OF_DATALANE_SHIFT(x)	((x) << 5)
-+#define DSIM_HSA_MODE_SHIFT(x)		((x) << 20)
-+#define DSIM_HBP_MODE_SHIFT(x)		((x) << 21)
-+#define DSIM_HFP_MODE_SHIFT(x)		((x) << 22)
-+#define DSIM_HSE_MODE_SHIFT(x)		((x) << 23)
-+#define DSIM_AUTO_MODE_SHIFT(x)		((x) << 24)
-+#define DSIM_EOT_DISABLE(x)		((x) << 28)
-+#define DSIM_AUTO_FLUSH(x)		((x) << 29)
-+
-+#define DSIM_NUM_OF_DATA_LANE(x)	((x) << DSIM_NUM_OF_DATALANE_SHIFT)
-+
-+/* EXYNOS_DSIM_ESCMODE */
-+#define DSIM_TX_LPDT_LP			(1 << 6)
-+#define DSIM_CMD_LPDT_LP		(1 << 7)
-+#define DSIM_FORCE_STOP_STATE_SHIFT(x)	((x) << 20)
-+#define DSIM_STOP_STATE_CNT_SHIFT(x)	((x) << 21)
-+
-+/* EXYNOS_DSIM_MDRESOL */
-+#define DSIM_MAIN_STAND_BY		(1 << 31)
-+#define DSIM_MAIN_VRESOL(x)		(((x) & 0x7ff) << 16)
-+#define DSIM_MAIN_HRESOL(x)		(((x) & 0X7ff) << 0)
-+
-+/* EXYNOS_DSIM_MVPORCH */
-+#define DSIM_CMD_ALLOW_SHIFT(x)		((x) << 28)
-+#define DSIM_STABLE_VFP_SHIFT(x)	((x) << 16)
-+#define DSIM_MAIN_VBP_SHIFT(x)		((x) << 0)
-+#define DSIM_CMD_ALLOW_MASK		(0xf << 28)
-+#define DSIM_STABLE_VFP_MASK		(0x7ff << 16)
-+#define DSIM_MAIN_VBP_MASK		(0x7ff << 0)
-+
-+/* EXYNOS_DSIM_MHPORCH */
-+#define DSIM_MAIN_HFP_SHIFT(x)		((x) << 16)
-+#define DSIM_MAIN_HBP_SHIFT(x)		((x) << 0)
-+#define DSIM_MAIN_HFP_MASK		((0xffff) << 16)
-+#define DSIM_MAIN_HBP_MASK		((0xffff) << 0)
-+
-+/* EXYNOS_DSIM_MSYNC */
-+#define DSIM_MAIN_VSA_SHIFT(x)		((x) << 22)
-+#define DSIM_MAIN_HSA_SHIFT(x)		((x) << 0)
-+#define DSIM_MAIN_VSA_MASK		((0x3ff) << 22)
-+#define DSIM_MAIN_HSA_MASK		((0xffff) << 0)
-+
-+/* EXYNOS_DSIM_SDRESOL */
-+#define DSIM_SUB_STANDY_SHIFT(x)	((x) << 31)
-+#define DSIM_SUB_VRESOL_SHIFT(x)	((x) << 16)
-+#define DSIM_SUB_HRESOL_SHIFT(x)	((x) << 0)
-+#define DSIM_SUB_STANDY_MASK		((0x1) << 31)
-+#define DSIM_SUB_VRESOL_MASK		((0x7ff) << 16)
-+#define DSIM_SUB_HRESOL_MASK		((0x7ff) << 0)
-+
-+/* EXYNOS_DSIM_INTSRC */
-+#define INTSRC_PLL_STABLE		(1 << 31)
-+#define INTSRC_SW_RST_RELEASE		(1 << 30)
-+#define INTSRC_SFR_FIFO_EMPTY		(1 << 29)
-+#define INTSRC_FRAME_DONE		(1 << 24)
-+#define INTSRC_RX_DATA_DONE		(1 << 18)
-+
-+/* EXYNOS_DSIM_INTMSK */
-+#define INTMSK_FIFO_EMPTY		(1 << 29)
-+#define INTMSK_BTA			(1 << 25)
-+#define INTMSK_FRAME_DONE		(1 << 24)
-+#define INTMSK_RX_TIMEOUT		(1 << 21)
-+#define INTMSK_BTA_TIMEOUT		(1 << 20)
-+#define INTMSK_RX_DONE			(1 << 18)
-+#define INTMSK_RX_TE			(1 << 17)
-+#define INTMSK_RX_ACK			(1 << 16)
-+#define INTMSK_RX_ECC_ERR		(1 << 15)
-+#define INTMSK_RX_CRC_ERR		(1 << 14)
-+
-+/* EXYNOS_DSIM_FIFOCTRL */
-+#define SFR_HEADER_EMPTY		(1 << 22)
-+
-+/* EXYNOS_DSIM_PHYACCHR */
-+#define DSIM_AFC_CTL(x)			(((x) & 0x7) << 5)
-+
-+/* EXYNOS_DSIM_PLLCTRL */
-+#define DSIM_PLL_EN_SHIFT(x)		((x) << 23)
-+#define DSIM_FREQ_BAND_SHIFT(x)		((x) << 24)
-+
-+#endif /* _EXYNOS_MIPI_DSI_REGS_H */
-diff -puN /dev/null include/video/exynos_mipi_dsim.h
---- /dev/null
-+++ a/include/video/exynos_mipi_dsim.h
-@@ -0,0 +1,359 @@
-+/* include/video/exynos_mipi_dsim.h
-+ *
-+ * Platform data header for Samsung SoC MIPI-DSIM.
-+ *
-+ * Copyright (c) 2012 Samsung Electronics Co., Ltd
-+ *
-+ * InKi Dae <inki.dae@samsung.com>
-+ * Donghwa Lee <dh09.lee@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+*/
-+
-+#ifndef _EXYNOS_MIPI_DSIM_H
-+#define _EXYNOS_MIPI_DSIM_H
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
 +
 +#include <linux/device.h>
-+#include <linux/fb.h>
++#include <linux/io.h>
++#include <linux/delay.h>
 +
-+#define PANEL_NAME_SIZE		(32)
++#include <video/exynos_dp.h>
 +
-+/*
-+ * Enumerate display interface type.
-+ *
-+ * DSIM_COMMAND means cpu interface and rgb interface for DSIM_VIDEO.
-+ *
-+ * P.S. MIPI DSI Master has two display controller intefaces, RGB Interface
-+ *	for main display and CPU Interface(same as I80 Interface) for main
-+ *	and sub display.
-+ */
-+enum mipi_dsim_interface_type {
-+	DSIM_COMMAND,
-+	DSIM_VIDEO
-+};
++#include <plat/cpu.h>
 +
-+enum mipi_dsim_virtual_ch_no {
-+	DSIM_VIRTUAL_CH_0,
-+	DSIM_VIRTUAL_CH_1,
-+	DSIM_VIRTUAL_CH_2,
-+	DSIM_VIRTUAL_CH_3
-+};
++#include "exynos_dp_core.h"
++#include "exynos_dp_reg.h"
 +
-+enum mipi_dsim_burst_mode_type {
-+	DSIM_NON_BURST_SYNC_EVENT,
-+	DSIM_BURST_SYNC_EVENT,
-+	DSIM_NON_BURST_SYNC_PULSE,
-+	DSIM_BURST,
-+	DSIM_NON_VIDEO_MODE
-+};
++#define COMMON_INT_MASK_1 (0)
++#define COMMON_INT_MASK_2 (0)
++#define COMMON_INT_MASK_3 (0)
++#define COMMON_INT_MASK_4 (0)
++#define INT_STA_MASK (0)
 +
-+enum mipi_dsim_no_of_data_lane {
-+	DSIM_DATA_LANE_1,
-+	DSIM_DATA_LANE_2,
-+	DSIM_DATA_LANE_3,
-+	DSIM_DATA_LANE_4
-+};
++void exynos_dp_enable_video_mute(struct exynos_dp_device *dp, bool enable)
++{
++	u32 reg;
 +
-+enum mipi_dsim_byte_clk_src {
-+	DSIM_PLL_OUT_DIV8,
-+	DSIM_EXT_CLK_DIV8,
-+	DSIM_EXT_CLK_BYPASS
-+};
++	if (enable) {
++		reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_1);
++		reg |= HDCP_VIDEO_MUTE;
++		writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_1);
++	} else {
++		reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_1);
++		reg &= ~HDCP_VIDEO_MUTE;
++		writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_1);
++	}
++}
 +
-+enum mipi_dsim_pixel_format {
-+	DSIM_CMD_3BPP,
-+	DSIM_CMD_8BPP,
-+	DSIM_CMD_12BPP,
-+	DSIM_CMD_16BPP,
-+	DSIM_VID_16BPP_565,
-+	DSIM_VID_18BPP_666PACKED,
-+	DSIM_18BPP_666LOOSELYPACKED,
-+	DSIM_24BPP_888
-+};
++void exynos_dp_stop_video(struct exynos_dp_device *dp)
++{
++	u32 reg;
 +
-+/*
-+ * struct mipi_dsim_config - interface for configuring mipi-dsi controller.
-+ *
-+ * @auto_flush: enable or disable Auto flush of MD FIFO using VSYNC pulse.
-+ * @eot_disable: enable or disable EoT packet in HS mode.
-+ * @auto_vertical_cnt: specifies auto vertical count mode.
-+ *	in Video mode, the vertical line transition uses line counter
-+ *	configured by VSA, VBP, and Vertical resolution.
-+ *	If this bit is set to '1', the line counter does not use VSA and VBP
-+ *	registers.(in command mode, this variable is ignored)
-+ * @hse: set horizontal sync event mode.
-+ *	In VSYNC pulse and Vporch area, MIPI DSI master transfers only HSYNC
-+ *	start packet to MIPI DSI slave at MIPI DSI spec1.1r02.
-+ *	this bit transfers HSYNC end packet in VSYNC pulse and Vporch area
-+ *	(in mommand mode, this variable is ignored)
-+ * @hfp: specifies HFP disable mode.
-+ *	if this variable is set, DSI master ignores HFP area in VIDEO mode.
-+ *	(in command mode, this variable is ignored)
-+ * @hbp: specifies HBP disable mode.
-+ *	if this variable is set, DSI master ignores HBP area in VIDEO mode.
-+ *	(in command mode, this variable is ignored)
-+ * @hsa: specifies HSA disable mode.
-+ *	if this variable is set, DSI master ignores HSA area in VIDEO mode.
-+ *	(in command mode, this variable is ignored)
-+ * @cma_allow: specifies the number of horizontal lines, where command packet
-+ *	transmission is allowed after Stable VFP period.
-+ * @e_interface: specifies interface to be used.(CPU or RGB interface)
-+ * @e_virtual_ch: specifies virtual channel number that main or
-+ *	sub diaplsy uses.
-+ * @e_pixel_format: specifies pixel stream format for main or sub display.
-+ * @e_burst_mode: selects Burst mode in Video mode.
-+ *	in Non-burst mode, RGB data area is filled with RGB data and NULL
-+ *	packets, according to input bandwidth of RGB interface.
-+ *	In Burst mode, RGB data area is filled with RGB data only.
-+ * @e_no_data_lane: specifies data lane count to be used by Master.
-+ * @e_byte_clk: select byte clock source. (it must be DSIM_PLL_OUT_DIV8)
-+ *	DSIM_EXT_CLK_DIV8 and DSIM_EXT_CLK_BYPASSS are not supported.
-+ * @pll_stable_time: specifies the PLL Timer for stability of the ganerated
-+ *	clock(System clock cycle base)
-+ *	if the timer value goes to 0x00000000, the clock stable bit of status
-+ *	and interrupt register is set.
-+ * @esc_clk: specifies escape clock frequency for getting the escape clock
-+ *	prescaler value.
-+ * @stop_holding_cnt: specifies the interval value between transmitting
-+ *	read packet(or write "set_tear_on" command) and BTA request.
-+ *	after transmitting read packet or write "set_tear_on" command,
-+ *	BTA requests to D-PHY automatically. this counter value specifies
-+ *	the interval between them.
-+ * @bta_timeout: specifies the timer for BTA.
-+ *	this register specifies time out from BTA request to change
-+ *	the direction with respect to Tx escape clock.
-+ * @rx_timeout: specifies the timer for LP Rx mode timeout.
-+ *	this register specifies time out on how long RxValid deasserts,
-+ *	after RxLpdt asserts with respect to Tx escape clock.
-+ *	- RxValid specifies Rx data valid indicator.
-+ *	- RxLpdt specifies an indicator that D-PHY is under RxLpdt mode.
-+ *	- RxValid and RxLpdt specifies signal from D-PHY.
-+ */
-+struct mipi_dsim_config {
-+	unsigned char			auto_flush;
-+	unsigned char			eot_disable;
++	reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_1);
++	reg &= ~VIDEO_EN;
++	writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_1);
++}
 +
-+	unsigned char			auto_vertical_cnt;
-+	unsigned char			hse;
-+	unsigned char			hfp;
-+	unsigned char			hbp;
-+	unsigned char			hsa;
-+	unsigned char			cmd_allow;
++void exynos_dp_lane_swap(struct exynos_dp_device *dp, bool enable)
++{
++	u32 reg;
 +
-+	enum mipi_dsim_interface_type	e_interface;
-+	enum mipi_dsim_virtual_ch_no	e_virtual_ch;
-+	enum mipi_dsim_pixel_format	e_pixel_format;
-+	enum mipi_dsim_burst_mode_type	e_burst_mode;
-+	enum mipi_dsim_no_of_data_lane	e_no_data_lane;
-+	enum mipi_dsim_byte_clk_src	e_byte_clk;
++	if (enable)
++		reg = LANE3_MAP_LOGIC_LANE_0 | LANE2_MAP_LOGIC_LANE_1 |
++			LANE1_MAP_LOGIC_LANE_2 | LANE0_MAP_LOGIC_LANE_3;
++	else
++		reg = LANE3_MAP_LOGIC_LANE_3 | LANE2_MAP_LOGIC_LANE_2 |
++			LANE1_MAP_LOGIC_LANE_1 | LANE0_MAP_LOGIC_LANE_0;
++
++	writel(reg, dp->reg_base + EXYNOS_DP_LANE_MAP);
++}
++
++void exynos_dp_init_interrupt(struct exynos_dp_device *dp)
++{
++	/* Set interrupt pin assertion polarity as high */
++	writel(INT_POL, dp->reg_base + EXYNOS_DP_INT_CTL);
++
++	/* Clear pending regisers */
++	writel(0xff, dp->reg_base + EXYNOS_DP_COMMON_INT_STA_1);
++	writel(0x4f, dp->reg_base + EXYNOS_DP_COMMON_INT_STA_2);
++	writel(0xe0, dp->reg_base + EXYNOS_DP_COMMON_INT_STA_3);
++	writel(0xe7, dp->reg_base + EXYNOS_DP_COMMON_INT_STA_4);
++	writel(0x63, dp->reg_base + EXYNOS_DP_INT_STA);
++
++	/* 0:mask,1: unmask */
++	writel(0x00, dp->reg_base + EXYNOS_DP_COMMON_INT_MASK_1);
++	writel(0x00, dp->reg_base + EXYNOS_DP_COMMON_INT_MASK_2);
++	writel(0x00, dp->reg_base + EXYNOS_DP_COMMON_INT_MASK_3);
++	writel(0x00, dp->reg_base + EXYNOS_DP_COMMON_INT_MASK_4);
++	writel(0x00, dp->reg_base + EXYNOS_DP_INT_STA_MASK);
++}
++
++void exynos_dp_reset(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	writel(RESET_DP_TX, dp->reg_base + EXYNOS_DP_TX_SW_RESET);
++
++	exynos_dp_stop_video(dp);
++	exynos_dp_enable_video_mute(dp, 0);
++
++	reg = MASTER_VID_FUNC_EN_N | SLAVE_VID_FUNC_EN_N |
++		AUD_FIFO_FUNC_EN_N | AUD_FUNC_EN_N |
++		HDCP_FUNC_EN_N | SW_FUNC_EN_N;
++	writel(reg, dp->reg_base + EXYNOS_DP_FUNC_EN_1);
++
++	reg = SSC_FUNC_EN_N | AUX_FUNC_EN_N |
++		SERDES_FIFO_FUNC_EN_N |
++		LS_CLK_DOMAIN_FUNC_EN_N;
++	writel(reg, dp->reg_base + EXYNOS_DP_FUNC_EN_2);
++
++	udelay(20);
++
++	exynos_dp_lane_swap(dp, 0);
++
++	writel(0x0, dp->reg_base + EXYNOS_DP_SYS_CTL_1);
++	writel(0x40, dp->reg_base + EXYNOS_DP_SYS_CTL_2);
++	writel(0x0, dp->reg_base + EXYNOS_DP_SYS_CTL_3);
++	writel(0x0, dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++
++	writel(0x0, dp->reg_base + EXYNOS_DP_PKT_SEND_CTL);
++	writel(0x0, dp->reg_base + EXYNOS_DP_HDCP_CTL);
++
++	writel(0x5e, dp->reg_base + EXYNOS_DP_HPD_DEGLITCH_L);
++	writel(0x1a, dp->reg_base + EXYNOS_DP_HPD_DEGLITCH_H);
++
++	writel(0x10, dp->reg_base + EXYNOS_DP_LINK_DEBUG_CTL);
++
++	writel(0x0, dp->reg_base + EXYNOS_DP_PHY_TEST);
++
++	writel(0x0, dp->reg_base + EXYNOS_DP_VIDEO_FIFO_THRD);
++	writel(0x20, dp->reg_base + EXYNOS_DP_AUDIO_MARGIN);
++
++	writel(0x4, dp->reg_base + EXYNOS_DP_M_VID_GEN_FILTER_TH);
++	writel(0x2, dp->reg_base + EXYNOS_DP_M_AUD_GEN_FILTER_TH);
++
++	writel(0x00000101, dp->reg_base + EXYNOS_DP_SOC_GENERAL_CTL);
++
++	exynos_dp_init_interrupt(dp);
++}
++
++void exynos_dp_config_interrupt(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	/* 0: mask, 1: unmask */
++	reg = COMMON_INT_MASK_1;
++	writel(reg, dp->reg_base + EXYNOS_DP_COMMON_INT_MASK_1);
++
++	reg = COMMON_INT_MASK_2;
++	writel(reg, dp->reg_base + EXYNOS_DP_COMMON_INT_MASK_2);
++
++	reg = COMMON_INT_MASK_3;
++	writel(reg, dp->reg_base + EXYNOS_DP_COMMON_INT_MASK_3);
++
++	reg = COMMON_INT_MASK_4;
++	writel(reg, dp->reg_base + EXYNOS_DP_COMMON_INT_MASK_4);
++
++	reg = INT_STA_MASK;
++	writel(reg, dp->reg_base + EXYNOS_DP_INT_STA_MASK);
++}
++
++u32 exynos_dp_get_pll_lock_status(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_DEBUG_CTL);
++	if (reg & PLL_LOCK)
++		return PLL_LOCKED;
++	else
++		return PLL_UNLOCKED;
++}
++
++void exynos_dp_set_pll_power_down(struct exynos_dp_device *dp, bool enable)
++{
++	u32 reg;
++
++	if (enable) {
++		reg = readl(dp->reg_base + EXYNOS_DP_PLL_CTL);
++		reg |= DP_PLL_PD;
++		writel(reg, dp->reg_base + EXYNOS_DP_PLL_CTL);
++	} else {
++		reg = readl(dp->reg_base + EXYNOS_DP_PLL_CTL);
++		reg &= ~DP_PLL_PD;
++		writel(reg, dp->reg_base + EXYNOS_DP_PLL_CTL);
++	}
++}
++
++void exynos_dp_set_analog_power_down(struct exynos_dp_device *dp,
++				enum analog_power_block block,
++				bool enable)
++{
++	u32 reg;
++
++	switch (block) {
++	case AUX_BLOCK:
++		if (enable) {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg |= AUX_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		} else {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg &= ~AUX_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		}
++		break;
++	case CH0_BLOCK:
++		if (enable) {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg |= CH0_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		} else {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg &= ~CH0_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		}
++		break;
++	case CH1_BLOCK:
++		if (enable) {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg |= CH1_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		} else {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg &= ~CH1_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		}
++		break;
++	case CH2_BLOCK:
++		if (enable) {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg |= CH2_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		} else {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg &= ~CH2_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		}
++		break;
++	case CH3_BLOCK:
++		if (enable) {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg |= CH3_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		} else {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg &= ~CH3_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		}
++		break;
++	case ANALOG_TOTAL:
++		if (enable) {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg |= DP_PHY_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		} else {
++			reg = readl(dp->reg_base + EXYNOS_DP_PHY_PD);
++			reg &= ~DP_PHY_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		}
++		break;
++	case POWER_ALL:
++		if (enable) {
++			reg = DP_PHY_PD | AUX_PD | CH3_PD | CH2_PD |
++				CH1_PD | CH0_PD;
++			writel(reg, dp->reg_base + EXYNOS_DP_PHY_PD);
++		} else {
++			writel(0x00, dp->reg_base + EXYNOS_DP_PHY_PD);
++		}
++		break;
++	default:
++		break;
++	}
++}
++
++void exynos_dp_init_analog_func(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	exynos_dp_set_analog_power_down(dp, POWER_ALL, 0);
++
++	reg = PLL_LOCK_CHG;
++	writel(reg, dp->reg_base + EXYNOS_DP_COMMON_INT_STA_1);
++
++	reg = readl(dp->reg_base + EXYNOS_DP_DEBUG_CTL);
++	reg &= ~(F_PLL_LOCK | PLL_LOCK_CTRL);
++	writel(reg, dp->reg_base + EXYNOS_DP_DEBUG_CTL);
++
++	/* Power up PLL */
++	if (exynos_dp_get_pll_lock_status(dp) == PLL_UNLOCKED)
++		exynos_dp_set_pll_power_down(dp, 0);
++
++	/* Enable Serdes FIFO function and Link symbol clock domain module */
++	reg = readl(dp->reg_base + EXYNOS_DP_FUNC_EN_2);
++	reg &= ~(SERDES_FIFO_FUNC_EN_N | LS_CLK_DOMAIN_FUNC_EN_N
++		| AUX_FUNC_EN_N);
++	writel(reg, dp->reg_base + EXYNOS_DP_FUNC_EN_2);
++}
++
++void exynos_dp_init_hpd(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = HOTPLUG_CHG | HPD_LOST | PLUG;
++	writel(reg, dp->reg_base + EXYNOS_DP_COMMON_INT_STA_4);
++
++	reg = INT_HPD;
++	writel(reg, dp->reg_base + EXYNOS_DP_INT_STA);
++
++	reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_3);
++	reg &= ~(F_HPD | HPD_CTRL);
++	writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_3);
++}
++
++void exynos_dp_reset_aux(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	/* Disable AUX channel module */
++	reg = readl(dp->reg_base + EXYNOS_DP_FUNC_EN_2);
++	reg |= AUX_FUNC_EN_N;
++	writel(reg, dp->reg_base + EXYNOS_DP_FUNC_EN_2);
++}
++
++void exynos_dp_init_aux(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	/* Clear inerrupts related to AUX channel */
++	reg = RPLY_RECEIV | AUX_ERR;
++	writel(reg, dp->reg_base + EXYNOS_DP_INT_STA);
++
++	exynos_dp_reset_aux(dp);
++
++	/* Disable AUX transaction H/W retry */
++	reg = AUX_BIT_PERIOD_EXPECTED_DELAY(3) | AUX_HW_RETRY_COUNT_SEL(0)|
++		AUX_HW_RETRY_INTERVAL_600_MICROSECONDS;
++	writel(reg, dp->reg_base + EXYNOS_DP_AUX_HW_RETRY_CTL) ;
++
++	/* Receive AUX Channel DEFER commands equal to DEFFER_COUNT*64 */
++	reg = DEFER_CTRL_EN | DEFER_COUNT(1);
++	writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_DEFER_CTL);
++
++	/* Enable AUX channel module */
++	reg = readl(dp->reg_base + EXYNOS_DP_FUNC_EN_2);
++	reg &= ~AUX_FUNC_EN_N;
++	writel(reg, dp->reg_base + EXYNOS_DP_FUNC_EN_2);
++}
++
++int exynos_dp_get_plug_in_status(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_3);
++	if (reg & HPD_STATUS)
++		return 0;
++
++	return -EINVAL;
++}
++
++void exynos_dp_enable_sw_function(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_FUNC_EN_1);
++	reg &= ~SW_FUNC_EN_N;
++	writel(reg, dp->reg_base + EXYNOS_DP_FUNC_EN_1);
++}
++
++int exynos_dp_start_aux_transaction(struct exynos_dp_device *dp)
++{
++	int reg;
++	int retval = 0;
++
++	/* Enable AUX CH operation */
++	reg = readl(dp->reg_base + EXYNOS_DP_AUX_CH_CTL_2);
++	reg |= AUX_EN;
++	writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_CTL_2);
++
++	/* Is AUX CH command reply received? */
++	reg = readl(dp->reg_base + EXYNOS_DP_INT_STA);
++	while (!(reg & RPLY_RECEIV))
++		reg = readl(dp->reg_base + EXYNOS_DP_INT_STA);
++
++	/* Clear interrupt source for AUX CH command reply */
++	writel(RPLY_RECEIV, dp->reg_base + EXYNOS_DP_INT_STA);
++
++	/* Clear interrupt source for AUX CH access error */
++	reg = readl(dp->reg_base + EXYNOS_DP_INT_STA);
++	if (reg & AUX_ERR) {
++		writel(AUX_ERR, dp->reg_base + EXYNOS_DP_INT_STA);
++		return -EREMOTEIO;
++	}
++
++	/* Check AUX CH error access status */
++	reg = readl(dp->reg_base + EXYNOS_DP_AUX_CH_STA);
++	if ((reg & AUX_STATUS_MASK) != 0) {
++		dev_err(dp->dev, "AUX CH error happens: %d\n\n",
++			reg & AUX_STATUS_MASK);
++		return -EREMOTEIO;
++	}
++
++	return retval;
++}
++
++int exynos_dp_write_byte_to_dpcd(struct exynos_dp_device *dp,
++				unsigned int reg_addr,
++				unsigned char data)
++{
++	u32 reg;
++	int i;
++	int retval;
++
++	for (i = 0; i < 3; i++) {
++		/* Clear AUX CH data buffer */
++		reg = BUF_CLR;
++		writel(reg, dp->reg_base + EXYNOS_DP_BUFFER_DATA_CTL);
++
++		/* Select DPCD device address */
++		reg = AUX_ADDR_7_0(reg_addr);
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_7_0);
++		reg = AUX_ADDR_15_8(reg_addr);
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_15_8);
++		reg = AUX_ADDR_19_16(reg_addr);
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_19_16);
++
++		/* Write data buffer */
++		reg = (unsigned int)data;
++		writel(reg, dp->reg_base + EXYNOS_DP_BUF_DATA_0);
++
++		/*
++		 * Set DisplayPort transaction and write 1 byte
++		 * If bit 3 is 1, DisplayPort transaction.
++		 * If Bit 3 is 0, I2C transaction.
++		 */
++		reg = AUX_TX_COMM_DP_TRANSACTION | AUX_TX_COMM_WRITE;
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_CTL_1);
++
++		/* Start AUX transaction */
++		retval = exynos_dp_start_aux_transaction(dp);
++		if (retval == 0)
++			break;
++		else
++			dev_err(dp->dev, "Aux Transaction fail!\n");
++	}
++
++	return retval;
++}
++
++int exynos_dp_read_byte_from_dpcd(struct exynos_dp_device *dp,
++				unsigned int reg_addr,
++				unsigned char *data)
++{
++	u32 reg;
++	int i;
++	int retval;
++
++	for (i = 0; i < 10; i++) {
++		/* Clear AUX CH data buffer */
++		reg = BUF_CLR;
++		writel(reg, dp->reg_base + EXYNOS_DP_BUFFER_DATA_CTL);
++
++		/* Select DPCD device address */
++		reg = AUX_ADDR_7_0(reg_addr);
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_7_0);
++		reg = AUX_ADDR_15_8(reg_addr);
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_15_8);
++		reg = AUX_ADDR_19_16(reg_addr);
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_19_16);
++
++		/*
++		 * Set DisplayPort transaction and read 1 byte
++		 * If bit 3 is 1, DisplayPort transaction.
++		 * If Bit 3 is 0, I2C transaction.
++		 */
++		reg = AUX_TX_COMM_DP_TRANSACTION | AUX_TX_COMM_READ;
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_CTL_1);
++
++		/* Start AUX transaction */
++		retval = exynos_dp_start_aux_transaction(dp);
++		if (retval == 0)
++			break;
++		else
++			dev_err(dp->dev, "Aux Transaction fail!\n");
++	}
++
++	/* Read data buffer */
++	reg = readl(dp->reg_base + EXYNOS_DP_BUF_DATA_0);
++	*data = (unsigned char)(reg & 0xff);
++
++	return retval;
++}
++
++int exynos_dp_write_bytes_to_dpcd(struct exynos_dp_device *dp,
++				unsigned int reg_addr,
++				unsigned int count,
++				unsigned char data[])
++{
++	u32 reg;
++	unsigned int start_offset;
++	unsigned int cur_data_count;
++	unsigned int cur_data_idx;
++	int i;
++	int retval = 0;
++
++	/* Clear AUX CH data buffer */
++	reg = BUF_CLR;
++	writel(reg, dp->reg_base + EXYNOS_DP_BUFFER_DATA_CTL);
++
++	start_offset = 0;
++	while (start_offset < count) {
++		/* Buffer size of AUX CH is 16 * 4bytes */
++		if ((count - start_offset) > 16)
++			cur_data_count = 16;
++		else
++			cur_data_count = count - start_offset;
++
++		for (i = 0; i < 10; i++) {
++			/* Select DPCD device address */
++			reg = AUX_ADDR_7_0(reg_addr + start_offset);
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_7_0);
++			reg = AUX_ADDR_15_8(reg_addr + start_offset);
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_15_8);
++			reg = AUX_ADDR_19_16(reg_addr + start_offset);
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_19_16);
++
++			for (cur_data_idx = 0; cur_data_idx < cur_data_count;
++			     cur_data_idx++) {
++				reg = data[start_offset + cur_data_idx];
++				writel(reg, dp->reg_base + EXYNOS_DP_BUF_DATA_0
++							  + 4 * cur_data_idx);
++			}
++
++			/*
++			 * Set DisplayPort transaction and write
++			 * If bit 3 is 1, DisplayPort transaction.
++			 * If Bit 3 is 0, I2C transaction.
++			 */
++			reg = AUX_LENGTH(cur_data_count) |
++				AUX_TX_COMM_DP_TRANSACTION | AUX_TX_COMM_WRITE;
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_CTL_1);
++
++			/* Start AUX transaction */
++			retval = exynos_dp_start_aux_transaction(dp);
++			if (retval == 0)
++				break;
++			else
++				dev_err(dp->dev, "Aux Transaction fail!\n");
++		}
++
++		start_offset += cur_data_count;
++	}
++
++	return retval;
++}
++
++int exynos_dp_read_bytes_from_dpcd(struct exynos_dp_device *dp,
++				unsigned int reg_addr,
++				unsigned int count,
++				unsigned char data[])
++{
++	u32 reg;
++	unsigned int start_offset;
++	unsigned int cur_data_count;
++	unsigned int cur_data_idx;
++	int i;
++	int retval = 0;
++
++	/* Clear AUX CH data buffer */
++	reg = BUF_CLR;
++	writel(reg, dp->reg_base + EXYNOS_DP_BUFFER_DATA_CTL);
++
++	start_offset = 0;
++	while (start_offset < count) {
++		/* Buffer size of AUX CH is 16 * 4bytes */
++		if ((count - start_offset) > 16)
++			cur_data_count = 16;
++		else
++			cur_data_count = count - start_offset;
++
++		/* AUX CH Request Transaction process */
++		for (i = 0; i < 10; i++) {
++			/* Select DPCD device address */
++			reg = AUX_ADDR_7_0(reg_addr + start_offset);
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_7_0);
++			reg = AUX_ADDR_15_8(reg_addr + start_offset);
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_15_8);
++			reg = AUX_ADDR_19_16(reg_addr + start_offset);
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_19_16);
++
++			/*
++			 * Set DisplayPort transaction and read
++			 * If bit 3 is 1, DisplayPort transaction.
++			 * If Bit 3 is 0, I2C transaction.
++			 */
++			reg = AUX_LENGTH(cur_data_count) |
++				AUX_TX_COMM_DP_TRANSACTION | AUX_TX_COMM_READ;
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_CTL_1);
++
++			/* Start AUX transaction */
++			retval = exynos_dp_start_aux_transaction(dp);
++			if (retval == 0)
++				break;
++			else
++				dev_err(dp->dev, "Aux Transaction fail!\n");
++		}
++
++		for (cur_data_idx = 0; cur_data_idx < cur_data_count;
++		    cur_data_idx++) {
++			reg = readl(dp->reg_base + EXYNOS_DP_BUF_DATA_0
++						 + 4 * cur_data_idx);
++			data[start_offset + cur_data_idx] =
++				(unsigned char)reg;
++		}
++
++		start_offset += cur_data_count;
++	}
++
++	return retval;
++}
++
++int exynos_dp_select_i2c_device(struct exynos_dp_device *dp,
++				unsigned int device_addr,
++				unsigned int reg_addr)
++{
++	u32 reg;
++	int retval;
++
++	/* Set EDID device address */
++	reg = device_addr;
++	writel(reg, dp->reg_base + EXYNOS_DP_AUX_ADDR_7_0);
++	writel(0x0, dp->reg_base + EXYNOS_DP_AUX_ADDR_15_8);
++	writel(0x0, dp->reg_base + EXYNOS_DP_AUX_ADDR_19_16);
++
++	/* Set offset from base address of EDID device */
++	writel(reg_addr, dp->reg_base + EXYNOS_DP_BUF_DATA_0);
 +
 +	/*
-+	 * ===========================================
-+	 * |    P    |    M    |    S    |    MHz    |
-+	 * -------------------------------------------
-+	 * |    3    |   100   |    3    |    100    |
-+	 * |    3    |   100   |    2    |    200    |
-+	 * |    3    |    63   |    1    |    252    |
-+	 * |    4    |   100   |    1    |    300    |
-+	 * |    4    |   110   |    1    |    330    |
-+	 * |   12    |   350   |    1    |    350    |
-+	 * |    3    |   100   |    1    |    400    |
-+	 * |    4    |   150   |    1    |    450    |
-+	 * |    6    |   118   |    1    |    472    |
-+	 * |	3    |   120   |    1    |    480    |
-+	 * |   12    |   250   |    0    |    500    |
-+	 * |    4    |   100   |    0    |    600    |
-+	 * |    3    |    81   |    0    |    648    |
-+	 * |    3    |    88   |    0    |    704    |
-+	 * |    3    |    90   |    0    |    720    |
-+	 * |    3    |   100   |    0    |    800    |
-+	 * |   12    |   425   |    0    |    850    |
-+	 * |    4    |   150   |    0    |    900    |
-+	 * |   12    |   475   |    0    |    950    |
-+	 * |    6    |   250   |    0    |   1000    |
-+	 * -------------------------------------------
++	 * Set I2C transaction and write address
++	 * If bit 3 is 1, DisplayPort transaction.
++	 * If Bit 3 is 0, I2C transaction.
 +	 */
++	reg = AUX_TX_COMM_I2C_TRANSACTION | AUX_TX_COMM_MOT |
++		AUX_TX_COMM_WRITE;
++	writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_CTL_1);
 +
-+	/*
-+	 * pms could be calculated as the following.
-+	 * M * 24 / P * 2 ^ S = MHz
-+	 */
-+	unsigned char			p;
-+	unsigned short			m;
-+	unsigned char			s;
++	/* Start AUX transaction */
++	retval = exynos_dp_start_aux_transaction(dp);
++	if (retval != 0)
++		dev_err(dp->dev, "Aux Transaction fail!\n");
 +
-+	unsigned int			pll_stable_time;
-+	unsigned long			esc_clk;
++	return retval;
++}
 +
-+	unsigned short			stop_holding_cnt;
-+	unsigned char			bta_timeout;
-+	unsigned short			rx_timeout;
++int exynos_dp_read_byte_from_i2c(struct exynos_dp_device *dp,
++				unsigned int device_addr,
++				unsigned int reg_addr,
++				unsigned int *data)
++{
++	u32 reg;
++	int i;
++	int retval;
++
++	for (i = 0; i < 10; i++) {
++		/* Clear AUX CH data buffer */
++		reg = BUF_CLR;
++		writel(reg, dp->reg_base + EXYNOS_DP_BUFFER_DATA_CTL);
++
++		/* Select EDID device */
++		retval = exynos_dp_select_i2c_device(dp, device_addr, reg_addr);
++		if (retval != 0) {
++			dev_err(dp->dev, "Select EDID device fail!\n");
++			continue;
++		}
++
++		/*
++		 * Set I2C transaction and read data
++		 * If bit 3 is 1, DisplayPort transaction.
++		 * If Bit 3 is 0, I2C transaction.
++		 */
++		reg = AUX_TX_COMM_I2C_TRANSACTION |
++			AUX_TX_COMM_READ;
++		writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_CTL_1);
++
++		/* Start AUX transaction */
++		retval = exynos_dp_start_aux_transaction(dp);
++		if (retval == 0)
++			break;
++		else
++			dev_err(dp->dev, "Aux Transaction fail!\n");
++	}
++
++	/* Read data */
++	if (retval == 0)
++		*data = readl(dp->reg_base + EXYNOS_DP_BUF_DATA_0);
++
++	return retval;
++}
++
++int exynos_dp_read_bytes_from_i2c(struct exynos_dp_device *dp,
++				unsigned int device_addr,
++				unsigned int reg_addr,
++				unsigned int count,
++				unsigned char edid[])
++{
++	u32 reg;
++	unsigned int i, j;
++	unsigned int cur_data_idx;
++	unsigned int defer = 0;
++	int retval = 0;
++
++	for (i = 0; i < count; i += 16) {
++		for (j = 0; j < 100; j++) {
++			/* Clear AUX CH data buffer */
++			reg = BUF_CLR;
++			writel(reg, dp->reg_base + EXYNOS_DP_BUFFER_DATA_CTL);
++
++			/* Set normal AUX CH command */
++			reg = readl(dp->reg_base + EXYNOS_DP_AUX_CH_CTL_2);
++			reg &= ~ADDR_ONLY;
++			writel(reg, dp->reg_base + EXYNOS_DP_AUX_CH_CTL_2);
++
++			/*
++			 * If Rx sends defer, Tx sends only reads
++			 * request without sending addres
++			 */
++			if (!defer)
++				retval = exynos_dp_select_i2c_device(dp,
++						device_addr, reg_addr + i);
++			else
++				defer = 0;
++
++			if (retval == 0) {
++				/*
++				 * Set I2C transaction and write data
++				 * If bit 3 is 1, DisplayPort transaction.
++				 * If Bit 3 is 0, I2C transaction.
++				 */
++				reg = AUX_LENGTH(16) |
++					AUX_TX_COMM_I2C_TRANSACTION |
++					AUX_TX_COMM_READ;
++				writel(reg, dp->reg_base +
++					EXYNOS_DP_AUX_CH_CTL_1);
++
++				/* Start AUX transaction */
++				retval = exynos_dp_start_aux_transaction(dp);
++				if (retval == 0)
++					break;
++				else
++					dev_err(dp->dev, "Aux Transaction fail!\n");
++			}
++			/* Check if Rx sends defer */
++			reg = readl(dp->reg_base + EXYNOS_DP_AUX_RX_COMM);
++			if (reg == AUX_RX_COMM_AUX_DEFER ||
++				reg == AUX_RX_COMM_I2C_DEFER) {
++				dev_err(dp->dev, "Defer: %d\n\n", reg);
++				defer = 1;
++			}
++		}
++
++		for (cur_data_idx = 0; cur_data_idx < 16; cur_data_idx++) {
++			reg = readl(dp->reg_base + EXYNOS_DP_BUF_DATA_0
++						 + 4 * cur_data_idx);
++			edid[i + cur_data_idx] = (unsigned char)reg;
++		}
++	}
++
++	return retval;
++}
++
++void exynos_dp_set_link_bandwidth(struct exynos_dp_device *dp, u32 bwtype)
++{
++	u32 reg;
++
++	reg = bwtype;
++	if ((bwtype == LINK_RATE_2_70GBPS) || (bwtype == LINK_RATE_1_62GBPS))
++		writel(reg, dp->reg_base + EXYNOS_DP_LINK_BW_SET);
++}
++
++void exynos_dp_get_link_bandwidth(struct exynos_dp_device *dp, u32 *bwtype)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_LINK_BW_SET);
++	*bwtype = reg;
++}
++
++void exynos_dp_set_lane_count(struct exynos_dp_device *dp, u32 count)
++{
++	u32 reg;
++
++	reg = count;
++	writel(reg, dp->reg_base + EXYNOS_DP_LANE_COUNT_SET);
++}
++
++void exynos_dp_get_lane_count(struct exynos_dp_device *dp, u32 *count)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_LANE_COUNT_SET);
++	*count = reg;
++}
++
++void exynos_dp_enable_enhanced_mode(struct exynos_dp_device *dp, bool enable)
++{
++	u32 reg;
++
++	if (enable) {
++		reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++		reg |= ENHANCED;
++		writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++	} else {
++		reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++		reg &= ~ENHANCED;
++		writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++	}
++}
++
++void exynos_dp_set_training_pattern(struct exynos_dp_device *dp,
++				 enum pattern_set pattern)
++{
++	u32 reg;
++
++	switch (pattern) {
++	case PRBS7:
++		reg = SCRAMBLING_ENABLE | LINK_QUAL_PATTERN_SET_PRBS7;
++		writel(reg, dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++		break;
++	case D10_2:
++		reg = SCRAMBLING_ENABLE | LINK_QUAL_PATTERN_SET_D10_2;
++		writel(reg, dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++		break;
++	case TRAINING_PTN1:
++		reg = SCRAMBLING_DISABLE | SW_TRAINING_PATTERN_SET_PTN1;
++		writel(reg, dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++		break;
++	case TRAINING_PTN2:
++		reg = SCRAMBLING_DISABLE | SW_TRAINING_PATTERN_SET_PTN2;
++		writel(reg, dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++		break;
++	case DP_NONE:
++		reg = SCRAMBLING_ENABLE |
++			LINK_QUAL_PATTERN_SET_DISABLE |
++			SW_TRAINING_PATTERN_SET_NORMAL;
++		writel(reg, dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++		break;
++	default:
++		break;
++	}
++}
++
++void exynos_dp_set_lane0_pre_emphasis(struct exynos_dp_device *dp, u32 level)
++{
++	u32 reg;
++
++	reg = level << PRE_EMPHASIS_SET_SHIFT;
++	writel(reg, dp->reg_base + EXYNOS_DP_LN0_LINK_TRAINING_CTL);
++}
++
++void exynos_dp_set_lane1_pre_emphasis(struct exynos_dp_device *dp, u32 level)
++{
++	u32 reg;
++
++	reg = level << PRE_EMPHASIS_SET_SHIFT;
++	writel(reg, dp->reg_base + EXYNOS_DP_LN1_LINK_TRAINING_CTL);
++}
++
++void exynos_dp_set_lane2_pre_emphasis(struct exynos_dp_device *dp, u32 level)
++{
++	u32 reg;
++
++	reg = level << PRE_EMPHASIS_SET_SHIFT;
++	writel(reg, dp->reg_base + EXYNOS_DP_LN2_LINK_TRAINING_CTL);
++}
++
++void exynos_dp_set_lane3_pre_emphasis(struct exynos_dp_device *dp, u32 level)
++{
++	u32 reg;
++
++	reg = level << PRE_EMPHASIS_SET_SHIFT;
++	writel(reg, dp->reg_base + EXYNOS_DP_LN3_LINK_TRAINING_CTL);
++}
++
++void exynos_dp_set_lane0_link_training(struct exynos_dp_device *dp,
++					u32 training_lane)
++{
++	u32 reg;
++
++	reg = training_lane;
++	writel(reg, dp->reg_base + EXYNOS_DP_LN0_LINK_TRAINING_CTL);
++}
++
++void exynos_dp_set_lane1_link_training(struct exynos_dp_device *dp,
++					u32 training_lane)
++{
++	u32 reg;
++
++	reg = training_lane;
++	writel(reg, dp->reg_base + EXYNOS_DP_LN1_LINK_TRAINING_CTL);
++}
++
++void exynos_dp_set_lane2_link_training(struct exynos_dp_device *dp,
++					u32 training_lane)
++{
++	u32 reg;
++
++	reg = training_lane;
++	writel(reg, dp->reg_base + EXYNOS_DP_LN2_LINK_TRAINING_CTL);
++}
++
++void exynos_dp_set_lane3_link_training(struct exynos_dp_device *dp,
++					u32 training_lane)
++{
++	u32 reg;
++
++	reg = training_lane;
++	writel(reg, dp->reg_base + EXYNOS_DP_LN3_LINK_TRAINING_CTL);
++}
++
++u32 exynos_dp_get_lane0_link_training(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_LN0_LINK_TRAINING_CTL);
++	return reg;
++}
++
++u32 exynos_dp_get_lane1_link_training(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_LN1_LINK_TRAINING_CTL);
++	return reg;
++}
++
++u32 exynos_dp_get_lane2_link_training(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_LN2_LINK_TRAINING_CTL);
++	return reg;
++}
++
++u32 exynos_dp_get_lane3_link_training(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_LN3_LINK_TRAINING_CTL);
++	return reg;
++}
++
++void exynos_dp_reset_macro(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_PHY_TEST);
++	reg |= MACRO_RST;
++	writel(reg, dp->reg_base + EXYNOS_DP_PHY_TEST);
++
++	/* 10 us is the minimum reset time. */
++	udelay(10);
++
++	reg &= ~MACRO_RST;
++	writel(reg, dp->reg_base + EXYNOS_DP_PHY_TEST);
++}
++
++int exynos_dp_init_video(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = VSYNC_DET | VID_FORMAT_CHG | VID_CLK_CHG;
++	writel(reg, dp->reg_base + EXYNOS_DP_COMMON_INT_STA_1);
++
++	reg = 0x0;
++	writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_1);
++
++	reg = CHA_CRI(4) | CHA_CTRL;
++	writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_2);
++
++	reg = 0x0;
++	writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_3);
++
++	reg = VID_HRES_TH(2) | VID_VRES_TH(0);
++	writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_8);
++
++	return 0;
++}
++
++void exynos_dp_set_video_color_format(struct exynos_dp_device *dp,
++			u32 color_depth,
++			u32 color_space,
++			u32 dynamic_range,
++			u32 ycbcr_coeff)
++{
++	u32 reg;
++
++	/* Configure the input color depth, color space, dynamic range */
++	reg = (dynamic_range << IN_D_RANGE_SHIFT) |
++		(color_depth << IN_BPC_SHIFT) |
++		(color_space << IN_COLOR_F_SHIFT);
++	writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_2);
++
++	/* Set Input Color YCbCr Coefficients to ITU601 or ITU709 */
++	reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_3);
++	reg &= ~IN_YC_COEFFI_MASK;
++	if (ycbcr_coeff)
++		reg |= IN_YC_COEFFI_ITU709;
++	else
++		reg |= IN_YC_COEFFI_ITU601;
++	writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_3);
++}
++
++int exynos_dp_is_slave_video_stream_clock_on(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_1);
++	writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_1);
++
++	reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_1);
++
++	if (!(reg & DET_STA)) {
++		dev_dbg(dp->dev, "Input stream clock not detected.\n");
++		return -EINVAL;
++	}
++
++	reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_2);
++	writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_2);
++
++	reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_2);
++	dev_dbg(dp->dev, "wait SYS_CTL_2.\n");
++
++	if (reg & CHA_STA) {
++		dev_dbg(dp->dev, "Input stream clk is changing\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++void exynos_dp_set_video_cr_mn(struct exynos_dp_device *dp,
++		enum clock_recovery_m_value_type type,
++		u32 m_value,
++		u32 n_value)
++{
++	u32 reg;
++
++	if (type == REGISTER_M) {
++		reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++		reg |= FIX_M_VID;
++		writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++		reg = m_value & 0xff;
++		writel(reg, dp->reg_base + EXYNOS_DP_M_VID_0);
++		reg = (m_value >> 8) & 0xff;
++		writel(reg, dp->reg_base + EXYNOS_DP_M_VID_1);
++		reg = (m_value >> 16) & 0xff;
++		writel(reg, dp->reg_base + EXYNOS_DP_M_VID_2);
++
++		reg = n_value & 0xff;
++		writel(reg, dp->reg_base + EXYNOS_DP_N_VID_0);
++		reg = (n_value >> 8) & 0xff;
++		writel(reg, dp->reg_base + EXYNOS_DP_N_VID_1);
++		reg = (n_value >> 16) & 0xff;
++		writel(reg, dp->reg_base + EXYNOS_DP_N_VID_2);
++	} else  {
++		reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++		reg &= ~FIX_M_VID;
++		writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_4);
++
++		writel(0x00, dp->reg_base + EXYNOS_DP_N_VID_0);
++		writel(0x80, dp->reg_base + EXYNOS_DP_N_VID_1);
++		writel(0x00, dp->reg_base + EXYNOS_DP_N_VID_2);
++	}
++}
++
++void exynos_dp_set_video_timing_mode(struct exynos_dp_device *dp, u32 type)
++{
++	u32 reg;
++
++	if (type == VIDEO_TIMING_FROM_CAPTURE) {
++		reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++		reg &= ~FORMAT_SEL;
++		writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++	} else {
++		reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++		reg |= FORMAT_SEL;
++		writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++	}
++}
++
++void exynos_dp_enable_video_master(struct exynos_dp_device *dp, bool enable)
++{
++	u32 reg;
++
++	if (enable) {
++		reg = readl(dp->reg_base + EXYNOS_DP_SOC_GENERAL_CTL);
++		reg &= ~VIDEO_MODE_MASK;
++		reg |= VIDEO_MASTER_MODE_EN | VIDEO_MODE_MASTER_MODE;
++		writel(reg, dp->reg_base + EXYNOS_DP_SOC_GENERAL_CTL);
++	} else {
++		reg = readl(dp->reg_base + EXYNOS_DP_SOC_GENERAL_CTL);
++		reg &= ~VIDEO_MODE_MASK;
++		reg |= VIDEO_MODE_SLAVE_MODE;
++		writel(reg, dp->reg_base + EXYNOS_DP_SOC_GENERAL_CTL);
++	}
++}
++
++void exynos_dp_start_video(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_1);
++	reg |= VIDEO_EN;
++	writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_1);
++}
++
++int exynos_dp_is_video_stream_on(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_3);
++	writel(reg, dp->reg_base + EXYNOS_DP_SYS_CTL_3);
++
++	reg = readl(dp->reg_base + EXYNOS_DP_SYS_CTL_3);
++	if (!(reg & STRM_VALID)) {
++		dev_dbg(dp->dev, "Input video stream is not detected.\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++void exynos_dp_config_video_slave_mode(struct exynos_dp_device *dp,
++			struct video_info *video_info)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_FUNC_EN_1);
++	reg &= ~(MASTER_VID_FUNC_EN_N|SLAVE_VID_FUNC_EN_N);
++	reg |= MASTER_VID_FUNC_EN_N;
++	writel(reg, dp->reg_base + EXYNOS_DP_FUNC_EN_1);
++
++	reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++	reg &= ~INTERACE_SCAN_CFG;
++	reg |= (video_info->interlaced << 2);
++	writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++
++	reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++	reg &= ~VSYNC_POLARITY_CFG;
++	reg |= (video_info->v_sync_polarity << 1);
++	writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++
++	reg = readl(dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++	reg &= ~HSYNC_POLARITY_CFG;
++	reg |= (video_info->h_sync_polarity << 0);
++	writel(reg, dp->reg_base + EXYNOS_DP_VIDEO_CTL_10);
++
++	reg = AUDIO_MODE_SPDIF_MODE | VIDEO_MODE_SLAVE_MODE;
++	writel(reg, dp->reg_base + EXYNOS_DP_SOC_GENERAL_CTL);
++}
++
++void exynos_dp_enable_scrambling(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++	reg &= ~SCRAMBLING_DISABLE;
++	writel(reg, dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++}
++
++void exynos_dp_disable_scrambling(struct exynos_dp_device *dp)
++{
++	u32 reg;
++
++	reg = readl(dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++	reg |= SCRAMBLING_DISABLE;
++	writel(reg, dp->reg_base + EXYNOS_DP_TRAINING_PTN_SET);
++}
+diff -puN /dev/null drivers/video/exynos/exynos_dp_reg.h
+--- /dev/null
++++ a/drivers/video/exynos/exynos_dp_reg.h
+@@ -0,0 +1,335 @@
++/*
++ * Register definition file for Samsung DP driver
++ *
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ * Author: Jingoo Han <jg1.han@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _EXYNOS_DP_REG_H
++#define _EXYNOS_DP_REG_H
++
++#define EXYNOS_DP_TX_SW_RESET			0x14
++#define EXYNOS_DP_FUNC_EN_1			0x18
++#define EXYNOS_DP_FUNC_EN_2			0x1C
++#define EXYNOS_DP_VIDEO_CTL_1			0x20
++#define EXYNOS_DP_VIDEO_CTL_2			0x24
++#define EXYNOS_DP_VIDEO_CTL_3			0x28
++
++#define EXYNOS_DP_VIDEO_CTL_8			0x3C
++#define EXYNOS_DP_VIDEO_CTL_10			0x44
++
++#define EXYNOS_DP_LANE_MAP			0x35C
++
++#define EXYNOS_DP_AUX_HW_RETRY_CTL		0x390
++
++#define EXYNOS_DP_COMMON_INT_STA_1		0x3C4
++#define EXYNOS_DP_COMMON_INT_STA_2		0x3C8
++#define EXYNOS_DP_COMMON_INT_STA_3		0x3CC
++#define EXYNOS_DP_COMMON_INT_STA_4		0x3D0
++#define EXYNOS_DP_INT_STA			0x3DC
++#define EXYNOS_DP_COMMON_INT_MASK_1		0x3E0
++#define EXYNOS_DP_COMMON_INT_MASK_2		0x3E4
++#define EXYNOS_DP_COMMON_INT_MASK_3		0x3E8
++#define EXYNOS_DP_COMMON_INT_MASK_4		0x3EC
++#define EXYNOS_DP_INT_STA_MASK			0x3F8
++#define EXYNOS_DP_INT_CTL			0x3FC
++
++#define EXYNOS_DP_SYS_CTL_1			0x600
++#define EXYNOS_DP_SYS_CTL_2			0x604
++#define EXYNOS_DP_SYS_CTL_3			0x608
++#define EXYNOS_DP_SYS_CTL_4			0x60C
++
++#define EXYNOS_DP_PKT_SEND_CTL			0x640
++#define EXYNOS_DP_HDCP_CTL			0x648
++
++#define EXYNOS_DP_LINK_BW_SET			0x680
++#define EXYNOS_DP_LANE_COUNT_SET		0x684
++#define EXYNOS_DP_TRAINING_PTN_SET		0x688
++#define EXYNOS_DP_LN0_LINK_TRAINING_CTL		0x68C
++#define EXYNOS_DP_LN1_LINK_TRAINING_CTL		0x690
++#define EXYNOS_DP_LN2_LINK_TRAINING_CTL		0x694
++#define EXYNOS_DP_LN3_LINK_TRAINING_CTL		0x698
++
++#define EXYNOS_DP_DEBUG_CTL			0x6C0
++#define EXYNOS_DP_HPD_DEGLITCH_L		0x6C4
++#define EXYNOS_DP_HPD_DEGLITCH_H		0x6C8
++#define EXYNOS_DP_LINK_DEBUG_CTL		0x6E0
++
++#define EXYNOS_DP_M_VID_0			0x700
++#define EXYNOS_DP_M_VID_1			0x704
++#define EXYNOS_DP_M_VID_2			0x708
++#define EXYNOS_DP_N_VID_0			0x70C
++#define EXYNOS_DP_N_VID_1			0x710
++#define EXYNOS_DP_N_VID_2			0x714
++
++#define EXYNOS_DP_PLL_CTL			0x71C
++#define EXYNOS_DP_PHY_PD			0x720
++#define EXYNOS_DP_PHY_TEST			0x724
++
++#define EXYNOS_DP_VIDEO_FIFO_THRD		0x730
++#define EXYNOS_DP_AUDIO_MARGIN			0x73C
++
++#define EXYNOS_DP_M_VID_GEN_FILTER_TH		0x764
++#define EXYNOS_DP_M_AUD_GEN_FILTER_TH		0x778
++#define EXYNOS_DP_AUX_CH_STA			0x780
++#define EXYNOS_DP_AUX_CH_DEFER_CTL		0x788
++#define EXYNOS_DP_AUX_RX_COMM			0x78C
++#define EXYNOS_DP_BUFFER_DATA_CTL		0x790
++#define EXYNOS_DP_AUX_CH_CTL_1			0x794
++#define EXYNOS_DP_AUX_ADDR_7_0			0x798
++#define EXYNOS_DP_AUX_ADDR_15_8			0x79C
++#define EXYNOS_DP_AUX_ADDR_19_16		0x7A0
++#define EXYNOS_DP_AUX_CH_CTL_2			0x7A4
++
++#define EXYNOS_DP_BUF_DATA_0			0x7C0
++
++#define EXYNOS_DP_SOC_GENERAL_CTL		0x800
++
++/* EXYNOS_DP_TX_SW_RESET */
++#define RESET_DP_TX				(0x1 << 0)
++
++/* EXYNOS_DP_FUNC_EN_1 */
++#define MASTER_VID_FUNC_EN_N			(0x1 << 7)
++#define SLAVE_VID_FUNC_EN_N			(0x1 << 5)
++#define AUD_FIFO_FUNC_EN_N			(0x1 << 4)
++#define AUD_FUNC_EN_N				(0x1 << 3)
++#define HDCP_FUNC_EN_N				(0x1 << 2)
++#define CRC_FUNC_EN_N				(0x1 << 1)
++#define SW_FUNC_EN_N				(0x1 << 0)
++
++/* EXYNOS_DP_FUNC_EN_2 */
++#define SSC_FUNC_EN_N				(0x1 << 7)
++#define AUX_FUNC_EN_N				(0x1 << 2)
++#define SERDES_FIFO_FUNC_EN_N			(0x1 << 1)
++#define LS_CLK_DOMAIN_FUNC_EN_N			(0x1 << 0)
++
++/* EXYNOS_DP_VIDEO_CTL_1 */
++#define VIDEO_EN				(0x1 << 7)
++#define HDCP_VIDEO_MUTE				(0x1 << 6)
++
++/* EXYNOS_DP_VIDEO_CTL_1 */
++#define IN_D_RANGE_MASK				(0x1 << 7)
++#define IN_D_RANGE_SHIFT			(7)
++#define IN_D_RANGE_CEA				(0x1 << 7)
++#define IN_D_RANGE_VESA				(0x0 << 7)
++#define IN_BPC_MASK				(0x7 << 4)
++#define IN_BPC_SHIFT				(4)
++#define IN_BPC_12_BITS				(0x3 << 4)
++#define IN_BPC_10_BITS				(0x2 << 4)
++#define IN_BPC_8_BITS				(0x1 << 4)
++#define IN_BPC_6_BITS				(0x0 << 4)
++#define IN_COLOR_F_MASK				(0x3 << 0)
++#define IN_COLOR_F_SHIFT			(0)
++#define IN_COLOR_F_YCBCR444			(0x2 << 0)
++#define IN_COLOR_F_YCBCR422			(0x1 << 0)
++#define IN_COLOR_F_RGB				(0x0 << 0)
++
++/* EXYNOS_DP_VIDEO_CTL_3 */
++#define IN_YC_COEFFI_MASK			(0x1 << 7)
++#define IN_YC_COEFFI_SHIFT			(7)
++#define IN_YC_COEFFI_ITU709			(0x1 << 7)
++#define IN_YC_COEFFI_ITU601			(0x0 << 7)
++#define VID_CHK_UPDATE_TYPE_MASK		(0x1 << 4)
++#define VID_CHK_UPDATE_TYPE_SHIFT		(4)
++#define VID_CHK_UPDATE_TYPE_1			(0x1 << 4)
++#define VID_CHK_UPDATE_TYPE_0			(0x0 << 4)
++
++/* EXYNOS_DP_VIDEO_CTL_8 */
++#define VID_HRES_TH(x)				(((x) & 0xf) << 4)
++#define VID_VRES_TH(x)				(((x) & 0xf) << 0)
++
++/* EXYNOS_DP_VIDEO_CTL_10 */
++#define FORMAT_SEL				(0x1 << 4)
++#define INTERACE_SCAN_CFG			(0x1 << 2)
++#define VSYNC_POLARITY_CFG			(0x1 << 1)
++#define HSYNC_POLARITY_CFG			(0x1 << 0)
++
++/* EXYNOS_DP_LANE_MAP */
++#define LANE3_MAP_LOGIC_LANE_0			(0x0 << 6)
++#define LANE3_MAP_LOGIC_LANE_1			(0x1 << 6)
++#define LANE3_MAP_LOGIC_LANE_2			(0x2 << 6)
++#define LANE3_MAP_LOGIC_LANE_3			(0x3 << 6)
++#define LANE2_MAP_LOGIC_LANE_0			(0x0 << 4)
++#define LANE2_MAP_LOGIC_LANE_1			(0x1 << 4)
++#define LANE2_MAP_LOGIC_LANE_2			(0x2 << 4)
++#define LANE2_MAP_LOGIC_LANE_3			(0x3 << 4)
++#define LANE1_MAP_LOGIC_LANE_0			(0x0 << 2)
++#define LANE1_MAP_LOGIC_LANE_1			(0x1 << 2)
++#define LANE1_MAP_LOGIC_LANE_2			(0x2 << 2)
++#define LANE1_MAP_LOGIC_LANE_3			(0x3 << 2)
++#define LANE0_MAP_LOGIC_LANE_0			(0x0 << 0)
++#define LANE0_MAP_LOGIC_LANE_1			(0x1 << 0)
++#define LANE0_MAP_LOGIC_LANE_2			(0x2 << 0)
++#define LANE0_MAP_LOGIC_LANE_3			(0x3 << 0)
++
++/* EXYNOS_DP_AUX_HW_RETRY_CTL */
++#define AUX_BIT_PERIOD_EXPECTED_DELAY(x)	(((x) & 0x7) << 8)
++#define AUX_HW_RETRY_INTERVAL_MASK		(0x3 << 3)
++#define AUX_HW_RETRY_INTERVAL_600_MICROSECONDS	(0x0 << 3)
++#define AUX_HW_RETRY_INTERVAL_800_MICROSECONDS	(0x1 << 3)
++#define AUX_HW_RETRY_INTERVAL_1000_MICROSECONDS	(0x2 << 3)
++#define AUX_HW_RETRY_INTERVAL_1800_MICROSECONDS	(0x3 << 3)
++#define AUX_HW_RETRY_COUNT_SEL(x)		(((x) & 0x7) << 0)
++
++/* EXYNOS_DP_COMMON_INT_STA_1 */
++#define VSYNC_DET				(0x1 << 7)
++#define PLL_LOCK_CHG				(0x1 << 6)
++#define SPDIF_ERR				(0x1 << 5)
++#define SPDIF_UNSTBL				(0x1 << 4)
++#define VID_FORMAT_CHG				(0x1 << 3)
++#define AUD_CLK_CHG				(0x1 << 2)
++#define VID_CLK_CHG				(0x1 << 1)
++#define SW_INT					(0x1 << 0)
++
++/* EXYNOS_DP_COMMON_INT_STA_2 */
++#define ENC_EN_CHG				(0x1 << 6)
++#define HW_BKSV_RDY				(0x1 << 3)
++#define HW_SHA_DONE				(0x1 << 2)
++#define HW_AUTH_STATE_CHG			(0x1 << 1)
++#define HW_AUTH_DONE				(0x1 << 0)
++
++/* EXYNOS_DP_COMMON_INT_STA_3 */
++#define AFIFO_UNDER				(0x1 << 7)
++#define AFIFO_OVER				(0x1 << 6)
++#define R0_CHK_FLAG				(0x1 << 5)
++
++/* EXYNOS_DP_COMMON_INT_STA_4 */
++#define PSR_ACTIVE				(0x1 << 7)
++#define PSR_INACTIVE				(0x1 << 6)
++#define SPDIF_BI_PHASE_ERR			(0x1 << 5)
++#define HOTPLUG_CHG				(0x1 << 2)
++#define HPD_LOST				(0x1 << 1)
++#define PLUG					(0x1 << 0)
++
++/* EXYNOS_DP_INT_STA */
++#define INT_HPD					(0x1 << 6)
++#define HW_TRAINING_FINISH			(0x1 << 5)
++#define RPLY_RECEIV				(0x1 << 1)
++#define AUX_ERR					(0x1 << 0)
++
++/* EXYNOS_DP_INT_CTL */
++#define SOFT_INT_CTRL				(0x1 << 2)
++#define INT_POL					(0x1 << 0)
++
++/* EXYNOS_DP_SYS_CTL_1 */
++#define DET_STA					(0x1 << 2)
++#define FORCE_DET				(0x1 << 1)
++#define DET_CTRL				(0x1 << 0)
++
++/* EXYNOS_DP_SYS_CTL_2 */
++#define CHA_CRI(x)				(((x) & 0xf) << 4)
++#define CHA_STA					(0x1 << 2)
++#define FORCE_CHA				(0x1 << 1)
++#define CHA_CTRL				(0x1 << 0)
++
++/* EXYNOS_DP_SYS_CTL_3 */
++#define HPD_STATUS				(0x1 << 6)
++#define F_HPD					(0x1 << 5)
++#define HPD_CTRL				(0x1 << 4)
++#define HDCP_RDY				(0x1 << 3)
++#define STRM_VALID				(0x1 << 2)
++#define F_VALID					(0x1 << 1)
++#define VALID_CTRL				(0x1 << 0)
++
++/* EXYNOS_DP_SYS_CTL_4 */
++#define FIX_M_AUD				(0x1 << 4)
++#define ENHANCED				(0x1 << 3)
++#define FIX_M_VID				(0x1 << 2)
++#define M_VID_UPDATE_CTRL			(0x3 << 0)
++
++/* EXYNOS_DP_TRAINING_PTN_SET */
++#define SCRAMBLER_TYPE				(0x1 << 9)
++#define HW_LINK_TRAINING_PATTERN		(0x1 << 8)
++#define SCRAMBLING_DISABLE			(0x1 << 5)
++#define SCRAMBLING_ENABLE			(0x0 << 5)
++#define LINK_QUAL_PATTERN_SET_MASK		(0x3 << 2)
++#define LINK_QUAL_PATTERN_SET_PRBS7		(0x3 << 2)
++#define LINK_QUAL_PATTERN_SET_D10_2		(0x1 << 2)
++#define LINK_QUAL_PATTERN_SET_DISABLE		(0x0 << 2)
++#define SW_TRAINING_PATTERN_SET_MASK		(0x3 << 0)
++#define SW_TRAINING_PATTERN_SET_PTN2		(0x2 << 0)
++#define SW_TRAINING_PATTERN_SET_PTN1		(0x1 << 0)
++#define SW_TRAINING_PATTERN_SET_NORMAL		(0x0 << 0)
++
++/* EXYNOS_DP_LN0_LINK_TRAINING_CTL */
++#define PRE_EMPHASIS_SET_SHIFT			(3)
++
++/* EXYNOS_DP_DEBUG_CTL */
++#define PLL_LOCK				(0x1 << 4)
++#define F_PLL_LOCK				(0x1 << 3)
++#define PLL_LOCK_CTRL				(0x1 << 2)
++#define PN_INV					(0x1 << 0)
++
++/* EXYNOS_DP_PLL_CTL */
++#define DP_PLL_PD				(0x1 << 7)
++#define DP_PLL_RESET				(0x1 << 6)
++#define DP_PLL_LOOP_BIT_DEFAULT			(0x1 << 4)
++#define DP_PLL_REF_BIT_1_1250V			(0x5 << 0)
++#define DP_PLL_REF_BIT_1_2500V			(0x7 << 0)
++
++/* EXYNOS_DP_PHY_PD */
++#define DP_PHY_PD				(0x1 << 5)
++#define AUX_PD					(0x1 << 4)
++#define CH3_PD					(0x1 << 3)
++#define CH2_PD					(0x1 << 2)
++#define CH1_PD					(0x1 << 1)
++#define CH0_PD					(0x1 << 0)
++
++/* EXYNOS_DP_PHY_TEST */
++#define MACRO_RST				(0x1 << 5)
++#define CH1_TEST				(0x1 << 1)
++#define CH0_TEST				(0x1 << 0)
++
++/* EXYNOS_DP_AUX_CH_STA */
++#define AUX_BUSY				(0x1 << 4)
++#define AUX_STATUS_MASK				(0xf << 0)
++
++/* EXYNOS_DP_AUX_CH_DEFER_CTL */
++#define DEFER_CTRL_EN				(0x1 << 7)
++#define DEFER_COUNT(x)				(((x) & 0x7f) << 0)
++
++/* EXYNOS_DP_AUX_RX_COMM */
++#define AUX_RX_COMM_I2C_DEFER			(0x2 << 2)
++#define AUX_RX_COMM_AUX_DEFER			(0x2 << 0)
++
++/* EXYNOS_DP_BUFFER_DATA_CTL */
++#define BUF_CLR					(0x1 << 7)
++#define BUF_DATA_COUNT(x)			(((x) & 0x1f) << 0)
++
++/* EXYNOS_DP_AUX_CH_CTL_1 */
++#define AUX_LENGTH(x)				(((x - 1) & 0xf) << 4)
++#define AUX_TX_COMM_MASK			(0xf << 0)
++#define AUX_TX_COMM_DP_TRANSACTION		(0x1 << 3)
++#define AUX_TX_COMM_I2C_TRANSACTION		(0x0 << 3)
++#define AUX_TX_COMM_MOT				(0x1 << 2)
++#define AUX_TX_COMM_WRITE			(0x0 << 0)
++#define AUX_TX_COMM_READ			(0x1 << 0)
++
++/* EXYNOS_DP_AUX_ADDR_7_0 */
++#define AUX_ADDR_7_0(x)				(((x) >> 0) & 0xff)
++
++/* EXYNOS_DP_AUX_ADDR_15_8 */
++#define AUX_ADDR_15_8(x)			(((x) >> 8) & 0xff)
++
++/* EXYNOS_DP_AUX_ADDR_19_16 */
++#define AUX_ADDR_19_16(x)			(((x) >> 16) & 0x0f)
++
++/* EXYNOS_DP_AUX_CH_CTL_2 */
++#define ADDR_ONLY				(0x1 << 1)
++#define AUX_EN					(0x1 << 0)
++
++/* EXYNOS_DP_SOC_GENERAL_CTL */
++#define AUDIO_MODE_SPDIF_MODE			(0x1 << 8)
++#define AUDIO_MODE_MASTER_MODE			(0x0 << 8)
++#define MASTER_VIDEO_INTERLACE_EN		(0x1 << 4)
++#define VIDEO_MASTER_CLK_SEL			(0x1 << 2)
++#define VIDEO_MASTER_MODE_EN			(0x1 << 1)
++#define VIDEO_MODE_MASK				(0x1 << 0)
++#define VIDEO_MODE_SLAVE_MODE			(0x1 << 0)
++#define VIDEO_MODE_MASTER_MODE			(0x0 << 0)
++
++#endif /* _EXYNOS_DP_REG_H */
+diff -puN /dev/null include/video/exynos_dp.h
+--- /dev/null
++++ a/include/video/exynos_dp.h
+@@ -0,0 +1,131 @@
++/*
++ * Samsung SoC DP device support
++ *
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ * Author: Jingoo Han <jg1.han@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _EXYNOS_DP_H
++#define _EXYNOS_DP_H
++
++#define DP_TIMEOUT_LOOP_COUNT 100
++#define MAX_CR_LOOP 5
++#define MAX_EQ_LOOP 4
++
++enum link_rate_type {
++	LINK_RATE_1_62GBPS = 0x06,
++	LINK_RATE_2_70GBPS = 0x0a
 +};
 +
-+/*
-+ * struct mipi_dsim_device - global interface for mipi-dsi driver.
-+ *
-+ * @dev: driver model representation of the device.
-+ * @id: unique device id.
-+ * @clock: pointer to MIPI-DSI clock of clock framework.
-+ * @irq: interrupt number to MIPI-DSI controller.
-+ * @reg_base: base address to memory mapped SRF of MIPI-DSI controller.
-+ *	(virtual address)
-+ * @lock: the mutex protecting this data structure.
-+ * @dsim_info: infomation for configuring mipi-dsi controller.
-+ * @master_ops: callbacks to mipi-dsi operations.
-+ * @dsim_lcd_dev: pointer to activated ddi device.
-+ *	(it would be registered by mipi-dsi driver.)
-+ * @dsim_lcd_drv: pointer to activated_ddi driver.
-+ *	(it would be registered by mipi-dsi driver.)
-+ * @lcd_info: pointer to mipi_lcd_info structure.
-+ * @state: specifies status of MIPI-DSI controller.
-+ *	the status could be RESET, INIT, STOP, HSCLKEN and ULPS.
-+ * @data_lane: specifiec enabled data lane number.
-+ *	this variable would be set by driver according to e_no_data_lane
-+ *	automatically.
-+ * @e_clk_src: select byte clock source.
-+ * @pd: pointer to MIPI-DSI driver platform data.
-+ */
-+struct mipi_dsim_device {
-+	struct device			*dev;
-+	int				id;
-+	struct resource			*res;
-+	struct clk			*clock;
-+	unsigned int			irq;
-+	void __iomem			*reg_base;
-+	struct mutex			lock;
-+
-+	struct mipi_dsim_config		*dsim_config;
-+	struct mipi_dsim_master_ops	*master_ops;
-+	struct mipi_dsim_lcd_device	*dsim_lcd_dev;
-+	struct mipi_dsim_lcd_driver	*dsim_lcd_drv;
-+
-+	unsigned int			state;
-+	unsigned int			data_lane;
-+	unsigned int			e_clk_src;
-+	bool				suspended;
-+
-+	struct mipi_dsim_platform_data	*pd;
++enum link_lane_count_type {
++	LANE_COUNT1 = 1,
++	LANE_COUNT2 = 2,
++	LANE_COUNT4 = 4
 +};
 +
-+/*
-+ * struct mipi_dsim_platform_data - interface to platform data
-+ *	for mipi-dsi driver.
-+ *
-+ * @lcd_panel_name: specifies lcd panel name registered to mipi-dsi driver.
-+ *	lcd panel driver searched would be actived.
-+ * @dsim_config: pointer of structure for configuring mipi-dsi controller.
-+ * @enabled: indicate whether mipi controller got enabled or not.
-+ * @lcd_panel_info: pointer for lcd panel specific structure.
-+ *	this structure specifies width, height, timing and polarity and so on.
-+ * @phy_enable: pointer to a callback controlling D-PHY enable/reset
-+ */
-+struct mipi_dsim_platform_data {
-+	char				lcd_panel_name[PANEL_NAME_SIZE];
-+
-+	struct mipi_dsim_config		*dsim_config;
-+	unsigned int			enabled;
-+	void				*lcd_panel_info;
-+
-+	int (*phy_enable)(struct platform_device *pdev, bool on);
++enum link_training_state {
++	START,
++	CLOCK_RECOVERY,
++	EQUALIZER_TRAINING,
++	FINISHED,
++	FAILED
 +};
 +
-+/*
-+ * struct mipi_dsim_master_ops - callbacks to mipi-dsi operations.
-+ *
-+ * @cmd_write: transfer command to lcd panel at LP mode.
-+ * @cmd_read: read command from rx register.
-+ * @get_dsim_frame_done: get the status that all screen data have been
-+ *	transferred to mipi-dsi.
-+ * @clear_dsim_frame_done: clear frame done status.
-+ * @get_fb_frame_done: get frame done status of display controller.
-+ * @trigger: trigger display controller.
-+ *	- this one would be used only in case of CPU mode.
-+ *  @set_early_blank_mode: set framebuffer blank mode.
-+ *	- this callback should be called prior to fb_blank() by a client driver
-+ *	only if needing.
-+ *  @set_blank_mode: set framebuffer blank mode.
-+ *	- this callback should be called after fb_blank() by a client driver
-+ *	only if needing.
-+ */
-+
-+struct mipi_dsim_master_ops {
-+	int (*cmd_write)(struct mipi_dsim_device *dsim, unsigned int data_id,
-+		const unsigned char *data0, unsigned int data1);
-+	int (*cmd_read)(struct mipi_dsim_device *dsim, unsigned int data_id,
-+		unsigned int data0, unsigned int req_size, u8 *rx_buf);
-+	int (*get_dsim_frame_done)(struct mipi_dsim_device *dsim);
-+	int (*clear_dsim_frame_done)(struct mipi_dsim_device *dsim);
-+
-+	int (*get_fb_frame_done)(struct fb_info *info);
-+	void (*trigger)(struct fb_info *info);
-+	int (*set_early_blank_mode)(struct mipi_dsim_device *dsim, int power);
-+	int (*set_blank_mode)(struct mipi_dsim_device *dsim, int power);
++enum voltage_swing_level {
++	VOLTAGE_LEVEL_0,
++	VOLTAGE_LEVEL_1,
++	VOLTAGE_LEVEL_2,
++	VOLTAGE_LEVEL_3,
 +};
 +
-+/*
-+ * device structure for mipi-dsi based lcd panel.
-+ *
-+ * @name: name of the device to use with this device, or an
-+ *	alias for that name.
-+ * @dev: driver model representation of the device.
-+ * @id: id of device to be registered.
-+ * @bus_id: bus id for identifing connected bus
-+ *	and this bus id should be same as id of mipi_dsim_device.
-+ * @irq: irq number for signaling when framebuffer transfer of
-+ *	lcd panel module is completed.
-+ *	this irq would be used only for MIPI-DSI based CPU mode lcd panel.
-+ * @master: pointer to mipi-dsi master device object.
-+ * @platform_data: lcd panel specific platform data.
-+ */
-+struct mipi_dsim_lcd_device {
-+	char			*name;
-+	struct device		dev;
-+	int			id;
-+	int			bus_id;
-+	int			irq;
-+
-+	struct mipi_dsim_device *master;
-+	void			*platform_data;
++enum pre_emphasis_level {
++	PRE_EMPHASIS_LEVEL_0,
++	PRE_EMPHASIS_LEVEL_1,
++	PRE_EMPHASIS_LEVEL_2,
++	PRE_EMPHASIS_LEVEL_3,
 +};
 +
-+/*
-+ * driver structure for mipi-dsi based lcd panel.
-+ *
-+ * this structure should be registered by lcd panel driver.
-+ * mipi-dsi driver seeks lcd panel registered through name field
-+ * and calls these callback functions in appropriate time.
-+ *
-+ * @name: name of the driver to use with this device, or an
-+ *	alias for that name.
-+ * @id: id of driver to be registered.
-+ *	this id would be used for finding device object registered.
-+ */
-+struct mipi_dsim_lcd_driver {
-+	char			*name;
-+	int			id;
-+
-+	void	(*power_on)(struct mipi_dsim_lcd_device *dsim_dev, int enable);
-+	void	(*set_sequence)(struct mipi_dsim_lcd_device *dsim_dev);
-+	int	(*probe)(struct mipi_dsim_lcd_device *dsim_dev);
-+	int	(*remove)(struct mipi_dsim_lcd_device *dsim_dev);
-+	void	(*shutdown)(struct mipi_dsim_lcd_device *dsim_dev);
-+	int	(*suspend)(struct mipi_dsim_lcd_device *dsim_dev);
-+	int	(*resume)(struct mipi_dsim_lcd_device *dsim_dev);
++enum pattern_set {
++	PRBS7,
++	D10_2,
++	TRAINING_PTN1,
++	TRAINING_PTN2,
++	DP_NONE
 +};
 +
-+/*
-+ * register mipi_dsim_lcd_device to mipi-dsi master.
-+ */
-+int exynos_mipi_dsi_register_lcd_device(struct mipi_dsim_lcd_device
-+						*lcd_dev);
-+/**
-+ * register mipi_dsim_lcd_driver object defined by lcd panel driver
-+ * to mipi-dsi driver.
-+ */
-+int exynos_mipi_dsi_register_lcd_driver(struct mipi_dsim_lcd_driver
-+						*lcd_drv);
-+#endif /* _EXYNOS_MIPI_DSIM_H */
++enum color_space {
++	COLOR_RGB,
++	COLOR_YCBCR422,
++	COLOR_YCBCR444
++};
++
++enum color_depth {
++	COLOR_6,
++	COLOR_8,
++	COLOR_10,
++	COLOR_12
++};
++
++enum color_coefficient {
++	COLOR_YCBCR601,
++	COLOR_YCBCR709
++};
++
++enum dynamic_range {
++	VESA,
++	CEA
++};
++
++enum pll_status {
++	PLL_UNLOCKED,
++	PLL_LOCKED
++};
++
++enum clock_recovery_m_value_type {
++	CALCULATED_M,
++	REGISTER_M
++};
++
++enum video_timing_recognition_type {
++	VIDEO_TIMING_FROM_CAPTURE,
++	VIDEO_TIMING_FROM_REGISTER
++};
++
++enum analog_power_block {
++	AUX_BLOCK,
++	CH0_BLOCK,
++	CH1_BLOCK,
++	CH2_BLOCK,
++	CH3_BLOCK,
++	ANALOG_TOTAL,
++	POWER_ALL
++};
++
++struct video_info {
++	char *name;
++
++	bool h_sync_polarity;
++	bool v_sync_polarity;
++	bool interlaced;
++
++	enum color_space color_space;
++	enum dynamic_range dynamic_range;
++	enum color_coefficient ycbcr_coeff;
++	enum color_depth color_depth;
++
++	enum link_rate_type link_rate;
++	enum link_lane_count_type lane_count;
++};
++
++struct exynos_dp_platdata {
++	struct video_info *video_info;
++
++	void (*phy_init)(void);
++	void (*phy_exit)(void);
++};
++
++#endif /* _EXYNOS_DP_H */
 _
 
-Patches currently in -mm which might be from dh09.lee@samsung.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 linux-next.patch
 backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
