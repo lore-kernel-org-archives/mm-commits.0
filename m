@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-remove-ptrace_seize_devel-bit.patch added to -mm tree
-Date: Wed, 15 Feb 2012 15:03:01 -0800
-Message-ID: <20120215230301.8BA2FA016A@akpm.mtv.corp.google.com>
+Subject: + mm-replace-compaction_build-with-is_enabledconfig_compaction-fix.patch added to -mm tree
+Date: Wed, 15 Feb 2012 14:38:58 -0800
+Message-ID: <20120215232202.805111E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:43779 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756090Ab2BOXDE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 18:03:04 -0500
-Received: by bkcjk13 with SMTP id jk13so67455bkc.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 15:03:02 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:37041 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751820Ab2BOXWE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 18:22:04 -0500
+Received: by yhgm50 with SMTP id m50so222430yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 15:22:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vda.linux@googlemail.com, jan.kratochvil@redhat.com, oleg@redhat.com, palves@redhat.com, tj@kernel.org
+Cc: akpm@linux-foundation.org, khlebnikov@openvz.org
 
 
 The patch titled
-     Subject: ptrace: remove PTRACE_SEIZE_DEVEL bit
+     Subject: mm-replace-compaction_build-with-is_enabledconfig_compaction-fix
 has been added to the -mm tree.  Its filename is
-     ptrace-remove-ptrace_seize_devel-bit.patch
+     mm-replace-compaction_build-with-is_enabledconfig_compaction-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: ptrace: remove PTRACE_SEIZE_DEVEL bit
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-replace-compaction_build-with-is_enabledconfig_compaction-fix
 
-PTRACE_SEIZE code is tested and ready for production use, remove the code
-which requires special bit in data argument to make PTRACE_SEIZE work.
+sync with -mm changes
 
-Strace team prepares for a new release of strace, and we would like to
-ship the code which uses PTRACE_SEIZE, preferably after this change goes
-into released kernel.
-
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Pedro Alves <palves@redhat.com>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    5 +----
- kernel/ptrace.c        |   15 ---------------
- 2 files changed, 1 insertion(+), 19 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ptrace.h~ptrace-remove-ptrace_seize_devel-bit include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-remove-ptrace_seize_devel-bit
-+++ a/include/linux/ptrace.h
-@@ -51,9 +51,6 @@
- #define PTRACE_INTERRUPT	0x4207
- #define PTRACE_LISTEN		0x4208
- 
--/* flags in @data for PTRACE_SEIZE */
--#define PTRACE_SEIZE_DEVEL	0x80000000 /* temp flag for development */
--
- /* Wait extended result codes for the above trace options.  */
- #define PTRACE_EVENT_FORK	1
- #define PTRACE_EVENT_VFORK	2
-@@ -64,7 +61,7 @@
- /* Extended result codes which enabled by means other than options.  */
- #define PTRACE_EVENT_STOP	128
- 
--/* options set using PTRACE_SETOPTIONS */
-+/* Options set using PTRACE_SETOPTIONS or using PTRACE_SEIZE @data param */
- #define PTRACE_O_TRACESYSGOOD	1
- #define PTRACE_O_TRACEFORK	(1 << PTRACE_EVENT_FORK)
- #define PTRACE_O_TRACEVFORK	(1 << PTRACE_EVENT_VFORK)
-diff -puN kernel/ptrace.c~ptrace-remove-ptrace_seize_devel-bit kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-remove-ptrace_seize_devel-bit
-+++ a/kernel/ptrace.c
-@@ -237,25 +237,10 @@ static int ptrace_attach(struct task_str
- 	bool seize = (request == PTRACE_SEIZE);
- 	int retval;
- 
--	/*
--	 * SEIZE will enable new ptrace behaviors which will be implemented
--	 * gradually.  SEIZE_DEVEL bit is used to prevent applications
--	 * expecting full SEIZE behaviors trapping on kernel commits which
--	 * are still in the process of implementing them.
--	 *
--	 * Only test programs for new ptrace behaviors being implemented
--	 * should set SEIZE_DEVEL.  If unset, SEIZE will fail with -EIO.
--	 *
--	 * Once SEIZE behaviors are completely implemented, this flag
--	 * will be removed.
--	 */
- 	retval = -EIO;
- 	if (seize) {
- 		if (addr != 0)
- 			goto out;
--		if (!(flags & PTRACE_SEIZE_DEVEL))
--			goto out;
--		flags &= ~(unsigned long)PTRACE_SEIZE_DEVEL;
- 		if (flags & ~(unsigned long)PTRACE_O_MASK)
- 			goto out;
- 		flags = PT_PTRACED | PT_SEIZED | (flags << PT_OPT_FLAG_SHIFT);
+diff -puN mm/vmscan.c~mm-replace-compaction_build-with-is_enabledconfig_compaction-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-replace-compaction_build-with-is_enabledconfig_compaction-fix
++++ a/mm/vmscan.c
+@@ -2816,7 +2816,7 @@ loop_again:
+ 			 * Do not reclaim more than needed for compaction.
+ 			 */
+ 			testorder = order;
+-			if (COMPACTION_BUILD && order &&
++			if (IS_ENABLED(CONFIG_COMPACTION) && order &&
+ 					compaction_suitable(zone, order) !=
+ 						COMPACT_SKIPPED)
+ 				testorder = 0;
 _
-Subject: Subject: ptrace: remove PTRACE_SEIZE_DEVEL bit
+Subject: Subject: mm-replace-compaction_build-with-is_enabledconfig_compaction-fix
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-replace-compaction_build-with-is_enabledconfig_compaction-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
 kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-ptrace-the-killed-tracee-should-not-enter-the-syscall.patch
-ptrace-dont-send-sigtrap-on-exec-if-seized.patch
-ptrace-dont-modify-flags-on-ptrace_setoptions-failure.patch
-ptrace-simplify-ptrace_foo-constants-and-ptrace_setoptions-code.patch
-ptrace-make-ptrace_seize-set-ptrace-options-specified-in-data-parameter.patch
-ptrace-renumber-ptrace_event_stop-so-that-future-new-options-and-events-can-match.patch
-ptrace-remove-ptrace_seize_devel-bit.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
