@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-replace-compaction_build-with-is_enabledconfig_compaction-fix.patch added to -mm tree
-Date: Wed, 15 Feb 2012 14:38:58 -0800
-Message-ID: <20120215232202.805111E004D@wpzn4.hot.corp.google.com>
+Subject: + ata-unbork.patch added to -mm tree
+Date: Wed, 15 Feb 2012 15:39:17 -0800
+Message-ID: <20120216002221.B6C8D10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:37041 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751820Ab2BOXWE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 18:22:04 -0500
-Received: by yhgm50 with SMTP id m50so222430yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 15:22:03 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:58109 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751494Ab2BPAWW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 19:22:22 -0500
+Received: by yenm1 with SMTP id m1so228831yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 16:22:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, khlebnikov@openvz.org
+Cc: akpm@linux-foundation.org, holger@homac.de, jgarzik@redhat.com, mjg@redhat.com
 
 
 The patch titled
-     Subject: mm-replace-compaction_build-with-is_enabledconfig_compaction-fix
+     Subject: ata: unbork
 has been added to the -mm tree.  Its filename is
-     mm-replace-compaction_build-with-is_enabledconfig_compaction-fix.patch
+     ata-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-replace-compaction_build-with-is_enabledconfig_compaction-fix
+Subject: ata: unbork
 
-sync with -mm changes
+drivers/ata/libata-acpi.c: In function 'ata_acpi_bind_host':
+drivers/ata/libata-acpi.c:1004: error: implicit declaration of function 'is_registered_hotplug_dock_device'
 
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Holger Macht <holger@homac.de>
+Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/libata-acpi.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-replace-compaction_build-with-is_enabledconfig_compaction-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-replace-compaction_build-with-is_enabledconfig_compaction-fix
-+++ a/mm/vmscan.c
-@@ -2816,7 +2816,7 @@ loop_again:
- 			 * Do not reclaim more than needed for compaction.
- 			 */
- 			testorder = order;
--			if (COMPACTION_BUILD && order &&
-+			if (IS_ENABLED(CONFIG_COMPACTION) && order &&
- 					compaction_suitable(zone, order) !=
- 						COMPACT_SKIPPED)
- 				testorder = 0;
+diff -puN drivers/ata/libata-acpi.c~ata-unbork drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~ata-unbork
++++ a/drivers/ata/libata-acpi.c
+@@ -1001,8 +1001,8 @@ static int ata_acpi_bind_host(struct dev
+ 	if (!*handle)
+ 		return -ENODEV;
+ 
+-	if (!is_registered_hotplug_dock_device(&ata_acpi_ap_dock_ops))
+-		register_hotplug_dock_device(*handle, &ata_acpi_ap_dock_ops, ap);
++//	if (!is_registered_hotplug_dock_device(&ata_acpi_ap_dock_ops))
++//		register_hotplug_dock_device(*handle, &ata_acpi_ap_dock_ops, ap);
+ 
+ 	return 0;
+ }
+@@ -1025,8 +1025,8 @@ static int ata_acpi_bind_device(struct d
+ 	if (!*handle)
+ 		return -ENODEV;
+ 
+-	if (!is_registered_hotplug_dock_device(&ata_acpi_dev_dock_ops))
+-		register_hotplug_dock_device(*handle, &ata_acpi_dev_dock_ops, ata_dev);
++//	if (!is_registered_hotplug_dock_device(&ata_acpi_dev_dock_ops))
++//		register_hotplug_dock_device(*handle, &ata_acpi_dev_dock_ops, ata_dev);
+ 
+ 	return 0;
+ }
 _
-Subject: Subject: mm-replace-compaction_build-with-is_enabledconfig_compaction-fix
+Subject: Subject: ata: unbork
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -67,6 +83,7 @@ linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
+ata-unbork.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
