@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + s390-use-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:35:33 -0800
-Message-ID: <20120215003533.E5322A02DE@akpm.mtv.corp.google.com>
+Subject: + mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch added to -mm tree
+Date: Tue, 14 Feb 2012 17:09:49 -0800
+Message-ID: <20120215010949.B7D70A01AD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:43181 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757357Ab2BOAfg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:35:36 -0500
-Received: by eekb15 with SMTP id b15so18563eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:35:35 -0800 (PST)
+Received: from mail-tul01m020-f202.google.com ([209.85.214.202]:64948 "EHLO
+	mail-tul01m020-f202.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755651Ab2BOBJv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 14 Feb 2012 20:09:51 -0500
+Received: by obbup3 with SMTP id up3so219625obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 17:09:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, heiko.carstens@de.ibm.com, oleg@redhat.com, schwidefsky@de.ibm.com
+Cc: dhillf@gmail.com, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz
 
 
 The patch titled
-     Subject: S390: use block_sigmask()
+     From: Hillf Danton <dhillf@gmail.com>
 has been added to the -mm tree.  Its filename is
-     s390-use-block_sigmask.patch
+     mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,119 +34,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: S390: use block_sigmask()
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm: hugetlb: defer freeing pages when gathering surplus pages
 
-Use the new helper function introduced in commit 5e6292c0f28f ("signal:
-add block_sigmask() for adding sigmask to current->blocked") which
-centralises the code for updating current->blocked after successfully
-delivering a signal and reduces the amount of duplicate code across
-architectures.
+When gathering surplus pages, the number of needed pages is recomputed
+after reacquiring hugetlb lock to catch changes in resv_huge_pages and
+free_huge_pages.  Plus it is recomputed with the number of newly allocated
+pages involved.
 
-In the past some architectures got this code wrong, so using this helper
-function should stop that from happening again.
+Thus freeing pages can be deferred a bit to see if the final page request
+is satisfied, though pages could be allocated less than needed.
 
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/compat_signal.c |    6 +-----
- arch/s390/kernel/signal.c        |    6 +-----
- 2 files changed, 2 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-diff -puN arch/s390/kernel/compat_signal.c~s390-use-block_sigmask arch/s390/kernel/compat_signal.c
---- a/arch/s390/kernel/compat_signal.c~s390-use-block_sigmask
-+++ a/arch/s390/kernel/compat_signal.c
-@@ -581,7 +581,6 @@ give_sigsegv:
- int handle_signal32(unsigned long sig, struct k_sigaction *ka,
- 		    siginfo_t *info, sigset_t *oldset, struct pt_regs *regs)
- {
--	sigset_t blocked;
- 	int ret;
+diff -puN mm/hugetlb.c~mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages
++++ a/mm/hugetlb.c
+@@ -852,6 +852,7 @@ static int gather_surplus_pages(struct h
+ 	struct page *page, *tmp;
+ 	int ret, i;
+ 	int needed, allocated;
++	bool alloc_ok = true;
  
- 	/* Set up the stack frame */
-@@ -591,10 +590,7 @@ int handle_signal32(unsigned long sig, s
- 		ret = setup_frame32(sig, ka, oldset, regs);
- 	if (ret)
- 		return ret;
--	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&blocked, sig);
--	set_current_blocked(&blocked);
-+	block_sigmask(ka, sig);
- 	return 0;
- }
+ 	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
+ 	if (needed <= 0) {
+@@ -867,17 +868,13 @@ retry:
+ 	spin_unlock(&hugetlb_lock);
+ 	for (i = 0; i < needed; i++) {
+ 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
+-		if (!page)
+-			/*
+-			 * We were not able to allocate enough pages to
+-			 * satisfy the entire reservation so we free what
+-			 * we've allocated so far.
+-			 */
+-			goto free;
+-
++		if (!page) {
++			alloc_ok = false;
++			break;
++		}
+ 		list_add(&page->lru, &surplus_list);
+ 	}
+-	allocated += needed;
++	allocated += i;
  
-diff -puN arch/s390/kernel/signal.c~s390-use-block_sigmask arch/s390/kernel/signal.c
---- a/arch/s390/kernel/signal.c~s390-use-block_sigmask
-+++ a/arch/s390/kernel/signal.c
-@@ -385,7 +385,6 @@ static int handle_signal(unsigned long s
- 			 siginfo_t *info, sigset_t *oldset,
- 			 struct pt_regs *regs)
- {
--	sigset_t blocked;
- 	int ret;
+ 	/*
+ 	 * After retaking hugetlb_lock, we need to recalculate 'needed'
+@@ -886,9 +883,16 @@ retry:
+ 	spin_lock(&hugetlb_lock);
+ 	needed = (h->resv_huge_pages + delta) -
+ 			(h->free_huge_pages + allocated);
+-	if (needed > 0)
+-		goto retry;
+-
++	if (needed > 0) {
++		if (alloc_ok)
++			goto retry;
++		/*
++		 * We were not able to allocate enough pages to
++		 * satisfy the entire reservation so we free what
++		 * we've allocated so far.
++		 */
++		goto free;
++	}
+ 	/*
+ 	 * The surplus_list now contains _at_least_ the number of extra pages
+ 	 * needed to accommodate the reservation.  Add the appropriate number
+@@ -914,10 +918,10 @@ retry:
+ 		VM_BUG_ON(page_count(page));
+ 		enqueue_huge_page(h, page);
+ 	}
++free:
+ 	spin_unlock(&hugetlb_lock);
  
- 	/* Set up the stack frame */
-@@ -395,10 +394,7 @@ static int handle_signal(unsigned long s
- 		ret = setup_frame(sig, ka, oldset, regs);
- 	if (ret)
- 		return ret;
--	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&blocked, sig);
--	set_current_blocked(&blocked);
-+	block_sigmask(ka, sig);
- 	return 0;
- }
- 
+ 	/* Free unnecessary surplus pages to the buddy allocator */
+-free:
+ 	if (!list_empty(&surplus_list)) {
+ 		list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+ 			list_del(&page->lru);
 _
-Subject: Subject: S390: use block_sigmask()
+Subject: From: Hillf Danton <dhillf@gmail.com>
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
-linux-next.patch
-tile-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-sparc-use-block_sigmask.patch
-xtensa-dont-reimplement-force_sigsegv.patch
-xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
-xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-xtensa-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-um-dont-restore-current-blocked-on-error.patch
-um-use-set_current_blocked-and-block_sigmask.patch
-arm-use-set_current_blocked-and-block_sigmask.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-hexagon-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-openrisc-dont-reimplement-force_sigsegv.patch
-openrisc-no-need-to-reset-handler-if-sa_oneshot.patch
-openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-openrisc-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-powerpc-use-set_current_blocked-and-block_sigmask.patch
-s390-use-block_sigmask.patch
+mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
+vmscan-kswapd-carefully-call-compaction.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+vmscan-only-defer-compaction-for-failed-order-and-higher.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
 
