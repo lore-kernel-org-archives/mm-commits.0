@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + c6x-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:33:36 -0800
-Message-ID: <20120215003336.EE8C8A02DE@akpm.mtv.corp.google.com>
+Subject: + blackfin-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:33:34 -0800
+Message-ID: <20120215003334.F0DF6A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:59737 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757400Ab2BOAdi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:38 -0500
-Received: by mail-ey0-f202.google.com with SMTP id f13so15067eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:38 -0800 (PST)
+Received: from mail-lpp01m020-f202.google.com ([209.85.217.202]:54902 "EHLO
+	mail-lpp01m020-f202.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757381Ab2BOAdh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 14 Feb 2012 19:33:37 -0500
+Received: by mail-lpp01m020-f202.google.com with SMTP id n1so7600lba.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, a-jacquiot@ti.com, msalter@redhat.com, oleg@redhat.com
+Cc: matt.fleming@intel.com, oleg@redhat.com, vapier@gentoo.org
 
 
 The patch titled
-     Subject: C6X: use set_current_blocked() and block_sigmask()
+     Subject: blackfin: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     c6x-use-set_current_blocked-and-block_sigmask.patch
+     blackfin-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +35,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: C6X: use set_current_blocked() and block_sigmask()
+Subject: blackfin: use set_current_blocked() and block_sigmask()
 
 As described in e6fa16ab ("signal: sigprocmask() should do
 retarget_shared_pending()") the modification of current->blocked is
@@ -48,20 +49,19 @@ successfully delivering a signal and reduces the amount of duplicate code
 across architectures.  In the past some architectures got this code wrong,
 so using this helper function should stop that from happening again.
 
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/kernel/signal.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ arch/blackfin/kernel/signal.c |   17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN arch/c6x/kernel/signal.c~c6x-use-set_current_blocked-and-block_sigmask arch/c6x/kernel/signal.c
---- a/arch/c6x/kernel/signal.c~c6x-use-set_current_blocked-and-block_sigmask
-+++ a/arch/c6x/kernel/signal.c
-@@ -85,10 +85,7 @@ asmlinkage int do_rt_sigreturn(struct pt
+diff -puN arch/blackfin/kernel/signal.c~blackfin-use-set_current_blocked-and-block_sigmask arch/blackfin/kernel/signal.c
+--- a/arch/blackfin/kernel/signal.c~blackfin-use-set_current_blocked-and-block_sigmask
++++ a/arch/blackfin/kernel/signal.c
+@@ -99,10 +99,7 @@ asmlinkage int do_rt_sigreturn(unsigned 
  		goto badframe;
  
  	sigdelsetmask(&set, ~_BLOCKABLE);
@@ -71,12 +71,12 @@ diff -puN arch/c6x/kernel/signal.c~c6x-use-set_current_blocked-and-block_sigmask
 -	spin_unlock_irq(&current->sighand->siglock);
 +	set_current_blocked(&set);
  
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+ 	if (rt_restore_sigcontext(regs, &frame->uc.uc_mcontext, &r0))
  		goto badframe;
-@@ -279,15 +276,8 @@ static int handle_signal(int sig,
- 
- 	/* Set up the stack frame */
+@@ -266,15 +263,9 @@ handle_signal(int sig, siginfo_t *info, 
+ 	/* set up the stack frame */
  	ret = setup_rt_frame(sig, ka, info, oldset, regs);
+ 
 -	if (ret == 0) {
 -		spin_lock_irq(&current->sighand->siglock);
 -		sigorsets(&current->blocked, &current->blocked,
@@ -88,11 +88,12 @@ diff -puN arch/c6x/kernel/signal.c~c6x-use-set_current_blocked-and-block_sigmask
 -	}
 +	if (ret == 0)
 +		block_sigmask(ka, sig);
- 
++
  	return ret;
  }
+ 
 _
-Subject: Subject: C6X: use set_current_blocked() and block_sigmask()
+Subject: Subject: blackfin: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
