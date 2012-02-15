@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-introduce-independent-oom-killer-ratelimit-state.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:09:21 -0800
-Message-ID: <20120215000921.97D0FA0245@akpm.mtv.corp.google.com>
+Subject: + prio_tree-cleanup-prio_tree_left-prio_tree_right.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:19:17 -0800
+Message-ID: <20120215001917.DDA28A0245@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:52775 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755543Ab2BOAJW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:09:22 -0500
-Received: by ggnp1 with SMTP id p1so74919ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:09:22 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:40426 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761103Ab2BOATU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:19:20 -0500
+Received: by eekb15 with SMTP id b15so18086eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:19:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: xiaoguangrong@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: mm, oom: introduce independent oom killer ratelimit state
+     Subject: prio_tree: cleanup prio_tree_left()/prio_tree_right()
 has been added to the -mm tree.  Its filename is
-     mm-oom-introduce-independent-oom-killer-ratelimit-state.patch
+     prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: introduce independent oom killer ratelimit state
+From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Subject: prio_tree: cleanup prio_tree_left()/prio_tree_right()
 
-printk_ratelimit() uses the global ratelimit state for all printks.  The
-oom killer should not be subjected to this state just because another
-subsystem or driver may be flooding the kernel log.
+Introduce iter_walk_down()/iter_walk_up() to remove the common code
+between prio_tree_left() and prio_tree_right().
 
-This patch introduces printk ratelimiting specifically for the oom killer.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ lib/prio_tree.c |   78 +++++++++++++++++++++-------------------------
+ 1 file changed, 37 insertions(+), 41 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-introduce-independent-oom-killer-ratelimit-state mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-introduce-independent-oom-killer-ratelimit-state
-+++ a/mm/oom_kill.c
-@@ -34,6 +34,7 @@
- #include <linux/ptrace.h>
- #include <linux/freezer.h>
- #include <linux/ftrace.h>
-+#include <linux/ratelimit.h>
+diff -puN lib/prio_tree.c~prio_tree-cleanup-prio_tree_left-prio_tree_right lib/prio_tree.c
+--- a/lib/prio_tree.c~prio_tree-cleanup-prio_tree_left-prio_tree_right
++++ a/lib/prio_tree.c
+@@ -304,6 +304,40 @@ void prio_tree_remove(struct prio_tree_r
+ 		cur = prio_tree_replace(root, cur->parent, cur);
+ }
  
- #define CREATE_TRACE_POINTS
- #include <trace/events/oom.h>
-@@ -444,6 +445,8 @@ static void oom_kill_process(struct task
- 	struct task_struct *t = p;
- 	struct mm_struct *mm;
- 	unsigned int victim_points = 0;
-+	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
-+					      DEFAULT_RATELIMIT_BURST);
++static void iter_walk_down(struct prio_tree_iter *iter)
++{
++	iter->mask >>= 1;
++	if (iter->mask) {
++		if (iter->size_level)
++			iter->size_level++;
++		return;
++	}
++
++	if (iter->size_level) {
++		BUG_ON(!prio_tree_left_empty(iter->cur));
++		BUG_ON(!prio_tree_right_empty(iter->cur));
++		iter->size_level++;
++		iter->mask = ULONG_MAX;
++	} else {
++		iter->size_level = 1;
++		iter->mask = 1UL << (BITS_PER_LONG - 1);
++	}
++}
++
++static void iter_walk_up(struct prio_tree_iter *iter)
++{
++	if (iter->mask == ULONG_MAX)
++		iter->mask = 1UL;
++	else if (iter->size_level == 1)
++		iter->mask = 1UL;
++	else
++		iter->mask <<= 1;
++	if (iter->size_level)
++		iter->size_level--;
++	if (!iter->size_level && (iter->value & iter->mask))
++		iter->value ^= iter->mask;
++}
++
+ /*
+  * Following functions help to enumerate all prio_tree_nodes in the tree that
+  * overlap with the input interval X [radix_index, heap_index]. The enumeration
+@@ -322,21 +356,7 @@ static struct prio_tree_node *prio_tree_
  
- 	/*
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
-@@ -454,7 +457,7 @@ static void oom_kill_process(struct task
- 		return;
+ 	if (iter->r_index <= *h_index) {
+ 		iter->cur = iter->cur->left;
+-		iter->mask >>= 1;
+-		if (iter->mask) {
+-			if (iter->size_level)
+-				iter->size_level++;
+-		} else {
+-			if (iter->size_level) {
+-				BUG_ON(!prio_tree_left_empty(iter->cur));
+-				BUG_ON(!prio_tree_right_empty(iter->cur));
+-				iter->size_level++;
+-				iter->mask = ULONG_MAX;
+-			} else {
+-				iter->size_level = 1;
+-				iter->mask = 1UL << (BITS_PER_LONG - 1);
+-			}
+-		}
++		iter_walk_down(iter);
+ 		return iter->cur;
  	}
  
--	if (printk_ratelimit())
-+	if (__ratelimit(&oom_rs))
- 		dump_header(p, gfp_mask, order, memcg, nodemask);
+@@ -363,22 +383,7 @@ static struct prio_tree_node *prio_tree_
  
- 	task_lock(p);
+ 	if (iter->r_index <= *h_index) {
+ 		iter->cur = iter->cur->right;
+-		iter->mask >>= 1;
+-		iter->value = value;
+-		if (iter->mask) {
+-			if (iter->size_level)
+-				iter->size_level++;
+-		} else {
+-			if (iter->size_level) {
+-				BUG_ON(!prio_tree_left_empty(iter->cur));
+-				BUG_ON(!prio_tree_right_empty(iter->cur));
+-				iter->size_level++;
+-				iter->mask = ULONG_MAX;
+-			} else {
+-				iter->size_level = 1;
+-				iter->mask = 1UL << (BITS_PER_LONG - 1);
+-			}
+-		}
++		iter_walk_down(iter);
+ 		return iter->cur;
+ 	}
+ 
+@@ -388,16 +393,7 @@ static struct prio_tree_node *prio_tree_
+ static struct prio_tree_node *prio_tree_parent(struct prio_tree_iter *iter)
+ {
+ 	iter->cur = iter->cur->parent;
+-	if (iter->mask == ULONG_MAX)
+-		iter->mask = 1UL;
+-	else if (iter->size_level == 1)
+-		iter->mask = 1UL;
+-	else
+-		iter->mask <<= 1;
+-	if (iter->size_level)
+-		iter->size_level--;
+-	if (!iter->size_level && (iter->value & iter->mask))
+-		iter->value ^= iter->mask;
++	iter_walk_up(iter);
+ 	return iter->cur;
+ }
+ 
 _
-Subject: Subject: mm, oom: introduce independent oom killer ratelimit state
+Subject: Subject: prio_tree: cleanup prio_tree_left()/prio_tree_right()
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
 
-linux-next.patch
-slab-introduce-kmalloc_array.patch
-mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
-mm-oom-fold-oom_kill_task-into-oom_kill_process.patch
-mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting.patch
-mm-oom-introduce-independent-oom-killer-ratelimit-state.patch
-mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
-pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
-thp-optimize-away-unnecessary-page-table-locking.patch
-pagemap-export-kpf_thp.patch
-pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
-mm-introduce-pmd_to_pte_t.patch
-pagemap-introduce-data-structure-for-pagemap-entry.patch
-memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
+prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
+prio_tree-simplify-prio_tree_expand.patch
+prio_tree-introduce-prio_set_parent.patch
 
