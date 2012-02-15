@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + usermodehelper-introduce-umh_completesub_info.patch added to -mm tree
-Date: Wed, 15 Feb 2012 12:30:59 -0800
-Message-ID: <20120215203100.5B715A01AD@akpm.mtv.corp.google.com>
+Subject: + usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch added to -mm tree
+Date: Wed, 15 Feb 2012 12:31:05 -0800
+Message-ID: <20120215203106.03786A01AD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:35329 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755279Ab2BOUbD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 15:31:03 -0500
-Received: by eaaf13 with SMTP id f13so48332eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 12:31:01 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:41793 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754744Ab2BOUbH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 15:31:07 -0500
+Received: by ghrr17 with SMTP id r17so194160ghr.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 12:31:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, ru
 
 
 The patch titled
-     Subject: usermodehelper: introduce umh_complete(sub_info)
+     Subject: usermodehelper: ____call_usermodehelper() doesn't need do_exit()
 has been added to the -mm tree.  Its filename is
-     usermodehelper-introduce-umh_completesub_info.patch
+     usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: usermodehelper: introduce umh_complete(sub_info)
+Subject: usermodehelper: ____call_usermodehelper() doesn't need do_exit()
 
-Preparation.  Add the new trivial helper, umh_complete().  Currently it
-simply does complete(sub_info->complete).
+Minor cleanup.  ____call_usermodehelper() can simply return, no need to
+call do_exit() explicitely.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
@@ -47,44 +47,23 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/kmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kmod.c~usermodehelper-introduce-umh_completesub_info kernel/kmod.c
---- a/kernel/kmod.c~usermodehelper-introduce-umh_completesub_info
+diff -puN kernel/kmod.c~usermodehelper-____call_usermodehelper-doesnt-need-do_exit kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-____call_usermodehelper-doesnt-need-do_exit
 +++ a/kernel/kmod.c
-@@ -199,6 +199,11 @@ void call_usermodehelper_freeinfo(struct
- }
- EXPORT_SYMBOL(call_usermodehelper_freeinfo);
- 
-+static void umh_complete(struct subprocess_info *sub_info)
-+{
-+	complete(sub_info->complete);
-+}
-+
- /* Keventd can't block, but this (a child) can. */
- static int wait_for_helper(void *data)
- {
-@@ -235,7 +240,7 @@ static int wait_for_helper(void *data)
- 			sub_info->retval = ret;
- 	}
- 
--	complete(sub_info->complete);
-+	umh_complete(sub_info);
- 	return 0;
+@@ -188,7 +188,7 @@ static int ____call_usermodehelper(void 
+ 	/* Exec failed? */
+ fail:
+ 	sub_info->retval = retval;
+-	do_exit(0);
++	return 0;
  }
  
-@@ -269,7 +274,7 @@ static void __call_usermodehelper(struct
- 	case UMH_WAIT_EXEC:
- 		if (pid < 0)
- 			sub_info->retval = pid;
--		complete(sub_info->complete);
-+		umh_complete(sub_info);
- 	}
- }
- 
+ void call_usermodehelper_freeinfo(struct subprocess_info *info)
 _
-Subject: Subject: usermodehelper: introduce umh_complete(sub_info)
+Subject: Subject: usermodehelper: ____call_usermodehelper() doesn't need do_exit()
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
