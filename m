@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-introduce-call_modprobe-helper.patch added to -mm tree
-Date: Wed, 15 Feb 2012 12:31:07 -0800
-Message-ID: <20120215203107.D4C3CA01AD@akpm.mtv.corp.google.com>
+Subject: + arch-ia64-remove-references-to-cpu__map.patch added to -mm tree
+Date: Wed, 15 Feb 2012 12:56:48 -0800
+Message-ID: <20120215205648.B6006A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:53426 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:44501 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755302Ab2BOUbJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 15:31:09 -0500
-Received: by yenm1 with SMTP id m1so199329yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 12:31:08 -0800 (PST)
+	with ESMTP id S1755351Ab2BOU4t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 15:56:49 -0500
+Received: by yenm1 with SMTP id m1so203307yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 12:56:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rusty@rustcorp.com.au, tj@kernel.org
+Cc: srivatsa.bhat@linux.vnet.ibm.com, rusty@rustcorp.com.au, tony.luck@intel.com
 
 
 The patch titled
-     Subject: kmod: introduce call_modprobe() helper
+     Subject: arch/ia64: remove references to cpu_*_map
 has been added to the -mm tree.  Its filename is
-     kmod-introduce-call_modprobe-helper.patch
+     arch-ia64-remove-references-to-cpu__map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,265 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kmod: introduce call_modprobe() helper
+From: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: arch/ia64: remove references to cpu_*_map
 
-No functional changes.  Move the call_usermodehelper code from
-__request_module() into the new simple helper, call_modprobe().
+This was marked as obsolete for quite a while now..  Now it is time to
+remove it altogether.  And while doing this, get rid of first_cpu() as
+well.  Also, remove the redundant setting of cpu_online_mask in
+smp_prepare_cpus() because the generic code would have already set cpu 0
+in cpu_online_mask.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ arch/ia64/kernel/acpi.c     |    6 +++---
+ arch/ia64/kernel/irq_ia64.c |    8 ++++----
+ arch/ia64/kernel/mca.c      |    6 ++++--
+ arch/ia64/kernel/msi_ia64.c |    4 ++--
+ arch/ia64/kernel/setup.c    |    2 +-
+ arch/ia64/kernel/smp.c      |    2 +-
+ arch/ia64/kernel/smpboot.c  |   19 +++++++------------
+ arch/ia64/kernel/topology.c |    3 ++-
+ 8 files changed, 24 insertions(+), 26 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-introduce-call_modprobe-helper kernel/kmod.c
---- a/kernel/kmod.c~kmod-introduce-call_modprobe-helper
-+++ a/kernel/kmod.c
-@@ -60,6 +60,21 @@ static DECLARE_RWSEM(umhelper_sem);
- */
- char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
+diff -puN arch/ia64/kernel/acpi.c~arch-ia64-remove-references-to-cpu__map arch/ia64/kernel/acpi.c
+--- a/arch/ia64/kernel/acpi.c~arch-ia64-remove-references-to-cpu__map
++++ a/arch/ia64/kernel/acpi.c
+@@ -844,7 +844,7 @@ early_param("additional_cpus", setup_add
+  * are onlined, or offlined. The reason is per-cpu data-structures
+  * are allocated by some modules at init time, and dont expect to
+  * do this dynamically on cpu arrival/departure.
+- * cpu_present_map on the other hand can change dynamically.
++ * cpu_present_mask on the other hand can change dynamically.
+  * In case when cpu_hotplug is not compiled, then we resort to current
+  * behaviour, which is cpu_possible == cpu_present.
+  * - Ashok Raj
+@@ -922,7 +922,7 @@ static int __cpuinit _acpi_map_lsapic(ac
  
-+static int call_modprobe(char *module_name, int wait)
-+{
-+	static char *envp[] = {
-+		"HOME=/",
-+		"TERM=linux",
-+		"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
-+		NULL
-+	};
-+
-+	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
-+
-+	return call_usermodehelper_fns(modprobe_path, argv, envp,
-+					wait, NULL, NULL, NULL);
-+}
-+
- /**
-  * __request_module - try to load a kernel module
-  * @wait: wait (or not) for the operation to complete
-@@ -81,11 +96,6 @@ int __request_module(bool wait, const ch
- 	char module_name[MODULE_NAME_LEN];
- 	unsigned int max_modprobes;
- 	int ret;
--	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
--	static char *envp[] = { "HOME=/",
--				"TERM=linux",
--				"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
--				NULL };
- 	static atomic_t kmod_concurrent = ATOMIC_INIT(0);
- #define MAX_KMOD_CONCURRENT 50	/* Completely arbitrary value - KAO */
- 	static int kmod_loop_msg;
-@@ -128,9 +138,7 @@ int __request_module(bool wait, const ch
+ 	acpi_map_cpu2node(handle, cpu, physid);
  
- 	trace_module_request(module_name, wait, _RET_IP_);
+-	cpu_set(cpu, cpu_present_map);
++	set_cpu_present(cpu, true);
+ 	ia64_cpu_to_sapicid[cpu] = physid;
  
--	ret = call_usermodehelper_fns(modprobe_path, argv, envp,
--			wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC,
--			NULL, NULL, NULL);
-+	ret = call_modprobe(module_name, wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC);
+ 	acpi_processor_set_pdc(handle);
+@@ -941,7 +941,7 @@ EXPORT_SYMBOL(acpi_map_lsapic);
+ int acpi_unmap_lsapic(int cpu)
+ {
+ 	ia64_cpu_to_sapicid[cpu] = -1;
+-	cpu_clear(cpu, cpu_present_map);
++	set_cpu_present(cpu, false);
  
- 	atomic_dec(&kmod_concurrent);
- 	return ret;
+ #ifdef CONFIG_ACPI_NUMA
+ 	/* NUMA specific cleanup's */
+diff -puN arch/ia64/kernel/irq_ia64.c~arch-ia64-remove-references-to-cpu__map arch/ia64/kernel/irq_ia64.c
+--- a/arch/ia64/kernel/irq_ia64.c~arch-ia64-remove-references-to-cpu__map
++++ a/arch/ia64/kernel/irq_ia64.c
+@@ -118,7 +118,7 @@ static inline int find_unassigned_vector
+ 	cpumask_t mask;
+ 	int pos, vector;
+ 
+-	cpus_and(mask, domain, cpu_online_map);
++	cpumask_and(&mask, &domain, cpu_online_mask);
+ 	if (cpus_empty(mask))
+ 		return -EINVAL;
+ 
+@@ -141,7 +141,7 @@ static int __bind_irq_vector(int irq, in
+ 	BUG_ON((unsigned)irq >= NR_IRQS);
+ 	BUG_ON((unsigned)vector >= IA64_NUM_VECTORS);
+ 
+-	cpus_and(mask, domain, cpu_online_map);
++	cpumask_and(&mask, &domain, cpu_online_mask);
+ 	if (cpus_empty(mask))
+ 		return -EINVAL;
+ 	if ((cfg->vector == vector) && cpus_equal(cfg->domain, domain))
+@@ -179,7 +179,7 @@ static void __clear_irq_vector(int irq)
+ 	BUG_ON(cfg->vector == IRQ_VECTOR_UNASSIGNED);
+ 	vector = cfg->vector;
+ 	domain = cfg->domain;
+-	cpus_and(mask, cfg->domain, cpu_online_map);
++	cpumask_and(&mask, &cfg->domain, cpu_online_mask);
+ 	for_each_cpu_mask(cpu, mask)
+ 		per_cpu(vector_irq, cpu)[vector] = -1;
+ 	cfg->vector = IRQ_VECTOR_UNASSIGNED;
+@@ -322,7 +322,7 @@ void irq_complete_move(unsigned irq)
+ 	if (unlikely(cpu_isset(smp_processor_id(), cfg->old_domain)))
+ 		return;
+ 
+-	cpus_and(cleanup_mask, cfg->old_domain, cpu_online_map);
++	cpumask_and(&cleanup_mask, &cfg->old_domain, cpu_online_mask);
+ 	cfg->move_cleanup_count = cpus_weight(cleanup_mask);
+ 	for_each_cpu_mask(i, cleanup_mask)
+ 		platform_send_ipi(i, IA64_IRQ_MOVE_VECTOR, IA64_IPI_DM_INT, 0);
+diff -puN arch/ia64/kernel/mca.c~arch-ia64-remove-references-to-cpu__map arch/ia64/kernel/mca.c
+--- a/arch/ia64/kernel/mca.c~arch-ia64-remove-references-to-cpu__map
++++ a/arch/ia64/kernel/mca.c
+@@ -1515,7 +1515,8 @@ static void
+ ia64_mca_cmc_poll (unsigned long dummy)
+ {
+ 	/* Trigger a CMC interrupt cascade  */
+-	platform_send_ipi(first_cpu(cpu_online_map), IA64_CMCP_VECTOR, IA64_IPI_DM_INT, 0);
++	platform_send_ipi(cpumask_first(cpu_online_mask), IA64_CMCP_VECTOR,
++							IA64_IPI_DM_INT, 0);
+ }
+ 
+ /*
+@@ -1591,7 +1592,8 @@ static void
+ ia64_mca_cpe_poll (unsigned long dummy)
+ {
+ 	/* Trigger a CPE interrupt cascade  */
+-	platform_send_ipi(first_cpu(cpu_online_map), IA64_CPEP_VECTOR, IA64_IPI_DM_INT, 0);
++	platform_send_ipi(cpumask_first(cpu_online_mask), IA64_CPEP_VECTOR,
++							IA64_IPI_DM_INT, 0);
+ }
+ 
+ #endif /* CONFIG_ACPI */
+diff -puN arch/ia64/kernel/msi_ia64.c~arch-ia64-remove-references-to-cpu__map arch/ia64/kernel/msi_ia64.c
+--- a/arch/ia64/kernel/msi_ia64.c~arch-ia64-remove-references-to-cpu__map
++++ a/arch/ia64/kernel/msi_ia64.c
+@@ -57,7 +57,7 @@ int ia64_setup_msi_irq(struct pci_dev *p
+ 		return irq;
+ 
+ 	irq_set_msi_desc(irq, desc);
+-	cpus_and(mask, irq_to_domain(irq), cpu_online_map);
++	cpumask_and(&mask, &(irq_to_domain(irq)), cpu_online_mask);
+ 	dest_phys_id = cpu_physical_id(first_cpu(mask));
+ 	vector = irq_to_vector(irq);
+ 
+@@ -179,7 +179,7 @@ msi_compose_msg(struct pci_dev *pdev, un
+ 	unsigned dest;
+ 	cpumask_t mask;
+ 
+-	cpus_and(mask, irq_to_domain(irq), cpu_online_map);
++	cpumask_and(&mask, &(irq_to_domain(irq)), cpu_online_mask);
+ 	dest = cpu_physical_id(first_cpu(mask));
+ 
+ 	msg->address_hi = 0;
+diff -puN arch/ia64/kernel/setup.c~arch-ia64-remove-references-to-cpu__map arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~arch-ia64-remove-references-to-cpu__map
++++ a/arch/ia64/kernel/setup.c
+@@ -486,7 +486,7 @@ mark_bsp_online (void)
+ {
+ #ifdef CONFIG_SMP
+ 	/* If we register an early console, allow CPU 0 to printk */
+-	cpu_set(smp_processor_id(), cpu_online_map);
++	set_cpu_online(smp_processor_id(), true);
+ #endif
+ }
+ 
+diff -puN arch/ia64/kernel/smp.c~arch-ia64-remove-references-to-cpu__map arch/ia64/kernel/smp.c
+--- a/arch/ia64/kernel/smp.c~arch-ia64-remove-references-to-cpu__map
++++ a/arch/ia64/kernel/smp.c
+@@ -77,7 +77,7 @@ stop_this_cpu(void)
+ 	/*
+ 	 * Remove this CPU:
+ 	 */
+-	cpu_clear(smp_processor_id(), cpu_online_map);
++	set_cpu_online(smp_processor_id(), false);
+ 	max_xtp();
+ 	local_irq_disable();
+ 	cpu_halt();
+diff -puN arch/ia64/kernel/smpboot.c~arch-ia64-remove-references-to-cpu__map arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~arch-ia64-remove-references-to-cpu__map
++++ a/arch/ia64/kernel/smpboot.c
+@@ -401,7 +401,7 @@ smp_callin (void)
+ 	/* Setup the per cpu irq handling data structures */
+ 	__setup_vector_irq(cpuid);
+ 	notify_cpu_starting(cpuid);
+-	cpu_set(cpuid, cpu_online_map);
++	set_cpu_online(cpuid, true);
+ 	per_cpu(cpu_state, cpuid) = CPU_ONLINE;
+ 	spin_unlock(&vector_lock);
+ 	ipi_call_unlock_irq();
+@@ -548,7 +548,7 @@ do_rest:
+ 	if (!cpu_isset(cpu, cpu_callin_map)) {
+ 		printk(KERN_ERR "Processor 0x%x/0x%x is stuck.\n", cpu, sapicid);
+ 		ia64_cpu_to_sapicid[cpu] = -1;
+-		cpu_clear(cpu, cpu_online_map);  /* was set in smp_callin() */
++		set_cpu_online(cpu, false);  /* was set in smp_callin() */
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+@@ -578,8 +578,7 @@ smp_build_cpu_map (void)
+ 	}
+ 
+ 	ia64_cpu_to_sapicid[0] = boot_cpu_id;
+-	cpus_clear(cpu_present_map);
+-	set_cpu_present(0, true);
++	init_cpu_present(cpumask_of(0));
+ 	set_cpu_possible(0, true);
+ 	for (cpu = 1, i = 0; i < smp_boot_data.cpu_count; i++) {
+ 		sapicid = smp_boot_data.cpu_phys_id[i];
+@@ -606,10 +605,6 @@ smp_prepare_cpus (unsigned int max_cpus)
+ 
+ 	smp_setup_percpu_timer();
+ 
+-	/*
+-	 * We have the boot CPU online for sure.
+-	 */
+-	cpu_set(0, cpu_online_map);
+ 	cpu_set(0, cpu_callin_map);
+ 
+ 	local_cpu_data->loops_per_jiffy = loops_per_jiffy;
+@@ -633,7 +628,7 @@ smp_prepare_cpus (unsigned int max_cpus)
+ 
+ void __devinit smp_prepare_boot_cpu(void)
+ {
+-	cpu_set(smp_processor_id(), cpu_online_map);
++	set_cpu_online(smp_processor_id(), true);
+ 	cpu_set(smp_processor_id(), cpu_callin_map);
+ 	set_numa_node(cpu_to_node_map[smp_processor_id()]);
+ 	per_cpu(cpu_state, smp_processor_id()) = CPU_ONLINE;
+@@ -690,7 +685,7 @@ int migrate_platform_irqs(unsigned int c
+ 			/*
+ 			 * Now re-target the CPEI to a different processor
+ 			 */
+-			new_cpei_cpu = any_online_cpu(cpu_online_map);
++			new_cpei_cpu = cpumask_any(cpu_online_mask);
+ 			mask = cpumask_of(new_cpei_cpu);
+ 			set_cpei_target_cpu(new_cpei_cpu);
+ 			data = irq_get_irq_data(ia64_cpe_irq);
+@@ -732,10 +727,10 @@ int __cpu_disable(void)
+ 			return -EBUSY;
+ 	}
+ 
+-	cpu_clear(cpu, cpu_online_map);
++	set_cpu_online(cpu, false);
+ 
+ 	if (migrate_platform_irqs(cpu)) {
+-		cpu_set(cpu, cpu_online_map);
++		set_cpu_online(cpu, true);
+ 		return -EBUSY;
+ 	}
+ 
+diff -puN arch/ia64/kernel/topology.c~arch-ia64-remove-references-to-cpu__map arch/ia64/kernel/topology.c
+--- a/arch/ia64/kernel/topology.c~arch-ia64-remove-references-to-cpu__map
++++ a/arch/ia64/kernel/topology.c
+@@ -220,7 +220,8 @@ static ssize_t show_shared_cpu_map(struc
+ 	ssize_t	len;
+ 	cpumask_t shared_cpu_map;
+ 
+-	cpus_and(shared_cpu_map, this_leaf->shared_cpu_map, cpu_online_map);
++	cpumask_and(&shared_cpu_map,
++				&this_leaf->shared_cpu_map, cpu_online_mask);
+ 	len = cpumask_scnprintf(buf, NR_CPUS+1, &shared_cpu_map);
+ 	len += sprintf(buf+len, "\n");
+ 	return len;
 _
-Subject: Subject: kmod: introduce call_modprobe() helper
+Subject: Subject: arch/ia64: remove references to cpu_*_map
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
 linux-next.patch
-arm-use-set_current_blocked-and-block_sigmask.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-powerpc-use-set_current_blocked-and-block_sigmask.patch
-hexagon-use-set_current_blocked-and-block_sigmask.patch
-tile-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-openrisc-dont-reimplement-force_sigsegv.patch
-openrisc-no-need-to-reset-handler-if-sa_oneshot.patch
-openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-openrisc-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-s390-use-block_sigmask.patch
-xtensa-dont-reimplement-force_sigsegv.patch
-xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
-xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-xtensa-use-set_current_blocked-and-block_sigmask.patch
-sparc-use-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-um-dont-restore-current-blocked-on-error.patch
-um-use-set_current_blocked-and-block_sigmask.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-use-umh_wait_proc-consistently.patch
-usermodehelper-introduce-umh_completesub_info.patch
-usermodehelper-implement-umh_killable.patch
-usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
-usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
-kmod-introduce-call_modprobe-helper.patch
-kmod-make-__request_module-killable.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+smp-introduce-a-generic-on_each_cpu_mask-function.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+arch-ia64-remove-references-to-cpu__map.patch
+cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus.patch
 
