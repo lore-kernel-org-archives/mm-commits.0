@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mips-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:00 -0800
-Message-ID: <20120215003401.1948CA02DE@akpm.mtv.corp.google.com>
+Subject: + openrisc-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:10 -0800
+Message-ID: <20120215003410.EC64AA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761264Ab2BOAeD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:03 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:02 -0800 (PST)
+Received: from mail-qy0-f202.google.com ([209.85.216.202]:57759 "EHLO
+	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761264Ab2BOAeM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:12 -0500
+Received: by qcsp5 with SMTP id p5so75376qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, ddaney@caviumnetworks.com, oleg@redhat.com, ralf@linux-mips.org, viro@zeniv.linux.org.uk
+Cc: matt.fleming@intel.com, arnd@arndb.de, jonas@southpole.se, oleg@redhat.com
 
 
 The patch titled
-     Subject: MIPS: use set_current_blocked() and block_sigmask()
+     Subject: OpenRISC: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     mips-use-set_current_blocked-and-block_sigmask.patch
+     openrisc-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: MIPS: use set_current_blocked() and block_sigmask()
+Subject: OpenRISC: use set_current_blocked() and block_sigmask()
 
 As described in e6fa16ab ("signal: sigprocmask() should do
 retarget_shared_pending()") the modification of current->blocked is
@@ -49,60 +49,19 @@ across architectures.  In the past some architectures got this code wrong,
 so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Daney <ddaney@caviumnetworks.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/signal.c     |   27 +++++----------------------
- arch/mips/kernel/signal32.c   |   20 ++++----------------
- arch/mips/kernel/signal_n32.c |   10 ++--------
- 3 files changed, 11 insertions(+), 46 deletions(-)
+ arch/openrisc/kernel/signal.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN arch/mips/kernel/signal.c~mips-use-set_current_blocked-and-block_sigmask arch/mips/kernel/signal.c
---- a/arch/mips/kernel/signal.c~mips-use-set_current_blocked-and-block_sigmask
-+++ a/arch/mips/kernel/signal.c
-@@ -256,11 +256,8 @@ asmlinkage int sys_sigsuspend(nabi_no_re
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -285,11 +282,8 @@ asmlinkage int sys_rt_sigsuspend(nabi_no
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -361,10 +355,7 @@ asmlinkage void sys_sigreturn(nabi_no_re
- 		goto badframe;
- 
- 	sigdelsetmask(&blocked, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = blocked;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&blocked);
- 
- 	sig = restore_sigcontext(&regs, &frame->sf_sc);
- 	if (sig < 0)
-@@ -400,10 +391,7 @@ asmlinkage void sys_rt_sigreturn(nabi_no
+diff -puN arch/openrisc/kernel/signal.c~openrisc-use-set_current_blocked-and-block_sigmask arch/openrisc/kernel/signal.c
+--- a/arch/openrisc/kernel/signal.c~openrisc-use-set_current_blocked-and-block_sigmask
++++ a/arch/openrisc/kernel/signal.c
+@@ -102,10 +102,7 @@ asmlinkage long _sys_rt_sigreturn(struct
  		goto badframe;
  
  	sigdelsetmask(&set, ~_BLOCKABLE);
@@ -112,9 +71,9 @@ diff -puN arch/mips/kernel/signal.c~mips-use-set_current_blocked-and-block_sigma
 -	spin_unlock_irq(&current->sighand->siglock);
 +	set_current_blocked(&set);
  
- 	sig = restore_sigcontext(&regs, &frame->rs_uc.uc_mcontext);
- 	if (sig < 0)
-@@ -579,12 +567,7 @@ static int handle_signal(unsigned long s
+ 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+ 		goto badframe;
+@@ -265,13 +262,7 @@ handle_signal(unsigned long sig,
  	if (ret)
  		return ret;
  
@@ -123,94 +82,14 @@ diff -puN arch/mips/kernel/signal.c~mips-use-set_current_blocked-and-block_sigma
 -	if (!(ka->sa.sa_flags & SA_NODEFER))
 -		sigaddset(&current->blocked, sig);
 -	recalc_sigpending();
+-
 -	spin_unlock_irq(&current->sighand->siglock);
 +	block_sigmask(ka, sig);
  
- 	return ret;
+ 	return 0;
  }
-diff -puN arch/mips/kernel/signal32.c~mips-use-set_current_blocked-and-block_sigmask arch/mips/kernel/signal32.c
---- a/arch/mips/kernel/signal32.c~mips-use-set_current_blocked-and-block_sigmask
-+++ a/arch/mips/kernel/signal32.c
-@@ -290,11 +290,8 @@ asmlinkage int sys32_sigsuspend(nabi_no_
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -318,11 +315,8 @@ asmlinkage int sys32_rt_sigsuspend(nabi_
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -488,10 +482,7 @@ asmlinkage void sys32_sigreturn(nabi_no_
- 		goto badframe;
- 
- 	sigdelsetmask(&blocked, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = blocked;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&blocked);
- 
- 	sig = restore_sigcontext32(&regs, &frame->sf_sc);
- 	if (sig < 0)
-@@ -529,10 +520,7 @@ asmlinkage void sys32_rt_sigreturn(nabi_
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	sig = restore_sigcontext32(&regs, &frame->rs_uc.uc_mcontext);
- 	if (sig < 0)
-diff -puN arch/mips/kernel/signal_n32.c~mips-use-set_current_blocked-and-block_sigmask arch/mips/kernel/signal_n32.c
---- a/arch/mips/kernel/signal_n32.c~mips-use-set_current_blocked-and-block_sigmask
-+++ a/arch/mips/kernel/signal_n32.c
-@@ -94,11 +94,8 @@ asmlinkage int sysn32_rt_sigsuspend(nabi
- 	sigset_from_compat(&newset, &uset);
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -122,10 +119,7 @@ asmlinkage void sysn32_rt_sigreturn(nabi
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	sig = restore_sigcontext(&regs, &frame->rs_uc.uc_mcontext);
- 	if (sig < 0)
 _
-Subject: Subject: MIPS: use set_current_blocked() and block_sigmask()
+Subject: Subject: OpenRISC: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
