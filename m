@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cris-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:33:38 -0800
-Message-ID: <20120215003339.0A38CA02DE@akpm.mtv.corp.google.com>
+Subject: + frv-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:33:40 -0800
+Message-ID: <20120215003340.EEA9AA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:60577 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757400Ab2BOAdk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:40 -0500
-Received: by qcsp5 with SMTP id p5so75320qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:39 -0800 (PST)
+Received: from mail-qw0-f74.google.com ([209.85.216.74]:37933 "EHLO
+	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757400Ab2BOAdm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:42 -0500
+Received: by mail-qw0-f74.google.com with SMTP id b12so127011qad.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, jesper.nilsson@axis.com, oleg@redhat.com, starvik@axis.com
+Cc: matt.fleming@intel.com, dhowells@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: cris: use set_current_blocked() and block_sigmask()
+     Subject: frv: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     cris-use-set_current_blocked-and-block_sigmask.patch
+     frv-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: cris: use set_current_blocked() and block_sigmask()
+Subject: frv: use set_current_blocked() and block_sigmask()
 
 As described in e6fa16ab ("signal: sigprocmask() should do
 retarget_shared_pending()") the modification of current->blocked is
@@ -49,22 +49,21 @@ across architectures.  In the past some architectures got this code wrong,
 so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/signal.c |   34 ++++++++----------------
- arch/cris/arch-v32/kernel/signal.c |   37 ++++++++-------------------
- 2 files changed, 23 insertions(+), 48 deletions(-)
+ arch/frv/kernel/signal.c |   32 ++++++++++----------------------
+ 1 file changed, 10 insertions(+), 22 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/signal.c~cris-use-set_current_blocked-and-block_sigmask arch/cris/arch-v10/kernel/signal.c
---- a/arch/cris/arch-v10/kernel/signal.c~cris-use-set_current_blocked-and-block_sigmask
-+++ a/arch/cris/arch-v10/kernel/signal.c
-@@ -50,12 +50,14 @@ void do_signal(int canrestart, struct pt
- int sys_sigsuspend(old_sigset_t mask, long r11, long r12, long r13, long mof,
- 	long srp, struct pt_regs *regs)
+diff -puN arch/frv/kernel/signal.c~frv-use-set_current_blocked-and-block_sigmask arch/frv/kernel/signal.c
+--- a/arch/frv/kernel/signal.c~frv-use-set_current_blocked-and-block_sigmask
++++ a/arch/frv/kernel/signal.c
+@@ -40,12 +40,13 @@ struct fdpic_func_descriptor {
+  */
+ asmlinkage int sys_sigsuspend(int history0, int history1, old_sigset_t mask)
  {
 -	mask &= _BLOCKABLE;
 -	spin_lock_irq(&current->sighand->siglock);
@@ -78,11 +77,10 @@ diff -puN arch/cris/arch-v10/kernel/signal.c~cris-use-set_current_blocked-and-bl
 +	mask &= _BLOCKABLE;
 +	siginitset(&blocked, mask);
 +	set_current_blocked(&blocked);
-+
+ 
  	current->state = TASK_INTERRUPTIBLE;
  	schedule();
- 	set_thread_flag(TIF_RESTORE_SIGMASK);
-@@ -184,10 +186,7 @@ asmlinkage int sys_sigreturn(long r10, l
+@@ -158,10 +159,7 @@ asmlinkage int sys_sigreturn(void)
  		goto badframe;
  
  	sigdelsetmask(&set, ~_BLOCKABLE);
@@ -92,9 +90,9 @@ diff -puN arch/cris/arch-v10/kernel/signal.c~cris-use-set_current_blocked-and-bl
 -	spin_unlock_irq(&current->sighand->siglock);
 +	set_current_blocked(&set);
  
- 	if (restore_sigcontext(regs, &frame->sc))
+ 	if (restore_sigcontext(&frame->sc, &gr8))
  		goto badframe;
-@@ -223,10 +222,7 @@ asmlinkage int sys_rt_sigreturn(long r10
+@@ -184,10 +182,7 @@ asmlinkage int sys_rt_sigreturn(void)
  		goto badframe;
  
  	sigdelsetmask(&set, ~_BLOCKABLE);
@@ -104,86 +102,16 @@ diff -puN arch/cris/arch-v10/kernel/signal.c~cris-use-set_current_blocked-and-bl
 -	spin_unlock_irq(&current->sighand->siglock);
 +	set_current_blocked(&set);
  
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+ 	if (restore_sigcontext(&frame->uc.uc_mcontext, &gr8))
  		goto badframe;
-@@ -468,15 +464,9 @@ static inline int handle_signal(int canr
+@@ -474,15 +469,8 @@ static int handle_signal(unsigned long s
  	else
- 		ret = setup_frame(sig, ka, oldset, regs);
+ 		ret = setup_frame(sig, ka, oldset);
  
 -	if (ret == 0) {
 -		spin_lock_irq(&current->sighand->siglock);
 -		sigorsets(&current->blocked, &current->blocked,
--			&ka->sa.sa_mask);
--		if (!(ka->sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked, sig);
--		recalc_sigpending();
--		spin_unlock_irq(&current->sighand->siglock);
--	}
-+	if (ret == 0)
-+		block_sigmask(ka, sig);
-+
- 	return ret;
- }
- 
-diff -puN arch/cris/arch-v32/kernel/signal.c~cris-use-set_current_blocked-and-block_sigmask arch/cris/arch-v32/kernel/signal.c
---- a/arch/cris/arch-v32/kernel/signal.c~cris-use-set_current_blocked-and-block_sigmask
-+++ a/arch/cris/arch-v32/kernel/signal.c
-@@ -62,12 +62,14 @@ int
- sys_sigsuspend(old_sigset_t mask, long r11, long r12, long r13, long mof,
- 	       long srp, struct pt_regs *regs)
- {
--	mask &= _BLOCKABLE;
--	spin_lock_irq(&current->sighand->siglock);
-+	sigset_t blocked;
-+
- 	current->saved_sigmask = current->blocked;
--	siginitset(&current->blocked, mask);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+
-+	mask &= _BLOCKABLE;
-+	siginitset(&blocked, mask);
-+	set_current_blocked(&blocked);
-+
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
- 	set_thread_flag(TIF_RESTORE_SIGMASK);
-@@ -176,12 +178,7 @@ sys_sigreturn(long r10, long r11, long r
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--
--	current->blocked = set;
--
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->sc))
- 		goto badframe;
-@@ -222,12 +219,7 @@ sys_rt_sigreturn(long r10, long r11, lon
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--
--	current->blocked = set;
--
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
- 		goto badframe;
-@@ -515,15 +507,8 @@ handle_signal(int canrestart, unsigned l
- 	if (ka->sa.sa_flags & SA_ONESHOT)
- 		ka->sa.sa_handler = SIG_DFL;
- 
--	if (ret == 0) {
--		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked, &current->blocked,
--			&ka->sa.sa_mask);
+-			  &ka->sa.sa_mask);
 -		if (!(ka->sa.sa_flags & SA_NODEFER))
 -			sigaddset(&current->blocked, sig);
 -		recalc_sigpending();
@@ -193,9 +121,9 @@ diff -puN arch/cris/arch-v32/kernel/signal.c~cris-use-set_current_blocked-and-bl
 +		block_sigmask(ka, sig);
  
  	return ret;
- }
+ 
 _
-Subject: Subject: cris: use set_current_blocked() and block_sigmask()
+Subject: Subject: frv: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
