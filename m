@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-replace-numa_build-with-is_enabledconfig_numa.patch added to -mm tree
-Date: Wed, 15 Feb 2012 14:50:59 -0800
-Message-ID: <20120215225059.EA5C0A0295@akpm.mtv.corp.google.com>
+Subject: + ptrace-the-killed-tracee-should-not-enter-the-syscall.patch added to -mm tree
+Date: Wed, 15 Feb 2012 14:54:27 -0800
+Message-ID: <20120215225428.4F62BA0245@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:55798 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755784Ab2BOWvD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 17:51:03 -0500
-Received: by eekb15 with SMTP id b15so59077eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 14:51:01 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:52001 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472Ab2BOWyb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 17:54:31 -0500
+Received: by wgbds12 with SMTP id ds12so57632wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 14:54:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org
+Cc: oleg@redhat.com, fweisbec@gmail.com, indan@nul.nu, jan.kratochvil@redhat.com, palves@redhat.com, rostedt@goodmis.org, scarybeasts@gmail.com, tj@kernel.org, vda.linux@googlemail.com
 
 
 The patch titled
-     Subject: mm: replace NUMA_BUILD with IS_ENABLED(CONFIG_NUMA)
+     Subject: ptrace: the killed tracee should not enter the syscall
 has been added to the -mm tree.  Its filename is
-     mm-replace-numa_build-with-is_enabledconfig_numa.patch
+     ptrace-the-killed-tracee-should-not-enter-the-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,155 +33,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: replace NUMA_BUILD with IS_ENABLED(CONFIG_NUMA)
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: ptrace: the killed tracee should not enter the syscall
 
-And another candidate for replacing with IS_ENABLED() macro.
+Another old/known problem.  If the tracee is killed after it reports
+syscall_entry, it starts the syscall and debugger can't control this. 
+This confuses the users and this creates the security problems for ptrace
+jailers.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Change tracehook_report_syscall_entry() to return non-zero if killed, this
+instructs syscall_trace_enter() to abort the syscall.
+
+Reported-by: Chris Evans <scarybeasts@gmail.com>
+Tested-by: Indan Zupancic <indan@nul.nu>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Pedro Alves <palves@redhat.com>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |    2 +-
- include/linux/kernel.h |    7 -------
- mm/page_alloc.c        |   18 ++++++++++--------
- mm/vmalloc.c           |    4 ++--
- 4 files changed, 13 insertions(+), 18 deletions(-)
+ include/linux/tracehook.h |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-replace-numa_build-with-is_enabledconfig_numa include/linux/gfp.h
---- a/include/linux/gfp.h~mm-replace-numa_build-with-is_enabledconfig_numa
-+++ a/include/linux/gfp.h
-@@ -264,7 +264,7 @@ static inline enum zone_type gfp_zone(gf
- 
- static inline int gfp_zonelist(gfp_t flags)
+diff -puN include/linux/tracehook.h~ptrace-the-killed-tracee-should-not-enter-the-syscall include/linux/tracehook.h
+--- a/include/linux/tracehook.h~ptrace-the-killed-tracee-should-not-enter-the-syscall
++++ a/include/linux/tracehook.h
+@@ -54,12 +54,12 @@ struct linux_binprm;
+ /*
+  * ptrace report for syscall entry and exit looks identical.
+  */
+-static inline void ptrace_report_syscall(struct pt_regs *regs)
++static inline int ptrace_report_syscall(struct pt_regs *regs)
  {
--	if (NUMA_BUILD && unlikely(flags & __GFP_THISNODE))
-+	if (IS_ENABLED(CONFIG_NUMA) && unlikely(flags & __GFP_THISNODE))
- 		return 1;
+ 	int ptrace = current->ptrace;
  
- 	return 0;
-diff -puN include/linux/kernel.h~mm-replace-numa_build-with-is_enabledconfig_numa include/linux/kernel.h
---- a/include/linux/kernel.h~mm-replace-numa_build-with-is_enabledconfig_numa
-+++ a/include/linux/kernel.h
-@@ -726,13 +726,6 @@ extern int __build_bug_on_failed;
- /* Trap pasters of __FUNCTION__ at compile-time */
- #define __FUNCTION__ (__func__)
+ 	if (!(ptrace & PT_PTRACED))
+-		return;
++		return 0;
  
--/* This helps us to avoid #ifdef CONFIG_NUMA */
--#ifdef CONFIG_NUMA
--#define NUMA_BUILD 1
--#else
--#define NUMA_BUILD 0
--#endif
--
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
- # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
-diff -puN mm/page_alloc.c~mm-replace-numa_build-with-is_enabledconfig_numa mm/page_alloc.c
---- a/mm/page_alloc.c~mm-replace-numa_build-with-is_enabledconfig_numa
-+++ a/mm/page_alloc.c
-@@ -1720,7 +1720,7 @@ zonelist_scan:
- 	 */
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 						high_zoneidx, nodemask) {
--		if (NUMA_BUILD && zlc_active &&
-+		if (IS_ENABLED(CONFIG_NUMA) && zlc_active &&
- 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
- 				continue;
- 		if ((alloc_flags & ALLOC_CPUSET) &&
-@@ -1766,7 +1766,8 @@ zonelist_scan:
- 				    classzone_idx, alloc_flags))
- 				goto try_this_zone;
+ 	ptrace_notify(SIGTRAP | ((ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
  
--			if (NUMA_BUILD && !did_zlc_setup && nr_online_nodes > 1) {
-+			if (IS_ENABLED(CONFIG_NUMA) &&
-+			    !did_zlc_setup && nr_online_nodes > 1) {
- 				/*
- 				 * we do zlc_setup if there are multiple nodes
- 				 * and before considering the first zone allowed
-@@ -1784,7 +1785,7 @@ zonelist_scan:
- 			 * As we may have just activated ZLC, check if the first
- 			 * eligible zone has failed zone_reclaim recently.
- 			 */
--			if (NUMA_BUILD && zlc_active &&
-+			if (IS_ENABLED(CONFIG_NUMA) && zlc_active &&
- 				!zlc_zone_worth_trying(zonelist, z, allowednodes))
- 				continue;
- 
-@@ -1810,11 +1811,11 @@ try_this_zone:
- 		if (page)
- 			break;
- this_zone_full:
--		if (NUMA_BUILD)
-+		if (IS_ENABLED(CONFIG_NUMA))
- 			zlc_mark_zone_full(zonelist, z);
+@@ -72,6 +72,8 @@ static inline void ptrace_report_syscall
+ 		send_sig(current->exit_code, current, 1);
+ 		current->exit_code = 0;
  	}
- 
--	if (unlikely(NUMA_BUILD && page == NULL && zlc_active)) {
-+	if (IS_ENABLED(CONFIG_NUMA) && unlikely(page == NULL && zlc_active)) {
- 		/* Disable zlc cache for second zonelist scan */
- 		zlc_active = 0;
- 		goto zonelist_scan;
-@@ -2082,7 +2083,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- 		return NULL;
- 
- 	/* After successful reclaim, reconsider all zones for allocation */
--	if (NUMA_BUILD)
-+	if (IS_ENABLED(CONFIG_NUMA))
- 		zlc_clear_zones_full(zonelist);
- 
- retry:
-@@ -2215,7 +2216,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	 * allowed per node queues are empty and that nodes are
- 	 * over allocated.
- 	 */
--	if (NUMA_BUILD && (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
-+	if (IS_ENABLED(CONFIG_NUMA) &&
-+	    (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
- 		goto nopage;
- 
- restart:
-@@ -2591,7 +2593,7 @@ unsigned int nr_free_pagecache_pages(voi
- 
- static inline void show_node(struct zone *zone)
- {
--	if (NUMA_BUILD)
-+	if (IS_ENABLED(CONFIG_NUMA))
- 		printk("Node %d ", zone_to_nid(zone));
++
++	return fatal_signal_pending(current);
  }
  
-diff -puN mm/vmalloc.c~mm-replace-numa_build-with-is_enabledconfig_numa mm/vmalloc.c
---- a/mm/vmalloc.c~mm-replace-numa_build-with-is_enabledconfig_numa
-+++ a/mm/vmalloc.c
-@@ -2538,7 +2538,7 @@ static void s_stop(struct seq_file *m, v
- 
- static void show_numa_info(struct seq_file *m, struct vm_struct *v)
+ /**
+@@ -96,8 +98,7 @@ static inline void ptrace_report_syscall
+ static inline __must_check int tracehook_report_syscall_entry(
+ 	struct pt_regs *regs)
  {
--	if (NUMA_BUILD) {
-+	if (IS_ENABLED(CONFIG_NUMA)) {
- 		unsigned int nr, *counters = m->private;
+-	ptrace_report_syscall(regs);
+-	return 0;
++	return ptrace_report_syscall(regs);
+ }
  
- 		if (!counters)
-@@ -2603,7 +2603,7 @@ static int vmalloc_open(struct inode *in
- 	unsigned int *ptr = NULL;
- 	int ret;
- 
--	if (NUMA_BUILD) {
-+	if (IS_ENABLED(CONFIG_NUMA)) {
- 		ptr = kmalloc(nr_node_ids * sizeof(unsigned int), GFP_KERNEL);
- 		if (ptr == NULL)
- 			return -ENOMEM;
+ /**
 _
-Subject: Subject: mm: replace NUMA_BUILD with IS_ENABLED(CONFIG_NUMA)
+Subject: Subject: ptrace: the killed tracee should not enter the syscall
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 linux-next.patch
-mm-add-rss-counters-consistency-check.patch
-mm-make-get_mm_counter-static-inline.patch
-mm-replace-page_migration-with-is_enabledconfig_migration.patch
-mm-replace-compaction_build-with-is_enabledconfig_compaction.patch
-mm-replace-numa_build-with-is_enabledconfig_numa.patch
-mm-fix-page-faults-detection-in-swap-token-logic.patch
-memcg-kill-dead-prev_priority-stubs.patch
+arm-use-set_current_blocked-and-block_sigmask.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+powerpc-use-set_current_blocked-and-block_sigmask.patch
+hexagon-use-set_current_blocked-and-block_sigmask.patch
+tile-use-set_current_blocked-and-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+mips-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+openrisc-dont-reimplement-force_sigsegv.patch
+openrisc-no-need-to-reset-handler-if-sa_oneshot.patch
+openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+openrisc-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
+s390-use-block_sigmask.patch
+xtensa-dont-reimplement-force_sigsegv.patch
+xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
+xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+xtensa-use-set_current_blocked-and-block_sigmask.patch
+sparc-use-block_sigmask.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+sh-no-need-to-reset-handler-if-sa_oneshot.patch
+sh-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+alpha-use-set_current_blocked-and-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+c6x-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+um-dont-restore-current-blocked-on-error.patch
+um-use-set_current_blocked-and-block_sigmask.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+ptrace-the-killed-tracee-should-not-enter-the-syscall.patch
+ptrace-dont-send-sigtrap-on-exec-if-seized.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+usermodehelper-use-umh_wait_proc-consistently.patch
+usermodehelper-introduce-umh_completesub_info.patch
+usermodehelper-implement-umh_killable.patch
+usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+kmod-introduce-call_modprobe-helper.patch
+kmod-make-__request_module-killable.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix-fix.patch
 
