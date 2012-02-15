@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + unicore32-use-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:34 -0800
-Message-ID: <20120215003434.C9EA2A02DE@akpm.mtv.corp.google.com>
+Subject: + um-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:32 -0800
+Message-ID: <20120215003432.EA71DA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:57759 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761424Ab2BOAef (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:35 -0500
-Received: by mail-qy0-f202.google.com with SMTP id p5so75376qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:35 -0800 (PST)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:60283 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761422Ab2BOAef (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 14 Feb 2012 19:34:35 -0500
+Received: by lahl5 with SMTP id l5so16011lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, gxt@mprc.pku.edu.cn, oleg@redhat.com
+Cc: matt.fleming@intel.com, oleg@redhat.com, richard@nod.at
 
 
 The patch titled
-     Subject: unicore32: use block_sigmask()
+     Subject: um: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     unicore32-use-block_sigmask.patch
+     um-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +35,69 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: unicore32: use block_sigmask()
+Subject: um: use set_current_blocked() and block_sigmask()
 
-Use the new helper function introduced in commit 5e6292c0f28f ("signal:
-add block_sigmask() for adding sigmask to current->blocked") which
-centralises the code for updating current->blocked after successfully
-delivering a signal and reduces the amount of duplicate code across
-architectures.  In the past some architectures got this code wrong, so
-using this helper function should stop that from happening again.
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check whether the signal we're about to block is
+pending in the shared queue.
+
+Also, use the new helper function introduced in commit 5e6292c0f28f
+("signal: add block_sigmask() for adding sigmask to current->blocked")
+which centralises the code for updating current->blocked after
+successfully delivering a signal and reduces the amount of duplicate code
+across architectures.  In the past some architectures got this code wrong,
+so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/kernel/signal.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/um/kernel/signal.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN arch/unicore32/kernel/signal.c~unicore32-use-block_sigmask arch/unicore32/kernel/signal.c
---- a/arch/unicore32/kernel/signal.c~unicore32-use-block_sigmask
-+++ a/arch/unicore32/kernel/signal.c
-@@ -370,10 +370,7 @@ static int handle_signal(unsigned long s
- 	/*
- 	 * Block the signal if we were successful.
- 	 */
--	sigorsets(&blocked, &tsk->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&blocked, sig);
--	set_current_blocked(&blocked);
-+	block_sigmask(ka, sig);
+diff -puN arch/um/kernel/signal.c~um-use-set_current_blocked-and-block_sigmask arch/um/kernel/signal.c
+--- a/arch/um/kernel/signal.c~um-use-set_current_blocked-and-block_sigmask
++++ a/arch/um/kernel/signal.c
+@@ -67,15 +67,8 @@ static int handle_signal(struct pt_regs 
  
- 	return 0;
+ 	if (err)
+ 		force_sigsegv(signr, current);
+-	else {
+-		spin_lock_irq(&current->sighand->siglock);
+-		sigorsets(&current->blocked, &current->blocked,
+-			  &ka->sa.sa_mask);
+-		if (!(ka->sa.sa_flags & SA_NODEFER))
+-			sigaddset(&current->blocked, signr);
+-		recalc_sigpending();
+-		spin_unlock_irq(&current->sighand->siglock);
+-	}
++	else
++		block_sigmask(ka, signr);
+ 
+ 	return err;
  }
+@@ -158,12 +151,11 @@ int do_signal(void)
+  */
+ long sys_sigsuspend(int history0, int history1, old_sigset_t mask)
+ {
++	sigset_t blocked;
++
+ 	mask &= _BLOCKABLE;
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->saved_sigmask = current->blocked;
+-	siginitset(&current->blocked, mask);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	siginitset(&blocked, mask);
++	set_current_blocked(&blocked);
+ 
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	schedule();
 _
-Subject: Subject: unicore32: use block_sigmask()
+Subject: Subject: um: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
