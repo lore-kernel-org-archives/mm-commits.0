@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + microblaze-dont-reimplement-force_sigsegv.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:33:52 -0800
-Message-ID: <20120215003352.E6EF7A0326@akpm.mtv.corp.google.com>
+Subject: + microblaze-fix-signal-masking.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:33:56 -0800
+Message-ID: <20120215003356.A8CC6A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757444Ab2BOAdy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:54 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:54 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:40430 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757444Ab2BOAd5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:57 -0500
+Received: by mail-yx0-f202.google.com with SMTP id m1so81317yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: matt.fleming@intel.com, monstr@monstr.eu, oleg@redhat.com
 
 
 The patch titled
-     Subject: microblaze: don't reimplement force_sigsegv()
+     Subject: microblaze: fix signal masking
 has been added to the -mm tree.  Its filename is
-     microblaze-dont-reimplement-force_sigsegv.patch
+     microblaze-fix-signal-masking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: microblaze: don't reimplement force_sigsegv()
+Subject: microblaze: fix signal masking
 
-Instead of open coding the sequence from force_sigsegv() just call it. 
-This also fixes a bug because we were modifying ka->sa.sa_handler (which
-is a copy of sighand->action[]), whereas the intention of the code was to
-modify sighand->action[] directly.
+There are a couple of problems with the current signal code,
 
-As the original code was working with a copy it had no effect on signal
-delivery.
+1. If we failed to setup the signal stack frame then we should not be
+   masking any signals.
+
+2. ka->sa.sa_mask is only added to the current blocked signals list if
+   SA_NODEFER is set in ka->sa.sa_flags.  If we successfully setup the
+   signal frame and are going to run the handler then we must honour
+   sa_mask.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Michal Simek <monstr@monstr.eu>
@@ -50,25 +52,81 @@ Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/signal.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/microblaze/kernel/signal.c |   31 +++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
-diff -puN arch/microblaze/kernel/signal.c~microblaze-dont-reimplement-force_sigsegv arch/microblaze/kernel/signal.c
---- a/arch/microblaze/kernel/signal.c~microblaze-dont-reimplement-force_sigsegv
+diff -puN arch/microblaze/kernel/signal.c~microblaze-fix-signal-masking arch/microblaze/kernel/signal.c
+--- a/arch/microblaze/kernel/signal.c~microblaze-fix-signal-masking
 +++ a/arch/microblaze/kernel/signal.c
-@@ -270,9 +270,7 @@ static void setup_rt_frame(int sig, stru
- 	return;
+@@ -169,7 +169,7 @@ get_sigframe(struct k_sigaction *ka, str
+ 	return (void __user *)((sp - frame_size) & -8UL);
+ }
+ 
+-static void setup_rt_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
++static int setup_rt_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
+ 			sigset_t *set, struct pt_regs *regs)
+ {
+ 	struct rt_sigframe __user *frame;
+@@ -267,10 +267,11 @@ static void setup_rt_frame(int sig, stru
+ 		current->comm, current->pid, frame, regs->pc);
+ #endif
+ 
+-	return;
++	return 0;
  
  give_sigsegv:
--	if (sig == SIGSEGV)
--		ka->sa.sa_handler = SIG_DFL;
--	force_sig(SIGSEGV, current);
-+	force_sigsegv(sig, current);
+ 	force_sigsegv(sig, current);
++	return -EFAULT;
  }
  
  /* Handle restarting system calls */
+@@ -314,21 +315,25 @@ static int
+ handle_signal(unsigned long sig, struct k_sigaction *ka,
+ 		siginfo_t *info, sigset_t *oldset, struct pt_regs *regs)
+ {
++	int ret;
++
+ 	/* Set up the stack frame */
+ 	if (ka->sa.sa_flags & SA_SIGINFO)
+-		setup_rt_frame(sig, ka, info, oldset, regs);
++		ret = setup_rt_frame(sig, ka, info, oldset, regs);
+ 	else
+-		setup_rt_frame(sig, ka, NULL, oldset, regs);
++		ret = setup_rt_frame(sig, ka, NULL, oldset, regs);
++
++	if (ret)
++		return ret;
+ 
+-	if (!(ka->sa.sa_flags & SA_NODEFER)) {
+-		spin_lock_irq(&current->sighand->siglock);
+-		sigorsets(&current->blocked,
+-				&current->blocked, &ka->sa.sa_mask);
++	spin_lock_irq(&current->sighand->siglock);
++	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
++	if (!(ka->sa.sa_flags & SA_NODEFER))
+ 		sigaddset(&current->blocked, sig);
+-		recalc_sigpending();
+-		spin_unlock_irq(&current->sighand->siglock);
+-	}
+-	return 1;
++	recalc_sigpending();
++	spin_unlock_irq(&current->sighand->siglock);
++
++	return 0;
+ }
+ 
+ /*
+@@ -369,7 +374,7 @@ int do_signal(struct pt_regs *regs, sigs
+ 		/* Whee! Actually deliver the signal. */
+ 		if (in_syscall)
+ 			handle_restart(regs, &ka, 1);
+-		if (handle_signal(signr, &ka, &info, oldset, regs)) {
++		if (!handle_signal(signr, &ka, &info, oldset, regs)) {
+ 			/*
+ 			 * A signal was successfully delivered; the saved
+ 			 * sigmask will have been stored in the signal frame,
 _
-Subject: Subject: microblaze: don't reimplement force_sigsegv()
+Subject: Subject: microblaze: fix signal masking
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
