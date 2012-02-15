@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + um-dont-restore-current-blocked-on-error.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:30 -0800
-Message-ID: <20120215003430.E5DA3A02DE@akpm.mtv.corp.google.com>
+Subject: + tile-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:28 -0800
+Message-ID: <20120215003428.F0F36A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761422Ab2BOAec (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:32 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:32 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:41505 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761422Ab2BOAea (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:30 -0500
+Received: by ggnp1 with SMTP id p1so77871ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, oleg@redhat.com, richard@nod.at
+Cc: matt.fleming@intel.com, arnd@arndb.de, cmetcalf@tilera.com, oleg@redhat.com
 
 
 The patch titled
-     Subject: um: don't restore current->blocked on error
+     Subject: tile: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     um-dont-restore-current-blocked-on-error.patch
+     tile-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,78 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: um: don't restore current->blocked on error
+Subject: tile: use set_current_blocked() and block_sigmask()
 
-If we fail to setup the signal stack frame then we don't need to restore
-current->blocked because it is not modified by setup_signal_stack_*.
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check whether the signal we're about to block is
+pending in the shared queue.
+
+Also, use the new helper function introduced in commit 5e6292c0f28f
+("signal: add block_sigmask() for adding sigmask to current->blocked")
+which centralises the code for updating current->blocked after
+successfully delivering a signal and reduces the amount of duplicate code
+across architectures.  In the past some architectures got this code wrong,
+so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Richard Weinberger <richard@nod.at>
-Tested-by: Richard Weinberger <richard@nod.at>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/signal.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/tile/kernel/compat_signal.c |    5 +----
+ arch/tile/kernel/signal.c        |   13 ++-----------
+ 2 files changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN arch/um/kernel/signal.c~um-dont-restore-current-blocked-on-error arch/um/kernel/signal.c
---- a/arch/um/kernel/signal.c~um-dont-restore-current-blocked-on-error
-+++ a/arch/um/kernel/signal.c
-@@ -65,13 +65,9 @@ static int handle_signal(struct pt_regs 
- #endif
- 		err = setup_signal_stack_si(sp, signr, ka, regs, info, oldset);
+diff -puN arch/tile/kernel/compat_signal.c~tile-use-set_current_blocked-and-block_sigmask arch/tile/kernel/compat_signal.c
+--- a/arch/tile/kernel/compat_signal.c~tile-use-set_current_blocked-and-block_sigmask
++++ a/arch/tile/kernel/compat_signal.c
+@@ -303,10 +303,7 @@ long compat_sys_rt_sigreturn(struct pt_r
+ 		goto badframe;
  
--	if (err) {
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 
+ 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+ 		goto badframe;
+diff -puN arch/tile/kernel/signal.c~tile-use-set_current_blocked-and-block_sigmask arch/tile/kernel/signal.c
+--- a/arch/tile/kernel/signal.c~tile-use-set_current_blocked-and-block_sigmask
++++ a/arch/tile/kernel/signal.c
+@@ -97,10 +97,7 @@ SYSCALL_DEFINE1(rt_sigreturn, struct pt_
+ 		goto badframe;
+ 
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 
+ 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+ 		goto badframe;
+@@ -286,13 +283,7 @@ static int handle_signal(unsigned long s
+ 		 * the work_pending path in the return-to-user code, and
+ 		 * either way we can re-enable interrupts unconditionally.
+ 		 */
 -		spin_lock_irq(&current->sighand->siglock);
--		current->blocked = *oldset;
+-		sigorsets(&current->blocked,
+-			  &current->blocked, &ka->sa.sa_mask);
+-		if (!(ka->sa.sa_flags & SA_NODEFER))
+-			sigaddset(&current->blocked, sig);
 -		recalc_sigpending();
 -		spin_unlock_irq(&current->sighand->siglock);
-+	if (err)
- 		force_sigsegv(signr, current);
--	} else {
-+	else {
- 		spin_lock_irq(&current->sighand->siglock);
- 		sigorsets(&current->blocked, &current->blocked,
- 			  &ka->sa.sa_mask);
++		block_sigmask(ka, sig);
+ 	}
+ 
+ 	return ret;
 _
-Subject: Subject: um: don't restore current->blocked on error
+Subject: Subject: tile: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
