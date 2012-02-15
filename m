@@ -1,16 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:40 -0800
-Message-ID: <20120215003440.ED60DA02DE@akpm.mtv.corp.google.com>
+Subject: + xtensa-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:42 -0800
+Message-ID: <20120215003442.E1C4AA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:60283 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757373Ab2BOAen (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Feb 2012 19:34:43 -0500
-Received: by mail-lpp01m010-f74.google.com with SMTP id l5so16011lah.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:42 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:38610 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757373Ab2BOAes (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:48 -0500
+Received: by ghrr17 with SMTP id r17so79219ghr.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +17,9 @@ Cc: matt.fleming@intel.com, chris@zankel.net, oleg@redhat.com
 
 
 The patch titled
-     Subject: xtensa: don't mask signals if we fail to setup signal stack
+     Subject: xtensa: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+     xtensa-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,11 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: xtensa: don't mask signals if we fail to setup signal stack
+Subject: xtensa: use set_current_blocked() and block_sigmask()
 
-setup_frame() needs to return an indication of whether it succeeded or
-failed in setting up the signal stack frame.  If setup_frame() fails then
-we must not modify current->blocked.
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check whether the signal we're about to block is
+pending in the shared queue.
+
+Also, use the new helper function introduced in commit 5e6292c0f28f
+("signal: add block_sigmask() for adding sigmask to current->blocked")
+which centralises the code for updating current->blocked after
+successfully delivering a signal and reduces the amount of duplicate code
+across architectures.  In the past some architectures got this code wrong,
+so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
@@ -47,49 +54,53 @@ Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/signal.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/xtensa/kernel/signal.c |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN arch/xtensa/kernel/signal.c~xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack arch/xtensa/kernel/signal.c
---- a/arch/xtensa/kernel/signal.c~xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack
+diff -puN arch/xtensa/kernel/signal.c~xtensa-use-set_current_blocked-and-block_sigmask arch/xtensa/kernel/signal.c
+--- a/arch/xtensa/kernel/signal.c~xtensa-use-set_current_blocked-and-block_sigmask
 +++ a/arch/xtensa/kernel/signal.c
-@@ -336,8 +336,8 @@ gen_return_code(unsigned char *codemem)
- }
+@@ -260,10 +260,7 @@ asmlinkage long xtensa_rt_sigreturn(long
+ 		goto badframe;
  
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
  
--static void setup_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
--			sigset_t *set, struct pt_regs *regs)
-+static int setup_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
-+		       sigset_t *set, struct pt_regs *regs)
- {
- 	struct rt_sigframe *frame;
- 	int err = 0;
-@@ -422,10 +422,11 @@ static void setup_frame(int sig, struct 
- 		current->comm, current->pid, signal, frame, regs->pc);
- #endif
+ 	if (restore_sigcontext(regs, frame))
+ 		goto badframe;
+@@ -448,11 +445,8 @@ asmlinkage long xtensa_rt_sigsuspend(sig
+ 		return -EFAULT;
  
--	return;
-+	return 0;
+ 	sigdelsetmask(&newset, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+ 	saveset = current->blocked;
+-	current->blocked = newset;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&newset);
  
- give_sigsegv:
- 	force_sigsegv(sig, current);
-+	return -EFAULT;
- }
+ 	regs->areg[2] = -EINTR;
+ 	while (1) {
+@@ -539,12 +533,7 @@ int do_signal(struct pt_regs *regs, sigs
+ 		if (ret)
+ 			return ret;
  
- /*
-@@ -534,7 +535,9 @@ int do_signal(struct pt_regs *regs, sigs
+-		spin_lock_irq(&current->sighand->siglock);
+-		sigorsets(&current->blocked, &current->blocked, &ka.sa.sa_mask);
+-		if (!(ka.sa.sa_flags & SA_NODEFER))
+-			sigaddset(&current->blocked, signr);
+-		recalc_sigpending();
+-		spin_unlock_irq(&current->sighand->siglock);
++		block_sigmask(&ka, signr);
+ 		if (current->ptrace & PT_SINGLESTEP)
+ 			task_pt_regs(current)->icountlevel = 1;
  
- 		/* Whee!  Actually deliver the signal.  */
- 		/* Set up the stack frame */
--		setup_frame(signr, &ka, &info, oldset, regs);
-+		ret = setup_frame(signr, &ka, &info, oldset, regs);
-+		if (ret)
-+			return ret;
- 
- 		spin_lock_irq(&current->sighand->siglock);
- 		sigorsets(&current->blocked, &current->blocked, &ka.sa.sa_mask);
 _
-Subject: Subject: xtensa: don't mask signals if we fail to setup signal stack
+Subject: Subject: xtensa: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
