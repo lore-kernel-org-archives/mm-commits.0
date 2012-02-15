@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + microblaze-no-need-to-reset-handler-if-sa_oneshot.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:33:54 -0800
-Message-ID: <20120215003354.AF052A0326@akpm.mtv.corp.google.com>
+Subject: + m32r-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:33:48 -0800
+Message-ID: <20120215003348.F2CC5A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757444Ab2BOAd4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:56 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:39562 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761103Ab2BOAd5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 14 Feb 2012 19:33:57 -0500
+Received: by lahl5 with SMTP id l5so15988lah.1
         for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, monstr@monstr.eu, oleg@redhat.com
+Cc: matt.fleming@intel.com, kyle@redhat.com, oleg@redhat.com, takata@linux-m32r.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: microblaze: no need to reset handler if SA_ONESHOT
+     Subject: m32r: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+     m32r-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +35,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: microblaze: no need to reset handler if SA_ONESHOT
+Subject: m32r: use set_current_blocked() and block_sigmask()
 
-get_signal_to_deliver() already resets the signal handler if SA_ONESHOT is
-set in ka->sa.sa_flags, there's no need to do it again in handle_signal().
- Furthermore, because we were modifying ka->sa.sa_handler (which is a copy
-of sighand->action[]) instead of sighand->action[] the original code
-actually had no effect on signal delivery.
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check whether the signal we're about to block is
+pending in the shared queue.
+
+Also, use the new helper function introduced in commit 5e6292c0f28f
+("signal: add block_sigmask() for adding sigmask to current->blocked")
+which centralises the code for updating current->blocked after
+successfully delivering a signal and reduces the amount of duplicate code
+across architectures.  In the past some architectures got this code wrong,
+so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Michal Simek <monstr@monstr.eu>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Kyle McMartin <kyle@redhat.com>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/signal.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/m32r/kernel/signal.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/microblaze/kernel/signal.c~microblaze-no-need-to-reset-handler-if-sa_oneshot arch/microblaze/kernel/signal.c
---- a/arch/microblaze/kernel/signal.c~microblaze-no-need-to-reset-handler-if-sa_oneshot
-+++ a/arch/microblaze/kernel/signal.c
-@@ -320,9 +320,6 @@ handle_signal(unsigned long sig, struct 
- 	else
- 		setup_rt_frame(sig, ka, NULL, oldset, regs);
+diff -puN arch/m32r/kernel/signal.c~m32r-use-set_current_blocked-and-block_sigmask arch/m32r/kernel/signal.c
+--- a/arch/m32r/kernel/signal.c~m32r-use-set_current_blocked-and-block_sigmask
++++ a/arch/m32r/kernel/signal.c
+@@ -112,10 +112,7 @@ sys_rt_sigreturn(unsigned long r0, unsig
+ 		goto badframe;
  
--	if (ka->sa.sa_flags & SA_ONESHOT)
--		ka->sa.sa_handler = SIG_DFL;
--
- 	if (!(ka->sa.sa_flags & SA_NODEFER)) {
- 		spin_lock_irq(&current->sighand->siglock);
- 		sigorsets(&current->blocked,
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 
+ 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext, &result))
+ 		goto badframe;
+@@ -300,12 +297,7 @@ handle_signal(unsigned long sig, struct 
+ 	if (setup_rt_frame(sig, ka, info, oldset, regs))
+ 		return -EFAULT;
+ 
+-	spin_lock_irq(&current->sighand->siglock);
+-	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&current->blocked,sig);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	block_sigmask(ka, sig);
+ 	return 0;
+ }
+ 
 _
-Subject: Subject: microblaze: no need to reset handler if SA_ONESHOT
+Subject: Subject: m32r: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
