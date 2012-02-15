@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + prio_tree-introduce-prio_set_parent.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:19:21 -0800
-Message-ID: <20120215001921.D2D07A0245@akpm.mtv.corp.google.com>
+Subject: + alpha-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:33:24 -0800
+Message-ID: <20120215003325.4E938A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:40426 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761284Ab2BOATX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:19:23 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so18086eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:19:23 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:47253 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755543Ab2BOAd2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:28 -0500
+Received: by eaaf13 with SMTP id f13so15061eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaoguangrong@linux.vnet.ibm.com
+Cc: matt.fleming@intel.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, oleg@redhat.com, rth@twiddle.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: prio_tree: introduce prio_set_parent()
+     Subject: alpha: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     prio_tree-introduce-prio_set_parent.patch
+     alpha-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,121 +33,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: prio_tree: introduce prio_set_parent()
+From: Matt Fleming <matt.fleming@intel.com>
+Subject: alpha: use set_current_blocked() and block_sigmask()
 
-Introduce prio_set_parent() to abstract the operation which is used to
-attach the node to its parent.
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check for shared signals we're about to block.
 
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Also, use the new helper function introduced in commit 5e6292c0f28f
+("signal: add block_sigmask() for adding sigmask to current->blocked")
+which centralises the code for updating current->blocked after
+successfully delivering a signal and reduces the amount of duplicate code
+across architectures.  In the past some architectures got this code wrong,
+so using this helper function should stop that from happening again.
+
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/prio_tree.c |   47 +++++++++++++++++++++-------------------------
- 1 file changed, 22 insertions(+), 25 deletions(-)
+ arch/alpha/kernel/signal.c |   31 ++++++++++---------------------
+ 1 file changed, 10 insertions(+), 21 deletions(-)
 
-diff -puN lib/prio_tree.c~prio_tree-introduce-prio_set_parent lib/prio_tree.c
---- a/lib/prio_tree.c~prio_tree-introduce-prio_set_parent
-+++ a/lib/prio_tree.c
-@@ -85,6 +85,17 @@ static inline unsigned long prio_tree_ma
- 	return index_bits_to_maxindex[bits - 1];
- }
- 
-+static void prio_set_parent(struct prio_tree_node *parent,
-+			    struct prio_tree_node *child, bool left)
-+{
-+	if (left)
-+		parent->left = child;
-+	else
-+		parent->right = child;
+diff -puN arch/alpha/kernel/signal.c~alpha-use-set_current_blocked-and-block_sigmask arch/alpha/kernel/signal.c
+--- a/arch/alpha/kernel/signal.c~alpha-use-set_current_blocked-and-block_sigmask
++++ a/arch/alpha/kernel/signal.c
+@@ -120,12 +120,13 @@ SYSCALL_DEFINE5(rt_sigaction, int, sig, 
+  */
+ SYSCALL_DEFINE1(sigsuspend, old_sigset_t, mask)
+ {
+-	mask &= _BLOCKABLE;
+-	spin_lock_irq(&current->sighand->siglock);
++	sigset_t blocked;
 +
-+	child->parent = parent;
-+}
+ 	current->saved_sigmask = current->blocked;
+-	siginitset(&current->blocked, mask);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
 +
- /*
-  * Extend a priority search tree so that it can store a node with heap_index
-  * max_heap_index. In the worst case, this algorithm takes O((log n)^2).
-@@ -113,15 +124,12 @@ static struct prio_tree_node *prio_tree_
- 		prio_tree_remove(root, root->prio_tree_node);
- 		INIT_PRIO_TREE_NODE(tmp);
++	mask &= _BLOCKABLE;
++	siginitset(&blocked, mask);
++	set_current_blocked(&blocked);
  
--		prev->left = tmp;
--		tmp->parent = prev;
-+		prio_set_parent(prev, tmp, true);
- 		prev = tmp;
- 	}
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	schedule();
+@@ -238,10 +239,7 @@ do_sigreturn(struct sigcontext __user *s
+ 		goto give_sigsegv;
  
--	if (!prio_tree_empty(root)) {
--		prev->left = root->prio_tree_node;
--		prev->left->parent = prev;
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 
+ 	if (restore_sigcontext(sc, regs, sw))
+ 		goto give_sigsegv;
+@@ -276,10 +274,7 @@ do_rt_sigreturn(struct rt_sigframe __use
+ 		goto give_sigsegv;
+ 
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 
+ 	if (restore_sigcontext(&frame->uc.uc_mcontext, regs, sw))
+ 		goto give_sigsegv;
+@@ -501,14 +496,8 @@ handle_signal(int sig, struct k_sigactio
+ 	else
+ 		ret = setup_frame(sig, ka, oldset, regs, sw);
+ 
+-	if (ret == 0) {
+-		spin_lock_irq(&current->sighand->siglock);
+-		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
+-		if (!(ka->sa.sa_flags & SA_NODEFER)) 
+-			sigaddset(&current->blocked,sig);
+-		recalc_sigpending();
+-		spin_unlock_irq(&current->sighand->siglock);
 -	}
-+	if (!prio_tree_empty(root))
-+		prio_set_parent(prev, root->prio_tree_node, true);
++	if (ret == 0)
++		block_sigmask(ka, sig);
  
- 	root->prio_tree_node = node;
- 	return node;
-@@ -142,23 +150,14 @@ struct prio_tree_node *prio_tree_replace
- 		 * and does not help much to improve performance (IMO).
- 		 */
- 		root->prio_tree_node = node;
--	} else {
--		node->parent = old->parent;
--		if (old->parent->left == old)
--			old->parent->left = node;
--		else
--			old->parent->right = node;
--	}
-+	} else
-+		prio_set_parent(old->parent, node, old->parent->left == old);
- 
--	if (!prio_tree_left_empty(old)) {
--		node->left = old->left;
--		old->left->parent = node;
--	}
-+	if (!prio_tree_left_empty(old))
-+		prio_set_parent(node, old->left, true);
- 
--	if (!prio_tree_right_empty(old)) {
--		node->right = old->right;
--		old->right->parent = node;
--	}
-+	if (!prio_tree_right_empty(old))
-+		prio_set_parent(node, old->right, false);
- 
- 	return old;
+ 	return ret;
  }
-@@ -218,16 +217,14 @@ struct prio_tree_node *prio_tree_insert(
- 		if (index & mask) {
- 			if (prio_tree_right_empty(cur)) {
- 				INIT_PRIO_TREE_NODE(node);
--				cur->right = node;
--				node->parent = cur;
-+				prio_set_parent(cur, node, false);
- 				return res;
- 			} else
- 				cur = cur->right;
- 		} else {
- 			if (prio_tree_left_empty(cur)) {
- 				INIT_PRIO_TREE_NODE(node);
--				cur->left = node;
--				node->parent = cur;
-+				prio_set_parent(cur, node, true);
- 				return res;
- 			} else
- 				cur = cur->left;
 _
-Subject: Subject: prio_tree: introduce prio_set_parent()
+Subject: Subject: alpha: use set_current_blocked() and block_sigmask()
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from matt.fleming@intel.com are
 
-hugetlbfs-fix-hugetlb_get_unmapped_area.patch
-hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
-hugetlb-try-to-search-again-if-it-is-really-needed.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
-mm-search-from-free_area_cache-for-the-bigger-size.patch
-prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
-prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
-prio_tree-simplify-prio_tree_expand.patch
-prio_tree-introduce-prio_set_parent.patch
+linux-next.patch
+alpha-use-set_current_blocked-and-block_sigmask.patch
+arm-use-set_current_blocked-and-block_sigmask.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+c6x-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+hexagon-use-set_current_blocked-and-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+mips-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+openrisc-dont-reimplement-force_sigsegv.patch
+openrisc-no-need-to-reset-handler-if-sa_oneshot.patch
+openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+openrisc-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
+powerpc-use-set_current_blocked-and-block_sigmask.patch
+use-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+sh-no-need-to-reset-handler-if-sa_oneshot.patch
+sh-use-set_current_blocked-and-block_sigmask.patch
+sparc-use-block_sigmask.patch
+tile-use-set_current_blocked-and-block_sigmask.patch
+um-dont-restore-current-blocked-on-error.patch
+um-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+xtensa-dont-reimplement-force_sigsegv.patch
+xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
+xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+xtensa-use-set_current_blocked-and-block_sigmask.patch
 
