@@ -1,15 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-no-need-to-reset-handler-if-sa_oneshot.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:38 -0800
-Message-ID: <20120215003438.C64C3A02DE@akpm.mtv.corp.google.com>
+Subject: + xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:40 -0800
+Message-ID: <20120215003440.ED60DA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:59737 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761422Ab2BOAek (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:40 -0500
-Received: by mail-ey0-f202.google.com with SMTP id f13so15067eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:39 -0800 (PST)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:60283 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757373Ab2BOAen (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 14 Feb 2012 19:34:43 -0500
+Received: by mail-lpp01m010-f74.google.com with SMTP id l5so16011lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +18,9 @@ Cc: matt.fleming@intel.com, chris@zankel.net, oleg@redhat.com
 
 
 The patch titled
-     Subject: xtensa: no need to reset handler if SA_ONESHOT
+     Subject: xtensa: don't mask signals if we fail to setup signal stack
 has been added to the -mm tree.  Its filename is
-     xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
+     xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +35,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: xtensa: no need to reset handler if SA_ONESHOT
+Subject: xtensa: don't mask signals if we fail to setup signal stack
 
-get_signal_to_deliver() already resets the signal handler if SA_ONESHOT is
-set in ka->sa.sa_flags, there's no need to do it again in handle_signal().
- Furthermore, because we were modifying ka->sa.sa_handler (which is a copy
-of sighand->action[]) instead of sighand->action[] the original code
-actually had no effect on signal delivery.
+setup_frame() needs to return an indication of whether it succeeded or
+failed in setting up the signal stack frame.  If setup_frame() fails then
+we must not modify current->blocked.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
@@ -48,24 +47,49 @@ Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/signal.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/xtensa/kernel/signal.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN arch/xtensa/kernel/signal.c~xtensa-no-need-to-reset-handler-if-sa_oneshot arch/xtensa/kernel/signal.c
---- a/arch/xtensa/kernel/signal.c~xtensa-no-need-to-reset-handler-if-sa_oneshot
+diff -puN arch/xtensa/kernel/signal.c~xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack arch/xtensa/kernel/signal.c
+--- a/arch/xtensa/kernel/signal.c~xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack
 +++ a/arch/xtensa/kernel/signal.c
-@@ -536,9 +536,6 @@ int do_signal(struct pt_regs *regs, sigs
- 		/* Set up the stack frame */
- 		setup_frame(signr, &ka, &info, oldset, regs);
+@@ -336,8 +336,8 @@ gen_return_code(unsigned char *codemem)
+ }
  
--		if (ka.sa.sa_flags & SA_ONESHOT)
--			ka.sa.sa_handler = SIG_DFL;
--
+ 
+-static void setup_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
+-			sigset_t *set, struct pt_regs *regs)
++static int setup_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
++		       sigset_t *set, struct pt_regs *regs)
+ {
+ 	struct rt_sigframe *frame;
+ 	int err = 0;
+@@ -422,10 +422,11 @@ static void setup_frame(int sig, struct 
+ 		current->comm, current->pid, signal, frame, regs->pc);
+ #endif
+ 
+-	return;
++	return 0;
+ 
+ give_sigsegv:
+ 	force_sigsegv(sig, current);
++	return -EFAULT;
+ }
+ 
+ /*
+@@ -534,7 +535,9 @@ int do_signal(struct pt_regs *regs, sigs
+ 
+ 		/* Whee!  Actually deliver the signal.  */
+ 		/* Set up the stack frame */
+-		setup_frame(signr, &ka, &info, oldset, regs);
++		ret = setup_frame(signr, &ka, &info, oldset, regs);
++		if (ret)
++			return ret;
+ 
  		spin_lock_irq(&current->sighand->siglock);
  		sigorsets(&current->blocked, &current->blocked, &ka.sa.sa_mask);
- 		if (!(ka.sa.sa_flags & SA_NODEFER))
 _
-Subject: Subject: xtensa: no need to reset handler if SA_ONESHOT
+Subject: Subject: xtensa: don't mask signals if we fail to setup signal stack
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
