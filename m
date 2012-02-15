@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sh-no-need-to-reset-handler-if-sa_oneshot.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:22 -0800
-Message-ID: <20120215003422.D40BFA02DE@akpm.mtv.corp.google.com>
+Subject: + use-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:16 -0800
+Message-ID: <20120215003416.EDD0CA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:59737 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761416Ab2BOAeY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:24 -0500
-Received: by mail-ey0-f202.google.com with SMTP id f13so15067eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:24 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761412Ab2BOAeS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:18 -0500
+Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, lethal@linux-sh.org, oleg@redhat.com
+Cc: matt.fleming@intel.com, heiko.carstens@de.ibm.com, oleg@redhat.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Subject: sh: no need to reset handler if SA_ONESHOT
+     Subject: S390: use block_sigmask()
 has been added to the -mm tree.  Its filename is
-     sh-no-need-to-reset-handler-if-sa_oneshot.patch
+     use-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: sh: no need to reset handler if SA_ONESHOT
+Subject: S390: use block_sigmask()
 
-get_signal_to_deliver() already resets the signal handler if SA_ONESHOT is
-set in ka->sa.sa_flags, there's no need to do it again in handle_signal().
- Furthermore, because we were modifying ka->sa.sa_handler (which is a copy
-of sighand->action[]) instead of sighand->action[] the original code had
-no effect on signal delivery.
+Use the new helper function introduced in commit 5e6292c0f28f ("signal:
+add block_sigmask() for adding sigmask to current->blocked") which
+centralises the code for updating current->blocked after successfully
+delivering a signal and reduces the amount of duplicate code across
+architectures.
+
+In the past some architectures got this code wrong, so using this helper
+function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/signal_32.c |    3 ---
- arch/sh/kernel/signal_64.c |    3 ---
- 2 files changed, 6 deletions(-)
+ arch/s390/kernel/compat_signal.c |    6 +-----
+ arch/s390/kernel/signal.c        |    6 +-----
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/sh/kernel/signal_32.c~sh-no-need-to-reset-handler-if-sa_oneshot arch/sh/kernel/signal_32.c
---- a/arch/sh/kernel/signal_32.c~sh-no-need-to-reset-handler-if-sa_oneshot
-+++ a/arch/sh/kernel/signal_32.c
-@@ -548,9 +548,6 @@ handle_signal(unsigned long sig, struct 
- 	else
- 		ret = setup_frame(sig, ka, oldset, regs);
+diff -puN arch/s390/kernel/compat_signal.c~use-block_sigmask arch/s390/kernel/compat_signal.c
+--- a/arch/s390/kernel/compat_signal.c~use-block_sigmask
++++ a/arch/s390/kernel/compat_signal.c
+@@ -581,7 +581,6 @@ give_sigsegv:
+ int handle_signal32(unsigned long sig, struct k_sigaction *ka,
+ 		    siginfo_t *info, sigset_t *oldset, struct pt_regs *regs)
+ {
+-	sigset_t blocked;
+ 	int ret;
  
--	if (ka->sa.sa_flags & SA_ONESHOT)
--		ka->sa.sa_handler = SIG_DFL;
--
- 	if (ret == 0) {
- 		spin_lock_irq(&current->sighand->siglock);
- 		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
-diff -puN arch/sh/kernel/signal_64.c~sh-no-need-to-reset-handler-if-sa_oneshot arch/sh/kernel/signal_64.c
---- a/arch/sh/kernel/signal_64.c~sh-no-need-to-reset-handler-if-sa_oneshot
-+++ a/arch/sh/kernel/signal_64.c
-@@ -734,9 +734,6 @@ handle_signal(unsigned long sig, siginfo
- 	else
- 		ret = setup_frame(sig, ka, oldset, regs);
+ 	/* Set up the stack frame */
+@@ -591,10 +590,7 @@ int handle_signal32(unsigned long sig, s
+ 		ret = setup_frame32(sig, ka, oldset, regs);
+ 	if (ret)
+ 		return ret;
+-	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&blocked, sig);
+-	set_current_blocked(&blocked);
++	block_sigmask(ka, sig);
+ 	return 0;
+ }
  
--	if (ka->sa.sa_flags & SA_ONESHOT)
--		ka->sa.sa_handler = SIG_DFL;
--
- 	if (ret == 0) {
- 		spin_lock_irq(&current->sighand->siglock);
- 		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
+diff -puN arch/s390/kernel/signal.c~use-block_sigmask arch/s390/kernel/signal.c
+--- a/arch/s390/kernel/signal.c~use-block_sigmask
++++ a/arch/s390/kernel/signal.c
+@@ -385,7 +385,6 @@ static int handle_signal(unsigned long s
+ 			 siginfo_t *info, sigset_t *oldset,
+ 			 struct pt_regs *regs)
+ {
+-	sigset_t blocked;
+ 	int ret;
+ 
+ 	/* Set up the stack frame */
+@@ -395,10 +394,7 @@ static int handle_signal(unsigned long s
+ 		ret = setup_frame(sig, ka, oldset, regs);
+ 	if (ret)
+ 		return ret;
+-	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&blocked, sig);
+-	set_current_blocked(&blocked);
++	block_sigmask(ka, sig);
+ 	return 0;
+ }
+ 
 _
-Subject: Subject: sh: no need to reset handler if SA_ONESHOT
+Subject: Subject: S390: use block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
