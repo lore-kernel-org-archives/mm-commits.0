@@ -1,16 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-dont-reimplement-force_sigsegv.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:36 -0800
-Message-ID: <20120215003436.E6DC5A02DE@akpm.mtv.corp.google.com>
+Subject: + xtensa-no-need-to-reset-handler-if-sa_oneshot.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:38 -0800
+Message-ID: <20120215003438.C64C3A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m020-f202.google.com ([209.85.217.202]:56663 "EHLO
-	mail-lpp01m020-f202.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761422Ab2BOAej (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 14 Feb 2012 19:34:39 -0500
-Received: by lban1 with SMTP id n1so7622lba.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:38 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:59737 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761422Ab2BOAek (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:40 -0500
+Received: by mail-ey0-f202.google.com with SMTP id f13so15067eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +17,9 @@ Cc: matt.fleming@intel.com, chris@zankel.net, oleg@redhat.com
 
 
 The patch titled
-     Subject: xtensa: don't reimplement force_sigsegv()
+     Subject: xtensa: no need to reset handler if SA_ONESHOT
 has been added to the -mm tree.  Its filename is
-     xtensa-dont-reimplement-force_sigsegv.patch
+     xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,15 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: xtensa: don't reimplement force_sigsegv()
+Subject: xtensa: no need to reset handler if SA_ONESHOT
 
-Instead of open coding the sequence from force_sigsegv() just call it. 
-This also fixes a bug because we were modifying ka->sa.sa_handler (which
-is a copy of sighand->action[]), whereas the intention of the code was to
-modify sighand->action[] directly.
-
-As the original code was working with a copy it had no effect on signal
-delivery.
+get_signal_to_deliver() already resets the signal handler if SA_ONESHOT is
+set in ka->sa.sa_flags, there's no need to do it again in handle_signal().
+ Furthermore, because we were modifying ka->sa.sa_handler (which is a copy
+of sighand->action[]) instead of sighand->action[] the original code
+actually had no effect on signal delivery.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
@@ -51,25 +48,24 @@ Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/signal.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/xtensa/kernel/signal.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/xtensa/kernel/signal.c~xtensa-dont-reimplement-force_sigsegv arch/xtensa/kernel/signal.c
---- a/arch/xtensa/kernel/signal.c~xtensa-dont-reimplement-force_sigsegv
+diff -puN arch/xtensa/kernel/signal.c~xtensa-no-need-to-reset-handler-if-sa_oneshot arch/xtensa/kernel/signal.c
+--- a/arch/xtensa/kernel/signal.c~xtensa-no-need-to-reset-handler-if-sa_oneshot
 +++ a/arch/xtensa/kernel/signal.c
-@@ -425,9 +425,7 @@ static void setup_frame(int sig, struct 
- 	return;
+@@ -536,9 +536,6 @@ int do_signal(struct pt_regs *regs, sigs
+ 		/* Set up the stack frame */
+ 		setup_frame(signr, &ka, &info, oldset, regs);
  
- give_sigsegv:
--	if (sig == SIGSEGV)
--		ka->sa.sa_handler = SIG_DFL;
--	force_sig(SIGSEGV, current);
-+	force_sigsegv(sig, current);
- }
- 
- /*
+-		if (ka.sa.sa_flags & SA_ONESHOT)
+-			ka.sa.sa_handler = SIG_DFL;
+-
+ 		spin_lock_irq(&current->sighand->siglock);
+ 		sigorsets(&current->blocked, &current->blocked, &ka.sa.sa_mask);
+ 		if (!(ka.sa.sa_flags & SA_NODEFER))
 _
-Subject: Subject: xtensa: don't reimplement force_sigsegv()
+Subject: Subject: xtensa: no need to reset handler if SA_ONESHOT
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
