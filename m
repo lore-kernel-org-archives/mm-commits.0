@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-make-__request_module-killable.patch added to -mm tree
-Date: Wed, 15 Feb 2012 12:31:09 -0800
-Message-ID: <20120215203109.E4A4EA01AD@akpm.mtv.corp.google.com>
+Subject: + kmod-introduce-call_modprobe-helper.patch added to -mm tree
+Date: Wed, 15 Feb 2012 12:31:07 -0800
+Message-ID: <20120215203107.D4C3CA01AD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:38605 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754795Ab2BOUbK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 15:31:10 -0500
-Received: by mail-yw0-f74.google.com with SMTP id m50so198922yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 12:31:10 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:53426 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755302Ab2BOUbJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 15:31:09 -0500
+Received: by yenm1 with SMTP id m1so199329yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 12:31:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, ru
 
 
 The patch titled
-     Subject: kmod: make __request_module() killable
+     Subject: kmod: introduce call_modprobe() helper
 has been added to the -mm tree.  Its filename is
-     kmod-make-__request_module-killable.patch
+     kmod-introduce-call_modprobe-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: kmod: make __request_module() killable
+Subject: kmod: introduce call_modprobe() helper
 
-As Tetsuo Handa pointed out, request_module() can stress the system while
-the oom-killed caller sleeps in TASK_UNINTERRUPTIBLE.
+No functional changes.  Move the call_usermodehelper code from
+__request_module() into the new simple helper, call_modprobe().
 
-Make __request_module() killable.  The only necessary change is that
-call_modprobe() should kmalloc argv and module_name, they can't live in
-the stack if we use UMH_KILLABLE.  This memory is freed via
-call_usermodehelper_freeinfo()->cleanup.
-
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+ kernel/kmod.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-make-__request_module-killable kernel/kmod.c
---- a/kernel/kmod.c~kmod-make-__request_module-killable
+diff -puN kernel/kmod.c~kmod-introduce-call_modprobe-helper kernel/kmod.c
+--- a/kernel/kmod.c~kmod-introduce-call_modprobe-helper
 +++ a/kernel/kmod.c
-@@ -60,6 +60,12 @@ static DECLARE_RWSEM(umhelper_sem);
+@@ -60,6 +60,21 @@ static DECLARE_RWSEM(umhelper_sem);
  */
  char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
  
-+static void free_modprobe_argv(struct subprocess_info *info)
++static int call_modprobe(char *module_name, int wait)
 +{
-+	kfree(info->argv[3]); /* check call_modprobe() */
-+	kfree(info->argv);
++	static char *envp[] = {
++		"HOME=/",
++		"TERM=linux",
++		"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
++		NULL
++	};
++
++	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
++
++	return call_usermodehelper_fns(modprobe_path, argv, envp,
++					wait, NULL, NULL, NULL);
 +}
 +
- static int call_modprobe(char *module_name, int wait)
- {
- 	static char *envp[] = {
-@@ -69,10 +75,26 @@ static int call_modprobe(char *module_na
- 		NULL
- 	};
- 
--	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
-+	char **argv = kmalloc(sizeof(char *[5]), GFP_KERNEL);
-+	if (!argv)
-+		goto out;
-+
-+	module_name = kstrdup(module_name, GFP_KERNEL);
-+	if (!module_name)
-+		goto free_argv;
-+
-+	argv[0] = modprobe_path;
-+	argv[1] = "-q";
-+	argv[2] = "--";
-+	argv[3] = module_name;	/* check free_modprobe_argv() */
-+	argv[4] = NULL;
- 
- 	return call_usermodehelper_fns(modprobe_path, argv, envp,
--					wait, NULL, NULL, NULL);
-+		wait | UMH_KILLABLE, NULL, free_modprobe_argv, NULL);
-+free_argv:
-+	kfree(argv);
-+out:
-+	return -ENOMEM;
- }
- 
  /**
+  * __request_module - try to load a kernel module
+  * @wait: wait (or not) for the operation to complete
+@@ -81,11 +96,6 @@ int __request_module(bool wait, const ch
+ 	char module_name[MODULE_NAME_LEN];
+ 	unsigned int max_modprobes;
+ 	int ret;
+-	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
+-	static char *envp[] = { "HOME=/",
+-				"TERM=linux",
+-				"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
+-				NULL };
+ 	static atomic_t kmod_concurrent = ATOMIC_INIT(0);
+ #define MAX_KMOD_CONCURRENT 50	/* Completely arbitrary value - KAO */
+ 	static int kmod_loop_msg;
+@@ -128,9 +138,7 @@ int __request_module(bool wait, const ch
+ 
+ 	trace_module_request(module_name, wait, _RET_IP_);
+ 
+-	ret = call_usermodehelper_fns(modprobe_path, argv, envp,
+-			wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC,
+-			NULL, NULL, NULL);
++	ret = call_modprobe(module_name, wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC);
+ 
+ 	atomic_dec(&kmod_concurrent);
+ 	return ret;
 _
-Subject: Subject: kmod: make __request_module() killable
+Subject: Subject: kmod: introduce call_modprobe() helper
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
