@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix.patch added to -mm tree
-Date: Wed, 15 Feb 2012 13:53:19 -0800
-Message-ID: <20120215215320.319F4A02DE@akpm.mtv.corp.google.com>
+Subject: + syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix.patch added to -mm tree
+Date: Wed, 15 Feb 2012 13:53:22 -0800
+Message-ID: <20120215215322.237C8A03DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:53366 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812Ab2BOVxW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 16:53:22 -0500
-Received: by ggnp1 with SMTP id p1so203634ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 13:53:20 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57248 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755743Ab2BOVxY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 16:53:24 -0500
+Received: by eekb15 with SMTP id b15so57821eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 13:53:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, ebiederm@xmission.com, fweisbec@gmail.com, gorcun
 
 
 The patch titled
-     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix
+     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix.patch
+     syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix
+Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix
+
+kcmp_test.c: In function 'main':
+kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 4 has type 'long int'
+kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 5 has type 'long int'
+kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 6 has type 'long int'
+kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 7 has type 'long int'
+kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 8 has type 'long int'
+kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 9 has type 'long int'
+kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 10 has type 'long int'
+kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 11 has type 'long int'
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
@@ -42,22 +52,26 @@ Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kcmp/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/kcmp/kcmp_test.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN tools/testing/selftests/kcmp/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix tools/testing/selftests/kcmp/Makefile
---- a/tools/testing/selftests/kcmp/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix
-+++ a/tools/testing/selftests/kcmp/Makefile
-@@ -12,6 +12,7 @@ endif
- CFLAGS += -I../../../../arch/x86/include/generated/
- CFLAGS += -I../../../../include/
- CFLAGS += -I../../../../usr/include/
-+CFLAGS += -I../../../../arch/x86/include/
+diff -puN tools/testing/selftests/kcmp/kcmp_test.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix tools/testing/selftests/kcmp/kcmp_test.c
+--- a/tools/testing/selftests/kcmp/kcmp_test.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix
++++ a/tools/testing/selftests/kcmp/kcmp_test.c
+@@ -54,8 +54,9 @@ int main(int argc, char **argv)
+ 		}
  
- all:
- ifeq ($(ARCH),X86)
+ 		/* An example of output and arguments */
+-		printf("pid1: %6d pid2: %6d FD: %2d FILES: %2d VM: %2d FS: %2d "
+-		       "SIGHAND: %2d IO: %2d SYSVSEM: %2d INV: %2d\n",
++		printf("pid1: %6d pid2: %6d FD: %2ld FILES: %2ld VM: %2ld "
++		       "FS: %2ld SIGHAND: %2ld IO: %2ld SYSVSEM: %2ld "
++		       "INV: %2ld\n",
+ 		       pid1, pid2,
+ 		       sys_kcmp(pid1, pid2, KCMP_FILE,		fd1, fd2),
+ 		       sys_kcmp(pid1, pid2, KCMP_FILES,		0, 0),
 _
-Subject: Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix
+Subject: Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
