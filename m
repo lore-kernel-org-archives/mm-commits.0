@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-the-killed-tracee-should-not-enter-the-syscall.patch added to -mm tree
-Date: Wed, 15 Feb 2012 14:54:27 -0800
-Message-ID: <20120215225428.4F62BA0245@akpm.mtv.corp.google.com>
+Subject: + ptrace-dont-send-sigtrap-on-exec-if-seized.patch added to -mm tree
+Date: Wed, 15 Feb 2012 14:54:30 -0800
+Message-ID: <20120215225430.2B296A0245@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:52001 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472Ab2BOWyb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 17:54:31 -0500
-Received: by wgbds12 with SMTP id ds12so57632wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 14:54:29 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:54851 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755944Ab2BOWyc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 17:54:32 -0500
+Received: by eekb15 with SMTP id b15so59141eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 14:54:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, fweisbec@gmail.com, indan@nul.nu, jan.kratochvil@redhat.com
 
 
 The patch titled
-     Subject: ptrace: the killed tracee should not enter the syscall
+     Subject: ptrace: don't send SIGTRAP on exec if SEIZED
 has been added to the -mm tree.  Its filename is
-     ptrace-the-killed-tracee-should-not-enter-the-syscall.patch
+     ptrace-dont-send-sigtrap-on-exec-if-seized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace: the killed tracee should not enter the syscall
+Subject: ptrace: don't send SIGTRAP on exec if SEIZED
 
-Another old/known problem.  If the tracee is killed after it reports
-syscall_entry, it starts the syscall and debugger can't control this. 
-This confuses the users and this creates the security problems for ptrace
-jailers.
+ptrace_event(PTRACE_EVENT_EXEC) sends SIGTRAP if PT_TRACE_EXEC is not set.
+ This is because this SIGTRAP predates PTRACE_O_TRACEEXEC option, we do
+not need/want this with PT_SEIZED which can set the options during attach.
 
-Change tracehook_report_syscall_entry() to return non-zero if killed, this
-instructs syscall_trace_enter() to abort the syscall.
-
-Reported-by: Chris Evans <scarybeasts@gmail.com>
-Tested-by: Indan Zupancic <indan@nul.nu>
+Suggested-by: Pedro Alves <palves@redhat.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Chris Evans <scarybeasts@gmail.com>
+Cc: Indan Zupancic <indan@nul.nu>
 Cc: Denys Vlasenko <vda.linux@googlemail.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Pedro Alves <palves@redhat.com>
@@ -56,48 +53,27 @@ Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ include/linux/ptrace.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/tracehook.h~ptrace-the-killed-tracee-should-not-enter-the-syscall include/linux/tracehook.h
---- a/include/linux/tracehook.h~ptrace-the-killed-tracee-should-not-enter-the-syscall
-+++ a/include/linux/tracehook.h
-@@ -54,12 +54,12 @@ struct linux_binprm;
- /*
-  * ptrace report for syscall entry and exit looks identical.
-  */
--static inline void ptrace_report_syscall(struct pt_regs *regs)
-+static inline int ptrace_report_syscall(struct pt_regs *regs)
- {
- 	int ptrace = current->ptrace;
- 
- 	if (!(ptrace & PT_PTRACED))
--		return;
-+		return 0;
- 
- 	ptrace_notify(SIGTRAP | ((ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
- 
-@@ -72,6 +72,8 @@ static inline void ptrace_report_syscall
- 		send_sig(current->exit_code, current, 1);
- 		current->exit_code = 0;
+diff -puN include/linux/ptrace.h~ptrace-dont-send-sigtrap-on-exec-if-seized include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace-dont-send-sigtrap-on-exec-if-seized
++++ a/include/linux/ptrace.h
+@@ -199,9 +199,10 @@ static inline void ptrace_event(int even
+ 	if (unlikely(ptrace_event_enabled(current, event))) {
+ 		current->ptrace_message = message;
+ 		ptrace_notify((event << 8) | SIGTRAP);
+-	} else if (event == PTRACE_EVENT_EXEC && unlikely(current->ptrace)) {
++	} else if (event == PTRACE_EVENT_EXEC) {
+ 		/* legacy EXEC report via SIGTRAP */
+-		send_sig(SIGTRAP, current, 0);
++		if ((current->ptrace & (PT_PTRACED|PT_SEIZED)) == PT_PTRACED)
++			send_sig(SIGTRAP, current, 0);
  	}
-+
-+	return fatal_signal_pending(current);
  }
  
- /**
-@@ -96,8 +98,7 @@ static inline void ptrace_report_syscall
- static inline __must_check int tracehook_report_syscall_entry(
- 	struct pt_regs *regs)
- {
--	ptrace_report_syscall(regs);
--	return 0;
-+	return ptrace_report_syscall(regs);
- }
- 
- /**
 _
-Subject: Subject: ptrace: the killed tracee should not enter the syscall
+Subject: Subject: ptrace: don't send SIGTRAP on exec if SEIZED
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
