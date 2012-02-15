@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + openrisc-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:10 -0800
-Message-ID: <20120215003410.EC64AA02DE@akpm.mtv.corp.google.com>
+Subject: + openrisc-no-need-to-reset-handler-if-sa_oneshot.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:06 -0800
+Message-ID: <20120215003407.02A60A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:57759 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761264Ab2BOAeM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:12 -0500
-Received: by qcsp5 with SMTP id p5so75376qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:11 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761264Ab2BOAeI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:08 -0500
+Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: matt.fleming@intel.com, arnd@arndb.de, jonas@southpole.se, oleg@redhat.com
 
 
 The patch titled
-     Subject: OpenRISC: use set_current_blocked() and block_sigmask()
+     Subject: OpenRISC: no need to reset handler if SA_ONESHOT
 has been added to the -mm tree.  Its filename is
-     openrisc-use-set_current_blocked-and-block_sigmask.patch
+     openrisc-no-need-to-reset-handler-if-sa_oneshot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: OpenRISC: use set_current_blocked() and block_sigmask()
+Subject: OpenRISC: no need to reset handler if SA_ONESHOT
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
-
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
+get_signal_to_deliver() already resets the signal handler if SA_ONESHOT is
+set in ka->sa.sa_flags, there's no need to do it again in handle_signal().
+ Furthermore, because we were modifying ka->sa.sa_handler (which is a copy
+of sighand->action[]) instead of sighand->action[] the original code
+actually had no effect on signal delivery.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Jonas Bonn <jonas@southpole.se>
@@ -55,41 +49,24 @@ Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/signal.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ arch/openrisc/kernel/signal.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/openrisc/kernel/signal.c~openrisc-use-set_current_blocked-and-block_sigmask arch/openrisc/kernel/signal.c
---- a/arch/openrisc/kernel/signal.c~openrisc-use-set_current_blocked-and-block_sigmask
+diff -puN arch/openrisc/kernel/signal.c~openrisc-no-need-to-reset-handler-if-sa_oneshot arch/openrisc/kernel/signal.c
+--- a/arch/openrisc/kernel/signal.c~openrisc-no-need-to-reset-handler-if-sa_oneshot
 +++ a/arch/openrisc/kernel/signal.c
-@@ -102,10 +102,7 @@ asmlinkage long _sys_rt_sigreturn(struct
- 		goto badframe;
+@@ -260,9 +260,6 @@ handle_signal(unsigned long sig,
+ {
+ 	setup_rt_frame(sig, ka, info, oldset, regs);
  
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
- 		goto badframe;
-@@ -265,13 +262,7 @@ handle_signal(unsigned long sig,
- 	if (ret)
- 		return ret;
- 
--	spin_lock_irq(&current->sighand->siglock);
--	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked, sig);
--	recalc_sigpending();
+-	if (ka->sa.sa_flags & SA_ONESHOT)
+-		ka->sa.sa_handler = SIG_DFL;
 -
--	spin_unlock_irq(&current->sighand->siglock);
-+	block_sigmask(ka, sig);
- 
- 	return 0;
- }
+ 	spin_lock_irq(&current->sighand->siglock);
+ 	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
+ 	if (!(ka->sa.sa_flags & SA_NODEFER))
 _
-Subject: Subject: OpenRISC: use set_current_blocked() and block_sigmask()
+Subject: Subject: OpenRISC: no need to reset handler if SA_ONESHOT
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
