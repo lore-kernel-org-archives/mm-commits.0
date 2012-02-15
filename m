@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + usermodehelper-kill-umh_wait-renumber-umh_-constants.patch added to -mm tree
-Date: Wed, 15 Feb 2012 12:31:03 -0800
-Message-ID: <20120215203103.D1838A01AD@akpm.mtv.corp.google.com>
+Subject: + kmod-make-__request_module-killable.patch added to -mm tree
+Date: Wed, 15 Feb 2012 12:31:09 -0800
+Message-ID: <20120215203109.E4A4EA01AD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-yw0-f74.google.com ([209.85.213.74]:38605 "EHLO
 	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755279Ab2BOUbF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 15:31:05 -0500
-Received: by yhgm50 with SMTP id m50so198922yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 12:31:04 -0800 (PST)
+	with ESMTP id S1754795Ab2BOUbK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 15:31:10 -0500
+Received: by mail-yw0-f74.google.com with SMTP id m50so198922yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 12:31:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, ru
 
 
 The patch titled
-     Subject: usermodehelper: kill umh_wait, renumber UMH_* constants
+     Subject: kmod: make __request_module() killable
 has been added to the -mm tree.  Its filename is
-     usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+     kmod-make-__request_module-killable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: usermodehelper: kill umh_wait, renumber UMH_* constants
+Subject: kmod: make __request_module() killable
 
-No functional changes.  It is not sane to use UMH_KILLABLE with enum
-umh_wait, but obviously we do not want another argument in
-call_usermodehelper_* helpers.  Kill this enum, use the plain int.
+As Tetsuo Handa pointed out, request_module() can stress the system while
+the oom-killed caller sleeps in TASK_UNINTERRUPTIBLE.
 
+Make __request_module() killable.  The only necessary change is that
+call_modprobe() should kmalloc argv and module_name, they can't live in
+the stack if we use UMH_KILLABLE.  This memory is freed via
+call_usermodehelper_freeinfo()->cleanup.
+
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h        |   18 +++++++-----------
- kernel/kmod.c               |    8 ++------
- security/keys/request_key.c |    2 +-
- 3 files changed, 10 insertions(+), 18 deletions(-)
+ kernel/kmod.c |   26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kmod.h~usermodehelper-kill-umh_wait-renumber-umh_-constants include/linux/kmod.h
---- a/include/linux/kmod.h~usermodehelper-kill-umh_wait-renumber-umh_-constants
-+++ a/include/linux/kmod.h
-@@ -48,12 +48,9 @@ static inline int request_module_nowait(
- struct cred;
- struct file;
+diff -puN kernel/kmod.c~kmod-make-__request_module-killable kernel/kmod.c
+--- a/kernel/kmod.c~kmod-make-__request_module-killable
++++ a/kernel/kmod.c
+@@ -60,6 +60,12 @@ static DECLARE_RWSEM(umhelper_sem);
+ */
+ char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
  
--enum umh_wait {
--	UMH_NO_WAIT = -1,	/* don't wait at all */
--	UMH_WAIT_EXEC = 0,	/* wait for the exec, but not the process */
--	UMH_WAIT_PROC = 1,	/* wait for the process to complete */
--};
--
-+#define UMH_NO_WAIT	0	/* don't wait at all */
-+#define UMH_WAIT_EXEC	1	/* wait for the exec, but not the process */
-+#define UMH_WAIT_PROC	2	/* wait for the process to complete */
- #define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
- 
- struct subprocess_info {
-@@ -62,7 +59,7 @@ struct subprocess_info {
- 	char *path;
- 	char **argv;
- 	char **envp;
--	enum umh_wait wait;
-+	int wait;
- 	int retval;
- 	int (*init)(struct subprocess_info *info, struct cred *new);
- 	void (*cleanup)(struct subprocess_info *info);
-@@ -80,15 +77,14 @@ void call_usermodehelper_setfns(struct s
- 		    void *data);
- 
- /* Actually execute the sub-process */
--int call_usermodehelper_exec(struct subprocess_info *info, enum umh_wait wait);
-+int call_usermodehelper_exec(struct subprocess_info *info, int wait);
- 
- /* Free the subprocess_info. This is only needed if you're not going
-    to call call_usermodehelper_exec */
- void call_usermodehelper_freeinfo(struct subprocess_info *info);
- 
- static inline int
--call_usermodehelper_fns(char *path, char **argv, char **envp,
--			enum umh_wait wait,
-+call_usermodehelper_fns(char *path, char **argv, char **envp, int wait,
- 			int (*init)(struct subprocess_info *info, struct cred *new),
- 			void (*cleanup)(struct subprocess_info *), void *data)
++static void free_modprobe_argv(struct subprocess_info *info)
++{
++	kfree(info->argv[3]); /* check call_modprobe() */
++	kfree(info->argv);
++}
++
+ static int call_modprobe(char *module_name, int wait)
  {
-@@ -106,7 +102,7 @@ call_usermodehelper_fns(char *path, char
+ 	static char *envp[] = {
+@@ -69,10 +75,26 @@ static int call_modprobe(char *module_na
+ 		NULL
+ 	};
+ 
+-	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
++	char **argv = kmalloc(sizeof(char *[5]), GFP_KERNEL);
++	if (!argv)
++		goto out;
++
++	module_name = kstrdup(module_name, GFP_KERNEL);
++	if (!module_name)
++		goto free_argv;
++
++	argv[0] = modprobe_path;
++	argv[1] = "-q";
++	argv[2] = "--";
++	argv[3] = module_name;	/* check free_modprobe_argv() */
++	argv[4] = NULL;
+ 
+ 	return call_usermodehelper_fns(modprobe_path, argv, envp,
+-					wait, NULL, NULL, NULL);
++		wait | UMH_KILLABLE, NULL, free_modprobe_argv, NULL);
++free_argv:
++	kfree(argv);
++out:
++	return -ENOMEM;
  }
  
- static inline int
--call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
-+call_usermodehelper(char *path, char **argv, char **envp, int wait)
- {
- 	return call_usermodehelper_fns(path, argv, envp, wait,
- 				       NULL, NULL, NULL);
-diff -puN kernel/kmod.c~usermodehelper-kill-umh_wait-renumber-umh_-constants kernel/kmod.c
---- a/kernel/kmod.c~usermodehelper-kill-umh_wait-renumber-umh_-constants
-+++ a/kernel/kmod.c
-@@ -257,12 +257,9 @@ static void __call_usermodehelper(struct
- {
- 	struct subprocess_info *sub_info =
- 		container_of(work, struct subprocess_info, work);
--	enum umh_wait wait = sub_info->wait;
-+	int wait = sub_info->wait & ~UMH_KILLABLE;
- 	pid_t pid;
- 
--	if (wait != UMH_NO_WAIT)
--		wait &= ~UMH_KILLABLE;
--
- 	/* CLONE_VFORK: wait until the usermode helper has execve'd
- 	 * successfully We need the data structures to stay around
- 	 * until that is done.  */
-@@ -451,8 +448,7 @@ EXPORT_SYMBOL(call_usermodehelper_setfns
-  * asynchronously if wait is not set, and runs as a child of keventd.
-  * (ie. it runs with full root capabilities).
-  */
--int call_usermodehelper_exec(struct subprocess_info *sub_info,
--			     enum umh_wait wait)
-+int call_usermodehelper_exec(struct subprocess_info *sub_info, int wait)
- {
- 	DECLARE_COMPLETION_ONSTACK(done);
- 	int retval = 0;
-diff -puN security/keys/request_key.c~usermodehelper-kill-umh_wait-renumber-umh_-constants security/keys/request_key.c
---- a/security/keys/request_key.c~usermodehelper-kill-umh_wait-renumber-umh_-constants
-+++ a/security/keys/request_key.c
-@@ -91,7 +91,7 @@ static void umh_keys_cleanup(struct subp
-  * Call a usermode helper with a specific session keyring.
-  */
- static int call_usermodehelper_keys(char *path, char **argv, char **envp,
--			 struct key *session_keyring, enum umh_wait wait)
-+			 		struct key *session_keyring, int wait)
- {
- 	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
- 	struct subprocess_info *info =
+ /**
 _
-Subject: Subject: usermodehelper: kill umh_wait, renumber UMH_* constants
+Subject: Subject: kmod: make __request_module() killable
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
