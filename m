@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:33:24 -0800
-Message-ID: <20120215003325.4E938A02DE@akpm.mtv.corp.google.com>
+Subject: + arm-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:33:26 -0800
+Message-ID: <20120215003326.EDBB3A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:47253 "EHLO
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:59737 "EHLO
 	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755543Ab2BOAd2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:28 -0500
-Received: by eaaf13 with SMTP id f13so15061eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:26 -0800 (PST)
+	with ESMTP id S1755543Ab2BOAd3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:29 -0500
+Received: by eaaf13 with SMTP id f13so15067eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, oleg@redhat.com, rth@twiddle.net, viro@zeniv.linux.org.uk
+Cc: matt.fleming@intel.com, arnd.bergmann@linaro.org, dave.martin@linaro.org, linux@arm.linux.org.uk, nicolas.pitre@linaro.org, oleg@redhat.com, will.deacon@arm.com
 
 
 The patch titled
-     Subject: alpha: use set_current_blocked() and block_sigmask()
+     Subject: arm: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     alpha-use-set_current_blocked-and-block_sigmask.patch
+     arm-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: alpha: use set_current_blocked() and block_sigmask()
+Subject: arm: use set_current_blocked() and block_sigmask()
 
 As described in e6fa16ab ("signal: sigprocmask() should do
 retarget_shared_pending()") the modification of current->blocked is
@@ -47,24 +47,25 @@ successfully delivering a signal and reduces the amount of duplicate code
 across architectures.  In the past some architectures got this code wrong,
 so using this helper function should stop that from happening again.
 
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
+Cc: Dave Martin <dave.martin@linaro.org>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Will Deacon <will.deacon@arm.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/signal.c |   31 ++++++++++---------------------
- 1 file changed, 10 insertions(+), 21 deletions(-)
+ arch/arm/kernel/signal.c |   24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN arch/alpha/kernel/signal.c~alpha-use-set_current_blocked-and-block_sigmask arch/alpha/kernel/signal.c
---- a/arch/alpha/kernel/signal.c~alpha-use-set_current_blocked-and-block_sigmask
-+++ a/arch/alpha/kernel/signal.c
-@@ -120,12 +120,13 @@ SYSCALL_DEFINE5(rt_sigaction, int, sig, 
+diff -puN arch/arm/kernel/signal.c~arm-use-set_current_blocked-and-block_sigmask arch/arm/kernel/signal.c
+--- a/arch/arm/kernel/signal.c~arm-use-set_current_blocked-and-block_sigmask
++++ a/arch/arm/kernel/signal.c
+@@ -66,12 +66,13 @@ const unsigned long syscall_restart_code
   */
- SYSCALL_DEFINE1(sigsuspend, old_sigset_t, mask)
+ asmlinkage int sys_sigsuspend(int restart, unsigned long oldmask, old_sigset_t mask)
  {
 -	mask &= _BLOCKABLE;
 -	spin_lock_irq(&current->sighand->siglock);
@@ -81,49 +82,35 @@ diff -puN arch/alpha/kernel/signal.c~alpha-use-set_current_blocked-and-block_sig
  
  	current->state = TASK_INTERRUPTIBLE;
  	schedule();
-@@ -238,10 +239,7 @@ do_sigreturn(struct sigcontext __user *s
- 		goto give_sigsegv;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(sc, regs, sw))
- 		goto give_sigsegv;
-@@ -276,10 +274,7 @@ do_rt_sigreturn(struct rt_sigframe __use
- 		goto give_sigsegv;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(&frame->uc.uc_mcontext, regs, sw))
- 		goto give_sigsegv;
-@@ -501,14 +496,8 @@ handle_signal(int sig, struct k_sigactio
- 	else
- 		ret = setup_frame(sig, ka, oldset, regs, sw);
- 
--	if (ret == 0) {
+@@ -280,10 +281,7 @@ static int restore_sigframe(struct pt_re
+ 	err = __copy_from_user(&set, &sf->uc.uc_sigmask, sizeof(set));
+ 	if (err == 0) {
+ 		sigdelsetmask(&set, ~_BLOCKABLE);
 -		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--		if (!(ka->sa.sa_flags & SA_NODEFER)) 
--			sigaddset(&current->blocked,sig);
+-		current->blocked = set;
 -		recalc_sigpending();
 -		spin_unlock_irq(&current->sighand->siglock);
--	}
-+	if (ret == 0)
-+		block_sigmask(ka, sig);
++		set_current_blocked(&set);
+ 	}
  
- 	return ret;
+ 	__get_user_error(regs->ARM_r0, &sf->uc.uc_mcontext.arm_r0, err);
+@@ -636,13 +634,7 @@ handle_signal(unsigned long sig, struct 
+ 	/*
+ 	 * Block the signal if we were successful.
+ 	 */
+-	spin_lock_irq(&tsk->sighand->siglock);
+-	sigorsets(&tsk->blocked, &tsk->blocked,
+-		  &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&tsk->blocked, sig);
+-	recalc_sigpending();
+-	spin_unlock_irq(&tsk->sighand->siglock);
++	block_sigmask(ka, sig);
+ 
+ 	return 0;
  }
 _
-Subject: Subject: alpha: use set_current_blocked() and block_sigmask()
+Subject: Subject: arm: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
