@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:14 -0800
-Message-ID: <20120215003415.0641FA02DE@akpm.mtv.corp.google.com>
+Subject: + score-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:20 -0800
+Message-ID: <20120215003420.F04F0A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:44788 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761412Ab2BOAeP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:15 -0500
-Received: by mail-gy0-f202.google.com with SMTP id r17so79189ghr.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:15 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:59737 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761414Ab2BOAeW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:22 -0500
+Received: by mail-ey0-f202.google.com with SMTP id f13so15067eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, benh@kernel.crashing.org, oleg@redhat.com, paulus@samba.org
+Cc: matt.fleming@intel.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com, oleg@redhat.com
 
 
 The patch titled
-     Subject: powerpc: use set_current_blocked() and block_sigmask()
+     Subject: score: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     powerpc-use-set_current_blocked-and-block_sigmask.patch
+     score-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: powerpc: use set_current_blocked() and block_sigmask()
+Subject: score: use set_current_blocked() and block_sigmask()
 
 As described in e6fa16ab ("signal: sigprocmask() should do
 retarget_shared_pending()") the modification of current->blocked is
@@ -49,70 +49,49 @@ across architectures.  In the past some architectures got this code wrong,
 so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/signal.c    |   13 ++-----------
- arch/powerpc/kernel/signal_32.c |   11 ++++++-----
- 2 files changed, 8 insertions(+), 16 deletions(-)
+ arch/score/kernel/signal.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN arch/powerpc/kernel/signal.c~powerpc-use-set_current_blocked-and-block_sigmask arch/powerpc/kernel/signal.c
---- a/arch/powerpc/kernel/signal.c~powerpc-use-set_current_blocked-and-block_sigmask
-+++ a/arch/powerpc/kernel/signal.c
-@@ -56,10 +56,7 @@ void __user * get_sigframe(struct k_siga
- void restore_sigmask(sigset_t *set)
- {
- 	sigdelsetmask(set, ~_BLOCKABLE);
+diff -puN arch/score/kernel/signal.c~score-use-set_current_blocked-and-block_sigmask arch/score/kernel/signal.c
+--- a/arch/score/kernel/signal.c~score-use-set_current_blocked-and-block_sigmask
++++ a/arch/score/kernel/signal.c
+@@ -159,10 +159,7 @@ score_rt_sigreturn(struct pt_regs *regs)
+ 		goto badframe;
+ 
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
 -	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = *set;
+-	current->blocked = set;
 -	recalc_sigpending();
 -	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(set);
- }
++	set_current_blocked(&set);
  
- static void check_syscall_restart(struct pt_regs *regs, struct k_sigaction *ka,
-@@ -167,13 +164,7 @@ static int do_signal_pending(sigset_t *o
+ 	sig = restore_sigcontext(regs, &frame->rs_uc.uc_mcontext);
+ 	if (sig < 0)
+@@ -272,14 +269,8 @@ static int handle_signal(unsigned long s
+ 	 */
+ 	ret = setup_rt_frame(ka, regs, sig, oldset, info);
  
- 	regs->trap = 0;
- 	if (ret) {
+-	if (ret == 0) {
 -		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked, &current->blocked,
--			  &ka.sa.sa_mask);
--		if (!(ka.sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked, signr);
+-		sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
+-		if (!(ka->sa.sa_flags & SA_NODEFER))
+-			sigaddset(&current->blocked, sig);
 -		recalc_sigpending();
 -		spin_unlock_irq(&current->sighand->siglock);
-+		block_sigmask(&ka, signr);
+-	}
++	if (ret == 0)
++		block_sigmask(ka, sig);
  
- 		/*
- 		 * A signal was successfully delivered; the saved sigmask is in
-diff -puN arch/powerpc/kernel/signal_32.c~powerpc-use-set_current_blocked-and-block_sigmask arch/powerpc/kernel/signal_32.c
---- a/arch/powerpc/kernel/signal_32.c~powerpc-use-set_current_blocked-and-block_sigmask
-+++ a/arch/powerpc/kernel/signal_32.c
-@@ -242,12 +242,13 @@ static inline int restore_general_regs(s
-  */
- long sys_sigsuspend(old_sigset_t mask)
- {
--	mask &= _BLOCKABLE;
--	spin_lock_irq(&current->sighand->siglock);
-+	sigset_t blocked;
-+
- 	current->saved_sigmask = current->blocked;
--	siginitset(&current->blocked, mask);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+
-+	mask &= _BLOCKABLE;
-+	siginitset(&blocked, mask);
-+	set_current_blocked(&blocked);
- 
-  	current->state = TASK_INTERRUPTIBLE;
-  	schedule();
+ 	return ret;
+ }
 _
-Subject: Subject: powerpc: use set_current_blocked() and block_sigmask()
+Subject: Subject: score: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
