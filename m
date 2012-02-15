@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:42 -0800
-Message-ID: <20120215003442.E1C4AA02DE@akpm.mtv.corp.google.com>
+Subject: + s390-use-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:35:33 -0800
+Message-ID: <20120215003533.E5322A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:38610 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757373Ab2BOAes (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:48 -0500
-Received: by ghrr17 with SMTP id r17so79219ghr.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:48 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:43181 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757357Ab2BOAfg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:35:36 -0500
+Received: by eekb15 with SMTP id b15so18563eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:35:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, chris@zankel.net, oleg@redhat.com
+Cc: matt.fleming@intel.com, heiko.carstens@de.ibm.com, oleg@redhat.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Subject: xtensa: use set_current_blocked() and block_sigmask()
+     Subject: S390: use block_sigmask()
 has been added to the -mm tree.  Its filename is
-     xtensa-use-set_current_blocked-and-block_sigmask.patch
+     s390-use-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,94 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: xtensa: use set_current_blocked() and block_sigmask()
+Subject: S390: use block_sigmask()
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
+Use the new helper function introduced in commit 5e6292c0f28f ("signal:
+add block_sigmask() for adding sigmask to current->blocked") which
+centralises the code for updating current->blocked after successfully
+delivering a signal and reduces the amount of duplicate code across
+architectures.
 
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
+In the past some architectures got this code wrong, so using this helper
+function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Chris Zankel <chris@zankel.net>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/signal.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ arch/s390/kernel/compat_signal.c |    6 +-----
+ arch/s390/kernel/signal.c        |    6 +-----
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/xtensa/kernel/signal.c~xtensa-use-set_current_blocked-and-block_sigmask arch/xtensa/kernel/signal.c
---- a/arch/xtensa/kernel/signal.c~xtensa-use-set_current_blocked-and-block_sigmask
-+++ a/arch/xtensa/kernel/signal.c
-@@ -260,10 +260,7 @@ asmlinkage long xtensa_rt_sigreturn(long
- 		goto badframe;
+diff -puN arch/s390/kernel/compat_signal.c~s390-use-block_sigmask arch/s390/kernel/compat_signal.c
+--- a/arch/s390/kernel/compat_signal.c~s390-use-block_sigmask
++++ a/arch/s390/kernel/compat_signal.c
+@@ -581,7 +581,6 @@ give_sigsegv:
+ int handle_signal32(unsigned long sig, struct k_sigaction *ka,
+ 		    siginfo_t *info, sigset_t *oldset, struct pt_regs *regs)
+ {
+-	sigset_t blocked;
+ 	int ret;
  
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
+ 	/* Set up the stack frame */
+@@ -591,10 +590,7 @@ int handle_signal32(unsigned long sig, s
+ 		ret = setup_frame32(sig, ka, oldset, regs);
+ 	if (ret)
+ 		return ret;
+-	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&blocked, sig);
+-	set_current_blocked(&blocked);
++	block_sigmask(ka, sig);
+ 	return 0;
+ }
  
- 	if (restore_sigcontext(regs, frame))
- 		goto badframe;
-@@ -448,11 +445,8 @@ asmlinkage long xtensa_rt_sigsuspend(sig
- 		return -EFAULT;
+diff -puN arch/s390/kernel/signal.c~s390-use-block_sigmask arch/s390/kernel/signal.c
+--- a/arch/s390/kernel/signal.c~s390-use-block_sigmask
++++ a/arch/s390/kernel/signal.c
+@@ -385,7 +385,6 @@ static int handle_signal(unsigned long s
+ 			 siginfo_t *info, sigset_t *oldset,
+ 			 struct pt_regs *regs)
+ {
+-	sigset_t blocked;
+ 	int ret;
  
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
- 	saveset = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	regs->areg[2] = -EINTR;
- 	while (1) {
-@@ -539,12 +533,7 @@ int do_signal(struct pt_regs *regs, sigs
- 		if (ret)
- 			return ret;
- 
--		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked, &current->blocked, &ka.sa.sa_mask);
--		if (!(ka.sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked, signr);
--		recalc_sigpending();
--		spin_unlock_irq(&current->sighand->siglock);
-+		block_sigmask(&ka, signr);
- 		if (current->ptrace & PT_SINGLESTEP)
- 			task_pt_regs(current)->icountlevel = 1;
+ 	/* Set up the stack frame */
+@@ -395,10 +394,7 @@ static int handle_signal(unsigned long s
+ 		ret = setup_frame(sig, ka, oldset, regs);
+ 	if (ret)
+ 		return ret;
+-	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&blocked, sig);
+-	set_current_blocked(&blocked);
++	block_sigmask(ka, sig);
+ 	return 0;
+ }
  
 _
-Subject: Subject: xtensa: use set_current_blocked() and block_sigmask()
+Subject: Subject: S390: use block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
 linux-next.patch
+tile-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+sparc-use-block_sigmask.patch
+xtensa-dont-reimplement-force_sigsegv.patch
+xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
+xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+xtensa-use-set_current_blocked-and-block_sigmask.patch
+sh-no-need-to-reset-handler-if-sa_oneshot.patch
+sh-use-set_current_blocked-and-block_sigmask.patch
 alpha-use-set_current_blocked-and-block_sigmask.patch
+um-dont-restore-current-blocked-on-error.patch
+um-use-set_current_blocked-and-block_sigmask.patch
 arm-use-set_current_blocked-and-block_sigmask.patch
 avr32-dont-mask-signals-in-the-error-path.patch
 avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
@@ -131,18 +147,5 @@ openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
 openrisc-use-set_current_blocked-and-block_sigmask.patch
 parisc-use-set_current_blocked-and-block_sigmask.patch
 powerpc-use-set_current_blocked-and-block_sigmask.patch
-use-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-sparc-use-block_sigmask.patch
-tile-use-set_current_blocked-and-block_sigmask.patch
-um-dont-restore-current-blocked-on-error.patch
-um-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-xtensa-dont-reimplement-force_sigsegv.patch
-xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
-xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-xtensa-use-set_current_blocked-and-block_sigmask.patch
+s390-use-block_sigmask.patch
 
