@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:33:50 -0800
-Message-ID: <20120215003351.056D4A0326@akpm.mtv.corp.google.com>
+Subject: + microblaze-dont-reimplement-force_sigsegv.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:33:52 -0800
+Message-ID: <20120215003352.E6EF7A0326@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757444Ab2BOAdw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:52 -0500
+	with ESMTP id S1757444Ab2BOAdy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:54 -0500
 Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:52 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, geert@linux-m68k.org, gerg@uclinux.org, oleg@redhat.com
+Cc: matt.fleming@intel.com, monstr@monstr.eu, oleg@redhat.com
 
 
 The patch titled
-     Subject: m68k: use set_current_blocked() and block_sigmask()
+     Subject: microblaze: don't reimplement force_sigsegv()
 has been added to the -mm tree.  Its filename is
-     m68k-use-set_current_blocked-and-block_sigmask.patch
+     microblaze-dont-reimplement-force_sigsegv.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,147 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: m68k: use set_current_blocked() and block_sigmask()
+Subject: microblaze: don't reimplement force_sigsegv()
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
+Instead of open coding the sequence from force_sigsegv() just call it. 
+This also fixes a bug because we were modifying ka->sa.sa_handler (which
+is a copy of sighand->action[]), whereas the intention of the code was to
+modify sighand->action[] directly.
 
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
+As the original code was working with a copy it had no effect on signal
+delivery.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
+Acked-by: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/signal_mm.c |   22 +++++++++-------------
- arch/m68k/kernel/signal_no.c |   28 +++++++++-------------------
- 2 files changed, 18 insertions(+), 32 deletions(-)
+ arch/microblaze/kernel/signal.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/m68k/kernel/signal_mm.c~m68k-use-set_current_blocked-and-block_sigmask arch/m68k/kernel/signal_mm.c
---- a/arch/m68k/kernel/signal_mm.c~m68k-use-set_current_blocked-and-block_sigmask
-+++ a/arch/m68k/kernel/signal_mm.c
-@@ -105,12 +105,13 @@ int handle_kernel_fault(struct pt_regs *
- asmlinkage int
- sys_sigsuspend(int unused0, int unused1, old_sigset_t mask)
- {
--	mask &= _BLOCKABLE;
--	spin_lock_irq(&current->sighand->siglock);
-+	sigset_t blocked;
-+
- 	current->saved_sigmask = current->blocked;
--	siginitset(&current->blocked, mask);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+
-+	mask &= _BLOCKABLE;
-+	siginitset(&blocked, mask);
-+	set_current_blocked(&blocked);
+diff -puN arch/microblaze/kernel/signal.c~microblaze-dont-reimplement-force_sigsegv arch/microblaze/kernel/signal.c
+--- a/arch/microblaze/kernel/signal.c~microblaze-dont-reimplement-force_sigsegv
++++ a/arch/microblaze/kernel/signal.c
+@@ -270,9 +270,7 @@ static void setup_rt_frame(int sig, stru
+ 	return;
  
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -528,8 +529,7 @@ asmlinkage int do_sigreturn(unsigned lon
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	current->blocked = set;
--	recalc_sigpending();
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->sc, frame + 1))
- 		goto badframe;
-@@ -554,8 +554,7 @@ asmlinkage int do_rt_sigreturn(unsigned 
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	current->blocked = set;
--	recalc_sigpending();
-+	set_current_blocked(&set);
- 
- 	if (rt_restore_ucontext(regs, sw, &frame->uc))
- 		goto badframe;
-@@ -1063,10 +1062,7 @@ handle_signal(int sig, struct k_sigactio
- 	if (err)
- 		return;
- 
--	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked,sig);
--	recalc_sigpending();
-+	block_sigmask(ka, sig);
- 
- 	if (test_thread_flag(TIF_DELAYED_TRACE)) {
- 		regs->sr &= ~0x8000;
-diff -puN arch/m68k/kernel/signal_no.c~m68k-use-set_current_blocked-and-block_sigmask arch/m68k/kernel/signal_no.c
---- a/arch/m68k/kernel/signal_no.c~m68k-use-set_current_blocked-and-block_sigmask
-+++ a/arch/m68k/kernel/signal_no.c
-@@ -60,12 +60,13 @@ void ret_from_user_rt_signal(void);
- asmlinkage int
- sys_sigsuspend(int unused0, int unused1, old_sigset_t mask)
- {
--	mask &= _BLOCKABLE;
--	spin_lock_irq(&current->sighand->siglock);
-+	sigset_t blocked;
-+
- 	current->saved_sigmask = current->blocked;
--	siginitset(&current->blocked, mask);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+
-+	mask &= _BLOCKABLE;
-+	siginitset(&blocked, mask);
-+	set_current_blocked(&blocked);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -343,10 +344,7 @@ asmlinkage int do_sigreturn(unsigned lon
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 	
- 	if (restore_sigcontext(regs, &frame->sc, frame + 1, &d0))
- 		goto badframe;
-@@ -372,10 +370,7 @@ asmlinkage int do_rt_sigreturn(unsigned 
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 	
- 	if (rt_restore_ucontext(regs, sw, &frame->uc, &d0))
- 		goto badframe;
-@@ -708,12 +703,7 @@ handle_signal(int sig, struct k_sigactio
- 	if (err)
- 		return;
- 
--	spin_lock_irq(&current->sighand->siglock);
--	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked,sig);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	block_sigmask(ka, sig);
- 
- 	clear_thread_flag(TIF_RESTORE_SIGMASK);
+ give_sigsegv:
+-	if (sig == SIGSEGV)
+-		ka->sa.sa_handler = SIG_DFL;
+-	force_sig(SIGSEGV, current);
++	force_sigsegv(sig, current);
  }
+ 
+ /* Handle restarting system calls */
 _
-Subject: Subject: m68k: use set_current_blocked() and block_sigmask()
+Subject: Subject: microblaze: don't reimplement force_sigsegv()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
