@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + frv-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:33:40 -0800
-Message-ID: <20120215003340.EEA9AA02DE@akpm.mtv.corp.google.com>
+Subject: + hexagon-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:33:44 -0800
+Message-ID: <20120215003344.EA6BAA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-qw0-f74.google.com ([209.85.216.74]:37933 "EHLO
 	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757400Ab2BOAdm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:42 -0500
+	with ESMTP id S1757444Ab2BOAdp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:33:45 -0500
 Received: by mail-qw0-f74.google.com with SMTP id b12so127011qad.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:41 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:33:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, dhowells@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk
+Cc: matt.fleming@intel.com, oleg@redhat.com, rkuo@codeaurora.org
 
 
 The patch titled
-     Subject: frv: use set_current_blocked() and block_sigmask()
+     Subject: Hexagon: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     frv-use-set_current_blocked-and-block_sigmask.patch
+     hexagon-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: frv: use set_current_blocked() and block_sigmask()
+Subject: Hexagon: use set_current_blocked() and block_sigmask()
 
 As described in e6fa16ab ("signal: sigprocmask() should do
 retarget_shared_pending()") the modification of current->blocked is
@@ -49,81 +49,45 @@ across architectures.  In the past some architectures got this code wrong,
 so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Richard Kuo <rkuo@codeaurora.org>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/signal.c |   32 ++++++++++----------------------
- 1 file changed, 10 insertions(+), 22 deletions(-)
+ arch/hexagon/kernel/signal.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/frv/kernel/signal.c~frv-use-set_current_blocked-and-block_sigmask arch/frv/kernel/signal.c
---- a/arch/frv/kernel/signal.c~frv-use-set_current_blocked-and-block_sigmask
-+++ a/arch/frv/kernel/signal.c
-@@ -40,12 +40,13 @@ struct fdpic_func_descriptor {
-  */
- asmlinkage int sys_sigsuspend(int history0, int history1, old_sigset_t mask)
- {
--	mask &= _BLOCKABLE;
+diff -puN arch/hexagon/kernel/signal.c~hexagon-use-set_current_blocked-and-block_sigmask arch/hexagon/kernel/signal.c
+--- a/arch/hexagon/kernel/signal.c~hexagon-use-set_current_blocked-and-block_sigmask
++++ a/arch/hexagon/kernel/signal.c
+@@ -192,12 +192,7 @@ static int handle_signal(int sig, siginf
+ 	if (rc)
+ 		return rc;
+ 
 -	spin_lock_irq(&current->sighand->siglock);
-+	sigset_t blocked;
-+
- 	current->saved_sigmask = current->blocked;
--	siginitset(&current->blocked, mask);
+-	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&current->blocked, sig);
 -	recalc_sigpending();
 -	spin_unlock_irq(&current->sighand->siglock);
-+
-+	mask &= _BLOCKABLE;
-+	siginitset(&blocked, mask);
++	block_sigmask(ka, sig);
+ 
+ 	return 0;
+ }
+@@ -305,10 +300,7 @@ asmlinkage int sys_rt_sigreturn(void)
+ 		goto badframe;
+ 
+ 	sigdelsetmask(&blocked, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = blocked;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
 +	set_current_blocked(&blocked);
  
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -158,10 +159,7 @@ asmlinkage int sys_sigreturn(void)
+ 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
  		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(&frame->sc, &gr8))
- 		goto badframe;
-@@ -184,10 +182,7 @@ asmlinkage int sys_rt_sigreturn(void)
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(&frame->uc.uc_mcontext, &gr8))
- 		goto badframe;
-@@ -474,15 +469,8 @@ static int handle_signal(unsigned long s
- 	else
- 		ret = setup_frame(sig, ka, oldset);
- 
--	if (ret == 0) {
--		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked, &current->blocked,
--			  &ka->sa.sa_mask);
--		if (!(ka->sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked, sig);
--		recalc_sigpending();
--		spin_unlock_irq(&current->sighand->siglock);
--	}
-+	if (ret == 0)
-+		block_sigmask(ka, sig);
- 
- 	return ret;
- 
 _
-Subject: Subject: frv: use set_current_blocked() and block_sigmask()
+Subject: Subject: Hexagon: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
