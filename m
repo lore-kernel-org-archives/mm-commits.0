@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-use-block_sigmask.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:26 -0800
-Message-ID: <20120215003426.E9D45A02DE@akpm.mtv.corp.google.com>
+Subject: + um-dont-restore-current-blocked-on-error.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:30 -0800
+Message-ID: <20120215003430.E5DA3A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:40430 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761416Ab2BOAe1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:27 -0500
-Received: by mail-yx0-f202.google.com with SMTP id m1so81317yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:27 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761422Ab2BOAec (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:32 -0500
+Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, davem@davemloft.net, oleg@redhat.com
+Cc: matt.fleming@intel.com, oleg@redhat.com, richard@nod.at
 
 
 The patch titled
-     Subject: sparc: use block_sigmask()
+     Subject: um: don't restore current->blocked on error
 has been added to the -mm tree.  Its filename is
-     sparc-use-block_sigmask.patch
+     um-dont-restore-current-blocked-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,99 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: sparc: use block_sigmask()
+Subject: um: don't restore current->blocked on error
 
-Use the new helper function introduced in commit 5e6292c0f28f ("signal:
-add block_sigmask() for adding sigmask to current->blocked") which
-centralises the code for updating current->blocked after successfully
-delivering a signal and reduces the amount of duplicate code across
-architectures.  In the past some architectures got this code wrong, so
-using this helper function should stop that from happening again.
+If we fail to setup the signal stack frame then we don't need to restore
+current->blocked because it is not modified by setup_signal_stack_*.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Acked-by: Richard Weinberger <richard@nod.at>
+Tested-by: Richard Weinberger <richard@nod.at>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/signal32.c  |    7 +------
- arch/sparc/kernel/signal_32.c |    7 +------
- arch/sparc/kernel/signal_64.c |    6 +-----
- 3 files changed, 3 insertions(+), 17 deletions(-)
+ arch/um/kernel/signal.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/sparc/kernel/signal32.c~sparc-use-block_sigmask arch/sparc/kernel/signal32.c
---- a/arch/sparc/kernel/signal32.c~sparc-use-block_sigmask
-+++ a/arch/sparc/kernel/signal32.c
-@@ -776,7 +776,6 @@ static inline int handle_signal32(unsign
- 				  siginfo_t *info,
- 				  sigset_t *oldset, struct pt_regs *regs)
- {
--	sigset_t blocked;
- 	int err;
+diff -puN arch/um/kernel/signal.c~um-dont-restore-current-blocked-on-error arch/um/kernel/signal.c
+--- a/arch/um/kernel/signal.c~um-dont-restore-current-blocked-on-error
++++ a/arch/um/kernel/signal.c
+@@ -65,13 +65,9 @@ static int handle_signal(struct pt_regs 
+ #endif
+ 		err = setup_signal_stack_si(sp, signr, ka, regs, info, oldset);
  
- 	if (ka->sa.sa_flags & SA_SIGINFO)
-@@ -787,11 +786,7 @@ static inline int handle_signal32(unsign
- 	if (err)
- 		return err;
- 
--	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NOMASK))
--		sigaddset(&blocked, signr);
--	set_current_blocked(&blocked);
--
-+	block_sigmask(ka, signr);
- 	tracehook_signal_handler(signr, info, ka, regs, 0);
- 
- 	return 0;
-diff -puN arch/sparc/kernel/signal_32.c~sparc-use-block_sigmask arch/sparc/kernel/signal_32.c
---- a/arch/sparc/kernel/signal_32.c~sparc-use-block_sigmask
-+++ a/arch/sparc/kernel/signal_32.c
-@@ -465,7 +465,6 @@ static inline int
- handle_signal(unsigned long signr, struct k_sigaction *ka,
- 	      siginfo_t *info, sigset_t *oldset, struct pt_regs *regs)
- {
--	sigset_t blocked;
- 	int err;
- 
- 	if (ka->sa.sa_flags & SA_SIGINFO)
-@@ -476,11 +475,7 @@ handle_signal(unsigned long signr, struc
- 	if (err)
- 		return err;
- 
--	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NOMASK))
--		sigaddset(&blocked, signr);
--	set_current_blocked(&blocked);
--
-+	block_sigmask(ka, signr);
- 	tracehook_signal_handler(signr, info, ka, regs, 0);
- 
- 	return 0;
-diff -puN arch/sparc/kernel/signal_64.c~sparc-use-block_sigmask arch/sparc/kernel/signal_64.c
---- a/arch/sparc/kernel/signal_64.c~sparc-use-block_sigmask
-+++ a/arch/sparc/kernel/signal_64.c
-@@ -479,18 +479,14 @@ static inline int handle_signal(unsigned
- 				siginfo_t *info,
- 				sigset_t *oldset, struct pt_regs *regs)
- {
--	sigset_t blocked;
- 	int err;
- 
- 	err = setup_rt_frame(ka, regs, signr, oldset,
- 			     (ka->sa.sa_flags & SA_SIGINFO) ? info : NULL);
- 	if (err)
- 		return err;
--	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NOMASK))
--		sigaddset(&blocked, signr);
--	set_current_blocked(&blocked);
- 
-+	block_sigmask(ka, signr);
- 	tracehook_signal_handler(signr, info, ka, regs, 0);
- 
- 	return 0;
+-	if (err) {
+-		spin_lock_irq(&current->sighand->siglock);
+-		current->blocked = *oldset;
+-		recalc_sigpending();
+-		spin_unlock_irq(&current->sighand->siglock);
++	if (err)
+ 		force_sigsegv(signr, current);
+-	} else {
++	else {
+ 		spin_lock_irq(&current->sighand->siglock);
+ 		sigorsets(&current->blocked, &current->blocked,
+ 			  &ka->sa.sa_mask);
 _
-Subject: Subject: sparc: use block_sigmask()
+Subject: Subject: um: don't restore current->blocked on error
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
