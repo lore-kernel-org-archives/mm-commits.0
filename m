@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch added to -mm tree
-Date: Tue, 14 Feb 2012 16:34:08 -0800
-Message-ID: <20120215003408.F0D6CA02DE@akpm.mtv.corp.google.com>
+Subject: + parisc-use-set_current_blocked-and-block_sigmask.patch added to -mm tree
+Date: Tue, 14 Feb 2012 16:34:12 -0800
+Message-ID: <20120215003412.F1D2DA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61428 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761352Ab2BOAeK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:10 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so18497eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:10 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:44788 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761264Ab2BOAeO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Feb 2012 19:34:14 -0500
+Received: by ghrr17 with SMTP id r17so79189ghr.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Feb 2012 16:34:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matt.fleming@intel.com, arnd@arndb.de, jonas@southpole.se, oleg@redhat.com
+Cc: matt.fleming@intel.com, deller@gmx.de, jejb@parisc-linux.org, kyle@mcmartin.ca, oleg@redhat.com
 
 
 The patch titled
-     Subject: OpenRISC: don't mask signals if we fail to setup signal stack
+     Subject: parisc: use set_current_blocked() and block_sigmask()
 has been added to the -mm tree.  Its filename is
-     openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+     parisc-use-set_current_blocked-and-block_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: OpenRISC: don't mask signals if we fail to setup signal stack
+Subject: parisc: use set_current_blocked() and block_sigmask()
 
-setup_rt_frame() needs to return an indication of whether it succeeded or
-failed in setting up the signal stack frame.  If setup_rt_frame() fails
-then we must not modify current->blocked.
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check whether the signal we're about to block is
+pending in the shared queue.
+
+Also, use the new helper function introduced in commit 5e6292c0f28f
+("signal: add block_sigmask() for adding sigmask to current->blocked")
+which centralises the code for updating current->blocked after
+successfully delivering a signal and reduces the amount of duplicate code
+across architectures.  In the past some architectures got this code wrong,
+so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/signal.c |   29 ++++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 11 deletions(-)
+ arch/parisc/kernel/signal.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/openrisc/kernel/signal.c~openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack arch/openrisc/kernel/signal.c
---- a/arch/openrisc/kernel/signal.c~openrisc-dont-mask-signals-if-we-fail-to-setup-signal-stack
-+++ a/arch/openrisc/kernel/signal.c
-@@ -189,8 +189,8 @@ static inline void __user *get_sigframe(
-  * trampoline which performs the syscall sigreturn, or a provided
-  * user-mode trampoline.
-  */
--static void setup_rt_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
--			   sigset_t *set, struct pt_regs *regs)
-+static int setup_rt_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
-+			  sigset_t *set, struct pt_regs *regs)
- {
- 	struct rt_sigframe *frame;
- 	unsigned long return_ip;
-@@ -247,18 +247,23 @@ static void setup_rt_frame(int sig, stru
- 	/* actually move the usp to reflect the stacked frame */
- 	regs->sp = (unsigned long)frame;
+diff -puN arch/parisc/kernel/signal.c~parisc-use-set_current_blocked-and-block_sigmask arch/parisc/kernel/signal.c
+--- a/arch/parisc/kernel/signal.c~parisc-use-set_current_blocked-and-block_sigmask
++++ a/arch/parisc/kernel/signal.c
+@@ -131,10 +131,7 @@ sys_rt_sigreturn(struct pt_regs *regs, i
+ 	}
+ 		
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
  
--	return;
-+	return 0;
+ 	/* Good thing we saved the old gr[30], eh? */
+ #ifdef CONFIG_64BIT
+@@ -454,12 +451,7 @@ handle_signal(unsigned long sig, siginfo
+ 	if (!setup_rt_frame(sig, ka, info, oldset, regs, in_syscall))
+ 		return 0;
  
- give_sigsegv:
- 	force_sigsegv(sig, current);
-+	return -EFAULT;
- }
+-	spin_lock_irq(&current->sighand->siglock);
+-	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&current->blocked,sig);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	block_sigmask(ka, sig);
  
--static inline void
-+static inline int
- handle_signal(unsigned long sig,
- 	      siginfo_t *info, struct k_sigaction *ka,
- 	      sigset_t *oldset, struct pt_regs *regs)
- {
--	setup_rt_frame(sig, ka, info, oldset, regs);
-+	int ret;
-+
-+	ret = setup_rt_frame(sig, ka, info, oldset, regs);
-+	if (ret)
-+		return ret;
- 
- 	spin_lock_irq(&current->sighand->siglock);
- 	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
-@@ -267,6 +272,8 @@ handle_signal(unsigned long sig,
- 	recalc_sigpending();
- 
- 	spin_unlock_irq(&current->sighand->siglock);
-+
-+	return 0;
- }
- 
- /*
-@@ -355,13 +362,13 @@ void do_signal(struct pt_regs *regs)
- 			oldset = &current->blocked;
- 
- 		/* Whee!  Actually deliver the signal.  */
--		handle_signal(signr, &info, &ka, oldset, regs);
--		/* a signal was successfully delivered; the saved
--		 * sigmask will have been stored in the signal frame,
--		 * and will be restored by sigreturn, so we can simply
--		 * clear the TIF_RESTORE_SIGMASK flag */
--		if (test_thread_flag(TIF_RESTORE_SIGMASK))
-+		if (!handle_signal(signr, &info, &ka, oldset, regs)) {
-+			/* a signal was successfully delivered; the saved
-+			 * sigmask will have been stored in the signal frame,
-+			 * and will be restored by sigreturn, so we can simply
-+			 * clear the TIF_RESTORE_SIGMASK flag */
- 			clear_thread_flag(TIF_RESTORE_SIGMASK);
-+		}
- 
- 		tracehook_signal_handler(signr, &info, &ka, regs,
- 					 test_thread_flag(TIF_SINGLESTEP));
+ 	tracehook_signal_handler(sig, info, ka, regs, 
+ 		test_thread_flag(TIF_SINGLESTEP) ||
 _
-Subject: Subject: OpenRISC: don't mask signals if we fail to setup signal stack
+Subject: Subject: parisc: use set_current_blocked() and block_sigmask()
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
