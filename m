@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch added to -mm tree
-Date: Thu, 16 Feb 2012 11:51:05 -0800
-Message-ID: <20120216203412.07E681E005A@wpzn4.hot.corp.google.com>
+Subject: + drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch added to -mm tree
+Date: Thu, 16 Feb 2012 12:34:03 -0800
+Message-ID: <20120216211710.BF9AB10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:36580 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511Ab2BPUeN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 15:34:13 -0500
-Received: by yhgm50 with SMTP id m50so344943yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 12:34:12 -0800 (PST)
+Received: from mail-qw0-f74.google.com ([209.85.216.74]:56598 "EHLO
+	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753323Ab2BPVRM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 16:17:12 -0500
+Received: by qadb12 with SMTP id b12so378046qad.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 13:17:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux.com, dyoung@redhat.com, fengguang.wu@intel.com, fweisbec@gmail.com, penberg@cs.helsinki.fi
+Cc: akpm@linux-foundation.org, axel.lin@gmail.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, shreshthakumar.sahu@stericsson.com
 
 
 The patch titled
-     Subject: move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix
+     Subject: drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix
 has been added to the -mm tree.  Its filename is
-     move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+     drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix
+Subject: drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix
 
-Documentation/vm/ no longer has a Makefile. Fixes "make clean".
+fix some patch skew
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: "Milo(Woogyom) Kim" <milo.kim@ti.com>
+Cc: Axel Lin <axel.lin@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/Makefile |    2 +-
+ drivers/leds/leds-lm3530.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/Makefile~move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix Documentation/Makefile
---- a/Documentation/Makefile~move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix
-+++ a/Documentation/Makefile
-@@ -1,3 +1,3 @@
- obj-m := DocBook/ accounting/ auxdisplay/ connector/ \
- 	filesystems/ filesystems/configfs/ ia64/ laptops/ networking/ \
--	pcmcia/ spi/ timers/ vm/ watchdog/src/
-+	pcmcia/ spi/ timers/ watchdog/src/
+diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix drivers/leds/leds-lm3530.c
+--- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix
++++ a/drivers/leds/leds-lm3530.c
+@@ -167,7 +167,7 @@ static int lm3530_init_registers(struct 
+ 		break;
+ 	case LM3530_BL_MODE_PWM:
+ 		gen_config |= LM3530_ENABLE_PWM | LM3530_ENABLE_PWM_SIMPLE |
+-			      (pltfm->pwm_pol_hi << LM3530_PWM_POL_SHIFT);
++			      (pdata->pwm_pol_hi << LM3530_PWM_POL_SHIFT);
+ 		break;
+ 	}
+ 
 _
-Subject: Subject: move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix
+Subject: Subject: drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -97,6 +101,7 @@ leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
 drivers-leds-leds-lp5523c-constify-some-data.patch
 drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
 leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
 crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
 rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
 kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
