@@ -1,124 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] openrisc-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
-Date: Thu, 16 Feb 2012 11:47:13 -0800
-Message-ID: <20120216194713.645C9A0128@akpm.mtv.corp.google.com>
+Subject: [folded] syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch removed from -mm tree
+Date: Thu, 16 Feb 2012 11:48:29 -0800
+Message-ID: <20120216194830.1B039A0128@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:46178 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688Ab2BPTrP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 14:47:15 -0500
-Received: by eekb15 with SMTP id b15so96134eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 11:47:14 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:45705 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525Ab2BPTsc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 14:48:32 -0500
+Received: by eaaf13 with SMTP id f13so84653eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 11:48:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, arnd@arndb.de, jonas@southpole.se, oleg@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ebiederm@xmission.com, fweisbec@gmail.com, gorcunov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: OpenRISC: use set_current_blocked() and block_sigmask()
+     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
 has been removed from the -mm tree.  Its filename was
-     openrisc-use-set_current_blocked-and-block_sigmask.patch
+     syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into syscalls-x86-add-__nr_kcmp-syscall-v8.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: OpenRISC: use set_current_blocked() and block_sigmask()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
+fix up selftests
 
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
-
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/signal.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ tools/testing/selftests/Makefile      |    2 +-
+ tools/testing/selftests/kcmp/Makefile |   22 +++++++---------------
+ 2 files changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN arch/openrisc/kernel/signal.c~openrisc-use-set_current_blocked-and-block_sigmask arch/openrisc/kernel/signal.c
---- a/arch/openrisc/kernel/signal.c~openrisc-use-set_current_blocked-and-block_sigmask
-+++ a/arch/openrisc/kernel/signal.c
-@@ -102,10 +102,7 @@ asmlinkage long _sys_rt_sigreturn(struct
- 		goto badframe;
+diff -puN tools/testing/selftests/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix tools/testing/selftests/Makefile
+--- a/tools/testing/selftests/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix
++++ a/tools/testing/selftests/Makefile
+@@ -1,4 +1,4 @@
+-TARGETS = breakpoints vm
++TARGETS = breakpoints vm kcmp
  
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
- 		goto badframe;
-@@ -265,13 +262,7 @@ handle_signal(unsigned long sig,
- 	if (ret)
- 		return ret;
- 
--	spin_lock_irq(&current->sighand->siglock);
--	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked, sig);
--	recalc_sigpending();
+ all:
+ 	for TARGET in $(TARGETS); do \
+diff -puN tools/testing/selftests/kcmp/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix tools/testing/selftests/kcmp/Makefile
+--- a/tools/testing/selftests/kcmp/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix
++++ a/tools/testing/selftests/kcmp/Makefile
+@@ -1,12 +1,3 @@
+-ifeq ($(strip $(V)),)
+-	E = @echo
+-	Q = @
+-else
+-	E = @\#
+-	Q =
+-endif
+-export E Q
 -
--	spin_unlock_irq(&current->sighand->siglock);
-+	block_sigmask(ka, sig);
+ uname_M := $(shell uname -m 2>/dev/null || echo not)
+ ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
+ ifeq ($(ARCH),i386)
+@@ -24,13 +15,14 @@ CFLAGS += -I../../../../usr/include/
  
- 	return 0;
- }
+ all:
+ ifeq ($(ARCH),X86)
+-	$(E) "  CC run_test"
+-	$(Q) gcc $(CFLAGS) kcmp_test.c -o run_test
++	gcc $(CFLAGS) kcmp_test.c -o run_test
+ else
+-	$(E) "Not an x86 target, can't build kcmp selftest"
++	echo "Not an x86 target, can't build kcmp selftest"
+ endif
+ 
++run-tests: all
++	./kcmp_test
++
+ clean:
+-	$(E) "  CLEAN"
+-	$(Q) rm -fr ./run_test
+-	$(Q) rm -fr ./test-file
++	rm -fr ./run_test
++	rm -fr ./test-file
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-arm-use-set_current_blocked-and-block_sigmask.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-powerpc-use-set_current_blocked-and-block_sigmask.patch
-hexagon-use-set_current_blocked-and-block_sigmask.patch
-tile-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-s390-use-block_sigmask.patch
-xtensa-dont-reimplement-force_sigsegv.patch
-xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
-xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-xtensa-use-set_current_blocked-and-block_sigmask.patch
-sparc-use-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-um-dont-restore-current-blocked-on-error.patch
-um-use-set_current_blocked-and-block_sigmask.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+ata-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-replace-compaction_build-with-is_enabledconfig_compaction-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
