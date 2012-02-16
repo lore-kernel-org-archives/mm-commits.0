@@ -1,139 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: + ata-unbork.patch added to -mm tree
-Date: Wed, 15 Feb 2012 15:39:17 -0800
-Message-ID: <20120216002221.B6C8D10004D@wpzn3.hot.corp.google.com>
+Subject: [failures] mm-introduce-pmd_to_pte_t.patch removed from -mm tree
+Date: Wed, 15 Feb 2012 16:11:33 -0800
+Message-ID: <20120216005440.3A2A820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:58109 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751494Ab2BPAWW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 19:22:22 -0500
-Received: by yenm1 with SMTP id m1so228831yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 16:22:22 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:38289 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751916Ab2BPAyn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Feb 2012 19:54:43 -0500
+Received: by faaa19 with SMTP id a19so69381faa.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Feb 2012 16:54:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, holger@homac.de, jgarzik@redhat.com, mjg@redhat.com
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ata: unbork
-has been added to the -mm tree.  Its filename is
-     ata-unbork.patch
+     Subject: mm: introduce pmd_to_pte_t()
+has been removed from the -mm tree.  Its filename was
+     mm-introduce-pmd_to_pte_t.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it had testing failures
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ata: unbork
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: introduce pmd_to_pte_t()
 
-drivers/ata/libata-acpi.c: In function 'ata_acpi_bind_host':
-drivers/ata/libata-acpi.c:1004: error: implicit declaration of function 'is_registered_hotplug_dock_device'
+Casting pmd into pte_t to handle thp is strongly architecture dependent. 
+This patch introduces a new function to separate this dependency from
+independent part.
 
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Holger Macht <holger@homac.de>
-Cc: Jeff Garzik <jgarzik@redhat.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/include/asm/pgtable.h |    5 +++++
+ fs/proc/task_mmu.c             |    4 ++--
+ include/asm-generic/pgtable.h  |    4 ++++
+ 3 files changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~ata-unbork drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~ata-unbork
-+++ a/drivers/ata/libata-acpi.c
-@@ -1001,8 +1001,8 @@ static int ata_acpi_bind_host(struct dev
- 	if (!*handle)
- 		return -ENODEV;
+diff -puN arch/x86/include/asm/pgtable.h~mm-introduce-pmd_to_pte_t arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-introduce-pmd_to_pte_t
++++ a/arch/x86/include/asm/pgtable.h
+@@ -165,6 +165,11 @@ static inline int has_transparent_hugepa
+ {
+ 	return cpu_has_pse;
+ }
++/* Caller must confirm that a given pmd points to a hugepage. */
++static inline pte_t pmd_to_pte_t(pmd_t *pmd)
++{
++	return *(pte_t *)pmd;
++}
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--	if (!is_registered_hotplug_dock_device(&ata_acpi_ap_dock_ops))
--		register_hotplug_dock_device(*handle, &ata_acpi_ap_dock_ops, ap);
-+//	if (!is_registered_hotplug_dock_device(&ata_acpi_ap_dock_ops))
-+//		register_hotplug_dock_device(*handle, &ata_acpi_ap_dock_ops, ap);
+ static inline pte_t pte_set_flags(pte_t pte, pteval_t set)
+diff -puN fs/proc/task_mmu.c~mm-introduce-pmd_to_pte_t fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-introduce-pmd_to_pte_t
++++ a/fs/proc/task_mmu.c
+@@ -395,7 +395,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	spinlock_t *ptl;
  
+ 	if (pmd_trans_huge_lock(pmd, vma)) {
+-		smaps_pte_entry(*(pte_t *)pmd, addr, HPAGE_PMD_SIZE, walk);
++		smaps_pte_entry(pmd_to_pte_t(pmd), addr, HPAGE_PMD_SIZE, walk);
+ 		spin_unlock(&walk->mm->page_table_lock);
+ 		mss->anonymous_thp += HPAGE_PMD_SIZE;
+ 		return 0;
+@@ -967,7 +967,7 @@ static int gather_pte_stats(pmd_t *pmd, 
+ 	md = walk->private;
+ 
+ 	if (pmd_trans_huge_lock(pmd, md->vma)) {
+-		pte_t huge_pte = *(pte_t *)pmd;
++		pte_t huge_pte = pmd_to_pte_t(pmd);
+ 		struct page *page;
+ 
+ 		page = can_gather_numa_stats(huge_pte, md->vma, addr);
+diff -puN include/asm-generic/pgtable.h~mm-introduce-pmd_to_pte_t include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-introduce-pmd_to_pte_t
++++ a/include/asm-generic/pgtable.h
+@@ -434,6 +434,10 @@ static inline int pmd_trans_splitting(pm
+ {
  	return 0;
  }
-@@ -1025,8 +1025,8 @@ static int ata_acpi_bind_device(struct d
- 	if (!*handle)
- 		return -ENODEV;
- 
--	if (!is_registered_hotplug_dock_device(&ata_acpi_dev_dock_ops))
--		register_hotplug_dock_device(*handle, &ata_acpi_dev_dock_ops, ata_dev);
-+//	if (!is_registered_hotplug_dock_device(&ata_acpi_dev_dock_ops))
-+//		register_hotplug_dock_device(*handle, &ata_acpi_dev_dock_ops, ata_dev);
- 
- 	return 0;
- }
++static inline pte_t pmd_to_pte_t(pmd_t *pmd)
++{
++	return 0;
++}
+ #ifndef __HAVE_ARCH_PMD_WRITE
+ static inline int pmd_write(pmd_t pmd)
+ {
 _
-Subject: Subject: ata: unbork
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-ata-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-replace-compaction_build-with-is_enabledconfig_compaction-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-posix_types-remove-fd_set-macros-checkpatch-fixes.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
+thp-optimize-away-unnecessary-page-table-locking.patch
+pagemap-export-kpf_thp.patch
+pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
+pagemap-introduce-data-structure-for-pagemap-entry.patch
 
