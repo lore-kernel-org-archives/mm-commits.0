@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch removed from -mm tree
-Date: Thu, 16 Feb 2012 11:48:29 -0800
-Message-ID: <20120216194830.1B039A0128@akpm.mtv.corp.google.com>
+Subject: [folded] syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix.patch removed from -mm tree
+Date: Thu, 16 Feb 2012 11:48:33 -0800
+Message-ID: <20120216194834.0F2E8A0128@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:45705 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525Ab2BPTsc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 14:48:32 -0500
-Received: by eaaf13 with SMTP id f13so84653eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 11:48:31 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:37081 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525Ab2BPTsf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 14:48:35 -0500
+Received: by yhgm50 with SMTP id m50so338011yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 11:48:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ebiederm@xmission.com, fweisbec@gmail.com, gorcunov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
+     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix
 has been removed from the -mm tree.  Its filename was
-     syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+     syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix.patch
 
 This patch was dropped because it was folded into syscalls-x86-add-__nr_kcmp-syscall-v8.patch
 
@@ -26,9 +26,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
-
-fix up selftests
+Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
@@ -36,56 +34,20 @@ Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile      |    2 +-
- tools/testing/selftests/kcmp/Makefile |   22 +++++++---------------
- 2 files changed, 8 insertions(+), 16 deletions(-)
+ tools/testing/selftests/kcmp/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN tools/testing/selftests/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix tools/testing/selftests/Makefile
---- a/tools/testing/selftests/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix
-+++ a/tools/testing/selftests/Makefile
-@@ -1,4 +1,4 @@
--TARGETS = breakpoints vm
-+TARGETS = breakpoints vm kcmp
- 
- all:
- 	for TARGET in $(TARGETS); do \
-diff -puN tools/testing/selftests/kcmp/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix tools/testing/selftests/kcmp/Makefile
---- a/tools/testing/selftests/kcmp/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix
+diff -puN tools/testing/selftests/kcmp/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix tools/testing/selftests/kcmp/Makefile
+--- a/tools/testing/selftests/kcmp/Makefile~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix
 +++ a/tools/testing/selftests/kcmp/Makefile
-@@ -1,12 +1,3 @@
--ifeq ($(strip $(V)),)
--	E = @echo
--	Q = @
--else
--	E = @\#
--	Q =
--endif
--export E Q
--
- uname_M := $(shell uname -m 2>/dev/null || echo not)
- ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
- ifeq ($(ARCH),i386)
-@@ -24,13 +15,14 @@ CFLAGS += -I../../../../usr/include/
+@@ -12,6 +12,7 @@ endif
+ CFLAGS += -I../../../../arch/x86/include/generated/
+ CFLAGS += -I../../../../include/
+ CFLAGS += -I../../../../usr/include/
++CFLAGS += -I../../../../arch/x86/include/
  
  all:
  ifeq ($(ARCH),X86)
--	$(E) "  CC run_test"
--	$(Q) gcc $(CFLAGS) kcmp_test.c -o run_test
-+	gcc $(CFLAGS) kcmp_test.c -o run_test
- else
--	$(E) "Not an x86 target, can't build kcmp selftest"
-+	echo "Not an x86 target, can't build kcmp selftest"
- endif
- 
-+run-tests: all
-+	./kcmp_test
-+
- clean:
--	$(E) "  CLEAN"
--	$(Q) rm -fr ./run_test
--	$(Q) rm -fr ./test-file
-+	rm -fr ./run_test
-+	rm -fr ./test-file
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,7 +103,6 @@ fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
 selftests-makefile-make-run_tests-depend-on-all.patch
 move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
 syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix.patch
 syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix.patch
 notify_change-check-that-i_mutex-is-held.patch
 journal_add_journal_head-debug.patch
