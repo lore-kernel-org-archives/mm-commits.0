@@ -1,68 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix.patch removed from -mm tree
-Date: Thu, 16 Feb 2012 11:48:37 -0800
-Message-ID: <20120216194837.5DD9EA0128@akpm.mtv.corp.google.com>
+Subject: + move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch added to -mm tree
+Date: Thu, 16 Feb 2012 11:51:05 -0800
+Message-ID: <20120216203412.07E681E005A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:49790 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525Ab2BPTsj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 14:48:39 -0500
-Received: by eekb15 with SMTP id b15so96176eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 11:48:38 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:36580 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752511Ab2BPUeN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 15:34:13 -0500
+Received: by yhgm50 with SMTP id m50so344943yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 12:34:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, fweisbec@gmail.com, gorcunov@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, cl@linux.com, dyoung@redhat.com, fengguang.wu@intel.com, fweisbec@gmail.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix
-has been removed from the -mm tree.  Its filename was
-     syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix.patch
+     Subject: move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix
+has been added to the -mm tree.  Its filename is
+     move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
 
-This patch was dropped because it was folded into syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix
+Subject: move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix
 
-kcmp_test.c: In function 'main':
-kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 4 has type 'long int'
-kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 5 has type 'long int'
-kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 6 has type 'long int'
-kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 7 has type 'long int'
-kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 8 has type 'long int'
-kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 9 has type 'long int'
-kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 10 has type 'long int'
-kcmp_test.c:69: warning: format '%2d' expects type 'int', but argument 11 has type 'long int'
+Documentation/vm/ no longer has a Makefile. Fixes "make clean".
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dave Young <dyoung@redhat.com>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kcmp/kcmp_test.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/kcmp/kcmp_test.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix tools/testing/selftests/kcmp/kcmp_test.c
---- a/tools/testing/selftests/kcmp/kcmp_test.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-fix-fix
-+++ a/tools/testing/selftests/kcmp/kcmp_test.c
-@@ -54,8 +54,9 @@ int main(int argc, char **argv)
- 		}
- 
- 		/* An example of output and arguments */
--		printf("pid1: %6d pid2: %6d FD: %2d FILES: %2d VM: %2d FS: %2d "
--		       "SIGHAND: %2d IO: %2d SYSVSEM: %2d INV: %2d\n",
-+		printf("pid1: %6d pid2: %6d FD: %2ld FILES: %2ld VM: %2ld "
-+		       "FS: %2ld SIGHAND: %2ld IO: %2ld SYSVSEM: %2ld "
-+		       "INV: %2ld\n",
- 		       pid1, pid2,
- 		       sys_kcmp(pid1, pid2, KCMP_FILE,		fd1, fd2),
- 		       sys_kcmp(pid1, pid2, KCMP_FILES,		0, 0),
+diff -puN Documentation/Makefile~move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix Documentation/Makefile
+--- a/Documentation/Makefile~move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix
++++ a/Documentation/Makefile
+@@ -1,3 +1,3 @@
+ obj-m := DocBook/ accounting/ auxdisplay/ connector/ \
+ 	filesystems/ filesystems/configfs/ ia64/ laptops/ networking/ \
+-	pcmcia/ spi/ timers/ vm/ watchdog/src/
++	pcmcia/ spi/ timers/ watchdog/src/
 _
+Subject: Subject: move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -116,6 +112,7 @@ pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
 fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
 selftests-makefile-make-run_tests-depend-on-all.patch
 move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
 syscalls-x86-add-__nr_kcmp-syscall-v8.patch
 notify_change-check-that-i_mutex-is-held.patch
 journal_add_journal_head-debug.patch
