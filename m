@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-pcg_file_mapped.patch added to -mm tree
-Date: Fri, 17 Feb 2012 13:46:00 -0800
-Message-ID: <20120217214600.28F87A01B8@akpm.mtv.corp.google.com>
+Subject: + memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch added to -mm tree
+Date: Fri, 17 Feb 2012 13:46:02 -0800
+Message-ID: <20120217214602.790E5A01B8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gy0-f202.google.com ([209.85.160.202]:38233 "EHLO
 	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754672Ab2BQVqA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 16:46:00 -0500
+	with ESMTP id S1754681Ab2BQVqD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 16:46:03 -0500
 Received: by mail-gy0-f202.google.com with SMTP id r17so480109ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 13:46:00 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 13:46:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosa
 
 
 The patch titled
-     Subject: memcg: remove PCG_FILE_MAPPED
+     Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
 has been added to the -mm tree.  Its filename is
-     memcg-remove-pcg_file_mapped.patch
+     memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: remove PCG_FILE_MAPPED
+Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
 
-With the new lock scheme for updating memcg's page stat, we don't need a
-flag PCG_FILE_MAPPED which was duplicated information of page_mapped().
+mem_cgroup_begin_update_page_stat() should be very fast because it's
+called very frequently.  Now, it needs to look up page_cgroup and its
+memcg....this is slow.
+
+This patch adds a global variable to check "any memcg is moving or not". 
+With this, the caller doesn't need to visit page_cgroup and memcg.
+
+Here is a test result.  A test program makes page faults onto a file,
+MAP_SHARED and makes each page's page_mapcount(page) > 1, and free the
+range by madvise() and page fault again.  This program causes 26214400
+times of page fault onto a file(size was 1G.) and shows shows the cost of
+mem_cgroup_begin_update_page_stat().
+
+Before this patch for mem_cgroup_begin_update_page_stat()
+[kamezawa@bluextal test]$ time ./mmap 1G
+
+real    0m21.765s
+user    0m5.999s
+sys     0m15.434s
+
+    27.46%     mmap  mmap               [.] reader
+    21.15%     mmap  [kernel.kallsyms]  [k] page_fault
+     9.17%     mmap  [kernel.kallsyms]  [k] filemap_fault
+     2.96%     mmap  [kernel.kallsyms]  [k] __do_fault
+     2.83%     mmap  [kernel.kallsyms]  [k] __mem_cgroup_begin_update_page_stat
+
+After this patch
+[root@bluextal test]# time ./mmap 1G
+
+real    0m21.373s
+user    0m6.113s
+sys     0m15.016s
+
+In usual path, calls to __mem_cgroup_begin_update_page_stat() goes away.
+
+Note: we may be able to remove this optimization in future if
+      we can get pointer to memcg directly from struct page.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Greg Thelen <gthelen@google.com>
@@ -48,58 +83,64 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |    6 ------
- mm/memcontrol.c             |    6 +-----
- 2 files changed, 1 insertion(+), 11 deletions(-)
+ include/linux/memcontrol.h |    6 +++++-
+ mm/memcontrol.c            |    9 ++++++++-
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page_cgroup.h~memcg-remove-pcg_file_mapped include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~memcg-remove-pcg_file_mapped
-+++ a/include/linux/page_cgroup.h
-@@ -6,8 +6,6 @@ enum {
- 	PCG_LOCK,  /* Lock for pc->mem_cgroup and following bits. */
- 	PCG_USED, /* this object is in use. */
- 	PCG_MIGRATION, /* under page migration */
--	/* flags for mem_cgroup and file and I/O status */
--	PCG_FILE_MAPPED, /* page is accounted as "mapped" */
- 	__NR_PCG_FLAGS,
- };
+diff -puN include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat
++++ a/include/linux/memcontrol.h
+@@ -144,6 +144,8 @@ static inline bool mem_cgroup_disabled(v
+ void __mem_cgroup_begin_update_page_stat(struct page *page, bool *locked,
+ 					 unsigned long *flags);
  
-@@ -66,10 +64,6 @@ TESTPCGFLAG(Used, USED)
- CLEARPCGFLAG(Used, USED)
- SETPCGFLAG(Used, USED)
++extern atomic_t memcg_moving;
++
+ static inline void mem_cgroup_begin_update_page_stat(struct page *page,
+ 					bool *locked, unsigned long *flags)
+ {
+@@ -151,7 +153,9 @@ static inline void mem_cgroup_begin_upda
+ 		return;
+ 	rcu_read_lock();
+ 	*locked = false;
+-	return __mem_cgroup_begin_update_page_stat(page, locked, flags);
++	if (atomic_read(&memcg_moving))
++		return __mem_cgroup_begin_update_page_stat(page, locked,
++								flags);
+ }
  
--SETPCGFLAG(FileMapped, FILE_MAPPED)
--CLEARPCGFLAG(FileMapped, FILE_MAPPED)
--TESTPCGFLAG(FileMapped, FILE_MAPPED)
--
- SETPCGFLAG(Migration, MIGRATION)
- CLEARPCGFLAG(Migration, MIGRATION)
- TESTPCGFLAG(Migration, MIGRATION)
-diff -puN mm/memcontrol.c~memcg-remove-pcg_file_mapped mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-pcg_file_mapped
+ void __mem_cgroup_end_update_page_stat(struct page *page,
+diff -puN mm/memcontrol.c~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat
 +++ a/mm/memcontrol.c
-@@ -1933,10 +1933,6 @@ void mem_cgroup_update_page_stat(struct 
+@@ -1273,8 +1273,13 @@ int mem_cgroup_swappiness(struct mem_cgr
+  *                                              rcu_read_unlock()
+  *         start move here.
+  */
++
++/* for quick checking without looking up memcg */
++atomic_t memcg_moving __read_mostly;
++
+ static void mem_cgroup_start_move(struct mem_cgroup *memcg)
+ {
++	atomic_inc(&memcg_moving);
+ 	atomic_inc(&memcg->moving_account);
+ 	synchronize_rcu();
+ }
+@@ -1285,8 +1290,10 @@ static void mem_cgroup_end_move(struct m
+ 	 * Now, mem_cgroup_clear_mc() may call this function with NULL.
+ 	 * We check NULL in callee rather than caller.
+ 	 */
+-	if (memcg)
++	if (memcg) {
++		atomic_dec(&memcg_moving);
+ 		atomic_dec(&memcg->moving_account);
++	}
+ }
  
- 	switch (idx) {
- 	case MEMCG_NR_FILE_MAPPED:
--		if (val > 0)
--			SetPageCgroupFileMapped(pc);
--		else if (!page_mapped(page))
--			ClearPageCgroupFileMapped(pc);
- 		idx = MEM_CGROUP_STAT_FILE_MAPPED;
- 		break;
- 	default:
-@@ -2557,7 +2553,7 @@ static int mem_cgroup_move_account(struc
- 
- 	move_lock_mem_cgroup(from, &flags);
- 
--	if (PageCgroupFileMapped(pc)) {
-+	if (page_mapped(page)) {
- 		/* Update mapped_file data for mem_cgroup */
- 		preempt_disable();
- 		__this_cpu_dec(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
+ /*
 _
-Subject: Subject: memcg: remove PCG_FILE_MAPPED
+Subject: Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
