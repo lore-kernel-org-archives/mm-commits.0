@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch added to -mm tree
-Date: Fri, 17 Feb 2012 13:46:02 -0800
-Message-ID: <20120217214602.790E5A01B8@akpm.mtv.corp.google.com>
+Subject: + memcg-use-new-logic-for-page-stat-accounting.patch added to -mm tree
+Date: Fri, 17 Feb 2012 13:45:56 -0800
+Message-ID: <20120217214556.3C683A01B8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:38233 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754681Ab2BQVqD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 16:46:03 -0500
-Received: by mail-gy0-f202.google.com with SMTP id r17so480109ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 13:46:03 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:39964 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754655Ab2BQVp7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 16:45:59 -0500
+Received: by eekb15 with SMTP id b15so133798eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 13:45:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosa
 
 
 The patch titled
-     Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
+     Subject: memcg: use new logic for page stat accounting
 has been added to the -mm tree.  Its filename is
-     memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch
+     memcg-use-new-logic-for-page-stat-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,104 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
+Subject: memcg: use new logic for page stat accounting
 
-mem_cgroup_begin_update_page_stat() should be very fast because it's
-called very frequently.  Now, it needs to look up page_cgroup and its
-memcg....this is slow.
+Now, page-stat-per-memcg is recorded into per page_cgroup flag by
+duplicating page's status into the flag.  The reason is that memcg has a
+feature to move a page from a group to another group and we have race
+between "move" and "page stat accounting",
 
-This patch adds a global variable to check "any memcg is moving or not". 
-With this, the caller doesn't need to visit page_cgroup and memcg.
+Under current logic, assume CPU-A and CPU-B.  CPU-A does "move" and CPU-B
+does "page stat accounting".
 
-Here is a test result.  A test program makes page faults onto a file,
-MAP_SHARED and makes each page's page_mapcount(page) > 1, and free the
-range by madvise() and page fault again.  This program causes 26214400
-times of page fault onto a file(size was 1G.) and shows shows the cost of
-mem_cgroup_begin_update_page_stat().
+When CPU-A goes 1st,
 
-Before this patch for mem_cgroup_begin_update_page_stat()
-[kamezawa@bluextal test]$ time ./mmap 1G
+            CPU-A                           CPU-B
+                                    update "struct page" info.
+    move_lock_mem_cgroup(memcg)
+    see pc->flags
+    copy page stat to new group
+    overwrite pc->mem_cgroup.
+    move_unlock_mem_cgroup(memcg)
+                                    move_lock_mem_cgroup(mem)
+                                    set pc->flags
+                                    update page stat accounting
+                                    move_unlock_mem_cgroup(mem)
 
-real    0m21.765s
-user    0m5.999s
-sys     0m15.434s
+stat accounting is guarded by move_lock_mem_cgroup() and "move" logic
+(CPU-A) doesn't see changes in "struct page" information.
 
-    27.46%     mmap  mmap               [.] reader
-    21.15%     mmap  [kernel.kallsyms]  [k] page_fault
-     9.17%     mmap  [kernel.kallsyms]  [k] filemap_fault
-     2.96%     mmap  [kernel.kallsyms]  [k] __do_fault
-     2.83%     mmap  [kernel.kallsyms]  [k] __mem_cgroup_begin_update_page_stat
+But it's costly to have the same information both in 'struct page' and
+'struct page_cgroup'.  And, there is a potential problem.
 
-After this patch
-[root@bluextal test]# time ./mmap 1G
+For example, assume we have PG_dirty accounting in memcg.
+PG_..is a flag for struct page.
+PCG_ is a flag for struct page_cgroup.
+(This is just an example. The same problem can be found in any
+ kind of page stat accounting.)
 
-real    0m21.373s
-user    0m6.113s
-sys     0m15.016s
+	  CPU-A                               CPU-B
+      TestSet PG_dirty
+      (delay)                        TestClear PG_dirty
+                                     if (TestClear(PCG_dirty))
+                                          memcg->nr_dirty--
+      if (TestSet(PCG_dirty))
+          memcg->nr_dirty++
 
-In usual path, calls to __mem_cgroup_begin_update_page_stat() goes away.
+Here, memcg->nr_dirty = +1, this is wrong.  This race was reported by Greg
+Thelen <gthelen@google.com>.  Now, only FILE_MAPPED is supported but
+fortunately, it's serialized by page table lock and this is not real bug,
+_now_,
 
-Note: we may be able to remove this optimization in future if
-      we can get pointer to memcg directly from struct page.
+If this potential problem is caused by having duplicated information in
+struct page and struct page_cgroup, we may be able to fix this by using
+original 'struct page' information.  But we'll have a problem in "move
+account"
+
+Assume we use only PG_dirty.
+
+         CPU-A                   CPU-B
+    TestSet PG_dirty
+    (delay)                    move_lock_mem_cgroup()
+                               if (PageDirty(page))
+                                      new_memcg->nr_dirty++
+                               pc->mem_cgroup = new_memcg;
+                               move_unlock_mem_cgroup()
+    move_lock_mem_cgroup()
+    memcg = pc->mem_cgroup
+    new_memcg->nr_dirty++
+
+accounting information may be double-counted.  This was original reason to
+have PCG_xxx flags but it seems PCG_xxx has another problem.
+
+I think we need a bigger lock as
+
+     move_lock_mem_cgroup(page)
+     TestSetPageDirty(page)
+     update page stats (without any checks)
+     move_unlock_mem_cgroup(page)
+
+This fixes both of problems and we don't have to duplicate page flag into
+page_cgroup.  Please note: move_lock_mem_cgroup() is held only when there
+are possibility of "account move" under the system.  So, in most path,
+status update will go without atomic locks.
+
+This patch introduces mem_cgroup_begin_update_page_stat() and
+mem_cgroup_end_update_page_stat() both should be called at modifying
+'struct page' information if memcg takes care of it.  as
+
+     mem_cgroup_begin_update_page_stat()
+     modify page information
+     mem_cgroup_update_page_stat()
+     => never check any 'struct page' info, just update counters.
+     mem_cgroup_end_update_page_stat().
+
+This patch is slow because we need to call begin_update_page_stat()/
+end_update_page_stat() regardless of accounted will be changed or not.  A
+following patch adds an easy optimization and reduces the cost.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Greg Thelen <gthelen@google.com>
+Cc: Greg Thelen <gthelen@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -83,64 +139,209 @@ Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++++-
- mm/memcontrol.c            |    9 ++++++++-
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |   35 +++++++++++++++++++
+ mm/memcontrol.c            |   64 ++++++++++++++++++++++++-----------
+ mm/rmap.c                  |   15 +++++++-
+ 3 files changed, 92 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat
+diff -puN include/linux/memcontrol.h~memcg-use-new-logic-for-page-stat-accounting include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-use-new-logic-for-page-stat-accounting
 +++ a/include/linux/memcontrol.h
-@@ -144,6 +144,8 @@ static inline bool mem_cgroup_disabled(v
- void __mem_cgroup_begin_update_page_stat(struct page *page, bool *locked,
- 					 unsigned long *flags);
- 
-+extern atomic_t memcg_moving;
-+
- static inline void mem_cgroup_begin_update_page_stat(struct page *page,
- 					bool *locked, unsigned long *flags)
- {
-@@ -151,7 +153,9 @@ static inline void mem_cgroup_begin_upda
- 		return;
- 	rcu_read_lock();
- 	*locked = false;
--	return __mem_cgroup_begin_update_page_stat(page, locked, flags);
-+	if (atomic_read(&memcg_moving))
-+		return __mem_cgroup_begin_update_page_stat(page, locked,
-+								flags);
+@@ -141,6 +141,31 @@ static inline bool mem_cgroup_disabled(v
+ 	return false;
  }
  
- void __mem_cgroup_end_update_page_stat(struct page *page,
-diff -puN mm/memcontrol.c~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat
++void __mem_cgroup_begin_update_page_stat(struct page *page,
++					bool *lock, unsigned long *flags);
++
++static inline void mem_cgroup_begin_update_page_stat(struct page *page,
++					bool *lock, unsigned long *flags)
++{
++	if (mem_cgroup_disabled())
++		return;
++	rcu_read_lock();
++	*lock = false;
++	return __mem_cgroup_begin_update_page_stat(page, lock, flags);
++}
++
++void __mem_cgroup_end_update_page_stat(struct page *page,
++				unsigned long *flags);
++static inline void mem_cgroup_end_update_page_stat(struct page *page,
++					bool *lock, unsigned long *flags)
++{
++	if (mem_cgroup_disabled())
++		return;
++	if (*lock)
++		__mem_cgroup_end_update_page_stat(page, flags);
++	rcu_read_unlock();
++}
++
+ void mem_cgroup_update_page_stat(struct page *page,
+ 				 enum mem_cgroup_page_stat_item idx,
+ 				 int val);
+@@ -341,6 +366,16 @@ mem_cgroup_print_oom_info(struct mem_cgr
+ {
+ }
+ 
++static inline void mem_cgroup_begin_update_page_stat(struct page *page,
++					bool *lock, unsigned long *flags)
++{
++}
++
++static inline void mem_cgroup_end_update_page_stat(struct page *page,
++					bool *lock, unsigned long *flags)
++{
++}
++
+ static inline void mem_cgroup_inc_page_stat(struct page *page,
+ 					    enum mem_cgroup_page_stat_item idx)
+ {
+diff -puN mm/memcontrol.c~memcg-use-new-logic-for-page-stat-accounting mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-new-logic-for-page-stat-accounting
 +++ a/mm/memcontrol.c
-@@ -1273,8 +1273,13 @@ int mem_cgroup_swappiness(struct mem_cgr
-  *                                              rcu_read_unlock()
-  *         start move here.
+@@ -1877,32 +1877,61 @@ bool mem_cgroup_handle_oom(struct mem_cg
+  * If there is, we take a lock.
   */
+ 
++void __mem_cgroup_begin_update_page_stat(struct page *page,
++				bool *lock, unsigned long *flags)
++{
++	struct mem_cgroup *memcg;
++	struct page_cgroup *pc;
 +
-+/* for quick checking without looking up memcg */
-+atomic_t memcg_moving __read_mostly;
++	pc = lookup_page_cgroup(page);
++again:
++	memcg = pc->mem_cgroup;
++	if (unlikely(!memcg || !PageCgroupUsed(pc)))
++		return;
++	/*
++	 * If this memory cgroup is not under account moving, we don't
++	 * need to take move_lock_page_cgroup(). Because we already hold
++	 * rcu_read_lock(), any calls to move_account will be delayed until
++	 * rcu_read_unlock() if mem_cgroup_stealed() == true.
++	 */
++	if (!mem_cgroup_stealed(memcg))
++		return;
 +
- static void mem_cgroup_start_move(struct mem_cgroup *memcg)
- {
-+	atomic_inc(&memcg_moving);
- 	atomic_inc(&memcg->moving_account);
- 	synchronize_rcu();
- }
-@@ -1285,8 +1290,10 @@ static void mem_cgroup_end_move(struct m
- 	 * Now, mem_cgroup_clear_mc() may call this function with NULL.
- 	 * We check NULL in callee rather than caller.
- 	 */
--	if (memcg)
-+	if (memcg) {
-+		atomic_dec(&memcg_moving);
- 		atomic_dec(&memcg->moving_account);
++	move_lock_mem_cgroup(memcg, flags);
++	if (memcg != pc->mem_cgroup || !PageCgroupUsed(pc)) {
++		move_unlock_mem_cgroup(memcg, flags);
++		goto again;
 +	}
++	*lock = true;
++}
++
++void __mem_cgroup_end_update_page_stat(struct page *page,
++				unsigned long *flags)
++{
++	struct page_cgroup *pc = lookup_page_cgroup(page);
++
++	/*
++	 * It's guaranteed that pc->mem_cgroup never changes while
++	 * lock is held because a routine modifies pc->mem_cgroup
++	 * should take move_lock_page_cgroup().
++	 */
++	move_unlock_mem_cgroup(pc->mem_cgroup, flags);
++}
++
++
+ void mem_cgroup_update_page_stat(struct page *page,
+ 				 enum mem_cgroup_page_stat_item idx, int val)
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct page_cgroup *pc = lookup_page_cgroup(page);
+-	bool need_unlock = false;
+ 	unsigned long uninitialized_var(flags);
+ 
+ 	if (mem_cgroup_disabled())
+ 		return;
+-again:
+-	rcu_read_lock();
++
+ 	memcg = pc->mem_cgroup;
+ 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+-		goto out;
+-	/* pc->mem_cgroup is unstable ? */
+-	if (unlikely(mem_cgroup_stealed(memcg))) {
+-		/* take a lock against to access pc->mem_cgroup */
+-		move_lock_mem_cgroup(memcg, &flags);
+-		if (memcg != pc->mem_cgroup || !PageCgroupUsed(pc)) {
+-			move_unlock_mem_cgroup(memcg, &flags);
+-			rcu_read_unlock();
+-			goto again;
+-		}
+-		need_unlock = true;
+-	}
++		return;
+ 
+ 	switch (idx) {
+ 	case MEMCG_NR_FILE_MAPPED:
+@@ -1917,11 +1946,6 @@ again:
+ 	}
+ 
+ 	this_cpu_add(memcg->stat->count[idx], val);
+-
+-out:
+-	if (unlikely(need_unlock))
+-		move_unlock_mem_cgroup(memcg, &flags);
+-	rcu_read_unlock();
+ }
+ 
+ /*
+diff -puN mm/rmap.c~memcg-use-new-logic-for-page-stat-accounting mm/rmap.c
+--- a/mm/rmap.c~memcg-use-new-logic-for-page-stat-accounting
++++ a/mm/rmap.c
+@@ -1147,10 +1147,15 @@ void page_add_new_anon_rmap(struct page 
+  */
+ void page_add_file_rmap(struct page *page)
+ {
++	bool locked;
++	unsigned long flags;
++
++	mem_cgroup_begin_update_page_stat(page, &locked, &flags);
+ 	if (atomic_inc_and_test(&page->_mapcount)) {
+ 		__inc_zone_page_state(page, NR_FILE_MAPPED);
+ 		mem_cgroup_inc_page_stat(page, MEMCG_NR_FILE_MAPPED);
+ 	}
++	mem_cgroup_end_update_page_stat(page, &locked, &flags);
+ }
+ 
+ /**
+@@ -1161,9 +1166,13 @@ void page_add_file_rmap(struct page *pag
+  */
+ void page_remove_rmap(struct page *page)
+ {
++	bool locked;
++	unsigned long flags;
++
++	mem_cgroup_begin_update_page_stat(page, &locked, &flags);
+ 	/* page still mapped by someone else? */
+ 	if (!atomic_add_negative(-1, &page->_mapcount))
+-		return;
++		goto out;
+ 
+ 	/*
+ 	 * Now that the last pte has gone, s390 must transfer dirty
+@@ -1180,7 +1189,7 @@ void page_remove_rmap(struct page *page)
+ 	 * and not charged by memcg for now.
+ 	 */
+ 	if (unlikely(PageHuge(page)))
+-		return;
++		goto out;
+ 	if (PageAnon(page)) {
+ 		mem_cgroup_uncharge_page(page);
+ 		if (!PageTransHuge(page))
+@@ -1201,6 +1210,8 @@ void page_remove_rmap(struct page *page)
+ 	 * Leaving it set also helps swapoff to reinstate ptes
+ 	 * faster for those pages still in swapcache.
+ 	 */
++out:
++	mem_cgroup_end_update_page_stat(page, &locked, &flags);
  }
  
  /*
 _
-Subject: Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
+Subject: Subject: memcg: use new logic for page stat accounting
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
