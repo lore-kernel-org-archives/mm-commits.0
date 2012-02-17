@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-simplify-move_account-check-fix.patch added to -mm tree
-Date: Fri, 17 Feb 2012 13:45:51 -0800
-Message-ID: <20120217214551.E9B82A01B8@akpm.mtv.corp.google.com>
+Subject: + memcg-use-new-logic-for-page-stat-accounting-fix.patch added to -mm tree
+Date: Fri, 17 Feb 2012 13:45:57 -0800
+Message-ID: <20120217214557.EECF5A01B8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:38233 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754632Ab2BQVpw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 16:45:52 -0500
-Received: by ghrr17 with SMTP id r17so480109ghr.1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 13:45:52 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:34425 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754669Ab2BQVp7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 16:45:59 -0500
+Received: by mail-ww0-f74.google.com with SMTP id ds12so132991wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 13:45:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Subject: memcg-simplify-move_account-check-fix
+     Subject: memcg-use-new-logic-for-page-stat-accounting-fix
 has been added to the -mm tree.  Its filename is
-     memcg-simplify-move_account-check-fix.patch
+     memcg-use-new-logic-for-page-stat-accounting-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,107 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-simplify-move_account-check-fix
+Subject: memcg-use-new-logic-for-page-stat-accounting-fix
 
+s/lock/locked/
 
-
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |   18 +++++++++---------
+ mm/memcontrol.c            |    8 +++-----
+ 2 files changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-simplify-move_account-check-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-move_account-check-fix
-+++ a/mm/memcontrol.c
-@@ -1256,6 +1256,7 @@ int mem_cgroup_swappiness(struct mem_cgr
- 
- 	return memcg->swappiness;
+diff -puN include/linux/memcontrol.h~memcg-use-new-logic-for-page-stat-accounting-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-use-new-logic-for-page-stat-accounting-fix
++++ a/include/linux/memcontrol.h
+@@ -141,27 +141,27 @@ static inline bool mem_cgroup_disabled(v
+ 	return false;
  }
-+
- /*
-  * memcg->moving_account is used for checking possibility that some thread is
-  * calling move_account(). When a thread on CPU-A starts moving pages under
-@@ -1270,7 +1271,6 @@ int mem_cgroup_swappiness(struct mem_cgr
-  *                                              rcu_read_unlock()
-  *         start move here.
-  */
--
- static void mem_cgroup_start_move(struct mem_cgroup *memcg)
+ 
+-void __mem_cgroup_begin_update_page_stat(struct page *page,
+-					bool *lock, unsigned long *flags);
++void __mem_cgroup_begin_update_page_stat(struct page *page, bool *locked,
++					 unsigned long *flags);
+ 
+ static inline void mem_cgroup_begin_update_page_stat(struct page *page,
+-					bool *lock, unsigned long *flags)
++					bool *locked, unsigned long *flags)
  {
- 	atomic_inc(&memcg->moving_account);
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 	rcu_read_lock();
+-	*lock = false;
+-	return __mem_cgroup_begin_update_page_stat(page, lock, flags);
++	*locked = false;
++	return __mem_cgroup_begin_update_page_stat(page, locked, flags);
+ }
+ 
+ void __mem_cgroup_end_update_page_stat(struct page *page,
+ 				unsigned long *flags);
+ static inline void mem_cgroup_end_update_page_stat(struct page *page,
+-					bool *lock, unsigned long *flags)
++					bool *locked, unsigned long *flags)
+ {
+ 	if (mem_cgroup_disabled())
+ 		return;
+-	if (*lock)
++	if (*locked)
+ 		__mem_cgroup_end_update_page_stat(page, flags);
+ 	rcu_read_unlock();
+ }
+@@ -367,12 +367,12 @@ mem_cgroup_print_oom_info(struct mem_cgr
+ }
+ 
+ static inline void mem_cgroup_begin_update_page_stat(struct page *page,
+-					bool *lock, unsigned long *flags)
++					bool *locked, unsigned long *flags)
+ {
+ }
+ 
+ static inline void mem_cgroup_end_update_page_stat(struct page *page,
+-					bool *lock, unsigned long *flags)
++					bool *locked, unsigned long *flags)
+ {
+ }
+ 
+diff -puN mm/memcontrol.c~memcg-use-new-logic-for-page-stat-accounting-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-use-new-logic-for-page-stat-accounting-fix
++++ a/mm/memcontrol.c
+@@ -1878,7 +1878,7 @@ bool mem_cgroup_handle_oom(struct mem_cg
+  */
+ 
+ void __mem_cgroup_begin_update_page_stat(struct page *page,
+-				bool *lock, unsigned long *flags)
++				bool *locked, unsigned long *flags)
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct page_cgroup *pc;
+@@ -1902,11 +1902,10 @@ again:
+ 		move_unlock_mem_cgroup(memcg, flags);
+ 		goto again;
+ 	}
+-	*lock = true;
++	*locked = true;
+ }
+ 
+-void __mem_cgroup_end_update_page_stat(struct page *page,
+-				unsigned long *flags)
++void __mem_cgroup_end_update_page_stat(struct page *page, unsigned long *flags)
+ {
+ 	struct page_cgroup *pc = lookup_page_cgroup(page);
+ 
+@@ -1918,7 +1917,6 @@ void __mem_cgroup_end_update_page_stat(s
+ 	move_unlock_mem_cgroup(pc->mem_cgroup, flags);
+ }
+ 
+-
+ void mem_cgroup_update_page_stat(struct page *page,
+ 				 enum mem_cgroup_page_stat_item idx, int val)
+ {
 _
-Subject: Subject: memcg-simplify-move_account-check-fix
+Subject: Subject: memcg-use-new-logic-for-page-stat-accounting-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
