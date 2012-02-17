@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + coredump_wait-dont-call-complete_vfork_done.patch added to -mm tree
-Date: Thu, 16 Feb 2012 16:40:23 -0800
-Message-ID: <20120217004023.F4113A023F@akpm.mtv.corp.google.com>
+Subject: + vfork-kill-pf_starting.patch added to -mm tree
+Date: Thu, 16 Feb 2012 16:40:25 -0800
+Message-ID: <20120217004025.B10EBA023F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qw0-f74.google.com ([209.85.216.74]:37695 "EHLO
-	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756293Ab2BQAkZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 19:40:25 -0500
-Received: by qadb12 with SMTP id b12so405924qad.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 16:40:24 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:55210 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756293Ab2BQAk1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 19:40:27 -0500
+Received: by mail-ee0-f74.google.com with SMTP id b15so102899eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 16:40:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, tj@kernel.org
 
 
 The patch titled
-     Subject: coredump_wait: don't call complete_vfork_done()
+     Subject: vfork: kill PF_STARTING
 has been added to the -mm tree.  Its filename is
-     coredump_wait-dont-call-complete_vfork_done.patch
+     vfork-kill-pf_starting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump_wait: don't call complete_vfork_done()
+Subject: vfork: kill PF_STARTING
 
-Now that CLONE_VFORK is killable, coredump_wait() no longer needs
-complete_vfork_done().  zap_threads() should find and kill all tasks with
-the same ->mm, this includes our parent if ->vfork_done is set.
+Previously it was (ab)used by utrace.  Then it was wrongly used by the
+scheduler code.
 
-mm_release() becomes the only caller, unexport complete_vfork_done().
+Currently it is not used, kill it before it finds the new erroneous user.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |   14 ++------------
  include/linux/sched.h |    1 -
- kernel/fork.c         |    2 +-
- 3 files changed, 3 insertions(+), 14 deletions(-)
+ kernel/fork.c         |    9 ---------
+ 2 files changed, 10 deletions(-)
 
-diff -puN fs/exec.c~coredump_wait-dont-call-complete_vfork_done fs/exec.c
---- a/fs/exec.c~coredump_wait-dont-call-complete_vfork_done
-+++ a/fs/exec.c
-@@ -1926,19 +1926,9 @@ static int coredump_wait(int exit_code, 
- 		core_waiters = zap_threads(tsk, mm, core_state, exit_code);
- 	up_write(&mm->mmap_sem);
- 
--	if (unlikely(core_waiters < 0))
--		goto fail;
--
--	/*
--	 * Make sure nobody is waiting for us to release the VM,
--	 * otherwise we can deadlock when we wait on each other
--	 */
--	if (tsk->vfork_done)
--		complete_vfork_done(tsk);
--
--	if (core_waiters)
-+	if (core_waiters > 0)
- 		wait_for_completion(&core_state->startup);
--fail:
-+
- 	return core_waiters;
- }
- 
-diff -puN include/linux/sched.h~coredump_wait-dont-call-complete_vfork_done include/linux/sched.h
---- a/include/linux/sched.h~coredump_wait-dont-call-complete_vfork_done
+diff -puN include/linux/sched.h~vfork-kill-pf_starting include/linux/sched.h
+--- a/include/linux/sched.h~vfork-kill-pf_starting
 +++ a/include/linux/sched.h
-@@ -2315,7 +2315,6 @@ extern int do_execve(const char *,
- 		     const char __user * const __user *,
- 		     const char __user * const __user *, struct pt_regs *);
- extern long do_fork(unsigned long, unsigned long, struct pt_regs *, unsigned long, int __user *, int __user *);
--extern void complete_vfork_done(struct task_struct *tsk);
- struct task_struct *fork_idle(int);
- 
- extern void set_task_comm(struct task_struct *tsk, char *from);
-diff -puN kernel/fork.c~coredump_wait-dont-call-complete_vfork_done kernel/fork.c
---- a/kernel/fork.c~coredump_wait-dont-call-complete_vfork_done
+@@ -1802,7 +1802,6 @@ extern void thread_group_times(struct ta
+ /*
+  * Per process flags
+  */
+-#define PF_STARTING	0x00000002	/* being created */
+ #define PF_EXITING	0x00000004	/* getting shut down */
+ #define PF_EXITPIDONE	0x00000008	/* pi exit done on shut down */
+ #define PF_VCPU		0x00000010	/* I'm a virtual CPU */
+diff -puN kernel/fork.c~vfork-kill-pf_starting kernel/fork.c
+--- a/kernel/fork.c~vfork-kill-pf_starting
 +++ a/kernel/fork.c
-@@ -688,7 +688,7 @@ struct mm_struct *mm_access(struct task_
- 	return mm;
+@@ -1074,7 +1074,6 @@ static void copy_flags(unsigned long clo
+ 
+ 	new_flags &= ~(PF_SUPERPRIV | PF_WQ_WORKER);
+ 	new_flags |= PF_FORKNOEXEC;
+-	new_flags |= PF_STARTING;
+ 	p->flags = new_flags;
  }
  
--void complete_vfork_done(struct task_struct *tsk)
-+static void complete_vfork_done(struct task_struct *tsk)
- {
- 	struct completion *vfork;
+@@ -1611,14 +1610,6 @@ long do_fork(unsigned long clone_flags,
+ 			get_task_struct(p);
+ 		}
  
+-		/*
+-		 * We set PF_STARTING at creation in case tracing wants to
+-		 * use this to distinguish a fully live task from one that
+-		 * hasn't finished SIGSTOP raising yet.  Now we clear it
+-		 * and set the child going.
+-		 */
+-		p->flags &= ~PF_STARTING;
+-
+ 		wake_up_new_task(p);
+ 
+ 		/* forking complete and child started to run, tell ptracer */
 _
-Subject: Subject: coredump_wait: don't call complete_vfork_done()
+Subject: Subject: vfork: kill PF_STARTING
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
