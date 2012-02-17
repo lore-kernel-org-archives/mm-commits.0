@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch added to -mm tree
-Date: Fri, 17 Feb 2012 13:46:05 -0800
-Message-ID: <20120217214605.B15E5A01B8@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch added to -mm tree
+Date: Fri, 17 Feb 2012 14:09:26 -0800
+Message-ID: <20120217220926.B3FACA01FC@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:39964 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754690Ab2BQVqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 16:46:07 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b15so133798eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 13:46:06 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:62109 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752651Ab2BQWJ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 17:09:28 -0500
+Received: by ggnp1 with SMTP id p1so483933ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 14:09:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, yinghan@google.com
+Cc: dhillf@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Subject: memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix
+     Subject: vmscan: handle isolated pages with lru lock released
 has been added to the -mm tree.  Its filename is
-     memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+     mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +33,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix
+From: Hillf Danton <dhillf@gmail.com>
+Subject: vmscan: handle isolated pages with lru lock released
 
-don't return a void
+When shrinking inactive lru list, isolated pages are queued on locally
+private list, so the lock-hold time could be reduced if pages are counted
+without lock protection.
 
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
+To achieve that, firstly updating reclaim stat is delayed until the
+putback stage, after reacquiring the lru lock.
+
+Secondly, operations related to vm and zone stats are now proteced with
+preemption disabled as they are per-cpu operations.
+
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix
-+++ a/include/linux/memcontrol.h
-@@ -154,8 +154,7 @@ static inline void mem_cgroup_begin_upda
- 	rcu_read_lock();
- 	*locked = false;
- 	if (atomic_read(&memcg_moving))
--		return __mem_cgroup_begin_update_page_stat(page, locked,
--								flags);
-+		__mem_cgroup_begin_update_page_stat(page, locked, flags);
+diff -puN mm/vmscan.c~mm-vmscan-handle-isolated-pages-with-lru-lock-released mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-handle-isolated-pages-with-lru-lock-released
++++ a/mm/vmscan.c
+@@ -1413,7 +1413,6 @@ update_isolated_counts(struct mem_cgroup
+ 		       unsigned long *nr_anon,
+ 		       unsigned long *nr_file)
+ {
+-	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
+ 	struct zone *zone = mz->zone;
+ 	unsigned int count[NR_LRU_LISTS] = { 0, };
+ 	unsigned long nr_active = 0;
+@@ -1434,6 +1433,7 @@ update_isolated_counts(struct mem_cgroup
+ 		count[lru] += numpages;
+ 	}
+ 
++	preempt_disable();
+ 	__count_vm_events(PGDEACTIVATE, nr_active);
+ 
+ 	__mod_zone_page_state(zone, NR_ACTIVE_FILE,
+@@ -1448,8 +1448,9 @@ update_isolated_counts(struct mem_cgroup
+ 	*nr_anon = count[LRU_ACTIVE_ANON] + count[LRU_INACTIVE_ANON];
+ 	*nr_file = count[LRU_ACTIVE_FILE] + count[LRU_INACTIVE_FILE];
+ 
+-	reclaim_stat->recent_scanned[0] += *nr_anon;
+-	reclaim_stat->recent_scanned[1] += *nr_file;
++	__mod_zone_page_state(zone, NR_ISOLATED_ANON, *nr_anon);
++	__mod_zone_page_state(zone, NR_ISOLATED_FILE, *nr_file);
++	preempt_enable();
  }
  
- void __mem_cgroup_end_update_page_stat(struct page *page,
+ /*
+@@ -1511,6 +1512,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_writeback = 0;
+ 	isolate_mode_t isolate_mode = ISOLATE_INACTIVE;
+ 	struct zone *zone = mz->zone;
++	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
+ 
+ 	while (unlikely(too_many_isolated(zone, file, sc))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+@@ -1544,19 +1546,13 @@ shrink_inactive_list(unsigned long nr_to
+ 			__count_zone_vm_events(PGSCAN_DIRECT, zone,
+ 					       nr_scanned);
+ 	}
++	spin_unlock_irq(&zone->lru_lock);
+ 
+-	if (nr_taken == 0) {
+-		spin_unlock_irq(&zone->lru_lock);
++	if (nr_taken == 0)
+ 		return 0;
+-	}
+ 
+ 	update_isolated_counts(mz, &page_list, &nr_anon, &nr_file);
+ 
+-	__mod_zone_page_state(zone, NR_ISOLATED_ANON, nr_anon);
+-	__mod_zone_page_state(zone, NR_ISOLATED_FILE, nr_file);
+-
+-	spin_unlock_irq(&zone->lru_lock);
+-
+ 	nr_reclaimed = shrink_page_list(&page_list, mz, sc, priority,
+ 						&nr_dirty, &nr_writeback);
+ 
+@@ -1569,6 +1565,9 @@ shrink_inactive_list(unsigned long nr_to
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
++	reclaim_stat->recent_scanned[0] += nr_anon;
++	reclaim_stat->recent_scanned[1] += nr_file;
++
+ 	if (current_is_kswapd())
+ 		__count_vm_events(KSWAPD_STEAL, nr_reclaimed);
+ 	__count_zone_vm_events(PGSTEAL, zone, nr_reclaimed);
 _
-Subject: Subject: memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix
+Subject: Subject: vmscan: handle isolated pages with lru lock released
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-ata-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
+mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
+vmscan-kswapd-carefully-call-compaction.patch
 vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
+vmscan-only-defer-compaction-for-failed-order-and-higher.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
 hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-posix_types-remove-fd_set-macros-checkpatch-fixes.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
 
