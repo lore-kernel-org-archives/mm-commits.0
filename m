@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vfork-introduce-complete_vfork_done.patch added to -mm tree
-Date: Thu, 16 Feb 2012 16:40:16 -0800
-Message-ID: <20120217004018.A4239A023F@akpm.mtv.corp.google.com>
+Subject: + coredump_wait-dont-call-complete_vfork_done.patch added to -mm tree
+Date: Thu, 16 Feb 2012 16:40:23 -0800
+Message-ID: <20120217004023.F4113A023F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:37765 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755653Ab2BQAkV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 19:40:21 -0500
-Received: by ghrr17 with SMTP id r17so368955ghr.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 16:40:20 -0800 (PST)
+Received: from mail-qw0-f74.google.com ([209.85.216.74]:37695 "EHLO
+	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756293Ab2BQAkZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Feb 2012 19:40:25 -0500
+Received: by qadb12 with SMTP id b12so405924qad.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Feb 2012 16:40:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, tj@kernel.org
 
 
 The patch titled
-     Subject: vfork: introduce complete_vfork_done()
+     Subject: coredump_wait: don't call complete_vfork_done()
 has been added to the -mm tree.  Its filename is
-     vfork-introduce-complete_vfork_done.patch
+     coredump_wait-dont-call-complete_vfork_done.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: vfork: introduce complete_vfork_done()
+Subject: coredump_wait: don't call complete_vfork_done()
 
-No functional changes.
+Now that CLONE_VFORK is killable, coredump_wait() no longer needs
+complete_vfork_done().  zap_threads() should find and kill all tasks with
+the same ->mm, this includes our parent if ->vfork_done is set.
 
-Move the clear-and-complete-vfork_done code into the new trivial helper,
-complete_vfork_done().
+mm_release() becomes the only caller, unexport complete_vfork_done().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |    8 ++------
- include/linux/sched.h |    1 +
- kernel/fork.c         |   17 ++++++++++-------
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ fs/exec.c             |   14 ++------------
+ include/linux/sched.h |    1 -
+ kernel/fork.c         |    2 +-
+ 3 files changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN fs/exec.c~vfork-introduce-complete_vfork_done fs/exec.c
---- a/fs/exec.c~vfork-introduce-complete_vfork_done
+diff -puN fs/exec.c~coredump_wait-dont-call-complete_vfork_done fs/exec.c
+--- a/fs/exec.c~coredump_wait-dont-call-complete_vfork_done
 +++ a/fs/exec.c
-@@ -1915,7 +1915,6 @@ static int coredump_wait(int exit_code, 
- {
- 	struct task_struct *tsk = current;
- 	struct mm_struct *mm = tsk->mm;
--	struct completion *vfork_done;
- 	int core_waiters = -EBUSY;
+@@ -1926,19 +1926,9 @@ static int coredump_wait(int exit_code, 
+ 		core_waiters = zap_threads(tsk, mm, core_state, exit_code);
+ 	up_write(&mm->mmap_sem);
  
- 	init_completion(&core_state->startup);
-@@ -1934,11 +1933,8 @@ static int coredump_wait(int exit_code, 
- 	 * Make sure nobody is waiting for us to release the VM,
- 	 * otherwise we can deadlock when we wait on each other
- 	 */
--	vfork_done = tsk->vfork_done;
--	if (vfork_done) {
--		tsk->vfork_done = NULL;
--		complete(vfork_done);
--	}
-+	if (tsk->vfork_done)
-+		complete_vfork_done(tsk);
- 
- 	if (core_waiters)
+-	if (unlikely(core_waiters < 0))
+-		goto fail;
+-
+-	/*
+-	 * Make sure nobody is waiting for us to release the VM,
+-	 * otherwise we can deadlock when we wait on each other
+-	 */
+-	if (tsk->vfork_done)
+-		complete_vfork_done(tsk);
+-
+-	if (core_waiters)
++	if (core_waiters > 0)
  		wait_for_completion(&core_state->startup);
-diff -puN include/linux/sched.h~vfork-introduce-complete_vfork_done include/linux/sched.h
---- a/include/linux/sched.h~vfork-introduce-complete_vfork_done
+-fail:
++
+ 	return core_waiters;
+ }
+ 
+diff -puN include/linux/sched.h~coredump_wait-dont-call-complete_vfork_done include/linux/sched.h
+--- a/include/linux/sched.h~coredump_wait-dont-call-complete_vfork_done
 +++ a/include/linux/sched.h
-@@ -2315,6 +2315,7 @@ extern int do_execve(const char *,
+@@ -2315,7 +2315,6 @@ extern int do_execve(const char *,
  		     const char __user * const __user *,
  		     const char __user * const __user *, struct pt_regs *);
  extern long do_fork(unsigned long, unsigned long, struct pt_regs *, unsigned long, int __user *, int __user *);
-+extern void complete_vfork_done(struct task_struct *tsk);
+-extern void complete_vfork_done(struct task_struct *tsk);
  struct task_struct *fork_idle(int);
  
  extern void set_task_comm(struct task_struct *tsk, char *from);
-diff -puN kernel/fork.c~vfork-introduce-complete_vfork_done kernel/fork.c
---- a/kernel/fork.c~vfork-introduce-complete_vfork_done
+diff -puN kernel/fork.c~coredump_wait-dont-call-complete_vfork_done kernel/fork.c
+--- a/kernel/fork.c~coredump_wait-dont-call-complete_vfork_done
 +++ a/kernel/fork.c
-@@ -688,6 +688,14 @@ struct mm_struct *mm_access(struct task_
+@@ -688,7 +688,7 @@ struct mm_struct *mm_access(struct task_
  	return mm;
  }
  
-+void complete_vfork_done(struct task_struct *tsk)
-+{
-+	struct completion *vfork_done = tsk->vfork_done;
-+
-+	tsk->vfork_done = NULL;
-+	complete(vfork_done);
-+}
-+
- /* Please note the differences between mmput and mm_release.
-  * mmput is called whenever we stop holding onto a mm_struct,
-  * error success whatever.
-@@ -703,8 +711,6 @@ struct mm_struct *mm_access(struct task_
-  */
- void mm_release(struct task_struct *tsk, struct mm_struct *mm)
+-void complete_vfork_done(struct task_struct *tsk)
++static void complete_vfork_done(struct task_struct *tsk)
  {
--	struct completion *vfork_done = tsk->vfork_done;
--
- 	/* Get rid of any futexes when releasing the mm */
- #ifdef CONFIG_FUTEX
- 	if (unlikely(tsk->robust_list)) {
-@@ -726,11 +732,8 @@ void mm_release(struct task_struct *tsk,
- 	/* Get rid of any cached register state */
- 	deactivate_mm(tsk, mm);
+ 	struct completion *vfork;
  
--	/* notify parent sleeping on vfork() */
--	if (vfork_done) {
--		tsk->vfork_done = NULL;
--		complete(vfork_done);
--	}
-+	if (tsk->vfork_done)
-+		complete_vfork_done(tsk);
- 
- 	/*
- 	 * If we're exiting normally, clear a user-space tid field if
 _
-Subject: Subject: vfork: introduce complete_vfork_done()
+Subject: Subject: coredump_wait: don't call complete_vfork_done()
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
