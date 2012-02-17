@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + cris-select-generic_atomic64.patch added to -mm tree
-Date: Fri, 17 Feb 2012 14:23:28 -0800
-Message-ID: <20120217222328.99802A01B8@akpm.mtv.corp.google.com>
+Subject: + pps-class_create-returns-an-err_ptr-not-null.patch added to -mm tree
+Date: Fri, 17 Feb 2012 14:59:34 -0800
+Message-ID: <20120217225936.81478A0365@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qw0-f74.google.com ([209.85.216.74]:59214 "EHLO
-	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751389Ab2BQWX3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 17:23:29 -0500
-Received: by qadb12 with SMTP id b12so516361qad.1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 14:23:29 -0800 (PST)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58932 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753241Ab2BQW7j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 17 Feb 2012 17:59:39 -0500
+Received: by lahl5 with SMTP id l5so125359lah.1
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 14:59:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jesper.nilsson@axis.com, starvik@axis.com
+Cc: dan.carpenter@oracle.com, giometti@enneenne.com
 
 
 The patch titled
-     Subject: cris: select GENERIC_ATOMIC64
+     Subject: pps: class_create() returns an ERR_PTR, not NULL
 has been added to the -mm tree.  Its filename is
-     cris-select-generic_atomic64.patch
+     pps-class_create-returns-an-err_ptr-not-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +34,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: cris: select GENERIC_ATOMIC64
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: pps: class_create() returns an ERR_PTR, not NULL
 
-Cris doesn't implement atomic64 operations neither, should select
-GENERIC_ATOMIC64.
+class_create() never returns NULLs only ERR_PTRs.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pps/pps.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/cris/Kconfig~cris-select-generic_atomic64 arch/cris/Kconfig
---- a/arch/cris/Kconfig~cris-select-generic_atomic64
-+++ a/arch/cris/Kconfig
-@@ -49,6 +49,7 @@ config CRIS
- 	select HAVE_GENERIC_HARDIRQS
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_IOMAP
-+	select GENERIC_ATOMIC64
+diff -puN drivers/pps/pps.c~pps-checking-for-null-instead-of-is_err drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-checking-for-null-instead-of-is_err
++++ a/drivers/pps/pps.c
+@@ -369,9 +369,9 @@ static int __init pps_init(void)
+ 	int err;
  
- config HZ
- 	int
+ 	pps_class = class_create(THIS_MODULE, "pps");
+-	if (!pps_class) {
++	if (IS_ERR(pps_class)) {
+ 		pr_err("failed to allocate class\n");
+-		return -ENOMEM;
++		return PTR_ERR(pps_class);
+ 	}
+ 	pps_class->dev_attrs = pps_attrs;
+ 
 _
-Subject: Subject: cris: select GENERIC_ATOMIC64
+Subject: Subject: pps: class_create() returns an ERR_PTR, not NULL
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
 linux-next.patch
-x86-mm-fix-the-size-calculation-of-mapping-tables.patch
-cris-select-generic_atomic64.patch
-nmi-watchdog-do-not-use-cpp-symbol-in-kconfig.patch
-kcore-make-get_sparsemem_vmemmap_info-static.patch
-proc-clean-up-proc-pid-environ-handling.patch
+pps-class_create-returns-an-err_ptr-not-null.patch
+slab-introduce-kmalloc_array.patch
+mm-compaction-make-compact_control-order-signed.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+drivers-leds-leds-tca6507c-cleanup-error-handling-in-tca6507_probe.patch
 
