@@ -1,28 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-symlink-restrictions-on-sticky-directories.patch added to -mm tree
-Date: Fri, 17 Feb 2012 15:24:45 -0800
-Message-ID: <20120217232445.711B6A0201@akpm.mtv.corp.google.com>
+Subject: + syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch added to -mm tree
+Date: Fri, 17 Feb 2012 15:29:31 -0800
+Message-ID: <20120217232932.2A2CFA0201@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:39369 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755157Ab2BQXYq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 18:24:46 -0500
-Received: by yenm1 with SMTP id m1so502479yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 15:24:46 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:48731 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753165Ab2BQX3f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 18:29:35 -0500
+Received: by faaa19 with SMTP id a19so138945faa.1
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 15:29:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: keescook@chromium.org, a.p.zijlstra@chello.nl, drosenberg@vsecurity.com, eparis@redhat.com, federica.teodori@googlemail.com, lucian.grijincu@gmail.com, matthew@wil.cx, mingo@elte.hu, rdunlap@xenotime.net, riel@redhat.com, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, gorcunov@openvz.org, rdunlap@xenotime.net, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: fs: symlink restrictions on sticky directories
+     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
 has been added to the -mm tree.  Its filename is
-     fs-symlink-restrictions-on-sticky-directories.patch
+     syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,368 +27,101 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Kees Cook <keescook@chromium.org>
-Subject: fs: symlink restrictions on sticky directories
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
 
-A longstanding class of security issues is the symlink-based
-time-of-check-time-of-use race, most commonly seen in world-writable
-directories like /tmp.  The common method of exploitation of this flaw =
-is
-to cross privilege boundaries when following a given symlink (i.e.  a r=
-oot
-process follows a symlink belonging to another user).  For a likely
-incomplete list of hundreds of examples across the years, please see:
-http://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=3D/tmp
-
-The solution is to permit symlinks to only be followed when outside a
-sticky world-writable directory, or when the uid of the symlink and
-follower match, or when the directory owner matches the symlink's owner=
-=2E
-
-Some pointers to the history of earlier discussion that I could find:
-
- 1996 Aug, Zygo Blaxell
-  http://marc.info/?l=3Dbugtraq&m=3D87602167419830&w=3D2
- 1996 Oct, Andrew Tridgell
-  http://lkml.indiana.edu/hypermail/linux/kernel/9610.2/0086.html
- 1997 Dec, Albert D Cahalan
-  http://lkml.org/lkml/1997/12/16/4
- 2005 Feb, Lorenzo Hern=E1ndez Garc=EDa-Hierro
-  http://lkml.indiana.edu/hypermail/linux/kernel/0502.0/1896.html
- 2010 May, Kees Cook
-  https://lkml.org/lkml/2010/5/30/144
-
-Past objections and rebuttals could be summarized as:
-
- - Violates POSIX.
-   - POSIX didn't consider this situation and it's not useful to follow
-     a broken specification at the cost of security.
- - Might break unknown applications that use this feature.
-   - Applications that break because of the change are easy to spot and
-     fix. Applications that are vulnerable to symlink ToCToU by not hav=
-ing
-     the change aren't. Additionally, no applications have yet been fou=
-nd
-     that rely on this behavior.
- - Applications should just use mkstemp() or O_CREATE|O_EXCL.
-   - True, but applications are not perfect, and new software is writte=
-n
-     all the time that makes these mistakes; blocking this flaw at the
-     kernel is a single solution to the entire class of vulnerability.
- - This should live in the core VFS.
-   - This should live in an LSM. (https://lkml.org/lkml/2010/5/31/135)
- - This should live in an LSM.
-   - This should live in the core VFS. (https://lkml.org/lkml/2010/8/2/=
-188)
-
-This patch is based on the patch in Openwall and grsecurity, along with
-suggestions from Al Viro.  I have added a sysctl to enable the protecte=
-d
-behavior, documentation, and an audit notification.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Federica Teodori <federica.teodori@googlemail.com>
-Cc: Lucian Adrian Grijincu <lucian.grijincu@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Eric Paris <eparis@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Dan Rosenberg <drosenberg@vsecurity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/fs.txt |   21 +++++++
- fs/Kconfig                  |   34 ++++++++++++
- fs/namei.c                  |   91 +++++++++++++++++++++++++++++++---
- kernel/sysctl.c             |   14 +++++
- 4 files changed, 154 insertions(+), 6 deletions(-)
+ kernel/kcmp.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/sysctl/fs.txt~fs-symlink-restrictions-on-sticky=
--directories Documentation/sysctl/fs.txt
---- a/Documentation/sysctl/fs.txt~fs-symlink-restrictions-on-sticky-dir=
-ectories
-+++ a/Documentation/sysctl/fs.txt
-@@ -32,6 +32,7 @@ Currently, these files are in /proc/sys/
- - nr_open
- - overflowuid
- - overflowgid
-+- protected_sticky_symlinks
- - suid_dumpable
- - super-max
- - super-nr
-@@ -157,6 +158,26 @@ The default is 65534.
-=20
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=20
-+protected_sticky_symlinks:
-+
-+A long-standing class of security issues is the symlink-based
-+time-of-check-time-of-use race, most commonly seen in world-writable
-+directories like /tmp. The common method of exploitation of this flaw
-+is to cross privilege boundaries when following a given symlink (i.e. =
-a
-+root process follows a symlink belonging to another user). For a likel=
-y
-+incomplete list of hundreds of examples across the years, please see:
-+http://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=3D/tmp
-+
-+When set to "0", symlink following behavior is unrestricted.
-+
-+When set to "1" symlinks are permitted to be followed only when outsid=
-e
-+a sticky world-writable directory, or when the uid of the symlink and
-+follower match, or when the directory owner matches the symlink's owne=
-r.
-+
-+This protection is based on the restrictions in Openwall and grsecurit=
-y.
-+
-+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-+
- suid_dumpable:
-=20
- This value can be used to query and set the core dump mode for setuid
-diff -puN fs/Kconfig~fs-symlink-restrictions-on-sticky-directories fs/K=
-config
---- a/fs/Kconfig~fs-symlink-restrictions-on-sticky-directories
-+++ a/fs/Kconfig
-@@ -271,4 +271,38 @@ endif # NETWORK_FILESYSTEMS
- source "fs/nls/Kconfig"
- source "fs/dlm/Kconfig"
-=20
-+config PROTECTED_STICKY_SYMLINKS
-+	bool "Evaluate vulnerable symlink conditions"
-+	default y
-+	help
-+	  A long-standing class of security issues is the symlink-based
-+	  time-of-check-time-of-use race, most commonly seen in
-+	  world-writable directories like /tmp. The common method of
-+	  exploitation of this flaw is to cross privilege boundaries
-+	  when following a given symlink (i.e. a root process follows
-+	  a malicious symlink belonging to another user).
-+
-+	  Enabling this adds the logic to examine these dangerous symlink
-+	  conditions. Whether or not the dangerous symlink situations are
-+	  allowed is controlled by PROTECTED_STICKY_SYMLINKS_ENABLED.
-+
-+config PROTECTED_STICKY_SYMLINKS_ENABLED
-+	depends on PROTECTED_STICKY_SYMLINKS
-+	bool "Disallow symlink following in sticky world-writable dirs"
-+	default y
-+	help
-+	  Solve ToCToU symlink race vulnerablities by permitting symlinks
-+	  to be followed only when outside a sticky world-writable directory,
-+	  or when the uid of the symlink and follower match, or when the
-+	  directory and symlink owners match.
-+
-+	  When PROC_SYSCTL is enabled, this setting can also be controlled
-+	  via /proc/sys/kernel/protected_sticky_symlinks.
-+
-+config PROTECTED_STICKY_SYMLINKS_ENABLED_SYSCTL
-+	depends on PROTECTED_STICKY_SYMLINKS
-+	int
-+	default "1" if PROTECTED_STICKY_SYMLINKS_ENABLED
-+	default "0"
-+
- endmenu
-diff -puN fs/namei.c~fs-symlink-restrictions-on-sticky-directories fs/n=
-amei.c
---- a/fs/namei.c~fs-symlink-restrictions-on-sticky-directories
-+++ a/fs/namei.c
-@@ -623,10 +623,84 @@ static inline void put_link(struct namei
- 	path_put(link);
- }
-=20
-+#ifdef CONFIG_PROTECTED_STICKY_SYMLINKS
-+int sysctl_protected_sticky_symlinks __read_mostly =3D
-+	CONFIG_PROTECTED_STICKY_SYMLINKS_ENABLED_SYSCTL;
-+
-+/**
-+ * may_follow_link - Check symlink following for unsafe situations
-+ * @dentry: The inode/dentry of the symlink
-+ * @nameidata: The path data of the symlink
-+ *
-+ * In the case of the protected_sticky_symlinks sysctl being enabled,
-+ * CAP_DAC_OVERRIDE needs to be specifically ignored if the symlink is
-+ * in a sticky world-writable directory. This is to protect privileged
-+ * processes from failing races against path names that may change out
-+ * from under them by way of other users creating malicious symlinks.
-+ * It will permit symlinks to be followed only when outside a sticky
-+ * world-writable directory, or when the uid of the symlink and follow=
-er
-+ * match, or when the directory owner matches the symlink's owner.
-+ *
-+ * Returns 0 if following the symlink is allowed, -ve on error.
-+ */
-+static inline int
-+may_follow_link(struct dentry *dentry, struct nameidata *nameidata)
-+{
-+	int error =3D 0;
-+	const struct inode *parent;
-+	const struct inode *inode;
-+	const struct cred *cred;
-+
-+	if (!sysctl_protected_sticky_symlinks)
-+		return 0;
-+
-+	/* Allowed if owner and follower match. */
-+	cred =3D current_cred();
-+	inode =3D dentry->d_inode;
-+	if (cred->fsuid =3D=3D inode->i_uid)
-+		return 0;
-+
-+	/* Check parent directory mode and owner. */
-+	spin_lock(&dentry->d_lock);
-+	parent =3D dentry->d_parent->d_inode;
-+	if ((parent->i_mode & (S_ISVTX|S_IWOTH)) =3D=3D (S_ISVTX|S_IWOTH) &&
-+	    parent->i_uid !=3D inode->i_uid) {
-+		error =3D -EACCES;
-+	}
-+	spin_unlock(&dentry->d_lock);
-+
-+#ifdef CONFIG_AUDIT
-+	if (error) {
-+		struct audit_buffer *ab;
-+
-+		ab =3D audit_log_start(current->audit_context,
-+				     GFP_KERNEL, AUDIT_AVC);
-+		audit_log_format(ab, "op=3Dfollow_link action=3Ddenied");
-+		audit_log_format(ab, " pid=3D%d comm=3D", current->pid);
-+		audit_log_untrustedstring(ab, current->comm);
-+		audit_log_d_path(ab, " path=3D", &nameidata->path);
-+		audit_log_format(ab, " name=3D");
-+		audit_log_untrustedstring(ab, dentry->d_name.name);
-+		audit_log_format(ab, " dev=3D");
-+		audit_log_untrustedstring(ab, inode->i_sb->s_id);
-+		audit_log_format(ab, " ino=3D%lu", inode->i_ino);
-+		audit_log_end(ab);
-+	}
-+#endif
-+	return error;
-+}
-+#else
-+static inline int
-+may_follow_link(struct dentry *dentry, struct nameidata *nameidata)
-+{
-+	return 0;
-+}
-+#endif
-+
- static __always_inline int
--follow_link(struct path *link, struct nameidata *nd, void **p)
-+follow_link(struct path *link, struct nameidata *nd, void **p, bool se=
-nsitive)
- {
--	int error;
-+	int error =3D 0;
- 	struct dentry *dentry =3D link->dentry;
-=20
- 	BUG_ON(nd->flags & LOOKUP_RCU);
-@@ -645,7 +719,10 @@ follow_link(struct path *link, struct na
- 	touch_atime(link->mnt, dentry);
- 	nd_set_link(nd, NULL);
-=20
--	error =3D security_inode_follow_link(link->dentry, nd);
-+	if (sensitive)
-+		error =3D may_follow_link(link->dentry, nd);
-+	if (!error)
-+		error =3D security_inode_follow_link(link->dentry, nd);
- 	if (error) {
- 		*p =3D ERR_PTR(error); /* no ->put_link(), please */
- 		path_put(&nd->path);
-@@ -1342,7 +1419,7 @@ static inline int nested_symlink(struct=20
- 		struct path link =3D *path;
- 		void *cookie;
-=20
--		res =3D follow_link(&link, nd, &cookie);
-+		res =3D follow_link(&link, nd, &cookie, false);
- 		if (!res)
- 			res =3D walk_component(nd, path, &nd->last,
- 					     nd->last_type, LOOKUP_FOLLOW);
-@@ -1615,7 +1692,8 @@ static int path_lookupat(int dfd, const=20
- 			void *cookie;
- 			struct path link =3D path;
- 			nd->flags |=3D LOOKUP_PARENT;
--			err =3D follow_link(&link, nd, &cookie);
-+
-+			err =3D follow_link(&link, nd, &cookie, true);
- 			if (!err)
- 				err =3D lookup_last(nd, &path);
- 			put_link(nd, &link, cookie);
-@@ -2327,7 +2405,8 @@ static struct file *path_openat(int dfd,
- 		}
- 		nd->flags |=3D LOOKUP_PARENT;
- 		nd->flags &=3D ~(LOOKUP_OPEN|LOOKUP_CREATE|LOOKUP_EXCL);
--		error =3D follow_link(&link, nd, &cookie);
-+
-+		error =3D follow_link(&link, nd, &cookie, true);
- 		if (unlikely(error))
- 			filp =3D ERR_PTR(error);
- 		else
-diff -puN kernel/sysctl.c~fs-symlink-restrictions-on-sticky-directories=
- kernel/sysctl.c
---- a/kernel/sysctl.c~fs-symlink-restrictions-on-sticky-directories
-+++ a/kernel/sysctl.c
-@@ -109,6 +109,9 @@ extern int sysctl_nr_trim_pages;
- #ifdef CONFIG_BLOCK
- extern int blk_iopoll_enabled;
- #endif
-+#ifdef CONFIG_PROTECTED_STICKY_SYMLINKS
-+extern int sysctl_protected_sticky_symlinks;
-+#endif
-=20
- /* Constants used for minimum and  maximum */
- #ifdef CONFIG_LOCKUP_DETECTOR
-@@ -1497,6 +1500,17 @@ static struct ctl_table fs_table[] =3D {
- 	},
- #endif
- #endif
-+#ifdef CONFIG_PROTECTED_STICKY_SYMLINKS
-+	{
-+		.procname	=3D "protected_sticky_symlinks",
-+		.data		=3D &sysctl_protected_sticky_symlinks,
-+		.maxlen		=3D sizeof(int),
-+		.mode		=3D 0600,
-+		.proc_handler	=3D proc_dointvec_minmax,
-+		.extra1		=3D &zero,
-+		.extra2		=3D &one,
-+	},
-+#endif
- 	{
- 		.procname	=3D "suid_dumpable",
- 		.data		=3D &suid_dumpable,
+diff -puN kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix kernel/kcmp.c
+--- a/kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix
++++ a/kernel/kcmp.c
+@@ -5,6 +5,7 @@
+ #include <linux/random.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/errno.h>
+ #include <linux/cache.h>
+ #include <linux/bug.h>
+ #include <linux/err.h>
 _
-Subject: Subject: fs: symlink restrictions on sticky directories
+Subject: Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-fs-symlink-restrictions-on-sticky-directories.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+ata-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
 fs-symlink-restrictions-on-sticky-directories-fix.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-pro=
-c-pid-stat.patch
-c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
-ramoops-use-pstore-interface.patch
-ramoops-use-pstore-interface-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
