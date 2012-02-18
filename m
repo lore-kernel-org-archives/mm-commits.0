@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3.patch added to -mm tree
-Date: Fri, 17 Feb 2012 16:02:52 -0800
-Message-ID: <20120218000252.96408A01FC@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix.patch added to -mm tree
+Date: Fri, 17 Feb 2012 16:12:10 -0800
+Message-ID: <20120218001211.2417EA030C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vw0-f74.google.com ([209.85.212.74]:60952 "EHLO
-	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708Ab2BRACy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 19:02:54 -0500
-Received: by vbbfp1 with SMTP id fp1so516380vbb.1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 16:02:53 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:38896 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752927Ab2BRAMM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 19:12:12 -0500
+Received: by ggnp1 with SMTP id p1so494358ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 16:12:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com
+Cc: hughd@google.com, mel@csn.ul.ie
 
 
 The patch titled
-     Subject: drivers/leds/leds-pca9633.c: fix kcalloc parameters swapped
+     Subject: mm: move buffer_heads_over_limit check up
 has been added to the -mm tree.  Its filename is
-     drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3.patch
+     mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@gmail.com>
-Subject: drivers/leds/leds-pca9633.c: fix kcalloc parameters swapped
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: move buffer_heads_over_limit check up
 
-The first parameter should be "number of elements" and the second
-parameter should be "element size".
+Not a functional change, just a minor internal cleanup: move the
+buffer_heads_over_limit processing up from move_active_pages_to_lru()
+(where it has to drop lock and reloop) to its caller shrink_active_list().
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-pca9633.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN drivers/leds/leds-pca9633.c~drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3 drivers/leds/leds-pca9633.c
---- a/drivers/leds/leds-pca9633.c~drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3
-+++ a/drivers/leds/leds-pca9633.c
-@@ -110,7 +110,7 @@ static int __devinit pca9633_probe(struc
+diff -puN mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix
++++ a/mm/vmscan.c
+@@ -1642,18 +1642,6 @@ static void move_active_pages_to_lru(str
+ 	unsigned long pgmoved = 0;
+ 	struct page *page;
+ 
+-	if (buffer_heads_over_limit) {
+-		spin_unlock_irq(&zone->lru_lock);
+-		list_for_each_entry(page, list, lru) {
+-			if (page_has_private(page) && trylock_page(page)) {
+-				if (page_has_private(page))
+-					try_to_release_page(page, 0);
+-				unlock_page(page);
+-			}
+-		}
+-		spin_lock_irq(&zone->lru_lock);
+-	}
+-
+ 	while (!list_empty(list)) {
+ 		struct lruvec *lruvec;
+ 
+@@ -1735,6 +1723,13 @@ static void shrink_active_list(unsigned 
+ 			continue;
  		}
- 	}
  
--	pca9633 = kcalloc(sizeof(*pca9633), 4, GFP_KERNEL);
-+	pca9633 = kcalloc(4, sizeof(*pca9633), GFP_KERNEL);
- 	if (!pca9633)
- 		return -ENOMEM;
- 
++		if (buffer_heads_over_limit &&
++		    page_has_private(page) && trylock_page(page)) {
++			if (page_has_private(page))
++				try_to_release_page(page, 0);
++			unlock_page(page);
++		}
++
+ 		if (page_referenced(page, 0, mz->mem_cgroup, &vm_flags)) {
+ 			nr_rotated += hpage_nr_pages(page);
+ 			/*
 _
-Subject: Subject: drivers/leds/leds-pca9633.c: fix kcalloc parameters swapped
+Subject: Subject: mm: move buffer_heads_over_limit check up
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-origin.patch
 linux-next.patch
-platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch
-backlight-convert-backlight-i2c-drivers-to-module_i2c_driver.patch
-backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
-backlight-new-backlight-driver-for-lp855x-devices-fix.patch
-backlight-lp855x_blc-check-platform-data-in-lp855x_probe.patch
-backlight-lp855x_blc-small-cleanups.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3.patch
-leds-lm3530-replace-pltfm-with-pdata.patch
-drivers-leds-leds-pca9633c-remove-unused-adapter-variable.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-rtc-convert-rtc-spi-drivers-to-module_spi_driver.patch
-rtc-convert-rtc-i2c-drivers-to-module_i2c_driver.patch
+mm-add-rss-counters-consistency-check.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+make-swapin-readahead-skip-over-holes.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+rmap-anon_vma_prepare-reduce-code-duplication-by-calling-anon_vma_chain_link.patch
+mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
+memcg-replace-mem_cont-by-mem_res_ctlr.patch
+memcg-replace-mem-and-mem_cont-stragglers.patch
+memcg-lru_size-instead-of-mem_cgroup_zstat.patch
+memcg-enum-lru_list-lru.patch
+memcg-remove-redundant-returns.patch
+idr-make-idr_get_next-good-for-rcu_read_lock.patch
+cgroup-revert-ss_id_lock-to-spinlock.patch
+memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
+memcg-remove-pcg_cache-page_cgroup-flag.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+prio_tree-debugging-patch.patch
 
