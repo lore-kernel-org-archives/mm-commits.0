@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-convert-platform_lcd-to-dev_pm_ops.patch added to -mm tree
-Date: Tue, 21 Feb 2012 14:06:34 -0800
-Message-ID: <20120221220634.84849A0331@akpm.mtv.corp.google.com>
+Subject: + lp855x-bl-remove-unnecessary-platform-data.patch added to -mm tree
+Date: Tue, 21 Feb 2012 14:08:11 -0800
+Message-ID: <20120221220811.E24B7A00B1@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:45100 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755691Ab2BUWGg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 17:06:36 -0500
-Received: by wgbds12 with SMTP id ds12so246010wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 21 Feb 2012 14:06:35 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:43713 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755765Ab2BUWIN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 17:08:13 -0500
+Received: by yenm1 with SMTP id m1so891100yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 21 Feb 2012 14:08:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, rpurdie@rpsys.net
+Cc: Milo.Kim@ti.com, axel.lin@gmail.com, milo.kim@ti.com
 
 
 The patch titled
-     Subject: backlight: convert platform_lcd to dev_pm_ops
+     Subject: lp855x-bl: remove unnecessary platform data
 has been added to the -mm tree.  Its filename is
-     backlight-convert-platform_lcd-to-dev_pm_ops.patch
+     lp855x-bl-remove-unnecessary-platform-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: convert platform_lcd to dev_pm_ops
+From: "Kim, Milo" <Milo.Kim@ti.com>
+Subject: lp855x-bl: remove unnecessary platform data
 
-Instead of using legacy suspend/resume methods, using newer dev_pm_ops
-structure allows better control over power management.
+All lp855x devices have 8-bits brightness contorl register.  The value of
+max_brightness is set to 255.  So the max_brightness in the platform data
+is unnecessary.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Acked-by: Axel Lin <axel.lin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/platform_lcd.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ Documentation/backlight/lp855x-driver.txt |    3 ---
+ drivers/video/backlight/lp855x_bl.c       |   11 +++++++----
+ include/linux/lp855x.h                    |    2 --
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/backlight/platform_lcd.c~backlight-convert-platform_lcd-to-dev_pm_ops drivers/video/backlight/platform_lcd.c
---- a/drivers/video/backlight/platform_lcd.c~backlight-convert-platform_lcd-to-dev_pm_ops
-+++ a/drivers/video/backlight/platform_lcd.c
-@@ -121,9 +121,9 @@ static int __devexit platform_lcd_remove
- }
+diff -puN Documentation/backlight/lp855x-driver.txt~lp855x-bl-remove-unnecessary-platform-data Documentation/backlight/lp855x-driver.txt
+--- a/Documentation/backlight/lp855x-driver.txt~lp855x-bl-remove-unnecessary-platform-data
++++ a/Documentation/backlight/lp855x-driver.txt
+@@ -35,7 +35,6 @@ For supporting platform specific data, t
+ * mode : Brightness control mode. PWM or register based.
+ * device_control : Value of DEVICE CONTROL register.
+ * initial_brightness : Initial value of backlight brightness.
+-* max_brightness : Maximum value of backlight brightness.
+ * pwm_data : Platform specific pwm generation functions.
+ 	     Only valid when brightness is pwm input mode.
+ 	     Functions should be implemented by PWM driver.
+@@ -61,7 +60,6 @@ static struct lp855x_platform_data lp855
+ 	.mode = REGISTER_BASED,
+ 	.device_control = I2C_CONFIG(LP8552),
+ 	.initial_brightness = INITIAL_BRT,
+-	.max_brightness = MAX_BRT,
+ 	.load_new_rom_data = 1,
+ 	.size_program = ARRAY_SIZE(lp8552_eeprom_arr),
+ 	.rom_data = lp8552_eeprom_arr,
+@@ -73,7 +71,6 @@ static struct lp855x_platform_data lp855
+ 	.mode = PWM_BASED,
+ 	.device_control = PWM_CONFIG(LP8556),
+ 	.initial_brightness = INITIAL_BRT,
+-	.max_brightness = MAX_BRT,
+ 	.pwm_data = {
+ 		     .pwm_set_intensity = platform_pwm_set_intensity,
+ 		     .pwm_get_intensity = platform_pwm_get_intensity,
+diff -puN drivers/video/backlight/lp855x_bl.c~lp855x-bl-remove-unnecessary-platform-data drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~lp855x-bl-remove-unnecessary-platform-data
++++ a/drivers/video/backlight/lp855x_bl.c
+@@ -22,8 +22,9 @@
+ #define BRIGHTNESS_CTRL		(0x00)
+ #define DEVICE_CTRL		(0x01)
  
- #ifdef CONFIG_PM
--static int platform_lcd_suspend(struct platform_device *pdev, pm_message_t st)
-+static int platform_lcd_suspend(struct device *dev)
- {
--	struct platform_lcd *plcd = platform_get_drvdata(pdev);
-+	struct platform_lcd *plcd = dev_get_drvdata(dev);
+-#define BUF_SIZE		(20)
++#define BUF_SIZE		20
+ #define DEFAULT_BL_NAME		"lcd-backlight"
++#define MAX_BRIGHTNESS		255
  
- 	plcd->suspended = 1;
- 	platform_lcd_set_power(plcd->lcd, plcd->power);
-@@ -131,29 +131,30 @@ static int platform_lcd_suspend(struct p
- 	return 0;
- }
+ struct lp855x {
+ 	const char *chipid;
+@@ -171,10 +172,12 @@ static int lp855x_backlight_register(str
+ 	char *name = pdata->name ? : DEFAULT_BL_NAME;
  
--static int platform_lcd_resume(struct platform_device *pdev)
-+static int platform_lcd_resume(struct device *dev)
- {
--	struct platform_lcd *plcd = platform_get_drvdata(pdev);
-+	struct platform_lcd *plcd = dev_get_drvdata(dev);
- 
- 	plcd->suspended = 0;
- 	platform_lcd_set_power(plcd->lcd, plcd->power);
- 
- 	return 0;
- }
--#else
--#define platform_lcd_suspend NULL
--#define platform_lcd_resume NULL
+ 	props.type = BACKLIGHT_PLATFORM;
++	props.max_brightness = MAX_BRIGHTNESS;
 +
-+static SIMPLE_DEV_PM_OPS(platform_lcd_pm_ops, platform_lcd_suspend,
-+			platform_lcd_resume);
- #endif
++	if (pdata->initial_brightness > props.max_brightness)
++		pdata->initial_brightness = props.max_brightness;
++
+ 	props.brightness = pdata->initial_brightness;
+-	props.max_brightness =
+-		(pdata->max_brightness < pdata->initial_brightness) ?
+-		255 : pdata->max_brightness;
  
- static struct platform_driver platform_lcd_driver = {
- 	.driver		= {
- 		.name	= "platform-lcd",
- 		.owner	= THIS_MODULE,
-+#ifdef CONFIG_PM
-+		.pm	= &platform_lcd_pm_ops,
-+#endif
- 	},
- 	.probe		= platform_lcd_probe,
- 	.remove		= __devexit_p(platform_lcd_remove),
--	.suspend        = platform_lcd_suspend,
--	.resume         = platform_lcd_resume,
- };
- 
- module_platform_driver(platform_lcd_driver);
+ 	bl = backlight_device_register(name, lp->dev, lp,
+ 				       &lp855x_bl_ops, &props);
+diff -puN include/linux/lp855x.h~lp855x-bl-remove-unnecessary-platform-data include/linux/lp855x.h
+--- a/include/linux/lp855x.h~lp855x-bl-remove-unnecessary-platform-data
++++ a/include/linux/lp855x.h
+@@ -109,7 +109,6 @@ struct lp855x_rom_data {
+  * @mode : brightness control by pwm or lp855x register
+  * @device_control : value of DEVICE CONTROL register
+  * @initial_brightness : initial value of backlight brightness
+- * @max_brightness : maximum value of backlight brightness
+  * @pwm_data : platform specific pwm generation functions.
+ 		Only valid when mode is PWM_BASED.
+  * @load_new_rom_data :
+@@ -123,7 +122,6 @@ struct lp855x_platform_data {
+ 	enum lp855x_brightness_ctrl_mode mode;
+ 	u8 device_control;
+ 	int initial_brightness;
+-	int max_brightness;
+ 	struct lp855x_pwm_data pwm_data;
+ 	u8 load_new_rom_data;
+ 	int size_program;
 _
-Subject: Subject: backlight: convert platform_lcd to dev_pm_ops
+Subject: Subject: lp855x-bl: remove unnecessary platform data
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from Milo.Kim@ti.com are
 
 linux-next.patch
-backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
-backlight-convert-platform_lcd-to-dev_pm_ops.patch
+backlight-new-backlight-driver-for-lp855x-devices.patch
+lp855x-bl-remove-unnecessary-platform-data.patch
+lp855x-bl-remove-unnecessary-headers.patch
+leds-lp5521-add-name-in-the-lp5521_led_config.patch
+leds-lp5521-add-update_config-in-the-lp5521_platform_data.patch
+leds-lp5521-support-led-pattern-data.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+leds-lp5521-redefinition-of-register-bits.patch
+leds-lm3530-set-the-max_brightness-to-127.patch
+leds-lm3530-replace-i2c_client-with-led_classdev.patch
+leds-lm3530-support-pwm-input-mode.patch
+leds-lm3530-remove-lm3530_als_zone_reg-code.patch
+leds-lm3530-replace-pltfm-with-pdata.patch
 
