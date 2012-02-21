@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch added to -mm tree
-Date: Fri, 17 Feb 2012 16:12:12 -0800
-Message-ID: <20120218001212.E98FBA030C@akpm.mtv.corp.google.com>
+Subject: + thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 21 Feb 2012 12:12:02 -0800
+Message-ID: <20120221201204.AA26CA0331@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:39174 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752993Ab2BRAMN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Feb 2012 19:12:13 -0500
-Received: by yenm1 with SMTP id m1so506095yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 17 Feb 2012 16:12:13 -0800 (PST)
+Received: from mail-qw0-f74.google.com ([209.85.216.74]:41057 "EHLO
+	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753546Ab2BUUMJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 15:12:09 -0500
+Received: by qadb12 with SMTP id b12so869271qad.1
+        for <mm-commits@vger.kernel.org>; Tue, 21 Feb 2012 12:12:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hughd@google.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, n-horiguchi@ah.jp.nec.com
 
 
 The patch titled
-     Subject: mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix
+     Subject: thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+     thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix
+Subject: thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes
 
-buffer_heads_over_limit is unlikely
+Cc: Andi Kleen <andi@firstfloor.org>
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+ERROR: do not use assignment in if condition
+#81: FILE: mm/huge_memory.c:1097:
++	if ((ret = __pmd_trans_huge_lock(old_pmd, vma)) == 1) {
+
+total: 1 errors, 0 warnings, 85 lines checked
+
+./patches/thp-optimize-away-unnecessary-page-table-locking-fix.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix
-+++ a/mm/vmscan.c
-@@ -1723,11 +1723,12 @@ static void shrink_active_list(unsigned 
- 			continue;
- 		}
+diff -puN mm/huge_memory.c~thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes
++++ a/mm/huge_memory.c
+@@ -1094,7 +1094,8 @@ int move_huge_pmd(struct vm_area_struct 
+ 		goto out;
+ 	}
  
--		if (buffer_heads_over_limit &&
--		    page_has_private(page) && trylock_page(page)) {
--			if (page_has_private(page))
--				try_to_release_page(page, 0);
--			unlock_page(page);
-+		if (unlikely(buffer_heads_over_limit)) {
-+			if (page_has_private(page) && trylock_page(page)) {
-+				if (page_has_private(page))
-+					try_to_release_page(page, 0);
-+				unlock_page(page);
-+			}
- 		}
- 
- 		if (page_referenced(page, 0, mz->mem_cgroup, &vm_flags)) {
+-	if ((ret = __pmd_trans_huge_lock(old_pmd, vma)) == 1) {
++	ret = __pmd_trans_huge_lock(old_pmd, vma);
++	if (ret == 1) {
+ 		pmd = pmdp_get_and_clear(mm, old_addr, old_pmd);
+ 		VM_BUG_ON(!pmd_none(*new_pmd));
+ 		set_pmd_at(mm, new_addr, new_pmd, pmd);
 _
-Subject: Subject: mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix
+Subject: Subject: thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -93,6 +97,7 @@ make-swapin-readahead-skip-over-holes-fix.patch
 vmscan-kswapd-carefully-call-compaction-fix.patch
 mm-compaction-make-compact_control-order-signed-fix.patch
 hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
 mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
 mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
 memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
