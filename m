@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hardlink-creation-restrictions-fix.patch added to -mm tree
-Date: Tue, 21 Feb 2012 15:11:28 -0800
-Message-ID: <20120221231128.E2AF0A011D@akpm.mtv.corp.google.com>
+Subject: + fs-hardlink-creation-restrictions.patch added to -mm tree
+Date: Tue, 21 Feb 2012 15:11:27 -0800
+Message-ID: <20120221231127.32F09A011D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:37449 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756219Ab2BUXLb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 18:11:31 -0500
-Received: by eekb15 with SMTP id b15so254072eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 21 Feb 2012 15:11:29 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:39392 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756240Ab2BUXLa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 18:11:30 -0500
+Received: by wics10 with SMTP id s10so270918wic.1
+        for <mm-commits@vger.kernel.org>; Tue, 21 Feb 2012 15:11:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, keescook@chromium.org
+Cc: keescook@chromium.org, a.p.zijlstra@chello.nl, drosenberg@vsecurity.com, eparis@redhat.com, federica.teodori@googlemail.com, lucian.grijincu@gmail.com, matthew@wil.cx, mingo@elte.hu, rdunlap@xenotime.net, riel@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: fs-hardlink-creation-restrictions-fix
+     Subject: fs: hardlink creation restrictions
 has been added to the -mm tree.  Its filename is
-     fs-hardlink-creation-restrictions-fix.patch
+     fs-hardlink-creation-restrictions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,399 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-hardlink-creation-restrictions-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: fs: hardlink creation restrictions
 
-uninline may_linkat() and audit_log_link_denied().
+On systems that have user-writable directories on the same partition as
+system files, a long-standing class of security issues is the
+hardlink-based time-of-check-time-of-use race, most commonly seen in
+world-writable directories like /tmp.  The common method of exploitation
+of this flaw is to cross privilege boundaries when following a given
+hardlink (i.e.  a root process follows a hardlink created by another
+user).  Additionally, an issue exists where users can "pin" a potentially
+vulnerable setuid/setgid file so that an administrator will not actually
+upgrade a system fully.
 
-Cc: Kees Cook <keescook@chromium.org>
+The solution is to permit hardlinks to only be created when the user is
+already the existing file's owner, or if they already have read/write
+access to the existing file.
+
+Many Linux users are surprised when they learn they can link to files they
+have no access to, so this change appears to follow the doctrine of "least
+surprise".  Additionally, this change does not violate POSIX, which states
+"the implementation may require that the calling process has permission to
+access the existing file"[1].
+
+This change is known to break some implementations of the "at" daemon,
+though the version used by Fedora and Ubuntu has been fixed[2] for a
+while.  Otherwise, the change has been undisruptive while in use in Ubuntu
+for the last 1.5 years.
+
+This patch is based on the patch in Openwall and grsecurity.  I have added
+a sysctl to enable the protected behavior, documentation, and an audit
+notification.
+
+[1] http://pubs.opengroup.org/onlinepubs/9699919799/functions/linkat.html
+[2] http://anonscm.debian.org/gitweb/?p=collab-maint/at.git;a=commitdiff;h=f4114656c3a6c6f6070e315ffdf940a49eda3279
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Federica Teodori <federica.teodori@googlemail.com>
+Cc: Lucian Adrian Grijincu <lucian.grijincu@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Dan Rosenberg <drosenberg@vsecurity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ Documentation/sysctl/fs.txt |   21 ++++++
+ fs/Kconfig                  |   56 +++++++++++++----
+ fs/namei.c                  |  107 +++++++++++++++++++++++++---------
+ include/linux/fs.h          |    1 
+ kernel/sysctl.c             |   11 +++
+ 5 files changed, 153 insertions(+), 43 deletions(-)
 
-diff -puN fs/namei.c~fs-hardlink-creation-restrictions-fix fs/namei.c
---- a/fs/namei.c~fs-hardlink-creation-restrictions-fix
+diff -puN Documentation/sysctl/fs.txt~fs-hardlink-creation-restrictions Documentation/sysctl/fs.txt
+--- a/Documentation/sysctl/fs.txt~fs-hardlink-creation-restrictions
++++ a/Documentation/sysctl/fs.txt
+@@ -32,6 +32,7 @@ Currently, these files are in /proc/sys/
+ - nr_open
+ - overflowuid
+ - overflowgid
++- protected_hardlinks
+ - protected_symlinks
+ - suid_dumpable
+ - super-max
+@@ -158,6 +159,26 @@ The default is 65534.
+ 
+ ==============================================================
+ 
++protected_hardlinks:
++
++A long-standing class of security issues is the hardlink-based
++time-of-check-time-of-use race, most commonly seen in world-writable
++directories like /tmp. The common method of exploitation of this flaw
++is to cross privilege boundaries when following a given hardlink (i.e. a
++root process follows a hardlink created by another user). Additionally,
++on systems without separated partitions, this stops unauthorized users
++from "pinning" vulnerable setuid/setgid files against being upgraded by
++the administrator, or linking to special files.
++
++When set to "0", hardlink creation behavior is unrestricted.
++
++When set to "1" hardlinks cannot be created by users if they do not
++already own the source file, or do not have read/write access to it.
++
++This protection is based on the restrictions in Openwall and grsecurity.
++
++==============================================================
++
+ protected_symlinks:
+ 
+ A long-standing class of security issues is the symlink-based
+diff -puN fs/Kconfig~fs-hardlink-creation-restrictions fs/Kconfig
+--- a/fs/Kconfig~fs-hardlink-creation-restrictions
++++ a/fs/Kconfig
+@@ -271,27 +271,29 @@ endif # NETWORK_FILESYSTEMS
+ source "fs/nls/Kconfig"
+ source "fs/dlm/Kconfig"
+ 
+-config PROTECTED_SYMLINKS
+-	bool "Evaluate vulnerable symlink conditions"
++config PROTECTED_LINKS
++	bool "Evaluate vulnerable link conditions"
+ 	default y
+ 	help
+-	  A long-standing class of security issues is the symlink-based
++	  A long-standing class of security issues is the link-based
+ 	  time-of-check-time-of-use race, most commonly seen in
+ 	  world-writable directories like /tmp. The common method of
+ 	  exploitation of this flaw is to cross privilege boundaries
+-	  when following a given symlink (i.e. a root process follows
+-	  a malicious symlink belonging to another user).
+-
+-	  Enabling this adds the logic to examine these dangerous symlink
+-	  conditions. Whether or not the dangerous symlink situations are
+-	  allowed is controlled by PROTECTED_SYMLINKS_ENABLED.
++	  when following a given link (i.e. a root process follows
++	  a malicious symlink belonging to another user, or a hardlink
++	  created to a root-owned file).
++
++	  Enabling this adds the logic to examine these dangerous link
++	  conditions. Whether or not the dangerous link situations are
++	  allowed is controlled by PROTECTED_HARDLINKS_ENABLED and
++	  PROTECTED_SYMLINKS_ENABLED.
+ 
+-config PROTECTED_SYMLINKS_ENABLED
+-	depends on PROTECTED_SYMLINKS
++config PROTECTED_SYMLINKS
++	depends on PROTECTED_LINKS
+ 	bool "Disallow symlink following in sticky world-writable dirs"
+ 	default y
+ 	help
+-	  Solve ToCToU symlink race vulnerablities by permitting symlinks
++	  Solve ToCToU symlink race vulnerabilities by permitting symlinks
+ 	  to be followed only when outside a sticky world-writable directory,
+ 	  or when the uid of the symlink and follower match, or when the
+ 	  directory and symlink owners match.
+@@ -299,10 +301,34 @@ config PROTECTED_SYMLINKS_ENABLED
+ 	  When PROC_SYSCTL is enabled, this setting can also be controlled
+ 	  via /proc/sys/kernel/protected_symlinks.
+ 
+-config PROTECTED_SYMLINKS_ENABLED_SYSCTL
+-	depends on PROTECTED_SYMLINKS
++	  See Documentation/sysctl/fs.txt for details.
++
++config PROTECTED_SYMLINKS_SYSCTL
++	depends on PROTECTED_LINKS
++	int
++	default "1" if PROTECTED_SYMLINKS
++	default "0"
++
++config PROTECTED_HARDLINKS
++	depends on PROTECTED_LINKS
++	bool "Disallow hardlink creation to non-accessible files"
++	default y
++	help
++	  Solve ToCToU hardlink race vulnerabilities by permitting hardlinks
++	  to be created only when to a regular file that is owned by the user,
++	  or is readable and writable by the user. Also blocks users from
++	  "pinning" vulnerable setuid/setgid programs from being upgraded by
++	  the administrator.
++
++	  When PROC_SYSCTL is enabled, this setting can also be controlled
++	  via /proc/sys/kernel/protected_hardlinks.
++
++	  See Documentation/sysctl/fs.txt for details.
++
++config PROTECTED_HARDLINKS_SYSCTL
++	depends on PROTECTED_LINKS
+ 	int
+-	default "1" if PROTECTED_SYMLINKS_ENABLED
++	default "1" if PROTECTED_HARDLINKS
+ 	default "0"
+ 
+ endmenu
+diff -puN fs/namei.c~fs-hardlink-creation-restrictions fs/namei.c
+--- a/fs/namei.c~fs-hardlink-creation-restrictions
 +++ a/fs/namei.c
-@@ -629,8 +629,7 @@ int sysctl_protected_symlinks __read_mos
- int sysctl_protected_hardlinks __read_mostly =
- 	CONFIG_PROTECTED_HARDLINKS_SYSCTL;
+@@ -623,16 +623,33 @@ static inline void put_link(struct namei
+ 	path_put(link);
+ }
  
--static inline void
--audit_log_link_denied(const char *operation, struct path *link)
-+static void audit_log_link_denied(const char *operation, struct path *link)
- {
- 	struct audit_buffer *ab;
+-#ifdef CONFIG_PROTECTED_SYMLINKS
++#ifdef CONFIG_PROTECTED_LINKS
+ int sysctl_protected_symlinks __read_mostly =
+-	CONFIG_PROTECTED_SYMLINKS_ENABLED_SYSCTL;
++	CONFIG_PROTECTED_SYMLINKS_SYSCTL;
++int sysctl_protected_hardlinks __read_mostly =
++	CONFIG_PROTECTED_HARDLINKS_SYSCTL;
++
++static inline void
++audit_log_link_denied(const char *operation, struct path *link)
++{
++	struct audit_buffer *ab;
++
++	ab = audit_log_start(current->audit_context, GFP_KERNEL, AUDIT_AVC);
++	audit_log_format(ab, "op=%s action=denied", operation);
++	audit_log_format(ab, " pid=%d comm=", current->pid);
++	audit_log_untrustedstring(ab, current->comm);
++	audit_log_d_path(ab, " path=", link);
++	audit_log_format(ab, " dev=");
++	audit_log_untrustedstring(ab, link->dentry->d_inode->i_sb->s_id);
++	audit_log_format(ab, " ino=%lu", link->dentry->d_inode->i_ino);
++	audit_log_end(ab);
++}
  
-@@ -709,7 +708,7 @@ static inline int may_follow_link(struct
+ /**
+  * may_follow_link - Check symlink following for unsafe situations
+- * @dentry: The inode/dentry of the symlink
+- * @nameidata: The path data of the symlink
++ * @link: The path of the symlink
   *
-  * Returns 0 if successful, -ve on error.
+- * In the case of the protected_symlinks sysctl being enabled,
++ * In the case of the sysctl_protected_symlinks sysctl being enabled,
+  * CAP_DAC_OVERRIDE needs to be specifically ignored if the symlink is
+  * in a sticky world-writable directory. This is to protect privileged
+  * processes from failing races against path names that may change out
+@@ -643,19 +660,20 @@ int sysctl_protected_symlinks __read_mos
+  *
+  * Returns 0 if following the symlink is allowed, -ve on error.
   */
--static inline int may_linkat(struct path *link)
-+static int may_linkat(struct path *link)
+-static inline int
+-may_follow_link(struct dentry *dentry, struct nameidata *nameidata)
++static inline int may_follow_link(struct path *link)
  {
  	int error = 0;
+ 	const struct inode *parent;
+ 	const struct inode *inode;
  	const struct cred *cred;
++	struct dentry *dentry;
+ 
+ 	if (!sysctl_protected_symlinks)
+ 		return 0;
+ 
+ 	/* Allowed if owner and follower match. */
+ 	cred = current_cred();
++	dentry = link->dentry;
+ 	inode = dentry->d_inode;
+ 	if (cred->fsuid == inode->i_uid)
+ 		return 0;
+@@ -669,29 +687,61 @@ may_follow_link(struct dentry *dentry, s
+ 	}
+ 	spin_unlock(&dentry->d_lock);
+ 
+-#ifdef CONFIG_AUDIT
+-	if (error) {
+-		struct audit_buffer *ab;
++	if (error)
++		audit_log_link_denied("follow_link", link);
++
++	return error;
++}
++
++/**
++ * may_linkat - Check permissions for creating a hardlink
++ * @link: the source to hardlink from
++ *
++ * Block hardlink when all of:
++ *  - sysctl_protected_hardlinks enabled
++ *  - fsuid does not match inode
++ *  - at least one of:
++ *    - inode is not a regular file
++ *    - inode is setuid
++ *    - inode is setgid and group-exec
++ *    - access failure for read and write
++ *  - not CAP_FOWNER
++ *
++ * Returns 0 if successful, -ve on error.
++ */
++static inline int may_linkat(struct path *link)
++{
++	int error = 0;
++	const struct cred *cred;
++	struct inode *inode;
++	int mode;
++
++	if (!sysctl_protected_hardlinks)
++		return 0;
++
++	cred = current_cred();
++	inode = link->dentry->d_inode;
++	mode = inode->i_mode;
++
++	if (cred->fsuid != inode->i_uid &&
++	    (!S_ISREG(mode) || (mode & S_ISUID) ||
++	     ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP)) ||
++	     (inode_permission(inode, MAY_READ | MAY_WRITE))) &&
++	    !capable(CAP_FOWNER))
++		error = -EPERM;
++
++	if (error)
++		audit_log_link_denied("linkat", link);
+ 
+-		ab = audit_log_start(current->audit_context,
+-				     GFP_KERNEL, AUDIT_AVC);
+-		audit_log_format(ab, "op=follow_link action=denied");
+-		audit_log_format(ab, " pid=%d comm=", current->pid);
+-		audit_log_untrustedstring(ab, current->comm);
+-		audit_log_d_path(ab, " path=", &nameidata->path);
+-		audit_log_format(ab, " name=");
+-		audit_log_untrustedstring(ab, dentry->d_name.name);
+-		audit_log_format(ab, " dev=");
+-		audit_log_untrustedstring(ab, inode->i_sb->s_id);
+-		audit_log_format(ab, " ino=%lu", inode->i_ino);
+-		audit_log_end(ab);
+-	}
+-#endif
+ 	return error;
+ }
+ #else
+-static inline int
+-may_follow_link(struct dentry *dentry, struct nameidata *nameidata)
++static inline int may_follow_link(struct path *link)
++{
++	return 0;
++}
++
++static inline int may_linkat(struct path *link)
+ {
+ 	return 0;
+ }
+@@ -720,7 +770,7 @@ follow_link(struct path *link, struct na
+ 	nd_set_link(nd, NULL);
+ 
+ 	if (sensitive)
+-		error = may_follow_link(link->dentry, nd);
++		error = may_follow_link(link);
+ 	if (!error)
+ 		error = security_inode_follow_link(link->dentry, nd);
+ 	if (error) {
+@@ -3058,6 +3108,9 @@ SYSCALL_DEFINE5(linkat, int, olddfd, con
+ 	error = -EXDEV;
+ 	if (old_path.mnt != new_path.mnt)
+ 		goto out_dput;
++	error = may_linkat(&old_path);
++	if (error)
++		goto out_dput;
+ 	error = mnt_want_write(new_path.mnt);
+ 	if (error)
+ 		goto out_dput;
+diff -puN include/linux/fs.h~fs-hardlink-creation-restrictions include/linux/fs.h
+--- a/include/linux/fs.h~fs-hardlink-creation-restrictions
++++ a/include/linux/fs.h
+@@ -423,6 +423,7 @@ extern int sysctl_nr_open;
+ extern struct inodes_stat_t inodes_stat;
+ extern int leases_enable, lease_break_time;
+ extern int sysctl_protected_symlinks;
++extern int sysctl_protected_hardlinks;
+ 
+ struct buffer_head;
+ typedef int (get_block_t)(struct inode *inode, sector_t iblock,
+diff -puN kernel/sysctl.c~fs-hardlink-creation-restrictions kernel/sysctl.c
+--- a/kernel/sysctl.c~fs-hardlink-creation-restrictions
++++ a/kernel/sysctl.c
+@@ -1497,7 +1497,7 @@ static struct ctl_table fs_table[] = {
+ 	},
+ #endif
+ #endif
+-#ifdef CONFIG_PROTECTED_SYMLINKS
++#ifdef CONFIG_PROTECTED_LINKS
+ 	{
+ 		.procname	= "protected_symlinks",
+ 		.data		= &sysctl_protected_symlinks,
+@@ -1507,6 +1507,15 @@ static struct ctl_table fs_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
++	{
++		.procname	= "protected_hardlinks",
++		.data		= &sysctl_protected_hardlinks,
++		.maxlen		= sizeof(int),
++		.mode		= 0600,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
+ #endif
+ 	{
+ 		.procname	= "suid_dumpable",
 _
-Subject: Subject: fs-hardlink-creation-restrictions-fix
+Subject: Subject: fs: hardlink creation restrictions
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-ata-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-posix_types-remove-fd_set-macros-checkpatch-fixes.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
+fs-symlink-restrictions-on-sticky-directories-fix-2.patch
+fs-hardlink-creation-restrictions.patch
 fs-hardlink-creation-restrictions-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
 
