@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + thp-optimize-away-unnecessary-page-table-locking-fix.patch added to -mm tree
-Date: Tue, 21 Feb 2012 12:12:06 -0800
-Message-ID: <20120221201206.64EB9A0331@akpm.mtv.corp.google.com>
+Subject: + drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines.patch added to -mm tree
+Date: Tue, 21 Feb 2012 12:40:05 -0800
+Message-ID: <20120221204006.02481A01D6@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:48817 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753503Ab2BUUMK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 15:12:10 -0500
-Received: by werb13 with SMTP id b13so290282wer.1
-        for <mm-commits@vger.kernel.org>; Tue, 21 Feb 2012 12:12:07 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:39830 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753424Ab2BUUkH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 15:40:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, jslaby@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com
+Cc: ike.pan@canonical.com, andrey.k.p@gmail.com, jlee@suse.com, jrnieder@gmail.com, mjg@redhat.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: fix mremap bug of failing to split thp
+     Subject: drivers/platform/x86/acer-wmi.c: no wifi rfkill on Lenovo machines
 has been added to the -mm tree.  Its filename is
-     thp-optimize-away-unnecessary-page-table-locking-fix.patch
+     drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,144 +31,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: fix mremap bug of failing to split thp
+From: Ike Panhc <ike.pan@canonical.com>
+Subject: drivers/platform/x86/acer-wmi.c: no wifi rfkill on Lenovo machines
 
-The patch "thp: optimize away unnecessary page table locking" introduced a
-bug to move_page_tables(), where we fail to split thp when move_huge_pmd()
-is not called.  To fix it, this patch reverts the return value changes and
-readd if (!err) block.
+We have several reports which says acer-wmi is loaded on ideapads and
+register rfkill for wifi which can not be unblocked.  Symptom is that wifi
+just doesn't work on these machines until the acer-wmi driver is unloaded.
+ 
+Since ideapad-laptop also register rfkill for wifi and it works reliably,
+it will be fine acer-wmi is not going to register rfkill for wifi once
+VPC2004 is found.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
+Also put IBM0068/LEN0068 in the list.  Though thinkpad_acpi has no wifi
+rfkill capability, there are reports which says acer-wmi also block
+wireless on Thinkpad E520/E420.
+
+Addresses http://bugs.debian.org/655941 and
+          https://bugzilla.redhat.com/show_bug.cgi?id=674353
+
+Signed-off-by: Ike Panhc <ike.pan@canonical.com>
+Acked-by: Lee, Chun-Yi <jlee@suse.com>
+Tested-by: Andrey <andrey.k.p@gmail.com> # Ideapad Z570
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    6 +++---
- mm/huge_memory.c   |   13 ++++++-------
- mm/mremap.c        |    2 ++
- 3 files changed, 11 insertions(+), 10 deletions(-)
+ drivers/platform/x86/acer-wmi.c |   30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~thp-optimize-away-unnecessary-page-table-locking-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~thp-optimize-away-unnecessary-page-table-locking-fix
-+++ a/fs/proc/task_mmu.c
-@@ -394,7 +394,7 @@ static int smaps_pte_range(pmd_t *pmd, u
- 	pte_t *pte;
- 	spinlock_t *ptl;
+diff -puN drivers/platform/x86/acer-wmi.c~drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines drivers/platform/x86/acer-wmi.c
+--- a/drivers/platform/x86/acer-wmi.c~drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines
++++ a/drivers/platform/x86/acer-wmi.c
+@@ -679,6 +679,32 @@ static acpi_status AMW0_find_mailled(voi
+ 	return AE_OK;
+ }
  
--	if (pmd_trans_huge_lock(pmd, vma)) {
-+	if (pmd_trans_huge_lock(pmd, vma) == 1) {
- 		smaps_pte_entry(*(pte_t *)pmd, addr, HPAGE_PMD_SIZE, walk);
- 		spin_unlock(&walk->mm->page_table_lock);
- 		mss->anonymous_thp += HPAGE_PMD_SIZE;
-@@ -688,7 +688,7 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	/* find the first VMA at or above 'addr' */
- 	vma = find_vma(walk->mm, addr);
- 
--	if (pmd_trans_huge_lock(pmd, vma)) {
-+	if (pmd_trans_huge_lock(pmd, vma) == 1) {
- 		for (; addr != end; addr += PAGE_SIZE) {
- 			unsigned long offset = (addr & ~PAGEMAP_WALK_MASK)
- 				>> PAGE_SHIFT;
-@@ -966,7 +966,7 @@ static int gather_pte_stats(pmd_t *pmd, 
- 
- 	md = walk->private;
- 
--	if (pmd_trans_huge_lock(pmd, md->vma)) {
-+	if (pmd_trans_huge_lock(pmd, md->vma) == 1) {
- 		pte_t huge_pte = *(pte_t *)pmd;
- 		struct page *page;
- 
-diff -puN mm/huge_memory.c~thp-optimize-away-unnecessary-page-table-locking-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-optimize-away-unnecessary-page-table-locking-fix
-+++ a/mm/huge_memory.c
-@@ -1030,7 +1030,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
++static int AMW0_set_cap_acpi_check_device_found;
++
++static acpi_status AMW0_set_cap_acpi_check_device_cb(acpi_handle handle,
++	u32 level, void *context, void **retval)
++{
++	AMW0_set_cap_acpi_check_device_found = 1;
++	return AE_OK;
++}
++
++static const struct acpi_device_id norfkill_ids[] = {
++	{ "VPC2004", 0},
++	{ "IBM0068", 0},
++	{ "LEN0068", 0},
++	{ "", 0},
++};
++
++static int AMW0_set_cap_acpi_check_device(void)
++{
++	const struct acpi_device_id *id;
++
++	for (id = norfkill_ids; id->id[0]; id++)
++		acpi_get_devices(id->id, AMW0_set_cap_acpi_check_device_cb,
++				NULL, NULL);
++	return AMW0_set_cap_acpi_check_device_found;
++}
++
+ static acpi_status AMW0_set_capabilities(void)
  {
- 	int ret = 0;
- 
--	if (__pmd_trans_huge_lock(pmd, vma)) {
-+	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
- 		struct page *page;
- 		pgtable_t pgtable;
- 		pgtable = get_pmd_huge_pte(tlb->mm);
-@@ -1056,7 +1056,7 @@ int mincore_huge_pmd(struct vm_area_stru
- {
- 	int ret = 0;
- 
--	if (__pmd_trans_huge_lock(pmd, vma)) {
-+	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
- 		/*
- 		 * All logical pages in the range are present
- 		 * if backed by a huge page.
-@@ -1094,12 +1094,11 @@ int move_huge_pmd(struct vm_area_struct 
- 		goto out;
+ 	struct wmab_args args;
+@@ -692,7 +718,9 @@ static acpi_status AMW0_set_capabilities
+ 	 * work.
+ 	 */
+ 	if (wmi_has_guid(AMW0_GUID2)) {
+-		interface->capability |= ACER_CAP_WIRELESS;
++		if ((quirks != &quirk_unknown) ||
++		    !AMW0_set_cap_acpi_check_device())
++			interface->capability |= ACER_CAP_WIRELESS;
+ 		return AE_OK;
  	}
  
--	if (__pmd_trans_huge_lock(old_pmd, vma)) {
-+	if ((ret = __pmd_trans_huge_lock(old_pmd, vma)) == 1) {
- 		pmd = pmdp_get_and_clear(mm, old_addr, old_pmd);
- 		VM_BUG_ON(!pmd_none(*new_pmd));
- 		set_pmd_at(mm, new_addr, new_pmd, pmd);
- 		spin_unlock(&mm->page_table_lock);
--		ret = 1;
- 	}
- out:
- 	return ret;
-@@ -1111,7 +1110,7 @@ int change_huge_pmd(struct vm_area_struc
- 	struct mm_struct *mm = vma->vm_mm;
- 	int ret = 0;
- 
--	if (__pmd_trans_huge_lock(pmd, vma)) {
-+	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
- 		pmd_t entry;
- 		entry = pmdp_get_and_clear(mm, addr, pmd);
- 		entry = pmd_modify(entry, newprot);
-@@ -1125,7 +1124,7 @@ int change_huge_pmd(struct vm_area_struc
- 
- /*
-  * Returns 1 if a given pmd maps a stable (not under splitting) thp.
-- * Returns 0 otherwise.
-+ * Returns -1 if it maps a thp under splitting. Returns 0 otherwise.
-  *
-  * Note that if it returns 1, this routine returns without unlocking page
-  * table locks. So callers must unlock them.
-@@ -1137,7 +1136,7 @@ int __pmd_trans_huge_lock(pmd_t *pmd, st
- 		if (unlikely(pmd_trans_splitting(*pmd))) {
- 			spin_unlock(&vma->vm_mm->page_table_lock);
- 			wait_split_huge_page(vma->anon_vma, pmd);
--			return 0;
-+			return -1;
- 		} else {
- 			/* Thp mapped by 'pmd' is stable, so we can
- 			 * handle it as it is. */
-diff -puN mm/mremap.c~thp-optimize-away-unnecessary-page-table-locking-fix mm/mremap.c
---- a/mm/mremap.c~thp-optimize-away-unnecessary-page-table-locking-fix
-+++ a/mm/mremap.c
-@@ -155,6 +155,8 @@ unsigned long move_page_tables(struct vm
- 			if (err > 0) {
- 				need_flush = true;
- 				continue;
-+			} else if (!err) {
-+				split_huge_page_pmd(vma->vm_mm, old_pmd);
- 			}
- 			VM_BUG_ON(pmd_trans_huge(*old_pmd));
- 		}
 _
-Subject: Subject: fix mremap bug of failing to split thp
+Subject: Subject: drivers/platform/x86/acer-wmi.c: no wifi rfkill on Lenovo machines
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from ike.pan@canonical.com are
 
-pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
-thp-optimize-away-unnecessary-page-table-locking.patch
-thp-optimize-away-unnecessary-page-table-locking-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-pagemap-export-kpf_thp.patch
-pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
-pagemap-introduce-data-structure-for-pagemap-entry.patch
+drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines.patch
 
