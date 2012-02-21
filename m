@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-some-strict-coding-style-checks.patch added to -mm tree
-Date: Tue, 21 Feb 2012 13:10:09 -0800
-Message-ID: <20120221211009.A6860A01CB@akpm.mtv.corp.google.com>
+Subject: + backlight-convert-platform_lcd-to-dev_pm_ops.patch added to -mm tree
+Date: Tue, 21 Feb 2012 14:06:34 -0800
+Message-ID: <20120221220634.84849A0331@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:60382 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752894Ab2BUVKK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 16:10:10 -0500
-Received: by yhgm50 with SMTP id m50so885117yhg.1
-        for <mm-commits@vger.kernel.org>; Tue, 21 Feb 2012 13:10:10 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:45100 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755691Ab2BUWGg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Feb 2012 17:06:36 -0500
+Received: by wgbds12 with SMTP id ds12so246010wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 21 Feb 2012 14:06:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: checkpatch: Add some --strict coding style checks
+     Subject: backlight: convert platform_lcd to dev_pm_ops
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-some-strict-coding-style-checks.patch
+     backlight-convert-platform_lcd-to-dev_pm_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Add some --strict coding style checks
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: convert platform_lcd to dev_pm_ops
 
-Argument alignment across multiple lines should match the open
-parenthesis.
+Instead of using legacy suspend/resume methods, using newer dev_pm_ops
+structure allows better control over power management.
 
-Logical continuations should be at the end of the previous line, not the
-start of a new line.
-
-These are not required by CodingStyle so make the tests active only when
-using --strict.
-
-Tested with:
-int foo(void)
-{
-	if (foo &&
-	    bar())
-		baz();
-
-	if (foo &&
-	     bar())
-		baz();
-
-	foo_some_long_function(bar,
-			       baz);
-
-	foo_some_long_function(bar,
-		baz);
-
-	return 0;
-}
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/video/backlight/platform_lcd.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-some-strict-coding-style-checks scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-some-strict-coding-style-checks
-+++ a/scripts/checkpatch.pl
-@@ -1783,6 +1783,28 @@ sub process {
- 			     "please, no space before tabs\n" . $herevet);
- 		}
+diff -puN drivers/video/backlight/platform_lcd.c~backlight-convert-platform_lcd-to-dev_pm_ops drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~backlight-convert-platform_lcd-to-dev_pm_ops
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -121,9 +121,9 @@ static int __devexit platform_lcd_remove
+ }
  
-+# check for && or || at the start of a line
-+		if ($rawline =~ /^\+\s*(&&|\|\|)/) {
-+			CHK("LOGICAL_CONTINUATIONS",
-+			    "Logical continuations should be on the previous line\n" . $hereprev);
-+		}
+ #ifdef CONFIG_PM
+-static int platform_lcd_suspend(struct platform_device *pdev, pm_message_t st)
++static int platform_lcd_suspend(struct device *dev)
+ {
+-	struct platform_lcd *plcd = platform_get_drvdata(pdev);
++	struct platform_lcd *plcd = dev_get_drvdata(dev);
+ 
+ 	plcd->suspended = 1;
+ 	platform_lcd_set_power(plcd->lcd, plcd->power);
+@@ -131,29 +131,30 @@ static int platform_lcd_suspend(struct p
+ 	return 0;
+ }
+ 
+-static int platform_lcd_resume(struct platform_device *pdev)
++static int platform_lcd_resume(struct device *dev)
+ {
+-	struct platform_lcd *plcd = platform_get_drvdata(pdev);
++	struct platform_lcd *plcd = dev_get_drvdata(dev);
+ 
+ 	plcd->suspended = 0;
+ 	platform_lcd_set_power(plcd->lcd, plcd->power);
+ 
+ 	return 0;
+ }
+-#else
+-#define platform_lcd_suspend NULL
+-#define platform_lcd_resume NULL
 +
-+# check multi-line statement indentation matches previous line
-+		if ($prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/ && $rawline =~ /^\+([ \t]*)/) {
-+			$prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/;
-+			my $oldindent = $1;
-+			my $if_or_func = $2;
-+			$rawline =~ /^\+([ \t]*)/;
-+			my $newindent = $1;
-+			my $goodindent = $oldindent .
-+					 "\t" x (length($if_or_func) / 8) .
-+					 " "  x (length($if_or_func) % 8);
-+			if ($newindent ne "$goodindent") {
-+				CHK("PARENTHESIS_ALIGNMENT",
-+				    "Alignment should match open parenthesis\n" . $hereprev);
-+			}
-+		}
-+
- # check for spaces at the beginning of a line.
- # Exceptions:
- #  1) within comments
++static SIMPLE_DEV_PM_OPS(platform_lcd_pm_ops, platform_lcd_suspend,
++			platform_lcd_resume);
+ #endif
+ 
+ static struct platform_driver platform_lcd_driver = {
+ 	.driver		= {
+ 		.name	= "platform-lcd",
+ 		.owner	= THIS_MODULE,
++#ifdef CONFIG_PM
++		.pm	= &platform_lcd_pm_ops,
++#endif
+ 	},
+ 	.probe		= platform_lcd_probe,
+ 	.remove		= __devexit_p(platform_lcd_remove),
+-	.suspend        = platform_lcd_suspend,
+-	.resume         = platform_lcd_resume,
+ };
+ 
+ module_platform_driver(platform_lcd_driver);
 _
-Subject: Subject: checkpatch: Add some --strict coding style checks
+Subject: Subject: backlight: convert platform_lcd to dev_pm_ops
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 linux-next.patch
-thermal_sys-remove-unnecessary-line-continuations.patch
-thermal_sys-remove-obfuscating-used-once-macros.patch
-thermal_sys-kernel-style-cleanups.patch
-thermal_sys-convert-printks-to-pr_level.patch
-maintainers-fix-remoteproc-f-typo.patch
-maintainers-update-mca-section.patch
-maintainers-update-git-urls-for-26-deletions.patch
-include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
-checkpatch-add-some-strict-coding-style-checks.patch
+backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
+backlight-convert-platform_lcd-to-dev_pm_ops.patch
 
