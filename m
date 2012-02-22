@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-eeh-remove-eeh_event_handler-daemonize.patch added to -mm tree
-Date: Wed, 22 Feb 2012 12:53:05 -0800
-Message-ID: <20120222205305.B00C7A00AB@akpm.mtv.corp.google.com>
+Subject: + thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch added to -mm tree
+Date: Wed, 22 Feb 2012 12:56:24 -0800
+Message-ID: <20120222205624.A5215A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:37238 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281Ab2BVUxI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:53:08 -0500
-Received: by werb13 with SMTP id b13so18487wer.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:53:07 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:49846 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754560Ab2BVU41 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:56:27 -0500
+Received: by bkcjk13 with SMTP id jk13so17379bkc.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:56:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, benh@kernel.crashing.org, linasvepstas@gmail.com, matt.fleming@intel.com, tj@kernel.org
+Cc: jkosina@suse.cz, aarcange@redhat.com, mel@csn.ul.ie
 
 
 The patch titled
-     Subject: powerpc/eeh: remove eeh_event_handler()->daemonize()
+     Subject: thp: documentation: 'transparent_hugepage=' can also be specified on cmdline
 has been added to the -mm tree.  Its filename is
-     powerpc-eeh-remove-eeh_event_handler-daemonize.patch
+     thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: powerpc/eeh: remove eeh_event_handler()->daemonize()
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: thp: documentation: 'transparent_hugepage=' can also be specified on cmdline
 
-daemonize() is only needed when a user-space task does kernel_thread().
+The behavior of THP can either be toggled through sysfs in runtime or
+using a kernel cmdline parameter 'transparent_hugepage='.  Document the
+latter in kernel-parameters.txt
 
-eeh_event_handler() thread is created by the worker kthread, and thus it
-doesn't need the soon-to-be-deprecated daemonize().
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Linas Vepstas <linasvepstas@gmail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Acked-by: Matt Fleming <matt.fleming@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/eeh_event.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/powerpc/platforms/pseries/eeh_event.c~powerpc-eeh-remove-eeh_event_handler-daemonize arch/powerpc/platforms/pseries/eeh_event.c
---- a/arch/powerpc/platforms/pseries/eeh_event.c~powerpc-eeh-remove-eeh_event_handler-daemonize
-+++ a/arch/powerpc/platforms/pseries/eeh_event.c
-@@ -61,7 +61,7 @@ static int eeh_event_handler(void * dumm
- 	struct eeh_event	*event;
- 	struct pci_dn *pdn;
+diff -puN Documentation/kernel-parameters.txt~thp-transparent_hugepage=-can-also-be-specified-on-cmdline Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~thp-transparent_hugepage=-can-also-be-specified-on-cmdline
++++ a/Documentation/kernel-parameters.txt
+@@ -2651,6 +2651,13 @@ bytes respectively. Such letter suffixes
+ 			to facilitate early boot debugging.
+ 			See also Documentation/trace/events.txt
  
--	daemonize ("eehd");
-+	set_task_comm(current, "eehd");
- 	set_current_state(TASK_INTERRUPTIBLE);
- 
- 	spin_lock_irqsave(&eeh_eventlist_lock, flags);
++	transparent_hugepage=
++			[KNL]
++			Format: [always|madvise|never]
++			Can be used to control the default behavior of the system
++			with respect to transparent hugepages.
++			See Documentation/vm/transhuge.txt for more details.
++
+ 	tsc=		Disable clocksource stability checks for TSC.
+ 			Format: <string>
+ 			[x86] reliable: mark tsc clocksource as reliable, this
 _
-Subject: Subject: powerpc/eeh: remove eeh_event_handler()->daemonize()
+Subject: Subject: thp: documentation: 'transparent_hugepage=' can also be specified on cmdline
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 linux-next.patch
-vfork-introduce-complete_vfork_done.patch
-vfork-make-it-killable.patch
-coredump_wait-dont-call-complete_vfork_done.patch
-vfork-kill-pf_starting.patch
-hung_task-fix-the-broken-rcu_lock_break-logic.patch
-arm-use-set_current_blocked-and-block_sigmask.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-powerpc-use-set_current_blocked-and-block_sigmask.patch
-hexagon-use-set_current_blocked-and-block_sigmask.patch
-tile-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-s390-use-block_sigmask.patch
-xtensa-dont-reimplement-force_sigsegv.patch
-xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
-xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-xtensa-use-set_current_blocked-and-block_sigmask.patch
-sparc-use-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-um-dont-restore-current-blocked-on-error.patch
-um-use-set_current_blocked-and-block_sigmask.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-powerpc-eeh-remove-eeh_event_handler-daemonize.patch
-ptrace-the-killed-tracee-should-not-enter-the-syscall.patch
-ptrace-dont-send-sigtrap-on-exec-if-seized.patch
-ptrace-dont-modify-flags-on-ptrace_setoptions-failure.patch
-ptrace-simplify-ptrace_foo-constants-and-ptrace_setoptions-code.patch
-ptrace-make-ptrace_seize-set-ptrace-options-specified-in-data-parameter.patch
-ptrace-renumber-ptrace_event_stop-so-that-future-new-options-and-events-can-match.patch
-ptrace-remove-ptrace_seize_devel-bit.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-use-umh_wait_proc-consistently.patch
-usermodehelper-introduce-umh_completesub_info.patch
-usermodehelper-implement-umh_killable.patch
-usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
-usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
-kmod-introduce-call_modprobe-helper.patch
-kmod-make-__request_module-killable.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
 
