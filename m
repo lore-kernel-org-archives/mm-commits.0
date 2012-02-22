@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch added to -mm tree
-Date: Wed, 22 Feb 2012 12:26:24 -0800
-Message-ID: <20120222202625.51988A02EB@akpm.mtv.corp.google.com>
+Subject: + powerpc-eeh-remove-eeh_event_handler-daemonize.patch added to -mm tree
+Date: Wed, 22 Feb 2012 12:53:05 -0800
+Message-ID: <20120222205305.B00C7A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:35196 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863Ab2BVU01 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:26:27 -0500
-Received: by wgbds12 with SMTP id ds12so15968wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:26:26 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:37238 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281Ab2BVUxI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:53:08 -0500
+Received: by werb13 with SMTP id b13so18487wer.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:53:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gorcunov@openvz.org, rdunlap@xenotime.net, sfr@canb.auug.org.au
+Cc: oleg@redhat.com, benh@kernel.crashing.org, linasvepstas@gmail.com, matt.fleming@intel.com, tj@kernel.org
 
 
 The patch titled
-     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2
+     Subject: powerpc/eeh: remove eeh_event_handler()->daemonize()
 has been added to the -mm tree.  Its filename is
-     syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+     powerpc-eeh-remove-eeh_event_handler-daemonize.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: powerpc/eeh: remove eeh_event_handler()->daemonize()
 
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+daemonize() is only needed when a user-space task does kernel_thread().
+
+eeh_event_handler() thread is created by the worker kthread, and thus it
+doesn't need the soon-to-be-deprecated daemonize().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Linas Vepstas <linasvepstas@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Matt Fleming <matt.fleming@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcmp.c |    2 +-
+ arch/powerpc/platforms/pseries/eeh_event.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2 kernel/kcmp.c
---- a/kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2
-+++ a/kernel/kcmp.c
-@@ -151,7 +151,7 @@ SYSCALL_DEFINE5(kcmp, pid_t, pid1, pid_t
- 			       task2->sysvsem.undo_list,
- 			       KCMP_SYSVSEM);
- #else
--		ret = -EOPNOTSUP;
-+		ret = -EOPNOTSUPP;
- #endif
- 		break;
- 	default:
+diff -puN arch/powerpc/platforms/pseries/eeh_event.c~powerpc-eeh-remove-eeh_event_handler-daemonize arch/powerpc/platforms/pseries/eeh_event.c
+--- a/arch/powerpc/platforms/pseries/eeh_event.c~powerpc-eeh-remove-eeh_event_handler-daemonize
++++ a/arch/powerpc/platforms/pseries/eeh_event.c
+@@ -61,7 +61,7 @@ static int eeh_event_handler(void * dumm
+ 	struct eeh_event	*event;
+ 	struct pci_dn *pdn;
+ 
+-	daemonize ("eehd");
++	set_task_comm(current, "eehd");
+ 	set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 	spin_lock_irqsave(&eeh_eventlist_lock, flags);
 _
-Subject: Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2
+Subject: Subject: powerpc/eeh: remove eeh_event_handler()->daemonize()
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-ata-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-percpu-remove-percpu_xxx-functions-fix.patch
+vfork-introduce-complete_vfork_done.patch
+vfork-make-it-killable.patch
+coredump_wait-dont-call-complete_vfork_done.patch
+vfork-kill-pf_starting.patch
+hung_task-fix-the-broken-rcu_lock_break-logic.patch
+arm-use-set_current_blocked-and-block_sigmask.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+powerpc-use-set_current_blocked-and-block_sigmask.patch
+hexagon-use-set_current_blocked-and-block_sigmask.patch
+tile-use-set_current_blocked-and-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+mips-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
+s390-use-block_sigmask.patch
+xtensa-dont-reimplement-force_sigsegv.patch
+xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
+xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+xtensa-use-set_current_blocked-and-block_sigmask.patch
+sparc-use-block_sigmask.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+sh-no-need-to-reset-handler-if-sa_oneshot.patch
+sh-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+alpha-use-set_current_blocked-and-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+c6x-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+um-dont-restore-current-blocked-on-error.patch
+um-use-set_current_blocked-and-block_sigmask.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
 prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
 prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
 kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-posix_types-remove-fd_set-macros-checkpatch-fixes.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+powerpc-eeh-remove-eeh_event_handler-daemonize.patch
+ptrace-the-killed-tracee-should-not-enter-the-syscall.patch
+ptrace-dont-send-sigtrap-on-exec-if-seized.patch
+ptrace-dont-modify-flags-on-ptrace_setoptions-failure.patch
+ptrace-simplify-ptrace_foo-constants-and-ptrace_setoptions-code.patch
+ptrace-make-ptrace_seize-set-ptrace-options-specified-in-data-parameter.patch
+ptrace-renumber-ptrace_event_stop-so-that-future-new-options-and-events-can-match.patch
+ptrace-remove-ptrace_seize_devel-bit.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+usermodehelper-use-umh_wait_proc-consistently.patch
+usermodehelper-introduce-umh_completesub_info.patch
+usermodehelper-implement-umh_killable.patch
+usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+kmod-introduce-call_modprobe-helper.patch
+kmod-make-__request_module-killable.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
 pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
 
