@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hardlink-creation-restrictions-cleanup.patch added to -mm tree
-Date: Wed, 22 Feb 2012 12:11:45 -0800
-Message-ID: <20120222201145.895F2A00AB@akpm.mtv.corp.google.com>
+Subject: + x86-pci-fix-identity-mapping-for-sandy-bridge.patch added to -mm tree
+Date: Wed, 22 Feb 2012 12:20:47 -0800
+Message-ID: <20120222202048.69B31A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:45252 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796Ab2BVULs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:11:48 -0500
-Received: by wics10 with SMTP id s10so17312wic.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:11:46 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:41851 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752976Ab2BVUUx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:20:53 -0500
+Received: by werb13 with SMTP id b13so17540wer.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:20:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: keescook@chromium.org, mingo@elte.hu
+Cc: travis@sgi.com, chrisw@sous-sol.org, drahn@suse.com, dwmw2@infradead.org, habeck@sgi.com, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com
 
 
 The patch titled
-     Subject: fs: hardlink creation restriction cleanup
+     Subject: x86 PCI: fix identity mapping for sandy bridge
 has been added to the -mm tree.  Its filename is
-     fs-hardlink-creation-restrictions-cleanup.patch
+     x86-pci-fix-identity-mapping-for-sandy-bridge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,127 +33,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fs: hardlink creation restriction cleanup
+From: Mike Travis <travis@sgi.com>
+Subject: x86 PCI: fix identity mapping for sandy bridge
 
-Clean-up of hardlink restriction logic, as suggested by Andrew Morton.
+With SandyBridge, Intel has changed these Socket PCI devices to have a
+class type of "System Peripheral" & "Performance counter", rather than
+"HostBridge".  So instead of using a "special" case to detect which
+devices will not be doing DMA, use the fact that a device that is not
+associated with an IOMMU, will not need an identity map.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Signed-off-by: Mike Habeck <habeck@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Daniel Rahn <drahn@suse.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   62 ++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 44 insertions(+), 18 deletions(-)
+ drivers/iommu/intel-iommu.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN fs/namei.c~fs-hardlink-creation-restrictions-cleanup fs/namei.c
---- a/fs/namei.c~fs-hardlink-creation-restrictions-cleanup
-+++ a/fs/namei.c
-@@ -693,46 +693,72 @@ static inline int may_follow_link(struct
- }
+diff -puN drivers/iommu/intel-iommu.c~x86-pci-fix-identity-mapping-for-sandy-bridge drivers/iommu/intel-iommu.c
+--- a/drivers/iommu/intel-iommu.c~x86-pci-fix-identity-mapping-for-sandy-bridge
++++ a/drivers/iommu/intel-iommu.c
+@@ -48,8 +48,6 @@
+ #define ROOT_SIZE		VTD_PAGE_SIZE
+ #define CONTEXT_SIZE		VTD_PAGE_SIZE
  
- /**
-+ * safe_hardlink_source - Check for safe hardlink conditions
-+ * @inode: the source inode to hardlink from
-+ *
-+ * Return false if at least one of the following conditions:
-+ *    - inode is not a regular file
-+ *    - inode is setuid
-+ *    - inode is setgid and group-exec
-+ *    - access failure for read and write
-+ *
-+ * Otherwise returns true.
-+ */
-+static bool safe_hardlink_source(struct inode *inode)
-+{
-+	mode_t mode = inode->i_mode;
-+
-+	/* Special files should not get pinned to the filesystem. */
-+	if (!S_ISREG(mode))
-+		return false;
-+
-+	/* Setuid files should not get pinned to the filesystem. */
-+	if (mode & S_ISUID)
-+		return false;
-+
-+	/* Executable setgid files should not get pinned to the filesystem. */
-+	if ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP))
-+		return false;
-+
-+	/* Hardlinking to unreadable or unwritable sources is dangerous. */
-+	if (inode_permission(inode, MAY_READ | MAY_WRITE))
-+		return false;
-+
-+	return true;
-+}
-+
-+/**
-  * may_linkat - Check permissions for creating a hardlink
-  * @link: the source to hardlink from
-  *
-  * Block hardlink when all of:
-  *  - sysctl_protected_hardlinks enabled
-  *  - fsuid does not match inode
-- *  - at least one of:
-- *    - inode is not a regular file
-- *    - inode is setuid
-- *    - inode is setgid and group-exec
-- *    - access failure for read and write
-+ *  - hardlink source is unsafe (see safe_hardlink_source() above)
-  *  - not CAP_FOWNER
-  *
-  * Returns 0 if successful, -ve on error.
-  */
- static int may_linkat(struct path *link)
- {
--	int error = 0;
- 	const struct cred *cred;
- 	struct inode *inode;
--	int mode;
+-#define IS_BRIDGE_HOST_DEVICE(pdev) \
+-			    ((pdev->class >> 8) == PCI_CLASS_BRIDGE_HOST)
+ #define IS_GFX_DEVICE(pdev) ((pdev->class >> 16) == PCI_BASE_CLASS_DISPLAY)
+ #define IS_ISA_DEVICE(pdev) ((pdev->class >> 8) == PCI_CLASS_BRIDGE_ISA)
+ #define IS_AZALIA(pdev) ((pdev)->vendor == 0x8086 && (pdev)->device == 0x3a3e)
+@@ -2369,18 +2367,18 @@ static int __init iommu_prepare_static_i
+ 		return -EFAULT;
  
- 	if (!sysctl_protected_hardlinks)
- 		return 0;
- 
- 	cred = current_cred();
- 	inode = link->dentry->d_inode;
--	mode = inode->i_mode;
+ 	for_each_pci_dev(pdev) {
+-		/* Skip Host/PCI Bridge devices */
+-		if (IS_BRIDGE_HOST_DEVICE(pdev))
+-			continue;
+ 		if (iommu_should_identity_map(pdev, 1)) {
+-			printk(KERN_INFO "IOMMU: %s identity mapping for device %s\n",
+-			       hw ? "hardware" : "software", pci_name(pdev));
 -
--	if (cred->fsuid != inode->i_uid &&
--	    (!S_ISREG(mode) || (mode & S_ISUID) ||
--	     ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP)) ||
--	     (inode_permission(inode, MAY_READ | MAY_WRITE))) &&
--	    !capable(CAP_FOWNER))
--		error = -EPERM;
+ 			ret = domain_add_dev_info(si_domain, pdev,
+-						     hw ? CONTEXT_TT_PASS_THROUGH :
+-						     CONTEXT_TT_MULTI_LEVEL);
+-			if (ret)
++					     hw ? CONTEXT_TT_PASS_THROUGH :
++						  CONTEXT_TT_MULTI_LEVEL);
++			if (ret) {
++				/* device not associated with an iommu */
++				if (ret == -ENODEV)
++					continue;
+ 				return ret;
++			}
++			pr_info("IOMMU: %s identity mapping for device %s\n",
++				hw ? "hardware" : "software", pci_name(pdev));
+ 		}
+ 	}
  
--	if (error)
--		audit_log_link_denied("linkat", link);
-+	/* Source inode owner (or CAP_FOWNER) can hardlink all they like,
-+	 * otherwise, it must be a safe source.
-+	 */
-+	if (cred->fsuid == inode->i_uid || safe_hardlink_source(inode) ||
-+	    capable(CAP_FOWNER))
-+		return 0;
- 
--	return error;
-+	audit_log_link_denied("linkat", link);
-+	return -EPERM;
- }
- #else
- static inline int may_follow_link(struct path *link)
 _
-Subject: Subject: fs: hardlink creation restriction cleanup
+Subject: Subject: x86 PCI: fix identity mapping for sandy bridge
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from travis@sgi.com are
 
-linux-next.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-symlink-restrictions-on-sticky-directories-fix-2.patch
-fs-hardlink-creation-restrictions.patch
-fs-hardlink-creation-restrictions-fix.patch
-fs-hardlink-creation-restrictions-cleanup.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
-c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
-ramoops-use-pstore-interface.patch
-ramoops-use-pstore-interface-fix.patch
+x86-pci-fix-identity-mapping-for-sandy-bridge.patch
+x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics.patch
 
