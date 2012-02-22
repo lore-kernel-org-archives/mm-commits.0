@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics.patch added to -mm tree
-Date: Wed, 22 Feb 2012 12:20:49 -0800
-Message-ID: <20120222202049.F0C57A00AB@akpm.mtv.corp.google.com>
+Subject: + syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch added to -mm tree
+Date: Wed, 22 Feb 2012 12:26:24 -0800
+Message-ID: <20120222202625.51988A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:61776 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752736Ab2BVUUv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:20:51 -0500
-Received: by vcbf1 with SMTP id f1so57769vcb.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:20:50 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:35196 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863Ab2BVU01 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:26:27 -0500
+Received: by wgbds12 with SMTP id ds12so15968wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:26:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, chrisw@sous-sol.org, drahn@suse.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com
+Cc: akpm@linux-foundation.org, gorcunov@openvz.org, rdunlap@xenotime.net, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: x86, pci: increase the number of iommus supported to be MAX_IO_APICS
+     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2
 has been added to the -mm tree.  Its filename is
-     x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics.patch
+     syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,145 +33,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Travis <travis@sgi.com>
-Subject: x86, pci: increase the number of iommus supported to be MAX_IO_APICS
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2
 
-The number of IOMMUs supported should be the same as the number of IO
-APICS.  This limit comes into play when the IOMMUs are identity mapped,
-thus the number of possible IOMMUs in the "static identity" (si) domain
-should be this same number.
-
-Signed-off-by: Mike Travis <travis@sgi.com>
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Daniel Rahn <drahn@suse.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/intel-iommu.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ kernel/kcmp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics drivers/iommu/intel-iommu.c
---- a/drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics
-+++ a/drivers/iommu/intel-iommu.c
-@@ -357,7 +357,8 @@ static int hw_pass_through = 1;
- struct dmar_domain {
- 	int	id;			/* domain id */
- 	int	nid;			/* node id */
--	unsigned long iommu_bmp;	/* bitmap of iommus this domain uses*/
-+	DECLARE_BITMAP(iommu_bmp, MAX_IO_APICS);
-+					/* bitmap of iommus this domain uses*/
- 
- 	struct list_head devices; 	/* all devices' list */
- 	struct iova_domain iovad;	/* iova's that belong to this domain */
-@@ -569,7 +570,7 @@ static struct intel_iommu *domain_get_io
- 	BUG_ON(domain->flags & DOMAIN_FLAG_VIRTUAL_MACHINE);
- 	BUG_ON(domain->flags & DOMAIN_FLAG_STATIC_IDENTITY);
- 
--	iommu_id = find_first_bit(&domain->iommu_bmp, g_num_of_iommus);
-+	iommu_id = find_first_bit(domain->iommu_bmp, g_num_of_iommus);
- 	if (iommu_id < 0 || iommu_id >= g_num_of_iommus)
- 		return NULL;
- 
-@@ -582,7 +583,7 @@ static void domain_update_iommu_coherenc
- 
- 	domain->iommu_coherency = 1;
- 
--	for_each_set_bit(i, &domain->iommu_bmp, g_num_of_iommus) {
-+	for_each_set_bit(i, domain->iommu_bmp, g_num_of_iommus) {
- 		if (!ecap_coherent(g_iommus[i]->ecap)) {
- 			domain->iommu_coherency = 0;
- 			break;
-@@ -596,7 +597,7 @@ static void domain_update_iommu_snooping
- 
- 	domain->iommu_snooping = 1;
- 
--	for_each_set_bit(i, &domain->iommu_bmp, g_num_of_iommus) {
-+	for_each_set_bit(i, domain->iommu_bmp, g_num_of_iommus) {
- 		if (!ecap_sc_support(g_iommus[i]->ecap)) {
- 			domain->iommu_snooping = 0;
- 			break;
-@@ -1332,7 +1333,7 @@ static struct dmar_domain *alloc_domain(
- 		return NULL;
- 
- 	domain->nid = -1;
--	memset(&domain->iommu_bmp, 0, sizeof(unsigned long));
-+	memset(domain->iommu_bmp, 0, sizeof(domain->iommu_bmp));
- 	domain->flags = 0;
- 
- 	return domain;
-@@ -1358,7 +1359,7 @@ static int iommu_attach_domain(struct dm
- 
- 	domain->id = num;
- 	set_bit(num, iommu->domain_ids);
--	set_bit(iommu->seq_id, &domain->iommu_bmp);
-+	set_bit(iommu->seq_id, domain->iommu_bmp);
- 	iommu->domains[num] = domain;
- 	spin_unlock_irqrestore(&iommu->lock, flags);
- 
-@@ -1383,7 +1384,7 @@ static void iommu_detach_domain(struct d
- 
- 	if (found) {
- 		clear_bit(num, iommu->domain_ids);
--		clear_bit(iommu->seq_id, &domain->iommu_bmp);
-+		clear_bit(iommu->seq_id, domain->iommu_bmp);
- 		iommu->domains[num] = NULL;
- 	}
- 	spin_unlock_irqrestore(&iommu->lock, flags);
-@@ -1525,7 +1526,7 @@ static void domain_exit(struct dmar_doma
- 	dma_pte_free_pagetable(domain, 0, DOMAIN_MAX_PFN(domain->gaw));
- 
- 	for_each_active_iommu(iommu, drhd)
--		if (test_bit(iommu->seq_id, &domain->iommu_bmp))
-+		if (test_bit(iommu->seq_id, domain->iommu_bmp))
- 			iommu_detach_domain(domain, iommu);
- 
- 	free_domain_mem(domain);
-@@ -1651,7 +1652,7 @@ static int domain_context_mapping_one(st
- 	spin_unlock_irqrestore(&iommu->lock, flags);
- 
- 	spin_lock_irqsave(&domain->iommu_lock, flags);
--	if (!test_and_set_bit(iommu->seq_id, &domain->iommu_bmp)) {
-+	if (!test_and_set_bit(iommu->seq_id, domain->iommu_bmp)) {
- 		domain->iommu_count++;
- 		if (domain->iommu_count == 1)
- 			domain->nid = iommu->node;
-@@ -3747,7 +3748,7 @@ static void domain_remove_one_dev_info(s
- 	if (found == 0) {
- 		unsigned long tmp_flags;
- 		spin_lock_irqsave(&domain->iommu_lock, tmp_flags);
--		clear_bit(iommu->seq_id, &domain->iommu_bmp);
-+		clear_bit(iommu->seq_id, domain->iommu_bmp);
- 		domain->iommu_count--;
- 		domain_update_iommu_cap(domain);
- 		spin_unlock_irqrestore(&domain->iommu_lock, tmp_flags);
-@@ -3789,7 +3790,7 @@ static void vm_domain_remove_all_dev_inf
- 		 */
- 		spin_lock_irqsave(&domain->iommu_lock, flags2);
- 		if (test_and_clear_bit(iommu->seq_id,
--				       &domain->iommu_bmp)) {
-+				       domain->iommu_bmp)) {
- 			domain->iommu_count--;
- 			domain_update_iommu_cap(domain);
- 		}
-@@ -3814,7 +3815,7 @@ static struct dmar_domain *iommu_alloc_v
- 
- 	domain->id = vm_domid++;
- 	domain->nid = -1;
--	memset(&domain->iommu_bmp, 0, sizeof(unsigned long));
-+	memset(domain->iommu_bmp, 0, sizeof(domain->iommu_bmp));
- 	domain->flags = DOMAIN_FLAG_VIRTUAL_MACHINE;
- 
- 	return domain;
+diff -puN kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2 kernel/kcmp.c
+--- a/kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2
++++ a/kernel/kcmp.c
+@@ -151,7 +151,7 @@ SYSCALL_DEFINE5(kcmp, pid_t, pid1, pid_t
+ 			       task2->sysvsem.undo_list,
+ 			       KCMP_SYSVSEM);
+ #else
+-		ret = -EOPNOTSUP;
++		ret = -EOPNOTSUPP;
+ #endif
+ 		break;
+ 	default:
 _
-Subject: Subject: x86, pci: increase the number of iommus supported to be MAX_IO_APICS
+Subject: Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-pci-fix-identity-mapping-for-sandy-bridge.patch
-x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+ata-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
