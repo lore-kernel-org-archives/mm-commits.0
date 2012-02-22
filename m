@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-remove-percpu_xxx-functions-fix.patch added to -mm tree
-Date: Wed, 22 Feb 2012 11:58:05 -0800
-Message-ID: <20120222195807.4409EA024E@akpm.mtv.corp.google.com>
+Subject: + fs-hardlink-creation-restrictions-cleanup.patch added to -mm tree
+Date: Wed, 22 Feb 2012 12:11:45 -0800
+Message-ID: <20120222201145.895F2A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:35974 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755618Ab2BVT6L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 14:58:11 -0500
-Received: by werb13 with SMTP id b13so16855wer.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 11:58:09 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:45252 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751796Ab2BVULs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:11:48 -0500
+Received: by wics10 with SMTP id s10so17312wic.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:11:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alex.shi@intel.com
+Cc: keescook@chromium.org, mingo@elte.hu
 
 
 The patch titled
-     Subject: percpu-remove-percpu_xxx-functions-fix
+     Subject: fs: hardlink creation restriction cleanup
 has been added to the -mm tree.  Its filename is
-     percpu-remove-percpu_xxx-functions-fix.patch
+     fs-hardlink-creation-restrictions-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: percpu-remove-percpu_xxx-functions-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: fs: hardlink creation restriction cleanup
 
-Cc: Alex Shi <alex.shi@intel.com>
+Clean-up of hardlink restriction logic, as suggested by Andrew Morton.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/i387.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/namei.c |   62 ++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 44 insertions(+), 18 deletions(-)
 
-diff -puN arch/x86/include/asm/i387.h~percpu-remove-percpu_xxx-functions-fix arch/x86/include/asm/i387.h
---- a/arch/x86/include/asm/i387.h~percpu-remove-percpu_xxx-functions-fix
-+++ a/arch/x86/include/asm/i387.h
-@@ -297,14 +297,14 @@ static inline int __thread_has_fpu(struc
- static inline void __thread_clear_has_fpu(struct task_struct *tsk)
- {
- 	tsk->thread.fpu.has_fpu = 0;
--	percpu_write(fpu_owner_task, NULL);
-+	__this_cpu_write(fpu_owner_task, NULL);
+diff -puN fs/namei.c~fs-hardlink-creation-restrictions-cleanup fs/namei.c
+--- a/fs/namei.c~fs-hardlink-creation-restrictions-cleanup
++++ a/fs/namei.c
+@@ -693,46 +693,72 @@ static inline int may_follow_link(struct
  }
  
- /* Must be paired with a 'clts' before! */
- static inline void __thread_set_has_fpu(struct task_struct *tsk)
+ /**
++ * safe_hardlink_source - Check for safe hardlink conditions
++ * @inode: the source inode to hardlink from
++ *
++ * Return false if at least one of the following conditions:
++ *    - inode is not a regular file
++ *    - inode is setuid
++ *    - inode is setgid and group-exec
++ *    - access failure for read and write
++ *
++ * Otherwise returns true.
++ */
++static bool safe_hardlink_source(struct inode *inode)
++{
++	mode_t mode = inode->i_mode;
++
++	/* Special files should not get pinned to the filesystem. */
++	if (!S_ISREG(mode))
++		return false;
++
++	/* Setuid files should not get pinned to the filesystem. */
++	if (mode & S_ISUID)
++		return false;
++
++	/* Executable setgid files should not get pinned to the filesystem. */
++	if ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP))
++		return false;
++
++	/* Hardlinking to unreadable or unwritable sources is dangerous. */
++	if (inode_permission(inode, MAY_READ | MAY_WRITE))
++		return false;
++
++	return true;
++}
++
++/**
+  * may_linkat - Check permissions for creating a hardlink
+  * @link: the source to hardlink from
+  *
+  * Block hardlink when all of:
+  *  - sysctl_protected_hardlinks enabled
+  *  - fsuid does not match inode
+- *  - at least one of:
+- *    - inode is not a regular file
+- *    - inode is setuid
+- *    - inode is setgid and group-exec
+- *    - access failure for read and write
++ *  - hardlink source is unsafe (see safe_hardlink_source() above)
+  *  - not CAP_FOWNER
+  *
+  * Returns 0 if successful, -ve on error.
+  */
+ static int may_linkat(struct path *link)
  {
- 	tsk->thread.fpu.has_fpu = 1;
--	percpu_write(fpu_owner_task, tsk);
-+	__this_cpu_write(fpu_owner_task, tsk);
- }
+-	int error = 0;
+ 	const struct cred *cred;
+ 	struct inode *inode;
+-	int mode;
  
- /*
-@@ -473,7 +473,7 @@ static inline void kernel_fpu_begin(void
- 		__thread_clear_has_fpu(me);
- 		/* We do 'stts()' in kernel_fpu_end() */
- 	} else {
--		percpu_write(fpu_owner_task, NULL);
-+		__this_cpu_write(fpu_owner_task, NULL);
- 		clts();
- 	}
+ 	if (!sysctl_protected_hardlinks)
+ 		return 0;
+ 
+ 	cred = current_cred();
+ 	inode = link->dentry->d_inode;
+-	mode = inode->i_mode;
+-
+-	if (cred->fsuid != inode->i_uid &&
+-	    (!S_ISREG(mode) || (mode & S_ISUID) ||
+-	     ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP)) ||
+-	     (inode_permission(inode, MAY_READ | MAY_WRITE))) &&
+-	    !capable(CAP_FOWNER))
+-		error = -EPERM;
+ 
+-	if (error)
+-		audit_log_link_denied("linkat", link);
++	/* Source inode owner (or CAP_FOWNER) can hardlink all they like,
++	 * otherwise, it must be a safe source.
++	 */
++	if (cred->fsuid == inode->i_uid || safe_hardlink_source(inode) ||
++	    capable(CAP_FOWNER))
++		return 0;
+ 
+-	return error;
++	audit_log_link_denied("linkat", link);
++	return -EPERM;
  }
+ #else
+ static inline int may_follow_link(struct path *link)
 _
-Subject: Subject: percpu-remove-percpu_xxx-functions-fix
+Subject: Subject: fs: hardlink creation restriction cleanup
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-ata-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-posix_types-remove-fd_set-macros-checkpatch-fixes.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
 fs-symlink-restrictions-on-sticky-directories.patch
+fs-symlink-restrictions-on-sticky-directories-fix-2.patch
+fs-hardlink-creation-restrictions.patch
 fs-hardlink-creation-restrictions-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fs-hardlink-creation-restrictions-cleanup.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
 
