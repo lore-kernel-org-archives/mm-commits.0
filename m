@@ -1,107 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-hugetlb-break-cow-earlier-for-resv-owner.patch removed from -mm tree
-Date: Wed, 22 Feb 2012 11:35:44 -0800
-Message-ID: <20120222193545.E5334A0128@akpm.mtv.corp.google.com>
+Subject: + percpu-remove-percpu_xxx-functions-fix.patch added to -mm tree
+Date: Wed, 22 Feb 2012 11:58:05 -0800
+Message-ID: <20120222195807.4409EA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qw0-f74.google.com ([209.85.216.74]:47908 "EHLO
-	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477Ab2BVTlh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 14:41:37 -0500
-Received: by qadb12 with SMTP id b12so66965qad.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 11:41:37 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:35974 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755618Ab2BVT6L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 14:58:11 -0500
+Received: by werb13 with SMTP id b13so16855wer.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 11:58:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, gerald.schaefer@de.ibm.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alex.shi@intel.com
 
 
 The patch titled
-     Subject: mm: hugetlb: break COW earlier for resv owner
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-break-cow-earlier-for-resv-owner.patch
+     Subject: percpu-remove-percpu_xxx-functions-fix
+has been added to the -mm tree.  Its filename is
+     percpu-remove-percpu_xxx-functions-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: mm: hugetlb: break COW earlier for resv owner
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: percpu-remove-percpu_xxx-functions-fix
 
-When a process owning a MAP_PRIVATE mapping fails to COW, due to
-references held by a child and insufficient huge page pool, page is
-unmapped from the child process to guarantee the original mappers
-reliability, and the child may get SIGKILLed if it later faults.
-
-With that guarantee, COW is broken earlier on behalf of owners, and they
-will go less page faults.
-
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Alex Shi <alex.shi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/i387.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-break-cow-earlier-for-resv-owner mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-break-cow-earlier-for-resv-owner
-+++ a/mm/hugetlb.c
-@@ -2149,10 +2149,12 @@ int copy_hugetlb_page_range(struct mm_st
- 	struct page *ptepage;
- 	unsigned long addr;
- 	int cow;
-+	int owner;
- 	struct hstate *h = hstate_vma(vma);
- 	unsigned long sz = huge_page_size(h);
+diff -puN arch/x86/include/asm/i387.h~percpu-remove-percpu_xxx-functions-fix arch/x86/include/asm/i387.h
+--- a/arch/x86/include/asm/i387.h~percpu-remove-percpu_xxx-functions-fix
++++ a/arch/x86/include/asm/i387.h
+@@ -297,14 +297,14 @@ static inline int __thread_has_fpu(struc
+ static inline void __thread_clear_has_fpu(struct task_struct *tsk)
+ {
+ 	tsk->thread.fpu.has_fpu = 0;
+-	percpu_write(fpu_owner_task, NULL);
++	__this_cpu_write(fpu_owner_task, NULL);
+ }
  
- 	cow = (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
-+	owner = is_vma_resv_set(vma, HPAGE_RESV_OWNER);
+ /* Must be paired with a 'clts' before! */
+ static inline void __thread_set_has_fpu(struct task_struct *tsk)
+ {
+ 	tsk->thread.fpu.has_fpu = 1;
+-	percpu_write(fpu_owner_task, tsk);
++	__this_cpu_write(fpu_owner_task, tsk);
+ }
  
- 	for (addr = vma->vm_start; addr < vma->vm_end; addr += sz) {
- 		src_pte = huge_pte_offset(src, addr);
-@@ -2168,10 +2170,19 @@ int copy_hugetlb_page_range(struct mm_st
- 
- 		spin_lock(&dst->page_table_lock);
- 		spin_lock_nested(&src->page_table_lock, SINGLE_DEPTH_NESTING);
--		if (!huge_pte_none(huge_ptep_get(src_pte))) {
-+		entry = huge_ptep_get(src_pte);
-+		if (!huge_pte_none(entry)) {
- 			if (cow)
--				huge_ptep_set_wrprotect(src, addr, src_pte);
--			entry = huge_ptep_get(src_pte);
-+				if (owner) {
-+					/*
-+					 * Break COW for resv owner to go less
-+					 * page faults later
-+					 */
-+					entry = huge_pte_wrprotect(entry);
-+				} else {
-+					huge_ptep_set_wrprotect(src, addr, src_pte);
-+					entry = huge_ptep_get(src_pte);
-+				}
- 			ptepage = pte_page(entry);
- 			get_page(ptepage);
- 			page_dup_rmap(ptepage);
+ /*
+@@ -473,7 +473,7 @@ static inline void kernel_fpu_begin(void
+ 		__thread_clear_has_fpu(me);
+ 		/* We do 'stts()' in kernel_fpu_end() */
+ 	} else {
+-		percpu_write(fpu_owner_task, NULL);
++		__this_cpu_write(fpu_owner_task, NULL);
+ 		clts();
+ 	}
+ }
 _
+Subject: Subject: percpu-remove-percpu_xxx-functions-fix
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
-mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
-vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
-vmscan-kswapd-carefully-call-compaction.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+ata-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
 vmscan-kswapd-carefully-call-compaction-fix.patch
-vmscan-only-defer-compaction-for-failed-order-and-higher.patch
-hugetlbfs-fix-hugetlb_get_unmapped_area.patch
-hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
-hugetlb-try-to-search-again-if-it-is-really-needed.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
 hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
-mm-search-from-free_area_cache-for-the-bigger-size.patch
-mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
-mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
