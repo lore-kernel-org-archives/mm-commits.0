@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2.patch added to -mm tree
-Date: Thu, 23 Feb 2012 12:31:19 -0800
-Message-ID: <20120223203120.707E6A0295@akpm.mtv.corp.google.com>
+Subject: + x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch added to -mm tree
+Date: Thu, 23 Feb 2012 12:31:22 -0800
+Message-ID: <20120223203123.1953EA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:59062 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751346Ab2BWUbX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 23 Feb 2012 15:31:23 -0500
-Received: by lahl5 with SMTP id l5so56369lah.1
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2012 12:31:21 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:61103 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755201Ab2BWUbZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2012 15:31:25 -0500
+Received: by faaa19 with SMTP id a19so63723faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2012 12:31:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, chrisw@sous-sol.org, drahn@suse.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com
+Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, drahn@suse.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, travis@sgi.com
 
 
 The patch titled
-     Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2
+     Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
 has been added to the -mm tree.  Its filename is
-     x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2.patch
+     x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +33,13 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Travis <travis@sgi.com>
-Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
 
-Version 2: Fix compile error on ia64 (it uses the DMAR logic but does not
-define MAX_IO_APICS.)  Check to insure that iommu_bmp does not overflow.
+fix printk format string, code cleanup
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: Mike Travis <travis@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jack Steiner <steiner@sgi.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
@@ -51,57 +49,100 @@ Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/intel-iommu.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ drivers/iommu/intel-iommu.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2 drivers/iommu/intel-iommu.c
---- a/drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2
+diff -puN drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix drivers/iommu/intel-iommu.c
+--- a/drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
 +++ a/drivers/iommu/intel-iommu.c
-@@ -354,10 +354,17 @@ static int hw_pass_through = 1;
- /* si_domain contains mulitple devices */
- #define DOMAIN_FLAG_STATIC_IDENTITY	(1 << 2)
- 
-+/* define the limit of IOMMUs supported in each domain */
-+#ifdef	CONFIG_X86
-+#define	IOMMU_UNITS_SUPPORTED	MAX_IO_APICS
-+#else
-+#define	IOMMU_UNITS_SUPPORTED	64
-+#endif
-+
- struct dmar_domain {
- 	int	id;			/* domain id */
- 	int	nid;			/* node id */
--	DECLARE_BITMAP(iommu_bmp, MAX_IO_APICS);
-+	DECLARE_BITMAP(iommu_bmp, IOMMU_UNITS_SUPPORTED);
- 					/* bitmap of iommus this domain uses*/
- 
- 	struct list_head devices; 	/* all devices' list */
-@@ -2401,12 +2408,17 @@ static int __init init_dmars(void)
- 	 * endfor
- 	 */
- 	for_each_drhd_unit(drhd) {
--		g_num_of_iommus++;
- 		/*
- 		 * lock not needed as this is only incremented in the single
+@@ -2413,11 +2413,11 @@ static int __init init_dmars(void)
  		 * threaded kernel __init code path all other access are read
  		 * only
  		 */
-+		if (g_num_of_iommus < IOMMU_UNITS_SUPPORTED)
-+			g_num_of_iommus++;
-+		else
-+			printk_once(KERN_ERR,
-+			  "MAX number (%d) of IOMMUs supported exceeded\n",
-+			  IOMMU_UNITS_SUPPORTED);
+-		if (g_num_of_iommus < IOMMU_UNITS_SUPPORTED)
++		if (g_num_of_iommus < IOMMU_UNITS_SUPPORTED) {
+ 			g_num_of_iommus++;
+-		else
+-			printk_once(KERN_ERR,
+-			  "MAX number (%d) of IOMMUs supported exceeded\n",
++			continue;
++		}
++		printk_once(KERN_ERR "intel-iommu: exceeded %d IOMMUs\n",
+ 			  IOMMU_UNITS_SUPPORTED);
  	}
  
- 	g_iommus = kcalloc(g_num_of_iommus, sizeof(struct intel_iommu *),
 _
-Subject: Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2
+Subject: Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-pci-fix-identity-mapping-for-sandy-bridge.patch
-x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics.patch
-x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+ata-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
 x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
+fs-btrfs-inode-mapc-fix-warnings.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
