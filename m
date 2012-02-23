@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch added to -mm tree
-Date: Wed, 22 Feb 2012 12:56:24 -0800
-Message-ID: <20120222205624.A5215A00AB@akpm.mtv.corp.google.com>
+Subject: + mm-hugetlb-bail-out-unmapping-after-serving-reference-page.patch added to -mm tree
+Date: Thu, 23 Feb 2012 12:06:29 -0800
+Message-ID: <20120223200631.6EA25A01B8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:49846 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754560Ab2BVU41 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Feb 2012 15:56:27 -0500
-Received: by bkcjk13 with SMTP id jk13so17379bkc.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Feb 2012 12:56:25 -0800 (PST)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:62974 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753246Ab2BWUGe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2012 15:06:34 -0500
+Received: by vcbf1 with SMTP id f1so201729vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2012 12:06:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jkosina@suse.cz, aarcange@redhat.com, mel@csn.ul.ie
+Cc: dhillf@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: thp: documentation: 'transparent_hugepage=' can also be specified on cmdline
+     Subject: mm: hugetlb: bail out unmapping after serving reference page
 has been added to the -mm tree.  Its filename is
-     thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
+     mm-hugetlb-bail-out-unmapping-after-serving-reference-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: thp: documentation: 'transparent_hugepage=' can also be specified on cmdline
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm: hugetlb: bail out unmapping after serving reference page
 
-The behavior of THP can either be toggled through sysfs in runtime or
-using a kernel cmdline parameter 'transparent_hugepage='.  Document the
-latter in kernel-parameters.txt
+When unmapping a given VM range, we could bail out if a reference page is
+supplied and is unmapped, which is a minor optimization.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/hugetlb.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~thp-transparent_hugepage=-can-also-be-specified-on-cmdline Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~thp-transparent_hugepage=-can-also-be-specified-on-cmdline
-+++ a/Documentation/kernel-parameters.txt
-@@ -2651,6 +2651,13 @@ bytes respectively. Such letter suffixes
- 			to facilitate early boot debugging.
- 			See also Documentation/trace/events.txt
- 
-+	transparent_hugepage=
-+			[KNL]
-+			Format: [always|madvise|never]
-+			Can be used to control the default behavior of the system
-+			with respect to transparent hugepages.
-+			See Documentation/vm/transhuge.txt for more details.
+diff -puN mm/hugetlb.c~mm-hugetlb-bail-out-unmapping-after-serving-reference-page mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-bail-out-unmapping-after-serving-reference-page
++++ a/mm/hugetlb.c
+@@ -2280,6 +2280,10 @@ void __unmap_hugepage_range(struct vm_ar
+ 		if (pte_dirty(pte))
+ 			set_page_dirty(page);
+ 		list_add(&page->lru, &page_list);
 +
- 	tsc=		Disable clocksource stability checks for TSC.
- 			Format: <string>
- 			[x86] reliable: mark tsc clocksource as reliable, this
++		/* Bail out after unmapping reference page if supplied */
++		if (ref_page)
++			break;
+ 	}
+ 	spin_unlock(&mm->page_table_lock);
+ 	flush_tlb_range(vma, start, end);
 _
-Subject: Subject: thp: documentation: 'transparent_hugepage=' can also be specified on cmdline
+Subject: Subject: mm: hugetlb: bail out unmapping after serving reference page
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
-linux-next.patch
-thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
+mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
+vmscan-kswapd-carefully-call-compaction.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+vmscan-only-defer-compaction-for-failed-order-and-higher.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
+mm-hugetlb-bail-out-unmapping-after-serving-reference-page.patch
 
