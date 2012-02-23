@@ -1,148 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch added to -mm tree
-Date: Thu, 23 Feb 2012 12:31:22 -0800
-Message-ID: <20120223203123.1953EA0295@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] locks-new-proc-lockinfo.patch removed from -mm tree
+Date: Thu, 23 Feb 2012 13:01:20 -0800
+Message-ID: <20120223210121.1C531A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:61103 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755201Ab2BWUbZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2012 15:31:25 -0500
-Received: by faaa19 with SMTP id a19so63723faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2012 12:31:24 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:47667 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757063Ab2BWVBW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2012 16:01:22 -0500
+Received: by ggnp1 with SMTP id p1so212571ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2012 13:01:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, drahn@suse.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, travis@sgi.com
+To: dave@gnu.org, bfields@fieldses.org, ebiederm@xmission.com, matthew@wil.cx, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
-has been added to the -mm tree.  Its filename is
-     x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
+     Subject: locks: new /proc/lockinfo
+has been removed from the -mm tree.  Its filename was
+     locks-new-proc-lockinfo.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
+From: Davidlohr Bueso <dave@gnu.org>
+Subject: locks: new /proc/lockinfo
 
-fix printk format string, code cleanup
+Based on our previous discussion https://lkml.org/lkml/2012/2/10/462 we
+came to agree on deprecating the current /proc/locks in favor of a more
+extensible interface.  The new /proc/lockinfo file exports similar
+information - except instead of maj:min the device name is shown - and
+entries are formated like those in /proc/cpuinfo, allowing us to add new
+entries without breaking userspace.
 
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Daniel Rahn <drahn@suse.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Davidlohr Bueso <dave@gnu.org>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/intel-iommu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/feature-removal-schedule.txt |   10 +
+ fs/locks.c                                 |  109 ++++++++++++++++++-
+ 2 files changed, 114 insertions(+), 5 deletions(-)
 
-diff -puN drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix drivers/iommu/intel-iommu.c
---- a/drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
-+++ a/drivers/iommu/intel-iommu.c
-@@ -2413,11 +2413,11 @@ static int __init init_dmars(void)
- 		 * threaded kernel __init code path all other access are read
- 		 * only
- 		 */
--		if (g_num_of_iommus < IOMMU_UNITS_SUPPORTED)
-+		if (g_num_of_iommus < IOMMU_UNITS_SUPPORTED) {
- 			g_num_of_iommus++;
--		else
--			printk_once(KERN_ERR,
--			  "MAX number (%d) of IOMMUs supported exceeded\n",
-+			continue;
-+		}
-+		printk_once(KERN_ERR "intel-iommu: exceeded %d IOMMUs\n",
- 			  IOMMU_UNITS_SUPPORTED);
- 	}
+diff -puN Documentation/feature-removal-schedule.txt~locks-new-proc-lockinfo Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~locks-new-proc-lockinfo
++++ a/Documentation/feature-removal-schedule.txt
+@@ -491,6 +491,16 @@ Why:	The delaylog mode that has been the
+ 	the log code.
+ Who:	Christoph Hellwig <hch@lst.de>
  
++---------------------------
++
++What:	/proc/locks
++When:	2014
++Why:	The current /proc/locks file does not allow modifying entries as it
++        breaks userspace (most notably lslk(8)). A new /proc/lockinfo interface
++        replaces this file in a more extendable format (lines per entry), like
++        /proc/cpuinfo.
++Who:	Davidlohr Bueso <dave@gnu.org>
++
+ ----------------------------
+ 
+ What:	iwlagn alias support
+diff -puN fs/locks.c~locks-new-proc-lockinfo fs/locks.c
+--- a/fs/locks.c~locks-new-proc-lockinfo
++++ a/fs/locks.c
+@@ -112,6 +112,9 @@
+  *  Leases and LOCK_MAND
+  *  Matthew Wilcox <willy@debian.org>, June, 2000.
+  *  Stephen Rothwell <sfr@canb.auug.org.au>, June, 2000.
++ *
++ *  Deprecated /proc/locks in favor of /proc/lockinfo
++ *  Davidlohr Bueso <dave@gnu.org>, February, 2012.
+  */
+ 
+ #include <linux/capability.h>
+@@ -2156,6 +2159,10 @@ static void lock_get_status(struct seq_f
+ 	struct inode *inode = NULL;
+ 	unsigned int fl_pid;
+ 
++	/* deprecated, see Documentation/feature-removal-schedule.txt */
++	printk_once(KERN_WARNING "%s (%d): /proc/locks is deprecated please use /proc/lockinfo instead.\n",
++		    current->comm, task_pid_nr(current));
++
+ 	if (fl->fl_nspid)
+ 		fl_pid = pid_vnr(fl->fl_nspid);
+ 	else
+@@ -2199,15 +2206,10 @@ static void lock_get_status(struct seq_f
+ 			       : (fl->fl_type & F_WRLCK) ? "WRITE" : "READ ");
+ 	}
+ 	if (inode) {
+-#ifdef WE_CAN_BREAK_LSLK_NOW
+-		seq_printf(f, "%d %s:%ld ", fl_pid,
+-				inode->i_sb->s_id, inode->i_ino);
+-#else
+ 		/* userspace relies on this representation of dev_t ;-( */
+ 		seq_printf(f, "%d %02x:%02x:%ld ", fl_pid,
+ 				MAJOR(inode->i_sb->s_dev),
+ 				MINOR(inode->i_sb->s_dev), inode->i_ino);
+-#endif
+ 	} else {
+ 		seq_printf(f, "%d <none>:0 ", fl_pid);
+ 	}
+@@ -2275,9 +2277,106 @@ static const struct file_operations proc
+ 	.release	= seq_release_private,
+ };
+ 
++static void lockinfo_get_status(struct seq_file *f, struct file_lock *fl,
++				loff_t id)
++{
++	struct inode *inode = NULL;
++	unsigned int fl_pid;
++
++	if (fl->fl_nspid)
++		fl_pid = pid_vnr(fl->fl_nspid);
++	else
++		fl_pid = fl->fl_pid;
++
++	if (fl->fl_file != NULL)
++		inode = fl->fl_file->f_path.dentry->d_inode;
++
++	if (IS_POSIX(fl)) {
++		seq_printf(f, "Personality:\t %s\n",
++			   (fl->fl_flags & FL_ACCESS) ? "ACCESS" : "POSIX ");
++		seq_printf(f, "Type:\t\t %s\n",
++			   (!inode) ? "*NOINODE*" : mandatory_lock(inode)
++			   ? "MANDATORY" : "ADVISORY ");
++	} else if (IS_FLOCK(fl)) {
++		seq_printf(f, "Personality:\t FLOCK\n");
++		seq_printf(f, "Type:\t\t %s\n",
++			   (fl->fl_type & LOCK_MAND) ? "MSNFS" : "ADVISORY");
++	} else if (IS_LEASE(fl)) {
++		seq_printf(f, "Personality:\t LEASE\n");
++		seq_printf(f, "Type:\t\t %s\n",
++			   (lease_breaking(fl)) ? "BREAKING"
++			   : (fl->fl_file) ? "ACTIVE" : "BREAKER");
++	} else {
++		seq_printf(f, "Personality:\t UNKNOWN\n");
++		seq_printf(f, "Type:\t\t UNKNOWN\n");
++	}
++
++	if (fl->fl_type & LOCK_MAND) {
++		seq_printf(f, "Access:\t\t %s\n",
++			   (fl->fl_type & LOCK_READ)
++			   ? (fl->fl_type & LOCK_WRITE) ? "RW   " : "READ "
++			   : (fl->fl_type & LOCK_WRITE) ? "WRITE" : "NONE ");
++	} else {
++		seq_printf(f, "Access:\t\t %s\n",
++			   (lease_breaking(fl))
++			   ? (fl->fl_type & F_UNLCK) ? "UNLCK" : "READ "
++			   : (fl->fl_type & F_WRLCK) ? "WRITE" : "READ ");
++	}
++
++	seq_printf(f, "PID:\t\t %d\n", fl_pid);
++
++	if (inode) {
++		seq_printf(f, "Device:\t\t %s\n",  inode->i_sb->s_id);
++		seq_printf(f, "Inode:\t\t %ld\n", inode->i_ino);
++	}
++
++	if (IS_POSIX(fl)) {
++		if (fl->fl_end == OFFSET_MAX)
++			seq_printf(f, "Start-end:\t %Ld-EOF\n\n", fl->fl_start);
++		else
++			seq_printf(f, "Start-end:\t %Ld-%Ld\n\n", fl->fl_start, fl->fl_end);
++	} else {
++		seq_printf(f, "Start-end:\t 0-EOF\n\n");
++	}
++}
++
++static int lockinfo_show(struct seq_file *f, void *v)
++{
++	struct file_lock *fl, *bfl;
++
++	fl = list_entry(v, struct file_lock, fl_link);
++
++	lockinfo_get_status(f, fl, *((loff_t *)f->private));
++
++	list_for_each_entry(bfl, &fl->fl_block, fl_block)
++		lockinfo_get_status(f, bfl, *((loff_t *)f->private));
++
++	return 0;
++}
++
++static const struct seq_operations lockinfo_seq_operations = {
++	.start	= locks_start,
++	.next	= locks_next,
++	.stop	= locks_stop,
++	.show	= lockinfo_show,
++};
++
++static int lockinfo_open(struct inode *inode, struct file *filp)
++{
++	return seq_open_private(filp, &lockinfo_seq_operations, sizeof(loff_t));
++}
++
++static const struct file_operations proc_lockinfo_operations = {
++	.open		= lockinfo_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
+ static int __init proc_locks_init(void)
+ {
+ 	proc_create("locks", 0, NULL, &proc_locks_operations);
++	proc_create("lockinfo", 0, NULL, &proc_lockinfo_operations);
+ 	return 0;
+ }
+ module_init(proc_locks_init);
 _
-Subject: Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dave@gnu.org are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-ata-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
-x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-posix_types-remove-fd_set-macros-checkpatch-fixes.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
