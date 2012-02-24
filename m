@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + headers-include-linux-typesh-where-appropriate.patch added to -mm tree
-Date: Fri, 24 Feb 2012 11:49:52 -0800
-Message-ID: <20120224194952.B4CD1A0295@akpm.mtv.corp.google.com>
+Subject: + thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch added to -mm tree
+Date: Fri, 24 Feb 2012 12:03:11 -0800
+Message-ID: <20120224200312.3B2F6A01B8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:57201 "EHLO
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:41860 "EHLO
 	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196Ab2BXTtz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 14:49:55 -0500
-Received: by faaa19 with SMTP id a19so98709faa.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 11:49:53 -0800 (PST)
+	with ESMTP id S1757729Ab2BXUDO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 15:03:14 -0500
+Received: by faaa19 with SMTP id a19so99034faa.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 12:03:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bobbypowers@gmail.com, James.Bottomley@HansenPartnership.com, airlied@linux.ie, cjb@laptop.org, tiwai@suse.de
+Cc: vincenzo.frascino@st.com, lenb@kernel.org, viresh.kumar@st.com
 
 
 The patch titled
-     Subject: headers: include linux/types.h where appropriate
+     Subject: thermal: add support for thermal sensor present on SPEAr13xx machines
 has been added to the -mm tree.  Its filename is
-     headers-include-linux-typesh-where-appropriate.patch
+     thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,295 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bobby Powers <bobbypowers@gmail.com>
-Subject: headers: include linux/types.h where appropriate
+From: Vincenzo Frascino <vincenzo.frascino@st.com>
+Subject: thermal: add support for thermal sensor present on SPEAr13xx machines
 
-This addresses some header check warnings.  DRM headers which include
-"drm.h" have been excluded, as they indirectly include types.h.
+ST's SPEAr13xx machines are based on CortexA9 ARM processors.  These
+machines contain a thermal sensor for junction temperature monitoring.
 
-Signed-off-by: Bobby Powers <bobbypowers@gmail.com>
-Cc: Chris Ball <cjb@laptop.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+This patch adds support for this thermal sensor in existing thermal
+framework.
+
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@st.com>
+Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/drm/drm_mode.h          |    2 ++
- include/linux/mmc/ioctl.h       |    3 +++
- include/scsi/scsi_netlink.h     |    2 +-
- include/sound/compress_params.h |    2 ++
- 4 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/thermal/Kconfig                     |    7 
+ drivers/thermal/Makefile                    |    1 
+ drivers/thermal/spear_thermal.c             |  205 ++++++++++++++++++
+ include/linux/platform_data/spear_thermal.h |   26 ++
+ 4 files changed, 239 insertions(+)
 
-diff -puN include/drm/drm_mode.h~headers-include-linux-typesh-where-appropriate include/drm/drm_mode.h
---- a/include/drm/drm_mode.h~headers-include-linux-typesh-where-appropriate
-+++ a/include/drm/drm_mode.h
-@@ -27,6 +27,8 @@
- #ifndef _DRM_MODE_H
- #define _DRM_MODE_H
+diff -puN drivers/thermal/Kconfig~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines drivers/thermal/Kconfig
+--- a/drivers/thermal/Kconfig~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines
++++ a/drivers/thermal/Kconfig
+@@ -18,3 +18,10 @@ config THERMAL_HWMON
+ 	depends on THERMAL
+ 	depends on HWMON=y || HWMON=THERMAL
+ 	default y
++
++config SPEAR_THERMAL
++	bool "SPEAr thermal sensor driver"
++	depends on THERMAL
++	help
++	  Enable this to plug the SPEAr thermal sensor driver into the Linux
++	  thermal framework
+diff -puN drivers/thermal/Makefile~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines drivers/thermal/Makefile
+--- a/drivers/thermal/Makefile~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines
++++ a/drivers/thermal/Makefile
+@@ -3,3 +3,4 @@
+ #
  
-+#include <linux/types.h>
+ obj-$(CONFIG_THERMAL)		+= thermal_sys.o
++obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
+\ No newline at end of file
+diff -puN /dev/null drivers/thermal/spear_thermal.c
+--- /dev/null
++++ a/drivers/thermal/spear_thermal.c
+@@ -0,0 +1,205 @@
++/*
++ * SPEAr thermal driver.
++ *
++ * Copyright (C) 2011-2012 ST Microelectronics
++ * Author: Vincenzo Frascino <vincenzo.frascino@st.com>
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ */
 +
- #define DRM_DISPLAY_INFO_LEN	32
- #define DRM_CONNECTOR_NAME_LEN	32
- #define DRM_DISPLAY_MODE_LEN	32
-diff -puN include/linux/mmc/ioctl.h~headers-include-linux-typesh-where-appropriate include/linux/mmc/ioctl.h
---- a/include/linux/mmc/ioctl.h~headers-include-linux-typesh-where-appropriate
-+++ a/include/linux/mmc/ioctl.h
-@@ -1,5 +1,8 @@
- #ifndef LINUX_MMC_IOCTL_H
- #define LINUX_MMC_IOCTL_H
++#include <linux/clk.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/platform_data/spear_thermal.h>
++#include <linux/thermal.h>
 +
-+#include <linux/types.h>
++#define MD_FACTOR	1000
 +
- struct mmc_ioc_cmd {
- 	/* Implies direction of data.  true = write, false = read */
- 	int write_flag;
-diff -puN include/scsi/scsi_netlink.h~headers-include-linux-typesh-where-appropriate include/scsi/scsi_netlink.h
---- a/include/scsi/scsi_netlink.h~headers-include-linux-typesh-where-appropriate
-+++ a/include/scsi/scsi_netlink.h
-@@ -23,7 +23,7 @@
- #define SCSI_NETLINK_H
- 
- #include <linux/netlink.h>
++/* SPEAr Thermal Sensor Dev Structure */
++struct spear_thermal_dev {
++	/* pointer to base address of the thermal sensor */
++	void __iomem *thermal_base;
++	/* clk structure */
++	struct clk *clk;
++	/* pointer to thermal flags */
++	unsigned int flags;
++};
++
++static inline int thermal_get_temp(struct thermal_zone_device *thermal,
++				unsigned long *temp)
++{
++	struct spear_thermal_dev *stdev = thermal->devdata;
++
++	/*
++	 * Data are ready to be read after 628 usec from POWERDOWN signal
++	 * (PDN) = 1
++	 */
++	*temp = (readl(stdev->thermal_base) & 0x7F) * MD_FACTOR;
++	return 0;
++}
++
++static struct thermal_zone_device_ops ops = {
++	.get_temp = thermal_get_temp,
++};
++
++#ifdef CONFIG_PM
++static int spear_thermal_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct thermal_zone_device *spear_thermal = platform_get_drvdata(pdev);
++	struct spear_thermal_dev *stdev = spear_thermal->devdata;
++	unsigned int actual_mask = 0;
++
++	/* Disable SPEAr Thermal Sensor */
++	actual_mask = readl(stdev->thermal_base);
++	writel(actual_mask & ~stdev->flags, stdev->thermal_base);
++
++	clk_disable(stdev->clk);
++	dev_info(dev, "Suspended.\n");
++
++	return 0;
++}
++
++static int spear_thermal_resume(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct thermal_zone_device *spear_thermal = platform_get_drvdata(pdev);
++	struct spear_thermal_dev *stdev = spear_thermal->devdata;
++	unsigned int actual_mask = 0;
++	int ret = 0;
++
++	ret = clk_enable(stdev->clk);
++	if (ret) {
++		dev_err(&pdev->dev, "Can't enable clock\n");
++		return ret;
++	}
++
++	/* Enable SPEAr Thermal Sensor */
++	actual_mask = readl(stdev->thermal_base);
++	writel(actual_mask | stdev->flags, stdev->thermal_base);
++
++	dev_info(dev, "Resumed.\n");
++
++	return 0;
++}
++#endif
++
++static SIMPLE_DEV_PM_OPS(spear_thermal_pm_ops, spear_thermal_suspend,
++		spear_thermal_resume);
++
++static int spear_thermal_probe(struct platform_device *pdev)
++{
++	struct thermal_zone_device *spear_thermal = NULL;
++	struct spear_thermal_dev *stdev;
++	struct spear_thermal_pdata *pdata;
++	int ret = 0;
++	struct resource *stres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!stres) {
++		dev_err(&pdev->dev, "memory resource missing\n");
++		return -ENODEV;
++	}
++
++	pdata = dev_get_platdata(&pdev->dev);
++	if (!pdata) {
++		dev_err(&pdev->dev, "platform data is NULL\n");
++		return -EINVAL;
++	}
++
++	stdev = devm_kzalloc(&pdev->dev, sizeof(*stdev), GFP_KERNEL);
++	if (!stdev) {
++		dev_err(&pdev->dev, "kzalloc fail\n");
++		return -ENOMEM;
++	}
++
++	/* Enable thermal sensor */
++	stdev->thermal_base = devm_ioremap(&pdev->dev, stres->start,
++			resource_size(stres));
++	if (!stdev->thermal_base) {
++		dev_err(&pdev->dev, "ioremap failed\n");
++		return -ENOMEM;
++	}
++
++	stdev->clk = clk_get(&pdev->dev, NULL);
++	if (IS_ERR(stdev->clk)) {
++		dev_err(&pdev->dev, "Can't get clock\n");
++		return PTR_ERR(stdev->clk);
++	}
++
++	ret = clk_enable(stdev->clk);
++	if (ret) {
++		dev_err(&pdev->dev, "Can't enable clock\n");
++		goto put_clk;
++	}
++
++	stdev->flags = pdata->thermal_flags;
++	writel(stdev->flags, stdev->thermal_base);
++
++	spear_thermal = thermal_zone_device_register("spear_thermal", 0,
++				stdev, &ops, 0, 0, 0, 0);
++	if (!spear_thermal) {
++		dev_err(&pdev->dev, "thermal zone device is NULL\n");
++		ret = -EINVAL;
++		goto disable_clk;
++	}
++
++	platform_set_drvdata(pdev, spear_thermal);
++
++	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%x.\n",
++			(unsigned int)stdev->thermal_base);
++
++	return 0;
++
++disable_clk:
++	clk_disable(stdev->clk);
++put_clk:
++	clk_put(stdev->clk);
++
++	return ret;
++}
++
++static int spear_thermal_exit(struct platform_device *pdev)
++{
++	unsigned int actual_mask = 0;
++	struct thermal_zone_device *spear_thermal = platform_get_drvdata(pdev);
++	struct spear_thermal_dev *stdev = spear_thermal->devdata;
++
++	thermal_zone_device_unregister(spear_thermal);
++	platform_set_drvdata(pdev, NULL);
++
++	/* Disable SPEAr Thermal Sensor */
++	actual_mask = readl(stdev->thermal_base);
++	writel(actual_mask & ~stdev->flags, stdev->thermal_base);
++
++	clk_disable(stdev->clk);
++	clk_put(stdev->clk);
++
++	return 0;
++}
++
++static struct platform_driver spear_thermal_driver = {
++	.probe = spear_thermal_probe,
++	.remove = spear_thermal_exit,
++	.driver = {
++		.name = "spear_thermal",
++		.owner = THIS_MODULE,
++		.pm = &spear_thermal_pm_ops,
++	},
++};
++
++module_platform_driver(spear_thermal_driver);
++
++MODULE_AUTHOR("Vincenzo Frascino <vincenzo.frascino@st.com>");
++MODULE_DESCRIPTION("SPEAr thermal driver");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null include/linux/platform_data/spear_thermal.h
+--- /dev/null
++++ a/include/linux/platform_data/spear_thermal.h
+@@ -0,0 +1,26 @@
++/*
++ * SPEAr thermal driver platform data.
++ *
++ * Copyright (C) 2011-2012 ST Microelectronics
++ * Author: Vincenzo Frascino <vincenzo.frascino@st.com>
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++#ifndef SPEAR_THERMAL_H
++#define SPEAR_THERMAL_H
++
++/* SPEAr Thermal Sensor Platform Data */
++struct spear_thermal_pdata {
++	/* flags used to enable thermal sensor */
++	unsigned int thermal_flags;
++};
++
++#endif /* SPEAR_THERMAL_H */
+_
+Subject: Subject: thermal: add support for thermal sensor present on SPEAr13xx machines
+
+Patches currently in -mm which might be from vincenzo.frascino@st.com are
+
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
+
