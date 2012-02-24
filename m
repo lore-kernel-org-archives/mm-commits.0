@@ -1,161 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 23 Feb 2012 16:34:36 -0800
-Message-ID: <20120224003436.B2A8FA043A@akpm.mtv.corp.google.com>
+Subject: - fs-btrfs-inode-mapc-fix-warnings.patch removed from -mm tree
+Date: Fri, 24 Feb 2012 11:42:25 -0800
+Message-ID: <20120224194227.4CF1AA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:53056 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756114Ab2BXAej (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Feb 2012 19:34:39 -0500
-Received: by wgbds12 with SMTP id ds12so62052wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 23 Feb 2012 16:34:37 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:44826 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754542Ab2BXTmb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 14:42:31 -0500
+Received: by eekb15 with SMTP id b15so89804eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 11:42:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, siddhesh.poyarekar@gmail.com
+To: akpm@linux-foundation.org, chris.mason@oracle.com, josef@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
+     Subject: fs/btrfs/inode-map.c: fix warnings
+has been removed from the -mm tree.  Its filename was
+     fs-btrfs-inode-mapc-fix-warnings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because a crappier patch was merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
+Subject: fs/btrfs/inode-map.c: fix warnings
 
-WARNING: line over 80 characters
-#265: FILE: fs/proc/task_mmu.c:212:
-+static void show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
+i386:
 
-ERROR: code indent should use tabs where possible
-#464: FILE: fs/proc/task_mmu.c:1183:
-+        .show   = show_pid_numa_map,$
+fs/btrfs/inode-map.c: In function 'btrfs_save_ino_cache':
+fs/btrfs/inode-map.c:441: warning: cast from pointer to integer of different size
+fs/btrfs/inode-map.c:503: warning: cast from pointer to integer of different size
 
-WARNING: please, no spaces at the start of a line
-#464: FILE: fs/proc/task_mmu.c:1183:
-+        .show   = show_pid_numa_map,$
-
-ERROR: code indent should use tabs where possible
-#469: FILE: fs/proc/task_mmu.c:1187:
-+        .start  = m_start,$
-
-WARNING: please, no spaces at the start of a line
-#469: FILE: fs/proc/task_mmu.c:1187:
-+        .start  = m_start,$
-
-ERROR: code indent should use tabs where possible
-#470: FILE: fs/proc/task_mmu.c:1188:
-+        .next   = m_next,$
-
-WARNING: please, no spaces at the start of a line
-#470: FILE: fs/proc/task_mmu.c:1188:
-+        .next   = m_next,$
-
-ERROR: code indent should use tabs where possible
-#471: FILE: fs/proc/task_mmu.c:1189:
-+        .stop   = m_stop,$
-
-WARNING: please, no spaces at the start of a line
-#471: FILE: fs/proc/task_mmu.c:1189:
-+        .stop   = m_stop,$
-
-ERROR: code indent should use tabs where possible
-#472: FILE: fs/proc/task_mmu.c:1190:
-+        .show   = show_tid_numa_map,$
-
-WARNING: please, no spaces at the start of a line
-#472: FILE: fs/proc/task_mmu.c:1190:
-+        .show   = show_tid_numa_map,$
-
-WARNING: line over 80 characters
-#639: FILE: include/linux/mm.h:1050:
-+extern int vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
-
-total: 5 errors, 7 warnings, 468 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Cc: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Josef Bacik <josef@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   19 ++++++++++---------
- include/linux/mm.h |    3 ++-
- 2 files changed, 12 insertions(+), 10 deletions(-)
+ fs/btrfs/inode-map.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -209,7 +209,8 @@ static int do_maps_open(struct inode *in
- 	return ret;
- }
- 
--static void show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
-+static void
-+show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct file *file = vma->vm_file;
-@@ -1177,17 +1178,17 @@ static int show_tid_numa_map(struct seq_
- }
- 
- static const struct seq_operations proc_pid_numa_maps_op = {
--        .start  = m_start,
--        .next   = m_next,
--        .stop   = m_stop,
--        .show   = show_pid_numa_map,
-+	.start  = m_start,
-+	.next   = m_next,
-+	.stop   = m_stop,
-+	.show   = show_pid_numa_map,
- };
- 
- static const struct seq_operations proc_tid_numa_maps_op = {
--        .start  = m_start,
--        .next   = m_next,
--        .stop   = m_stop,
--        .show   = show_tid_numa_map,
-+	.start  = m_start,
-+	.next   = m_next,
-+	.stop   = m_stop,
-+	.show   = show_tid_numa_map,
- };
- 
- static int numa_maps_open(struct inode *inode, struct file *file,
-diff -puN include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes include/linux/mm.h
---- a/include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
-+++ a/include/linux/mm.h
-@@ -1047,7 +1047,8 @@ static inline int vm_is_stack_for_task(s
- 	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
- }
- 
--extern int vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
-+extern int
-+vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
- 
- extern unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
+diff -puN fs/btrfs/inode-map.c~fs-btrfs-inode-mapc-fix-warnings fs/btrfs/inode-map.c
+--- a/fs/btrfs/inode-map.c~fs-btrfs-inode-mapc-fix-warnings
++++ a/fs/btrfs/inode-map.c
+@@ -438,7 +438,7 @@ int btrfs_save_ino_cache(struct btrfs_ro
+ 					  trans->bytes_reserved);
+ 	if (ret)
+ 		goto out;
+-	trace_btrfs_space_reservation(root->fs_info, "ino_cache", (u64)trans,
++	trace_btrfs_space_reservation(root->fs_info, "ino_cache", (long)trans,
+ 				      trans->bytes_reserved, 1);
+ again:
+ 	inode = lookup_free_ino_inode(root, path);
+@@ -500,7 +500,7 @@ again:
+ out_put:
+ 	iput(inode);
+ out_release:
+-	trace_btrfs_space_reservation(root->fs_info, "ino_cache", (u64)trans,
++	trace_btrfs_space_reservation(root->fs_info, "ino_cache", (long)trans,
+ 				      trans->bytes_reserved, 0);
+ 	btrfs_block_rsv_release(root, trans->block_rsv, trans->bytes_reserved);
+ out:
 _
-Subject: Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -172,7 +80,6 @@ net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.pa
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
 x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
 x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
-fs-btrfs-inode-mapc-fix-warnings.patch
 hpet-factor-timer-allocate-from-open.patch
 thermal-thermal_sys-fix-build-warning.patch
 slab-introduce-kmalloc_array.patch
