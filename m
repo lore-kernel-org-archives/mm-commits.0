@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch added to -mm tree
-Date: Fri, 24 Feb 2012 12:03:11 -0800
-Message-ID: <20120224200312.3B2F6A01B8@akpm.mtv.corp.google.com>
+Subject: + thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch added to -mm tree
+Date: Fri, 24 Feb 2012 12:03:16 -0800
+Message-ID: <20120224200316.F26B6A01B8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:41860 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757729Ab2BXUDO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 15:03:14 -0500
-Received: by faaa19 with SMTP id a19so99034faa.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 12:03:13 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:64042 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757729Ab2BXUDS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 15:03:18 -0500
+Received: by vbnl22 with SMTP id l22so35322vbn.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 12:03:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vincenzo.frascino@st.com, lenb@kernel.org, viresh.kumar@st.com
+Cc: akpm@linux-foundation.org, lenb@kernel.org, vincenzo.frascino@st.com, viresh.kumar@st.com
 
 
 The patch titled
-     Subject: thermal: add support for thermal sensor present on SPEAr13xx machines
+     Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
 has been added to the -mm tree.  Its filename is
-     thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
+     thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,295 +33,111 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vincenzo Frascino <vincenzo.frascino@st.com>
-Subject: thermal: add support for thermal sensor present on SPEAr13xx machines
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
 
-ST's SPEAr13xx machines are based on CortexA9 ARM processors.  These
-machines contain a thermal sensor for junction temperature monitoring.
+print the pointer correctly
 
-This patch adds support for this thermal sensor in existing thermal
-framework.
+drivers/thermal/spear_thermal.c: In function 'spear_thermal_probe':
+drivers/thermal/spear_thermal.c:159: warning: cast from pointer to integer of different size
 
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@st.com>
-Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@st.com>
+Cc: Viresh Kumar <viresh.kumar@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/Kconfig                     |    7 
- drivers/thermal/Makefile                    |    1 
- drivers/thermal/spear_thermal.c             |  205 ++++++++++++++++++
- include/linux/platform_data/spear_thermal.h |   26 ++
- 4 files changed, 239 insertions(+)
+ drivers/thermal/spear_thermal.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/thermal/Kconfig~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines drivers/thermal/Kconfig
---- a/drivers/thermal/Kconfig~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines
-+++ a/drivers/thermal/Kconfig
-@@ -18,3 +18,10 @@ config THERMAL_HWMON
- 	depends on THERMAL
- 	depends on HWMON=y || HWMON=THERMAL
- 	default y
-+
-+config SPEAR_THERMAL
-+	bool "SPEAr thermal sensor driver"
-+	depends on THERMAL
-+	help
-+	  Enable this to plug the SPEAr thermal sensor driver into the Linux
-+	  thermal framework
-diff -puN drivers/thermal/Makefile~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines drivers/thermal/Makefile
---- a/drivers/thermal/Makefile~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines
-+++ a/drivers/thermal/Makefile
-@@ -3,3 +3,4 @@
- #
- 
- obj-$(CONFIG_THERMAL)		+= thermal_sys.o
-+obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
-\ No newline at end of file
-diff -puN /dev/null drivers/thermal/spear_thermal.c
---- /dev/null
+diff -puN drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix drivers/thermal/spear_thermal.c
+--- a/drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
 +++ a/drivers/thermal/spear_thermal.c
-@@ -0,0 +1,205 @@
-+/*
-+ * SPEAr thermal driver.
-+ *
-+ * Copyright (C) 2011-2012 ST Microelectronics
-+ * Author: Vincenzo Frascino <vincenzo.frascino@st.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/platform_data/spear_thermal.h>
-+#include <linux/thermal.h>
-+
-+#define MD_FACTOR	1000
-+
-+/* SPEAr Thermal Sensor Dev Structure */
-+struct spear_thermal_dev {
-+	/* pointer to base address of the thermal sensor */
-+	void __iomem *thermal_base;
-+	/* clk structure */
-+	struct clk *clk;
-+	/* pointer to thermal flags */
-+	unsigned int flags;
-+};
-+
-+static inline int thermal_get_temp(struct thermal_zone_device *thermal,
-+				unsigned long *temp)
-+{
-+	struct spear_thermal_dev *stdev = thermal->devdata;
-+
-+	/*
-+	 * Data are ready to be read after 628 usec from POWERDOWN signal
-+	 * (PDN) = 1
-+	 */
-+	*temp = (readl(stdev->thermal_base) & 0x7F) * MD_FACTOR;
-+	return 0;
-+}
-+
-+static struct thermal_zone_device_ops ops = {
-+	.get_temp = thermal_get_temp,
-+};
-+
-+#ifdef CONFIG_PM
-+static int spear_thermal_suspend(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct thermal_zone_device *spear_thermal = platform_get_drvdata(pdev);
-+	struct spear_thermal_dev *stdev = spear_thermal->devdata;
-+	unsigned int actual_mask = 0;
-+
-+	/* Disable SPEAr Thermal Sensor */
-+	actual_mask = readl(stdev->thermal_base);
-+	writel(actual_mask & ~stdev->flags, stdev->thermal_base);
-+
-+	clk_disable(stdev->clk);
-+	dev_info(dev, "Suspended.\n");
-+
-+	return 0;
-+}
-+
-+static int spear_thermal_resume(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct thermal_zone_device *spear_thermal = platform_get_drvdata(pdev);
-+	struct spear_thermal_dev *stdev = spear_thermal->devdata;
-+	unsigned int actual_mask = 0;
-+	int ret = 0;
-+
-+	ret = clk_enable(stdev->clk);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Can't enable clock\n");
-+		return ret;
-+	}
-+
-+	/* Enable SPEAr Thermal Sensor */
-+	actual_mask = readl(stdev->thermal_base);
-+	writel(actual_mask | stdev->flags, stdev->thermal_base);
-+
-+	dev_info(dev, "Resumed.\n");
-+
-+	return 0;
-+}
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(spear_thermal_pm_ops, spear_thermal_suspend,
-+		spear_thermal_resume);
-+
-+static int spear_thermal_probe(struct platform_device *pdev)
-+{
-+	struct thermal_zone_device *spear_thermal = NULL;
-+	struct spear_thermal_dev *stdev;
-+	struct spear_thermal_pdata *pdata;
-+	int ret = 0;
-+	struct resource *stres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!stres) {
-+		dev_err(&pdev->dev, "memory resource missing\n");
-+		return -ENODEV;
-+	}
-+
-+	pdata = dev_get_platdata(&pdev->dev);
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "platform data is NULL\n");
-+		return -EINVAL;
-+	}
-+
-+	stdev = devm_kzalloc(&pdev->dev, sizeof(*stdev), GFP_KERNEL);
-+	if (!stdev) {
-+		dev_err(&pdev->dev, "kzalloc fail\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* Enable thermal sensor */
-+	stdev->thermal_base = devm_ioremap(&pdev->dev, stres->start,
-+			resource_size(stres));
-+	if (!stdev->thermal_base) {
-+		dev_err(&pdev->dev, "ioremap failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	stdev->clk = clk_get(&pdev->dev, NULL);
-+	if (IS_ERR(stdev->clk)) {
-+		dev_err(&pdev->dev, "Can't get clock\n");
-+		return PTR_ERR(stdev->clk);
-+	}
-+
-+	ret = clk_enable(stdev->clk);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Can't enable clock\n");
-+		goto put_clk;
-+	}
-+
-+	stdev->flags = pdata->thermal_flags;
-+	writel(stdev->flags, stdev->thermal_base);
-+
-+	spear_thermal = thermal_zone_device_register("spear_thermal", 0,
-+				stdev, &ops, 0, 0, 0, 0);
-+	if (!spear_thermal) {
-+		dev_err(&pdev->dev, "thermal zone device is NULL\n");
-+		ret = -EINVAL;
-+		goto disable_clk;
-+	}
-+
-+	platform_set_drvdata(pdev, spear_thermal);
-+
-+	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%x.\n",
-+			(unsigned int)stdev->thermal_base);
-+
-+	return 0;
-+
-+disable_clk:
-+	clk_disable(stdev->clk);
-+put_clk:
-+	clk_put(stdev->clk);
-+
-+	return ret;
-+}
-+
-+static int spear_thermal_exit(struct platform_device *pdev)
-+{
-+	unsigned int actual_mask = 0;
-+	struct thermal_zone_device *spear_thermal = platform_get_drvdata(pdev);
-+	struct spear_thermal_dev *stdev = spear_thermal->devdata;
-+
-+	thermal_zone_device_unregister(spear_thermal);
-+	platform_set_drvdata(pdev, NULL);
-+
-+	/* Disable SPEAr Thermal Sensor */
-+	actual_mask = readl(stdev->thermal_base);
-+	writel(actual_mask & ~stdev->flags, stdev->thermal_base);
-+
-+	clk_disable(stdev->clk);
-+	clk_put(stdev->clk);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver spear_thermal_driver = {
-+	.probe = spear_thermal_probe,
-+	.remove = spear_thermal_exit,
-+	.driver = {
-+		.name = "spear_thermal",
-+		.owner = THIS_MODULE,
-+		.pm = &spear_thermal_pm_ops,
-+	},
-+};
-+
-+module_platform_driver(spear_thermal_driver);
-+
-+MODULE_AUTHOR("Vincenzo Frascino <vincenzo.frascino@st.com>");
-+MODULE_DESCRIPTION("SPEAr thermal driver");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null include/linux/platform_data/spear_thermal.h
---- /dev/null
-+++ a/include/linux/platform_data/spear_thermal.h
-@@ -0,0 +1,26 @@
-+/*
-+ * SPEAr thermal driver platform data.
-+ *
-+ * Copyright (C) 2011-2012 ST Microelectronics
-+ * Author: Vincenzo Frascino <vincenzo.frascino@st.com>
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+#ifndef SPEAR_THERMAL_H
-+#define SPEAR_THERMAL_H
-+
-+/* SPEAr Thermal Sensor Platform Data */
-+struct spear_thermal_pdata {
-+	/* flags used to enable thermal sensor */
-+	unsigned int thermal_flags;
-+};
-+
-+#endif /* SPEAR_THERMAL_H */
+@@ -156,8 +156,8 @@ static int spear_thermal_probe(struct pl
+ 
+ 	platform_set_drvdata(pdev, spear_thermal);
+ 
+-	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%x.\n",
+-			(unsigned int)stdev->thermal_base);
++	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%p.\n",
++			stdev->thermal_base);
+ 
+ 	return 0;
+ 
 _
-Subject: Subject: thermal: add support for thermal sensor present on SPEAr13xx machines
+Subject: Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
 
-Patches currently in -mm which might be from vincenzo.frascino@st.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+ata-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
+x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
 thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
 thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+posix_types-remove-fd_set-macros-checkpatch-fixes.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
