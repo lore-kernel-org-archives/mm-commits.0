@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 24 Feb 2012 13:15:23 -0800
-Message-ID: <20120224215840.4CCAC20004E@hpza10.eem.corp.google.com>
+Subject: + procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch added to -mm tree
+Date: Fri, 24 Feb 2012 14:11:10 -0800
+Message-ID: <20120224225427.C18545C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:47709 "EHLO
+Received: from mail-we0-f202.google.com ([74.125.82.202]:39733 "EHLO
 	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755462Ab2BXV6m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 16:58:42 -0500
-Received: by werb13 with SMTP id b13so103804wer.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 13:58:41 -0800 (PST)
+	with ESMTP id S1754497Ab2BXWyb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 17:54:31 -0500
+Received: by werb13 with SMTP id b13so105064wer.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 14:54:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, jamie@shareable.org, kosaki.motohiro@gmail.com, mpm@selenic.com, siddhesh.poyarekar@gmail.com, vapier@gentoo.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
 
+i386 allmodconfig.  Many instances of
+
+In file included from include/linux/scatterlist.h:6,
+                 from include/linux/dmaengine.h:26,
+                 from include/linux/skbuff.h:30,
+                 from include/crypto/algapi.h:18,
+                 from arch/x86/crypto/serpent_sse2_glue.c:37:
+include/linux/mm.h: In function 'vm_is_stack_for_task':
+include/linux/mm.h:1047: error: implicit declaration of function 'task_stack_page'
+
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Jamie Lokier <jamie@shareable.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_trans_dquot.c      |   20 --------------------
- sound/pci/hda/patch_realtek.c |   11 -----------
- 2 files changed, 31 deletions(-)
+ include/linux/mm.h |    7 -------
+ mm/memory.c        |    7 +++++++
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/xfs/xfs_trans_dquot.c~linux-next-git-rejects fs/xfs/xfs_trans_dquot.c
---- a/fs/xfs/xfs_trans_dquot.c~linux-next-git-rejects
-+++ a/fs/xfs/xfs_trans_dquot.c
-@@ -648,22 +648,12 @@ xfs_trans_dqresv(
- 			 * hardlimit or exceed the timelimit if we allocate
- 			 * nblks.
- 			 */
--<<<<<<< HEAD
--			if (hardlimit > 0ULL &&
--			    hardlimit < nblks + *resbcountp) {
--				xfs_quota_warn(mp, dqp, QUOTA_NL_BHARDWARN);
--				goto error_return;
--			}
--			if (softlimit > 0ULL &&
--			    softlimit < nblks + *resbcountp) {
--=======
- 			total_count = *resbcountp + nblks;
- 			if (hardlimit && total_count > hardlimit) {
- 				xfs_quota_warn(mp, dqp, QUOTA_NL_BHARDWARN);
- 				goto error_return;
- 			}
- 			if (softlimit && total_count > softlimit) {
-->>>>>>> linux-next/akpm-end
- 				if ((timer != 0 && get_seconds() > timer) ||
- 				    (warns != 0 && warns >= warnlimit)) {
- 					xfs_quota_warn(mp, dqp,
-@@ -686,21 +676,11 @@ xfs_trans_dqresv(
- 			if (!softlimit)
- 				softlimit = q->qi_isoftlimit;
- 
--<<<<<<< HEAD
--			if (hardlimit > 0ULL &&
--			    hardlimit < ninos + count) {
--				xfs_quota_warn(mp, dqp, QUOTA_NL_IHARDWARN);
--				goto error_return;
--			}
--			if (softlimit > 0ULL &&
--			    softlimit < ninos + count) {
--=======
- 			if (hardlimit && total_count > hardlimit) {
- 				xfs_quota_warn(mp, dqp, QUOTA_NL_IHARDWARN);
- 				goto error_return;
- 			}
- 			if (softlimit && total_count > softlimit) {
-->>>>>>> linux-next/akpm-end
- 				if  ((timer != 0 && get_seconds() > timer) ||
- 				     (warns != 0 && warns >= warnlimit)) {
- 					xfs_quota_warn(mp, dqp,
-diff -puN sound/pci/hda/patch_realtek.c~linux-next-git-rejects sound/pci/hda/patch_realtek.c
---- a/sound/pci/hda/patch_realtek.c~linux-next-git-rejects
-+++ a/sound/pci/hda/patch_realtek.c
-@@ -3461,21 +3461,10 @@ static int alc_auto_fill_dac_nids(struct
- 			alc_look_for_out_vol_nid(codec, cfg->line_out_pins[0],
- 						 spec->multiout.dac_nids[0]);
- 
--<<<<<<< HEAD
--static inline unsigned int get_ctl_pos(unsigned int data)
--{
--	hda_nid_t nid = get_amp_nid_(data);
--	unsigned int dir;
--	if (snd_BUG_ON(nid >= MAX_VOL_NIDS))
--		return 0;
--	dir = get_amp_direction_(data);
--	return (nid << 1) | dir;
--=======
- 	/* clear the bitmap flags for creating controls */
- 	clear_vol_marks(codec);
- 	kfree(best_cfg);
- 	return 0;
-->>>>>>> linux-next/akpm-end
+diff -puN include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix include/linux/mm.h
+--- a/include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
++++ a/include/linux/mm.h
+@@ -1040,13 +1040,6 @@ static inline int stack_guard_page_end(s
+ 		!vma_growsup(vma->vm_next, addr);
  }
  
- static int alc_auto_add_vol_ctl(struct hda_codec *codec,
+-/* Check if the vma is being used as a stack by this task */
+-static inline int vm_is_stack_for_task(struct task_struct *t,
+-				       struct vm_area_struct *vma)
+-{
+-	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
+-}
+-
+ extern int
+ vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
+ 
+diff -puN mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix mm/memory.c
+--- a/mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
++++ a/mm/memory.c
+@@ -112,6 +112,13 @@ __setup("norandmaps", disable_randmaps);
+ unsigned long zero_pfn __read_mostly;
+ unsigned long highest_memmap_pfn __read_mostly;
+ 
++/* Check if the vma is being used as a stack by this task */
++static int vm_is_stack_for_task(struct task_struct *t,
++				struct vm_area_struct *vma)
++{
++	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
++}
++
+ /*
+  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
+  */
 _
-Subject: Subject: linux-next-git-rejects
+Subject: Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
@@ -147,6 +126,7 @@ hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
 thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
 mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
 procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
 mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
 memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
 memcg-simplify-move_account-check-fix.patch
@@ -192,5 +172,4 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-linux-next-git-rejects.patch
 
