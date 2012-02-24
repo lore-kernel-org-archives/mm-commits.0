@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch added to -mm tree
-Date: Fri, 24 Feb 2012 12:03:16 -0800
-Message-ID: <20120224200316.F26B6A01B8@akpm.mtv.corp.google.com>
+Subject: + thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch added to -mm tree
+Date: Fri, 24 Feb 2012 12:03:18 -0800
+Message-ID: <20120224200318.DE957A01B8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vw0-f74.google.com ([209.85.212.74]:64042 "EHLO
-	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757729Ab2BXUDS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 15:03:18 -0500
-Received: by vbnl22 with SMTP id l22so35322vbn.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 12:03:17 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:41860 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757898Ab2BXUDU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 15:03:20 -0500
+Received: by mail-fa0-f74.google.com with SMTP id a19so99034faa.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 12:03:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, lenb@kernel.org, vincenzo.frascino@st.com, viresh
 
 
 The patch titled
-     Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
+     Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix
 has been added to the -mm tree.  Its filename is
-     thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
+     thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
+Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix
 
-print the pointer correctly
-
-drivers/thermal/spear_thermal.c: In function 'spear_thermal_probe':
-drivers/thermal/spear_thermal.c:159: warning: cast from pointer to integer of different size
+little code cleanup
 
 Cc: Len Brown <lenb@kernel.org>
 Cc: Vincenzo Frascino <vincenzo.frascino@st.com>
@@ -47,25 +44,22 @@ Cc: Viresh Kumar <viresh.kumar@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/spear_thermal.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/thermal/spear_thermal.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix drivers/thermal/spear_thermal.c
---- a/drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
+diff -puN drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix drivers/thermal/spear_thermal.c
+--- a/drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix
 +++ a/drivers/thermal/spear_thermal.c
-@@ -156,8 +156,8 @@ static int spear_thermal_probe(struct pl
- 
- 	platform_set_drvdata(pdev, spear_thermal);
- 
--	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%x.\n",
--			(unsigned int)stdev->thermal_base);
-+	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%p.\n",
-+			stdev->thermal_base);
- 
- 	return 0;
- 
+@@ -106,6 +106,7 @@ static int spear_thermal_probe(struct pl
+ 	struct spear_thermal_pdata *pdata;
+ 	int ret = 0;
+ 	struct resource *stres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
+ 	if (!stres) {
+ 		dev_err(&pdev->dev, "memory resource missing\n");
+ 		return -ENODEV;
 _
-Subject: Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
+Subject: Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
