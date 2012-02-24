@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch added to -mm tree
-Date: Fri, 24 Feb 2012 14:11:10 -0800
-Message-ID: <20120224225427.C18545C0050@hpza9.eem.corp.google.com>
+Subject: + drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch added to -mm tree
+Date: Fri, 24 Feb 2012 14:27:28 -0800
+Message-ID: <20120224231044.753EC10004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:39733 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754497Ab2BXWyb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 17:54:31 -0500
-Received: by werb13 with SMTP id b13so105064wer.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 14:54:29 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:47298 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754050Ab2BXXKp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 18:10:45 -0500
+Received: by ggnp1 with SMTP id p1so345048ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 15:10:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, jamie@shareable.org, kosaki.motohiro@gmail.com, mpm@selenic.com, siddhesh.poyarekar@gmail.com, vapier@gentoo.org, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, b-cousson@ti.com, balajitk@ti.com, gg@slimlogic.co.uk, grant.likely@secretlab.ca, rob.herring@calxeda.com, sameo@linux.intel.com
 
 
 The patch titled
-     Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
+     Subject: drivers/mfd/twl-core.c: wtf isn't this fixed yet??
 has been added to the -mm tree.  Its filename is
-     procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
+     drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
+Subject: drivers/mfd/twl-core.c: wtf isn't this fixed yet??
 
-i386 allmodconfig.  Many instances of
+drivers/mfd/twl-core.c: In function 'twl_probe':
+drivers/mfd/twl-core.c:1237: error: implicit declaration of function 'irq_alloc_descs'
+drivers/mfd/twl-core.c:1245: error: implicit declaration of function 'irq_domain_add_legacy'
+drivers/mfd/twl-core.c:1246: error: 'irq_domain_simple_ops' undeclared (first use in this function)
+drivers/mfd/twl-core.c:1246: error: (Each undeclared identifier is reported only once
+drivers/mfd/twl-core.c:1246: error: for each function it appears in.)
 
-In file included from include/linux/scatterlist.h:6,
-                 from include/linux/dmaengine.h:26,
-                 from include/linux/skbuff.h:30,
-                 from include/crypto/algapi.h:18,
-                 from arch/x86/crypto/serpent_sse2_glue.c:37:
-include/linux/mm.h: In function 'vm_is_stack_for_task':
-include/linux/mm.h:1047: error: implicit declaration of function 'task_stack_page'
-
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jamie Lokier <jamie@shareable.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Balaji T K <balajitk@ti.com>
+Cc: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    7 -------
- mm/memory.c        |    7 +++++++
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/mfd/twl-core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix include/linux/mm.h
---- a/include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
-+++ a/include/linux/mm.h
-@@ -1040,13 +1040,6 @@ static inline int stack_guard_page_end(s
- 		!vma_growsup(vma->vm_next, addr);
- }
+diff -puN drivers/mfd/twl-core.c~drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet drivers/mfd/twl-core.c
+--- a/drivers/mfd/twl-core.c~drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet
++++ a/drivers/mfd/twl-core.c
+@@ -1234,7 +1234,7 @@ twl_probe(struct i2c_client *client, con
+ 		return -EINVAL;
+ 	}
  
--/* Check if the vma is being used as a stack by this task */
--static inline int vm_is_stack_for_task(struct task_struct *t,
--				       struct vm_area_struct *vma)
--{
--	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
--}
--
- extern int
- vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
+-	status = irq_alloc_descs(-1, pdata->irq_base, nr_irqs, 0);
++	status = 0;
+ 	if (IS_ERR_VALUE(status)) {
+ 		dev_err(&client->dev, "Fail to allocate IRQ descs\n");
+ 		return status;
+@@ -1242,8 +1242,8 @@ twl_probe(struct i2c_client *client, con
  
-diff -puN mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix mm/memory.c
---- a/mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
-+++ a/mm/memory.c
-@@ -112,6 +112,13 @@ __setup("norandmaps", disable_randmaps);
- unsigned long zero_pfn __read_mostly;
- unsigned long highest_memmap_pfn __read_mostly;
+ 	pdata->irq_base = status;
+ 	pdata->irq_end = pdata->irq_base + nr_irqs;
+-	irq_domain_add_legacy(node, nr_irqs, pdata->irq_base, 0,
+-			      &irq_domain_simple_ops, NULL);
++//	irq_domain_add_legacy(node, nr_irqs, pdata->irq_base, 0,
++//			      &irq_domain_simple_ops, NULL);
  
-+/* Check if the vma is being used as a stack by this task */
-+static int vm_is_stack_for_task(struct task_struct *t,
-+				struct vm_area_struct *vma)
-+{
-+	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
-+}
-+
- /*
-  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
-  */
+ 	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
+ 		dev_dbg(&client->dev, "can't talk I2C?\n");
 _
-Subject: Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
+Subject: Subject: drivers/mfd/twl-core.c: wtf isn't this fixed yet??
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -172,4 +156,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
 
