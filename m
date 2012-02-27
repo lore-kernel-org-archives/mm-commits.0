@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] h8300-use-generic-posix_typesh.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:37 -0800
-Message-ID: <20120227222937.738FAA02DE@akpm.mtv.corp.google.com>
+Subject: [merged] m32r-use-generic-posix_typesh.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:41 -0800
+Message-ID: <20120227222941.6E19EA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:61321 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752881Ab2B0W3k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:40 -0500
-Received: by bkty7 with SMTP id y7so77903bkt.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:38 -0800 (PST)
+Received: from mail-qw0-f74.google.com ([209.85.216.74]:52201 "EHLO
+	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755476Ab2B0W3m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:42 -0500
+Received: by qabg24 with SMTP id g24so96602qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: hpa@zytor.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: h8300: use generic posix_types.h
+     Subject: m32r: use generic posix_types.h
 has been removed from the -mm tree.  Its filename was
-     h8300-use-generic-posix_typesh.patch
+     m32r-use-generic-posix_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,22 +26,22 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: h8300: use generic posix_types.h
+Subject: m32r: use generic posix_types.h
 
-Change the h8300 architecture to use <asm-generic/posix_types.h>.
+Change the m32r architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/include/asm/posix_types.h |   49 ++++---------------------
- 1 file changed, 9 insertions(+), 40 deletions(-)
+ arch/m32r/include/asm/posix_types.h |  108 ++------------------------
+ 1 file changed, 9 insertions(+), 99 deletions(-)
 
-diff -puN arch/h8300/include/asm/posix_types.h~h8300-use-generic-posix_typesh arch/h8300/include/asm/posix_types.h
---- a/arch/h8300/include/asm/posix_types.h~h8300-use-generic-posix_typesh
-+++ a/arch/h8300/include/asm/posix_types.h
-@@ -7,54 +7,23 @@
+diff -puN arch/m32r/include/asm/posix_types.h~m32r-use-generic-posix_typesh arch/m32r/include/asm/posix_types.h
+--- a/arch/m32r/include/asm/posix_types.h~m32r-use-generic-posix_typesh
++++ a/arch/m32r/include/asm/posix_types.h
+@@ -7,112 +7,22 @@
   * assume GCC is being used.
   */
  
@@ -75,9 +75,10 @@ diff -puN arch/h8300/include/asm/posix_types.h~h8300-use-generic-posix_typesh ar
 -typedef unsigned int	__kernel_gid32_t;
 +#define __kernel_uid_t __kernel_uid_t
  
- typedef unsigned short	__kernel_old_uid_t;
- typedef unsigned short	__kernel_old_gid_t;
-+#define __kernel_old_uid_t __kernel_old_uid_t
+-typedef unsigned short	__kernel_old_uid_t;
+-typedef unsigned short	__kernel_old_gid_t;
+ typedef unsigned short	__kernel_old_dev_t;
++#define __kernel_old_dev_t __kernel_old_dev_t
  
 -#ifdef __GNUC__
 -typedef long long	__kernel_loff_t;
@@ -90,21 +91,78 @@ diff -puN arch/h8300/include/asm/posix_types.h~h8300-use-generic-posix_typesh ar
 -#if defined(__KERNEL__)
 -
 -#undef	__FD_SET
--#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+-static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+-{
+-	unsigned long __tmp = __fd / __NFDBITS;
+-	unsigned long __rem = __fd % __NFDBITS;
+-	__fdsetp->fds_bits[__tmp] |= (1UL<<__rem);
+-}
 -
 -#undef	__FD_CLR
--#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
+-static __inline__ void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
+-{
+-	unsigned long __tmp = __fd / __NFDBITS;
+-	unsigned long __rem = __fd % __NFDBITS;
+-	__fdsetp->fds_bits[__tmp] &= ~(1UL<<__rem);
+-}
+-
 -
 -#undef	__FD_ISSET
--#define	__FD_ISSET(d, set)	(!!((set)->fds_bits[__FDELT(d)] & __FDMASK(d)))
+-static __inline__ int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
+-{
+-	unsigned long __tmp = __fd / __NFDBITS;
+-	unsigned long __rem = __fd % __NFDBITS;
+-	return (__p->fds_bits[__tmp] & (1UL<<__rem)) != 0;
+-}
 -
+-/*
+- * This will unroll the loop for the normal constant case (8 ints,
+- * for a 256-bit fd_set)
+- */
 -#undef	__FD_ZERO
--#define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
+-static __inline__ void __FD_ZERO(__kernel_fd_set *__p)
+-{
+-	unsigned long *__tmp = __p->fds_bits;
+-	int __i;
+-
+-	if (__builtin_constant_p(__FDSET_LONGS)) {
+-		switch (__FDSET_LONGS) {
+-		case 16:
+-			__tmp[ 0] = 0; __tmp[ 1] = 0;
+-			__tmp[ 2] = 0; __tmp[ 3] = 0;
+-			__tmp[ 4] = 0; __tmp[ 5] = 0;
+-			__tmp[ 6] = 0; __tmp[ 7] = 0;
+-			__tmp[ 8] = 0; __tmp[ 9] = 0;
+-			__tmp[10] = 0; __tmp[11] = 0;
+-			__tmp[12] = 0; __tmp[13] = 0;
+-			__tmp[14] = 0; __tmp[15] = 0;
+-			return;
+-
+-		case 8:
+-			__tmp[ 0] = 0; __tmp[ 1] = 0;
+-			__tmp[ 2] = 0; __tmp[ 3] = 0;
+-			__tmp[ 4] = 0; __tmp[ 5] = 0;
+-			__tmp[ 6] = 0; __tmp[ 7] = 0;
+-			return;
+-
+-		case 4:
+-			__tmp[ 0] = 0; __tmp[ 1] = 0;
+-			__tmp[ 2] = 0; __tmp[ 3] = 0;
+-			return;
+-		}
+-	}
+-	__i = __FDSET_LONGS;
+-	while (__i) {
+-		__i--;
+-		*__tmp = 0;
+-		__tmp++;
+-	}
+-}
 -
 -#endif /* defined(__KERNEL__) */
 +#include <asm-generic/posix_types.h>
  
- #endif
+ #endif  /* _ASM_M32R_POSIX_TYPES_H */
 _
 
 Patches currently in -mm which might be from hpa@zytor.com are
