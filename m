@@ -1,143 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:14 -0800
-Message-ID: <20120227222914.4A940A02DE@akpm.mtv.corp.google.com>
+Subject: [merged] mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:11 -0800
+Message-ID: <20120227222912.3E6B5A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:40295 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755336Ab2B0W3P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:15 -0500
-Received: by ghbz15 with SMTP id z15so73043ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:14 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:46454 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755263Ab2B0W3O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:14 -0500
+Received: by wgbdt11 with SMTP id dt11so67256wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: khoroshilov@ispras.ru, kashyap.desai@lsi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
+     Subject: drivers/scsi/mpt2sas/mpt2sas_base.c: fix mismatch in mpt2sas_base_hard_reset_handler() mutex lock-unlock
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
+     mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Subject: drivers/scsi/mpt2sas/mpt2sas_base.c: fix mismatch in mpt2sas_base_hard_reset_handler() mutex lock-unlock
 
+If ioc->pci_error_recovery is set, goto out in
+mpt2sas_base_hard_reset_handler() leads to unlock unheld
+ioc->reset_in_progress_mutex.
 
+Fix the issue by jumping afer mutex_unlock() call.
+
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Kashyap Desai <kashyap.desai@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/mpt2sas/mpt2sas_scsih.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/mpt2sas/mpt2sas_base.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/mpt2sas/mpt2sas_scsih.c~drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly drivers/scsi/mpt2sas/mpt2sas_scsih.c
---- a/drivers/scsi/mpt2sas/mpt2sas_scsih.c~drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly
-+++ a/drivers/scsi/mpt2sas/mpt2sas_scsih.c
-@@ -5744,7 +5744,7 @@ _scsih_sas_enclosure_dev_status_change_e
- }
+diff -puN drivers/scsi/mpt2sas/mpt2sas_base.c~mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock drivers/scsi/mpt2sas/mpt2sas_base.c
+--- a/drivers/scsi/mpt2sas/mpt2sas_base.c~mpt2sas-fix-mismatch-in-mpt2sas_base_hard_reset_handler-mutex-lock-unlock
++++ a/drivers/scsi/mpt2sas/mpt2sas_base.c
+@@ -4548,7 +4548,7 @@ mpt2sas_base_hard_reset_handler(struct M
+ 		printk(MPT2SAS_ERR_FMT "%s: pci error recovery reset\n",
+ 		    ioc->name, __func__);
+ 		r = 0;
+-		goto out;
++		goto out_unlocked;
+ 	}
  
- /**
-- * _scsih_sas_broadcast_primative_event - handle broadcast events
-+ * _scsih_sas_broadcast_primitive_event - handle broadcast events
-  * @ioc: per adapter object
-  * @fw_event: The fw_event_work object
-  * Context: user.
-@@ -5752,7 +5752,7 @@ _scsih_sas_enclosure_dev_status_change_e
-  * Return nothing.
-  */
- static void
--_scsih_sas_broadcast_primative_event(struct MPT2SAS_ADAPTER *ioc,
-+_scsih_sas_broadcast_primitive_event(struct MPT2SAS_ADAPTER *ioc,
-     struct fw_event_work *fw_event)
- {
- 	struct scsi_cmnd *scmd;
-@@ -7263,7 +7263,7 @@ _firmware_event_work(struct work_struct 
- 		    fw_event);
- 		break;
- 	case MPI2_EVENT_SAS_BROADCAST_PRIMITIVE:
--		_scsih_sas_broadcast_primative_event(ioc,
-+		_scsih_sas_broadcast_primitive_event(ioc,
- 		    fw_event);
- 		break;
- 	case MPI2_EVENT_SAS_ENCL_DEVICE_STATUS_CHANGE:
+ 	if (mpt2sas_fwfault_debug)
+@@ -4604,6 +4604,7 @@ mpt2sas_base_hard_reset_handler(struct M
+ 	spin_unlock_irqrestore(&ioc->ioc_reset_in_progress_lock, flags);
+ 	mutex_unlock(&ioc->reset_in_progress_mutex);
+ 
++ out_unlocked:
+ 	dtmprintk(ioc, printk(MPT2SAS_INFO_FMT "%s: exit\n", ioc->name,
+ 	    __func__));
+ 	return r;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khoroshilov@ispras.ru are
 
 origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
-x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
