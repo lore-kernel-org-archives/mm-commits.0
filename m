@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mn10300-use-generic-posix_typesh.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:47 -0800
-Message-ID: <20120227222947.6FBD4A02DE@akpm.mtv.corp.google.com>
+Subject: [merged] powerpc-use-generic-posix_typesh.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:51 -0800
+Message-ID: <20120227222951.5EEF1A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-we0-f202.google.com ([74.125.82.202]:60147 "EHLO
 	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755799Ab2B0W3t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:49 -0500
+	with ESMTP id S1755552Ab2B0W3x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:53 -0500
 Received: by mail-we0-f202.google.com with SMTP id x9so41106wej.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:48 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, dhowells@redhat.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: hpa@zytor.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: use generic posix_types.h
+     Subject: powerpc: use generic posix_types.h
 has been removed from the -mm tree.  Its filename was
-     mn10300-use-generic-posix_typesh.patch
+     powerpc-use-generic-posix_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,154 +26,155 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: mn10300: use generic posix_types.h
+Subject: powerpc: use generic posix_types.h
 
-Change the mn10300 architecture to use <asm-generic/posix_types.h>.
+Change the powerpc architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/posix_types.h |  111 ++---------------------
- 1 file changed, 11 insertions(+), 100 deletions(-)
+ arch/powerpc/include/asm/posix_types.h |  120 +----------------------
+ 1 file changed, 10 insertions(+), 110 deletions(-)
 
-diff -puN arch/mn10300/include/asm/posix_types.h~mn10300-use-generic-posix_typesh arch/mn10300/include/asm/posix_types.h
---- a/arch/mn10300/include/asm/posix_types.h~mn10300-use-generic-posix_typesh
-+++ a/arch/mn10300/include/asm/posix_types.h
-@@ -17,14 +17,19 @@
+diff -puN arch/powerpc/include/asm/posix_types.h~powerpc-use-generic-posix_typesh arch/powerpc/include/asm/posix_types.h
+--- a/arch/powerpc/include/asm/posix_types.h~powerpc-use-generic-posix_typesh
++++ a/arch/powerpc/include/asm/posix_types.h
+@@ -7,122 +7,22 @@
   * assume GCC is being used.
   */
  
 -typedef unsigned long	__kernel_ino_t;
- typedef unsigned short	__kernel_mode_t;
-+#define __kernel_mode_t __kernel_mode_t
-+
- typedef unsigned short	__kernel_nlink_t;
+-typedef unsigned int	__kernel_mode_t;
 -typedef long		__kernel_off_t;
 -typedef int		__kernel_pid_t;
-+#define __kernel_nlink_t __kernel_nlink_t
-+
- typedef unsigned short	__kernel_ipc_pid_t;
-+#define __kernel_ipc_pid_t __kernel_ipc_pid_t
-+
- typedef unsigned short	__kernel_uid_t;
- typedef unsigned short	__kernel_gid_t;
-+#define __kernel_uid_t __kernel_uid_t
-+
- #if __GNUC__ == 4
- typedef unsigned int	__kernel_size_t;
- typedef signed int	__kernel_ssize_t;
-@@ -33,105 +38,11 @@ typedef unsigned long	__kernel_size_t;
- typedef signed long	__kernel_ssize_t;
- #endif
- typedef int		__kernel_ptrdiff_t;
+-typedef unsigned int	__kernel_uid_t;
+-typedef unsigned int	__kernel_gid_t;
+-typedef long		__kernel_ptrdiff_t;
 -typedef long		__kernel_time_t;
--typedef long		__kernel_suseconds_t;
 -typedef long		__kernel_clock_t;
 -typedef int		__kernel_timer_t;
 -typedef int		__kernel_clockid_t;
+-typedef long		__kernel_suseconds_t;
 -typedef int		__kernel_daddr_t;
 -typedef char *		__kernel_caddr_t;
 -typedef unsigned short	__kernel_uid16_t;
 -typedef unsigned short	__kernel_gid16_t;
 -typedef unsigned int	__kernel_uid32_t;
 -typedef unsigned int	__kernel_gid32_t;
-+#define __kernel_size_t __kernel_size_t
- 
--typedef unsigned short	__kernel_old_uid_t;
--typedef unsigned short	__kernel_old_gid_t;
- typedef unsigned short	__kernel_old_dev_t;
+-typedef unsigned int	__kernel_old_uid_t;
+-typedef unsigned int	__kernel_old_gid_t;
+-
+ #ifdef __powerpc64__
+-typedef unsigned long  	__kernel_nlink_t;
+-typedef int             __kernel_ipc_pid_t;
+-typedef unsigned long	__kernel_size_t;
+-typedef long		__kernel_ssize_t;
+ typedef unsigned long	__kernel_old_dev_t;
 +#define __kernel_old_dev_t __kernel_old_dev_t
- 
+ #else
+-typedef unsigned short	__kernel_nlink_t;
+-typedef short		__kernel_ipc_pid_t;
+ typedef unsigned int	__kernel_size_t;
+-typedef int		__kernel_ssize_t;
+-typedef unsigned int	__kernel_old_dev_t;
+-#endif
+-
+-#ifdef __powerpc64__
+-typedef long long	__kernel_loff_t;
+-#else
 -#ifdef __GNUC__
 -typedef long long	__kernel_loff_t;
 -#endif
+-#endif
 -
 -typedef struct {
--#if defined(__KERNEL__) || defined(__USE_ALL)
 -	int	val[2];
--#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
--	int	__val[2];
--#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
 -} __kernel_fsid_t;
 -
--#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
+-#ifndef __GNUC__
 -
--#undef	__FD_SET
--static inline void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+-#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+-#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
+-#define	__FD_ISSET(d, set)	(((set)->fds_bits[__FDELT(d)] & __FDMASK(d)) != 0)
+-#define	__FD_ZERO(set)	\
+-  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
+-
+-#else /* __GNUC__ */
+-
+-#if defined(__KERNEL__)
+-/* With GNU C, use inline functions instead so args are evaluated only once: */
+-
+-#undef __FD_SET
+-static __inline__ void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
 -{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	__fdsetp->fds_bits[__tmp] |= (1UL<<__rem);
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
 -}
 -
--#undef	__FD_CLR
--static inline void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
+-#undef __FD_CLR
+-static __inline__ void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
 -{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	__fdsetp->fds_bits[__tmp] &= ~(1UL<<__rem);
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
 -}
 -
--
--#undef	__FD_ISSET
--static inline int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
--{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	return (__p->fds_bits[__tmp] & (1UL<<__rem)) != 0;
+-#undef __FD_ISSET
+-static __inline__ int __FD_ISSET(unsigned long fd, __kernel_fd_set *p)
+-{ 
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
 -}
 -
 -/*
 - * This will unroll the loop for the normal constant case (8 ints,
 - * for a 256-bit fd_set)
 - */
--#undef	__FD_ZERO
--static inline void __FD_ZERO(__kernel_fd_set *__p)
+-#undef __FD_ZERO
+-static __inline__ void __FD_ZERO(__kernel_fd_set *p)
 -{
--	unsigned long *__tmp = __p->fds_bits;
--	int __i;
--
+-	unsigned long *tmp = (unsigned long *)p->fds_bits;
+-	int i;
++typedef int		__kernel_size_t;
++typedef long		__kernel_ptrdiff_t;
++#define __kernel_size_t __kernel_size_t
+ 
 -	if (__builtin_constant_p(__FDSET_LONGS)) {
 -		switch (__FDSET_LONGS) {
--		case 16:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
--			__tmp[ 4] = 0; __tmp[ 5] = 0;
--			__tmp[ 6] = 0; __tmp[ 7] = 0;
--			__tmp[ 8] = 0; __tmp[ 9] = 0;
--			__tmp[10] = 0; __tmp[11] = 0;
--			__tmp[12] = 0; __tmp[13] = 0;
--			__tmp[14] = 0; __tmp[15] = 0;
--			return;
--
--		case 8:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
--			__tmp[ 4] = 0; __tmp[ 5] = 0;
--			__tmp[ 6] = 0; __tmp[ 7] = 0;
--			return;
--
--		case 4:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
+-		      case 16:
+-			tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
++typedef unsigned short	__kernel_nlink_t;
++#define __kernel_nlink_t __kernel_nlink_t
+ 
+-		      case 8:
+-			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
++typedef short		__kernel_ipc_pid_t;
++#define __kernel_ipc_pid_t __kernel_ipc_pid_t
++#endif
+ 
+-		      case 4:
+-			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
 -			return;
 -		}
 -	}
--	__i = __FDSET_LONGS;
--	while (__i) {
--		__i--;
--		*__tmp = 0;
--		__tmp++;
+-	i = __FDSET_LONGS;
+-	while (i) {
+-		i--;
+-		*tmp = 0;
+-		tmp++;
 -	}
 -}
--
--#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
 +#include <asm-generic/posix_types.h>
  
- #endif /* _ASM_POSIX_TYPES_H */
+-#endif /* defined(__KERNEL__) */
+-#endif /* __GNUC__ */
+ #endif /* _ASM_POWERPC_POSIX_TYPES_H */
 _
 
 Patches currently in -mm which might be from hpa@zytor.com are
