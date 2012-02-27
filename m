@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:15:38 -0800
-Message-ID: <20120227221538.CC20CA02DD@akpm.mtv.corp.google.com>
+Subject: [obsolete] ata-unbork.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:15:55 -0800
+Message-ID: <20120227221555.519DBA02DD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:33097 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753794Ab2B0WPl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:15:41 -0500
-Received: by eekc41 with SMTP id c41so72001eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:15:39 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:37401 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753794Ab2B0WP4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:15:56 -0500
+Received: by ggnp1 with SMTP id p1so597827ggn.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:15:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, holger@homac.de, jgarzik@redhat.com, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: ata: unbork
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     ata-unbork.patch
 
 This patch was dropped because it is obsolete
 
@@ -26,88 +26,45 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: ata: unbork
 
+drivers/ata/libata-acpi.c: In function 'ata_acpi_bind_host':
+drivers/ata/libata-acpi.c:1004: error: implicit declaration of function 'is_registered_hotplug_dock_device'
+
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Holger Macht <holger@homac.de>
+Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_trans_dquot.c      |   20 --------------------
- sound/pci/hda/patch_realtek.c |   11 -----------
- 2 files changed, 31 deletions(-)
+ drivers/ata/libata-acpi.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/xfs/xfs_trans_dquot.c~linux-next-git-rejects fs/xfs/xfs_trans_dquot.c
---- a/fs/xfs/xfs_trans_dquot.c~linux-next-git-rejects
-+++ a/fs/xfs/xfs_trans_dquot.c
-@@ -648,22 +648,12 @@ xfs_trans_dqresv(
- 			 * hardlimit or exceed the timelimit if we allocate
- 			 * nblks.
- 			 */
--<<<<<<< HEAD
--			if (hardlimit > 0ULL &&
--			    hardlimit < nblks + *resbcountp) {
--				xfs_quota_warn(mp, dqp, QUOTA_NL_BHARDWARN);
--				goto error_return;
--			}
--			if (softlimit > 0ULL &&
--			    softlimit < nblks + *resbcountp) {
--=======
- 			total_count = *resbcountp + nblks;
- 			if (hardlimit && total_count > hardlimit) {
- 				xfs_quota_warn(mp, dqp, QUOTA_NL_BHARDWARN);
- 				goto error_return;
- 			}
- 			if (softlimit && total_count > softlimit) {
-->>>>>>> linux-next/akpm-end
- 				if ((timer != 0 && get_seconds() > timer) ||
- 				    (warns != 0 && warns >= warnlimit)) {
- 					xfs_quota_warn(mp, dqp,
-@@ -686,21 +676,11 @@ xfs_trans_dqresv(
- 			if (!softlimit)
- 				softlimit = q->qi_isoftlimit;
+diff -puN drivers/ata/libata-acpi.c~ata-unbork drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~ata-unbork
++++ a/drivers/ata/libata-acpi.c
+@@ -1001,8 +1001,8 @@ static int ata_acpi_bind_host(struct dev
+ 	if (!*handle)
+ 		return -ENODEV;
  
--<<<<<<< HEAD
--			if (hardlimit > 0ULL &&
--			    hardlimit < ninos + count) {
--				xfs_quota_warn(mp, dqp, QUOTA_NL_IHARDWARN);
--				goto error_return;
--			}
--			if (softlimit > 0ULL &&
--			    softlimit < ninos + count) {
--=======
- 			if (hardlimit && total_count > hardlimit) {
- 				xfs_quota_warn(mp, dqp, QUOTA_NL_IHARDWARN);
- 				goto error_return;
- 			}
- 			if (softlimit && total_count > softlimit) {
-->>>>>>> linux-next/akpm-end
- 				if  ((timer != 0 && get_seconds() > timer) ||
- 				     (warns != 0 && warns >= warnlimit)) {
- 					xfs_quota_warn(mp, dqp,
-diff -puN sound/pci/hda/patch_realtek.c~linux-next-git-rejects sound/pci/hda/patch_realtek.c
---- a/sound/pci/hda/patch_realtek.c~linux-next-git-rejects
-+++ a/sound/pci/hda/patch_realtek.c
-@@ -3461,21 +3461,10 @@ static int alc_auto_fill_dac_nids(struct
- 			alc_look_for_out_vol_nid(codec, cfg->line_out_pins[0],
- 						 spec->multiout.dac_nids[0]);
+-	if (!is_registered_hotplug_dock_device(&ata_acpi_ap_dock_ops))
+-		register_hotplug_dock_device(*handle, &ata_acpi_ap_dock_ops, ap);
++//	if (!is_registered_hotplug_dock_device(&ata_acpi_ap_dock_ops))
++//		register_hotplug_dock_device(*handle, &ata_acpi_ap_dock_ops, ap);
  
--<<<<<<< HEAD
--static inline unsigned int get_ctl_pos(unsigned int data)
--{
--	hda_nid_t nid = get_amp_nid_(data);
--	unsigned int dir;
--	if (snd_BUG_ON(nid >= MAX_VOL_NIDS))
--		return 0;
--	dir = get_amp_direction_(data);
--	return (nid << 1) | dir;
--=======
- 	/* clear the bitmap flags for creating controls */
- 	clear_vol_marks(codec);
- 	kfree(best_cfg);
  	return 0;
-->>>>>>> linux-next/akpm-end
  }
+@@ -1025,8 +1025,8 @@ static int ata_acpi_bind_device(struct d
+ 	if (!*handle)
+ 		return -ENODEV;
  
- static int alc_auto_add_vol_ctl(struct hda_codec *codec,
+-	if (!is_registered_hotplug_dock_device(&ata_acpi_dev_dock_ops))
+-		register_hotplug_dock_device(*handle, &ata_acpi_dev_dock_ops, ata_dev);
++//	if (!is_registered_hotplug_dock_device(&ata_acpi_dev_dock_ops))
++//		register_hotplug_dock_device(*handle, &ata_acpi_dev_dock_ops, ata_dev);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,7 +75,6 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
-ata-unbork.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
