@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-use-generic-posix_typesh.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:26 -0800
-Message-ID: <20120227222926.61C16A02DE@akpm.mtv.corp.google.com>
+Subject: [merged] arm-use-generic-posix_typesh.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:28 -0800
+Message-ID: <20120227222928.7087BA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vw0-f74.google.com ([209.85.212.74]:62298 "EHLO
-	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755435Ab2B0W31 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:27 -0500
-Received: by vbnl22 with SMTP id l22so309795vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:26 -0800 (PST)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:40564 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755435Ab2B0W3a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:30 -0500
+Received: by vcbfk26 with SMTP id fk26so112531vcb.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: hpa@zytor.com, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: use generic posix_types.h
+     Subject: arm: use generic posix_types.h
 has been removed from the -mm tree.  Its filename was
-     alpha-use-generic-posix_typesh.patch
+     arm-use-generic-posix_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,145 +26,90 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: alpha: use generic posix_types.h
+Subject: arm: use generic posix_types.h
 
-Change the alpha architecture to use <asm-generic/posix_types.h>.
+Change the arm architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/posix_types.h |  113 +------------------------
- 1 file changed, 5 insertions(+), 108 deletions(-)
+ arch/arm/include/asm/posix_types.h |   55 ++++-----------------------
+ 1 file changed, 9 insertions(+), 46 deletions(-)
 
-diff -puN arch/alpha/include/asm/posix_types.h~alpha-use-generic-posix_typesh arch/alpha/include/asm/posix_types.h
---- a/arch/alpha/include/asm/posix_types.h~alpha-use-generic-posix_typesh
-+++ a/arch/alpha/include/asm/posix_types.h
-@@ -8,116 +8,13 @@
+diff -puN arch/arm/include/asm/posix_types.h~arm-use-generic-posix_typesh arch/arm/include/asm/posix_types.h
+--- a/arch/arm/include/asm/posix_types.h~arm-use-generic-posix_typesh
++++ a/arch/arm/include/asm/posix_types.h
+@@ -19,59 +19,22 @@
+  * assume GCC is being used.
   */
  
- typedef unsigned int	__kernel_ino_t;
--typedef unsigned int	__kernel_mode_t;
--typedef unsigned int	__kernel_nlink_t;
--typedef long		__kernel_off_t;
--typedef long long	__kernel_loff_t;
--typedef int		__kernel_pid_t;
--typedef int		__kernel_ipc_pid_t;
--typedef unsigned int	__kernel_uid_t;
--typedef unsigned int	__kernel_gid_t;
--typedef unsigned long	__kernel_size_t;
--typedef long		__kernel_ssize_t;
--typedef long		__kernel_ptrdiff_t;
--typedef long		__kernel_time_t;
--typedef long		__kernel_suseconds_t;
--typedef long		__kernel_clock_t;
--typedef int		__kernel_daddr_t;
--typedef char *		__kernel_caddr_t;
--typedef unsigned long	__kernel_sigset_t;	/* at least 32 bits */
--typedef unsigned short	__kernel_uid16_t;
--typedef unsigned short	__kernel_gid16_t;
--typedef int		__kernel_clockid_t;
--typedef int		__kernel_timer_t;
+-typedef unsigned long		__kernel_ino_t;
+ typedef unsigned short		__kernel_mode_t;
++#define __kernel_mode_t __kernel_mode_t
++
+ typedef unsigned short		__kernel_nlink_t;
+-typedef long			__kernel_off_t;
+-typedef int			__kernel_pid_t;
++#define __kernel_nlink_t __kernel_nlink_t
++
+ typedef unsigned short		__kernel_ipc_pid_t;
++#define __kernel_ipc_pid_t __kernel_ipc_pid_t
++
+ typedef unsigned short		__kernel_uid_t;
+ typedef unsigned short		__kernel_gid_t;
+-typedef unsigned int		__kernel_size_t;
+-typedef int			__kernel_ssize_t;
+-typedef int			__kernel_ptrdiff_t;
+-typedef long			__kernel_time_t;
+-typedef long			__kernel_suseconds_t;
+-typedef long			__kernel_clock_t;
+-typedef int			__kernel_timer_t;
+-typedef int			__kernel_clockid_t;
+-typedef int			__kernel_daddr_t;
+-typedef char *			__kernel_caddr_t;
+-typedef unsigned short		__kernel_uid16_t;
+-typedef unsigned short		__kernel_gid16_t;
+-typedef unsigned int		__kernel_uid32_t;
+-typedef unsigned int		__kernel_gid32_t;
++#define __kernel_uid_t __kernel_uid_t
+ 
+-typedef unsigned short		__kernel_old_uid_t;
+-typedef unsigned short		__kernel_old_gid_t;
+ typedef unsigned short		__kernel_old_dev_t;
++#define __kernel_old_dev_t __kernel_old_dev_t
+ 
+-#ifdef __GNUC__
+-typedef long long		__kernel_loff_t;
+-#endif
 -
 -typedef struct {
 -	int	val[2];
 -} __kernel_fsid_t;
 -
--typedef __kernel_uid_t __kernel_old_uid_t;
--typedef __kernel_gid_t __kernel_old_gid_t;
--typedef __kernel_uid_t __kernel_uid32_t;
--typedef __kernel_gid_t __kernel_gid32_t;
+-#if defined(__KERNEL__)
 -
--typedef unsigned int	__kernel_old_dev_t;
+-#undef	__FD_SET
+-#define __FD_SET(fd, fdsetp) \
+-		(((fd_set *)(fdsetp))->fds_bits[(fd) >> 5] |= (1<<((fd) & 31)))
 -
--#ifdef __KERNEL__
+-#undef	__FD_CLR
+-#define __FD_CLR(fd, fdsetp) \
+-		(((fd_set *)(fdsetp))->fds_bits[(fd) >> 5] &= ~(1<<((fd) & 31)))
 -
--#ifndef __GNUC__
+-#undef	__FD_ISSET
+-#define __FD_ISSET(fd, fdsetp) \
+-		((((fd_set *)(fdsetp))->fds_bits[(fd) >> 5] & (1<<((fd) & 31))) != 0)
 -
--#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
--#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
--#define	__FD_ISSET(d, set)	(((set)->fds_bits[__FDELT(d)] & __FDMASK(d)) != 0)
--#define	__FD_ZERO(set)	\
--  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
+-#undef	__FD_ZERO
+-#define __FD_ZERO(fdsetp) \
+-		(memset (fdsetp, 0, sizeof (*(fd_set *)(fdsetp))))
 -
--#else /* __GNUC__ */
--
--/* With GNU C, use inline functions instead so args are evaluated only once: */
-+#define __kernel_ino_t __kernel_ino_t
- 
--#undef __FD_SET
--static __inline__ void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
--{
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
--}
--
--#undef __FD_CLR
--static __inline__ void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
--{
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
--}
--
--#undef __FD_ISSET
--static __inline__ int __FD_ISSET(unsigned long fd, const __kernel_fd_set *p)
--{ 
--	unsigned long _tmp = fd / __NFDBITS;
--	unsigned long _rem = fd % __NFDBITS;
--	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
--}
--
--/*
-- * This will unroll the loop for the normal constant case (8 ints,
-- * for a 256-bit fd_set)
-- */
--#undef __FD_ZERO
--static __inline__ void __FD_ZERO(__kernel_fd_set *p)
--{
--	unsigned long *tmp = p->fds_bits;
--	int i;
--
--	if (__builtin_constant_p(__FDSET_LONGS)) {
--		switch (__FDSET_LONGS) {
--		      case 16:
--			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
--			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
--			tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
--			tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
--			return;
--
--		      case 8:
--			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
--			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
--			return;
--
--		      case 4:
--			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
--			return;
--		}
--	}
--	i = __FDSET_LONGS;
--	while (i) {
--		i--;
--		*tmp = 0;
--		tmp++;
--	}
--}
-+typedef unsigned int	__kernel_nlink_t;
-+#define __kernel_nlink_t __kernel_nlink_t
- 
--#endif /* __GNUC__ */
-+typedef unsigned long	__kernel_sigset_t;	/* at least 32 bits */
- 
--#endif /* __KERNEL__ */
+-#endif
 +#include <asm-generic/posix_types.h>
  
- #endif /* _ALPHA_POSIX_TYPES_H */
+ #endif
 _
 
 Patches currently in -mm which might be from hpa@zytor.com are
