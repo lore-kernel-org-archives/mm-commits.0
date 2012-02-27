@@ -1,236 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: [merged] posix_types-remove-fd_set-macros.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:30:07 -0800
-Message-ID: <20120227223007.46029A02DE@akpm.mtv.corp.google.com>
+Subject: + tmpfs-security-xattr-setting-on-inode-creation.patch added to -mm tree
+Date: Mon, 27 Feb 2012 14:46:06 -0800
+Message-ID: <20120227224606.AC531A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:65103 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755139Ab2B0WaL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:30:11 -0500
-Received: by mail-yw0-f74.google.com with SMTP id m50so329139yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:30:11 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:39576 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754860Ab2B0WqJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:46:09 -0500
+Received: by eaaf13 with SMTP id f13so182677eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:46:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, arnd@arndb.de, benh@kernel.crashing.org, chris@zankel.net, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, fenghua.yu@intel.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hskinnemoen@gmail.com, ink@jurassic.park.msu.ru, jejb@parisc-linux.org, jesper.nilsson@axis.com, kyle@mcmartin.ca, lethal@linux-sh.org, linux@arm.linux.org.uk, mattst88@gmail.com, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tglx@linutronix.de, tony.luck@intel.com, yasutake.koichi@jp.panasonic.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jarkko.sakkinen@intel.com, hughd@google.com, james.l.morris@oracle.com
 
 
 The patch titled
-     Subject: posix_types: remove fd_set macros
-has been removed from the -mm tree.  Its filename was
-     posix_types-remove-fd_set-macros.patch
+     Subject: tmpfs: security xattr setting on inode creation
+has been added to the -mm tree.  Its filename is
+     tmpfs-security-xattr-setting-on-inode-creation.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: posix_types: remove fd_set macros
+From: Jarkko Sakkinen <jarkko.sakkinen@intel.com>
+Subject: tmpfs: security xattr setting on inode creation
 
-<asm/posix_types.h> includes a set of macros that operate on file
-descriptors.  Way long ago those were exported to user space, but nowadays
-they are #ifdef __KERNEL__.
+Adds to generic xattr support introduced in Linux 3.0 by implementing
+initxattrs callback.  This enables consulting of security attributes from
+LSM and EVM when inode is created.
 
-However, they are nothing but standard (nonatomic) bit operations, and we
-already have optimized versions of bit operations in the kernel.  We can't
-include <linux/bitops.h> in <asm/posix_types.h> but we can move the
-definitions to <linux/time.h> and define them there in terms of standard
-kernel bitops.
-
-Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Helge Deller <deller@gmx.de>
-Cc: James Bottomley <jejb@parisc-linux.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Zankel <chris@zankel.net>
+[hughd@google.com: moved under CONFIG_TMPFS_XATTR, with memcpy in shmem_xattr_alloc]
+Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@intel.com>
+Reviewed-by: James Morris <james.l.morris@oracle.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/posix_types.h |   72 ----------------------------
- include/linux/time.h              |   23 ++++++++
- 2 files changed, 23 insertions(+), 72 deletions(-)
+ mm/shmem.c |   88 +++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 72 insertions(+), 16 deletions(-)
 
-diff -puN include/asm-generic/posix_types.h~posix_types-remove-fd_set-macros include/asm-generic/posix_types.h
---- a/include/asm-generic/posix_types.h~posix_types-remove-fd_set-macros
-+++ a/include/asm-generic/posix_types.h
-@@ -92,76 +92,4 @@ typedef char *		__kernel_caddr_t;
- typedef unsigned short	__kernel_uid16_t;
- typedef unsigned short	__kernel_gid16_t;
+diff -puN mm/shmem.c~tmpfs-security-xattr-setting-on-inode-creation mm/shmem.c
+--- a/mm/shmem.c~tmpfs-security-xattr-setting-on-inode-creation
++++ a/mm/shmem.c
+@@ -1178,6 +1178,12 @@ static struct inode *shmem_get_inode(str
+ static const struct inode_operations shmem_symlink_inode_operations;
+ static const struct inode_operations shmem_short_symlink_operations;
  
--#ifdef __KERNEL__
--
--#undef __FD_SET
--static inline void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
--{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	__fdsetp->fds_bits[__tmp] |= (1UL<<__rem);
--}
--
--#undef __FD_CLR
--static inline void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
--{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	__fdsetp->fds_bits[__tmp] &= ~(1UL<<__rem);
--}
--
--#undef __FD_ISSET
--static inline int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
--{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	return (__p->fds_bits[__tmp] & (1UL<<__rem)) != 0;
--}
--
--/*
-- * This will unroll the loop for the normal constant case (8 ints,
-- * for a 256-bit fd_set)
-- */
--#undef __FD_ZERO
--static inline void __FD_ZERO(__kernel_fd_set *__p)
--{
--	unsigned long *__tmp = __p->fds_bits;
--	int __i;
--
--	if (__builtin_constant_p(__FDSET_LONGS)) {
--		switch (__FDSET_LONGS) {
--		case 16:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
--			__tmp[ 4] = 0; __tmp[ 5] = 0;
--			__tmp[ 6] = 0; __tmp[ 7] = 0;
--			__tmp[ 8] = 0; __tmp[ 9] = 0;
--			__tmp[10] = 0; __tmp[11] = 0;
--			__tmp[12] = 0; __tmp[13] = 0;
--			__tmp[14] = 0; __tmp[15] = 0;
--			return;
--
--		case 8:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
--			__tmp[ 4] = 0; __tmp[ 5] = 0;
--			__tmp[ 6] = 0; __tmp[ 7] = 0;
--			return;
--
--		case 4:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
--			return;
--		}
--	}
--	__i = __FDSET_LONGS;
--	while (__i) {
--		__i--;
--		*__tmp = 0;
--		__tmp++;
--	}
--}
--
--#endif /* __KERNEL__ */
--
- #endif /* __ASM_GENERIC_POSIX_TYPES_H */
-diff -puN include/linux/time.h~posix_types-remove-fd_set-macros include/linux/time.h
---- a/include/linux/time.h~posix_types-remove-fd_set-macros
-+++ a/include/linux/time.h
-@@ -4,7 +4,9 @@
- #include <linux/types.h>
++#ifdef CONFIG_TMPFS_XATTR
++static int shmem_initxattrs(struct inode *, const struct xattr *, void *);
++#else
++#define shmem_initxattrs NULL
++#endif
++
+ static int
+ shmem_write_begin(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len, unsigned flags,
+@@ -1490,7 +1496,7 @@ shmem_mknod(struct inode *dir, struct de
+ 	if (inode) {
+ 		error = security_inode_init_security(inode, dir,
+ 						     &dentry->d_name,
+-						     NULL, NULL);
++						     shmem_initxattrs, NULL);
+ 		if (error) {
+ 			if (error != -EOPNOTSUPP) {
+ 				iput(inode);
+@@ -1630,7 +1636,7 @@ static int shmem_symlink(struct inode *d
+ 		return -ENOSPC;
  
- #ifdef __KERNEL__
-+# include <linux/bitops.h>
- # include <linux/cache.h>
-+# include <linux/posix_types.h>
- # include <linux/seqlock.h>
- # include <linux/math64.h>
- #endif
-@@ -256,6 +258,27 @@ static __always_inline void timespec_add
- 	a->tv_sec += __iter_div_u64_rem(a->tv_nsec + ns, NSEC_PER_SEC, &ns);
- 	a->tv_nsec = ns;
+ 	error = security_inode_init_security(inode, dir, &dentry->d_name,
+-					     NULL, NULL);
++					     shmem_initxattrs, NULL);
+ 	if (error) {
+ 		if (error != -EOPNOTSUPP) {
+ 			iput(inode);
+@@ -1704,6 +1710,66 @@ static void shmem_put_link(struct dentry
+  * filesystem level, though.
+  */
+ 
++/*
++ * Allocate new xattr and copy in the value; but leave the name to callers.
++ */
++static struct shmem_xattr *shmem_xattr_alloc(const void *value, size_t size)
++{
++	struct shmem_xattr *new_xattr;
++	size_t len;
++
++	/* wrap around? */
++	len = sizeof(*new_xattr) + size;
++	if (len <= sizeof(*new_xattr))
++		return NULL;
++
++	new_xattr = kmalloc(len, GFP_KERNEL);
++	if (!new_xattr)
++		return NULL;
++
++	new_xattr->size = size;
++	memcpy(new_xattr->value, value, size);
++	return new_xattr;
++}
++
++/*
++ * Callback for security_inode_init_security() for acquiring xattrs.
++ */
++static int shmem_initxattrs(struct inode *inode,
++			    const struct xattr *xattr_array,
++			    void *fs_info)
++{
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	const struct xattr *xattr;
++	struct shmem_xattr *new_xattr;
++	size_t len;
++
++	for (xattr = xattr_array; xattr->name != NULL; xattr++) {
++		new_xattr = shmem_xattr_alloc(xattr->value, xattr->value_len);
++		if (!new_xattr)
++			return -ENOMEM;
++
++		len = strlen(xattr->name) + 1;
++		new_xattr->name = kmalloc(XATTR_SECURITY_PREFIX_LEN + len,
++					  GFP_KERNEL);
++		if (!new_xattr->name) {
++			kfree(new_xattr);
++			return -ENOMEM;
++		}
++
++		memcpy(new_xattr->name, XATTR_SECURITY_PREFIX,
++		       XATTR_SECURITY_PREFIX_LEN);
++		memcpy(new_xattr->name + XATTR_SECURITY_PREFIX_LEN,
++		       xattr->name, len);
++
++		spin_lock(&info->lock);
++		list_add(&new_xattr->list, &info->xattr_list);
++		spin_unlock(&info->lock);
++	}
++
++	return 0;
++}
++
+ static int shmem_xattr_get(struct dentry *dentry, const char *name,
+ 			   void *buffer, size_t size)
+ {
+@@ -1731,24 +1797,17 @@ static int shmem_xattr_get(struct dentry
+ 	return ret;
  }
-+
-+static inline void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
-+{
-+	__set_bit( __fd, __fdsetp->fds_bits);
-+}
-+
-+static inline void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
-+{
-+	__clear_bit(__fd, __fdsetp->fds_bits);
-+}
-+
-+static inline int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__fdsetp)
-+{
-+	return test_bit(__fd, __fdsetp->fds_bits);
-+}
-+
-+static inline void __FD_ZERO(__kernel_fd_set *__fdsetp)
-+{
-+	memset(__fdsetp->fds_bits, 0, sizeof __fdsetp->fds_bits);
-+}
-+
- #endif /* __KERNEL__ */
  
- #define NFDBITS			__NFDBITS
+-static int shmem_xattr_set(struct dentry *dentry, const char *name,
++static int shmem_xattr_set(struct inode *inode, const char *name,
+ 			   const void *value, size_t size, int flags)
+ {
+-	struct inode *inode = dentry->d_inode;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct shmem_xattr *xattr;
+ 	struct shmem_xattr *new_xattr = NULL;
+-	size_t len;
+ 	int err = 0;
+ 
+ 	/* value == NULL means remove */
+ 	if (value) {
+-		/* wrap around? */
+-		len = sizeof(*new_xattr) + size;
+-		if (len <= sizeof(*new_xattr))
+-			return -ENOMEM;
+-
+-		new_xattr = kmalloc(len, GFP_KERNEL);
++		new_xattr = shmem_xattr_alloc(value, size);
+ 		if (!new_xattr)
+ 			return -ENOMEM;
+ 
+@@ -1757,9 +1816,6 @@ static int shmem_xattr_set(struct dentry
+ 			kfree(new_xattr);
+ 			return -ENOMEM;
+ 		}
+-
+-		new_xattr->size = size;
+-		memcpy(new_xattr->value, value, size);
+ 	}
+ 
+ 	spin_lock(&info->lock);
+@@ -1858,7 +1914,7 @@ static int shmem_setxattr(struct dentry 
+ 	if (size == 0)
+ 		value = "";  /* empty EA, do not remove */
+ 
+-	return shmem_xattr_set(dentry, name, value, size, flags);
++	return shmem_xattr_set(dentry->d_inode, name, value, size, flags);
+ 
+ }
+ 
+@@ -1878,7 +1934,7 @@ static int shmem_removexattr(struct dent
+ 	if (err)
+ 		return err;
+ 
+-	return shmem_xattr_set(dentry, name, NULL, 0, XATTR_REPLACE);
++	return shmem_xattr_set(dentry->d_inode, name, NULL, 0, XATTR_REPLACE);
+ }
+ 
+ static bool xattr_is_trusted(const char *name)
 _
+Subject: Subject: tmpfs: security xattr setting on inode creation
 
-Patches currently in -mm which might be from hpa@zytor.com are
+Patches currently in -mm which might be from jarkko.sakkinen@intel.com are
 
-origin.patch
-linux-next.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-platform-x86-kill-off-moorestown.patch
-intel_scu_ipc-remove-moorestown-support.patch
-platform-x86-intel_mid_thermal-add-msic_thermal-alias.patch
-platform-x86-intel_mid_thermal-convert-to-use-intel-msic-api.patch
-platform-x86-intel_mid_thermal-turn-off-thermistor-voltage-by-default.patch
-intel_mid_powerbtn-use-msic-read-write-instead-of-ipc_scu.patch
-intel_mid_powerbtn-mark-irq-as-irqf_no_suspend.patch
-x86-olpc-add-debugfs-interface-for-ec-commands.patch
-x86-mm-fix-the-size-calculation-of-mapping-tables.patch
-alix2-supplement-driver-to-include-gpio-button-support.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
-hugetlbfs-fix-hugetlb_get_unmapped_area.patch
-hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
-hugetlb-try-to-search-again-if-it-is-really-needed.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
-mm-search-from-free_area_cache-for-the-bigger-size.patch
-percpu-remove-percpu_xxx-functions.patch
-smp-start-up-non-boot-cpus-asynchronously.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch
-bitops-remove-for_each_set_bit_cont.patch
-bitops-introduce-for_each_clear_bit.patch
-x86-use-for_each_clear_bit_from.patch
-ipc-provide-generic-compat-versions-of-ipc-syscalls.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+tmpfs-security-xattr-setting-on-inode-creation.patch
 
