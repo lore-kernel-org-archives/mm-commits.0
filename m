@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mips-use-generic-posix_typesh.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:45 -0800
-Message-ID: <20120227222945.75C27A02DE@akpm.mtv.corp.google.com>
+Subject: [merged] mn10300-use-generic-posix_typesh.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:47 -0800
+Message-ID: <20120227222947.6FBD4A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:61321 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755514Ab2B0W3r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:47 -0500
-Received: by mail-bk0-f74.google.com with SMTP id y7so77903bkt.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:46 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:60147 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755799Ab2B0W3t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:49 -0500
+Received: by mail-we0-f202.google.com with SMTP id x9so41106wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: hpa@zytor.com, dhowells@redhat.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: use generic posix_types.h
+     Subject: mn10300: use generic posix_types.h
 has been removed from the -mm tree.  Its filename was
-     mips-use-generic-posix_typesh.patch
+     mn10300-use-generic-posix_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,103 +26,100 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: mips: use generic posix_types.h
+Subject: mn10300: use generic posix_types.h
 
-Change the mips architecture to use <asm-generic/posix_types.h>.
+Change the mn10300 architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/posix_types.h |  117 +-------------------------
- 1 file changed, 7 insertions(+), 110 deletions(-)
+ arch/mn10300/include/asm/posix_types.h |  111 ++---------------------
+ 1 file changed, 11 insertions(+), 100 deletions(-)
 
-diff -puN arch/mips/include/asm/posix_types.h~mips-use-generic-posix_typesh arch/mips/include/asm/posix_types.h
---- a/arch/mips/include/asm/posix_types.h~mips-use-generic-posix_typesh
-+++ a/arch/mips/include/asm/posix_types.h
-@@ -17,128 +17,25 @@
+diff -puN arch/mn10300/include/asm/posix_types.h~mn10300-use-generic-posix_typesh arch/mn10300/include/asm/posix_types.h
+--- a/arch/mn10300/include/asm/posix_types.h~mn10300-use-generic-posix_typesh
++++ a/arch/mn10300/include/asm/posix_types.h
+@@ -17,14 +17,19 @@
   * assume GCC is being used.
   */
  
 -typedef unsigned long	__kernel_ino_t;
--typedef unsigned int	__kernel_mode_t;
--#if (_MIPS_SZLONG == 32)
--typedef unsigned long	__kernel_nlink_t;
--#endif
- #if (_MIPS_SZLONG == 64)
- typedef unsigned int	__kernel_nlink_t;
-+#define __kernel_nlink_t __kernel_nlink_t
- #endif
+ typedef unsigned short	__kernel_mode_t;
++#define __kernel_mode_t __kernel_mode_t
++
+ typedef unsigned short	__kernel_nlink_t;
 -typedef long		__kernel_off_t;
 -typedef int		__kernel_pid_t;
--typedef int		__kernel_ipc_pid_t;
--typedef unsigned int	__kernel_uid_t;
--typedef unsigned int	__kernel_gid_t;
--#if (_MIPS_SZLONG == 32)
--typedef unsigned int	__kernel_size_t;
--typedef int		__kernel_ssize_t;
--typedef int		__kernel_ptrdiff_t;
--#endif
--#if (_MIPS_SZLONG == 64)
--typedef unsigned long	__kernel_size_t;
--typedef long		__kernel_ssize_t;
--typedef long		__kernel_ptrdiff_t;
--#endif
++#define __kernel_nlink_t __kernel_nlink_t
++
+ typedef unsigned short	__kernel_ipc_pid_t;
++#define __kernel_ipc_pid_t __kernel_ipc_pid_t
++
+ typedef unsigned short	__kernel_uid_t;
+ typedef unsigned short	__kernel_gid_t;
++#define __kernel_uid_t __kernel_uid_t
++
+ #if __GNUC__ == 4
+ typedef unsigned int	__kernel_size_t;
+ typedef signed int	__kernel_ssize_t;
+@@ -33,105 +38,11 @@ typedef unsigned long	__kernel_size_t;
+ typedef signed long	__kernel_ssize_t;
+ #endif
+ typedef int		__kernel_ptrdiff_t;
 -typedef long		__kernel_time_t;
 -typedef long		__kernel_suseconds_t;
 -typedef long		__kernel_clock_t;
 -typedef int		__kernel_timer_t;
 -typedef int		__kernel_clockid_t;
--typedef long		__kernel_daddr_t;
+-typedef int		__kernel_daddr_t;
 -typedef char *		__kernel_caddr_t;
- 
 -typedef unsigned short	__kernel_uid16_t;
 -typedef unsigned short	__kernel_gid16_t;
 -typedef unsigned int	__kernel_uid32_t;
 -typedef unsigned int	__kernel_gid32_t;
--typedef __kernel_uid_t	__kernel_old_uid_t;
--typedef __kernel_gid_t	__kernel_old_gid_t;
--typedef unsigned int	__kernel_old_dev_t;
-+typedef long		__kernel_daddr_t;
-+#define __kernel_daddr_t __kernel_daddr_t
++#define __kernel_size_t __kernel_size_t
  
- #ifdef __GNUC__
- typedef long long      __kernel_loff_t;
- #endif
+-typedef unsigned short	__kernel_old_uid_t;
+-typedef unsigned short	__kernel_old_gid_t;
+ typedef unsigned short	__kernel_old_dev_t;
++#define __kernel_old_dev_t __kernel_old_dev_t
  
--typedef struct {
- #if (_MIPS_SZLONG == 32)
-+typedef struct {
- 	long	val[2];
+-#ifdef __GNUC__
+-typedef long long	__kernel_loff_t;
 -#endif
--#if (_MIPS_SZLONG == 64)
--	int	val[2];
--#endif
- } __kernel_fsid_t;
-+#define __kernel_fsid_t __kernel_fsid_t
-+#endif
- 
--#if defined(__KERNEL__)
 -
--#undef __FD_SET
--static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
+-typedef struct {
+-#if defined(__KERNEL__) || defined(__USE_ALL)
+-	int	val[2];
+-#else /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-	int	__val[2];
+-#endif /* !defined(__KERNEL__) && !defined(__USE_ALL) */
+-} __kernel_fsid_t;
+-
+-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
+-
+-#undef	__FD_SET
+-static inline void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
 -{
 -	unsigned long __tmp = __fd / __NFDBITS;
 -	unsigned long __rem = __fd % __NFDBITS;
 -	__fdsetp->fds_bits[__tmp] |= (1UL<<__rem);
 -}
 -
--#undef __FD_CLR
--static __inline__ void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
+-#undef	__FD_CLR
+-static inline void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
 -{
 -	unsigned long __tmp = __fd / __NFDBITS;
 -	unsigned long __rem = __fd % __NFDBITS;
 -	__fdsetp->fds_bits[__tmp] &= ~(1UL<<__rem);
 -}
 -
--#undef __FD_ISSET
--static __inline__ int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
+-
+-#undef	__FD_ISSET
+-static inline int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
 -{
 -	unsigned long __tmp = __fd / __NFDBITS;
 -	unsigned long __rem = __fd % __NFDBITS;
@@ -133,8 +130,8 @@ diff -puN arch/mips/include/asm/posix_types.h~mips-use-generic-posix_typesh arch
 - * This will unroll the loop for the normal constant case (8 ints,
 - * for a 256-bit fd_set)
 - */
--#undef __FD_ZERO
--static __inline__ void __FD_ZERO(__kernel_fd_set *__p)
+-#undef	__FD_ZERO
+-static inline void __FD_ZERO(__kernel_fd_set *__p)
 -{
 -	unsigned long *__tmp = __p->fds_bits;
 -	int __i;
@@ -173,7 +170,7 @@ diff -puN arch/mips/include/asm/posix_types.h~mips-use-generic-posix_typesh arch
 -	}
 -}
 -
--#endif /* defined(__KERNEL__) */
+-#endif /* defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2) */
 +#include <asm-generic/posix_types.h>
  
  #endif /* _ASM_POSIX_TYPES_H */
