@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] frv-use-generic-posix_typesh.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:35 -0800
-Message-ID: <20120227222935.62B45A02DE@akpm.mtv.corp.google.com>
+Subject: [merged] h8300-use-generic-posix_typesh.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:37 -0800
+Message-ID: <20120227222937.738FAA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:60147 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752881Ab2B0W3i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:38 -0500
-Received: by wejx9 with SMTP id x9so41106wej.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:36 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:61321 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752881Ab2B0W3k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:40 -0500
+Received: by bkty7 with SMTP id y7so77903bkt.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: hpa@zytor.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frv: use generic posix_types.h
+     Subject: h8300: use generic posix_types.h
 has been removed from the -mm tree.  Its filename was
-     frv-use-generic-posix_typesh.patch
+     h8300-use-generic-posix_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,22 +26,22 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: frv: use generic posix_types.h
+Subject: h8300: use generic posix_types.h
 
-Change the frv architecture to use <asm-generic/posix_types.h>.
+Change the h8300 architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/posix_types.h |   51 ++++-----------------------
- 1 file changed, 9 insertions(+), 42 deletions(-)
+ arch/h8300/include/asm/posix_types.h |   49 ++++---------------------
+ 1 file changed, 9 insertions(+), 40 deletions(-)
 
-diff -puN arch/frv/include/asm/posix_types.h~frv-use-generic-posix_typesh arch/frv/include/asm/posix_types.h
---- a/arch/frv/include/asm/posix_types.h~frv-use-generic-posix_typesh
-+++ a/arch/frv/include/asm/posix_types.h
-@@ -7,56 +7,23 @@
+diff -puN arch/h8300/include/asm/posix_types.h~h8300-use-generic-posix_typesh arch/h8300/include/asm/posix_types.h
+--- a/arch/h8300/include/asm/posix_types.h~h8300-use-generic-posix_typesh
++++ a/arch/h8300/include/asm/posix_types.h
+@@ -7,54 +7,23 @@
   * assume GCC is being used.
   */
  
@@ -75,10 +75,9 @@ diff -puN arch/frv/include/asm/posix_types.h~frv-use-generic-posix_typesh arch/f
 -typedef unsigned int	__kernel_gid32_t;
 +#define __kernel_uid_t __kernel_uid_t
  
--typedef unsigned short	__kernel_old_uid_t;
--typedef unsigned short	__kernel_old_gid_t;
- typedef unsigned short	__kernel_old_dev_t;
-+#define __kernel_old_dev_t __kernel_old_dev_t
+ typedef unsigned short	__kernel_old_uid_t;
+ typedef unsigned short	__kernel_old_gid_t;
++#define __kernel_old_uid_t __kernel_old_uid_t
  
 -#ifdef __GNUC__
 -typedef long long	__kernel_loff_t;
@@ -106,7 +105,6 @@ diff -puN arch/frv/include/asm/posix_types.h~frv-use-generic-posix_typesh arch/f
 +#include <asm-generic/posix_types.h>
  
  #endif
- 
 _
 
 Patches currently in -mm which might be from hpa@zytor.com are
