@@ -1,160 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch added to -mm tree
-Date: Fri, 24 Feb 2012 14:27:28 -0800
-Message-ID: <20120224231044.753EC10004D@wpzn3.hot.corp.google.com>
+Subject: [failures] cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:07:53 -0800
+Message-ID: <20120227220755.095CCA02DD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:47298 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754050Ab2BXXKp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Feb 2012 18:10:45 -0500
-Received: by ggnp1 with SMTP id p1so345048ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Feb 2012 15:10:45 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:43136 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755818Ab2B0WH7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:07:59 -0500
+Received: by faaa19 with SMTP id a19so75592faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:07:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, b-cousson@ti.com, balajitk@ti.com, gg@slimlogic.co.uk, grant.likely@secretlab.ca, rob.herring@calxeda.com, sameo@linux.intel.com
+To: venki@google.com, kosaki.motohiro@jp.fujitsu.com, rusty@rustcorp.com.au, srivatsa.bhat@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/mfd/twl-core.c: wtf isn't this fixed yet??
-has been added to the -mm tree.  Its filename is
-     drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+     Subject: cpumask: avoid mask based num_possible_cpus() and num_online_cpus()
+has been removed from the -mm tree.  Its filename was
+     cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it had testing failures
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/mfd/twl-core.c: wtf isn't this fixed yet??
+From: Venkatesh Pallipadi <venki@google.com>
+Subject: cpumask: avoid mask based num_possible_cpus() and num_online_cpus()
 
-drivers/mfd/twl-core.c: In function 'twl_probe':
-drivers/mfd/twl-core.c:1237: error: implicit declaration of function 'irq_alloc_descs'
-drivers/mfd/twl-core.c:1245: error: implicit declaration of function 'irq_domain_add_legacy'
-drivers/mfd/twl-core.c:1246: error: 'irq_domain_simple_ops' undeclared (first use in this function)
-drivers/mfd/twl-core.c:1246: error: (Each undeclared identifier is reported only once
-drivers/mfd/twl-core.c:1246: error: for each function it appears in.)
+The kernel's notion of possible cpus (from include/linux/cpumask.h) is
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Balaji T K <balajitk@ti.com>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+ *     cpu_possible_mask- has bit 'cpu' set iff cpu is populatable
+ *  The cpu_possible_mask is fixed at boot time, as the set of CPU id's
+ *  that it is possible might ever be plugged in at anytime during the
+ *  life of that system boot.
+
+ #define num_possible_cpus()     cpumask_weight(cpu_possible_mask)
+
+and on x86 cpumask_weight() calls hweight64 and hweight64 (on older
+kernels and systems with !X86_FEATURE_POPCNT) or a popcnt based
+alternative.
+
+i.e, We needlessly go through this mask based calculation everytime
+num_possible_cpus() is called.
+
+The problem is there with cpu_online_mask() as well, which is a fixed
+value at boot time in !CONFIG_HOTPLUG_CPU case and should not change that
+often even in HOTPLUG case.
+
+Though most of the callers of these two routines are at init time (with
+only a few runtime calls), it is cleaner to use variables and not go
+through this repeated mask based calculation.
+
+Signed-off-by: Venkatesh Pallipadi <venki@google.com>
+Acked-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/twl-core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/cpumask.h |    9 +++++++--
+ kernel/cpu.c            |   13 +++++++++++++
+ 2 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mfd/twl-core.c~drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet drivers/mfd/twl-core.c
---- a/drivers/mfd/twl-core.c~drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet
-+++ a/drivers/mfd/twl-core.c
-@@ -1234,7 +1234,7 @@ twl_probe(struct i2c_client *client, con
- 		return -EINVAL;
- 	}
+diff -puN include/linux/cpumask.h~cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus
++++ a/include/linux/cpumask.h
+@@ -27,6 +27,9 @@ typedef struct cpumask { DECLARE_BITMAP(
+ extern int nr_cpu_ids;
+ #endif
  
--	status = irq_alloc_descs(-1, pdata->irq_base, nr_irqs, 0);
-+	status = 0;
- 	if (IS_ERR_VALUE(status)) {
- 		dev_err(&client->dev, "Fail to allocate IRQ descs\n");
- 		return status;
-@@ -1242,8 +1242,8 @@ twl_probe(struct i2c_client *client, con
++extern unsigned int nr_online_cpus;
++extern unsigned int nr_possible_cpus;
++
+ #ifdef CONFIG_CPUMASK_OFFSTACK
+ /* Assuming NR_CPUS is huge, a runtime limit is more efficient.  Also,
+  * not all bits may be allocated. */
+@@ -81,8 +84,10 @@ extern const struct cpumask *const cpu_p
+ extern const struct cpumask *const cpu_active_mask;
  
- 	pdata->irq_base = status;
- 	pdata->irq_end = pdata->irq_base + nr_irqs;
--	irq_domain_add_legacy(node, nr_irqs, pdata->irq_base, 0,
--			      &irq_domain_simple_ops, NULL);
-+//	irq_domain_add_legacy(node, nr_irqs, pdata->irq_base, 0,
-+//			      &irq_domain_simple_ops, NULL);
+ #if NR_CPUS > 1
+-#define num_online_cpus()	cpumask_weight(cpu_online_mask)
+-#define num_possible_cpus()	cpumask_weight(cpu_possible_mask)
++
++#define num_online_cpus()	(nr_online_cpus)
++#define num_possible_cpus()	(nr_possible_cpus)
++
+ #define num_present_cpus()	cpumask_weight(cpu_present_mask)
+ #define num_active_cpus()	cpumask_weight(cpu_active_mask)
+ #define cpu_online(cpu)		cpumask_test_cpu((cpu), cpu_online_mask)
+diff -puN kernel/cpu.c~cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus kernel/cpu.c
+--- a/kernel/cpu.c~cpumask-avoid-mask-based-num_possible_cpus-and-num_online_cpus
++++ a/kernel/cpu.c
+@@ -604,9 +604,13 @@ EXPORT_SYMBOL(cpu_all_bits);
+ #ifdef CONFIG_INIT_ALL_POSSIBLE
+ static DECLARE_BITMAP(cpu_possible_bits, CONFIG_NR_CPUS) __read_mostly
+ 	= CPU_BITS_ALL;
++unsigned int nr_possible_cpus __read_mostly = CONFIG_NR_CPUS;
+ #else
+ static DECLARE_BITMAP(cpu_possible_bits, CONFIG_NR_CPUS) __read_mostly;
++unsigned int nr_possible_cpus __read_mostly;
+ #endif
++EXPORT_SYMBOL(nr_possible_cpus);
++
+ const struct cpumask *const cpu_possible_mask = to_cpumask(cpu_possible_bits);
+ EXPORT_SYMBOL(cpu_possible_mask);
  
- 	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
- 		dev_dbg(&client->dev, "can't talk I2C?\n");
+@@ -614,6 +618,9 @@ static DECLARE_BITMAP(cpu_online_bits, C
+ const struct cpumask *const cpu_online_mask = to_cpumask(cpu_online_bits);
+ EXPORT_SYMBOL(cpu_online_mask);
+ 
++unsigned int nr_online_cpus __read_mostly;
++EXPORT_SYMBOL(nr_online_cpus);
++
+ static DECLARE_BITMAP(cpu_present_bits, CONFIG_NR_CPUS) __read_mostly;
+ const struct cpumask *const cpu_present_mask = to_cpumask(cpu_present_bits);
+ EXPORT_SYMBOL(cpu_present_mask);
+@@ -628,6 +635,8 @@ void set_cpu_possible(unsigned int cpu, 
+ 		cpumask_set_cpu(cpu, to_cpumask(cpu_possible_bits));
+ 	else
+ 		cpumask_clear_cpu(cpu, to_cpumask(cpu_possible_bits));
++
++	nr_possible_cpus = cpumask_weight(cpu_possible_mask);
+ }
+ 
+ void set_cpu_present(unsigned int cpu, bool present)
+@@ -644,6 +653,8 @@ void set_cpu_online(unsigned int cpu, bo
+ 		cpumask_set_cpu(cpu, to_cpumask(cpu_online_bits));
+ 	else
+ 		cpumask_clear_cpu(cpu, to_cpumask(cpu_online_bits));
++
++	nr_online_cpus = cpumask_weight(cpu_online_mask);
+ }
+ 
+ void set_cpu_active(unsigned int cpu, bool active)
+@@ -662,9 +673,11 @@ void init_cpu_present(const struct cpuma
+ void init_cpu_possible(const struct cpumask *src)
+ {
+ 	cpumask_copy(to_cpumask(cpu_possible_bits), src);
++	nr_possible_cpus = cpumask_weight(cpu_possible_mask);
+ }
+ 
+ void init_cpu_online(const struct cpumask *src)
+ {
+ 	cpumask_copy(to_cpumask(cpu_online_bits), src);
++	nr_online_cpus = cpumask_weight(cpu_online_mask);
+ }
 _
-Subject: Subject: drivers/mfd/twl-core.c: wtf isn't this fixed yet??
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from venki@google.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-ata-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
-x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-posix_types-remove-fd_set-macros-checkpatch-fixes.patch
-brlocks-lglocks-cleanups-checkpatch-fixes.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+lib-cpumaskc-remove-__any_online_cpu.patch
 
