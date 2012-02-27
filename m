@@ -1,138 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged] s390-use-block_sigmask.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:18 -0800
-Message-ID: <20120227222918.747D8A02DE@akpm.mtv.corp.google.com>
+Subject: [merged] alpha-use-generic-posix_typesh.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:26 -0800
+Message-ID: <20120227222926.61C16A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:36984 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755305Ab2B0W3V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:21 -0500
-Received: by eaaf13 with SMTP id f13so182260eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:19 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:62298 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755435Ab2B0W31 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:27 -0500
+Received: by vbnl22 with SMTP id l22so309795vbn.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, heiko.carstens@de.ibm.com, oleg@redhat.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: hpa@zytor.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: S390: use block_sigmask()
+     Subject: alpha: use generic posix_types.h
 has been removed from the -mm tree.  Its filename was
-     s390-use-block_sigmask.patch
+     alpha-use-generic-posix_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: S390: use block_sigmask()
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: alpha: use generic posix_types.h
 
-Use the new helper function introduced in commit 5e6292c0f28f ("signal:
-add block_sigmask() for adding sigmask to current->blocked") which
-centralises the code for updating current->blocked after successfully
-delivering a signal and reduces the amount of duplicate code across
-architectures.
+Change the alpha architecture to use <asm-generic/posix_types.h>.
 
-In the past some architectures got this code wrong, so using this helper
-function should stop that from happening again.
-
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Signed-off-by: H. Peter Anvin <hpa@zytor.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/compat_signal.c |    6 +-----
- arch/s390/kernel/signal.c        |    6 +-----
- 2 files changed, 2 insertions(+), 10 deletions(-)
+ arch/alpha/include/asm/posix_types.h |  113 +------------------------
+ 1 file changed, 5 insertions(+), 108 deletions(-)
 
-diff -puN arch/s390/kernel/compat_signal.c~s390-use-block_sigmask arch/s390/kernel/compat_signal.c
---- a/arch/s390/kernel/compat_signal.c~s390-use-block_sigmask
-+++ a/arch/s390/kernel/compat_signal.c
-@@ -581,7 +581,6 @@ give_sigsegv:
- int handle_signal32(unsigned long sig, struct k_sigaction *ka,
- 		    siginfo_t *info, sigset_t *oldset, struct pt_regs *regs)
- {
--	sigset_t blocked;
- 	int ret;
+diff -puN arch/alpha/include/asm/posix_types.h~alpha-use-generic-posix_typesh arch/alpha/include/asm/posix_types.h
+--- a/arch/alpha/include/asm/posix_types.h~alpha-use-generic-posix_typesh
++++ a/arch/alpha/include/asm/posix_types.h
+@@ -8,116 +8,13 @@
+  */
  
- 	/* Set up the stack frame */
-@@ -591,10 +590,7 @@ int handle_signal32(unsigned long sig, s
- 		ret = setup_frame32(sig, ka, oldset, regs);
- 	if (ret)
- 		return ret;
--	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&blocked, sig);
--	set_current_blocked(&blocked);
-+	block_sigmask(ka, sig);
- 	return 0;
- }
+ typedef unsigned int	__kernel_ino_t;
+-typedef unsigned int	__kernel_mode_t;
+-typedef unsigned int	__kernel_nlink_t;
+-typedef long		__kernel_off_t;
+-typedef long long	__kernel_loff_t;
+-typedef int		__kernel_pid_t;
+-typedef int		__kernel_ipc_pid_t;
+-typedef unsigned int	__kernel_uid_t;
+-typedef unsigned int	__kernel_gid_t;
+-typedef unsigned long	__kernel_size_t;
+-typedef long		__kernel_ssize_t;
+-typedef long		__kernel_ptrdiff_t;
+-typedef long		__kernel_time_t;
+-typedef long		__kernel_suseconds_t;
+-typedef long		__kernel_clock_t;
+-typedef int		__kernel_daddr_t;
+-typedef char *		__kernel_caddr_t;
+-typedef unsigned long	__kernel_sigset_t;	/* at least 32 bits */
+-typedef unsigned short	__kernel_uid16_t;
+-typedef unsigned short	__kernel_gid16_t;
+-typedef int		__kernel_clockid_t;
+-typedef int		__kernel_timer_t;
+-
+-typedef struct {
+-	int	val[2];
+-} __kernel_fsid_t;
+-
+-typedef __kernel_uid_t __kernel_old_uid_t;
+-typedef __kernel_gid_t __kernel_old_gid_t;
+-typedef __kernel_uid_t __kernel_uid32_t;
+-typedef __kernel_gid_t __kernel_gid32_t;
+-
+-typedef unsigned int	__kernel_old_dev_t;
+-
+-#ifdef __KERNEL__
+-
+-#ifndef __GNUC__
+-
+-#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
+-#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
+-#define	__FD_ISSET(d, set)	(((set)->fds_bits[__FDELT(d)] & __FDMASK(d)) != 0)
+-#define	__FD_ZERO(set)	\
+-  ((void) memset ((void *) (set), 0, sizeof (__kernel_fd_set)))
+-
+-#else /* __GNUC__ */
+-
+-/* With GNU C, use inline functions instead so args are evaluated only once: */
++#define __kernel_ino_t __kernel_ino_t
  
-diff -puN arch/s390/kernel/signal.c~s390-use-block_sigmask arch/s390/kernel/signal.c
---- a/arch/s390/kernel/signal.c~s390-use-block_sigmask
-+++ a/arch/s390/kernel/signal.c
-@@ -385,7 +385,6 @@ static int handle_signal(unsigned long s
- 			 siginfo_t *info, sigset_t *oldset,
- 			 struct pt_regs *regs)
- {
--	sigset_t blocked;
- 	int ret;
+-#undef __FD_SET
+-static __inline__ void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] |= (1UL<<_rem);
+-}
+-
+-#undef __FD_CLR
+-static __inline__ void __FD_CLR(unsigned long fd, __kernel_fd_set *fdsetp)
+-{
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	fdsetp->fds_bits[_tmp] &= ~(1UL<<_rem);
+-}
+-
+-#undef __FD_ISSET
+-static __inline__ int __FD_ISSET(unsigned long fd, const __kernel_fd_set *p)
+-{ 
+-	unsigned long _tmp = fd / __NFDBITS;
+-	unsigned long _rem = fd % __NFDBITS;
+-	return (p->fds_bits[_tmp] & (1UL<<_rem)) != 0;
+-}
+-
+-/*
+- * This will unroll the loop for the normal constant case (8 ints,
+- * for a 256-bit fd_set)
+- */
+-#undef __FD_ZERO
+-static __inline__ void __FD_ZERO(__kernel_fd_set *p)
+-{
+-	unsigned long *tmp = p->fds_bits;
+-	int i;
+-
+-	if (__builtin_constant_p(__FDSET_LONGS)) {
+-		switch (__FDSET_LONGS) {
+-		      case 16:
+-			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			tmp[ 8] = 0; tmp[ 9] = 0; tmp[10] = 0; tmp[11] = 0;
+-			tmp[12] = 0; tmp[13] = 0; tmp[14] = 0; tmp[15] = 0;
+-			return;
+-
+-		      case 8:
+-			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			tmp[ 4] = 0; tmp[ 5] = 0; tmp[ 6] = 0; tmp[ 7] = 0;
+-			return;
+-
+-		      case 4:
+-			tmp[ 0] = 0; tmp[ 1] = 0; tmp[ 2] = 0; tmp[ 3] = 0;
+-			return;
+-		}
+-	}
+-	i = __FDSET_LONGS;
+-	while (i) {
+-		i--;
+-		*tmp = 0;
+-		tmp++;
+-	}
+-}
++typedef unsigned int	__kernel_nlink_t;
++#define __kernel_nlink_t __kernel_nlink_t
  
- 	/* Set up the stack frame */
-@@ -395,10 +394,7 @@ static int handle_signal(unsigned long s
- 		ret = setup_frame(sig, ka, oldset, regs);
- 	if (ret)
- 		return ret;
--	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&blocked, sig);
--	set_current_blocked(&blocked);
-+	block_sigmask(ka, sig);
- 	return 0;
- }
+-#endif /* __GNUC__ */
++typedef unsigned long	__kernel_sigset_t;	/* at least 32 bits */
  
+-#endif /* __KERNEL__ */
++#include <asm-generic/posix_types.h>
+ 
+ #endif /* _ALPHA_POSIX_TYPES_H */
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from hpa@zytor.com are
 
+origin.patch
 linux-next.patch
-arm-use-set_current_blocked-and-block_sigmask.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-powerpc-use-set_current_blocked-and-block_sigmask.patch
-hexagon-use-set_current_blocked-and-block_sigmask.patch
-tile-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-xtensa-dont-reimplement-force_sigsegv.patch
-xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
-xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-xtensa-use-set_current_blocked-and-block_sigmask.patch
-sparc-use-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-um-dont-restore-current-blocked-on-error.patch
-um-use-set_current_blocked-and-block_sigmask.patch
-powerpc-eeh-remove-eeh_event_handler-daemonize.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+platform-x86-kill-off-moorestown.patch
+intel_scu_ipc-remove-moorestown-support.patch
+platform-x86-intel_mid_thermal-add-msic_thermal-alias.patch
+platform-x86-intel_mid_thermal-convert-to-use-intel-msic-api.patch
+platform-x86-intel_mid_thermal-turn-off-thermistor-voltage-by-default.patch
+intel_mid_powerbtn-use-msic-read-write-instead-of-ipc_scu.patch
+intel_mid_powerbtn-mark-irq-as-irqf_no_suspend.patch
+x86-olpc-add-debugfs-interface-for-ec-commands.patch
+x86-mm-fix-the-size-calculation-of-mapping-tables.patch
+alix2-supplement-driver-to-include-gpio-button-support.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+percpu-remove-percpu_xxx-functions.patch
+smp-start-up-non-boot-cpus-asynchronously.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+bitops-rename-for_each_set_bit_cont-in-favor-of-analogous-listh-function.patch
+bitops-remove-for_each_set_bit_cont.patch
+bitops-introduce-for_each_clear_bit.patch
+x86-use-for_each_clear_bit_from.patch
+ipc-provide-generic-compat-versions-of-ipc-syscalls.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
 
