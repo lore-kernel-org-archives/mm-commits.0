@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] posix_types-make-it-possible-to-override-__kernel_fsid_t.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:24 -0800
-Message-ID: <20120227222924.46DD2A02DE@akpm.mtv.corp.google.com>
+Subject: [merged] posix_types-make-__kernel_id32_t-default-to-unsigned-int.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:21 -0800
+Message-ID: <20120227222921.325A5A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:40295 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755435Ab2B0W32 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:28 -0500
-Received: by mail-gy0-f202.google.com with SMTP id z15so73043ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:28 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:46454 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755435Ab2B0W30 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:26 -0500
+Received: by mail-ww0-f74.google.com with SMTP id dt11so67256wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hpa@zytor.com, arnd@arndb.de, benh@kernel.crashing.org, chris@zankel.net, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, fenghua.yu@intel.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hskinnemoen@gmail.com, ink@jurassic.park.msu.ru, jejb@parisc-linux.org, jesper.nilsson@axis.com, kyle@mcmartin.ca, lethal@linux-sh.org, linux@arm.linux.org.uk, mattst88@gmail.com, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, takata@linux-m32r.org, tglx@linutronix.de, tony.luck@intel.com, yasutake.koichi@jp.panasonic.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: posix_types: make it possible to override __kernel_fsid_t
+     Subject: posix_types: make __kernel_[ug]id32_t default to unsigned int
 has been removed from the -mm tree.  Its filename was
-     posix_types-make-it-possible-to-override-__kernel_fsid_t.patch
+     posix_types-make-__kernel_id32_t-default-to-unsigned-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,10 +26,11 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: posix_types: make it possible to override __kernel_fsid_t
+Subject: posix_types: make __kernel_[ug]id32_t default to unsigned int
 
-__kernel_fsid_t has members of type "long" on at least one architecture
-(MIPS32), so make it possible to override the definition.
+All ports use unsigned int for __kernel_[ug]id32_t, but not all ports use
+unsigned int for __kernel_[ug]id_t.  Thus, change the default for the "32"
+types so ports don't need to override them.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -65,36 +66,23 @@ Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/posix_types.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/asm-generic/posix_types.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/posix_types.h~posix_types-make-it-possible-to-override-__kernel_fsid_t include/asm-generic/posix_types.h
---- a/include/asm-generic/posix_types.h~posix_types-make-it-possible-to-override-__kernel_fsid_t
+diff -puN include/asm-generic/posix_types.h~posix_types-make-__kernel_id32_t-default-to-unsigned-int include/asm-generic/posix_types.h
+--- a/include/asm-generic/posix_types.h~posix_types-make-__kernel_id32_t-default-to-unsigned-int
 +++ a/include/asm-generic/posix_types.h
-@@ -73,6 +73,12 @@ typedef long		__kernel_ptrdiff_t;
+@@ -44,8 +44,8 @@ typedef int		__kernel_daddr_t;
  #endif
+ 
+ #ifndef __kernel_uid32_t
+-typedef __kernel_uid_t	__kernel_uid32_t;
+-typedef __kernel_gid_t	__kernel_gid32_t;
++typedef unsigned int	__kernel_uid32_t;
++typedef unsigned int	__kernel_gid32_t;
  #endif
  
-+#ifndef __kernel_fsid_t
-+typedef struct {
-+	int	val[2];
-+} __kernel_fsid_t;
-+#endif
-+
- /*
-  * anything below here should be completely generic
-  */
-@@ -86,10 +92,6 @@ typedef char *		__kernel_caddr_t;
- typedef unsigned short	__kernel_uid16_t;
- typedef unsigned short	__kernel_gid16_t;
- 
--typedef struct {
--	int	val[2];
--} __kernel_fsid_t;
--
- #ifdef __KERNEL__
- 
- #undef __FD_SET
+ #ifndef __kernel_old_uid_t
 _
 
 Patches currently in -mm which might be from hpa@zytor.com are
