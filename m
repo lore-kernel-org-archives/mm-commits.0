@@ -1,102 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] irqs-fix-handling-of-pending-irqs-at-request-time.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:19:19 -0800
-Message-ID: <20120227221920.3E356A02DD@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:14 -0800
+Message-ID: <20120227222914.4A940A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qw0-f74.google.com ([209.85.216.74]:37499 "EHLO
-	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754116Ab2B0WTV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:19:21 -0500
-Received: by qabg24 with SMTP id g24so93812qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:19:20 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:40295 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755336Ab2B0W3P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:15 -0500
+Received: by ghbz15 with SMTP id z15so73043ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@arm.linux.org.uk, mingo@elte.hu, rmk+kernel@arm.linux.org.uk, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: irqs: fix handling of pending IRQs at request time
+     Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
 has been removed from the -mm tree.  Its filename was
-     irqs-fix-handling-of-pending-irqs-at-request-time.patch
+     drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: irqs: fix handling of pending IRQs at request time
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/scsi/mpt2sas/mpt2sas_scsih.c: spell "primitive" correctly
 
-When an interrupt is marked as pending, and then subsequently requested,
-the interrupt is not delivered to the handler.  The pending status is
-entirely ignored, and is left set.  The patch below ensures that this
-pending status is acted upon while requesting the interrupt.
 
-This matters for two reasons:
-
-1. If a suspend/resume cycle subsequently occurs, upon resume, we call
-   check_irq_resend() while the interrupt layer is resuming.  This notices
-   the pending IRQ, and tries to deliver it.
-
-   However, at this time, the device drivers have not been resumed.  If
-   the device is behind a serial bus which has not been configured, this
-   can cause the kernel to hang or timeout while trying to access the
-   inaccessible device.
-
-2. If the device whose interrupt is being requested has already asserted
-   its interrupt signal (and is holding it at its own active level) we
-   need to process that interrupt to clear down the interrupt, to allow
-   an edge-triggered interrupt input to respond to subsequent activations.
-
-This can be caused by an interrupt occuring after free_irq(), the flow
-handler noticing that it's been disabled, and recording an IRQS_PENDING
-status, or by use of the probe_irq_*() functions.  Either gets us to the
-state where we have IRQS_PENDING set, and remaining set indefinitely after
-a subsequent request_irq() succeeds.
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/scsi/mpt2sas/mpt2sas_scsih.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/irq/manage.c~irqs-fix-handling-of-pending-irqs-at-request-time kernel/irq/manage.c
---- a/kernel/irq/manage.c~irqs-fix-handling-of-pending-irqs-at-request-time
-+++ a/kernel/irq/manage.c
-@@ -1026,9 +1026,10 @@ __setup_irq(unsigned int irq, struct irq
- 		if (new->flags & IRQF_ONESHOT)
- 			desc->istate |= IRQS_ONESHOT;
+diff -puN drivers/scsi/mpt2sas/mpt2sas_scsih.c~drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly drivers/scsi/mpt2sas/mpt2sas_scsih.c
+--- a/drivers/scsi/mpt2sas/mpt2sas_scsih.c~drivers-scsi-mpt2sas-mpt2sas_scsihc-spell-primitive-correctly
++++ a/drivers/scsi/mpt2sas/mpt2sas_scsih.c
+@@ -5744,7 +5744,7 @@ _scsih_sas_enclosure_dev_status_change_e
+ }
  
--		if (irq_settings_can_autoenable(desc))
-+		if (irq_settings_can_autoenable(desc)) {
- 			irq_startup(desc);
--		else
-+			check_irq_resend(desc, irq);
-+		} else
- 			/* Undo nested disables: */
- 			desc->depth = 1;
- 
+ /**
+- * _scsih_sas_broadcast_primative_event - handle broadcast events
++ * _scsih_sas_broadcast_primitive_event - handle broadcast events
+  * @ioc: per adapter object
+  * @fw_event: The fw_event_work object
+  * Context: user.
+@@ -5752,7 +5752,7 @@ _scsih_sas_enclosure_dev_status_change_e
+  * Return nothing.
+  */
+ static void
+-_scsih_sas_broadcast_primative_event(struct MPT2SAS_ADAPTER *ioc,
++_scsih_sas_broadcast_primitive_event(struct MPT2SAS_ADAPTER *ioc,
+     struct fw_event_work *fw_event)
+ {
+ 	struct scsi_cmnd *scmd;
+@@ -7263,7 +7263,7 @@ _firmware_event_work(struct work_struct 
+ 		    fw_event);
+ 		break;
+ 	case MPI2_EVENT_SAS_BROADCAST_PRIMITIVE:
+-		_scsih_sas_broadcast_primative_event(ioc,
++		_scsih_sas_broadcast_primitive_event(ioc,
+ 		    fw_event);
+ 		break;
+ 	case MPI2_EVENT_SAS_ENCL_DEVICE_STATUS_CHANGE:
 _
 
-Patches currently in -mm which might be from linux@arm.linux.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
-arm-use-set_current_blocked-and-block_sigmask.patch
-fix-long-term-regression-in-genirq-irq_set_irq_type-handling.patch
-posix_types-make-__kernel_id32_t-default-to-unsigned-int.patch
-posix_types-make-it-possible-to-override-__kernel_fsid_t.patch
-arm-use-generic-posix_typesh.patch
-posix_types-remove-fd_set-macros.patch
-proc-speedup-proc-stat-handling.patch
-smp-introduce-a-generic-on_each_cpu_mask-function.patch
-arm-move-arm-over-to-generic-on_each_cpu_mask.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
+x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+brlocks-lglocks-cleanups-checkpatch-fixes.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
 smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
