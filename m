@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-use-generic-posix_typesh.patch removed from -mm tree
-Date: Mon, 27 Feb 2012 14:29:41 -0800
-Message-ID: <20120227222941.6E19EA02DE@akpm.mtv.corp.google.com>
+Subject: [merged] m68k-use-generic-posix_typesh.patch removed from -mm tree
+Date: Mon, 27 Feb 2012 14:29:43 -0800
+Message-ID: <20120227222943.568ACA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-qw0-f74.google.com ([209.85.216.74]:52201 "EHLO
 	mail-qw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755476Ab2B0W3m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:42 -0500
-Received: by qabg24 with SMTP id g24so96602qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:41 -0800 (PST)
+	with ESMTP id S1755476Ab2B0W3o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 17:29:44 -0500
+Received: by mail-qw0-f74.google.com with SMTP id g24so96602qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 14:29:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hpa@zytor.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: hpa@zytor.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: use generic posix_types.h
+     Subject: m68k: use generic posix_types.h
 has been removed from the -mm tree.  Its filename was
-     m32r-use-generic-posix_typesh.patch
+     m68k-use-generic-posix_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,22 +26,22 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: m32r: use generic posix_types.h
+Subject: m68k: use generic posix_types.h
 
-Change the m32r architecture to use <asm-generic/posix_types.h>.
+Change the m68k architecture to use <asm-generic/posix_types.h>.
 
 Signed-off-by: H. Peter Anvin <hpa@zytor.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/posix_types.h |  108 ++------------------------
- 1 file changed, 9 insertions(+), 99 deletions(-)
+ arch/m68k/include/asm/posix_types.h |   51 ++++----------------------
+ 1 file changed, 9 insertions(+), 42 deletions(-)
 
-diff -puN arch/m32r/include/asm/posix_types.h~m32r-use-generic-posix_typesh arch/m32r/include/asm/posix_types.h
---- a/arch/m32r/include/asm/posix_types.h~m32r-use-generic-posix_typesh
-+++ a/arch/m32r/include/asm/posix_types.h
-@@ -7,112 +7,22 @@
+diff -puN arch/m68k/include/asm/posix_types.h~m68k-use-generic-posix_typesh arch/m68k/include/asm/posix_types.h
+--- a/arch/m68k/include/asm/posix_types.h~m68k-use-generic-posix_typesh
++++ a/arch/m68k/include/asm/posix_types.h
+@@ -7,55 +7,22 @@
   * assume GCC is being used.
   */
  
@@ -91,78 +91,21 @@ diff -puN arch/m32r/include/asm/posix_types.h~m32r-use-generic-posix_typesh arch
 -#if defined(__KERNEL__)
 -
 -#undef	__FD_SET
--static __inline__ void __FD_SET(unsigned long __fd, __kernel_fd_set *__fdsetp)
--{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	__fdsetp->fds_bits[__tmp] |= (1UL<<__rem);
--}
+-#define	__FD_SET(d, set)	((set)->fds_bits[__FDELT(d)] |= __FDMASK(d))
 -
 -#undef	__FD_CLR
--static __inline__ void __FD_CLR(unsigned long __fd, __kernel_fd_set *__fdsetp)
--{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	__fdsetp->fds_bits[__tmp] &= ~(1UL<<__rem);
--}
--
+-#define	__FD_CLR(d, set)	((set)->fds_bits[__FDELT(d)] &= ~__FDMASK(d))
 -
 -#undef	__FD_ISSET
--static __inline__ int __FD_ISSET(unsigned long __fd, const __kernel_fd_set *__p)
--{
--	unsigned long __tmp = __fd / __NFDBITS;
--	unsigned long __rem = __fd % __NFDBITS;
--	return (__p->fds_bits[__tmp] & (1UL<<__rem)) != 0;
--}
+-#define	__FD_ISSET(d, set)	(!!((set)->fds_bits[__FDELT(d)] & __FDMASK(d)))
 -
--/*
-- * This will unroll the loop for the normal constant case (8 ints,
-- * for a 256-bit fd_set)
-- */
 -#undef	__FD_ZERO
--static __inline__ void __FD_ZERO(__kernel_fd_set *__p)
--{
--	unsigned long *__tmp = __p->fds_bits;
--	int __i;
--
--	if (__builtin_constant_p(__FDSET_LONGS)) {
--		switch (__FDSET_LONGS) {
--		case 16:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
--			__tmp[ 4] = 0; __tmp[ 5] = 0;
--			__tmp[ 6] = 0; __tmp[ 7] = 0;
--			__tmp[ 8] = 0; __tmp[ 9] = 0;
--			__tmp[10] = 0; __tmp[11] = 0;
--			__tmp[12] = 0; __tmp[13] = 0;
--			__tmp[14] = 0; __tmp[15] = 0;
--			return;
--
--		case 8:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
--			__tmp[ 4] = 0; __tmp[ 5] = 0;
--			__tmp[ 6] = 0; __tmp[ 7] = 0;
--			return;
--
--		case 4:
--			__tmp[ 0] = 0; __tmp[ 1] = 0;
--			__tmp[ 2] = 0; __tmp[ 3] = 0;
--			return;
--		}
--	}
--	__i = __FDSET_LONGS;
--	while (__i) {
--		__i--;
--		*__tmp = 0;
--		__tmp++;
--	}
--}
+-#define __FD_ZERO(fdsetp) (memset (fdsetp, 0, sizeof(*(fd_set *)fdsetp)))
 -
 -#endif /* defined(__KERNEL__) */
 +#include <asm-generic/posix_types.h>
  
- #endif  /* _ASM_M32R_POSIX_TYPES_H */
+ #endif
 _
 
 Patches currently in -mm which might be from hpa@zytor.com are
