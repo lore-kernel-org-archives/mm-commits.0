@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + consolidate-warn_once-static-variables.patch added to -mm tree
-Date: Mon, 27 Feb 2012 16:03:06 -0800
-Message-ID: <20120228000306.B1D71A02DD@akpm.mtv.corp.google.com>
+Subject: + rtc-ds1307-generalise-ram-size-and-offset-fix.patch added to -mm tree
+Date: Mon, 27 Feb 2012 16:08:58 -0800
+Message-ID: <20120228000858.BFC1FA0128@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:37523 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932142Ab2B1ADJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 19:03:09 -0500
-Received: by eaaf13 with SMTP id f13so184152eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 16:03:07 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:61331 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754085Ab2B1AJB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 19:09:01 -0500
+Received: by bkty7 with SMTP id y7so79905bkt.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 16:08:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JBeulich@suse.com, jbeulich@suse.com
+Cc: rdunlap@xenotime.net, Austin.Boyle@aviatnet.com, a.zummo@towertech.it, danders.dev@gmail.com, w.sang@pengutronix.de
 
 
 The patch titled
-     Subject: consolidate WARN_...ONCE() static variables
+     Subject: rtc: fix rtc-ds1307 printk format warning
 has been added to the -mm tree.  Its filename is
-     consolidate-warn_once-static-variables.patch
+     rtc-ds1307-generalise-ram-size-and-offset-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: consolidate WARN_...ONCE() static variables
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: rtc: fix rtc-ds1307 printk format warning
 
-Due to the alignment of following variables, these typically consume more
-than just the single byte that 'bool' requires, and as there are a few
-hundred instances, the cache pollution (not so much the waste of memory)
-sums up.  Put these variables into their own section, outside of any half
-way frequently used memory range.
+fix printk format warning
 
-Do the same also to the __warned variable of rcu_lockdep_assert(). 
-(Don't, however, include the ones used by printk_once() and alike, as they
-can potentially be hot.)
+drivers/rtc/rtc-ds1307.c:915:3: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Austin Boyle <Austin.Boyle@aviatnet.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: David Anders <danders.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h         |    6 +++---
- include/asm-generic/vmlinux.lds.h |    1 +
- include/linux/rcupdate.h          |    2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-ds1307.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/bug.h~consolidate-warn_once-static-variables include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~consolidate-warn_once-static-variables
-+++ a/include/asm-generic/bug.h
-@@ -134,7 +134,7 @@ extern void warn_slowpath_null(const cha
- #endif
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-generalise-ram-size-and-offset-fix drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-generalise-ram-size-and-offset-fix
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -912,7 +912,7 @@ read_rtc:
+ 			goto exit_nvram;
+ 		}
+ 		set_bit(HAS_NVRAM, &ds1307->flags);
+-		dev_info(&client->dev, "%d bytes nvram\n", ds1307->nvram->size);
++		dev_info(&client->dev, "%zu bytes nvram\n", ds1307->nvram->size);
+ 	}
  
- #define WARN_ON_ONCE(condition)	({				\
--	static bool __warned;					\
-+	static bool __section(.data.unlikely) __warned;		\
- 	int __ret_warn_once = !!(condition);			\
- 								\
- 	if (unlikely(__ret_warn_once))				\
-@@ -144,7 +144,7 @@ extern void warn_slowpath_null(const cha
- })
- 
- #define WARN_ONCE(condition, format...)	({			\
--	static bool __warned;					\
-+	static bool __section(.data.unlikely) __warned;		\
- 	int __ret_warn_once = !!(condition);			\
- 								\
- 	if (unlikely(__ret_warn_once))				\
-@@ -154,7 +154,7 @@ extern void warn_slowpath_null(const cha
- })
- 
- #define WARN_TAINT_ONCE(condition, taint, format...)	({	\
--	static bool __warned;					\
-+	static bool __section(.data.unlikely) __warned;		\
- 	int __ret_warn_once = !!(condition);			\
- 								\
- 	if (unlikely(__ret_warn_once))				\
-diff -puN include/asm-generic/vmlinux.lds.h~consolidate-warn_once-static-variables include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~consolidate-warn_once-static-variables
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -167,6 +167,7 @@
- 	CPU_KEEP(exit.data)						\
- 	MEM_KEEP(init.data)						\
- 	MEM_KEEP(exit.data)						\
-+	*(.data.unlikely)						\
- 	STRUCT_ALIGN();							\
- 	*(__tracepoints)						\
- 	/* implement dynamic printk debug */				\
-diff -puN include/linux/rcupdate.h~consolidate-warn_once-static-variables include/linux/rcupdate.h
---- a/include/linux/rcupdate.h~consolidate-warn_once-static-variables
-+++ a/include/linux/rcupdate.h
-@@ -419,7 +419,7 @@ extern int rcu_my_thread_group_empty(voi
-  */
- #define rcu_lockdep_assert(c, s)					\
- 	do {								\
--		static bool __warned;					\
-+		static bool __section(.data.unlikely) __warned;		\
- 		if (debug_lockdep_rcu_enabled() && !__warned && !(c)) {	\
- 			__warned = true;				\
- 			lockdep_rcu_suspicious(__FILE__, __LINE__, s);	\
+ 	return 0;
 _
-Subject: Subject: consolidate WARN_...ONCE() static variables
+Subject: Subject: rtc: fix rtc-ds1307 printk format warning
 
-Patches currently in -mm which might be from JBeulich@suse.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
+origin.patch
 linux-next.patch
-consolidate-warn_once-static-variables.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch
+rtc-ds1307-generalise-ram-size-and-offset-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
