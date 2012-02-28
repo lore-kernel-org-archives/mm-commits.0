@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-crash-dont-save-swapper_pg_dir-for-config_mmu-configurations.patch added to -mm tree
-Date: Mon, 27 Feb 2012 15:57:45 -0800
-Message-ID: <20120227235745.9FE5FA00B3@akpm.mtv.corp.google.com>
+Subject: + consolidate-warn_once-static-variables.patch added to -mm tree
+Date: Mon, 27 Feb 2012 16:03:06 -0800
+Message-ID: <20120228000306.B1D71A02DD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vw0-f74.google.com ([209.85.212.74]:51823 "EHLO
-	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755681Ab2B0X5q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 18:57:46 -0500
-Received: by vbnl22 with SMTP id l22so332704vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 15:57:46 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:37523 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932142Ab2B1ADJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Feb 2012 19:03:09 -0500
+Received: by eaaf13 with SMTP id f13so184152eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Feb 2012 16:03:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: will.deacon@arm.com, ebiederm@xmission.com, horms@verge.net.au
+Cc: JBeulich@suse.com, jbeulich@suse.com
 
 
 The patch titled
-     Subject: kexec: crash: don't save swapper_pg_dir for !CONFIG_MMU configurations
+     Subject: consolidate WARN_...ONCE() static variables
 has been added to the -mm tree.  Its filename is
-     kexec-crash-dont-save-swapper_pg_dir-for-config_mmu-configurations.patch
+     consolidate-warn_once-static-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: kexec: crash: don't save swapper_pg_dir for !CONFIG_MMU configurations
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: consolidate WARN_...ONCE() static variables
 
-nommu platforms don't have very interesting swapper_pg_dir pointers and
-usually just #define them to NULL, meaning that we can't include them in
-the vmcoreinfo on the kexec crash path.
+Due to the alignment of following variables, these typically consume more
+than just the single byte that 'bool' requires, and as there are a few
+hundred instances, the cache pollution (not so much the waste of memory)
+sums up.  Put these variables into their own section, outside of any half
+way frequently used memory range.
 
-This patch only saves the swapper_pg_dir if we have an MMU.
+Do the same also to the __warned variable of rcu_lockdep_assert(). 
+(Don't, however, include the ones used by printk_once() and alike, as they
+can potentially be hot.)
 
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Reviewed-by: Simon Horman <horms@verge.net.au>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-generic/bug.h         |    6 +++---
+ include/asm-generic/vmlinux.lds.h |    1 +
+ include/linux/rcupdate.h          |    2 +-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-crash-dont-save-swapper_pg_dir-for-config_mmu-configurations kernel/kexec.c
---- a/kernel/kexec.c~kexec-crash-dont-save-swapper_pg_dir-for-config_mmu-configurations
-+++ a/kernel/kexec.c
-@@ -1462,7 +1462,9 @@ static int __init crash_save_vmcoreinfo_
+diff -puN include/asm-generic/bug.h~consolidate-warn_once-static-variables include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~consolidate-warn_once-static-variables
++++ a/include/asm-generic/bug.h
+@@ -134,7 +134,7 @@ extern void warn_slowpath_null(const cha
+ #endif
  
- 	VMCOREINFO_SYMBOL(init_uts_ns);
- 	VMCOREINFO_SYMBOL(node_online_map);
-+#ifdef CONFIG_MMU
- 	VMCOREINFO_SYMBOL(swapper_pg_dir);
-+#endif
- 	VMCOREINFO_SYMBOL(_stext);
- 	VMCOREINFO_SYMBOL(vmlist);
+ #define WARN_ON_ONCE(condition)	({				\
+-	static bool __warned;					\
++	static bool __section(.data.unlikely) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once))				\
+@@ -144,7 +144,7 @@ extern void warn_slowpath_null(const cha
+ })
  
+ #define WARN_ONCE(condition, format...)	({			\
+-	static bool __warned;					\
++	static bool __section(.data.unlikely) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once))				\
+@@ -154,7 +154,7 @@ extern void warn_slowpath_null(const cha
+ })
+ 
+ #define WARN_TAINT_ONCE(condition, taint, format...)	({	\
+-	static bool __warned;					\
++	static bool __section(.data.unlikely) __warned;		\
+ 	int __ret_warn_once = !!(condition);			\
+ 								\
+ 	if (unlikely(__ret_warn_once))				\
+diff -puN include/asm-generic/vmlinux.lds.h~consolidate-warn_once-static-variables include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~consolidate-warn_once-static-variables
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -167,6 +167,7 @@
+ 	CPU_KEEP(exit.data)						\
+ 	MEM_KEEP(init.data)						\
+ 	MEM_KEEP(exit.data)						\
++	*(.data.unlikely)						\
+ 	STRUCT_ALIGN();							\
+ 	*(__tracepoints)						\
+ 	/* implement dynamic printk debug */				\
+diff -puN include/linux/rcupdate.h~consolidate-warn_once-static-variables include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~consolidate-warn_once-static-variables
++++ a/include/linux/rcupdate.h
+@@ -419,7 +419,7 @@ extern int rcu_my_thread_group_empty(voi
+  */
+ #define rcu_lockdep_assert(c, s)					\
+ 	do {								\
+-		static bool __warned;					\
++		static bool __section(.data.unlikely) __warned;		\
+ 		if (debug_lockdep_rcu_enabled() && !__warned && !(c)) {	\
+ 			__warned = true;				\
+ 			lockdep_rcu_suspicious(__FILE__, __LINE__, s);	\
 _
-Subject: Subject: kexec: crash: don't save swapper_pg_dir for !CONFIG_MMU configurations
+Subject: Subject: consolidate WARN_...ONCE() static variables
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from JBeulich@suse.com are
 
 linux-next.patch
-arm-use-set_current_blocked-and-block_sigmask.patch
-kexec-crash-dont-save-swapper_pg_dir-for-config_mmu-configurations.patch
+consolidate-warn_once-static-variables.patch
 
