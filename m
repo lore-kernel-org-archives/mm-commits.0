@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-move-migrate_pages-race-on-task-struct.patch added to -mm tree
-Date: Wed, 29 Feb 2012 12:31:25 -0800
-Message-ID: <20120229203125.F3679A00AA@akpm.mtv.corp.google.com>
+Subject: + mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 29 Feb 2012 12:33:47 -0800
+Message-ID: <20120229203348.40930A00AA@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:34810 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755373Ab2B2Ub3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 15:31:29 -0500
-Received: by wgbdt11 with SMTP id dt11so145823wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 29 Feb 2012 12:31:27 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:53690 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754283Ab2B2Udt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 15:33:49 -0500
+Received: by yenq2 with SMTP id q2so413688yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 29 Feb 2012 12:33:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cl@linux.com, dave@linux.vnet.ibm.com, ebiederm@xmission.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, cl@linux.com
 
 
 The patch titled
-     Subject: mm: fix move/migrate_pages() race on task struct
+     Subject: mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-fix-move-migrate_pages-race-on-task-struct.patch
+     mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,221 +33,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: mm: fix move/migrate_pages() race on task struct
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
 
-Migration functions perform the rcu_read_unlock too early.  As a result
-the task pointed to may change from under us.
+WARNING: line over 80 characters
+#97: FILE: mm/mempolicy.c:1365:
++			capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
 
-The following patch extend the period of the rcu_read_lock until after the
-permissions checks are done.  We also take a refcount so that the task
-reference is stable when calling security check functions and performing
-cpuset node validation (which takes a mutex).
+WARNING: line over 80 characters
+#184: FILE: mm/migrate.c:1395:
++			err = do_pages_move(mm, task_nodes, nr_pages, pages, nodes,
 
-The refcount is dropped before actual page migration occurs so there is no
-change to the refcounts held during page migration.
+total: 0 errors, 2 warnings, 150 lines checked
 
-Also move the determination of the mm of the task struct to immediately
-before the do_migrate*() calls so that it is clear that we switch from
-handling the task during permission checks to the mm for the actual
-migration.  Since the determination is only done once and we then no
-longer use the task_struct we can be sure that we operate on a specific
-address space that will not change from under us.
+./patches/mm-fix-move-migrate_pages-race-on-task-struct.patch has style problems, please review.
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   32 +++++++++++++++++++-------------
- mm/migrate.c   |   36 +++++++++++++++++++-----------------
- 2 files changed, 38 insertions(+), 30 deletions(-)
+ mm/migrate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~fix-move-migrate_pages-race-on-task-struct mm/mempolicy.c
---- a/mm/mempolicy.c~fix-move-migrate_pages-race-on-task-struct
-+++ a/mm/mempolicy.c
-@@ -1322,12 +1322,9 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
- 		err = -ESRCH;
- 		goto out;
- 	}
--	mm = get_task_mm(task);
--	rcu_read_unlock();
-+	get_task_struct(task);
- 
- 	err = -EINVAL;
--	if (!mm)
--		goto out;
- 
- 	/*
- 	 * Check if this process has the right to modify the specified
-@@ -1335,14 +1332,13 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
- 	 * capabilities, superuser privileges or the same
- 	 * userid as the target process.
- 	 */
--	rcu_read_lock();
- 	tcred = __task_cred(task);
- 	if (cred->euid != tcred->suid && cred->euid != tcred->uid &&
- 	    cred->uid  != tcred->suid && cred->uid  != tcred->uid &&
- 	    !capable(CAP_SYS_NICE)) {
- 		rcu_read_unlock();
- 		err = -EPERM;
--		goto out;
-+		goto out_put;
- 	}
- 	rcu_read_unlock();
- 
-@@ -1350,26 +1346,36 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
- 	/* Is the user allowed to access the target nodes? */
- 	if (!nodes_subset(*new, task_nodes) && !capable(CAP_SYS_NICE)) {
- 		err = -EPERM;
--		goto out;
-+		goto out_put;
- 	}
- 
- 	if (!nodes_subset(*new, node_states[N_HIGH_MEMORY])) {
- 		err = -EINVAL;
--		goto out;
-+		goto out_put;
- 	}
- 
- 	err = security_task_movememory(task);
- 	if (err)
--		goto out;
-+		goto out_put;
- 
--	err = do_migrate_pages(mm, old, new,
--		capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
--out:
-+	mm = get_task_mm(task);
-+	put_task_struct(task);
- 	if (mm)
--		mmput(mm);
-+		err = do_migrate_pages(mm, old, new,
-+			capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
-+	else
-+		err = -EINVAL;
-+
-+	mmput(mm);
-+out:
- 	NODEMASK_SCRATCH_FREE(scratch);
- 
- 	return err;
-+
-+out_put:
-+	put_task_struct(task);
-+	goto out;
-+
- }
- 
- 
-diff -puN mm/migrate.c~fix-move-migrate_pages-race-on-task-struct mm/migrate.c
---- a/mm/migrate.c~fix-move-migrate_pages-race-on-task-struct
+diff -puN mm/migrate.c~mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes mm/migrate.c
+--- a/mm/migrate.c~mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
 +++ a/mm/migrate.c
-@@ -1176,20 +1176,17 @@ set_status:
-  * Migrate an array of page address onto an array of nodes and fill
-  * the corresponding array of status.
-  */
--static int do_pages_move(struct mm_struct *mm, struct task_struct *task,
-+static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
- 			 unsigned long nr_pages,
- 			 const void __user * __user *pages,
- 			 const int __user *nodes,
- 			 int __user *status, int flags)
- {
- 	struct page_to_node *pm;
--	nodemask_t task_nodes;
- 	unsigned long chunk_nr_pages;
- 	unsigned long chunk_start;
- 	int err;
+@@ -1392,8 +1392,8 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
  
--	task_nodes = cpuset_mems_allowed(task);
--
- 	err = -ENOMEM;
- 	pm = (struct page_to_node *)__get_free_page(GFP_KERNEL);
- 	if (!pm)
-@@ -1351,6 +1348,7 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
- 	struct task_struct *task;
- 	struct mm_struct *mm;
- 	int err;
-+	nodemask_t task_nodes;
- 
- 	/* Check flags */
- 	if (flags & ~(MPOL_MF_MOVE|MPOL_MF_MOVE_ALL))
-@@ -1366,11 +1364,7 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
- 		rcu_read_unlock();
- 		return -ESRCH;
- 	}
--	mm = get_task_mm(task);
--	rcu_read_unlock();
--
--	if (!mm)
--		return -EINVAL;
-+	get_task_struct(task);
- 
- 	/*
- 	 * Check if this process has the right to modify the specified
-@@ -1378,7 +1372,6 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
- 	 * capabilities, superuser privileges or the same
- 	 * userid as the target process.
- 	 */
--	rcu_read_lock();
- 	tcred = __task_cred(task);
- 	if (cred->euid != tcred->suid && cred->euid != tcred->uid &&
- 	    cred->uid  != tcred->suid && cred->uid  != tcred->uid &&
-@@ -1393,16 +1386,25 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
-  	if (err)
- 		goto out;
- 
--	if (nodes) {
--		err = do_pages_move(mm, task, nr_pages, pages, nodes, status,
--				    flags);
--	} else {
--		err = do_pages_stat(mm, nr_pages, pages, status);
--	}
-+	task_nodes = cpuset_mems_allowed(task);
-+	mm = get_task_mm(task);
-+	put_task_struct(task);
-+
-+	if (mm) {
-+		if (nodes)
-+			err = do_pages_move(mm, task_nodes, nr_pages, pages, nodes,
-+				status, flags);
-+		else
-+			err = do_pages_stat(mm, nr_pages, pages, status);
-+	} else
-+		err = -EINVAL;
- 
--out:
- 	mmput(mm);
- 	return err;
-+
-+out:
-+	put_task_struct(task);
-+	return err;
- }
- 
- /*
+ 	if (mm) {
+ 		if (nodes)
+-			err = do_pages_move(mm, task_nodes, nr_pages, pages, nodes,
+-				status, flags);
++			err = do_pages_move(mm, task_nodes, nr_pages, pages,
++					    nodes, status, flags);
+ 		else
+ 			err = do_pages_stat(mm, nr_pages, pages, status);
+ 	} else
 _
-Subject: Subject: mm: fix move/migrate_pages() race on task struct
+Subject: Subject: mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
-mm-fix-move-migrate_pages-race-on-task-struct.patch
-smp-introduce-a-generic-on_each_cpu_mask-function.patch
-slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
-mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
-selftests-launch-individual-selftests-from-the-main-makefile.patch
-move-page-typesc-from-documentation-to-tools-vm.patch
-move-slabinfoc-to-tools-vm.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
+x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
+mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+brlocks-lglocks-cleanups.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
 move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
 move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
