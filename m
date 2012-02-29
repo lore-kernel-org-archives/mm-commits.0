@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch added to -mm tree
-Date: Wed, 29 Feb 2012 15:29:05 -0800
-Message-ID: <20120229232905.83F20A024E@akpm.mtv.corp.google.com>
+Subject: + bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch added to -mm tree
+Date: Wed, 29 Feb 2012 15:29:07 -0800
+Message-ID: <20120229232907.D42D6A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:57092 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754248Ab2B2X3H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 18:29:07 -0500
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:57451 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754248Ab2B2X3L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 18:29:11 -0500
+Received: by wgbdt11 with SMTP id dt11so150051wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 29 Feb 2012 15:29:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nacc@linux.vnet.ibm.com, anton@au1.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, haveblue@us.ibm.com, nacc@us.ibm.com, paulus@samba.org, rcj@linux.vnet.ibm.com, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, nacc@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: bootmem/sparsemem: remove limit constraint in alloc_bootmem_section
+     Subject: bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix
 has been added to the -mm tree.  Its filename is
-     bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch
+     bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,123 +33,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Subject: bootmem/sparsemem: remove limit constraint in alloc_bootmem_section
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix
 
-While testing AMS (Active Memory Sharing) / CMO (Cooperative Memory
-Overcommit) on powerpc, we tripped the following:
+code simplification
 
-kernel BUG at mm/bootmem.c:483!
-cpu 0x0: Vector: 700 (Program Check) at [c000000000c03940]
-    pc: c000000000a62bd8: .alloc_bootmem_core+0x90/0x39c
-    lr: c000000000a64bcc: .sparse_early_usemaps_alloc_node+0x84/0x29c
-    sp: c000000000c03bc0
-   msr: 8000000000021032
-  current = 0xc000000000b0cce0
-  paca    = 0xc000000001d80000
-    pid   = 0, comm = swapper
-kernel BUG at mm/bootmem.c:483!
-enter ? for help
-[c000000000c03c80] c000000000a64bcc
-.sparse_early_usemaps_alloc_node+0x84/0x29c
-[c000000000c03d50] c000000000a64f10 .sparse_init+0x12c/0x28c
-[c000000000c03e20] c000000000a474f4 .setup_arch+0x20c/0x294
-[c000000000c03ee0] c000000000a4079c .start_kernel+0xb4/0x460
-[c000000000c03f90] c000000000009670 .start_here_common+0x1c/0x2c
-
-This is
-
-        BUG_ON(limit && goal + size > limit);
-
-and after some debugging, it seems that
-
-	goal = 0x7ffff000000
-	limit = 0x80000000000
-
-and sparse_early_usemaps_alloc_node ->
-sparse_early_usemaps_alloc_pgdat_section calls
-
-	return alloc_bootmem_section(usemap_size() * count, section_nr);
-
-This is on a system with 8TB available via the AMS pool, and as a quirk of
-AMS in firmware, all of that memory shows up in node 0.  So, we end up
-with an allocation that will fail the goal/limit constraints.  In theory,
-we could "fall-back" to alloc_bootmem_node() in
-sparse_early_usemaps_alloc_node(), but since we actually have HOTREMOVE
-defined, we'll BUG_ON() instead.  A simple solution appears to be to
-unconditionally remove the limit condition in alloc_bootmem_section,
-meaning allocations are allowed to cross section boundaries (necessary for
-systems of this size).
-
-Johannes Weiner pointed out that if alloc_bootmem_section() no longer
-guarantees section-locality, we need check_usemap_section_nr() to print
-possible cross-dependencies between node descriptors and the usemaps
-allocated through it.  That makes the two loops in
-sparse_early_usemaps_alloc_node() identical, so re-factor the code a bit.
-
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Anton Blanchard <anton@au1.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
-Cc: Robert Jennings <rcj@linux.vnet.ibm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[3.3.1]
+Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    2 +-
- mm/sparse.c  |   30 +++++++++++-------------------
- 2 files changed, 12 insertions(+), 20 deletions(-)
+ mm/bootmem.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section mm/bootmem.c
---- a/mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section
+diff -puN mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix
 +++ a/mm/bootmem.c
-@@ -770,7 +770,7 @@ void * __init alloc_bootmem_section(unsi
+@@ -766,14 +766,13 @@ void * __init alloc_bootmem_section(unsi
+ 				    unsigned long section_nr)
+ {
+ 	bootmem_data_t *bdata;
+-	unsigned long pfn, goal, limit;
++	unsigned long pfn, goal;
  
  	pfn = section_nr_to_pfn(section_nr);
  	goal = pfn << PAGE_SHIFT;
--	limit = section_nr_to_pfn(section_nr + 1) << PAGE_SHIFT;
-+	limit = 0;
+-	limit = 0;
  	bdata = &bootmem_node_data[early_pfn_to_nid(pfn)];
  
- 	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, limit);
-diff -puN mm/sparse.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section mm/sparse.c
---- a/mm/sparse.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section
-+++ a/mm/sparse.c
-@@ -353,29 +353,21 @@ static void __init sparse_early_usemaps_
+-	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, limit);
++	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, 0);
+ }
+ #endif
  
- 	usemap = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
- 								 usemap_count);
--	if (usemap) {
--		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
--			if (!present_section_nr(pnum))
--				continue;
--			usemap_map[pnum] = usemap;
--			usemap += size;
-+	if (!usemap) {
-+		usemap = alloc_bootmem_node(NODE_DATA(nodeid), size * usemap_count);
-+		if (!usemap) {
-+			printk(KERN_WARNING "%s: allocation failed\n", __func__);
-+			return;
- 		}
--		return;
- 	}
- 
--	usemap = alloc_bootmem_node(NODE_DATA(nodeid), size * usemap_count);
--	if (usemap) {
--		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
--			if (!present_section_nr(pnum))
--				continue;
--			usemap_map[pnum] = usemap;
--			usemap += size;
--			check_usemap_section_nr(nodeid, usemap_map[pnum]);
--		}
--		return;
-+	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
-+		if (!present_section_nr(pnum))
-+			continue;
-+		usemap_map[pnum] = usemap;
-+		usemap += size;
-+		check_usemap_section_nr(nodeid, usemap_map[pnum]);
- 	}
+_
+Subject: Subject: bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
+x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
+hpet-factor-timer-allocate-from-open.patch
+thermal-thermal_sys-fix-build-warning.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
+mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+brlocks-lglocks-cleanups.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
