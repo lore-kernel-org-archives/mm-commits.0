@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 29 Feb 2012 12:33:47 -0800
-Message-ID: <20120229203348.40930A00AA@akpm.mtv.corp.google.com>
+Subject: + mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug.patch added to -mm tree
+Date: Wed, 29 Feb 2012 12:38:36 -0800
+Message-ID: <20120229203836.BA902A02DD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:53690 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754283Ab2B2Udt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 15:33:49 -0500
-Received: by yenq2 with SMTP id q2so413688yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 29 Feb 2012 12:33:48 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:62559 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755871Ab2B2Uij (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 15:38:39 -0500
+Received: by bkcjm19 with SMTP id jm19so32707bkc.1
+        for <mm-commits@vger.kernel.org>; Wed, 29 Feb 2012 12:38:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux.com
+Cc: khlebnikov@openvz.org, cl@linux-foundation.org, dave@linux.vnet.ibm.com, ebmunson@us.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     Subject: mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
+     Subject: mm: drain percpu lru add/rotate page-vectors on cpu hot-unplug
 has been added to the -mm tree.  Its filename is
-     mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
+     mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,122 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm: drain percpu lru add/rotate page-vectors on cpu hot-unplug
 
-WARNING: line over 80 characters
-#97: FILE: mm/mempolicy.c:1365:
-+			capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
+This cpu hotplug hook was accidentally removed in commit
+v2.6.30-rc4-18-g00a62ce ("mm: fix Committed_AS underflow on large NR_CPUS
+environment")
 
-WARNING: line over 80 characters
-#184: FILE: mm/migrate.c:1395:
-+			err = do_pages_move(mm, task_nodes, nr_pages, pages, nodes,
-
-total: 0 errors, 2 warnings, 150 lines checked
-
-./patches/mm-fix-move-migrate_pages-race-on-task-struct.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Eric B Munson <ebmunson@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    1 +
+ mm/page_alloc.c      |    1 +
+ mm/swap.c            |    4 ++--
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes mm/migrate.c
---- a/mm/migrate.c~mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
-+++ a/mm/migrate.c
-@@ -1392,8 +1392,8 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
+diff -puN include/linux/swap.h~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug include/linux/swap.h
+--- a/include/linux/swap.h~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug
++++ a/include/linux/swap.h
+@@ -227,6 +227,7 @@ extern void lru_add_page_tail(struct zon
+ extern void activate_page(struct page *);
+ extern void mark_page_accessed(struct page *);
+ extern void lru_add_drain(void);
++extern void lru_add_drain_cpu(int cpu);
+ extern int lru_add_drain_all(void);
+ extern void rotate_reclaimable_page(struct page *page);
+ extern void deactivate_page(struct page *page);
+diff -puN mm/page_alloc.c~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug
++++ a/mm/page_alloc.c
+@@ -4825,6 +4825,7 @@ static int page_alloc_cpu_notify(struct 
+ 	int cpu = (unsigned long)hcpu;
  
- 	if (mm) {
- 		if (nodes)
--			err = do_pages_move(mm, task_nodes, nr_pages, pages, nodes,
--				status, flags);
-+			err = do_pages_move(mm, task_nodes, nr_pages, pages,
-+					    nodes, status, flags);
- 		else
- 			err = do_pages_stat(mm, nr_pages, pages, status);
- 	} else
+ 	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
++		lru_add_drain_cpu(cpu);
+ 		drain_pages(cpu);
+ 
+ 		/*
+diff -puN mm/swap.c~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug mm/swap.c
+--- a/mm/swap.c~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug
++++ a/mm/swap.c
+@@ -496,7 +496,7 @@ static void lru_deactivate_fn(struct pag
+  * Either "cpu" is the current CPU, and preemption has already been
+  * disabled; or "cpu" is being hot-unplugged, and is already dead.
+  */
+-static void drain_cpu_pagevecs(int cpu)
++void lru_add_drain_cpu(int cpu)
+ {
+ 	struct pagevec *pvecs = per_cpu(lru_add_pvecs, cpu);
+ 	struct pagevec *pvec;
+@@ -553,7 +553,7 @@ void deactivate_page(struct page *page)
+ 
+ void lru_add_drain(void)
+ {
+-	drain_cpu_pagevecs(get_cpu());
++	lru_add_drain_cpu(get_cpu());
+ 	put_cpu();
+ }
+ 
 _
-Subject: Subject: mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
+Subject: Subject: mm: drain percpu lru add/rotate page-vectors on cpu hot-unplug
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
-x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
-mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-brlocks-lglocks-cleanups.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-add-rss-counters-consistency-check.patch
+mm-make-get_mm_counter-static-inline.patch
+mm-replace-page_migration-with-is_enabledconfig_migration.patch
+mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug.patch
+mm-fix-page-faults-detection-in-swap-token-logic.patch
+memcg-kill-dead-prev_priority-stubs.patch
 
