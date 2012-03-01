@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch added to -mm tree
-Date: Thu, 01 Mar 2012 12:36:38 -0800
-Message-ID: <20120301203640.DC7CDA018B@akpm.mtv.corp.google.com>
+Subject: + checkpatch-allow-simple-character-constants-in-defines.patch added to -mm tree
+Date: Thu, 01 Mar 2012 12:36:43 -0800
+Message-ID: <20120301203643.C1B99A018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:59459 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756008Ab2CAUgn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 15:36:43 -0500
-Received: by ggnd2 with SMTP id d2so114683ggn.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 12:36:43 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:47667 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757688Ab2CAUgo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 15:36:44 -0500
+Received: by yhgm50 with SMTP id m50so114554yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 12:36:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@canonical.com, joe@perches.com, marek.vasut@gmail.com
+Cc: apw@canonical.com, joe@perches.com
 
 
 The patch titled
-     Subject: checkpatch: catch [ ... ] usage when not at the beginning of definition
+     Subject: checkpatch: allow simple character constants in #defines
 has been added to the -mm tree.  Its filename is
-     checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch
+     checkpatch-allow-simple-character-constants-in-defines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Whitcroft <apw@canonical.com>
-Subject: checkpatch: catch [ ... ] usage when not at the beginning of definition
+Subject: checkpatch: allow simple character constants in #defines
 
-Handle the [ A ... B ] form deeper into a definition, for example:
-
-    static const unsigned char pci_irq_swizzle[2][PCI_MAX_DEVICES] = {
-	    {0, 0, 0, 0, 0, 0, 0, 27, 27, [9 ... PCI_MAX_DEVICES - 1] = 0 },
-	    {0, 0, 0, 0, 0, 0, 0, 29, 29, [9 ... PCI_MAX_DEVICES - 1] = 0 },
-    };
-
-Reported-by: Marek Vasut <marek.vasut@gmail.com>
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-catch-usage-when-not-at-the-beginning-of-defination scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-catch-usage-when-not-at-the-beginning-of-defination
+diff -puN scripts/checkpatch.pl~checkpatch-allow-simple-character-constants-in-defines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-simple-character-constants-in-defines
 +++ a/scripts/checkpatch.pl
-@@ -2386,7 +2386,7 @@ sub process {
- 			my ($where, $prefix) = ($-[1], $1);
- 			if ($prefix !~ /$Type\s+$/ &&
- 			    ($where != 0 || $prefix !~ /^.\s+$/) &&
--			    $prefix !~ /{\s+$/) {
-+			    $prefix !~ /[{,]\s+$/) {
- 				ERROR("BRACKET_SPACE",
- 				      "space prohibited before open square bracket '['\n" . $herecurr);
- 			}
+@@ -2906,6 +2906,7 @@ sub process {
+ 			    $dstat !~ /^(?:$Ident|-?$Constant),$/ &&			# 10, // foo(),
+ 			    $dstat !~ /^(?:$Ident|-?$Constant);$/ &&			# foo();
+ 			    $dstat !~ /^(?:$Ident|-?$Constant)$/ &&			# 10 // foo()
++			    $dstat !~ /^'X'$/ &&					# character constants
+ 			    $dstat !~ /$exceptions/ &&
+ 			    $dstat !~ /^\.$Ident\s*=/ &&				# .foo =
+ 			    $dstat !~ /^do\s*$Constant\s*while\s*$Constant;?$/ &&	# do {...} while (...); // do {...} while (...)
 _
-Subject: Subject: checkpatch: catch [ ... ] usage when not at the beginning of definition
+Subject: Subject: checkpatch: allow simple character constants in #defines
 
 Patches currently in -mm which might be from apw@canonical.com are
 
