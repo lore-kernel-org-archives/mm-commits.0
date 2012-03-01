@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + floppy-scsi-fix-setting-of-bio-flags.patch added to -mm tree
-Date: Wed, 29 Feb 2012 16:05:15 -0800
-Message-ID: <20120301000515.A37CAA023F@akpm.mtv.corp.google.com>
+Subject: + checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch added to -mm tree
+Date: Thu, 01 Mar 2012 12:36:38 -0800
+Message-ID: <20120301203640.DC7CDA018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:49390 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675Ab2CAAFR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 19:05:17 -0500
-Received: by ghbz15 with SMTP id z15so2932ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 29 Feb 2012 16:05:16 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:59459 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756008Ab2CAUgn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 15:36:43 -0500
+Received: by ggnd2 with SMTP id d2so114683ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 12:36:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: muthu.lkml@gmail.com, James.Bottomley@HansenPartnership.com, axboe@kernel.dk, muthur@gmail.com
+Cc: apw@canonical.com, joe@perches.com, marek.vasut@gmail.com
 
 
 The patch titled
-     Subject: floppy/scsi: fix setting of BIO flags
+     Subject: checkpatch: catch [ ... ] usage when not at the beginning of definition
 has been added to the -mm tree.  Its filename is
-     floppy-scsi-fix-setting-of-bio-flags.patch
+     checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muthu Kumar <muthu.lkml@gmail.com>
-Subject: floppy/scsi: fix setting of BIO flags
+From: Andy Whitcroft <apw@canonical.com>
+Subject: checkpatch: catch [ ... ] usage when not at the beginning of definition
 
-Fix setting bio flags in drivers (sd_dif/floppy).
+Handle the [ A ... B ] form deeper into a definition, for example:
 
-Signed-off-by: Muthukumar R <muthur@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+    static const unsigned char pci_irq_swizzle[2][PCI_MAX_DEVICES] = {
+	    {0, 0, 0, 0, 0, 0, 0, 27, 27, [9 ... PCI_MAX_DEVICES - 1] = 0 },
+	    {0, 0, 0, 0, 0, 0, 0, 29, 29, [9 ... PCI_MAX_DEVICES - 1] = 0 },
+    };
+
+Reported-by: Marek Vasut <marek.vasut@gmail.com>
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    2 +-
- drivers/scsi/sd_dif.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/floppy.c~floppy-scsi-fix-setting-of-bio-flags drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-scsi-fix-setting-of-bio-flags
-+++ a/drivers/block/floppy.c
-@@ -3832,7 +3832,7 @@ static int __floppy_read_block_0(struct 
- 	bio.bi_size = size;
- 	bio.bi_bdev = bdev;
- 	bio.bi_sector = 0;
--	bio.bi_flags = BIO_QUIET;
-+	bio.bi_flags = (1 << BIO_QUIET);
- 	init_completion(&complete);
- 	bio.bi_private = &complete;
- 	bio.bi_end_io = floppy_rb0_complete;
-diff -puN drivers/scsi/sd_dif.c~floppy-scsi-fix-setting-of-bio-flags drivers/scsi/sd_dif.c
---- a/drivers/scsi/sd_dif.c~floppy-scsi-fix-setting-of-bio-flags
-+++ a/drivers/scsi/sd_dif.c
-@@ -408,7 +408,7 @@ int sd_dif_prepare(struct request *rq, s
- 			kunmap_atomic(sdt);
- 		}
- 
--		bio->bi_flags |= BIO_MAPPED_INTEGRITY;
-+		bio->bi_flags |= (1 << BIO_MAPPED_INTEGRITY);
- 	}
- 
- 	return 0;
+diff -puN scripts/checkpatch.pl~checkpatch-catch-usage-when-not-at-the-beginning-of-defination scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-catch-usage-when-not-at-the-beginning-of-defination
++++ a/scripts/checkpatch.pl
+@@ -2386,7 +2386,7 @@ sub process {
+ 			my ($where, $prefix) = ($-[1], $1);
+ 			if ($prefix !~ /$Type\s+$/ &&
+ 			    ($where != 0 || $prefix !~ /^.\s+$/) &&
+-			    $prefix !~ /{\s+$/) {
++			    $prefix !~ /[{,]\s+$/) {
+ 				ERROR("BRACKET_SPACE",
+ 				      "space prohibited before open square bracket '['\n" . $herecurr);
+ 			}
 _
-Subject: Subject: floppy/scsi: fix setting of BIO flags
+Subject: Subject: checkpatch: catch [ ... ] usage when not at the beginning of definition
 
-Patches currently in -mm which might be from muthu.lkml@gmail.com are
+Patches currently in -mm which might be from apw@canonical.com are
 
-floppy-scsi-fix-setting-of-bio-flags.patch
-magich-move-some-fs-magic-numbers-into-magich.patch
+checkpatchpl-be-silent-when-q-and-ignore-is-given.patch
+checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch
+checkpatch-allow-simple-character-constants-in-defines.patch
+checkpatch-handle-string-concatenation-in-simple-defines.patch
+checkpatch-high-precidence-operators-do-not-require-additional-parentheses-in-defines.patch
+checkpatch-add-to-type-extensions.patch
 
