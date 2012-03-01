@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-fix-ot200_bl-build.patch added to -mm tree
-Date: Wed, 29 Feb 2012 15:58:59 -0800
-Message-ID: <20120229235859.AA9E9A023F@akpm.mtv.corp.google.com>
+Subject: + floppy-scsi-fix-setting-of-bio-flags.patch added to -mm tree
+Date: Wed, 29 Feb 2012 16:05:15 -0800
+Message-ID: <20120301000515.A37CAA023F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:64445 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757009Ab2B2X7C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 18:59:02 -0500
-Received: by wgbdt11 with SMTP id dt11so364wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 29 Feb 2012 15:59:00 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:49390 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752675Ab2CAAFR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Feb 2012 19:05:17 -0500
+Received: by ghbz15 with SMTP id z15so2932ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 29 Feb 2012 16:05:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@xenotime.net, christian.gmeiner@gmail.com, rpurdie@rpsys.net
+Cc: muthu.lkml@gmail.com, James.Bottomley@HansenPartnership.com, axboe@kernel.dk, muthur@gmail.com
 
 
 The patch titled
-     Subject: backlight: fix ot200_bl build
+     Subject: floppy/scsi: fix setting of BIO flags
 has been added to the -mm tree.  Its filename is
-     backlight-fix-ot200_bl-build.patch
+     floppy-scsi-fix-setting-of-bio-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: backlight: fix ot200_bl build
+From: Muthu Kumar <muthu.lkml@gmail.com>
+Subject: floppy/scsi: fix setting of BIO flags
 
-Fix build error when GPIO_CS5535 is not enabled:
+Fix setting bio flags in drivers (sd_dif/floppy).
 
-drivers/built-in.o: In function `ot200_backlight_probe':
-ot200_bl.c:(.text+0x205bf): undefined reference to `cs5535_gpio_set'
-ot200_bl.c:(.text+0x205d1): undefined reference to `cs5535_gpio_set'
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Christian Gmeiner <christian.gmeiner@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Muthukumar R <muthur@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/floppy.c |    2 +-
+ drivers/scsi/sd_dif.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~backlight-fix-ot200_bl-build drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-fix-ot200_bl-build
-+++ a/drivers/video/backlight/Kconfig
-@@ -343,7 +343,7 @@ config BACKLIGHT_LP855X
+diff -puN drivers/block/floppy.c~floppy-scsi-fix-setting-of-bio-flags drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-scsi-fix-setting-of-bio-flags
++++ a/drivers/block/floppy.c
+@@ -3832,7 +3832,7 @@ static int __floppy_read_block_0(struct 
+ 	bio.bi_size = size;
+ 	bio.bi_bdev = bdev;
+ 	bio.bi_sector = 0;
+-	bio.bi_flags = BIO_QUIET;
++	bio.bi_flags = (1 << BIO_QUIET);
+ 	init_completion(&complete);
+ 	bio.bi_private = &complete;
+ 	bio.bi_end_io = floppy_rb0_complete;
+diff -puN drivers/scsi/sd_dif.c~floppy-scsi-fix-setting-of-bio-flags drivers/scsi/sd_dif.c
+--- a/drivers/scsi/sd_dif.c~floppy-scsi-fix-setting-of-bio-flags
++++ a/drivers/scsi/sd_dif.c
+@@ -408,7 +408,7 @@ int sd_dif_prepare(struct request *rq, s
+ 			kunmap_atomic(sdt);
+ 		}
  
- config BACKLIGHT_OT200
- 	tristate "Backlight driver for ot200 visualisation device"
--	depends on BACKLIGHT_CLASS_DEVICE && CS5535_MFGPT
-+	depends on BACKLIGHT_CLASS_DEVICE && CS5535_MFGPT && GPIO_CS5535
- 	help
- 	  To compile this driver as a module, choose M here: the module will be
- 	  called ot200_bl.
+-		bio->bi_flags |= BIO_MAPPED_INTEGRITY;
++		bio->bi_flags |= (1 << BIO_MAPPED_INTEGRITY);
+ 	}
+ 
+ 	return 0;
 _
-Subject: Subject: backlight: fix ot200_bl build
+Subject: Subject: floppy/scsi: fix setting of BIO flags
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from muthu.lkml@gmail.com are
 
-origin.patch
-linux-next.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-backlight-fix-ot200_bl-build.patch
-crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch
-rtc-ds1307-generalise-ram-size-and-offset-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-ramoops-use-pstore-interface.patch
-ramoops-use-pstore-interface-fix.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+floppy-scsi-fix-setting-of-bio-flags.patch
+magich-move-some-fs-magic-numbers-into-magich.patch
 
