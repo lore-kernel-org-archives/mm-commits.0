@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 01 Mar 2012 15:18:38 -0800
-Message-ID: <20120301231838.6DB2EA02AE@akpm.mtv.corp.google.com>
+Subject: [folded] procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch removed from -mm tree
+Date: Thu, 01 Mar 2012 15:18:40 -0800
+Message-ID: <20120301231840.D4D2EA02AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:61110 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755692Ab2CAXSj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 18:18:39 -0500
-Received: by vcbfk26 with SMTP id fk26so153754vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 15:18:38 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:62281 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758389Ab2CAXSn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 18:18:43 -0500
+Received: by wejx9 with SMTP id x9so44220wej.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 15:18:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, siddhesh.poyarekar@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, jamie@shareable.org, kosaki.motohiro@gmail.com, mpm@selenic.com, siddhesh.poyarekar@gmail.com, vapier@gentoo.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
+     Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
 has been removed from the -mm tree.  Its filename was
-     procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
+     procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
 
 This patch was dropped because it was folded into procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
 
@@ -26,126 +26,66 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
+Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
 
-WARNING: line over 80 characters
-#265: FILE: fs/proc/task_mmu.c:212:
-+static void show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
+i386 allmodconfig.  Many instances of
 
-ERROR: code indent should use tabs where possible
-#464: FILE: fs/proc/task_mmu.c:1183:
-+        .show   = show_pid_numa_map,$
+In file included from include/linux/scatterlist.h:6,
+                 from include/linux/dmaengine.h:26,
+                 from include/linux/skbuff.h:30,
+                 from include/crypto/algapi.h:18,
+                 from arch/x86/crypto/serpent_sse2_glue.c:37:
+include/linux/mm.h: In function 'vm_is_stack_for_task':
+include/linux/mm.h:1047: error: implicit declaration of function 'task_stack_page'
 
-WARNING: please, no spaces at the start of a line
-#464: FILE: fs/proc/task_mmu.c:1183:
-+        .show   = show_pid_numa_map,$
-
-ERROR: code indent should use tabs where possible
-#469: FILE: fs/proc/task_mmu.c:1187:
-+        .start  = m_start,$
-
-WARNING: please, no spaces at the start of a line
-#469: FILE: fs/proc/task_mmu.c:1187:
-+        .start  = m_start,$
-
-ERROR: code indent should use tabs where possible
-#470: FILE: fs/proc/task_mmu.c:1188:
-+        .next   = m_next,$
-
-WARNING: please, no spaces at the start of a line
-#470: FILE: fs/proc/task_mmu.c:1188:
-+        .next   = m_next,$
-
-ERROR: code indent should use tabs where possible
-#471: FILE: fs/proc/task_mmu.c:1189:
-+        .stop   = m_stop,$
-
-WARNING: please, no spaces at the start of a line
-#471: FILE: fs/proc/task_mmu.c:1189:
-+        .stop   = m_stop,$
-
-ERROR: code indent should use tabs where possible
-#472: FILE: fs/proc/task_mmu.c:1190:
-+        .show   = show_tid_numa_map,$
-
-WARNING: please, no spaces at the start of a line
-#472: FILE: fs/proc/task_mmu.c:1190:
-+        .show   = show_tid_numa_map,$
-
-WARNING: line over 80 characters
-#639: FILE: include/linux/mm.h:1050:
-+extern int vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
-
-total: 5 errors, 7 warnings, 468 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Jamie Lokier <jamie@shareable.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Cc: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   19 ++++++++++---------
- include/linux/mm.h |    3 ++-
- 2 files changed, 12 insertions(+), 10 deletions(-)
+ include/linux/mm.h |    7 -------
+ mm/memory.c        |    7 +++++++
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -209,7 +209,8 @@ static int do_maps_open(struct inode *in
- 	return ret;
- }
- 
--static void show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
-+static void
-+show_map_vma(struct seq_file *m, struct vm_area_struct *vma, int is_pid)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct file *file = vma->vm_file;
-@@ -1177,17 +1178,17 @@ static int show_tid_numa_map(struct seq_
- }
- 
- static const struct seq_operations proc_pid_numa_maps_op = {
--        .start  = m_start,
--        .next   = m_next,
--        .stop   = m_stop,
--        .show   = show_pid_numa_map,
-+	.start  = m_start,
-+	.next   = m_next,
-+	.stop   = m_stop,
-+	.show   = show_pid_numa_map,
- };
- 
- static const struct seq_operations proc_tid_numa_maps_op = {
--        .start  = m_start,
--        .next   = m_next,
--        .stop   = m_stop,
--        .show   = show_tid_numa_map,
-+	.start  = m_start,
-+	.next   = m_next,
-+	.stop   = m_stop,
-+	.show   = show_tid_numa_map,
- };
- 
- static int numa_maps_open(struct inode *inode, struct file *file,
-diff -puN include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes include/linux/mm.h
---- a/include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes
+diff -puN include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix include/linux/mm.h
+--- a/include/linux/mm.h~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
 +++ a/include/linux/mm.h
-@@ -1047,7 +1047,8 @@ static inline int vm_is_stack_for_task(s
- 	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
+@@ -1040,13 +1040,6 @@ static inline int stack_guard_page_end(s
+ 		!vma_growsup(vma->vm_next, addr);
  }
  
--extern int vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
-+extern int
-+vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
+-/* Check if the vma is being used as a stack by this task */
+-static inline int vm_is_stack_for_task(struct task_struct *t,
+-				       struct vm_area_struct *vma)
+-{
+-	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
+-}
+-
+ extern int
+ vm_is_stack(struct task_struct *task, struct vm_area_struct *vma, int in_group);
  
- extern unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
+diff -puN mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix mm/memory.c
+--- a/mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix
++++ a/mm/memory.c
+@@ -112,6 +112,13 @@ __setup("norandmaps", disable_randmaps);
+ unsigned long zero_pfn __read_mostly;
+ unsigned long highest_memmap_pfn __read_mostly;
+ 
++/* Check if the vma is being used as a stack by this task */
++static int vm_is_stack_for_task(struct task_struct *t,
++				struct vm_area_struct *vma)
++{
++	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
++}
++
+ /*
+  * CONFIG_MMU architectures set up ZERO_PAGE in their paging_init()
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,7 +118,6 @@ hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
 thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
 mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
 procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
 procfs-mark-stack-vma-with-pid-of-the-owning-task-fix.patch
 mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
 bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
