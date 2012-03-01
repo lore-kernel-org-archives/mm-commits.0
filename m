@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + net-netfilter-nfnetlink_acctc-use-linux-atomich.patch added to -mm tree
-Date: Thu, 01 Mar 2012 14:55:12 -0800
-Message-ID: <20120301225512.919A1A0313@akpm.mtv.corp.google.com>
+Subject: + drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch added to -mm tree
+Date: Thu, 01 Mar 2012 14:56:29 -0800
+Message-ID: <20120301225629.4B64EA0313@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vw0-f74.google.com ([209.85.212.74]:43787 "EHLO
-	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758351Ab2CAWzR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 17:55:17 -0500
-Received: by vbnl22 with SMTP id l22so150900vbn.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 14:55:13 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:45719 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753382Ab2CAW4c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 17:56:32 -0500
+Received: by wejx9 with SMTP id x9so43688wej.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 14:56:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net, pablo@netfilter.org
+Cc: akpm@linux-foundation.org, laurent.pinchart@ideasonboard.com, mchehab@redhat.com
 
 
 The patch titled
-     Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
+     Subject: drivers/media/video/uvc/uvc_driver.c: use linux/atomic.h
 has been added to the -mm tree.  Its filename is
-     net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
+     drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
+Subject: drivers/media/video/uvc/uvc_driver.c: use linux/atomic.h
 
 There's no known problem here, but this is one of only two non-arch files
 in the kernel which use asm/atomic.h instead of linux/atomic.h.
 
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/nfnetlink_acct.c |    2 +-
+ drivers/media/video/uvc/uvc_driver.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich net/netfilter/nfnetlink_acct.c
---- a/net/netfilter/nfnetlink_acct.c~net-netfilter-nfnetlink_acctc-use-linux-atomich
-+++ a/net/netfilter/nfnetlink_acct.c
-@@ -10,6 +10,7 @@
+diff -puN drivers/media/video/uvc/uvc_driver.c~drivers-media-video-uvc-uvc_driverc-use-linux-atomich drivers/media/video/uvc/uvc_driver.c
+--- a/drivers/media/video/uvc/uvc_driver.c~drivers-media-video-uvc-uvc_driverc-use-linux-atomich
++++ a/drivers/media/video/uvc/uvc_driver.c
+@@ -27,12 +27,12 @@
+ #include <linux/list.h>
  #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/skbuff.h>
-+#include <linux/atomic.h>
- #include <linux/netlink.h>
- #include <linux/rculist.h>
  #include <linux/slab.h>
-@@ -17,7 +18,6 @@
- #include <linux/errno.h>
- #include <net/netlink.h>
- #include <net/sock.h>
++#include <linux/atomic.h>
+ #include <linux/usb.h>
+ #include <linux/videodev2.h>
+ #include <linux/vmalloc.h>
+ #include <linux/wait.h>
+ #include <linux/version.h>
 -#include <asm/atomic.h>
+ #include <asm/unaligned.h>
  
- #include <linux/netfilter.h>
- #include <linux/netfilter/nfnetlink.h>
+ #include <media/v4l2-common.h>
 _
-Subject: Subject: net/netfilter/nfnetlink_acct.c: use linux/atomic.h
+Subject: Subject: drivers/media/video/uvc/uvc_driver.c: use linux/atomic.h
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -89,6 +86,7 @@ hpet-factor-timer-allocate-from-open.patch
 thermal-thermal_sys-fix-build-warning.patch
 thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
 thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
+net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
 slab-introduce-kmalloc_array.patch
 mm.patch
 make-swapin-readahead-skip-over-holes-fix.patch
@@ -146,5 +144,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
+drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
 
