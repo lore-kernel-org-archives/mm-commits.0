@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-allow-simple-character-constants-in-defines.patch added to -mm tree
-Date: Thu, 01 Mar 2012 12:36:43 -0800
-Message-ID: <20120301203643.C1B99A018B@akpm.mtv.corp.google.com>
+Subject: + checkpatch-handle-string-concatenation-in-simple-defines.patch added to -mm tree
+Date: Thu, 01 Mar 2012 12:36:45 -0800
+Message-ID: <20120301203645.C6774A018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:47667 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757688Ab2CAUgo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 15:36:44 -0500
-Received: by yhgm50 with SMTP id m50so114554yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 12:36:44 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:42798 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757696Ab2CAUgq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 15:36:46 -0500
+Received: by ghbz15 with SMTP id z15so114744ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 12:36:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: apw@canonical.com, joe@perches.com
 
 
 The patch titled
-     Subject: checkpatch: allow simple character constants in #defines
+     Subject: checkpatch: handle string concatenation in simple #defines
 has been added to the -mm tree.  Its filename is
-     checkpatch-allow-simple-character-constants-in-defines.patch
+     checkpatch-handle-string-concatenation-in-simple-defines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Whitcroft <apw@canonical.com>
-Subject: checkpatch: allow simple character constants in #defines
+Subject: checkpatch: handle string concatenation in simple #defines
+
+Adjacent strings indicate concatentation, therefore look at identifiers
+directly adjacent to literal strings as strings too.  This allows us to
+better detect the form below and accept it as a simple constant:
+
+    #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 Signed-off-by: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-simple-character-constants-in-defines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-simple-character-constants-in-defines
+diff -puN scripts/checkpatch.pl~checkpatch-handle-string-concatenation-in-simple-defines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-handle-string-concatenation-in-simple-defines
 +++ a/scripts/checkpatch.pl
-@@ -2906,6 +2906,7 @@ sub process {
- 			    $dstat !~ /^(?:$Ident|-?$Constant),$/ &&			# 10, // foo(),
- 			    $dstat !~ /^(?:$Ident|-?$Constant);$/ &&			# foo();
- 			    $dstat !~ /^(?:$Ident|-?$Constant)$/ &&			# 10 // foo()
-+			    $dstat !~ /^'X'$/ &&					# character constants
- 			    $dstat !~ /$exceptions/ &&
- 			    $dstat !~ /^\.$Ident\s*=/ &&				# .foo =
- 			    $dstat !~ /^do\s*$Constant\s*while\s*$Constant;?$/ &&	# do {...} while (...); // do {...} while (...)
+@@ -2889,6 +2889,12 @@ sub process {
+ 			{
+ 			}
+ 
++			# Flatten any obvious string concatentation.
++			while ($dstat =~ s/("X*")\s*$Ident/$1/ ||
++			       $dstat =~ s/$Ident\s*("X*")/$1/)
++			{
++			}
++
+ 			my $exceptions = qr{
+ 				$Declare|
+ 				module_param_named|
 _
-Subject: Subject: checkpatch: allow simple character constants in #defines
+Subject: Subject: checkpatch: handle string concatenation in simple #defines
 
 Patches currently in -mm which might be from apw@canonical.com are
 
