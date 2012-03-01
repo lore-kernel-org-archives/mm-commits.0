@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-cleanup-introduce-ksm_check_mm-fix.patch added to -mm tree
-Date: Thu, 01 Mar 2012 12:51:36 -0800
-Message-ID: <20120301205137.24DE1A01F8@akpm.mtv.corp.google.com>
+Subject: + hugetlbfs-drop-taking-inode-i_mutex-lock-from-hugetlbfs_read.patch added to -mm tree
+Date: Thu, 01 Mar 2012 14:10:22 -0800
+Message-ID: <20120301221022.C024AA0313@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:42104 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755609Ab2CAUvi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 15:51:38 -0500
-Received: by mail-we0-f202.google.com with SMTP id x9so40269wej.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 12:51:38 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:37831 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758117Ab2CAWKZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 17:10:25 -0500
+Received: by faaa19 with SMTP id a19so42725faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 14:10:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hughd@google.com, kamezawa.hiroyuki@gmail.com, lliubbo@gmail.com, minchan.kim@gmail.com, rientjes@google.com
+Cc: aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: ksm-cleanup-introduce-ksm_check_mm-fix
+     Subject: hugetlbfs: avoid taking i_mutex from hugetlbfs_read()
 has been added to the -mm tree.  Its filename is
-     ksm-cleanup-introduce-ksm_check_mm-fix.patch
+     hugetlbfs-drop-taking-inode-i_mutex-lock-from-hugetlbfs_read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,144 +33,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ksm-cleanup-introduce-ksm_check_mm-fix
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: hugetlbfs: avoid taking i_mutex from hugetlbfs_read()
 
-rename ksm_check_mm to in_mergeable_anon_vma(), make it return bool
+Taking i_mutex in hugetlbfs_read() can result in deadlock with mmap as
+explained below
 
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hiroyuki Kamezawa <kamezawa.hiroyuki@gmail.com>
+ Thread A:
+  read() on hugetlbfs
+   hugetlbfs_read() called
+    i_mutex grabbed
+     hugetlbfs_read_actor() called
+      __copy_to_user() called
+       page fault is triggered
+ Thread B, sharing address space with A:
+  mmap() the same file
+   ->mmap_sem is grabbed on task_B->mm->mmap_sem
+    hugetlbfs_file_mmap() is called
+     attempt to grab ->i_mutex and block waiting for A to give it up
+ Thread A:
+  pagefault handled blocked on attempt to grab task_A->mm->mmap_sem,
+ which happens to be the same thing as task_B->mm->mmap_sem.  Block waiting
+ for B to give it up.
+
+AFAIU the i_mutex locking was added to hugetlbfs_read() as per
+http://lkml.indiana.edu/hypermail/linux/kernel/0707.2/3066.html to take
+care of the race between truncate and read.  This patch fixes this by
+looking at page->mapping under lock_page() (find_lock_page()) to ensure
+that the inode didn't get truncated in the range during a parallel read.
+
+Ideally we can extend the patch to make sure we don't increase i_size in
+mmap.  But that will break userspace, because applications will now have
+to use truncate(2) to increase i_size in hugetlbfs.
+
+Based on the original patch from Hillf Danton.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>				
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/hugetlbfs/inode.c |   25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
 
-diff -puN mm/ksm.c~ksm-cleanup-introduce-ksm_check_mm-fix mm/ksm.c
---- a/mm/ksm.c~ksm-cleanup-introduce-ksm_check_mm-fix
-+++ a/mm/ksm.c
-@@ -375,17 +375,17 @@ static int break_ksm(struct vm_area_stru
- 	return (ret & VM_FAULT_OOM) ? -ENOMEM : 0;
- }
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-drop-taking-inode-i_mutex-lock-from-hugetlbfs_read fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-drop-taking-inode-i_mutex-lock-from-hugetlbfs_read
++++ a/fs/hugetlbfs/inode.c
+@@ -245,17 +245,10 @@ static ssize_t hugetlbfs_read(struct fil
+ 	loff_t isize;
+ 	ssize_t retval = 0;
  
--static int ksm_check_mm(struct mm_struct *mm, struct vm_area_struct *vma,
--		unsigned long addr)
-+static bool in_mergeable_anon_vma(struct mm_struct *mm,
-+				 struct vm_area_struct *vma, unsigned long addr)
- {
- 	if (ksm_test_exit(mm))
--		return 0;
-+		return false;
- 	vma = find_vma(mm, addr);
- 	if (!vma || vma->vm_start > addr)
--		return 0;
-+		return false;
- 	if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
--		return 0;
--	return 1;
-+		return false;
-+	return true;
- }
- 
- static void break_cow(struct rmap_item *rmap_item)
-@@ -401,7 +401,7 @@ static void break_cow(struct rmap_item *
- 	put_anon_vma(rmap_item->anon_vma);
- 
- 	down_read(&mm->mmap_sem);
--	if (ksm_check_mm(mm, vma, addr))
-+	if (in_mergeable_anon_vma(mm, vma, addr))
- 		break_ksm(vma, addr);
- 	up_read(&mm->mmap_sem);
- }
-@@ -428,7 +428,7 @@ static struct page *get_mergeable_page(s
- 	struct page *page;
- 
- 	down_read(&mm->mmap_sem);
--	if (!ksm_check_mm(mm, vma, addr))
-+	if (!in_mergeable_anon_vma(mm, vma, addr))
+-	mutex_lock(&inode->i_mutex);
+-
+ 	/* validate length */
+ 	if (len == 0)
  		goto out;
  
- 	page = follow_page(vma, addr, FOLL_GET);
-_
-Subject: Subject: ksm-cleanup-introduce-ksm_check_mm-fix
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
-x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
-hpet-factor-timer-allocate-from-open.patch
-thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-checkpatch-fixes.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix.patch
-mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
-bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
-ksm-cleanup-introduce-ksm_check_mm-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-brlocks-lglocks-cleanups.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-	isize = i_size_read(inode);
+-	if (!isize)
+-		goto out;
+-
+-	end_index = (isize - 1) >> huge_page_shift(h);
+ 	for (;;) {
+ 		struct page *page;
+ 		unsigned long nr, ret;
+@@ -263,18 +256,21 @@ static ssize_t hugetlbfs_read(struct fil
+ 
+ 		/* nr is the maximum number of bytes to copy from this page */
+ 		nr = huge_page_size(h);
++		isize = i_size_read(inode);
++		if (!isize)
++			goto out;
++		end_index = (isize - 1) >> huge_page_shift(h);
+ 		if (index >= end_index) {
+ 			if (index > end_index)
+ 				goto out;
+ 			nr = ((isize - 1) & ~huge_page_mask(h)) + 1;
+-			if (nr <= offset) {
++			if (nr <= offset)
+ 				goto out;
+-			}
+ 		}
+ 		nr = nr - offset;
+ 
+ 		/* Find the page */
+-		page = find_get_page(mapping, index);
++		page = find_lock_page(mapping, index);
+ 		if (unlikely(page == NULL)) {
+ 			/*
+ 			 * We have a HOLE, zero out the user-buffer for the
+@@ -286,17 +282,18 @@ static ssize_t hugetlbfs_read(struct fil
+ 			else
+ 				ra = 0;
+ 		} else {
++			unlock_page(page);
++
+ 			/*
+ 			 * We have the page, copy it to user space buffer.
+ 			 */
+ 			ra = hugetlbfs_read_actor(page, offset, buf, len, nr);
+ 			ret = ra;
++			page_cache_release(page);
+ 		}
+ 		if (ra < 0) {
+ 			if (retval == 0)
+ 				retval = ra;
+-			if (page)
+-				page_cache_release(page);
+ 			goto out;
+ 		}
+ 
+@@ -306,16 +303,12 @@ static ssize_t hugetlbfs_read(struct fil
+ 		index += offset >> huge_page_shift(h);
+ 		offset &= ~huge_page_mask(h);
+ 
+-		if (page)
+-			page_cache_release(page);
