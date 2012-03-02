@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-global_dirty_limit-in-throttle_vm_writeout.patch added to -mm tree
-Date: Fri, 02 Mar 2012 14:16:29 -0800
-Message-ID: <20120302221629.DB26CA01CB@akpm.mtv.corp.google.com>
+Subject: + cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch added to -mm tree
+Date: Fri, 02 Mar 2012 14:23:46 -0800
+Message-ID: <20120302222346.CD2A9A02FF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:60439 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756423Ab2CBWQc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Mar 2012 17:16:32 -0500
-Received: by bkcjm19 with SMTP id jm19so76626bkc.1
-        for <mm-commits@vger.kernel.org>; Fri, 02 Mar 2012 14:16:31 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:34087 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754826Ab2CBWXs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Mar 2012 17:23:48 -0500
+Received: by vbnl22 with SMTP id l22so270692vbn.1
+        for <mm-commits@vger.kernel.org>; Fri, 02 Mar 2012 14:23:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, jack@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, riel@redhat.com, yinghan@google.com
+Cc: shuox.liu@intel.com, hpa@zytor.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, yanmin_zhang@linux.intel.com
 
 
 The patch titled
-     Subject: mm: use global_dirty_limit in throttle_vm_writeout()
+     Subject: cpuidle: add a sysfs entry to disable specific C state for debug purpose.
 has been added to the -mm tree.  Its filename is
-     mm-use-global_dirty_limit-in-throttle_vm_writeout.patch
+     cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,164 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: mm: use global_dirty_limit in throttle_vm_writeout()
+From: ShuoX Liu <shuox.liu@intel.com>
+Subject: cpuidle: add a sysfs entry to disable specific C state for debug purpose.
 
-When starting a memory hog task, a desktop box w/o swap is found to go
-unresponsive for a long time.  It's solely caused by lots of congestion
-waits in throttle_vm_writeout():
+Some C states of new CPU might be not good.  One reason is BIOS might
+configure them incorrectly.  To help developers root cause it quickly, the
+patch adds a new sysfs entry, so developers could disable specific C state
+manually.
 
- gnome-system-mo-4201 553.073384: congestion_wait: throttle_vm_writeout+0x70/0x7f shrink_mem_cgroup_zone+0x48f/0x4a1
- gnome-system-mo-4201 553.073386: writeback_congestion_wait: usec_timeout=100000 usec_delayed=100000
-           gtali-4237 553.080377: congestion_wait: throttle_vm_writeout+0x70/0x7f shrink_mem_cgroup_zone+0x48f/0x4a1
-           gtali-4237 553.080378: writeback_congestion_wait: usec_timeout=100000 usec_delayed=100000
-            Xorg-3483 553.103375: congestion_wait: throttle_vm_writeout+0x70/0x7f shrink_mem_cgroup_zone+0x48f/0x4a1
-            Xorg-3483 553.103377: writeback_congestion_wait: usec_timeout=100000 usec_delayed=100000
+In addition, C state might have much impact on performance tuning, as it
+takes much time to enter/exit C states, which might delay interrupt
+processing.  With the new debug option, developers could check if a deep C
+state could impact performance and how much impact it could cause.
 
-The root cause is, the dirty threshold is knocked down a lot by the memory
-hog task.  Fixed by using global_dirty_limit which decreases gradually on
-such events and can guarantee we stay above (the also decreasing) nr_dirty
-in the progress of following down to the new dirty threshold.
-
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: ShuoX Liu <shuox.liu@intel.com>
+Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/cpuidle/cpuidle.c        |    1 
+ drivers/cpuidle/governors/menu.c |    5 +++-
+ drivers/cpuidle/sysfs.c          |   34 +++++++++++++++++++++++++++++
+ include/linux/cpuidle.h          |    1 
+ 4 files changed, 40 insertions(+), 1 deletion(-)
 
-diff -puN mm/page-writeback.c~mm-use-global_dirty_limit-in-throttle_vm_writeout mm/page-writeback.c
---- a/mm/page-writeback.c~mm-use-global_dirty_limit-in-throttle_vm_writeout
-+++ a/mm/page-writeback.c
-@@ -1472,6 +1472,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
+diff -puN drivers/cpuidle/cpuidle.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose
++++ a/drivers/cpuidle/cpuidle.c
+@@ -197,6 +197,7 @@ static void poll_idle_init(struct cpuidl
+ 	state->power_usage = -1;
+ 	state->flags = 0;
+ 	state->enter = poll_idle;
++	state->disable = 0;
+ }
+ #else
+ static void poll_idle_init(struct cpuidle_driver *drv) {}
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose
++++ a/drivers/cpuidle/governors/menu.c
+@@ -280,7 +280,8 @@ static int menu_select(struct cpuidle_dr
+ 	 * We want to default to C1 (hlt), not to busy polling
+ 	 * unless the timer is happening really really soon.
+ 	 */
+-	if (data->expected_us > 5)
++	if (data->expected_us > 5 &&
++		drv->states[CPUIDLE_DRIVER_STATE_START].disable == 0)
+ 		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
  
-         for ( ; ; ) {
- 		global_dirty_limits(&background_thresh, &dirty_thresh);
-+		dirty_thresh = hard_dirty_limit(dirty_thresh);
+ 	/*
+@@ -290,6 +291,8 @@ static int menu_select(struct cpuidle_dr
+ 	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
+ 		struct cpuidle_state *s = &drv->states[i];
  
-                 /*
-                  * Boost the allowable dirty threshold a bit for page
++		if (s->disable)
++			continue;
+ 		if (s->target_residency > data->predicted_us)
+ 			continue;
+ 		if (s->exit_latency > latency_req)
+diff -puN drivers/cpuidle/sysfs.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose drivers/cpuidle/sysfs.c
+--- a/drivers/cpuidle/sysfs.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose
++++ a/drivers/cpuidle/sysfs.c
+@@ -222,6 +222,9 @@ struct cpuidle_state_attr {
+ #define define_one_state_ro(_name, show) \
+ static struct cpuidle_state_attr attr_##_name = __ATTR(_name, 0444, show, NULL)
+ 
++#define define_one_state_rw(_name, show, store) \
++static struct cpuidle_state_attr attr_##_name = __ATTR(_name, 0644, show, store)
++
+ #define define_show_state_function(_name) \
+ static ssize_t show_state_##_name(struct cpuidle_state *state, \
+ 			 struct cpuidle_state_usage *state_usage, char *buf) \
+@@ -229,6 +232,19 @@ static ssize_t show_state_##_name(struct
+ 	return sprintf(buf, "%u\n", state->_name);\
+ }
+ 
++#define define_store_state_function(_name) \
++static ssize_t store_state_##_name(struct cpuidle_state *state, \
++		const char *buf, size_t size) \
++{ \
++	int value; \
++	sscanf(buf, "%d", &value); \
++	if (value) \
++		state->disable = 1; \
++	else \
++		state->disable = 0; \
++	return size; \
++}
++
+ #define define_show_state_ull_function(_name) \
+ static ssize_t show_state_##_name(struct cpuidle_state *state, \
+ 			struct cpuidle_state_usage *state_usage, char *buf) \
+@@ -251,6 +267,8 @@ define_show_state_ull_function(usage)
+ define_show_state_ull_function(time)
+ define_show_state_str_function(name)
+ define_show_state_str_function(desc)
++define_show_state_function(disable)
++define_store_state_function(disable)
+ 
+ define_one_state_ro(name, show_state_name);
+ define_one_state_ro(desc, show_state_desc);
+@@ -258,6 +276,7 @@ define_one_state_ro(latency, show_state_
+ define_one_state_ro(power, show_state_power_usage);
+ define_one_state_ro(usage, show_state_usage);
+ define_one_state_ro(time, show_state_time);
++define_one_state_rw(disable, show_state_disable, store_state_disable);
+ 
+ static struct attribute *cpuidle_state_default_attrs[] = {
+ 	&attr_name.attr,
+@@ -266,6 +285,7 @@ static struct attribute *cpuidle_state_d
+ 	&attr_power.attr,
+ 	&attr_usage.attr,
+ 	&attr_time.attr,
++	&attr_disable.attr,
+ 	NULL
+ };
+ 
+@@ -287,8 +307,22 @@ static ssize_t cpuidle_state_show(struct
+ 	return ret;
+ }
+ 
++static ssize_t cpuidle_state_store(struct kobject *kobj,
++	struct attribute *attr, const char *buf, size_t size)
++{
++	int ret = -EIO;
++	struct cpuidle_state *state = kobj_to_state(kobj);
++	struct cpuidle_state_attr *cattr = attr_to_stateattr(attr);
++
++	if (cattr->store)
++		ret = cattr->store(state, buf, size);
++
++	return ret;
++}
++
+ static const struct sysfs_ops cpuidle_state_sysfs_ops = {
+ 	.show = cpuidle_state_show,
++	.store = cpuidle_state_store,
+ };
+ 
+ static void cpuidle_state_sysfs_release(struct kobject *kobj)
+diff -puN include/linux/cpuidle.h~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose include/linux/cpuidle.h
+--- a/include/linux/cpuidle.h~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose
++++ a/include/linux/cpuidle.h
+@@ -45,6 +45,7 @@ struct cpuidle_state {
+ 	unsigned int	exit_latency; /* in US */
+ 	unsigned int	power_usage; /* in mW */
+ 	unsigned int	target_residency; /* in US */
++	unsigned int    disable;
+ 
+ 	int (*enter)	(struct cpuidle_device *dev,
+ 			struct cpuidle_driver *drv,
 _
-Subject: Subject: mm: use global_dirty_limit in throttle_vm_writeout()
+Subject: Subject: cpuidle: add a sysfs entry to disable specific C state for debug purpose.
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from shuox.liu@intel.com are
 
-linux-next.patch
-pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
-thp-optimize-away-unnecessary-page-table-locking.patch
-thp-optimize-away-unnecessary-page-table-locking-fix.patch
-pagemap-export-kpf_thp.patch
-pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
-pagemap-introduce-data-structure-for-pagemap-entry.patch
-mm-dont-set-__gfp_write-on-ramfs-sysfs-writes.patch
-mm-use-global_dirty_limit-in-throttle_vm_writeout.patch
-move-page-typesc-from-documentation-to-tools-vm.patch
-move-slabinfoc-to-tools-vm.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch
 
