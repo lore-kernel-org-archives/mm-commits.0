@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-some-strict-coding-style-checks-v3.patch added to -mm tree
-Date: Fri, 02 Mar 2012 14:26:27 -0800
-Message-ID: <20120302222627.A584CA02FF@akpm.mtv.corp.google.com>
+Subject: + memcg-remove-pcg_file_mapped-fix-42.patch added to -mm tree
+Date: Fri, 02 Mar 2012 14:27:29 -0800
+Message-ID: <20120302222729.68343A02FF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:62756 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932349Ab2CBW0a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Mar 2012 17:26:30 -0500
-Received: by wejx9 with SMTP id x9so84458wej.1
-        for <mm-commits@vger.kernel.org>; Fri, 02 Mar 2012 14:26:28 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:37282 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932342Ab2CBW1a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Mar 2012 17:27:30 -0500
+Received: by yenq2 with SMTP id q2so272108yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 02 Mar 2012 14:27:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, bruce.w.allan@intel.com
+Cc: hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Subject: checkpatch-add-some-strict-coding-style-checks-v3
+     Subject: memcg: remove PCG_CACHE page_cgroup flag fix2
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-some-strict-coding-style-checks-v3.patch
+     memcg-remove-pcg_file_mapped-fix-42.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,148 +33,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch-add-some-strict-coding-style-checks-v3
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg: remove PCG_CACHE page_cgroup flag fix2
 
-V2: Scan the entire line for balanced parentheses,
-    use the position of the last non-balanced open parenthesis.
-    Allow all space indentation too, checkpatch will complain
-    in a different message about that if it's too long.
-    Fixes a hang in the memset tests.
+Add comment to MEM_CGROUP_CHARGE_TYPE_MAPPED case in
+__mem_cgroup_uncharge_common().
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "Bruce W. Allen" <bruce.w.allan@intel.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   45 +++++++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 16 deletions(-)
+ mm/memcontrol.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-some-strict-coding-style-checks-v3 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-some-strict-coding-style-checks-v3
-+++ a/scripts/checkpatch.pl
-@@ -330,11 +330,15 @@ sub build_types {
- }
- build_types();
+diff -puN mm/memcontrol.c~memcg-remove-pcg_file_mapped-fix-42 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-pcg_file_mapped-fix-42
++++ a/mm/memcontrol.c
+@@ -2964,6 +2964,11 @@ __mem_cgroup_uncharge_common(struct page
  
--our $balanced_parens = qr/(\((?:[^\(\)]++|(?-1))*\))/;
--our $lval_parens = qr/(\((?:[^\(\)]+|(-1))*\))/;
- 
- our $Typecast	= qr{\s*(\(\s*$NonptrType\s*\)){0,1}\s*};
--our $LvalOrFunc	= qr{($Lval)\s*($lval_parens{0,1})\s*};
-+
-+# Using $balanced_parens, $LvalOrFunc, or $FuncArg
-+# requires at least perl version v5.10.0
-+# Any use must be runtime checked with $^V
-+
-+our $balanced_parens = qr/(\((?:[^\(\)]++|(?-1))*\))/;
-+our $LvalOrFunc	= qr{($Lval)\s*($balanced_parens{0,1})\s*};
- our $FuncArg = qr{$Typecast{0,1}($LvalOrFunc|$Constant)};
- 
- sub deparenthesize {
-@@ -1350,11 +1354,11 @@ sub pos_last_openparen {
- 	for ($pos = 0; $pos < $len; $pos++) {
- 		my $string = substr($line, $pos);
- 		if ($string =~ /^($FuncArg|$balanced_parens)/) {
--			$pos += length($1);
--		}
--
--		if (substr($line, $pos, 1) eq '(') {
-+			$pos += length($1) - 1;
-+		} elsif (substr($line, $pos, 1) eq '(') {
- 			$last_openparen = $pos;
-+		} elsif (index($string, '(') == -1) {
-+			last;
- 		}
- 	}
- 
-@@ -1821,7 +1825,8 @@ sub process {
- 		}
- 
- # check multi-line statement indentation matches previous line
--		if ($prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/) {
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/) {
- 			$prevline =~ /^\+(\t*)(.*)$/;
- 			my $oldindent = $1;
- 			my $rest = $2;
-@@ -3203,12 +3208,13 @@ sub process {
- 		}
- 
- # Check for misused memsets
--		if (defined $stat &&
-+		if ($^V && $^V ge 5.10.0 &&
-+		    defined $stat &&
- 		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*$FuncArg\s*\)/s) {
- 
- 			my $ms_addr = $2;
--			my $ms_val = $8;
--			my $ms_size = $14;
-+			my $ms_val = $7;
-+			my $ms_size = $12;
- 
- 			if ($ms_size =~ /^(0x|)0$/i) {
- 				ERROR("MEMSET",
-@@ -3220,17 +3226,18 @@ sub process {
- 		}
- 
- # typecasts on min/max could be min_t/max_t
--		if (defined $stat &&
-+		if ($^V && $^V ge 5.10.0 &&
-+		    defined $stat &&
- 		    $stat =~ /^\+(?:.*?)\b(min|max)\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\)/) {
--			if (defined $2 || defined $8) {
-+			if (defined $2 || defined $7) {
- 				my $call = $1;
- 				my $cast1 = deparenthesize($2);
- 				my $arg1 = $3;
--				my $cast2 = deparenthesize($8);
--				my $arg2 = $9;
-+				my $cast2 = deparenthesize($7);
-+				my $arg2 = $8;
- 				my $cast;
- 
--				if ($cast1 ne "" && $cast2 ne "") {
-+				if ($cast1 ne "" && $cast2 ne "" && $cast1 ne $cast2) {
- 					$cast = "$cast1 or $cast2";
- 				} elsif ($cast1 ne "") {
- 					$cast = $cast1;
-@@ -3452,6 +3459,12 @@ sub process {
- 	}
- 
- 	if ($quiet == 0) {
-+
-+		if ($^V lt 5.10.0) {
-+			print("NOTE: perl $^V is not modern enough to detect all possible issues.\n");
-+			print("An upgrade to at least perl v5.10.0 is suggested.\n\n");
-+		}
-+
- 		# If there were whitespace errors which cleanpatch can fix
- 		# then suggest that.
- 		if ($rpt_cleaners) {
+ 	switch (ctype) {
+ 	case MEM_CGROUP_CHARGE_TYPE_MAPPED:
++		/*
++		 * Generally PageAnon tells if it's the anon statistics to be
++		 * updated; but sometimes e.g. mem_cgroup_uncharge_page() is
++		 * used before page reached the stage of being marked PageAnon.
++		 */
+ 		anon = true;
+ 		/* fallthrough */
+ 	case MEM_CGROUP_CHARGE_TYPE_DROP:
 _
-Subject: Subject: checkpatch-add-some-strict-coding-style-checks-v3
+Subject: Subject: memcg: remove PCG_CACHE page_cgroup flag fix2
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 linux-next.patch
-thermal_sys-remove-unnecessary-line-continuations.patch
-thermal_sys-remove-obfuscating-used-once-macros.patch
-thermal_sys-kernel-style-cleanups.patch
-thermal_sys-convert-printks-to-pr_level.patch
-get_maintainer-use-a-default-unknown-s-status-role.patch
-maintainers-fix-remoteproc-f-typo.patch
-maintainers-update-mca-section.patch
-maintainers-update-git-urls-for-26-deletions.patch
-maintainers-add-status-to-alpha-architecture.patch
-maintainers-add-s-maintained-to-clkdev-and-clk-sections.patch
-include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
-checkpatch-add-some-strict-coding-style-checks.patch
-checkpatch-add-some-strict-coding-style-checks-v3.patch
-checkpatchpl-be-silent-when-q-and-ignore-is-given.patch
-checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch
-checkpatch-allow-simple-character-constants-in-defines.patch
-checkpatch-handle-string-concatenation-in-simple-defines.patch
-checkpatch-high-precidence-operators-do-not-require-additional-parentheses-in-defines.patch
-checkpatch-add-to-type-extensions.patch
+memcg-fix-deadlock-by-inverting-lrucare-nesting.patch
+memcg-fix-gpf-when-cgroup-removal-races-with-last-exit.patch
+mm-add-rss-counters-consistency-check.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
+make-swapin-readahead-skip-over-holes.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+rmap-anon_vma_prepare-reduce-code-duplication-by-calling-anon_vma_chain_link.patch
+mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
+mm-hugetlb-bail-out-unmapping-after-serving-reference-page.patch
+mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
+tmpfs-security-xattr-setting-on-inode-creation.patch
+mm-fix-move-migrate_pages-race-on-task-struct.patch
+ksm-clean-up-page_trans_compound_anon_split.patch
+ksm-cleanup-introduce-ksm_check_mm.patch
+ksm-cleanup-introduce-ksm_check_mm-fix.patch
+hugetlbfs-drop-taking-inode-i_mutex-lock-from-hugetlbfs_read.patch
+memcg-replace-mem_cont-by-mem_res_ctlr.patch
+memcg-replace-mem-and-mem_cont-stragglers.patch
+memcg-lru_size-instead-of-mem_cgroup_zstat.patch
+memcg-enum-lru_list-lru.patch
+memcg-remove-redundant-returns.patch
+idr-make-idr_get_next-good-for-rcu_read_lock.patch
+cgroup-revert-ss_id_lock-to-spinlock.patch
+memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
+memcg-remove-pcg_cache-page_cgroup-flag.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-fix.patch
+memcg-remove-pcg_file_mapped-fix-cosmetic-fix.patch
+memcg-remove-pcg_file_mapped-fix-42.patch
+prio_tree-debugging-patch.patch
 
