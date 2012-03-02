@@ -1,119 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [folded] procfs-mark-stack-vma-with-pid-of-the-owning-task-fix.patch removed from -mm tree
-Date: Thu, 01 Mar 2012 15:18:49 -0800
-Message-ID: <20120301231849.A896AA02AE@akpm.mtv.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 02 Mar 2012 13:59:59 -0800
+Message-ID: <20120302220001.8F894A03CF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:43650 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758410Ab2CAXSu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Mar 2012 18:18:50 -0500
-Received: by mail-yw0-f74.google.com with SMTP id m50so153941yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Mar 2012 15:18:50 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:60258 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758615Ab2CBWAE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Mar 2012 17:00:04 -0500
+Received: by yenq2 with SMTP id q2so269726yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 02 Mar 2012 14:00:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, jamie@shareable.org, kosaki.motohiro@gmail.com, mpm@selenic.com, oleg@redhat.com, siddhesh.poyarekar@gmail.com, vapier@gentoo.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: procfs-mark-stack-vma-with-pid-of-the-owning-task-fix
-has been removed from the -mm tree.  Its filename was
-     procfs-mark-stack-vma-with-pid-of-the-owning-task-fix.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-mark-stack-vma-with-pid-of-the-owning-task-fix
+Subject: linux-next-git-rejects
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jamie Lokier <jamie@shareable.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   45 ++++++++++++++++++++++---------------------
- 1 file changed, 24 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap2/common.h            |    4 ----
+ arch/arm/mach-omap2/hsmmc.c             |    3 ---
+ drivers/gpu/drm/i915/intel_ringbuffer.c |    3 ---
+ 3 files changed, 10 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-mark-stack-vma-with-pid-of-the-owning-task-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-mark-stack-vma-with-pid-of-the-owning-task-fix
-+++ a/fs/proc/task_mmu.c
-@@ -222,6 +222,7 @@ show_map_vma(struct seq_file *m, struct 
- 	unsigned long start, end;
- 	dev_t dev = 0;
- 	int len;
-+	const char *name;
+diff -puN arch/arm/mach-omap2/common.h~linux-next-git-rejects arch/arm/mach-omap2/common.h
+--- a/arch/arm/mach-omap2/common.h~linux-next-git-rejects
++++ a/arch/arm/mach-omap2/common.h
+@@ -133,11 +133,7 @@ void am33xx_map_io(void);
+ void omap4_map_io(void);
+ void ti81xx_map_io(void);
+ void omap_barriers_init(void);
+-<<<<<<< HEAD
+-=======
+-
+ extern void __init omap_init_consistent_dma_size(void);
+->>>>>>> linux-next/akpm-end
  
- 	if (file) {
- 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
-@@ -255,31 +256,33 @@ show_map_vma(struct seq_file *m, struct 
- 	if (file) {
- 		pad_len_spaces(m, len);
- 		seq_path(m, &file->f_path, "\n");
--	} else {
--		const char *name = arch_vma_name(vma);
--		if (!name) {
--			if (mm) {
--				if (vma->vm_start <= mm->brk &&
--						vma->vm_end >= mm->start_brk) {
--					name = "[heap]";
--				} else {
--					pid_t tid =
--						vm_is_stack(task, vma, is_pid);
--					if (tid != 0) {
--						pad_len_spaces(m, len);
--						seq_printf(m, "[stack:%d]",
--								tid);
--					}
--				}
-+		goto out;
-+	}
-+
-+	name = arch_vma_name(vma);
-+	if (!name) {
-+		if (mm) {
-+			if (vma->vm_start <= mm->brk &&
-+					vma->vm_end >= mm->start_brk) {
-+				name = "[heap]";
- 			} else {
--				name = "[vdso]";
-+				pid_t tid;
-+
-+				tid = vm_is_stack(task, vma, is_pid);
-+				if (tid != 0) {
-+					pad_len_spaces(m, len);
-+					seq_printf(m, "[stack:%d]", tid);
-+				}
- 			}
--		}
--		if (name) {
--			pad_len_spaces(m, len);
--			seq_puts(m, name);
-+		} else {
-+			name = "[vdso]";
- 		}
- 	}
-+	if (name) {
-+		pad_len_spaces(m, len);
-+		seq_puts(m, name);
-+	}
-+out:
- 	seq_putc(m, '\n');
+ /**
+  * omap_test_timeout - busy-loop, testing a condition
+diff -puN arch/arm/mach-omap2/hsmmc.c~linux-next-git-rejects arch/arm/mach-omap2/hsmmc.c
+--- a/arch/arm/mach-omap2/hsmmc.c~linux-next-git-rejects
++++ a/arch/arm/mach-omap2/hsmmc.c
+@@ -430,8 +430,6 @@ static int __init omap_hsmmc_pdata_init(
  }
  
+ static int omap_hsmmc_done;
+-<<<<<<< HEAD
+-=======
+ 
+ void omap_hsmmc_late_init(struct omap2_hsmmc_info *c)
+ {
+@@ -466,7 +464,6 @@ void omap_hsmmc_late_init(struct omap2_h
+ 	}
+ }
+ 
+->>>>>>> linux-next/akpm-end
+ #define MAX_OMAP_MMC_HWMOD_NAME_LEN		16
+ 
+ static void omap_hsmmc_init_one(struct omap2_hsmmc_info *hsmmcinfo,
+diff -puN drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_ringbuffer.c
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -1190,8 +1190,6 @@ int intel_wait_ring_buffer(struct intel_
+ 	struct drm_device *dev = ring->dev;
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long end;
+-<<<<<<< HEAD
+-=======
+ 	int ret;
+ 	u32 head;
+ 
+@@ -1205,7 +1203,6 @@ int intel_wait_ring_buffer(struct intel_
+ 		if (ring->space >= n)
+ 			return 0;
+ 	}
+->>>>>>> linux-next/akpm-end
+ 
+ 	ret = intel_ring_wait_request(ring, n);
+ 	if (ret != -ENOSPC)
 _
+Subject: Subject: linux-next-git-rejects
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
