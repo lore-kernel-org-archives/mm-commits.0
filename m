@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch added to -mm tree
-Date: Fri, 02 Mar 2012 14:23:46 -0800
-Message-ID: <20120302222346.CD2A9A02FF@akpm.mtv.corp.google.com>
+Subject: + checkpatch-add-some-strict-coding-style-checks-v3.patch added to -mm tree
+Date: Fri, 02 Mar 2012 14:26:27 -0800
+Message-ID: <20120302222627.A584CA02FF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vw0-f74.google.com ([209.85.212.74]:34087 "EHLO
-	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754826Ab2CBWXs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Mar 2012 17:23:48 -0500
-Received: by vbnl22 with SMTP id l22so270692vbn.1
-        for <mm-commits@vger.kernel.org>; Fri, 02 Mar 2012 14:23:47 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:62756 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932349Ab2CBW0a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Mar 2012 17:26:30 -0500
+Received: by wejx9 with SMTP id x9so84458wej.1
+        for <mm-commits@vger.kernel.org>; Fri, 02 Mar 2012 14:26:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shuox.liu@intel.com, hpa@zytor.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, yanmin_zhang@linux.intel.com
+Cc: joe@perches.com, bruce.w.allan@intel.com
 
 
 The patch titled
-     Subject: cpuidle: add a sysfs entry to disable specific C state for debug purpose.
+     Subject: checkpatch-add-some-strict-coding-style-checks-v3
 has been added to the -mm tree.  Its filename is
-     cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch
+     checkpatch-add-some-strict-coding-style-checks-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,164 +33,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: ShuoX Liu <shuox.liu@intel.com>
-Subject: cpuidle: add a sysfs entry to disable specific C state for debug purpose.
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch-add-some-strict-coding-style-checks-v3
 
-Some C states of new CPU might be not good.  One reason is BIOS might
-configure them incorrectly.  To help developers root cause it quickly, the
-patch adds a new sysfs entry, so developers could disable specific C state
-manually.
+V2: Scan the entire line for balanced parentheses,
+    use the position of the last non-balanced open parenthesis.
+    Allow all space indentation too, checkpatch will complain
+    in a different message about that if it's too long.
+    Fixes a hang in the memset tests.
 
-In addition, C state might have much impact on performance tuning, as it
-takes much time to enter/exit C states, which might delay interrupt
-processing.  With the new debug option, developers could check if a deep C
-state could impact performance and how much impact it could cause.
-
-Signed-off-by: ShuoX Liu <shuox.liu@intel.com>
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: "Bruce W. Allen" <bruce.w.allan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c        |    1 
- drivers/cpuidle/governors/menu.c |    5 +++-
- drivers/cpuidle/sysfs.c          |   34 +++++++++++++++++++++++++++++
- include/linux/cpuidle.h          |    1 
- 4 files changed, 40 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   45 +++++++++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 16 deletions(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -197,6 +197,7 @@ static void poll_idle_init(struct cpuidl
- 	state->power_usage = -1;
- 	state->flags = 0;
- 	state->enter = poll_idle;
-+	state->disable = 0;
+diff -puN scripts/checkpatch.pl~checkpatch-add-some-strict-coding-style-checks-v3 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-some-strict-coding-style-checks-v3
++++ a/scripts/checkpatch.pl
+@@ -330,11 +330,15 @@ sub build_types {
  }
- #else
- static void poll_idle_init(struct cpuidle_driver *drv) {}
-diff -puN drivers/cpuidle/governors/menu.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -280,7 +280,8 @@ static int menu_select(struct cpuidle_dr
- 	 * We want to default to C1 (hlt), not to busy polling
- 	 * unless the timer is happening really really soon.
- 	 */
--	if (data->expected_us > 5)
-+	if (data->expected_us > 5 &&
-+		drv->states[CPUIDLE_DRIVER_STATE_START].disable == 0)
- 		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
+ build_types();
  
- 	/*
-@@ -290,6 +291,8 @@ static int menu_select(struct cpuidle_dr
- 	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
- 		struct cpuidle_state *s = &drv->states[i];
+-our $balanced_parens = qr/(\((?:[^\(\)]++|(?-1))*\))/;
+-our $lval_parens = qr/(\((?:[^\(\)]+|(-1))*\))/;
  
-+		if (s->disable)
-+			continue;
- 		if (s->target_residency > data->predicted_us)
- 			continue;
- 		if (s->exit_latency > latency_req)
-diff -puN drivers/cpuidle/sysfs.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose drivers/cpuidle/sysfs.c
---- a/drivers/cpuidle/sysfs.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose
-+++ a/drivers/cpuidle/sysfs.c
-@@ -222,6 +222,9 @@ struct cpuidle_state_attr {
- #define define_one_state_ro(_name, show) \
- static struct cpuidle_state_attr attr_##_name = __ATTR(_name, 0444, show, NULL)
- 
-+#define define_one_state_rw(_name, show, store) \
-+static struct cpuidle_state_attr attr_##_name = __ATTR(_name, 0644, show, store)
+ our $Typecast	= qr{\s*(\(\s*$NonptrType\s*\)){0,1}\s*};
+-our $LvalOrFunc	= qr{($Lval)\s*($lval_parens{0,1})\s*};
 +
- #define define_show_state_function(_name) \
- static ssize_t show_state_##_name(struct cpuidle_state *state, \
- 			 struct cpuidle_state_usage *state_usage, char *buf) \
-@@ -229,6 +232,19 @@ static ssize_t show_state_##_name(struct
- 	return sprintf(buf, "%u\n", state->_name);\
- }
- 
-+#define define_store_state_function(_name) \
-+static ssize_t store_state_##_name(struct cpuidle_state *state, \
-+		const char *buf, size_t size) \
-+{ \
-+	int value; \
-+	sscanf(buf, "%d", &value); \
-+	if (value) \
-+		state->disable = 1; \
-+	else \
-+		state->disable = 0; \
-+	return size; \
-+}
++# Using $balanced_parens, $LvalOrFunc, or $FuncArg
++# requires at least perl version v5.10.0
++# Any use must be runtime checked with $^V
 +
- #define define_show_state_ull_function(_name) \
- static ssize_t show_state_##_name(struct cpuidle_state *state, \
- 			struct cpuidle_state_usage *state_usage, char *buf) \
-@@ -251,6 +267,8 @@ define_show_state_ull_function(usage)
- define_show_state_ull_function(time)
- define_show_state_str_function(name)
- define_show_state_str_function(desc)
-+define_show_state_function(disable)
-+define_store_state_function(disable)
++our $balanced_parens = qr/(\((?:[^\(\)]++|(?-1))*\))/;
++our $LvalOrFunc	= qr{($Lval)\s*($balanced_parens{0,1})\s*};
+ our $FuncArg = qr{$Typecast{0,1}($LvalOrFunc|$Constant)};
  
- define_one_state_ro(name, show_state_name);
- define_one_state_ro(desc, show_state_desc);
-@@ -258,6 +276,7 @@ define_one_state_ro(latency, show_state_
- define_one_state_ro(power, show_state_power_usage);
- define_one_state_ro(usage, show_state_usage);
- define_one_state_ro(time, show_state_time);
-+define_one_state_rw(disable, show_state_disable, store_state_disable);
+ sub deparenthesize {
+@@ -1350,11 +1354,11 @@ sub pos_last_openparen {
+ 	for ($pos = 0; $pos < $len; $pos++) {
+ 		my $string = substr($line, $pos);
+ 		if ($string =~ /^($FuncArg|$balanced_parens)/) {
+-			$pos += length($1);
+-		}
+-
+-		if (substr($line, $pos, 1) eq '(') {
++			$pos += length($1) - 1;
++		} elsif (substr($line, $pos, 1) eq '(') {
+ 			$last_openparen = $pos;
++		} elsif (index($string, '(') == -1) {
++			last;
+ 		}
+ 	}
  
- static struct attribute *cpuidle_state_default_attrs[] = {
- 	&attr_name.attr,
-@@ -266,6 +285,7 @@ static struct attribute *cpuidle_state_d
- 	&attr_power.attr,
- 	&attr_usage.attr,
- 	&attr_time.attr,
-+	&attr_disable.attr,
- 	NULL
- };
+@@ -1821,7 +1825,8 @@ sub process {
+ 		}
  
-@@ -287,8 +307,22 @@ static ssize_t cpuidle_state_show(struct
- 	return ret;
- }
+ # check multi-line statement indentation matches previous line
+-		if ($prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/) {
++		if ($^V && $^V ge 5.10.0 &&
++		    $prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/) {
+ 			$prevline =~ /^\+(\t*)(.*)$/;
+ 			my $oldindent = $1;
+ 			my $rest = $2;
+@@ -3203,12 +3208,13 @@ sub process {
+ 		}
  
-+static ssize_t cpuidle_state_store(struct kobject *kobj,
-+	struct attribute *attr, const char *buf, size_t size)
-+{
-+	int ret = -EIO;
-+	struct cpuidle_state *state = kobj_to_state(kobj);
-+	struct cpuidle_state_attr *cattr = attr_to_stateattr(attr);
+ # Check for misused memsets
+-		if (defined $stat &&
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
+ 		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*$FuncArg\s*\)/s) {
+ 
+ 			my $ms_addr = $2;
+-			my $ms_val = $8;
+-			my $ms_size = $14;
++			my $ms_val = $7;
++			my $ms_size = $12;
+ 
+ 			if ($ms_size =~ /^(0x|)0$/i) {
+ 				ERROR("MEMSET",
+@@ -3220,17 +3226,18 @@ sub process {
+ 		}
+ 
+ # typecasts on min/max could be min_t/max_t
+-		if (defined $stat &&
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
+ 		    $stat =~ /^\+(?:.*?)\b(min|max)\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\)/) {
+-			if (defined $2 || defined $8) {
++			if (defined $2 || defined $7) {
+ 				my $call = $1;
+ 				my $cast1 = deparenthesize($2);
+ 				my $arg1 = $3;
+-				my $cast2 = deparenthesize($8);
+-				my $arg2 = $9;
++				my $cast2 = deparenthesize($7);
++				my $arg2 = $8;
+ 				my $cast;
+ 
+-				if ($cast1 ne "" && $cast2 ne "") {
++				if ($cast1 ne "" && $cast2 ne "" && $cast1 ne $cast2) {
+ 					$cast = "$cast1 or $cast2";
+ 				} elsif ($cast1 ne "") {
+ 					$cast = $cast1;
+@@ -3452,6 +3459,12 @@ sub process {
+ 	}
+ 
+ 	if ($quiet == 0) {
 +
-+	if (cattr->store)
-+		ret = cattr->store(state, buf, size);
++		if ($^V lt 5.10.0) {
++			print("NOTE: perl $^V is not modern enough to detect all possible issues.\n");
++			print("An upgrade to at least perl v5.10.0 is suggested.\n\n");
++		}
 +
-+	return ret;
-+}
-+
- static const struct sysfs_ops cpuidle_state_sysfs_ops = {
- 	.show = cpuidle_state_show,
-+	.store = cpuidle_state_store,
- };
- 
- static void cpuidle_state_sysfs_release(struct kobject *kobj)
-diff -puN include/linux/cpuidle.h~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose include/linux/cpuidle.h
---- a/include/linux/cpuidle.h~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose
-+++ a/include/linux/cpuidle.h
-@@ -45,6 +45,7 @@ struct cpuidle_state {
- 	unsigned int	exit_latency; /* in US */
- 	unsigned int	power_usage; /* in mW */
- 	unsigned int	target_residency; /* in US */
-+	unsigned int    disable;
- 
- 	int (*enter)	(struct cpuidle_device *dev,
- 			struct cpuidle_driver *drv,
+ 		# If there were whitespace errors which cleanpatch can fix
+ 		# then suggest that.
+ 		if ($rpt_cleaners) {
 _
-Subject: Subject: cpuidle: add a sysfs entry to disable specific C state for debug purpose.
+Subject: Subject: checkpatch-add-some-strict-coding-style-checks-v3
 
-Patches currently in -mm which might be from shuox.liu@intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch
+linux-next.patch
+thermal_sys-remove-unnecessary-line-continuations.patch
+thermal_sys-remove-obfuscating-used-once-macros.patch
+thermal_sys-kernel-style-cleanups.patch
+thermal_sys-convert-printks-to-pr_level.patch
+get_maintainer-use-a-default-unknown-s-status-role.patch
+maintainers-fix-remoteproc-f-typo.patch
+maintainers-update-mca-section.patch
+maintainers-update-git-urls-for-26-deletions.patch
+maintainers-add-status-to-alpha-architecture.patch
+maintainers-add-s-maintained-to-clkdev-and-clk-sections.patch
+include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
+checkpatch-add-some-strict-coding-style-checks.patch
+checkpatch-add-some-strict-coding-style-checks-v3.patch
+checkpatchpl-be-silent-when-q-and-ignore-is-given.patch
+checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch
+checkpatch-allow-simple-character-constants-in-defines.patch
+checkpatch-handle-string-concatenation-in-simple-defines.patch
+checkpatch-high-precidence-operators-do-not-require-additional-parentheses-in-defines.patch
+checkpatch-add-to-type-extensions.patch
 
