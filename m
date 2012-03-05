@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2012 15:09:51 -0800
-Message-ID: <20120305230952.1D262A02EB@akpm.mtv.corp.google.com>
+Subject: [folded] thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2012 15:09:56 -0800
+Message-ID: <20120305230956.882C6A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:55770 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754177Ab2CEXJy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 18:09:54 -0500
-Received: by faaa19 with SMTP id a19so167969faa.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 15:09:53 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:58489 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754177Ab2CEXJ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 18:09:57 -0500
+Received: by yenq2 with SMTP id q2so553338yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 15:09:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, lenb@kernel.org, vincenzo.frascino@st.com, viresh.kumar@st.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
+     Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix
 has been removed from the -mm tree.  Its filename was
-     thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
+     thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
 
 This patch was dropped because it was folded into thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
 
@@ -26,12 +26,9 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
+Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix
 
-print the pointer correctly
-
-drivers/thermal/spear_thermal.c: In function 'spear_thermal_probe':
-drivers/thermal/spear_thermal.c:159: warning: cast from pointer to integer of different size
+little code cleanup
 
 Cc: Len Brown <lenb@kernel.org>
 Cc: Vincenzo Frascino <vincenzo.frascino@st.com>
@@ -39,23 +36,20 @@ Cc: Viresh Kumar <viresh.kumar@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/spear_thermal.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/thermal/spear_thermal.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix drivers/thermal/spear_thermal.c
---- a/drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
+diff -puN drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix drivers/thermal/spear_thermal.c
+--- a/drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix
 +++ a/drivers/thermal/spear_thermal.c
-@@ -156,8 +156,8 @@ static int spear_thermal_probe(struct pl
- 
- 	platform_set_drvdata(pdev, spear_thermal);
- 
--	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%x.\n",
--			(unsigned int)stdev->thermal_base);
-+	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%p.\n",
-+			stdev->thermal_base);
- 
- 	return 0;
- 
+@@ -106,6 +106,7 @@ static int spear_thermal_probe(struct pl
+ 	struct spear_thermal_pdata *pdata;
+ 	int ret = 0;
+ 	struct resource *stres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
+ 	if (!stres) {
+ 		dev_err(&pdev->dev, "memory resource missing\n");
+ 		return -ENODEV;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +74,6 @@ drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
 hpet-factor-timer-allocate-from-open.patch
 thermal-thermal_sys-fix-build-warning.patch
 thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
 net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
 slab-introduce-kmalloc_array.patch
 mm.patch
