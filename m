@@ -1,58 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded] x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2012 15:02:40 -0800
-Message-ID: <20120305230240.B7890A02AE@akpm.mtv.corp.google.com>
+Subject: [folded] x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2012 15:03:22 -0800
+Message-ID: <20120305230322.AE385A02AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:38546 "EHLO
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:41744 "EHLO
 	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202Ab2CEXCn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 18:02:43 -0500
-Received: by wgbdt11 with SMTP id dt11so164847wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 15:02:41 -0800 (PST)
+	with ESMTP id S1754177Ab2CEXDZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 18:03:25 -0500
+Received: by wgbdt11 with SMTP id dt11so164866wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 15:03:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.shi@intel.com, cl@gentwo.org, hpa@zytor.com, mingo@elte.hu, sfr@canb.auug.org.au, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alex.shi@intel.com, cl@gentwo.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+     Subject: x86-change-percpu_read_stable-to-this_cpu_read_stable-fix
 has been removed from the -mm tree.  Its filename was
-     x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+     x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
 
-This patch was dropped because it was folded into x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+This patch was dropped because it was folded into x86-change-percpu_read_stable-to-this_cpu_read_stable.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+Subject: x86-change-percpu_read_stable-to-this_cpu_read_stable-fix
 
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Alex Shi <alex.shi@intel.com>
 Cc: Christoph Lameter <cl@gentwo.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/i387.c |    2 +-
+ arch/x86/include/asm/fpu-internal.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/i387.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix arch/x86/kernel/i387.c
---- a/arch/x86/kernel/i387.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
-+++ a/arch/x86/kernel/i387.c
-@@ -88,7 +88,7 @@ void kernel_fpu_begin(void)
- 		__thread_clear_has_fpu(me);
- 		/* We do 'stts()' in kernel_fpu_end() */
- 	} else {
--		percpu_write(fpu_owner_task, NULL);
-+		__this_cpu_write(fpu_owner_task, NULL);
- 		clts();
- 	}
+diff -puN arch/x86/include/asm/fpu-internal.h~x86-change-percpu_read_stable-to-this_cpu_read_stable-fix arch/x86/include/asm/fpu-internal.h
+--- a/arch/x86/include/asm/fpu-internal.h~x86-change-percpu_read_stable-to-this_cpu_read_stable-fix
++++ a/arch/x86/include/asm/fpu-internal.h
+@@ -344,7 +344,7 @@ typedef struct { int preload; } fpu_swit
+  */
+ static inline int fpu_lazy_restore(struct task_struct *new, unsigned int cpu)
+ {
+-	return new == percpu_read_stable(fpu_owner_task) &&
++	return new == this_cpu_read_stable(fpu_owner_task) &&
+ 		cpu == new->thread.fpu.last_cpu;
  }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +71,7 @@ x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
 net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
+x86-change-percpu_read_stable-to-this_cpu_read_stable.patch
 x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
 drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
 hpet-factor-timer-allocate-from-open.patch
