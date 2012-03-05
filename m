@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-strict-test-for-strings-split-across-multiple-lines.patch added to -mm tree
-Date: Mon, 05 Mar 2012 12:21:42 -0800
-Message-ID: <20120305202142.DA488A028B@akpm.mtv.corp.google.com>
+Subject: + rapidio-tsi721-fix-bug-in-inbound-doorbell-handler.patch added to -mm tree
+Date: Mon, 05 Mar 2012 12:37:21 -0800
+Message-ID: <20120305203721.AA269A0313@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:54035 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757517Ab2CEUVo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 15:21:44 -0500
-Received: by qcsp5 with SMTP id p5so530473qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 12:21:43 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57087 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030187Ab2CEUhY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 15:37:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@shadowen.org
+Cc: alexandre.bounine@idt.com, chul.kim@idt.com, mporter@kernel.crashing.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add --strict test for strings split across multiple lines
+     Subject: rapidio/tsi721: fix bug in inbound doorbell handler
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-strict-test-for-strings-split-across-multiple-lines.patch
+     rapidio-tsi721-fix-bug-in-inbound-doorbell-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +31,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add --strict test for strings split across multiple lines
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: fix bug in inbound doorbell handler
 
-Strings split across multiple lines are commonly used as formats.  These
-uncoalesced formats are hard to grep and are relatively error prone.
+Fixes queue wrapping bug in Inbound Doorbell handling routine.
 
-Suggest coalescing split strings when using --strict.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Chul Kim <chul.kim@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: <stable@vger.kernel.org>		[3.2.x+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/rapidio/devices/tsi721.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-strings-split-across-multiple-lines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-strings-split-across-multiple-lines
-+++ a/scripts/checkpatch.pl
-@@ -1860,6 +1860,12 @@ sub process {
- 			    "Don't begin block comments with only a /* line, use /* comment...\n" . $hereprev);
- 		}
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-bug-in-inbound-doorbell-handler drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-bug-in-inbound-doorbell-handler
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -410,13 +410,14 @@ static void tsi721_db_dpc(struct work_st
+ 	 */
+ 	mport = priv->mport;
  
-+		if ($prevline =~ /^\+.*"[ \t]*$/ &&
-+		    $line =~ /^\+[ \t]*"/) {
-+			CHK("COALESCE_STRING",
-+			    "Coalesced strings are easier to grep and less error prone\n" . $hereprev);
-+		}
-+
- # check for spaces at the beginning of a line.
- # Exceptions:
- #  1) within comments
+-	wr_ptr = ioread32(priv->regs + TSI721_IDQ_WP(IDB_QUEUE));
+-	rd_ptr = ioread32(priv->regs + TSI721_IDQ_RP(IDB_QUEUE));
++	wr_ptr = ioread32(priv->regs + TSI721_IDQ_WP(IDB_QUEUE)) % IDB_QSIZE;
++	rd_ptr = ioread32(priv->regs + TSI721_IDQ_RP(IDB_QUEUE)) % IDB_QSIZE;
+ 
+ 	while (wr_ptr != rd_ptr) {
+ 		idb_entry = (u64 *)(priv->idb_base +
+ 					(TSI721_IDB_ENTRY_SIZE * rd_ptr));
+ 		rd_ptr++;
++		rd_ptr %= IDB_QSIZE;
+ 		idb.msg = *idb_entry;
+ 		*idb_entry = 0;
+ 
 _
-Subject: Subject: checkpatch: add --strict test for strings split across multiple lines
+Subject: Subject: rapidio/tsi721: fix bug in inbound doorbell handler
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-linux-next.patch
-thermal_sys-remove-unnecessary-line-continuations.patch
-thermal_sys-remove-obfuscating-used-once-macros.patch
-thermal_sys-kernel-style-cleanups.patch
-thermal_sys-convert-printks-to-pr_level.patch
-get_maintainer-use-a-default-unknown-s-status-role.patch
-maintainers-fix-remoteproc-f-typo.patch
-maintainers-update-mca-section.patch
-maintainers-update-git-urls-for-26-deletions.patch
-maintainers-add-status-to-alpha-architecture.patch
-maintainers-add-s-maintained-to-clkdev-and-clk-sections.patch
-include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
-checkpatch-add-some-strict-coding-style-checks.patch
-checkpatch-add-some-strict-coding-style-checks-v3.patch
-checkpatchpl-be-silent-when-q-and-ignore-is-given.patch
-checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch
-checkpatch-allow-simple-character-constants-in-defines.patch
-checkpatch-handle-string-concatenation-in-simple-defines.patch
-checkpatch-high-precidence-operators-do-not-require-additional-parentheses-in-defines.patch
-checkpatch-add-to-type-extensions.patch
-checkpatch-add-strict-tests-for-braces-comments-and-casts.patch
-checkpatch-add-strict-test-for-strings-split-across-multiple-lines.patch
+rapidio-tsi721-fix-bug-in-inbound-doorbell-handler.patch
 
