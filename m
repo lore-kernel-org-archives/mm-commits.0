@@ -1,83 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch added to -mm tree
-Date: Mon, 05 Mar 2012 13:16:59 -0800
-Message-ID: <20120305220029.8FEBC200061@hpza10.eem.corp.google.com>
+Subject: [folded] x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2012 15:02:40 -0800
+Message-ID: <20120305230240.B7890A02AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:62722 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753887Ab2CEWAc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 17:00:32 -0500
-Received: by wejx9 with SMTP id x9so178809wej.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 14:00:30 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:38546 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754202Ab2CEXCn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 18:02:43 -0500
+Received: by wgbdt11 with SMTP id dt11so164847wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 15:02:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, ngupta@vflare.org, sjenning@linux.vnet.ibm.com
+To: akpm@linux-foundation.org, alex.shi@intel.com, cl@gentwo.org, hpa@zytor.com, mingo@elte.hu, sfr@canb.auug.org.au, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/staging/zsmalloc/zsmalloc-main.c: unbork
-has been added to the -mm tree.  Its filename is
-     drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+     Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+has been removed from the -mm tree.  Its filename was
+     x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/staging/zsmalloc/zsmalloc-main.c: unbork
+Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
 
-complete pita :(
-
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alex Shi <alex.shi@intel.com>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zsmalloc/zsmalloc-main.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/kernel/i387.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/zsmalloc/zsmalloc-main.c~drivers-staging-zsmalloc-zsmalloc-mainc-unbork drivers/staging/zsmalloc/zsmalloc-main.c
---- a/drivers/staging/zsmalloc/zsmalloc-main.c~drivers-staging-zsmalloc-zsmalloc-mainc-unbork
-+++ a/drivers/staging/zsmalloc/zsmalloc-main.c
-@@ -252,8 +252,8 @@ static void *obj_location_to_handle(stru
- 		return NULL;
+diff -puN arch/x86/kernel/i387.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix arch/x86/kernel/i387.c
+--- a/arch/x86/kernel/i387.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
++++ a/arch/x86/kernel/i387.c
+@@ -88,7 +88,7 @@ void kernel_fpu_begin(void)
+ 		__thread_clear_has_fpu(me);
+ 		/* We do 'stts()' in kernel_fpu_end() */
+ 	} else {
+-		percpu_write(fpu_owner_task, NULL);
++		__this_cpu_write(fpu_owner_task, NULL);
+ 		clts();
  	}
- 
--	handle = page_to_pfn(page) << OBJ_INDEX_BITS;
--	handle |= (obj_idx & OBJ_INDEX_MASK);
-+//	handle = page_to_pfn(page) << OBJ_INDEX_BITS;
-+//	handle |= (obj_idx & OBJ_INDEX_MASK);
- 
- 	return (void *)handle;
  }
-@@ -264,8 +264,8 @@ static void obj_handle_to_location(void 
- {
- 	unsigned long hval = (unsigned long)handle;
- 
--	*page = pfn_to_page(hval >> OBJ_INDEX_BITS);
--	*obj_idx = hval & OBJ_INDEX_MASK;
-+//	*page = pfn_to_page(hval >> OBJ_INDEX_BITS);
-+//	*obj_idx = hval & OBJ_INDEX_MASK;
- }
- 
- static unsigned long obj_idx_to_offset(struct page *page,
 _
-Subject: Subject: drivers/staging/zsmalloc/zsmalloc-main.c: unbork
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+alpha-fix-32-64-bit-bug-in-futex-support.patch
 linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
@@ -85,13 +66,12 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
 drivers-mfd-twl-corec-unbork.patch
-alpha-fix-32-64-bit-bug-in-futex-support.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
 drivers-platform-x86-sony-laptopc-fix-scancodes.patch
 net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
 x86-change-percpu_read_stable-to-this_cpu_read_stable-fix.patch
 x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
 drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
@@ -156,5 +136,4 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 
