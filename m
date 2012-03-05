@@ -1,67 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch removed from -mm tree
-Date: Mon, 05 Mar 2012 15:03:45 -0800
-Message-ID: <20120305230345.C24FAA02AE@akpm.mtv.corp.google.com>
+Subject: [folded] thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch removed from -mm tree
+Date: Mon, 05 Mar 2012 15:09:51 -0800
+Message-ID: <20120305230952.1D262A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:56925 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202Ab2CEXDr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 18:03:47 -0500
-Received: by qcsp5 with SMTP id p5so553784qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 15:03:46 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:55770 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754177Ab2CEXJy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 18:09:54 -0500
+Received: by faaa19 with SMTP id a19so167969faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 15:09:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chrisw@sous-sol.org, drahn@suse.com, dwmw2@infradead.org, jbarnes@virtuousgeek.org, mingo@elte.hu, steiner@sgi.com, travis@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lenb@kernel.org, vincenzo.frascino@st.com, viresh.kumar@st.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
+     Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
 has been removed from the -mm tree.  Its filename was
-     x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix.patch
+     thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
 
-This patch was dropped because it was folded into x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics.patch
+This patch was dropped because it was folded into thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
+Subject: thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
 
-fix printk format string, code cleanup
+print the pointer correctly
 
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Daniel Rahn <drahn@suse.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+drivers/thermal/spear_thermal.c: In function 'spear_thermal_probe':
+drivers/thermal/spear_thermal.c:159: warning: cast from pointer to integer of different size
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Vincenzo Frascino <vincenzo.frascino@st.com>
+Cc: Viresh Kumar <viresh.kumar@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/intel-iommu.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/thermal/spear_thermal.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix drivers/iommu/intel-iommu.c
---- a/drivers/iommu/intel-iommu.c~x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics-v2-fix
-+++ a/drivers/iommu/intel-iommu.c
-@@ -2413,11 +2413,11 @@ static int __init init_dmars(void)
- 		 * threaded kernel __init code path all other access are read
- 		 * only
- 		 */
--		if (g_num_of_iommus < IOMMU_UNITS_SUPPORTED)
-+		if (g_num_of_iommus < IOMMU_UNITS_SUPPORTED) {
- 			g_num_of_iommus++;
--		else
--			printk_once(KERN_ERR,
--			  "MAX number (%d) of IOMMUs supported exceeded\n",
-+			continue;
-+		}
-+		printk_once(KERN_ERR "intel-iommu: exceeded %d IOMMUs\n",
- 			  IOMMU_UNITS_SUPPORTED);
- 	}
+diff -puN drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix drivers/thermal/spear_thermal.c
+--- a/drivers/thermal/spear_thermal.c~thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix
++++ a/drivers/thermal/spear_thermal.c
+@@ -156,8 +156,8 @@ static int spear_thermal_probe(struct pl
+ 
+ 	platform_set_drvdata(pdev, spear_thermal);
+ 
+-	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%x.\n",
+-			(unsigned int)stdev->thermal_base);
++	dev_info(&spear_thermal->device, "Thermal Sensor Loaded at: 0x%p.\n",
++			stdev->thermal_base);
+ 
+ 	return 0;
  
 _
 
@@ -86,7 +79,7 @@ x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics.patch
 drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
 hpet-factor-timer-allocate-from-open.patch
 thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
 thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines-fix-fix.patch
 net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
 slab-introduce-kmalloc_array.patch
