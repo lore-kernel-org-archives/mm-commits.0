@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-twl-corec-unbork.patch added to -mm tree
-Date: Mon, 05 Mar 2012 13:07:52 -0800
-Message-ID: <20120305215122.F15D3200059@hpza10.eem.corp.google.com>
+Subject: + drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch added to -mm tree
+Date: Mon, 05 Mar 2012 13:16:59 -0800
+Message-ID: <20120305220029.8FEBC200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:61424 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755250Ab2CEVv0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 16:51:26 -0500
-Received: by wibhj13 with SMTP id hj13so164118wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 13:51:24 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:62722 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753887Ab2CEWAc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Mar 2012 17:00:32 -0500
+Received: by wejx9 with SMTP id x9so178809wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 05 Mar 2012 14:00:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, b-cousson@ti.com, grant.likely@secretlab.ca
+Cc: akpm@linux-foundation.org, greg@kroah.com, ngupta@vflare.org, sjenning@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: drivers/mfd/twl-core.c: unbork
+     Subject: drivers/staging/zsmalloc/zsmalloc-main.c: unbork
 has been added to the -mm tree.  Its filename is
-     drivers-mfd-twl-corec-unbork.patch
+     drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/mfd/twl-core.c: unbork
+Subject: drivers/staging/zsmalloc/zsmalloc-main.c: unbork
 
-make i386 compileable
+complete pita :(
 
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/twl-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/zsmalloc/zsmalloc-main.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mfd/twl-core.c~drivers-mfd-twl-corec-unbork drivers/mfd/twl-core.c
---- a/drivers/mfd/twl-core.c~drivers-mfd-twl-corec-unbork
-+++ a/drivers/mfd/twl-core.c
-@@ -1353,8 +1353,8 @@ twl_probe(struct i2c_client *client, con
+diff -puN drivers/staging/zsmalloc/zsmalloc-main.c~drivers-staging-zsmalloc-zsmalloc-mainc-unbork drivers/staging/zsmalloc/zsmalloc-main.c
+--- a/drivers/staging/zsmalloc/zsmalloc-main.c~drivers-staging-zsmalloc-zsmalloc-mainc-unbork
++++ a/drivers/staging/zsmalloc/zsmalloc-main.c
+@@ -252,8 +252,8 @@ static void *obj_location_to_handle(stru
+ 		return NULL;
  	}
  
- 	status = -ENODEV;
--	if (node)
--		status = of_platform_populate(node, NULL, NULL, &client->dev);
-+//	if (node)
-+//		status = of_platform_populate(node, NULL, NULL, &client->dev);
- 	if (status)
- 		status = add_children(pdata, id->driver_data);
+-	handle = page_to_pfn(page) << OBJ_INDEX_BITS;
+-	handle |= (obj_idx & OBJ_INDEX_MASK);
++//	handle = page_to_pfn(page) << OBJ_INDEX_BITS;
++//	handle |= (obj_idx & OBJ_INDEX_MASK);
  
+ 	return (void *)handle;
+ }
+@@ -264,8 +264,8 @@ static void obj_handle_to_location(void 
+ {
+ 	unsigned long hval = (unsigned long)handle;
+ 
+-	*page = pfn_to_page(hval >> OBJ_INDEX_BITS);
+-	*obj_idx = hval & OBJ_INDEX_MASK;
++//	*page = pfn_to_page(hval >> OBJ_INDEX_BITS);
++//	*obj_idx = hval & OBJ_INDEX_MASK;
+ }
+ 
+ static unsigned long obj_idx_to_offset(struct page *page,
 _
-Subject: Subject: drivers/mfd/twl-core.c: unbork
+Subject: Subject: drivers/staging/zsmalloc/zsmalloc-main.c: unbork
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -72,6 +84,7 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+drivers-mfd-twl-corec-unbork.patch
 alpha-fix-32-64-bit-bug-in-futex-support.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
@@ -143,5 +156,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-drivers-mfd-twl-corec-unbork.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 
