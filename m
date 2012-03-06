@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-entry-for-exynos-mipi-display-drivers.patch added to -mm tree
-Date: Tue, 06 Mar 2012 14:15:57 -0800
-Message-ID: <20120306221557.AE027A024E@akpm.mtv.corp.google.com>
+Subject: + mm-update-stale-lock-ordering-comment-for-memory-failurec.patch added to -mm tree
+Date: Tue, 06 Mar 2012 14:17:38 -0800
+Message-ID: <20120306221738.865D1A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:44150 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030811Ab2CFWQA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 17:16:00 -0500
-Received: by eaaq10 with SMTP id q10so209947eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 14:15:58 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:54489 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757597Ab2CFWRj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 17:17:39 -0500
+Received: by yenq2 with SMTP id q2so704655yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 14:17:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dh09.lee@samsung.com, FlorianSchandinat@gmx.de, inki.dae@samsung.com, jg1.han@samsung.com, kgene.kim@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net
+Cc: ak@linux.intel.com, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     Subject: MAINTAINERS: add entry for exynos mipi display drivers
+     Subject: mm: update stale lock ordering comment for memory-failure.c
 has been added to the -mm tree.  Its filename is
-     maintainers-add-entry-for-exynos-mipi-display-drivers.patch
+     mm-update-stale-lock-ordering-comment-for-memory-failurec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Donghwa Lee <dh09.lee@samsung.com>
-Subject: MAINTAINERS: add entry for exynos mipi display drivers
+From: Andi Kleen <ak@linux.intel.com>
+Subject: mm: update stale lock ordering comment for memory-failure.c
 
-Hi, I'd like to add Inki Dae, Donghwa Lee and Kyungmin Park as maintainers
-who developers for exynos mipi display drivers for
-video/driver/exynos/exynos_mipi* and include/video/exynos_mipi*.
+When i_mmap_lock changed to a mutex the locking order in memory failure
+was changed to take the sleeping lock first.  But the big fat mm lock
+ordering comment (BFMLO) wasn't updated.  Do this here.
 
-Signed-off-by: Donghwa Lee <dh09.lee@samsung.com>
-Signed-off-by: Inki Dae <inki.dae@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
+Pointed out by Andrew.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/filemap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-entry-for-exynos-mipi-display-drivers MAINTAINERS
---- a/MAINTAINERS~maintainers-add-entry-for-exynos-mipi-display-drivers
-+++ a/MAINTAINERS
-@@ -2362,6 +2362,15 @@ S:	Supported
- F:	drivers/gpu/drm/exynos
- F:	include/drm/exynos*
+diff -puN mm/filemap.c~mm-update-stale-lock-ordering-comment-for-memory-failurec mm/filemap.c
+--- a/mm/filemap.c~mm-update-stale-lock-ordering-comment-for-memory-failurec
++++ a/mm/filemap.c
+@@ -101,9 +101,8 @@
+  *    ->inode->i_lock		(zap_pte_range->set_page_dirty)
+  *    ->private_lock		(zap_pte_range->__set_page_dirty_buffers)
+  *
+- *  (code doesn't rely on that order, so you could switch it around)
+- *  ->tasklist_lock             (memory_failure, collect_procs_ao)
+- *    ->i_mmap_mutex
++ * ->i_mmap_mutex
++ *   ->tasklist_lock            (memory_failure, collect_procs_ao)
+  */
  
-+EXYNOS MIPI DISPLAY DRIVERS
-+M:	Inki Dae <inki.dae@samsung.com>
-+M:	Donghwa Lee <dh09.lee@samsung.com>
-+M:	Kyungmin Park <kyungmin.park@samsung.com>
-+L:	linux-fbdev@vger.kernel.org
-+S:	Maintained
-+F:	drivers/video/exynos/exynos_mipi*
-+F:	include/video/exynos_mipi*
-+
- DSCC4 DRIVER
- M:	Francois Romieu <romieu@fr.zoreil.com>
- L:	netdev@vger.kernel.org
+ /*
 _
-Subject: Subject: MAINTAINERS: add entry for exynos mipi display drivers
+Subject: Subject: mm: update stale lock ordering comment for memory-failure.c
 
-Patches currently in -mm which might be from dh09.lee@samsung.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 linux-next.patch
-backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
-maintainers-add-entry-for-exynos-mipi-display-drivers.patch
+pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
+mm-update-stale-lock-ordering-comment-for-memory-failurec.patch
+brlocks-lglocks-cleanups.patch
 
