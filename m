@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfork-introduce-complete_vfork_done.patch removed from -mm tree
-Date: Tue, 06 Mar 2012 11:34:54 -0800
-Message-ID: <20120306193454.65E46A02EB@akpm.mtv.corp.google.com>
+Subject: [merged] vfork-make-it-killable.patch removed from -mm tree
+Date: Tue, 06 Mar 2012 11:34:56 -0800
+Message-ID: <20120306193456.6DF45A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:33122 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965160Ab2CFTe5 (ORCPT
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:62855 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965200Ab2CFTe5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 14:34:57 -0500
-Received: by laai8 with SMTP id i8so203276laa.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 11:34:55 -0800 (PST)
+Received: by vcbfk26 with SMTP id fk26so677488vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 11:34:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfork: introduce complete_vfork_done()
+     Subject: vfork: make it killable
 has been removed from the -mm tree.  Its filename was
-     vfork-introduce-complete_vfork_done.patch
+     vfork-make-it-killable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,100 +26,123 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: vfork: introduce complete_vfork_done()
+Subject: vfork: make it killable
 
-No functional changes.
+Make vfork() killable.
 
-Move the clear-and-complete-vfork_done code into the new trivial helper,
-complete_vfork_done().
+Change do_fork(CLONE_VFORK) to do wait_for_completion_killable().  If it
+fails we do not return to the user-mode and never touch the memory shared
+with our child.
+
+However, in this case we should clear child->vfork_done before return, we
+use task_lock() in do_fork()->wait_for_vfork_done() and
+complete_vfork_done() to serialize with each other.
+
+Note: now that we use task_lock() we don't really need completion, we
+could turn task->vfork_done into "task_struct *wake_up_me" but this needs
+some complications.
+
+NOTE: this and the next patches do not affect in-kernel users of
+CLONE_VFORK, kernel threads run with all signals ignored including
+SIGKILL/SIGSTOP.
+
+However this is obviously the user-visible change.  Not only a fatal
+signal can kill the vforking parent, a sub-thread can do execve or
+exit_group() and kill the thread sleeping in vfork().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |    8 ++------
- include/linux/sched.h |    1 +
- kernel/fork.c         |   17 ++++++++++-------
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ include/linux/sched.h |    2 +-
+ kernel/fork.c         |   40 ++++++++++++++++++++++++++++++++--------
+ 2 files changed, 33 insertions(+), 9 deletions(-)
 
-diff -puN fs/exec.c~vfork-introduce-complete_vfork_done fs/exec.c
---- a/fs/exec.c~vfork-introduce-complete_vfork_done
-+++ a/fs/exec.c
-@@ -1915,7 +1915,6 @@ static int coredump_wait(int exit_code, 
- {
- 	struct task_struct *tsk = current;
- 	struct mm_struct *mm = tsk->mm;
--	struct completion *vfork_done;
- 	int core_waiters = -EBUSY;
- 
- 	init_completion(&core_state->startup);
-@@ -1934,11 +1933,8 @@ static int coredump_wait(int exit_code, 
- 	 * Make sure nobody is waiting for us to release the VM,
- 	 * otherwise we can deadlock when we wait on each other
- 	 */
--	vfork_done = tsk->vfork_done;
--	if (vfork_done) {
--		tsk->vfork_done = NULL;
--		complete(vfork_done);
--	}
-+	if (tsk->vfork_done)
-+		complete_vfork_done(tsk);
- 
- 	if (core_waiters)
- 		wait_for_completion(&core_state->startup);
-diff -puN include/linux/sched.h~vfork-introduce-complete_vfork_done include/linux/sched.h
---- a/include/linux/sched.h~vfork-introduce-complete_vfork_done
+diff -puN include/linux/sched.h~vfork-make-it-killable include/linux/sched.h
+--- a/include/linux/sched.h~vfork-make-it-killable
 +++ a/include/linux/sched.h
-@@ -2291,6 +2291,7 @@ extern int do_execve(const char *,
- 		     const char __user * const __user *,
- 		     const char __user * const __user *, struct pt_regs *);
- extern long do_fork(unsigned long, unsigned long, struct pt_regs *, unsigned long, int __user *, int __user *);
-+extern void complete_vfork_done(struct task_struct *tsk);
- struct task_struct *fork_idle(int);
- 
- extern void set_task_comm(struct task_struct *tsk, char *from);
-diff -puN kernel/fork.c~vfork-introduce-complete_vfork_done kernel/fork.c
---- a/kernel/fork.c~vfork-introduce-complete_vfork_done
+@@ -2372,7 +2372,7 @@ static inline int thread_group_empty(str
+  * Protects ->fs, ->files, ->mm, ->group_info, ->comm, keyring
+  * subscriptions and synchronises with wait4().  Also used in procfs.  Also
+  * pins the final release of task.io_context.  Also protects ->cpuset and
+- * ->cgroup.subsys[].
++ * ->cgroup.subsys[]. And ->vfork_done.
+  *
+  * Nests both inside and outside of read_lock(&tasklist_lock).
+  * It must not be nested with write_lock_irq(&tasklist_lock),
+diff -puN kernel/fork.c~vfork-make-it-killable kernel/fork.c
+--- a/kernel/fork.c~vfork-make-it-killable
 +++ a/kernel/fork.c
-@@ -668,6 +668,14 @@ struct mm_struct *mm_access(struct task_
- 	return mm;
- }
+@@ -670,10 +670,34 @@ struct mm_struct *mm_access(struct task_
  
-+void complete_vfork_done(struct task_struct *tsk)
-+{
-+	struct completion *vfork_done = tsk->vfork_done;
-+
-+	tsk->vfork_done = NULL;
-+	complete(vfork_done);
-+}
-+
- /* Please note the differences between mmput and mm_release.
-  * mmput is called whenever we stop holding onto a mm_struct,
-  * error success whatever.
-@@ -683,8 +691,6 @@ struct mm_struct *mm_access(struct task_
-  */
- void mm_release(struct task_struct *tsk, struct mm_struct *mm)
+ void complete_vfork_done(struct task_struct *tsk)
  {
 -	struct completion *vfork_done = tsk->vfork_done;
--
- 	/* Get rid of any futexes when releasing the mm */
- #ifdef CONFIG_FUTEX
- 	if (unlikely(tsk->robust_list)) {
-@@ -704,11 +710,8 @@ void mm_release(struct task_struct *tsk,
- 	/* Get rid of any cached register state */
- 	deactivate_mm(tsk, mm);
++	struct completion *vfork;
  
--	/* notify parent sleeping on vfork() */
--	if (vfork_done) {
--		tsk->vfork_done = NULL;
--		complete(vfork_done);
--	}
-+	if (tsk->vfork_done)
-+		complete_vfork_done(tsk);
+-	tsk->vfork_done = NULL;
+-	complete(vfork_done);
++	task_lock(tsk);
++	vfork = tsk->vfork_done;
++	if (likely(vfork)) {
++		tsk->vfork_done = NULL;
++		complete(vfork);
++	}
++	task_unlock(tsk);
++}
++
++static int wait_for_vfork_done(struct task_struct *child,
++				struct completion *vfork)
++{
++	int killed;
++
++	freezer_do_not_count();
++	killed = wait_for_completion_killable(vfork);
++	freezer_count();
++
++	if (killed) {
++		task_lock(child);
++		child->vfork_done = NULL;
++		task_unlock(child);
++	}
++
++	put_task_struct(child);
++	return killed;
+ }
  
- 	/*
+ /* Please note the differences between mmput and mm_release.
+@@ -717,7 +741,8 @@ void mm_release(struct task_struct *tsk,
  	 * If we're exiting normally, clear a user-space tid field if
+ 	 * requested.  We leave this alone when dying by signal, to leave
+ 	 * the value intact in a core dump, and to save the unnecessary
+-	 * trouble otherwise.  Userland only wants this done for a sys_exit.
++	 * trouble, say, a killed vfork parent shouldn't touch this mm.
++	 * Userland only wants this done for a sys_exit.
+ 	 */
+ 	if (tsk->clear_child_tid) {
+ 		if (!(tsk->flags & PF_SIGNALED) &&
+@@ -1551,6 +1576,7 @@ long do_fork(unsigned long clone_flags,
+ 		if (clone_flags & CLONE_VFORK) {
+ 			p->vfork_done = &vfork;
+ 			init_completion(&vfork);
++			get_task_struct(p);
+ 		}
+ 
+ 		/*
+@@ -1568,10 +1594,8 @@ long do_fork(unsigned long clone_flags,
+ 			ptrace_event(trace, nr);
+ 
+ 		if (clone_flags & CLONE_VFORK) {
+-			freezer_do_not_count();
+-			wait_for_completion(&vfork);
+-			freezer_count();
+-			ptrace_event(PTRACE_EVENT_VFORK_DONE, nr);
++			if (!wait_for_vfork_done(p, &vfork))
++				ptrace_event(PTRACE_EVENT_VFORK_DONE, nr);
+ 		}
+ 	} else {
+ 		nr = PTR_ERR(p);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
