@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-link-to-gustavo-padovans-tree.patch added to -mm tree
-Date: Tue, 06 Mar 2012 14:13:11 -0800
-Message-ID: <20120306221311.46CB5A024E@akpm.mtv.corp.google.com>
+Subject: + maintainers-add-entry-for-exynos-mipi-display-drivers.patch added to -mm tree
+Date: Tue, 06 Mar 2012 14:15:57 -0800
+Message-ID: <20120306221557.AE027A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:49526 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031133Ab2CFWNM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 17:13:12 -0500
-Received: by qcsp5 with SMTP id p5so705208qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 14:13:11 -0800 (PST)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:44150 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030811Ab2CFWQA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 17:16:00 -0500
+Received: by eaaq10 with SMTP id q10so209947eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 14:15:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johan.hedberg@intel.com, marcel@holtmann.org, padovan@profusion.mobi
+Cc: dh09.lee@samsung.com, FlorianSchandinat@gmx.de, inki.dae@samsung.com, jg1.han@samsung.com, kgene.kim@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: MAINTAINERS: Fix link to Gustavo Padovans tree
+     Subject: MAINTAINERS: add entry for exynos mipi display drivers
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-link-to-gustavo-padovans-tree.patch
+     maintainers-add-entry-for-exynos-mipi-display-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johan Hedberg <johan.hedberg@intel.com>
-Subject: MAINTAINERS: Fix link to Gustavo Padovans tree
+From: Donghwa Lee <dh09.lee@samsung.com>
+Subject: MAINTAINERS: add entry for exynos mipi display drivers
 
-Gustavo's tree is called just bluetooth.git and not bluetooth-2.6.git
-anymore.
+Hi, I'd like to add Inki Dae, Donghwa Lee and Kyungmin Park as maintainers
+who developers for exynos mipi display drivers for
+video/driver/exynos/exynos_mipi* and include/video/exynos_mipi*.
 
-Signed-off-by: Johan Hedberg <johan.hedberg@intel.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: "Gustavo F. Padovan" <padovan@profusion.mobi>
+Signed-off-by: Donghwa Lee <dh09.lee@samsung.com>
+Signed-off-by: Inki Dae <inki.dae@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-fix-link-to-gustavo-padovans-tree MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-link-to-gustavo-padovans-tree
+diff -puN MAINTAINERS~maintainers-add-entry-for-exynos-mipi-display-drivers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-entry-for-exynos-mipi-display-drivers
 +++ a/MAINTAINERS
-@@ -1517,7 +1517,7 @@ M:	"Gustavo F. Padovan" <padovan@profusi
- M:	Johan Hedberg <johan.hedberg@gmail.com>
- L:	linux-bluetooth@vger.kernel.org
- W:	http://www.bluez.org/
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/padovan/bluetooth-2.6.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/padovan/bluetooth.git
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jh/bluetooth.git
- S:	Maintained
- F:	drivers/bluetooth/
-@@ -1528,7 +1528,7 @@ M:	"Gustavo F. Padovan" <padovan@profusi
- M:	Johan Hedberg <johan.hedberg@gmail.com>
- L:	linux-bluetooth@vger.kernel.org
- W:	http://www.bluez.org/
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/padovan/bluetooth-2.6.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/padovan/bluetooth.git
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jh/bluetooth.git
- S:	Maintained
- F:	net/bluetooth/
+@@ -2362,6 +2362,15 @@ S:	Supported
+ F:	drivers/gpu/drm/exynos
+ F:	include/drm/exynos*
+ 
++EXYNOS MIPI DISPLAY DRIVERS
++M:	Inki Dae <inki.dae@samsung.com>
++M:	Donghwa Lee <dh09.lee@samsung.com>
++M:	Kyungmin Park <kyungmin.park@samsung.com>
++L:	linux-fbdev@vger.kernel.org
++S:	Maintained
++F:	drivers/video/exynos/exynos_mipi*
++F:	include/video/exynos_mipi*
++
+ DSCC4 DRIVER
+ M:	Francois Romieu <romieu@fr.zoreil.com>
+ L:	netdev@vger.kernel.org
 _
-Subject: Subject: MAINTAINERS: Fix link to Gustavo Padovans tree
+Subject: Subject: MAINTAINERS: add entry for exynos mipi display drivers
 
-Patches currently in -mm which might be from johan.hedberg@intel.com are
+Patches currently in -mm which might be from dh09.lee@samsung.com are
 
 linux-next.patch
-maintainers-add-johan-to-bluetooth-maintainers.patch
-maintainers-fix-link-to-gustavo-padovans-tree.patch
+backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
+maintainers-add-entry-for-exynos-mipi-display-drivers.patch
 
