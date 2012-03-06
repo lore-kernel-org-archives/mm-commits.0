@@ -1,73 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] floppy-scsi-fix-setting-of-bio-flags.patch removed from -mm tree
-Date: Tue, 06 Mar 2012 11:35:12 -0800
-Message-ID: <20120306193512.5F4E5A02EB@akpm.mtv.corp.google.com>
+Subject: [merged] debugobjects-fix-selftest-for-static-warnings.patch removed from -mm tree
+Date: Tue, 06 Mar 2012 11:35:14 -0800
+Message-ID: <20120306193514.5FC0FA02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:61832 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965176Ab2CFTfN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 14:35:13 -0500
-Received: by yhgm50 with SMTP id m50so681770yhg.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 11:35:12 -0800 (PST)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:62855 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965176Ab2CFTfP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 14:35:15 -0500
+Received: by mail-vx0-f202.google.com with SMTP id fk26so677488vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 11:35:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: muthu.lkml@gmail.com, James.Bottomley@HansenPartnership.com, axboe@kernel.dk, muthur@gmail.com, mm-commits@vger.kernel.org
+To: sboyd@codeaurora.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: floppy/scsi: fix setting of BIO flags
+     Subject: debugobjects: Fix selftest for static warnings
 has been removed from the -mm tree.  Its filename was
-     floppy-scsi-fix-setting-of-bio-flags.patch
+     debugobjects-fix-selftest-for-static-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Muthu Kumar <muthu.lkml@gmail.com>
-Subject: floppy/scsi: fix setting of BIO flags
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: debugobjects: Fix selftest for static warnings
 
-Fix setting bio flags in drivers (sd_dif/floppy).
+debugobjects is now printing a warning when a fixup for a NOTAVAILABLE
+object is run.  This causes the selftest to fail like:
 
-Signed-off-by: Muthukumar R <muthur@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+[    0.000000] ODEBUG: selftest warnings failed 4 != 5
+
+We could just increase the number of warnings that the selftest is
+expecting to see because that is actually what has changed.  But, it turns
+out that fixup_activate() was written with inverted logic and thus a fixup
+for a static object returned 1 indicating the object had been fixed, and 0
+otherwise.  Fix the logic to be correct and update the counts to reflect
+that nothing needed fixing for a static object.
+
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    2 +-
- drivers/scsi/sd_dif.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ lib/debugobjects.c |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-scsi-fix-setting-of-bio-flags drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-scsi-fix-setting-of-bio-flags
-+++ a/drivers/block/floppy.c
-@@ -3832,7 +3832,7 @@ static int __floppy_read_block_0(struct 
- 	bio.bi_size = size;
- 	bio.bi_bdev = bdev;
- 	bio.bi_sector = 0;
--	bio.bi_flags = BIO_QUIET;
-+	bio.bi_flags = (1 << BIO_QUIET);
- 	init_completion(&complete);
- 	bio.bi_private = &complete;
- 	bio.bi_end_io = floppy_rb0_complete;
-diff -puN drivers/scsi/sd_dif.c~floppy-scsi-fix-setting-of-bio-flags drivers/scsi/sd_dif.c
---- a/drivers/scsi/sd_dif.c~floppy-scsi-fix-setting-of-bio-flags
-+++ a/drivers/scsi/sd_dif.c
-@@ -408,7 +408,7 @@ int sd_dif_prepare(struct request *rq, s
- 			kunmap_atomic(sdt, KM_USER0);
+diff -puN lib/debugobjects.c~debugobjects-fix-selftest-for-static-warnings lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-fix-selftest-for-static-warnings
++++ a/lib/debugobjects.c
+@@ -818,17 +818,9 @@ static int __init fixup_activate(void *a
+ 		if (obj->static_init == 1) {
+ 			debug_object_init(obj, &descr_type_test);
+ 			debug_object_activate(obj, &descr_type_test);
+-			/*
+-			 * Real code should return 0 here ! This is
+-			 * not a fixup of some bad behaviour. We
+-			 * merily call the debug_init function to keep
+-			 * track of the object.
+-			 */
+-			return 1;
+-		} else {
+-			/* Real code needs to emit a warning here */
++			return 0;
  		}
+-		return 0;
++		return 1;
  
--		bio->bi_flags |= BIO_MAPPED_INTEGRITY;
-+		bio->bi_flags |= (1 << BIO_MAPPED_INTEGRITY);
- 	}
+ 	case ODEBUG_STATE_ACTIVE:
+ 		debug_object_deactivate(obj, &descr_type_test);
+@@ -967,7 +959,7 @@ static void __init debug_objects_selftes
  
- 	return 0;
+ 	obj.static_init = 1;
+ 	debug_object_activate(&obj, &descr_type_test);
+-	if (check_results(&obj, ODEBUG_STATE_ACTIVE, ++fixups, warnings))
++	if (check_results(&obj, ODEBUG_STATE_ACTIVE, fixups, warnings))
+ 		goto out;
+ 	debug_object_init(&obj, &descr_type_test);
+ 	if (check_results(&obj, ODEBUG_STATE_INIT, ++fixups, ++warnings))
 _
 
-Patches currently in -mm which might be from muthu.lkml@gmail.com are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
 origin.patch
-magich-move-some-fs-magic-numbers-into-magich.patch
+linux-next.patch
 
