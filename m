@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-deadlock-by-inverting-lrucare-nesting.patch removed from -mm tree
-Date: Tue, 06 Mar 2012 11:35:10 -0800
-Message-ID: <20120306193510.7B35DA02EB@akpm.mtv.corp.google.com>
+Subject: [merged] memcg-fix-gpf-when-cgroup-removal-races-with-last-exit.patch removed from -mm tree
+Date: Tue, 06 Mar 2012 11:35:16 -0800
+Message-ID: <20120306193516.8DC3BA02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qy0-f202.google.com ([209.85.216.202]:57122 "EHLO
-	mail-qy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965233Ab2CFTfL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 14:35:11 -0500
-Received: by mail-qy0-f202.google.com with SMTP id p5so680745qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 11:35:11 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:50858 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965176Ab2CFTfS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 14:35:18 -0500
+Received: by ggnd2 with SMTP id d2so678844ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 11:35:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix deadlock by inverting lrucare nesting
+     Subject: memcg: fix GPF when cgroup removal races with last exit
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-deadlock-by-inverting-lrucare-nesting.patch
+     memcg-fix-gpf-when-cgroup-removal-races-with-last-exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,186 +26,243 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: memcg: fix deadlock by inverting lrucare nesting
+Subject: memcg: fix GPF when cgroup removal races with last exit
 
-We have forgotten the rules of lock nesting: the irq-safe ones must be
-taken inside the non-irq-safe ones, otherwise we are open to deadlock:
+When moving tasks from old memcg (with move_charge_at_immigrate on new
+memcg), followed by removal of old memcg, hit General Protection Fault in
+mem_cgroup_lru_del_list() (called from release_pages called from
+free_pages_and_swap_cache from tlb_flush_mmu from tlb_finish_mmu from
+exit_mmap from mmput from exit_mm from do_exit).
 
-CPU0                          CPU1
-----                          ----
-lock(&(&pc->lock)->rlock);
-                              local_irq_disable();
-                              lock(&(&zone->lru_lock)->rlock);
-                              lock(&(&pc->lock)->rlock);
-<Interrupt>
-lock(&(&zone->lru_lock)->rlock);
+Somewhat reproducible, takes a few hours: the old struct mem_cgroup has
+been freed and poisoned by SLAB_DEBUG, but mem_cgroup_lru_del_list() is
+still trying to update its stats, and take page off lru before freeing.
 
-To check a different locking issue, I happened to add a spin_lock to
-memcg's bit_spin_lock in lock_page_cgroup(), and lockdep very quickly
-complained about __mem_cgroup_commit_charge_lrucare() (on CPU1 above).
+A task, or a charge, or a page on lru: each secures a memcg against
+removal.  In this case, the last task has been moved out of the old memcg,
+and it is exiting: anonymous pages are uncharged one by one from the
+memcg, as they are zapped from its pagetables, so the charge gets down to
+0; but the pages themselves are queued in an mmu_gather for freeing.
 
-So delete __mem_cgroup_commit_charge_lrucare(), passing a bool lrucare to
-__mem_cgroup_commit_charge() instead, taking zone->lru_lock under
-lock_page_cgroup() in the lrucare case.
+Most of those pages will be on lru (and force_empty is careful to
+lru_add_drain_all, to add pages from pagevec to lru first), but not
+necessarily all: perhaps some have been isolated for page reclaim, perhaps
+some isolated for other reasons.  So, force_empty may find no task, no
+charge and no page on lru, and let the removal proceed.
 
-The original was using spin_lock_irqsave, but we'd be in more trouble if
-it were ever called at interrupt time: unconditional _irq is enough.  And
-ClearPageLRU before del from lru, SetPageLRU before add to lru: no strong
-reason, but that is the ordering used consistently elsewhere.
+There would still be no problem if these pages were immediately freed; but
+typically (and the put_page_testzero protocol demands it) they have to be
+added back to lru before they are found freeable, then removed from lru
+and freed.  We don't see the issue when adding, because the
+mem_cgroup_iter() loops keep their own reference to the memcg being
+scanned; but when it comes to mem_cgroup_lru_del_list().
 
-Fixes 36b62ad539498d00c2d280a151a ("memcg: simplify corner case handling
-of LRU").
+I believe this was not an issue in v3.2: there, PageCgroupAcctLRU and
+PageCgroupUsed flags were used (like a trick with mirrors) to deflect view
+of pc->mem_cgroup to the stable root_mem_cgroup when neither set. 
+38c5d72f3ebe ("memcg: simplify LRU handling by new rule") mercifully
+removed those convolutions, but left this General Protection Fault.
+
+But it's surprisingly easy to restore the old behaviour: just check
+PageCgroupUsed in mem_cgroup_lru_add_list() (which decides on which lruvec
+to add), and reset pc to root_mem_cgroup if page is uncharged.  A risky
+change?  just going back to how it worked before; testing, and an audit of
+uses of pc->mem_cgroup, show no problem.
+
+And there's a nice bonus: with mem_cgroup_lru_add_list() itself making
+sure that an uncharged page goes to root lru, mem_cgroup_reset_owner() no
+longer has any purpose, and we can safely revert 4e5f01c2b9b9 ("memcg:
+clear pc->mem_cgroup if necessary").
+
+Calling update_page_reclaim_stat() after add_page_to_lru_list() in swap.c
+is not strictly necessary: the lru_lock there, with RCU before memcg
+structures are freed, makes mem_cgroup_get_reclaim_stat_from_page safe
+without that; but it seems cleaner to rely on one dependency less.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   72 +++++++++++++++++++++++-----------------------
- 1 file changed, 37 insertions(+), 35 deletions(-)
+ include/linux/memcontrol.h |    5 -----
+ mm/ksm.c                   |   11 -----------
+ mm/memcontrol.c            |   30 +++++++++++++-----------------
+ mm/migrate.c               |    2 --
+ mm/swap.c                  |    8 +++++---
+ mm/swap_state.c            |   10 ----------
+ 6 files changed, 18 insertions(+), 48 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-deadlock-by-inverting-lrucare-nesting mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-deadlock-by-inverting-lrucare-nesting
-+++ a/mm/memcontrol.c
-@@ -2408,8 +2408,12 @@ static void __mem_cgroup_commit_charge(s
- 				       struct page *page,
- 				       unsigned int nr_pages,
- 				       struct page_cgroup *pc,
--				       enum charge_type ctype)
-+				       enum charge_type ctype,
-+				       bool lrucare)
+diff -puN include/linux/memcontrol.h~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit
++++ a/include/linux/memcontrol.h
+@@ -129,7 +129,6 @@ extern void mem_cgroup_print_oom_info(st
+ extern void mem_cgroup_replace_page_cache(struct page *oldpage,
+ 					struct page *newpage);
+ 
+-extern void mem_cgroup_reset_owner(struct page *page);
+ #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ extern int do_swap_account;
+ #endif
+@@ -392,10 +391,6 @@ static inline void mem_cgroup_replace_pa
+ 				struct page *newpage)
  {
-+	struct zone *uninitialized_var(zone);
-+	bool was_on_lru = false;
-+
- 	lock_page_cgroup(pc);
- 	if (unlikely(PageCgroupUsed(pc))) {
- 		unlock_page_cgroup(pc);
-@@ -2420,6 +2424,21 @@ static void __mem_cgroup_commit_charge(s
- 	 * we don't need page_cgroup_lock about tail pages, becase they are not
- 	 * accessed by any other context at this point.
- 	 */
+ }
+-
+-static inline void mem_cgroup_reset_owner(struct page *page)
+-{
+-}
+ #endif /* CONFIG_CGROUP_MEM_CONT */
+ 
+ #if !defined(CONFIG_CGROUP_MEM_RES_CTLR) || !defined(CONFIG_DEBUG_VM)
+diff -puN mm/ksm.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit mm/ksm.c
+--- a/mm/ksm.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit
++++ a/mm/ksm.c
+@@ -28,7 +28,6 @@
+ #include <linux/kthread.h>
+ #include <linux/wait.h>
+ #include <linux/slab.h>
+-#include <linux/memcontrol.h>
+ #include <linux/rbtree.h>
+ #include <linux/memory.h>
+ #include <linux/mmu_notifier.h>
+@@ -1572,16 +1571,6 @@ struct page *ksm_does_need_to_copy(struc
+ 
+ 	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ 	if (new_page) {
+-		/*
+-		 * The memcg-specific accounting when moving
+-		 * pages around the LRU lists relies on the
+-		 * page's owner (memcg) to be valid.  Usually,
+-		 * pages are assigned to a new owner before
+-		 * being put on the LRU list, but since this
+-		 * is not the case here, the stale owner from
+-		 * a previous allocation cycle must be reset.
+-		 */
+-		mem_cgroup_reset_owner(new_page);
+ 		copy_user_highpage(new_page, page, address, vma);
+ 
+ 		SetPageDirty(new_page);
+diff -puN mm/memcontrol.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit
++++ a/mm/memcontrol.c
+@@ -1042,6 +1042,19 @@ struct lruvec *mem_cgroup_lru_add_list(s
+ 
+ 	pc = lookup_page_cgroup(page);
+ 	memcg = pc->mem_cgroup;
 +
 +	/*
-+	 * In some cases, SwapCache and FUSE(splice_buf->radixtree), the page
-+	 * may already be on some other mem_cgroup's LRU.  Take care of it.
++	 * Surreptitiously switch any uncharged page to root:
++	 * an uncharged page off lru does nothing to secure
++	 * its former mem_cgroup from sudden removal.
++	 *
++	 * Our caller holds lru_lock, and PageCgroupUsed is updated
++	 * under page_cgroup lock: between them, they make all uses
++	 * of pc->mem_cgroup safe.
 +	 */
-+	if (lrucare) {
-+		zone = page_zone(page);
-+		spin_lock_irq(&zone->lru_lock);
-+		if (PageLRU(page)) {
-+			ClearPageLRU(page);
-+			del_page_from_lru_list(zone, page, page_lru(page));
-+			was_on_lru = true;
-+		}
-+	}
++	if (!PageCgroupUsed(pc) && memcg != root_mem_cgroup)
++		pc->mem_cgroup = memcg = root_mem_cgroup;
 +
- 	pc->mem_cgroup = memcg;
- 	/*
- 	 * We access a page_cgroup asynchronously without lock_page_cgroup().
-@@ -2443,9 +2462,18 @@ static void __mem_cgroup_commit_charge(s
- 		break;
- 	}
- 
-+	if (lrucare) {
-+		if (was_on_lru) {
-+			VM_BUG_ON(PageLRU(page));
-+			SetPageLRU(page);
-+			add_page_to_lru_list(zone, page, page_lru(page));
-+		}
-+		spin_unlock_irq(&zone->lru_lock);
-+	}
-+
- 	mem_cgroup_charge_statistics(memcg, PageCgroupCache(pc), nr_pages);
- 	unlock_page_cgroup(pc);
--	WARN_ON_ONCE(PageLRU(page));
-+
- 	/*
- 	 * "charge_statistics" updated event counter. Then, check it.
- 	 * Insert ancestor (and ancestor's ancestors), to softlimit RB-tree.
-@@ -2643,7 +2671,7 @@ static int mem_cgroup_charge_common(stru
- 	ret = __mem_cgroup_try_charge(mm, gfp_mask, nr_pages, &memcg, oom);
- 	if (ret == -ENOMEM)
- 		return ret;
--	__mem_cgroup_commit_charge(memcg, page, nr_pages, pc, ctype);
-+	__mem_cgroup_commit_charge(memcg, page, nr_pages, pc, ctype, false);
- 	return 0;
+ 	mz = page_cgroup_zoneinfo(memcg, page);
+ 	/* compound_order() is stabilized through lru_lock */
+ 	MEM_CGROUP_ZSTAT(mz, lru) += 1 << compound_order(page);
+@@ -3029,23 +3042,6 @@ void mem_cgroup_uncharge_end(void)
+ 	batch->memcg = NULL;
  }
  
-@@ -2663,35 +2691,6 @@ static void
- __mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *ptr,
- 					enum charge_type ctype);
- 
--static void
--__mem_cgroup_commit_charge_lrucare(struct page *page, struct mem_cgroup *memcg,
--					enum charge_type ctype)
+-/*
+- * A function for resetting pc->mem_cgroup for newly allocated pages.
+- * This function should be called if the newpage will be added to LRU
+- * before start accounting.
+- */
+-void mem_cgroup_reset_owner(struct page *newpage)
 -{
--	struct page_cgroup *pc = lookup_page_cgroup(page);
--	struct zone *zone = page_zone(page);
--	unsigned long flags;
--	bool removed = false;
+-	struct page_cgroup *pc;
 -
--	/*
--	 * In some case, SwapCache, FUSE(splice_buf->radixtree), the page
--	 * is already on LRU. It means the page may on some other page_cgroup's
--	 * LRU. Take care of it.
--	 */
--	spin_lock_irqsave(&zone->lru_lock, flags);
--	if (PageLRU(page)) {
--		del_page_from_lru_list(zone, page, page_lru(page));
--		ClearPageLRU(page);
--		removed = true;
--	}
--	__mem_cgroup_commit_charge(memcg, page, 1, pc, ctype);
--	if (removed) {
--		add_page_to_lru_list(zone, page, page_lru(page));
--		SetPageLRU(page);
--	}
--	spin_unlock_irqrestore(&zone->lru_lock, flags);
--	return;
+-	if (mem_cgroup_disabled())
+-		return;
+-
+-	pc = lookup_page_cgroup(newpage);
+-	VM_BUG_ON(PageCgroupUsed(pc));
+-	pc->mem_cgroup = root_mem_cgroup;
 -}
 -
- int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
- 				gfp_t gfp_mask)
+ #ifdef CONFIG_SWAP
+ /*
+  * called after __delete_from_swap_cache() and drop "page" account.
+diff -puN mm/migrate.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit mm/migrate.c
+--- a/mm/migrate.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit
++++ a/mm/migrate.c
+@@ -839,8 +839,6 @@ static int unmap_and_move(new_page_t get
+ 	if (!newpage)
+ 		return -ENOMEM;
+ 
+-	mem_cgroup_reset_owner(newpage);
+-
+ 	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
+ 		goto out;
+diff -puN mm/swap.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit mm/swap.c
+--- a/mm/swap.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit
++++ a/mm/swap.c
+@@ -652,7 +652,7 @@ EXPORT_SYMBOL(__pagevec_release);
+ void lru_add_page_tail(struct zone* zone,
+ 		       struct page *page, struct page *page_tail)
  {
-@@ -2769,13 +2768,16 @@ static void
- __mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *memcg,
- 					enum charge_type ctype)
- {
-+	struct page_cgroup *pc;
+-	int active;
++	int uninitialized_var(active);
+ 	enum lru_list lru;
+ 	const int file = 0;
+ 
+@@ -672,7 +672,6 @@ void lru_add_page_tail(struct zone* zone
+ 			active = 0;
+ 			lru = LRU_INACTIVE_ANON;
+ 		}
+-		update_page_reclaim_stat(zone, page_tail, file, active);
+ 	} else {
+ 		SetPageUnevictable(page_tail);
+ 		lru = LRU_UNEVICTABLE;
+@@ -693,6 +692,9 @@ void lru_add_page_tail(struct zone* zone
+ 		list_head = page_tail->lru.prev;
+ 		list_move_tail(&page_tail->lru, list_head);
+ 	}
 +
- 	if (mem_cgroup_disabled())
- 		return;
- 	if (!memcg)
- 		return;
- 	cgroup_exclude_rmdir(&memcg->css);
++	if (!PageUnevictable(page))
++		update_page_reclaim_stat(zone, page_tail, file, active);
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--	__mem_cgroup_commit_charge_lrucare(page, memcg, ctype);
-+	pc = lookup_page_cgroup(page);
-+	__mem_cgroup_commit_charge(memcg, page, 1, pc, ctype, true);
- 	/*
- 	 * Now swap is on-memory. This means this page may be
- 	 * counted both as mem and swap....double count.
-@@ -3248,7 +3250,7 @@ int mem_cgroup_prepare_migration(struct 
- 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
- 	else
- 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
--	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, ctype);
-+	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, ctype, false);
- 	return ret;
+@@ -710,8 +712,8 @@ static void __pagevec_lru_add_fn(struct 
+ 	SetPageLRU(page);
+ 	if (active)
+ 		SetPageActive(page);
+-	update_page_reclaim_stat(zone, page, file, active);
+ 	add_page_to_lru_list(zone, page, lru);
++	update_page_reclaim_stat(zone, page, file, active);
  }
  
-@@ -3332,7 +3334,7 @@ void mem_cgroup_replace_page_cache(struc
- 	 * the newpage may be on LRU(or pagevec for LRU) already. We lock
- 	 * LRU while we overwrite pc->mem_cgroup.
- 	 */
--	__mem_cgroup_commit_charge_lrucare(newpage, memcg, type);
-+	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, type, true);
- }
+ /*
+diff -puN mm/swap_state.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit mm/swap_state.c
+--- a/mm/swap_state.c~memcg-fix-gpf-when-cgroup-removal-races-with-last-exit
++++ a/mm/swap_state.c
+@@ -300,16 +300,6 @@ struct page *read_swap_cache_async(swp_e
+ 			new_page = alloc_page_vma(gfp_mask, vma, addr);
+ 			if (!new_page)
+ 				break;		/* Out of memory */
+-			/*
+-			 * The memcg-specific accounting when moving
+-			 * pages around the LRU lists relies on the
+-			 * page's owner (memcg) to be valid.  Usually,
+-			 * pages are assigned to a new owner before
+-			 * being put on the LRU list, but since this
+-			 * is not the case here, the stale owner from
+-			 * a previous allocation cycle must be reset.
+-			 */
+-			mem_cgroup_reset_owner(new_page);
+ 		}
  
- #ifdef CONFIG_DEBUG_VM
+ 		/*
 _
 
 Patches currently in -mm which might be from hughd@google.com are
