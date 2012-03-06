@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mmap-einval-not-enomem-when-rejecting-vm_grows.patch added to -mm tree
-Date: Tue, 06 Mar 2012 12:35:05 -0800
-Message-ID: <20120306203505.B6E33A00B3@akpm.mtv.corp.google.com>
+Subject: + procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack.patch added to -mm tree
+Date: Tue, 06 Mar 2012 12:37:48 -0800
+Message-ID: <20120306203748.9AC41A02CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:51667 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965229Ab2CFUfI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 15:35:08 -0500
-Received: by laai8 with SMTP id i8so205018laa.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 12:35:07 -0800 (PST)
+Received: from mail-vw0-f74.google.com ([209.85.212.74]:61845 "EHLO
+	mail-vw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965262Ab2CFUhu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Mar 2012 15:37:50 -0500
+Received: by vbnl22 with SMTP id l22so688240vbn.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Mar 2012 12:37:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com
+Cc: siddhesh.poyarekar@gmail.com, msalter@redhat.com, oleg@redhat.com, paul.gortmaker@windriver.com
 
 
 The patch titled
-     Subject: mmap: EINVAL not ENOMEM when rejecting VM_GROWS
+     Subject: mm/linux-next: Fix rcu locking in vm_is_stack
 has been added to the -mm tree.  Its filename is
-     mmap-einval-not-enomem-when-rejecting-vm_grows.patch
+     procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mmap: EINVAL not ENOMEM when rejecting VM_GROWS
+From: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Subject: mm/linux-next: Fix rcu locking in vm_is_stack
 
-Currently error is -ENOMEM when rejecting VM_GROWSDOWN|VM_GROWSUP
-from shared anonymous: hoist the file case's -EINVAL up for both.
+Take rcu read lock before we do anything at all with the threadgroup list.
+ Also use list_first_entry_rcu to safely get the reference to the first
+task in the list.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/mmap.c~mmap-einval-not-enomem-when-rejecting-vm_grows mm/mmap.c
---- a/mm/mmap.c~mmap-einval-not-enomem-when-rejecting-vm_grows
-+++ a/mm/mmap.c
-@@ -1289,8 +1289,9 @@ munmap_back:
- 	vma->vm_pgoff = pgoff;
- 	INIT_LIST_HEAD(&vma->anon_vma_chain);
+diff -puN mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack mm/memory.c
+--- a/mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack
++++ a/mm/memory.c
+@@ -3914,18 +3914,20 @@ pid_t vm_is_stack(struct task_struct *ta
+ 		return task->pid;
  
-+	error = -EINVAL;	/* when rejecting VM_GROWSDOWN|VM_GROWSUP */
-+
- 	if (file) {
--		error = -EINVAL;
- 		if (vm_flags & (VM_GROWSDOWN|VM_GROWSUP))
- 			goto free_vma;
- 		if (vm_flags & VM_DENYWRITE) {
+ 	if (in_group) {
+-		struct task_struct *t = task;
++		struct task_struct *t;
+ 		rcu_read_lock();
+-		while_each_thread(task, t) {
++		t = list_first_entry_rcu(&task->thread_group,
++					 struct task_struct, thread_group);
++		do {
+ 			if (vm_is_stack_for_task(t, vma)) {
+ 				ret = t->pid;
+ 				goto done;
+ 			}
+-		}
++		} while_each_thread(task, t);
++done:
++		rcu_read_unlock();
+ 	}
+ 
+-done:
+-	rcu_read_unlock();
+ 	return ret;
+ }
+ 
 _
-Subject: Subject: mmap: EINVAL not ENOMEM when rejecting VM_GROWS
+Subject: Subject: mm/linux-next: Fix rcu locking in vm_is_stack
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from siddhesh.poyarekar@gmail.com are
 
-origin.patch
-mmap-einval-not-enomem-when-rejecting-vm_grows.patch
 linux-next.patch
-mm-add-rss-counters-consistency-check.patch
-mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
-make-swapin-readahead-skip-over-holes.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
-rmap-anon_vma_prepare-reduce-code-duplication-by-calling-anon_vma_chain_link.patch
-mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
-mm-hugetlb-bail-out-unmapping-after-serving-reference-page.patch
-mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
-tmpfs-security-xattr-setting-on-inode-creation.patch
-mm-fix-move-migrate_pages-race-on-task-struct.patch
-ksm-clean-up-page_trans_compound_anon_split.patch
-ksm-cleanup-introduce-ksm_check_mm.patch
-ksm-cleanup-introduce-ksm_check_mm-fix.patch
-hugetlbfs-drop-taking-inode-i_mutex-lock-from-hugetlbfs_read.patch
-memcg-replace-mem_cont-by-mem_res_ctlr.patch
-memcg-replace-mem-and-mem_cont-stragglers.patch
-memcg-lru_size-instead-of-mem_cgroup_zstat.patch
-memcg-enum-lru_list-lru.patch
-memcg-remove-redundant-returns.patch
-idr-make-idr_get_next-good-for-rcu_read_lock.patch
-cgroup-revert-ss_id_lock-to-spinlock.patch
-memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
-memcg-remove-pcg_cache-page_cgroup-flag.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix-2.patch
-memcg-remove-pcg_file_mapped-fix-cosmetic-fix.patch
-memcg-remove-pcg_file_mapped-fix-42.patch
-prio_tree-debugging-patch.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack.patch
 
