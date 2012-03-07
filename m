@@ -1,92 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] coccinelle-semantic-patch-for-simple_open.patch removed from -mm tree
-Date: Wed, 07 Mar 2012 15:33:04 -0800
-Message-ID: <20120307233304.A38F6A024E@akpm.mtv.corp.google.com>
+Subject: + ksm-cleanup-introduce-find_mergeable_vma.patch added to -mm tree
+Date: Wed, 07 Mar 2012 15:43:35 -0800
+Message-ID: <20120307234335.B0459A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:64907 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755997Ab2CGXdF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 18:33:05 -0500
-Received: by ghbz15 with SMTP id z15so873850ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 15:33:05 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:49335 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759068Ab2CGXng (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 18:43:36 -0500
+Received: by yhgm50 with SMTP id m50so877924yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 15:43:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, Julia.Lawall@lip6.fr, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lliubbo@gmail.com, aarcange@redhat.com, hughd@google.com
 
 
 The patch titled
-     Subject: coccinelle: semantic patch for simple_open()
-has been removed from the -mm tree.  Its filename was
-     coccinelle-semantic-patch-for-simple_open.patch
+     Subject: ksm: cleanup: introduce find_mergeable_vma()
+has been added to the -mm tree.  Its filename is
+     ksm-cleanup-introduce-find_mergeable_vma.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: coccinelle: semantic patch for simple_open()
+From: Bob Liu <lliubbo@gmail.com>
+Subject: ksm: cleanup: introduce find_mergeable_vma()
 
-Find instances of an open-coded simple_open() and replace them with calls
-to simple_open().
+There are multiple places which perform the same check.  Add a new
+find_mergeable_vma() to handle this.
 
-This seems to eat the definition of simple_open() as well.  Is there a way
-to say only remove both the function and the reference to the function so
-that libfs survives?
-
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/coccinelle/api/simple_open.cocci |   34 +++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ mm/ksm.c |   34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
 
-diff -puN /dev/null scripts/coccinelle/api/simple_open.cocci
---- /dev/null
-+++ a/scripts/coccinelle/api/simple_open.cocci
-@@ -0,0 +1,34 @@
-+// This removes an open coded simple_open() function
-+// and replaces file operations references to the function
-+// with simple_open() instead.
-+//
+diff -puN mm/ksm.c~ksm-cleanup-introduce-find_mergeable_vma mm/ksm.c
+--- a/mm/ksm.c~ksm-cleanup-introduce-find_mergeable_vma
++++ a/mm/ksm.c
+@@ -374,6 +374,20 @@ static int break_ksm(struct vm_area_stru
+ 	return (ret & VM_FAULT_OOM) ? -ENOMEM : 0;
+ }
+ 
++static struct vm_area_struct *find_mergeable_vma(struct mm_struct *mm,
++		unsigned long addr)
++{
++	struct vm_area_struct *vma;
++	if (ksm_test_exit(mm))
++		return NULL;
++	vma = find_vma(mm, addr);
++	if (!vma || vma->vm_start > addr)
++		return NULL;
++	if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
++		return NULL;
++	return vma;
++}
 +
-+virtual patch
-+virtual context
-+
-+@ open @
-+identifier open_f;
-+identifier i, f;
-+@@
-+-int open_f(struct inode *i, struct file *f)
-+-{
-+(
-+-if (i->i_private)
-+-f->private_data = i->i_private;
-+|
-+-f->private_data = i->i_private;
-+)
-+-return 0;
-+-}
-+
-+@ has_open depends on open @
-+identifier fops;
-+identifier open.open_f;
-+@@
-+struct file_operations fops = {
-+...
-+-.open = open_f,
-++.open = simple_open,
-+...
-+};
-+
+ static void break_cow(struct rmap_item *rmap_item)
+ {
+ 	struct mm_struct *mm = rmap_item->mm;
+@@ -387,15 +401,9 @@ static void break_cow(struct rmap_item *
+ 	put_anon_vma(rmap_item->anon_vma);
+ 
+ 	down_read(&mm->mmap_sem);
+-	if (ksm_test_exit(mm))
+-		goto out;
+-	vma = find_vma(mm, addr);
+-	if (!vma || vma->vm_start > addr)
+-		goto out;
+-	if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
+-		goto out;
+-	break_ksm(vma, addr);
+-out:
++	vma = find_mergeable_vma(mm, addr);
++	if (vma)
++		break_ksm(vma, addr);
+ 	up_read(&mm->mmap_sem);
+ }
+ 
+@@ -421,12 +429,8 @@ static struct page *get_mergeable_page(s
+ 	struct page *page;
+ 
+ 	down_read(&mm->mmap_sem);
+-	if (ksm_test_exit(mm))
+-		goto out;
+-	vma = find_vma(mm, addr);
+-	if (!vma || vma->vm_start > addr)
+-		goto out;
+-	if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
++	vma = find_mergeable_vma(mm, addr);
++	if (!vma)
+ 		goto out;
+ 
+ 	page = follow_page(vma, addr, FOLL_GET);
 _
+Subject: Subject: ksm: cleanup: introduce find_mergeable_vma()
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from lliubbo@gmail.com are
 
 origin.patch
 linux-next.patch
-libfs-add-simple_open.patch
+ksm-cleanup-introduce-find_mergeable_vma.patch
 
