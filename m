@@ -1,81 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack.patch removed from -mm tree
-Date: Wed, 07 Mar 2012 14:55:41 -0800
-Message-ID: <20120307225542.33332A00AB@akpm.mtv.corp.google.com>
+Subject: + rmap-remove-__anon_vma_link.patch added to -mm tree
+Date: Wed, 07 Mar 2012 15:22:21 -0800
+Message-ID: <20120307232221.ADA93A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:58948 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095Ab2CGWzn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 17:55:43 -0500
-Received: by yenq2 with SMTP id q2so870373yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 14:55:42 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:33023 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934Ab2CGXWY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 18:22:24 -0500
+Received: by faaa19 with SMTP id a19so251544faa.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 15:22:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: siddhesh.poyarekar@gmail.com, msalter@redhat.com, oleg@redhat.com, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: xiaoguangrong@linux.vnet.ibm.com, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/linux-next: Fix rcu locking in vm_is_stack
-has been removed from the -mm tree.  Its filename was
-     procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack.patch
+     Subject: rmap: remove __anon_vma_link() declaration
+has been added to the -mm tree.  Its filename is
+     rmap-remove-__anon_vma_link.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
-Subject: mm/linux-next: Fix rcu locking in vm_is_stack
+From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Subject: rmap: remove __anon_vma_link() declaration
 
-Take rcu read lock before we do anything at all with the threadgroup list.
- Also use list_first_entry_rcu to safely get the reference to the first
-task in the list.
+This declaration is not used anymore, remove it.
 
-Signed-off-by: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ include/linux/rmap.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack mm/memory.c
---- a/mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-fix-rcu-locking-in-vm_is_stack
-+++ a/mm/memory.c
-@@ -3914,18 +3914,20 @@ pid_t vm_is_stack(struct task_struct *ta
- 		return task->pid;
+diff -puN include/linux/rmap.h~rmap-remove-__anon_vma_link include/linux/rmap.h
+--- a/include/linux/rmap.h~rmap-remove-__anon_vma_link
++++ a/include/linux/rmap.h
+@@ -122,7 +122,6 @@ void unlink_anon_vmas(struct vm_area_str
+ int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
+ void anon_vma_moveto_tail(struct vm_area_struct *);
+ int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
+-void __anon_vma_link(struct vm_area_struct *);
  
- 	if (in_group) {
--		struct task_struct *t = task;
-+		struct task_struct *t;
- 		rcu_read_lock();
--		while_each_thread(task, t) {
-+		t = list_first_entry_rcu(&task->thread_group,
-+					 struct task_struct, thread_group);
-+		do {
- 			if (vm_is_stack_for_task(t, vma)) {
- 				ret = t->pid;
- 				goto done;
- 			}
--		}
-+		} while_each_thread(task, t);
-+done:
-+		rcu_read_unlock();
- 	}
- 
--done:
--	rcu_read_unlock();
- 	return ret;
- }
- 
+ static inline void anon_vma_merge(struct vm_area_struct *vma,
+ 				  struct vm_area_struct *next)
 _
+Subject: Subject: rmap: remove __anon_vma_link() declaration
 
-Patches currently in -mm which might be from siddhesh.poyarekar@gmail.com are
+Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
 
 linux-next.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+rmap-remove-__anon_vma_link.patch
+prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
+prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
+prio_tree-simplify-prio_tree_expand.patch
+prio_tree-introduce-prio_set_parent.patch
 
