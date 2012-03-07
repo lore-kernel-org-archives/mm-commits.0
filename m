@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-pass-charge-order-to-oom-killer.patch added to -mm tree
-Date: Wed, 07 Mar 2012 14:11:09 -0800
-Message-ID: <20120307221109.DB34BA00AB@akpm.mtv.corp.google.com>
+Subject: + prctl-use-cap_sys_resource-for-pr_set_mm-option.patch added to -mm tree
+Date: Wed, 07 Mar 2012 14:15:08 -0800
+Message-ID: <20120307221508.E6615A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:48725 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030667Ab2CGWLM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 17:11:12 -0500
-Received: by faaa19 with SMTP id a19so250016faa.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 14:11:11 -0800 (PST)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:34873 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030398Ab2CGWPK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 17:15:10 -0500
+Received: by vcbfk26 with SMTP id fk26so860169vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 14:15:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, bsingharora@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: gorcunov@openvz.org, keescook@chromium.org, kosaki.motohiro@jp.fujitsu.com, mtk.manpages@gmail.com, oleg@redhat.com, pebolle@tiscali.nl, tj@kernel.org, xemul@parallels.com
 
 
 The patch titled
-     Subject: mm, memcg: pass charge order to oom killer
+     Subject: prctl: use CAP_SYS_RESOURCE for PR_SET_MM option
 has been added to the -mm tree.  Its filename is
-     mm-memcg-pass-charge-order-to-oom-killer.patch
+     prctl-use-cap_sys_resource-for-pr_set_mm-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,131 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: pass charge order to oom killer
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: prctl: use CAP_SYS_RESOURCE for PR_SET_MM option
 
-The oom killer typically displays the allocation order at the time of oom
-as a part of its diangostic messages (for global, cpuset, and mempolicy
-ooms).
+CAP_SYS_ADMIN is already overloaded left and right, so to have more
+fine-grained access control use CAP_SYS_RESOURCE here.
 
-The memory controller may also pass the charge order to the oom killer so
-it can emit the same information.  This is useful in determining how large
-the memory allocation is that triggered the oom killer.
+The CAP_SYS_RESOUCE is chosen because this prctl option allows a current
+process to adjust some fields of memory map descriptor which rather
+represents what the process owns: pointers to code, data, stack segments,
+command line, auxiliary vector data and etc.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Suggested-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ++-
- mm/memcontrol.c            |    6 +++---
- mm/oom_kill.c              |    7 ++++---
- 3 files changed, 9 insertions(+), 7 deletions(-)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-pass-charge-order-to-oom-killer include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-pass-charge-order-to-oom-killer
-+++ a/include/linux/memcontrol.h
-@@ -77,7 +77,8 @@ extern void mem_cgroup_uncharge_end(void
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_uncharge_cache_page(struct page *page);
+diff -puN kernel/sys.c~prctl-use-cap_sys_resource-for-pr_set_mm-option kernel/sys.c
+--- a/kernel/sys.c~prctl-use-cap_sys_resource-for-pr_set_mm-option
++++ a/kernel/sys.c
+@@ -1721,7 +1721,7 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (arg5 || (arg4 && opt != PR_SET_MM_AUXV))
+ 		return -EINVAL;
  
--extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask);
-+extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+				     int order);
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg);
+-	if (!capable(CAP_SYS_ADMIN))
++	if (!capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
  
- extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
-diff -puN mm/memcontrol.c~mm-memcg-pass-charge-order-to-oom-killer mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-pass-charge-order-to-oom-killer
-+++ a/mm/memcontrol.c
-@@ -1791,7 +1791,7 @@ static void memcg_oom_recover(struct mem
- /*
-  * try to call OOM killer. returns false if we should exit memory-reclaim loop.
-  */
--bool mem_cgroup_handle_oom(struct mem_cgroup *memcg, gfp_t mask)
-+bool mem_cgroup_handle_oom(struct mem_cgroup *memcg, gfp_t mask, int order)
- {
- 	struct oom_wait_info owait;
- 	bool locked, need_to_kill;
-@@ -1821,7 +1821,7 @@ bool mem_cgroup_handle_oom(struct mem_cg
- 
- 	if (need_to_kill) {
- 		finish_wait(&memcg_oom_waitq, &owait.wait);
--		mem_cgroup_out_of_memory(memcg, mask);
-+		mem_cgroup_out_of_memory(memcg, mask, order);
- 	} else {
- 		schedule();
- 		finish_wait(&memcg_oom_waitq, &owait.wait);
-@@ -2192,7 +2192,7 @@ static int mem_cgroup_do_charge(struct m
- 	if (!oom_check)
- 		return CHARGE_NOMEM;
- 	/* check OOM */
--	if (!mem_cgroup_handle_oom(mem_over_limit, gfp_mask))
-+	if (!mem_cgroup_handle_oom(mem_over_limit, gfp_mask, get_order(csize)))
- 		return CHARGE_OOM_DIE;
- 
- 	return CHARGE_RETRY;
-diff -puN mm/oom_kill.c~mm-memcg-pass-charge-order-to-oom-killer mm/oom_kill.c
---- a/mm/oom_kill.c~mm-memcg-pass-charge-order-to-oom-killer
-+++ a/mm/oom_kill.c
-@@ -554,7 +554,8 @@ static void check_panic_on_oom(enum oom_
- }
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
--void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask)
-+void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+			      int order)
- {
- 	unsigned long limit;
- 	unsigned int points = 0;
-@@ -570,12 +571,12 @@ void mem_cgroup_out_of_memory(struct mem
- 		return;
- 	}
- 
--	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0, NULL);
-+	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
- 	limit = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT;
- 	read_lock(&tasklist_lock);
- 	p = select_bad_process(&points, limit, memcg, NULL, false);
- 	if (p && PTR_ERR(p) != -1UL)
--		oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
-+		oom_kill_process(p, gfp_mask, order, points, limit, memcg, NULL,
- 				 "Memory cgroup out of memory");
- 	read_unlock(&tasklist_lock);
- }
+ 	if (addr >= TASK_SIZE)
 _
-Subject: Subject: mm, memcg: pass charge order to oom killer
+Subject: Subject: prctl: use CAP_SYS_RESOURCE for PR_SET_MM option
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
-origin.patch
 linux-next.patch
-slab-introduce-kmalloc_array.patch
-mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
-mm-oom-fold-oom_kill_task-into-oom_kill_process.patch
-mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting.patch
-mm-oom-introduce-independent-oom-killer-ratelimit-state.patch
-mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
-pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
-thp-optimize-away-unnecessary-page-table-locking.patch
-thp-optimize-away-unnecessary-page-table-locking-fix.patch
-pagemap-export-kpf_thp.patch
-pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
-pagemap-introduce-data-structure-for-pagemap-entry.patch
-mm-oom-force-oom-kill-on-sysrqf.patch
-mm-memcg-pass-charge-order-to-oom-killer.patch
-memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-introduce-umh_completesub_info.patch
-usermodehelper-implement-umh_killable.patch
-usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
-usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
-kmod-introduce-call_modprobe-helper.patch
-kmod-make-__request_module-killable.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+prctl-use-cap_sys_resource-for-pr_set_mm-option.patch
 
