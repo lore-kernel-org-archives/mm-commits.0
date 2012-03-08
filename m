@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-add-debugfs-interface-for-ec-commands-v3.patch added to -mm tree
-Date: Thu, 08 Mar 2012 14:54:02 -0800
-Message-ID: <20120308225403.01529A0186@akpm.mtv.corp.google.com>
+Subject: + coredump-remove-vm_alwaysdump-flag.patch added to -mm tree
+Date: Thu, 08 Mar 2012 15:06:27 -0800
+Message-ID: <20120308230627.95D74A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:54791 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758727Ab2CHWyE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 17:54:04 -0500
-Received: by yenq2 with SMTP id q2so135632yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 14:54:03 -0800 (PST)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:54663 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756870Ab2CHXG2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 18:06:28 -0500
+Received: by yhgm50 with SMTP id m50so136613yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 15:06:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dsd@laptop.org, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, pgf@laptop.org, tglx@linutronix.de
+Cc: jbaron@redhat.com, avi@redhat.com, cmetcalf@tilera.com, roland@hack.frob.com
 
 
 The patch titled
-     Subject: x86-olpc-add-debugfs-interface-for-ec-commands v3
+     Subject: coredump: remove VM_ALWAYSDUMP flag
 has been added to the -mm tree.  Its filename is
-     x86-olpc-add-debugfs-interface-for-ec-commands-v3.patch
+     coredump-remove-vm_alwaysdump-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,162 +33,364 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Drake <dsd@laptop.org>
-Subject: x86-olpc-add-debugfs-interface-for-ec-commands v3
+From: Jason Baron <jbaron@redhat.com>
+Subject: coredump: remove VM_ALWAYSDUMP flag
 
-v3: incorporate feedback from Ingo Molnar (thanks!): whitespace/cast
-fixes, fix potential overflow when nonsense resp_bytes is passed from
-userspace, add mutex to protect data and to protect against concurrent
-read/write, give node name 'cmd' which is better than 'generic'
+The motivation for this patchset was that I was looking at a way for a
+qemu-kvm process, to exclude the guest memory from its core dump, which
+can be quite large.  There are already a number of filter flags in
+/proc/<pid>/coredump_filter, however, these allow one to specify 'types'
+of kernel memory, not specific address ranges (which is needed in this
+case).
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
-Signed-off-by: Paul Fox <pgf@laptop.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andres Salomon <dilinger@queued.net>
+Since there are no more vma flags available, the first patch eliminates
+the need for the 'VM_ALWAYSDUMP' flag.  The flag is used internally by the
+kernel to mark vdso and vsyscall pages.  However, it is simple enough to
+check if a vma covers a vdso or vsyscall page without the need for this
+flag.
+
+The second patch then replaces the 'VM_ALWAYSDUMP' flag with a new
+'VM_NODUMP' flag, which can be set by userspace using new madvise flags:
+'MADV_DONTDUMP', and unset via 'MADV_DODUMP'.  The core dump filters
+continue to work the same as before unless 'MADV_DONTDUMP' is set on the
+region.
+
+The qemu code which implements this features is at:
+http://people.redhat.com/~jbaron/qemu-dump/qemu-dump.patch
+
+In my testing the qemu core dump shrunk from 383MB -> 13MB with this patch.
+
+I also believe that the 'MADV_DONTDUMP' flag might be useful for security
+sensitive apps, which might want to select which areas are dumped.
+
+
+This patch:
+
+The VM_ALWAYSDUMP flag is currently used by the coredump code to indicate
+that a vma is part of a vsyscall or vdso section.  However, we can
+determine if a vma is in one these sections by checking it against the
+gate_vma and checking for a non-NULL return value from arch_vma_name(). 
+Thus, freeing a valuable vma bit.
+
+Signed-off-by: Jason Baron <jbaron@redhat.com>
+Acked-by: Roland McGrath <roland@hack.frob.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Avi Kivity <avi@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/debugfs-olpc |    4 +-
- arch/x86/platform/olpc/olpc.c          |   35 +++++++++++++++--------
- 2 files changed, 25 insertions(+), 14 deletions(-)
+ arch/arm/kernel/process.c          |    3 +--
+ arch/hexagon/kernel/vdso.c         |    3 +--
+ arch/mips/kernel/vdso.c            |    3 +--
+ arch/powerpc/kernel/vdso.c         |   10 ++--------
+ arch/s390/kernel/vdso.c            |   10 ++--------
+ arch/sh/kernel/vsyscall/vsyscall.c |    3 +--
+ arch/tile/mm/elf.c                 |    8 +-------
+ arch/unicore32/kernel/process.c    |    2 +-
+ arch/x86/um/mem_32.c               |    8 --------
+ arch/x86/um/vdso/vma.c             |    3 +--
+ arch/x86/vdso/vdso32-setup.c       |   17 ++---------------
+ arch/x86/vdso/vma.c                |    3 +--
+ fs/binfmt_elf.c                    |   27 +++++++++++++++++++++++++--
+ include/linux/mm.h                 |    1 -
+ mm/memory.c                        |    8 +-------
+ 15 files changed, 40 insertions(+), 69 deletions(-)
 
-diff -puN Documentation/ABI/testing/debugfs-olpc~x86-olpc-add-debugfs-interface-for-ec-commands-v3 Documentation/ABI/testing/debugfs-olpc
---- a/Documentation/ABI/testing/debugfs-olpc~x86-olpc-add-debugfs-interface-for-ec-commands-v3
-+++ a/Documentation/ABI/testing/debugfs-olpc
-@@ -1,6 +1,6 @@
--What:		/sys/kernel/debug/olpc-ec/generic
-+What:		/sys/kernel/debug/olpc-ec/cmd
- Date:		Dec 2011
--KernelVersion:	3.3
-+KernelVersion:	3.4
- Contact:	devel@lists.laptop.org
- Description:
- 
-diff -puN arch/x86/platform/olpc/olpc.c~x86-olpc-add-debugfs-interface-for-ec-commands-v3 arch/x86/platform/olpc/olpc.c
---- a/arch/x86/platform/olpc/olpc.c~x86-olpc-add-debugfs-interface-for-ec-commands-v3
-+++ a/arch/x86/platform/olpc/olpc.c
-@@ -21,6 +21,7 @@
- #include <linux/of.h>
- #include <linux/syscore_ops.h>
- #include <linux/debugfs.h>
-+#include <linux/mutex.h>
- 
- #include <asm/geode.h>
- #include <asm/setup.h>
-@@ -35,7 +36,9 @@ static DEFINE_SPINLOCK(ec_lock);
- /* debugfs interface to EC commands */
- #define EC_MAX_CMD_ARGS (5 + 1)	/* cmd byte + 5 args */
- #define EC_MAX_CMD_REPLY (8)
-+
- static struct dentry *ec_debugfs_dir;
-+static DEFINE_MUTEX(ec_debugfs_cmd_lock);
- static unsigned char ec_debugfs_resp[EC_MAX_CMD_REPLY];
- static unsigned int ec_debugfs_resp_bytes;
- 
-@@ -277,8 +280,8 @@ int olpc_ec_sci_query(u16 *sci_value)
+diff -puN arch/arm/kernel/process.c~coredump-remove-vm_alwaysdump-flag arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/arm/kernel/process.c
+@@ -540,8 +540,7 @@ static int __init gate_vma_init(void)
+ 	gate_vma.vm_end		= 0xffff0000 + PAGE_SIZE;
+ 	gate_vma.vm_page_prot	= PAGE_READONLY_EXEC;
+ 	gate_vma.vm_flags	= VM_READ | VM_EXEC |
+-				  VM_MAYREAD | VM_MAYEXEC |
+-				  VM_ALWAYSDUMP;
++				  VM_MAYREAD | VM_MAYEXEC;
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(olpc_ec_sci_query);
+ arch_initcall(gate_vma_init);
+diff -puN arch/hexagon/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag arch/hexagon/kernel/vdso.c
+--- a/arch/hexagon/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/hexagon/kernel/vdso.c
+@@ -79,8 +79,7 @@ int arch_setup_additional_pages(struct l
+ 	/* MAYWRITE to allow gdb to COW and set breakpoints. */
+ 	ret = install_special_mapping(mm, vdso_base, PAGE_SIZE,
+ 				      VM_READ|VM_EXEC|
+-				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-				      VM_ALWAYSDUMP,
++				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+ 				      &vdso_page);
  
--static ssize_t ec_gen_write(struct file *file, const char __user *buf,
--			    size_t size, loff_t *ppos)
-+static ssize_t ec_debugfs_cmd_write(struct file *file, const char __user *buf,
-+				    size_t size, loff_t *ppos)
- {
- 	int i, m;
- 	unsigned char ec_cmd[EC_MAX_CMD_ARGS];
-@@ -286,6 +289,8 @@ static ssize_t ec_gen_write(struct file 
- 	char cmdbuf[64];
- 	int ec_cmd_bytes;
+ 	if (ret)
+diff -puN arch/mips/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag arch/mips/kernel/vdso.c
+--- a/arch/mips/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/mips/kernel/vdso.c
+@@ -88,8 +88,7 @@ int arch_setup_additional_pages(struct l
  
-+	mutex_lock(&ec_debugfs_cmd_lock);
-+
- 	size = simple_write_to_buffer(cmdbuf, sizeof(cmdbuf), ppos, buf, size);
+ 	ret = install_special_mapping(mm, addr, PAGE_SIZE,
+ 				      VM_READ|VM_EXEC|
+-				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-				      VM_ALWAYSDUMP,
++				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+ 				      &vdso_page);
  
- 	m = sscanf(cmdbuf, "%x:%u %x %x %x %x %x", &ec_cmd_int[0],
-@@ -293,9 +298,13 @@ static ssize_t ec_gen_write(struct file 
- 		   &ec_cmd_int[1], &ec_cmd_int[2], &ec_cmd_int[3],
- 		   &ec_cmd_int[4], &ec_cmd_int[5]);
- 	if (m < 2 || ec_debugfs_resp_bytes > EC_MAX_CMD_REPLY) {
-+		/* reset to prevent overflow on read */
-+		ec_debugfs_resp_bytes = 0;
-+
- 		printk(KERN_DEBUG "olpc-ec: bad ec cmd:  "
- 		       "cmd:response-count [arg1 [arg2 ...]]\n");
--		return -EINVAL;
-+		size = -EINVAL;
-+		goto out;
- 	}
+ 	if (ret)
+diff -puN arch/powerpc/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag arch/powerpc/kernel/vdso.c
+--- a/arch/powerpc/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/powerpc/kernel/vdso.c
+@@ -263,17 +263,11 @@ int arch_setup_additional_pages(struct l
+ 	 * the "data" page of the vDSO or you'll stop getting kernel updates
+ 	 * and your nice userland gettimeofday will be totally dead.
+ 	 * It's fine to use that for setting breakpoints in the vDSO code
+-	 * pages though
+-	 *
+-	 * Make sure the vDSO gets into every core dump.
+-	 * Dumping its contents makes post-mortem fully interpretable later
+-	 * without matching up the same kernel and hardware config to see
+-	 * what PC values meant.
++	 * pages though.
+ 	 */
+ 	rc = install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
+ 				     VM_READ|VM_EXEC|
+-				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-				     VM_ALWAYSDUMP,
++				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+ 				     vdso_pagelist);
+ 	if (rc) {
+ 		current->mm->context.vdso_base = 0;
+diff -puN arch/s390/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag arch/s390/kernel/vdso.c
+--- a/arch/s390/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/s390/kernel/vdso.c
+@@ -241,17 +241,11 @@ int arch_setup_additional_pages(struct l
+ 	 * on the "data" page of the vDSO or you'll stop getting kernel
+ 	 * updates and your nice userland gettimeofday will be totally dead.
+ 	 * It's fine to use that for setting breakpoints in the vDSO code
+-	 * pages though
+-	 *
+-	 * Make sure the vDSO gets into every core dump.
+-	 * Dumping its contents makes post-mortem fully interpretable later
+-	 * without matching up the same kernel and hardware config to see
+-	 * what PC values meant.
++	 * pages though.
+ 	 */
+ 	rc = install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
+ 				     VM_READ|VM_EXEC|
+-				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-				     VM_ALWAYSDUMP,
++				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+ 				     vdso_pagelist);
+ 	if (rc)
+ 		current->mm->context.vdso_base = 0;
+diff -puN arch/sh/kernel/vsyscall/vsyscall.c~coredump-remove-vm_alwaysdump-flag arch/sh/kernel/vsyscall/vsyscall.c
+--- a/arch/sh/kernel/vsyscall/vsyscall.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/sh/kernel/vsyscall/vsyscall.c
+@@ -73,8 +73,7 @@ int arch_setup_additional_pages(struct l
  
- 	/* convert scanf'd ints to char */
-@@ -308,9 +317,8 @@ static ssize_t ec_gen_write(struct file 
- 	       ec_cmd[0], ec_cmd_bytes, ec_cmd[1], ec_cmd[2], ec_cmd[3],
- 	       ec_cmd[4], ec_cmd[5], ec_debugfs_resp_bytes);
+ 	ret = install_special_mapping(mm, addr, PAGE_SIZE,
+ 				      VM_READ | VM_EXEC |
+-				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |
+-				      VM_ALWAYSDUMP,
++				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
+ 				      syscall_pages);
+ 	if (unlikely(ret))
+ 		goto up_fail;
+diff -puN arch/tile/mm/elf.c~coredump-remove-vm_alwaysdump-flag arch/tile/mm/elf.c
+--- a/arch/tile/mm/elf.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/tile/mm/elf.c
+@@ -117,17 +117,11 @@ int arch_setup_additional_pages(struct l
  
--	olpc_ec_cmd((unsigned char) ec_cmd[0],
--		(ec_cmd_bytes == 0) ? NULL : &ec_cmd[1],
--		ec_cmd_bytes, ec_debugfs_resp, ec_debugfs_resp_bytes);
-+	olpc_ec_cmd(ec_cmd[0], (ec_cmd_bytes == 0) ? NULL : &ec_cmd[1],
-+		    ec_cmd_bytes, ec_debugfs_resp, ec_debugfs_resp_bytes);
+ 	/*
+ 	 * MAYWRITE to allow gdb to COW and set breakpoints
+-	 *
+-	 * Make sure the vDSO gets into every core dump.  Dumping its
+-	 * contents makes post-mortem fully interpretable later
+-	 * without matching up the same kernel and hardware config to
+-	 * see what PC values meant.
+ 	 */
+ 	vdso_base = VDSO_BASE;
+ 	retval = install_special_mapping(mm, vdso_base, PAGE_SIZE,
+ 					 VM_READ|VM_EXEC|
+-					 VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-					 VM_ALWAYSDUMP,
++					 VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+ 					 vdso_pages);
  
- 	printk(KERN_DEBUG "olpc-ec: response "
- 	       "%02x %02x %02x %02x %02x %02x %02x %02x (%d bytes expected)\n",
-@@ -318,30 +326,33 @@ static ssize_t ec_gen_write(struct file 
- 	       ec_debugfs_resp[3], ec_debugfs_resp[4], ec_debugfs_resp[5],
- 	       ec_debugfs_resp[6], ec_debugfs_resp[7], ec_debugfs_resp_bytes);
- 
-+out:
-+	mutex_unlock(&ec_debugfs_cmd_lock);
- 	return size;
+ #ifndef __tilegx__
+diff -puN arch/unicore32/kernel/process.c~coredump-remove-vm_alwaysdump-flag arch/unicore32/kernel/process.c
+--- a/arch/unicore32/kernel/process.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/unicore32/kernel/process.c
+@@ -381,7 +381,7 @@ int vectors_user_mapping(void)
+ 	return install_special_mapping(mm, 0xffff0000, PAGE_SIZE,
+ 				       VM_READ | VM_EXEC |
+ 				       VM_MAYREAD | VM_MAYEXEC |
+-				       VM_ALWAYSDUMP | VM_RESERVED,
++				       VM_RESERVED,
+ 				       NULL);
  }
  
--static ssize_t ec_gen_read(struct file *file, char __user *buf,
--			   size_t size, loff_t *ppos)
-+static ssize_t ec_debugfs_cmd_read(struct file *file, char __user *buf,
-+				   size_t size, loff_t *ppos)
- {
- 	unsigned int i, r;
- 	char *rp;
- 	char respbuf[64];
+diff -puN arch/x86/um/mem_32.c~coredump-remove-vm_alwaysdump-flag arch/x86/um/mem_32.c
+--- a/arch/x86/um/mem_32.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/x86/um/mem_32.c
+@@ -23,14 +23,6 @@ static int __init gate_vma_init(void)
+ 	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
+ 	gate_vma.vm_page_prot = __P101;
  
-+	mutex_lock(&ec_debugfs_cmd_lock);
- 	rp = respbuf;
- 	rp += sprintf(rp, "%02x", ec_debugfs_resp[0]);
- 	for (i = 1; i < ec_debugfs_resp_bytes; i++)
- 		rp += sprintf(rp, ", %02x", ec_debugfs_resp[i]);
-+	mutex_unlock(&ec_debugfs_cmd_lock);
- 	rp += sprintf(rp, "\n");
- 
- 	r = rp - respbuf;
+-	/*
+-	 * Make sure the vDSO gets into every core dump.
+-	 * Dumping its contents makes post-mortem fully interpretable later
+-	 * without matching up the same kernel and hardware config to see
+-	 * what PC values meant.
+-	 */
+-	gate_vma.vm_flags |= VM_ALWAYSDUMP;
 -
- 	return simple_read_from_buffer(buf, size, ppos, respbuf, r);
+ 	return 0;
+ }
+ __initcall(gate_vma_init);
+diff -puN arch/x86/um/vdso/vma.c~coredump-remove-vm_alwaysdump-flag arch/x86/um/vdso/vma.c
+--- a/arch/x86/um/vdso/vma.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/x86/um/vdso/vma.c
+@@ -64,8 +64,7 @@ int arch_setup_additional_pages(struct l
+ 
+ 	err = install_special_mapping(mm, um_vdso_addr, PAGE_SIZE,
+ 		VM_READ|VM_EXEC|
+-		VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-		VM_ALWAYSDUMP,
++		VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+ 		vdsop);
+ 
+ 	up_write(&mm->mmap_sem);
+diff -puN arch/x86/vdso/vdso32-setup.c~coredump-remove-vm_alwaysdump-flag arch/x86/vdso/vdso32-setup.c
+--- a/arch/x86/vdso/vdso32-setup.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/x86/vdso/vdso32-setup.c
+@@ -250,13 +250,7 @@ static int __init gate_vma_init(void)
+ 	gate_vma.vm_end = FIXADDR_USER_END;
+ 	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
+ 	gate_vma.vm_page_prot = __P101;
+-	/*
+-	 * Make sure the vDSO gets into every core dump.
+-	 * Dumping its contents makes post-mortem fully interpretable later
+-	 * without matching up the same kernel and hardware config to see
+-	 * what PC values meant.
+-	 */
+-	gate_vma.vm_flags |= VM_ALWAYSDUMP;
++
+ 	return 0;
  }
  
- static const struct file_operations ec_debugfs_genops = {
--	.write	 = ec_gen_write,
--	.read	 = ec_gen_read,
-+	.write	 = ec_debugfs_cmd_write,
-+	.read	 = ec_debugfs_cmd_read,
- };
+@@ -348,17 +342,10 @@ int arch_setup_additional_pages(struct l
+ 	if (compat_uses_vma || !compat) {
+ 		/*
+ 		 * MAYWRITE to allow gdb to COW and set breakpoints
+-		 *
+-		 * Make sure the vDSO gets into every core dump.
+-		 * Dumping its contents makes post-mortem fully
+-		 * interpretable later without matching up the same
+-		 * kernel and hardware config to see what PC values
+-		 * meant.
+ 		 */
+ 		ret = install_special_mapping(mm, addr, PAGE_SIZE,
+ 					      VM_READ|VM_EXEC|
+-					      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-					      VM_ALWAYSDUMP,
++					      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+ 					      vdso32_pages);
  
- static void setup_debugfs(void)
-@@ -350,7 +361,7 @@ static void setup_debugfs(void)
- 	if (ec_debugfs_dir == ERR_PTR(-ENODEV))
- 		return;
+ 		if (ret)
+diff -puN arch/x86/vdso/vma.c~coredump-remove-vm_alwaysdump-flag arch/x86/vdso/vma.c
+--- a/arch/x86/vdso/vma.c~coredump-remove-vm_alwaysdump-flag
++++ a/arch/x86/vdso/vma.c
+@@ -172,8 +172,7 @@ static int setup_additional_pages(struct
  
--	debugfs_create_file("generic", 0600, ec_debugfs_dir, NULL,
-+	debugfs_create_file("cmd", 0600, ec_debugfs_dir, NULL,
- 			    &ec_debugfs_genops);
+ 	ret = install_special_mapping(mm, addr, size,
+ 				      VM_READ|VM_EXEC|
+-				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
+-				      VM_ALWAYSDUMP,
++				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
+ 				      pages);
+ 	if (ret) {
+ 		current->mm->context.vdso = NULL;
+diff -puN fs/binfmt_elf.c~coredump-remove-vm_alwaysdump-flag fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-remove-vm_alwaysdump-flag
++++ a/fs/binfmt_elf.c
+@@ -1095,6 +1095,29 @@ out:
+  */
+ 
+ /*
++ * The purpose of always_dump_vma() is to make sure that special kernel mappings
++ * that are useful for post-mortem analysis are included in every core dump.
++ * In that way we ensure that the core dump is fully interpretable later
++ * without matching up the same kernel and hardware config to see what PC values
++ * meant. These special mappings include - vDSO, vsyscall, and other
++ * architecture specific mappings
++ */
++static bool always_dump_vma(struct vm_area_struct *vma)
++{
++	/* Any vsyscall mappings? */
++	if (vma == get_gate_vma(vma->vm_mm))
++		return true;
++	/*
++	 * arch_vma_name() returns non-NULL for special architecture mappings,
++	 * such as vDSO sections.
++	 */
++	if (arch_vma_name(vma))
++		return true;
++
++	return false;
++}
++
++/*
+  * Decide what to dump of a segment, part, all or none.
+  */
+ static unsigned long vma_dump_size(struct vm_area_struct *vma,
+@@ -1102,8 +1125,8 @@ static unsigned long vma_dump_size(struc
+ {
+ #define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
+ 
+-	/* The vma can be set up to tell us the answer directly.  */
+-	if (vma->vm_flags & VM_ALWAYSDUMP)
++	/* always dump the vdso and vsyscall sections */
++	if (always_dump_vma(vma))
+ 		goto whole;
+ 
+ 	/* Hugetlb memory check */
+diff -puN include/linux/mm.h~coredump-remove-vm_alwaysdump-flag include/linux/mm.h
+--- a/include/linux/mm.h~coredump-remove-vm_alwaysdump-flag
++++ a/include/linux/mm.h
+@@ -112,7 +112,6 @@ extern unsigned int kobjsize(const void 
+ #define VM_HUGEPAGE	0x01000000	/* MADV_HUGEPAGE marked this vma */
+ #endif
+ #define VM_INSERTPAGE	0x02000000	/* The vma has had "vm_insert_page()" done on it */
+-#define VM_ALWAYSDUMP	0x04000000	/* Always include in core dumps */
+ 
+ #define VM_CAN_NONLINEAR 0x08000000	/* Has ->fault & does nonlinear pages */
+ #define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
+diff -puN mm/memory.c~coredump-remove-vm_alwaysdump-flag mm/memory.c
+--- a/mm/memory.c~coredump-remove-vm_alwaysdump-flag
++++ a/mm/memory.c
+@@ -3609,13 +3609,7 @@ static int __init gate_vma_init(void)
+ 	gate_vma.vm_end = FIXADDR_USER_END;
+ 	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
+ 	gate_vma.vm_page_prot = __P101;
+-	/*
+-	 * Make sure the vDSO gets into every core dump.
+-	 * Dumping its contents makes post-mortem fully interpretable later
+-	 * without matching up the same kernel and hardware config to see
+-	 * what PC values meant.
+-	 */
+-	gate_vma.vm_flags |= VM_ALWAYSDUMP;
++
+ 	return 0;
  }
- 
+ __initcall(gate_vma_init);
 _
-Subject: Subject: x86-olpc-add-debugfs-interface-for-ec-commands v3
+Subject: Subject: coredump: remove VM_ALWAYSDUMP flag
 
-Patches currently in -mm which might be from dsd@laptop.org are
+Patches currently in -mm which might be from jbaron@redhat.com are
 
+origin.patch
 linux-next.patch
-platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch
-x86-olpc-add-debugfs-interface-for-ec-commands.patch
-x86-olpc-add-debugfs-interface-for-ec-commands-v3.patch
+epoll-remove-unneeded-variable-in-reverse_path_check.patch
+coredump-remove-vm_alwaysdump-flag.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
 
