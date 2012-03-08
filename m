@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alix2-supplement-driver-to-include-gpio-button-support.patch removed from -mm tree
-Date: Thu, 08 Mar 2012 11:17:33 -0800
-Message-ID: <20120308191733.7146CA06CB@akpm.mtv.corp.google.com>
+Subject: [merged] net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch removed from -mm tree
+Date: Thu, 08 Mar 2012 11:17:35 -0800
+Message-ID: <20120308191735.8A2BAA06CB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:35115 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758197Ab2CHTRf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 14:17:35 -0500
-Received: by mail-ee0-f74.google.com with SMTP id c41so30194eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 11:17:34 -0800 (PST)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:49291 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758316Ab2CHTRi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 14:17:38 -0500
+Received: by laai8 with SMTP id i8so29469laa.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 11:17:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipp@redfish-solutions.com, dilinger@queued.net, hpa@zytor.com, kernel@wildgooses.com, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: philipp@redfish-solutions.com, a.zummo@towertech.it, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, mjg@redhat.com, rpurdie@rpsys.net, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alix2: supplement driver to include GPIO button support
+     Subject: x86: net5501: platform driver for Soekris Engineering net5501 single-board computer
 has been removed from the -mm tree.  Its filename was
-     alix2-supplement-driver-to-include-gpio-button-support.patch
+     net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,18 +26,18 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Philip Prindeville <philipp@redfish-solutions.com>
-Subject: alix2: supplement driver to include GPIO button support
+Subject: x86: net5501: platform driver for Soekris Engineering net5501 single-board computer
 
-GPIO 24 is used in reference designs as a soft-reset button, and the alix2
-is no exception.  Add it as a gpio-button.
+Platform driver for Soekris Engineering net5501 single-board computer. 
+Probes well-known locations in ROM for BIOS signature to confirm correct
+platform.  Registers 1 LED and 1 GPIO-based button (typically used for
+soft reset).
 
-Use symbolic values to describe BIOS addresses.
-
-Record the model number.
-
-Signed-off-by: Philip A. Prindeville <philipp@redfish-solutions.com>
-Acked-by: Ed Wildgoose <kernel@wildgooses.com>
-Acked-by: Andres Salomon <dilinger@queued.net>
+[akpm@linux-foundation.org: remove Kconfig and Makefile detritus from drivers/leds/]
+Signed-off-by: Philip Prindeville <philipp@redfish-solutions.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Andres Salomon <dilinger@queued.net>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -45,40 +45,76 @@ Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/geode/alix.c |   76 +++++++++++++++++++++++++++----
- 1 file changed, 67 insertions(+), 9 deletions(-)
+ arch/x86/Kconfig                  |    6 +
+ arch/x86/platform/geode/Makefile  |    1 
+ arch/x86/platform/geode/net5501.c |  154 ++++++++++++++++++++++++++++
+ drivers/leds/Kconfig              |   10 -
+ drivers/leds/Makefile             |    1 
+ drivers/leds/leds-net5501.c       |   97 -----------------
+ 6 files changed, 161 insertions(+), 108 deletions(-)
 
-diff -puN arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio-button-support arch/x86/platform/geode/alix.c
---- a/arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio-button-support
-+++ a/arch/x86/platform/geode/alix.c
-@@ -6,6 +6,7 @@
-  *
-  * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
-  * Copyright (C) 2011 Ed Wildgoose <kernel@wildgooses.com>
+diff -puN arch/x86/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer arch/x86/Kconfig
+--- a/arch/x86/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer
++++ a/arch/x86/Kconfig
+@@ -2158,6 +2158,12 @@ config GEOS
+ 	---help---
+ 	  This option enables system support for the Traverse Technologies GEOS.
+ 
++config NET5501
++	bool "Soekris Engineering net5501 System Support (LEDS, GPIO, etc)"
++	select GPIOLIB
++	---help---
++	  This option enables system support for the Soekris Engineering net5501.
++
+ endif # X86_32
+ 
+ config AMD_NB
+diff -puN arch/x86/platform/geode/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer arch/x86/platform/geode/Makefile
+--- a/arch/x86/platform/geode/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer
++++ a/arch/x86/platform/geode/Makefile
+@@ -1,2 +1,3 @@
+ obj-$(CONFIG_ALIX)		+= alix.o
++obj-$(CONFIG_NET5501)		+= net5501.o
+ obj-$(CONFIG_GEOS)		+= geos.o
+diff -puN /dev/null arch/x86/platform/geode/net5501.c
+--- /dev/null
++++ a/arch/x86/platform/geode/net5501.c
+@@ -0,0 +1,154 @@
++/*
++ * System Specific setup for Soekris net5501
++ * At the moment this means setup of GPIO control of LEDs and buttons
++ * on net5501 boards.
++ *
++ *
++ * Copyright (C) 2008-2009 Tower Technologies
++ * Written by Alessandro Zummo <a.zummo@towertech.it>
++ *
++ * Copyright (C) 2008 Constantin Baranov <const@mimas.ru>
++ * Copyright (C) 2011 Ed Wildgoose <kernel@wildgooses.com>
 + *                and Philip Prindeville <philipp@redfish-solutions.com>
-  *
-  * TODO: There are large similarities with leds-net5501.c
-  * by Alessandro Zummo <a.zummo@towertech.it>
-@@ -24,14 +25,47 @@
- #include <linux/leds.h>
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2
++ * as published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/io.h>
++#include <linux/string.h>
++#include <linux/module.h>
++#include <linux/leds.h>
++#include <linux/platform_device.h>
++#include <linux/gpio.h>
 +#include <linux/input.h>
 +#include <linux/gpio_keys.h>
-+#include <linux/dmi.h>
- 
- #include <asm/geode.h>
- 
-+#define BIOS_SIGNATURE_TINYBIOS		0xf0000
-+#define BIOS_SIGNATURE_COREBOOT		0x500
-+#define BIOS_REGION_SIZE		0x10000
 +
- static bool force = 0;
- module_param(force, bool, 0444);
- /* FIXME: Award bios is not automatically detected as Alix platform */
- MODULE_PARM_DESC(force, "Force detection as ALIX.2/ALIX.3 platform");
- 
-+static struct gpio_keys_button alix_gpio_buttons[] = {
++#include <asm/geode.h>
++
++#define BIOS_REGION_BASE		0xffff0000
++#define BIOS_REGION_SIZE		0x00010000
++
++static struct gpio_keys_button net5501_gpio_buttons[] = {
 +	{
 +		.code = KEY_RESTART,
 +		.gpio = 24,
@@ -90,111 +126,241 @@ diff -puN arch/x86/platform/geode/alix.c~alix2-supplement-driver-to-include-gpio
 +		.can_disable = 0,
 +	}
 +};
-+static struct gpio_keys_platform_data alix_buttons_data = {
-+	.buttons = alix_gpio_buttons,
-+	.nbuttons = ARRAY_SIZE(alix_gpio_buttons),
++static struct gpio_keys_platform_data net5501_buttons_data = {
++	.buttons = net5501_gpio_buttons,
++	.nbuttons = ARRAY_SIZE(net5501_gpio_buttons),
 +	.poll_interval = 20,
 +};
 +
-+static struct platform_device alix_buttons_dev = {
++static struct platform_device net5501_buttons_dev = {
 +	.name = "gpio-keys-polled",
 +	.id = 1,
 +	.dev = {
-+		.platform_data = &alix_buttons_data,
++		.platform_data = &net5501_buttons_data,
 +	}
 +};
 +
- static struct gpio_led alix_leds[] = {
- 	{
- 		.name = "alix:1",
-@@ -64,17 +98,22 @@ static struct platform_device alix_leds_
- 	.dev.platform_data = &alix_leds_data,
- };
- 
-+static struct __initdata platform_device *alix_devs[] = {
-+	&alix_buttons_dev,
-+	&alix_leds_dev,
++static struct gpio_led net5501_leds[] = {
++	{
++		.name = "net5501:1",
++		.gpio = 6,
++		.default_trigger = "default-on",
++		.active_low = 1,
++	},
 +};
 +
- static void __init register_alix(void)
- {
- 	/* Setup LED control through leds-gpio driver */
--	platform_device_register(&alix_leds_dev);
-+	platform_add_devices(alix_devs, ARRAY_SIZE(alix_devs));
- }
- 
--static int __init alix_present(unsigned long bios_phys,
-+static bool __init alix_present(unsigned long bios_phys,
- 				const char *alix_sig,
- 				size_t alix_sig_len)
- {
--	const size_t bios_len = 0x00010000;
-+	const size_t bios_len = BIOS_REGION_SIZE;
- 	const char *bios_virt;
- 	const char *scan_end;
- 	const char *p;
-@@ -84,7 +123,7 @@ static int __init alix_present(unsigned 
- 		printk(KERN_NOTICE "%s: forced to skip BIOS test, "
- 		       "assume system is ALIX.2/ALIX.3\n",
- 		       KBUILD_MODNAME);
--		return 1;
-+		return true;
- 	}
- 
- 	bios_virt = phys_to_virt(bios_phys);
-@@ -109,15 +148,33 @@ static int __init alix_present(unsigned 
- 			*a = '\0';
- 
- 		tail = p + alix_sig_len;
--		if ((tail[0] == '2' || tail[0] == '3')) {
-+		if ((tail[0] == '2' || tail[0] == '3' || tail[0] == '6')) {
- 			printk(KERN_INFO
- 			       "%s: system is recognized as \"%s\"\n",
- 			       KBUILD_MODNAME, name);
--			return 1;
-+			return true;
- 		}
- 	}
- 
--	return 0;
-+	return false;
++static struct gpio_led_platform_data net5501_leds_data = {
++	.num_leds = ARRAY_SIZE(net5501_leds),
++	.leds = net5501_leds,
++};
++
++static struct platform_device net5501_leds_dev = {
++	.name = "leds-gpio",
++	.id = -1,
++	.dev.platform_data = &net5501_leds_data,
++};
++
++static struct __initdata platform_device *net5501_devs[] = {
++	&net5501_buttons_dev,
++	&net5501_leds_dev,
++};
++
++static void __init register_net5501(void)
++{
++	/* Setup LED control through leds-gpio driver */
++	platform_add_devices(net5501_devs, ARRAY_SIZE(net5501_devs));
 +}
 +
-+static bool __init alix_present_dmi(void)
++struct net5501_board {
++	u16	offset;
++	u16	len;
++	char	*sig;
++};
++
++static struct net5501_board __initdata boards[] = {
++	{ 0xb7b, 7, "net5501" },	/* net5501 v1.33/1.33c */
++	{ 0xb1f, 7, "net5501" },	/* net5501 v1.32i */
++};
++
++static bool __init net5501_present(void)
 +{
-+	const char *vendor, *product;
++	int i;
++	unsigned char *rombase, *bios;
++	bool found = false;
 +
-+	vendor = dmi_get_system_info(DMI_SYS_VENDOR);
-+	if (!vendor || strcmp(vendor, "PC Engines"))
-+		return false;
++	rombase = ioremap(BIOS_REGION_BASE, BIOS_REGION_SIZE - 1);
++	if (!rombase) {
++		printk(KERN_ERR "%s: failed to get rombase\n", KBUILD_MODNAME);
++		return found;
++	}
 +
-+	product = dmi_get_system_info(DMI_PRODUCT_NAME);
-+	if (!product || (strcmp(product, "ALIX.2D") && strcmp(product, "ALIX.6")))
-+		return false;
++	bios = rombase + 0x20;	/* null terminated */
 +
-+	printk(KERN_INFO "%s: system is recognized as \"%s %s\"\n",
-+	       KBUILD_MODNAME, vendor, product);
++	if (memcmp(bios, "comBIOS", 7))
++		goto unmap;
 +
-+	return true;
- }
++	for (i = 0; i < ARRAY_SIZE(boards); i++) {
++		unsigned char *model = rombase + boards[i].offset;
++
++		if (!memcmp(model, boards[i].sig, boards[i].len)) {
++			printk(KERN_INFO "%s: system is recognized as \"%s\"\n",
++			       KBUILD_MODNAME, model);
++
++			found = true;
++			break;
++		}
++	}
++
++unmap:
++	iounmap(rombase);
++	return found;
++}
++
++static int __init net5501_init(void)
++{
++	if (!is_geode())
++		return 0;
++
++	if (!net5501_present())
++		return 0;
++
++	register_net5501();
++
++	return 0;
++}
++
++module_init(net5501_init);
++
++MODULE_AUTHOR("Philip Prindeville <philipp@redfish-solutions.com>");
++MODULE_DESCRIPTION("Soekris net5501 System Setup");
++MODULE_LICENSE("GPL");
+diff -puN drivers/leds/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer
++++ a/drivers/leds/Kconfig
+@@ -82,16 +82,6 @@ config LEDS_NET48XX
+ 	  This option enables support for the Soekris net4801 and net4826 error
+ 	  LED.
  
- static int __init alix_init(void)
-@@ -128,8 +185,9 @@ static int __init alix_init(void)
- 	if (!is_geode())
- 		return 0;
- 
--	if (alix_present(0xf0000, tinybios_sig, sizeof(tinybios_sig) - 1) ||
--	    alix_present(0x500, coreboot_sig, sizeof(coreboot_sig) - 1))
-+	if (alix_present(BIOS_SIGNATURE_TINYBIOS, tinybios_sig, sizeof(tinybios_sig) - 1) ||
-+	    alix_present(BIOS_SIGNATURE_COREBOOT, coreboot_sig, sizeof(coreboot_sig) - 1) ||
-+	    alix_present_dmi())
- 		register_alix();
- 
- 	return 0;
-_
-
-Patches currently in -mm which might be from philipp@redfish-solutions.com are
-
-linux-next.patch
-geos-platform-driver-for-geos-and-geos2-single-board-computers.patch
-
+-config LEDS_NET5501
+-	tristate "LED Support for Soekris net5501 series Error LED"
+-	depends on LEDS_TRIGGERS
+-	depends on X86 && GPIO_CS5535
+-	select LEDS_TRIGGER_DEFAULT_ON
+-	default n
+-	help
+-	  Add support for the Soekris net5501 board (detection, error led
+-	  and GPIO).
+-
+ config LEDS_FSG
+ 	tristate "LED Support for the Freecom FSG-3"
+ 	depends on LEDS_CLASS
+diff -puN drivers/leds/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer drivers/leds/Makefile
+--- a/drivers/leds/Makefile~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer
++++ a/drivers/leds/Makefile
+@@ -13,7 +13,6 @@ obj-$(CONFIG_LEDS_LM3530)		+= leds-lm353
+ obj-$(CONFIG_LEDS_MIKROTIK_RB532)	+= leds-rb532.o
+ obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
+ obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
+-obj-$(CONFIG_LEDS_NET5501)		+= leds-net5501.o
+ obj-$(CONFIG_LEDS_WRAP)			+= leds-wrap.o
+ obj-$(CONFIG_LEDS_COBALT_QUBE)		+= leds-cobalt-qube.o
+ obj-$(CONFIG_LEDS_COBALT_RAQ)		+= leds-cobalt-raq.o
+diff -puN drivers/leds/leds-net5501.c~net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer /dev/null
+--- a/drivers/leds/leds-net5501.c
++++ /dev/null
+@@ -1,97 +0,0 @@
+-/*
+- * Soekris board support code
+- *
+- * Copyright (C) 2008-2009 Tower Technologies
+- * Written by Alessandro Zummo <a.zummo@towertech.it>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2
+- * as published by the Free Software Foundation.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/io.h>
+-#include <linux/string.h>
+-#include <linux/leds.h>
+-#include <linux/platform_device.h>
+-#include <linux/gpio.h>
+-#include <linux/module.h>
+-
+-#include <asm/geode.h>
+-
+-static const struct gpio_led net5501_leds[] = {
+-	{
+-		.name = "error",
+-		.gpio = 6,
+-		.default_trigger = "default-on",
+-	},
+-};
+-
+-static struct gpio_led_platform_data net5501_leds_data = {
+-	.num_leds = ARRAY_SIZE(net5501_leds),
+-	.leds = net5501_leds,
+-};
+-
+-static struct platform_device net5501_leds_dev = {
+-	.name = "leds-gpio",
+-	.id = -1,
+-	.dev.platform_data = &net5501_leds_data,
+-};
+-
+-static void __init init_net5501(void)
+-{
+-	platform_device_register(&net5501_leds_dev);
+-}
+-
+-struct soekris_board {
+-	u16	offset;
+-	char	*sig;
+-	u8	len;
+-	void	(*init)(void);
+-};
+-
+-static struct soekris_board __initdata boards[] = {
+-	{ 0xb7b, "net5501", 7, init_net5501 },	/* net5501 v1.33/1.33c */
+-	{ 0xb1f, "net5501", 7, init_net5501 },	/* net5501 v1.32i */
+-};
+-
+-static int __init soekris_init(void)
+-{
+-	int i;
+-	unsigned char *rombase, *bios;
+-
+-	if (!is_geode())
+-		return 0;
+-
+-	rombase = ioremap(0xffff0000, 0xffff);
+-	if (!rombase) {
+-		printk(KERN_INFO "Soekris net5501 LED driver failed to get rombase");
+-		return 0;
+-	}
+-
+-	bios = rombase + 0x20;	/* null terminated */
+-
+-	if (strncmp(bios, "comBIOS", 7))
+-		goto unmap;
+-
+-	for (i = 0; i < ARRAY_SIZE(boards); i++) {
+-		unsigned char *model = rombase + boards[i].offset;
+-
+-		if (strncmp(model, boards[i].sig, boards[i].len) == 0) {
+-			printk(KERN_INFO "Soekris %s: %s\n", model, bios);
+-
+-			if (boards[i].init)
+-				boards[i].init();
+-			break;
+-		}
+-	}
+-
+-unmap:
+-	iounmap(rombase);
+-	return 0;
+-}
+-
+-arch_initcall(soekris_init);
