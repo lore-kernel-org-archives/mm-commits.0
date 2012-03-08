@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat.patch added to -mm tree
-Date: Wed, 07 Mar 2012 17:12:52 -0800
-Message-ID: <20120308011253.B3B9BA00AE@akpm.mtv.corp.google.com>
+Subject: + mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss.patch added to -mm tree
+Date: Wed, 07 Mar 2012 17:12:59 -0800
+Message-ID: <20120308011259.C8B3DA00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:53128 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab2CHBMz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 20:12:55 -0500
-Received: by ghbz15 with SMTP id z15so885886ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 17:12:54 -0800 (PST)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:49767 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347Ab2CHBNA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 20:13:00 -0500
+Received: by ggnd2 with SMTP id d2so884824ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 17:13:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     Subject: mm, counters: remove task argument to sync_mm_rss() and __sync_task_rss_stat()
+     Subject: mm, counters: fold __sync_task_rss_stat() into sync_mm_rss()
 has been added to the -mm tree.  Its filename is
-     mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat.patch
+     mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,129 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, counters: remove task argument to sync_mm_rss() and __sync_task_rss_stat()
+Subject: mm, counters: fold __sync_task_rss_stat() into sync_mm_rss()
 
-sync_mm_rss() can only be used for current to avoid race conditions in
-iterating and clearing its per-task counters.  Remove the task argument
-for it and its helper function, __sync_task_rss_stat(), to avoid thinking
-it can be used safely for anything other than current.
+There's no difference between sync_mm_rss() and __sync_task_rss_stat(),
+so fold the latter into the former.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c          |    2 +-
- include/linux/mm.h |    4 ++--
- kernel/exit.c      |    2 +-
- mm/memory.c        |   18 +++++++++---------
- mm/mmu_context.c   |    2 +-
- 5 files changed, 14 insertions(+), 14 deletions(-)
+ mm/memory.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN fs/exec.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat fs/exec.c
---- a/fs/exec.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
-+++ a/fs/exec.c
-@@ -824,7 +824,7 @@ static int exec_mmap(struct mm_struct *m
- 	/* Notify parent that we're no longer interested in the old VM */
- 	tsk = current;
- 	old_mm = current->mm;
--	sync_mm_rss(tsk, old_mm);
-+	sync_mm_rss(old_mm);
- 	mm_release(tsk, old_mm);
- 
- 	if (old_mm) {
-diff -puN include/linux/mm.h~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat include/linux/mm.h
---- a/include/linux/mm.h~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
-+++ a/include/linux/mm.h
-@@ -1132,9 +1132,9 @@ static inline void setmax_mm_hiwater_rss
- }
- 
- #if defined(SPLIT_RSS_COUNTING)
--void sync_mm_rss(struct task_struct *task, struct mm_struct *mm);
-+void sync_mm_rss(struct mm_struct *mm);
- #else
--static inline void sync_mm_rss(struct task_struct *task, struct mm_struct *mm)
-+static inline void sync_mm_rss(struct mm_struct *mm)
- {
- }
- #endif
-diff -puN kernel/exit.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat kernel/exit.c
---- a/kernel/exit.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
-+++ a/kernel/exit.c
-@@ -954,7 +954,7 @@ void do_exit(long code)
- 	acct_update_integrals(tsk);
- 	/* sync mm's RSS info before statistics gathering */
- 	if (tsk->mm)
--		sync_mm_rss(tsk, tsk->mm);
-+		sync_mm_rss(tsk->mm);
- 	group_dead = atomic_dec_and_test(&tsk->signal->live);
- 	if (group_dead) {
- 		hrtimer_cancel(&tsk->signal->real_timer);
-diff -puN mm/memory.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat mm/memory.c
---- a/mm/memory.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
+diff -puN mm/memory.c~mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss mm/memory.c
+--- a/mm/memory.c~mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss
 +++ a/mm/memory.c
-@@ -133,17 +133,17 @@ core_initcall(init_zero_pfn);
+@@ -133,7 +133,7 @@ core_initcall(init_zero_pfn);
  
  #if defined(SPLIT_RSS_COUNTING)
  
--static void __sync_task_rss_stat(struct task_struct *task, struct mm_struct *mm)
-+static void __sync_task_rss_stat(struct mm_struct *mm)
+-static void __sync_task_rss_stat(struct mm_struct *mm)
++void sync_mm_rss(struct mm_struct *mm)
  {
  	int i;
  
- 	for (i = 0; i < NR_MM_COUNTERS; i++) {
--		if (task->rss_stat.count[i]) {
--			add_mm_counter(mm, i, task->rss_stat.count[i]);
--			task->rss_stat.count[i] = 0;
-+		if (current->rss_stat.count[i]) {
-+			add_mm_counter(mm, i, current->rss_stat.count[i]);
-+			current->rss_stat.count[i] = 0;
- 		}
- 	}
--	task->rss_stat.events = 0;
-+	current->rss_stat.events = 0;
- }
- 
- static void add_mm_counter_fast(struct mm_struct *mm, int member, int val)
-@@ -165,12 +165,12 @@ static void check_sync_rss_stat(struct t
+@@ -165,12 +165,7 @@ static void check_sync_rss_stat(struct t
  	if (unlikely(task != current))
  		return;
  	if (unlikely(task->rss_stat.events++ > TASK_RSS_EVENTS_THRESH))
--		__sync_task_rss_stat(task, task->mm);
-+		__sync_task_rss_stat(task->mm);
- }
- 
--void sync_mm_rss(struct task_struct *task, struct mm_struct *mm)
-+void sync_mm_rss(struct mm_struct *mm)
- {
--	__sync_task_rss_stat(task, mm);
-+	__sync_task_rss_stat(mm);
+-		__sync_task_rss_stat(task->mm);
+-}
+-
+-void sync_mm_rss(struct mm_struct *mm)
+-{
+-	__sync_task_rss_stat(mm);
++		sync_mm_rss(task->mm);
  }
  #else /* SPLIT_RSS_COUNTING */
  
-@@ -651,7 +651,7 @@ static inline void add_mm_rss_vec(struct
- 	int i;
- 
- 	if (current->mm == mm)
--		sync_mm_rss(current, mm);
-+		sync_mm_rss(mm);
- 	for (i = 0; i < NR_MM_COUNTERS; i++)
- 		if (rss[i])
- 			add_mm_counter(mm, i, rss[i]);
-diff -puN mm/mmu_context.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat mm/mmu_context.c
---- a/mm/mmu_context.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
-+++ a/mm/mmu_context.c
-@@ -53,7 +53,7 @@ void unuse_mm(struct mm_struct *mm)
- 	struct task_struct *tsk = current;
- 
- 	task_lock(tsk);
--	sync_mm_rss(tsk, mm);
-+	sync_mm_rss(mm);
- 	tsk->mm = NULL;
- 	/* active_mm is still 'mm' */
- 	enter_lazy_tlb(mm, tsk);
 _
-Subject: Subject: mm, counters: remove task argument to sync_mm_rss() and __sync_task_rss_stat()
+Subject: Subject: mm, counters: fold __sync_task_rss_stat() into sync_mm_rss()
 
 Patches currently in -mm which might be from rientjes@google.com are
 
