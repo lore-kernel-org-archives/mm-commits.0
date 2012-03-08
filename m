@@ -1,130 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix.patch removed from -mm tree
-Date: Thu, 08 Mar 2012 13:55:22 -0800
-Message-ID: <20120308215522.CF87FA024E@akpm.mtv.corp.google.com>
+Subject: + x86-olpc-add-debugfs-interface-for-ec-commands-v3.patch added to -mm tree
+Date: Thu, 08 Mar 2012 14:54:02 -0800
+Message-ID: <20120308225403.01529A0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:41752 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757873Ab2CHVzZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 16:55:25 -0500
-Received: by eaaq10 with SMTP id q10so33662eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 13:55:24 -0800 (PST)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:54791 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758727Ab2CHWyE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 17:54:04 -0500
+Received: by yenq2 with SMTP id q2so135632yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 14:54:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dsd@laptop.org, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, pgf@laptop.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix.patch
+     Subject: x86-olpc-add-debugfs-interface-for-ec-commands v3
+has been added to the -mm tree.  Its filename is
+     x86-olpc-add-debugfs-interface-for-ec-commands-v3.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix
+From: Daniel Drake <dsd@laptop.org>
+Subject: x86-olpc-add-debugfs-interface-for-ec-commands v3
 
-remove unneeded task_lock()
+v3: incorporate feedback from Ingo Molnar (thanks!): whitespace/cast
+fixes, fix potential overflow when nonsense resp_bytes is passed from
+userspace, add mutex to protect data and to protect against concurrent
+read/write, give node name 'cmd' which is better than 'generic'
 
-Cc: Dave Jones <davej@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Daniel Drake <dsd@laptop.org>
+Signed-off-by: Paul Fox <pgf@laptop.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andres Salomon <dilinger@queued.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 --
- 1 file changed, 2 deletions(-)
+ Documentation/ABI/testing/debugfs-olpc |    4 +-
+ arch/x86/platform/olpc/olpc.c          |   35 +++++++++++++++--------
+ 2 files changed, 25 insertions(+), 14 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -944,11 +944,9 @@ struct file *hugetlb_file_setup(const ch
- 	if (creat_flags == HUGETLB_SHMFS_INODE && !can_do_hugetlb_shm()) {
- 		*user = current_user();
- 		if (user_shm_lock(size, *user)) {
--			task_lock(current);
- 			printk_once(KERN_WARNING
- 				"%s (%d): Using mlock ulimits for SHM_HUGETLB is deprecated\n",
- 				current->comm, current->pid);
--			task_unlock(current);
- 		} else {
- 			*user = NULL;
- 			return ERR_PTR(-EPERM);
+diff -puN Documentation/ABI/testing/debugfs-olpc~x86-olpc-add-debugfs-interface-for-ec-commands-v3 Documentation/ABI/testing/debugfs-olpc
+--- a/Documentation/ABI/testing/debugfs-olpc~x86-olpc-add-debugfs-interface-for-ec-commands-v3
++++ a/Documentation/ABI/testing/debugfs-olpc
+@@ -1,6 +1,6 @@
+-What:		/sys/kernel/debug/olpc-ec/generic
++What:		/sys/kernel/debug/olpc-ec/cmd
+ Date:		Dec 2011
+-KernelVersion:	3.3
++KernelVersion:	3.4
+ Contact:	devel@lists.laptop.org
+ Description:
+ 
+diff -puN arch/x86/platform/olpc/olpc.c~x86-olpc-add-debugfs-interface-for-ec-commands-v3 arch/x86/platform/olpc/olpc.c
+--- a/arch/x86/platform/olpc/olpc.c~x86-olpc-add-debugfs-interface-for-ec-commands-v3
++++ a/arch/x86/platform/olpc/olpc.c
+@@ -21,6 +21,7 @@
+ #include <linux/of.h>
+ #include <linux/syscore_ops.h>
+ #include <linux/debugfs.h>
++#include <linux/mutex.h>
+ 
+ #include <asm/geode.h>
+ #include <asm/setup.h>
+@@ -35,7 +36,9 @@ static DEFINE_SPINLOCK(ec_lock);
+ /* debugfs interface to EC commands */
+ #define EC_MAX_CMD_ARGS (5 + 1)	/* cmd byte + 5 args */
+ #define EC_MAX_CMD_REPLY (8)
++
+ static struct dentry *ec_debugfs_dir;
++static DEFINE_MUTEX(ec_debugfs_cmd_lock);
+ static unsigned char ec_debugfs_resp[EC_MAX_CMD_REPLY];
+ static unsigned int ec_debugfs_resp_bytes;
+ 
+@@ -277,8 +280,8 @@ int olpc_ec_sci_query(u16 *sci_value)
+ }
+ EXPORT_SYMBOL_GPL(olpc_ec_sci_query);
+ 
+-static ssize_t ec_gen_write(struct file *file, const char __user *buf,
+-			    size_t size, loff_t *ppos)
++static ssize_t ec_debugfs_cmd_write(struct file *file, const char __user *buf,
++				    size_t size, loff_t *ppos)
+ {
+ 	int i, m;
+ 	unsigned char ec_cmd[EC_MAX_CMD_ARGS];
+@@ -286,6 +289,8 @@ static ssize_t ec_gen_write(struct file 
+ 	char cmdbuf[64];
+ 	int ec_cmd_bytes;
+ 
++	mutex_lock(&ec_debugfs_cmd_lock);
++
+ 	size = simple_write_to_buffer(cmdbuf, sizeof(cmdbuf), ppos, buf, size);
+ 
+ 	m = sscanf(cmdbuf, "%x:%u %x %x %x %x %x", &ec_cmd_int[0],
+@@ -293,9 +298,13 @@ static ssize_t ec_gen_write(struct file 
+ 		   &ec_cmd_int[1], &ec_cmd_int[2], &ec_cmd_int[3],
+ 		   &ec_cmd_int[4], &ec_cmd_int[5]);
+ 	if (m < 2 || ec_debugfs_resp_bytes > EC_MAX_CMD_REPLY) {
++		/* reset to prevent overflow on read */
++		ec_debugfs_resp_bytes = 0;
++
+ 		printk(KERN_DEBUG "olpc-ec: bad ec cmd:  "
+ 		       "cmd:response-count [arg1 [arg2 ...]]\n");
+-		return -EINVAL;
++		size = -EINVAL;
++		goto out;
+ 	}
+ 
+ 	/* convert scanf'd ints to char */
+@@ -308,9 +317,8 @@ static ssize_t ec_gen_write(struct file 
+ 	       ec_cmd[0], ec_cmd_bytes, ec_cmd[1], ec_cmd[2], ec_cmd[3],
+ 	       ec_cmd[4], ec_cmd[5], ec_debugfs_resp_bytes);
+ 
+-	olpc_ec_cmd((unsigned char) ec_cmd[0],
+-		(ec_cmd_bytes == 0) ? NULL : &ec_cmd[1],
+-		ec_cmd_bytes, ec_debugfs_resp, ec_debugfs_resp_bytes);
++	olpc_ec_cmd(ec_cmd[0], (ec_cmd_bytes == 0) ? NULL : &ec_cmd[1],
++		    ec_cmd_bytes, ec_debugfs_resp, ec_debugfs_resp_bytes);
+ 
+ 	printk(KERN_DEBUG "olpc-ec: response "
+ 	       "%02x %02x %02x %02x %02x %02x %02x %02x (%d bytes expected)\n",
+@@ -318,30 +326,33 @@ static ssize_t ec_gen_write(struct file 
+ 	       ec_debugfs_resp[3], ec_debugfs_resp[4], ec_debugfs_resp[5],
+ 	       ec_debugfs_resp[6], ec_debugfs_resp[7], ec_debugfs_resp_bytes);
+ 
++out:
++	mutex_unlock(&ec_debugfs_cmd_lock);
+ 	return size;
+ }
+ 
+-static ssize_t ec_gen_read(struct file *file, char __user *buf,
+-			   size_t size, loff_t *ppos)
++static ssize_t ec_debugfs_cmd_read(struct file *file, char __user *buf,
++				   size_t size, loff_t *ppos)
+ {
+ 	unsigned int i, r;
+ 	char *rp;
+ 	char respbuf[64];
+ 
++	mutex_lock(&ec_debugfs_cmd_lock);
+ 	rp = respbuf;
+ 	rp += sprintf(rp, "%02x", ec_debugfs_resp[0]);
+ 	for (i = 1; i < ec_debugfs_resp_bytes; i++)
+ 		rp += sprintf(rp, ", %02x", ec_debugfs_resp[i]);
++	mutex_unlock(&ec_debugfs_cmd_lock);
+ 	rp += sprintf(rp, "\n");
+ 
+ 	r = rp - respbuf;
+-
+ 	return simple_read_from_buffer(buf, size, ppos, respbuf, r);
+ }
+ 
+ static const struct file_operations ec_debugfs_genops = {
+-	.write	 = ec_gen_write,
+-	.read	 = ec_gen_read,
++	.write	 = ec_debugfs_cmd_write,
++	.read	 = ec_debugfs_cmd_read,
+ };
+ 
+ static void setup_debugfs(void)
+@@ -350,7 +361,7 @@ static void setup_debugfs(void)
+ 	if (ec_debugfs_dir == ERR_PTR(-ENODEV))
+ 		return;
+ 
+-	debugfs_create_file("generic", 0600, ec_debugfs_dir, NULL,
++	debugfs_create_file("cmd", 0600, ec_debugfs_dir, NULL,
+ 			    &ec_debugfs_genops);
+ }
+ 
 _
+Subject: Subject: x86-olpc-add-debugfs-interface-for-ec-commands v3
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dsd@laptop.org are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
-drivers-mfd-twl-corec-unbork.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-drivers-platform-x86-sony-laptopc-fix-scancodes.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
-thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
-net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
-brlocks-lglocks-cleanups.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-slab-introduce-kmalloc_array.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
-mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
-bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+platform-drivers-x86-convert-drivers-platform-x86-to-use-module_platform_driver.patch
+x86-olpc-add-debugfs-interface-for-ec-commands.patch
+x86-olpc-add-debugfs-interface-for-ec-commands-v3.patch
 
