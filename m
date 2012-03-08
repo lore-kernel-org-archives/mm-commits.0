@@ -1,113 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: + mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss.patch added to -mm tree
-Date: Wed, 07 Mar 2012 17:12:59 -0800
-Message-ID: <20120308011259.C8B3DA00AE@akpm.mtv.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 08 Mar 2012 11:09:52 -0800
+Message-ID: <20120308190957.A293BA03DB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:49767 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab2CHBNA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 20:13:00 -0500
-Received: by ggnd2 with SMTP id d2so884824ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 17:13:00 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:43338 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756814Ab2CHTKD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 14:10:03 -0500
+Received: by eekc41 with SMTP id c41so29982eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 11:10:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, counters: fold __sync_task_rss_stat() into sync_mm_rss()
-has been added to the -mm tree.  Its filename is
-     mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, counters: fold __sync_task_rss_stat() into sync_mm_rss()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-There's no difference between sync_mm_rss() and __sync_task_rss_stat(),
-so fold the latter into the former.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ arch/arm/mach-vexpress/Kconfig      |    3 ---
+ drivers/net/ethernet/broadcom/tg3.c |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN mm/memory.c~mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss mm/memory.c
---- a/mm/memory.c~mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss
-+++ a/mm/memory.c
-@@ -133,7 +133,7 @@ core_initcall(init_zero_pfn);
+diff -puN arch/arm/mach-vexpress/Kconfig~linux-next-git-rejects arch/arm/mach-vexpress/Kconfig
+--- a/arch/arm/mach-vexpress/Kconfig~linux-next-git-rejects
++++ a/arch/arm/mach-vexpress/Kconfig
+@@ -24,15 +24,12 @@ config ARCH_VEXPRESS_DT
+ 	bool "Device Tree support for Versatile Express platforms"
+ 	select ARCH_VEXPRESS_CORTEX_A5_A9_ERRATA
+ 	select ARM_GIC
+-<<<<<<< HEAD
+ 	select ARM_ERRATA_720789
+ 	select ARM_ERRATA_751472
+ 	select PL310_ERRATA_753970
+-=======
+ 	select ARM_PATCH_PHYS_VIRT
+ 	select AUTO_ZRELADDR
+ 	select CPU_V7
+->>>>>>> linux-next/akpm-end
+ 	select HAVE_SMP
+ 	select MIGHT_HAVE_CACHE_L2X0
+ 	select USE_OF
+diff -puN drivers/net/ethernet/broadcom/tg3.c~linux-next-git-rejects drivers/net/ethernet/broadcom/tg3.c
+--- a/drivers/net/ethernet/broadcom/tg3.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/broadcom/tg3.c
+@@ -6972,12 +6972,9 @@ static netdev_tx_t tg3_start_xmit(struct
  
- #if defined(SPLIT_RSS_COUNTING)
+ 	skb_tx_timestamp(skb);
+ 	netdev_tx_sent_queue(txq, skb->len);
+-<<<<<<< HEAD
+-=======
  
--static void __sync_task_rss_stat(struct mm_struct *mm)
-+void sync_mm_rss(struct mm_struct *mm)
- {
- 	int i;
+ 	/* Sync BD data before updating mailbox */
+ 	wmb();
+->>>>>>> linux-next/akpm-end
  
-@@ -165,12 +165,7 @@ static void check_sync_rss_stat(struct t
- 	if (unlikely(task != current))
- 		return;
- 	if (unlikely(task->rss_stat.events++ > TASK_RSS_EVENTS_THRESH))
--		__sync_task_rss_stat(task->mm);
--}
--
--void sync_mm_rss(struct mm_struct *mm)
--{
--	__sync_task_rss_stat(mm);
-+		sync_mm_rss(task->mm);
- }
- #else /* SPLIT_RSS_COUNTING */
- 
+ 	/* Packets are ready, update Tx producer idx local and on card. */
+ 	tw32_tx_mbox(tnapi->prodmbox, entry);
 _
-Subject: Subject: mm, counters: fold __sync_task_rss_stat() into sync_mm_rss()
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+drivers-mfd-twl-corec-unbork.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-olpc-xo15-sci-enable-lid-close-wakeup-control-through-sysfs.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+net5501-platform-driver-for-soekris-engineering-net5501-single-board-computer.patch
+x86-pci-increase-the-number-of-iommus-supported-to-be-max_io_apics.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
+thermal-thermal_sys-fix-build-warning.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
+net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
+brlocks-lglocks-cleanups.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
 slab-introduce-kmalloc_array.patch
-mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
-mm-oom-fold-oom_kill_task-into-oom_kill_process.patch
-mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting.patch
-mm-oom-introduce-independent-oom-killer-ratelimit-state.patch
-mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
-pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
-thp-optimize-away-unnecessary-page-table-locking.patch
-thp-optimize-away-unnecessary-page-table-locking-fix.patch
-pagemap-export-kpf_thp.patch
-pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
-pagemap-introduce-data-structure-for-pagemap-entry.patch
-rmap-anon_vma_prepare-reduce-code-duplication-by-calling-anon_vma_chain_link.patch
-rmap-remove-__anon_vma_link.patch
-mm-oom-force-oom-kill-on-sysrqf.patch
-mm-memcg-pass-charge-order-to-oom-killer.patch
-cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3.patch
-mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat.patch
-mm-counters-fold-__sync_task_rss_stat-into-sync_mm_rss.patch
-memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-introduce-umh_completesub_info.patch
-usermodehelper-implement-umh_killable.patch
-usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
-usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
-kmod-introduce-call_modprobe-helper.patch
-kmod-make-__request_module-killable.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
+bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
