@@ -1,86 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-fix-the-size-calculation-of-mapping-tables.patch removed from -mm tree
-Date: Thu, 08 Mar 2012 11:17:31 -0800
-Message-ID: <20120308191731.6B1FFA06CB@akpm.mtv.corp.google.com>
+Subject: [merged] intel_mid_powerbtn-use-msic-read-write-instead-of-ipc_scu.patch removed from -mm tree
+Date: Thu, 08 Mar 2012 11:17:29 -0800
+Message-ID: <20120308191729.78818A06CB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:35115 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758142Ab2CHTRd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 14:17:33 -0500
-Received: by eekc41 with SMTP id c41so30194eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 11:17:32 -0800 (PST)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:46608 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758142Ab2CHTRa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 14:17:30 -0500
+Received: by mail-gy0-f202.google.com with SMTP id z15so102917ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 11:17:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, hpa@zytor.com, ianfang.cn@gmail.com, mingo@elte.hu, tglx@linutronix.de, tj@kernel.org, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: michael.demeter@intel.com, alan@linux.intel.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, mika.westerberg@linux.intel.com, mingo@elte.hu, mjg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mm: fix the size calculation of mapping tables
+     Subject: intel_mid_powerbtn: use MSIC read/write instead of ipc_scu
 has been removed from the -mm tree.  Its filename was
-     x86-mm-fix-the-size-calculation-of-mapping-tables.patch
+     intel_mid_powerbtn-use-msic-read-write-instead-of-ipc_scu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: WANG Cong <xiyou.wangcong@gmail.com>
-Subject: x86, mm: fix the size calculation of mapping tables
+From: Michael Demeter <michael.demeter@intel.com>
+Subject: intel_mid_powerbtn: use MSIC read/write instead of ipc_scu
 
-For machine enables PSE, the first 2/4M memory region still uses 4K pages,
-so needs more PTEs in this case, but find_early_table_space() doesn't
-count this.  This patch fixes it.
+In the 2.6.36 kernel we did not have the MSIC driver.  Changed all
+ipc_scu_reads/writes to use the MSIC driver and defines.  Added a fix from
+the 2.6.36 kernel where the SCU FW could send a power button interrupt to
+the IA32 FW and the kernel was not running yet.  This resulted in the
+interrupt not getting cleared and the power button was ignored.  this fix
+just clears the interrupt on start-up.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <ianfang.cn@gmail.com>
+[alan@linux.intel.com: revert style-only changes. Remove unused variable. Fix comment style.]
+Signed-off-by: Michael Demeter <michael.demeter@intel.com>
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/platform/x86/intel_mid_powerbtn.c |   32 +++++++++++++++++---
+ 1 file changed, 28 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/mm/init.c~x86-mm-fix-the-size-calculation-of-mapping-tables arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-mm-fix-the-size-calculation-of-mapping-tables
-+++ a/arch/x86/mm/init.c
-@@ -30,8 +30,14 @@ int direct_gbpages
- #endif
- ;
+diff -puN drivers/platform/x86/intel_mid_powerbtn.c~intel_mid_powerbtn-use-msic-read-write-instead-of-ipc_scu drivers/platform/x86/intel_mid_powerbtn.c
+--- a/drivers/platform/x86/intel_mid_powerbtn.c~intel_mid_powerbtn-use-msic-read-write-instead-of-ipc_scu
++++ a/drivers/platform/x86/intel_mid_powerbtn.c
+@@ -23,21 +23,27 @@
+ #include <linux/slab.h>
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+-
+-#include <asm/intel_scu_ipc.h>
++#include <linux/mfd/intel_msic.h>
  
--static void __init find_early_table_space(unsigned long end, int use_pse,
--					  int use_gbpages)
-+struct map_range {
-+	unsigned long start;
-+	unsigned long end;
-+	unsigned page_size_mask;
-+};
+ #define DRIVER_NAME "msic_power_btn"
+ 
+-#define MSIC_PB_STATUS	0x3f
+ #define MSIC_PB_LEVEL	(1 << 3) /* 1 - release, 0 - press */
+ 
++/*
++ * MSIC document ti_datasheet defines the 1st bit reg 0x21 is used to mask
++ * power button interrupt
++ */
++#define MSIC_PWRBTNM    (1 << 0)
 +
-+static void __init find_early_table_space(struct map_range *mr, unsigned long end,
-+					  int use_pse, int use_gbpages)
+ static irqreturn_t mfld_pb_isr(int irq, void *dev_id)
  {
- 	unsigned long puds, pmds, ptes, tables, start = 0, good_end = end;
- 	phys_addr_t base;
-@@ -56,6 +62,9 @@ static void __init find_early_table_spac
- #ifdef CONFIG_X86_32
- 		extra += PMD_SIZE;
- #endif
-+		/* The first 2/4M doesn't use large pages. */
-+		extra += mr->end - mr->start;
-+
- 		ptes = (extra + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	} else
- 		ptes = (end + PAGE_SIZE - 1) >> PAGE_SHIFT;
-@@ -85,12 +94,6 @@ void __init native_pagetable_reserve(u64
- 	memblock_reserve(start, end - start);
- }
+ 	struct input_dev *input = dev_id;
+ 	int ret;
+ 	u8 pbstat;
  
--struct map_range {
--	unsigned long start;
--	unsigned long end;
--	unsigned page_size_mask;
--};
+-	ret = intel_scu_ipc_ioread8(MSIC_PB_STATUS, &pbstat);
++	ret = intel_msic_reg_read(INTEL_MSIC_PBSTATUS, &pbstat);
++	dev_dbg(input->dev.parent, "PB_INT status= %d\n", pbstat);
++
+ 	if (ret < 0) {
+ 		dev_err(input->dev.parent, "Read error %d while reading"
+ 			       " MSIC_PB_STATUS\n", ret);
+@@ -88,6 +94,24 @@ static int __devinit mfld_pb_probe(struc
+ 	}
+ 
+ 	platform_set_drvdata(pdev, input);
++
++	/*
++	 * SCU firmware might send power button interrupts to IA core before
++	 * kernel boots and doesn't get EOI from IA core. The first bit of
++	 * MSIC reg 0x21 is kept masked, and SCU firmware doesn't send new
++	 * power interrupt to Android kernel. Unmask the bit when probing
++	 * power button in kernel.
++	 * There is a very narrow race between irq handler and power button
++	 * initialization. The race happens rarely. So we needn't worry
++	 * about it.
++	 */
++	error = intel_msic_reg_update(INTEL_MSIC_IRQLVL1MSK, 0, MSIC_PWRBTNM);
++	if (error) {
++		dev_err(&pdev->dev, "Unable to clear power button interrupt, "
++				"error: %d\n", error);
++		goto err_free_irq;
++	}
++
+ 	return 0;
+ 
+ err_free_irq:
+_
+
+Patches currently in -mm which might be from michael.demeter@intel.com are
+
+linux-next.patch
+
