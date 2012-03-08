@@ -1,109 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch added to -mm tree
-Date: Thu, 08 Mar 2012 13:24:19 -0800
-Message-ID: <20120308212419.91A4AA02AE@akpm.mtv.corp.google.com>
+Subject: [withdrawn] mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix.patch removed from -mm tree
+Date: Thu, 08 Mar 2012 13:55:22 -0800
+Message-ID: <20120308215522.CF87FA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:56800 "EHLO
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:41752 "EHLO
 	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752701Ab2CHVYV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 16:24:21 -0500
-Received: by eaaq10 with SMTP id q10so32848eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 13:24:20 -0800 (PST)
+	with ESMTP id S1757873Ab2CHVzZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 16:55:25 -0500
+Received: by eaaq10 with SMTP id q10so33662eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 13:55:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: xiaoguangrong@linux.vnet.ibm.com
+To: akpm@linux-foundation.org, davej@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: remove prev_vma from hugetlb_get_unmapped_area_topdown()
-has been added to the -mm tree.  Its filename is
-     hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
+     Subject: mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was withdrawn
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: hugetlb: remove prev_vma from hugetlb_get_unmapped_area_topdown()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix
 
-After looking up the vma which covers or follows the cached search
-address, the following condition is always true:
+remove unneeded task_lock()
 
-	!prev_vma || (addr >= prev_vma->vm_end)
-
-so we can stop checking the previous VMA altogether.
-
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ fs/hugetlbfs/inode.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -308,7 +308,7 @@ static unsigned long hugetlb_get_unmappe
- {
- 	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma, *prev_vma;
-+	struct vm_area_struct *vma;
- 	unsigned long base = mm->mmap_base;
- 	unsigned long addr = addr0;
- 	unsigned long largest_hole = mm->cached_hole_size;
-@@ -340,22 +340,14 @@ try_again:
- 		if (!vma)
- 			return addr;
- 
--		/*
--		 * new region fits between prev_vma->vm_end and
--		 * vma->vm_start, use it:
--		 */
--		prev_vma = vma->vm_prev;
--		if (addr + len <= vma->vm_start &&
--		            (!prev_vma || (addr >= prev_vma->vm_end))) {
-+		if (addr + len <= vma->vm_start) {
- 			/* remember the address as a hint for next time */
- 		        mm->cached_hole_size = largest_hole;
- 		        return (mm->free_area_cache = addr);
--		} else {
-+		} else if (mm->free_area_cache == vma->vm_end) {
- 			/* pull free_area_cache down to the first hole */
--		        if (mm->free_area_cache == vma->vm_end) {
--				mm->free_area_cache = vma->vm_start;
--				mm->cached_hole_size = largest_hole;
--			}
-+			mm->free_area_cache = vma->vm_start;
-+			mm->cached_hole_size = largest_hole;
- 		}
- 
- 		/* remember the largest hole we saw so far */
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-add-thread-name-and-pid-to-shm_hugetlb-mlock-rlimit-warning-fix
++++ a/fs/hugetlbfs/inode.c
+@@ -944,11 +944,9 @@ struct file *hugetlb_file_setup(const ch
+ 	if (creat_flags == HUGETLB_SHMFS_INODE && !can_do_hugetlb_shm()) {
+ 		*user = current_user();
+ 		if (user_shm_lock(size, *user)) {
+-			task_lock(current);
+ 			printk_once(KERN_WARNING
+ 				"%s (%d): Using mlock ulimits for SHM_HUGETLB is deprecated\n",
+ 				current->comm, current->pid);
+-			task_unlock(current);
+ 		} else {
+ 			*user = NULL;
+ 			return ERR_PTR(-EPERM);
 _
-Subject: Subject: hugetlb: remove prev_vma from hugetlb_get_unmapped_area_topdown()
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-hugetlbfs-fix-hugetlb_get_unmapped_area.patch
-hugetlb-try-to-search-again-if-it-is-really-needed.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+drivers-mfd-twl-corec-unbork.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
+thermal-thermal_sys-fix-build-warning.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
+net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
+brlocks-lglocks-cleanups.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
 hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
-mm-search-from-free_area_cache-for-the-bigger-size.patch
-rmap-remove-__anon_vma_link.patch
-hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
-prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
-prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
-prio_tree-simplify-prio_tree_expand.patch
-prio_tree-introduce-prio_set_parent.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
+bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
