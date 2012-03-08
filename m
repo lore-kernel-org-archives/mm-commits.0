@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-remove-vm_alwaysdump-flag.patch added to -mm tree
-Date: Thu, 08 Mar 2012 15:06:27 -0800
-Message-ID: <20120308230627.95D74A024E@akpm.mtv.corp.google.com>
+Subject: + coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch added to -mm tree
+Date: Thu, 08 Mar 2012 15:06:31 -0800
+Message-ID: <20120308230631.EF332A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:54663 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756870Ab2CHXG2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 18:06:28 -0500
-Received: by yhgm50 with SMTP id m50so136613yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 15:06:28 -0800 (PST)
+Received: from mail-ww0-f74.google.com ([74.125.82.74]:36793 "EHLO
+	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758962Ab2CHXGe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 18:06:34 -0500
+Received: by wgbdt11 with SMTP id dt11so35526wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 15:06:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbaron@redhat.com, avi@redhat.com, cmetcalf@tilera.com, roland@hack.frob.com
+Cc: akpm@linux-foundation.org, avi@redhat.com, cmetcalf@tilera.com, jbaron@redhat.com, roland@hack.frob.com
 
 
 The patch titled
-     Subject: coredump: remove VM_ALWAYSDUMP flag
+     Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
 has been added to the -mm tree.  Its filename is
-     coredump-remove-vm_alwaysdump-flag.patch
+     coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,364 +33,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@redhat.com>
-Subject: coredump: remove VM_ALWAYSDUMP flag
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
 
-The motivation for this patchset was that I was looking at a way for a
-qemu-kvm process, to exclude the guest memory from its core dump, which
-can be quite large.  There are already a number of filter flags in
-/proc/<pid>/coredump_filter, however, these allow one to specify 'types'
-of kernel memory, not specific address ranges (which is needed in this
-case).
+s/MADV_NODUMP/MADV_DONTDUMP/, s/MADV_CLEAR_NODUMP/MADV_DODUMP/, per Roland
 
-Since there are no more vma flags available, the first patch eliminates
-the need for the 'VM_ALWAYSDUMP' flag.  The flag is used internally by the
-kernel to mark vdso and vsyscall pages.  However, it is simple enough to
-check if a vma covers a vdso or vsyscall page without the need for this
-flag.
-
-The second patch then replaces the 'VM_ALWAYSDUMP' flag with a new
-'VM_NODUMP' flag, which can be set by userspace using new madvise flags:
-'MADV_DONTDUMP', and unset via 'MADV_DODUMP'.  The core dump filters
-continue to work the same as before unless 'MADV_DONTDUMP' is set on the
-region.
-
-The qemu code which implements this features is at:
-http://people.redhat.com/~jbaron/qemu-dump/qemu-dump.patch
-
-In my testing the qemu core dump shrunk from 383MB -> 13MB with this patch.
-
-I also believe that the 'MADV_DONTDUMP' flag might be useful for security
-sensitive apps, which might want to select which areas are dumped.
-
-
-This patch:
-
-The VM_ALWAYSDUMP flag is currently used by the coredump code to indicate
-that a vma is part of a vsyscall or vdso section.  However, we can
-determine if a vma is in one these sections by checking it against the
-gate_vma and checking for a non-NULL return value from arch_vma_name(). 
-Thus, freeing a valuable vma bit.
-
-Signed-off-by: Jason Baron <jbaron@redhat.com>
-Acked-by: Roland McGrath <roland@hack.frob.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
 Cc: Avi Kivity <avi@redhat.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/process.c          |    3 +--
- arch/hexagon/kernel/vdso.c         |    3 +--
- arch/mips/kernel/vdso.c            |    3 +--
- arch/powerpc/kernel/vdso.c         |   10 ++--------
- arch/s390/kernel/vdso.c            |   10 ++--------
- arch/sh/kernel/vsyscall/vsyscall.c |    3 +--
- arch/tile/mm/elf.c                 |    8 +-------
- arch/unicore32/kernel/process.c    |    2 +-
- arch/x86/um/mem_32.c               |    8 --------
- arch/x86/um/vdso/vma.c             |    3 +--
- arch/x86/vdso/vdso32-setup.c       |   17 ++---------------
- arch/x86/vdso/vma.c                |    3 +--
- fs/binfmt_elf.c                    |   27 +++++++++++++++++++++++++--
- include/linux/mm.h                 |    1 -
- mm/memory.c                        |    8 +-------
- 15 files changed, 40 insertions(+), 69 deletions(-)
+ include/asm-generic/mman-common.h |    4 ++--
+ mm/madvise.c                      |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm/kernel/process.c~coredump-remove-vm_alwaysdump-flag arch/arm/kernel/process.c
---- a/arch/arm/kernel/process.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/arm/kernel/process.c
-@@ -540,8 +540,7 @@ static int __init gate_vma_init(void)
- 	gate_vma.vm_end		= 0xffff0000 + PAGE_SIZE;
- 	gate_vma.vm_page_prot	= PAGE_READONLY_EXEC;
- 	gate_vma.vm_flags	= VM_READ | VM_EXEC |
--				  VM_MAYREAD | VM_MAYEXEC |
--				  VM_ALWAYSDUMP;
-+				  VM_MAYREAD | VM_MAYEXEC;
- 	return 0;
- }
- arch_initcall(gate_vma_init);
-diff -puN arch/hexagon/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag arch/hexagon/kernel/vdso.c
---- a/arch/hexagon/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/hexagon/kernel/vdso.c
-@@ -79,8 +79,7 @@ int arch_setup_additional_pages(struct l
- 	/* MAYWRITE to allow gdb to COW and set breakpoints. */
- 	ret = install_special_mapping(mm, vdso_base, PAGE_SIZE,
- 				      VM_READ|VM_EXEC|
--				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
--				      VM_ALWAYSDUMP,
-+				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 				      &vdso_page);
+diff -puN include/asm-generic/mman-common.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix include/asm-generic/mman-common.h
+--- a/include/asm-generic/mman-common.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
++++ a/include/asm-generic/mman-common.h
+@@ -48,9 +48,9 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
  
- 	if (ret)
-diff -puN arch/mips/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag arch/mips/kernel/vdso.c
---- a/arch/mips/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/mips/kernel/vdso.c
-@@ -88,8 +88,7 @@ int arch_setup_additional_pages(struct l
+-#define MADV_NODUMP 16			/* Explicity exclude from the core dump,
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
+ 					   overrides the coredump filter bits */
+-#define MADV_CLEAR_NODUMP 17		/* Clear the MADV_NODUMP flag */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
  
- 	ret = install_special_mapping(mm, addr, PAGE_SIZE,
- 				      VM_READ|VM_EXEC|
--				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
--				      VM_ALWAYSDUMP,
-+				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 				      &vdso_page);
- 
- 	if (ret)
-diff -puN arch/powerpc/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag arch/powerpc/kernel/vdso.c
---- a/arch/powerpc/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/powerpc/kernel/vdso.c
-@@ -263,17 +263,11 @@ int arch_setup_additional_pages(struct l
- 	 * the "data" page of the vDSO or you'll stop getting kernel updates
- 	 * and your nice userland gettimeofday will be totally dead.
- 	 * It's fine to use that for setting breakpoints in the vDSO code
--	 * pages though
--	 *
--	 * Make sure the vDSO gets into every core dump.
--	 * Dumping its contents makes post-mortem fully interpretable later
--	 * without matching up the same kernel and hardware config to see
--	 * what PC values meant.
-+	 * pages though.
- 	 */
- 	rc = install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
- 				     VM_READ|VM_EXEC|
--				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
--				     VM_ALWAYSDUMP,
-+				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 				     vdso_pagelist);
- 	if (rc) {
- 		current->mm->context.vdso_base = 0;
-diff -puN arch/s390/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag arch/s390/kernel/vdso.c
---- a/arch/s390/kernel/vdso.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/s390/kernel/vdso.c
-@@ -241,17 +241,11 @@ int arch_setup_additional_pages(struct l
- 	 * on the "data" page of the vDSO or you'll stop getting kernel
- 	 * updates and your nice userland gettimeofday will be totally dead.
- 	 * It's fine to use that for setting breakpoints in the vDSO code
--	 * pages though
--	 *
--	 * Make sure the vDSO gets into every core dump.
--	 * Dumping its contents makes post-mortem fully interpretable later
--	 * without matching up the same kernel and hardware config to see
--	 * what PC values meant.
-+	 * pages though.
- 	 */
- 	rc = install_special_mapping(mm, vdso_base, vdso_pages << PAGE_SHIFT,
- 				     VM_READ|VM_EXEC|
--				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
--				     VM_ALWAYSDUMP,
-+				     VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 				     vdso_pagelist);
- 	if (rc)
- 		current->mm->context.vdso_base = 0;
-diff -puN arch/sh/kernel/vsyscall/vsyscall.c~coredump-remove-vm_alwaysdump-flag arch/sh/kernel/vsyscall/vsyscall.c
---- a/arch/sh/kernel/vsyscall/vsyscall.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/sh/kernel/vsyscall/vsyscall.c
-@@ -73,8 +73,7 @@ int arch_setup_additional_pages(struct l
- 
- 	ret = install_special_mapping(mm, addr, PAGE_SIZE,
- 				      VM_READ | VM_EXEC |
--				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |
--				      VM_ALWAYSDUMP,
-+				      VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC,
- 				      syscall_pages);
- 	if (unlikely(ret))
- 		goto up_fail;
-diff -puN arch/tile/mm/elf.c~coredump-remove-vm_alwaysdump-flag arch/tile/mm/elf.c
---- a/arch/tile/mm/elf.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/tile/mm/elf.c
-@@ -117,17 +117,11 @@ int arch_setup_additional_pages(struct l
- 
- 	/*
- 	 * MAYWRITE to allow gdb to COW and set breakpoints
--	 *
--	 * Make sure the vDSO gets into every core dump.  Dumping its
--	 * contents makes post-mortem fully interpretable later
--	 * without matching up the same kernel and hardware config to
--	 * see what PC values meant.
- 	 */
- 	vdso_base = VDSO_BASE;
- 	retval = install_special_mapping(mm, vdso_base, PAGE_SIZE,
- 					 VM_READ|VM_EXEC|
--					 VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
--					 VM_ALWAYSDUMP,
-+					 VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 					 vdso_pages);
- 
- #ifndef __tilegx__
-diff -puN arch/unicore32/kernel/process.c~coredump-remove-vm_alwaysdump-flag arch/unicore32/kernel/process.c
---- a/arch/unicore32/kernel/process.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/unicore32/kernel/process.c
-@@ -381,7 +381,7 @@ int vectors_user_mapping(void)
- 	return install_special_mapping(mm, 0xffff0000, PAGE_SIZE,
- 				       VM_READ | VM_EXEC |
- 				       VM_MAYREAD | VM_MAYEXEC |
--				       VM_ALWAYSDUMP | VM_RESERVED,
-+				       VM_RESERVED,
- 				       NULL);
- }
- 
-diff -puN arch/x86/um/mem_32.c~coredump-remove-vm_alwaysdump-flag arch/x86/um/mem_32.c
---- a/arch/x86/um/mem_32.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/x86/um/mem_32.c
-@@ -23,14 +23,6 @@ static int __init gate_vma_init(void)
- 	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
- 	gate_vma.vm_page_prot = __P101;
- 
--	/*
--	 * Make sure the vDSO gets into every core dump.
--	 * Dumping its contents makes post-mortem fully interpretable later
--	 * without matching up the same kernel and hardware config to see
--	 * what PC values meant.
--	 */
--	gate_vma.vm_flags |= VM_ALWAYSDUMP;
--
- 	return 0;
- }
- __initcall(gate_vma_init);
-diff -puN arch/x86/um/vdso/vma.c~coredump-remove-vm_alwaysdump-flag arch/x86/um/vdso/vma.c
---- a/arch/x86/um/vdso/vma.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/x86/um/vdso/vma.c
-@@ -64,8 +64,7 @@ int arch_setup_additional_pages(struct l
- 
- 	err = install_special_mapping(mm, um_vdso_addr, PAGE_SIZE,
- 		VM_READ|VM_EXEC|
--		VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
--		VM_ALWAYSDUMP,
-+		VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 		vdsop);
- 
- 	up_write(&mm->mmap_sem);
-diff -puN arch/x86/vdso/vdso32-setup.c~coredump-remove-vm_alwaysdump-flag arch/x86/vdso/vdso32-setup.c
---- a/arch/x86/vdso/vdso32-setup.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/x86/vdso/vdso32-setup.c
-@@ -250,13 +250,7 @@ static int __init gate_vma_init(void)
- 	gate_vma.vm_end = FIXADDR_USER_END;
- 	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
- 	gate_vma.vm_page_prot = __P101;
--	/*
--	 * Make sure the vDSO gets into every core dump.
--	 * Dumping its contents makes post-mortem fully interpretable later
--	 * without matching up the same kernel and hardware config to see
--	 * what PC values meant.
--	 */
--	gate_vma.vm_flags |= VM_ALWAYSDUMP;
-+
- 	return 0;
- }
- 
-@@ -348,17 +342,10 @@ int arch_setup_additional_pages(struct l
- 	if (compat_uses_vma || !compat) {
- 		/*
- 		 * MAYWRITE to allow gdb to COW and set breakpoints
--		 *
--		 * Make sure the vDSO gets into every core dump.
--		 * Dumping its contents makes post-mortem fully
--		 * interpretable later without matching up the same
--		 * kernel and hardware config to see what PC values
--		 * meant.
- 		 */
- 		ret = install_special_mapping(mm, addr, PAGE_SIZE,
- 					      VM_READ|VM_EXEC|
--					      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
--					      VM_ALWAYSDUMP,
-+					      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 					      vdso32_pages);
- 
- 		if (ret)
-diff -puN arch/x86/vdso/vma.c~coredump-remove-vm_alwaysdump-flag arch/x86/vdso/vma.c
---- a/arch/x86/vdso/vma.c~coredump-remove-vm_alwaysdump-flag
-+++ a/arch/x86/vdso/vma.c
-@@ -172,8 +172,7 @@ static int setup_additional_pages(struct
- 
- 	ret = install_special_mapping(mm, addr, size,
- 				      VM_READ|VM_EXEC|
--				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC|
--				      VM_ALWAYSDUMP,
-+				      VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC,
- 				      pages);
- 	if (ret) {
- 		current->mm->context.vdso = NULL;
-diff -puN fs/binfmt_elf.c~coredump-remove-vm_alwaysdump-flag fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-remove-vm_alwaysdump-flag
-+++ a/fs/binfmt_elf.c
-@@ -1095,6 +1095,29 @@ out:
-  */
- 
- /*
-+ * The purpose of always_dump_vma() is to make sure that special kernel mappings
-+ * that are useful for post-mortem analysis are included in every core dump.
-+ * In that way we ensure that the core dump is fully interpretable later
-+ * without matching up the same kernel and hardware config to see what PC values
-+ * meant. These special mappings include - vDSO, vsyscall, and other
-+ * architecture specific mappings
-+ */
-+static bool always_dump_vma(struct vm_area_struct *vma)
-+{
-+	/* Any vsyscall mappings? */
-+	if (vma == get_gate_vma(vma->vm_mm))
-+		return true;
-+	/*
-+	 * arch_vma_name() returns non-NULL for special architecture mappings,
-+	 * such as vDSO sections.
-+	 */
-+	if (arch_vma_name(vma))
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-  * Decide what to dump of a segment, part, all or none.
-  */
- static unsigned long vma_dump_size(struct vm_area_struct *vma,
-@@ -1102,8 +1125,8 @@ static unsigned long vma_dump_size(struc
- {
- #define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
- 
--	/* The vma can be set up to tell us the answer directly.  */
--	if (vma->vm_flags & VM_ALWAYSDUMP)
-+	/* always dump the vdso and vsyscall sections */
-+	if (always_dump_vma(vma))
- 		goto whole;
- 
- 	/* Hugetlb memory check */
-diff -puN include/linux/mm.h~coredump-remove-vm_alwaysdump-flag include/linux/mm.h
---- a/include/linux/mm.h~coredump-remove-vm_alwaysdump-flag
-+++ a/include/linux/mm.h
-@@ -112,7 +112,6 @@ extern unsigned int kobjsize(const void 
- #define VM_HUGEPAGE	0x01000000	/* MADV_HUGEPAGE marked this vma */
+ /* compatibility flags */
+ #define MAP_FILE	0
+diff -puN mm/madvise.c~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix mm/madvise.c
+--- a/mm/madvise.c~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
++++ a/mm/madvise.c
+@@ -65,10 +65,10 @@ static long madvise_behavior(struct vm_a
+ 		}
+ 		new_flags &= ~VM_DONTCOPY;
+ 		break;
+-	case MADV_NODUMP:
++	case MADV_DONTDUMP:
+ 		new_flags |= VM_NODUMP;
+ 		break;
+-	case MADV_CLEAR_NODUMP:
++	case MADV_DODUMP:
+ 		new_flags &= ~VM_NODUMP;
+ 		break;
+ 	case MADV_MERGEABLE:
+@@ -299,8 +299,8 @@ madvise_behavior_valid(int behavior)
+ 	case MADV_HUGEPAGE:
+ 	case MADV_NOHUGEPAGE:
  #endif
- #define VM_INSERTPAGE	0x02000000	/* The vma has had "vm_insert_page()" done on it */
--#define VM_ALWAYSDUMP	0x04000000	/* Always include in core dumps */
+-	case MADV_NODUMP:
+-	case MADV_CLEAR_NODUMP:
++	case MADV_DONTDUMP:
++	case MADV_DODUMP:
+ 		return 1;
  
- #define VM_CAN_NONLINEAR 0x08000000	/* Has ->fault & does nonlinear pages */
- #define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
-diff -puN mm/memory.c~coredump-remove-vm_alwaysdump-flag mm/memory.c
---- a/mm/memory.c~coredump-remove-vm_alwaysdump-flag
-+++ a/mm/memory.c
-@@ -3609,13 +3609,7 @@ static int __init gate_vma_init(void)
- 	gate_vma.vm_end = FIXADDR_USER_END;
- 	gate_vma.vm_flags = VM_READ | VM_MAYREAD | VM_EXEC | VM_MAYEXEC;
- 	gate_vma.vm_page_prot = __P101;
--	/*
--	 * Make sure the vDSO gets into every core dump.
--	 * Dumping its contents makes post-mortem fully interpretable later
--	 * without matching up the same kernel and hardware config to see
--	 * what PC values meant.
--	 */
--	gate_vma.vm_flags |= VM_ALWAYSDUMP;
-+
- 	return 0;
- }
- __initcall(gate_vma_init);
+ 	default:
 _
-Subject: Subject: coredump: remove VM_ALWAYSDUMP flag
+Subject: Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
 
-Patches currently in -mm which might be from jbaron@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-epoll-remove-unneeded-variable-in-reverse_path_check.patch
-coredump-remove-vm_alwaysdump-flag.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+drivers-mfd-twl-corec-unbork.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
+thermal-thermal_sys-fix-build-warning.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
+net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
+brlocks-lglocks-cleanups.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+slab-introduce-kmalloc_array.patch
+mm.patch
+make-swapin-readahead-skip-over-holes-fix.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
+bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
+memcg-simplify-move_account-check-fix.patch
+memcg-use-new-logic-for-page-stat-accounting-fix.patch
+memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+mm-memcontrolc-s-stealed-stolen.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
 coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
