@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-cleanup-introduce-find_mergeable_vma.patch added to -mm tree
-Date: Wed, 07 Mar 2012 15:43:35 -0800
-Message-ID: <20120307234335.B0459A0308@akpm.mtv.corp.google.com>
+Subject: + hugetlb-cleanup-hugetlbh.patch added to -mm tree
+Date: Wed, 07 Mar 2012 16:27:39 -0800
+Message-ID: <20120308002740.7A79EA00B3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:49335 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759068Ab2CGXng (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 18:43:36 -0500
-Received: by yhgm50 with SMTP id m50so877924yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 15:43:36 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:33818 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751093Ab2CHA1n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Mar 2012 19:27:43 -0500
+Received: by bkcjm19 with SMTP id jm19so249620bkc.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Mar 2012 16:27:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lliubbo@gmail.com, aarcange@redhat.com, hughd@google.com
+Cc: david@gibson.dropbear.id.au, abarry@cray.com, dhillf@gmail.com, hughd@google.com, mgorman@suse.de, minchan.kim@gmail.com, paulus@samba.org
 
 
 The patch titled
-     Subject: ksm: cleanup: introduce find_mergeable_vma()
+     Subject: hugetlb: cleanup hugetlb.h
 has been added to the -mm tree.  Its filename is
-     ksm-cleanup-introduce-find_mergeable_vma.patch
+     hugetlb-cleanup-hugetlbh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,85 +33,123 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bob Liu <lliubbo@gmail.com>
-Subject: ksm: cleanup: introduce find_mergeable_vma()
+From: David Gibson <david@gibson.dropbear.id.au>
+Subject: hugetlb: cleanup hugetlb.h
 
-There are multiple places which perform the same check.  Add a new
-find_mergeable_vma() to handle this.
+Make a couple of small cleanups to linux/include/hugetlb.h.  The
+set_file_hugepages() function, which was not used anywhere is removed, and
+the hugetlbfs_config and hugetlbfs_inode_info structures with its
+HUGETLBFS_I helper function are moved into inode.c, the only place they
+were used.
 
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
+These structures are really linked to the hugetlbfs filesystem
+specifically not to hugepage mm handling in general, so they belong in the
+filesystem code not in a generally available header.  It would be nice to
+move the hugetlbfs_sb_info (superblock) structure in there as well, but
+it's currently needed in a number of places via the hstate_vma() and
+hstate_inode().
+
+Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Andrew Barry <abarry@cray.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ fs/hugetlbfs/inode.c    |   19 +++++++++++++++++++
+ include/linux/hugetlb.h |   25 -------------------------
+ 2 files changed, 19 insertions(+), 25 deletions(-)
 
-diff -puN mm/ksm.c~ksm-cleanup-introduce-find_mergeable_vma mm/ksm.c
---- a/mm/ksm.c~ksm-cleanup-introduce-find_mergeable_vma
-+++ a/mm/ksm.c
-@@ -374,6 +374,20 @@ static int break_ksm(struct vm_area_stru
- 	return (ret & VM_FAULT_OOM) ? -ENOMEM : 0;
- }
+diff -puN fs/hugetlbfs/inode.c~hugetlb-cleanup-hugetlbh fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-cleanup-hugetlbh
++++ a/fs/hugetlbfs/inode.c
+@@ -41,6 +41,25 @@ const struct file_operations hugetlbfs_f
+ static const struct inode_operations hugetlbfs_dir_inode_operations;
+ static const struct inode_operations hugetlbfs_inode_operations;
  
-+static struct vm_area_struct *find_mergeable_vma(struct mm_struct *mm,
-+		unsigned long addr)
++struct hugetlbfs_config {
++	uid_t   uid;
++	gid_t   gid;
++	umode_t mode;
++	long	nr_blocks;
++	long	nr_inodes;
++	struct hstate *hstate;
++};
++
++struct hugetlbfs_inode_info {
++	struct shared_policy policy;
++	struct inode vfs_inode;
++};
++
++static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
 +{
-+	struct vm_area_struct *vma;
-+	if (ksm_test_exit(mm))
-+		return NULL;
-+	vma = find_vma(mm, addr);
-+	if (!vma || vma->vm_start > addr)
-+		return NULL;
-+	if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
-+		return NULL;
-+	return vma;
++	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
 +}
 +
- static void break_cow(struct rmap_item *rmap_item)
- {
- 	struct mm_struct *mm = rmap_item->mm;
-@@ -387,15 +401,9 @@ static void break_cow(struct rmap_item *
- 	put_anon_vma(rmap_item->anon_vma);
+ static struct backing_dev_info hugetlbfs_backing_dev_info = {
+ 	.name		= "hugetlbfs",
+ 	.ra_pages	= 0,	/* No readahead */
+diff -puN include/linux/hugetlb.h~hugetlb-cleanup-hugetlbh include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-cleanup-hugetlbh
++++ a/include/linux/hugetlb.h
+@@ -128,15 +128,6 @@ enum {
+ };
  
- 	down_read(&mm->mmap_sem);
--	if (ksm_test_exit(mm))
--		goto out;
--	vma = find_vma(mm, addr);
--	if (!vma || vma->vm_start > addr)
--		goto out;
--	if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
--		goto out;
--	break_ksm(vma, addr);
--out:
-+	vma = find_mergeable_vma(mm, addr);
-+	if (vma)
-+		break_ksm(vma, addr);
- 	up_read(&mm->mmap_sem);
+ #ifdef CONFIG_HUGETLBFS
+-struct hugetlbfs_config {
+-	uid_t   uid;
+-	gid_t   gid;
+-	umode_t mode;
+-	long	nr_blocks;
+-	long	nr_inodes;
+-	struct hstate *hstate;
+-};
+-
+ struct hugetlbfs_sb_info {
+ 	long	max_blocks;   /* blocks allowed */
+ 	long	free_blocks;  /* blocks free */
+@@ -146,17 +137,6 @@ struct hugetlbfs_sb_info {
+ 	struct hstate *hstate;
+ };
+ 
+-
+-struct hugetlbfs_inode_info {
+-	struct shared_policy policy;
+-	struct inode vfs_inode;
+-};
+-
+-static inline struct hugetlbfs_inode_info *HUGETLBFS_I(struct inode *inode)
+-{
+-	return container_of(inode, struct hugetlbfs_inode_info, vfs_inode);
+-}
+-
+ static inline struct hugetlbfs_sb_info *HUGETLBFS_SB(struct super_block *sb)
+ {
+ 	return sb->s_fs_info;
+@@ -179,14 +159,9 @@ static inline int is_file_hugepages(stru
+ 	return 0;
  }
  
-@@ -421,12 +429,8 @@ static struct page *get_mergeable_page(s
- 	struct page *page;
+-static inline void set_file_hugepages(struct file *file)
+-{
+-	file->f_op = &hugetlbfs_file_operations;
+-}
+ #else /* !CONFIG_HUGETLBFS */
  
- 	down_read(&mm->mmap_sem);
--	if (ksm_test_exit(mm))
--		goto out;
--	vma = find_vma(mm, addr);
--	if (!vma || vma->vm_start > addr)
--		goto out;
--	if (!(vma->vm_flags & VM_MERGEABLE) || !vma->anon_vma)
-+	vma = find_mergeable_vma(mm, addr);
-+	if (!vma)
- 		goto out;
- 
- 	page = follow_page(vma, addr, FOLL_GET);
+ #define is_file_hugepages(file)			0
+-#define set_file_hugepages(file)		BUG()
+ static inline struct file *hugetlb_file_setup(const char *name, size_t size,
+ 		vm_flags_t acctflag, struct user_struct **user, int creat_flags)
+ {
 _
-Subject: Subject: ksm: cleanup: introduce find_mergeable_vma()
+Subject: Subject: hugetlb: cleanup hugetlb.h
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from david@gibson.dropbear.id.au are
 
-origin.patch
 linux-next.patch
-ksm-cleanup-introduce-find_mergeable_vma.patch
+hugetlb-cleanup-hugetlbh.patch
+hugepages-fix-use-after-free-bug-in-quota-handling.patch
 
