@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-whitespace-add-remove-blank-lines.patch added to -mm tree
-Date: Thu, 08 Mar 2012 16:33:26 -0800
-Message-ID: <20120309003326.E44E8A02EB@akpm.mtv.corp.google.com>
+Subject: + checkpatch-warn-on-use-of-yield.patch added to -mm tree
+Date: Thu, 08 Mar 2012 16:33:24 -0800
+Message-ID: <20120309003325.36735A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ww0-f74.google.com ([74.125.82.74]:56491 "EHLO
-	mail-ww0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759298Ab2CIAd3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 19:33:29 -0500
-Received: by wgbdt11 with SMTP id dt11so36977wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 16:33:27 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34514 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759298Ab2CIAd1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Mar 2012 19:33:27 -0500
+Received: by faaa19 with SMTP id a19so38468faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Mar 2012 16:33:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@canonical.com
+Cc: joe@perches.com, a.p.zijlstra@chello.nl, apw@canonical.com
 
 
 The patch titled
-     Subject: checkpatch: whitespace - add/remove blank lines
+     From: Joe Perches <joe@perches.com>
 has been added to the -mm tree.  Its filename is
-     checkpatch-whitespace-add-remove-blank-lines.patch
+     checkpatch-warn-on-use-of-yield.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: whitespace - add/remove blank lines
+Subject: checkpatch: Warn on use of yield()
 
-Add blank lines between a few tests, remove an extraneous one.
+Using yield() is generally wrong.  Warn on its use.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-whitespace-add-remove-blank-lines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-whitespace-add-remove-blank-lines
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-use-of-yield scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-use-of-yield
 +++ a/scripts/checkpatch.pl
-@@ -3354,18 +3354,20 @@ sub process {
+@@ -3344,6 +3344,12 @@ sub process {
+ 			     "__func__ should be used instead of gcc specific __FUNCTION__\n"  . $herecurr);
+ 		}
+ 
++# check for use of yield()
++		if ($line =~ /\byield\s*\(\s*\)/) {
++			WARN("YIELD",
++			     "Using yield() is generally wrong. See yield() kernel-doc (sched/core.c)\n"  . $herecurr);
++		}
++
+ # check for semaphores initialized locked
  		if ($line =~ /^.\s*sema_init.+,\W?0\W?\)/) {
  			WARN("CONSIDER_COMPLETION",
- 			     "consider using a completion\n" . $herecurr);
--
- 		}
-+
- # recommend kstrto* over simple_strto* and strict_strto*
- 		if ($line =~ /\b((simple|strict)_(strto(l|ll|ul|ull)))\s*\(/) {
- 			WARN("CONSIDER_KSTRTO",
- 			     "$1 is obsolete, use k$3 instead\n" . $herecurr);
- 		}
-+
- # check for __initcall(), use device_initcall() explicitly please
- 		if ($line =~ /^.\s*__initcall\s*\(/) {
- 			WARN("USE_DEVICE_INITCALL",
- 			     "please use device_initcall() instead of __initcall()\n" . $herecurr);
- 		}
-+
- # check for various ops structs, ensure they are const.
- 		my $struct_ops = qr{acpi_dock_ops|
- 				address_space_operations|
 _
-Subject: Subject: checkpatch: whitespace - add/remove blank lines
+Subject: From: Joe Perches <joe@perches.com>
 
 Patches currently in -mm which might be from joe@perches.com are
 
