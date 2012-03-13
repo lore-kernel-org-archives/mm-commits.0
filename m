@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-tsi721-fix-bug-in-register-offset-definitions.patch added to -mm tree
-Date: Tue, 13 Mar 2012 15:38:04 -0700
-Message-ID: <20120313223804.BE952A00AA@akpm.mtv.corp.google.com>
+Subject: + led-class-change-back-leds_class-to-tristate-instead-of-bool.patch added to -mm tree
+Date: Tue, 13 Mar 2012 15:58:26 -0700
+Message-ID: <20120313225826.E7AC5A0331@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:59656 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753813Ab2CMWiM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Mar 2012 18:38:12 -0400
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:56703 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760063Ab2CMW62 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Mar 2012 18:58:28 -0400
+Received: by yenq2 with SMTP id q2so187786yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Mar 2012 15:58:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, chul.kim@idt.com, mporter@kernel.crashing.org, stable@vger.kernel.org
+Cc: bryan.wu@canonical.com, linus.walleij@linaro.org, richard.purdie@linuxfoundation.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: fix bug in register offset definitions
+     Subject: led-class: change back LEDS_CLASS to tristate instead of bool
 has been added to the -mm tree.  Its filename is
-     rapidio-tsi721-fix-bug-in-register-offset-definitions.patch
+     led-class-change-back-leds_class-to-tristate-instead-of-bool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,105 +33,203 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: fix bug in register offset definitions
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: led-class: change back LEDS_CLASS to tristate instead of bool
 
-Fix indexed register offset definitions that use decimal (wrong) instead
-of hexadecimal (correct) notation for indexing multipliers.
+After moving some core functions to led-core.c, led-class.c can be built
+as module again.
 
-Incorrect definitions do not affect Tsi721 driver in its current default
-configuration because it uses only IDB queue 0.  Loss of inbound doorbell
-functionality should be observed if queue other than 0 is used.
-
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Chul Kim <chul.kim@idt.com>
-Cc: <stable@vger.kernel.org>		[3.2+]
+Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
+Acked-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.h |   30 ++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/leds/Kconfig     |    2 -
+ drivers/leds/led-class.c |   70 -------------------------------------
+ drivers/leds/led-core.c  |   70 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 71 insertions(+), 71 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-fix-bug-in-register-offset-definitions drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-fix-bug-in-register-offset-definitions
-+++ a/drivers/rapidio/devices/tsi721.h
-@@ -118,34 +118,34 @@
+diff -puN drivers/leds/Kconfig~led-class-change-back-leds_class-to-tristate-instead-of-bool drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~led-class-change-back-leds_class-to-tristate-instead-of-bool
++++ a/drivers/leds/Kconfig
+@@ -17,7 +17,7 @@ menuconfig NEW_LEDS
+ if NEW_LEDS
  
- #define TSI721_IDB_ENTRY_SIZE	64
+ config LEDS_CLASS
+-	bool "LED Class Support"
++	tristate "LED Class Support"
+ 	help
+ 	  This option enables the led sysfs class in /sys/class/leds.  You'll
+ 	  need this to do anything useful with LEDs.  If unsure, say N.
+diff -puN drivers/leds/led-class.c~led-class-change-back-leds_class-to-tristate-instead-of-bool drivers/leds/led-class.c
+--- a/drivers/leds/led-class.c~led-class-change-back-leds_class-to-tristate-instead-of-bool
++++ a/drivers/leds/led-class.c
+@@ -110,50 +110,6 @@ static void led_timer_function(unsigned 
+ 	mod_timer(&led_cdev->blink_timer, jiffies + msecs_to_jiffies(delay));
+ }
  
--#define TSI721_IDQ_CTL(x)	(0x20000 + (x) * 1000)
-+#define TSI721_IDQ_CTL(x)	(0x20000 + (x) * 0x1000)
- #define TSI721_IDQ_SUSPEND	0x00000002
- #define TSI721_IDQ_INIT		0x00000001
+-static void led_stop_software_blink(struct led_classdev *led_cdev)
+-{
+-	/* deactivate previous settings */
+-	del_timer_sync(&led_cdev->blink_timer);
+-	led_cdev->blink_delay_on = 0;
+-	led_cdev->blink_delay_off = 0;
+-}
+-
+-static void led_set_software_blink(struct led_classdev *led_cdev,
+-				   unsigned long delay_on,
+-				   unsigned long delay_off)
+-{
+-	int current_brightness;
+-
+-	current_brightness = led_get_brightness(led_cdev);
+-	if (current_brightness)
+-		led_cdev->blink_brightness = current_brightness;
+-	if (!led_cdev->blink_brightness)
+-		led_cdev->blink_brightness = led_cdev->max_brightness;
+-
+-	if (led_get_trigger_data(led_cdev) &&
+-	    delay_on == led_cdev->blink_delay_on &&
+-	    delay_off == led_cdev->blink_delay_off)
+-		return;
+-
+-	led_stop_software_blink(led_cdev);
+-
+-	led_cdev->blink_delay_on = delay_on;
+-	led_cdev->blink_delay_off = delay_off;
+-
+-	/* never on - don't blink */
+-	if (!delay_on)
+-		return;
+-
+-	/* never off - just set to brightness */
+-	if (!delay_off) {
+-		led_set_brightness(led_cdev, led_cdev->blink_brightness);
+-		return;
+-	}
+-
+-	mod_timer(&led_cdev->blink_timer, jiffies + 1);
+-}
+-
+-
+ /**
+  * led_classdev_suspend - suspend an led_classdev.
+  * @led_cdev: the led_classdev to suspend.
+@@ -262,32 +218,6 @@ void led_classdev_unregister(struct led_
+ }
+ EXPORT_SYMBOL_GPL(led_classdev_unregister);
  
--#define TSI721_IDQ_STS(x)	(0x20004 + (x) * 1000)
-+#define TSI721_IDQ_STS(x)	(0x20004 + (x) * 0x1000)
- #define TSI721_IDQ_RUN		0x00200000
+-void led_blink_set(struct led_classdev *led_cdev,
+-		   unsigned long *delay_on,
+-		   unsigned long *delay_off)
+-{
+-	del_timer_sync(&led_cdev->blink_timer);
+-
+-	if (led_cdev->blink_set &&
+-	    !led_cdev->blink_set(led_cdev, delay_on, delay_off))
+-		return;
+-
+-	/* blink with 1 Hz as default if nothing specified */
+-	if (!*delay_on && !*delay_off)
+-		*delay_on = *delay_off = 500;
+-
+-	led_set_software_blink(led_cdev, *delay_on, *delay_off);
+-}
+-EXPORT_SYMBOL(led_blink_set);
+-
+-void led_brightness_set(struct led_classdev *led_cdev,
+-			enum led_brightness brightness)
+-{
+-	led_stop_software_blink(led_cdev);
+-	led_cdev->brightness_set(led_cdev, brightness);
+-}
+-EXPORT_SYMBOL(led_brightness_set);
+-
+ static int __init leds_init(void)
+ {
+ 	leds_class = class_create(THIS_MODULE, "leds");
+diff -puN drivers/leds/led-core.c~led-class-change-back-leds_class-to-tristate-instead-of-bool drivers/leds/led-core.c
+--- a/drivers/leds/led-core.c~led-class-change-back-leds_class-to-tristate-instead-of-bool
++++ a/drivers/leds/led-core.c
+@@ -23,3 +23,73 @@ EXPORT_SYMBOL_GPL(leds_list_lock);
  
--#define TSI721_IDQ_MASK(x)	(0x20008 + (x) * 1000)
-+#define TSI721_IDQ_MASK(x)	(0x20008 + (x) * 0x1000)
- #define TSI721_IDQ_MASK_MASK	0xffff0000
- #define TSI721_IDQ_MASK_PATT	0x0000ffff
- 
--#define TSI721_IDQ_RP(x)	(0x2000c + (x) * 1000)
-+#define TSI721_IDQ_RP(x)	(0x2000c + (x) * 0x1000)
- #define TSI721_IDQ_RP_PTR	0x0007ffff
- 
--#define TSI721_IDQ_WP(x)	(0x20010 + (x) * 1000)
-+#define TSI721_IDQ_WP(x)	(0x20010 + (x) * 0x1000)
- #define TSI721_IDQ_WP_PTR	0x0007ffff
- 
--#define TSI721_IDQ_BASEL(x)	(0x20014 + (x) * 1000)
-+#define TSI721_IDQ_BASEL(x)	(0x20014 + (x) * 0x1000)
- #define TSI721_IDQ_BASEL_ADDR	0xffffffc0
--#define TSI721_IDQ_BASEU(x)	(0x20018 + (x) * 1000)
--#define TSI721_IDQ_SIZE(x)	(0x2001c + (x) * 1000)
-+#define TSI721_IDQ_BASEU(x)	(0x20018 + (x) * 0x1000)
-+#define TSI721_IDQ_SIZE(x)	(0x2001c + (x) * 0x1000)
- #define TSI721_IDQ_SIZE_VAL(size)	(__fls(size) - 4)
- #define TSI721_IDQ_SIZE_MIN	512
- #define TSI721_IDQ_SIZE_MAX	(512 * 1024)
- 
--#define TSI721_SR_CHINT(x)	(0x20040 + (x) * 1000)
--#define TSI721_SR_CHINTE(x)	(0x20044 + (x) * 1000)
--#define TSI721_SR_CHINTSET(x)	(0x20048 + (x) * 1000)
-+#define TSI721_SR_CHINT(x)	(0x20040 + (x) * 0x1000)
-+#define TSI721_SR_CHINTE(x)	(0x20044 + (x) * 0x1000)
-+#define TSI721_SR_CHINTSET(x)	(0x20048 + (x) * 0x1000)
- #define TSI721_SR_CHINT_ODBOK	0x00000020
- #define TSI721_SR_CHINT_IDBQRCV	0x00000010
- #define TSI721_SR_CHINT_SUSP	0x00000008
-@@ -156,7 +156,7 @@
- 
- #define TSI721_IBWIN_NUM	8
- 
--#define TSI721_IBWINLB(x)	(0x29000 + (x) * 20)
-+#define TSI721_IBWINLB(x)	(0x29000 + (x) * 0x20)
- #define TSI721_IBWINLB_BA	0xfffff000
- #define TSI721_IBWINLB_WEN	0x00000001
- 
-@@ -187,13 +187,13 @@
-  */
- #define TSI721_OBWIN_NUM	TSI721_PC2SR_WINS
- 
--#define TSI721_OBWINLB(x)	(0x40000 + (x) * 20)
-+#define TSI721_OBWINLB(x)	(0x40000 + (x) * 0x20)
- #define TSI721_OBWINLB_BA	0xffff8000
- #define TSI721_OBWINLB_WEN	0x00000001
- 
--#define TSI721_OBWINUB(x)	(0x40004 + (x) * 20)
-+#define TSI721_OBWINUB(x)	(0x40004 + (x) * 0x20)
- 
--#define TSI721_OBWINSZ(x)	(0x40008 + (x) * 20)
-+#define TSI721_OBWINSZ(x)	(0x40008 + (x) * 0x20)
- #define TSI721_OBWINSZ_SIZE	0x00001f00
- #define TSI721_OBWIN_SIZE(size)	(__fls(size) - 15)
- 
+ LIST_HEAD(leds_list);
+ EXPORT_SYMBOL_GPL(leds_list);
++
++static void led_stop_software_blink(struct led_classdev *led_cdev)
++{
++	/* deactivate previous settings */
++	del_timer_sync(&led_cdev->blink_timer);
++	led_cdev->blink_delay_on = 0;
++	led_cdev->blink_delay_off = 0;
++}
++
++static void led_set_software_blink(struct led_classdev *led_cdev,
++				   unsigned long delay_on,
++				   unsigned long delay_off)
++{
++	int current_brightness;
++
++	current_brightness = led_get_brightness(led_cdev);
++	if (current_brightness)
++		led_cdev->blink_brightness = current_brightness;
++	if (!led_cdev->blink_brightness)
++		led_cdev->blink_brightness = led_cdev->max_brightness;
++
++	if (led_get_trigger_data(led_cdev) &&
++	    delay_on == led_cdev->blink_delay_on &&
++	    delay_off == led_cdev->blink_delay_off)
++		return;
++
++	led_stop_software_blink(led_cdev);
++
++	led_cdev->blink_delay_on = delay_on;
++	led_cdev->blink_delay_off = delay_off;
++
++	/* never on - don't blink */
++	if (!delay_on)
++		return;
++
++	/* never off - just set to brightness */
++	if (!delay_off) {
++		led_set_brightness(led_cdev, led_cdev->blink_brightness);
++		return;
++	}
++
++	mod_timer(&led_cdev->blink_timer, jiffies + 1);
++}
++
++
++void led_blink_set(struct led_classdev *led_cdev,
++		   unsigned long *delay_on,
++		   unsigned long *delay_off)
++{
++	del_timer_sync(&led_cdev->blink_timer);
++
++	if (led_cdev->blink_set &&
++	    !led_cdev->blink_set(led_cdev, delay_on, delay_off))
++		return;
++
++	/* blink with 1 Hz as default if nothing specified */
++	if (!*delay_on && !*delay_off)
++		*delay_on = *delay_off = 500;
++
++	led_set_software_blink(led_cdev, *delay_on, *delay_off);
++}
++EXPORT_SYMBOL(led_blink_set);
++
++void led_brightness_set(struct led_classdev *led_cdev,
++			enum led_brightness brightness)
++{
++	led_stop_software_blink(led_cdev);
++	led_cdev->brightness_set(led_cdev, brightness);
++}
++EXPORT_SYMBOL(led_brightness_set);
 _
-Subject: Subject: rapidio/tsi721: fix bug in register offset definitions
+Subject: Subject: led-class: change back LEDS_CLASS to tristate instead of bool
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from bryan.wu@canonical.com are
 
-rapidio-tsi721-fix-bug-in-register-offset-definitions.patch
+led-class-change-back-leds_class-to-tristate-instead-of-bool.patch
 
