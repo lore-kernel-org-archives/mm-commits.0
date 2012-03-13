@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-sts-mailing-list-for-spear.patch added to -mm tree
-Date: Tue, 13 Mar 2012 15:12:09 -0700
-Message-ID: <20120313221209.B6449A00AB@akpm.mtv.corp.google.com>
+Subject: + memcg-clean-up-existing-move-charge-code.patch added to -mm tree
+Date: Tue, 13 Mar 2012 15:31:38 -0700
+Message-ID: <20120313223139.A50D8A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:45498 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755828Ab2CMWML (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Mar 2012 18:12:11 -0400
-Received: by ghbz15 with SMTP id z15so179667ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Mar 2012 15:12:10 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:39172 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759900Ab2CMWbp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Mar 2012 18:31:45 -0400
+Received: by yenq2 with SMTP id q2so183650yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Mar 2012 15:31:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viresh.kumar@st.com, rmk@arm.linux.org.uk
+Cc: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
 
 
 The patch titled
-     Subject: MAINTAINERS: update ST's Mailing list for SPEAr
+     Subject: memcg: clean up existing move charge code
 has been added to the -mm tree.  Its filename is
-     maintainers-update-sts-mailing-list-for-spear.patch
+     memcg-clean-up-existing-move-charge-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.kumar@st.com>
-Subject: MAINTAINERS: update ST's Mailing list for SPEAr
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: memcg: clean up existing move charge code
 
-We have created a ST's Mailing list for SPEAr.  This can be accessed from
-non-st email ids.  I want people to cc this list, when they have changes
-specific to SPEAr.  So, its better to get this updated in MAINTAINERS
-file.
+- Replace lengthy function name is_target_pte_for_mc() with a shorter
+  one in order to avoid ugly line breaks.
 
--arm-kernel@lists.infradead.org is also added for SPEAr.
+- explicitly use MC_TARGET_* instead of simply using integers.
 
-Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/memcontrol.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-sts-mailing-list-for-spear MAINTAINERS
---- a/MAINTAINERS~maintainers-update-sts-mailing-list-for-spear
-+++ a/MAINTAINERS
-@@ -5944,6 +5944,7 @@ F:	drivers/mmc/host/sdhci-s3c.c
+diff -puN mm/memcontrol.c~memcg-clean-up-existing-move-charge-code mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-clean-up-existing-move-charge-code
++++ a/mm/memcontrol.c
+@@ -5110,7 +5110,7 @@ one_by_one:
+ }
  
- SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) ST SPEAR DRIVER
- M:	Viresh Kumar <viresh.kumar@st.com>
-+L:	spear-devel@list.st.com
- L:	linux-mmc@vger.kernel.org
- S:	Maintained
- F:	drivers/mmc/host/sdhci-spear.c
-@@ -6287,24 +6288,32 @@ F:	drivers/tty/serial/sunzilog.h
+ /**
+- * is_target_pte_for_mc - check a pte whether it is valid for move charge
++ * get_mctgt_type - get target type of moving charge
+  * @vma: the vma the pte to be checked belongs
+  * @addr: the address corresponding to the pte to be checked
+  * @ptent: the pte to be checked
+@@ -5133,7 +5133,7 @@ union mc_target {
+ };
  
- SPEAR PLATFORM SUPPORT
- M:	Viresh Kumar <viresh.kumar@st.com>
-+L:	spear-devel@list.st.com
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.st.com/spear
- S:	Maintained
- F:	arch/arm/plat-spear/
+ enum mc_target_type {
+-	MC_TARGET_NONE,	/* not used */
++	MC_TARGET_NONE = 0,
+ 	MC_TARGET_PAGE,
+ 	MC_TARGET_SWAP,
+ };
+@@ -5214,12 +5214,12 @@ static struct page *mc_handle_file_pte(s
+ 	return page;
+ }
  
- SPEAR3XX MACHINE SUPPORT
- M:	Viresh Kumar <viresh.kumar@st.com>
-+L:	spear-devel@list.st.com
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.st.com/spear
- S:	Maintained
- F:	arch/arm/mach-spear3xx/
+-static int is_target_pte_for_mc(struct vm_area_struct *vma,
++static enum mc_target_type get_mctgt_type(struct vm_area_struct *vma,
+ 		unsigned long addr, pte_t ptent, union mc_target *target)
+ {
+ 	struct page *page = NULL;
+ 	struct page_cgroup *pc;
+-	int ret = 0;
++	enum mc_target_type ret = MC_TARGET_NONE;
+ 	swp_entry_t ent = { .val = 0 };
  
- SPEAR6XX MACHINE SUPPORT
- M:	Rajeev Kumar <rajeev-dlh.kumar@st.com>
-+L:	spear-devel@list.st.com
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.st.com/spear
- S:	Maintained
- F:	arch/arm/mach-spear6xx/
+ 	if (pte_present(ptent))
+@@ -5230,7 +5230,7 @@ static int is_target_pte_for_mc(struct v
+ 		page = mc_handle_file_pte(vma, addr, ptent, &ent);
  
- SPEAR CLOCK FRAMEWORK SUPPORT
- M:	Viresh Kumar <viresh.kumar@st.com>
-+L:	spear-devel@list.st.com
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.st.com/spear
- S:	Maintained
- F:	arch/arm/mach-spear*/clock.c
-@@ -6313,6 +6322,8 @@ F:	arch/arm/plat-spear/include/plat/cloc
+ 	if (!page && !ent.val)
+-		return 0;
++		return ret;
+ 	if (page) {
+ 		pc = lookup_page_cgroup(page);
+ 		/*
+@@ -5268,7 +5268,7 @@ static int mem_cgroup_count_precharge_pt
  
- SPEAR PAD MULTIPLEXING SUPPORT
- M:	Viresh Kumar <viresh.kumar@st.com>
-+L:	spear-devel@list.st.com
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.st.com/spear
- S:	Maintained
- F:	arch/arm/plat-spear/include/plat/padmux.h
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+-		if (is_target_pte_for_mc(vma, addr, *pte, NULL))
++		if (get_mctgt_type(vma, addr, *pte, NULL))
+ 			mc.precharge++;	/* increment precharge temporarily */
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
+@@ -5438,8 +5438,7 @@ retry:
+ 		if (!mc.precharge)
+ 			break;
+ 
+-		type = is_target_pte_for_mc(vma, addr, ptent, &target);
+-		switch (type) {
++		switch (get_mctgt_type(vma, addr, ptent, &target)) {
+ 		case MC_TARGET_PAGE:
+ 			page = target.page;
+ 			if (isolate_lru_page(page))
+@@ -5452,7 +5451,7 @@ retry:
+ 				mc.moved_charge++;
+ 			}
+ 			putback_lru_page(page);
+-put:			/* is_target_pte_for_mc() gets the page */
++put:			/* get_mctgt_type() gets the page */
+ 			put_page(page);
+ 			break;
+ 		case MC_TARGET_SWAP:
 _
-Subject: Subject: MAINTAINERS: update ST's Mailing list for SPEAr
+Subject: Subject: memcg: clean up existing move charge code
 
-Patches currently in -mm which might be from viresh.kumar@st.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-maintainers-update-sts-mailing-list-for-spear.patch
-linux-next.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
-thermal-spear_thermal-replace-readl-writel-with-lighter-_relaxed-variants.patch
-thermal-spear13xx-checking-for-null-instead-of-is_err.patch
-rtc-spear-fix-for-balancing-the-enable_irq_wake-in-power-mgmt.patch
-rtc-spear-fix-for-rtc_aie_on-and-rtc_aie_off-ioctl-errors.patch
-rtc-rtc-spear-call-platform_set_drvdata-before-registering-rtc-device.patch
+pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
+thp-optimize-away-unnecessary-page-table-locking.patch
+thp-optimize-away-unnecessary-page-table-locking-fix.patch
+thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
+pagemap-export-kpf_thp.patch
+pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
+pagemap-introduce-data-structure-for-pagemap-entry.patch
+memcg-clean-up-existing-move-charge-code.patch
+thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
+memcg-avoid-thp-split-in-task-migration.patch
 
