@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-clean-up-existing-move-charge-code.patch added to -mm tree
-Date: Tue, 13 Mar 2012 15:31:38 -0700
-Message-ID: <20120313223139.A50D8A00AB@akpm.mtv.corp.google.com>
+Subject: + thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch added to -mm tree
+Date: Tue, 13 Mar 2012 15:31:41 -0700
+Message-ID: <20120313223142.26446A1A06@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:39172 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759900Ab2CMWbp (ORCPT
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:59457 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752337Ab2CMWbp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Mar 2012 18:31:45 -0400
-Received: by yenq2 with SMTP id q2so183650yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Mar 2012 15:31:45 -0700 (PDT)
+Received: by faaa19 with SMTP id a19so52211faa.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Mar 2012 15:31:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, dhillf@gmail.com, kamezawa.h
 
 
 The patch titled
-     Subject: memcg: clean up existing move charge code
+     Subject: thp: add HPAGE_PMD_* definitions for !CONFIG_TRANSPARENT_HUGEPAGE
 has been added to the -mm tree.  Its filename is
-     memcg-clean-up-existing-move-charge-code.patch
+     thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: memcg: clean up existing move charge code
+Subject: thp: add HPAGE_PMD_* definitions for !CONFIG_TRANSPARENT_HUGEPAGE
 
-- Replace lengthy function name is_target_pte_for_mc() with a shorter
-  one in order to avoid ugly line breaks.
-
-- explicitly use MC_TARGET_* instead of simply using integers.
+These macros will be used in a later patch, where all usages are expected
+to be optimized away without #ifdef CONFIG_TRANSPARENT_HUGEPAGE.  But to
+detect unexpected usages, we convert the existing BUG() to BUILD_BUG().
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Hillf Danton <dhillf@gmail.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ include/linux/huge_mm.h |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-clean-up-existing-move-charge-code mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-clean-up-existing-move-charge-code
-+++ a/mm/memcontrol.c
-@@ -5110,7 +5110,7 @@ one_by_one:
- }
+diff -puN include/linux/huge_mm.h~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage
++++ a/include/linux/huge_mm.h
+@@ -51,6 +51,9 @@ extern pmd_t *page_check_address_pmd(str
+ 				     unsigned long address,
+ 				     enum page_check_address_pmd_flag flag);
  
- /**
-- * is_target_pte_for_mc - check a pte whether it is valid for move charge
-+ * get_mctgt_type - get target type of moving charge
-  * @vma: the vma the pte to be checked belongs
-  * @addr: the address corresponding to the pte to be checked
-  * @ptent: the pte to be checked
-@@ -5133,7 +5133,7 @@ union mc_target {
- };
- 
- enum mc_target_type {
--	MC_TARGET_NONE,	/* not used */
-+	MC_TARGET_NONE = 0,
- 	MC_TARGET_PAGE,
- 	MC_TARGET_SWAP,
- };
-@@ -5214,12 +5214,12 @@ static struct page *mc_handle_file_pte(s
++#define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
++#define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define HPAGE_PMD_SHIFT HPAGE_SHIFT
+ #define HPAGE_PMD_MASK HPAGE_MASK
+@@ -102,8 +105,6 @@ extern void __split_huge_page_pmd(struct
+ 		BUG_ON(pmd_trans_splitting(*____pmd) ||			\
+ 		       pmd_trans_huge(*____pmd));			\
+ 	} while (0)
+-#define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
+-#define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
+ #if HPAGE_PMD_ORDER > MAX_ORDER
+ #error "hugepages can't be allocated by the buddy allocator"
+ #endif
+@@ -158,9 +159,9 @@ static inline struct page *compound_tran
  	return page;
  }
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+-#define HPAGE_PMD_SHIFT ({ BUG(); 0; })
+-#define HPAGE_PMD_MASK ({ BUG(); 0; })
+-#define HPAGE_PMD_SIZE ({ BUG(); 0; })
++#define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
++#define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
++#define HPAGE_PMD_SIZE ({ BUILD_BUG(); 0; })
  
--static int is_target_pte_for_mc(struct vm_area_struct *vma,
-+static enum mc_target_type get_mctgt_type(struct vm_area_struct *vma,
- 		unsigned long addr, pte_t ptent, union mc_target *target)
- {
- 	struct page *page = NULL;
- 	struct page_cgroup *pc;
--	int ret = 0;
-+	enum mc_target_type ret = MC_TARGET_NONE;
- 	swp_entry_t ent = { .val = 0 };
+ #define hpage_nr_pages(x) 1
  
- 	if (pte_present(ptent))
-@@ -5230,7 +5230,7 @@ static int is_target_pte_for_mc(struct v
- 		page = mc_handle_file_pte(vma, addr, ptent, &ent);
- 
- 	if (!page && !ent.val)
--		return 0;
-+		return ret;
- 	if (page) {
- 		pc = lookup_page_cgroup(page);
- 		/*
-@@ -5268,7 +5268,7 @@ static int mem_cgroup_count_precharge_pt
- 
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
--		if (is_target_pte_for_mc(vma, addr, *pte, NULL))
-+		if (get_mctgt_type(vma, addr, *pte, NULL))
- 			mc.precharge++;	/* increment precharge temporarily */
- 	pte_unmap_unlock(pte - 1, ptl);
- 	cond_resched();
-@@ -5438,8 +5438,7 @@ retry:
- 		if (!mc.precharge)
- 			break;
- 
--		type = is_target_pte_for_mc(vma, addr, ptent, &target);
--		switch (type) {
-+		switch (get_mctgt_type(vma, addr, ptent, &target)) {
- 		case MC_TARGET_PAGE:
- 			page = target.page;
- 			if (isolate_lru_page(page))
-@@ -5452,7 +5451,7 @@ retry:
- 				mc.moved_charge++;
- 			}
- 			putback_lru_page(page);
--put:			/* is_target_pte_for_mc() gets the page */
-+put:			/* get_mctgt_type() gets the page */
- 			put_page(page);
- 			break;
- 		case MC_TARGET_SWAP:
 _
-Subject: Subject: memcg: clean up existing move charge code
+Subject: Subject: thp: add HPAGE_PMD_* definitions for !CONFIG_TRANSPARENT_HUGEPAGE
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
