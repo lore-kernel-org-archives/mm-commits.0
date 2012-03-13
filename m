@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + page_allocc-remove-add_from_early_node_map.patch added to -mm tree
-Date: Tue, 13 Mar 2012 14:04:03 -0700
-Message-ID: <20120313210404.42CF5A0186@akpm.mtv.corp.google.com>
+Subject: + page_alloc-remove-unused-find_zone_movable_pfns_for_nodes-argument.patch added to -mm tree
+Date: Tue, 13 Mar 2012 14:04:05 -0700
+Message-ID: <20120313210406.12C4DA0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:42088 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754625Ab2CMVEF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Mar 2012 17:04:05 -0400
-Received: by ggnd2 with SMTP id d2so187152ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Mar 2012 14:04:04 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:48756 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753857Ab2CMVEI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 13 Mar 2012 17:04:08 -0400
+Received: by laai8 with SMTP id i8so48023laa.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Mar 2012 14:04:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: consul.kautuk@gmail.com, rientjes@google.com
+Cc: consul.kautuk@gmail.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     Subject: page_alloc.c: remove add_from_early_node_map()
+     Subject: page_alloc: remove unused find_zone_movable_pfns_for_nodes() argument
 has been added to the -mm tree.  Its filename is
-     page_allocc-remove-add_from_early_node_map.patch
+     page_alloc-remove-unused-find_zone_movable_pfns_for_nodes-argument.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +35,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kautuk Consul <consul.kautuk@gmail.com>
-Subject: page_alloc.c: remove add_from_early_node_map()
+Subject: page_alloc: remove unused find_zone_movable_pfns_for_nodes() argument
 
-add_from_early_node_map() is unused.
+find_zone_movable_pfns_for_nodes() does not use its argument.
 
 Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- mm/page_alloc.c    |   12 ------------
- 2 files changed, 14 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~page_allocc-remove-add_from_early_node_map include/linux/mm.h
---- a/include/linux/mm.h~page_allocc-remove-add_from_early_node_map
-+++ a/include/linux/mm.h
-@@ -1296,8 +1296,6 @@ extern void get_pfn_range_for_nid(unsign
- extern unsigned long find_min_pfn_with_active_regions(void);
- extern void free_bootmem_with_active_regions(int nid,
- 						unsigned long max_low_pfn);
--int add_from_early_node_map(struct range *range, int az,
--				   int nr_range, int nid);
- extern void sparse_memory_present_with_active_regions(int nid);
- 
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-diff -puN mm/page_alloc.c~page_allocc-remove-add_from_early_node_map mm/page_alloc.c
---- a/mm/page_alloc.c~page_allocc-remove-add_from_early_node_map
+diff -puN mm/page_alloc.c~page_alloc-remove-unused-find_zone_movable_pfns_for_nodes-argument mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-remove-unused-find_zone_movable_pfns_for_nodes-argument
 +++ a/mm/page_alloc.c
-@@ -3940,18 +3940,6 @@ void __init free_bootmem_with_active_reg
- 	}
- }
+@@ -4524,7 +4524,7 @@ static unsigned long __init early_calcul
+  * memory. When they don't, some nodes will have more kernelcore than
+  * others
+  */
+-static void __init find_zone_movable_pfns_for_nodes(unsigned long *movable_pfn)
++static void __init find_zone_movable_pfns_for_nodes(void)
+ {
+ 	int i, nid;
+ 	unsigned long usable_startpfn;
+@@ -4716,7 +4716,7 @@ void __init free_area_init_nodes(unsigne
  
--int __init add_from_early_node_map(struct range *range, int az,
--				   int nr_range, int nid)
--{
--	unsigned long start_pfn, end_pfn;
--	int i;
--
--	/* need to go over early_node_map to find out good range for node */
--	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, NULL)
--		nr_range = add_range(range, az, nr_range, start_pfn, end_pfn);
--	return nr_range;
--}
+ 	/* Find the PFNs that ZONE_MOVABLE begins at in each node */
+ 	memset(zone_movable_pfn, 0, sizeof(zone_movable_pfn));
+-	find_zone_movable_pfns_for_nodes(zone_movable_pfn);
++	find_zone_movable_pfns_for_nodes();
+ 
+ 	/* Print out the zone ranges */
+ 	printk("Zone PFN ranges:\n");
+_
+Subject: Subject: page_alloc: remove unused find_zone_movable_pfns_for_nodes() argument
+
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
+
+rmap-anon_vma_prepare-reduce-code-duplication-by-calling-anon_vma_chain_link.patch
+page_allocc-remove-add_from_early_node_map.patch
+page_alloc-remove-unused-find_zone_movable_pfns_for_nodes-argument.patch
+
