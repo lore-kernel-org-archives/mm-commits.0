@@ -1,124 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-platform-x86-sony-laptopc-fix-scancodes.patch removed from -mm tree
-Date: Wed, 14 Mar 2012 14:24:40 -0700
-Message-ID: <20120314212440.88F1CA076E@akpm.mtv.corp.google.com>
+Subject: [merged] vfs-correctly-set-the-dir-i_mutex-lockdep-class.patch removed from -mm tree
+Date: Wed, 14 Mar 2012 14:24:46 -0700
+Message-ID: <20120314212446.6A2D5A076E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58917 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761389Ab2CNVYm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Mar 2012 17:24:42 -0400
-Received: by mail-lpp01m010-f74.google.com with SMTP id i8so95996laa.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 14:24:41 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:65523 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030915Ab2CNVYs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 17:24:48 -0400
+Received: by faaa19 with SMTP id a19so98071faa.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 14:24:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john@calvaedi.com, dtor@mail.ru, john@calva.com, malattia@linux.it, mjg@redhat.com, mm-commits@vger.kernel.org
+To: tyhicks@canonical.com, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/platform/x86/sony-laptop.c: fix scancodes
+     Subject: vfs: correctly set the dir i_mutex lockdep class
 has been removed from the -mm tree.  Its filename was
-     drivers-platform-x86-sony-laptopc-fix-scancodes.patch
+     vfs-correctly-set-the-dir-i_mutex-lockdep-class.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: John Hughes <john@calvaedi.com>
-Subject: drivers/platform/x86/sony-laptop.c: fix scancodes
+From: Tyler Hicks <tyhicks@canonical.com>
+Subject: vfs: correctly set the dir i_mutex lockdep class
 
-The scancodes returned by the sony-laptop driver for function keys did not
-match the scancodes used to remap keys.  Also, since the scancode was sent
-to the input subsystem after the mapped keysym the /lib/udev/keymap
-utility was confused about which scancode to report for which keysym.
+9a7aa12f39 ("vfs: Set special lockdep map for dirs only if not set by fs")
+introduced additional logic around setting the i_mutex lockdep class for
+directory inodes.  The idea was that some filesystems may want their own
+special lockdep class for different directory inodes and calling
+unlock_new_inode() should not clobber one of those special classes.
 
-This patch fixes the driver so the correct scancode is shown for each key.
- It also adds to the documentation a description of where to find the
-scancodes.
+I believe that the added conditional, around the *negated* return value of
+lockdep_match_class(), caused directory inodes to be placed in the wrong
+lockdep class.
 
-Before the patch FN/E returned scancode 0x1B, but to remap scancode 0x14
-had to be used.
+inode_init_always() sets the i_mutex lockdep class with i_mutex_key for
+all inodes.  If the filesystem did not change the class during inode
+initialization, then the conditional mentioned above was false and the
+directory inode was incorrectly left in the non-directory lockdep class. 
+If the filesystem did set a special lockdep class, then the conditional
+mentioned above was true and that class was clobbered with
+i_mutex_dir_key.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: John Hughes <john@calva.com>
-Cc: Mattia Dongili <malattia@linux.it>
-Cc: Matthew Garrett <mjg@redhat.com>
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
+This patch removes the negation from the conditional so that the i_mutex
+lockdep class is properly set for directory inodes.  Special classes are
+preserved and directory inodes with unmodified classes are set with
+i_mutex_dir_key.
+
+Signed-off-by: Tyler Hicks <tyhicks@canonical.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/laptops/sony-laptop.txt |    5 +++++
- drivers/platform/x86/sony-laptop.c    |   16 +++++++++++-----
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ fs/inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/laptops/sony-laptop.txt~drivers-platform-x86-sony-laptopc-fix-scancodes Documentation/laptops/sony-laptop.txt
---- a/Documentation/laptops/sony-laptop.txt~drivers-platform-x86-sony-laptopc-fix-scancodes
-+++ a/Documentation/laptops/sony-laptop.txt
-@@ -17,6 +17,11 @@ subsystem. See the logs of acpid or /pro
- devices are created by the driver. Additionally, loading the driver with the
- debug option will report all events in the kernel log.
+diff -puN fs/inode.c~vfs-correctly-set-the-dir-i_mutex-lockdep-class fs/inode.c
+--- a/fs/inode.c~vfs-correctly-set-the-dir-i_mutex-lockdep-class
++++ a/fs/inode.c
+@@ -938,8 +938,7 @@ void lockdep_annotate_inode_mutex_key(st
+ 		struct file_system_type *type = inode->i_sb->s_type;
  
-+The "scancodes" passed to the input system (that can be remapped with udev)
-+are indexes to the table "sony_laptop_input_keycode_map" in the sony-laptop.c
-+module.  For example the "FN/E" key combination (EJECTCD on some models)
-+generates the scancode 20 (0x14).
-+
- Backlight control:
- ------------------
- If your laptop model supports it, you will find sysfs files in the
-diff -puN drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes drivers/platform/x86/sony-laptop.c
---- a/drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes
-+++ a/drivers/platform/x86/sony-laptop.c
-@@ -347,6 +347,7 @@ static void sony_laptop_report_input_eve
- 	struct input_dev *jog_dev = sony_laptop_input.jog_dev;
- 	struct input_dev *key_dev = sony_laptop_input.key_dev;
- 	struct sony_laptop_keypress kp = { NULL };
-+	int scancode = -1;
- 
- 	if (event == SONYPI_EVENT_FNKEY_RELEASED ||
- 			event == SONYPI_EVENT_ANYBUTTON_RELEASED) {
-@@ -380,8 +381,9 @@ static void sony_laptop_report_input_eve
- 			dprintk("sony_laptop_report_input_event, event not known: %d\n", event);
- 			break;
- 		}
--		if (sony_laptop_input_index[event] != -1) {
--			kp.key = sony_laptop_input_keycode_map[sony_laptop_input_index[event]];
-+		scancode = sony_laptop_input_index[event];
-+		if (scancode != -1) {
-+			kp.key = sony_laptop_input_keycode_map[scancode];
- 			if (kp.key != KEY_UNKNOWN)
- 				kp.dev = key_dev;
- 		}
-@@ -389,9 +391,13 @@ static void sony_laptop_report_input_eve
- 	}
- 
- 	if (kp.dev) {
-+		/*
-+		 * If we have a scancode we emit it so we can always remap the
-+		 * key
-+		 */
-+		if (scancode != -1)
-+			input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
- 		input_report_key(kp.dev, kp.key, 1);
--		/* we emit the scancode so we can always remap the key */
--		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
- 		input_sync(kp.dev);
- 
- 		/* schedule key release */
-@@ -466,7 +472,7 @@ static int sony_laptop_setup_input(struc
- 	jog_dev->name = "Sony Vaio Jogdial";
- 	jog_dev->id.bustype = BUS_ISA;
- 	jog_dev->id.vendor = PCI_VENDOR_ID_SONY;
--	key_dev->dev.parent = &acpi_device->dev;
-+	jog_dev->dev.parent = &acpi_device->dev;
- 
- 	input_set_capability(jog_dev, EV_KEY, BTN_MIDDLE);
- 	input_set_capability(jog_dev, EV_REL, REL_WHEEL);
+ 		/* Set new key only if filesystem hasn't already changed it */
+-		if (!lockdep_match_class(&inode->i_mutex,
+-		    &type->i_mutex_key)) {
++		if (lockdep_match_class(&inode->i_mutex, &type->i_mutex_key)) {
+ 			/*
+ 			 * ensure nobody is actually holding i_mutex
+ 			 */
 _
 
-Patches currently in -mm which might be from john@calvaedi.com are
+Patches currently in -mm which might be from tyhicks@canonical.com are
 
+origin.patch
 linux-next.patch
 
