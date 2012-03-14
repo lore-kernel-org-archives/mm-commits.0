@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately-fix.patch added to -mm tree
-Date: Wed, 14 Mar 2012 16:30:21 -0700
-Message-ID: <20120314233022.41213A032F@akpm.mtv.corp.google.com>
+Subject: + afs-remote-abort-can-cause-bug-in-rxrpc-code.patch added to -mm tree
+Date: Wed, 14 Mar 2012 16:45:12 -0700
+Message-ID: <20120314234512.AF1FCA02FF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:45428 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751546Ab2CNXaX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 19:30:23 -0400
-Received: by yenq2 with SMTP id q2so396833yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 16:30:22 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:36798 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031243Ab2CNXpO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 19:45:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, C.Emde@osadl.org, manfred@colorfullife.com, owada.kiyoshi@jp.panasonic.com, takeuchi.akr@jp.panasonic.com, tglx@linutronix.de
+Cc: anton@samba.org, dhowells@redhat.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately-fix
+     Subject: afs: remote abort can cause BUG in rxrpc code
 has been added to the -mm tree.  Its filename is
-     mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately-fix.patch
+     afs-remote-abort-can-cause-bug-in-rxrpc-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +31,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately-fix
+From: Anton Blanchard <anton@samba.org>
+Subject: afs: remote abort can cause BUG in rxrpc code
 
-avoid unused-var warning more neatly (per Thomas), make code flow a bit clearer
+When writing files to afs I sometimes hit a BUG:
 
-Cc: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
-Cc: Carsten Emde <C.Emde@osadl.org>
-Cc: Kiyoshi Owada <owada.kiyoshi@jp.panasonic.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+kernel BUG at fs/afs/rxrpc.c:179!
+
+With a backtrace of:
+
+	afs_free_call
+	afs_make_call
+	afs_fs_store_data
+	afs_vnode_store_data
+	afs_write_back_from_locked_page
+	afs_writepages_region
+	afs_writepages
+
+The cause is:
+
+	ASSERT(skb_queue_empty(&call->rx_queue));
+
+Looking at a tcpdump of the session the abort happens because we
+are exceeding our disk quota:
+
+	rx abort fs reply store-data error diskquota exceeded (32)
+
+So the abort error is valid. We hit the BUG because we haven't
+freed all the resources for the call.
+
+By freeing any skbs in call->rx_queue before calling afs_free_call
+we avoid hitting leaking memory and avoid hitting the BUG.
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/afs/rxrpc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN ipc/mqueue.c~mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately-fix ipc/mqueue.c
---- a/ipc/mqueue.c~mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately-fix
-+++ a/ipc/mqueue.c
-@@ -1005,10 +1005,11 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
- 		if (filp->f_flags & O_NONBLOCK) {
- 			spin_unlock(&info->lock);
- 			ret = -EAGAIN;
-+			goto out_fput;
- 		} else if (unlikely(timeout_param_error)) {
- 			spin_unlock(&info->lock);
- 			ret = timeout_param_error;
--			msg_ptr = NULL; /* just for shutting up warning */
-+			goto out_fput;
- 		} else {
- 			wait.task = current;
- 			wait.state = STATE_NONE;
+diff -puN fs/afs/rxrpc.c~afs-remote-abort-can-cause-bug-in-rxrpc-code fs/afs/rxrpc.c
+--- a/fs/afs/rxrpc.c~afs-remote-abort-can-cause-bug-in-rxrpc-code
++++ a/fs/afs/rxrpc.c
+@@ -314,6 +314,7 @@ int afs_make_call(struct in_addr *addr, 
+ 	struct msghdr msg;
+ 	struct kvec iov[1];
+ 	int ret;
++	struct sk_buff *skb;
+ 
+ 	_enter("%x,{%d},", addr->s_addr, ntohs(call->port));
+ 
+@@ -380,6 +381,8 @@ int afs_make_call(struct in_addr *addr, 
+ 
+ error_do_abort:
+ 	rxrpc_kernel_abort_call(rxcall, RX_USER_ABORT);
++	while ((skb = skb_dequeue(&call->rx_queue)))
++		afs_free_skb(skb);
+ 	rxrpc_kernel_end_call(rxcall);
+ 	call->rxcall = NULL;
+ error_kill_call:
 _
-Subject: Subject: mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately-fix
+Subject: Subject: afs: remote abort can cause BUG in rxrpc code
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anton@samba.org are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
-drivers-mfd-twl-corec-unbork.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
-mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately-fix.patch
-thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
-net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
-brlocks-lglocks-cleanups.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes.patch
-mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
-bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
-hugetlbfs-return-error-code-when-initializing-module-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
-kernel-watchdogc-convert-to-pr_foo.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+afs-read-of-file-returns-ebadmsg.patch
+afs-remote-abort-can-cause-bug-in-rxrpc-code.patch
 
