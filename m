@@ -1,109 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines.patch removed from -mm tree
-Date: Wed, 14 Mar 2012 14:24:42 -0700
-Message-ID: <20120314212442.87128A076E@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-platform-x86-sony-laptopc-fix-scancodes.patch removed from -mm tree
+Date: Wed, 14 Mar 2012 14:24:40 -0700
+Message-ID: <20120314212440.88F1CA076E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:50608 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965301Ab2CNVYn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 17:24:43 -0400
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58917 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761389Ab2CNVYm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Wed, 14 Mar 2012 17:24:42 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id i8so95996laa.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 14:24:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ike.pan@canonical.com, andrey.k.p@gmail.com, jlee@suse.com, jrnieder@gmail.com, mjg@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: john@calvaedi.com, dtor@mail.ru, john@calva.com, malattia@linux.it, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/platform/x86/acer-wmi.c: no wifi rfkill on Lenovo machines
+     Subject: drivers/platform/x86/sony-laptop.c: fix scancodes
 has been removed from the -mm tree.  Its filename was
-     drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines.patch
+     drivers-platform-x86-sony-laptopc-fix-scancodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ike Panhc <ike.pan@canonical.com>
-Subject: drivers/platform/x86/acer-wmi.c: no wifi rfkill on Lenovo machines
+From: John Hughes <john@calvaedi.com>
+Subject: drivers/platform/x86/sony-laptop.c: fix scancodes
 
-We have several reports which says acer-wmi is loaded on ideapads and
-register rfkill for wifi which can not be unblocked.  Symptom is that wifi
-just doesn't work on these machines until the acer-wmi driver is unloaded.
- 
-Since ideapad-laptop also register rfkill for wifi and it works reliably,
-it will be fine acer-wmi is not going to register rfkill for wifi once
-VPC2004 is found.
+The scancodes returned by the sony-laptop driver for function keys did not
+match the scancodes used to remap keys.  Also, since the scancode was sent
+to the input subsystem after the mapped keysym the /lib/udev/keymap
+utility was confused about which scancode to report for which keysym.
 
-Also put IBM0068/LEN0068 in the list.  Though thinkpad_acpi has no wifi
-rfkill capability, there are reports which says acer-wmi also block
-wireless on Thinkpad E520/E420.
+This patch fixes the driver so the correct scancode is shown for each key.
+ It also adds to the documentation a description of where to find the
+scancodes.
 
-Addresses http://bugs.debian.org/655941 and
-          https://bugzilla.redhat.com/show_bug.cgi?id=674353
+Before the patch FN/E returned scancode 0x1B, but to remap scancode 0x14
+had to be used.
 
-Signed-off-by: Ike Panhc <ike.pan@canonical.com>
-Acked-by: Lee, Chun-Yi <jlee@suse.com>
-Tested-by: Andrey <andrey.k.p@gmail.com> # Ideapad Z570
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: John Hughes <john@calva.com>
+Cc: Mattia Dongili <malattia@linux.it>
 Cc: Matthew Garrett <mjg@redhat.com>
-Cc: <stable@vger.kernel.org>
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acer-wmi.c |   30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ Documentation/laptops/sony-laptop.txt |    5 +++++
+ drivers/platform/x86/sony-laptop.c    |   16 +++++++++++-----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN drivers/platform/x86/acer-wmi.c~drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines drivers/platform/x86/acer-wmi.c
---- a/drivers/platform/x86/acer-wmi.c~drivers-platform-x86-acer-wmic-no-wifi-rfkill-on-lenovo-machines
-+++ a/drivers/platform/x86/acer-wmi.c
-@@ -679,6 +679,32 @@ static acpi_status AMW0_find_mailled(voi
- 	return AE_OK;
- }
+diff -puN Documentation/laptops/sony-laptop.txt~drivers-platform-x86-sony-laptopc-fix-scancodes Documentation/laptops/sony-laptop.txt
+--- a/Documentation/laptops/sony-laptop.txt~drivers-platform-x86-sony-laptopc-fix-scancodes
++++ a/Documentation/laptops/sony-laptop.txt
+@@ -17,6 +17,11 @@ subsystem. See the logs of acpid or /pro
+ devices are created by the driver. Additionally, loading the driver with the
+ debug option will report all events in the kernel log.
  
-+static int AMW0_set_cap_acpi_check_device_found;
++The "scancodes" passed to the input system (that can be remapped with udev)
++are indexes to the table "sony_laptop_input_keycode_map" in the sony-laptop.c
++module.  For example the "FN/E" key combination (EJECTCD on some models)
++generates the scancode 20 (0x14).
 +
-+static acpi_status AMW0_set_cap_acpi_check_device_cb(acpi_handle handle,
-+	u32 level, void *context, void **retval)
-+{
-+	AMW0_set_cap_acpi_check_device_found = 1;
-+	return AE_OK;
-+}
-+
-+static const struct acpi_device_id norfkill_ids[] = {
-+	{ "VPC2004", 0},
-+	{ "IBM0068", 0},
-+	{ "LEN0068", 0},
-+	{ "", 0},
-+};
-+
-+static int AMW0_set_cap_acpi_check_device(void)
-+{
-+	const struct acpi_device_id *id;
-+
-+	for (id = norfkill_ids; id->id[0]; id++)
-+		acpi_get_devices(id->id, AMW0_set_cap_acpi_check_device_cb,
-+				NULL, NULL);
-+	return AMW0_set_cap_acpi_check_device_found;
-+}
-+
- static acpi_status AMW0_set_capabilities(void)
- {
- 	struct wmab_args args;
-@@ -692,7 +718,9 @@ static acpi_status AMW0_set_capabilities
- 	 * work.
- 	 */
- 	if (wmi_has_guid(AMW0_GUID2)) {
--		interface->capability |= ACER_CAP_WIRELESS;
-+		if ((quirks != &quirk_unknown) ||
-+		    !AMW0_set_cap_acpi_check_device())
-+			interface->capability |= ACER_CAP_WIRELESS;
- 		return AE_OK;
+ Backlight control:
+ ------------------
+ If your laptop model supports it, you will find sysfs files in the
+diff -puN drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes drivers/platform/x86/sony-laptop.c
+--- a/drivers/platform/x86/sony-laptop.c~drivers-platform-x86-sony-laptopc-fix-scancodes
++++ a/drivers/platform/x86/sony-laptop.c
+@@ -347,6 +347,7 @@ static void sony_laptop_report_input_eve
+ 	struct input_dev *jog_dev = sony_laptop_input.jog_dev;
+ 	struct input_dev *key_dev = sony_laptop_input.key_dev;
+ 	struct sony_laptop_keypress kp = { NULL };
++	int scancode = -1;
+ 
+ 	if (event == SONYPI_EVENT_FNKEY_RELEASED ||
+ 			event == SONYPI_EVENT_ANYBUTTON_RELEASED) {
+@@ -380,8 +381,9 @@ static void sony_laptop_report_input_eve
+ 			dprintk("sony_laptop_report_input_event, event not known: %d\n", event);
+ 			break;
+ 		}
+-		if (sony_laptop_input_index[event] != -1) {
+-			kp.key = sony_laptop_input_keycode_map[sony_laptop_input_index[event]];
++		scancode = sony_laptop_input_index[event];
++		if (scancode != -1) {
++			kp.key = sony_laptop_input_keycode_map[scancode];
+ 			if (kp.key != KEY_UNKNOWN)
+ 				kp.dev = key_dev;
+ 		}
+@@ -389,9 +391,13 @@ static void sony_laptop_report_input_eve
  	}
  
+ 	if (kp.dev) {
++		/*
++		 * If we have a scancode we emit it so we can always remap the
++		 * key
++		 */
++		if (scancode != -1)
++			input_event(kp.dev, EV_MSC, MSC_SCAN, scancode);
+ 		input_report_key(kp.dev, kp.key, 1);
+-		/* we emit the scancode so we can always remap the key */
+-		input_event(kp.dev, EV_MSC, MSC_SCAN, event);
+ 		input_sync(kp.dev);
+ 
+ 		/* schedule key release */
+@@ -466,7 +472,7 @@ static int sony_laptop_setup_input(struc
+ 	jog_dev->name = "Sony Vaio Jogdial";
+ 	jog_dev->id.bustype = BUS_ISA;
+ 	jog_dev->id.vendor = PCI_VENDOR_ID_SONY;
+-	key_dev->dev.parent = &acpi_device->dev;
++	jog_dev->dev.parent = &acpi_device->dev;
+ 
+ 	input_set_capability(jog_dev, EV_KEY, BTN_MIDDLE);
+ 	input_set_capability(jog_dev, EV_REL, REL_WHEEL);
 _
 
-Patches currently in -mm which might be from ike.pan@canonical.com are
+Patches currently in -mm which might be from john@calvaedi.com are
 
-origin.patch
 linux-next.patch
 
