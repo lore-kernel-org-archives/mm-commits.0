@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately.patch added to -mm tree
-Date: Wed, 14 Mar 2012 14:48:57 -0700
-Message-ID: <20120314214858.047E8A076E@akpm.mtv.corp.google.com>
+Subject: + signals-clone_parent-shouldnt-allow-to-set-exit_signal.patch added to -mm tree
+Date: Wed, 14 Mar 2012 14:51:36 -0700
+Message-ID: <20120314215136.A4CFFA0414@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:50475 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031116Ab2CNVtA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 17:49:00 -0400
-Received: by eaaq10 with SMTP id q10so98000eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 14:48:59 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:45909 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761437Ab2CNVvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 17:51:39 -0400
+Received: by eekc41 with SMTP id c41so100526eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 14:51:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: takeuchi.akr@jp.panasonic.com, C.Emde@osadl.org, manfred@colorfullife.com, owada.kiyoshi@jp.panasonic.com, tglx@linutronix.de
+Cc: oleg@redhat.com
 
 
 The patch titled
-     Subject: mqueue: ignore the validity of abs_timeout parameter when message can be performed immediately
+     Subject: signals: CLONE_PARENT shouldn't allow to set ->exit_signal
 has been added to the -mm tree.  Its filename is
-     mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately.patch
+     signals-clone_parent-shouldnt-allow-to-set-exit_signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,118 +33,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
-Subject: mqueue: ignore the validity of abs_timeout parameter when message can be performed immediately
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: signals: CLONE_PARENT shouldn't allow to set ->exit_signal
 
-This patch fixes a regression in the mq_timed{send,receive} syscall.
+The child must not control its ->exit_signal, it is the parent who decides
+which signal the child should use for notification.
 
-When a message of mqueue can be performed immediately, the validity of
-abs_timeout parameter should not be checked.
+This means that CLONE_PARENT should not use "clone_flags & CSIGNAL", the
+forking task is the sibling of the new process and their parent doesn't
+control exit_signal in this case.
 
-According to the manpage of mq_timedreceive:
-    Under no circumstance shall the operation fail with a timeout
-    if a message can be removed from the message queue immediately.
-    The validity of the abstime parameter need not be checked
-    if a message can be removed from the message queue immediately.
+This patch uses ->exit_signal of the forking process, but perhaps we
+should simply use SIGCHLD.
 
-On 2.6.35+ kernel, mq_timed{send,receive} returns EINVAL incorrectly, in
-this situation.
+We read group_leader->exit_signal lockless, this can race with the
+ORIGINAL_SIGNAL -> SIGCHLD transition, but this is fine.
 
-I found this problem during the OPTS testcase
-"conformance/interfaces/mq_timedreceive/10-2":
+Potentially this change allows to kill self_exec_id/parent_exec_id.
 
-    # ./10-2.test
-    FAIL: the validity of abs_timeout is checked
-    Test FAILED
-
-Signed-off-by: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
-Signed-off-by: Kiyoshi Owada <owada.kiyoshi@jp.panasonic.com>
-Cc: Carsten Emde <C.Emde@osadl.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   31 +++++++++++++++++++++++++++----
- 1 file changed, 27 insertions(+), 4 deletions(-)
+ kernel/fork.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN ipc/mqueue.c~mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately ipc/mqueue.c
---- a/ipc/mqueue.c~mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately
-+++ a/ipc/mqueue.c
-@@ -851,14 +851,22 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
- 	struct msg_msg *msg_ptr;
- 	struct mqueue_inode_info *info;
- 	ktime_t expires, *timeout = NULL;
-+	int timeout_param_error = 0;
- 	struct timespec ts;
- 	int ret;
+diff -puN kernel/fork.c~signals-clone_parent-shouldnt-allow-to-set-exit_signal kernel/fork.c
+--- a/kernel/fork.c~signals-clone_parent-shouldnt-allow-to-set-exit_signal
++++ a/kernel/fork.c
+@@ -1360,7 +1360,13 @@ static struct task_struct *copy_process(
+ 	clear_all_latency_tracing(p);
  
- 	if (u_abs_timeout) {
- 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
- 		if (res)
--			return res;
--		timeout = &expires;
-+			/*
-+			 * The validity of the abs_timeout parameter need not be
-+			 * checked when there is sufficient room in the queue.
-+			 * So, do not return here, even if the parameter is
-+			 * invalid.
-+			 */
-+			timeout_param_error = res;
-+		else
-+			timeout = &expires;
- 	}
+ 	/* ok, now we should be set up.. */
+-	p->exit_signal = (clone_flags & CLONE_THREAD) ? -1 : (clone_flags & CSIGNAL);
++	if (clone_flags & CLONE_THREAD)
++		p->exit_signal = -1;
++	else if (clone_flags & CLONE_PARENT)
++		p->exit_signal = current->group_leader->exit_signal;
++	else
++		p->exit_signal = (clone_flags & CSIGNAL);
++
+ 	p->pdeath_signal = 0;
+ 	p->exit_state = 0;
  
- 	if (unlikely(msg_prio >= (unsigned long) MQ_PRIO_MAX))
-@@ -906,6 +914,9 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
- 		if (filp->f_flags & O_NONBLOCK) {
- 			spin_unlock(&info->lock);
- 			ret = -EAGAIN;
-+		} else if (unlikely(timeout_param_error)) {
-+			spin_unlock(&info->lock);
-+			ret = timeout_param_error;
- 		} else {
- 			wait.task = current;
- 			wait.msg = (void *) msg_ptr;
-@@ -945,13 +956,21 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
- 	struct mqueue_inode_info *info;
- 	struct ext_wait_queue wait;
- 	ktime_t expires, *timeout = NULL;
-+	int timeout_param_error = 0;
- 	struct timespec ts;
- 
- 	if (u_abs_timeout) {
- 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
- 		if (res)
--			return res;
--		timeout = &expires;
-+			/*
-+			 * The validity of the abs_timeout parameter need not be
-+			 * checked if a message can be removed from the message
-+			 * queue immediately. So, do not return here, even if
-+			 * the parameter is invalid.
-+			 */
-+			timeout_param_error = res;
-+		else
-+			timeout = &expires;
- 	}
- 
- 	audit_mq_sendrecv(mqdes, msg_len, 0, timeout ? &ts : NULL);
-@@ -986,6 +1005,10 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
- 		if (filp->f_flags & O_NONBLOCK) {
- 			spin_unlock(&info->lock);
- 			ret = -EAGAIN;
-+		} else if (unlikely(timeout_param_error)) {
-+			spin_unlock(&info->lock);
-+			ret = timeout_param_error;
-+			msg_ptr = NULL; /* just for shutting up warning */
- 		} else {
- 			wait.task = current;
- 			wait.state = STATE_NONE;
 _
-Subject: Subject: mqueue: ignore the validity of abs_timeout parameter when message can be performed immediately
+Subject: Subject: signals: CLONE_PARENT shouldn't allow to set ->exit_signal
 
-Patches currently in -mm which might be from takeuchi.akr@jp.panasonic.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately.patch
+origin.patch
+prctl-use-cap_sys_resource-for-pr_set_mm-option.patch
+linux-next.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+mips-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
+xtensa-dont-reimplement-force_sigsegv.patch
+xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
+xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+xtensa-use-set_current_blocked-and-block_sigmask.patch
+sparc-use-block_sigmask.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+sh-no-need-to-reset-handler-if-sa_oneshot.patch
+sh-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+alpha-use-set_current_blocked-and-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+c6x-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+um-dont-restore-current-blocked-on-error.patch
+um-use-set_current_blocked-and-block_sigmask.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+powerpc-eeh-remove-eeh_event_handler-daemonize.patch
+ptrace-the-killed-tracee-should-not-enter-the-syscall.patch
+ptrace-dont-send-sigtrap-on-exec-if-seized.patch
+ptrace-dont-modify-flags-on-ptrace_setoptions-failure.patch
+ptrace-simplify-ptrace_foo-constants-and-ptrace_setoptions-code.patch
+ptrace-make-ptrace_seize-set-ptrace-options-specified-in-data-parameter.patch
+ptrace-renumber-ptrace_event_stop-so-that-future-new-options-and-events-can-match.patch
+ptrace-remove-ptrace_seize_devel-bit.patch
+hexagon-use-set_current_blocked-and-block_sigmask.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+signals-clone_parent-shouldnt-allow-to-set-exit_signal.patch
+usermodehelper-use-umh_wait_proc-consistently.patch
+usermodehelper-introduce-umh_completesub_info.patch
+usermodehelper-implement-umh_killable.patch
+usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+kmod-introduce-call_modprobe-helper.patch
+kmod-make-__request_module-killable.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
 
