@@ -1,138 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tile-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
-Date: Wed, 14 Mar 2012 14:24:48 -0700
-Message-ID: <20120314212448.71A3FA076E@akpm.mtv.corp.google.com>
+Subject: + mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately.patch added to -mm tree
+Date: Wed, 14 Mar 2012 14:48:57 -0700
+Message-ID: <20120314214858.047E8A076E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:65523 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030915Ab2CNVYu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 17:24:50 -0400
-Received: by mail-fa0-f74.google.com with SMTP id a19so98071faa.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 14:24:49 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:50475 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031116Ab2CNVtA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 17:49:00 -0400
+Received: by eaaq10 with SMTP id q10so98000eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 14:48:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, arnd@arndb.de, cmetcalf@tilera.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: takeuchi.akr@jp.panasonic.com, C.Emde@osadl.org, manfred@colorfullife.com, owada.kiyoshi@jp.panasonic.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: tile: use set_current_blocked() and block_sigmask()
-has been removed from the -mm tree.  Its filename was
-     tile-use-set_current_blocked-and-block_sigmask.patch
+     Subject: mqueue: ignore the validity of abs_timeout parameter when message can be performed immediately
+has been added to the -mm tree.  Its filename is
+     mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: tile: use set_current_blocked() and block_sigmask()
+From: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
+Subject: mqueue: ignore the validity of abs_timeout parameter when message can be performed immediately
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
+This patch fixes a regression in the mq_timed{send,receive} syscall.
 
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
+When a message of mqueue can be performed immediately, the validity of
+abs_timeout parameter should not be checked.
 
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+According to the manpage of mq_timedreceive:
+    Under no circumstance shall the operation fail with a timeout
+    if a message can be removed from the message queue immediately.
+    The validity of the abstime parameter need not be checked
+    if a message can be removed from the message queue immediately.
+
+On 2.6.35+ kernel, mq_timed{send,receive} returns EINVAL incorrectly, in
+this situation.
+
+I found this problem during the OPTS testcase
+"conformance/interfaces/mq_timedreceive/10-2":
+
+    # ./10-2.test
+    FAIL: the validity of abs_timeout is checked
+    Test FAILED
+
+Signed-off-by: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
+Signed-off-by: Kiyoshi Owada <owada.kiyoshi@jp.panasonic.com>
+Cc: Carsten Emde <C.Emde@osadl.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/kernel/compat_signal.c |    5 +----
- arch/tile/kernel/signal.c        |   13 ++-----------
- 2 files changed, 3 insertions(+), 15 deletions(-)
+ ipc/mqueue.c |   31 +++++++++++++++++++++++++++----
+ 1 file changed, 27 insertions(+), 4 deletions(-)
 
-diff -puN arch/tile/kernel/compat_signal.c~tile-use-set_current_blocked-and-block_sigmask arch/tile/kernel/compat_signal.c
---- a/arch/tile/kernel/compat_signal.c~tile-use-set_current_blocked-and-block_sigmask
-+++ a/arch/tile/kernel/compat_signal.c
-@@ -303,10 +303,7 @@ long compat_sys_rt_sigreturn(struct pt_r
- 		goto badframe;
+diff -puN ipc/mqueue.c~mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately ipc/mqueue.c
+--- a/ipc/mqueue.c~mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately
++++ a/ipc/mqueue.c
+@@ -851,14 +851,22 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
+ 	struct msg_msg *msg_ptr;
+ 	struct mqueue_inode_info *info;
+ 	ktime_t expires, *timeout = NULL;
++	int timeout_param_error = 0;
+ 	struct timespec ts;
+ 	int ret;
  
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
- 		goto badframe;
-diff -puN arch/tile/kernel/signal.c~tile-use-set_current_blocked-and-block_sigmask arch/tile/kernel/signal.c
---- a/arch/tile/kernel/signal.c~tile-use-set_current_blocked-and-block_sigmask
-+++ a/arch/tile/kernel/signal.c
-@@ -97,10 +97,7 @@ SYSCALL_DEFINE1(rt_sigreturn, struct pt_
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
- 		goto badframe;
-@@ -286,13 +283,7 @@ static int handle_signal(unsigned long s
- 		 * the work_pending path in the return-to-user code, and
- 		 * either way we can re-enable interrupts unconditionally.
- 		 */
--		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked,
--			  &current->blocked, &ka->sa.sa_mask);
--		if (!(ka->sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked, sig);
--		recalc_sigpending();
--		spin_unlock_irq(&current->sighand->siglock);
-+		block_sigmask(ka, sig);
+ 	if (u_abs_timeout) {
+ 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
+ 		if (res)
+-			return res;
+-		timeout = &expires;
++			/*
++			 * The validity of the abs_timeout parameter need not be
++			 * checked when there is sufficient room in the queue.
++			 * So, do not return here, even if the parameter is
++			 * invalid.
++			 */
++			timeout_param_error = res;
++		else
++			timeout = &expires;
  	}
  
- 	return ret;
+ 	if (unlikely(msg_prio >= (unsigned long) MQ_PRIO_MAX))
+@@ -906,6 +914,9 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
+ 		if (filp->f_flags & O_NONBLOCK) {
+ 			spin_unlock(&info->lock);
+ 			ret = -EAGAIN;
++		} else if (unlikely(timeout_param_error)) {
++			spin_unlock(&info->lock);
++			ret = timeout_param_error;
+ 		} else {
+ 			wait.task = current;
+ 			wait.msg = (void *) msg_ptr;
+@@ -945,13 +956,21 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
+ 	struct mqueue_inode_info *info;
+ 	struct ext_wait_queue wait;
+ 	ktime_t expires, *timeout = NULL;
++	int timeout_param_error = 0;
+ 	struct timespec ts;
+ 
+ 	if (u_abs_timeout) {
+ 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
+ 		if (res)
+-			return res;
+-		timeout = &expires;
++			/*
++			 * The validity of the abs_timeout parameter need not be
++			 * checked if a message can be removed from the message
++			 * queue immediately. So, do not return here, even if
++			 * the parameter is invalid.
++			 */
++			timeout_param_error = res;
++		else
++			timeout = &expires;
+ 	}
+ 
+ 	audit_mq_sendrecv(mqdes, msg_len, 0, timeout ? &ts : NULL);
+@@ -986,6 +1005,10 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
+ 		if (filp->f_flags & O_NONBLOCK) {
+ 			spin_unlock(&info->lock);
+ 			ret = -EAGAIN;
++		} else if (unlikely(timeout_param_error)) {
++			spin_unlock(&info->lock);
++			ret = timeout_param_error;
++			msg_ptr = NULL; /* just for shutting up warning */
+ 		} else {
+ 			wait.task = current;
+ 			wait.state = STATE_NONE;
 _
+Subject: Subject: mqueue: ignore the validity of abs_timeout parameter when message can be performed immediately
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from takeuchi.akr@jp.panasonic.com are
 
-origin.patch
-linux-next.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-xtensa-dont-reimplement-force_sigsegv.patch
-xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
-xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-xtensa-use-set_current_blocked-and-block_sigmask.patch
-sparc-use-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-um-dont-restore-current-blocked-on-error.patch
-um-use-set_current_blocked-and-block_sigmask.patch
-powerpc-eeh-remove-eeh_event_handler-daemonize.patch
-hexagon-use-set_current_blocked-and-block_sigmask.patch
+mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately.patch
 
