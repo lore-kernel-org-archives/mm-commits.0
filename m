@@ -1,24 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 15 Mar 2012 15:32:22 -0700
-Message-ID: <20120315223223.49386A018B@akpm.mtv.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 15 Mar 2012 15:51:32 -0700
+Message-ID: <20120315233516.A882F1E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:42915 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759898Ab2COWc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Mar 2012 18:32:27 -0400
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:57455 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161037Ab2COXfT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Mar 2012 19:35:19 -0400
+Received: by yhgm50 with SMTP id m50so595499yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Mar 2012 16:35:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +34,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
+Subject: linux-next-git-rejects
 
-Cc: <stable@vger.kernel.org>		[2.6.38+]
-
-WARNING: labels should not be indented
-#387: FILE: mm/memory.c:1267:
-+	next:
-
-total: 0 errors, 1 warnings, 183 lines checked
-
-./patches/mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ block/blk-ioc.c     |    6 +-----
+ block/cfq-iosched.c |    4 ----
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes mm/memory.c
---- a/mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
-+++ a/mm/memory.c
-@@ -1247,7 +1247,7 @@ static inline unsigned long zap_pmd_rang
- 	do {
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_trans_huge(*pmd)) {
--			if (next-addr != HPAGE_PMD_SIZE) {
-+			if (next - addr != HPAGE_PMD_SIZE) {
- 				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
- 				split_huge_page_pmd(vma->vm_mm, pmd);
- 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
-@@ -1264,7 +1264,7 @@ static inline unsigned long zap_pmd_rang
- 		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
- 			goto next;
- 		next = zap_pte_range(tlb, vma, pmd, addr, next, details);
--	next:
-+next:
- 		cond_resched();
- 	} while (pmd++, addr = next, addr != end);
+diff -puN block/blk-ioc.c~linux-next-git-rejects block/blk-ioc.c
+--- a/block/blk-ioc.c~linux-next-git-rejects
++++ a/block/blk-ioc.c
+@@ -210,7 +210,6 @@ void exit_io_context(struct task_struct 
+ 	task->io_context = NULL;
+ 	task_unlock(task);
  
+-<<<<<<< HEAD
+ 	if (!atomic_dec_and_test(&ioc->nr_tasks)) {
+ 		put_io_context(ioc);
+ 		return;
+@@ -237,11 +236,8 @@ retry:
+ 	}
+ 	spin_unlock_irqrestore(&ioc->lock, flags);
+ 
+-	put_io_context(ioc);
+-=======
+ 	atomic_dec(&ioc->nr_tasks);
+-	put_io_context_active(ioc);
+->>>>>>> linux-next/akpm-end
++	put_io_context(ioc);
+ }
+ 
+ /**
+diff -puN block/cfq-iosched.c~linux-next-git-rejects block/cfq-iosched.c
+--- a/block/cfq-iosched.c~linux-next-git-rejects
++++ a/block/cfq-iosched.c
+@@ -3317,11 +3317,7 @@ cfq_set_request(struct request_queue *q,
+ 	/* handle changed notifications */
+ 	changed = icq_get_changed(&cic->icq);
+ 	if (unlikely(changed & ICQ_IOPRIO_CHANGED))
+-<<<<<<< HEAD
+-		changed_ioprio(cic);
+-=======
+ 		changed_ioprio(cic, bio);
+->>>>>>> linux-next/akpm-end
+ #ifdef CONFIG_CFQ_GROUP_IOSCHED
+ 	if (unlikely(changed & ICQ_CGROUP_CHANGED))
+ 		changed_cgroup(cic);
 _
-Subject: Subject: mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
+Subject: Subject: linux-next-git-rejects
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
