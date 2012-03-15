@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-rewrite-gang-lookup-with-using-iterator.patch added to -mm tree
-Date: Wed, 14 Mar 2012 17:44:34 -0700
-Message-ID: <20120315004435.0DA88A0128@akpm.mtv.corp.google.com>
+Subject: + mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch added to -mm tree
+Date: Thu, 15 Mar 2012 15:30:30 -0700
+Message-ID: <20120315223031.62B63A018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:37472 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031375Ab2COAog (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Mar 2012 20:44:36 -0400
-Received: by yhgm50 with SMTP id m50so405832yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Mar 2012 17:44:35 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:61955 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964997Ab2COWag (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Mar 2012 18:30:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, hch@lst.de, hughd@google.com, torvalds@linux-foundation.org
+Cc: aarcange@redhat.com, davej@redhat.com, hannes@cmpxchg.org, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, riel@redhat.com, stable@vger.kernel.org, uobergfe@redhat.com
 
 
 The patch titled
-     Subject: radix-tree: rewrite gang lookup using iterator
+     Subject: mm: thp: fix pmd_bad() triggering in code paths holding mmap_sem read mode
 has been added to the -mm tree.  Its filename is
-     radix-tree-rewrite-gang-lookup-with-using-iterator.patch
+     mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,390 +31,476 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: radix-tree: rewrite gang lookup using iterator
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: thp: fix pmd_bad() triggering in code paths holding mmap_sem read mode
 
-Rewrite radix_tree_gang_lookup_* functions using the new radix-tree
-iterator.
+In some cases it may happen that pmd_none_or_clear_bad() is called with
+the mmap_sem hold in read mode.  In those cases the huge page faults can
+allocate hugepmds under pmd_none_or_clear_bad() and that can trigger a
+false positive from pmd_bad() that will not like to see a pmd
+materializing as trans huge.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Tested-by: Hugh Dickins <hughd@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Christoph Hellwig <hch@lst.de>
+It's not khugepaged causing the problem, khugepaged holds the mmap_sem in
+write mode (and all those sites must hold the mmap_sem in read mode to
+prevent pagetables to go away from under them, during code review it seems
+vm86 mode on 32bit kernels requires that too unless it's restricted to 1
+thread per process or UP builds).  The race is only with the huge
+pagefaults that can convert a pmd_none() into a pmd_trans_huge().
+
+Effectively all these pmd_none_or_clear_bad() sites running with mmap_sem
+in read mode are somewhat speculative with the page faults, and the result
+is always undefined when they run simultaneously.  This is probably why it
+wasn't common to run into this.  For example if the madvise(MADV_DONTNEED)
+runs zap_page_range() shortly before the page fault, the hugepage will not
+be zapped, if the page fault runs first it will be zapped.
+
+Altering pmd_bad() not to error out if it finds hugepmds won't be enough
+to fix this, because zap_pmd_range would then proceed to call
+zap_pte_range (which would be incorrect if the pmd become a
+pmd_trans_huge()).
+
+The simplest way to fix this is to read the pmd in the local stack
+(regardless of what we read, no need of actual CPU barriers, only compiler
+barrier needed), and be sure it is not changing under the code that
+computes its value.  Even if the real pmd is changing under the value we
+hold on the stack, we don't care.  If we actually end up in zap_pte_range
+it means the pmd was not none already and it was not huge, and it can't
+become huge from under us (khugepaged locking explained above).
+
+All we need is to enforce that there is no way anymore that in a code path
+like below, pmd_trans_huge can be false, but pmd_none_or_clear_bad can run
+into a hugepmd.  The overhead of a barrier() is just a compiler tweak and
+should not be measurable (I only added it for THP builds).  I don't
+exclude different compiler versions may have prevented the race too by
+caching the value of *pmd on the stack (that hasn't been verified, but it
+wouldn't be impossible considering pmd_none_or_clear_bad, pmd_bad,
+pmd_trans_huge, pmd_none are all inlines and there's no external function
+called in between pmd_trans_huge and pmd_none_or_clear_bad).
+
+		if (pmd_trans_huge(*pmd)) {
+			if (next-addr != HPAGE_PMD_SIZE) {
+				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
+				split_huge_page_pmd(vma->vm_mm, pmd);
+			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
+				continue;
+			/* fall through */
+		}
+		if (pmd_none_or_clear_bad(pmd))
+
+Because this race condition could be exercised without special privileges
+this was reported in CVE-2012-1179.
+
+The race was identified and fully explained by Ulrich who debugged it. 
+I'm quoting his accurate explanation below, for reference.
+
+====== start quote =======
+  mapcount 0 page_mapcount 1
+  kernel BUG at mm/huge_memory.c:1384!
+
+At some point prior to the panic, a "bad pmd ..." message similar to the
+following is logged on the console:
+
+  mm/memory.c:145: bad pmd ffff8800376e1f98(80000000314000e7).
+
+The "bad pmd ..." message is logged by pmd_clear_bad() before it clears
+the page's PMD table entry.
+
+    143 void pmd_clear_bad(pmd_t *pmd)
+    144 {
+->  145         pmd_ERROR(*pmd);
+    146         pmd_clear(pmd);
+    147 }
+
+After the PMD table entry has been cleared, there is an inconsistency
+between the actual number of PMD table entries that are mapping the page
+and the page's map count (_mapcount field in struct page). When the page
+is subsequently reclaimed, __split_huge_page() detects this inconsistency.
+
+   1381         if (mapcount != page_mapcount(page))
+   1382                 printk(KERN_ERR "mapcount %d page_mapcount %d\n",
+   1383                        mapcount, page_mapcount(page));
+-> 1384         BUG_ON(mapcount != page_mapcount(page));
+
+The root cause of the problem is a race of two threads in a multithreaded
+process. Thread B incurs a page fault on a virtual address that has never
+been accessed (PMD entry is zero) while Thread A is executing an madvise()
+system call on a virtual address within the same 2 MB (huge page) range.
+
+           virtual address space
+          .---------------------.
+          |                     |
+          |                     |
+        .-|---------------------|
+        | |                     |
+        | |                     |<-- B(fault)
+        | |                     |
+  2 MB  | |/////////////////////|-.
+  huge <  |/////////////////////|  > A(range)
+  page  | |/////////////////////|-'
+        | |                     |
+        | |                     |
+        '-|---------------------|
+          |                     |
+          |                     |
+          '---------------------'
+
+- Thread A is executing an madvise(..., MADV_DONTNEED) system call
+  on the virtual address range "A(range)" shown in the picture.
+
+sys_madvise
+  // Acquire the semaphore in shared mode.
+  down_read(&current->mm->mmap_sem)
+  ...
+  madvise_vma
+    switch (behavior)
+    case MADV_DONTNEED:
+         madvise_dontneed
+           zap_page_range
+             unmap_vmas
+               unmap_page_range
+                 zap_pud_range
+                   zap_pmd_range
+                     //
+                     // Assume that this huge page has never been accessed.
+                     // I.e. content of the PMD entry is zero (not mapped).
+                     //
+                     if (pmd_trans_huge(*pmd)) {
+                         // We don't get here due to the above assumption.
+                     }
+                     //
+                     // Assume that Thread B incurred a page fault and
+         .---------> // sneaks in here as shown below.
+         |           //
+         |           if (pmd_none_or_clear_bad(pmd))
+         |               {
+         |                 if (unlikely(pmd_bad(*pmd)))
+         |                     pmd_clear_bad
+         |                     {
+         |                       pmd_ERROR
+         |                         // Log "bad pmd ..." message here.
+         |                       pmd_clear
+         |                         // Clear the page's PMD entry.
+         |                         // Thread B incremented the map count
+         |                         // in page_add_new_anon_rmap(), but
+         |                         // now the page is no longer mapped
+         |                         // by a PMD entry (-> inconsistency).
+         |                     }
+         |               }
+         |
+         v
+- Thread B is handling a page fault on virtual address "B(fault)" shown
+  in the picture.
+
+...
+do_page_fault
+  __do_page_fault
+    // Acquire the semaphore in shared mode.
+    down_read_trylock(&mm->mmap_sem)
+    ...
+    handle_mm_fault
+      if (pmd_none(*pmd) && transparent_hugepage_enabled(vma))
+          // We get here due to the above assumption (PMD entry is zero).
+          do_huge_pmd_anonymous_page
+            alloc_hugepage_vma
+              // Allocate a new transparent huge page here.
+            ...
+            __do_huge_pmd_anonymous_page
+              ...
+              spin_lock(&mm->page_table_lock)
+              ...
+              page_add_new_anon_rmap
+                // Here we increment the page's map count (starts at -1).
+                atomic_set(&page->_mapcount, 0)
+              set_pmd_at
+                // Here we set the page's PMD entry which will be cleared
+                // when Thread A calls pmd_clear_bad().
+              ...
+              spin_unlock(&mm->page_table_lock)
+
+The mmap_sem does not prevent the race because both threads are acquiring
+it in shared mode (down_read).  Thread B holds the page_table_lock while
+the page's map count and PMD table entry are updated.  However, Thread A
+does not synchronize on that lock.
+
+====== end quote =======
+
+Reported-by: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Jones <davej@redhat.com>
+Acked-by: Larry Woodman <lwoodman@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: <stable@vger.kernel.org>		[2.6.38+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |  291 +++++----------------------------------------
- 1 file changed, 33 insertions(+), 258 deletions(-)
+ arch/x86/kernel/vm86_32.c     |    2 +
+ fs/proc/task_mmu.c            |    9 +++++
+ include/asm-generic/pgtable.h |   57 ++++++++++++++++++++++++++++++++
+ mm/memcontrol.c               |    4 ++
+ mm/memory.c                   |   14 ++++++-
+ mm/mempolicy.c                |    2 -
+ mm/mincore.c                  |    2 -
+ mm/pagewalk.c                 |    2 -
+ mm/swapfile.c                 |    4 --
+ 9 files changed, 87 insertions(+), 9 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-rewrite-gang-lookup-with-using-iterator lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-rewrite-gang-lookup-with-using-iterator
-+++ a/lib/radix-tree.c
-@@ -964,57 +964,6 @@ unsigned long radix_tree_prev_hole(struc
+diff -puN arch/x86/kernel/vm86_32.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode arch/x86/kernel/vm86_32.c
+--- a/arch/x86/kernel/vm86_32.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/arch/x86/kernel/vm86_32.c
+@@ -172,6 +172,7 @@ static void mark_screen_rdonly(struct mm
+ 	spinlock_t *ptl;
+ 	int i;
+ 
++	down_write(&mm->mmap_sem);
+ 	pgd = pgd_offset(mm, 0xA0000);
+ 	if (pgd_none_or_clear_bad(pgd))
+ 		goto out;
+@@ -190,6 +191,7 @@ static void mark_screen_rdonly(struct mm
+ 	}
+ 	pte_unmap_unlock(pte, ptl);
+ out:
++	up_write(&mm->mmap_sem);
+ 	flush_tlb();
  }
- EXPORT_SYMBOL(radix_tree_prev_hole);
  
--static unsigned int
--__lookup(struct radix_tree_node *slot, void ***results, unsigned long *indices,
--	unsigned long index, unsigned int max_items, unsigned long *next_index)
--{
--	unsigned int nr_found = 0;
--	unsigned int shift, height;
--	unsigned long i;
--
--	height = slot->height;
--	if (height == 0)
--		goto out;
--	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
--
--	for ( ; height > 1; height--) {
--		i = (index >> shift) & RADIX_TREE_MAP_MASK;
--		for (;;) {
--			if (slot->slots[i] != NULL)
--				break;
--			index &= ~((1UL << shift) - 1);
--			index += 1UL << shift;
--			if (index == 0)
--				goto out;	/* 32-bit wraparound */
--			i++;
--			if (i == RADIX_TREE_MAP_SIZE)
--				goto out;
--		}
--
--		shift -= RADIX_TREE_MAP_SHIFT;
--		slot = rcu_dereference_raw(slot->slots[i]);
--		if (slot == NULL)
--			goto out;
--	}
--
--	/* Bottom level: grab some items */
--	for (i = index & RADIX_TREE_MAP_MASK; i < RADIX_TREE_MAP_SIZE; i++) {
--		if (slot->slots[i]) {
--			results[nr_found] = &(slot->slots[i]);
--			if (indices)
--				indices[nr_found] = index;
--			if (++nr_found == max_items) {
--				index++;
--				goto out;
--			}
--		}
--		index++;
--	}
--out:
--	*next_index = index;
--	return nr_found;
--}
--
- /**
-  *	radix_tree_gang_lookup - perform multiple lookup on a radix tree
-  *	@root:		radix tree root
-@@ -1038,48 +987,19 @@ unsigned int
- radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
- 			unsigned long first_index, unsigned int max_items)
- {
--	unsigned long max_index;
--	struct radix_tree_node *node;
--	unsigned long cur_index = first_index;
--	unsigned int ret;
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	unsigned int ret = 0;
+diff -puN fs/proc/task_mmu.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/fs/proc/task_mmu.c
+@@ -409,6 +409,9 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	} else {
+ 		spin_unlock(&walk->mm->page_table_lock);
+ 	}
++
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 	/*
+ 	 * The mmap_sem held all the way back in m_start() is what
+ 	 * keeps khugepaged out of here and from collapsing things
+@@ -507,6 +510,8 @@ static int clear_refs_pte_range(pmd_t *p
+ 	struct page *page;
  
--	node = rcu_dereference_raw(root->rnode);
--	if (!node)
-+	if (unlikely(!max_items))
- 		return 0;
+ 	split_huge_page_pmd(walk->mm, pmd);
++	if (pmd_trans_unstable(pmd))
++		return 0;
  
--	if (!radix_tree_is_indirect_ptr(node)) {
--		if (first_index > 0)
--			return 0;
--		results[0] = node;
--		return 1;
--	}
--	node = indirect_to_ptr(node);
--
--	max_index = radix_tree_maxindex(node->height);
--
--	ret = 0;
--	while (ret < max_items) {
--		unsigned int nr_found, slots_found, i;
--		unsigned long next_index;	/* Index of next search */
--
--		if (cur_index > max_index)
--			break;
--		slots_found = __lookup(node, (void ***)results + ret, NULL,
--				cur_index, max_items - ret, &next_index);
--		nr_found = 0;
--		for (i = 0; i < slots_found; i++) {
--			struct radix_tree_node *slot;
--			slot = *(((void ***)results)[ret + i]);
--			if (!slot)
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+@@ -670,6 +675,8 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	int err = 0;
+ 
+ 	split_huge_page_pmd(walk->mm, pmd);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 
+ 	/* find the first VMA at or above 'addr' */
+ 	vma = find_vma(walk->mm, addr);
+@@ -961,6 +968,8 @@ static int gather_pte_stats(pmd_t *pmd, 
+ 		spin_unlock(&walk->mm->page_table_lock);
+ 	}
+ 
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+ 	do {
+ 		struct page *page = can_gather_numa_stats(*pte, md->vma, addr);
+diff -puN include/asm-generic/pgtable.h~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/include/asm-generic/pgtable.h
+@@ -444,6 +444,63 @@ static inline int pmd_write(pmd_t pmd)
+ #endif /* __HAVE_ARCH_PMD_WRITE */
+ #endif
+ 
++/*
++ * This function is meant to be used by sites walking pagetables with
++ * the mmap_sem hold in read mode to protect against MADV_DONTNEED and
++ * transhuge page faults. MADV_DONTNEED can convert a transhuge pmd
++ * into a null pmd and the transhuge page fault can convert a null pmd
++ * into an hugepmd or into a regular pmd (if the hugepage allocation
++ * fails). While holding the mmap_sem in read mode the pmd becomes
++ * stable and stops changing under us only if it's not null and not a
++ * transhuge pmd. When those races occurs and this function makes a
++ * difference vs the standard pmd_none_or_clear_bad, the result is
++ * undefined so behaving like if the pmd was none is safe (because it
++ * can return none anyway). The compiler level barrier() is critically
++ * important to compute the two checks atomically on the same pmdval.
++ */
++static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t *pmd)
++{
++	/* depend on compiler for an atomic pmd read */
++	pmd_t pmdval = *pmd;
++	/*
++	 * The barrier will stabilize the pmdval in a register or on
++	 * the stack so that it will stop changing under the code.
++	 */
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	barrier();
++#endif
++	if (pmd_none(pmdval))
++		return 1;
++	if (unlikely(pmd_bad(pmdval))) {
++		if (!pmd_trans_huge(pmdval))
++			pmd_clear_bad(pmd);
++		return 1;
++	}
++	return 0;
++}
++
++/*
++ * This is a noop if Transparent Hugepage Support is not built into
++ * the kernel. Otherwise it is equivalent to
++ * pmd_none_or_trans_huge_or_clear_bad(), and shall only be called in
++ * places that already verified the pmd is not none and they want to
++ * walk ptes while holding the mmap sem in read mode (write mode don't
++ * need this). If THP is not enabled, the pmd can't go away under the
++ * code even if MADV_DONTNEED runs, but if THP is enabled we need to
++ * run a pmd_trans_unstable before walking the ptes after
++ * split_huge_page_pmd returns (because it may have run when the pmd
++ * become null, but then a page fault can map in a THP and not a
++ * regular page).
++ */
++static inline int pmd_trans_unstable(pmd_t *pmd)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	return pmd_none_or_trans_huge_or_clear_bad(pmd);
++#else
++	return 0;
++#endif
++}
++
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* _ASM_GENERIC_PGTABLE_H */
+diff -puN mm/memcontrol.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/memcontrol.c
+@@ -5230,6 +5230,8 @@ static int mem_cgroup_count_precharge_pt
+ 	spinlock_t *ptl;
+ 
+ 	split_huge_page_pmd(walk->mm, pmd);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+@@ -5390,6 +5392,8 @@ static int mem_cgroup_move_charge_pte_ra
+ 	spinlock_t *ptl;
+ 
+ 	split_huge_page_pmd(walk->mm, pmd);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ retry:
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; addr += PAGE_SIZE) {
+diff -puN mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/memory.c
+--- a/mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/memory.c
+@@ -1251,12 +1251,20 @@ static inline unsigned long zap_pmd_rang
+ 				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
+ 				split_huge_page_pmd(vma->vm_mm, pmd);
+ 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
 -				continue;
--			results[ret + nr_found] =
--				indirect_to_ptr(rcu_dereference_raw(slot));
--			nr_found++;
--		}
--		ret += nr_found;
--		if (next_index == 0)
-+	radix_tree_for_each_slot(slot, root, &iter, first_index) {
-+		results[ret] = indirect_to_ptr(rcu_dereference_raw(*slot));
-+		if (!results[ret])
-+			continue;
-+		if (++ret == max_items)
- 			break;
--		cur_index = next_index;
- 	}
++				goto next;
+ 			/* fall through */
+ 		}
+-		if (pmd_none_or_clear_bad(pmd))
+-			continue;
++		/*
++		 * Here there can be other concurrent MADV_DONTNEED or
++		 * trans huge page faults running, and if the pmd is
++		 * none or trans huge it can change under us. This is
++		 * because MADV_DONTNEED holds the mmap_sem in read
++		 * mode.
++		 */
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
++			goto next;
+ 		next = zap_pte_range(tlb, vma, pmd, addr, next, details);
++	next:
+ 		cond_resched();
+ 	} while (pmd++, addr = next, addr != end);
  
- 	return ret;
-@@ -1109,112 +1029,25 @@ radix_tree_gang_lookup_slot(struct radix
- 			void ***results, unsigned long *indices,
- 			unsigned long first_index, unsigned int max_items)
- {
--	unsigned long max_index;
--	struct radix_tree_node *node;
--	unsigned long cur_index = first_index;
--	unsigned int ret;
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	unsigned int ret = 0;
+diff -puN mm/mempolicy.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/mempolicy.c
+@@ -512,7 +512,7 @@ static inline int check_pmd_range(struct
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+ 		split_huge_page_pmd(vma->vm_mm, pmd);
+-		if (pmd_none_or_clear_bad(pmd))
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			continue;
+ 		if (check_pte_range(vma, pmd, addr, next, nodes,
+ 				    flags, private))
+diff -puN mm/mincore.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/mincore.c
+--- a/mm/mincore.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/mincore.c
+@@ -164,7 +164,7 @@ static void mincore_pmd_range(struct vm_
+ 			}
+ 			/* fall through */
+ 		}
+-		if (pmd_none_or_clear_bad(pmd))
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			mincore_unmapped_range(vma, addr, next, vec);
+ 		else
+ 			mincore_pte_range(vma, pmd, addr, next, vec);
+diff -puN mm/pagewalk.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/pagewalk.c
+@@ -59,7 +59,7 @@ again:
+ 			continue;
  
--	node = rcu_dereference_raw(root->rnode);
--	if (!node)
-+	if (unlikely(!max_items))
- 		return 0;
- 
--	if (!radix_tree_is_indirect_ptr(node)) {
--		if (first_index > 0)
--			return 0;
--		results[0] = (void **)&root->rnode;
-+	radix_tree_for_each_slot(slot, root, &iter, first_index) {
-+		results[ret] = slot;
- 		if (indices)
--			indices[0] = 0;
--		return 1;
--	}
--	node = indirect_to_ptr(node);
--
--	max_index = radix_tree_maxindex(node->height);
--
--	ret = 0;
--	while (ret < max_items) {
--		unsigned int slots_found;
--		unsigned long next_index;	/* Index of next search */
--
--		if (cur_index > max_index)
--			break;
--		slots_found = __lookup(node, results + ret,
--				indices ? indices + ret : NULL,
--				cur_index, max_items - ret, &next_index);
--		ret += slots_found;
--		if (next_index == 0)
-+			indices[ret] = iter.index;
-+		if (++ret == max_items)
- 			break;
--		cur_index = next_index;
- 	}
- 
- 	return ret;
- }
- EXPORT_SYMBOL(radix_tree_gang_lookup_slot);
- 
--/*
-- * FIXME: the two tag_get()s here should use find_next_bit() instead of
-- * open-coding the search.
-- */
--static unsigned int
--__lookup_tag(struct radix_tree_node *slot, void ***results, unsigned long index,
--	unsigned int max_items, unsigned long *next_index, unsigned int tag)
--{
--	unsigned int nr_found = 0;
--	unsigned int shift, height;
--
--	height = slot->height;
--	if (height == 0)
--		goto out;
--	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
--
--	while (height > 0) {
--		unsigned long i = (index >> shift) & RADIX_TREE_MAP_MASK ;
--
--		for (;;) {
--			if (tag_get(slot, tag, i))
--				break;
--			index &= ~((1UL << shift) - 1);
--			index += 1UL << shift;
--			if (index == 0)
--				goto out;	/* 32-bit wraparound */
--			i++;
--			if (i == RADIX_TREE_MAP_SIZE)
--				goto out;
--		}
--		height--;
--		if (height == 0) {	/* Bottom level: grab some items */
--			unsigned long j = index & RADIX_TREE_MAP_MASK;
--
--			for ( ; j < RADIX_TREE_MAP_SIZE; j++) {
--				index++;
--				if (!tag_get(slot, tag, j))
--					continue;
--				/*
--				 * Even though the tag was found set, we need to
--				 * recheck that we have a non-NULL node, because
--				 * if this lookup is lockless, it may have been
--				 * subsequently deleted.
--				 *
--				 * Similar care must be taken in any place that
--				 * lookup ->slots[x] without a lock (ie. can't
--				 * rely on its value remaining the same).
--				 */
--				if (slot->slots[j]) {
--					results[nr_found++] = &(slot->slots[j]);
--					if (nr_found == max_items)
--						goto out;
--				}
--			}
--		}
--		shift -= RADIX_TREE_MAP_SHIFT;
--		slot = rcu_dereference_raw(slot->slots[i]);
--		if (slot == NULL)
--			break;
--	}
--out:
--	*next_index = index;
--	return nr_found;
--}
--
- /**
-  *	radix_tree_gang_lookup_tag - perform multiple lookup on a radix tree
-  *	                             based on a tag
-@@ -1233,52 +1066,19 @@ radix_tree_gang_lookup_tag(struct radix_
- 		unsigned long first_index, unsigned int max_items,
- 		unsigned int tag)
- {
--	struct radix_tree_node *node;
--	unsigned long max_index;
--	unsigned long cur_index = first_index;
--	unsigned int ret;
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	unsigned int ret = 0;
- 
--	/* check the root's tag bit */
--	if (!root_tag_get(root, tag))
-+	if (unlikely(!max_items))
- 		return 0;
- 
--	node = rcu_dereference_raw(root->rnode);
--	if (!node)
--		return 0;
--
--	if (!radix_tree_is_indirect_ptr(node)) {
--		if (first_index > 0)
--			return 0;
--		results[0] = node;
--		return 1;
--	}
--	node = indirect_to_ptr(node);
--
--	max_index = radix_tree_maxindex(node->height);
--
--	ret = 0;
--	while (ret < max_items) {
--		unsigned int nr_found, slots_found, i;
--		unsigned long next_index;	/* Index of next search */
--
--		if (cur_index > max_index)
-+	radix_tree_for_each_tagged(slot, root, &iter, first_index, tag) {
-+		results[ret] = indirect_to_ptr(rcu_dereference_raw(*slot));
-+		if (!results[ret])
-+			continue;
-+		if (++ret == max_items)
- 			break;
--		slots_found = __lookup_tag(node, (void ***)results + ret,
--				cur_index, max_items - ret, &next_index, tag);
--		nr_found = 0;
--		for (i = 0; i < slots_found; i++) {
--			struct radix_tree_node *slot;
--			slot = *(((void ***)results)[ret + i]);
--			if (!slot)
--				continue;
--			results[ret + nr_found] =
--				indirect_to_ptr(rcu_dereference_raw(slot));
--			nr_found++;
--		}
--		ret += nr_found;
--		if (next_index == 0)
--			break;
--		cur_index = next_index;
- 	}
- 
- 	return ret;
-@@ -1303,42 +1103,17 @@ radix_tree_gang_lookup_tag_slot(struct r
- 		unsigned long first_index, unsigned int max_items,
- 		unsigned int tag)
- {
--	struct radix_tree_node *node;
--	unsigned long max_index;
--	unsigned long cur_index = first_index;
--	unsigned int ret;
--
--	/* check the root's tag bit */
--	if (!root_tag_get(root, tag))
--		return 0;
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	unsigned int ret = 0;
- 
--	node = rcu_dereference_raw(root->rnode);
--	if (!node)
-+	if (unlikely(!max_items))
- 		return 0;
- 
--	if (!radix_tree_is_indirect_ptr(node)) {
--		if (first_index > 0)
--			return 0;
--		results[0] = (void **)&root->rnode;
--		return 1;
--	}
--	node = indirect_to_ptr(node);
--
--	max_index = radix_tree_maxindex(node->height);
--
--	ret = 0;
--	while (ret < max_items) {
--		unsigned int slots_found;
--		unsigned long next_index;	/* Index of next search */
--
--		if (cur_index > max_index)
--			break;
--		slots_found = __lookup_tag(node, results + ret,
--				cur_index, max_items - ret, &next_index, tag);
--		ret += slots_found;
--		if (next_index == 0)
-+	radix_tree_for_each_tagged(slot, root, &iter, first_index, tag) {
-+		results[ret] = slot;
-+		if (++ret == max_items)
- 			break;
--		cur_index = next_index;
- 	}
- 
- 	return ret;
+ 		split_huge_page_pmd(walk->mm, pmd);
+-		if (pmd_none_or_clear_bad(pmd))
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			goto again;
+ 		err = walk_pte_range(pmd, addr, next, walk);
+ 		if (err)
+diff -puN mm/swapfile.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/swapfile.c
+@@ -935,9 +935,7 @@ static inline int unuse_pmd_range(struct
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (unlikely(pmd_trans_huge(*pmd)))
+-			continue;
+-		if (pmd_none_or_clear_bad(pmd))
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			continue;
+ 		ret = unuse_pte_range(vma, pmd, addr, next, entry, page);
+ 		if (ret)
 _
-Subject: Subject: radix-tree: rewrite gang lookup using iterator
+Subject: Subject: mm: thp: fix pmd_bad() triggering in code paths holding mmap_sem read mode
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-memcg-free-mem_cgroup-by-rcu-to-fix-oops.patch
 linux-next.patch
-mm-add-rss-counters-consistency-check.patch
-mm-make-get_mm_counter-static-inline.patch
-mm-replace-page_migration-with-is_enabledconfig_migration.patch
-mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug.patch
-mm-fix-page-faults-detection-in-swap-token-logic.patch
-memcg-remove-pcg_cache-page_cgroup-flag-fix.patch
-memcg-kill-dead-prev_priority-stubs.patch
-radix-tree-introduce-bit-optimized-iterator.patch
-radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes.patch
-radix-tree-rewrite-gang-lookup-with-using-iterator.patch
-radix-tree-use-iterators-in-find_get_pages-functions.patch
+mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
+vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
+vmscan-kswapd-carefully-call-compaction.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+vmscan-only-defer-compaction-for-failed-order-and-higher.patch
+mm-compaction-make-compact_control-order-signed.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
+thp-optimize-away-unnecessary-page-table-locking.patch
+thp-optimize-away-unnecessary-page-table-locking-fix.patch
+pagemap-export-kpf_thp.patch
+pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
+pagemap-introduce-data-structure-for-pagemap-entry.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
+thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru.patch
+ksm-cleanup-introduce-find_mergeable_vma.patch
+memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
+memcg-clean-up-existing-move-charge-code.patch
+thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
+memcg-avoid-thp-split-in-task-migration.patch
 
