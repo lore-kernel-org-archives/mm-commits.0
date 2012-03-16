@@ -1,140 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately.patch removed from -mm tree
-Date: Fri, 16 Mar 2012 14:20:36 -0700
-Message-ID: <20120316212036.9FA3AA0313@akpm.mtv.corp.google.com>
+Subject: + maintainers-update-maintainership-of-ltp.patch added to -mm tree
+Date: Fri, 16 Mar 2012 14:24:43 -0700
+Message-ID: <20120316212443.CF4B0A018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:46210 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753025Ab2CPVUh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Mar 2012 17:20:37 -0400
-Received: by vcbfk26 with SMTP id fk26so745232vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2012 14:20:37 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:56690 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810Ab2CPVYp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Mar 2012 17:24:45 -0400
+Received: by yhgm50 with SMTP id m50so748377yhg.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2012 14:24:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takeuchi.akr@jp.panasonic.com, C.Emde@osadl.org, manfred@colorfullife.com, owada.kiyoshi@jp.panasonic.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: gaowanlong@cn.fujitsu.com, caspar@casparzhang.com, chrubis@suse.cz, rishikesh.rajak@hp.com, tosubrata@gmail.com
 
 
 The patch titled
-     Subject: mqueue: ignore the validity of abs_timeout parameter when message can be performed immediately
-has been removed from the -mm tree.  Its filename was
-     mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately.patch
+     Subject: MAINTAINERS: update maintainership of LTP
+has been added to the -mm tree.  Its filename is
+     maintainers-update-maintainership-of-ltp.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
-Subject: mqueue: ignore the validity of abs_timeout parameter when message can be performed immediately
+From: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Subject: MAINTAINERS: update maintainership of LTP
 
-This patch fixes a regression in the mq_timed{send,receive} syscall.
+The maintainership of LTP is out of date, so update it.
 
-When a message of mqueue can be performed immediately, the validity of
-abs_timeout parameter should not be checked.
-
-According to the manpage of mq_timedreceive:
-    Under no circumstance shall the operation fail with a timeout
-    if a message can be removed from the message queue immediately.
-    The validity of the abstime parameter need not be checked
-    if a message can be removed from the message queue immediately.
-
-On 2.6.35+ kernel, mq_timed{send,receive} returns EINVAL incorrectly, in
-this situation.
-
-I found this problem during the OPTS testcase
-"conformance/interfaces/mq_timedreceive/10-2":
-
-    # ./10-2.test
-    FAIL: the validity of abs_timeout is checked
-    Test FAILED
-
-Signed-off-by: Akira Takeuchi <takeuchi.akr@jp.panasonic.com>
-Signed-off-by: Kiyoshi Owada <owada.kiyoshi@jp.panasonic.com>
-Cc: Carsten Emde <C.Emde@osadl.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
+Signed-off-by: Cyril Hrubis <chrubis@suse.cz>
+Signed-off-by: Caspar Zhang <caspar@casparzhang.com>
+Reviewed-by: Rishikesh K Rajak <rishikesh.rajak@hp.com>
+Acked-by: Subrata Modak <tosubrata@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   31 +++++++++++++++++++++++++++----
- 1 file changed, 27 insertions(+), 4 deletions(-)
+ MAINTAINERS |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN ipc/mqueue.c~mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately ipc/mqueue.c
---- a/ipc/mqueue.c~mqueue-ignore-the-validity-of-abs_timeout-parameter-when-message-can-be-performed-immediately
-+++ a/ipc/mqueue.c
-@@ -851,14 +851,22 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
- 	struct msg_msg *msg_ptr;
- 	struct mqueue_inode_info *info;
- 	ktime_t expires, *timeout = NULL;
-+	int timeout_param_error = 0;
- 	struct timespec ts;
- 	int ret;
+diff -puN MAINTAINERS~maintainers-update-maintainership-of-ltp MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-maintainership-of-ltp
++++ a/MAINTAINERS
+@@ -4232,12 +4232,14 @@ F:	Documentation/hwmon/ltc4261
+ F:	drivers/hwmon/ltc4261.c
  
- 	if (u_abs_timeout) {
- 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
- 		if (res)
--			return res;
--		timeout = &expires;
-+			/*
-+			 * The validity of the abs_timeout parameter need not be
-+			 * checked when there is sufficient room in the queue.
-+			 * So, do not return here, even if the parameter is
-+			 * invalid.
-+			 */
-+			timeout_param_error = res;
-+		else
-+			timeout = &expires;
- 	}
+ LTP (Linux Test Project)
+-M:	Rishikesh K Rajak <risrajak@linux.vnet.ibm.com>
+-M:	Garrett Cooper <yanegomi@gmail.com>
++M:	Shubham Goyal <shubham@linux.vnet.ibm.com>
+ M:	Mike Frysinger <vapier@gentoo.org>
+-M:	Subrata Modak <subrata@linux.vnet.ibm.com>
++M:	Cyril Hrubis <chrubis@suse.cz>
++M:	Caspar Zhang <caspar@casparzhang.com>
++M:	Wanlong Gao <gaowanlong@cn.fujitsu.com>
+ L:	ltp-list@lists.sourceforge.net (subscribers-only)
+ W:	http://ltp.sourceforge.net/
++T:	git git://github.com/linux-test-project/ltp.git
+ T:	git git://ltp.git.sourceforge.net/gitroot/ltp/ltp-dev
+ S:	Maintained
  
- 	if (unlikely(msg_prio >= (unsigned long) MQ_PRIO_MAX))
-@@ -906,6 +914,9 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
- 		if (filp->f_flags & O_NONBLOCK) {
- 			spin_unlock(&info->lock);
- 			ret = -EAGAIN;
-+		} else if (unlikely(timeout_param_error)) {
-+			spin_unlock(&info->lock);
-+			ret = timeout_param_error;
- 		} else {
- 			wait.task = current;
- 			wait.msg = (void *) msg_ptr;
-@@ -945,13 +956,21 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
- 	struct mqueue_inode_info *info;
- 	struct ext_wait_queue wait;
- 	ktime_t expires, *timeout = NULL;
-+	int timeout_param_error = 0;
- 	struct timespec ts;
- 
- 	if (u_abs_timeout) {
- 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
- 		if (res)
--			return res;
--		timeout = &expires;
-+			/*
-+			 * The validity of the abs_timeout parameter need not be
-+			 * checked if a message can be removed from the message
-+			 * queue immediately. So, do not return here, even if
-+			 * the parameter is invalid.
-+			 */
-+			timeout_param_error = res;
-+		else
-+			timeout = &expires;
- 	}
- 
- 	audit_mq_sendrecv(mqdes, msg_len, 0, timeout ? &ts : NULL);
-@@ -986,6 +1005,10 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
- 		if (filp->f_flags & O_NONBLOCK) {
- 			spin_unlock(&info->lock);
- 			ret = -EAGAIN;
-+		} else if (unlikely(timeout_param_error)) {
-+			spin_unlock(&info->lock);
-+			ret = timeout_param_error;
-+			msg_ptr = NULL; /* just for shutting up warning */
- 		} else {
- 			wait.task = current;
- 			wait.state = STATE_NONE;
 _
+Subject: Subject: MAINTAINERS: update maintainership of LTP
 
-Patches currently in -mm which might be from takeuchi.akr@jp.panasonic.com are
+Patches currently in -mm which might be from gaowanlong@cn.fujitsu.com are
 
+linux-next.patch
+maintainers-update-maintainership-of-ltp.patch
+nbd-rename-the-nbd_device-variable-from-lo-to-nbd.patch
 
