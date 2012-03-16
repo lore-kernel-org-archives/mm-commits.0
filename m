@@ -1,68 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-gustavo-has-moved.patch removed from -mm tree
-Date: Fri, 16 Mar 2012 13:57:59 -0700
-Message-ID: <20120316205759.5C178A0128@akpm.mtv.corp.google.com>
+Subject: [merged] maintainers-add-johan-to-bluetooth-maintainers.patch removed from -mm tree
+Date: Fri, 16 Mar 2012 13:58:01 -0700
+Message-ID: <20120316205801.6493CA0128@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:34052 "EHLO
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:64288 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030326Ab2CPU6B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Mar 2012 16:58:01 -0400
-Received: by eekc41 with SMTP id c41so214936eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2012 13:58:00 -0700 (PDT)
+	with ESMTP id S1031888Ab2CPU6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Mar 2012 16:58:03 -0400
+Received: by eekc41 with SMTP id c41so214937eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2012 13:58:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@padovan.org, johan.hedberg@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: johan.hedberg@intel.com, marcel@holtmann.org, padovan@profusion.mobi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Gustavo has moved
+     Subject: MAINTAINERS: add Johan to Bluetooth maintainers
 has been removed from the -mm tree.  Its filename was
-     maintainers-gustavo-has-moved.patch
+     maintainers-add-johan-to-bluetooth-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Gustavo Padovan <gustavo@padovan.org>
-Subject: MAINTAINERS: Gustavo has moved
+From: Johan Hedberg <johan.hedberg@intel.com>
+Subject: MAINTAINERS: add Johan to Bluetooth maintainers
 
-This is going to be the primary e-mail for kernel development.
+I've been coordinating Bluetooth patches in my tree for some time and it's
+possible I'll do it in the future too, so add myself to the Bluetooth
+sections as well as mention my tree there.
 
-Signed-off-by: Gustavo Padovan <gustavo@padovan.org>
-Cc: Johan Hedberg <johan.hedberg@gmail.com>
+Signed-off-by: Johan Hedberg <johan.hedberg@intel.com>
 Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: "Gustavo F. Padovan" <padovan@profusion.mobi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-gustavo-has-moved MAINTAINERS
---- a/MAINTAINERS~maintainers-gustavo-has-moved
+diff -puN MAINTAINERS~maintainers-add-johan-to-bluetooth-maintainers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-johan-to-bluetooth-maintainers
 +++ a/MAINTAINERS
-@@ -1513,7 +1513,7 @@ F:	drivers/mtd/devices/block2mtd.c
- 
+@@ -1514,18 +1514,22 @@ F:	drivers/mtd/devices/block2mtd.c
  BLUETOOTH DRIVERS
  M:	Marcel Holtmann <marcel@holtmann.org>
--M:	"Gustavo F. Padovan" <padovan@profusion.mobi>
-+M:	Gustavo Padovan <gustavo@padovan.org>
+ M:	Gustavo Padovan <gustavo@padovan.org>
++M:	Johan Hedberg <johan.hedberg@gmail.com>
  L:	linux-bluetooth@vger.kernel.org
  W:	http://www.bluez.org/
  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/padovan/bluetooth-2.6.git
-@@ -1522,7 +1522,7 @@ F:	drivers/bluetooth/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jh/bluetooth.git
+ S:	Maintained
+ F:	drivers/bluetooth/
  
  BLUETOOTH SUBSYSTEM
  M:	Marcel Holtmann <marcel@holtmann.org>
--M:	"Gustavo F. Padovan" <padovan@profusion.mobi>
-+M:	Gustavo Padovan <gustavo@padovan.org>
+ M:	Gustavo Padovan <gustavo@padovan.org>
++M:	Johan Hedberg <johan.hedberg@gmail.com>
  L:	linux-bluetooth@vger.kernel.org
  W:	http://www.bluez.org/
  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/padovan/bluetooth-2.6.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jh/bluetooth.git
+ S:	Maintained
+ F:	net/bluetooth/
+ F:	include/net/bluetooth/
 _
 
-Patches currently in -mm which might be from gustavo@padovan.org are
+Patches currently in -mm which might be from johan.hedberg@intel.com are
 
 origin.patch
+linux-next.patch
 
