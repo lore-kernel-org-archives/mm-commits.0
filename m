@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix.patch added to -mm tree
-Date: Fri, 16 Mar 2012 15:23:51 -0700
-Message-ID: <20120316222351.BC559A03A8@akpm.mtv.corp.google.com>
+Subject: + drivers-platform-x86-samsung-laptopc-fix-build.patch added to -mm tree
+Date: Fri, 16 Mar 2012 15:53:42 -0700
+Message-ID: <20120316233728.857605C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:55533 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964942Ab2CPWXx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Mar 2012 18:23:53 -0400
-Received: by vcbfk26 with SMTP id fk26so753067vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2012 15:23:52 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:48420 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1945947Ab2CPXhb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Mar 2012 19:37:31 -0400
+Received: by bkcjm19 with SMTP id jm19so212574bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2012 16:37:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, gregkh@linuxfoundation.org, hmh@hmh.eng.br, hpa@zytor.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, shuox.liu@intel.com, tglx@linutronix.de, yanmin_zhang@intel.com
+Cc: akpm@linux-foundation.org, corentincj@iksaif.net, mjg@redhat.com
 
 
 The patch titled
-     Subject: cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix
+     Subject: drivers/platform/x86/samsung-laptop.c: fix build
 has been added to the -mm tree.  Its filename is
-     cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix.patch
+     drivers-platform-x86-samsung-laptopc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix
+Subject: drivers/platform/x86/samsung-laptop.c: fix build
 
-check kstrtol return value
+gcc-4.4.4:
 
-drivers/cpuidle/sysfs.c: In function 'store_state_disable':
-drivers/cpuidle/sysfs.c:274: warning: ignoring return value of 'kstrtol', declared with attribute warn_unused_result
+drivers/platform/x86/samsung-laptop.c: In function 'sabi_set_commandb':
+drivers/platform/x86/samsung-laptop.c:433: error: unknown field 'd0' specified in initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: missing braces around initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: (near initialization for 'in.<anonymous>')
+drivers/platform/x86/samsung-laptop.c:433: error: unknown field 'd1' specified in initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: excess elements in struct initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: (near initialization for 'in')
+drivers/platform/x86/samsung-laptop.c:433: error: unknown field 'd2' specified in initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: excess elements in struct initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: (near initialization for 'in')
+drivers/platform/x86/samsung-laptop.c:433: error: unknown field 'd3' specified in initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: excess elements in struct initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: (near initialization for 'in')
+drivers/platform/x86/samsung-laptop.c: At top level:
+drivers/platform/x86/samsung-laptop.c:1108: warning: initialization from incompatible pointer type
 
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: ShuoX Liu <shuox.liu@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yanmin Zhang <yanmin_zhang@intel.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/sysfs.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/platform/x86/samsung-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/cpuidle/sysfs.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix drivers/cpuidle/sysfs.c
---- a/drivers/cpuidle/sysfs.c~cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix
-+++ a/drivers/cpuidle/sysfs.c
-@@ -238,9 +238,12 @@ static ssize_t store_state_##_name(struc
- 		const char *buf, size_t size) \
- { \
- 	long value; \
-+	int err; \
- 	if (!capable(CAP_SYS_ADMIN)) \
- 		return -EPERM; \
--	kstrtol(buf, 0, &value); \
-+	err = kstrtol(buf, 0, &value); \
-+	if (err) \
-+		return err; \
- 	if (value) \
- 		state->disable = 1; \
- 	else \
+diff -puN drivers/platform/x86/samsung-laptop.c~drivers-platform-x86-samsung-laptopc-fix-build drivers/platform/x86/samsung-laptop.c
+--- a/drivers/platform/x86/samsung-laptop.c~drivers-platform-x86-samsung-laptopc-fix-build
++++ a/drivers/platform/x86/samsung-laptop.c
+@@ -430,7 +430,7 @@ exit:
+ static int sabi_set_commandb(struct samsung_laptop *samsung,
+ 			     u16 command, u8 data)
+ {
+-	struct sabi_data in = { .d0 = 0, .d1 = 0, .d2 = 0, .d3 = 0 };
++	struct sabi_data in = { { { .d0 = 0, .d1 = 0, .d2 = 0, .d3 = 0 } } };
+ 
+ 	in.data[0] = data;
+ 	return sabi_command(samsung, command, &in, NULL);
 _
-Subject: Subject: cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix
+Subject: Subject: drivers/platform/x86/samsung-laptop.c: fix build
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -156,4 +156,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+drivers-platform-x86-samsung-laptopc-fix-build.patch
 
