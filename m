@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-x86-fix-total-mem-size-calculation-for-reservation.patch added to -mm tree
-Date: Fri, 16 Mar 2012 13:56:22 -0700
-Message-ID: <20120316205624.2467BA0128@akpm.mtv.corp.google.com>
+Subject: + numa_emulation-fix-cpumask_of_node.patch added to -mm tree
+Date: Fri, 16 Mar 2012 13:57:48 -0700
+Message-ID: <20120316205748.73804A0128@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:38499 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965332Ab2CPU42 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Mar 2012 16:56:28 -0400
-Received: by vcbfk26 with SMTP id fk26so741898vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2012 13:56:27 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:38247 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965109Ab2CPU5v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Mar 2012 16:57:51 -0400
+Received: by eaaq10 with SMTP id q10so211130eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Mar 2012 13:57:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dyoung@redhat.com, horms@verge.net.au, xiyou.wangcong@gmail.com
+Cc: aarcange@redhat.com, andi@firstfloor.org, hpa@zytor.com, jweiner@redhat.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: kdump x86: fix total mem size calculation for reservation
+     Subject: numa_emulation: fix cpumask_of_node()
 has been added to the -mm tree.  Its filename is
-     kdump-x86-fix-total-mem-size-calculation-for-reservation.patch
+     numa_emulation-fix-cpumask_of_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Young <dyoung@redhat.com>
-Subject: kdump x86: fix total mem size calculation for reservation
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: numa_emulation: fix cpumask_of_node()
 
-crashkernel reservation need know the total memory size.  Current
-get_total_mem simply use max_pfn - min_low_pfn.  It is wrong because it
-will including memory holes in the middle.
+Without this fix the cpumask_of_node() for a fake=numa=2 is:
 
-Especially for kvm guest with memory > 0xe0000000, there's below in qemu
-code: qemu split memory as below:
+cpumask 0 ff
+cpumask 1 ff
 
-    if (ram_size >= 0xe0000000 ) {
-        above_4g_mem_size = ram_size - 0xe0000000;
-        below_4g_mem_size = 0xe0000000;
-    } else {
-        below_4g_mem_size = ram_size;
-    }
+with the fix it's correct and it's set to:
 
-So for 4G mem guest, seabios will insert a 512M usable region beyond of
-4G.  Thus in above case max_pfn - min_low_pfn will be more than original
-memsize.
+cpumask 0 55
+cpumask 1 aa
 
-Fixing this issue by using memblock_phys_mem_size() to get the total
-memsize.
-
-Signed-off-by: Dave Young <dyoung@redhat.com>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-Reviewed-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ arch/x86/mm/numa_emulation.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/setup.c~kdump-x86-fix-total-mem-size-calculation-for-reservation arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~kdump-x86-fix-total-mem-size-calculation-for-reservation
-+++ a/arch/x86/kernel/setup.c
-@@ -509,15 +509,6 @@ static void __init memblock_x86_reserve_
+diff -puN arch/x86/mm/numa_emulation.c~numa_emulation-fix-cpumask_of_node arch/x86/mm/numa_emulation.c
+--- a/arch/x86/mm/numa_emulation.c~numa_emulation-fix-cpumask_of_node
++++ a/arch/x86/mm/numa_emulation.c
+@@ -60,7 +60,7 @@ static int __init emu_setup_memblk(struc
+ 	eb->nid = nid;
  
- #ifdef CONFIG_KEXEC
+ 	if (emu_nid_to_phys[nid] == NUMA_NO_NODE)
+-		emu_nid_to_phys[nid] = pb->nid;
++		emu_nid_to_phys[nid] = nid;
  
--static inline unsigned long long get_total_mem(void)
--{
--	unsigned long long total;
--
--	total = max_pfn - min_low_pfn;
--
--	return total << PAGE_SHIFT;
--}
--
- /*
-  * Keep the crash kernel below this limit.  On 32 bits earlier kernels
-  * would limit the kernel to the low 512 MiB due to mapping restrictions.
-@@ -536,7 +527,7 @@ static void __init reserve_crashkernel(v
- 	unsigned long long crash_size, crash_base;
- 	int ret;
- 
--	total_mem = get_total_mem();
-+	total_mem = memblock_phys_mem_size();
- 
- 	ret = parse_crashkernel(boot_command_line, total_mem,
- 			&crash_size, &crash_base);
+ 	pb->start += size;
+ 	if (pb->start >= pb->end) {
 _
-Subject: Subject: kdump x86: fix total mem size calculation for reservation
+Subject: Subject: numa_emulation: fix cpumask_of_node()
 
-Patches currently in -mm which might be from dyoung@redhat.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 linux-next.patch
-kdump-x86-fix-total-mem-size-calculation-for-reservation.patch
-selftests-launch-individual-selftests-from-the-main-makefile.patch
-move-page-typesc-from-documentation-to-tools-vm.patch
-move-slabinfoc-to-tools-vm.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
+mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch
+vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
+vmscan-kswapd-carefully-call-compaction.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+vmscan-only-defer-compaction-for-failed-order-and-higher.patch
+mm-compaction-make-compact_control-order-signed.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
+thp-optimize-away-unnecessary-page-table-locking.patch
+thp-optimize-away-unnecessary-page-table-locking-fix.patch
+pagemap-export-kpf_thp.patch
+pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
+pagemap-introduce-data-structure-for-pagemap-entry.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
+thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru.patch
+ksm-cleanup-introduce-find_mergeable_vma.patch
+numa_emulation-fix-cpumask_of_node.patch
+memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
+memcg-clean-up-existing-move-charge-code.patch
+thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
+memcg-avoid-thp-split-in-task-migration.patch
 
