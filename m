@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-watchdogc-add-comment-to-watchdog-exit-path.patch added to -mm tree
-Date: Mon, 19 Mar 2012 15:00:56 -0700
-Message-ID: <20120319220059.94F21A028B@akpm.mtv.corp.google.com>
+Subject: + c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch added to -mm tree
+Date: Mon, 19 Mar 2012 15:19:37 -0700
+Message-ID: <20120319221937.90BB1A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:34197 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756552Ab2CSWBE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Mar 2012 18:01:04 -0400
-Received: by lbbgj3 with SMTP id gj3so232418lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Mar 2012 15:01:02 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:43821 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757084Ab2CSWTi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Mar 2012 18:19:38 -0400
+Received: by yhgm50 with SMTP id m50so1093340yhg.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Mar 2012 15:19:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, mingo@elte.hu, tglx@tglx.de
+Cc: gorcunov@openvz.org, keescook@chromium.org, kosaki.motohiro@jp.fujitsu.com, matthltc@us.ibm.com, oleg@redhat.com, tj@kernel.org, xemul@parallels.com
 
 
 The patch titled
-     Subject: kernel/watchdog.c: add comment to watchdog() exit path
+     Subject: c/r: prctl: add ability to set new mm_struct::exe_file
 has been added to the -mm tree.  Its filename is
-     kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
+     c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,146 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/watchdog.c: add comment to watchdog() exit path
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: c/r: prctl: add ability to set new mm_struct::exe_file
 
-Revelation from Peter.
+When we do restore we would like to have a way to setup a former
+mm_struct::exe_file so that /proc/pid/exe would point to the original
+executable file a process had at checkpoint time.
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@tglx.de>
+For this the PR_SET_MM_EXE_FILE code is introduced.  This option takes a
+file descriptor which will be set as a source for new /proc/$pid/exe
+symlink.
+
+Note it allows to change /proc/$pid/exe iif there are no VM_EXECUTABLE
+vmas present for current process, simply because this feature is a special
+to C/R and mm::num_exe_file_vmas become meaningless after that.
+
+Also this action is one-shot only.  For security reason we don't allow to
+change the symlink several times.
+
+This feature is available iif CONFIG_CHECKPOINT_RESTORE is set.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Matt Helsley <matthltc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/prctl.h |    1 
+ kernel/sys.c          |   56 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 57 insertions(+)
 
-diff -puN kernel/watchdog.c~a kernel/watchdog.c
---- a/kernel/watchdog.c~a
-+++ a/kernel/watchdog.c
-@@ -349,6 +349,10 @@ static int watchdog(void *unused)
+diff -puN include/linux/prctl.h~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file include/linux/prctl.h
+--- a/include/linux/prctl.h~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file
++++ a/include/linux/prctl.h
+@@ -118,6 +118,7 @@
+ # define PR_SET_MM_ENV_START		10
+ # define PR_SET_MM_ENV_END		11
+ # define PR_SET_MM_AUXV			12
++# define PR_SET_MM_EXE_FILE		13
  
- 		set_current_state(TASK_INTERRUPTIBLE);
- 	}
+ /*
+  * Set specific pid that is allowed to ptrace the current task.
+diff -puN kernel/sys.c~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file kernel/sys.c
+--- a/kernel/sys.c~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file
++++ a/kernel/sys.c
+@@ -36,6 +36,8 @@
+ #include <linux/personality.h>
+ #include <linux/ptrace.h>
+ #include <linux/fs_struct.h>
++#include <linux/file.h>
++#include <linux/mount.h>
+ #include <linux/gfp.h>
+ #include <linux/syscore_ops.h>
+ #include <linux/version.h>
+@@ -1710,6 +1712,57 @@ static bool vma_flags_mismatch(struct vm
+ 		(vma->vm_flags & banned);
+ }
+ 
++static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
++{
++	struct file *exe_file;
++	struct dentry *dentry;
++	int err;
++
 +	/*
-+	 * Drop the policy/priority elevation during thread exit to avoid a
-+	 * scheduling latency spike.
++	 * Setting new mm::exe_file is only allowed
++	 * when no VM_EXECUTABLE vma's left. So make
++	 * a fast test first.
 +	 */
- 	__set_current_state(TASK_RUNNING);
- 	sched_setscheduler(current, SCHED_NORMAL, &param);
- 	return 0;
++	if (mm->num_exe_file_vmas)
++		return -EBUSY;
++
++	exe_file = fget(fd);
++	if (!exe_file)
++		return -EBADF;
++
++	dentry = exe_file->f_path.dentry;
++
++	/*
++	 * Because the original mm->exe_file
++	 * points to executable file, make sure
++	 * this one is executable as well to not
++	 * break an overall picture.
++	 */
++	err = -EACCES;
++	if (!S_ISREG(dentry->d_inode->i_mode)	||
++	    exe_file->f_path.mnt->mnt_flags & MNT_NOEXEC)
++		goto exit;
++
++	err = inode_permission(dentry->d_inode, MAY_EXEC);
++	if (err)
++		goto exit;
++
++	/*
++	 * For security reason changing mm->exe_file
++	 * is one-shot action.
++	 */
++	down_write(&mm->mmap_sem);
++	if (likely(!mm->exe_file))
++		set_mm_exe_file(mm, exe_file);
++	else
++		err = -EBUSY;
++	up_write(&mm->mmap_sem);
++
++exit:
++	fput(exe_file);
++	return err;
++}
++
+ static int prctl_set_mm(int opt, unsigned long addr,
+ 			unsigned long arg4, unsigned long arg5)
+ {
+@@ -1724,6 +1777,9 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (!capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
+ 
++	if (opt == PR_SET_MM_EXE_FILE)
++		return prctl_set_mm_exe_file(mm, (unsigned int)addr);
++
+ 	if (addr >= TASK_SIZE)
+ 		return -EINVAL;
+ 
 _
-Subject: Subject: kernel/watchdog.c: add comment to watchdog() exit path
+Subject: Subject: c/r: prctl: add ability to set new mm_struct::exe_file
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
-drivers-mfd-twl-corec-unbork.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch
-drivers-platform-x86-samsung-laptopc-fix-build.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
-thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
-net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
-brlocks-lglocks-cleanups.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-mm.patch
-make-swapin-readahead-skip-over-holes-fix.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
-thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes.patch
-mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
-bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
-hugetlbfs-return-error-code-when-initializing-module-fix.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
-kernel-watchdogc-convert-to-pr_foo.patch
-kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
 syscalls-x86-add-__nr_kcmp-syscall-v8.patch
 syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
 syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
 
