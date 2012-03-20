@@ -1,170 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 20 Mar 2012 12:11:45 -0700
-Message-ID: <20120320191147.CEF3CA00AE@akpm.mtv.corp.google.com>
+Subject: [alternative-merged] drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch removed from -mm tree
+Date: Tue, 20 Mar 2012 12:12:51 -0700
+Message-ID: <20120320191251.57EE8A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:57747 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755966Ab2CTTLv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 15:11:51 -0400
-Received: by qabg24 with SMTP id g24so29519qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 12:11:50 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:50673 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756056Ab2CTTMx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 15:12:53 -0400
+Received: by eekc41 with SMTP id c41so21260eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 12:12:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, laurent.pinchart@ideasonboard.com, mchehab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: drivers/media/video/uvc/uvc_driver.c: use linux/atomic.h
+has been removed from the -mm tree.  Its filename was
+     drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an alternative patch was merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: drivers/media/video/uvc/uvc_driver.c: use linux/atomic.h
 
+There's no known problem here, but this is one of only two non-arch files
+in the kernel which use asm/atomic.h instead of linux/atomic.h.
+
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/smp.c    |    3 ---
- drivers/cpuidle/cpuidle.c |    8 --------
- include/net/sock.h        |    3 ---
- tools/perf/util/header.c  |   34 ----------------------------------
- tools/perf/util/header.h  |    3 ---
- 5 files changed, 51 deletions(-)
+ drivers/media/video/uvc/uvc_driver.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/perf/util/header.h~linux-next-git-rejects tools/perf/util/header.h
---- a/tools/perf/util/header.h~linux-next-git-rejects
-+++ a/tools/perf/util/header.h
-@@ -28,10 +28,7 @@ enum {
- 	HEADER_CPU_TOPOLOGY,
- 	HEADER_NUMA_TOPOLOGY,
- 	HEADER_BRANCH_STACK,
--<<<<<<< HEAD
--=======
- 	HEADER_PMU_MAPPINGS,
-->>>>>>> linux-next/akpm-end
- 	HEADER_LAST_FEATURE,
- 	HEADER_FEAT_BITS	= 256,
- };
-diff -puN tools/perf/util/header.c~linux-next-git-rejects tools/perf/util/header.c
---- a/tools/perf/util/header.c~linux-next-git-rejects
-+++ a/tools/perf/util/header.c
-@@ -1394,40 +1394,6 @@ static void print_branch_stack(struct pe
- 	fprintf(fp, "# contains samples with branch stack\n");
- }
+diff -puN drivers/media/video/uvc/uvc_driver.c~drivers-media-video-uvc-uvc_driverc-use-linux-atomich drivers/media/video/uvc/uvc_driver.c
+--- a/drivers/media/video/uvc/uvc_driver.c~drivers-media-video-uvc-uvc_driverc-use-linux-atomich
++++ a/drivers/media/video/uvc/uvc_driver.c
+@@ -27,12 +27,12 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/atomic.h>
+ #include <linux/usb.h>
+ #include <linux/videodev2.h>
+ #include <linux/vmalloc.h>
+ #include <linux/wait.h>
+ #include <linux/version.h>
+-#include <asm/atomic.h>
+ #include <asm/unaligned.h>
  
--<<<<<<< HEAD
--=======
--static void print_pmu_mappings(struct perf_header *ph, int fd, FILE *fp)
--{
--	const char *delimiter = "# pmu mappings: ";
--	char *name;
--	int ret;
--	u32 pmu_num;
--	u32 type;
--
--	ret = read(fd, &pmu_num, sizeof(pmu_num));
--	if (ret != sizeof(pmu_num))
--		goto error;
--
--	if (!pmu_num)
--		goto error;
--
--	while (pmu_num--) {
--		if (read(fd, &type, sizeof(type)) != sizeof(type))
--			goto error;
--		name = do_read_string(fd, ph);
--		fprintf(fp, "%s%s = %" PRIu32, delimiter, name, type);
--		free(name);
--		delimiter = ", ";
--	}
--
--	fprintf(fp, "\n");
--
--	return;
--error:
--	fprintf(fp, "# pmu mappings: not available\n");
--}
--
-->>>>>>> linux-next/akpm-end
- static int __event_process_build_id(struct build_id_event *bev,
- 				    char *filename,
- 				    struct perf_session *session)
-diff -puN include/net/sock.h~linux-next-git-rejects include/net/sock.h
---- a/include/net/sock.h~linux-next-git-rejects
-+++ a/include/net/sock.h
-@@ -56,11 +56,8 @@
- #include <linux/memcontrol.h>
- #include <linux/res_counter.h>
- #include <linux/static_key.h>
--<<<<<<< HEAD
--=======
- #include <linux/aio.h>
- #include <linux/sched.h>
-->>>>>>> linux-next/akpm-end
- 
- #include <linux/filter.h>
- #include <linux/rculist_nulls.h>
-diff -puN drivers/cpuidle/cpuidle.c~linux-next-git-rejects drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~linux-next-git-rejects
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -112,16 +112,8 @@ int cpuidle_idle_call(void)
- 	trace_power_start_rcuidle(POWER_CSTATE, next_state, dev->cpu);
- 	trace_cpu_idle_rcuidle(next_state, dev->cpu);
- 
--<<<<<<< HEAD
--	trace_power_start_rcuidle(POWER_CSTATE, next_state, dev->cpu);
--	trace_cpu_idle_rcuidle(next_state, dev->cpu);
--
--	entered_state = target_state->enter(dev, drv, next_state);
--
--=======
- 	entered_state = cpuidle_enter_ops(dev, drv, next_state);
- 
-->>>>>>> linux-next/akpm-end
- 	trace_power_end_rcuidle(dev->cpu);
- 	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, dev->cpu);
- 
-diff -puN arch/s390/kernel/smp.c~linux-next-git-rejects arch/s390/kernel/smp.c
---- a/arch/s390/kernel/smp.c~linux-next-git-rejects
-+++ a/arch/s390/kernel/smp.c
-@@ -714,15 +714,12 @@ static void __cpuinit smp_start_secondar
- 	ipi_call_lock();
- 	set_cpu_online(smp_processor_id(), true);
- 	ipi_call_unlock();
--<<<<<<< HEAD
- 	__ctl_clear_bit(0, 28); /* Disable lowcore protection */
- 	S390_lowcore.restart_psw.mask =
- 		PSW_DEFAULT_KEY | PSW_MASK_BASE | PSW_MASK_EA | PSW_MASK_BA;
- 	S390_lowcore.restart_psw.addr =
- 		PSW_ADDR_AMODE | (unsigned long) psw_restart_int_handler;
- 	__ctl_set_bit(0, 28); /* Enable lowcore protection */
--=======
-->>>>>>> linux-next/akpm-end
- 	local_irq_enable();
- 	/* cpu_idle will call schedule for us */
- 	cpu_idle();
+ #include <media/v4l2-common.h>
 _
-Subject: Subject: linux-next-git-rejects
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
@@ -176,7 +74,6 @@ drivers-platform-x86-samsung-laptopc-fix-build.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
 percpu-remove-percpu_xxx-functions-fix.patch
-drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
 thermal-thermal_sys-fix-build-warning.patch
 thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
 net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
@@ -246,5 +143,4 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-linux-next-git-rejects.patch
 
