@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nameic-fix-warnings-on-32-bit.patch added to -mm tree
-Date: Tue, 20 Mar 2012 13:40:22 -0700
-Message-ID: <20120320212413.30E45100052@wpzn3.hot.corp.google.com>
+Subject: + coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch added to -mm tree
+Date: Tue, 20 Mar 2012 14:55:01 -0700
+Message-ID: <20120320223853.201B51E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:43409 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756293Ab2CTVYO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 17:24:14 -0400
-Received: by qcsp5 with SMTP id p5so39414qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 14:24:13 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:44800 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758901Ab2CTWiy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 18:38:54 -0400
+Received: by ggnd2 with SMTP id d2so100550ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 15:38:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, avi@redhat.com, cmetcalf@tilera.com, deller@gmx.de, ink@jurassic.park.msu.ru, jbaron@redhat.com, jejb@parisc-linux.org, mattst88@gmail.com, ralf@linux-mips.org, roland@hack.frob.com, rth@twiddle.net
 
 
 The patch titled
-     Subject: fs/namei.c: fix warnings on 32-bit
+     Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
 has been added to the -mm tree.  Its filename is
-     fs-nameic-fix-warnings-on-32-bit.patch
+     coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/namei.c: fix warnings on 32-bit
+Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
 
-i386 allnoconfig:
+fix up the architectures which broke
 
-fs/namei.c: In function 'has_zero':
-fs/namei.c:1617: warning: integer constant is too large for 'unsigned long' type
-fs/namei.c:1617: warning: integer constant is too large for 'unsigned long' type
-fs/namei.c: In function 'hash_name':
-fs/namei.c:1635: warning: integer constant is too large for 'unsigned long' type
-
-There must be a tidier way of doing this.
-
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Roland McGrath <roland@hack.frob.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/alpha/include/asm/mman.h  |    4 ++++
+ arch/mips/include/asm/mman.h   |    4 ++++
+ arch/parisc/include/asm/mman.h |    4 ++++
+ arch/xtensa/include/asm/mman.h |    4 ++++
+ 4 files changed, 16 insertions(+)
 
-diff -puN fs/namei.c~fs-nameic-fix-warnings-on-32-bit fs/namei.c
---- a/fs/namei.c~fs-nameic-fix-warnings-on-32-bit
-+++ a/fs/namei.c
-@@ -1607,9 +1607,15 @@ done:
- }
- EXPORT_SYMBOL(full_name_hash);
+diff -puN arch/alpha/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix arch/alpha/include/asm/mman.h
+--- a/arch/alpha/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
++++ a/arch/alpha/include/asm/mman.h
+@@ -56,6 +56,10 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
  
-+#ifdef CONFIG_64BIT
- #define ONEBYTES	0x0101010101010101ul
- #define SLASHBYTES	0x2f2f2f2f2f2f2f2ful
- #define HIGHBITS	0x8080808080808080ul
-+#else
-+#define ONEBYTES	0x01010101ul
-+#define SLASHBYTES	0x2f2f2f2ful
-+#define HIGHBITS	0x80808080ul
-+#endif
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
  
- /* Return the high bit set in the first byte that is a zero */
- static inline unsigned long has_zero(unsigned long a)
+diff -puN arch/mips/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix arch/mips/include/asm/mman.h
+--- a/arch/mips/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
++++ a/arch/mips/include/asm/mman.h
+@@ -80,6 +80,10 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
+ 
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN arch/parisc/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix arch/parisc/include/asm/mman.h
+--- a/arch/parisc/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
++++ a/arch/parisc/include/asm/mman.h
+@@ -62,6 +62,10 @@
+ #define MADV_HUGEPAGE	67		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	68		/* Not worth backing with hugepages */
+ 
++#define MADV_DONTDUMP   69		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	70		/* Clear the MADV_NODUMP flag */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ #define MAP_VARIABLE	0
+diff -puN arch/xtensa/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix arch/xtensa/include/asm/mman.h
+--- a/arch/xtensa/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
++++ a/arch/xtensa/include/asm/mman.h
+@@ -86,6 +86,10 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
+ 
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
 _
-Subject: Subject: fs/namei.c: fix warnings on 32-bit
+Subject: Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -87,6 +128,7 @@ drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
 drivers-mfd-twl-corec-unbork.patch
 drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch
+fs-nameic-fix-warnings-on-32-bit.patch
 drivers-platform-x86-samsung-laptopc-fix-build.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
@@ -136,6 +178,7 @@ crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
 rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
 kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
 coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
 procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
 procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
 seq_file-add-seq_set_overflow-seq_overflow-fix.patch
@@ -159,5 +202,4 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-fs-nameic-fix-warnings-on-32-bit.patch
 
