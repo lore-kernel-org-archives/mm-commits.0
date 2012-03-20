@@ -1,61 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch removed from -mm tree
-Date: Tue, 20 Mar 2012 12:12:51 -0700
-Message-ID: <20120320191251.57EE8A00AE@akpm.mtv.corp.google.com>
+Subject: [obsolete] radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 20 Mar 2012 12:15:16 -0700
+Message-ID: <20120320191516.B39B0A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:50673 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756056Ab2CTTMx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 15:12:53 -0400
-Received: by eekc41 with SMTP id c41so21260eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 12:12:52 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:36376 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756320Ab2CTTPT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 15:15:19 -0400
+Received: by wejx9 with SMTP id x9so20699wej.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 12:15:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, laurent.pinchart@ideasonboard.com, mchehab@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khlebnikov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/media/video/uvc/uvc_driver.c: use linux/atomic.h
+     Subject: radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-uvc-uvc_driverc-use-linux-atomich.patch
+     radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/media/video/uvc/uvc_driver.c: use linux/atomic.h
+Subject: radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes
 
-There's no known problem here, but this is one of only two non-arch files
-in the kernel which use asm/atomic.h instead of linux/atomic.h.
+ERROR: space prohibited after that open parenthesis '('
+#172: FILE: include/linux/radix-tree.h:341:
++	for ( slot = radix_tree_iter_init(iter, start) ;		\
 
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ERROR: space prohibited before that close parenthesis ')'
+#173: FILE: include/linux/radix-tree.h:342:
++	      (slot = radix_tree_next_chunk(root, iter, flags)) ; )
+
+ERROR: space prohibited before that close parenthesis ')'
+#183: FILE: include/linux/radix-tree.h:352:
++	for ( ; slot ; slot = radix_tree_next_slot(slot, iter, flags) )
+
+ERROR: space prohibited after that open parenthesis '('
+#194: FILE: include/linux/radix-tree.h:363:
++	for ( slot = radix_tree_iter_init(iter, start) ;	\
+
+ERROR: space prohibited before that close parenthesis ')'
+#196: FILE: include/linux/radix-tree.h:365:
++	      slot = radix_tree_next_slot(slot, iter, 0) )
+
+ERROR: space prohibited after that open parenthesis '('
+#207: FILE: include/linux/radix-tree.h:376:
++	for ( slot = radix_tree_iter_init(iter, start) ;		\
+
+ERROR: space prohibited before that close parenthesis ')'
+#211: FILE: include/linux/radix-tree.h:380:
++				RADIX_TREE_ITER_CONTIG) )
+
+ERROR: space prohibited after that open parenthesis '('
+#223: FILE: include/linux/radix-tree.h:392:
++	for ( slot = radix_tree_iter_init(iter, start) ;		\
+
+ERROR: space prohibited before that close parenthesis ')'
+#227: FILE: include/linux/radix-tree.h:396:
++				RADIX_TREE_ITER_TAGGED) )
+
+ERROR: trailing statements should be on next line
+#349: FILE: lib/radix-tree.c:713:
++				while (++i < RADIX_TREE_MAP_SIZE &&
++						!node->slots[i]);
+
+total: 10 errors, 0 warnings, 314 lines checked
+
+./patches/radix-tree-introduce-bit-optimized-iterator.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/uvc/uvc_driver.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/radix-tree.h |   35 +++++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
 
-diff -puN drivers/media/video/uvc/uvc_driver.c~drivers-media-video-uvc-uvc_driverc-use-linux-atomich drivers/media/video/uvc/uvc_driver.c
---- a/drivers/media/video/uvc/uvc_driver.c~drivers-media-video-uvc-uvc_driverc-use-linux-atomich
-+++ a/drivers/media/video/uvc/uvc_driver.c
-@@ -27,12 +27,12 @@
- #include <linux/list.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-+#include <linux/atomic.h>
- #include <linux/usb.h>
- #include <linux/videodev2.h>
- #include <linux/vmalloc.h>
- #include <linux/wait.h>
- #include <linux/version.h>
--#include <asm/atomic.h>
- #include <asm/unaligned.h>
+diff -puN include/linux/radix-tree.h~radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes
++++ a/include/linux/radix-tree.h
+@@ -271,8 +271,8 @@ struct radix_tree_iter {
+ void **radix_tree_next_chunk(struct radix_tree_root *root,
+ 			     struct radix_tree_iter *iter, unsigned flags);
  
- #include <media/v4l2-common.h>
+-static inline
+-void **radix_tree_iter_init(struct radix_tree_iter *iter, unsigned long start)
++static inline void **
++radix_tree_iter_init(struct radix_tree_iter *iter, unsigned long start)
+ {
+ 	iter->index = 0; /* to bypass next_index overflow protection */
+ 	iter->next_index = start;
+@@ -293,9 +293,8 @@ static inline unsigned long radix_tree_c
+  *
+  * Returns pointer to next slot, or NULL if no more left.
+  */
+-static __always_inline
+-void **radix_tree_next_slot(void **slot, struct radix_tree_iter *iter,
+-			    unsigned flags)
++static __always_inline void **
++radix_tree_next_slot(void **slot, struct radix_tree_iter *iter, unsigned flags)
+ {
+ 	unsigned size, offset;
+ 
+@@ -339,8 +338,8 @@ void **radix_tree_next_slot(void **slot,
+  * Locks can be released and reasquired between iterations.
+  */
+ #define radix_tree_for_each_chunk(slot, root, iter, start, flags)	\
+-	for ( slot = radix_tree_iter_init(iter, start) ;		\
+-	      (slot = radix_tree_next_chunk(root, iter, flags)) ; )
++	for (slot = radix_tree_iter_init(iter, start);			\
++	      (slot = radix_tree_next_chunk(root, iter, flags)); )
+ 
+ /**
+  * radix_tree_for_each_chunk_slot - iterate over slots in one chunk
+@@ -350,7 +349,7 @@ void **radix_tree_next_slot(void **slot,
+  * @flags	RADIX_TREE_ITER_*
+  */
+ #define radix_tree_for_each_chunk_slot(slot, iter, flags)	\
+-	for ( ; slot ; slot = radix_tree_next_slot(slot, iter, flags) )
++	for ( ; slot; slot = radix_tree_next_slot(slot, iter, flags))
+ 
+ /**
+  * radix_tree_for_each_slot - iterate over all slots
+@@ -360,10 +359,10 @@ void **radix_tree_next_slot(void **slot,
+  * @iter	the struct radix_tree_iter pointer
+  * @start	starting index
+  */
+-#define radix_tree_for_each_slot(slot, root, iter, start)	\
+-	for ( slot = radix_tree_iter_init(iter, start) ;	\
+-	      slot || (slot = radix_tree_next_chunk(root, iter, 0)) ; \
+-	      slot = radix_tree_next_slot(slot, iter, 0) )
++#define radix_tree_for_each_slot(slot, root, iter, start)		\
++	for (slot = radix_tree_iter_init(iter, start);			\
++	      slot || (slot = radix_tree_next_chunk(root, iter, 0));	\
++	      slot = radix_tree_next_slot(slot, iter, 0))
+ 
+ /**
+  * radix_tree_for_each_contig - iterate over all contiguous slots
+@@ -374,11 +373,11 @@ void **radix_tree_next_slot(void **slot,
+  * @start	starting index
+  */
+ #define radix_tree_for_each_contig(slot, root, iter, start)		\
+-	for ( slot = radix_tree_iter_init(iter, start) ;		\
++	for (slot = radix_tree_iter_init(iter, start);			\
+ 	      slot || (slot = radix_tree_next_chunk(root, iter,		\
+-				RADIX_TREE_ITER_CONTIG)) ;		\
++				RADIX_TREE_ITER_CONTIG));		\
+ 	      slot = radix_tree_next_slot(slot, iter,			\
+-				RADIX_TREE_ITER_CONTIG) )
++				RADIX_TREE_ITER_CONTIG))
+ 
+ /**
+  * radix_tree_for_each_tagged - iterate over all tagged slots
+@@ -390,10 +389,10 @@ void **radix_tree_next_slot(void **slot,
+  * @tag		tag index
+  */
+ #define radix_tree_for_each_tagged(slot, root, iter, start, tag)	\
+-	for ( slot = radix_tree_iter_init(iter, start) ;		\
++	for (slot = radix_tree_iter_init(iter, start);			\
+ 	      slot || (slot = radix_tree_next_chunk(root, iter,		\
+-			      RADIX_TREE_ITER_TAGGED | tag)) ;		\
++			      RADIX_TREE_ITER_TAGGED | tag));		\
+ 	      slot = radix_tree_next_slot(slot, iter,			\
+-				RADIX_TREE_ITER_TAGGED) )
++				RADIX_TREE_ITER_TAGGED))
+ 
+ #endif /* _LINUX_RADIX_TREE_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,7 +248,6 @@ pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
 pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
 fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
 radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-radix-tree-introduce-bit-optimized-iterator-checkpatch-fixes.patch
 selftests-makefile-make-run_tests-depend-on-all.patch
 move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
 move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
