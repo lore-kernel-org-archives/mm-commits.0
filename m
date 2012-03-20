@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + um-kernel-trapc-port-oom-changes-to-handle_page_fault.patch added to -mm tree
-Date: Tue, 20 Mar 2012 12:33:37 -0700
-Message-ID: <20120320193337.A6AC7A00AE@akpm.mtv.corp.google.com>
+Subject: + swap-dont-do-discard-if-no-discard-option-added.patch added to -mm tree
+Date: Tue, 20 Mar 2012 12:42:33 -0700
+Message-ID: <20120320194233.E5E65A02AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:54646 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756495Ab2CTTdj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 15:33:39 -0400
-Received: by yenq2 with SMTP id q2so69858yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 12:33:38 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:60243 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756202Ab2CTTmf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 15:42:35 -0400
+Received: by qabg24 with SMTP id g24so31180qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 12:42:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: consul.kautuk@gmail.com, jdike@addtoit.com, richard@nod.at
+Cc: shli@kernel.org, Holger.Kiehl@dwd.de, hughd@google.com, shli@fusionio.com
 
 
 The patch titled
-     Subject: um/kernel/trap.c: port OOM changes to handle_page_fault()
+     Subject: swap: don't do discard if no discard option added
 has been added to the -mm tree.  Its filename is
-     um-kernel-trapc-port-oom-changes-to-handle_page_fault.patch
+     swap-dont-do-discard-if-no-discard-option-added.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kautuk Consul <consul.kautuk@gmail.com>
-Subject: um/kernel/trap.c: port OOM changes to handle_page_fault()
+From: Shaohua Li <shli@kernel.org>
+Subject: swap: don't do discard if no discard option added
 
-Commit d065bd810b6deb6 ("mm: retry page fault when blocking on disk
-transfer") and commit 37b23e0525 ("x86,mm: make pagefault killable")
+When swapon() was not passed the SWAP_FLAG_DISCARD option, sys_swapon()
+will still perform a discard operation.  This can cause problems if
+discard is slow or buggy.
 
-The above commits introduced changes into the x86 pagefault handler
-for making the page fault handler retryable as well as killable.
+Reverse the order of the check so that a discard operation is performed
+only if the sys_swapon() caller is attempting to enable discard.
 
-These changes reduce the mmap_sem hold time, which is crucial
-during OOM killer invocation.
-
-Port these changes to um.
-
-Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Reported-by: Holger Kiehl <Holger.Kiehl@dwd.de>
+Tested-by: Holger Kiehl <Holger.Kiehl@dwd.de>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/trap.c |   24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/kernel/trap.c~um-kernel-trapc-port-oom-changes-to-handle_page_fault arch/um/kernel/trap.c
---- a/arch/um/kernel/trap.c~um-kernel-trapc-port-oom-changes-to-handle_page_fault
-+++ a/arch/um/kernel/trap.c
-@@ -30,6 +30,8 @@ int handle_page_fault(unsigned long addr
- 	pmd_t *pmd;
- 	pte_t *pte;
- 	int err = -EFAULT;
-+	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE |
-+				 (is_write ? FAULT_FLAG_WRITE : 0);
- 
- 	*code_out = SEGV_MAPERR;
- 
-@@ -40,6 +42,7 @@ int handle_page_fault(unsigned long addr
- 	if (in_atomic())
- 		goto out_nosemaphore;
- 
-+retry:
- 	down_read(&mm->mmap_sem);
- 	vma = find_vma(mm, address);
- 	if (!vma)
-@@ -65,7 +68,11 @@ good_area:
- 	do {
- 		int fault;
- 
--		fault = handle_mm_fault(mm, vma, address, is_write ? FAULT_FLAG_WRITE : 0);
-+		fault = handle_mm_fault(mm, vma, address, flags);
-+
-+		if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+			goto out_nosemaphore;
-+
- 		if (unlikely(fault & VM_FAULT_ERROR)) {
- 			if (fault & VM_FAULT_OOM) {
- 				goto out_of_memory;
-@@ -75,10 +82,17 @@ good_area:
- 			}
- 			BUG();
+diff -puN mm/swapfile.c~swap-dont-do-discard-if-no-discard-option-added mm/swapfile.c
+--- a/mm/swapfile.c~swap-dont-do-discard-if-no-discard-option-added
++++ a/mm/swapfile.c
+@@ -2105,7 +2105,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 			p->flags |= SWP_SOLIDSTATE;
+ 			p->cluster_next = 1 + (random32() % p->highest_bit);
  		}
--		if (fault & VM_FAULT_MAJOR)
--			current->maj_flt++;
--		else
--			current->min_flt++;
-+		if (flags & FAULT_FLAG_ALLOW_RETRY) {
-+			if (fault & VM_FAULT_MAJOR)
-+				current->maj_flt++;
-+			else
-+				current->min_flt++;
-+			if (fault & VM_FAULT_RETRY) {
-+				flags &= ~FAULT_FLAG_ALLOW_RETRY;
-+
-+				goto retry;
-+			}
-+		}
+-		if (discard_swap(p) == 0 && (swap_flags & SWAP_FLAG_DISCARD))
++		if ((swap_flags & SWAP_FLAG_DISCARD) && discard_swap(p) == 0)
+ 			p->flags |= SWP_DISCARDABLE;
+ 	}
  
- 		pgd = pgd_offset(mm, address);
- 		pud = pud_offset(pgd, address);
 _
-Subject: Subject: um/kernel/trap.c: port OOM changes to handle_page_fault()
+Subject: Subject: swap: don't do discard if no discard option added
 
-Patches currently in -mm which might be from consul.kautuk@gmail.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
-rmap-anon_vma_prepare-reduce-code-duplication-by-calling-anon_vma_chain_link.patch
-page_allocc-remove-add_from_early_node_map.patch
-page_alloc-remove-unused-find_zone_movable_pfns_for_nodes-argument.patch
-mmapc-fix-comment-for-__insert_vm_struct.patch
-mmapc-fix-comment-for-__insert_vm_struct-fix.patch
-um-kernel-trapc-port-oom-changes-to-handle_page_fault.patch
+swap-dont-do-discard-if-no-discard-option-added.patch
 
