@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-fix-alignment-of-huge-page-requests-fix.patch added to -mm tree
-Date: Tue, 20 Mar 2012 13:25:26 -0700
-Message-ID: <20120320210918.8A6F7100069@wpzn3.hot.corp.google.com>
+Subject: + fs-nameic-fix-warnings-on-32-bit.patch added to -mm tree
+Date: Tue, 20 Mar 2012 13:40:22 -0700
+Message-ID: <20120320212413.30E45100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:44579 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755067Ab2CTVJV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 17:09:21 -0400
-Received: by yenq2 with SMTP id q2so87930yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 14:09:20 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:43409 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756293Ab2CTVYO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 17:24:14 -0400
+Received: by qcsp5 with SMTP id p5so39414qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 14:24:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hughd@google.com, steven.truelove@utoronto.ca
+Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org
 
 
 The patch titled
-     Subject: hugetlbfs-fix-alignment-of-huge-page-requests-fix
+     Subject: fs/namei.c: fix warnings on 32-bit
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-fix-alignment-of-huge-page-requests-fix.patch
+     fs-nameic-fix-warnings-on-32-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlbfs-fix-alignment-of-huge-page-requests-fix
+Subject: fs/namei.c: fix warnings on 32-bit
 
-x86_64 allnoconfig:
+i386 allnoconfig:
 
-mm/mmap.c: In function 'sys_mmap_pgoff':
-mm/mmap.c:1127: warning: passing argument 4 of 'hugetlb_file_setup' makes pointer from integer without a cast
-include/linux/hugetlb.h:172: note: expected 'struct user_struct **' but argument is of type 'int'
-mm/mmap.c:1127: warning: passing argument 5 of 'hugetlb_file_setup' makes integer from pointer without a cast
-include/linux/hugetlb.h:172: note: expected 'int' but argument is of type 'struct user_struct **'
-mm/mmap.c:1127: error: too many arguments to function 'hugetlb_file_setup'
+fs/namei.c: In function 'has_zero':
+fs/namei.c:1617: warning: integer constant is too large for 'unsigned long' type
+fs/namei.c:1617: warning: integer constant is too large for 'unsigned long' type
+fs/namei.c: In function 'hash_name':
+fs/namei.c:1635: warning: integer constant is too large for 'unsigned long' type
 
+There must be a tidier way of doing this.
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Steven Truelove <steven.truelove@utoronto.ca>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/namei.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/linux/hugetlb.h~hugetlbfs-fix-alignment-of-huge-page-requests-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-fix-alignment-of-huge-page-requests-fix
-+++ a/include/linux/hugetlb.h
-@@ -169,7 +169,8 @@ static inline int is_file_hugepages(stru
- #else /* !CONFIG_HUGETLBFS */
+diff -puN fs/namei.c~fs-nameic-fix-warnings-on-32-bit fs/namei.c
+--- a/fs/namei.c~fs-nameic-fix-warnings-on-32-bit
++++ a/fs/namei.c
+@@ -1607,9 +1607,15 @@ done:
+ }
+ EXPORT_SYMBOL(full_name_hash);
  
- #define is_file_hugepages(file)			0
--static inline struct file *hugetlb_file_setup(const char *name, size_t size,
-+static inline struct file *
-+hugetlb_file_setup(const char *name, unsigned long addr, size_t size,
- 		vm_flags_t acctflag, struct user_struct **user, int creat_flags)
- {
- 	return ERR_PTR(-ENOSYS);
++#ifdef CONFIG_64BIT
+ #define ONEBYTES	0x0101010101010101ul
+ #define SLASHBYTES	0x2f2f2f2f2f2f2f2ful
+ #define HIGHBITS	0x8080808080808080ul
++#else
++#define ONEBYTES	0x01010101ul
++#define SLASHBYTES	0x2f2f2f2ful
++#define HIGHBITS	0x80808080ul
++#endif
+ 
+ /* Return the high bit set in the first byte that is a zero */
+ static inline unsigned long has_zero(unsigned long a)
 _
-Subject: Subject: hugetlbfs-fix-alignment-of-huge-page-requests-fix
+Subject: Subject: fs/namei.c: fix warnings on 32-bit
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -154,4 +159,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+fs-nameic-fix-warnings-on-32-bit.patch
 
