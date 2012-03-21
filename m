@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sched-fix-compiler-warning-about-declared-inline-after-use.patch added to -mm tree
-Date: Wed, 21 Mar 2012 13:07:16 -0700
-Message-ID: <20120321200717.49BB4A024E@akpm.mtv.corp.google.com>
+Subject: + mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix.patch added to -mm tree
+Date: Wed, 21 Mar 2012 13:45:18 -0700
+Message-ID: <20120321204518.9D5CCA0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:36191 "EHLO
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:34067 "EHLO
 	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755208Ab2CUUHS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 16:07:18 -0400
-Received: by ghbz15 with SMTP id z15so236528ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 13:07:17 -0700 (PDT)
+	with ESMTP id S1760432Ab2CUUpY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 16:45:24 -0400
+Received: by ghbz15 with SMTP id z15so242121ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 13:45:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, akpm@linux-foundation.org, mingo@elte.hu
+Cc: aarcange@redhat.com, msalter@redhat.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: sched: fix compiler warning about declared inline after use
+     Subject: mm: avoid CONFIG_MMU=n build failure in pmd_none_or_trans_huge_or_clear_bad
 has been added to the -mm tree.  Its filename is
-     sched-fix-compiler-warning-about-declared-inline-after-use.patch
+     mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Subject: sched: fix compiler warning about declared inline after use
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: avoid CONFIG_MMU=n build failure in pmd_none_or_trans_huge_or_clear_bad
 
-kernel/sched/fair.c:420: warning: 'account_cfs_rq_runtime' declared inline =
-after being called
-kernel/sched/fair.c:420: warning: previous declaration of 'account_cfs_rq_r=
-untime' was here
-kernel/sched/fair.c:1165: warning: 'return_cfs_rq_runtime' declared inline =
-after being called
-kernel/sched/fair.c:1165: warning: previous declaration of 'return_cfs_rq_r=
-untime' was here
+pmd_none_or_trans_huge_or_clear_bad must be defined after pmd_trans_huge,
+so add #ifdef CONFIG_MMU around the whole block that shall not be needed
+for archs without pagetables.
 
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Mark Salter <msalter@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/asm-generic/pgtable.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sched/fair.c~sched-fix-compiler-warning-about-declared-inline-after-use kernel/sched/fair.c
---- a/kernel/sched/fair.c~sched-fix-compiler-warning-about-declared-inline-after-use
-+++ a/kernel/sched/fair.c
-@@ -416,8 +416,8 @@ find_matching_se(struct sched_entity **s
+diff -puN include/asm-generic/pgtable.h~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix
++++ a/include/asm-generic/pgtable.h
+@@ -426,6 +426,8 @@ extern void untrack_pfn_vma(struct vm_ar
+ 				unsigned long size);
+ #endif
  
- #endif	/* CONFIG_FAIR_GROUP_SCHED */
- 
--static void account_cfs_rq_runtime(struct cfs_rq *cfs_rq,
--				   unsigned long delta_exec);
-+static __always_inline
-+void account_cfs_rq_runtime(struct cfs_rq *cfs_rq, unsigned long delta_exec);
- 
- /**************************************************************
-  * Scheduling class tree data structure manipulation methods:
-@@ -1162,7 +1162,7 @@ static void clear_buddies(struct cfs_rq 
- 		__clear_buddies_skip(se);
- }
- 
--static void return_cfs_rq_runtime(struct cfs_rq *cfs_rq);
-+static __always_inline void return_cfs_rq_runtime(struct cfs_rq *cfs_rq);
- 
- static void
- dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
-@@ -1546,8 +1546,8 @@ static void __account_cfs_rq_runtime(str
- 		resched_task(rq_of(cfs_rq)->curr);
- }
- 
--static __always_inline void account_cfs_rq_runtime(struct cfs_rq *cfs_rq,
--						   unsigned long delta_exec)
-+static __always_inline
-+void account_cfs_rq_runtime(struct cfs_rq *cfs_rq, unsigned long delta_exec)
++#ifdef CONFIG_MMU
++
+ #ifndef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline int pmd_trans_huge(pmd_t pmd)
  {
- 	if (!cfs_bandwidth_used() || !cfs_rq->runtime_enabled)
- 		return;
-@@ -2073,11 +2073,11 @@ void unthrottle_offline_cfs_rqs(struct r
+@@ -442,7 +444,7 @@ static inline int pmd_write(pmd_t pmd)
+ 	return 0;
+ }
+ #endif /* __HAVE_ARCH_PMD_WRITE */
+-#endif
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ /*
+  * This function is meant to be used by sites walking pagetables with
+@@ -501,6 +503,8 @@ static inline int pmd_trans_unstable(pmd
+ #endif
  }
  
- #else /* CONFIG_CFS_BANDWIDTH */
--static void account_cfs_rq_runtime(struct cfs_rq *cfs_rq,
--				     unsigned long delta_exec) {}
-+static __always_inline
-+void account_cfs_rq_runtime(struct cfs_rq *cfs_rq, unsigned long delta_exec) {}
- static void check_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
- static void check_enqueue_throttle(struct cfs_rq *cfs_rq) {}
--static void return_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
-+static __always_inline void return_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
++#endif /* CONFIG_MMU */
++
+ #endif /* !__ASSEMBLY__ */
  
- static inline int cfs_rq_throttled(struct cfs_rq *cfs_rq)
- {
+ #endif /* _ASM_GENERIC_PGTABLE_H */
 _
-Subject: Subject: sched: fix compiler warning about declared inline after use
+Subject: Subject: mm: avoid CONFIG_MMU=n build failure in pmd_none_or_trans_huge_or_clear_bad
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-origin.patch
-sched-fix-compiler-warning-about-declared-inline-after-use.patch
 linux-next.patch
-hugetlbfs-lockdep-annotate-root-inode-properly.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-rmap-anon_vma_prepare-reduce-code-duplication-by-calling-anon_vma_chain_link.patch
-mm-update-stale-lock-ordering-comment-for-memory-failurec.patch
-cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3.patch
-watchdog-make-sure-the-watchdog-thread-gets-cpu-on-loaded-system.patch
-kernel-watchdogc-convert-to-pr_foo.patch
-kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
-smp-start-up-non-boot-cpus-asynchronously.patch
-smp-start-up-non-boot-cpus-asynchronously-fix.patch
-checkpatch-warn-on-use-of-yield.patch
-epoll-comment-the-funky-ifdef.patch
-proc-speedup-proc-stat-handling.patch
-procfs-add-num_to_str-to-speed-up-proc-stat.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-smp-introduce-a-generic-on_each_cpu_mask-function.patch
-arm-move-arm-over-to-generic-on_each_cpu_mask.patch
-tile-move-tile-to-use-generic-on_each_cpu_mask.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
-fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
-mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
-ipc-semc-alternatives-to-preempt_disable.patch
+mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
+mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch
+mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix.patch
+vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
+vmscan-kswapd-carefully-call-compaction.patch
+vmscan-kswapd-carefully-call-compaction-fix.patch
+vmscan-only-defer-compaction-for-failed-order-and-higher.patch
+mm-compaction-make-compact_control-order-signed.patch
+mm-compaction-make-compact_control-order-signed-fix.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
+hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
+thp-optimize-away-unnecessary-page-table-locking.patch
+thp-optimize-away-unnecessary-page-table-locking-fix.patch
+pagemap-export-kpf_thp.patch
+pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
+pagemap-introduce-data-structure-for-pagemap-entry.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
+thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru.patch
+ksm-cleanup-introduce-find_mergeable_vma.patch
+numa_emulation-fix-cpumask_of_node.patch
+memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
+memcg-clean-up-existing-move-charge-code.patch
+thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
+memcg-avoid-thp-split-in-task-migration.patch
 
