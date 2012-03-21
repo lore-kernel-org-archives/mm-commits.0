@@ -1,74 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:16:06 -0700
-Message-ID: <20120321231608.3A482A0295@akpm.mtv.corp.google.com>
+Subject: [folded] make-swapin-readahead-skip-over-holes-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:16:43 -0700
+Message-ID: <20120321231643.2C714A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:65059 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754484Ab2CUXQK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:16:10 -0400
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34082 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754484Ab2CUXQp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:16:45 -0400
+Received: by faaa19 with SMTP id a19so92257faa.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:16:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, z@drze.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
+     Subject: make-swapin-readahead-skip-over-holes-fix
 has been removed from the -mm tree.  Its filename was
-     mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch
+     make-swapin-readahead-skip-over-holes-fix.patch
 
-This patch was dropped because it was folded into mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
+This patch was dropped because it was folded into make-swapin-readahead-skip-over-holes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
+Subject: make-swapin-readahead-skip-over-holes-fix
 
-Cc: <stable@vger.kernel.org>		[2.6.38+]
+fix it for page_cluster >= 32
 
-WARNING: labels should not be indented
-#387: FILE: mm/memory.c:1267:
-+	next:
-
-total: 0 errors, 1 warnings, 183 lines checked
-
-./patches/mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Adrian Drzewiecki <z@drze.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes mm/memory.c
---- a/mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
-+++ a/mm/memory.c
-@@ -1247,7 +1247,7 @@ static inline unsigned long zap_pmd_rang
- 	do {
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_trans_huge(*pmd)) {
--			if (next-addr != HPAGE_PMD_SIZE) {
-+			if (next - addr != HPAGE_PMD_SIZE) {
- 				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
- 				split_huge_page_pmd(vma->vm_mm, pmd);
- 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
-@@ -1264,7 +1264,7 @@ static inline unsigned long zap_pmd_rang
- 		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
- 			goto next;
- 		next = zap_pte_range(tlb, vma, pmd, addr, next, details);
--	next:
-+next:
- 		cond_resched();
- 	} while (pmd++, addr = next, addr != end);
+diff -puN mm/swap_state.c~make-swapin-readahead-skip-over-holes-fix mm/swap_state.c
+--- a/mm/swap_state.c~make-swapin-readahead-skip-over-holes-fix
++++ a/mm/swap_state.c
+@@ -375,7 +375,7 @@ struct page *swapin_readahead(swp_entry_
+ 	struct page *page;
+ 	unsigned long offset = swp_offset(entry);
+ 	unsigned long start_offset, end_offset;
+-	unsigned long mask = (1 << page_cluster) - 1;
++	unsigned long mask = (1UL << page_cluster) - 1;
  
+ 	/* Read a page_cluster sized and aligned cluster around offset. */
+ 	start_offset = offset & ~mask;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,7 +62,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
 fs-nameic-fix-warnings-on-32-bit.patch
-make-swapin-readahead-skip-over-holes-fix.patch
+make-swapin-readahead-skip-over-holes.patch
 vmscan-kswapd-carefully-call-compaction-fix.patch
 mm-compaction-make-compact_control-order-signed-fix.patch
 hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
