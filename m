@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-remove-pcg_file_mapped-fix-cosmetic-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:26:28 -0700
-Message-ID: <20120321232628.B0AF6A0308@akpm.mtv.corp.google.com>
+Subject: [folded] memcg-remove-pcg_file_mapped-fix-42.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:26:31 -0700
+Message-ID: <20120321232631.A4EBFA0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:55482 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757655Ab2CUX0a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:26:30 -0400
-Received: by wejx9 with SMTP id x9so83206wej.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:26:29 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:53914 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756253Ab2CUX0c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:26:32 -0400
+Received: by qabg24 with SMTP id g24so1507qab.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:26:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: remove PCG_FILE_MAPPED fix cosmetic fix
+     Subject: memcg: remove PCG_CACHE page_cgroup flag fix2
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-pcg_file_mapped-fix-cosmetic-fix.patch
+     memcg-remove-pcg_file_mapped-fix-42.patch
 
 This patch was dropped because it was folded into memcg-remove-pcg_file_mapped.patch
 
@@ -26,33 +26,34 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: memcg: remove PCG_FILE_MAPPED fix cosmetic fix
+Subject: memcg: remove PCG_CACHE page_cgroup flag fix2
 
-mem_cgroup_move_account() begins with "anon = PageAnon(page)", and
-then anon is used thereafter: testing PageAnon(page) in the middle
-makes the reader wonder if there's some race to guard against - no.
+Add comment to MEM_CGROUP_CHARGE_TYPE_MAPPED case in
+__mem_cgroup_uncharge_common().
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-remove-pcg_file_mapped-fix-cosmetic-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-pcg_file_mapped-fix-cosmetic-fix
+diff -puN mm/memcontrol.c~memcg-remove-pcg_file_mapped-fix-42 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-pcg_file_mapped-fix-42
 +++ a/mm/memcontrol.c
-@@ -2613,7 +2613,7 @@ static int mem_cgroup_move_account(struc
+@@ -2978,6 +2978,11 @@ __mem_cgroup_uncharge_common(struct page
  
- 	move_lock_mem_cgroup(from, &flags);
- 
--	if (!PageAnon(page) && page_mapped(page)) {
-+	if (!anon && page_mapped(page)) {
- 		/* Update mapped_file data for mem_cgroup */
- 		preempt_disable();
- 		__this_cpu_dec(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED]);
+ 	switch (ctype) {
+ 	case MEM_CGROUP_CHARGE_TYPE_MAPPED:
++		/*
++		 * Generally PageAnon tells if it's the anon statistics to be
++		 * updated; but sometimes e.g. mem_cgroup_uncharge_page() is
++		 * used before page reached the stage of being marked PageAnon.
++		 */
+ 		anon = true;
+ 		/* fallthrough */
+ 	case MEM_CGROUP_CHARGE_TYPE_DROP:
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -88,5 +89,4 @@ memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
 memcg-remove-pcg_cache-page_cgroup-flag.patch
 memcg-use-new-logic-for-page-stat-accounting.patch
 memcg-remove-pcg_file_mapped.patch
-memcg-remove-pcg_file_mapped-fix-42.patch
 
