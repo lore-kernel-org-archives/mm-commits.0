@@ -1,68 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] vmscan-kswapd-carefully-call-compaction-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:17:11 -0700
-Message-ID: <20120321231711.9A5FDA0295@akpm.mtv.corp.google.com>
+Subject: [folded] mm-compaction-make-compact_control-order-signed-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:17:35 -0700
+Message-ID: <20120321231736.008AEA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:37260 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757612Ab2CUXRO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:17:14 -0400
-Received: by eekc41 with SMTP id c41so84255eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:17:12 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:40392 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757328Ab2CUXRi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:17:38 -0400
+Received: by faaa19 with SMTP id a19so92267faa.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:17:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, dan.carpenter@oracle.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan-kswapd-carefully-call-compaction-fix
+     Subject: mm-compaction-make-compact_control-order-signed-fix
 has been removed from the -mm tree.  Its filename was
-     vmscan-kswapd-carefully-call-compaction-fix.patch
+     mm-compaction-make-compact_control-order-signed-fix.patch
 
-This patch was dropped because it was folded into vmscan-kswapd-carefully-call-compaction.patch
+This patch was dropped because it was folded into mm-compaction-make-compact_control-order-signed.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vmscan-kswapd-carefully-call-compaction-fix
+Subject: mm-compaction-make-compact_control-order-signed-fix
 
-reduce scope of zones_need_compaction
+make __compact_pgdat()'s comparison match other code sites
 
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-kswapd-carefully-call-compaction-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-kswapd-carefully-call-compaction-fix
-+++ a/mm/vmscan.c
-@@ -2672,7 +2672,6 @@ static unsigned long balance_pgdat(pg_da
- 	int priority;
- 	int i;
- 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
--	int zones_need_compaction = 1;
- 	unsigned long total_scanned;
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
- 	unsigned long nr_soft_reclaimed;
-@@ -2920,6 +2919,8 @@ out:
- 	 * and it is potentially going to sleep here.
- 	 */
- 	if (order) {
-+		int zones_need_compaction = 1;
-+
- 		for (i = 0; i <= end_zone; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
+diff -puN mm/compaction.c~mm-compaction-make-compact_control-order-signed-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-make-compact_control-order-signed-fix
++++ a/mm/compaction.c
+@@ -692,7 +692,7 @@ static int __compact_pgdat(pg_data_t *pg
+ 		INIT_LIST_HEAD(&cc->freepages);
+ 		INIT_LIST_HEAD(&cc->migratepages);
  
+-		if (cc->order < 0 || !compaction_deferred(zone, cc->order))
++		if (cc->order == -1 || !compaction_deferred(zone, cc->order))
+ 			compact_zone(zone, cc);
+ 
+ 		if (cc->order > 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +62,7 @@ mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
 fs-nameic-fix-warnings-on-32-bit.patch
 make-swapin-readahead-skip-over-holes.patch
 vmscan-kswapd-carefully-call-compaction.patch
-mm-compaction-make-compact_control-order-signed-fix.patch
+mm-compaction-make-compact_control-order-signed.patch
 hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
 thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
 mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
