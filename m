@@ -1,81 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mmapc-fix-comment-for-__insert_vm_struct-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:23:06 -0700
-Message-ID: <20120321232306.80E3EA0308@akpm.mtv.corp.google.com>
+Subject: [folded] memcg-remove-pcg_cache-page_cgroup-flag-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:23:39 -0700
+Message-ID: <20120321232339.B95F4A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:49785 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755914Ab2CUXXI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:23:08 -0400
-Received: by mail-we0-f202.google.com with SMTP id x9so83122wej.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:23:07 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:60428 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756975Ab2CUXXl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:23:41 -0400
+Received: by qcsp5 with SMTP id p5so129706qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:23:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, consul.kautuk@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmapc-fix-comment-for-__insert_vm_struct-fix
+     Subject: memcg: remove PCG_CACHE page_cgroup flag fix
 has been removed from the -mm tree.  Its filename was
-     mmapc-fix-comment-for-__insert_vm_struct-fix.patch
+     memcg-remove-pcg_cache-page_cgroup-flag-fix.patch
 
-This patch was dropped because it was folded into mmapc-fix-comment-for-__insert_vm_struct.patch
+This patch was dropped because it was folded into memcg-remove-pcg_cache-page_cgroup-flag.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmapc-fix-comment-for-__insert_vm_struct-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg: remove PCG_CACHE page_cgroup flag fix
 
-improve comment layout and text
+Swapping tmpfs loads show absurd wrapped rss and wrong cache in memcg's
+memory.stat statistics: __mem_cgroup_uncharge_common() is failing to
+distinguish the anon and tmpfs cases.
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kautuk Consul <consul.kautuk@gmail.com>
+Mostly we can decide between them by PageAnon, which is reliable once it
+has been set; but there are several callers who need to uncharge a
+MEM_CGROUP_CHARGE_TYPE_MAPPED page before it was fully initialized, so
+allow that case to override the PageAnon decision.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~mmapc-fix-comment-for-__insert_vm_struct-fix mm/mmap.c
---- a/mm/mmap.c~mmapc-fix-comment-for-__insert_vm_struct-fix
-+++ a/mm/mmap.c
-@@ -452,9 +452,8 @@ static void vma_link(struct mm_struct *m
- }
+diff -puN mm/memcontrol.c~memcg-remove-pcg_cache-page_cgroup-flag-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-pcg_cache-page_cgroup-flag-fix
++++ a/mm/memcontrol.c
+@@ -2946,13 +2946,16 @@ __mem_cgroup_uncharge_common(struct page
+ 	if (!PageCgroupUsed(pc))
+ 		goto unlock_out;
  
- /*
-- * Helper for vma_adjust in the split_vma insert case:
-- * insert vm structure into list and rbtree, but it has
-- * already been inserted into prio_tree earlier.
-+ * Helper for vma_adjust() in the split_vma insert case: insert a vma into the
-+ * mm's list and rbtree.  It has already been inserted into the prio_tree.
-  */
- static void __insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
- {
++	anon = PageAnon(page);
++
+ 	switch (ctype) {
+ 	case MEM_CGROUP_CHARGE_TYPE_MAPPED:
++		anon = true;
++		/* fallthrough */
+ 	case MEM_CGROUP_CHARGE_TYPE_DROP:
+ 		/* See mem_cgroup_prepare_migration() */
+ 		if (page_mapped(page) || PageCgroupMigration(pc))
+ 			goto unlock_out;
+-		anon = true;
+ 		break;
+ 	case MEM_CGROUP_CHARGE_TYPE_SWAPOUT:
+ 		if (!PageAnon(page)) {	/* Shared memory */
+@@ -2960,10 +2963,8 @@ __mem_cgroup_uncharge_common(struct page
+ 				goto unlock_out;
+ 		} else if (page_mapped(page)) /* Anon */
+ 				goto unlock_out;
+-		anon = true;
+ 		break;
+ 	default:
+-		anon = false;
+ 		break;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
 mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
-fs-nameic-fix-warnings-on-32-bit.patch
+mm-add-rss-counters-consistency-check.patch
+mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
 make-swapin-readahead-skip-over-holes.patch
-vmscan-kswapd-carefully-call-compaction.patch
-mm-compaction-make-compact_control-order-signed.patch
-hugetlb-try-to-search-again-if-it-is-really-needed.patch
-thp-optimize-away-unnecessary-page-table-locking.patch
+compact_pgdat-workaround-lockdep-warning-in-kswapd.patch
 mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+rmap-anon_vma_prepare-reduce-code-duplication-by-calling-anon_vma_chain_link.patch
+mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
+mm-hugetlb-bail-out-unmapping-after-serving-reference-page.patch
+tmpfs-security-xattr-setting-on-inode-creation.patch
 mm-fix-move-migrate_pages-race-on-task-struct.patch
-bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch
+hugetlbfs-drop-taking-inode-i_mutex-lock-from-hugetlbfs_read.patch
+ksm-cleanup-introduce-find_mergeable_vma.patch
+hugetlb-cleanup-hugetlbh.patch
+hugepages-fix-use-after-free-bug-in-quota-handling.patch
 hugetlbfs-fix-alignment-of-huge-page-requests.patch
-hugetlbfs-return-error-code-when-initializing-module.patch
-mmapc-fix-comment-for-__insert_vm_struct.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch
+mm-forbid-lumpy-reclaim-in-shrink_active_list.patch
+swap-dont-do-discard-if-no-discard-option-added.patch
+memcg-replace-mem_cont-by-mem_res_ctlr.patch
+memcg-replace-mem-and-mem_cont-stragglers.patch
+memcg-lru_size-instead-of-mem_cgroup_zstat.patch
+memcg-enum-lru_list-lru.patch
+memcg-remove-redundant-returns.patch
+idr-make-idr_get_next-good-for-rcu_read_lock.patch
+cgroup-revert-ss_id_lock-to-spinlock.patch
+memcg-let-css_get_next-rely-upon-rcu_read_lock.patch
+memcg-remove-pcg_cache-page_cgroup-flag.patch
+memcg-use-new-logic-for-page-stat-accounting-fix-2.patch
+memcg-remove-pcg_file_mapped-fix-cosmetic-fix.patch
+memcg-remove-pcg_file_mapped-fix-42.patch
 
