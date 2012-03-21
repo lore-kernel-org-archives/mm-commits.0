@@ -1,86 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:17:59 -0700
-Message-ID: <20120321231759.80AA7A0295@akpm.mtv.corp.google.com>
+Subject: [folded] thp-optimize-away-unnecessary-page-table-locking-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:18:23 -0700
+Message-ID: <20120321231823.81FDDA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:58159 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879Ab2CUXSA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:18:00 -0400
-Received: by ghbz15 with SMTP id z15so272900ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:18:00 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39875 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754452Ab2CUXSY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:18:24 -0400
+Received: by vbnl22 with SMTP id l22so128395vbn.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:18:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mingo@redhat.com, tglx@linutronix.de, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, jslaby@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb-try-to-search-again-if-it-is-really-needed-fix
+     Subject: fix mremap bug of failing to split thp
 has been removed from the -mm tree.  Its filename was
-     hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+     thp-optimize-away-unnecessary-page-table-locking-fix.patch
 
-This patch was dropped because it was folded into hugetlb-try-to-search-again-if-it-is-really-needed.patch
+This patch was dropped because it was folded into thp-optimize-away-unnecessary-page-table-locking.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-try-to-search-again-if-it-is-really-needed-fix
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: fix mremap bug of failing to split thp
 
-clean up crazy compound definition
+The patch "thp: optimize away unnecessary page table locking" introduced a
+bug to move_page_tables(), where we fail to split thp when move_huge_pmd()
+is not called.  To fix it, this patch reverts the return value changes and
+readd if (!err) block.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hillf Danton <dhillf@gmail.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    6 +++---
+ mm/huge_memory.c   |   13 ++++++-------
+ mm/mremap.c        |    2 ++
+ 3 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~hugetlb-try-to-search-again-if-it-is-really-needed-fix arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~hugetlb-try-to-search-again-if-it-is-really-needed-fix
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -309,7 +309,8 @@ static unsigned long hugetlb_get_unmappe
- 	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev_vma;
--	unsigned long base = mm->mmap_base, addr = addr0, start_addr;
-+	unsigned long base = mm->mmap_base;
-+	unsigned long addr = addr0;
- 	unsigned long largest_hole = mm->cached_hole_size;
- 	unsigned long start_addr;
+diff -puN fs/proc/task_mmu.c~thp-optimize-away-unnecessary-page-table-locking-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~thp-optimize-away-unnecessary-page-table-locking-fix
++++ a/fs/proc/task_mmu.c
+@@ -394,7 +394,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
  
+-	if (pmd_trans_huge_lock(pmd, vma)) {
++	if (pmd_trans_huge_lock(pmd, vma) == 1) {
+ 		smaps_pte_entry(*(pte_t *)pmd, addr, HPAGE_PMD_SIZE, walk);
+ 		spin_unlock(&walk->mm->page_table_lock);
+ 		mss->anonymous_thp += HPAGE_PMD_SIZE;
+@@ -696,7 +696,7 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	/* find the first VMA at or above 'addr' */
+ 	vma = find_vma(walk->mm, addr);
+ 	spin_lock(&walk->mm->page_table_lock);
+-	if (pmd_trans_huge_lock(pmd, vma)) {
++	if (pmd_trans_huge_lock(pmd, vma) == 1) {
+ 		for (; addr != end; addr += PAGE_SIZE) {
+ 			unsigned long offset;
+ 
+@@ -977,7 +977,7 @@ static int gather_pte_stats(pmd_t *pmd, 
+ 
+ 	md = walk->private;
+ 
+-	if (pmd_trans_huge_lock(pmd, md->vma)) {
++	if (pmd_trans_huge_lock(pmd, md->vma) == 1) {
+ 		pte_t huge_pte = *(pte_t *)pmd;
+ 		struct page *page;
+ 
+diff -puN mm/huge_memory.c~thp-optimize-away-unnecessary-page-table-locking-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-optimize-away-unnecessary-page-table-locking-fix
++++ a/mm/huge_memory.c
+@@ -1031,7 +1031,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ {
+ 	int ret = 0;
+ 
+-	if (__pmd_trans_huge_lock(pmd, vma)) {
++	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
+ 		struct page *page;
+ 		pgtable_t pgtable;
+ 		pgtable = get_pmd_huge_pte(tlb->mm);
+@@ -1057,7 +1057,7 @@ int mincore_huge_pmd(struct vm_area_stru
+ {
+ 	int ret = 0;
+ 
+-	if (__pmd_trans_huge_lock(pmd, vma)) {
++	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
+ 		/*
+ 		 * All logical pages in the range are present
+ 		 * if backed by a huge page.
+@@ -1095,12 +1095,11 @@ int move_huge_pmd(struct vm_area_struct 
+ 		goto out;
+ 	}
+ 
+-	if (__pmd_trans_huge_lock(old_pmd, vma)) {
++	if ((ret = __pmd_trans_huge_lock(old_pmd, vma)) == 1) {
+ 		pmd = pmdp_get_and_clear(mm, old_addr, old_pmd);
+ 		VM_BUG_ON(!pmd_none(*new_pmd));
+ 		set_pmd_at(mm, new_addr, new_pmd, pmd);
+ 		spin_unlock(&mm->page_table_lock);
+-		ret = 1;
+ 	}
+ out:
+ 	return ret;
+@@ -1112,7 +1111,7 @@ int change_huge_pmd(struct vm_area_struc
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int ret = 0;
+ 
+-	if (__pmd_trans_huge_lock(pmd, vma)) {
++	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
+ 		pmd_t entry;
+ 		entry = pmdp_get_and_clear(mm, addr, pmd);
+ 		entry = pmd_modify(entry, newprot);
+@@ -1126,7 +1125,7 @@ int change_huge_pmd(struct vm_area_struc
+ 
+ /*
+  * Returns 1 if a given pmd maps a stable (not under splitting) thp.
+- * Returns 0 otherwise.
++ * Returns -1 if it maps a thp under splitting. Returns 0 otherwise.
+  *
+  * Note that if it returns 1, this routine returns without unlocking page
+  * table locks. So callers must unlock them.
+@@ -1138,7 +1137,7 @@ int __pmd_trans_huge_lock(pmd_t *pmd, st
+ 		if (unlikely(pmd_trans_splitting(*pmd))) {
+ 			spin_unlock(&vma->vm_mm->page_table_lock);
+ 			wait_split_huge_page(vma->anon_vma, pmd);
+-			return 0;
++			return -1;
+ 		} else {
+ 			/* Thp mapped by 'pmd' is stable, so we can
+ 			 * handle it as it is. */
+diff -puN mm/mremap.c~thp-optimize-away-unnecessary-page-table-locking-fix mm/mremap.c
+--- a/mm/mremap.c~thp-optimize-away-unnecessary-page-table-locking-fix
++++ a/mm/mremap.c
+@@ -155,6 +155,8 @@ unsigned long move_page_tables(struct vm
+ 			if (err > 0) {
+ 				need_flush = true;
+ 				continue;
++			} else if (!err) {
++				split_huge_page_pmd(vma->vm_mm, old_pmd);
+ 			}
+ 			VM_BUG_ON(pmd_trans_huge(*old_pmd));
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-origin.patch
-mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
-fs-nameic-fix-warnings-on-32-bit.patch
-make-swapin-readahead-skip-over-holes.patch
-vmscan-kswapd-carefully-call-compaction.patch
-mm-compaction-make-compact_control-order-signed.patch
-hugetlb-try-to-search-again-if-it-is-really-needed.patch
+pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
+thp-optimize-away-unnecessary-page-table-locking.patch
 thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes.patch
-mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
-bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
-hugetlbfs-fix-alignment-of-huge-page-requests-fix.patch
-hugetlbfs-return-error-code-when-initializing-module-fix.patch
-mmapc-fix-comment-for-__insert_vm_struct-fix.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
+pagemap-export-kpf_thp.patch
+pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
+pagemap-introduce-data-structure-for-pagemap-entry.patch
+memcg-clean-up-existing-move-charge-code.patch
+thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
 thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch
+memcg-avoid-thp-split-in-task-migration.patch
 
