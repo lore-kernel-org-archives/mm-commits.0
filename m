@@ -1,60 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded] make-swapin-readahead-skip-over-holes-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:16:43 -0700
-Message-ID: <20120321231643.2C714A0295@akpm.mtv.corp.google.com>
+Subject: [folded] vmscan-kswapd-carefully-call-compaction-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:17:11 -0700
+Message-ID: <20120321231711.9A5FDA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:34082 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754484Ab2CUXQp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:16:45 -0400
-Received: by faaa19 with SMTP id a19so92257faa.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:16:44 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:37260 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757612Ab2CUXRO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:17:14 -0400
+Received: by eekc41 with SMTP id c41so84255eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:17:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, z@drze.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: make-swapin-readahead-skip-over-holes-fix
+     Subject: vmscan-kswapd-carefully-call-compaction-fix
 has been removed from the -mm tree.  Its filename was
-     make-swapin-readahead-skip-over-holes-fix.patch
+     vmscan-kswapd-carefully-call-compaction-fix.patch
 
-This patch was dropped because it was folded into make-swapin-readahead-skip-over-holes.patch
+This patch was dropped because it was folded into vmscan-kswapd-carefully-call-compaction.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: make-swapin-readahead-skip-over-holes-fix
+Subject: vmscan-kswapd-carefully-call-compaction-fix
 
-fix it for page_cluster >= 32
+reduce scope of zones_need_compaction
 
-Cc: Adrian Drzewiecki <z@drze.net>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/swap_state.c~make-swapin-readahead-skip-over-holes-fix mm/swap_state.c
---- a/mm/swap_state.c~make-swapin-readahead-skip-over-holes-fix
-+++ a/mm/swap_state.c
-@@ -375,7 +375,7 @@ struct page *swapin_readahead(swp_entry_
- 	struct page *page;
- 	unsigned long offset = swp_offset(entry);
- 	unsigned long start_offset, end_offset;
--	unsigned long mask = (1 << page_cluster) - 1;
-+	unsigned long mask = (1UL << page_cluster) - 1;
+diff -puN mm/vmscan.c~vmscan-kswapd-carefully-call-compaction-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-kswapd-carefully-call-compaction-fix
++++ a/mm/vmscan.c
+@@ -2672,7 +2672,6 @@ static unsigned long balance_pgdat(pg_da
+ 	int priority;
+ 	int i;
+ 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
+-	int zones_need_compaction = 1;
+ 	unsigned long total_scanned;
+ 	struct reclaim_state *reclaim_state = current->reclaim_state;
+ 	unsigned long nr_soft_reclaimed;
+@@ -2920,6 +2919,8 @@ out:
+ 	 * and it is potentially going to sleep here.
+ 	 */
+ 	if (order) {
++		int zones_need_compaction = 1;
++
+ 		for (i = 0; i <= end_zone; i++) {
+ 			struct zone *zone = pgdat->node_zones + i;
  
- 	/* Read a page_cluster sized and aligned cluster around offset. */
- 	start_offset = offset & ~mask;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +71,7 @@ origin.patch
 mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
 fs-nameic-fix-warnings-on-32-bit.patch
 make-swapin-readahead-skip-over-holes.patch
-vmscan-kswapd-carefully-call-compaction-fix.patch
+vmscan-kswapd-carefully-call-compaction.patch
 mm-compaction-make-compact_control-order-signed-fix.patch
 hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
 thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
