@@ -1,60 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:27:39 -0700
-Message-ID: <20120321232739.2F93FA0308@akpm.mtv.corp.google.com>
+Subject: [folded] thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:28:06 -0700
+Message-ID: <20120321232806.6D052A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:37235 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757345Ab2CUX1k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:27:40 -0400
-Received: by ghbz15 with SMTP id z15so274126ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:27:39 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:53896 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757345Ab2CUX2H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:28:07 -0400
+Received: by yenq2 with SMTP id q2so273701yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:28:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, nishimura@mxp.nes.nec.co.jp, paul.gortmaker@windriver.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix
+     Subject: thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
+     thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch
 
-This patch was dropped because it was folded into memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch
+This patch was dropped because it was folded into thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix
+Subject: thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
 
-don't return a void
+fix build in mm/pgtable-generic.c
 
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Ying Han <yinghan@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/pgtable-generic.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix
-+++ a/include/linux/memcontrol.h
-@@ -154,8 +154,7 @@ static inline void mem_cgroup_begin_upda
- 	rcu_read_lock();
- 	*locked = false;
- 	if (atomic_read(&memcg_moving))
--		return __mem_cgroup_begin_update_page_stat(page, locked,
--								flags);
-+		__mem_cgroup_begin_update_page_stat(page, locked, flags);
- }
- 
- void __mem_cgroup_end_update_page_stat(struct page *page,
+diff -puN include/linux/huge_mm.h~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix include/linux/huge_mm.h
+diff -puN mm/pgtable-generic.c~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
++++ a/mm/pgtable-generic.c
+@@ -70,10 +70,11 @@ int pmdp_clear_flush_young(struct vm_are
+ 			   unsigned long address, pmd_t *pmdp)
+ {
+ 	int young;
+-#ifndef CONFIG_TRANSPARENT_HUGEPAGE
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
++#else
+ 	BUG();
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+-	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 	young = pmdp_test_and_clear_young(vma, address, pmdp);
+ 	if (young)
+ 		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,5 +84,5 @@ memcg-remove-pcg_cache-page_cgroup-flag.patch
 memcg-use-new-logic-for-page-stat-accounting.patch
 memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch
 mm-memcontrolc-s-stealed-stolen.patch
-thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch
+thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
 
