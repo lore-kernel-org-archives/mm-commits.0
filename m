@@ -1,81 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch added to -mm tree
-Date: Wed, 21 Mar 2012 15:01:36 -0700
-Message-ID: <20120321224529.D92A1200059@hpza10.eem.corp.google.com>
+Subject: [folded] mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:16:06 -0700
+Message-ID: <20120321231608.3A482A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:57711 "EHLO
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:65059 "EHLO
 	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863Ab2CUWpd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 18:45:33 -0400
-Received: by wibhj13 with SMTP id hj13so1046wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 15:45:31 -0700 (PDT)
+	with ESMTP id S1754484Ab2CUXQK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:16:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, nishimura@mxp.nes.nec.co.jp, paul.gortmaker@windriver.com, rientjes@google.com
+To: akpm@linux-foundation.org, aarcange@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
-has been added to the -mm tree.  Its filename is
-     thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch
+     Subject: mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
+Subject: mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
 
-fix build in mm/pgtable-generic.c
+Cc: <stable@vger.kernel.org>		[2.6.38+]
+
+WARNING: labels should not be indented
+#387: FILE: mm/memory.c:1267:
++	next:
+
+total: 0 errors, 1 warnings, 183 lines checked
+
+./patches/mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pgtable-generic.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/huge_mm.h~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix include/linux/huge_mm.h
-diff -puN mm/pgtable-generic.c~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
-+++ a/mm/pgtable-generic.c
-@@ -70,10 +70,11 @@ int pmdp_clear_flush_young(struct vm_are
- 			   unsigned long address, pmd_t *pmdp)
- {
- 	int young;
--#ifndef CONFIG_TRANSPARENT_HUGEPAGE
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
-+#else
- 	BUG();
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
--	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 	young = pmdp_test_and_clear_young(vma, address, pmdp);
- 	if (young)
- 		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+diff -puN mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes mm/memory.c
+--- a/mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes
++++ a/mm/memory.c
+@@ -1247,7 +1247,7 @@ static inline unsigned long zap_pmd_rang
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_trans_huge(*pmd)) {
+-			if (next-addr != HPAGE_PMD_SIZE) {
++			if (next - addr != HPAGE_PMD_SIZE) {
+ 				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
+ 				split_huge_page_pmd(vma->vm_mm, pmd);
+ 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
+@@ -1264,7 +1264,7 @@ static inline unsigned long zap_pmd_rang
+ 		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			goto next;
+ 		next = zap_pte_range(tlb, vma, pmd, addr, next, details);
+-	next:
++next:
+ 		cond_resched();
+ 	} while (pmd++, addr = next, addr != end);
+ 
 _
-Subject: Subject: thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-checkpatch-fixes.patch
+mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
 fs-nameic-fix-warnings-on-32-bit.patch
 make-swapin-readahead-skip-over-holes-fix.patch
 vmscan-kswapd-carefully-call-compaction-fix.patch
