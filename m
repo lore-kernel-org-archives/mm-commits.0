@@ -1,126 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch added to -mm tree
-Date: Tue, 20 Mar 2012 14:55:01 -0700
-Message-ID: <20120320223853.201B51E004D@wpzn4.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 12:40:35 -0700
+Message-ID: <20120321194038.D8838A00AA@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:44800 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758901Ab2CTWiy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Mar 2012 18:38:54 -0400
-Received: by ggnd2 with SMTP id d2so100550ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Mar 2012 15:38:54 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:47547 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754919Ab2CUTkn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 15:40:43 -0400
+Received: by faaa19 with SMTP id a19so87136faa.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 12:40:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@redhat.com, cmetcalf@tilera.com, deller@gmx.de, ink@jurassic.park.msu.ru, jbaron@redhat.com, jejb@parisc-linux.org, mattst88@gmail.com, ralf@linux-mips.org, roland@hack.frob.com, rth@twiddle.net
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
-has been added to the -mm tree.  Its filename is
-     coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
+Subject: linux-next-git-rejects
 
-fix up the architectures which broke
-
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Jason Baron <jbaron@redhat.com>
-Cc: Roland McGrath <roland@hack.frob.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h  |    4 ++++
- arch/mips/include/asm/mman.h   |    4 ++++
- arch/parisc/include/asm/mman.h |    4 ++++
- arch/xtensa/include/asm/mman.h |    4 ++++
- 4 files changed, 16 insertions(+)
+ arch/s390/kernel/smp.c    |    3 ---
+ drivers/cpuidle/cpuidle.c |    8 --------
+ include/net/sock.h        |    3 ---
+ tools/perf/util/header.c  |   34 ----------------------------------
+ tools/perf/util/header.h  |    3 ---
+ 5 files changed, 51 deletions(-)
 
-diff -puN arch/alpha/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
-+++ a/arch/alpha/include/asm/mman.h
-@@ -56,6 +56,10 @@
- #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
- #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
+diff -puN tools/perf/util/header.h~linux-next-git-rejects tools/perf/util/header.h
+--- a/tools/perf/util/header.h~linux-next-git-rejects
++++ a/tools/perf/util/header.h
+@@ -28,10 +28,7 @@ enum {
+ 	HEADER_CPU_TOPOLOGY,
+ 	HEADER_NUMA_TOPOLOGY,
+ 	HEADER_BRANCH_STACK,
+-<<<<<<< HEAD
+-=======
+ 	HEADER_PMU_MAPPINGS,
+->>>>>>> linux-next/akpm-end
+ 	HEADER_LAST_FEATURE,
+ 	HEADER_FEAT_BITS	= 256,
+ };
+diff -puN tools/perf/util/header.c~linux-next-git-rejects tools/perf/util/header.c
+--- a/tools/perf/util/header.c~linux-next-git-rejects
++++ a/tools/perf/util/header.c
+@@ -1394,40 +1394,6 @@ static void print_branch_stack(struct pe
+ 	fprintf(fp, "# contains samples with branch stack\n");
+ }
  
-+#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
-+					   overrides the coredump filter bits */
-+#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
-+
- /* compatibility flags */
- #define MAP_FILE	0
+-<<<<<<< HEAD
+-=======
+-static void print_pmu_mappings(struct perf_header *ph, int fd, FILE *fp)
+-{
+-	const char *delimiter = "# pmu mappings: ";
+-	char *name;
+-	int ret;
+-	u32 pmu_num;
+-	u32 type;
+-
+-	ret = read(fd, &pmu_num, sizeof(pmu_num));
+-	if (ret != sizeof(pmu_num))
+-		goto error;
+-
+-	if (!pmu_num)
+-		goto error;
+-
+-	while (pmu_num--) {
+-		if (read(fd, &type, sizeof(type)) != sizeof(type))
+-			goto error;
+-		name = do_read_string(fd, ph);
+-		fprintf(fp, "%s%s = %" PRIu32, delimiter, name, type);
+-		free(name);
+-		delimiter = ", ";
+-	}
+-
+-	fprintf(fp, "\n");
+-
+-	return;
+-error:
+-	fprintf(fp, "# pmu mappings: not available\n");
+-}
+-
+->>>>>>> linux-next/akpm-end
+ static int __event_process_build_id(struct build_id_event *bev,
+ 				    char *filename,
+ 				    struct perf_session *session)
+diff -puN include/net/sock.h~linux-next-git-rejects include/net/sock.h
+--- a/include/net/sock.h~linux-next-git-rejects
++++ a/include/net/sock.h
+@@ -56,11 +56,8 @@
+ #include <linux/memcontrol.h>
+ #include <linux/res_counter.h>
+ #include <linux/static_key.h>
+-<<<<<<< HEAD
+-=======
+ #include <linux/aio.h>
+ #include <linux/sched.h>
+->>>>>>> linux-next/akpm-end
  
-diff -puN arch/mips/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix arch/mips/include/asm/mman.h
---- a/arch/mips/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
-+++ a/arch/mips/include/asm/mman.h
-@@ -80,6 +80,10 @@
- #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
- #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
+ #include <linux/filter.h>
+ #include <linux/rculist_nulls.h>
+diff -puN drivers/cpuidle/cpuidle.c~linux-next-git-rejects drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~linux-next-git-rejects
++++ a/drivers/cpuidle/cpuidle.c
+@@ -112,16 +112,8 @@ int cpuidle_idle_call(void)
+ 	trace_power_start_rcuidle(POWER_CSTATE, next_state, dev->cpu);
+ 	trace_cpu_idle_rcuidle(next_state, dev->cpu);
  
-+#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
-+					   overrides the coredump filter bits */
-+#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
-+
- /* compatibility flags */
- #define MAP_FILE	0
+-<<<<<<< HEAD
+-	trace_power_start_rcuidle(POWER_CSTATE, next_state, dev->cpu);
+-	trace_cpu_idle_rcuidle(next_state, dev->cpu);
+-
+-	entered_state = target_state->enter(dev, drv, next_state);
+-
+-=======
+ 	entered_state = cpuidle_enter_ops(dev, drv, next_state);
  
-diff -puN arch/parisc/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix arch/parisc/include/asm/mman.h
---- a/arch/parisc/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
-+++ a/arch/parisc/include/asm/mman.h
-@@ -62,6 +62,10 @@
- #define MADV_HUGEPAGE	67		/* Worth backing with hugepages */
- #define MADV_NOHUGEPAGE	68		/* Not worth backing with hugepages */
+->>>>>>> linux-next/akpm-end
+ 	trace_power_end_rcuidle(dev->cpu);
+ 	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, dev->cpu);
  
-+#define MADV_DONTDUMP   69		/* Explicity exclude from the core dump,
-+					   overrides the coredump filter bits */
-+#define MADV_DODUMP	70		/* Clear the MADV_NODUMP flag */
-+
- /* compatibility flags */
- #define MAP_FILE	0
- #define MAP_VARIABLE	0
-diff -puN arch/xtensa/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix arch/xtensa/include/asm/mman.h
---- a/arch/xtensa/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
-+++ a/arch/xtensa/include/asm/mman.h
-@@ -86,6 +86,10 @@
- #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
- #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
- 
-+#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
-+					   overrides the coredump filter bits */
-+#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
-+
- /* compatibility flags */
- #define MAP_FILE	0
- 
+diff -puN arch/s390/kernel/smp.c~linux-next-git-rejects arch/s390/kernel/smp.c
+--- a/arch/s390/kernel/smp.c~linux-next-git-rejects
++++ a/arch/s390/kernel/smp.c
+@@ -714,15 +714,12 @@ static void __cpuinit smp_start_secondar
+ 	ipi_call_lock();
+ 	set_cpu_online(smp_processor_id(), true);
+ 	ipi_call_unlock();
+-<<<<<<< HEAD
+ 	__ctl_clear_bit(0, 28); /* Disable lowcore protection */
+ 	S390_lowcore.restart_psw.mask =
+ 		PSW_DEFAULT_KEY | PSW_MASK_BASE | PSW_MASK_EA | PSW_MASK_BA;
+ 	S390_lowcore.restart_psw.addr =
+ 		PSW_ADDR_AMODE | (unsigned long) psw_restart_int_handler;
+ 	__ctl_set_bit(0, 28); /* Enable lowcore protection */
+-=======
+->>>>>>> linux-next/akpm-end
+ 	local_irq_enable();
+ 	/* cpu_idle will call schedule for us */
+ 	cpu_idle();
 _
-Subject: Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
