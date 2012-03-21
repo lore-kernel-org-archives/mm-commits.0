@@ -1,80 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded] procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:20:57 -0700
-Message-ID: <20120321232057.8EA5BA02EB@akpm.mtv.corp.google.com>
+Subject: [folded] mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:21:26 -0700
+Message-ID: <20120321232126.75CA9A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:47287 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667Ab2CUXU7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:20:59 -0400
-Received: by vbnl22 with SMTP id l22so128692vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:20:58 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:63857 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667Ab2CUXV2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:21:28 -0400
+Received: by bkcjm19 with SMTP id jm19so82593bkc.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:21:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, siddhesh.poyarekar@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes
+     Subject: mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes.patch
+     mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+This patch was dropped because it was folded into mm-fix-move-migrate_pages-race-on-task-struct.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes
+Subject: mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
 
-ERROR: spaces required around that '!=' (ctx:WxV)
-#144: FILE: fs/proc/task_mmu.c:279:
-+		if (tid !=0) {
- 		        ^
+WARNING: line over 80 characters
+#97: FILE: mm/mempolicy.c:1365:
++			capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
 
-ERROR: spaces required around that '!=' (ctx:WxV)
-#175: FILE: fs/proc/task_mmu.c:1151:
-+		if (tid !=0) {
- 		        ^
+WARNING: line over 80 characters
+#184: FILE: mm/migrate.c:1395:
++			err = do_pages_move(mm, task_nodes, nr_pages, pages, nodes,
 
-total: 3 errors, 0 warnings, 281 lines checked
+total: 0 errors, 2 warnings, 150 lines checked
 
-./patches/procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3.patch has style problems, please review.
+./patches/mm-fix-move-migrate_pages-race-on-task-struct.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++--
+ mm/migrate.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -276,7 +276,7 @@ show_map_vma(struct seq_file *m, struct 
+diff -puN mm/migrate.c~mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes mm/migrate.c
+--- a/mm/migrate.c~mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes
++++ a/mm/migrate.c
+@@ -1390,8 +1390,8 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
  
- 		tid = vm_is_stack(task, vma, is_pid);
- 
--		if (tid !=0) {
-+		if (tid != 0) {
- 			/*
- 			 * Thread stack in /proc/PID/task/TID/maps or
- 			 * the main process stack.
-@@ -1161,7 +1161,7 @@ static int show_numa_map(struct seq_file
- 		seq_printf(m, " heap");
- 	} else {
- 		pid_t tid = vm_is_stack(proc_priv->task, vma, is_pid);
--		if (tid !=0) {
-+		if (tid != 0) {
- 			/*
- 			 * Thread stack in /proc/PID/task/TID/maps or
- 			 * the main process stack.
+ 	if (mm) {
+ 		if (nodes)
+-			err = do_pages_move(mm, task_nodes, nr_pages, pages, nodes,
+-				status, flags);
++			err = do_pages_move(mm, task_nodes, nr_pages, pages,
++					    nodes, status, flags);
+ 		else
+ 			err = do_pages_stat(mm, nr_pages, pages, status);
+ 	} else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,7 +80,7 @@ hugetlb-try-to-search-again-if-it-is-really-needed.patch
 thp-optimize-away-unnecessary-page-table-locking.patch
 mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
 procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
-mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
+mm-fix-move-migrate_pages-race-on-task-struct.patch
 bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
 hugetlbfs-fix-alignment-of-huge-page-requests-fix.patch
 hugetlbfs-return-error-code-when-initializing-module-fix.patch
