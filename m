@@ -1,88 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:19:03 -0700
-Message-ID: <20120321231903.A2268A0295@akpm.mtv.corp.google.com>
+Subject: [folded] procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:20:06 -0700
+Message-ID: <20120321232006.650FAA02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:62141 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754672Ab2CUXTE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:19:04 -0400
-Received: by ghbz15 with SMTP id z15so272983ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:19:04 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:41533 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667Ab2CUXUH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:20:07 -0400
+Received: by yenq2 with SMTP id q2so272893yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:20:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: siddhesh.poyarekar@gmail.com, msalter@redhat.com, oleg@redhat.com, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix
+     Subject: mm: Fix task_nommu build regression in linux-next
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
+     procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next.patch
 
-This patch was dropped because it was folded into mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
+This patch was dropped because it was folded into procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix
+From: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Subject: mm: Fix task_nommu build regression in linux-next
 
-buffer_heads_over_limit is unlikely
+Commit b7b2a0afacada237005068294cb0ccc49d32889e resulted in a build
+failure for nommu builds:
 
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+fs/built-in.o: In function `nommu_vma_show':
+task_nommu.c:(.text+0x564a0): undefined reference to `vm_is_stack'
+make[1]: *** [.tmp_vmlinux1] Error 1
+
+Fix is to provide definitions of vm_is_stack() and
+vm_is_stack_for_task() for nommu as well. This patch also adds an
+explicit include of sched.h based on observations and patch submission
+by Paul Gortmaker <paul.gortmaker@windriver.com>:
+
+https://lkml.org/lkml/2012/3/5/326
+
+Signed-off-by: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/memory.c |    1 +
+ mm/nommu.c  |   40 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+)
 
-diff -puN mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix
-+++ a/mm/vmscan.c
-@@ -1723,11 +1723,12 @@ static void shrink_active_list(unsigned 
- 			continue;
- 		}
+diff -puN mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next mm/memory.c
+--- a/mm/memory.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next
++++ a/mm/memory.c
+@@ -57,6 +57,7 @@
+ #include <linux/swapops.h>
+ #include <linux/elf.h>
+ #include <linux/gfp.h>
++#include <linux/sched.h>
  
--		if (buffer_heads_over_limit &&
--		    page_has_private(page) && trylock_page(page)) {
--			if (page_has_private(page))
--				try_to_release_page(page, 0);
--			unlock_page(page);
-+		if (unlikely(buffer_heads_over_limit)) {
-+			if (page_has_private(page) && trylock_page(page)) {
-+				if (page_has_private(page))
-+					try_to_release_page(page, 0);
-+				unlock_page(page);
+ #include <asm/io.h>
+ #include <asm/pgalloc.h>
+diff -puN mm/nommu.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next mm/nommu.c
+--- a/mm/nommu.c~procfs-mark-thread-stack-correctly-in-proc-pid-maps-fix-task_nommu-build-regression-in-linux-next
++++ a/mm/nommu.c
+@@ -29,6 +29,7 @@
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+ #include <linux/audit.h>
++#include <linux/sched.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/tlb.h>
+@@ -2094,3 +2095,42 @@ int nommu_shrink_inode_mappings(struct i
+ 	up_write(&nommu_region_sem);
+ 	return 0;
+ }
++
++/* Check if the vma is being used as a stack by this task */
++static int vm_is_stack_for_task(struct task_struct *t,
++				struct vm_area_struct *vma)
++{
++	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
++}
++
++/*
++ * Check if the vma is being used as a stack.
++ * If is_group is non-zero, check in the entire thread group or else
++ * just check in the current task. Returns the pid of the task that
++ * the vma is stack for.
++ */
++pid_t vm_is_stack(struct task_struct *task,
++		  struct vm_area_struct *vma, int in_group)
++{
++	pid_t ret = 0;
++
++	if (vm_is_stack_for_task(task, vma))
++		return task->pid;
++
++	if (in_group) {
++		struct task_struct *t;
++		rcu_read_lock();
++		t = list_first_entry_rcu(&task->thread_group,
++					 struct task_struct, thread_group);
++		do {
++			if (vm_is_stack_for_task(t, vma)) {
++				ret = t->pid;
++				goto done;
 +			}
- 		}
- 
- 		if (page_referenced(page, 0, mz->mem_cgroup, &vm_flags)) {
++		} while_each_thread(task, t);
++done:
++		rcu_read_unlock();
++	}
++
++	return ret;
++}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from siddhesh.poyarekar@gmail.com are
 
-origin.patch
-mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
-fs-nameic-fix-warnings-on-32-bit.patch
-make-swapin-readahead-skip-over-holes.patch
-vmscan-kswapd-carefully-call-compaction.patch
-mm-compaction-make-compact_control-order-signed.patch
-hugetlb-try-to-search-again-if-it-is-really-needed.patch
-thp-optimize-away-unnecessary-page-table-locking.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
 procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
+procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3.patch
 procfs-mark-thread-stack-correctly-in-proc-pid-maps-v3-checkpatch-fixes.patch
-mm-fix-move-migrate_pages-race-on-task-struct-checkpatch-fixes.patch
-bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
-hugetlbfs-fix-alignment-of-huge-page-requests-fix.patch
-hugetlbfs-return-error-code-when-initializing-module-fix.patch
-mmapc-fix-comment-for-__insert_vm_struct-fix.patch
-memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
-memcg-simplify-move_account-check-fix.patch
-memcg-use-new-logic-for-page-stat-accounting-fix.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat-fix.patch
-mm-memcontrolc-s-stealed-stolen.patch
-thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch
 
