@@ -1,62 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded] bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:21:45 -0700
-Message-ID: <20120321232145.D103DA02EB@akpm.mtv.corp.google.com>
+Subject: [folded] hugetlbfs-fix-alignment-of-huge-page-requests-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:22:13 -0700
+Message-ID: <20120321232213.B34C8A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:54103 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667Ab2CUXVq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:21:46 -0400
-Received: by ggnd2 with SMTP id d2so273854ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:21:46 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:34454 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752823Ab2CUXWO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:22:14 -0400
+Received: by ghbz15 with SMTP id z15so273657ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:22:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nacc@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, steven.truelove@utoronto.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix
+     Subject: hugetlbfs-fix-alignment-of-huge-page-requests-fix
 has been removed from the -mm tree.  Its filename was
-     bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix.patch
+     hugetlbfs-fix-alignment-of-huge-page-requests-fix.patch
 
-This patch was dropped because it was folded into bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch
+This patch was dropped because it was folded into hugetlbfs-fix-alignment-of-huge-page-requests.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix
+Subject: hugetlbfs-fix-alignment-of-huge-page-requests-fix
 
-code simplification
+x86_64 allnoconfig:
 
-Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+mm/mmap.c: In function 'sys_mmap_pgoff':
+mm/mmap.c:1127: warning: passing argument 4 of 'hugetlb_file_setup' makes pointer from integer without a cast
+include/linux/hugetlb.h:172: note: expected 'struct user_struct **' but argument is of type 'int'
+mm/mmap.c:1127: warning: passing argument 5 of 'hugetlb_file_setup' makes integer from pointer without a cast
+include/linux/hugetlb.h:172: note: expected 'int' but argument is of type 'struct user_struct **'
+mm/mmap.c:1127: error: too many arguments to function 'hugetlb_file_setup'
+
+
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Steven Truelove <steven.truelove@utoronto.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix mm/bootmem.c
---- a/mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section-fix
-+++ a/mm/bootmem.c
-@@ -766,14 +766,13 @@ void * __init alloc_bootmem_section(unsi
- 				    unsigned long section_nr)
+diff -puN include/linux/hugetlb.h~hugetlbfs-fix-alignment-of-huge-page-requests-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlbfs-fix-alignment-of-huge-page-requests-fix
++++ a/include/linux/hugetlb.h
+@@ -169,7 +169,8 @@ static inline int is_file_hugepages(stru
+ #else /* !CONFIG_HUGETLBFS */
+ 
+ #define is_file_hugepages(file)			0
+-static inline struct file *hugetlb_file_setup(const char *name, size_t size,
++static inline struct file *
++hugetlb_file_setup(const char *name, unsigned long addr, size_t size,
+ 		vm_flags_t acctflag, struct user_struct **user, int creat_flags)
  {
- 	bootmem_data_t *bdata;
--	unsigned long pfn, goal, limit;
-+	unsigned long pfn, goal;
- 
- 	pfn = section_nr_to_pfn(section_nr);
- 	goal = pfn << PAGE_SHIFT;
--	limit = 0;
- 	bdata = &bootmem_node_data[early_pfn_to_nid(pfn)];
- 
--	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, limit);
-+	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, 0);
- }
- #endif
- 
+ 	return ERR_PTR(-ENOSYS);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +75,7 @@ mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highm
 procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
 mm-fix-move-migrate_pages-race-on-task-struct.patch
 bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch
-hugetlbfs-fix-alignment-of-huge-page-requests-fix.patch
+hugetlbfs-fix-alignment-of-huge-page-requests.patch
 hugetlbfs-return-error-code-when-initializing-module-fix.patch
 mmapc-fix-comment-for-__insert_vm_struct-fix.patch
 memcg-remove-pcg_cache-page_cgroup-flag-checkpatch-fixes.patch
