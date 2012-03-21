@@ -1,88 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:28:06 -0700
-Message-ID: <20120321232806.6D052A0308@akpm.mtv.corp.google.com>
+Subject: [folded] mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:29:53 -0700
+Message-ID: <20120321232953.D3D45A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:53896 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:54403 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757345Ab2CUX2H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:28:07 -0400
-Received: by yenq2 with SMTP id q2so273701yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:28:06 -0700 (PDT)
+	with ESMTP id S932156Ab2CUX3y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:29:54 -0400
+Received: by yenq2 with SMTP id q2so273854yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:29:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, nishimura@mxp.nes.nec.co.jp, paul.gortmaker@windriver.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, msalter@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
+     Subject: mm: avoid CONFIG_MMU=n build failure in pmd_none_or_trans_huge_or_clear_bad
 has been removed from the -mm tree.  Its filename was
-     thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix.patch
+     mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix.patch
 
-This patch was dropped because it was folded into thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
+This patch was dropped because it was folded into mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: avoid CONFIG_MMU=n build failure in pmd_none_or_trans_huge_or_clear_bad
 
-fix build in mm/pgtable-generic.c
+pmd_none_or_trans_huge_or_clear_bad must be defined after pmd_trans_huge,
+so add #ifdef CONFIG_MMU around the whole block that shall not be needed
+for archs without pagetables.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Mark Salter <msalter@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pgtable-generic.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/asm-generic/pgtable.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix include/linux/huge_mm.h
-diff -puN mm/pgtable-generic.c~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage-fix
-+++ a/mm/pgtable-generic.c
-@@ -70,10 +70,11 @@ int pmdp_clear_flush_young(struct vm_are
- 			   unsigned long address, pmd_t *pmdp)
+diff -puN include/asm-generic/pgtable.h~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode-fix
++++ a/include/asm-generic/pgtable.h
+@@ -426,6 +426,8 @@ extern void untrack_pfn_vma(struct vm_ar
+ 				unsigned long size);
+ #endif
+ 
++#ifdef CONFIG_MMU
++
+ #ifndef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline int pmd_trans_huge(pmd_t pmd)
  {
- 	int young;
--#ifndef CONFIG_TRANSPARENT_HUGEPAGE
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
-+#else
- 	BUG();
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
--	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 	young = pmdp_test_and_clear_young(vma, address, pmdp);
- 	if (young)
- 		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+@@ -442,7 +444,7 @@ static inline int pmd_write(pmd_t pmd)
+ 	return 0;
+ }
+ #endif /* __HAVE_ARCH_PMD_WRITE */
+-#endif
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ /*
+  * This function is meant to be used by sites walking pagetables with
+@@ -501,6 +503,8 @@ static inline int pmd_trans_unstable(pmd
+ #endif
+ }
+ 
++#endif /* CONFIG_MMU */
++
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* _ASM_GENERIC_PGTABLE_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-origin.patch
 mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
-fs-nameic-fix-warnings-on-32-bit.patch
-make-swapin-readahead-skip-over-holes.patch
+vmscan-reclaim-at-order-0-when-compaction-is-enabled.patch
 vmscan-kswapd-carefully-call-compaction.patch
+vmscan-only-defer-compaction-for-failed-order-and-higher.patch
 mm-compaction-make-compact_control-order-signed.patch
+hugetlbfs-fix-hugetlb_get_unmapped_area.patch
 hugetlb-try-to-search-again-if-it-is-really-needed.patch
+mm-do-not-reset-cached_hole_size-when-vma-is-unmapped.patch
+mm-search-from-free_area_cache-for-the-bigger-size.patch
+pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
 thp-optimize-away-unnecessary-page-table-locking.patch
-mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
-procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
-mm-fix-move-migrate_pages-race-on-task-struct.patch
-bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch
-hugetlbfs-fix-alignment-of-huge-page-requests.patch
-hugetlbfs-return-error-code-when-initializing-module.patch
-mmapc-fix-comment-for-__insert_vm_struct.patch
-memcg-remove-pcg_cache-page_cgroup-flag.patch
-memcg-use-new-logic-for-page-stat-accounting.patch
-memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch
-mm-memcontrolc-s-stealed-stolen.patch
+pagemap-export-kpf_thp.patch
+pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
+pagemap-introduce-data-structure-for-pagemap-entry.patch
+mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
+thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru.patch
+ksm-cleanup-introduce-find_mergeable_vma.patch
+numa_emulation-fix-cpumask_of_node.patch
+memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
+memcg-clean-up-existing-move-charge-code.patch
 thp-add-hpage_pmd_-definitions-for-config_transparent_hugepage.patch
+memcg-avoid-thp-split-in-task-migration.patch
 
