@@ -1,58 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-compaction-make-compact_control-order-signed-fix.patch removed from -mm tree
-Date: Wed, 21 Mar 2012 16:17:35 -0700
-Message-ID: <20120321231736.008AEA0295@akpm.mtv.corp.google.com>
+Subject: [folded] hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch removed from -mm tree
+Date: Wed, 21 Mar 2012 16:17:59 -0700
+Message-ID: <20120321231759.80AA7A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:40392 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757328Ab2CUXRi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:17:38 -0400
-Received: by faaa19 with SMTP id a19so92267faa.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:17:37 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:58159 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879Ab2CUXSA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Mar 2012 19:18:00 -0400
+Received: by ghbz15 with SMTP id z15so272900ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Mar 2012 16:18:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, dan.carpenter@oracle.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, dhillf@gmail.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mingo@redhat.com, tglx@linutronix.de, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-make-compact_control-order-signed-fix
+     Subject: hugetlb-try-to-search-again-if-it-is-really-needed-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-make-compact_control-order-signed-fix.patch
+     hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-make-compact_control-order-signed.patch
+This patch was dropped because it was folded into hugetlb-try-to-search-again-if-it-is-really-needed.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-make-compact_control-order-signed-fix
+Subject: hugetlb-try-to-search-again-if-it-is-really-needed-fix
 
-make __compact_pgdat()'s comparison match other code sites
+clean up crazy compound definition
 
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/hugetlbpage.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-make-compact_control-order-signed-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-make-compact_control-order-signed-fix
-+++ a/mm/compaction.c
-@@ -692,7 +692,7 @@ static int __compact_pgdat(pg_data_t *pg
- 		INIT_LIST_HEAD(&cc->freepages);
- 		INIT_LIST_HEAD(&cc->migratepages);
+diff -puN arch/x86/mm/hugetlbpage.c~hugetlb-try-to-search-again-if-it-is-really-needed-fix arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~hugetlb-try-to-search-again-if-it-is-really-needed-fix
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -309,7 +309,8 @@ static unsigned long hugetlb_get_unmappe
+ 	struct hstate *h = hstate_file(file);
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma, *prev_vma;
+-	unsigned long base = mm->mmap_base, addr = addr0, start_addr;
++	unsigned long base = mm->mmap_base;
++	unsigned long addr = addr0;
+ 	unsigned long largest_hole = mm->cached_hole_size;
+ 	unsigned long start_addr;
  
--		if (cc->order < 0 || !compaction_deferred(zone, cc->order))
-+		if (cc->order == -1 || !compaction_deferred(zone, cc->order))
- 			compact_zone(zone, cc);
- 
- 		if (cc->order > 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +67,7 @@ fs-nameic-fix-warnings-on-32-bit.patch
 make-swapin-readahead-skip-over-holes.patch
 vmscan-kswapd-carefully-call-compaction.patch
 mm-compaction-make-compact_control-order-signed.patch
-hugetlb-try-to-search-again-if-it-is-really-needed-fix.patch
+hugetlb-try-to-search-again-if-it-is-really-needed.patch
 thp-optimize-away-unnecessary-page-table-locking-fix-checkpatch-fixes.patch
 mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem-fix-fix.patch
 procfs-mark-thread-stack-correctly-in-proc-pid-maps.patch
