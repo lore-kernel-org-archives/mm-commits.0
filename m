@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-remove-export_symbolmem_cgroup_update_page_stat.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:19:50 -0700
-Message-ID: <20120322201950.7A295A024E@akpm.mtv.corp.google.com>
+Subject: [merged] memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:19:38 -0700
+Message-ID: <20120322201938.91BB6A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:34424 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759445Ab2CVUTv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:51 -0400
-Received: by mail-yw0-f74.google.com with SMTP id m50so403323yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:50 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:56636 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759301Ab2CVUTj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:39 -0400
+Received: by mail-gx0-f202.google.com with SMTP id d2so401558ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, aarcange@redhat.com, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: remove EXPORT_SYMBOL(mem_cgroup_update_page_stat)
+     Subject: memcg: remove unnecessary thp check in page stat accounting
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-export_symbolmem_cgroup_update_page_stat.patch
+     memcg-remove-unnecessary-thp-check-in-page-stat-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,36 +26,44 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: remove EXPORT_SYMBOL(mem_cgroup_update_page_stat)
+Subject: memcg: remove unnecessary thp check in page stat accounting
 
-As described in the log, I guess EXPORT was for preparing dirty
-accounting.  But _now_, we don't need to export this.  Remove this for
-now.
+e94c8a9cbce1ae ("memcg: make mem_cgroup_split_huge_fixup() more
+efficient") removed move_lock_page_cgroup().  So we do not have to check
+PageTransHuge in mem_cgroup_update_page_stat() and fallback into the
+locked accounting because both move_account() and thp split are done with
+compound_lock so they cannot race.
+
+The race between update vs.  move is protected by mem_cgroup_stealed.
+
+PageTransHuge pages shouldn't appear in this code path currently because
+we are tracking only file pages at the moment but later we are planning
+to track also other pages (e.g. mlocked ones).
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Greg Thelen <gthelen@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ying Han <yinghan@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Acked-by: Ying Han<yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-export_symbolmem_cgroup_update_page_stat mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-export_symbolmem_cgroup_update_page_stat
+diff -puN mm/memcontrol.c~memcg-remove-unnecessary-thp-check-in-page-stat-accounting mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-unnecessary-thp-check-in-page-stat-accounting
 +++ a/mm/memcontrol.c
-@@ -1930,7 +1930,6 @@ out:
- 		move_unlock_page_cgroup(pc, &flags);
- 	rcu_read_unlock();
- }
--EXPORT_SYMBOL(mem_cgroup_update_page_stat);
- 
- /*
-  * size of first charge trial. "32" comes from vmscan.c's magic value.
+@@ -1898,7 +1898,7 @@ void mem_cgroup_update_page_stat(struct 
+ 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+ 		goto out;
+ 	/* pc->mem_cgroup is unstable ? */
+-	if (unlikely(mem_cgroup_stealed(memcg)) || PageTransHuge(page)) {
++	if (unlikely(mem_cgroup_stealed(memcg))) {
+ 		/* take a lock against to access pc->mem_cgroup */
+ 		move_lock_page_cgroup(pc, &flags);
+ 		need_unlock = true;
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
