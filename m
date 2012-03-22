@@ -1,20 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + poll-add-poll_requested_events-and-poll_does_not_wait-functions.patch added to -mm tree
-Date: Thu, 22 Mar 2012 15:10:40 -0700
-Message-ID: <20120322221041.6DEDCA024E@akpm.mtv.corp.google.com>
+Date: Thu, 22 Mar 2012 15:22:32 -0700
+Message-ID: <20120322222233.C29D9A020E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:41271 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756516Ab2CVWKo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 22 Mar 2012 18:10:44 -0400
-Received: by laai8 with SMTP id i8so137237laa.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 15:10:42 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:62359 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932254Ab2CVWWf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 18:22:35 -0400
+Received: by ggnd2 with SMTP id d2so421534ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 15:22:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hans.verkuil@cisco.com, corbet@lwn.net, davidel@xmailserver.org, hdegoede@redhat.com, mchehab@infradead.org, viro@zeniv.linux.org.uk
+Cc: hans.verkuil@cisco.com, corbet@lwn.net, davem@davemloft.net, davidel@xmailserver.org, eric.dumazet@gmail.com, hdegoede@redhat.com, mchehab@infradead.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
@@ -137,6 +136,8 @@ Reviewed-by: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -304,7 +305,7 @@ diff -puN fs/select.c~poll-add-poll_requested_events-and-poll_does_not_wait-func
 -				if (pwait)
 -					pwait->key = pollfd->events |
 -							POLLERR | POLLHUP;
-+				pwait->_key = pollfd->events | POLLERR | POLLHUP;
++				pwait->_key = pollfd->events|POLLERR|POLLHUP;
  				mask = file->f_op->poll(file, pwait);
  			}
  			/* Mask out unneeded events. */
@@ -420,7 +421,7 @@ diff -puN net/unix/af_unix.c~poll-add-poll_requested_events-and-poll_does_not_wa
  
  	/* No write status requested, avoid expensive OUT tests. */
 -	if (wait && !(wait->key & (POLLWRBAND | POLLWRNORM | POLLOUT)))
-+	if (!(poll_requested_events(wait) & (POLLWRBAND | POLLWRNORM | POLLOUT)))
++	if (!(poll_requested_events(wait) & (POLLWRBAND|POLLWRNORM|POLLOUT)))
  		return mask;
  
  	writable = unix_writable(sk);
