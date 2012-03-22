@@ -1,123 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:14 -0700
-Message-ID: <20120322201814.8CD2AA024E@akpm.mtv.corp.google.com>
+Subject: [merged] pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:06 -0700
+Message-ID: <20120322201806.87D00A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:35102 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756289Ab2CVUSQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:16 -0400
-Received: by eekc41 with SMTP id c41so136580eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:15 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:46778 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752729Ab2CVUSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:07 -0400
+Received: by mail-vx0-f202.google.com with SMTP id fk26so402092vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: defer freeing pages when gathering surplus pages
+     Subject: pagemap: document KPF_THP and make page-types aware of it
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
+     pagemap-document-kpf_thp-and-make-page-types-aware-of-it.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: mm: hugetlb: defer freeing pages when gathering surplus pages
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: pagemap: document KPF_THP and make page-types aware of it
 
-When gathering surplus pages, the number of needed pages is recomputed
-after reacquiring hugetlb lock to catch changes in resv_huge_pages and
-free_huge_pages.  Plus it is recomputed with the number of newly allocated
-pages involved.
+page-types, which is a common user of pagemap, gets aware of thp with this
+patch.  This helps system admins and kernel hackers know about how thp
+works.  Here is a sample output of page-types over a thp:
 
-Thus freeing pages can be deferred a bit to see if the final page request
-is satisfied, though pages could be allocated less than needed.
+  $ page-types -p <pid> --raw --list
 
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+  voffset offset  len     flags
+  ...
+  7f9d40200       3f8400  1       ___U_lA____Ma_bH______t____________
+  7f9d40201       3f8401  1ff     ________________T_____t____________
+
+               flags      page-count       MB  symbolic-flags                     long-symbolic-flags
+  0x0000000000410000             511        1  ________________T_____t____________        compound_tail,thp
+  0x000000000040d868               1        0  ___U_lA____Ma_bH______t____________        uptodate,lru,active,mmap,anonymous,swapbacked,compound_head,thp
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ Documentation/vm/page-types.c |    2 ++
+ Documentation/vm/pagemap.txt  |    4 ++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages
-+++ a/mm/hugetlb.c
-@@ -852,6 +852,7 @@ static int gather_surplus_pages(struct h
- 	struct page *page, *tmp;
- 	int ret, i;
- 	int needed, allocated;
-+	bool alloc_ok = true;
+diff -puN Documentation/vm/page-types.c~pagemap-document-kpf_thp-and-make-page-types-aware-of-it Documentation/vm/page-types.c
+--- a/Documentation/vm/page-types.c~pagemap-document-kpf_thp-and-make-page-types-aware-of-it
++++ a/Documentation/vm/page-types.c
+@@ -98,6 +98,7 @@
+ #define KPF_HWPOISON		19
+ #define KPF_NOPAGE		20
+ #define KPF_KSM			21
++#define KPF_THP			22
  
- 	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
- 	if (needed <= 0) {
-@@ -867,17 +868,13 @@ retry:
- 	spin_unlock(&hugetlb_lock);
- 	for (i = 0; i < needed; i++) {
- 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
--		if (!page)
--			/*
--			 * We were not able to allocate enough pages to
--			 * satisfy the entire reservation so we free what
--			 * we've allocated so far.
--			 */
--			goto free;
--
-+		if (!page) {
-+			alloc_ok = false;
-+			break;
-+		}
- 		list_add(&page->lru, &surplus_list);
- 	}
--	allocated += needed;
-+	allocated += i;
+ /* [32-] kernel hacking assistances */
+ #define KPF_RESERVED		32
+@@ -147,6 +148,7 @@ static const char *page_flag_names[] = {
+ 	[KPF_HWPOISON]		= "X:hwpoison",
+ 	[KPF_NOPAGE]		= "n:nopage",
+ 	[KPF_KSM]		= "x:ksm",
++	[KPF_THP]		= "t:thp",
  
- 	/*
- 	 * After retaking hugetlb_lock, we need to recalculate 'needed'
-@@ -886,9 +883,16 @@ retry:
- 	spin_lock(&hugetlb_lock);
- 	needed = (h->resv_huge_pages + delta) -
- 			(h->free_huge_pages + allocated);
--	if (needed > 0)
--		goto retry;
--
-+	if (needed > 0) {
-+		if (alloc_ok)
-+			goto retry;
-+		/*
-+		 * We were not able to allocate enough pages to
-+		 * satisfy the entire reservation so we free what
-+		 * we've allocated so far.
-+		 */
-+		goto free;
-+	}
- 	/*
- 	 * The surplus_list now contains _at_least_ the number of extra pages
- 	 * needed to accommodate the reservation.  Add the appropriate number
-@@ -914,10 +918,10 @@ retry:
- 		VM_BUG_ON(page_count(page));
- 		enqueue_huge_page(h, page);
- 	}
-+free:
- 	spin_unlock(&hugetlb_lock);
+ 	[KPF_RESERVED]		= "r:reserved",
+ 	[KPF_MLOCKED]		= "m:mlocked",
+diff -puN Documentation/vm/pagemap.txt~pagemap-document-kpf_thp-and-make-page-types-aware-of-it Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-document-kpf_thp-and-make-page-types-aware-of-it
++++ a/Documentation/vm/pagemap.txt
+@@ -60,6 +60,7 @@ There are three components to pagemap:
+     19. HWPOISON
+     20. NOPAGE
+     21. KSM
++    22. THP
  
- 	/* Free unnecessary surplus pages to the buddy allocator */
--free:
- 	if (!list_empty(&surplus_list)) {
- 		list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
- 			list_del(&page->lru);
+ Short descriptions to the page flags:
+ 
+@@ -97,6 +98,9 @@ Short descriptions to the page flags:
+ 21. KSM
+     identical memory pages dynamically shared between one or more processes
+ 
++22. THP
++    contiguous pages which construct transparent hugepages
++
+     [IO related page flags]
+  1. ERROR     IO error occurred
+  3. UPTODATE  page has up-to-date data
 _
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
+linux-next.patch
 
