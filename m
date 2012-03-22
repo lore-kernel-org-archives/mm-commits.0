@@ -1,139 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-pass-charge-order-to-oom-killer.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:53 -0700
-Message-ID: <20120322201853.86019A024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-use-global_dirty_limit-in-throttle_vm_writeout.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:47 -0700
+Message-ID: <20120322201847.A5AE6A06FD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:61078 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759215Ab2CVUSy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:54 -0400
-Received: by mail-yx0-f202.google.com with SMTP id q2so401674yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:54 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:46452 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759107Ab2CVUSt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:49 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hj13so59596wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, bsingharora@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, jack@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: pass charge order to oom killer
+     Subject: mm: use global_dirty_limit in throttle_vm_writeout()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-pass-charge-order-to-oom-killer.patch
+     mm-use-global_dirty_limit-in-throttle_vm_writeout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: pass charge order to oom killer
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: mm: use global_dirty_limit in throttle_vm_writeout()
 
-The oom killer typically displays the allocation order at the time of oom
-as a part of its diangostic messages (for global, cpuset, and mempolicy
-ooms).
+When starting a memory hog task, a desktop box w/o swap is found to go
+unresponsive for a long time.  It's solely caused by lots of congestion
+waits in throttle_vm_writeout():
 
-The memory controller may also pass the charge order to the oom killer so
-it can emit the same information.  This is useful in determining how large
-the memory allocation is that triggered the oom killer.
+ gnome-system-mo-4201 553.073384: congestion_wait: throttle_vm_writeout+0x70/0x7f shrink_mem_cgroup_zone+0x48f/0x4a1
+ gnome-system-mo-4201 553.073386: writeback_congestion_wait: usec_timeout=100000 usec_delayed=100000
+           gtali-4237 553.080377: congestion_wait: throttle_vm_writeout+0x70/0x7f shrink_mem_cgroup_zone+0x48f/0x4a1
+           gtali-4237 553.080378: writeback_congestion_wait: usec_timeout=100000 usec_delayed=100000
+            Xorg-3483 553.103375: congestion_wait: throttle_vm_writeout+0x70/0x7f shrink_mem_cgroup_zone+0x48f/0x4a1
+            Xorg-3483 553.103377: writeback_congestion_wait: usec_timeout=100000 usec_delayed=100000
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+The root cause is, the dirty threshold is knocked down a lot by the memory
+hog task.  Fixed by using global_dirty_limit which decreases gradually on
+such events and can guarantee we stay above (the also decreasing) nr_dirty
+in the progress of following down to the new dirty threshold.
+
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ++-
- mm/memcontrol.c            |    6 +++---
- mm/oom_kill.c              |    7 ++++---
- 3 files changed, 9 insertions(+), 7 deletions(-)
+ mm/page-writeback.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-pass-charge-order-to-oom-killer include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-pass-charge-order-to-oom-killer
-+++ a/include/linux/memcontrol.h
-@@ -77,7 +77,8 @@ extern void mem_cgroup_uncharge_end(void
- extern void mem_cgroup_uncharge_page(struct page *page);
- extern void mem_cgroup_uncharge_cache_page(struct page *page);
+diff -puN mm/page-writeback.c~mm-use-global_dirty_limit-in-throttle_vm_writeout mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-use-global_dirty_limit-in-throttle_vm_writeout
++++ a/mm/page-writeback.c
+@@ -1472,6 +1472,7 @@ void throttle_vm_writeout(gfp_t gfp_mask
  
--extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask);
-+extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+				     int order);
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg);
+         for ( ; ; ) {
+ 		global_dirty_limits(&background_thresh, &dirty_thresh);
++		dirty_thresh = hard_dirty_limit(dirty_thresh);
  
- extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
-diff -puN mm/memcontrol.c~mm-memcg-pass-charge-order-to-oom-killer mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-pass-charge-order-to-oom-killer
-+++ a/mm/memcontrol.c
-@@ -1811,7 +1811,7 @@ static void memcg_oom_recover(struct mem
- /*
-  * try to call OOM killer. returns false if we should exit memory-reclaim loop.
-  */
--bool mem_cgroup_handle_oom(struct mem_cgroup *memcg, gfp_t mask)
-+bool mem_cgroup_handle_oom(struct mem_cgroup *memcg, gfp_t mask, int order)
- {
- 	struct oom_wait_info owait;
- 	bool locked, need_to_kill;
-@@ -1841,7 +1841,7 @@ bool mem_cgroup_handle_oom(struct mem_cg
- 
- 	if (need_to_kill) {
- 		finish_wait(&memcg_oom_waitq, &owait.wait);
--		mem_cgroup_out_of_memory(memcg, mask);
-+		mem_cgroup_out_of_memory(memcg, mask, order);
- 	} else {
- 		schedule();
- 		finish_wait(&memcg_oom_waitq, &owait.wait);
-@@ -2212,7 +2212,7 @@ static int mem_cgroup_do_charge(struct m
- 	if (!oom_check)
- 		return CHARGE_NOMEM;
- 	/* check OOM */
--	if (!mem_cgroup_handle_oom(mem_over_limit, gfp_mask))
-+	if (!mem_cgroup_handle_oom(mem_over_limit, gfp_mask, get_order(csize)))
- 		return CHARGE_OOM_DIE;
- 
- 	return CHARGE_RETRY;
-diff -puN mm/oom_kill.c~mm-memcg-pass-charge-order-to-oom-killer mm/oom_kill.c
---- a/mm/oom_kill.c~mm-memcg-pass-charge-order-to-oom-killer
-+++ a/mm/oom_kill.c
-@@ -554,7 +554,8 @@ static void check_panic_on_oom(enum oom_
- }
- 
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
--void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask)
-+void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+			      int order)
- {
- 	unsigned long limit;
- 	unsigned int points = 0;
-@@ -570,12 +571,12 @@ void mem_cgroup_out_of_memory(struct mem
- 		return;
- 	}
- 
--	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0, NULL);
-+	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
- 	limit = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT;
- 	read_lock(&tasklist_lock);
- 	p = select_bad_process(&points, limit, memcg, NULL, false);
- 	if (p && PTR_ERR(p) != -1UL)
--		oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
-+		oom_kill_process(p, gfp_mask, order, points, limit, memcg, NULL,
- 				 "Memory cgroup out of memory");
- 	read_unlock(&tasklist_lock);
- }
+                 /*
+                  * Boost the allowable dirty threshold a bit for page
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
 linux-next.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-introduce-umh_completesub_info.patch
-usermodehelper-implement-umh_killable.patch
-usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
-usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
-kmod-introduce-call_modprobe-helper.patch
-kmod-make-__request_module-killable.patch
+move-page-typesc-from-documentation-to-tools-vm.patch
+move-slabinfoc-to-tools-vm.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
 
