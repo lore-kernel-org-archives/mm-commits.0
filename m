@@ -1,155 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:40 -0700
-Message-ID: <20120322201840.C2060A024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:38 -0700
+Message-ID: <20120322201838.7D1B3A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:61078 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759073Ab2CVUSl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:41 -0400
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:51317 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759036Ab2CVUSj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:39 -0400
+Received: by mail-qc0-f202.google.com with SMTP id p5so201658qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nacc@linux.vnet.ibm.com, anton@au1.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, haveblue@us.ibm.com, mgorman@suse.de, nacc@us.ibm.com, paulus@samba.org, rcj@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, cl@linux-foundation.org, dave@linux.vnet.ibm.com, ebmunson@us.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bootmem/sparsemem: remove limit constraint in alloc_bootmem_section
+     Subject: mm: drain percpu lru add/rotate page-vectors on cpu hot-unplug
 has been removed from the -mm tree.  Its filename was
-     bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch
+     mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Subject: bootmem/sparsemem: remove limit constraint in alloc_bootmem_section
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm: drain percpu lru add/rotate page-vectors on cpu hot-unplug
 
-While testing AMS (Active Memory Sharing) / CMO (Cooperative Memory
-Overcommit) on powerpc, we tripped the following:
+This cpu hotplug hook was accidentally removed in commit
+v2.6.30-rc4-18-g00a62ce ("mm: fix Committed_AS underflow on large NR_CPUS
+environment")
 
-kernel BUG at mm/bootmem.c:483!
-cpu 0x0: Vector: 700 (Program Check) at [c000000000c03940]
-    pc: c000000000a62bd8: .alloc_bootmem_core+0x90/0x39c
-    lr: c000000000a64bcc: .sparse_early_usemaps_alloc_node+0x84/0x29c
-    sp: c000000000c03bc0
-   msr: 8000000000021032
-  current = 0xc000000000b0cce0
-  paca    = 0xc000000001d80000
-    pid   = 0, comm = swapper
-kernel BUG at mm/bootmem.c:483!
-enter ? for help
-[c000000000c03c80] c000000000a64bcc
-.sparse_early_usemaps_alloc_node+0x84/0x29c
-[c000000000c03d50] c000000000a64f10 .sparse_init+0x12c/0x28c
-[c000000000c03e20] c000000000a474f4 .setup_arch+0x20c/0x294
-[c000000000c03ee0] c000000000a4079c .start_kernel+0xb4/0x460
-[c000000000c03f90] c000000000009670 .start_here_common+0x1c/0x2c
+The visible effect of this accident: some pages are borrowed in per-cpu
+page-vectors.  Truncate can deal with it, but these pages cannot be reused
+while this cpu is offline.  So this is like a temporary memory leak.
 
-This is
-
-        BUG_ON(limit && goal + size > limit);
-
-and after some debugging, it seems that
-
-	goal = 0x7ffff000000
-	limit = 0x80000000000
-
-and sparse_early_usemaps_alloc_node ->
-sparse_early_usemaps_alloc_pgdat_section calls
-
-	return alloc_bootmem_section(usemap_size() * count, section_nr);
-
-This is on a system with 8TB available via the AMS pool, and as a quirk of
-AMS in firmware, all of that memory shows up in node 0.  So, we end up
-with an allocation that will fail the goal/limit constraints.  In theory,
-we could "fall-back" to alloc_bootmem_node() in
-sparse_early_usemaps_alloc_node(), but since we actually have HOTREMOVE
-defined, we'll BUG_ON() instead.  A simple solution appears to be to
-unconditionally remove the limit condition in alloc_bootmem_section,
-meaning allocations are allowed to cross section boundaries (necessary for
-systems of this size).
-
-Johannes Weiner pointed out that if alloc_bootmem_section() no longer
-guarantees section-locality, we need check_usemap_section_nr() to print
-possible cross-dependencies between node descriptors and the usemaps
-allocated through it.  That makes the two loops in
-sparse_early_usemaps_alloc_node() identical, so re-factor the code a bit.
-
-[akpm@linux-foundation.org: code simplification]
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Anton Blanchard <anton@au1.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
-Cc: Robert Jennings <rcj@linux.vnet.ibm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: <stable@vger.kernel.org>	[3.3.1]
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Eric B Munson <ebmunson@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    5 ++---
- mm/sparse.c  |   30 +++++++++++-------------------
- 2 files changed, 13 insertions(+), 22 deletions(-)
+ include/linux/swap.h |    1 +
+ mm/page_alloc.c      |    1 +
+ mm/swap.c            |    4 ++--
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section mm/bootmem.c
---- a/mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section
-+++ a/mm/bootmem.c
-@@ -766,14 +766,13 @@ void * __init alloc_bootmem_section(unsi
- 				    unsigned long section_nr)
+diff -puN include/linux/swap.h~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug include/linux/swap.h
+--- a/include/linux/swap.h~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug
++++ a/include/linux/swap.h
+@@ -223,6 +223,7 @@ extern void lru_add_page_tail(struct zon
+ extern void activate_page(struct page *);
+ extern void mark_page_accessed(struct page *);
+ extern void lru_add_drain(void);
++extern void lru_add_drain_cpu(int cpu);
+ extern int lru_add_drain_all(void);
+ extern void rotate_reclaimable_page(struct page *page);
+ extern void deactivate_page(struct page *page);
+diff -puN mm/page_alloc.c~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug
++++ a/mm/page_alloc.c
+@@ -4825,6 +4825,7 @@ static int page_alloc_cpu_notify(struct 
+ 	int cpu = (unsigned long)hcpu;
+ 
+ 	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
++		lru_add_drain_cpu(cpu);
+ 		drain_pages(cpu);
+ 
+ 		/*
+diff -puN mm/swap.c~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug mm/swap.c
+--- a/mm/swap.c~mm-drain-percpu-lru-add-rotate-page-vectors-on-cpu-hot-unplug
++++ a/mm/swap.c
+@@ -496,7 +496,7 @@ static void lru_deactivate_fn(struct pag
+  * Either "cpu" is the current CPU, and preemption has already been
+  * disabled; or "cpu" is being hot-unplugged, and is already dead.
+  */
+-static void drain_cpu_pagevecs(int cpu)
++void lru_add_drain_cpu(int cpu)
  {
- 	bootmem_data_t *bdata;
--	unsigned long pfn, goal, limit;
-+	unsigned long pfn, goal;
+ 	struct pagevec *pvecs = per_cpu(lru_add_pvecs, cpu);
+ 	struct pagevec *pvec;
+@@ -553,7 +553,7 @@ void deactivate_page(struct page *page)
  
- 	pfn = section_nr_to_pfn(section_nr);
- 	goal = pfn << PAGE_SHIFT;
--	limit = section_nr_to_pfn(section_nr + 1) << PAGE_SHIFT;
- 	bdata = &bootmem_node_data[early_pfn_to_nid(pfn)];
- 
--	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, limit);
-+	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, 0);
+ void lru_add_drain(void)
+ {
+-	drain_cpu_pagevecs(get_cpu());
++	lru_add_drain_cpu(get_cpu());
+ 	put_cpu();
  }
- #endif
  
-diff -puN mm/sparse.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section mm/sparse.c
---- a/mm/sparse.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section
-+++ a/mm/sparse.c
-@@ -353,29 +353,21 @@ static void __init sparse_early_usemaps_
- 
- 	usemap = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
- 								 usemap_count);
--	if (usemap) {
--		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
--			if (!present_section_nr(pnum))
--				continue;
--			usemap_map[pnum] = usemap;
--			usemap += size;
-+	if (!usemap) {
-+		usemap = alloc_bootmem_node(NODE_DATA(nodeid), size * usemap_count);
-+		if (!usemap) {
-+			printk(KERN_WARNING "%s: allocation failed\n", __func__);
-+			return;
- 		}
--		return;
- 	}
- 
--	usemap = alloc_bootmem_node(NODE_DATA(nodeid), size * usemap_count);
--	if (usemap) {
--		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
--			if (!present_section_nr(pnum))
--				continue;
--			usemap_map[pnum] = usemap;
--			usemap += size;
--			check_usemap_section_nr(nodeid, usemap_map[pnum]);
--		}
--		return;
-+	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
-+		if (!present_section_nr(pnum))
-+			continue;
-+		usemap_map[pnum] = usemap;
-+		usemap += size;
-+		check_usemap_section_nr(nodeid, usemap_map[pnum]);
- 	}
+_
+
+Patches currently in -mm which might be from khlebnikov@openvz.org are
+
+origin.patch
+linux-next.patch
+mm-fix-page-faults-detection-in-swap-token-logic.patch
+radix-tree-introduce-bit-optimized-iterator.patch
+radix-tree-introduce-bit-optimized-iterator-v3.patch
+radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
+radix-tree-rewrite-gang-lookup-with-using-iterator.patch
+radix-tree-use-iterators-in-find_get_pages-functions.patch
+
