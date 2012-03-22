@@ -1,154 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:12 -0700
-Message-ID: <20120322201812.A7727A024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-replace-page_migration-with-is_enabledconfig_migration.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:10 -0700
+Message-ID: <20120322201810.5CFA2A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:33403 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756289Ab2CVUSP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:15 -0400
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:46778 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758805Ab2CVUSL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:11 -0400
+Received: by mail-vx0-f202.google.com with SMTP id fk26so402092vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, cl@linux.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, riel@redhat.com, smf.linux@ntlworld.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
+     Subject: mm: replace PAGE_MIGRATION with IS_ENABLED(CONFIG_MIGRATION)
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem.patch
+     mm-replace-page_migration-with-is_enabledconfig_migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mel@csn.ul.ie>
-Subject: mm: vmscan: forcibly scan highmem if there are too many buffer_heads pinning highmem
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm: replace PAGE_MIGRATION with IS_ENABLED(CONFIG_MIGRATION)
 
-Stuart Foster reported on https://bugzilla.kernel.org/show_bug.cgi?id=42578
-that copying large amounts of data from NTFS caused an OOM kill on 32-bit
-X86 with 16G of memory. Andrew Morton correctly identified that the problem
-was NTFS was using 512 blocks meaning each page had 8 buffer_heads in low
-memory pinning it.
+Since 2a11c8e ("kconfig: Introduce IS_ENABLED(), IS_BUILTIN() and
+IS_MODULE()") there is a generic grep-friendly method for checking config
+options in C expressions.
 
-In the past, direct reclaim used to scan highmem even if the allocating
-process did not specify __GFP_HIGHMEM but not any more.  kswapd no longer
-will reclaim from zones that are above the high watermark.  The intention
-in both cases was to minimise unnecessary reclaim.  The downside is on
-machines with large amounts of highmem that lowmem can be fully consumed
-by buffer_heads with nothing trying to free them.
-
-The following patch is based on a suggestion by Andrew Morton to extend
-the buffer_heads_over_limit case to force kswapd and direct reclaim to
-scan the highmem zone regardless of the allocation request or watermarks.
-
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=42578
-
-[hughd@google.com: move buffer_heads_over_limit check up]
-[akpm@linux-foundation.org: buffer_heads_over_limit is unlikely]
-Reported-by: Stuart Foster <smf.linux@ntlworld.com>
-Tested-by: Stuart Foster <smf.linux@ntlworld.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: stable <stable@vger.kernel.org>
-
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   42 +++++++++++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 13 deletions(-)
+ include/linux/migrate.h |    2 --
+ mm/mprotect.c           |    2 +-
+ mm/rmap.c               |    7 ++++---
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-forcibly-scan-highmem-if-there-are-too-many-buffer_heads-pinning-highmem
-+++ a/mm/vmscan.c
-@@ -1642,18 +1642,6 @@ static void move_active_pages_to_lru(str
- 	unsigned long pgmoved = 0;
- 	struct page *page;
+diff -puN include/linux/migrate.h~mm-replace-page_migration-with-is_enabledconfig_migration include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-replace-page_migration-with-is_enabledconfig_migration
++++ a/include/linux/migrate.h
+@@ -8,7 +8,6 @@
+ typedef struct page *new_page_t(struct page *, unsigned long private, int **);
  
--	if (buffer_heads_over_limit) {
--		spin_unlock_irq(&zone->lru_lock);
--		list_for_each_entry(page, list, lru) {
--			if (page_has_private(page) && trylock_page(page)) {
--				if (page_has_private(page))
--					try_to_release_page(page, 0);
--				unlock_page(page);
--			}
--		}
--		spin_lock_irq(&zone->lru_lock);
--	}
--
- 	while (!list_empty(list)) {
- 		struct lruvec *lruvec;
+ #ifdef CONFIG_MIGRATION
+-#define PAGE_MIGRATION 1
  
-@@ -1735,6 +1723,14 @@ static void shrink_active_list(unsigned 
- 			continue;
- 		}
+ extern void putback_lru_pages(struct list_head *l);
+ extern int migrate_page(struct address_space *,
+@@ -32,7 +31,6 @@ extern void migrate_page_copy(struct pag
+ extern int migrate_huge_page_move_mapping(struct address_space *mapping,
+ 				  struct page *newpage, struct page *page);
+ #else
+-#define PAGE_MIGRATION 0
  
-+		if (unlikely(buffer_heads_over_limit)) {
-+			if (page_has_private(page) && trylock_page(page)) {
-+				if (page_has_private(page))
-+					try_to_release_page(page, 0);
-+				unlock_page(page);
-+			}
-+		}
-+
- 		if (page_referenced(page, 0, mz->mem_cgroup, &vm_flags)) {
- 			nr_rotated += hpage_nr_pages(page);
+ static inline void putback_lru_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+diff -puN mm/mprotect.c~mm-replace-page_migration-with-is_enabledconfig_migration mm/mprotect.c
+--- a/mm/mprotect.c~mm-replace-page_migration-with-is_enabledconfig_migration
++++ a/mm/mprotect.c
+@@ -60,7 +60,7 @@ static void change_pte_range(struct mm_s
+ 				ptent = pte_mkwrite(ptent);
+ 
+ 			ptep_modify_prot_commit(mm, addr, pte, ptent);
+-		} else if (PAGE_MIGRATION && !pte_file(oldpte)) {
++		} else if (IS_ENABLED(CONFIG_MIGRATION) && !pte_file(oldpte)) {
+ 			swp_entry_t entry = pte_to_swp_entry(oldpte);
+ 
+ 			if (is_write_migration_entry(entry)) {
+diff -puN mm/rmap.c~mm-replace-page_migration-with-is_enabledconfig_migration mm/rmap.c
+--- a/mm/rmap.c~mm-replace-page_migration-with-is_enabledconfig_migration
++++ a/mm/rmap.c
+@@ -1282,7 +1282,7 @@ int try_to_unmap_one(struct page *page, 
+ 			}
+ 			dec_mm_counter(mm, MM_ANONPAGES);
+ 			inc_mm_counter(mm, MM_SWAPENTS);
+-		} else if (PAGE_MIGRATION) {
++		} else if (IS_ENABLED(CONFIG_MIGRATION)) {
  			/*
-@@ -2238,6 +2234,14 @@ static bool shrink_zones(int priority, s
- 	unsigned long nr_soft_scanned;
- 	bool aborted_reclaim = false;
+ 			 * Store the pfn of the page in a special migration
+ 			 * pte. do_swap_page() will wait until the migration
+@@ -1293,7 +1293,8 @@ int try_to_unmap_one(struct page *page, 
+ 		}
+ 		set_pte_at(mm, address, pte, swp_entry_to_pte(entry));
+ 		BUG_ON(pte_file(*pte));
+-	} else if (PAGE_MIGRATION && (TTU_ACTION(flags) == TTU_MIGRATION)) {
++	} else if (IS_ENABLED(CONFIG_MIGRATION) &&
++		   (TTU_ACTION(flags) == TTU_MIGRATION)) {
+ 		/* Establish migration entry for a file page */
+ 		swp_entry_t entry;
+ 		entry = make_migration_entry(page, pte_write(pteval));
+@@ -1499,7 +1500,7 @@ static int try_to_unmap_anon(struct page
+ 		 * locking requirements of exec(), migration skips
+ 		 * temporary VMAs until after exec() completes.
+ 		 */
+-		if (PAGE_MIGRATION && (flags & TTU_MIGRATION) &&
++		if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION) &&
+ 				is_vma_temporary_stack(vma))
+ 			continue;
  
-+	/*
-+	 * If the number of buffer_heads in the machine exceeds the maximum
-+	 * allowed level, force direct reclaim to scan the highmem zone as
-+	 * highmem pages could be pinning lowmem pages storing buffer_heads
-+	 */
-+	if (buffer_heads_over_limit)
-+		sc->gfp_mask |= __GFP_HIGHMEM;
-+
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 					gfp_zone(sc->gfp_mask), sc->nodemask) {
- 		if (!populated_zone(zone))
-@@ -2727,6 +2731,17 @@ loop_again:
- 			 */
- 			age_active_anon(zone, &sc, priority);
- 
-+			/*
-+			 * If the number of buffer_heads in the machine
-+			 * exceeds the maximum allowed level and this node
-+			 * has a highmem zone, force kswapd to reclaim from
-+			 * it to relieve lowmem pressure.
-+			 */
-+			if (buffer_heads_over_limit && is_highmem_idx(i)) {
-+				end_zone = i;
-+				break;
-+			}
-+
- 			if (!zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone), 0, 0)) {
- 				end_zone = i;
-@@ -2802,7 +2817,8 @@ loop_again:
- 						COMPACT_SKIPPED)
- 				testorder = 0;
- 
--			if (!zone_watermark_ok_safe(zone, testorder,
-+			if ((buffer_heads_over_limit && is_highmem_idx(i)) ||
-+				    !zone_watermark_ok_safe(zone, order,
- 					high_wmark_pages(zone) + balance_gap,
- 					end_zone, 0)) {
- 				shrink_zone(priority, zone, &sc);
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 origin.patch
-smp-introduce-a-generic-on_each_cpu_mask-function.patch
-slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
-mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+linux-next.patch
+mm-fix-page-faults-detection-in-swap-token-logic.patch
+radix-tree-introduce-bit-optimized-iterator.patch
+radix-tree-introduce-bit-optimized-iterator-v3.patch
+radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
+radix-tree-rewrite-gang-lookup-with-using-iterator.patch
+radix-tree-use-iterators-in-find_get_pages-functions.patch
 
