@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:17 -0700
-Message-ID: <20120322201717.68AC1A024E@akpm.mtv.corp.google.com>
+Subject: [merged] xtensa-dont-reimplement-force_sigsegv.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:17:13 -0700
+Message-ID: <20120322201713.67A92A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:56681 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755Ab2CVURU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:20 -0400
-Received: by lbbgj3 with SMTP id gj3so134062lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:19 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:41893 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753755Ab2CVURP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:15 -0400
+Received: by eekc41 with SMTP id c41so136539eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matt.fleming@intel.com, chris@zankel.net, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: don't mask signals if we fail to setup signal stack
+     Subject: xtensa: don't reimplement force_sigsegv()
 has been removed from the -mm tree.  Its filename was
-     xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+     xtensa-dont-reimplement-force_sigsegv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,11 +26,15 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: xtensa: don't mask signals if we fail to setup signal stack
+Subject: xtensa: don't reimplement force_sigsegv()
 
-setup_frame() needs to return an indication of whether it succeeded or
-failed in setting up the signal stack frame.  If setup_frame() fails then
-we must not modify current->blocked.
+Instead of open coding the sequence from force_sigsegv() just call it. 
+This also fixes a bug because we were modifying ka->sa.sa_handler (which
+is a copy of sighand->action[]), whereas the intention of the code was to
+modify sighand->action[] directly.
+
+As the original code was working with a copy it had no effect on signal
+delivery.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
@@ -38,47 +42,23 @@ Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/signal.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/xtensa/kernel/signal.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/xtensa/kernel/signal.c~xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack arch/xtensa/kernel/signal.c
---- a/arch/xtensa/kernel/signal.c~xtensa-dont-mask-signals-if-we-fail-to-setup-signal-stack
+diff -puN arch/xtensa/kernel/signal.c~xtensa-dont-reimplement-force_sigsegv arch/xtensa/kernel/signal.c
+--- a/arch/xtensa/kernel/signal.c~xtensa-dont-reimplement-force_sigsegv
 +++ a/arch/xtensa/kernel/signal.c
-@@ -336,8 +336,8 @@ gen_return_code(unsigned char *codemem)
- }
- 
- 
--static void setup_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
--			sigset_t *set, struct pt_regs *regs)
-+static int setup_frame(int sig, struct k_sigaction *ka, siginfo_t *info,
-+		       sigset_t *set, struct pt_regs *regs)
- {
- 	struct rt_sigframe *frame;
- 	int err = 0;
-@@ -422,10 +422,11 @@ static void setup_frame(int sig, struct 
- 		current->comm, current->pid, signal, frame, regs->pc);
- #endif
- 
--	return;
-+	return 0;
+@@ -425,9 +425,7 @@ static void setup_frame(int sig, struct 
+ 	return;
  
  give_sigsegv:
- 	force_sigsegv(sig, current);
-+	return -EFAULT;
+-	if (sig == SIGSEGV)
+-		ka->sa.sa_handler = SIG_DFL;
+-	force_sig(SIGSEGV, current);
++	force_sigsegv(sig, current);
  }
  
  /*
-@@ -534,7 +535,9 @@ int do_signal(struct pt_regs *regs, sigs
- 
- 		/* Whee!  Actually deliver the signal.  */
- 		/* Set up the stack frame */
--		setup_frame(signr, &ka, &info, oldset, regs);
-+		ret = setup_frame(signr, &ka, &info, oldset, regs);
-+		if (ret)
-+			return ret;
- 
- 		spin_lock_irq(&current->sighand->siglock);
- 		sigorsets(&current->blocked, &current->blocked, &ka.sa.sa_mask);
 _
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
