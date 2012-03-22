@@ -1,92 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-remove-redundant-returns.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:19:36 -0700
-Message-ID: <20120322201936.7E9CEA024E@akpm.mtv.corp.google.com>
+Subject: [merged] memcg-kill-dead-prev_priority-stubs.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:19:48 -0700
+Message-ID: <20120322201948.59E21A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:58075 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759215Ab2CVUTj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:39 -0400
-Received: by mail-bk0-f74.google.com with SMTP id jm19so134271bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:37 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:34424 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759445Ab2CVUTt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:49 -0400
+Received: by mail-yw0-f74.google.com with SMTP id m50so403323yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: remove redundant returns
+     Subject: memcg: kill dead prev_priority stubs
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-redundant-returns.patch
+     memcg-kill-dead-prev_priority-stubs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg: remove redundant returns
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: memcg: kill dead prev_priority stubs
 
-Remove redundant returns from ends of functions, and one blank line.
+This code was removed in v2.6.35-5854-g25edde0
+("vmscan: kill prev_priority completely")
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/memcontrol.h |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-redundant-returns mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-redundant-returns
-+++ a/mm/memcontrol.c
-@@ -1391,7 +1391,6 @@ void mem_cgroup_print_oom_info(struct me
- 	if (!memcg || !p)
- 		return;
+diff -puN include/linux/memcontrol.h~memcg-kill-dead-prev_priority-stubs include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-kill-dead-prev_priority-stubs
++++ a/include/linux/memcontrol.h
+@@ -299,21 +299,6 @@ static inline void mem_cgroup_iter_break
+ {
+ }
  
+-static inline int mem_cgroup_get_reclaim_priority(struct mem_cgroup *memcg)
+-{
+-	return 0;
+-}
 -
- 	rcu_read_lock();
- 
- 	mem_cgrp = memcg->css.cgroup;
-@@ -1926,7 +1925,6 @@ out:
- 	if (unlikely(need_unlock))
- 		move_unlock_page_cgroup(pc, &flags);
- 	rcu_read_unlock();
--	return;
- }
- EXPORT_SYMBOL(mem_cgroup_update_page_stat);
- 
-@@ -2912,7 +2910,6 @@ direct_uncharge:
- 		res_counter_uncharge(&memcg->memsw, nr_pages * PAGE_SIZE);
- 	if (unlikely(batch->memcg != memcg))
- 		memcg_oom_recover(memcg);
--	return;
- }
- 
- /*
-@@ -3937,7 +3934,6 @@ static void memcg_get_hierarchical_limit
- out:
- 	*mem_limit = min_limit;
- 	*memsw_limit = min_memsw_limit;
--	return;
- }
- 
- static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
-_
-
-Patches currently in -mm which might be from hughd@google.com are
-
-origin.patch
-linux-next.patch
-mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
-radix-tree-introduce-bit-optimized-iterator.patch
-radix-tree-introduce-bit-optimized-iterator-v3.patch
-radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-radix-tree-rewrite-gang-lookup-with-using-iterator.patch
-radix-tree-use-iterators-in-find_get_pages-functions.patch
-prio_tree-debugging-patch.patch
-
+-static inline void mem_cgroup_note_reclaim_priority(struct mem_cgroup *memcg,
+-						int priority)
+-{
+-}
+-
+-static inline void mem_cgroup_record_reclaim_priority(struct mem_cgroup *memcg,
+-						int priority)
+-{
+-}
