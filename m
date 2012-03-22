@@ -1,374 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-use-new-logic-for-page-stat-accounting.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:19:56 -0700
-Message-ID: <20120322201956.CC093A024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-memcontrolc-s-stealed-stolen.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:20:04 -0700
+Message-ID: <20120322202004.4B79AA02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:35764 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759445Ab2CVUT5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:57 -0400
-Received: by mail-vx0-f202.google.com with SMTP id fk26so402357vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:57 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:39689 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759235Ab2CVUUF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:20:05 -0400
+Received: by mail-qa0-f74.google.com with SMTP id g24so62245qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:20:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: use new logic for page stat accounting
+     Subject: mm/memcontrol.c: s/stealed/stolen/
 has been removed from the -mm tree.  Its filename was
-     memcg-use-new-logic-for-page-stat-accounting.patch
+     mm-memcontrolc-s-stealed-stolen.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: use new logic for page stat accounting
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/memcontrol.c: s/stealed/stolen/
 
-Now, page-stat-per-memcg is recorded into per page_cgroup flag by
-duplicating page's status into the flag.  The reason is that memcg has a
-feature to move a page from a group to another group and we have race
-between "move" and "page stat accounting",
+A grammatical fix.
 
-Under current logic, assume CPU-A and CPU-B.  CPU-A does "move" and CPU-B
-does "page stat accounting".
-
-When CPU-A goes 1st,
-
-            CPU-A                           CPU-B
-                                    update "struct page" info.
-    move_lock_mem_cgroup(memcg)
-    see pc->flags
-    copy page stat to new group
-    overwrite pc->mem_cgroup.
-    move_unlock_mem_cgroup(memcg)
-                                    move_lock_mem_cgroup(mem)
-                                    set pc->flags
-                                    update page stat accounting
-                                    move_unlock_mem_cgroup(mem)
-
-stat accounting is guarded by move_lock_mem_cgroup() and "move" logic
-(CPU-A) doesn't see changes in "struct page" information.
-
-But it's costly to have the same information both in 'struct page' and
-'struct page_cgroup'.  And, there is a potential problem.
-
-For example, assume we have PG_dirty accounting in memcg.
-PG_..is a flag for struct page.
-PCG_ is a flag for struct page_cgroup.
-(This is just an example. The same problem can be found in any
- kind of page stat accounting.)
-
-	  CPU-A                               CPU-B
-      TestSet PG_dirty
-      (delay)                        TestClear PG_dirty
-                                     if (TestClear(PCG_dirty))
-                                          memcg->nr_dirty--
-      if (TestSet(PCG_dirty))
-          memcg->nr_dirty++
-
-Here, memcg->nr_dirty = +1, this is wrong.  This race was reported by Greg
-Thelen <gthelen@google.com>.  Now, only FILE_MAPPED is supported but
-fortunately, it's serialized by page table lock and this is not real bug,
-_now_,
-
-If this potential problem is caused by having duplicated information in
-struct page and struct page_cgroup, we may be able to fix this by using
-original 'struct page' information.  But we'll have a problem in "move
-account"
-
-Assume we use only PG_dirty.
-
-         CPU-A                   CPU-B
-    TestSet PG_dirty
-    (delay)                    move_lock_mem_cgroup()
-                               if (PageDirty(page))
-                                      new_memcg->nr_dirty++
-                               pc->mem_cgroup = new_memcg;
-                               move_unlock_mem_cgroup()
-    move_lock_mem_cgroup()
-    memcg = pc->mem_cgroup
-    new_memcg->nr_dirty++
-
-accounting information may be double-counted.  This was original reason to
-have PCG_xxx flags but it seems PCG_xxx has another problem.
-
-I think we need a bigger lock as
-
-     move_lock_mem_cgroup(page)
-     TestSetPageDirty(page)
-     update page stats (without any checks)
-     move_unlock_mem_cgroup(page)
-
-This fixes both of problems and we don't have to duplicate page flag into
-page_cgroup.  Please note: move_lock_mem_cgroup() is held only when there
-are possibility of "account move" under the system.  So, in most path,
-status update will go without atomic locks.
-
-This patch introduces mem_cgroup_begin_update_page_stat() and
-mem_cgroup_end_update_page_stat() both should be called at modifying
-'struct page' information if memcg takes care of it.  as
-
-     mem_cgroup_begin_update_page_stat()
-     modify page information
-     mem_cgroup_update_page_stat()
-     => never check any 'struct page' info, just update counters.
-     mem_cgroup_end_update_page_stat().
-
-This patch is slow because we need to call begin_update_page_stat()/
-end_update_page_stat() regardless of accounted will be changed or not.  A
-following patch adds an easy optimization and reduces the cost.
-
-[akpm@linux-foundation.org: s/lock/locked/]
-[hughd@google.com: fix deadlock by avoiding stat lock when anon]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Greg Thelen <gthelen@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ying Han <yinghan@google.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   35 +++++++++++++++++++
- mm/memcontrol.c            |   62 +++++++++++++++++++++++------------
- mm/rmap.c                  |   28 +++++++++++++--
- 3 files changed, 101 insertions(+), 24 deletions(-)
+ mm/memcontrol.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-use-new-logic-for-page-stat-accounting include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-use-new-logic-for-page-stat-accounting
-+++ a/include/linux/memcontrol.h
-@@ -141,6 +141,31 @@ static inline bool mem_cgroup_disabled(v
- 	return false;
- }
- 
-+void __mem_cgroup_begin_update_page_stat(struct page *page, bool *locked,
-+					 unsigned long *flags);
-+
-+static inline void mem_cgroup_begin_update_page_stat(struct page *page,
-+					bool *locked, unsigned long *flags)
-+{
-+	if (mem_cgroup_disabled())
-+		return;
-+	rcu_read_lock();
-+	*locked = false;
-+	return __mem_cgroup_begin_update_page_stat(page, locked, flags);
-+}
-+
-+void __mem_cgroup_end_update_page_stat(struct page *page,
-+				unsigned long *flags);
-+static inline void mem_cgroup_end_update_page_stat(struct page *page,
-+					bool *locked, unsigned long *flags)
-+{
-+	if (mem_cgroup_disabled())
-+		return;
-+	if (*locked)
-+		__mem_cgroup_end_update_page_stat(page, flags);
-+	rcu_read_unlock();
-+}
-+
- void mem_cgroup_update_page_stat(struct page *page,
- 				 enum mem_cgroup_page_stat_item idx,
- 				 int val);
-@@ -341,6 +366,16 @@ mem_cgroup_print_oom_info(struct mem_cgr
- {
- }
- 
-+static inline void mem_cgroup_begin_update_page_stat(struct page *page,
-+					bool *locked, unsigned long *flags)
-+{
-+}
-+
-+static inline void mem_cgroup_end_update_page_stat(struct page *page,
-+					bool *locked, unsigned long *flags)
-+{
-+}
-+
- static inline void mem_cgroup_inc_page_stat(struct page *page,
- 					    enum mem_cgroup_page_stat_item idx)
- {
-diff -puN mm/memcontrol.c~memcg-use-new-logic-for-page-stat-accounting mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-new-logic-for-page-stat-accounting
+diff -puN mm/memcontrol.c~mm-memcontrolc-s-stealed-stolen mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrolc-s-stealed-stolen
 +++ a/mm/memcontrol.c
-@@ -1910,32 +1910,59 @@ bool mem_cgroup_handle_oom(struct mem_cg
-  * If there is, we take a lock.
+@@ -1332,8 +1332,8 @@ static void mem_cgroup_end_move(struct m
+ /*
+  * 2 routines for checking "mem" is under move_account() or not.
+  *
+- * mem_cgroup_stealed() - checking a cgroup is mc.from or not. This is used
+- *			  for avoiding race in accounting. If true,
++ * mem_cgroup_stolen() -  checking whether a cgroup is mc.from or not. This
++ *			  is used for avoiding races in accounting.  If true,
+  *			  pc->mem_cgroup may be overwritten.
+  *
+  * mem_cgroup_under_move() - checking a cgroup is mc.from or mc.to or
+@@ -1341,7 +1341,7 @@ static void mem_cgroup_end_move(struct m
+  *			  waiting at hith-memory prressure caused by "move".
   */
  
-+void __mem_cgroup_begin_update_page_stat(struct page *page,
-+				bool *locked, unsigned long *flags)
-+{
-+	struct mem_cgroup *memcg;
-+	struct page_cgroup *pc;
-+
-+	pc = lookup_page_cgroup(page);
-+again:
-+	memcg = pc->mem_cgroup;
-+	if (unlikely(!memcg || !PageCgroupUsed(pc)))
-+		return;
-+	/*
-+	 * If this memory cgroup is not under account moving, we don't
-+	 * need to take move_lock_page_cgroup(). Because we already hold
-+	 * rcu_read_lock(), any calls to move_account will be delayed until
-+	 * rcu_read_unlock() if mem_cgroup_stealed() == true.
-+	 */
-+	if (!mem_cgroup_stealed(memcg))
-+		return;
-+
-+	move_lock_mem_cgroup(memcg, flags);
-+	if (memcg != pc->mem_cgroup || !PageCgroupUsed(pc)) {
-+		move_unlock_mem_cgroup(memcg, flags);
-+		goto again;
-+	}
-+	*locked = true;
-+}
-+
-+void __mem_cgroup_end_update_page_stat(struct page *page, unsigned long *flags)
-+{
-+	struct page_cgroup *pc = lookup_page_cgroup(page);
-+
-+	/*
-+	 * It's guaranteed that pc->mem_cgroup never changes while
-+	 * lock is held because a routine modifies pc->mem_cgroup
-+	 * should take move_lock_page_cgroup().
-+	 */
-+	move_unlock_mem_cgroup(pc->mem_cgroup, flags);
-+}
-+
- void mem_cgroup_update_page_stat(struct page *page,
- 				 enum mem_cgroup_page_stat_item idx, int val)
+-static bool mem_cgroup_stealed(struct mem_cgroup *memcg)
++static bool mem_cgroup_stolen(struct mem_cgroup *memcg)
  {
- 	struct mem_cgroup *memcg;
- 	struct page_cgroup *pc = lookup_page_cgroup(page);
--	bool need_unlock = false;
- 	unsigned long uninitialized_var(flags);
- 
- 	if (mem_cgroup_disabled())
+ 	VM_BUG_ON(!rcu_read_lock_held());
+ 	return atomic_read(&memcg->moving_account) > 0;
+@@ -1389,7 +1389,7 @@ static bool mem_cgroup_wait_acct_move(st
+  * Take this lock when
+  * - a code tries to modify page's memcg while it's USED.
+  * - a code tries to modify page state accounting in a memcg.
+- * see mem_cgroup_stealed(), too.
++ * see mem_cgroup_stolen(), too.
+  */
+ static void move_lock_mem_cgroup(struct mem_cgroup *memcg,
+ 				  unsigned long *flags)
+@@ -1932,9 +1932,9 @@ again:
+ 	 * If this memory cgroup is not under account moving, we don't
+ 	 * need to take move_lock_page_cgroup(). Because we already hold
+ 	 * rcu_read_lock(), any calls to move_account will be delayed until
+-	 * rcu_read_unlock() if mem_cgroup_stealed() == true.
++	 * rcu_read_unlock() if mem_cgroup_stolen() == true.
+ 	 */
+-	if (!mem_cgroup_stealed(memcg))
++	if (!mem_cgroup_stolen(memcg))
  		return;
--again:
--	rcu_read_lock();
-+
- 	memcg = pc->mem_cgroup;
- 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
--		goto out;
--	/* pc->mem_cgroup is unstable ? */
--	if (unlikely(mem_cgroup_stealed(memcg))) {
--		/* take a lock against to access pc->mem_cgroup */
--		move_lock_mem_cgroup(memcg, &flags);
--		if (memcg != pc->mem_cgroup || !PageCgroupUsed(pc)) {
--			move_unlock_mem_cgroup(memcg, &flags);
--			rcu_read_unlock();
--			goto again;
--		}
--		need_unlock = true;
--	}
-+		return;
  
- 	switch (idx) {
- 	case MEMCG_NR_FILE_MAPPED:
-@@ -1950,11 +1977,6 @@ again:
- 	}
- 
- 	this_cpu_add(memcg->stat->count[idx], val);
--
--out:
--	if (unlikely(need_unlock))
--		move_unlock_mem_cgroup(memcg, &flags);
--	rcu_read_unlock();
- }
- 
- /*
-diff -puN mm/rmap.c~memcg-use-new-logic-for-page-stat-accounting mm/rmap.c
---- a/mm/rmap.c~memcg-use-new-logic-for-page-stat-accounting
-+++ a/mm/rmap.c
-@@ -1148,10 +1148,15 @@ void page_add_new_anon_rmap(struct page 
-  */
- void page_add_file_rmap(struct page *page)
- {
-+	bool locked;
-+	unsigned long flags;
-+
-+	mem_cgroup_begin_update_page_stat(page, &locked, &flags);
- 	if (atomic_inc_and_test(&page->_mapcount)) {
- 		__inc_zone_page_state(page, NR_FILE_MAPPED);
- 		mem_cgroup_inc_page_stat(page, MEMCG_NR_FILE_MAPPED);
- 	}
-+	mem_cgroup_end_update_page_stat(page, &locked, &flags);
- }
- 
- /**
-@@ -1162,9 +1167,21 @@ void page_add_file_rmap(struct page *pag
-  */
- void page_remove_rmap(struct page *page)
- {
-+	bool anon = PageAnon(page);
-+	bool locked;
-+	unsigned long flags;
-+
-+	/*
-+	 * The anon case has no mem_cgroup page_stat to update; but may
-+	 * uncharge_page() below, where the lock ordering can deadlock if
-+	 * we hold the lock against page_stat move: so avoid it on anon.
-+	 */
-+	if (!anon)
-+		mem_cgroup_begin_update_page_stat(page, &locked, &flags);
-+
- 	/* page still mapped by someone else? */
- 	if (!atomic_add_negative(-1, &page->_mapcount))
--		return;
-+		goto out;
- 
- 	/*
- 	 * Now that the last pte has gone, s390 must transfer dirty
-@@ -1173,7 +1190,7 @@ void page_remove_rmap(struct page *page)
- 	 * not if it's in swapcache - there might be another pte slot
- 	 * containing the swap entry, but page not yet written to swap.
- 	 */
--	if ((!PageAnon(page) || PageSwapCache(page)) &&
-+	if ((!anon || PageSwapCache(page)) &&
- 	    page_test_and_clear_dirty(page_to_pfn(page), 1))
- 		set_page_dirty(page);
- 	/*
-@@ -1181,8 +1198,8 @@ void page_remove_rmap(struct page *page)
- 	 * and not charged by memcg for now.
- 	 */
- 	if (unlikely(PageHuge(page)))
--		return;
--	if (PageAnon(page)) {
-+		goto out;
-+	if (anon) {
- 		mem_cgroup_uncharge_page(page);
- 		if (!PageTransHuge(page))
- 			__dec_zone_page_state(page, NR_ANON_PAGES);
-@@ -1202,6 +1219,9 @@ void page_remove_rmap(struct page *page)
- 	 * Leaving it set also helps swapoff to reinstate ptes
- 	 * faster for those pages still in swapcache.
- 	 */
-+out:
-+	if (!anon)
-+		mem_cgroup_end_update_page_stat(page, &locked, &flags);
- }
- 
- /*
+ 	move_lock_mem_cgroup(memcg, flags);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
-proc-speedup-proc-stat-handling.patch
-procfs-add-num_to_str-to-speed-up-proc-stat.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+drivers-mfd-twl-corec-unbork.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+drivers-platform-x86-samsung-laptopc-fix-build.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+thermal-thermal_sys-fix-build-warning.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
+net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
+sched-fix-compiler-warning-about-declared-inline-after-use.patch
+brlocks-lglocks-cleanups.patch
+simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
+kernel-watchdogc-convert-to-pr_foo.patch
+kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
 procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix-2.patch
-procfs-speed-up-proc-pid-stat-statm.patch
 procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow.patch
 seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
-c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
