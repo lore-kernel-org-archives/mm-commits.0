@@ -1,152 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:20:01 -0700
-Message-ID: <20120322202002.46F3FA024E@akpm.mtv.corp.google.com>
+Subject: [merged] memcg-avoid-thp-split-in-task-migration.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:20:14 -0700
+Message-ID: <20120322202014.75C25A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:34424 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759498Ab2CVUUI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:20:08 -0400
-Received: by mail-yw0-f74.google.com with SMTP id m50so403323yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:20:07 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61078 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759505Ab2CVUUP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:20:15 -0400
+Received: by mail-yx0-f202.google.com with SMTP id q2so401674yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:20:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
+     Subject: memcg: avoid THP split in task migration
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch
+     memcg-avoid-thp-split-in-task-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: memcg: avoid THP split in task migration
 
-mem_cgroup_begin_update_page_stat() should be very fast because it's
-called very frequently.  Now, it needs to look up page_cgroup and its
-memcg....this is slow.
+Currently we can't do task migration among memory cgroups without THP
+split, which means processes heavily using THP experience large overhead
+in task migration.  This patch introduces the code for moving charge of
+THP and makes THP more valuable.
 
-This patch adds a global variable to check "any memcg is moving or not". 
-With this, the caller doesn't need to visit page_cgroup and memcg.
-
-Here is a test result.  A test program makes page faults onto a file,
-MAP_SHARED and makes each page's page_mapcount(page) > 1, and free the
-range by madvise() and page fault again.  This program causes 26214400
-times of page fault onto a file(size was 1G.) and shows shows the cost of
-mem_cgroup_begin_update_page_stat().
-
-Before this patch for mem_cgroup_begin_update_page_stat()
-[kamezawa@bluextal test]$ time ./mmap 1G
-
-real    0m21.765s
-user    0m5.999s
-sys     0m15.434s
-
-    27.46%     mmap  mmap               [.] reader
-    21.15%     mmap  [kernel.kallsyms]  [k] page_fault
-     9.17%     mmap  [kernel.kallsyms]  [k] filemap_fault
-     2.96%     mmap  [kernel.kallsyms]  [k] __do_fault
-     2.83%     mmap  [kernel.kallsyms]  [k] __mem_cgroup_begin_update_page_stat
-
-After this patch
-[root@bluextal test]# time ./mmap 1G
-
-real    0m21.373s
-user    0m6.113s
-sys     0m15.016s
-
-In usual path, calls to __mem_cgroup_begin_update_page_stat() goes away.
-
-Note: we may be able to remove this optimization in future if
-      we can get pointer to memcg directly from struct page.
-
-[akpm@linux-foundation.org: don't return a void]
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Greg Thelen <gthelen@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Ying Han <yinghan@google.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Hillf Danton <dhillf@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 ++++-
- mm/memcontrol.c            |    9 ++++++++-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   85 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 77 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat
-+++ a/include/linux/memcontrol.h
-@@ -144,6 +144,8 @@ static inline bool mem_cgroup_disabled(v
- void __mem_cgroup_begin_update_page_stat(struct page *page, bool *locked,
- 					 unsigned long *flags);
- 
-+extern atomic_t memcg_moving;
-+
- static inline void mem_cgroup_begin_update_page_stat(struct page *page,
- 					bool *locked, unsigned long *flags)
- {
-@@ -151,7 +153,8 @@ static inline void mem_cgroup_begin_upda
- 		return;
- 	rcu_read_lock();
- 	*locked = false;
--	return __mem_cgroup_begin_update_page_stat(page, locked, flags);
-+	if (atomic_read(&memcg_moving))
-+		__mem_cgroup_begin_update_page_stat(page, locked, flags);
- }
- 
- void __mem_cgroup_end_update_page_stat(struct page *page,
-diff -puN mm/memcontrol.c~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat
+diff -puN mm/memcontrol.c~memcg-avoid-thp-split-in-task-migration mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-avoid-thp-split-in-task-migration
 +++ a/mm/memcontrol.c
-@@ -1306,8 +1306,13 @@ int mem_cgroup_swappiness(struct mem_cgr
-  *                                              rcu_read_unlock()
-  *         start move here.
-  */
-+
-+/* for quick checking without looking up memcg */
-+atomic_t memcg_moving __read_mostly;
-+
- static void mem_cgroup_start_move(struct mem_cgroup *memcg)
- {
-+	atomic_inc(&memcg_moving);
- 	atomic_inc(&memcg->moving_account);
- 	synchronize_rcu();
- }
-@@ -1318,8 +1323,10 @@ static void mem_cgroup_end_move(struct m
- 	 * Now, mem_cgroup_clear_mc() may call this function with NULL.
- 	 * We check NULL in callee rather than caller.
- 	 */
--	if (memcg)
-+	if (memcg) {
-+		atomic_dec(&memcg_moving);
- 		atomic_dec(&memcg->moving_account);
-+	}
+@@ -5256,6 +5256,41 @@ static enum mc_target_type get_mctgt_typ
+ 	return ret;
  }
  
- /*
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++/*
++ * We don't consider swapping or file mapped pages because THP does not
++ * support them for now.
++ * Caller should make sure that pmd_trans_huge(pmd) is true.
++ */
++static enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
++		unsigned long addr, pmd_t pmd, union mc_target *target)
++{
++	struct page *page = NULL;
++	struct page_cgroup *pc;
++	enum mc_target_type ret = MC_TARGET_NONE;
++
++	page = pmd_page(pmd);
++	VM_BUG_ON(!page || !PageHead(page));
++	if (!move_anon())
++		return ret;
++	pc = lookup_page_cgroup(page);
++	if (PageCgroupUsed(pc) && pc->mem_cgroup == mc.from) {
++		ret = MC_TARGET_PAGE;
++		if (target) {
++			get_page(page);
++			target->page = page;
++		}
++	}
++	return ret;
++}
++#else
++static inline enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
++		unsigned long addr, pmd_t pmd, union mc_target *target)
++{
++	return MC_TARGET_NONE;
++}
++#endif
++
+ static int mem_cgroup_count_precharge_pte_range(pmd_t *pmd,
+ 					unsigned long addr, unsigned long end,
+ 					struct mm_walk *walk)
+@@ -5264,9 +5299,12 @@ static int mem_cgroup_count_precharge_pt
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+ 
+-	split_huge_page_pmd(walk->mm, pmd);
+-	if (pmd_trans_unstable(pmd))
++	if (pmd_trans_huge_lock(pmd, vma) == 1) {
++		if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
++			mc.precharge += HPAGE_PMD_NR;
++		spin_unlock(&vma->vm_mm->page_table_lock);
+ 		return 0;
++	}
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+@@ -5425,18 +5463,49 @@ static int mem_cgroup_move_charge_pte_ra
+ 	struct vm_area_struct *vma = walk->private;
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
++	enum mc_target_type target_type;
++	union mc_target target;
++	struct page *page;
++	struct page_cgroup *pc;
+ 
+-	split_huge_page_pmd(walk->mm, pmd);
+-	if (pmd_trans_unstable(pmd))
++	/*
++	 * We don't take compound_lock() here but no race with splitting thp
++	 * happens because:
++	 *  - if pmd_trans_huge_lock() returns 1, the relevant thp is not
++	 *    under splitting, which means there's no concurrent thp split,
++	 *  - if another thread runs into split_huge_page() just after we
++	 *    entered this if-block, the thread must wait for page table lock
++	 *    to be unlocked in __split_huge_page_splitting(), where the main
++	 *    part of thp split is not executed yet.
++	 */
++	if (pmd_trans_huge_lock(pmd, vma) == 1) {
++		if (!mc.precharge) {
++			spin_unlock(&vma->vm_mm->page_table_lock);
++			return 0;
++		}
++		target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
++		if (target_type == MC_TARGET_PAGE) {
++			page = target.page;
++			if (!isolate_lru_page(page)) {
++				pc = lookup_page_cgroup(page);
++				if (!mem_cgroup_move_account(page, HPAGE_PMD_NR,
++							     pc, mc.from, mc.to,
++							     false)) {
++					mc.precharge -= HPAGE_PMD_NR;
++					mc.moved_charge += HPAGE_PMD_NR;
++				}
++				putback_lru_page(page);
++			}
++			put_page(page);
++		}
++		spin_unlock(&vma->vm_mm->page_table_lock);
+ 		return 0;
++	}
++
+ retry:
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; addr += PAGE_SIZE) {
+ 		pte_t ptent = *(pte++);
+-		union mc_target target;
+-		int type;
+-		struct page *page;
+-		struct page_cgroup *pc;
+ 		swp_entry_t ent;
+ 
+ 		if (!mc.precharge)
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
 linux-next.patch
-mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
-proc-speedup-proc-stat-handling.patch
-procfs-add-num_to_str-to-speed-up-proc-stat.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix-2.patch
-procfs-speed-up-proc-pid-stat-statm.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
-c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
 
