@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-no-need-to-reset-handler-if-sa_oneshot.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:15 -0700
-Message-ID: <20120322201715.609B0A024E@akpm.mtv.corp.google.com>
+Subject: [merged] sparc-use-block_sigmask.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:17:21 -0700
+Message-ID: <20120322201721.4B822A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:62591 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755Ab2CVURQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:16 -0400
-Received: by vbnl22 with SMTP id l22so199573vbn.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:15 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:56681 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756174Ab2CVURX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:23 -0400
+Received: by mail-lb0-f202.google.com with SMTP id gj3so134062lbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, chris@zankel.net, oleg@redhat.com, mm-commits@vger.kernel.org
+To: matt.fleming@intel.com, davem@davemloft.net, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: no need to reset handler if SA_ONESHOT
+     Subject: sparc: use block_sigmask()
 has been removed from the -mm tree.  Its filename was
-     xtensa-no-need-to-reset-handler-if-sa_oneshot.patch
+     sparc-use-block_sigmask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,36 +26,97 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: xtensa: no need to reset handler if SA_ONESHOT
+Subject: sparc: use block_sigmask()
 
-get_signal_to_deliver() already resets the signal handler if SA_ONESHOT is
-set in ka->sa.sa_flags, there's no need to do it again in handle_signal().
- Furthermore, because we were modifying ka->sa.sa_handler (which is a copy
-of sighand->action[]) instead of sighand->action[] the original code
-actually had no effect on signal delivery.
+Use the new helper function introduced in commit 5e6292c0f28f ("signal:
+add block_sigmask() for adding sigmask to current->blocked") which
+centralises the code for updating current->blocked after successfully
+delivering a signal and reduces the amount of duplicate code across
+architectures.  In the past some architectures got this code wrong, so
+using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Chris Zankel <chris@zankel.net>
+Acked-by: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/signal.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/sparc/kernel/signal32.c  |    7 +------
+ arch/sparc/kernel/signal_32.c |    7 +------
+ arch/sparc/kernel/signal_64.c |    6 +-----
+ 3 files changed, 3 insertions(+), 17 deletions(-)
 
-diff -puN arch/xtensa/kernel/signal.c~xtensa-no-need-to-reset-handler-if-sa_oneshot arch/xtensa/kernel/signal.c
---- a/arch/xtensa/kernel/signal.c~xtensa-no-need-to-reset-handler-if-sa_oneshot
-+++ a/arch/xtensa/kernel/signal.c
-@@ -536,9 +536,6 @@ int do_signal(struct pt_regs *regs, sigs
- 		/* Set up the stack frame */
- 		setup_frame(signr, &ka, &info, oldset, regs);
+diff -puN arch/sparc/kernel/signal32.c~sparc-use-block_sigmask arch/sparc/kernel/signal32.c
+--- a/arch/sparc/kernel/signal32.c~sparc-use-block_sigmask
++++ a/arch/sparc/kernel/signal32.c
+@@ -776,7 +776,6 @@ static inline int handle_signal32(unsign
+ 				  siginfo_t *info,
+ 				  sigset_t *oldset, struct pt_regs *regs)
+ {
+-	sigset_t blocked;
+ 	int err;
  
--		if (ka.sa.sa_flags & SA_ONESHOT)
--			ka.sa.sa_handler = SIG_DFL;
+ 	if (ka->sa.sa_flags & SA_SIGINFO)
+@@ -787,11 +786,7 @@ static inline int handle_signal32(unsign
+ 	if (err)
+ 		return err;
+ 
+-	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NOMASK))
+-		sigaddset(&blocked, signr);
+-	set_current_blocked(&blocked);
 -
- 		spin_lock_irq(&current->sighand->siglock);
- 		sigorsets(&current->blocked, &current->blocked, &ka.sa.sa_mask);
- 		if (!(ka.sa.sa_flags & SA_NODEFER))
++	block_sigmask(ka, signr);
+ 	tracehook_signal_handler(signr, info, ka, regs, 0);
+ 
+ 	return 0;
+diff -puN arch/sparc/kernel/signal_32.c~sparc-use-block_sigmask arch/sparc/kernel/signal_32.c
+--- a/arch/sparc/kernel/signal_32.c~sparc-use-block_sigmask
++++ a/arch/sparc/kernel/signal_32.c
+@@ -465,7 +465,6 @@ static inline int
+ handle_signal(unsigned long signr, struct k_sigaction *ka,
+ 	      siginfo_t *info, sigset_t *oldset, struct pt_regs *regs)
+ {
+-	sigset_t blocked;
+ 	int err;
+ 
+ 	if (ka->sa.sa_flags & SA_SIGINFO)
+@@ -476,11 +475,7 @@ handle_signal(unsigned long signr, struc
+ 	if (err)
+ 		return err;
+ 
+-	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NOMASK))
+-		sigaddset(&blocked, signr);
+-	set_current_blocked(&blocked);
+-
++	block_sigmask(ka, signr);
+ 	tracehook_signal_handler(signr, info, ka, regs, 0);
+ 
+ 	return 0;
+diff -puN arch/sparc/kernel/signal_64.c~sparc-use-block_sigmask arch/sparc/kernel/signal_64.c
+--- a/arch/sparc/kernel/signal_64.c~sparc-use-block_sigmask
++++ a/arch/sparc/kernel/signal_64.c
+@@ -479,18 +479,14 @@ static inline int handle_signal(unsigned
+ 				siginfo_t *info,
+ 				sigset_t *oldset, struct pt_regs *regs)
+ {
+-	sigset_t blocked;
+ 	int err;
+ 
+ 	err = setup_rt_frame(ka, regs, signr, oldset,
+ 			     (ka->sa.sa_flags & SA_SIGINFO) ? info : NULL);
+ 	if (err)
+ 		return err;
+-	sigorsets(&blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NOMASK))
+-		sigaddset(&blocked, signr);
+-	set_current_blocked(&blocked);
+ 
++	block_sigmask(ka, signr);
+ 	tracehook_signal_handler(signr, info, ka, regs, 0);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
