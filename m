@@ -1,128 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-clean-up-existing-move-charge-code.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:20:10 -0700
-Message-ID: <20120322202010.85469A024E@akpm.mtv.corp.google.com>
+Subject: [merged] memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:20:01 -0700
+Message-ID: <20120322202002.46F3FA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:34091 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759504Ab2CVUUM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:20:12 -0400
-Received: by wgbdt11 with SMTP id dt11so80894wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:20:11 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:34424 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759498Ab2CVUUI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:20:08 -0400
+Received: by mail-yw0-f74.google.com with SMTP id m50so403323yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:20:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: clean up existing move charge code
+     Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
 has been removed from the -mm tree.  Its filename was
-     memcg-clean-up-existing-move-charge-code.patch
+     memcg-fix-performance-of-mem_cgroup_begin_update_page_stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: memcg: clean up existing move charge code
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg: fix performance of mem_cgroup_begin_update_page_stat()
 
-- Replace lengthy function name is_target_pte_for_mc() with a shorter
-  one in order to avoid ugly line breaks.
+mem_cgroup_begin_update_page_stat() should be very fast because it's
+called very frequently.  Now, it needs to look up page_cgroup and its
+memcg....this is slow.
 
-- explicitly use MC_TARGET_* instead of simply using integers.
+This patch adds a global variable to check "any memcg is moving or not". 
+With this, the caller doesn't need to visit page_cgroup and memcg.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Acked-by: Hillf Danton <dhillf@gmail.com>
+Here is a test result.  A test program makes page faults onto a file,
+MAP_SHARED and makes each page's page_mapcount(page) > 1, and free the
+range by madvise() and page fault again.  This program causes 26214400
+times of page fault onto a file(size was 1G.) and shows shows the cost of
+mem_cgroup_begin_update_page_stat().
+
+Before this patch for mem_cgroup_begin_update_page_stat()
+[kamezawa@bluextal test]$ time ./mmap 1G
+
+real    0m21.765s
+user    0m5.999s
+sys     0m15.434s
+
+    27.46%     mmap  mmap               [.] reader
+    21.15%     mmap  [kernel.kallsyms]  [k] page_fault
+     9.17%     mmap  [kernel.kallsyms]  [k] filemap_fault
+     2.96%     mmap  [kernel.kallsyms]  [k] __do_fault
+     2.83%     mmap  [kernel.kallsyms]  [k] __mem_cgroup_begin_update_page_stat
+
+After this patch
+[root@bluextal test]# time ./mmap 1G
+
+real    0m21.373s
+user    0m6.113s
+sys     0m15.016s
+
+In usual path, calls to __mem_cgroup_begin_update_page_stat() goes away.
+
+Note: we may be able to remove this optimization in future if
+      we can get pointer to memcg directly from struct page.
+
+[akpm@linux-foundation.org: don't return a void]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Greg Thelen <gthelen@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ include/linux/memcontrol.h |    5 ++++-
+ mm/memcontrol.c            |    9 ++++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-clean-up-existing-move-charge-code mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-clean-up-existing-move-charge-code
-+++ a/mm/memcontrol.c
-@@ -5110,7 +5110,7 @@ one_by_one:
- }
+diff -puN include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat
++++ a/include/linux/memcontrol.h
+@@ -144,6 +144,8 @@ static inline bool mem_cgroup_disabled(v
+ void __mem_cgroup_begin_update_page_stat(struct page *page, bool *locked,
+ 					 unsigned long *flags);
  
- /**
-- * is_target_pte_for_mc - check a pte whether it is valid for move charge
-+ * get_mctgt_type - get target type of moving charge
-  * @vma: the vma the pte to be checked belongs
-  * @addr: the address corresponding to the pte to be checked
-  * @ptent: the pte to be checked
-@@ -5133,7 +5133,7 @@ union mc_target {
- };
- 
- enum mc_target_type {
--	MC_TARGET_NONE,	/* not used */
-+	MC_TARGET_NONE = 0,
- 	MC_TARGET_PAGE,
- 	MC_TARGET_SWAP,
- };
-@@ -5214,12 +5214,12 @@ static struct page *mc_handle_file_pte(s
- 	return page;
- }
- 
--static int is_target_pte_for_mc(struct vm_area_struct *vma,
-+static enum mc_target_type get_mctgt_type(struct vm_area_struct *vma,
- 		unsigned long addr, pte_t ptent, union mc_target *target)
++extern atomic_t memcg_moving;
++
+ static inline void mem_cgroup_begin_update_page_stat(struct page *page,
+ 					bool *locked, unsigned long *flags)
  {
- 	struct page *page = NULL;
- 	struct page_cgroup *pc;
--	int ret = 0;
-+	enum mc_target_type ret = MC_TARGET_NONE;
- 	swp_entry_t ent = { .val = 0 };
+@@ -151,7 +153,8 @@ static inline void mem_cgroup_begin_upda
+ 		return;
+ 	rcu_read_lock();
+ 	*locked = false;
+-	return __mem_cgroup_begin_update_page_stat(page, locked, flags);
++	if (atomic_read(&memcg_moving))
++		__mem_cgroup_begin_update_page_stat(page, locked, flags);
+ }
  
- 	if (pte_present(ptent))
-@@ -5230,7 +5230,7 @@ static int is_target_pte_for_mc(struct v
- 		page = mc_handle_file_pte(vma, addr, ptent, &ent);
+ void __mem_cgroup_end_update_page_stat(struct page *page,
+diff -puN mm/memcontrol.c~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-performance-of-mem_cgroup_begin_update_page_stat
++++ a/mm/memcontrol.c
+@@ -1306,8 +1306,13 @@ int mem_cgroup_swappiness(struct mem_cgr
+  *                                              rcu_read_unlock()
+  *         start move here.
+  */
++
++/* for quick checking without looking up memcg */
++atomic_t memcg_moving __read_mostly;
++
+ static void mem_cgroup_start_move(struct mem_cgroup *memcg)
+ {
++	atomic_inc(&memcg_moving);
+ 	atomic_inc(&memcg->moving_account);
+ 	synchronize_rcu();
+ }
+@@ -1318,8 +1323,10 @@ static void mem_cgroup_end_move(struct m
+ 	 * Now, mem_cgroup_clear_mc() may call this function with NULL.
+ 	 * We check NULL in callee rather than caller.
+ 	 */
+-	if (memcg)
++	if (memcg) {
++		atomic_dec(&memcg_moving);
+ 		atomic_dec(&memcg->moving_account);
++	}
+ }
  
- 	if (!page && !ent.val)
--		return 0;
-+		return ret;
- 	if (page) {
- 		pc = lookup_page_cgroup(page);
- 		/*
-@@ -5270,7 +5270,7 @@ static int mem_cgroup_count_precharge_pt
- 
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
--		if (is_target_pte_for_mc(vma, addr, *pte, NULL))
-+		if (get_mctgt_type(vma, addr, *pte, NULL))
- 			mc.precharge++;	/* increment precharge temporarily */
- 	pte_unmap_unlock(pte - 1, ptl);
- 	cond_resched();
-@@ -5442,8 +5442,7 @@ retry:
- 		if (!mc.precharge)
- 			break;
- 
--		type = is_target_pte_for_mc(vma, addr, ptent, &target);
--		switch (type) {
-+		switch (get_mctgt_type(vma, addr, ptent, &target)) {
- 		case MC_TARGET_PAGE:
- 			page = target.page;
- 			if (isolate_lru_page(page))
-@@ -5456,7 +5455,7 @@ retry:
- 				mc.moved_charge++;
- 			}
- 			putback_lru_page(page);
--put:			/* is_target_pte_for_mc() gets the page */
-+put:			/* get_mctgt_type() gets the page */
- 			put_page(page);
- 			break;
- 		case MC_TARGET_SWAP:
+ /*
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
+mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
+proc-speedup-proc-stat-handling.patch
+procfs-add-num_to_str-to-speed-up-proc-stat.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix-2.patch
+procfs-speed-up-proc-pid-stat-statm.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
 
