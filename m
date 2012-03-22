@@ -1,25 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + poll-add-poll_requested_events-and-poll_does_not_wait-functions.patch added to -mm tree
-Date: Thu, 22 Mar 2012 15:22:32 -0700
-Message-ID: <20120322222233.C29D9A020E@akpm.mtv.corp.google.com>
+Subject: + drivers-staging-telephony-ixjc-fix-warning-about-sequence-points.patch added to -mm tree
+Date: Thu, 22 Mar 2012 16:03:42 -0700
+Message-ID: <20120322230342.D96F6A020E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:62359 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932254Ab2CVWWf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 18:22:35 -0400
-Received: by ggnd2 with SMTP id d2so421534ggn.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 15:22:34 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:59452 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756369Ab2CVXDp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 19:03:45 -0400
+Received: by bkcjm19 with SMTP id jm19so138656bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 16:03:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hans.verkuil@cisco.com, corbet@lwn.net, davem@davemloft.net, davidel@xmailserver.org, eric.dumazet@gmail.com, hdegoede@redhat.com, mchehab@infradead.org, viro@zeniv.linux.org.uk
+Cc: uwe@kleine-koenig.org, greg@kroah.com, lucas.demarchi@profusion.mobi
 
 
 The patch titled
-     Subject: poll: add poll_requested_events() and poll_does_not_wait() functions
+     Subject: drivers/staging/telephony/ixj.c: fix warning about sequen=
+ce points
 has been added to the -mm tree.  Its filename is
-     poll-add-poll_requested_events-and-poll_does_not_wait-functions.patch
+     drivers-staging-telephony-ixjc-fix-warning-about-sequence-points.p=
+atch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,409 +32,258 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: poll: add poll_requested_events() and poll_does_not_wait() functions
+=46rom: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
+Subject: drivers/staging/telephony/ixj.c: fix warning about sequence po=
+ints
 
-In some cases the poll() implementation in a driver has to do different
-things depending on the events the caller wants to poll for.  An example
-is when a driver needs to start a DMA engine if the caller polls for
-POLLIN, but doesn't want to do that if POLLIN is not requested but instead
-only POLLOUT or POLLPRI is requested.  This is something that can happen
-in the video4linux subsystem among others.
+In the statement
 
-Unfortunately, the current epoll/poll/select implementation doesn't
-provide that information reliably.  The poll_table_struct does have it: it
-has a key field with the event mask.  But once a poll() call matches one
-or more bits of that mask any following poll() calls are passed a NULL
-poll_table pointer.
+	j->caplist[j->caps].handle =3D j->caps++;
 
-Also, the eventpoll implementation always left the key field at ~0 instead
-of using the requested events mask.
+there is no sequence point between the usage of j->caps on the LHS of t=
+he
+assignment and the incrementation on its RHS.  So it's not defined in
+Standard C if j->caps is already incremented when used on the LHS even
+though the postfix ++ operator is used.  To properly fix that the
+incrementation has to be done in a separate expression.
 
-This was changed in eventpoll.c so the key field now contains the actual
-events that should be polled for as set by the caller.
+This fixes:
+	drivers/telephony/ixj.c: In function `add_caps':
+	drivers/telephony/ixj.c:5930:38: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:5950:38: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:5954:38: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:5965:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:5976:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:5988:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:5998:38: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6003:38: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6008:38: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6013:38: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6019:38: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6026:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6031:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6036:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6041:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6049:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6057:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6065:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
+	drivers/telephony/ixj.c:6071:39: warning: operation on `j->caps' may b=
+e undefined [-Wsequence-point]
 
-The solution to the NULL poll_table pointer is to set the qproc field to
-NULL in poll_table once poll() matches the events, not the poll_table
-pointer itself.  That way drivers can obtain the mask through a new
-poll_requested_events inline.
-
-The poll_table_struct can still be NULL since some kernel code calls it
-internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h).  In
-that case poll_requested_events() returns ~0 (i.e.  all events).
-
-Very rarely drivers might want to know whether poll_wait will actually
-wait.  If another earlier file descriptor in the set already matched the
-events the caller wanted to wait for, then the kernel will return from the
-select() call without waiting.  This might be useful information in order
-to avoid doing expensive work.
-
-A new helper function poll_does_not_wait() is added that drivers can use
-to detect this situation.  This is now used in sock_poll_wait() in
-include/net/sock.h.  This was the only place in the kernel that needed
-this information.
-
-Drivers should no longer access any of the poll_table internals, but use
-the poll_requested_events() and poll_does_not_wait() access functions
-instead.  In order to enforce that the poll_table fields are now prepended
-with an underscore and a comment was added warning against using them
-directly.
-
-This required a change in unix_dgram_poll() in unix/af_unix.c which used
-the key field to get the requested events.  It's been replaced by a call
-to poll_requested_events().
-
-For qproc it was especially important to change its name since the
-behavior of that field changes with this patch since this function pointer
-can now be NULL when that wasn't possible in the past.
-
-Any driver accessing the qproc or key fields directly will now fail to compile.
-
-Some notes regarding the correctness of this patch: the driver's poll()
-function is called with a 'struct poll_table_struct *wait' argument.  This
-pointer may or may not be NULL, drivers can never rely on it being one or
-the other as that depends on whether or not an earlier file descriptor in
-the select()'s fdset matched the requested events.
-
-There are only three things a driver can do with the wait argument:
-
-1) obtain the key field:
-
-	events = wait ? wait->key : ~0;
-
-   This will still work although it should be replaced with the new
-   poll_requested_events() function (which does exactly the same).
-   This will now even work better, since wait is no longer set to NULL
-   unnecessarily.
-
-2) use the qproc callback. This could be deadly since qproc can now be
-   NULL. Renaming qproc should prevent this from happening. There are no
-   kernel drivers that actually access this callback directly, BTW.
-
-3) test whether wait == NULL to determine whether poll would return without
-   waiting. This is no longer sufficient as the correct test is now
-   wait == NULL || wait->_qproc == NULL.
-
-   However, the worst that can happen here is a slight performance hit in
-   the case where wait != NULL and wait->_qproc == NULL. In that case the
-   driver will assume that poll_wait() will actually add the fd to the set
-   of waiting file descriptors. Of course, poll_wait() will not do that
-   since it tests for wait->_qproc. This will not break anything, though.
-
-   There is only one place in the whole kernel where this happens
-   (sock_poll_wait() in include/net/sock.h) and that code will be replaced
-   by a call to poll_does_not_wait() in the next patch.
-
-   Note that even if wait->_qproc != NULL drivers cannot rely on poll_wait()
-   actually waiting. The next file descriptor from the set might match the
-   event mask and thus any possible waits will never happen.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Jonathan Corbet <corbet@lwn.net>
-Reviewed-by: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
+Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c       |   18 +++++++++++++++---
- fs/select.c          |   40 ++++++++++++++++++----------------------
- include/linux/poll.h |   37 +++++++++++++++++++++++++++++++------
- include/net/sock.h   |    2 +-
- net/unix/af_unix.c   |    2 +-
- 5 files changed, 66 insertions(+), 33 deletions(-)
+ drivers/staging/telephony/ixj.c |   57 ++++++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 19 deletions(-)
 
-diff -puN fs/eventpoll.c~poll-add-poll_requested_events-and-poll_does_not_wait-functions fs/eventpoll.c
---- a/fs/eventpoll.c~poll-add-poll_requested_events-and-poll_does_not_wait-functions
-+++ a/fs/eventpoll.c
-@@ -699,9 +699,12 @@ static int ep_read_events_proc(struct ev
- 			       void *priv)
- {
- 	struct epitem *epi, *tmp;
-+	poll_table pt;
- 
-+	init_poll_funcptr(&pt, NULL);
- 	list_for_each_entry_safe(epi, tmp, head, rdllink) {
--		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt._key = epi->event.events;
-+		if (epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 		    epi->event.events)
- 			return POLLIN | POLLRDNORM;
- 		else {
-@@ -1097,6 +1100,7 @@ static int ep_insert(struct eventpoll *e
- 	/* Initialize the poll table using the queue callback */
- 	epq.epi = epi;
- 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
-+	epq.pt._key = event->events;
- 
- 	/*
- 	 * Attach the item to the poll hooks and get current event bits.
-@@ -1191,6 +1195,9 @@ static int ep_modify(struct eventpoll *e
- {
- 	int pwake = 0;
- 	unsigned int revents;
-+	poll_table pt;
-+
-+	init_poll_funcptr(&pt, NULL);
- 
- 	/*
- 	 * Set the new event interest mask before calling f_op->poll();
-@@ -1198,13 +1205,14 @@ static int ep_modify(struct eventpoll *e
- 	 * f_op->poll() call and the new event set registering.
- 	 */
- 	epi->event.events = event->events;
-+	pt._key = event->events;
- 	epi->event.data = event->data; /* protected by mtx */
- 
- 	/*
- 	 * Get current event bits. We can safely use the file* here because
- 	 * its usage count has been increased by the caller of this function.
- 	 */
--	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
-+	revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt);
- 
- 	/*
- 	 * If the item is "hot" and it is not registered inside the ready
-@@ -1239,6 +1247,9 @@ static int ep_send_events_proc(struct ev
- 	unsigned int revents;
- 	struct epitem *epi;
- 	struct epoll_event __user *uevent;
-+	poll_table pt;
-+
-+	init_poll_funcptr(&pt, NULL);
- 
- 	/*
- 	 * We can loop without lock because we are passed a task private list.
-@@ -1251,7 +1262,8 @@ static int ep_send_events_proc(struct ev
- 
- 		list_del_init(&epi->rdllink);
- 
--		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt._key = epi->event.events;
-+		revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 			epi->event.events;
- 
- 		/*
-diff -puN fs/select.c~poll-add-poll_requested_events-and-poll_does_not_wait-functions fs/select.c
---- a/fs/select.c~poll-add-poll_requested_events-and-poll_does_not_wait-functions
-+++ a/fs/select.c
-@@ -223,7 +223,7 @@ static void __pollwait(struct file *filp
- 	get_file(filp);
- 	entry->filp = filp;
- 	entry->wait_address = wait_address;
--	entry->key = p->key;
-+	entry->key = p->_key;
- 	init_waitqueue_func_entry(&entry->wait, pollwake);
- 	entry->wait.private = pwq;
- 	add_wait_queue(wait_address, &entry->wait);
-@@ -386,13 +386,11 @@ get_max:
- static inline void wait_key_set(poll_table *wait, unsigned long in,
- 				unsigned long out, unsigned long bit)
- {
--	if (wait) {
--		wait->key = POLLEX_SET;
--		if (in & bit)
--			wait->key |= POLLIN_SET;
--		if (out & bit)
--			wait->key |= POLLOUT_SET;
--	}
-+	wait->_key = POLLEX_SET;
-+	if (in & bit)
-+		wait->_key |= POLLIN_SET;
-+	if (out & bit)
-+		wait->_key |= POLLOUT_SET;
- }
- 
- int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
-@@ -414,7 +412,7 @@ int do_select(int n, fd_set_bits *fds, s
- 	poll_initwait(&table);
- 	wait = &table.pt;
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		wait = NULL;
-+		wait->_qproc = NULL;
- 		timed_out = 1;
+diff -puN drivers/staging/telephony/ixj.c~drivers-staging-telephony-ixj=
+c-fix-warning-about-sequence-points drivers/staging/telephony/ixj.c
+--- a/drivers/staging/telephony/ixj.c~drivers-staging-telephony-ixjc-fi=
+x-warning-about-sequence-points
++++ a/drivers/staging/telephony/ixj.c
+@@ -5927,7 +5927,8 @@ static void add_caps(IXJ *j)
+ 	j->caplist[j->caps].cap =3D PHONE_VENDOR_QUICKNET;
+ 	strcpy(j->caplist[j->caps].desc, "Quicknet Technologies, Inc. (www.qu=
+icknet.net)");
+ 	j->caplist[j->caps].captype =3D vendor;
+-	j->caplist[j->caps].handle =3D j->caps++;
++	j->caplist[j->caps].handle =3D j->caps;
++	j->caps++;
+ 	j->caplist[j->caps].captype =3D device;
+ 	switch (j->cardtype) {
+ 	case QTI_PHONEJACK:
+@@ -5947,11 +5948,13 @@ static void add_caps(IXJ *j)
+ 		break;
  	}
- 
-@@ -459,17 +457,17 @@ int do_select(int n, fd_set_bits *fds, s
- 					if ((mask & POLLIN_SET) && (in & bit)) {
- 						res_in |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 					if ((mask & POLLOUT_SET) && (out & bit)) {
- 						res_out |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 					if ((mask & POLLEX_SET) && (ex & bit)) {
- 						res_ex |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 				}
- 			}
-@@ -481,7 +479,7 @@ int do_select(int n, fd_set_bits *fds, s
- 				*rexp = res_ex;
- 			cond_resched();
- 		}
--		wait = NULL;
-+		wait->_qproc = NULL;
- 		if (retval || timed_out || signal_pending(current))
- 			break;
- 		if (table.error) {
-@@ -720,7 +718,7 @@ struct poll_list {
-  * interested in events matching the pollfd->events mask, and the result
-  * matching that mask is both recorded in pollfd->revents and returned. The
-  * pwait poll_table will be used by the fd-provided poll handler for waiting,
-- * if non-NULL.
-+ * if pwait->_qproc is non-NULL.
-  */
- static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
- {
-@@ -738,9 +736,7 @@ static inline unsigned int do_pollfd(str
- 		if (file != NULL) {
- 			mask = DEFAULT_POLLMASK;
- 			if (file->f_op && file->f_op->poll) {
--				if (pwait)
--					pwait->key = pollfd->events |
--							POLLERR | POLLHUP;
-+				pwait->_key = pollfd->events|POLLERR|POLLHUP;
- 				mask = file->f_op->poll(file, pwait);
- 			}
- 			/* Mask out unneeded events. */
-@@ -763,7 +759,7 @@ static int do_poll(unsigned int nfds,  s
- 
- 	/* Optimise the no-wait case */
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		pt = NULL;
-+		pt->_qproc = NULL;
- 		timed_out = 1;
+ 	j->caplist[j->caps].cap =3D j->cardtype;
+-	j->caplist[j->caps].handle =3D j->caps++;
++	j->caplist[j->caps].handle =3D j->caps;
++	j->caps++;
+ 	strcpy(j->caplist[j->caps].desc, "POTS");
+ 	j->caplist[j->caps].captype =3D port;
+ 	j->caplist[j->caps].cap =3D pots;
+-	j->caplist[j->caps].handle =3D j->caps++;
++	j->caplist[j->caps].handle =3D j->caps;
++	j->caps++;
+=20
+  	/* add devices that can do speaker/mic */
+ 	switch (j->cardtype) {
+@@ -5962,7 +5965,8 @@ static void add_caps(IXJ *j)
+ 		strcpy(j->caplist[j->caps].desc, "SPEAKER");
+ 		j->caplist[j->caps].captype =3D port;
+ 		j->caplist[j->caps].cap =3D speaker;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+         default:
+      		break;
  	}
- 
-@@ -781,22 +777,22 @@ static int do_poll(unsigned int nfds,  s
- 			for (; pfd != pfd_end; pfd++) {
- 				/*
- 				 * Fish for events. If we found one, record it
--				 * and kill the poll_table, so we don't
-+				 * and kill poll_table->_qproc, so we don't
- 				 * needlessly register any other waiters after
- 				 * this. They'll get immediately deregistered
- 				 * when we break out and return.
- 				 */
- 				if (do_pollfd(pfd, pt)) {
- 					count++;
--					pt = NULL;
-+					pt->_qproc = NULL;
- 				}
- 			}
- 		}
- 		/*
- 		 * All waiters have already been registered, so don't provide
--		 * a poll_table to them on the next loop iteration.
-+		 * a poll_table->_qproc to them on the next loop iteration.
- 		 */
--		pt = NULL;
-+		pt->_qproc = NULL;
- 		if (!count) {
- 			count = wait->error;
- 			if (signal_pending(current))
-diff -puN include/linux/poll.h~poll-add-poll_requested_events-and-poll_does_not_wait-functions include/linux/poll.h
---- a/include/linux/poll.h~poll-add-poll_requested_events-and-poll_does_not_wait-functions
-+++ a/include/linux/poll.h
-@@ -32,21 +32,46 @@ struct poll_table_struct;
-  */
- typedef void (*poll_queue_proc)(struct file *, wait_queue_head_t *, struct poll_table_struct *);
- 
-+/*
-+ * Do not touch the structure directly, use the access functions
-+ * poll_does_not_wait() and poll_requested_events() instead.
-+ */
- typedef struct poll_table_struct {
--	poll_queue_proc qproc;
--	unsigned long key;
-+	poll_queue_proc _qproc;
-+	unsigned long _key;
- } poll_table;
- 
- static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
- {
--	if (p && wait_address)
--		p->qproc(filp, wait_address, p);
-+	if (p && p->_qproc && wait_address)
-+		p->_qproc(filp, wait_address, p);
-+}
-+
-+/*
-+ * Return true if it is guaranteed that poll will not wait. This is the case
-+ * if the poll() of another file descriptor in the set got an event, so there
-+ * is no need for waiting.
-+ */
-+static inline bool poll_does_not_wait(const poll_table *p)
-+{
-+	return p == NULL || p->_qproc == NULL;
-+}
-+
-+/*
-+ * Return the set of events that the application wants to poll for.
-+ * This is useful for drivers that need to know whether a DMA transfer has
-+ * to be started implicitly on poll(). You typically only want to do that
-+ * if the application is actually polling for POLLIN and/or POLLOUT.
-+ */
-+static inline unsigned long poll_requested_events(const poll_table *p)
-+{
-+	return p ? p->_key : ~0UL;
- }
- 
- static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
- {
--	pt->qproc = qproc;
--	pt->key   = ~0UL; /* all events enabled */
-+	pt->_qproc = qproc;
-+	pt->_key   = ~0UL; /* all events enabled */
- }
- 
- struct poll_table_entry {
-diff -puN include/net/sock.h~poll-add-poll_requested_events-and-poll_does_not_wait-functions include/net/sock.h
---- a/include/net/sock.h~poll-add-poll_requested_events-and-poll_does_not_wait-functions
-+++ a/include/net/sock.h
-@@ -1854,7 +1854,7 @@ static inline bool wq_has_sleeper(struct
- static inline void sock_poll_wait(struct file *filp,
- 		wait_queue_head_t *wait_address, poll_table *p)
- {
--	if (p && wait_address) {
-+	if (!poll_does_not_wait(p) && wait_address) {
- 		poll_wait(filp, wait_address, p);
- 		/*
- 		 * We need to be sure we are in sync with the
-diff -puN net/unix/af_unix.c~poll-add-poll_requested_events-and-poll_does_not_wait-functions net/unix/af_unix.c
---- a/net/unix/af_unix.c~poll-add-poll_requested_events-and-poll_does_not_wait-functions
-+++ a/net/unix/af_unix.c
-@@ -2206,7 +2206,7 @@ static unsigned int unix_dgram_poll(stru
+@@ -5973,7 +5977,8 @@ static void add_caps(IXJ *j)
+ 		strcpy(j->caplist[j->caps].desc, "HANDSET");
+ 		j->caplist[j->caps].captype =3D port;
+ 		j->caplist[j->caps].cap =3D handset;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+ 		break;
+         default:
+      		break;
+@@ -5985,7 +5990,8 @@ static void add_caps(IXJ *j)
+ 		strcpy(j->caplist[j->caps].desc, "PSTN");
+ 		j->caplist[j->caps].captype =3D port;
+ 		j->caplist[j->caps].cap =3D pstn;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+ 		break;
+         default:
+      		break;
+@@ -5995,50 +6001,59 @@ static void add_caps(IXJ *j)
+ 	strcpy(j->caplist[j->caps].desc, "ULAW");
+ 	j->caplist[j->caps].captype =3D codec;
+ 	j->caplist[j->caps].cap =3D ULAW;
+-	j->caplist[j->caps].handle =3D j->caps++;
++	j->caplist[j->caps].handle =3D j->caps;
++	j->caps++;
+=20
+ 	strcpy(j->caplist[j->caps].desc, "LINEAR 16 bit");
+ 	j->caplist[j->caps].captype =3D codec;
+ 	j->caplist[j->caps].cap =3D LINEAR16;
+-	j->caplist[j->caps].handle =3D j->caps++;
++	j->caplist[j->caps].handle =3D j->caps;
++	j->caps++;
+=20
+ 	strcpy(j->caplist[j->caps].desc, "LINEAR 8 bit");
+ 	j->caplist[j->caps].captype =3D codec;
+ 	j->caplist[j->caps].cap =3D LINEAR8;
+-	j->caplist[j->caps].handle =3D j->caps++;
++	j->caplist[j->caps].handle =3D j->caps;
++	j->caps++;
+=20
+ 	strcpy(j->caplist[j->caps].desc, "Windows Sound System");
+ 	j->caplist[j->caps].captype =3D codec;
+ 	j->caplist[j->caps].cap =3D WSS;
+-	j->caplist[j->caps].handle =3D j->caps++;
++	j->caplist[j->caps].handle =3D j->caps;
++	j->caps++;
+=20
+ 	/* software ALAW codec, made from ULAW */
+ 	strcpy(j->caplist[j->caps].desc, "ALAW");
+ 	j->caplist[j->caps].captype =3D codec;
+ 	j->caplist[j->caps].cap =3D ALAW;
+-	j->caplist[j->caps].handle =3D j->caps++;
++	j->caplist[j->caps].handle =3D j->caps;
++	j->caps++;
+=20
+ 	/* version 12 of the 8020 does the following codecs in a broken way *=
+/
+ 	if (j->dsp.low !=3D 0x20 || j->ver.low !=3D 0x12) {
+ 		strcpy(j->caplist[j->caps].desc, "G.723.1 6.3kbps");
+ 		j->caplist[j->caps].captype =3D codec;
+ 		j->caplist[j->caps].cap =3D G723_63;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+=20
+ 		strcpy(j->caplist[j->caps].desc, "G.723.1 5.3kbps");
+ 		j->caplist[j->caps].captype =3D codec;
+ 		j->caplist[j->caps].cap =3D G723_53;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+=20
+ 		strcpy(j->caplist[j->caps].desc, "TrueSpeech 4.8kbps");
+ 		j->caplist[j->caps].captype =3D codec;
+ 		j->caplist[j->caps].cap =3D TS48;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+=20
+ 		strcpy(j->caplist[j->caps].desc, "TrueSpeech 4.1kbps");
+ 		j->caplist[j->caps].captype =3D codec;
+ 		j->caplist[j->caps].cap =3D TS41;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
  	}
- 
- 	/* No write status requested, avoid expensive OUT tests. */
--	if (wait && !(wait->key & (POLLWRBAND | POLLWRNORM | POLLOUT)))
-+	if (!(poll_requested_events(wait) & (POLLWRBAND|POLLWRNORM|POLLOUT)))
- 		return mask;
- 
- 	writable = unix_writable(sk);
+=20
+ 	/* 8020 chips can do TS8.5 native, and 8021/8022 can load it */
+@@ -6046,7 +6061,8 @@ static void add_caps(IXJ *j)
+ 		strcpy(j->caplist[j->caps].desc, "TrueSpeech 8.5kbps");
+ 		j->caplist[j->caps].captype =3D codec;
+ 		j->caplist[j->caps].cap =3D TS85;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+ 	}
+=20
+ 	/* 8021 chips can do G728 */
+@@ -6054,7 +6070,8 @@ static void add_caps(IXJ *j)
+ 		strcpy(j->caplist[j->caps].desc, "G.728 16kbps");
+ 		j->caplist[j->caps].captype =3D codec;
+ 		j->caplist[j->caps].cap =3D G728;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+ 	}
+=20
+ 	/* 8021/8022 chips can do G729 if loaded */
+@@ -6062,13 +6079,15 @@ static void add_caps(IXJ *j)
+ 		strcpy(j->caplist[j->caps].desc, "G.729A 8kbps");
+ 		j->caplist[j->caps].captype =3D codec;
+ 		j->caplist[j->caps].cap =3D G729;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+ 	}
+ 	if (j->dsp.low !=3D 0x20 && j->flags.g729_loaded) {
+ 		strcpy(j->caplist[j->caps].desc, "G.729B 8kbps");
+ 		j->caplist[j->caps].captype =3D codec;
+ 		j->caplist[j->caps].cap =3D G729B;
+-		j->caplist[j->caps].handle =3D j->caps++;
++		j->caplist[j->caps].handle =3D j->caps;
++		j->caps++;
+ 	}
+ }
+=20
 _
-Subject: Subject: poll: add poll_requested_events() and poll_does_not_wait() functions
+Subject: Subject: drivers/staging/telephony/ixj.c: fix warning about se=
+quence points
 
-Patches currently in -mm which might be from hans.verkuil@cisco.com are
+Patches currently in -mm which might be from uwe@kleine-koenig.org are
 
-linux-next.patch
-poll-add-poll_requested_events-and-poll_does_not_wait-functions.patch
+drivers-staging-telephony-ixjc-fix-warning-about-sequence-points.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
