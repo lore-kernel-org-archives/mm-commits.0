@@ -1,656 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:55 -0700
-Message-ID: <20120322201855.AC2E5A024E@akpm.mtv.corp.google.com>
+Subject: [merged] memcg-enum-lru_list-lru.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:19:34 -0700
+Message-ID: <20120322201934.70099A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:60535 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759177Ab2CVUS4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:56 -0400
-Received: by mail-gy0-f202.google.com with SMTP id z15so402093ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:56 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:35764 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965122Ab2CVUTg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:36 -0400
+Received: by vcbfk26 with SMTP id fk26so402357vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, a.p.zijlstra@chello.nl, cl@linux.com, miaox@cn.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpuset: mm: reduce large amounts of memory barrier related damage v3
+     Subject: memcg: enum lru_list lru
 has been removed from the -mm tree.  Its filename was
-     cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3.patch
+     memcg-enum-lru_list-lru.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: cpuset: mm: reduce large amounts of memory barrier related damage v3
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg: enum lru_list lru
 
-Commit c0ff7453 ("cpuset,mm: fix no node to alloc memory when changing
-cpuset's mems") wins a super prize for the largest number of memory
-barriers entered into fast paths for one commit.  [get|put]_mems_allowed
-is incredibly heavy with pairs of full memory barriers inserted into a
-number of hot paths.  This was detected while investigating at large page
-allocator slowdown introduced some time after 2.6.32.  The largest portion
-of this overhead was shown by oprofile to be at an mfence introduced by
-this commit into the page allocator hot path.
+Mostly we use "enum lru_list lru": change those few "l"s to "lru"s.
 
-For extra style points, the commit introduced the use of yield() in an
-implementation of what looks like a spinning mutex.
-
-This patch replaces the full memory barriers on both read and write sides
-with a sequence counter with just read barriers on the fast path side. 
-This is much cheaper on some architectures, including x86.  The main bulk
-of the patch is the retry logic if the nodemask changes in a manner that
-can cause a false failure.
-
-While updating the nodemask, a check is made to see if a false failure is
-a risk.  If it is, the sequence number gets bumped and parallel allocators
-will briefly stall while the nodemask update takes place.
-
-In a page fault test microbenchmark, oprofile samples from
-__alloc_pages_nodemask went from 4.53% of all samples to 1.15%.  The
-actual results were
-
-                         3.3.0-rc3          3.3.0-rc3
-                         rc3-vanilla        nobarrier-v2r1
-Clients   1 UserTime       0.07 (  0.00%)   0.08 (-14.19%)
-Clients   2 UserTime       0.07 (  0.00%)   0.07 (  2.72%)
-Clients   4 UserTime       0.08 (  0.00%)   0.07 (  3.29%)
-Clients   1 SysTime        0.70 (  0.00%)   0.65 (  6.65%)
-Clients   2 SysTime        0.85 (  0.00%)   0.82 (  3.65%)
-Clients   4 SysTime        1.41 (  0.00%)   1.41 (  0.32%)
-Clients   1 WallTime       0.77 (  0.00%)   0.74 (  4.19%)
-Clients   2 WallTime       0.47 (  0.00%)   0.45 (  3.73%)
-Clients   4 WallTime       0.38 (  0.00%)   0.37 (  1.58%)
-Clients   1 Flt/sec/cpu  497620.28 (  0.00%) 520294.53 (  4.56%)
-Clients   2 Flt/sec/cpu  414639.05 (  0.00%) 429882.01 (  3.68%)
-Clients   4 Flt/sec/cpu  257959.16 (  0.00%) 258761.48 (  0.31%)
-Clients   1 Flt/sec      495161.39 (  0.00%) 517292.87 (  4.47%)
-Clients   2 Flt/sec      820325.95 (  0.00%) 850289.77 (  3.65%)
-Clients   4 Flt/sec      1020068.93 (  0.00%) 1022674.06 (  0.26%)
-MMTests Statistics: duration
-Sys Time Running Test (seconds)             135.68    132.17
-User+Sys Time Running Test (seconds)         164.2    160.13
-Total Elapsed Time (seconds)                123.46    120.87
-
-The overall improvement is small but the System CPU time is much improved
-and roughly in correlation to what oprofile reported (these performance
-figures are without profiling so skew is expected).  The actual number of
-page faults is noticeably improved.
-
-For benchmarks like kernel builds, the overall benefit is marginal but the
-system CPU time is slightly reduced.
-
-To test the actual bug the commit fixed I opened two terminals.  The first
-ran within a cpuset and continually ran a small program that faulted 100M
-of anonymous data.  In a second window, the nodemask of the cpuset was
-continually randomised in a loop.  Without the commit, the program would
-fail every so often (usually within 10 seconds) and obviously with the
-commit everything worked fine.  With this patch applied, it also worked
-fine so the fix should be functionally equivalent.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h    |   51 +++++++++++++++---------------------
- include/linux/init_task.h |    8 +++++
- include/linux/sched.h     |    2 -
- kernel/cpuset.c           |   43 +++++-------------------------
- kernel/fork.c             |    1 
- mm/filemap.c              |   11 ++++---
- mm/hugetlb.c              |   15 +++++++---
- mm/mempolicy.c            |   28 ++++++++++++++-----
- mm/page_alloc.c           |   33 ++++++++++++++++-------
- mm/slab.c                 |   13 +++++----
- mm/slub.c                 |   40 +++++++++++++++++-----------
- mm/vmscan.c               |    2 -
- 12 files changed, 135 insertions(+), 112 deletions(-)
+ mm/memcontrol.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/cpuset.h~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 include/linux/cpuset.h
---- a/include/linux/cpuset.h~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/include/linux/cpuset.h
-@@ -89,42 +89,33 @@ extern void rebuild_sched_domains(void);
- extern void cpuset_print_task_mems_allowed(struct task_struct *p);
- 
- /*
-- * reading current mems_allowed and mempolicy in the fastpath must protected
-- * by get_mems_allowed()
-+ * get_mems_allowed is required when making decisions involving mems_allowed
-+ * such as during page allocation. mems_allowed can be updated in parallel
-+ * and depending on the new value an operation can fail potentially causing
-+ * process failure. A retry loop with get_mems_allowed and put_mems_allowed
-+ * prevents these artificial failures.
-  */
--static inline void get_mems_allowed(void)
-+static inline unsigned int get_mems_allowed(void)
+diff -puN mm/memcontrol.c~memcg-enum-lru_list-lru mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-enum-lru_list-lru
++++ a/mm/memcontrol.c
+@@ -719,14 +719,14 @@ mem_cgroup_zone_nr_lru_pages(struct mem_
+ 			unsigned int lru_mask)
  {
--	current->mems_allowed_change_disable++;
-+	return read_seqcount_begin(&current->mems_allowed_seq);
-+}
+ 	struct mem_cgroup_per_zone *mz;
+-	enum lru_list l;
++	enum lru_list lru;
+ 	unsigned long ret = 0;
  
--	/*
--	 * ensure that reading mems_allowed and mempolicy happens after the
--	 * update of ->mems_allowed_change_disable.
--	 *
--	 * the write-side task finds ->mems_allowed_change_disable is not 0,
--	 * and knows the read-side task is reading mems_allowed or mempolicy,
--	 * so it will clear old bits lazily.
--	 */
--	smp_mb();
--}
--
--static inline void put_mems_allowed(void)
--{
--	/*
--	 * ensure that reading mems_allowed and mempolicy before reducing
--	 * mems_allowed_change_disable.
--	 *
--	 * the write-side task will know that the read-side task is still
--	 * reading mems_allowed or mempolicy, don't clears old bits in the
--	 * nodemask.
--	 */
--	smp_mb();
--	--ACCESS_ONCE(current->mems_allowed_change_disable);
-+/*
-+ * If this returns false, the operation that took place after get_mems_allowed
-+ * may have failed. It is up to the caller to retry the operation if
-+ * appropriate.
-+ */
-+static inline bool put_mems_allowed(unsigned int seq)
-+{
-+	return !read_seqcount_retry(&current->mems_allowed_seq, seq);
- }
+ 	mz = mem_cgroup_zoneinfo(memcg, nid, zid);
  
- static inline void set_mems_allowed(nodemask_t nodemask)
- {
- 	task_lock(current);
-+	write_seqcount_begin(&current->mems_allowed_seq);
- 	current->mems_allowed = nodemask;
-+	write_seqcount_end(&current->mems_allowed_seq);
- 	task_unlock(current);
- }
- 
-@@ -234,12 +225,14 @@ static inline void set_mems_allowed(node
- {
- }
- 
--static inline void get_mems_allowed(void)
-+static inline unsigned int get_mems_allowed(void)
- {
-+	return 0;
- }
- 
--static inline void put_mems_allowed(void)
-+static inline bool put_mems_allowed(unsigned int seq)
- {
-+	return true;
- }
- 
- #endif /* !CONFIG_CPUSETS */
-diff -puN include/linux/init_task.h~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 include/linux/init_task.h
---- a/include/linux/init_task.h~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/include/linux/init_task.h
-@@ -29,6 +29,13 @@ extern struct fs_struct init_fs;
- #define INIT_GROUP_RWSEM(sig)
- #endif
- 
-+#ifdef CONFIG_CPUSETS
-+#define INIT_CPUSET_SEQ							\
-+	.mems_allowed_seq = SEQCNT_ZERO,
-+#else
-+#define INIT_CPUSET_SEQ
-+#endif
-+
- #define INIT_SIGNALS(sig) {						\
- 	.nr_threads	= 1,						\
- 	.wait_chldexit	= __WAIT_QUEUE_HEAD_INITIALIZER(sig.wait_chldexit),\
-@@ -192,6 +199,7 @@ extern struct cred init_cred;
- 	INIT_FTRACE_GRAPH						\
- 	INIT_TRACE_RECURSION						\
- 	INIT_TASK_RCU_PREEMPT(tsk)					\
-+	INIT_CPUSET_SEQ							\
- }
- 
- 
-diff -puN include/linux/sched.h~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 include/linux/sched.h
---- a/include/linux/sched.h~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/include/linux/sched.h
-@@ -1514,7 +1514,7 @@ struct task_struct {
- #endif
- #ifdef CONFIG_CPUSETS
- 	nodemask_t mems_allowed;	/* Protected by alloc_lock */
--	int mems_allowed_change_disable;
-+	seqcount_t mems_allowed_seq;	/* Seqence no to catch updates */
- 	int cpuset_mem_spread_rotor;
- 	int cpuset_slab_spread_rotor;
- #endif
-diff -puN kernel/cpuset.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/kernel/cpuset.c
-@@ -964,7 +964,6 @@ static void cpuset_change_task_nodemask(
- {
- 	bool need_loop;
- 
--repeat:
- 	/*
- 	 * Allow tasks that have access to memory reserves because they have
- 	 * been OOM killed to get memory anywhere.
-@@ -983,45 +982,19 @@ repeat:
- 	 */
- 	need_loop = task_has_mempolicy(tsk) ||
- 			!nodes_intersects(*newmems, tsk->mems_allowed);
--	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
--	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
- 
--	/*
--	 * ensure checking ->mems_allowed_change_disable after setting all new
--	 * allowed nodes.
--	 *
--	 * the read-side task can see an nodemask with new allowed nodes and
--	 * old allowed nodes. and if it allocates page when cpuset clears newly
--	 * disallowed ones continuous, it can see the new allowed bits.
--	 *
--	 * And if setting all new allowed nodes is after the checking, setting
--	 * all new allowed nodes and clearing newly disallowed ones will be done
--	 * continuous, and the read-side task may find no node to alloc page.
--	 */
--	smp_mb();
-+	if (need_loop)
-+		write_seqcount_begin(&tsk->mems_allowed_seq);
- 
--	/*
--	 * Allocation of memory is very fast, we needn't sleep when waiting
--	 * for the read-side.
--	 */
--	while (need_loop && ACCESS_ONCE(tsk->mems_allowed_change_disable)) {
--		task_unlock(tsk);
--		if (!task_curr(tsk))
--			yield();
--		goto repeat;
--	}
--
--	/*
--	 * ensure checking ->mems_allowed_change_disable before clearing all new
--	 * disallowed nodes.
--	 *
--	 * if clearing newly disallowed bits before the checking, the read-side
--	 * task may find no node to alloc page.
--	 */
--	smp_mb();
-+	nodes_or(tsk->mems_allowed, tsk->mems_allowed, *newmems);
-+	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP1);
- 
- 	mpol_rebind_task(tsk, newmems, MPOL_REBIND_STEP2);
- 	tsk->mems_allowed = *newmems;
-+
-+	if (need_loop)
-+		write_seqcount_end(&tsk->mems_allowed_seq);
-+
- 	task_unlock(tsk);
- }
- 
-diff -puN kernel/fork.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 kernel/fork.c
---- a/kernel/fork.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/kernel/fork.c
-@@ -1237,6 +1237,7 @@ static struct task_struct *copy_process(
- #ifdef CONFIG_CPUSETS
- 	p->cpuset_mem_spread_rotor = NUMA_NO_NODE;
- 	p->cpuset_slab_spread_rotor = NUMA_NO_NODE;
-+	seqcount_init(&p->mems_allowed_seq);
- #endif
- #ifdef CONFIG_TRACE_IRQFLAGS
- 	p->irq_events = 0;
-diff -puN mm/filemap.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 mm/filemap.c
---- a/mm/filemap.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/mm/filemap.c
-@@ -499,10 +499,13 @@ struct page *__page_cache_alloc(gfp_t gf
- 	struct page *page;
- 
- 	if (cpuset_do_page_mem_spread()) {
--		get_mems_allowed();
--		n = cpuset_mem_spread_node();
--		page = alloc_pages_exact_node(n, gfp, 0);
--		put_mems_allowed();
-+		unsigned int cpuset_mems_cookie;
-+		do {
-+			cpuset_mems_cookie = get_mems_allowed();
-+			n = cpuset_mem_spread_node();
-+			page = alloc_pages_exact_node(n, gfp, 0);
-+		} while (!put_mems_allowed(cpuset_mems_cookie) && !page);
-+
- 		return page;
+-	for_each_lru(l) {
+-		if (BIT(l) & lru_mask)
+-			ret += mz->lru_size[l];
++	for_each_lru(lru) {
++		if (BIT(lru) & lru_mask)
++			ret += mz->lru_size[lru];
  	}
- 	return alloc_pages(gfp, 0);
-diff -puN mm/hugetlb.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 mm/hugetlb.c
---- a/mm/hugetlb.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/mm/hugetlb.c
-@@ -454,14 +454,16 @@ static struct page *dequeue_huge_page_vm
- 				struct vm_area_struct *vma,
- 				unsigned long address, int avoid_reserve)
- {
--	struct page *page = NULL;
-+	struct page *page;
- 	struct mempolicy *mpol;
- 	nodemask_t *nodemask;
- 	struct zonelist *zonelist;
- 	struct zone *zone;
- 	struct zoneref *z;
-+	unsigned int cpuset_mems_cookie;
- 
--	get_mems_allowed();
-+retry_cpuset:
-+	cpuset_mems_cookie = get_mems_allowed();
- 	zonelist = huge_zonelist(vma, address,
- 					htlb_alloc_mask, &mpol, &nodemask);
- 	/*
-@@ -488,10 +490,15 @@ static struct page *dequeue_huge_page_vm
- 			}
- 		}
- 	}
--err:
-+
- 	mpol_cond_put(mpol);
--	put_mems_allowed();
-+	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
-+		goto retry_cpuset;
- 	return page;
-+
-+err:
-+	mpol_cond_put(mpol);
-+	return NULL;
- }
- 
- static void update_and_free_page(struct hstate *h, struct page *page)
-diff -puN mm/mempolicy.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 mm/mempolicy.c
---- a/mm/mempolicy.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/mm/mempolicy.c
-@@ -1850,18 +1850,24 @@ struct page *
- alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
- 		unsigned long addr, int node)
- {
--	struct mempolicy *pol = get_vma_policy(current, vma, addr);
-+	struct mempolicy *pol;
- 	struct zonelist *zl;
- 	struct page *page;
-+	unsigned int cpuset_mems_cookie;
-+
-+retry_cpuset:
-+	pol = get_vma_policy(current, vma, addr);
-+	cpuset_mems_cookie = get_mems_allowed();
- 
--	get_mems_allowed();
- 	if (unlikely(pol->mode == MPOL_INTERLEAVE)) {
- 		unsigned nid;
- 
- 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT + order);
- 		mpol_cond_put(pol);
- 		page = alloc_page_interleave(gfp, order, nid);
--		put_mems_allowed();
-+		if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
-+			goto retry_cpuset;
-+
- 		return page;
- 	}
- 	zl = policy_zonelist(gfp, pol, node);
-@@ -1872,7 +1878,8 @@ alloc_pages_vma(gfp_t gfp, int order, st
- 		struct page *page =  __alloc_pages_nodemask(gfp, order,
- 						zl, policy_nodemask(gfp, pol));
- 		__mpol_put(pol);
--		put_mems_allowed();
-+		if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
-+			goto retry_cpuset;
- 		return page;
- 	}
- 	/*
-@@ -1880,7 +1887,8 @@ alloc_pages_vma(gfp_t gfp, int order, st
- 	 */
- 	page = __alloc_pages_nodemask(gfp, order, zl,
- 				      policy_nodemask(gfp, pol));
--	put_mems_allowed();
-+	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
-+		goto retry_cpuset;
- 	return page;
- }
- 
-@@ -1907,11 +1915,14 @@ struct page *alloc_pages_current(gfp_t g
- {
- 	struct mempolicy *pol = current->mempolicy;
- 	struct page *page;
-+	unsigned int cpuset_mems_cookie;
- 
- 	if (!pol || in_interrupt() || (gfp & __GFP_THISNODE))
- 		pol = &default_policy;
- 
--	get_mems_allowed();
-+retry_cpuset:
-+	cpuset_mems_cookie = get_mems_allowed();
-+
- 	/*
- 	 * No reference counting needed for current->mempolicy
- 	 * nor system default_policy
-@@ -1922,7 +1933,10 @@ struct page *alloc_pages_current(gfp_t g
- 		page = __alloc_pages_nodemask(gfp, order,
- 				policy_zonelist(gfp, pol, numa_node_id()),
- 				policy_nodemask(gfp, pol));
--	put_mems_allowed();
-+
-+	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
-+		goto retry_cpuset;
-+
- 	return page;
- }
- EXPORT_SYMBOL(alloc_pages_current);
-diff -puN mm/page_alloc.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 mm/page_alloc.c
---- a/mm/page_alloc.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/mm/page_alloc.c
-@@ -2380,8 +2380,9 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- {
- 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
- 	struct zone *preferred_zone;
--	struct page *page;
-+	struct page *page = NULL;
- 	int migratetype = allocflags_to_migratetype(gfp_mask);
-+	unsigned int cpuset_mems_cookie;
- 
- 	gfp_mask &= gfp_allowed_mask;
- 
-@@ -2400,15 +2401,15 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	if (unlikely(!zonelist->_zonerefs->zone))
- 		return NULL;
- 
--	get_mems_allowed();
-+retry_cpuset:
-+	cpuset_mems_cookie = get_mems_allowed();
-+
- 	/* The preferred zone is used for statistics later */
- 	first_zones_zonelist(zonelist, high_zoneidx,
- 				nodemask ? : &cpuset_current_mems_allowed,
- 				&preferred_zone);
--	if (!preferred_zone) {
--		put_mems_allowed();
--		return NULL;
--	}
-+	if (!preferred_zone)
-+		goto out;
- 
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
-@@ -2418,9 +2419,19 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 		page = __alloc_pages_slowpath(gfp_mask, order,
- 				zonelist, high_zoneidx, nodemask,
- 				preferred_zone, migratetype);
--	put_mems_allowed();
- 
- 	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
-+
-+out:
-+	/*
-+	 * When updating a task's mems_allowed, it is possible to race with
-+	 * parallel threads in such a way that an allocation can fail while
-+	 * the mask is being updated. If a page allocation is about to fail,
-+	 * check if the cpuset changed during allocation and if so, retry.
-+	 */
-+	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
-+		goto retry_cpuset;
-+
- 	return page;
- }
- EXPORT_SYMBOL(__alloc_pages_nodemask);
-@@ -2634,13 +2645,15 @@ void si_meminfo_node(struct sysinfo *val
- bool skip_free_areas_node(unsigned int flags, int nid)
- {
- 	bool ret = false;
-+	unsigned int cpuset_mems_cookie;
- 
- 	if (!(flags & SHOW_MEM_FILTER_NODES))
- 		goto out;
- 
--	get_mems_allowed();
--	ret = !node_isset(nid, cpuset_current_mems_allowed);
--	put_mems_allowed();
-+	do {
-+		cpuset_mems_cookie = get_mems_allowed();
-+		ret = !node_isset(nid, cpuset_current_mems_allowed);
-+	} while (!put_mems_allowed(cpuset_mems_cookie));
- out:
  	return ret;
  }
-diff -puN mm/slab.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 mm/slab.c
---- a/mm/slab.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/mm/slab.c
-@@ -3284,12 +3284,10 @@ static void *alternate_node_alloc(struct
- 	if (in_interrupt() || (flags & __GFP_THISNODE))
- 		return NULL;
- 	nid_alloc = nid_here = numa_mem_id();
--	get_mems_allowed();
- 	if (cpuset_do_slab_mem_spread() && (cachep->flags & SLAB_MEM_SPREAD))
- 		nid_alloc = cpuset_slab_spread_node();
- 	else if (current->mempolicy)
- 		nid_alloc = slab_node(current->mempolicy);
--	put_mems_allowed();
- 	if (nid_alloc != nid_here)
- 		return ____cache_alloc_node(cachep, flags, nid_alloc);
- 	return NULL;
-@@ -3312,14 +3310,17 @@ static void *fallback_alloc(struct kmem_
- 	enum zone_type high_zoneidx = gfp_zone(flags);
- 	void *obj = NULL;
- 	int nid;
-+	unsigned int cpuset_mems_cookie;
- 
- 	if (flags & __GFP_THISNODE)
- 		return NULL;
- 
--	get_mems_allowed();
--	zonelist = node_zonelist(slab_node(current->mempolicy), flags);
- 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
- 
-+retry_cpuset:
-+	cpuset_mems_cookie = get_mems_allowed();
-+	zonelist = node_zonelist(slab_node(current->mempolicy), flags);
-+
- retry:
+@@ -3701,10 +3701,10 @@ move_account:
+ 		mem_cgroup_start_move(memcg);
+ 		for_each_node_state(node, N_HIGH_MEMORY) {
+ 			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
+-				enum lru_list l;
+-				for_each_lru(l) {
++				enum lru_list lru;
++				for_each_lru(lru) {
+ 					ret = mem_cgroup_force_empty_list(memcg,
+-							node, zid, l);
++							node, zid, lru);
+ 					if (ret)
+ 						break;
+ 				}
+@@ -4734,7 +4734,7 @@ static int alloc_mem_cgroup_per_zone_inf
+ {
+ 	struct mem_cgroup_per_node *pn;
+ 	struct mem_cgroup_per_zone *mz;
+-	enum lru_list l;
++	enum lru_list lru;
+ 	int zone, tmp = node;
  	/*
- 	 * Look through allowed nodes for objects available
-@@ -3372,7 +3373,9 @@ retry:
- 			}
- 		}
- 	}
--	put_mems_allowed();
-+
-+	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !obj))
-+		goto retry_cpuset;
- 	return obj;
- }
+ 	 * This routine is called against possible nodes.
+@@ -4752,8 +4752,8 @@ static int alloc_mem_cgroup_per_zone_inf
  
-diff -puN mm/slub.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 mm/slub.c
---- a/mm/slub.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/mm/slub.c
-@@ -1581,6 +1581,7 @@ static struct page *get_any_partial(stru
- 	struct zone *zone;
- 	enum zone_type high_zoneidx = gfp_zone(flags);
- 	void *object;
-+	unsigned int cpuset_mems_cookie;
- 
- 	/*
- 	 * The defrag ratio allows a configuration of the tradeoffs between
-@@ -1604,23 +1605,32 @@ static struct page *get_any_partial(stru
- 			get_cycles() % 1024 > s->remote_node_defrag_ratio)
- 		return NULL;
- 
--	get_mems_allowed();
--	zonelist = node_zonelist(slab_node(current->mempolicy), flags);
--	for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
--		struct kmem_cache_node *n;
--
--		n = get_node(s, zone_to_nid(zone));
--
--		if (n && cpuset_zone_allowed_hardwall(zone, flags) &&
--				n->nr_partial > s->min_partial) {
--			object = get_partial_node(s, n, c);
--			if (object) {
--				put_mems_allowed();
--				return object;
-+	do {
-+		cpuset_mems_cookie = get_mems_allowed();
-+		zonelist = node_zonelist(slab_node(current->mempolicy), flags);
-+		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
-+			struct kmem_cache_node *n;
-+
-+			n = get_node(s, zone_to_nid(zone));
-+
-+			if (n && cpuset_zone_allowed_hardwall(zone, flags) &&
-+					n->nr_partial > s->min_partial) {
-+				object = get_partial_node(s, n, c);
-+				if (object) {
-+					/*
-+					 * Return the object even if
-+					 * put_mems_allowed indicated that
-+					 * the cpuset mems_allowed was
-+					 * updated in parallel. It's a
-+					 * harmless race between the alloc
-+					 * and the cpuset update.
-+					 */
-+					put_mems_allowed(cpuset_mems_cookie);
-+					return object;
-+				}
- 			}
- 		}
--	}
--	put_mems_allowed();
-+	} while (!put_mems_allowed(cpuset_mems_cookie));
- #endif
- 	return NULL;
- }
-diff -puN mm/vmscan.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3 mm/vmscan.c
---- a/mm/vmscan.c~cpuset-mm-reduce-large-amounts-of-memory-barrier-related-damage-v3
-+++ a/mm/vmscan.c
-@@ -2343,7 +2343,6 @@ static unsigned long do_try_to_free_page
- 	unsigned long writeback_threshold;
- 	bool aborted_reclaim;
- 
--	get_mems_allowed();
- 	delayacct_freepages_start();
- 
- 	if (global_reclaim(sc))
-@@ -2407,7 +2406,6 @@ static unsigned long do_try_to_free_page
- 
- out:
- 	delayacct_freepages_end();
--	put_mems_allowed();
- 
- 	if (sc->nr_reclaimed)
- 		return sc->nr_reclaimed;
+ 	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
+ 		mz = &pn->zoneinfo[zone];
+-		for_each_lru(l)
+-			INIT_LIST_HEAD(&mz->lruvec.lists[l]);
++		for_each_lru(lru)
++			INIT_LIST_HEAD(&mz->lruvec.lists[lru]);
+ 		mz->usage_in_excess = 0;
+ 		mz->on_tree = false;
+ 		mz->memcg = memcg;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
+linux-next.patch
+mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
+radix-tree-introduce-bit-optimized-iterator.patch
+radix-tree-introduce-bit-optimized-iterator-v3.patch
+radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
+radix-tree-rewrite-gang-lookup-with-using-iterator.patch
+radix-tree-use-iterators-in-find_get_pages-functions.patch
+prio_tree-debugging-patch.patch
 
