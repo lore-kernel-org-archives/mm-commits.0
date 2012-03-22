@@ -1,95 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-try-to-search-again-if-it-is-really-needed.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:54 -0700
-Message-ID: <20120322201754.64A11A06FD@akpm.mtv.corp.google.com>
+Subject: [merged] pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:00 -0700
+Message-ID: <20120322201800.791DDA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:60535 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753422Ab2CVURz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:55 -0400
-Received: by mail-gy0-f202.google.com with SMTP id z15so402093ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:54 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:46778 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752729Ab2CVUSB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:01 -0400
+Received: by mail-vx0-f202.google.com with SMTP id fk26so402092vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, ak@linux.intel.com, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: try to search again if it is really needed
+     Subject: pagemap: avoid splitting thp when reading /proc/pid/pagemap
 has been removed from the -mm tree.  Its filename was
-     hugetlb-try-to-search-again-if-it-is-really-needed.patch
+     pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: hugetlb: try to search again if it is really needed
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: pagemap: avoid splitting thp when reading /proc/pid/pagemap
 
-Search again only if some holes may be skipped in the first pass.
+Thp split is not necessary if we explicitly check whether pmds are mapping
+thps or not.  This patch introduces this check and adds code to generate
+pagemap entries for pmds mapping thps, which results in less performance
+impact of pagemap on thp.
 
-[akpm@linux-foundation.org: clean up crazy compound definition]
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hillf Danton <dhillf@gmail.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/proc/task_mmu.c |   52 +++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 48 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~hugetlb-try-to-search-again-if-it-is-really-needed arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~hugetlb-try-to-search-again-if-it-is-really-needed
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -309,9 +309,10 @@ static unsigned long hugetlb_get_unmappe
- 	struct hstate *h = hstate_file(file);
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma, *prev_vma;
--	unsigned long base = mm->mmap_base, addr = addr0;
-+	unsigned long base = mm->mmap_base;
-+	unsigned long addr = addr0;
- 	unsigned long largest_hole = mm->cached_hole_size;
--	int first_time = 1;
-+	unsigned long start_addr;
+diff -puN fs/proc/task_mmu.c~pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-avoid-splitting-thp-when-reading-proc-pid-pagemap
++++ a/fs/proc/task_mmu.c
+@@ -608,6 +608,9 @@ struct pagemapread {
+ 	u64 *buffer;
+ };
  
- 	/* don't allow allocations above current base */
- 	if (mm->free_area_cache > base)
-@@ -322,6 +323,8 @@ static unsigned long hugetlb_get_unmappe
- 		mm->free_area_cache  = base;
- 	}
- try_again:
-+	start_addr = mm->free_area_cache;
++#define PAGEMAP_WALK_SIZE	(PMD_SIZE)
++#define PAGEMAP_WALK_MASK	(PMD_MASK)
 +
- 	/* make sure it can fit in the remaining address space */
- 	if (mm->free_area_cache < len)
- 		goto fail;
-@@ -368,10 +371,9 @@ fail:
- 	 * if hint left us with no space for the requested
- 	 * mapping then try again:
- 	 */
--	if (first_time) {
-+	if (start_addr != base) {
- 		mm->free_area_cache = base;
- 		largest_hole = 0;
--		first_time = 0;
- 		goto try_again;
- 	}
- 	/*
+ #define PM_ENTRY_BYTES      sizeof(u64)
+ #define PM_STATUS_BITS      3
+ #define PM_STATUS_OFFSET    (64 - PM_STATUS_BITS)
+@@ -666,6 +669,27 @@ static u64 pte_to_pagemap_entry(pte_t pt
+ 	return pme;
+ }
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static u64 thp_pmd_to_pagemap_entry(pmd_t pmd, int offset)
++{
++	u64 pme = 0;
++	/*
++	 * Currently pmd for thp is always present because thp can not be
++	 * swapped-out, migrated, or HWPOISONed (split in such cases instead.)
++	 * This if-check is just to prepare for future implementation.
++	 */
++	if (pmd_present(pmd))
++		pme = PM_PFRAME(pmd_pfn(pmd) + offset)
++			| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
++	return pme;
++}
++#else
++static inline u64 thp_pmd_to_pagemap_entry(pmd_t pmd, int offset)
++{
++	return 0;
++}
++#endif
++
+ static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			     struct mm_walk *walk)
+ {
+@@ -673,15 +697,37 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	struct pagemapread *pm = walk->private;
+ 	pte_t *pte;
+ 	int err = 0;
++	u64 pfn = PM_NOT_PRESENT;
+ 
+-	split_huge_page_pmd(walk->mm, pmd);
+ 	if (pmd_trans_unstable(pmd))
+ 		return 0;
+ 
+ 	/* find the first VMA at or above 'addr' */
+ 	vma = find_vma(walk->mm, addr);
++	spin_lock(&walk->mm->page_table_lock);
++	if (pmd_trans_huge(*pmd)) {
++		if (pmd_trans_splitting(*pmd)) {
++			spin_unlock(&walk->mm->page_table_lock);
++			wait_split_huge_page(vma->anon_vma, pmd);
++		} else {
++			for (; addr != end; addr += PAGE_SIZE) {
++				unsigned long offset;
++
++				offset = (addr & ~PAGEMAP_WALK_MASK) >>
++						PAGE_SHIFT;
++				pfn = thp_pmd_to_pagemap_entry(*pmd, offset);
++				err = add_to_pagemap(addr, pfn, pm);
++				if (err)
++					break;
++			}
++			spin_unlock(&walk->mm->page_table_lock);
++			return err;
++		}
++	} else {
++		spin_unlock(&walk->mm->page_table_lock);
++	}
++
+ 	for (; addr != end; addr += PAGE_SIZE) {
+-		u64 pfn = PM_NOT_PRESENT;
+ 
+ 		/* check to see if we've left 'vma' behind
+ 		 * and need a new, higher one */
+@@ -764,8 +810,6 @@ static int pagemap_hugetlb_range(pte_t *
+  * determine which areas of memory are actually mapped and llseek to
+  * skip over unmapped regions.
+  */
+-#define PAGEMAP_WALK_SIZE	(PMD_SIZE)
+-#define PAGEMAP_WALK_MASK	(PMD_MASK)
+ static ssize_t pagemap_read(struct file *file, char __user *buf,
+ 			    size_t count, loff_t *ppos)
+ {
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
 linux-next.patch
-prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
-prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
-prio_tree-simplify-prio_tree_expand.patch
-prio_tree-introduce-prio_set_parent.patch
 
