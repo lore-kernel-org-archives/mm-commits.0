@@ -1,30 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-telephony-ixjc-fix-warning-about-sequence-points.patch added to -mm tree
-Date: Thu, 22 Mar 2012 16:03:42 -0700
-Message-ID: <20120322230342.D96F6A020E@akpm.mtv.corp.google.com>
+Subject: + mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch added to -mm tree
+Date: Thu, 22 Mar 2012 16:08:36 -0700
+Message-ID: <20120322230836.C20A9A0128@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:59452 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756369Ab2CVXDp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 19:03:45 -0400
-Received: by bkcjm19 with SMTP id jm19so138656bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 16:03:44 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:36854 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756369Ab2CVXIi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 19:08:38 -0400
+Received: by ggnd2 with SMTP id d2so427085ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 16:08:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: uwe@kleine-koenig.org, greg@kroah.com, lucas.demarchi@profusion.mobi
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, oleg@redhat.com
 
 
 The patch titled
-     Subject: drivers/staging/telephony/ixj.c: fix warning about sequen=
-ce points
+     Subject: mm, coredump: fail allocations when coredumping instead of oom killing
 has been added to the -mm tree.  Its filename is
-     drivers-staging-telephony-ixjc-fix-warning-about-sequence-points.p=
-atch
+     mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,258 +27,75 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
-Subject: drivers/staging/telephony/ixj.c: fix warning about sequence po=
-ints
+From: David Rientjes <rientjes@google.com>
+Subject: mm, coredump: fail allocations when coredumping instead of oom killing
 
-In the statement
+The size of coredump files is limited by RLIMIT_CORE, however, allocating
+large amounts of memory results in three negative consequences:
 
-	j->caplist[j->caps].handle =3D j->caps++;
+ - the coredumping process may be chosen for oom kill and quickly deplete
+   all memory reserves in oom conditions preventing further progress from
+   being made or tasks from exiting,
 
-there is no sequence point between the usage of j->caps on the LHS of t=
-he
-assignment and the incrementation on its RHS.  So it's not defined in
-Standard C if j->caps is already incremented when used on the LHS even
-though the postfix ++ operator is used.  To properly fix that the
-incrementation has to be done in a separate expression.
+ - the coredumping process may cause other processes to be oom killed
+   without fault of their own as the result of a SIGSEGV, for example, in
+   the coredumping process, or
 
-This fixes:
-	drivers/telephony/ixj.c: In function `add_caps':
-	drivers/telephony/ixj.c:5930:38: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:5950:38: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:5954:38: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:5965:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:5976:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:5988:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:5998:38: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6003:38: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6008:38: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6013:38: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6019:38: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6026:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6031:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6036:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6041:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6049:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6057:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6065:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
-	drivers/telephony/ixj.c:6071:39: warning: operation on `j->caps' may b=
-e undefined [-Wsequence-point]
+ - the coredumping process may result in a livelock while writing to the
+   dump file if it needs memory to allocate while other threads are in
+   the exit path waiting on the coredumper to complete.
 
-Signed-off-by: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
-Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Cc: Greg KH <greg@kroah.com>
+This is fixed by implying __GFP_NORETRY in the page allocator for
+coredumping processes when reclaim has failed so the allocations fail and
+the process continues to exit.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/telephony/ixj.c |   57 ++++++++++++++++++++----------
- 1 file changed, 38 insertions(+), 19 deletions(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/staging/telephony/ixj.c~drivers-staging-telephony-ixj=
-c-fix-warning-about-sequence-points drivers/staging/telephony/ixj.c
---- a/drivers/staging/telephony/ixj.c~drivers-staging-telephony-ixjc-fi=
-x-warning-about-sequence-points
-+++ a/drivers/staging/telephony/ixj.c
-@@ -5927,7 +5927,8 @@ static void add_caps(IXJ *j)
- 	j->caplist[j->caps].cap =3D PHONE_VENDOR_QUICKNET;
- 	strcpy(j->caplist[j->caps].desc, "Quicknet Technologies, Inc. (www.qu=
-icknet.net)");
- 	j->caplist[j->caps].captype =3D vendor;
--	j->caplist[j->caps].handle =3D j->caps++;
-+	j->caplist[j->caps].handle =3D j->caps;
-+	j->caps++;
- 	j->caplist[j->caps].captype =3D device;
- 	switch (j->cardtype) {
- 	case QTI_PHONEJACK:
-@@ -5947,11 +5948,13 @@ static void add_caps(IXJ *j)
- 		break;
- 	}
- 	j->caplist[j->caps].cap =3D j->cardtype;
--	j->caplist[j->caps].handle =3D j->caps++;
-+	j->caplist[j->caps].handle =3D j->caps;
-+	j->caps++;
- 	strcpy(j->caplist[j->caps].desc, "POTS");
- 	j->caplist[j->caps].captype =3D port;
- 	j->caplist[j->caps].cap =3D pots;
--	j->caplist[j->caps].handle =3D j->caps++;
-+	j->caplist[j->caps].handle =3D j->caps;
-+	j->caps++;
-=20
-  	/* add devices that can do speaker/mic */
- 	switch (j->cardtype) {
-@@ -5962,7 +5965,8 @@ static void add_caps(IXJ *j)
- 		strcpy(j->caplist[j->caps].desc, "SPEAKER");
- 		j->caplist[j->caps].captype =3D port;
- 		j->caplist[j->caps].cap =3D speaker;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
-         default:
-      		break;
- 	}
-@@ -5973,7 +5977,8 @@ static void add_caps(IXJ *j)
- 		strcpy(j->caplist[j->caps].desc, "HANDSET");
- 		j->caplist[j->caps].captype =3D port;
- 		j->caplist[j->caps].cap =3D handset;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
- 		break;
-         default:
-      		break;
-@@ -5985,7 +5990,8 @@ static void add_caps(IXJ *j)
- 		strcpy(j->caplist[j->caps].desc, "PSTN");
- 		j->caplist[j->caps].captype =3D port;
- 		j->caplist[j->caps].cap =3D pstn;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
- 		break;
-         default:
-      		break;
-@@ -5995,50 +6001,59 @@ static void add_caps(IXJ *j)
- 	strcpy(j->caplist[j->caps].desc, "ULAW");
- 	j->caplist[j->caps].captype =3D codec;
- 	j->caplist[j->caps].cap =3D ULAW;
--	j->caplist[j->caps].handle =3D j->caps++;
-+	j->caplist[j->caps].handle =3D j->caps;
-+	j->caps++;
-=20
- 	strcpy(j->caplist[j->caps].desc, "LINEAR 16 bit");
- 	j->caplist[j->caps].captype =3D codec;
- 	j->caplist[j->caps].cap =3D LINEAR16;
--	j->caplist[j->caps].handle =3D j->caps++;
-+	j->caplist[j->caps].handle =3D j->caps;
-+	j->caps++;
-=20
- 	strcpy(j->caplist[j->caps].desc, "LINEAR 8 bit");
- 	j->caplist[j->caps].captype =3D codec;
- 	j->caplist[j->caps].cap =3D LINEAR8;
--	j->caplist[j->caps].handle =3D j->caps++;
-+	j->caplist[j->caps].handle =3D j->caps;
-+	j->caps++;
-=20
- 	strcpy(j->caplist[j->caps].desc, "Windows Sound System");
- 	j->caplist[j->caps].captype =3D codec;
- 	j->caplist[j->caps].cap =3D WSS;
--	j->caplist[j->caps].handle =3D j->caps++;
-+	j->caplist[j->caps].handle =3D j->caps;
-+	j->caps++;
-=20
- 	/* software ALAW codec, made from ULAW */
- 	strcpy(j->caplist[j->caps].desc, "ALAW");
- 	j->caplist[j->caps].captype =3D codec;
- 	j->caplist[j->caps].cap =3D ALAW;
--	j->caplist[j->caps].handle =3D j->caps++;
-+	j->caplist[j->caps].handle =3D j->caps;
-+	j->caps++;
-=20
- 	/* version 12 of the 8020 does the following codecs in a broken way *=
-/
- 	if (j->dsp.low !=3D 0x20 || j->ver.low !=3D 0x12) {
- 		strcpy(j->caplist[j->caps].desc, "G.723.1 6.3kbps");
- 		j->caplist[j->caps].captype =3D codec;
- 		j->caplist[j->caps].cap =3D G723_63;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
-=20
- 		strcpy(j->caplist[j->caps].desc, "G.723.1 5.3kbps");
- 		j->caplist[j->caps].captype =3D codec;
- 		j->caplist[j->caps].cap =3D G723_53;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
-=20
- 		strcpy(j->caplist[j->caps].desc, "TrueSpeech 4.8kbps");
- 		j->caplist[j->caps].captype =3D codec;
- 		j->caplist[j->caps].cap =3D TS48;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
-=20
- 		strcpy(j->caplist[j->caps].desc, "TrueSpeech 4.1kbps");
- 		j->caplist[j->caps].captype =3D codec;
- 		j->caplist[j->caps].cap =3D TS41;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
- 	}
-=20
- 	/* 8020 chips can do TS8.5 native, and 8021/8022 can load it */
-@@ -6046,7 +6061,8 @@ static void add_caps(IXJ *j)
- 		strcpy(j->caplist[j->caps].desc, "TrueSpeech 8.5kbps");
- 		j->caplist[j->caps].captype =3D codec;
- 		j->caplist[j->caps].cap =3D TS85;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
- 	}
-=20
- 	/* 8021 chips can do G728 */
-@@ -6054,7 +6070,8 @@ static void add_caps(IXJ *j)
- 		strcpy(j->caplist[j->caps].desc, "G.728 16kbps");
- 		j->caplist[j->caps].captype =3D codec;
- 		j->caplist[j->caps].cap =3D G728;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
- 	}
-=20
- 	/* 8021/8022 chips can do G729 if loaded */
-@@ -6062,13 +6079,15 @@ static void add_caps(IXJ *j)
- 		strcpy(j->caplist[j->caps].desc, "G.729A 8kbps");
- 		j->caplist[j->caps].captype =3D codec;
- 		j->caplist[j->caps].cap =3D G729;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
- 	}
- 	if (j->dsp.low !=3D 0x20 && j->flags.g729_loaded) {
- 		strcpy(j->caplist[j->caps].desc, "G.729B 8kbps");
- 		j->caplist[j->caps].captype =3D codec;
- 		j->caplist[j->caps].cap =3D G729B;
--		j->caplist[j->caps].handle =3D j->caps++;
-+		j->caplist[j->caps].handle =3D j->caps;
-+		j->caps++;
- 	}
- }
-=20
+diff -puN mm/page_alloc.c~mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing
++++ a/mm/page_alloc.c
+@@ -2308,6 +2308,10 @@ rebalance:
+ 		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
+ 			if (oom_killer_disabled)
+ 				goto nopage;
++			/* Coredumps can quickly deplete all memory reserves */
++			if ((current->flags & PF_DUMPCORE) &&
++			    !(gfp_mask & __GFP_NOFAIL))
++				goto nopage;
+ 			page = __alloc_pages_may_oom(gfp_mask, order,
+ 					zonelist, high_zoneidx,
+ 					nodemask, preferred_zone,
 _
-Subject: Subject: drivers/staging/telephony/ixj.c: fix warning about se=
-quence points
+Subject: Subject: mm, coredump: fail allocations when coredumping instead of oom killing
 
-Patches currently in -mm which might be from uwe@kleine-koenig.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-drivers-staging-telephony-ixjc-fix-warning-about-sequence-points.patch
+origin.patch
+linux-next.patch
+mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+usermodehelper-introduce-umh_completesub_info.patch
+usermodehelper-implement-umh_killable.patch
+usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+kmod-introduce-call_modprobe-helper.patch
+kmod-make-__request_module-killable.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
