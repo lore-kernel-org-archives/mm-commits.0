@@ -1,91 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom-introduce-independent-oom-killer-ratelimit-state.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:29 -0700
-Message-ID: <20120322201729.67DEAA024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:17:37 -0700
+Message-ID: <20120322201737.86014A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:46778 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757272Ab2CVURb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:31 -0400
-Received: by vcbfk26 with SMTP id fk26so402092vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:29 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:44214 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758270Ab2CVURj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:39 -0400
+Received: by mail-bk0-f74.google.com with SMTP id jm19so134208bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: dhillf@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: introduce independent oom killer ratelimit state
+     Subject: mm: vmscan: fix misused nr_reclaimed in shrink_mem_cgroup_zone()
 has been removed from the -mm tree.  Its filename was
-     mm-oom-introduce-independent-oom-killer-ratelimit-state.patch
+     mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: introduce independent oom killer ratelimit state
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm: vmscan: fix misused nr_reclaimed in shrink_mem_cgroup_zone()
 
-printk_ratelimit() uses the global ratelimit state for all printks.  The
-oom killer should not be subjected to this state just because another
-subsystem or driver may be flooding the kernel log.
+The value of nr_reclaimed is the number of pages reclaimed in the current
+round of the loop, whereas nr_to_reclaim should be compared with the
+number of pages reclaimed in all rounds.
 
-This patch introduces printk ratelimiting specifically for the oom killer.
+In each round of the loop, reclaimed pages are cut off from the reclaim
+goal, and the loop stops once the goal achieved.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom-introduce-independent-oom-killer-ratelimit-state mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-introduce-independent-oom-killer-ratelimit-state
-+++ a/mm/oom_kill.c
-@@ -34,6 +34,7 @@
- #include <linux/ptrace.h>
- #include <linux/freezer.h>
- #include <linux/ftrace.h>
-+#include <linux/ratelimit.h>
- 
- #define CREATE_TRACE_POINTS
- #include <trace/events/oom.h>
-@@ -444,6 +445,8 @@ static void oom_kill_process(struct task
- 	struct task_struct *t = p;
- 	struct mm_struct *mm;
- 	unsigned int victim_points = 0;
-+	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
-+					      DEFAULT_RATELIMIT_BURST);
- 
- 	/*
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
-@@ -454,7 +457,7 @@ static void oom_kill_process(struct task
- 		return;
+diff -puN mm/vmscan.c~mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-misused-nr_reclaimed-in-shrink_mem_cgroup_zone
++++ a/mm/vmscan.c
+@@ -2112,7 +2112,12 @@ restart:
+ 		 * with multiple processes reclaiming pages, the total
+ 		 * freeing target can get unreasonably large.
+ 		 */
+-		if (nr_reclaimed >= nr_to_reclaim && priority < DEF_PRIORITY)
++		if (nr_reclaimed >= nr_to_reclaim)
++			nr_to_reclaim = 0;
++		else
++			nr_to_reclaim -= nr_reclaimed;
++
++		if (!nr_to_reclaim && priority < DEF_PRIORITY)
+ 			break;
  	}
- 
--	if (printk_ratelimit())
-+	if (__ratelimit(&oom_rs))
- 		dump_header(p, gfp_mask, order, memcg, nodemask);
- 
- 	task_lock(p);
+ 	blk_finish_plug(&plug);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
 origin.patch
-linux-next.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-introduce-umh_completesub_info.patch
-usermodehelper-implement-umh_killable.patch
-usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
-usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
-kmod-introduce-call_modprobe-helper.patch
-kmod-make-__request_module-killable.patch
+mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
 
