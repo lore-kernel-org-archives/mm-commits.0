@@ -1,128 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:19 -0700
-Message-ID: <20120322201719.5E84FA024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:17:23 -0700
+Message-ID: <20120322201723.5486CA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:44214 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756174Ab2CVURV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:21 -0400
-Received: by bkcjm19 with SMTP id jm19so134208bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:20 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:60535 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756221Ab2CVURY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:24 -0400
+Received: by mail-gy0-f202.google.com with SMTP id z15so402093ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, chris@zankel.net, oleg@redhat.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: use set_current_blocked() and block_sigmask()
+     Subject: mm, oom: avoid looping when chosen thread detaches its mm
 has been removed from the -mm tree.  Its filename was
-     xtensa-use-set_current_blocked-and-block_sigmask.patch
+     mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: xtensa: use set_current_blocked() and block_sigmask()
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: avoid looping when chosen thread detaches its mm
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
+oom_kill_task() returns non-zero iff the chosen process does not have any
+threads with an attached ->mm.
 
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
+In such a case, it's better to just return to the page allocator and retry
+the allocation because memory could have been freed in the interim and the
+oom condition may no longer exist.  It's unnecessary to loop in the oom
+killer and find another thread to kill.
 
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Chris Zankel <chris@zankel.net>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+This allows both oom_kill_task() and oom_kill_process() to be converted to
+void functions.  If the oom condition persists, the oom killer will be
+recalled.
+
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/signal.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ mm/oom_kill.c |   56 +++++++++++++++++-------------------------------
+ 1 file changed, 20 insertions(+), 36 deletions(-)
 
-diff -puN arch/xtensa/kernel/signal.c~xtensa-use-set_current_blocked-and-block_sigmask arch/xtensa/kernel/signal.c
---- a/arch/xtensa/kernel/signal.c~xtensa-use-set_current_blocked-and-block_sigmask
-+++ a/arch/xtensa/kernel/signal.c
-@@ -260,10 +260,7 @@ asmlinkage long xtensa_rt_sigreturn(long
- 		goto badframe;
+diff -puN mm/oom_kill.c~mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-avoid-looping-when-chosen-thread-detaches-its-mm
++++ a/mm/oom_kill.c
+@@ -434,14 +434,14 @@ static void dump_header(struct task_stru
+ }
  
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
+ #define K(x) ((x) << (PAGE_SHIFT-10))
+-static int oom_kill_task(struct task_struct *p)
++static void oom_kill_task(struct task_struct *p)
+ {
+ 	struct task_struct *q;
+ 	struct mm_struct *mm;
  
- 	if (restore_sigcontext(regs, frame))
- 		goto badframe;
-@@ -448,11 +445,8 @@ asmlinkage long xtensa_rt_sigsuspend(sig
- 		return -EFAULT;
+ 	p = find_lock_task_mm(p);
+ 	if (!p)
+-		return 1;
++		return;
  
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
- 	saveset = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
+ 	/* mm cannot be safely dereferenced after task_unlock(p) */
+ 	mm = p->mm;
+@@ -477,15 +477,13 @@ static int oom_kill_task(struct task_str
  
- 	regs->areg[2] = -EINTR;
- 	while (1) {
-@@ -539,12 +533,7 @@ int do_signal(struct pt_regs *regs, sigs
- 		if (ret)
- 			return ret;
+ 	set_tsk_thread_flag(p, TIF_MEMDIE);
+ 	force_sig(SIGKILL, p);
+-
+-	return 0;
+ }
+ #undef K
  
--		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked, &current->blocked, &ka.sa.sa_mask);
--		if (!(ka.sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked, signr);
--		recalc_sigpending();
--		spin_unlock_irq(&current->sighand->siglock);
-+		block_sigmask(&ka, signr);
- 		if (current->ptrace & PT_SINGLESTEP)
- 			task_pt_regs(current)->icountlevel = 1;
+-static int oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
+-			    unsigned int points, unsigned long totalpages,
+-			    struct mem_cgroup *memcg, nodemask_t *nodemask,
+-			    const char *message)
++static void oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
++			     unsigned int points, unsigned long totalpages,
++			     struct mem_cgroup *memcg, nodemask_t *nodemask,
++			     const char *message)
+ {
+ 	struct task_struct *victim = p;
+ 	struct task_struct *child;
+@@ -501,7 +499,7 @@ static int oom_kill_process(struct task_
+ 	 */
+ 	if (p->flags & PF_EXITING) {
+ 		set_tsk_thread_flag(p, TIF_MEMDIE);
+-		return 0;
++		return;
+ 	}
+ 
+ 	task_lock(p);
+@@ -533,7 +531,7 @@ static int oom_kill_process(struct task_
+ 		}
+ 	} while_each_thread(p, t);
+ 
+-	return oom_kill_task(victim);
++	oom_kill_task(victim);
+ }
+ 
+ /*
+@@ -580,15 +578,10 @@ void mem_cgroup_out_of_memory(struct mem
+ 	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0, NULL);
+ 	limit = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT;
+ 	read_lock(&tasklist_lock);
+-retry:
+ 	p = select_bad_process(&points, limit, memcg, NULL);
+-	if (!p || PTR_ERR(p) == -1UL)
+-		goto out;
+-
+-	if (oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
+-				"Memory cgroup out of memory"))
+-		goto retry;
+-out:
++	if (p && PTR_ERR(p) != -1UL)
++		oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
++				 "Memory cgroup out of memory");
+ 	read_unlock(&tasklist_lock);
+ }
+ #endif
+@@ -745,33 +738,24 @@ void out_of_memory(struct zonelist *zone
+ 	if (sysctl_oom_kill_allocating_task &&
+ 	    !oom_unkillable_task(current, NULL, nodemask) &&
+ 	    current->mm) {
+-		/*
+-		 * oom_kill_process() needs tasklist_lock held.  If it returns
+-		 * non-zero, current could not be killed so we must fallback to
+-		 * the tasklist scan.
+-		 */
+-		if (!oom_kill_process(current, gfp_mask, order, 0, totalpages,
+-				NULL, nodemask,
+-				"Out of memory (oom_kill_allocating_task)"))
+-			goto out;
++		oom_kill_process(current, gfp_mask, order, 0, totalpages, NULL,
++				 nodemask,
++				 "Out of memory (oom_kill_allocating_task)");
++		goto out;
+ 	}
+ 
+-retry:
+ 	p = select_bad_process(&points, totalpages, NULL, mpol_mask);
+-	if (PTR_ERR(p) == -1UL)
+-		goto out;
+-
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+ 	if (!p) {
+ 		dump_header(NULL, gfp_mask, order, NULL, mpol_mask);
+ 		read_unlock(&tasklist_lock);
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
+-
+-	if (oom_kill_process(p, gfp_mask, order, points, totalpages, NULL,
+-				nodemask, "Out of memory"))
+-		goto retry;
+-	killed = 1;
++	if (PTR_ERR(p) != -1UL) {
++		oom_kill_process(p, gfp_mask, order, points, totalpages, NULL,
++				 nodemask, "Out of memory");
++		killed = 1;
++	}
+ out:
+ 	read_unlock(&tasklist_lock);
  
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-um-dont-restore-current-blocked-on-error.patch
-um-use-set_current_blocked-and-block_sigmask.patch
-powerpc-eeh-remove-eeh_event_handler-daemonize.patch
-hexagon-use-set_current_blocked-and-block_sigmask.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+usermodehelper-introduce-umh_completesub_info.patch
+usermodehelper-implement-umh_killable.patch
+usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+kmod-introduce-call_modprobe-helper.patch
+kmod-make-__request_module-killable.patch
 
