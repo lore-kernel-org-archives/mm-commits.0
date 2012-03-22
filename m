@@ -1,67 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:22 -0700
-Message-ID: <20120322201822.6DDC8A024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-hugetlb-bail-out-unmapping-after-serving-reference-page.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:24 -0700
+Message-ID: <20120322201824.79109A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:51317 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758859Ab2CVUSX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:23 -0400
-Received: by qcsp5 with SMTP id p5so201658qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:22 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:60535 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757795Ab2CVUSZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:25 -0400
+Received: by mail-gy0-f202.google.com with SMTP id z15so402093ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, aarcange@redhat.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: dhillf@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: documentation: 'transparent_hugepage=' can also be specified on cmdline
+     Subject: mm: hugetlb: bail out unmapping after serving reference page
 has been removed from the -mm tree.  Its filename was
-     thp-transparent_hugepage=-can-also-be-specified-on-cmdline.patch
+     mm-hugetlb-bail-out-unmapping-after-serving-reference-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: thp: documentation: 'transparent_hugepage=' can also be specified on cmdline
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm: hugetlb: bail out unmapping after serving reference page
 
-The behavior of THP can either be toggled through sysfs in runtime or
-using a kernel cmdline parameter 'transparent_hugepage='.  Document the
-latter in kernel-parameters.txt
+When unmapping a given VM range, we could bail out if a reference page is
+supplied and is unmapped, which is a minor optimization.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/hugetlb.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~thp-transparent_hugepage=-can-also-be-specified-on-cmdline Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~thp-transparent_hugepage=-can-also-be-specified-on-cmdline
-+++ a/Documentation/kernel-parameters.txt
-@@ -2635,6 +2635,13 @@ bytes respectively. Such letter suffixes
- 			to facilitate early boot debugging.
- 			See also Documentation/trace/events.txt
- 
-+	transparent_hugepage=
-+			[KNL]
-+			Format: [always|madvise|never]
-+			Can be used to control the default behavior of the system
-+			with respect to transparent hugepages.
-+			See Documentation/vm/transhuge.txt for more details.
+diff -puN mm/hugetlb.c~mm-hugetlb-bail-out-unmapping-after-serving-reference-page mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-bail-out-unmapping-after-serving-reference-page
++++ a/mm/hugetlb.c
+@@ -2280,6 +2280,10 @@ void __unmap_hugepage_range(struct vm_ar
+ 		if (pte_dirty(pte))
+ 			set_page_dirty(page);
+ 		list_add(&page->lru, &page_list);
 +
- 	tsc=		Disable clocksource stability checks for TSC.
- 			Format: <string>
- 			[x86] reliable: mark tsc clocksource as reliable, this
++		/* Bail out after unmapping reference page if supplied */
++		if (ref_page)
++			break;
+ 	}
+ 	flush_tlb_range(vma, start, end);
+ 	spin_unlock(&mm->page_table_lock);
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
 origin.patch
-linux-next.patch
+mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
 
