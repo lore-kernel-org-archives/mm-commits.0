@@ -1,115 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:33 -0700
-Message-ID: <20120322201733.6CF9CA024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-oom-introduce-independent-oom-killer-ratelimit-state.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:17:29 -0700
+Message-ID: <20120322201729.67DEAA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:56681 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756652Ab2CVURf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:35 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gj3so134062lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:34 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:46778 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757272Ab2CVURb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:31 -0400
+Received: by vcbfk26 with SMTP id fk26so402092vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: cleanup with s/reclaim_mode/isolate_mode/
+     Subject: mm, oom: introduce independent oom killer ratelimit state
 has been removed from the -mm tree.  Its filename was
-     mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode.patch
+     mm-oom-introduce-independent-oom-killer-ratelimit-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: mm/vmscan.c: cleanup with s/reclaim_mode/isolate_mode/
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: introduce independent oom killer ratelimit state
 
-With tons of reclaim_mode (defined as one field of struct scan_control)
-already in the file, it is clearer to rename the local reclaim_mode when
-setting up the isolation mode.
+printk_ratelimit() uses the global ratelimit state for all printks.  The
+oom killer should not be subjected to this state just because another
+subsystem or driver may be flooding the kernel log.
 
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+This patch introduces printk ratelimiting specifically for the oom killer.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/oom_kill.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscanc-cleanup-with-s-reclaim_mode-isolate_mode
-+++ a/mm/vmscan.c
-@@ -1509,7 +1509,7 @@ shrink_inactive_list(unsigned long nr_to
- 	unsigned long nr_file;
- 	unsigned long nr_dirty = 0;
- 	unsigned long nr_writeback = 0;
--	isolate_mode_t reclaim_mode = ISOLATE_INACTIVE;
-+	isolate_mode_t isolate_mode = ISOLATE_INACTIVE;
- 	struct zone *zone = mz->zone;
+diff -puN mm/oom_kill.c~mm-oom-introduce-independent-oom-killer-ratelimit-state mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-introduce-independent-oom-killer-ratelimit-state
++++ a/mm/oom_kill.c
+@@ -34,6 +34,7 @@
+ #include <linux/ptrace.h>
+ #include <linux/freezer.h>
+ #include <linux/ftrace.h>
++#include <linux/ratelimit.h>
  
- 	while (unlikely(too_many_isolated(zone, file, sc))) {
-@@ -1522,20 +1522,20 @@ shrink_inactive_list(unsigned long nr_to
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/oom.h>
+@@ -444,6 +445,8 @@ static void oom_kill_process(struct task
+ 	struct task_struct *t = p;
+ 	struct mm_struct *mm;
+ 	unsigned int victim_points = 0;
++	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
++					      DEFAULT_RATELIMIT_BURST);
  
- 	set_reclaim_mode(priority, sc, false);
- 	if (sc->reclaim_mode & RECLAIM_MODE_LUMPYRECLAIM)
--		reclaim_mode |= ISOLATE_ACTIVE;
-+		isolate_mode |= ISOLATE_ACTIVE;
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -454,7 +457,7 @@ static void oom_kill_process(struct task
+ 		return;
+ 	}
  
- 	lru_add_drain();
+-	if (printk_ratelimit())
++	if (__ratelimit(&oom_rs))
+ 		dump_header(p, gfp_mask, order, memcg, nodemask);
  
- 	if (!sc->may_unmap)
--		reclaim_mode |= ISOLATE_UNMAPPED;
-+		isolate_mode |= ISOLATE_UNMAPPED;
- 	if (!sc->may_writepage)
--		reclaim_mode |= ISOLATE_CLEAN;
-+		isolate_mode |= ISOLATE_CLEAN;
- 
- 	spin_lock_irq(&zone->lru_lock);
- 
- 	nr_taken = isolate_lru_pages(nr_to_scan, mz, &page_list,
- 				     &nr_scanned, sc->order,
--				     reclaim_mode, 0, file);
-+				     isolate_mode, 0, file);
- 	if (global_reclaim(sc)) {
- 		zone->pages_scanned += nr_scanned;
- 		if (current_is_kswapd())
-@@ -1699,21 +1699,21 @@ static void shrink_active_list(unsigned 
- 	struct page *page;
- 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
- 	unsigned long nr_rotated = 0;
--	isolate_mode_t reclaim_mode = ISOLATE_ACTIVE;
-+	isolate_mode_t isolate_mode = ISOLATE_ACTIVE;
- 	struct zone *zone = mz->zone;
- 
- 	lru_add_drain();
- 
- 	if (!sc->may_unmap)
--		reclaim_mode |= ISOLATE_UNMAPPED;
-+		isolate_mode |= ISOLATE_UNMAPPED;
- 	if (!sc->may_writepage)
--		reclaim_mode |= ISOLATE_CLEAN;
-+		isolate_mode |= ISOLATE_CLEAN;
- 
- 	spin_lock_irq(&zone->lru_lock);
- 
- 	nr_taken = isolate_lru_pages(nr_to_scan, mz, &l_hold,
- 				     &nr_scanned, sc->order,
--				     reclaim_mode, 1, file);
-+				     isolate_mode, 1, file);
- 	if (global_reclaim(sc))
- 		zone->pages_scanned += nr_scanned;
- 
+ 	task_lock(p);
 _
 
-Patches currently in -mm which might be from dhillf@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
+linux-next.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+usermodehelper-introduce-umh_completesub_info.patch
+usermodehelper-implement-umh_killable.patch
+usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+kmod-introduce-call_modprobe-helper.patch
+kmod-make-__request_module-killable.patch
 
