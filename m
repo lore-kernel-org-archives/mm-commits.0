@@ -1,188 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom-force-oom-kill-on-sysrqf.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:29 -0700
-Message-ID: <20120322201829.6542EA024E@akpm.mtv.corp.google.com>
+Subject: [merged] tmpfs-security-xattr-setting-on-inode-creation.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:31 -0700
+Message-ID: <20120322201831.77E3BA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:36822 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757795Ab2CVUSc (ORCPT
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61078 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758470Ab2CVUSc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:32 -0400
-Received: by faaa19 with SMTP id a19so143725faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:30 -0700 (PDT)
+Received: by mail-yx0-f202.google.com with SMTP id q2so401674yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, penberg@kernel.org, mm-commits@vger.kernel.org
+To: jarkko.sakkinen@intel.com, hughd@google.com, james.l.morris@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: force oom kill on sysrq+f
+     Subject: tmpfs: security xattr setting on inode creation
 has been removed from the -mm tree.  Its filename was
-     mm-oom-force-oom-kill-on-sysrqf.patch
+     tmpfs-security-xattr-setting-on-inode-creation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: force oom kill on sysrq+f
+From: Jarkko Sakkinen <jarkko.sakkinen@intel.com>
+Subject: tmpfs: security xattr setting on inode creation
 
-The oom killer chooses not to kill a thread if:
+Adds to generic xattr support introduced in Linux 3.0 by implementing
+initxattrs callback.  This enables consulting of security attributes from
+LSM and EVM when inode is created.
 
- - an eligible thread has already been oom killed and has yet to exit,
-   and
-
- - an eligible thread is exiting but has yet to free all its memory and
-   is not the thread attempting to currently allocate memory.
-
-SysRq+F manually invokes the global oom killer to kill a memory-hogging
-task.  This is normally done as a last resort to free memory when no
-progress is being made or to test the oom killer itself.
-
-For both uses, we always want to kill a thread and never defer.  This
-patch causes SysRq+F to always kill an eligible thread and can be used to
-force a kill even if another oom killed thread has failed to exit.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+[hughd@google.com: moved under CONFIG_TMPFS_XATTR, with memcpy in shmem_xattr_alloc]
+Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@intel.com>
+Reviewed-by: James Morris <james.l.morris@oracle.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c |    2 +-
- include/linux/oom.h |    2 +-
- mm/oom_kill.c       |   17 ++++++++++-------
- mm/page_alloc.c     |    2 +-
- 4 files changed, 13 insertions(+), 10 deletions(-)
+ mm/shmem.c |   88 +++++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 72 insertions(+), 16 deletions(-)
 
-diff -puN drivers/tty/sysrq.c~mm-oom-force-oom-kill-on-sysrqf drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~mm-oom-force-oom-kill-on-sysrqf
-+++ a/drivers/tty/sysrq.c
-@@ -346,7 +346,7 @@ static struct sysrq_key_op sysrq_term_op
+diff -puN mm/shmem.c~tmpfs-security-xattr-setting-on-inode-creation mm/shmem.c
+--- a/mm/shmem.c~tmpfs-security-xattr-setting-on-inode-creation
++++ a/mm/shmem.c
+@@ -1178,6 +1178,12 @@ static struct inode *shmem_get_inode(str
+ static const struct inode_operations shmem_symlink_inode_operations;
+ static const struct inode_operations shmem_short_symlink_operations;
  
- static void moom_callback(struct work_struct *ignored)
++#ifdef CONFIG_TMPFS_XATTR
++static int shmem_initxattrs(struct inode *, const struct xattr *, void *);
++#else
++#define shmem_initxattrs NULL
++#endif
++
+ static int
+ shmem_write_begin(struct file *file, struct address_space *mapping,
+ 			loff_t pos, unsigned len, unsigned flags,
+@@ -1490,7 +1496,7 @@ shmem_mknod(struct inode *dir, struct de
+ 	if (inode) {
+ 		error = security_inode_init_security(inode, dir,
+ 						     &dentry->d_name,
+-						     NULL, NULL);
++						     shmem_initxattrs, NULL);
+ 		if (error) {
+ 			if (error != -EOPNOTSUPP) {
+ 				iput(inode);
+@@ -1630,7 +1636,7 @@ static int shmem_symlink(struct inode *d
+ 		return -ENOSPC;
+ 
+ 	error = security_inode_init_security(inode, dir, &dentry->d_name,
+-					     NULL, NULL);
++					     shmem_initxattrs, NULL);
+ 	if (error) {
+ 		if (error != -EOPNOTSUPP) {
+ 			iput(inode);
+@@ -1704,6 +1710,66 @@ static void shmem_put_link(struct dentry
+  * filesystem level, though.
+  */
+ 
++/*
++ * Allocate new xattr and copy in the value; but leave the name to callers.
++ */
++static struct shmem_xattr *shmem_xattr_alloc(const void *value, size_t size)
++{
++	struct shmem_xattr *new_xattr;
++	size_t len;
++
++	/* wrap around? */
++	len = sizeof(*new_xattr) + size;
++	if (len <= sizeof(*new_xattr))
++		return NULL;
++
++	new_xattr = kmalloc(len, GFP_KERNEL);
++	if (!new_xattr)
++		return NULL;
++
++	new_xattr->size = size;
++	memcpy(new_xattr->value, value, size);
++	return new_xattr;
++}
++
++/*
++ * Callback for security_inode_init_security() for acquiring xattrs.
++ */
++static int shmem_initxattrs(struct inode *inode,
++			    const struct xattr *xattr_array,
++			    void *fs_info)
++{
++	struct shmem_inode_info *info = SHMEM_I(inode);
++	const struct xattr *xattr;
++	struct shmem_xattr *new_xattr;
++	size_t len;
++
++	for (xattr = xattr_array; xattr->name != NULL; xattr++) {
++		new_xattr = shmem_xattr_alloc(xattr->value, xattr->value_len);
++		if (!new_xattr)
++			return -ENOMEM;
++
++		len = strlen(xattr->name) + 1;
++		new_xattr->name = kmalloc(XATTR_SECURITY_PREFIX_LEN + len,
++					  GFP_KERNEL);
++		if (!new_xattr->name) {
++			kfree(new_xattr);
++			return -ENOMEM;
++		}
++
++		memcpy(new_xattr->name, XATTR_SECURITY_PREFIX,
++		       XATTR_SECURITY_PREFIX_LEN);
++		memcpy(new_xattr->name + XATTR_SECURITY_PREFIX_LEN,
++		       xattr->name, len);
++
++		spin_lock(&info->lock);
++		list_add(&new_xattr->list, &info->xattr_list);
++		spin_unlock(&info->lock);
++	}
++
++	return 0;
++}
++
+ static int shmem_xattr_get(struct dentry *dentry, const char *name,
+ 			   void *buffer, size_t size)
  {
--	out_of_memory(node_zonelist(0, GFP_KERNEL), GFP_KERNEL, 0, NULL);
-+	out_of_memory(node_zonelist(0, GFP_KERNEL), GFP_KERNEL, 0, NULL, true);
+@@ -1731,24 +1797,17 @@ static int shmem_xattr_get(struct dentry
+ 	return ret;
  }
  
- static DECLARE_WORK(moom_work, moom_callback);
-diff -puN include/linux/oom.h~mm-oom-force-oom-kill-on-sysrqf include/linux/oom.h
---- a/include/linux/oom.h~mm-oom-force-oom-kill-on-sysrqf
-+++ a/include/linux/oom.h
-@@ -49,7 +49,7 @@ extern int try_set_zonelist_oom(struct z
- extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- 
- extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
--		int order, nodemask_t *mask);
-+		int order, nodemask_t *mask, bool force_kill);
- extern int register_oom_notifier(struct notifier_block *nb);
- extern int unregister_oom_notifier(struct notifier_block *nb);
- 
-diff -puN mm/oom_kill.c~mm-oom-force-oom-kill-on-sysrqf mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-force-oom-kill-on-sysrqf
-+++ a/mm/oom_kill.c
-@@ -310,7 +310,7 @@ static enum oom_constraint constrained_a
-  */
- static struct task_struct *select_bad_process(unsigned int *ppoints,
- 		unsigned long totalpages, struct mem_cgroup *memcg,
--		const nodemask_t *nodemask)
-+		const nodemask_t *nodemask, bool force_kill)
+-static int shmem_xattr_set(struct dentry *dentry, const char *name,
++static int shmem_xattr_set(struct inode *inode, const char *name,
+ 			   const void *value, size_t size, int flags)
  {
- 	struct task_struct *g, *p;
- 	struct task_struct *chosen = NULL;
-@@ -336,7 +336,8 @@ static struct task_struct *select_bad_pr
- 		if (test_tsk_thread_flag(p, TIF_MEMDIE)) {
- 			if (unlikely(frozen(p)))
- 				__thaw_task(p);
--			return ERR_PTR(-1UL);
-+			if (!force_kill)
-+				return ERR_PTR(-1UL);
+-	struct inode *inode = dentry->d_inode;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct shmem_xattr *xattr;
+ 	struct shmem_xattr *new_xattr = NULL;
+-	size_t len;
+ 	int err = 0;
+ 
+ 	/* value == NULL means remove */
+ 	if (value) {
+-		/* wrap around? */
+-		len = sizeof(*new_xattr) + size;
+-		if (len <= sizeof(*new_xattr))
+-			return -ENOMEM;
+-
+-		new_xattr = kmalloc(len, GFP_KERNEL);
++		new_xattr = shmem_xattr_alloc(value, size);
+ 		if (!new_xattr)
+ 			return -ENOMEM;
+ 
+@@ -1757,9 +1816,6 @@ static int shmem_xattr_set(struct dentry
+ 			kfree(new_xattr);
+ 			return -ENOMEM;
  		}
- 		if (!p->mm)
- 			continue;
-@@ -354,7 +355,7 @@ static struct task_struct *select_bad_pr
- 			if (p == current) {
- 				chosen = p;
- 				*ppoints = 1000;
--			} else {
-+			} else if (!force_kill) {
- 				/*
- 				 * If this task is not being ptraced on exit,
- 				 * then wait for it to finish before killing
-@@ -572,7 +573,7 @@ void mem_cgroup_out_of_memory(struct mem
- 	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0, NULL);
- 	limit = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT;
- 	read_lock(&tasklist_lock);
--	p = select_bad_process(&points, limit, memcg, NULL);
-+	p = select_bad_process(&points, limit, memcg, NULL, false);
- 	if (p && PTR_ERR(p) != -1UL)
- 		oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
- 				 "Memory cgroup out of memory");
-@@ -687,6 +688,7 @@ static void clear_system_oom(void)
-  * @gfp_mask: memory allocation flags
-  * @order: amount of memory being requested as a power of 2
-  * @nodemask: nodemask passed to page allocator
-+ * @force_kill: true if a task must be killed, even if others are exiting
-  *
-  * If we run out of memory, we have the choice between either
-  * killing a random task (bad), letting the system crash (worse)
-@@ -694,7 +696,7 @@ static void clear_system_oom(void)
-  * don't have to be perfect here, we just have to be good.
-  */
- void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
--		int order, nodemask_t *nodemask)
-+		int order, nodemask_t *nodemask, bool force_kill)
- {
- 	const nodemask_t *mpol_mask;
- 	struct task_struct *p;
-@@ -738,7 +740,8 @@ void out_of_memory(struct zonelist *zone
- 		goto out;
+-
+-		new_xattr->size = size;
+-		memcpy(new_xattr->value, value, size);
  	}
  
--	p = select_bad_process(&points, totalpages, NULL, mpol_mask);
-+	p = select_bad_process(&points, totalpages, NULL, mpol_mask,
-+			       force_kill);
- 	/* Found nothing?!?! Either we hang forever, or we panic. */
- 	if (!p) {
- 		dump_header(NULL, gfp_mask, order, NULL, mpol_mask);
-@@ -770,7 +773,7 @@ out:
- void pagefault_out_of_memory(void)
- {
- 	if (try_set_system_oom()) {
--		out_of_memory(NULL, 0, 0, NULL);
-+		out_of_memory(NULL, 0, 0, NULL, false);
- 		clear_system_oom();
- 	}
- 	if (!test_thread_flag(TIF_MEMDIE))
-diff -puN mm/page_alloc.c~mm-oom-force-oom-kill-on-sysrqf mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-force-oom-kill-on-sysrqf
-+++ a/mm/page_alloc.c
-@@ -1968,7 +1968,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 			goto out;
- 	}
- 	/* Exhausted what can be done so it's blamo time */
--	out_of_memory(zonelist, gfp_mask, order, nodemask);
-+	out_of_memory(zonelist, gfp_mask, order, nodemask, false);
+ 	spin_lock(&info->lock);
+@@ -1858,7 +1914,7 @@ static int shmem_setxattr(struct dentry 
+ 	if (size == 0)
+ 		value = "";  /* empty EA, do not remove */
  
- out:
- 	clear_zonelist_oom(zonelist, gfp_mask);
+-	return shmem_xattr_set(dentry, name, value, size, flags);
++	return shmem_xattr_set(dentry->d_inode, name, value, size, flags);
+ 
+ }
+ 
+@@ -1878,7 +1934,7 @@ static int shmem_removexattr(struct dent
+ 	if (err)
+ 		return err;
+ 
+-	return shmem_xattr_set(dentry, name, NULL, 0, XATTR_REPLACE);
++	return shmem_xattr_set(dentry->d_inode, name, NULL, 0, XATTR_REPLACE);
+ }
+ 
+ static bool xattr_is_trusted(const char *name)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jarkko.sakkinen@intel.com are
 
 origin.patch
-linux-next.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-introduce-umh_completesub_info.patch
-usermodehelper-implement-umh_killable.patch
-usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
-usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
-kmod-introduce-call_modprobe-helper.patch
-kmod-make-__request_module-killable.patch
 
