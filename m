@@ -1,481 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugepages-fix-use-after-free-bug-in-quota-handling.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:19:02 -0700
-Message-ID: <20120322201902.99AC1A024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:19:04 -0700
+Message-ID: <20120322201904.7596EA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:58907 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757108Ab2CVUTF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:05 -0400
-Received: by eaaq10 with SMTP id q10so134201eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:03 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:46452 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759454Ab2CVUTG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:06 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hj13so59596wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@gibson.dropbear.id.au, abarry@cray.com, dhillf@gmail.com, hughd@google.com, mgorman@suse.de, minchan.kim@gmail.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugepages: fix use after free bug in "quota" handling
+     Subject: mm, counters: remove task argument to sync_mm_rss() and __sync_task_rss_stat()
 has been removed from the -mm tree.  Its filename was
-     hugepages-fix-use-after-free-bug-in-quota-handling.patch
+     mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Gibson <david@gibson.dropbear.id.au>
-Subject: hugepages: fix use after free bug in "quota" handling
+From: David Rientjes <rientjes@google.com>
+Subject: mm, counters: remove task argument to sync_mm_rss() and __sync_task_rss_stat()
 
-hugetlbfs_{get,put}_quota() are badly named.  They don't interact with the
-general quota handling code, and they don't much resemble its behaviour. 
-Rather than being about maintaining limits on on-disk block usage by
-particular users, they are instead about maintaining limits on in-memory
-page usage (including anonymous MAP_PRIVATE copied-on-write pages)
-associated with a particular hugetlbfs filesystem instance.
+sync_mm_rss() can only be used for current to avoid race conditions in
+iterating and clearing its per-task counters.  Remove the task argument
+for it and its helper function, __sync_task_rss_stat(), to avoid thinking
+it can be used safely for anything other than current.
 
-Worse, they work by having callbacks to the hugetlbfs filesystem code from
-the low-level page handling code, in particular from free_huge_page(). 
-This is a layering violation of itself, but more importantly, if the
-kernel does a get_user_pages() on hugepages (which can happen from KVM
-amongst others), then the free_huge_page() can be delayed until after the
-associated inode has already been freed.  If an unmount occurs at the
-wrong time, even the hugetlbfs superblock where the "quota" limits are
-stored may have been freed.
-
-Andrew Barry proposed a patch to fix this by having hugepages, instead of
-storing a pointer to their address_space and reaching the superblock from
-there, had the hugepages store pointers directly to the superblock,
-bumping the reference count as appropriate to avoid it being freed. 
-Andrew Morton rejected that version, however, on the grounds that it made
-the existing layering violation worse.
-
-This is a reworked version of Andrew's patch, which removes the extra, and
-some of the existing, layering violation.  It works by introducing the
-concept of a hugepage "subpool" at the lower hugepage mm layer - that is a
-finite logical pool of hugepages to allocate from.  hugetlbfs now creates
-a subpool for each filesystem instance with a page limit set, and a
-pointer to the subpool gets added to each allocated hugepage, instead of
-the address_space pointer used now.  The subpool has its own lifetime and
-is only freed once all pages in it _and_ all other references to it (i.e. 
-superblocks) are gone.
-
-subpools are optional - a NULL subpool pointer is taken by the code to
-mean that no subpool limits are in effect.
-
-Previous discussion of this bug found in:  "Fix refcounting in hugetlbfs
-quota handling.". See:  https://lkml.org/lkml/2011/8/11/28 or
-http://marc.info/?l=linux-mm&m=126928970510627&w=1
-
-v2: Fixed a bug spotted by Hillf Danton, and removed the extra parameter to
-alloc_huge_page() - since it already takes the vma, it is not necessary.
-
-Signed-off-by: Andrew Barry <abarry@cray.com>
-Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   54 +++++----------
- include/linux/hugetlb.h |   14 ++-
- mm/hugetlb.c            |  135 ++++++++++++++++++++++++++++++--------
- 3 files changed, 139 insertions(+), 64 deletions(-)
+ fs/exec.c          |    2 +-
+ include/linux/mm.h |    4 ++--
+ kernel/exit.c      |    2 +-
+ mm/memory.c        |   18 +++++++++---------
+ mm/mmu_context.c   |    2 +-
+ 5 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugepages-fix-use-after-free-bug-in-quota-handling fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugepages-fix-use-after-free-bug-in-quota-handling
-+++ a/fs/hugetlbfs/inode.c
-@@ -626,9 +626,15 @@ static int hugetlbfs_statfs(struct dentr
- 		spin_lock(&sbinfo->stat_lock);
- 		/* If no limits set, just report 0 for max/free/used
- 		 * blocks, like simple_statfs() */
--		if (sbinfo->max_blocks >= 0) {
--			buf->f_blocks = sbinfo->max_blocks;
--			buf->f_bavail = buf->f_bfree = sbinfo->free_blocks;
-+		if (sbinfo->spool) {
-+			long free_pages;
-+
-+			spin_lock(&sbinfo->spool->lock);
-+			buf->f_blocks = sbinfo->spool->max_hpages;
-+			free_pages = sbinfo->spool->max_hpages
-+				- sbinfo->spool->used_hpages;
-+			buf->f_bavail = buf->f_bfree = free_pages;
-+			spin_unlock(&sbinfo->spool->lock);
- 			buf->f_files = sbinfo->max_inodes;
- 			buf->f_ffree = sbinfo->free_inodes;
- 		}
-@@ -644,6 +650,10 @@ static void hugetlbfs_put_super(struct s
+diff -puN fs/exec.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat fs/exec.c
+--- a/fs/exec.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
++++ a/fs/exec.c
+@@ -824,7 +824,7 @@ static int exec_mmap(struct mm_struct *m
+ 	/* Notify parent that we're no longer interested in the old VM */
+ 	tsk = current;
+ 	old_mm = current->mm;
+-	sync_mm_rss(tsk, old_mm);
++	sync_mm_rss(old_mm);
+ 	mm_release(tsk, old_mm);
  
- 	if (sbi) {
- 		sb->s_fs_info = NULL;
-+
-+		if (sbi->spool)
-+			hugepage_put_subpool(sbi->spool);
-+
- 		kfree(sbi);
- 	}
- }
-@@ -874,10 +884,14 @@ hugetlbfs_fill_super(struct super_block 
- 	sb->s_fs_info = sbinfo;
- 	sbinfo->hstate = config.hstate;
- 	spin_lock_init(&sbinfo->stat_lock);
--	sbinfo->max_blocks = config.nr_blocks;
--	sbinfo->free_blocks = config.nr_blocks;
- 	sbinfo->max_inodes = config.nr_inodes;
- 	sbinfo->free_inodes = config.nr_inodes;
-+	sbinfo->spool = NULL;
-+	if (config.nr_blocks != -1) {
-+		sbinfo->spool = hugepage_new_subpool(config.nr_blocks);
-+		if (!sbinfo->spool)
-+			goto out_free;
-+	}
- 	sb->s_maxbytes = MAX_LFS_FILESIZE;
- 	sb->s_blocksize = huge_page_size(config.hstate);
- 	sb->s_blocksize_bits = huge_page_shift(config.hstate);
-@@ -896,38 +910,12 @@ hugetlbfs_fill_super(struct super_block 
- 	sb->s_root = root;
- 	return 0;
- out_free:
-+	if (sbinfo->spool)
-+		kfree(sbinfo->spool);
- 	kfree(sbinfo);
- 	return -ENOMEM;
+ 	if (old_mm) {
+diff -puN include/linux/mm.h~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat include/linux/mm.h
+--- a/include/linux/mm.h~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
++++ a/include/linux/mm.h
+@@ -1131,9 +1131,9 @@ static inline void setmax_mm_hiwater_rss
  }
  
--int hugetlb_get_quota(struct address_space *mapping, long delta)
--{
--	int ret = 0;
--	struct hugetlbfs_sb_info *sbinfo = HUGETLBFS_SB(mapping->host->i_sb);
--
--	if (sbinfo->free_blocks > -1) {
--		spin_lock(&sbinfo->stat_lock);
--		if (sbinfo->free_blocks - delta >= 0)
--			sbinfo->free_blocks -= delta;
--		else
--			ret = -ENOMEM;
--		spin_unlock(&sbinfo->stat_lock);
--	}
--
--	return ret;
--}
--
--void hugetlb_put_quota(struct address_space *mapping, long delta)
--{
--	struct hugetlbfs_sb_info *sbinfo = HUGETLBFS_SB(mapping->host->i_sb);
--
--	if (sbinfo->free_blocks > -1) {
--		spin_lock(&sbinfo->stat_lock);
--		sbinfo->free_blocks += delta;
--		spin_unlock(&sbinfo->stat_lock);
--	}
--}
--
- static struct dentry *hugetlbfs_mount(struct file_system_type *fs_type,
- 	int flags, const char *dev_name, void *data)
+ #if defined(SPLIT_RSS_COUNTING)
+-void sync_mm_rss(struct task_struct *task, struct mm_struct *mm);
++void sync_mm_rss(struct mm_struct *mm);
+ #else
+-static inline void sync_mm_rss(struct task_struct *task, struct mm_struct *mm)
++static inline void sync_mm_rss(struct mm_struct *mm)
  {
-diff -puN include/linux/hugetlb.h~hugepages-fix-use-after-free-bug-in-quota-handling include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugepages-fix-use-after-free-bug-in-quota-handling
-+++ a/include/linux/hugetlb.h
-@@ -14,6 +14,15 @@ struct user_struct;
- #include <linux/shm.h>
- #include <asm/tlbflush.h>
- 
-+struct hugepage_subpool {
-+	spinlock_t lock;
-+	long count;
-+	long max_hpages, used_hpages;
-+};
-+
-+struct hugepage_subpool *hugepage_new_subpool(long nr_blocks);
-+void hugepage_put_subpool(struct hugepage_subpool *spool);
-+
- int PageHuge(struct page *page);
- 
- void reset_vma_resv_huge_pages(struct vm_area_struct *vma);
-@@ -129,12 +138,11 @@ enum {
- 
- #ifdef CONFIG_HUGETLBFS
- struct hugetlbfs_sb_info {
--	long	max_blocks;   /* blocks allowed */
--	long	free_blocks;  /* blocks free */
- 	long	max_inodes;   /* inodes allowed */
- 	long	free_inodes;  /* inodes free */
- 	spinlock_t	stat_lock;
- 	struct hstate *hstate;
-+	struct hugepage_subpool *spool;
- };
- 
- static inline struct hugetlbfs_sb_info *HUGETLBFS_SB(struct super_block *sb)
-@@ -146,8 +154,6 @@ extern const struct file_operations huge
- extern const struct vm_operations_struct hugetlb_vm_ops;
- struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
- 				struct user_struct **user, int creat_flags);
--int hugetlb_get_quota(struct address_space *mapping, long delta);
--void hugetlb_put_quota(struct address_space *mapping, long delta);
- 
- static inline int is_file_hugepages(struct file *file)
- {
-diff -puN mm/hugetlb.c~hugepages-fix-use-after-free-bug-in-quota-handling mm/hugetlb.c
---- a/mm/hugetlb.c~hugepages-fix-use-after-free-bug-in-quota-handling
-+++ a/mm/hugetlb.c
-@@ -53,6 +53,84 @@ static unsigned long __initdata default_
-  */
- static DEFINE_SPINLOCK(hugetlb_lock);
- 
-+static inline void unlock_or_release_subpool(struct hugepage_subpool *spool)
-+{
-+	bool free = (spool->count == 0) && (spool->used_hpages == 0);
-+
-+	spin_unlock(&spool->lock);
-+
-+	/* If no pages are used, and no other handles to the subpool
-+	 * remain, free the subpool the subpool remain */
-+	if (free)
-+		kfree(spool);
-+}
-+
-+struct hugepage_subpool *hugepage_new_subpool(long nr_blocks)
-+{
-+	struct hugepage_subpool *spool;
-+
-+	spool = kmalloc(sizeof(*spool), GFP_KERNEL);
-+	if (!spool)
-+		return NULL;
-+
-+	spin_lock_init(&spool->lock);
-+	spool->count = 1;
-+	spool->max_hpages = nr_blocks;
-+	spool->used_hpages = 0;
-+
-+	return spool;
-+}
-+
-+void hugepage_put_subpool(struct hugepage_subpool *spool)
-+{
-+	spin_lock(&spool->lock);
-+	BUG_ON(!spool->count);
-+	spool->count--;
-+	unlock_or_release_subpool(spool);
-+}
-+
-+static int hugepage_subpool_get_pages(struct hugepage_subpool *spool,
-+				      long delta)
-+{
-+	int ret = 0;
-+
-+	if (!spool)
-+		return 0;
-+
-+	spin_lock(&spool->lock);
-+	if ((spool->used_hpages + delta) <= spool->max_hpages) {
-+		spool->used_hpages += delta;
-+	} else {
-+		ret = -ENOMEM;
-+	}
-+	spin_unlock(&spool->lock);
-+
-+	return ret;
-+}
-+
-+static void hugepage_subpool_put_pages(struct hugepage_subpool *spool,
-+				       long delta)
-+{
-+	if (!spool)
-+		return;
-+
-+	spin_lock(&spool->lock);
-+	spool->used_hpages -= delta;
-+	/* If hugetlbfs_put_super couldn't free spool due to
-+	* an outstanding quota reference, free it now. */
-+	unlock_or_release_subpool(spool);
-+}
-+
-+static inline struct hugepage_subpool *subpool_inode(struct inode *inode)
-+{
-+	return HUGETLBFS_SB(inode->i_sb)->spool;
-+}
-+
-+static inline struct hugepage_subpool *subpool_vma(struct vm_area_struct *vma)
-+{
-+	return subpool_inode(vma->vm_file->f_dentry->d_inode);
-+}
-+
- /*
-  * Region tracking -- allows tracking of reservations and instantiated pages
-  *                    across the pages in a mapping.
-@@ -540,9 +618,9 @@ static void free_huge_page(struct page *
- 	 */
- 	struct hstate *h = page_hstate(page);
- 	int nid = page_to_nid(page);
--	struct address_space *mapping;
-+	struct hugepage_subpool *spool =
-+		(struct hugepage_subpool *)page_private(page);
- 
--	mapping = (struct address_space *) page_private(page);
- 	set_page_private(page, 0);
- 	page->mapping = NULL;
- 	BUG_ON(page_count(page));
-@@ -558,8 +636,7 @@ static void free_huge_page(struct page *
- 		enqueue_huge_page(h, page);
- 	}
- 	spin_unlock(&hugetlb_lock);
--	if (mapping)
--		hugetlb_put_quota(mapping, 1);
-+	hugepage_subpool_put_pages(spool, 1);
  }
+ #endif
+diff -puN kernel/exit.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat kernel/exit.c
+--- a/kernel/exit.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
++++ a/kernel/exit.c
+@@ -934,7 +934,7 @@ void do_exit(long code)
+ 	acct_update_integrals(tsk);
+ 	/* sync mm's RSS info before statistics gathering */
+ 	if (tsk->mm)
+-		sync_mm_rss(tsk, tsk->mm);
++		sync_mm_rss(tsk->mm);
+ 	group_dead = atomic_dec_and_test(&tsk->signal->live);
+ 	if (group_dead) {
+ 		hrtimer_cancel(&tsk->signal->real_timer);
+diff -puN mm/memory.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat mm/memory.c
+--- a/mm/memory.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
++++ a/mm/memory.c
+@@ -125,17 +125,17 @@ core_initcall(init_zero_pfn);
  
- static void prep_new_huge_page(struct hstate *h, struct page *page, int nid)
-@@ -977,11 +1054,12 @@ static void return_unused_surplus_pages(
- /*
-  * Determine if the huge page at addr within the vma has an associated
-  * reservation.  Where it does not we will need to logically increase
-- * reservation and actually increase quota before an allocation can occur.
-- * Where any new reservation would be required the reservation change is
-- * prepared, but not committed.  Once the page has been quota'd allocated
-- * an instantiated the change should be committed via vma_commit_reservation.
-- * No action is required on failure.
-+ * reservation and actually increase subpool usage before an allocation
-+ * can occur.  Where any new reservation would be required the
-+ * reservation change is prepared, but not committed.  Once the page
-+ * has been allocated from the subpool and instantiated the change should
-+ * be committed via vma_commit_reservation.  No action is required on
-+ * failure.
-  */
- static long vma_needs_reservation(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long addr)
-@@ -1030,24 +1108,24 @@ static void vma_commit_reservation(struc
- static struct page *alloc_huge_page(struct vm_area_struct *vma,
- 				    unsigned long addr, int avoid_reserve)
+ #if defined(SPLIT_RSS_COUNTING)
+ 
+-static void __sync_task_rss_stat(struct task_struct *task, struct mm_struct *mm)
++static void __sync_task_rss_stat(struct mm_struct *mm)
  {
-+	struct hugepage_subpool *spool = subpool_vma(vma);
- 	struct hstate *h = hstate_vma(vma);
- 	struct page *page;
--	struct address_space *mapping = vma->vm_file->f_mapping;
--	struct inode *inode = mapping->host;
- 	long chg;
+ 	int i;
  
- 	/*
--	 * Processes that did not create the mapping will have no reserves and
--	 * will not have accounted against quota. Check that the quota can be
--	 * made before satisfying the allocation
--	 * MAP_NORESERVE mappings may also need pages and quota allocated
--	 * if no reserve mapping overlaps.
-+	 * Processes that did not create the mapping will have no
-+	 * reserves and will not have accounted against subpool
-+	 * limit. Check that the subpool limit can be made before
-+	 * satisfying the allocation MAP_NORESERVE mappings may also
-+	 * need pages and subpool limit allocated allocated if no reserve
-+	 * mapping overlaps.
- 	 */
- 	chg = vma_needs_reservation(h, vma, addr);
- 	if (chg < 0)
- 		return ERR_PTR(-VM_FAULT_OOM);
- 	if (chg)
--		if (hugetlb_get_quota(inode->i_mapping, chg))
-+		if (hugepage_subpool_get_pages(spool, chg))
- 			return ERR_PTR(-VM_FAULT_SIGBUS);
- 
- 	spin_lock(&hugetlb_lock);
-@@ -1057,12 +1135,12 @@ static struct page *alloc_huge_page(stru
- 	if (!page) {
- 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
- 		if (!page) {
--			hugetlb_put_quota(inode->i_mapping, chg);
-+			hugepage_subpool_put_pages(spool, chg);
- 			return ERR_PTR(-VM_FAULT_SIGBUS);
+ 	for (i = 0; i < NR_MM_COUNTERS; i++) {
+-		if (task->rss_stat.count[i]) {
+-			add_mm_counter(mm, i, task->rss_stat.count[i]);
+-			task->rss_stat.count[i] = 0;
++		if (current->rss_stat.count[i]) {
++			add_mm_counter(mm, i, current->rss_stat.count[i]);
++			current->rss_stat.count[i] = 0;
  		}
  	}
- 
--	set_page_private(page, (unsigned long) mapping);
-+	set_page_private(page, (unsigned long)spool);
- 
- 	vma_commit_reservation(h, vma, addr);
- 
-@@ -2083,6 +2161,7 @@ static void hugetlb_vm_op_close(struct v
- {
- 	struct hstate *h = hstate_vma(vma);
- 	struct resv_map *reservations = vma_resv_map(vma);
-+	struct hugepage_subpool *spool = subpool_vma(vma);
- 	unsigned long reserve;
- 	unsigned long start;
- 	unsigned long end;
-@@ -2098,7 +2177,7 @@ static void hugetlb_vm_op_close(struct v
- 
- 		if (reserve) {
- 			hugetlb_acct_memory(h, -reserve);
--			hugetlb_put_quota(vma->vm_file->f_mapping, reserve);
-+			hugepage_subpool_put_pages(spool, reserve);
- 		}
- 	}
- }
-@@ -2331,7 +2410,7 @@ static int unmap_ref_private(struct mm_s
- 	 */
- 	address = address & huge_page_mask(h);
- 	pgoff = vma_hugecache_offset(h, vma, address);
--	mapping = (struct address_space *)page_private(page);
-+	mapping = vma->vm_file->f_dentry->d_inode->i_mapping;
- 
- 	/*
- 	 * Take the mapping lock for the duration of the table walk. As
-@@ -2884,11 +2963,12 @@ int hugetlb_reserve_pages(struct inode *
- {
- 	long ret, chg;
- 	struct hstate *h = hstate_inode(inode);
-+	struct hugepage_subpool *spool = subpool_inode(inode);
- 
- 	/*
- 	 * Only apply hugepage reservation if asked. At fault time, an
- 	 * attempt will be made for VM_NORESERVE to allocate a page
--	 * and filesystem quota without using reserves
-+	 * without using reserves
- 	 */
- 	if (vm_flags & VM_NORESERVE)
- 		return 0;
-@@ -2915,17 +2995,17 @@ int hugetlb_reserve_pages(struct inode *
- 	if (chg < 0)
- 		return chg;
- 
--	/* There must be enough filesystem quota for the mapping */
--	if (hugetlb_get_quota(inode->i_mapping, chg))
-+	/* There must be enough pages in the subpool for the mapping */
-+	if (hugepage_subpool_get_pages(spool, chg))
- 		return -ENOSPC;
- 
- 	/*
- 	 * Check enough hugepages are available for the reservation.
--	 * Hand back the quota if there are not
-+	 * Hand the pages back to the subpool if there are not
- 	 */
- 	ret = hugetlb_acct_memory(h, chg);
- 	if (ret < 0) {
--		hugetlb_put_quota(inode->i_mapping, chg);
-+		hugepage_subpool_put_pages(spool, chg);
- 		return ret;
- 	}
- 
-@@ -2949,12 +3029,13 @@ void hugetlb_unreserve_pages(struct inod
- {
- 	struct hstate *h = hstate_inode(inode);
- 	long chg = region_truncate(&inode->i_mapping->private_list, offset);
-+	struct hugepage_subpool *spool = subpool_inode(inode);
- 
- 	spin_lock(&inode->i_lock);
- 	inode->i_blocks -= (blocks_per_huge_page(h) * freed);
- 	spin_unlock(&inode->i_lock);
- 
--	hugetlb_put_quota(inode->i_mapping, (chg - freed));
-+	hugepage_subpool_put_pages(spool, (chg - freed));
- 	hugetlb_acct_memory(h, -(chg - freed));
+-	task->rss_stat.events = 0;
++	current->rss_stat.events = 0;
  }
  
+ static void add_mm_counter_fast(struct mm_struct *mm, int member, int val)
+@@ -157,12 +157,12 @@ static void check_sync_rss_stat(struct t
+ 	if (unlikely(task != current))
+ 		return;
+ 	if (unlikely(task->rss_stat.events++ > TASK_RSS_EVENTS_THRESH))
+-		__sync_task_rss_stat(task, task->mm);
++		__sync_task_rss_stat(task->mm);
+ }
+ 
+-void sync_mm_rss(struct task_struct *task, struct mm_struct *mm)
++void sync_mm_rss(struct mm_struct *mm)
+ {
+-	__sync_task_rss_stat(task, mm);
++	__sync_task_rss_stat(mm);
+ }
+ #else /* SPLIT_RSS_COUNTING */
+ 
+@@ -643,7 +643,7 @@ static inline void add_mm_rss_vec(struct
+ 	int i;
+ 
+ 	if (current->mm == mm)
+-		sync_mm_rss(current, mm);
++		sync_mm_rss(mm);
+ 	for (i = 0; i < NR_MM_COUNTERS; i++)
+ 		if (rss[i])
+ 			add_mm_counter(mm, i, rss[i]);
+diff -puN mm/mmu_context.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat mm/mmu_context.c
+--- a/mm/mmu_context.c~mm-counters-remove-task-argument-to-sync_mm_rss-and-__sync_task_rss_stat
++++ a/mm/mmu_context.c
+@@ -53,7 +53,7 @@ void unuse_mm(struct mm_struct *mm)
+ 	struct task_struct *tsk = current;
+ 
+ 	task_lock(tsk);
+-	sync_mm_rss(tsk, mm);
++	sync_mm_rss(mm);
+ 	tsk->mm = NULL;
+ 	/* active_mm is still 'mm' */
+ 	enter_lazy_tlb(mm, tsk);
 _
 
-Patches currently in -mm which might be from david@gibson.dropbear.id.au are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+usermodehelper-introduce-umh_completesub_info.patch
+usermodehelper-implement-umh_killable.patch
+usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+kmod-introduce-call_modprobe-helper.patch
+kmod-make-__request_module-killable.patch
 
