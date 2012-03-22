@@ -1,106 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:20 -0700
-Message-ID: <20120322201820.7D569A024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-oom-force-oom-kill-on-sysrqf.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:29 -0700
+Message-ID: <20120322201829.6542EA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:46778 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758859Ab2CVUSV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:21 -0400
-Received: by mail-vx0-f202.google.com with SMTP id fk26so402092vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:21 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:36822 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757795Ab2CVUSc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:32 -0400
+Received: by faaa19 with SMTP id a19so143725faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhillf@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: handle isolated pages with lru lock released
+     Subject: mm, oom: force oom kill on sysrq+f
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-handle-isolated-pages-with-lru-lock-released.patch
+     mm-oom-force-oom-kill-on-sysrqf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hillf Danton <dhillf@gmail.com>
-Subject: vmscan: handle isolated pages with lru lock released
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: force oom kill on sysrq+f
 
-When shrinking inactive lru list, isolated pages are queued on locally
-private list, so the lock-hold time could be reduced if pages are counted
-without lock protection.
+The oom killer chooses not to kill a thread if:
 
-To achieve that, firstly updating reclaim stat is delayed until the
-putback stage, after reacquiring the lru lock.
+ - an eligible thread has already been oom killed and has yet to exit,
+   and
 
-Secondly, operations related to vm and zone stats are now proteced with
-preemption disabled as they are per-cpu operations.
+ - an eligible thread is exiting but has yet to free all its memory and
+   is not the thread attempting to currently allocate memory.
 
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+SysRq+F manually invokes the global oom killer to kill a memory-hogging
+task.  This is normally done as a last resort to free memory when no
+progress is being made or to test the oom killer itself.
+
+For both uses, we always want to kill a thread and never defer.  This
+patch causes SysRq+F to always kill an eligible thread and can be used to
+force a kill even if another oom killed thread has failed to exit.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Pekka Enberg <penberg@kernel.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/tty/sysrq.c |    2 +-
+ include/linux/oom.h |    2 +-
+ mm/oom_kill.c       |   17 ++++++++++-------
+ mm/page_alloc.c     |    2 +-
+ 4 files changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-handle-isolated-pages-with-lru-lock-released mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-handle-isolated-pages-with-lru-lock-released
-+++ a/mm/vmscan.c
-@@ -1413,7 +1413,6 @@ update_isolated_counts(struct mem_cgroup
- 		       unsigned long *nr_anon,
- 		       unsigned long *nr_file)
+diff -puN drivers/tty/sysrq.c~mm-oom-force-oom-kill-on-sysrqf drivers/tty/sysrq.c
+--- a/drivers/tty/sysrq.c~mm-oom-force-oom-kill-on-sysrqf
++++ a/drivers/tty/sysrq.c
+@@ -346,7 +346,7 @@ static struct sysrq_key_op sysrq_term_op
+ 
+ static void moom_callback(struct work_struct *ignored)
  {
--	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
- 	struct zone *zone = mz->zone;
- 	unsigned int count[NR_LRU_LISTS] = { 0, };
- 	unsigned long nr_active = 0;
-@@ -1434,6 +1433,7 @@ update_isolated_counts(struct mem_cgroup
- 		count[lru] += numpages;
- 	}
- 
-+	preempt_disable();
- 	__count_vm_events(PGDEACTIVATE, nr_active);
- 
- 	__mod_zone_page_state(zone, NR_ACTIVE_FILE,
-@@ -1448,8 +1448,9 @@ update_isolated_counts(struct mem_cgroup
- 	*nr_anon = count[LRU_ACTIVE_ANON] + count[LRU_INACTIVE_ANON];
- 	*nr_file = count[LRU_ACTIVE_FILE] + count[LRU_INACTIVE_FILE];
- 
--	reclaim_stat->recent_scanned[0] += *nr_anon;
--	reclaim_stat->recent_scanned[1] += *nr_file;
-+	__mod_zone_page_state(zone, NR_ISOLATED_ANON, *nr_anon);
-+	__mod_zone_page_state(zone, NR_ISOLATED_FILE, *nr_file);
-+	preempt_enable();
+-	out_of_memory(node_zonelist(0, GFP_KERNEL), GFP_KERNEL, 0, NULL);
++	out_of_memory(node_zonelist(0, GFP_KERNEL), GFP_KERNEL, 0, NULL, true);
  }
  
- /*
-@@ -1511,6 +1512,7 @@ shrink_inactive_list(unsigned long nr_to
- 	unsigned long nr_writeback = 0;
- 	isolate_mode_t isolate_mode = ISOLATE_INACTIVE;
- 	struct zone *zone = mz->zone;
-+	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
+ static DECLARE_WORK(moom_work, moom_callback);
+diff -puN include/linux/oom.h~mm-oom-force-oom-kill-on-sysrqf include/linux/oom.h
+--- a/include/linux/oom.h~mm-oom-force-oom-kill-on-sysrqf
++++ a/include/linux/oom.h
+@@ -49,7 +49,7 @@ extern int try_set_zonelist_oom(struct z
+ extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
  
- 	while (unlikely(too_many_isolated(zone, file, sc))) {
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
-@@ -1544,19 +1546,13 @@ shrink_inactive_list(unsigned long nr_to
- 			__count_zone_vm_events(PGSCAN_DIRECT, zone,
- 					       nr_scanned);
+ extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
+-		int order, nodemask_t *mask);
++		int order, nodemask_t *mask, bool force_kill);
+ extern int register_oom_notifier(struct notifier_block *nb);
+ extern int unregister_oom_notifier(struct notifier_block *nb);
+ 
+diff -puN mm/oom_kill.c~mm-oom-force-oom-kill-on-sysrqf mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-force-oom-kill-on-sysrqf
++++ a/mm/oom_kill.c
+@@ -310,7 +310,7 @@ static enum oom_constraint constrained_a
+  */
+ static struct task_struct *select_bad_process(unsigned int *ppoints,
+ 		unsigned long totalpages, struct mem_cgroup *memcg,
+-		const nodemask_t *nodemask)
++		const nodemask_t *nodemask, bool force_kill)
+ {
+ 	struct task_struct *g, *p;
+ 	struct task_struct *chosen = NULL;
+@@ -336,7 +336,8 @@ static struct task_struct *select_bad_pr
+ 		if (test_tsk_thread_flag(p, TIF_MEMDIE)) {
+ 			if (unlikely(frozen(p)))
+ 				__thaw_task(p);
+-			return ERR_PTR(-1UL);
++			if (!force_kill)
++				return ERR_PTR(-1UL);
+ 		}
+ 		if (!p->mm)
+ 			continue;
+@@ -354,7 +355,7 @@ static struct task_struct *select_bad_pr
+ 			if (p == current) {
+ 				chosen = p;
+ 				*ppoints = 1000;
+-			} else {
++			} else if (!force_kill) {
+ 				/*
+ 				 * If this task is not being ptraced on exit,
+ 				 * then wait for it to finish before killing
+@@ -572,7 +573,7 @@ void mem_cgroup_out_of_memory(struct mem
+ 	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, 0, NULL);
+ 	limit = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT;
+ 	read_lock(&tasklist_lock);
+-	p = select_bad_process(&points, limit, memcg, NULL);
++	p = select_bad_process(&points, limit, memcg, NULL, false);
+ 	if (p && PTR_ERR(p) != -1UL)
+ 		oom_kill_process(p, gfp_mask, 0, points, limit, memcg, NULL,
+ 				 "Memory cgroup out of memory");
+@@ -687,6 +688,7 @@ static void clear_system_oom(void)
+  * @gfp_mask: memory allocation flags
+  * @order: amount of memory being requested as a power of 2
+  * @nodemask: nodemask passed to page allocator
++ * @force_kill: true if a task must be killed, even if others are exiting
+  *
+  * If we run out of memory, we have the choice between either
+  * killing a random task (bad), letting the system crash (worse)
+@@ -694,7 +696,7 @@ static void clear_system_oom(void)
+  * don't have to be perfect here, we just have to be good.
+  */
+ void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
+-		int order, nodemask_t *nodemask)
++		int order, nodemask_t *nodemask, bool force_kill)
+ {
+ 	const nodemask_t *mpol_mask;
+ 	struct task_struct *p;
+@@ -738,7 +740,8 @@ void out_of_memory(struct zonelist *zone
+ 		goto out;
  	}
-+	spin_unlock_irq(&zone->lru_lock);
  
--	if (nr_taken == 0) {
--		spin_unlock_irq(&zone->lru_lock);
-+	if (nr_taken == 0)
- 		return 0;
--	}
+-	p = select_bad_process(&points, totalpages, NULL, mpol_mask);
++	p = select_bad_process(&points, totalpages, NULL, mpol_mask,
++			       force_kill);
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+ 	if (!p) {
+ 		dump_header(NULL, gfp_mask, order, NULL, mpol_mask);
+@@ -770,7 +773,7 @@ out:
+ void pagefault_out_of_memory(void)
+ {
+ 	if (try_set_system_oom()) {
+-		out_of_memory(NULL, 0, 0, NULL);
++		out_of_memory(NULL, 0, 0, NULL, false);
+ 		clear_system_oom();
+ 	}
+ 	if (!test_thread_flag(TIF_MEMDIE))
+diff -puN mm/page_alloc.c~mm-oom-force-oom-kill-on-sysrqf mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-force-oom-kill-on-sysrqf
++++ a/mm/page_alloc.c
+@@ -1968,7 +1968,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 			goto out;
+ 	}
+ 	/* Exhausted what can be done so it's blamo time */
+-	out_of_memory(zonelist, gfp_mask, order, nodemask);
++	out_of_memory(zonelist, gfp_mask, order, nodemask, false);
  
- 	update_isolated_counts(mz, &page_list, &nr_anon, &nr_file);
- 
--	__mod_zone_page_state(zone, NR_ISOLATED_ANON, nr_anon);
--	__mod_zone_page_state(zone, NR_ISOLATED_FILE, nr_file);
--
--	spin_unlock_irq(&zone->lru_lock);
+ out:
+ 	clear_zonelist_oom(zonelist, gfp_mask);
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+origin.patch
+linux-next.patch
+signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
+signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
+signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
+usermodehelper-introduce-umh_completesub_info.patch
+usermodehelper-implement-umh_killable.patch
+usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+kmod-introduce-call_modprobe-helper.patch
+kmod-make-__request_module-killable.patch
+
