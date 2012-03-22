@@ -1,77 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pagemap-export-kpf_thp.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:04 -0700
-Message-ID: <20120322201804.72ECBA024E@akpm.mtv.corp.google.com>
+Subject: [merged] rmap-remove-__anon_vma_link.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:18 -0700
+Message-ID: <20120322201818.629ADA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:45890 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751534Ab2CVUSF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:05 -0400
-Received: by mail-ey0-f202.google.com with SMTP id q10so134174eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:05 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:35102 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758859Ab2CVUST (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:19 -0400
+Received: by mail-ee0-f74.google.com with SMTP id c41so136580eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, fengguang.wu@intel.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: xiaoguangrong@linux.vnet.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pagemap: export KPF_THP
+     Subject: rmap: remove __anon_vma_link() declaration
 has been removed from the -mm tree.  Its filename was
-     pagemap-export-kpf_thp.patch
+     rmap-remove-__anon_vma_link.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: pagemap: export KPF_THP
+From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Subject: rmap: remove __anon_vma_link() declaration
 
-This flag shows that a given page is a subpage of a transparent hugepage. 
-It helps us debug and test the kernel by showing physical address of thp.
+This declaration is not used anymore, remove it.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Wu Fengguang <fengguang.wu@intel.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c                    |    2 ++
- include/linux/kernel-page-flags.h |    1 +
- 2 files changed, 3 insertions(+)
+ include/linux/rmap.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/proc/page.c~pagemap-export-kpf_thp fs/proc/page.c
---- a/fs/proc/page.c~pagemap-export-kpf_thp
-+++ a/fs/proc/page.c
-@@ -115,6 +115,8 @@ u64 stable_page_flags(struct page *page)
- 		u |= 1 << KPF_COMPOUND_TAIL;
- 	if (PageHuge(page))
- 		u |= 1 << KPF_HUGE;
-+	else if (PageTransCompound(page))
-+		u |= 1 << KPF_THP;
+diff -puN include/linux/rmap.h~rmap-remove-__anon_vma_link include/linux/rmap.h
+--- a/include/linux/rmap.h~rmap-remove-__anon_vma_link
++++ a/include/linux/rmap.h
+@@ -122,7 +122,6 @@ void unlink_anon_vmas(struct vm_area_str
+ int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
+ void anon_vma_moveto_tail(struct vm_area_struct *);
+ int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
+-void __anon_vma_link(struct vm_area_struct *);
  
- 	/*
- 	 * Caveats on high order pages: page->_count will only be set
-diff -puN include/linux/kernel-page-flags.h~pagemap-export-kpf_thp include/linux/kernel-page-flags.h
---- a/include/linux/kernel-page-flags.h~pagemap-export-kpf_thp
-+++ a/include/linux/kernel-page-flags.h
-@@ -30,6 +30,7 @@
- #define KPF_NOPAGE		20
- 
- #define KPF_KSM			21
-+#define KPF_THP			22
- 
- /* kernel hacking assistances
-  * WARNING: subject to change, never rely on them!
+ static inline void anon_vma_merge(struct vm_area_struct *vma,
+ 				  struct vm_area_struct *next)
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
 
 origin.patch
 linux-next.patch
+prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
+prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
+prio_tree-simplify-prio_tree_expand.patch
+prio_tree-introduce-prio_set_parent.patch
 
