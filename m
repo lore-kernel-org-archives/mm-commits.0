@@ -1,97 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlbfs-fix-hugetlb_get_unmapped_area.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:52 -0700
-Message-ID: <20120322201752.7AE7DA06FD@akpm.mtv.corp.google.com>
+Subject: [merged] mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:14 -0700
+Message-ID: <20120322201814.8CD2AA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:56068 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753422Ab2CVURx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:53 -0400
-Received: by yhgm50 with SMTP id m50so403131yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:53 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:35102 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756289Ab2CVUSQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:16 -0400
+Received: by eekc41 with SMTP id c41so136580eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dhillf@gmail.com, aarcange@redhat.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: fix hugetlb_get_unmapped_area()
+     Subject: mm: hugetlb: defer freeing pages when gathering surplus pages
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-fix-hugetlb_get_unmapped_area.patch
+     mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: hugetlbfs: fix hugetlb_get_unmapped_area()
+From: Hillf Danton <dhillf@gmail.com>
+Subject: mm: hugetlb: defer freeing pages when gathering surplus pages
 
-Use/update cached_hole_size and free_area_cache properly to speedup
-finding of a free region.
+When gathering surplus pages, the number of needed pages is recomputed
+after reacquiring hugetlb lock to catch changes in resv_huge_pages and
+free_huge_pages.  Plus it is recomputed with the number of newly allocated
+pages involved.
 
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Thus freeing pages can be deferred a bit to see if the final page request
+is satisfied, though pages could be allocated less than needed.
+
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-fix-hugetlb_get_unmapped_area fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-fix-hugetlb_get_unmapped_area
-+++ a/fs/hugetlbfs/inode.c
-@@ -154,10 +154,12 @@ hugetlb_get_unmapped_area(struct file *f
- 			return addr;
- 	}
+diff -puN mm/hugetlb.c~mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-defer-freeing-pages-when-gathering-surplus-pages
++++ a/mm/hugetlb.c
+@@ -852,6 +852,7 @@ static int gather_surplus_pages(struct h
+ 	struct page *page, *tmp;
+ 	int ret, i;
+ 	int needed, allocated;
++	bool alloc_ok = true;
  
--	start_addr = mm->free_area_cache;
+ 	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
+ 	if (needed <= 0) {
+@@ -867,17 +868,13 @@ retry:
+ 	spin_unlock(&hugetlb_lock);
+ 	for (i = 0; i < needed; i++) {
+ 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
+-		if (!page)
+-			/*
+-			 * We were not able to allocate enough pages to
+-			 * satisfy the entire reservation so we free what
+-			 * we've allocated so far.
+-			 */
+-			goto free;
 -
--	if (len <= mm->cached_hole_size)
-+	if (len > mm->cached_hole_size)
-+		start_addr = mm->free_area_cache;
-+	else {
- 		start_addr = TASK_UNMAPPED_BASE;
-+		mm->cached_hole_size = 0;
-+	}
- 
- full_search:
- 	addr = ALIGN(start_addr, huge_page_size(h));
-@@ -171,13 +173,18 @@ full_search:
- 			 */
- 			if (start_addr != TASK_UNMAPPED_BASE) {
- 				start_addr = TASK_UNMAPPED_BASE;
-+				mm->cached_hole_size = 0;
- 				goto full_search;
- 			}
- 			return -ENOMEM;
- 		}
- 
--		if (!vma || addr + len <= vma->vm_start)
-+		if (!vma || addr + len <= vma->vm_start) {
-+			mm->free_area_cache = addr + len;
- 			return addr;
++		if (!page) {
++			alloc_ok = false;
++			break;
 +		}
-+		if (addr + mm->cached_hole_size < vma->vm_start)
-+			mm->cached_hole_size = vma->vm_start - addr;
- 		addr = ALIGN(vma->vm_end, huge_page_size(h));
+ 		list_add(&page->lru, &surplus_list);
  	}
- }
+-	allocated += needed;
++	allocated += i;
+ 
+ 	/*
+ 	 * After retaking hugetlb_lock, we need to recalculate 'needed'
+@@ -886,9 +883,16 @@ retry:
+ 	spin_lock(&hugetlb_lock);
+ 	needed = (h->resv_huge_pages + delta) -
+ 			(h->free_huge_pages + allocated);
+-	if (needed > 0)
+-		goto retry;
+-
++	if (needed > 0) {
++		if (alloc_ok)
++			goto retry;
++		/*
++		 * We were not able to allocate enough pages to
++		 * satisfy the entire reservation so we free what
++		 * we've allocated so far.
++		 */
++		goto free;
++	}
+ 	/*
+ 	 * The surplus_list now contains _at_least_ the number of extra pages
+ 	 * needed to accommodate the reservation.  Add the appropriate number
+@@ -914,10 +918,10 @@ retry:
+ 		VM_BUG_ON(page_count(page));
+ 		enqueue_huge_page(h, page);
+ 	}
++free:
+ 	spin_unlock(&hugetlb_lock);
+ 
+ 	/* Free unnecessary surplus pages to the buddy allocator */
+-free:
+ 	if (!list_empty(&surplus_list)) {
+ 		list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+ 			list_del(&page->lru);
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
 origin.patch
-linux-next.patch
-prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
-prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
-prio_tree-simplify-prio_tree_expand.patch
-prio_tree-introduce-prio_set_parent.patch
+mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
 
