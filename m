@@ -1,85 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-forbid-lumpy-reclaim-in-shrink_active_list.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:19:24 -0700
-Message-ID: <20120322201924.8DE4CA024E@akpm.mtv.corp.google.com>
+Subject: [merged] hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:19:12 -0700
+Message-ID: <20120322201912.5FEA5A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:58075 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965108Ab2CVUT0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:26 -0400
-Received: by mail-bk0-f74.google.com with SMTP id jm19so134271bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:25 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61078 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759479Ab2CVUTN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:13 -0400
+Received: by mail-yx0-f202.google.com with SMTP id q2so401674yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@openvz.org, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: forbid lumpy-reclaim in shrink_active_list()
+     Subject: hugetlb: remove prev_vma from hugetlb_get_unmapped_area_topdown()
 has been removed from the -mm tree.  Its filename was
-     mm-forbid-lumpy-reclaim-in-shrink_active_list.patch
+     hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: forbid lumpy-reclaim in shrink_active_list()
+From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Subject: hugetlb: remove prev_vma from hugetlb_get_unmapped_area_topdown()
 
-Reset the reclaim mode in shrink_active_list() to RECLAIM_MODE_SINGLE |
-RECLAIM_MODE_ASYNC.  (sync/async sign is used only in shrink_page_list and
-does not affect shrink_active_list)
+After looking up the vma which covers or follows the cached search
+address, the following condition is always true:
 
-Currenly shrink_active_list() sometimes works in lumpy-reclaim mode, if
-RECLAIM_MODE_LUMPYRECLAIM is left over from an earlier
-shrink_inactive_list().  Meanwhile, in age_active_anon() sc->reclaim_mode
-is totally zero.  So the current behavior is too complex and confusing,
-and this looks like bug.
+	!prev_vma || (addr >= prev_vma->vm_end)
 
-In general, shrink_active_list() populates the inactive list for the next
-shrink_inactive_list().  Lumpy shring_inactive_list() isolates pages
-around the chosen one from both the active and inactive lists.  So, there
-is no reason for lumpy isolation in shrink_active_list().
+so we can stop checking the previous VMA altogether.
 
-See also: https://lkml.org/lkml/2012/3/15/583
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Proposed-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/mm/hugetlbpage.c |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff -puN mm/vmscan.c~mm-forbid-lumpy-reclaim-in-shrink_active_list mm/vmscan.c
---- a/mm/vmscan.c~mm-forbid-lumpy-reclaim-in-shrink_active_list
-+++ a/mm/vmscan.c
-@@ -1690,6 +1690,8 @@ static void shrink_active_list(unsigned 
+diff -puN arch/x86/mm/hugetlbpage.c~hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~hugetlb-drop-prev_vma-in-hugetlb_get_unmapped_area_topdown
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -308,7 +308,7 @@ static unsigned long hugetlb_get_unmappe
+ {
+ 	struct hstate *h = hstate_file(file);
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma, *prev_vma;
++	struct vm_area_struct *vma;
+ 	unsigned long base = mm->mmap_base;
+ 	unsigned long addr = addr0;
+ 	unsigned long largest_hole = mm->cached_hole_size;
+@@ -340,22 +340,14 @@ try_again:
+ 		if (!vma)
+ 			return addr;
  
- 	lru_add_drain();
+-		/*
+-		 * new region fits between prev_vma->vm_end and
+-		 * vma->vm_start, use it:
+-		 */
+-		prev_vma = vma->vm_prev;
+-		if (addr + len <= vma->vm_start &&
+-		            (!prev_vma || (addr >= prev_vma->vm_end))) {
++		if (addr + len <= vma->vm_start) {
+ 			/* remember the address as a hint for next time */
+ 		        mm->cached_hole_size = largest_hole;
+ 		        return (mm->free_area_cache = addr);
+-		} else {
++		} else if (mm->free_area_cache == vma->vm_end) {
+ 			/* pull free_area_cache down to the first hole */
+-		        if (mm->free_area_cache == vma->vm_end) {
+-				mm->free_area_cache = vma->vm_start;
+-				mm->cached_hole_size = largest_hole;
+-			}
++			mm->free_area_cache = vma->vm_start;
++			mm->cached_hole_size = largest_hole;
+ 		}
  
-+	reset_reclaim_mode(sc);
-+
- 	if (!sc->may_unmap)
- 		isolate_mode |= ISOLATE_UNMAPPED;
- 	if (!sc->may_writepage)
+ 		/* remember the largest hole we saw so far */
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
 
 origin.patch
 linux-next.patch
-mm-fix-page-faults-detection-in-swap-token-logic.patch
-radix-tree-introduce-bit-optimized-iterator.patch
-radix-tree-introduce-bit-optimized-iterator-v3.patch
-radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-radix-tree-rewrite-gang-lookup-with-using-iterator.patch
-radix-tree-use-iterators-in-find_get_pages-functions.patch
+prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
+prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
+prio_tree-simplify-prio_tree_expand.patch
+prio_tree-introduce-prio_set_parent.patch
 
