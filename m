@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-simplify-move_account-check.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:19:52 -0700
-Message-ID: <20120322201952.8FA34A024E@akpm.mtv.corp.google.com>
+Subject: [merged] memcg-remove-pcg_move_lock-flag-from-page_cgroup.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:19:54 -0700
+Message-ID: <20120322201954.7E7E1A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:61078 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759445Ab2CVUTx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:53 -0400
-Received: by mail-yx0-f202.google.com with SMTP id q2so401674yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:53 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:39689 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759445Ab2CVUTz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:55 -0400
+Received: by mail-qa0-f74.google.com with SMTP id g24so62245qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, paulmck@us.ibm.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, gthelen@google.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: simplify move_account() check
+     Subject: memcg: remove PCG_MOVE_LOCK flag from page_cgroup
 has been removed from the -mm tree.  Its filename was
-     memcg-simplify-move_account-check.patch
+     memcg-remove-pcg_move_lock-flag-from-page_cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,25 +26,19 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: simplify move_account() check
+Subject: memcg: remove PCG_MOVE_LOCK flag from page_cgroup
 
-In memcg, for avoiding take-lock-irq-off at accessing page_cgroup, a
-logic, flag + rcu_read_lock(), is used.  This works as following
+PCG_MOVE_LOCK is used for bit spinlock to avoid race between overwriting
+pc->mem_cgroup and page statistics accounting per memcg.  This lock helps
+to avoid the race but the race is very rare because moving tasks between
+cgroup is not a usual job.  So, it seems using 1bit per page is too
+costly.
 
-     CPU-A                     CPU-B
-                             rcu_read_lock()
-    set flag
-                             if(flag is set)
-                                   take heavy lock
-                             do job.
-    synchronize_rcu()        rcu_read_unlock()
-    take heavy lock.
+This patch changes this lock as per-memcg spinlock and removes
+PCG_MOVE_LOCK.
 
-In recent discussion, it's argued that using per-cpu value for this flag
-just complicates the code because 'set flag' is very rare.
-
-This patch changes 'flag' implementation from percpu to atomic_t.  This
-will be much simpler.
+If smaller lock is required, we'll be able to add some hashes but I'd like
+to start from this.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Greg Thelen <gthelen@google.com>
@@ -52,145 +46,158 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Ying Han <yinghan@google.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   70 +++++++++++++++++++---------------------------
- 1 file changed, 30 insertions(+), 40 deletions(-)
+ include/linux/page_cgroup.h |   19 ---------------
+ mm/memcontrol.c             |   42 +++++++++++++++++++++++++---------
+ 2 files changed, 32 insertions(+), 29 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-simplify-move_account-check mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-move_account-check
-+++ a/mm/memcontrol.c
-@@ -89,7 +89,6 @@ enum mem_cgroup_stat_index {
- 	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
- 	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
- 	MEM_CGROUP_STAT_DATA, /* end of data requires synchronization */
--	MEM_CGROUP_ON_MOVE,	/* someone is moving account between groups */
- 	MEM_CGROUP_STAT_NSTATS,
+diff -puN include/linux/page_cgroup.h~memcg-remove-pcg_move_lock-flag-from-page_cgroup include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~memcg-remove-pcg_move_lock-flag-from-page_cgroup
++++ a/include/linux/page_cgroup.h
+@@ -7,7 +7,6 @@ enum {
+ 	PCG_USED, /* this object is in use. */
+ 	PCG_MIGRATION, /* under page migration */
+ 	/* flags for mem_cgroup and file and I/O status */
+-	PCG_MOVE_LOCK, /* For race between move_account v.s. following bits */
+ 	PCG_FILE_MAPPED, /* page is accounted as "mapped" */
+ 	__NR_PCG_FLAGS,
  };
+@@ -89,24 +88,6 @@ static inline void unlock_page_cgroup(st
+ 	bit_spin_unlock(PCG_LOCK, &pc->flags);
+ }
  
-@@ -298,6 +297,10 @@ struct mem_cgroup {
+-static inline void move_lock_page_cgroup(struct page_cgroup *pc,
+-	unsigned long *flags)
+-{
+-	/*
+-	 * We know updates to pc->flags of page cache's stats are from both of
+-	 * usual context or IRQ context. Disable IRQ to avoid deadlock.
+-	 */
+-	local_irq_save(*flags);
+-	bit_spin_lock(PCG_MOVE_LOCK, &pc->flags);
+-}
+-
+-static inline void move_unlock_page_cgroup(struct page_cgroup *pc,
+-	unsigned long *flags)
+-{
+-	bit_spin_unlock(PCG_MOVE_LOCK, &pc->flags);
+-	local_irq_restore(*flags);
+-}
+-
+ #else /* CONFIG_CGROUP_MEM_RES_CTLR */
+ struct page_cgroup;
+ 
+diff -puN mm/memcontrol.c~memcg-remove-pcg_move_lock-flag-from-page_cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-pcg_move_lock-flag-from-page_cgroup
++++ a/mm/memcontrol.c
+@@ -300,6 +300,8 @@ struct mem_cgroup {
+ 	 * set > 0 if pages under this cgroup are moving to other cgroup.
  	 */
- 	unsigned long 	move_charge_at_immigrate;
+ 	atomic_t	moving_account;
++	/* taken only while moving_account > 0 */
++	spinlock_t	move_lock;
  	/*
-+	 * set > 0 if pages under this cgroup are moving to other cgroup.
-+	 */
-+	atomic_t	moving_account;
-+	/*
  	 * percpu counter.
  	 */
- 	struct mem_cgroup_stat_cpu *stat;
-@@ -1287,35 +1290,36 @@ int mem_cgroup_swappiness(struct mem_cgr
- 	return memcg->swappiness;
+@@ -1376,6 +1378,24 @@ static bool mem_cgroup_wait_acct_move(st
+ 	return false;
  }
  
 +/*
-+ * memcg->moving_account is used for checking possibility that some thread is
-+ * calling move_account(). When a thread on CPU-A starts moving pages under
-+ * a memcg, other threads should check memcg->moving_account under
-+ * rcu_read_lock(), like this:
-+ *
-+ *         CPU-A                                    CPU-B
-+ *                                              rcu_read_lock()
-+ *         memcg->moving_account+1              if (memcg->mocing_account)
-+ *                                                   take heavy locks.
-+ *         synchronize_rcu()                    update something.
-+ *                                              rcu_read_unlock()
-+ *         start move here.
++ * Take this lock when
++ * - a code tries to modify page's memcg while it's USED.
++ * - a code tries to modify page state accounting in a memcg.
++ * see mem_cgroup_stealed(), too.
 + */
- static void mem_cgroup_start_move(struct mem_cgroup *memcg)
- {
--	int cpu;
--
--	get_online_cpus();
--	spin_lock(&memcg->pcp_counter_lock);
--	for_each_online_cpu(cpu)
--		per_cpu(memcg->stat->count[MEM_CGROUP_ON_MOVE], cpu) += 1;
--	memcg->nocpu_base.count[MEM_CGROUP_ON_MOVE] += 1;
--	spin_unlock(&memcg->pcp_counter_lock);
--	put_online_cpus();
--
-+	atomic_inc(&memcg->moving_account);
- 	synchronize_rcu();
- }
- 
- static void mem_cgroup_end_move(struct mem_cgroup *memcg)
- {
--	int cpu;
--
--	if (!memcg)
--		return;
--	get_online_cpus();
--	spin_lock(&memcg->pcp_counter_lock);
--	for_each_online_cpu(cpu)
--		per_cpu(memcg->stat->count[MEM_CGROUP_ON_MOVE], cpu) -= 1;
--	memcg->nocpu_base.count[MEM_CGROUP_ON_MOVE] -= 1;
--	spin_unlock(&memcg->pcp_counter_lock);
--	put_online_cpus();
-+	/*
-+	 * Now, mem_cgroup_clear_mc() may call this function with NULL.
-+	 * We check NULL in callee rather than caller.
-+	 */
-+	if (memcg)
-+		atomic_dec(&memcg->moving_account);
- }
++static void move_lock_mem_cgroup(struct mem_cgroup *memcg,
++				  unsigned long *flags)
++{
++	spin_lock_irqsave(&memcg->move_lock, *flags);
++}
 +
- /*
-  * 2 routines for checking "mem" is under move_account() or not.
-  *
-@@ -1331,7 +1335,7 @@ static void mem_cgroup_end_move(struct m
- static bool mem_cgroup_stealed(struct mem_cgroup *memcg)
- {
- 	VM_BUG_ON(!rcu_read_lock_held());
--	return this_cpu_read(memcg->stat->count[MEM_CGROUP_ON_MOVE]) > 0;
-+	return atomic_read(&memcg->moving_account) > 0;
- }
++static void move_unlock_mem_cgroup(struct mem_cgroup *memcg,
++				unsigned long *flags)
++{
++	spin_unlock_irqrestore(&memcg->move_lock, *flags);
++}
++
+ /**
+  * mem_cgroup_print_oom_info: Called from OOM with tasklist_lock held in read mode.
+  * @memcg: The memory cgroup that went over limit
+@@ -1900,7 +1920,7 @@ void mem_cgroup_update_page_stat(struct 
  
- static bool mem_cgroup_under_move(struct mem_cgroup *memcg)
-@@ -1882,8 +1886,8 @@ bool mem_cgroup_handle_oom(struct mem_cg
-  * by flags.
-  *
-  * Considering "move", this is an only case we see a race. To make the race
-- * small, we check MEM_CGROUP_ON_MOVE percpu value and detect there are
-- * possibility of race condition. If there is, we take a lock.
-+ * small, we check mm->moving_account and detect there are possibility of race
-+ * If there is, we take a lock.
-  */
- 
- void mem_cgroup_update_page_stat(struct page *page,
-@@ -2100,17 +2104,6 @@ static void mem_cgroup_drain_pcp_counter
- 		per_cpu(memcg->stat->events[i], cpu) = 0;
- 		memcg->nocpu_base.events[i] += x;
+ 	if (mem_cgroup_disabled())
+ 		return;
+-
++again:
+ 	rcu_read_lock();
+ 	memcg = pc->mem_cgroup;
+ 	if (unlikely(!memcg || !PageCgroupUsed(pc)))
+@@ -1908,11 +1928,13 @@ void mem_cgroup_update_page_stat(struct 
+ 	/* pc->mem_cgroup is unstable ? */
+ 	if (unlikely(mem_cgroup_stealed(memcg))) {
+ 		/* take a lock against to access pc->mem_cgroup */
+-		move_lock_page_cgroup(pc, &flags);
++		move_lock_mem_cgroup(memcg, &flags);
++		if (memcg != pc->mem_cgroup || !PageCgroupUsed(pc)) {
++			move_unlock_mem_cgroup(memcg, &flags);
++			rcu_read_unlock();
++			goto again;
++		}
+ 		need_unlock = true;
+-		memcg = pc->mem_cgroup;
+-		if (!memcg || !PageCgroupUsed(pc))
+-			goto out;
  	}
--	/* need to clear ON_MOVE value, works as a kind of lock. */
--	per_cpu(memcg->stat->count[MEM_CGROUP_ON_MOVE], cpu) = 0;
--	spin_unlock(&memcg->pcp_counter_lock);
--}
--
--static void synchronize_mem_cgroup_on_move(struct mem_cgroup *memcg, int cpu)
--{
--	int idx = MEM_CGROUP_ON_MOVE;
--
--	spin_lock(&memcg->pcp_counter_lock);
--	per_cpu(memcg->stat->count[idx], cpu) = memcg->nocpu_base.count[idx];
- 	spin_unlock(&memcg->pcp_counter_lock);
+ 
+ 	switch (idx) {
+@@ -1931,7 +1953,7 @@ void mem_cgroup_update_page_stat(struct 
+ 
+ out:
+ 	if (unlikely(need_unlock))
+-		move_unlock_page_cgroup(pc, &flags);
++		move_unlock_mem_cgroup(memcg, &flags);
+ 	rcu_read_unlock();
  }
  
-@@ -2122,11 +2115,8 @@ static int __cpuinit memcg_cpu_hotplug_c
- 	struct memcg_stock_pcp *stock;
- 	struct mem_cgroup *iter;
+@@ -2500,8 +2522,7 @@ static void __mem_cgroup_commit_charge(s
  
--	if ((action == CPU_ONLINE)) {
--		for_each_mem_cgroup(iter)
--			synchronize_mem_cgroup_on_move(iter, cpu);
-+	if (action == CPU_ONLINE)
- 		return NOTIFY_OK;
--	}
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
  
- 	if ((action != CPU_DEAD) || action != CPU_DEAD_FROZEN)
- 		return NOTIFY_OK;
+-#define PCGF_NOCOPY_AT_SPLIT ((1 << PCG_LOCK) | (1 << PCG_MOVE_LOCK) |\
+-			(1 << PCG_MIGRATION))
++#define PCGF_NOCOPY_AT_SPLIT ((1 << PCG_LOCK) | (1 << PCG_MIGRATION))
+ /*
+  * Because tail pages are not marked as "used", set it. We're under
+  * zone->lru_lock, 'splitting on pmd' and compound_lock.
+@@ -2572,7 +2593,7 @@ static int mem_cgroup_move_account(struc
+ 	if (!PageCgroupUsed(pc) || pc->mem_cgroup != from)
+ 		goto unlock;
+ 
+-	move_lock_page_cgroup(pc, &flags);
++	move_lock_mem_cgroup(from, &flags);
+ 
+ 	if (PageCgroupFileMapped(pc)) {
+ 		/* Update mapped_file data for mem_cgroup */
+@@ -2596,7 +2617,7 @@ static int mem_cgroup_move_account(struc
+ 	 * guaranteed that "to" is never removed. So, we don't check rmdir
+ 	 * status here.
+ 	 */
+-	move_unlock_page_cgroup(pc, &flags);
++	move_unlock_mem_cgroup(from, &flags);
+ 	ret = 0;
+ unlock:
+ 	unlock_page_cgroup(pc);
+@@ -4971,6 +4992,7 @@ mem_cgroup_create(struct cgroup *cont)
+ 	atomic_set(&memcg->refcnt, 1);
+ 	memcg->move_charge_at_immigrate = 0;
+ 	mutex_init(&memcg->thresholds_lock);
++	spin_lock_init(&memcg->move_lock);
+ 	return &memcg->css;
+ free_out:
+ 	__mem_cgroup_free(memcg);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
