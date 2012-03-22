@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-use-id-driver_data-to-differentiate-lp855x-chips.patch added to -mm tree
-Date: Thu, 22 Mar 2012 14:51:36 -0700
-Message-ID: <20120322215137.4B65CA045D@akpm.mtv.corp.google.com>
+Subject: + backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix.patch added to -mm tree
+Date: Thu, 22 Mar 2012 14:51:38 -0700
+Message-ID: <20120322215139.1C82FA045D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:54017 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760048Ab2CVVvj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 17:51:39 -0400
-Received: by wibhj13 with SMTP id hj13so62593wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 14:51:38 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:42659 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757032Ab2CVVvl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Thu, 22 Mar 2012 17:51:41 -0400
+Received: by laai8 with SMTP id i8so136653laa.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 14:51:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: axel.lin@gmail.com, milo.kim@ti.com
+Cc: akpm@linux-foundation.org, axel.lin@gmail.com, milo.kim@ti.com
 
 
 The patch titled
-     Subject: backlight: Use id->driver_data to differentiate lp855x chips
+     Subject: backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix
 has been added to the -mm tree.  Its filename is
-     backlight-use-id-driver_data-to-differentiate-lp855x-chips.patch
+     backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +34,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@gmail.com>
-Subject: backlight: Use id->driver_data to differentiate lp855x chips
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix
 
-Current code has corresponding driver_data settings for different chip types.
-Use the driver_data to differentiate lp855x chips.
+simplify boolean return expression
 
-Also make lp855x_is_valid_rom_area() return bool instead of int.
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Milo (Woogyom) Kim <milo.kim@ti.com>
+Cc: Axel Lin <axel.lin@gmail.com>
+Cc: Milo (Woogyom) Kim <milo.kim@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |   28 +++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ drivers/video/backlight/lp855x_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-use-id-driver_data-to-differentiate-lp855x-chips drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-use-id-driver_data-to-differentiate-lp855x-chips
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix
 +++ a/drivers/video/backlight/lp855x_bl.c
-@@ -25,7 +25,8 @@
- #define MAX_BRIGHTNESS		255
- 
- struct lp855x {
--	const char *chipid;
-+	const char *chipname;
-+	enum lp855x_chip_id chip_id;
- 	struct i2c_client *client;
- 	struct backlight_device *bl;
- 	struct device *dev;
-@@ -61,23 +62,27 @@ static int lp855x_write_byte(struct lp85
- 	return ret;
- }
- 
--static int lp855x_is_valid_rom_area(struct lp855x *lp, u8 addr)
-+static bool lp855x_is_valid_rom_area(struct lp855x *lp, u8 addr)
- {
--	const char *id = lp->chipid;
- 	u8 start, end;
- 
--	if (strstr(id, "lp8550") || strstr(id, "lp8551")
--	    || strstr(id, "lp8552") || strstr(id, "lp8553")) {
-+	switch (lp->chip_id) {
-+	case LP8550:
-+	case LP8551:
-+	case LP8552:
-+	case LP8553:
- 		start = EEPROM_START;
- 		end = EEPROM_END;
--	} else if (strstr(id, "lp8556")) {
-+		break;
-+	case LP8556:
- 		start = EPROM_START;
- 		end = EPROM_END;
--	} else {
--		return 0;
-+		break;
-+	default:
-+		return false;
+@@ -82,7 +82,7 @@ static bool lp855x_is_valid_rom_area(str
+ 		return false;
  	}
  
--	return (addr >= start && addr <= end) ? 1 : 0;
-+	return (addr >= start && addr <= end) ? true : false;
+-	return (addr >= start && addr <= end) ? true : false;
++	return (addr >= start && addr <= end);
  }
  
  static int lp855x_init_registers(struct lp855x *lp)
-@@ -199,7 +204,7 @@ static ssize_t lp855x_get_chip_id(struct
- 				struct device_attribute *attr, char *buf)
- {
- 	struct lp855x *lp = dev_get_drvdata(dev);
--	return scnprintf(buf, BUF_SIZE, "%s\n", lp->chipid);
-+	return scnprintf(buf, BUF_SIZE, "%s\n", lp->chipname);
- }
- 
- static ssize_t lp855x_get_bl_ctl_mode(struct device *dev,
-@@ -253,7 +258,8 @@ static int lp855x_probe(struct i2c_clien
- 	lp->client = cl;
- 	lp->dev = &cl->dev;
- 	lp->pdata = pdata;
--	lp->chipid = id->name;
-+	lp->chipname = id->name;
-+	lp->chip_id = id->driver_data;
- 	i2c_set_clientdata(cl, lp);
- 
- 	mutex_init(&lp->xfer_lock);
 _
-Subject: Subject: backlight: Use id->driver_data to differentiate lp855x chips
+Subject: Subject: backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix
 
-Patches currently in -mm which might be from axel.lin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-backlight-convert-backlight-i2c-drivers-to-module_i2c_driver.patch
-backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
-backlight-new-backlight-driver-for-lp855x-devices-fix.patch
-backlight-lp855x_blc-check-platform-data-in-lp855x_probe.patch
-backlight-lp855x_blc-small-cleanups.patch
-lp855x-bl-remove-unnecessary-platform-data.patch
-lp855x-bl-remove-unnecessary-headers.patch
-backlight-use-id-driver_data-to-differentiate-lp855x-chips.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+drivers-mfd-twl-corec-unbork.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+drivers-platform-x86-samsung-laptopc-fix-build.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+thermal-thermal_sys-fix-build-warning.patch
+thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
+net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
+sched-fix-compiler-warning-about-declared-inline-after-use.patch
+brlocks-lglocks-cleanups.patch
+simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions-fix.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
+kernel-watchdogc-convert-to-pr_foo.patch
+kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
+smp-start-up-non-boot-cpus-asynchronously-fix.patch
 backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3.patch
-leds-lm3530-replace-pltfm-with-pdata.patch
-drivers-leds-leds-pca9633c-remove-unused-adapter-variable.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
 drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-rtc-convert-rtc-spi-drivers-to-module_spi_driver.patch
-rtc-convert-rtc-i2c-drivers-to-module_i2c_driver.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
