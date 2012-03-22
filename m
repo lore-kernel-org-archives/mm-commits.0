@@ -1,118 +1,491 @@
 From: akpm@linux-foundation.org
-Subject: [merged] seq_file-fix-mishandling-of-consecutive-pread-invocations.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:11 -0700
-Message-ID: <20120322201711.7442CA024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:17:04 -0700
+Message-ID: <20120322201704.F2EF0A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gy0-f202.google.com ([209.85.160.202]:60535 "EHLO
 	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755Ab2CVURM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:12 -0400
-Received: by mail-gy0-f202.google.com with SMTP id z15so402093ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:11 -0700 (PDT)
+	with ESMTP id S1753755Ab2CVURG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: echew@ixiacom.com, adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, davej@redhat.com, hannes@cmpxchg.org, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, msalter@redhat.com, riel@redhat.com, stable@vger.kernel.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seq_file: fix mishandling of consecutive pread() invocations.
+     Subject: mm: thp: fix pmd_bad() triggering in code paths holding mmap_sem read mode
 has been removed from the -mm tree.  Its filename was
-     seq_file-fix-mishandling-of-consecutive-pread-invocations.patch
+     mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Earl Chew <echew@ixiacom.com>
-Subject: seq_file: fix mishandling of consecutive pread() invocations.
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: thp: fix pmd_bad() triggering in code paths holding mmap_sem read mode
 
-The following program illustrates the problem:
+In some cases it may happen that pmd_none_or_clear_bad() is called with
+the mmap_sem hold in read mode.  In those cases the huge page faults can
+allocate hugepmds under pmd_none_or_clear_bad() and that can trigger a
+false positive from pmd_bad() that will not like to see a pmd
+materializing as trans huge.
 
-    char buf[8192];
+It's not khugepaged causing the problem, khugepaged holds the mmap_sem in
+write mode (and all those sites must hold the mmap_sem in read mode to
+prevent pagetables to go away from under them, during code review it seems
+vm86 mode on 32bit kernels requires that too unless it's restricted to 1
+thread per process or UP builds).  The race is only with the huge
+pagefaults that can convert a pmd_none() into a pmd_trans_huge().
 
-    int fd = open("/proc/self/maps", O_RDONLY);
+Effectively all these pmd_none_or_clear_bad() sites running with mmap_sem
+in read mode are somewhat speculative with the page faults, and the result
+is always undefined when they run simultaneously.  This is probably why it
+wasn't common to run into this.  For example if the madvise(MADV_DONTNEED)
+runs zap_page_range() shortly before the page fault, the hugepage will not
+be zapped, if the page fault runs first it will be zapped.
 
-    n = pread(fd, buf, sizeof(buf), 0);
-    printf("%d\n", n);
+Altering pmd_bad() not to error out if it finds hugepmds won't be enough
+to fix this, because zap_pmd_range would then proceed to call
+zap_pte_range (which would be incorrect if the pmd become a
+pmd_trans_huge()).
 
-    /* lseek(fd, 0, SEEK_CUR); */ /* Uncomment to work around */
+The simplest way to fix this is to read the pmd in the local stack
+(regardless of what we read, no need of actual CPU barriers, only compiler
+barrier needed), and be sure it is not changing under the code that
+computes its value.  Even if the real pmd is changing under the value we
+hold on the stack, we don't care.  If we actually end up in zap_pte_range
+it means the pmd was not none already and it was not huge, and it can't
+become huge from under us (khugepaged locking explained above).
 
-    n = pread(fd, buf, sizeof(buf), 0);
-    printf("%d\n", n);
+All we need is to enforce that there is no way anymore that in a code path
+like below, pmd_trans_huge can be false, but pmd_none_or_clear_bad can run
+into a hugepmd.  The overhead of a barrier() is just a compiler tweak and
+should not be measurable (I only added it for THP builds).  I don't
+exclude different compiler versions may have prevented the race too by
+caching the value of *pmd on the stack (that hasn't been verified, but it
+wouldn't be impossible considering pmd_none_or_clear_bad, pmd_bad,
+pmd_trans_huge, pmd_none are all inlines and there's no external function
+called in between pmd_trans_huge and pmd_none_or_clear_bad).
 
-The second printf() prints zero, but uncommenting the lseek() corrects its
-behaviour.
+		if (pmd_trans_huge(*pmd)) {
+			if (next-addr != HPAGE_PMD_SIZE) {
+				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
+				split_huge_page_pmd(vma->vm_mm, pmd);
+			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
+				continue;
+			/* fall through */
+		}
+		if (pmd_none_or_clear_bad(pmd))
 
-To fix, make seq_read() mirror seq_lseek() when processing changes in
-*ppos.  Restore m->version first, then if required traverse and update
-read_pos on success.
+Because this race condition could be exercised without special privileges
+this was reported in CVE-2012-1179.
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=11856
+The race was identified and fully explained by Ulrich who debugged it. 
+I'm quoting his accurate explanation below, for reference.
 
-Signed-off-by: Earl Chew <echew@ixiacom.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+====== start quote =======
+  mapcount 0 page_mapcount 1
+  kernel BUG at mm/huge_memory.c:1384!
+
+At some point prior to the panic, a "bad pmd ..." message similar to the
+following is logged on the console:
+
+  mm/memory.c:145: bad pmd ffff8800376e1f98(80000000314000e7).
+
+The "bad pmd ..." message is logged by pmd_clear_bad() before it clears
+the page's PMD table entry.
+
+    143 void pmd_clear_bad(pmd_t *pmd)
+    144 {
+->  145         pmd_ERROR(*pmd);
+    146         pmd_clear(pmd);
+    147 }
+
+After the PMD table entry has been cleared, there is an inconsistency
+between the actual number of PMD table entries that are mapping the page
+and the page's map count (_mapcount field in struct page). When the page
+is subsequently reclaimed, __split_huge_page() detects this inconsistency.
+
+   1381         if (mapcount != page_mapcount(page))
+   1382                 printk(KERN_ERR "mapcount %d page_mapcount %d\n",
+   1383                        mapcount, page_mapcount(page));
+-> 1384         BUG_ON(mapcount != page_mapcount(page));
+
+The root cause of the problem is a race of two threads in a multithreaded
+process. Thread B incurs a page fault on a virtual address that has never
+been accessed (PMD entry is zero) while Thread A is executing an madvise()
+system call on a virtual address within the same 2 MB (huge page) range.
+
+           virtual address space
+          .---------------------.
+          |                     |
+          |                     |
+        .-|---------------------|
+        | |                     |
+        | |                     |<-- B(fault)
+        | |                     |
+  2 MB  | |/////////////////////|-.
+  huge <  |/////////////////////|  > A(range)
+  page  | |/////////////////////|-'
+        | |                     |
+        | |                     |
+        '-|---------------------|
+          |                     |
+          |                     |
+          '---------------------'
+
+- Thread A is executing an madvise(..., MADV_DONTNEED) system call
+  on the virtual address range "A(range)" shown in the picture.
+
+sys_madvise
+  // Acquire the semaphore in shared mode.
+  down_read(&current->mm->mmap_sem)
+  ...
+  madvise_vma
+    switch (behavior)
+    case MADV_DONTNEED:
+         madvise_dontneed
+           zap_page_range
+             unmap_vmas
+               unmap_page_range
+                 zap_pud_range
+                   zap_pmd_range
+                     //
+                     // Assume that this huge page has never been accessed.
+                     // I.e. content of the PMD entry is zero (not mapped).
+                     //
+                     if (pmd_trans_huge(*pmd)) {
+                         // We don't get here due to the above assumption.
+                     }
+                     //
+                     // Assume that Thread B incurred a page fault and
+         .---------> // sneaks in here as shown below.
+         |           //
+         |           if (pmd_none_or_clear_bad(pmd))
+         |               {
+         |                 if (unlikely(pmd_bad(*pmd)))
+         |                     pmd_clear_bad
+         |                     {
+         |                       pmd_ERROR
+         |                         // Log "bad pmd ..." message here.
+         |                       pmd_clear
+         |                         // Clear the page's PMD entry.
+         |                         // Thread B incremented the map count
+         |                         // in page_add_new_anon_rmap(), but
+         |                         // now the page is no longer mapped
+         |                         // by a PMD entry (-> inconsistency).
+         |                     }
+         |               }
+         |
+         v
+- Thread B is handling a page fault on virtual address "B(fault)" shown
+  in the picture.
+
+...
+do_page_fault
+  __do_page_fault
+    // Acquire the semaphore in shared mode.
+    down_read_trylock(&mm->mmap_sem)
+    ...
+    handle_mm_fault
+      if (pmd_none(*pmd) && transparent_hugepage_enabled(vma))
+          // We get here due to the above assumption (PMD entry is zero).
+          do_huge_pmd_anonymous_page
+            alloc_hugepage_vma
+              // Allocate a new transparent huge page here.
+            ...
+            __do_huge_pmd_anonymous_page
+              ...
+              spin_lock(&mm->page_table_lock)
+              ...
+              page_add_new_anon_rmap
+                // Here we increment the page's map count (starts at -1).
+                atomic_set(&page->_mapcount, 0)
+              set_pmd_at
+                // Here we set the page's PMD entry which will be cleared
+                // when Thread A calls pmd_clear_bad().
+              ...
+              spin_unlock(&mm->page_table_lock)
+
+The mmap_sem does not prevent the race because both threads are acquiring
+it in shared mode (down_read).  Thread B holds the page_table_lock while
+the page's map count and PMD table entry are updated.  However, Thread A
+does not synchronize on that lock.
+
+====== end quote =======
+
+[akpm@linux-foundation.org: checkpatch fixes]
+Reported-by: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Jones <davej@redhat.com>
+Acked-by: Larry Woodman <lwoodman@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: <stable@vger.kernel.org>		[2.6.38+]
+Cc: Mark Salter <msalter@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+ arch/x86/kernel/vm86_32.c     |    2 +
+ fs/proc/task_mmu.c            |    9 ++++
+ include/asm-generic/pgtable.h |   61 ++++++++++++++++++++++++++++++++
+ mm/memcontrol.c               |    4 ++
+ mm/memory.c                   |   16 ++++++--
+ mm/mempolicy.c                |    2 -
+ mm/mincore.c                  |    2 -
+ mm/pagewalk.c                 |    2 -
+ mm/swapfile.c                 |    4 --
+ 9 files changed, 92 insertions(+), 10 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-fix-mishandling-of-consecutive-pread-invocations fs/seq_file.c
---- a/fs/seq_file.c~seq_file-fix-mishandling-of-consecutive-pread-invocations
-+++ a/fs/seq_file.c
-@@ -140,9 +140,21 @@ ssize_t seq_read(struct file *file, char
+diff -puN arch/x86/kernel/vm86_32.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode arch/x86/kernel/vm86_32.c
+--- a/arch/x86/kernel/vm86_32.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/arch/x86/kernel/vm86_32.c
+@@ -172,6 +172,7 @@ static void mark_screen_rdonly(struct mm
+ 	spinlock_t *ptl;
+ 	int i;
  
- 	mutex_lock(&m->lock);
++	down_write(&mm->mmap_sem);
+ 	pgd = pgd_offset(mm, 0xA0000);
+ 	if (pgd_none_or_clear_bad(pgd))
+ 		goto out;
+@@ -190,6 +191,7 @@ static void mark_screen_rdonly(struct mm
+ 	}
+ 	pte_unmap_unlock(pte, ptl);
+ out:
++	up_write(&mm->mmap_sem);
+ 	flush_tlb();
+ }
  
-+	/*
-+	 * seq_file->op->..m_start/m_stop/m_next may do special actions
-+	 * or optimisations based on the file->f_version, so we want to
-+	 * pass the file->f_version to those methods.
-+	 *
-+	 * seq_file->version is just copy of f_version, and seq_file
-+	 * methods can treat it simply as file version.
-+	 * It is copied in first and copied out after all operations.
-+	 * It is convenient to have it as  part of structure to avoid the
-+	 * need of passing another argument to all the seq_file methods.
-+	 */
-+	m->version = file->f_version;
+diff -puN fs/proc/task_mmu.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/fs/proc/task_mmu.c
+@@ -409,6 +409,9 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	} else {
+ 		spin_unlock(&walk->mm->page_table_lock);
+ 	}
 +
- 	/* Don't assume *ppos is where we left it */
- 	if (unlikely(*ppos != m->read_pos)) {
--		m->read_pos = *ppos;
- 		while ((err = traverse(m, *ppos)) == -EAGAIN)
- 			;
- 		if (err) {
-@@ -152,21 +164,11 @@ ssize_t seq_read(struct file *file, char
- 			m->index = 0;
- 			m->count = 0;
- 			goto Done;
-+		} else {
-+			m->read_pos = *ppos;
- 		}
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 	/*
+ 	 * The mmap_sem held all the way back in m_start() is what
+ 	 * keeps khugepaged out of here and from collapsing things
+@@ -507,6 +510,8 @@ static int clear_refs_pte_range(pmd_t *p
+ 	struct page *page;
+ 
+ 	split_huge_page_pmd(walk->mm, pmd);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+@@ -670,6 +675,8 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	int err = 0;
+ 
+ 	split_huge_page_pmd(walk->mm, pmd);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 
+ 	/* find the first VMA at or above 'addr' */
+ 	vma = find_vma(walk->mm, addr);
+@@ -961,6 +968,8 @@ static int gather_pte_stats(pmd_t *pmd, 
+ 		spin_unlock(&walk->mm->page_table_lock);
  	}
  
--	/*
--	 * seq_file->op->..m_start/m_stop/m_next may do special actions
--	 * or optimisations based on the file->f_version, so we want to
--	 * pass the file->f_version to those methods.
--	 *
--	 * seq_file->version is just copy of f_version, and seq_file
--	 * methods can treat it simply as file version.
--	 * It is copied in first and copied out after all operations.
--	 * It is convenient to have it as  part of structure to avoid the
--	 * need of passing another argument to all the seq_file methods.
--	 */
--	m->version = file->f_version;
- 	/* grab buffer if we didn't have one */
- 	if (!m->buf) {
- 		m->buf = kmalloc(m->size = PAGE_SIZE, GFP_KERNEL);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+ 	do {
+ 		struct page *page = can_gather_numa_stats(*pte, md->vma, addr);
+diff -puN include/asm-generic/pgtable.h~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/include/asm-generic/pgtable.h
+@@ -425,6 +425,8 @@ extern void untrack_pfn_vma(struct vm_ar
+ 				unsigned long size);
+ #endif
+ 
++#ifdef CONFIG_MMU
++
+ #ifndef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline int pmd_trans_huge(pmd_t pmd)
+ {
+@@ -441,7 +443,66 @@ static inline int pmd_write(pmd_t pmd)
+ 	return 0;
+ }
+ #endif /* __HAVE_ARCH_PMD_WRITE */
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
++/*
++ * This function is meant to be used by sites walking pagetables with
++ * the mmap_sem hold in read mode to protect against MADV_DONTNEED and
++ * transhuge page faults. MADV_DONTNEED can convert a transhuge pmd
++ * into a null pmd and the transhuge page fault can convert a null pmd
++ * into an hugepmd or into a regular pmd (if the hugepage allocation
++ * fails). While holding the mmap_sem in read mode the pmd becomes
++ * stable and stops changing under us only if it's not null and not a
++ * transhuge pmd. When those races occurs and this function makes a
++ * difference vs the standard pmd_none_or_clear_bad, the result is
++ * undefined so behaving like if the pmd was none is safe (because it
++ * can return none anyway). The compiler level barrier() is critically
++ * important to compute the two checks atomically on the same pmdval.
++ */
++static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t *pmd)
++{
++	/* depend on compiler for an atomic pmd read */
++	pmd_t pmdval = *pmd;
++	/*
++	 * The barrier will stabilize the pmdval in a register or on
++	 * the stack so that it will stop changing under the code.
++	 */
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	barrier();
+ #endif
++	if (pmd_none(pmdval))
++		return 1;
++	if (unlikely(pmd_bad(pmdval))) {
++		if (!pmd_trans_huge(pmdval))
++			pmd_clear_bad(pmd);
++		return 1;
++	}
++	return 0;
++}
++
++/*
++ * This is a noop if Transparent Hugepage Support is not built into
++ * the kernel. Otherwise it is equivalent to
++ * pmd_none_or_trans_huge_or_clear_bad(), and shall only be called in
++ * places that already verified the pmd is not none and they want to
++ * walk ptes while holding the mmap sem in read mode (write mode don't
++ * need this). If THP is not enabled, the pmd can't go away under the
++ * code even if MADV_DONTNEED runs, but if THP is enabled we need to
++ * run a pmd_trans_unstable before walking the ptes after
++ * split_huge_page_pmd returns (because it may have run when the pmd
++ * become null, but then a page fault can map in a THP and not a
++ * regular page).
++ */
++static inline int pmd_trans_unstable(pmd_t *pmd)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	return pmd_none_or_trans_huge_or_clear_bad(pmd);
++#else
++	return 0;
++#endif
++}
++
++#endif /* CONFIG_MMU */
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+diff -puN mm/memcontrol.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/memcontrol.c
+@@ -5230,6 +5230,8 @@ static int mem_cgroup_count_precharge_pt
+ 	spinlock_t *ptl;
+ 
+ 	split_huge_page_pmd(walk->mm, pmd);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+@@ -5390,6 +5392,8 @@ static int mem_cgroup_move_charge_pte_ra
+ 	spinlock_t *ptl;
+ 
+ 	split_huge_page_pmd(walk->mm, pmd);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ retry:
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; addr += PAGE_SIZE) {
+diff -puN mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/memory.c
+--- a/mm/memory.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/memory.c
+@@ -1247,16 +1247,24 @@ static inline unsigned long zap_pmd_rang
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_trans_huge(*pmd)) {
+-			if (next-addr != HPAGE_PMD_SIZE) {
++			if (next - addr != HPAGE_PMD_SIZE) {
+ 				VM_BUG_ON(!rwsem_is_locked(&tlb->mm->mmap_sem));
+ 				split_huge_page_pmd(vma->vm_mm, pmd);
+ 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
+-				continue;
++				goto next;
+ 			/* fall through */
+ 		}
+-		if (pmd_none_or_clear_bad(pmd))
+-			continue;
++		/*
++		 * Here there can be other concurrent MADV_DONTNEED or
++		 * trans huge page faults running, and if the pmd is
++		 * none or trans huge it can change under us. This is
++		 * because MADV_DONTNEED holds the mmap_sem in read
++		 * mode.
++		 */
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
++			goto next;
+ 		next = zap_pte_range(tlb, vma, pmd, addr, next, details);
++next:
+ 		cond_resched();
+ 	} while (pmd++, addr = next, addr != end);
+ 
+diff -puN mm/mempolicy.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/mempolicy.c
+@@ -512,7 +512,7 @@ static inline int check_pmd_range(struct
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+ 		split_huge_page_pmd(vma->vm_mm, pmd);
+-		if (pmd_none_or_clear_bad(pmd))
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			continue;
+ 		if (check_pte_range(vma, pmd, addr, next, nodes,
+ 				    flags, private))
+diff -puN mm/mincore.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/mincore.c
+--- a/mm/mincore.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/mincore.c
+@@ -164,7 +164,7 @@ static void mincore_pmd_range(struct vm_
+ 			}
+ 			/* fall through */
+ 		}
+-		if (pmd_none_or_clear_bad(pmd))
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			mincore_unmapped_range(vma, addr, next, vec);
+ 		else
+ 			mincore_pte_range(vma, pmd, addr, next, vec);
+diff -puN mm/pagewalk.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/pagewalk.c
+@@ -59,7 +59,7 @@ again:
+ 			continue;
+ 
+ 		split_huge_page_pmd(walk->mm, pmd);
+-		if (pmd_none_or_clear_bad(pmd))
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			goto again;
+ 		err = walk_pte_range(pmd, addr, next, walk);
+ 		if (err)
+diff -puN mm/swapfile.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-fix-pmd_bad-triggering-in-code-paths-holding-mmap_sem-read-mode
++++ a/mm/swapfile.c
+@@ -932,9 +932,7 @@ static inline int unuse_pmd_range(struct
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (unlikely(pmd_trans_huge(*pmd)))
+-			continue;
+-		if (pmd_none_or_clear_bad(pmd))
++		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
+ 			continue;
+ 		ret = unuse_pte_range(vma, pmd, addr, next, entry, page);
+ 		if (ret)
 _
 
-Patches currently in -mm which might be from echew@ixiacom.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
+linux-next.patch
 
