@@ -1,115 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:18:33 -0700
-Message-ID: <20120322201833.8FA9BA024E@akpm.mtv.corp.google.com>
+Subject: [merged] bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:18:40 -0700
+Message-ID: <20120322201840.C2060A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:48025 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759036Ab2CVUSf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:35 -0400
-Received: by wejx9 with SMTP id x9so134901wej.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:18:34 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61078 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759073Ab2CVUSl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dnelson@redhat.com, aarcange@redhat.com, andi@firstfloor.org, jin.dongming@np.css.fujitsu.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: nacc@linux.vnet.ibm.com, anton@au1.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, haveblue@us.ibm.com, mgorman@suse.de, nacc@us.ibm.com, paulus@samba.org, rcj@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: allow a hwpoisoned head page to be put back to LRU
+     Subject: bootmem/sparsemem: remove limit constraint in alloc_bootmem_section
 has been removed from the -mm tree.  Its filename was
-     thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru.patch
+     bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dean Nelson <dnelson@redhat.com>
-Subject: thp: allow a hwpoisoned head page to be put back to LRU
+From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Subject: bootmem/sparsemem: remove limit constraint in alloc_bootmem_section
 
-Andrea Arcangeli pointed out to me that a check in __memory_failure()
-which was intended to prevent THP tail pages from being checked for the
-absence of the PG_lru flag (something that is always the case), was also
-preventing THP head pages from being checked.
+While testing AMS (Active Memory Sharing) / CMO (Cooperative Memory
+Overcommit) on powerpc, we tripped the following:
 
-A THP head page could actually benefit from the call to shake_page() by
-ending up being put back to a LRU, provided it had been waiting in a
-pagevec array.
+kernel BUG at mm/bootmem.c:483!
+cpu 0x0: Vector: 700 (Program Check) at [c000000000c03940]
+    pc: c000000000a62bd8: .alloc_bootmem_core+0x90/0x39c
+    lr: c000000000a64bcc: .sparse_early_usemaps_alloc_node+0x84/0x29c
+    sp: c000000000c03bc0
+   msr: 8000000000021032
+  current = 0xc000000000b0cce0
+  paca    = 0xc000000001d80000
+    pid   = 0, comm = swapper
+kernel BUG at mm/bootmem.c:483!
+enter ? for help
+[c000000000c03c80] c000000000a64bcc
+.sparse_early_usemaps_alloc_node+0x84/0x29c
+[c000000000c03d50] c000000000a64f10 .sparse_init+0x12c/0x28c
+[c000000000c03e20] c000000000a474f4 .setup_arch+0x20c/0x294
+[c000000000c03ee0] c000000000a4079c .start_kernel+0xb4/0x460
+[c000000000c03f90] c000000000009670 .start_here_common+0x1c/0x2c
 
-Andrea suggested that the "!PageTransCompound(p)" in the if-statement
-should be replaced by a "!PageTransTail(p)", thus allowing THP head pages
-to be checked and possibly shaken.
+This is
 
-Signed-off-by: Dean Nelson <dnelson@redhat.com>
-Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+        BUG_ON(limit && goal + size > limit);
+
+and after some debugging, it seems that
+
+	goal = 0x7ffff000000
+	limit = 0x80000000000
+
+and sparse_early_usemaps_alloc_node ->
+sparse_early_usemaps_alloc_pgdat_section calls
+
+	return alloc_bootmem_section(usemap_size() * count, section_nr);
+
+This is on a system with 8TB available via the AMS pool, and as a quirk of
+AMS in firmware, all of that memory shows up in node 0.  So, we end up
+with an allocation that will fail the goal/limit constraints.  In theory,
+we could "fall-back" to alloc_bootmem_node() in
+sparse_early_usemaps_alloc_node(), but since we actually have HOTREMOVE
+defined, we'll BUG_ON() instead.  A simple solution appears to be to
+unconditionally remove the limit condition in alloc_bootmem_section,
+meaning allocations are allowed to cross section boundaries (necessary for
+systems of this size).
+
+Johannes Weiner pointed out that if alloc_bootmem_section() no longer
+guarantees section-locality, we need check_usemap_section_nr() to print
+possible cross-dependencies between node descriptors and the usemaps
+allocated through it.  That makes the two loops in
+sparse_early_usemaps_alloc_node() identical, so re-factor the code a bit.
+
+[akpm@linux-foundation.org: code simplification]
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Anton Blanchard <anton@au1.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
+Cc: Robert Jennings <rcj@linux.vnet.ibm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: <stable@vger.kernel.org>	[3.3.1]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   20 ++++++++++++++++++++
- mm/memory-failure.c        |    2 +-
- 2 files changed, 21 insertions(+), 1 deletion(-)
+ mm/bootmem.c |    5 ++---
+ mm/sparse.c  |   30 +++++++++++-------------------
+ 2 files changed, 13 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/page-flags.h~thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru include/linux/page-flags.h
---- a/include/linux/page-flags.h~thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru
-+++ a/include/linux/page-flags.h
-@@ -414,11 +414,26 @@ static inline int PageTransHuge(struct p
- 	return PageHead(page);
- }
- 
-+/*
-+ * PageTransCompound returns true for both transparent huge pages
-+ * and hugetlbfs pages, so it should only be called when it's known
-+ * that hugetlbfs pages aren't involved.
-+ */
- static inline int PageTransCompound(struct page *page)
+diff -puN mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section
++++ a/mm/bootmem.c
+@@ -766,14 +766,13 @@ void * __init alloc_bootmem_section(unsi
+ 				    unsigned long section_nr)
  {
- 	return PageCompound(page);
- }
+ 	bootmem_data_t *bdata;
+-	unsigned long pfn, goal, limit;
++	unsigned long pfn, goal;
  
-+/*
-+ * PageTransTail returns true for both transparent huge pages
-+ * and hugetlbfs pages, so it should only be called when it's known
-+ * that hugetlbfs pages aren't involved.
-+ */
-+static inline int PageTransTail(struct page *page)
-+{
-+	return PageTail(page);
-+}
-+
- #else
+ 	pfn = section_nr_to_pfn(section_nr);
+ 	goal = pfn << PAGE_SHIFT;
+-	limit = section_nr_to_pfn(section_nr + 1) << PAGE_SHIFT;
+ 	bdata = &bootmem_node_data[early_pfn_to_nid(pfn)];
  
- static inline int PageTransHuge(struct page *page)
-@@ -430,6 +445,11 @@ static inline int PageTransCompound(stru
- {
- 	return 0;
+-	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, limit);
++	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, 0);
  }
-+
-+static inline int PageTransTail(struct page *page)
-+{
-+	return 0;
-+}
  #endif
  
- #ifdef CONFIG_MMU
-diff -puN mm/memory-failure.c~thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru mm/memory-failure.c
---- a/mm/memory-failure.c~thp-allow-a-hwpoisoned-head-page-to-be-put-back-to-lru
-+++ a/mm/memory-failure.c
-@@ -1063,7 +1063,7 @@ int __memory_failure(unsigned long pfn, 
- 	 * The check (unnecessarily) ignores LRU pages being isolated and
- 	 * walked by the page reclaim code, however that's not a big loss.
- 	 */
--	if (!PageHuge(p) && !PageTransCompound(p)) {
-+	if (!PageHuge(p) && !PageTransTail(p)) {
- 		if (!PageLRU(p))
- 			shake_page(p, 0);
- 		if (!PageLRU(p)) {
-_
-
-Patches currently in -mm which might be from dnelson@redhat.com are
-
-origin.patch
-
+diff -puN mm/sparse.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section mm/sparse.c
+--- a/mm/sparse.c~bootmem-sparsemem-remove-limit-constraint-in-alloc_bootmem_section
++++ a/mm/sparse.c
+@@ -353,29 +353,21 @@ static void __init sparse_early_usemaps_
+ 
+ 	usemap = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nodeid),
+ 								 usemap_count);
+-	if (usemap) {
+-		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
+-			if (!present_section_nr(pnum))
+-				continue;
+-			usemap_map[pnum] = usemap;
+-			usemap += size;
++	if (!usemap) {
++		usemap = alloc_bootmem_node(NODE_DATA(nodeid), size * usemap_count);
++		if (!usemap) {
++			printk(KERN_WARNING "%s: allocation failed\n", __func__);
++			return;
+ 		}
+-		return;
+ 	}
+ 
+-	usemap = alloc_bootmem_node(NODE_DATA(nodeid), size * usemap_count);
+-	if (usemap) {
+-		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
+-			if (!present_section_nr(pnum))
+-				continue;
+-			usemap_map[pnum] = usemap;
+-			usemap += size;
+-			check_usemap_section_nr(nodeid, usemap_map[pnum]);
+-		}
+-		return;
++	for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
++		if (!present_section_nr(pnum))
++			continue;
++		usemap_map[pnum] = usemap;
++		usemap += size;
++		check_usemap_section_nr(nodeid, usemap_map[pnum]);
+ 	}
