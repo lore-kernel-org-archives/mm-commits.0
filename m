@@ -1,187 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-search-from-free_area_cache-for-the-bigger-size.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:58 -0700
-Message-ID: <20120322201758.89CF4A024E@akpm.mtv.corp.google.com>
+Subject: [merged] vmscan-only-defer-compaction-for-failed-order-and-higher.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:17:45 -0700
+Message-ID: <20120322201745.79834A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:45890 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751534Ab2CVUSB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:18:01 -0400
-Received: by eaaq10 with SMTP id q10so134174eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:59 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:44214 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757526Ab2CVURr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:47 -0400
+Received: by mail-bk0-f74.google.com with SMTP id jm19so134208bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mingo@redhat.com, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: riel@redhat.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: search from free_area_cache for the bigger size
+     Subject: vmscan: only defer compaction for failed order and higher
 has been removed from the -mm tree.  Its filename was
-     mm-search-from-free_area_cache-for-the-bigger-size.patch
+     vmscan-only-defer-compaction-for-failed-order-and-higher.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: mm: search from free_area_cache for the bigger size
+From: Rik van Riel <riel@redhat.com>
+Subject: vmscan: only defer compaction for failed order and higher
 
-If the required size is bigger than cached_hole_size it is better to
-search from free_area_cache - it is easier to get a free region,
-specifically for the 64 bit process whose address space is large enough
+Currently a failed order-9 (transparent hugepage) compaction can lead to
+memory compaction being temporarily disabled for a memory zone.  Even if
+we only need compaction for an order 2 allocation, eg.  for jumbo frames
+networking.
 
-Do it just as hugetlb_get_unmapped_area_topdown() in arch/x86/mm/hugetlbpage.c
+The fix is relatively straightforward: keep track of the highest order at
+which compaction is succeeding, and only defer compaction for orders at
+which compaction is failing.
 
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hillf Danton <dhillf@gmail.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/sys_x86_64.c |   34 +++++++++++++++----------------
- mm/mmap.c                    |   36 +++++++++++++++++++--------------
- 2 files changed, 38 insertions(+), 32 deletions(-)
+ include/linux/compaction.h |   14 ++++++++++----
+ include/linux/mmzone.h     |    1 +
+ mm/compaction.c            |   12 +++++++++++-
+ mm/page_alloc.c            |    6 ++++--
+ mm/vmscan.c                |    2 +-
+ 5 files changed, 27 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kernel/sys_x86_64.c~mm-search-from-free_area_cache-for-the-bigger-size arch/x86/kernel/sys_x86_64.c
---- a/arch/x86/kernel/sys_x86_64.c~mm-search-from-free_area_cache-for-the-bigger-size
-+++ a/arch/x86/kernel/sys_x86_64.c
-@@ -195,7 +195,7 @@ arch_get_unmapped_area_topdown(struct fi
+diff -puN include/linux/compaction.h~vmscan-only-defer-compaction-for-failed-order-and-higher include/linux/compaction.h
+--- a/include/linux/compaction.h~vmscan-only-defer-compaction-for-failed-order-and-higher
++++ a/include/linux/compaction.h
+@@ -34,20 +34,26 @@ extern unsigned long compaction_suitable
+  * allocation success. 1 << compact_defer_limit compactions are skipped up
+  * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
+  */
+-static inline void defer_compaction(struct zone *zone)
++static inline void defer_compaction(struct zone *zone, int order)
  {
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
--	unsigned long addr = addr0;
-+	unsigned long addr = addr0, start_addr;
+ 	zone->compact_considered = 0;
+ 	zone->compact_defer_shift++;
  
- 	/* requested length too big for entire address space */
- 	if (len > TASK_SIZE)
-@@ -223,25 +223,14 @@ arch_get_unmapped_area_topdown(struct fi
- 		mm->free_area_cache = mm->mmap_base;
++	if (order < zone->compact_order_failed)
++		zone->compact_order_failed = order;
++
+ 	if (zone->compact_defer_shift > COMPACT_MAX_DEFER_SHIFT)
+ 		zone->compact_defer_shift = COMPACT_MAX_DEFER_SHIFT;
+ }
+ 
+ /* Returns true if compaction should be skipped this time */
+-static inline bool compaction_deferred(struct zone *zone)
++static inline bool compaction_deferred(struct zone *zone, int order)
+ {
+ 	unsigned long defer_limit = 1UL << zone->compact_defer_shift;
+ 
++	if (order < zone->compact_order_failed)
++		return false;
++
+ 	/* Avoid possible overflow */
+ 	if (++zone->compact_considered > defer_limit)
+ 		zone->compact_considered = defer_limit;
+@@ -73,11 +79,11 @@ static inline unsigned long compaction_s
+ 	return COMPACT_SKIPPED;
+ }
+ 
+-static inline void defer_compaction(struct zone *zone)
++static inline void defer_compaction(struct zone *zone, int order)
+ {
+ }
+ 
+-static inline bool compaction_deferred(struct zone *zone)
++static inline bool compaction_deferred(struct zone *zone, int order)
+ {
+ 	return 1;
+ }
+diff -puN include/linux/mmzone.h~vmscan-only-defer-compaction-for-failed-order-and-higher include/linux/mmzone.h
+--- a/include/linux/mmzone.h~vmscan-only-defer-compaction-for-failed-order-and-higher
++++ a/include/linux/mmzone.h
+@@ -365,6 +365,7 @@ struct zone {
+ 	 */
+ 	unsigned int		compact_considered;
+ 	unsigned int		compact_defer_shift;
++	int			compact_order_failed;
+ #endif
+ 
+ 	ZONE_PADDING(_pad1_)
+diff -puN mm/compaction.c~vmscan-only-defer-compaction-for-failed-order-and-higher mm/compaction.c
+--- a/mm/compaction.c~vmscan-only-defer-compaction-for-failed-order-and-higher
++++ a/mm/compaction.c
+@@ -695,9 +695,19 @@ static int __compact_pgdat(pg_data_t *pg
+ 		INIT_LIST_HEAD(&cc->freepages);
+ 		INIT_LIST_HEAD(&cc->migratepages);
+ 
+-		if (cc->order < 0 || !compaction_deferred(zone))
++		if (cc->order < 0 || !compaction_deferred(zone, cc->order))
+ 			compact_zone(zone, cc);
+ 
++		if (cc->order > 0) {
++			int ok = zone_watermark_ok(zone, cc->order,
++						low_wmark_pages(zone), 0, 0);
++			if (ok && cc->order > zone->compact_order_failed)
++				zone->compact_order_failed = cc->order + 1;
++			/* Currently async compaction is never deferred. */
++			else if (!ok && cc->sync)
++				defer_compaction(zone, cc->order);
++		}
++
+ 		VM_BUG_ON(!list_empty(&cc->freepages));
+ 		VM_BUG_ON(!list_empty(&cc->migratepages));
  	}
+diff -puN mm/page_alloc.c~vmscan-only-defer-compaction-for-failed-order-and-higher mm/page_alloc.c
+--- a/mm/page_alloc.c~vmscan-only-defer-compaction-for-failed-order-and-higher
++++ a/mm/page_alloc.c
+@@ -1990,7 +1990,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	if (!order)
+ 		return NULL;
  
-+try_again:
- 	/* either no address requested or can't fit in requested address hole */
--	addr = mm->free_area_cache;
-+	start_addr = addr = mm->free_area_cache;
+-	if (compaction_deferred(preferred_zone)) {
++	if (compaction_deferred(preferred_zone, order)) {
+ 		*deferred_compaction = true;
+ 		return NULL;
+ 	}
+@@ -2012,6 +2012,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 		if (page) {
+ 			preferred_zone->compact_considered = 0;
+ 			preferred_zone->compact_defer_shift = 0;
++			if (order >= preferred_zone->compact_order_failed)
++				preferred_zone->compact_order_failed = order + 1;
+ 			count_vm_event(COMPACTSUCCESS);
+ 			return page;
+ 		}
+@@ -2028,7 +2030,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 		 * defer if the failure was a sync compaction failure.
+ 		 */
+ 		if (sync_migration)
+-			defer_compaction(preferred_zone);
++			defer_compaction(preferred_zone, order);
  
--	/* make sure it can fit in the remaining address space */
--	if (addr > len) {
--		unsigned long tmp_addr = align_addr(addr - len, filp,
--						    ALIGN_TOPDOWN);
--
--		vma = find_vma(mm, tmp_addr);
--		if (!vma || tmp_addr + len <= vma->vm_start)
--			/* remember the address as a hint for next time */
--			return mm->free_area_cache = tmp_addr;
--	}
--
--	if (mm->mmap_base < len)
--		goto bottomup;
--
--	addr = mm->mmap_base-len;
-+	if (addr < len)
-+		goto fail;
+ 		cond_resched();
+ 	}
+diff -puN mm/vmscan.c~vmscan-only-defer-compaction-for-failed-order-and-higher mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-only-defer-compaction-for-failed-order-and-higher
++++ a/mm/vmscan.c
+@@ -2198,7 +2198,7 @@ static inline bool compaction_ready(stru
+ 	 * If compaction is deferred, reclaim up to a point where
+ 	 * compaction will have a chance of success when re-enabled
+ 	 */
+-	if (compaction_deferred(zone))
++	if (compaction_deferred(zone, sc->order))
+ 		return watermark_ok;
  
-+	addr -= len;
- 	do {
- 		addr = align_addr(addr, filp, ALIGN_TOPDOWN);
- 
-@@ -263,6 +252,17 @@ arch_get_unmapped_area_topdown(struct fi
- 		addr = vma->vm_start-len;
- 	} while (len < vma->vm_start);
- 
-+fail:
-+	/*
-+	 * if hint left us with no space for the requested
-+	 * mapping then try again:
-+	 */
-+	if (start_addr != mm->mmap_base) {
-+		mm->free_area_cache = mm->mmap_base;
-+		mm->cached_hole_size = 0;
-+		goto try_again;
-+	}
-+
- bottomup:
- 	/*
- 	 * A failed mmap() very likely causes application failure,
-diff -puN mm/mmap.c~mm-search-from-free_area_cache-for-the-bigger-size mm/mmap.c
---- a/mm/mmap.c~mm-search-from-free_area_cache-for-the-bigger-size
-+++ a/mm/mmap.c
-@@ -1442,7 +1442,7 @@ arch_get_unmapped_area_topdown(struct fi
- {
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
--	unsigned long addr = addr0;
-+	unsigned long addr = addr0, start_addr;
- 
- 	/* requested length too big for entire address space */
- 	if (len > TASK_SIZE)
-@@ -1466,22 +1466,14 @@ arch_get_unmapped_area_topdown(struct fi
-  		mm->free_area_cache = mm->mmap_base;
-  	}
- 
-+try_again:
- 	/* either no address requested or can't fit in requested address hole */
--	addr = mm->free_area_cache;
-+	start_addr = addr = mm->free_area_cache;
- 
--	/* make sure it can fit in the remaining address space */
--	if (addr > len) {
--		vma = find_vma(mm, addr-len);
--		if (!vma || addr <= vma->vm_start)
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr-len);
--	}
--
--	if (mm->mmap_base < len)
--		goto bottomup;
--
--	addr = mm->mmap_base-len;
-+	if (addr < len)
-+		goto fail;
- 
-+	addr -= len;
- 	do {
- 		/*
- 		 * Lookup failure means no vma is above this address,
-@@ -1501,7 +1493,21 @@ arch_get_unmapped_area_topdown(struct fi
- 		addr = vma->vm_start-len;
- 	} while (len < vma->vm_start);
- 
--bottomup:
-+fail:
-+	/*
-+	 * if hint left us with no space for the requested
-+	 * mapping then try again:
-+	 *
-+	 * Note: this is different with the case of bottomup
-+	 * which does the fully line-search, but we use find_vma
-+	 * here that causes some holes skipped.
-+	 */
-+	if (start_addr != mm->mmap_base) {
-+		mm->free_area_cache = mm->mmap_base;
-+		mm->cached_hole_size = 0;
-+		goto try_again;
-+	}
-+
- 	/*
- 	 * A failed mmap() very likely causes application failure,
- 	 * so fall back to the bottom-up function here. This scenario
+ 	/* If compaction is not ready to start, keep reclaiming */
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
 linux-next.patch
-prio_tree-remove-unnecessary-code-in-prio_tree_replace.patch
-prio_tree-cleanup-prio_tree_left-prio_tree_right.patch
-prio_tree-simplify-prio_tree_expand.patch
-prio_tree-introduce-prio_set_parent.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm-fix-page-faults-detection-in-swap-token-logic.patch
+mm-add-extra-free-kbytes-tunable.patch
+mm-add-extra-free-kbytes-tunable-update.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+smp-introduce-a-generic-on_each_cpu_mask-function.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
 
