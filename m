@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-enum-lru_list-lru.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:19:34 -0700
-Message-ID: <20120322201934.70099A024E@akpm.mtv.corp.google.com>
+Subject: [merged] memcg-remove-redundant-returns.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:19:36 -0700
+Message-ID: <20120322201936.7E9CEA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:35764 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965122Ab2CVUTg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:36 -0400
-Received: by vcbfk26 with SMTP id fk26so402357vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:35 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:58075 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759215Ab2CVUTj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:19:39 -0400
+Received: by mail-bk0-f74.google.com with SMTP id jm19so134271bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:19:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: enum lru_list lru
+     Subject: memcg: remove redundant returns
 has been removed from the -mm tree.  Its filename was
-     memcg-enum-lru_list-lru.patch
+     memcg-remove-redundant-returns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,9 +26,9 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: memcg: enum lru_list lru
+Subject: memcg: remove redundant returns
 
-Mostly we use "enum lru_list lru": change those few "l"s to "lru"s.
+Remove redundant returns from ends of functions, and one blank line.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -38,65 +38,44 @@ Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/memcontrol.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-enum-lru_list-lru mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-enum-lru_list-lru
+diff -puN mm/memcontrol.c~memcg-remove-redundant-returns mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-redundant-returns
 +++ a/mm/memcontrol.c
-@@ -719,14 +719,14 @@ mem_cgroup_zone_nr_lru_pages(struct mem_
- 			unsigned int lru_mask)
- {
- 	struct mem_cgroup_per_zone *mz;
--	enum lru_list l;
-+	enum lru_list lru;
- 	unsigned long ret = 0;
+@@ -1391,7 +1391,6 @@ void mem_cgroup_print_oom_info(struct me
+ 	if (!memcg || !p)
+ 		return;
  
- 	mz = mem_cgroup_zoneinfo(memcg, nid, zid);
+-
+ 	rcu_read_lock();
  
--	for_each_lru(l) {
--		if (BIT(l) & lru_mask)
--			ret += mz->lru_size[l];
-+	for_each_lru(lru) {
-+		if (BIT(lru) & lru_mask)
-+			ret += mz->lru_size[lru];
- 	}
- 	return ret;
+ 	mem_cgrp = memcg->css.cgroup;
+@@ -1926,7 +1925,6 @@ out:
+ 	if (unlikely(need_unlock))
+ 		move_unlock_page_cgroup(pc, &flags);
+ 	rcu_read_unlock();
+-	return;
  }
-@@ -3701,10 +3701,10 @@ move_account:
- 		mem_cgroup_start_move(memcg);
- 		for_each_node_state(node, N_HIGH_MEMORY) {
- 			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
--				enum lru_list l;
--				for_each_lru(l) {
-+				enum lru_list lru;
-+				for_each_lru(lru) {
- 					ret = mem_cgroup_force_empty_list(memcg,
--							node, zid, l);
-+							node, zid, lru);
- 					if (ret)
- 						break;
- 				}
-@@ -4734,7 +4734,7 @@ static int alloc_mem_cgroup_per_zone_inf
- {
- 	struct mem_cgroup_per_node *pn;
- 	struct mem_cgroup_per_zone *mz;
--	enum lru_list l;
-+	enum lru_list lru;
- 	int zone, tmp = node;
- 	/*
- 	 * This routine is called against possible nodes.
-@@ -4752,8 +4752,8 @@ static int alloc_mem_cgroup_per_zone_inf
+ EXPORT_SYMBOL(mem_cgroup_update_page_stat);
  
- 	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
- 		mz = &pn->zoneinfo[zone];
--		for_each_lru(l)
--			INIT_LIST_HEAD(&mz->lruvec.lists[l]);
-+		for_each_lru(lru)
-+			INIT_LIST_HEAD(&mz->lruvec.lists[lru]);
- 		mz->usage_in_excess = 0;
- 		mz->on_tree = false;
- 		mz->memcg = memcg;
+@@ -2912,7 +2910,6 @@ direct_uncharge:
+ 		res_counter_uncharge(&memcg->memsw, nr_pages * PAGE_SIZE);
+ 	if (unlikely(batch->memcg != memcg))
+ 		memcg_oom_recover(memcg);
+-	return;
+ }
+ 
+ /*
+@@ -3937,7 +3934,6 @@ static void memcg_get_hierarchical_limit
+ out:
+ 	*mem_limit = min_limit;
+ 	*memsw_limit = min_memsw_limit;
+-	return;
+ }
+ 
+ static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
