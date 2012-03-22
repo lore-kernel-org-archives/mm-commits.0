@@ -1,91 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting.patch removed from -mm tree
-Date: Thu, 22 Mar 2012 13:17:27 -0700
-Message-ID: <20120322201727.76550A024E@akpm.mtv.corp.google.com>
+Subject: [merged] mm-add-rss-counters-consistency-check.patch removed from -mm tree
+Date: Thu, 22 Mar 2012 13:17:31 -0700
+Message-ID: <20120322201731.62A73A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:33426 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756652Ab2CVUR2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:28 -0400
-Received: by ggnd2 with SMTP id d2so401419ggn.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:27 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:60535 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757507Ab2CVURc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Mar 2012 16:17:32 -0400
+Received: by mail-gy0-f202.google.com with SMTP id z15so402093ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Mar 2012 13:17:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: do not emit oom killer warning if chosen thread is already exiting
+     Subject: mm: add rss counters consistency check
 has been removed from the -mm tree.  Its filename was
-     mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting.patch
+     mm-add-rss-counters-consistency-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: do not emit oom killer warning if chosen thread is already exiting
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm: add rss counters consistency check
 
-If a thread is chosen for oom kill and is already PF_EXITING, then the oom
-killer simply sets TIF_MEMDIE and returns.  This allows the thread to have
-access to memory reserves so that it may quickly exit.  This logic is
-preceeded with a comment saying there's no need to alarm the sysadmin. 
-This patch adds truth to that statement.
+Warn about non-zero rss counters at final mmdrop.
 
-There's no need to emit any warning about the oom condition if the thread
-is already exiting since it will not be killed.  In this condition, just
-silently return the oom killer since its only giving access to memory
-reserves and is otherwise a no-op.
+This check will prevent reoccurences of bugs such as that fixed in "mm:
+fix rss count leakage during migration".
 
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+I didn't hide this check under CONFIG_VM_DEBUG because it rather small and
+rss counters cover whole page-table management, so this is a good
+invariant.
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/fork.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-do-not-emit-oom-killer-warning-if-chosen-thread-is-already-exiting
-+++ a/mm/oom_kill.c
-@@ -445,9 +445,6 @@ static void oom_kill_process(struct task
- 	struct mm_struct *mm;
- 	unsigned int victim_points = 0;
+diff -puN kernel/fork.c~mm-add-rss-counters-consistency-check kernel/fork.c
+--- a/kernel/fork.c~mm-add-rss-counters-consistency-check
++++ a/kernel/fork.c
+@@ -511,6 +511,23 @@ static struct mm_struct *mm_init(struct 
+ 	return NULL;
+ }
  
--	if (printk_ratelimit())
--		dump_header(p, gfp_mask, order, memcg, nodemask);
--
- 	/*
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
- 	 * its children or threads, just set TIF_MEMDIE so it can die quickly
-@@ -457,6 +454,9 @@ static void oom_kill_process(struct task
- 		return;
- 	}
- 
-+	if (printk_ratelimit())
-+		dump_header(p, gfp_mask, order, memcg, nodemask);
++static void check_mm(struct mm_struct *mm)
++{
++	int i;
 +
- 	task_lock(p);
- 	pr_err("%s: Kill process %d (%s) score %d or sacrifice child\n",
- 		message, task_pid_nr(p), p->comm, points);
++	for (i = 0; i < NR_MM_COUNTERS; i++) {
++		long x = atomic_long_read(&mm->rss_stat.count[i]);
++
++		if (unlikely(x))
++			printk(KERN_ALERT "BUG: Bad rss-counter state "
++					  "mm:%p idx:%d val:%ld\n", mm, i, x);
++	}
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	VM_BUG_ON(mm->pmd_huge_pte);
++#endif
++}
++
+ /*
+  * Allocate and initialize an mm_struct.
+  */
+@@ -538,9 +555,7 @@ void __mmdrop(struct mm_struct *mm)
+ 	mm_free_pgd(mm);
+ 	destroy_context(mm);
+ 	mmu_notifier_mm_destroy(mm);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	VM_BUG_ON(mm->pmd_huge_pte);
+-#endif
++	check_mm(mm);
+ 	free_mm(mm);
+ }
+ EXPORT_SYMBOL_GPL(__mmdrop);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 origin.patch
 linux-next.patch
-signal-give-send_sig_forced-more-power-to-beat-signal_unkillable.patch
-signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
-signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
-signal-zap_pid_ns_processes-s-send_sig_noinfo-send_sig_forced.patch
-usermodehelper-introduce-umh_completesub_info.patch
-usermodehelper-implement-umh_killable.patch
-usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
-usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
-kmod-introduce-call_modprobe-helper.patch
-kmod-make-__request_module-killable.patch
+mm-fix-page-faults-detection-in-swap-token-logic.patch
+radix-tree-introduce-bit-optimized-iterator.patch
+radix-tree-introduce-bit-optimized-iterator-v3.patch
+radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
+radix-tree-rewrite-gang-lookup-with-using-iterator.patch
+radix-tree-use-iterators-in-find_get_pages-functions.patch
 
