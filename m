@@ -1,79 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [folded] crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:28:39 -0700
-Message-ID: <20120323212839.D1D1DA0395@akpm.mtv.corp.google.com>
+Subject: [folded] crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:29:12 -0700
+Message-ID: <20120323212912.9BDF3A0395@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:44452 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755022Ab2CWV2k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:28:40 -0400
-Received: by yhgm50 with SMTP id m50so567497yhg.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:28:40 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:53845 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753658Ab2CWV3P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 23 Mar 2012 17:29:15 -0400
+Received: by laai8 with SMTP id i8so187979laa.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:29:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, djwong@us.ibm.com, linux@horizon.com, rpearson@systemfabricworks.com, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, herbert@gondor.apana.org.au, rdunlap@xenotime.net, rpearson@systemfabricworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix
+     Subject: crc32: Don't reference unnecessary crc32 tables in single-bit mode
 has been removed from the -mm tree.  Its filename was
-     crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+     crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode.patch
 
-This patch was dropped because it was folded into crc32-move-long-comment-about-crc32-fundamentals-to-documentation.patch
+This patch was dropped because it was folded into crc32-bolt-on-crc32c.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: crc32: Don't reference unnecessary crc32 tables in single-bit mode
 
-fix typo, per George
+When compiling with single bit mode (CRC32_BIT=y) we shouldn't reference
+the crc32 tables, since they aren't built in single-bit mode.  Many thanks
+to Randy Dunlap for finding this bug:
+http://marc.info/?l=linux-kernel&m=132709702422141&w=2
 
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Bob Pearson <rpearson@systemfabricworks.com>
-Cc: Darrick J. Wong <djwong@us.ibm.com>
-Cc: George Spelvin <linux@horizon.com>
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/crc32.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/crc32.c |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/crc32.txt~crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix Documentation/crc32.txt
---- a/Documentation/crc32.txt~crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix
-+++ a/Documentation/crc32.txt
-@@ -29,8 +29,8 @@ is sent last.  And when appending a CRC 
- do it in the right order, matching the endianness.
+diff -puN lib/crc32.c~crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode lib/crc32.c
+--- a/lib/crc32.c~crc32-bolt-on-crc32c-dont-reference-unnecessary-crc32-tables-in-single-bit-mode
++++ a/lib/crc32.c
+@@ -174,16 +174,26 @@ static inline u32 __pure crc32_le_generi
+ 	return crc;
+ }
  
- Just like with ordinary division, you proceed one digit (bit) at a time.
--Each step of the division, division, you take one more digit (bit) of the
--dividend and append it to the current remainder.  Then you figure out the
-+Each step of the division you take one more digit (bit) of the dividend
-+and append it to the current remainder.  Then you figure out the
- appropriate multiple of the divisor to subtract to being the remainder
- back into range.  In binary, this is easy - it has to be either 0 or 1,
- and to make the XOR cancel, it's just a copy of bit 32 of the remainder.
++#if CRC_LE_BITS == 1
++u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
++{
++	return crc32_le_generic(crc, p, len, NULL, CRCPOLY_LE);
++}
++u32 __pure __crc32c_le(u32 crc, unsigned char const *p, size_t len)
++{
++	return crc32_le_generic(crc, p, len, NULL, CRC32C_POLY_LE);
++}
++#else
+ u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
+ {
+ 	return crc32_le_generic(crc, p, len, crc32table_le, CRCPOLY_LE);
+ }
+-EXPORT_SYMBOL(crc32_le);
+-
+ u32 __pure __crc32c_le(u32 crc, unsigned char const *p, size_t len)
+ {
+ 	return crc32_le_generic(crc, p, len, crc32ctable_le, CRC32C_POLY_LE);
+ }
++#endif
++EXPORT_SYMBOL(crc32_le);
+ EXPORT_SYMBOL(__crc32c_le);
+ 
+ /**
+@@ -233,10 +243,17 @@ static inline u32 __pure crc32_be_generi
+ 	return crc;
+ }
+ 
++#if CRC_LE_BITS == 1
++u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
++{
++	return crc32_be_generic(crc, p, len, NULL, CRCPOLY_BE);
++}
++#else
+ u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
+ {
+ 	return crc32_be_generic(crc, p, len, crc32table_be, CRCPOLY_BE);
+ }
++#endif
+ EXPORT_SYMBOL(crc32_be);
+ 
+ #ifdef CONFIG_CRC32_SELFTEST
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 origin.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
-kernel-watchdogc-convert-to-pr_foo.patch
-kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
-backlight-use-id-driver_data-to-differentiate-lp855x-chips.patch
-backlight-add-driver-for-bachmanns-ot200.patch
-leds-lp5521-support-led-pattern-data.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip.patch
-leds-lm3530-replace-i2c_client-with-led_classdev.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
+crc32-removed-two-instances-of-trailing-whitespaces.patch
 crc32-move-long-comment-about-crc32-fundamentals-to-documentation.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+crc32-simplify-unit-test-code.patch
+crc32-miscellaneous-cleanups.patch
+crc32-fix-mixing-of-endian-specific-types.patch
+crc32-make-crc__bits-definition-correspond-to-actual-bit-counts.patch
+crc32-add-slice-by-8-algorithm-to-existing-code.patch
+crc32-optimize-loop-counter-for-x86.patch
+crc32-add-note-about-this-patchset-to-crc32c.patch
+crc32-bolt-on-crc32c.patch
+crypto-crc32c-should-use-library-implementation.patch
+crc32-add-self-test-code-for-crc32c.patch
+crc32-select-an-algorithm-via-kconfig.patch
 
