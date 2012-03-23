@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 11:16:28 -0700
-Message-ID: <20120323181629.F205EA0295@akpm.mtv.corp.google.com>
+Subject: [obsolete] drivers-mfd-twl-corec-unbork.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 11:16:40 -0700
+Message-ID: <20120323181640.E9C76A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:35362 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753508Ab2CWSQe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 14:16:34 -0400
-Received: by wejx9 with SMTP id x9so184398wej.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 11:16:32 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:61824 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755170Ab2CWSQm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 14:16:42 -0400
+Received: by qabg24 with SMTP id g24so135095qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 11:16:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, b-cousson@ti.com, balajitk@ti.com, gg@slimlogic.co.uk, grant.likely@secretlab.ca, rob.herring@calxeda.com, sameo@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, b-cousson@ti.com, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/mfd/twl-core.c: wtf isn't this fixed yet??
+     Subject: drivers/mfd/twl-core.c: unbork
 has been removed from the -mm tree.  Its filename was
-     drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet.patch
+     drivers-mfd-twl-corec-unbork.patch
 
 This patch was dropped because it is obsolete
 
@@ -26,50 +26,32 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/mfd/twl-core.c: wtf isn't this fixed yet??
+Subject: drivers/mfd/twl-core.c: unbork
 
-drivers/mfd/twl-core.c: In function 'twl_probe':
-drivers/mfd/twl-core.c:1237: error: implicit declaration of function 'irq_alloc_descs'
-drivers/mfd/twl-core.c:1245: error: implicit declaration of function 'irq_domain_add_legacy'
-drivers/mfd/twl-core.c:1246: error: 'irq_domain_simple_ops' undeclared (first use in this function)
-drivers/mfd/twl-core.c:1246: error: (Each undeclared identifier is reported only once
-drivers/mfd/twl-core.c:1246: error: for each function it appears in.)
+make i386 compileable
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Balaji T K <balajitk@ti.com>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Rob Herring <rob.herring@calxeda.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/twl-core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mfd/twl-core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mfd/twl-core.c~drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet drivers/mfd/twl-core.c
---- a/drivers/mfd/twl-core.c~drivers-mfd-twl-corec-wtf-isnt-this-fixed-yet
+diff -puN drivers/mfd/twl-core.c~drivers-mfd-twl-corec-unbork drivers/mfd/twl-core.c
+--- a/drivers/mfd/twl-core.c~drivers-mfd-twl-corec-unbork
 +++ a/drivers/mfd/twl-core.c
-@@ -1259,7 +1259,7 @@ twl_probe(struct i2c_client *client, con
- 		return -EINVAL;
+@@ -1353,8 +1353,8 @@ twl_probe(struct i2c_client *client, con
  	}
  
--	status = irq_alloc_descs(-1, pdata->irq_base, nr_irqs, 0);
-+	status = 0;
- 	if (IS_ERR_VALUE(status)) {
- 		dev_err(&client->dev, "Fail to allocate IRQ descs\n");
- 		return status;
-@@ -1267,8 +1267,8 @@ twl_probe(struct i2c_client *client, con
+ 	status = -ENODEV;
+-	if (node)
+-		status = of_platform_populate(node, NULL, NULL, &client->dev);
++//	if (node)
++//		status = of_platform_populate(node, NULL, NULL, &client->dev);
+ 	if (status)
+ 		status = add_children(pdata, id->driver_data);
  
- 	pdata->irq_base = status;
- 	pdata->irq_end = pdata->irq_base + nr_irqs;
--	irq_domain_add_legacy(node, nr_irqs, pdata->irq_base, 0,
--			      &irq_domain_simple_ops, NULL);
-+//	irq_domain_add_legacy(node, nr_irqs, pdata->irq_base, 0,
-+//			      &irq_domain_simple_ops, NULL);
- 
- 	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
- 		dev_dbg(&client->dev, "can't talk I2C?\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +62,6 @@ linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-mfd-twl-corec-unbork.patch
 drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 drivers-platform-x86-samsung-laptopc-fix-build.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
