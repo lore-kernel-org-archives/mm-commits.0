@@ -1,81 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-xen-kconfig-fix-kconfig-layout.patch added to -mm tree
-Date: Fri, 23 Mar 2012 11:18:00 -0700
-Message-ID: <20120323181800.560BAA0295@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-platform-x86-samsung-laptopc-fix-build.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 11:22:34 -0700
+Message-ID: <20120323182235.281A0A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:46687 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759162Ab2CWSSB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 14:18:01 -0400
-Received: by qabg24 with SMTP id g24so135181qab.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 11:18:00 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:44509 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756709Ab2CWSWg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 14:22:36 -0400
+Received: by qcsp5 with SMTP id p5so286898qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 11:22:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, konrad.wilk@oracle.com
+To: akpm@linux-foundation.org, corentincj@iksaif.net, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/xen/Kconfig: fix Kconfig layout
-has been added to the -mm tree.  Its filename is
-     drivers-xen-kconfig-fix-kconfig-layout.patch
+     Subject: drivers/platform/x86/samsung-laptop.c: fix build
+has been removed from the -mm tree.  Its filename was
+     drivers-platform-x86-samsung-laptopc-fix-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/xen/Kconfig: fix Kconfig layout
+Subject: drivers/platform/x86/samsung-laptop.c: fix build
 
-Fit it into 80 columns so that it is readable in menuconfig.
+gcc-4.4.4:
 
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+drivers/platform/x86/samsung-laptop.c: In function 'sabi_set_commandb':
+drivers/platform/x86/samsung-laptop.c:433: error: unknown field 'd0' specified in initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: missing braces around initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: (near initialization for 'in.<anonymous>')
+drivers/platform/x86/samsung-laptop.c:433: error: unknown field 'd1' specified in initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: excess elements in struct initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: (near initialization for 'in')
+drivers/platform/x86/samsung-laptop.c:433: error: unknown field 'd2' specified in initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: excess elements in struct initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: (near initialization for 'in')
+drivers/platform/x86/samsung-laptop.c:433: error: unknown field 'd3' specified in initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: excess elements in struct initializer
+drivers/platform/x86/samsung-laptop.c:433: warning: (near initialization for 'in')
+drivers/platform/x86/samsung-laptop.c: At top level:
+drivers/platform/x86/samsung-laptop.c:1108: warning: initialization from incompatible pointer type
+
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/Kconfig |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/platform/x86/samsung-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/xen/Kconfig~drivers-xen-kconfig-fix-kconfig-layout drivers/xen/Kconfig
---- a/drivers/xen/Kconfig~drivers-xen-kconfig-fix-kconfig-layout
-+++ a/drivers/xen/Kconfig
-@@ -183,15 +183,17 @@ config XEN_ACPI_PROCESSOR
- 	depends on XEN && X86 && ACPI_PROCESSOR
- 	default m
- 	help
--          This ACPI processor uploads Power Management information to the Xen hypervisor.
-+          This ACPI processor uploads Power Management information to the Xen
-+	  hypervisor.
+diff -puN drivers/platform/x86/samsung-laptop.c~drivers-platform-x86-samsung-laptopc-fix-build drivers/platform/x86/samsung-laptop.c
+--- a/drivers/platform/x86/samsung-laptop.c~drivers-platform-x86-samsung-laptopc-fix-build
++++ a/drivers/platform/x86/samsung-laptop.c
+@@ -430,7 +430,7 @@ exit:
+ static int sabi_set_commandb(struct samsung_laptop *samsung,
+ 			     u16 command, u8 data)
+ {
+-	struct sabi_data in = { .d0 = 0, .d1 = 0, .d2 = 0, .d3 = 0 };
++	struct sabi_data in = { { { .d0 = 0, .d1 = 0, .d2 = 0, .d3 = 0 } } };
  
--	  To do that the driver parses the Power Management data and uploads said
--	  information to the Xen hypervisor. Then the Xen hypervisor can select the
--          proper Cx and Pxx states. It also registers itslef as the SMM so that
--          other drivers (such as ACPI cpufreq scaling driver) will not load.
-+	  To do that the driver parses the Power Management data and uploads
-+	  said information to the Xen hypervisor. Then the Xen hypervisor can
-+	  select the proper Cx and Pxx states. It also registers itslef as the
-+	  SMM so that other drivers (such as ACPI cpufreq scaling driver) will
-+	  not load.
- 
--          To compile this driver as a module, choose M here: the
--          module will be called xen_acpi_processor  If you do not know what to choose,
--          select M here. If the CPUFREQ drivers are built in, select Y here.
-+          To compile this driver as a module, choose M here: the module will be
-+	  called xen_acpi_processor  If you do not know what to choose, select
-+	  M here. If the CPUFREQ drivers are built in, select Y here.
- 
- endmenu
+ 	in.data[0] = data;
+ 	return sabi_command(samsung, command, &in, NULL);
 _
-Subject: Subject: drivers/xen/Kconfig: fix Kconfig layout
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
