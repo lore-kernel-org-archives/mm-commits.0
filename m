@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + swapon-check-validity-of-swap_flags.patch added to -mm tree
-Date: Fri, 23 Mar 2012 16:02:22 -0700
-Message-ID: <20120323230222.BAE91A020E@akpm.mtv.corp.google.com>
+Subject: + proc-fix-mount-t-proc-o-aaa.patch added to -mm tree
+Date: Fri, 23 Mar 2012 16:15:10 -0700
+Message-ID: <20120323231510.CC9FAA00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:54002 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751468Ab2CWXCZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Mar 2012 19:02:25 -0400
-Received: by laai8 with SMTP id i8so189739laa.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 16:02:23 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:37788 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753634Ab2CWXPN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 19:15:13 -0400
+Received: by wejx9 with SMTP id x9so191069wej.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 16:15:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com
+Cc: segoon@openwall.com, a.miskiewicz@gmail.com, adobriyan@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: swapon: check validity of swap_flags
+     Subject: proc: fix mount -t proc -o AAA
 has been added to the -mm tree.  Its filename is
-     swapon-check-validity-of-swap_flags.patch
+     proc-fix-mount-t-proc-o-aaa.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: swapon: check validity of swap_flags
+From: Vasiliy Kulikov <segoon@openwall.com>
+Subject: proc: fix mount -t proc -o AAA
 
-Most system calls taking flags first check that the flags passed in are
-valid, and that helps userspace to detect when new flags are supported.
+The proc_parse_options() call from proc_mount() runs only once at boot
+time.  So on any later mount attempt, any mount options are ignored
+because ->s_root is already initialized.
 
-But swapon never did so: start checking now, to help if we ever want to
-support more swap_flags in future.
+As a consequence, "mount -o remount,<options>" will ignore the options.
 
-It's difficult to get stray bits set in an int, and swapon is not widely
-used, so this is most unlikely to break any userspace; but we can just
-revert if it turns out to do so.
+To fix this, parse the mount options unconditionally.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
+Reported-by: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 +++
- mm/swapfile.c        |    3 +++
- 2 files changed, 6 insertions(+)
+ fs/proc/root.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/swap.h~swapon-check-validity-of-swap_flags include/linux/swap.h
---- a/include/linux/swap.h~swapon-check-validity-of-swap_flags
-+++ a/include/linux/swap.h
-@@ -21,6 +21,9 @@ struct bio;
- #define SWAP_FLAG_PRIO_SHIFT	0
- #define SWAP_FLAG_DISCARD	0x10000 /* discard swap cluster after use */
+diff -puN fs/proc/root.c~proc-fix-mount-t-proc-o-aaa fs/proc/root.c
+--- a/fs/proc/root.c~proc-fix-mount-t-proc-o-aaa
++++ a/fs/proc/root.c
+@@ -115,12 +115,13 @@ static struct dentry *proc_mount(struct 
+ 	if (IS_ERR(sb))
+ 		return ERR_CAST(sb);
  
-+#define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
-+				 SWAP_FLAG_DISCARD)
++	if (!proc_parse_options(options, ns)) {
++		deactivate_locked_super(sb);
++		return ERR_PTR(-EINVAL);
++	}
 +
- static inline int current_is_kswapd(void)
- {
- 	return current->flags & PF_KSWAPD;
-diff -puN mm/swapfile.c~swapon-check-validity-of-swap_flags mm/swapfile.c
---- a/mm/swapfile.c~swapon-check-validity-of-swap_flags
-+++ a/mm/swapfile.c
-@@ -2022,6 +2022,9 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	struct page *page = NULL;
- 	struct inode *inode = NULL;
- 
-+	if (swap_flags & ~SWAP_FLAGS_VALID)
-+		return -EINVAL;
-+
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
+ 	if (!sb->s_root) {
+ 		sb->s_flags = flags;
+-		if (!proc_parse_options(options, ns)) {
+-			deactivate_locked_super(sb);
+-			return ERR_PTR(-EINVAL);
+-		}
+ 		err = proc_fill_super(sb);
+ 		if (err) {
+ 			deactivate_locked_super(sb);
 _
-Subject: Subject: swapon: check validity of swap_flags
+Subject: Subject: proc: fix mount -t proc -o AAA
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from segoon@openwall.com are
 
-origin.patch
-mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
-linux-next.patch
-mm-for-fs-add-truncate_pagecache_range.patch
-mm-for-fs-add-truncate_pagecache_range-fix.patch
-x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow.patch
-swapon-check-validity-of-swap_flags.patch
-memcg-change-behavior-of-moving-charges-at-task-move.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-radix-tree-introduce-bit-optimized-iterator.patch
-radix-tree-introduce-bit-optimized-iterator-v3.patch
-radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-radix-tree-rewrite-gang-lookup-with-using-iterator.patch
-radix-tree-use-iterators-in-find_get_pages-functions.patch
-prio_tree-debugging-patch.patch
+proc-fix-mount-t-proc-o-aaa.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
 
