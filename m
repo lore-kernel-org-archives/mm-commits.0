@@ -1,67 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [folded] rtc-ds1307-generalise-ram-size-and-offset-fix.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:30:36 -0700
-Message-ID: <20120323213037.14F6FA02DE@akpm.mtv.corp.google.com>
+Subject: [folded] coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:31:16 -0700
+Message-ID: <20120323213116.64B31A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:38060 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755052Ab2CWVaj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:30:39 -0400
-Received: by eaaq10 with SMTP id q10so188432eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:30:37 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:65523 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052Ab2CWVbR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:31:17 -0400
+Received: by ggnd2 with SMTP id d2so565813ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:31:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, Austin.Boyle@aviatnet.com, a.zummo@towertech.it, danders.dev@gmail.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avi@redhat.com, cmetcalf@tilera.com, jbaron@redhat.com, roland@hack.frob.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: fix rtc-ds1307 printk format warning
+     Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1307-generalise-ram-size-and-offset-fix.patch
+     coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
 
-This patch was dropped because it was folded into rtc-ds1307-generalise-ram-size-and-offset.patch
+This patch was dropped because it was folded into coredump-add-vm_nodump-madv_nodump-madv_clear_nodump.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: rtc: fix rtc-ds1307 printk format warning
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
 
-fix printk format warning
+s/MADV_NODUMP/MADV_DONTDUMP/, s/MADV_CLEAR_NODUMP/MADV_DODUMP/, per Roland
 
-drivers/rtc/rtc-ds1307.c:915:3: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
-
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Austin Boyle <Austin.Boyle@aviatnet.com>
-Cc: Wolfram Sang <w.sang@pengutronix.de>
-Cc: David Anders <danders.dev@gmail.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/mman-common.h |    4 ++--
+ mm/madvise.c                      |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-generalise-ram-size-and-offset-fix drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-generalise-ram-size-and-offset-fix
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -912,7 +912,7 @@ read_rtc:
- 			goto exit_nvram;
- 		}
- 		set_bit(HAS_NVRAM, &ds1307->flags);
--		dev_info(&client->dev, "%d bytes nvram\n", ds1307->nvram->size);
-+		dev_info(&client->dev, "%zu bytes nvram\n", ds1307->nvram->size);
- 	}
+diff -puN include/asm-generic/mman-common.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix include/asm-generic/mman-common.h
+--- a/include/asm-generic/mman-common.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
++++ a/include/asm-generic/mman-common.h
+@@ -48,9 +48,9 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
  
- 	return 0;
+-#define MADV_NODUMP 16			/* Explicity exclude from the core dump,
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
+ 					   overrides the coredump filter bits */
+-#define MADV_CLEAR_NODUMP 17		/* Clear the MADV_NODUMP flag */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
+ 
+ /* compatibility flags */
+ #define MAP_FILE	0
+diff -puN mm/madvise.c~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix mm/madvise.c
+--- a/mm/madvise.c~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix
++++ a/mm/madvise.c
+@@ -65,10 +65,10 @@ static long madvise_behavior(struct vm_a
+ 		}
+ 		new_flags &= ~VM_DONTCOPY;
+ 		break;
+-	case MADV_NODUMP:
++	case MADV_DONTDUMP:
+ 		new_flags |= VM_NODUMP;
+ 		break;
+-	case MADV_CLEAR_NODUMP:
++	case MADV_DODUMP:
+ 		new_flags &= ~VM_NODUMP;
+ 		break;
+ 	case MADV_MERGEABLE:
+@@ -299,8 +299,8 @@ madvise_behavior_valid(int behavior)
+ 	case MADV_HUGEPAGE:
+ 	case MADV_NOHUGEPAGE:
+ #endif
+-	case MADV_NODUMP:
+-	case MADV_CLEAR_NODUMP:
++	case MADV_DONTDUMP:
++	case MADV_DODUMP:
+ 		return 1;
+ 
+ 	default:
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-remove-remaining-bits-of-io_remap_page_range.patch
-backlight-fix-ot200_bl-build.patch
-crc32-bolt-on-crc32c.patch
-rtc-ds1307-generalise-ram-size-and-offset.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
+kernel-watchdogc-convert-to-pr_foo.patch
+kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
+backlight-use-id-driver_data-to-differentiate-lp855x-chips.patch
+backlight-add-driver-for-bachmanns-ot200.patch
+leds-lp5521-support-led-pattern-data.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip.patch
+leds-lm3530-replace-i2c_client-with-led_classdev.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
 
