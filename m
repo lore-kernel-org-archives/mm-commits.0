@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow.patch added to -mm tree
-Date: Fri, 23 Mar 2012 15:56:47 -0700
-Message-ID: <20120323225648.15DD5A033B@akpm.mtv.corp.google.com>
+Subject: + swapon-check-validity-of-swap_flags.patch added to -mm tree
+Date: Fri, 23 Mar 2012 16:02:22 -0700
+Message-ID: <20120323230222.BAE91A020E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:45765 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757198Ab2CWW4t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 18:56:49 -0400
-Received: by qcsp5 with SMTP id p5so311987qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 15:56:48 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:54002 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751468Ab2CWXCZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 23 Mar 2012 19:02:25 -0400
+Received: by laai8 with SMTP id i8so189739laa.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 16:02:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, fweisbec@gmail.com, hpa@zytor.com, mingo@kernel.org, namhyung@gmail.com, tglx@linutronix.de
+Cc: hughd@google.com
 
 
 The patch titled
-     Subject: x86: stop recursive fault in print_context_stack after stack overflow
+     Subject: swapon: check validity of swap_flags
 has been added to the -mm tree.  Its filename is
-     x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow.patch
+     swapon-check-validity-of-swap_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +35,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: x86: stop recursive fault in print_context_stack after stack overflow
+Subject: swapon: check validity of swap_flags
 
-After printing out the first line of a stack backtrace,
-print_context_stack() calls print_ftrace_graph_addr() to check if it's
-making a graph of function calls, usually not the case.  But unfortunate
-ordering of assignments causes this to oops if an earlier stack overflow
-corrupted threadinfo->task.  Reorder to avoid that irritation.
+Most system calls taking flags first check that the flags passed in are
+valid, and that helps userspace to detect when new flags are supported.
 
-(The fact that there was a stack overflow may often be more interesting
-than the stack that can now be shown; but integrating that information
-with this stacktrace is awkward, so leave it to overflow reporting.)
+But swapon never did so: start checking now, to help if we ever want to
+support more swap_flags in future.
+
+It's difficult to get stray bits set in an int, and swapon is not widely
+used, so this is most unlikely to break any userspace; but we can just
+revert if it turns out to do so.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Namhyung Kim <namhyung@gmail.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/dumpstack.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    3 +++
+ mm/swapfile.c        |    3 +++
+ 2 files changed, 6 insertions(+)
 
-diff -puN arch/x86/kernel/dumpstack.c~x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow arch/x86/kernel/dumpstack.c
---- a/arch/x86/kernel/dumpstack.c~x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -37,13 +37,16 @@ print_ftrace_graph_addr(unsigned long ad
- 			const struct stacktrace_ops *ops,
- 			struct thread_info *tinfo, int *graph)
- {
--	struct task_struct *task = tinfo->task;
-+	struct task_struct *task;
- 	unsigned long ret_addr;
--	int index = task->curr_ret_stack;
-+	int index;
+diff -puN include/linux/swap.h~swapon-check-validity-of-swap_flags include/linux/swap.h
+--- a/include/linux/swap.h~swapon-check-validity-of-swap_flags
++++ a/include/linux/swap.h
+@@ -21,6 +21,9 @@ struct bio;
+ #define SWAP_FLAG_PRIO_SHIFT	0
+ #define SWAP_FLAG_DISCARD	0x10000 /* discard swap cluster after use */
  
- 	if (addr != (unsigned long)return_to_handler)
- 		return;
- 
-+	task = tinfo->task;
-+	index = task->curr_ret_stack;
++#define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
++				 SWAP_FLAG_DISCARD)
 +
- 	if (!task->ret_stack || index < *graph)
- 		return;
+ static inline int current_is_kswapd(void)
+ {
+ 	return current->flags & PF_KSWAPD;
+diff -puN mm/swapfile.c~swapon-check-validity-of-swap_flags mm/swapfile.c
+--- a/mm/swapfile.c~swapon-check-validity-of-swap_flags
++++ a/mm/swapfile.c
+@@ -2022,6 +2022,9 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	struct page *page = NULL;
+ 	struct inode *inode = NULL;
+ 
++	if (swap_flags & ~SWAP_FLAGS_VALID)
++		return -EINVAL;
++
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
  
 _
-Subject: Subject: x86: stop recursive fault in print_context_stack after stack overflow
+Subject: Subject: swapon: check validity of swap_flags
 
 Patches currently in -mm which might be from hughd@google.com are
 
@@ -91,6 +92,7 @@ linux-next.patch
 mm-for-fs-add-truncate_pagecache_range.patch
 mm-for-fs-add-truncate_pagecache_range-fix.patch
 x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow.patch
+swapon-check-validity-of-swap_flags.patch
 memcg-change-behavior-of-moving-charges-at-task-move.patch
 memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
 memcg-swap-use-mem_cgroup_uncharge_swap.patch
