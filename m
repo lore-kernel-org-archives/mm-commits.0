@@ -1,66 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded] lp855x-bl-remove-unnecessary-headers.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:34:53 -0700
-Message-ID: <20120323213453.F1D36A02DE@akpm.mtv.corp.google.com>
+Subject: [folded] backlight-lp855x_bl-silence-a-compiler-warning.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:34:57 -0700
+Message-ID: <20120323213457.85BEEA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:61159 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755466Ab2CWVe4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:34:56 -0400
-Received: by lbbgj3 with SMTP id gj3so188031lbb.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:34:54 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:48759 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755466Ab2CWVe7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 23 Mar 2012 17:34:59 -0400
+Received: by laai8 with SMTP id i8so188072laa.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:34:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Milo.Kim@ti.com, axel.lin@gmail.com, milo.kim@ti.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, FlorianSchandinat@gmx.de, milo.kim@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lp855x-bl: remove unnecessary headers
+     Subject: drivers/video/backlight/lp855x_bl.c: silence a compiler warning
 has been removed from the -mm tree.  Its filename was
-     lp855x-bl-remove-unnecessary-headers.patch
+     backlight-lp855x_bl-silence-a-compiler-warning.patch
 
 This patch was dropped because it was folded into backlight-new-backlight-driver-for-lp855x-devices.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: lp855x-bl: remove unnecessary headers
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/video/backlight/lp855x_bl.c: silence a compiler warning
 
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: Axel Lin <axel.lin@gmail.com>
+Gcc 4.6.2 complains that "end" can be used without being initialized:
+
+drivers/video/backlight/lp855x_bl.c: In function `lp855x_init_registers':
+drivers/video/backlight/lp855x_bl.c:78:32: warning: `end' may be used uninitialized in this function [-Wuninitialized]
+drivers/video/backlight/lp855x_bl.c:67:12: note: `end' was declared here
+
+I've modified the function to return invalid if we don't recognize the
+id string.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/video/backlight/lp855x_bl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~lp855x-bl-remove-unnecessary-headers drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~lp855x-bl-remove-unnecessary-headers
+diff -puN drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-silence-a-compiler-warning drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~backlight-lp855x_bl-silence-a-compiler-warning
 +++ a/drivers/video/backlight/lp855x_bl.c
-@@ -14,8 +14,6 @@
- #include <linux/i2c.h>
- #include <linux/backlight.h>
- #include <linux/err.h>
--#include <linux/debugfs.h>
--#include <linux/uaccess.h>
- #include <linux/lp855x.h>
+@@ -73,6 +73,8 @@ static int lp855x_is_valid_rom_area(stru
+ 	} else if (strstr(id, "lp8556")) {
+ 		start = EPROM_START;
+ 		end = EPROM_END;
++	} else {
++		return 0;
+ 	}
  
- /* Registers */
+ 	return (addr >= start && addr <= end) ? 1 : 0;
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
 backlight-new-backlight-driver-for-lp855x-devices.patch
-leds-lp5521-add-name-in-the-lp5521_led_config.patch
-leds-lp5521-add-update_config-in-the-lp5521_platform_data.patch
-leds-lp5521-support-led-pattern-data.patch
-leds-lp5521-redefinition-of-register-bits.patch
-leds-lm3530-set-the-max_brightness-to-127.patch
-leds-lm3530-replace-i2c_client-with-led_classdev.patch
-leds-lm3530-support-pwm-input-mode.patch
-leds-lm3530-remove-lm3530_als_zone_reg-code.patch
-leds-lm3530-replace-pltfm-with-pdata.patch
+drivers-leds-leds-tca6507c-cleanup-error-handling-in-tca6507_probe.patch
+epoll-remove-unneeded-variable-in-reverse_path_check.patch
 
