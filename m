@@ -1,71 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:20:03 -0700
-Message-ID: <20120323212003.AC6D9A00AE@akpm.mtv.corp.google.com>
+Subject: [folded] kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:20:53 -0700
+Message-ID: <20120323212053.6F325A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58607 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754431Ab2CWVUG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 23 Mar 2012 17:20:06 -0400
-Received: by laai8 with SMTP id i8so187804laa.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:20:04 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:61711 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754090Ab2CWVUy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:20:54 -0400
+Received: by qabg24 with SMTP id g24so150646qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:20:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, kay.sievers@vrfy.org, lennart@poettering.net, oleg@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, oleg@redhat.com, vda.linux@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
+     Subject: kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix
 has been removed from the -mm tree.  Its filename was
-     prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+     kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
 
-This patch was dropped because it was folded into prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
+This patch was dropped because it was folded into kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
+Subject: kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix
 
-add lengthy code comment from Oleg
+add 0x to hex number output
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Lennart Poettering <lennart@poettering.net>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix kernel/exit.c
---- a/kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
+diff -puN kernel/exit.c~kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix kernel/exit.c
+--- a/kernel/exit.c~kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix
 +++ a/kernel/exit.c
-@@ -725,7 +725,13 @@ static struct task_struct *find_new_reap
- 	} else if (father->signal->has_child_subreaper) {
- 		struct task_struct *reaper;
- 
--		/* find the first ancestor marked as child_subreaper */
-+		/*
-+		 * Find the first ancestor marked as child_subreaper.
-+		 * Note that the code below checks same_thread_group(reaper,
-+		 * pid_ns->child_reaper).  This is what we need to DTRT in a
-+		 * PID namespace. However we still need the check above, see
-+		 * http://marc.info/?l=linux-kernel&m=131385460420380
-+		 */
- 		for (reaper = father->real_parent;
- 		     reaper != &init_task;
- 		     reaper = reaper->real_parent) {
+@@ -712,7 +712,7 @@ static struct task_struct *find_new_reap
+ 	if (unlikely(pid_ns->child_reaper == father)) {
+ 		write_unlock_irq(&tasklist_lock);
+ 		if (unlikely(pid_ns == &init_pid_ns)) {
+-			panic("Attempted to kill init! exitcode=%08x\n",
++			panic("Attempted to kill init! exitcode=0x%08x\n",
+ 				father->signal->group_exit_code ?:
+ 					father->exit_code);
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
 kernel-watchdogc-convert-to-pr_foo.patch
 kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
 backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix.patch
