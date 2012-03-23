@@ -1,86 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:33:03 -0700
-Message-ID: <20120323213303.85F85A02DE@akpm.mtv.corp.google.com>
+Subject: [folded] seq_file-add-seq_set_overflow-seq_overflow-fix.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:33:23 -0700
+Message-ID: <20120323213323.D1E95A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gx0-f202.google.com ([209.85.161.202]:57671 "EHLO
 	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755588Ab2CWVdJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:33:09 -0400
-Received: by ggnd2 with SMTP id d2so566031ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:33:09 -0700 (PDT)
+	with ESMTP id S1755483Ab2CWVdY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:33:24 -0400
+Received: by mail-gx0-f202.google.com with SMTP id d2so566031ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:33:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, eric.dumazet@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes
+     Subject: seq_file-add-seq_set_overflow-seq_overflow-fix
 has been removed from the -mm tree.  Its filename was
-     procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+     seq_file-add-seq_set_overflow-seq_overflow-fix.patch
 
-This patch was dropped because it was folded into procfs-speed-up-proc-pid-stat-statm.patch
+This patch was dropped because it was folded into seq_file-add-seq_set_overflow-seq_overflow.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes
+Subject: seq_file-add-seq_set_overflow-seq_overflow-fix
 
-ERROR: space required after that ',' (ctx:VxV)
-#116: FILE: fs/proc/array.c:465:
-+	seq_printf(m,"%d (%s) %c", pid_nr_ns(pid, ns), tcomm, state);
- 	            ^
+tweak code comment
 
-ERROR: code indent should use tabs where possible
-#145: FILE: fs/proc/array.c:494:
-+ ^I * It must be decimal for Linux 2.0 compatibility.$
-
-WARNING: please, no space before tabs
-#145: FILE: fs/proc/array.c:494:
-+ ^I * It must be decimal for Linux 2.0 compatibility.$
-
-total: 2 errors, 1 warnings, 172 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/procfs-speed-up-proc-pid-stat-statm.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/seq_file.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/array.c~procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes fs/proc/array.c
---- a/fs/proc/array.c~procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes
-+++ a/fs/proc/array.c
-@@ -462,7 +462,7 @@ static int do_task_stat(struct seq_file 
- 	/* convert nsec -> ticks */
- 	start_time = nsec_to_clock_t(start_time);
+diff -puN fs/seq_file.c~seq_file-add-seq_set_overflow-seq_overflow-fix fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-add-seq_set_overflow-seq_overflow-fix
++++ a/fs/seq_file.c
+@@ -15,9 +15,9 @@
  
--	seq_printf(m,"%d (%s) %c", pid_nr_ns(pid, ns), tcomm, state);
-+	seq_printf(m, "%d (%s) %c", pid_nr_ns(pid, ns), tcomm, state);
- 	seq_put_decimal_ll(m, ' ', ppid);
- 	seq_put_decimal_ll(m, ' ', pgid);
- 	seq_put_decimal_ll(m, ' ', sid);
-@@ -491,7 +491,7 @@ static int do_task_stat(struct seq_file 
- 	seq_put_decimal_ull(m, ' ', esp);
- 	seq_put_decimal_ull(m, ' ', eip);
- 	/* The signal information here is obsolete.
-- 	 * It must be decimal for Linux 2.0 compatibility.
-+	 * It must be decimal for Linux 2.0 compatibility.
- 	 * Use /proc/#/status for real-time signals.
- 	 */
- 	seq_put_decimal_ull(m, ' ', task->pending.signal.sig[0] & 0x7fffffffUL);
+ 
+ /*
+- * seq file has a buffer but it may overflow. At overflow, larger buffer
+- * is re-allocated and all data will be printed, again.
+- * Now, overflow check is done by m->count == m->size.
++ * seq_files have a buffer which can may overflow. When this happens a larger
++ * buffer is reallocated and all the data will be printed again.
++ * The overflow state is true when m->count == m->size.
+  */
+ static bool seq_overflow(struct seq_file *m)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,5 +76,5 @@ rtc-rtc-driver-for-da9052-53-pmic-v1.patch
 coredump-add-vm_nodump-madv_nodump-madv_clear_nodump.patch
 procfs-add-num_to_str-to-speed-up-proc-stat.patch
 procfs-speed-up-proc-pid-stat-statm.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+seq_file-add-seq_set_overflow-seq_overflow.patch
 
