@@ -1,93 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:25:15 -0700
-Message-ID: <20120323212515.3DBBFA0395@akpm.mtv.corp.google.com>
+Subject: [folded] drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:26:16 -0700
+Message-ID: <20120323212616.A52ADA0395@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:64027 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281Ab2CWVZR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:25:17 -0400
-Received: by lbbgj3 with SMTP id gj3so187857lbb.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:25:16 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:57570 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755208Ab2CWV0T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 23 Mar 2012 17:26:19 -0400
+Received: by laai8 with SMTP id i8so187938laa.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:26:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Milo.Kim@ti.com, arun.murthy@stericsson.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, srinidhi.kasagar@stericsson.com, mm-commits@vger.kernel.org
+To: axel.lin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds-lp5521-support-led-pattern-data-checkpatch-fixes
+     Subject: drivers/leds/leds-pca9633.c: fix kcalloc parameters swapped
 has been removed from the -mm tree.  Its filename was
-     leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+     drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3.patch
 
-This patch was dropped because it was folded into leds-lp5521-support-led-pattern-data.patch
+This patch was dropped because it was folded into drivers-leds-add-driver-for-pca9663-i2c-chip.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: leds-lp5521-support-led-pattern-data-checkpatch-fixes
+From: Axel Lin <axel.lin@gmail.com>
+Subject: drivers/leds/leds-pca9633.c: fix kcalloc parameters swapped
 
-Cc: "Kim, Milo" <Milo.Kim@ti.com>
+The first parameter should be "number of elements" and the second
+parameter should be "element size".
 
-WARNING: strict_strtoul is obsolete, use kstrtoul instead
-#192: FILE: drivers/leds/leds-lp5521.c:616:
-+	ret = strict_strtoul(buf, 16, &val);
-
-total: 0 errors, 1 warnings, 194 lines checked
-
-./patches/leds-lp5521-support-led-pattern-data.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Kim, Milo" <Milo.Kim@ti.com>
-Cc: Arun MURTHY <arun.murthy@stericsson.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5521.c |    2 +-
+ drivers/leds/leds-pca9633.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-support-led-pattern-data-checkpatch-fixes drivers/leds/leds-lp5521.c
---- a/drivers/leds/leds-lp5521.c~leds-lp5521-support-led-pattern-data-checkpatch-fixes
-+++ a/drivers/leds/leds-lp5521.c
-@@ -496,7 +496,7 @@ static ssize_t store_current(struct devi
- 	ssize_t ret;
- 	unsigned long curr;
+diff -puN drivers/leds/leds-pca9633.c~drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3 drivers/leds/leds-pca9633.c
+--- a/drivers/leds/leds-pca9633.c~drivers-leds-add-driver-for-pca9663-i2c-chip-fix-3
++++ a/drivers/leds/leds-pca9633.c
+@@ -110,7 +110,7 @@ static int __devinit pca9633_probe(struc
+ 		}
+ 	}
  
--	if (strict_strtoul(buf, 0, &curr))
-+	if (kstrtoul(buf, 0, &curr))
- 		return -EINVAL;
+-	pca9633 = kcalloc(sizeof(*pca9633), 4, GFP_KERNEL);
++	pca9633 = kcalloc(4, sizeof(*pca9633), GFP_KERNEL);
+ 	if (!pca9633)
+ 		return -ENOMEM;
  
- 	if (curr > led->max_current)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 origin.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
-kernel-watchdogc-convert-to-pr_foo.patch
-kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
+backlight-convert-backlight-i2c-drivers-to-module_i2c_driver.patch
+backlight-convert-backlight-spi-drivers-to-module_spi_driver.patch
+backlight-new-backlight-driver-for-lp855x-devices.patch
+backlight-lp855x_blc-check-platform-data-in-lp855x_probe.patch
+backlight-lp855x_blc-small-cleanups.patch
+lp855x-bl-remove-unnecessary-platform-data.patch
+lp855x-bl-remove-unnecessary-headers.patch
 backlight-use-id-driver_data-to-differentiate-lp855x-chips.patch
-backlight-add-driver-for-bachmanns-ot200.patch
-leds-lp5521-support-led-pattern-data.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip.patch
+leds-lm3530-replace-pltfm-with-pdata.patch
+drivers-leds-leds-pca9633c-remove-unused-adapter-variable.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
 drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+rtc-convert-rtc-spi-drivers-to-module_spi_driver.patch
+rtc-convert-rtc-i2c-drivers-to-module_i2c_driver.patch
 
