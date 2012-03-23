@@ -1,58 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] drivers-mfd-twl-corec-unbork.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 11:16:40 -0700
-Message-ID: <20120323181640.E9C76A0295@akpm.mtv.corp.google.com>
+Subject: + drivers-xen-kconfig-fix-kconfig-layout.patch added to -mm tree
+Date: Fri, 23 Mar 2012 11:18:00 -0700
+Message-ID: <20120323181800.560BAA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:61824 "EHLO
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:46687 "EHLO
 	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755170Ab2CWSQm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 14:16:42 -0400
-Received: by qabg24 with SMTP id g24so135095qab.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 11:16:41 -0700 (PDT)
+	with ESMTP id S1759162Ab2CWSSB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 14:18:01 -0400
+Received: by qabg24 with SMTP id g24so135181qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 11:18:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, b-cousson@ti.com, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, konrad.wilk@oracle.com
 
 
 The patch titled
-     Subject: drivers/mfd/twl-core.c: unbork
-has been removed from the -mm tree.  Its filename was
-     drivers-mfd-twl-corec-unbork.patch
+     Subject: drivers/xen/Kconfig: fix Kconfig layout
+has been added to the -mm tree.  Its filename is
+     drivers-xen-kconfig-fix-kconfig-layout.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/mfd/twl-core.c: unbork
+Subject: drivers/xen/Kconfig: fix Kconfig layout
 
-make i386 compileable
+Fit it into 80 columns so that it is readable in menuconfig.
 
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/twl-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/xen/Kconfig |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mfd/twl-core.c~drivers-mfd-twl-corec-unbork drivers/mfd/twl-core.c
---- a/drivers/mfd/twl-core.c~drivers-mfd-twl-corec-unbork
-+++ a/drivers/mfd/twl-core.c
-@@ -1353,8 +1353,8 @@ twl_probe(struct i2c_client *client, con
- 	}
+diff -puN drivers/xen/Kconfig~drivers-xen-kconfig-fix-kconfig-layout drivers/xen/Kconfig
+--- a/drivers/xen/Kconfig~drivers-xen-kconfig-fix-kconfig-layout
++++ a/drivers/xen/Kconfig
+@@ -183,15 +183,17 @@ config XEN_ACPI_PROCESSOR
+ 	depends on XEN && X86 && ACPI_PROCESSOR
+ 	default m
+ 	help
+-          This ACPI processor uploads Power Management information to the Xen hypervisor.
++          This ACPI processor uploads Power Management information to the Xen
++	  hypervisor.
  
- 	status = -ENODEV;
--	if (node)
--		status = of_platform_populate(node, NULL, NULL, &client->dev);
-+//	if (node)
-+//		status = of_platform_populate(node, NULL, NULL, &client->dev);
- 	if (status)
- 		status = add_children(pdata, id->driver_data);
+-	  To do that the driver parses the Power Management data and uploads said
+-	  information to the Xen hypervisor. Then the Xen hypervisor can select the
+-          proper Cx and Pxx states. It also registers itslef as the SMM so that
+-          other drivers (such as ACPI cpufreq scaling driver) will not load.
++	  To do that the driver parses the Power Management data and uploads
++	  said information to the Xen hypervisor. Then the Xen hypervisor can
++	  select the proper Cx and Pxx states. It also registers itslef as the
++	  SMM so that other drivers (such as ACPI cpufreq scaling driver) will
++	  not load.
  
+-          To compile this driver as a module, choose M here: the
+-          module will be called xen_acpi_processor  If you do not know what to choose,
+-          select M here. If the CPUFREQ drivers are built in, select Y here.
++          To compile this driver as a module, choose M here: the module will be
++	  called xen_acpi_processor  If you do not know what to choose, select
++	  M here. If the CPUFREQ drivers are built in, select Y here.
+ 
+ endmenu
 _
+Subject: Subject: drivers/xen/Kconfig: fix Kconfig layout
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -63,12 +86,9 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-drivers-platform-x86-samsung-laptopc-fix-build.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
 percpu-remove-percpu_xxx-functions-fix.patch
-thermal-thermal_sys-fix-build-warning.patch
-thermal-add-support-for-thermal-sensor-present-on-spear13xx-machines.patch
 net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
 sched-fix-compiler-warning-about-declared-inline-after-use.patch
 brlocks-lglocks-cleanups.patch
