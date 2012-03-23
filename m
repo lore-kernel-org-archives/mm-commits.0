@@ -1,101 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-swap-use-mem_cgroup_uncharge_swap.patch added to -mm tree
-Date: Fri, 23 Mar 2012 14:09:39 -0700
-Message-ID: <20120323210939.D30CAA00AE@akpm.mtv.corp.google.com>
+Subject: [folded] prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:20:00 -0700
+Message-ID: <20120323212001.15C83A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:55246 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321Ab2CWVJl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:09:41 -0400
-Received: by vbnl22 with SMTP id l22so299686vbn.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:09:40 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:36677 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754090Ab2CWVUD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:20:03 -0400
+Received: by wgbdt11 with SMTP id dt11so119762wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:20:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, nishimura@mxp.nes.nec.co.jp
+To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, kay.sievers@vrfy.org, lennart@poettering.net, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg swap: use mem_cgroup_uncharge_swap()
-has been added to the -mm tree.  Its filename is
-     memcg-swap-use-mem_cgroup_uncharge_swap.patch
+     Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix
+has been removed from the -mm tree.  Its filename was
+     prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg swap: use mem_cgroup_uncharge_swap()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix
 
-That stuff __mem_cgroup_commit_charge_swapin() does with a swap entry, it
-has a name and even a declaration: just use mem_cgroup_uncharge_swap().
+fix comment layout and spelling
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Lennart Poettering <lennart@poettering.net>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
+ kernel/exit.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-swap-use-mem_cgroup_uncharge_swap mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-swap-use-mem_cgroup_uncharge_swap
-+++ a/mm/memcontrol.c
-@@ -2850,24 +2850,7 @@ __mem_cgroup_commit_charge_swapin(struct
- 	 */
- 	if (do_swap_account && PageSwapCache(page)) {
- 		swp_entry_t ent = {.val = page_private(page)};
--		struct mem_cgroup *swap_memcg;
--		unsigned short id;
--
--		id = swap_cgroup_record(ent, 0);
--		rcu_read_lock();
--		swap_memcg = mem_cgroup_lookup(id);
--		if (swap_memcg) {
--			/*
--			 * This recorded memcg can be obsolete one. So, avoid
--			 * calling css_tryget
--			 */
--			if (!mem_cgroup_is_root(swap_memcg))
--				res_counter_uncharge(&swap_memcg->memsw,
--						     PAGE_SIZE);
--			mem_cgroup_swap_statistics(swap_memcg, false);
--			mem_cgroup_put(swap_memcg);
--		}
--		rcu_read_unlock();
-+		mem_cgroup_uncharge_swap(ent);
- 	}
- 	/*
- 	 * At swapin, we may charge account against cgroup which has no tasks.
+diff -puN kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix kernel/exit.c
+--- a/kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix
++++ a/kernel/exit.c
+@@ -688,10 +688,9 @@ static void exit_mm(struct task_struct *
+ 
+ /*
+  * When we die, we re-parent all our children, and try to:
+- * 1. give them to another thread in our thread group, if such a
+- *    member exists
+- * 2. give it to the first anchestor process which prctl'd itself
+- *    as a child_subreaper for its children (like a service manager)
++ * 1. give them to another thread in our thread group, if such a member exists
++ * 2. give it to the first ancestor process which prctl'd itself as a
++ *    child_subreaper for its children (like a service manager)
+  * 3. give it to the init process (PID 1) in our pid namespace
+  */
+ static struct task_struct *find_new_reaper(struct task_struct *father)
 _
-Subject: Subject: memcg swap: use mem_cgroup_uncharge_swap()
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-hugetlb-cleanup-duplicated-code-in-unmapping-vm-range.patch
-linux-next.patch
-mm-for-fs-add-truncate_pagecache_range.patch
-mm-for-fs-add-truncate_pagecache_range-fix.patch
-memcg-change-behavior-of-moving-charges-at-task-move.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-radix-tree-introduce-bit-optimized-iterator.patch
-radix-tree-introduce-bit-optimized-iterator-v3.patch
-radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-radix-tree-rewrite-gang-lookup-with-using-iterator.patch
-radix-tree-use-iterators-in-find_get_pages-functions.patch
-prio_tree-debugging-patch.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+kernel-watchdogc-convert-to-pr_foo.patch
+kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
+backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
 
