@@ -1,124 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysctl-protect-poll-in-entries-that-may-go-away.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 11:22:55 -0700
-Message-ID: <20120323182255.C6208A0B42@akpm.mtv.corp.google.com>
+Subject: [folded] smp-start-up-non-boot-cpus-asynchronously-fix.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 12:23:37 -0700
+Message-ID: <20120323192337.95921A02FF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:39895 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759202Ab2CWSW5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 14:22:57 -0400
-Received: by mail-gx0-f202.google.com with SMTP id d2so538399ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 11:22:56 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:65502 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759590Ab2CWTXk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 15:23:40 -0400
+Received: by eekc41 with SMTP id c41so188537eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 12:23:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lucas.demarchi@profusion.mobi, adobriyan@gmail.com, davej@redhat.com, ebiederm@xmission.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, arjan@infradead.org, arjan@linux.intel.com, hpa@zytor.com, miltonm@bga.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: protect poll() in entries that may go away
+     Subject: smp-start-up-non-boot-cpus-asynchronously-fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-protect-poll-in-entries-that-may-go-away.patch
+     smp-start-up-non-boot-cpus-asynchronously-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into smp-start-up-non-boot-cpus-asynchronously.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Subject: sysctl: protect poll() in entries that may go away
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: smp-start-up-non-boot-cpus-asynchronously-fix
 
-Protect code accessing ctl_table by grabbing the header with grab_header()
-and after releasing with sysctl_head_finish().  This is needed if poll()
-is called in entries created by modules: currently only hostname and
-domainname support poll(), but this bug may be triggered when/if modules
-use it and if user called poll() in a file that doesn't support it.
+- fix
 
-Dave Jones reported the following when using a syscall fuzzer while
-hibernating/resuming:
+   kernel/smp.c: In function 'smp_init':
+   kernel/smp.c:696: warning: cast to pointer from integer of different size
 
-RIP: 0010:[<ffffffff81233e3e>]  [<ffffffff81233e3e>] proc_sys_poll+0x4e/0x90
-RAX: 0000000000000145 RBX: ffff88020cab6940 RCX: 0000000000000000
-RDX: ffffffff81233df0 RSI: 6b6b6b6b6b6b6b6b RDI: ffff88020cab6940
-[ ... ]
-Code: 00 48 89 fb 48 89 f1 48 8b 40 30 4c 8b 60 e8 b8 45 01 00 00 49 83
-7c 24 28 00 74 2e 49 8b 74 24 30 48 85 f6 74 24 48 85 c9 75 32 <8b> 16
-b8 45 01 00 00 48 63 d2 49 39 d5 74 10 8b 06 48 98 48 89
+- remove space-after-typecast (neener neener)
 
-If an entry goes away while we are polling() it, ctl_table may not exist
-anymore.
-
-Reported-by: Dave Jones <davej@redhat.com>
-Signed-off-by: Lucas De Marchi <lucas.demarchi@profusion.mobi>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Milton Miller <miltonm@bga.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ kernel/smp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/proc_sysctl.c~sysctl-protect-poll-in-entries-that-may-go-away fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~sysctl-protect-poll-in-entries-that-may-go-away
-+++ a/fs/proc/proc_sysctl.c
-@@ -527,20 +527,32 @@ static ssize_t proc_sys_write(struct fil
+diff -puN kernel/smp.c~smp-start-up-non-boot-cpus-asynchronously-fix kernel/smp.c
+--- a/kernel/smp.c~smp-start-up-non-boot-cpus-asynchronously-fix
++++ a/kernel/smp.c
+@@ -668,7 +668,7 @@ void __init setup_nr_cpu_ids(void)
  
- static int proc_sys_open(struct inode *inode, struct file *filp)
+ void __init async_cpu_up(void *data, async_cookie_t cookie)
  {
-+	struct ctl_table_header *head = grab_header(inode);
- 	struct ctl_table *table = PROC_I(inode)->sysctl_entry;
- 
-+	/* sysctl was unregistered */
-+	if (IS_ERR(head))
-+		return PTR_ERR(head);
-+
- 	if (table->poll)
- 		filp->private_data = proc_sys_poll_event(table->poll);
- 
-+	sysctl_head_finish(head);
-+
- 	return 0;
- }
- 
- static unsigned int proc_sys_poll(struct file *filp, poll_table *wait)
- {
- 	struct inode *inode = filp->f_path.dentry->d_inode;
-+	struct ctl_table_header *head = grab_header(inode);
- 	struct ctl_table *table = PROC_I(inode)->sysctl_entry;
--	unsigned long event = (unsigned long)filp->private_data;
- 	unsigned int ret = DEFAULT_POLLMASK;
-+	unsigned long event;
-+
-+	/* sysctl was unregistered */
-+	if (IS_ERR(head))
-+		return POLLERR | POLLHUP;
- 
- 	if (!table->proc_handler)
- 		goto out;
-@@ -548,6 +560,7 @@ static unsigned int proc_sys_poll(struct
- 	if (!table->poll)
- 		goto out;
- 
-+	event = (unsigned long)filp->private_data;
- 	poll_wait(filp, &table->poll->wait, wait);
- 
- 	if (event != atomic_read(&table->poll->event)) {
-@@ -556,6 +569,8 @@ static unsigned int proc_sys_poll(struct
+-	unsigned long nr = (unsigned long) data;
++	unsigned long nr = (unsigned long)data;
+ 	/*
+ 	 * we can only up one cpu at a time, as enforced by the hotplug
+ 	 * lock; it's better to wait for all earlier CPUs to be done before
+@@ -693,7 +693,7 @@ void __init smp_init(void)
+ 		if (num_online_cpus() >= setup_max_cpus)
+ 			break;
+ 		if (!cpu_online(cpu))
+-			async_schedule(async_cpu_up, (void *) cpu);
++			async_schedule(async_cpu_up, (void *)(long)cpu);
  	}
  
- out:
-+	sysctl_head_finish(head);
-+
- 	return ret;
- }
- 
+ 	/* Any cleanup work */
 _
 
-Patches currently in -mm which might be from lucas.demarchi@profusion.mobi are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-linux-next.patch
-drivers-staging-telephony-ixjc-fix-warning-about-sequence-points.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
+kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
+kernel-watchdogc-convert-to-pr_foo.patch
+kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
+smp-start-up-non-boot-cpus-asynchronously.patch
+backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix.patch
+backlight-add-driver-for-bachmanns-ot200-fix.patch
+leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
+drivers-leds-leds-lp5523c-constify-some-data.patch
+drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
+leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
+drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
+coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
+procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
+seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
+selftests-makefile-make-run_tests-depend-on-all.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
+move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
