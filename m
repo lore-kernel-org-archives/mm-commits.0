@@ -1,145 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:31:58 -0700
-Message-ID: <20120323213159.1141FA02DE@akpm.mtv.corp.google.com>
+Subject: [folded] procfs-add-num_to_str-to-speed-up-proc-stat-fix-2.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:32:01 -0700
+Message-ID: <20120323213201.D9605A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:51093 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755132Ab2CWVcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:32:01 -0400
-Received: by eaaq10 with SMTP id q10so188458eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:32:00 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:45026 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755052Ab2CWVcE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:32:04 -0400
+Received: by wejx9 with SMTP id x9so189140wej.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:32:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, eric.dumazet@gmail.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, pjt@google.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: andrea@betterlinux.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-add-num_to_str-to-speed-up-proc-stat-fix
+     Subject: procfs: avoid breaking the ABI in /proc/stat
 has been removed from the -mm tree.  Its filename was
-     procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
+     procfs-add-num_to_str-to-speed-up-proc-stat-fix-2.patch
 
 This patch was dropped because it was folded into procfs-add-num_to_str-to-speed-up-proc-stat.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-add-num_to_str-to-speed-up-proc-stat-fix
+From: Andrea Righi <andrea@betterlinux.com>
+Subject: procfs: avoid breaking the ABI in /proc/stat
 
-- remove incorrect comment
-- use less statck in num_to_str()
-- move comment from .h to .c
-- simplify seq_put_decimal_ull()
+The speed up of /proc/stat changed the output of the cpu statistics adding
+an extra space between the string "cpu" and the cpu id.
 
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Restore the old ABI by removing this space.
+
+Signed-off-by: Andrea Righi <andrea@betterlinux.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Turner <pjt@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |    5 ++---
- include/linux/kernel.h   |    6 ------
- include/linux/seq_file.h |    4 +---
- lib/vsprintf.c           |    8 +++++++-
- 4 files changed, 10 insertions(+), 13 deletions(-)
+ fs/proc/stat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/seq_file.c~procfs-add-num_to_str-to-speed-up-proc-stat-fix fs/seq_file.c
---- a/fs/seq_file.c~procfs-add-num_to_str-to-speed-up-proc-stat-fix
-+++ a/fs/seq_file.c
-@@ -659,14 +659,13 @@ int seq_put_decimal_ull(struct seq_file 
- 	if (m->count + 2 >= m->size) /* we'll write 2 bytes at least */
- 		goto overflow;
- 
-+	m->buf[m->count++] = delimiter;
-+
- 	if (num < 10) {
--		m->buf[m->count++] = delimiter;
- 		m->buf[m->count++] = num + '0';
- 		return 0;
- 	}
- 
--	m->buf[m->count++] = delimiter;
--
- 	len = num_to_str(m->buf + m->count, m->size - m->count, num);
- 	if (!len)
- 		goto overflow;
-diff -puN include/linux/kernel.h~procfs-add-num_to_str-to-speed-up-proc-stat-fix include/linux/kernel.h
---- a/include/linux/kernel.h~procfs-add-num_to_str-to-speed-up-proc-stat-fix
-+++ a/include/linux/kernel.h
-@@ -313,12 +313,6 @@ extern long long simple_strtoll(const ch
- #define strict_strtoull	kstrtoull
- #define strict_strtoll	kstrtoll
- 
--/*
-- * Convert passed number to decimal string.
-- * returns returns the length of string. at buffer overflow, returns 0.
-- *
-- * If speed is not important, use snprintf(). It's easy to read the code.
-- */
- extern int num_to_str(char *buf, int size, unsigned long long num);
- 
- /* lib/printf utilities */
-diff -puN include/linux/seq_file.h~procfs-add-num_to_str-to-speed-up-proc-stat-fix include/linux/seq_file.h
---- a/include/linux/seq_file.h~procfs-add-num_to_str-to-speed-up-proc-stat-fix
-+++ a/include/linux/seq_file.h
-@@ -122,10 +122,8 @@ int single_release(struct inode *, struc
- void *__seq_open_private(struct file *, const struct seq_operations *, int);
- int seq_open_private(struct file *, const struct seq_operations *, int);
- int seq_release_private(struct inode *, struct file *);
--
--/* defined in lib/vsprintf.c */
- int seq_put_decimal_ull(struct seq_file *m, char delimiter,
--		unsigned long long num);
-+			unsigned long long num);
- 
- #define SEQ_START_TOKEN ((void *)1)
- /*
-diff -puN lib/vsprintf.c~procfs-add-num_to_str-to-speed-up-proc-stat-fix lib/vsprintf.c
---- a/lib/vsprintf.c~procfs-add-num_to_str-to-speed-up-proc-stat-fix
-+++ a/lib/vsprintf.c
-@@ -212,9 +212,15 @@ char *put_dec(char *buf, unsigned long l
- 	}
- }
- 
-+/*
-+ * Convert passed number to decimal string.
-+ * Returns the length of string.  On buffer overflow, returns 0.
-+ *
-+ * If speed is not important, use snprintf(). It's easy to read the code.
-+ */
- int num_to_str(char *buf, int size, unsigned long long num)
- {
--	char tmp[66];
-+	char tmp[21];		/* Enough for 2^64 in decimal */
- 	int idx, len;
- 
- 	len = put_dec(tmp, num) - tmp;
+diff -puN fs/proc/stat.c~procfs-add-num_to_str-to-speed-up-proc-stat-fix-2 fs/proc/stat.c
+--- a/fs/proc/stat.c~procfs-add-num_to_str-to-speed-up-proc-stat-fix-2
++++ a/fs/proc/stat.c
+@@ -114,7 +114,7 @@ static int show_stat(struct seq_file *p,
+ 		steal = kcpustat_cpu(i).cpustat[CPUTIME_STEAL];
+ 		guest = kcpustat_cpu(i).cpustat[CPUTIME_GUEST];
+ 		guest_nice = kcpustat_cpu(i).cpustat[CPUTIME_GUEST_NICE];
+-		seq_printf(p, "cpu %d", i);
++		seq_printf(p, "cpu%d", i);
+ 		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(user));
+ 		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(nice));
+ 		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(system));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andrea@betterlinux.com are
 
 origin.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
-kernel-watchdogc-convert-to-pr_foo.patch
-kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
-backlight-use-id-driver_data-to-differentiate-lp855x-chips.patch
-backlight-add-driver-for-bachmanns-ot200.patch
-leds-lp5521-support-led-pattern-data.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip.patch
-leds-lm3530-replace-i2c_client-with-led_classdev.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump.patch
 procfs-add-num_to_str-to-speed-up-proc-stat.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
 
