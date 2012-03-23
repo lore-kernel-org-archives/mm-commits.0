@@ -1,120 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [folded] smp-start-up-non-boot-cpus-asynchronously-fix.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 12:23:37 -0700
-Message-ID: <20120323192337.95921A02FF@akpm.mtv.corp.google.com>
+Subject: [failures] smp-start-up-non-boot-cpus-asynchronously.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 12:24:20 -0700
+Message-ID: <20120323192420.C13C2A02FF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:65502 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759590Ab2CWTXk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 15:23:40 -0400
-Received: by eekc41 with SMTP id c41so188537eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 12:23:38 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:60467 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759718Ab2CWTYW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 15:24:22 -0400
+Received: by yenq2 with SMTP id q2so547458yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 12:24:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, arjan@infradead.org, arjan@linux.intel.com, hpa@zytor.com, miltonm@bga.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: arjan@infradead.org, a.p.zijlstra@chello.nl, arjan@linux.intel.com, hpa@zytor.com, mikey@neuling.org, miltonm@bga.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: smp-start-up-non-boot-cpus-asynchronously-fix
+     Subject: smp: start up non-boot CPUs asynchronously
 has been removed from the -mm tree.  Its filename was
-     smp-start-up-non-boot-cpus-asynchronously-fix.patch
+     smp-start-up-non-boot-cpus-asynchronously.patch
 
-This patch was dropped because it was folded into smp-start-up-non-boot-cpus-asynchronously.patch
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: smp-start-up-non-boot-cpus-asynchronously-fix
+From: Arjan van de Ven <arjan@infradead.org>
+Subject: smp: start up non-boot CPUs asynchronously
 
-- fix
+The starting of the "not first" CPUs actually takes a lot of boot time of
+the kernel[*] - up to "minutes" on some of the bigger SGI boxes.  Right
+now, this is a fully sequential operation with the rest of the kernel
+boot.
 
-   kernel/smp.c: In function 'smp_init':
-   kernel/smp.c:696: warning: cast to pointer from integer of different size
+This patch turns this bringup of the other cpus into an asynchronous
+operat= ion.  With some other changes (not in this patch) this can save
+significant kernel boot time (upto 40% on my laptop!!).  Basically now
+CPUs could get brought up in parallel to disk enumeration, gr= aphic mode
+bringup etc etc etc.
 
-- remove space-after-typecast (neener neener)
+Note that the implementation in this patch still waits for all CPUs to be
+brought up before starting userspace; I would love to remove that
+restriction over time (technically that is simple), but that becomes then
+a change in behavior...  I'd like to see more discussion on that being a
+good idea before I write that patch.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Second note on version 2 of the patch: This patch does currently not save
+any boot time, due to a situation where the cpu hotplug lock gets taken
+for write by the cpu bringup code, which starves out readers of this lock
+throughout the kernel.  Ingo specifically requested this behavior to
+expose this lock problem.
+
+[*] Numbers below are from my laptop, per logical CPU.  If you have
+    many CPUs like SGI does, multiply.
+
+    We spend slightly more than 10 milliseconds on doing the hardware
+    level "send ipi, wait for the cpu to get power" dance.  This is mostly
+    just hardware physics.
+
+    We spend a bunch of time calibrating loops-per-jiffie/tsc (in
+    3.3-rc this is only done once per socket, but each time we do it, it's
+    several dozen milliseconds) we spend 20 milliseconds on making sure
+    the tsc is not out of sync with the rest of the system (we're looking
+    at optimizing this right now)
+
+    A 3.2 kernel spent on average 120 milliseconds per logical
+    non-boot cpu on my laptop.  3.3-rc is better (the calibration is now
+    cached for each physical cpu), but still dire.
+
+[akpm@linux-foundation.org: fix warning, small cleanups]
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Milton Miller <miltonm@bga.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Michael Neuling <mikey@neuling.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/smp.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN kernel/smp.c~smp-start-up-non-boot-cpus-asynchronously-fix kernel/smp.c
---- a/kernel/smp.c~smp-start-up-non-boot-cpus-asynchronously-fix
+diff -puN kernel/smp.c~smp-start-up-non-boot-cpus-asynchronously kernel/smp.c
+--- a/kernel/smp.c~smp-start-up-non-boot-cpus-asynchronously
 +++ a/kernel/smp.c
-@@ -668,7 +668,7 @@ void __init setup_nr_cpu_ids(void)
+@@ -12,6 +12,8 @@
+ #include <linux/gfp.h>
+ #include <linux/smp.h>
+ #include <linux/cpu.h>
++#include <linux/async.h>
++#include <linux/delay.h>
  
- void __init async_cpu_up(void *data, async_cookie_t cookie)
- {
--	unsigned long nr = (unsigned long) data;
+ #ifdef CONFIG_USE_GENERIC_SMP_HELPERS
+ static struct {
+@@ -664,17 +666,34 @@ void __init setup_nr_cpu_ids(void)
+ 	nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
+ }
+ 
++void __init async_cpu_up(void *data, async_cookie_t cookie)
++{
 +	unsigned long nr = (unsigned long)data;
- 	/*
- 	 * we can only up one cpu at a time, as enforced by the hotplug
- 	 * lock; it's better to wait for all earlier CPUs to be done before
-@@ -693,7 +693,7 @@ void __init smp_init(void)
++	/*
++	 * we can only up one cpu at a time, as enforced by the hotplug
++	 * lock; it's better to wait for all earlier CPUs to be done before
++	 * we bring up ours, so that the bring up order is predictable.
++	 */
++	async_synchronize_cookie(cookie);
++	cpu_up(nr);
++}
++
+ /* Called by boot processor to activate the rest. */
+ void __init smp_init(void)
+ {
+ 	unsigned int cpu;
+ 
+ 	/* FIXME: This should be done in userspace --RR */
++
++	/*
++	 * But until we do this in userspace, we're going to do this
++	 * in parallel to the rest of the kernel boot up.-- Arjan
++	 */
+ 	for_each_present_cpu(cpu) {
  		if (num_online_cpus() >= setup_max_cpus)
  			break;
  		if (!cpu_online(cpu))
--			async_schedule(async_cpu_up, (void *) cpu);
+-			cpu_up(cpu);
 +			async_schedule(async_cpu_up, (void *)(long)cpu);
  	}
  
  	/* Any cleanup work */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arjan@infradead.org are
 
-origin.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
-kernel-watchdogc-convert-to-pr_foo.patch
-kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
-smp-start-up-non-boot-cpus-asynchronously.patch
-backlight-use-id-driver_data-to-differentiate-lp855x-chips-fix.patch
-backlight-add-driver-for-bachmanns-ot200-fix.patch
-leds-lp5521-support-led-pattern-data-checkpatch-fixes.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip-fix.patch
-leds-lm3530-replace-i2c_client-with-led_classdev-fix.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
