@@ -1,24 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: [folded] prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:20:00 -0700
-Message-ID: <20120323212001.15C83A02DE@akpm.mtv.corp.google.com>
+Subject: [folded] prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:20:03 -0700
+Message-ID: <20120323212003.AC6D9A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:36677 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754090Ab2CWVUD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:20:03 -0400
-Received: by wgbdt11 with SMTP id dt11so119762wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:20:02 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58607 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754431Ab2CWVUG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 23 Mar 2012 17:20:06 -0400
+Received: by laai8 with SMTP id i8so187804laa.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:20:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, kay.sievers@vrfy.org, lennart@poettering.net, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix
+     Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
 has been removed from the -mm tree.  Its filename was
-     prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix.patch
+     prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
 
 This patch was dropped because it was folded into prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
 
@@ -26,9 +27,9 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix
+Subject: prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
 
-fix comment layout and spelling
+add lengthy code comment from Oleg
 
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Lennart Poettering <lennart@poettering.net>
@@ -37,33 +38,33 @@ Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/exit.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix kernel/exit.c
---- a/kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix
+diff -puN kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix kernel/exit.c
+--- a/kernel/exit.c~prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix
 +++ a/kernel/exit.c
-@@ -688,10 +688,9 @@ static void exit_mm(struct task_struct *
+@@ -725,7 +725,13 @@ static struct task_struct *find_new_reap
+ 	} else if (father->signal->has_child_subreaper) {
+ 		struct task_struct *reaper;
  
- /*
-  * When we die, we re-parent all our children, and try to:
-- * 1. give them to another thread in our thread group, if such a
-- *    member exists
-- * 2. give it to the first anchestor process which prctl'd itself
-- *    as a child_subreaper for its children (like a service manager)
-+ * 1. give them to another thread in our thread group, if such a member exists
-+ * 2. give it to the first ancestor process which prctl'd itself as a
-+ *    child_subreaper for its children (like a service manager)
-  * 3. give it to the init process (PID 1) in our pid namespace
-  */
- static struct task_struct *find_new_reaper(struct task_struct *father)
+-		/* find the first ancestor marked as child_subreaper */
++		/*
++		 * Find the first ancestor marked as child_subreaper.
++		 * Note that the code below checks same_thread_group(reaper,
++		 * pid_ns->child_reaper).  This is what we need to DTRT in a
++		 * PID namespace. However we still need the check above, see
++		 * http://marc.info/?l=linux-kernel&m=131385460420380
++		 */
+ 		for (reaper = father->real_parent;
+ 		     reaper != &init_task;
+ 		     reaper = reaper->real_parent) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision-fix-fix.patch
 kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any-fix.patch
 kernel-watchdogc-convert-to-pr_foo.patch
 kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
