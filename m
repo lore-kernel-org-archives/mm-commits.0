@@ -1,79 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch removed from -mm tree
-Date: Fri, 23 Mar 2012 14:27:47 -0700
-Message-ID: <20120323212747.D42E8A0395@akpm.mtv.corp.google.com>
+Subject: [folded] checkpatch-add-some-strict-coding-style-checks-v3.patch removed from -mm tree
+Date: Fri, 23 Mar 2012 14:28:18 -0700
+Message-ID: <20120323212818.7F06AA0395@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:37371 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754526Ab2CWV1s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:27:48 -0400
-Received: by yhgm50 with SMTP id m50so567401yhg.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:27:48 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:36801 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754526Ab2CWV2T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 17:28:19 -0400
+Received: by qcsp5 with SMTP id p5so304559qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 14:28:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axel.lin@gmail.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, shreshthakumar.sahu@stericsson.com, mm-commits@vger.kernel.org
+To: joe@perches.com, bruce.w.allan@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix
+     Subject: checkpatch-add-some-strict-coding-style-checks-v3
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix.patch
+     checkpatch-add-some-strict-coding-style-checks-v3.patch
 
-This patch was dropped because it was folded into drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
+This patch was dropped because it was folded into checkpatch-add-some-strict-coding-style-checks.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch-add-some-strict-coding-style-checks-v3
 
-fix some patch skew
+V2: Scan the entire line for balanced parentheses,
+    use the position of the last non-balanced open parenthesis.
+    Allow all space indentation too, checkpatch will complain
+    in a different message about that if it's too long.
+    Fixes a hang in the memset tests.
 
-Cc: "Milo(Woogyom) Kim" <milo.kim@ti.com>
-Cc: Axel Lin <axel.lin@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: "Bruce W. Allen" <bruce.w.allan@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3530.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   45 +++++++++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 16 deletions(-)
 
-diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix drivers/leds/leds-lm3530.c
---- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place-fix
-+++ a/drivers/leds/leds-lm3530.c
-@@ -167,7 +167,7 @@ static int lm3530_init_registers(struct 
- 		break;
- 	case LM3530_BL_MODE_PWM:
- 		gen_config |= LM3530_ENABLE_PWM | LM3530_ENABLE_PWM_SIMPLE |
--			      (pltfm->pwm_pol_hi << LM3530_PWM_POL_SHIFT);
-+			      (pdata->pwm_pol_hi << LM3530_PWM_POL_SHIFT);
- 		break;
+diff -puN scripts/checkpatch.pl~checkpatch-add-some-strict-coding-style-checks-v3 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-some-strict-coding-style-checks-v3
++++ a/scripts/checkpatch.pl
+@@ -330,11 +330,15 @@ sub build_types {
+ }
+ build_types();
+ 
+-our $balanced_parens = qr/(\((?:[^\(\)]++|(?-1))*\))/;
+-our $lval_parens = qr/(\((?:[^\(\)]+|(-1))*\))/;
+ 
+ our $Typecast	= qr{\s*(\(\s*$NonptrType\s*\)){0,1}\s*};
+-our $LvalOrFunc	= qr{($Lval)\s*($lval_parens{0,1})\s*};
++
++# Using $balanced_parens, $LvalOrFunc, or $FuncArg
++# requires at least perl version v5.10.0
++# Any use must be runtime checked with $^V
++
++our $balanced_parens = qr/(\((?:[^\(\)]++|(?-1))*\))/;
++our $LvalOrFunc	= qr{($Lval)\s*($balanced_parens{0,1})\s*};
+ our $FuncArg = qr{$Typecast{0,1}($LvalOrFunc|$Constant)};
+ 
+ sub deparenthesize {
+@@ -1350,11 +1354,11 @@ sub pos_last_openparen {
+ 	for ($pos = 0; $pos < $len; $pos++) {
+ 		my $string = substr($line, $pos);
+ 		if ($string =~ /^($FuncArg|$balanced_parens)/) {
+-			$pos += length($1);
+-		}
+-
+-		if (substr($line, $pos, 1) eq '(') {
++			$pos += length($1) - 1;
++		} elsif (substr($line, $pos, 1) eq '(') {
+ 			$last_openparen = $pos;
++		} elsif (index($string, '(') == -1) {
++			last;
+ 		}
  	}
  
+@@ -1821,7 +1825,8 @@ sub process {
+ 		}
+ 
+ # check multi-line statement indentation matches previous line
+-		if ($prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/) {
++		if ($^V && $^V ge 5.10.0 &&
++		    $prevline =~ /^\+(\t*)(if \(|$Ident\().*(\&\&|\|\||,)\s*$/) {
+ 			$prevline =~ /^\+(\t*)(.*)$/;
+ 			my $oldindent = $1;
+ 			my $rest = $2;
+@@ -3203,12 +3208,13 @@ sub process {
+ 		}
+ 
+ # Check for misused memsets
+-		if (defined $stat &&
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
+ 		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*$FuncArg\s*\)/s) {
+ 
+ 			my $ms_addr = $2;
+-			my $ms_val = $8;
+-			my $ms_size = $14;
++			my $ms_val = $7;
++			my $ms_size = $12;
+ 
+ 			if ($ms_size =~ /^(0x|)0$/i) {
+ 				ERROR("MEMSET",
+@@ -3220,17 +3226,18 @@ sub process {
+ 		}
+ 
+ # typecasts on min/max could be min_t/max_t
+-		if (defined $stat &&
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
+ 		    $stat =~ /^\+(?:.*?)\b(min|max)\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\)/) {
+-			if (defined $2 || defined $8) {
++			if (defined $2 || defined $7) {
+ 				my $call = $1;
+ 				my $cast1 = deparenthesize($2);
+ 				my $arg1 = $3;
+-				my $cast2 = deparenthesize($8);
+-				my $arg2 = $9;
++				my $cast2 = deparenthesize($7);
++				my $arg2 = $8;
+ 				my $cast;
+ 
+-				if ($cast1 ne "" && $cast2 ne "") {
++				if ($cast1 ne "" && $cast2 ne "" && $cast1 ne $cast2) {
+ 					$cast = "$cast1 or $cast2";
+ 				} elsif ($cast1 ne "") {
+ 					$cast = $cast1;
+@@ -3452,6 +3459,12 @@ sub process {
+ 	}
+ 
+ 	if ($quiet == 0) {
++
++		if ($^V lt 5.10.0) {
++			print("NOTE: perl $^V is not modern enough to detect all possible issues.\n");
++			print("An upgrade to at least perl v5.10.0 is suggested.\n\n");
++		}
++
+ 		# If there were whitespace errors which cleanpatch can fix
+ 		# then suggest that.
+ 		if ($rpt_cleaners) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-prctl-add-pr_setget_child_subreaper-to-allow-simple-process-supervision.patch
-kernel-exitc-if-init-dies-log-a-signal-which-killed-it-if-any.patch
-kernel-watchdogc-convert-to-pr_foo.patch
-kernel-watchdogc-add-comment-to-watchdog-exit-path.patch
-backlight-use-id-driver_data-to-differentiate-lp855x-chips.patch
-backlight-add-driver-for-bachmanns-ot200.patch
-leds-lp5521-support-led-pattern-data.patch
-drivers-leds-leds-lp5523c-constify-some-data.patch
-drivers-leds-add-driver-for-pca9663-i2c-chip.patch
-leds-lm3530-replace-i2c_client-with-led_classdev.patch
-drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
-crc32-move-long-comment-about-crc32-fundamentals-to-documentation-fix.patch
-rtc-rtc-driver-for-da9052-53-pmic-v1-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix.patch
-coredump-add-vm_nodump-madv_nodump-madv_clear_nodump-fix-fix.patch
-procfs-add-num_to_str-to-speed-up-proc-stat-fix.patch
-procfs-speed-up-proc-pid-stat-statm-checkpatch-fixes.patch
-seq_file-add-seq_set_overflow-seq_overflow-fix.patch
+get_maintainer-use-a-default-unknown-s-status-role.patch
+get_maintainerpl-add-support-for-moderated-lists.patch
+maintainers-update-mca-section.patch
+maintainers-update-git-urls-for-26-deletions.patch
+maintainers-add-status-to-alpha-architecture.patch
+maintainers-add-s-maintained-to-clkdev-and-clk-sections.patch
+include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
+checkpatch-add-some-strict-coding-style-checks.patch
+checkpatchpl-be-silent-when-q-and-ignore-is-given.patch
+checkpatch-catch-usage-when-not-at-the-beginning-of-defination.patch
+checkpatch-allow-simple-character-constants-in-defines.patch
+checkpatch-handle-string-concatenation-in-simple-defines.patch
+checkpatch-high-precidence-operators-do-not-require-additional-parentheses-in-defines.patch
+checkpatch-add-to-type-extensions.patch
+checkpatch-add-strict-tests-for-braces-comments-and-casts.patch
+checkpatch-add-strict-test-for-strings-split-across-multiple-lines.patch
+checkpatch-warn-on-use-of-yield.patch
+checkpatch-whitespace-add-remove-blank-lines.patch
+checkpatch-check-for-quoted-strings-broken-across-lines.patch
 
