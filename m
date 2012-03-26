@@ -1,130 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-the-killed-tracee-should-not-enter-the-syscall.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:31:59 -0700
-Message-ID: <20120326193159.8A64FA00A9@akpm.mtv.corp.google.com>
+Subject: [merged] rtc-ds1307-comment-and-format-cleanup.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:31:51 -0700
+Message-ID: <20120326193151.618B2A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:64249 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202Ab2CZTcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:01 -0400
-Received: by wibhj13 with SMTP id hj13so233297wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:00 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:39425 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754185Ab2CZTbw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:52 -0400
+Received: by yhgm50 with SMTP id m50so834231yhg.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, fweisbec@gmail.com, indan@nul.nu, jan.kratochvil@redhat.com, palves@redhat.com, rostedt@goodmis.org, scarybeasts@gmail.com, tj@kernel.org, vda.linux@googlemail.com, mm-commits@vger.kernel.org
+To: x0132446@ti.com, Austin.Boyle@aviatnet.com, alessandro.zummo@towertech.it, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace: the killed tracee should not enter the syscall
+     Subject: rtc: ds1307: comment and format cleanup
 has been removed from the -mm tree.  Its filename was
-     ptrace-the-killed-tracee-should-not-enter-the-syscall.patch
+     rtc-ds1307-comment-and-format-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace: the killed tracee should not enter the syscall
+From: David Anders <x0132446@ti.com>
+Subject: rtc: ds1307: comment and format cleanup
 
-Another old/known problem.  If the tracee is killed after it reports
-syscall_entry, it starts the syscall and debugger can't control this. 
-This confuses the users and this creates the security problems for ptrace
-jailers.
+Do some cleanup of the comment sections as well as correct some formatting
+issues reported by checkpatch.pl.
 
-Change tracehook_report_syscall_entry() to return non-zero if killed, this
-instructs syscall_trace_enter() to abort the syscall.
-
-Reported-by: Chris Evans <scarybeasts@gmail.com>
-Tested-by: Indan Zupancic <indan@nul.nu>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Pedro Alves <palves@redhat.com>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Signed-off-by: David Anders <x0132446@ti.com>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Austin Boyle <Austin.Boyle@aviatnet.com>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-ds1307.c |   37 ++++++++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/tracehook.h~ptrace-the-killed-tracee-should-not-enter-the-syscall include/linux/tracehook.h
---- a/include/linux/tracehook.h~ptrace-the-killed-tracee-should-not-enter-the-syscall
-+++ a/include/linux/tracehook.h
-@@ -54,12 +54,12 @@ struct linux_binprm;
- /*
-  * ptrace report for syscall entry and exit looks identical.
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-comment-and-format-cleanup drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-comment-and-format-cleanup
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -20,7 +20,8 @@
+ 
+ 
+ 
+-/* We can't determine type by probing, but if we expect pre-Linux code
++/*
++ * We can't determine type by probing, but if we expect pre-Linux code
+  * to have set the chip up as a clock (turning on the oscillator and
+  * setting the date and time), Linux can ignore the non-clock features.
+  * That's a natural job for a factory or repair bench.
+@@ -37,7 +38,7 @@ enum ds_type {
+ 	mcp7941x,
+ 	rx_8025,
+ 	last_ds_type /* always last */
+-	// rs5c372 too?  different address...
++	/* rs5c372 too?  different address... */
+ };
+ 
+ 
+@@ -59,7 +60,8 @@ enum ds_type {
+ #	define DS1337_BIT_CENTURY	0x80	/* in REG_MONTH */
+ #define DS1307_REG_YEAR		0x06	/* 00-99 */
+ 
+-/* Other registers (control, status, alarms, trickle charge, NVRAM, etc)
++/*
++ * Other registers (control, status, alarms, trickle charge, NVRAM, etc)
+  * start at 7, and they differ a LOT. Only control and status matter for
+  * basic RTC date and time functionality; be careful using them.
   */
--static inline void ptrace_report_syscall(struct pt_regs *regs)
-+static inline int ptrace_report_syscall(struct pt_regs *regs)
+@@ -366,6 +368,11 @@ static int ds1307_set_time(struct device
+ 				| DS1340_BIT_CENTURY;
+ 		break;
+ 	case mcp7941x:
++		/*
++		 * these bits were cleared when preparing the date/time
++		 * values and need to be set again before writing the
++		 * buffer out to the device.
++		 */
+ 		buf[DS1307_REG_SECS] |= MCP7941X_BIT_ST;
+ 		buf[DS1307_REG_WDAY] |= MCP7941X_BIT_VBATEN;
+ 		break;
+@@ -411,7 +418,8 @@ static int ds1337_read_alarm(struct devi
+ 			ds1307->regs[6], ds1307->regs[7],
+ 			ds1307->regs[8]);
+ 
+-	/* report alarm time (ALARM1); assume 24 hour and day-of-month modes,
++	/*
++	 * report alarm time (ALARM1); assume 24 hour and day-of-month modes,
+ 	 * and that all four fields are checked matches
+ 	 */
+ 	t->time.tm_sec = bcd2bin(ds1307->regs[0] & 0x7f);
+@@ -439,7 +447,7 @@ static int ds1337_read_alarm(struct devi
+ 
+ static int ds1337_set_alarm(struct device *dev, struct rtc_wkalrm *t)
  {
- 	int ptrace = current->ptrace;
+-	struct i2c_client       *client = to_i2c_client(dev);
++	struct i2c_client	*client = to_i2c_client(dev);
+ 	struct ds1307		*ds1307 = i2c_get_clientdata(client);
+ 	unsigned char		*buf = ds1307->regs;
+ 	u8			control, status;
+@@ -602,8 +610,6 @@ static struct bin_attribute nvram = {
  
- 	if (!(ptrace & PT_PTRACED))
--		return;
-+		return 0;
+ /*----------------------------------------------------------------------*/
  
- 	ptrace_notify(SIGTRAP | ((ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
+-static struct i2c_driver ds1307_driver;
+-
+ static int __devinit ds1307_probe(struct i2c_client *client,
+ 				  const struct i2c_device_id *id)
+ {
+@@ -624,7 +630,8 @@ static int __devinit ds1307_probe(struct
+ 	    && !i2c_check_functionality(adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
+ 		return -EIO;
  
-@@ -72,6 +72,8 @@ static inline void ptrace_report_syscall
- 		send_sig(current->exit_code, current, 1);
- 		current->exit_code = 0;
+-	if (!(ds1307 = kzalloc(sizeof(struct ds1307), GFP_KERNEL)))
++	ds1307 = kzalloc(sizeof(struct ds1307), GFP_KERNEL);
++	if (!ds1307)
+ 		return -ENOMEM;
+ 
+ 	i2c_set_clientdata(client, ds1307);
+@@ -659,7 +666,8 @@ static int __devinit ds1307_probe(struct
+ 		if (ds1307->regs[0] & DS1337_BIT_nEOSC)
+ 			ds1307->regs[0] &= ~DS1337_BIT_nEOSC;
+ 
+-		/* Using IRQ?  Disable the square wave and both alarms.
++		/*
++		 * Using IRQ?  Disable the square wave and both alarms.
+ 		 * For some variants, be sure alarms can trigger when we're
+ 		 * running on Vbackup (BBSQI/BBSQW)
+ 		 */
+@@ -765,7 +773,8 @@ read_rtc:
+ 		goto exit_free;
  	}
-+
-+	return fatal_signal_pending(current);
- }
  
- /**
-@@ -96,8 +98,7 @@ static inline void ptrace_report_syscall
- static inline __must_check int tracehook_report_syscall_entry(
- 	struct pt_regs *regs)
+-	/* minimal sanity checking; some chips (like DS1340) don't
++	/*
++	 * minimal sanity checking; some chips (like DS1340) don't
+ 	 * specify the extra bits as must-be-zero, but there are
+ 	 * still a few values that are clearly out-of-range.
+ 	 */
+@@ -837,7 +846,8 @@ read_rtc:
+ 	switch (ds1307->type) {
+ 	case ds_1340:
+ 	case m41t00:
+-		/* NOTE: ignores century bits; fix before deploying
++		/*
++		 * NOTE: ignores century bits; fix before deploying
+ 		 * systems that will run through year 2100.
+ 		 */
+ 		break;
+@@ -847,7 +857,8 @@ read_rtc:
+ 		if (!(tmp & DS1307_BIT_12HR))
+ 			break;
+ 
+-		/* Be sure we're in 24 hour mode.  Multi-master systems
++		/*
++		 * Be sure we're in 24 hour mode.  Multi-master systems
+ 		 * take note...
+ 		 */
+ 		tmp = bcd2bin(tmp & 0x1f);
+@@ -902,7 +913,7 @@ exit_free:
+ 
+ static int __devexit ds1307_remove(struct i2c_client *client)
  {
--	ptrace_report_syscall(regs);
--	return 0;
-+	return ptrace_report_syscall(regs);
- }
+-	struct ds1307		*ds1307 = i2c_get_clientdata(client);
++	struct ds1307 *ds1307 = i2c_get_clientdata(client);
  
- /**
+ 	if (test_and_clear_bit(HAS_ALARM, &ds1307->flags)) {
+ 		free_irq(client->irq, client);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from x0132446@ti.com are
 
 origin.patch
-linux-next.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-powerpc-eeh-remove-eeh_event_handler-daemonize.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
 
