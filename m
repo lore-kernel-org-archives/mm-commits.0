@@ -1,124 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-ds1307-refactor-chip_desc-table.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:31:46 -0700
-Message-ID: <20120326193146.8EC37A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] ptrace-dont-modify-flags-on-ptrace_setoptions-failure.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:03 -0700
+Message-ID: <20120326193203.7F01AA00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:58674 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754109Ab2CZTbs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:48 -0400
-Received: by wgbdt11 with SMTP id dt11so210371wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:47 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:64249 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754217Ab2CZTcF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:05 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hj13so233297wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w.sang@pengutronix.de, Austin.Boyle@aviatnet.com, alessandro.zummo@towertech.it, danders.dev@gmail.com, mm-commits@vger.kernel.org
+To: vda.linux@googlemail.com, jan.kratochvil@redhat.com, oleg@redhat.com, palves@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: ds1307: refactor chip_desc table
+     Subject: ptrace: don't modify flags on PTRACE_SETOPTIONS failure
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1307-refactor-chip_desc-table.patch
+     ptrace-dont-modify-flags-on-ptrace_setoptions-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: rtc: ds1307: refactor chip_desc table
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: ptrace: don't modify flags on PTRACE_SETOPTIONS failure
 
-The chip_desc table is suboptimal.  Currently it requires an entry for
-every new chip type, even if it is empty.  This has already been forgotten
-for the ds1388.  Refactor the code, so new entries are only needed, when
-they chip type really needs a (non-empty) description.  Also make the
-table visually more appealing.
+On ptrace(PTRACE_SETOPTIONS, pid, 0, <opts>), we used to set those option
+bits which are known, and then fail with -EINVAL if there are some unknown
+bits in <opts>.
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Austin Boyle <Austin.Boyle@aviatnet.com>
-Cc: David Anders <danders.dev@gmail.com>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+This is inconsistent with typical error handling, which does not change
+any state if input is invalid.
+
+This patch changes PTRACE_SETOPTIONS behavior so that in this case, we
+return -EINVAL and don't change any bits in task->ptrace.
+
+It's very unlikely that there is userspace code in the wild which will be
+affected by this change: it should have the form
+
+    ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_BOGUSOPT)
+
+where PTRACE_O_BOGUSOPT is a constant unknown to the kernel.  But kernel
+headers, naturally, don't contain any PTRACE_O_BOGUSOPTs, thus the only
+way userspace can use one if it defines one itself.  I can't see why
+anyone would do such a thing deliberately.
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Pedro Alves <palves@redhat.com>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |   48 ++++++++++++++-----------------------
- 1 file changed, 19 insertions(+), 29 deletions(-)
+ kernel/ptrace.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-refactor-chip_desc-table drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-refactor-chip_desc-table
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -36,6 +36,7 @@ enum ds_type {
- 	m41t00,
- 	mcp7941x,
- 	rx_8025,
-+	last_ds_type /* always last */
- 	// rs5c372 too?  different address...
- };
+diff -puN kernel/ptrace.c~ptrace-dont-modify-flags-on-ptrace_setoptions-failure kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-dont-modify-flags-on-ptrace_setoptions-failure
++++ a/kernel/ptrace.c
+@@ -528,6 +528,9 @@ int ptrace_writedata(struct task_struct 
  
-@@ -120,30 +121,23 @@ struct chip_desc {
- 	unsigned		alarm:1;
- };
+ static int ptrace_setoptions(struct task_struct *child, unsigned long data)
+ {
++	if (data & ~(unsigned long)PTRACE_O_MASK)
++		return -EINVAL;
++
+ 	child->ptrace &= ~PT_TRACE_MASK;
  
--static const struct chip_desc chips[] = {
--[ds_1307] = {
--	.nvram56	= 1,
--},
--[ds_1337] = {
--	.alarm		= 1,
--},
--[ds_1338] = {
--	.nvram56	= 1,
--},
--[ds_1339] = {
--	.alarm		= 1,
--},
--[ds_1340] = {
--},
--[ds_3231] = {
--	.alarm		= 1,
--},
--[m41t00] = {
--},
--[mcp7941x] = {
--},
--[rx_8025] = {
--}, };
-+static const struct chip_desc chips[last_ds_type] = {
-+	[ds_1307] = {
-+		.nvram56	= 1,
-+	},
-+	[ds_1337] = {
-+		.alarm		= 1,
-+	},
-+	[ds_1338] = {
-+		.nvram56	= 1,
-+	},
-+	[ds_1339] = {
-+		.alarm		= 1,
-+	},
-+	[ds_3231] = {
-+		.alarm		= 1,
-+	},
-+};
+ 	if (data & PTRACE_O_TRACESYSGOOD)
+@@ -551,7 +554,7 @@ static int ptrace_setoptions(struct task
+ 	if (data & PTRACE_O_TRACEEXIT)
+ 		child->ptrace |= PT_TRACE_EXIT;
  
- static const struct i2c_device_id ds1307_id[] = {
- 	{ "ds1307", ds_1307 },
-@@ -836,11 +830,7 @@ read_rtc:
- 		}
+-	return (data & ~PTRACE_O_MASK) ? -EINVAL : 0;
++	return 0;
+ }
  
- 		break;
--	case rx_8025:
--	case ds_1337:
--	case ds_1339:
--	case ds_1388:
--	case ds_3231:
-+	default:
- 		break;
- 	}
- 
+ static int ptrace_getsiginfo(struct task_struct *child, siginfo_t *info)
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
 origin.patch
 linux-next.patch
