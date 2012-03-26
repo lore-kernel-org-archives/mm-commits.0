@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mark-mm-inline-functions-as-__always_inline.patch added to -mm tree
-Date: Mon, 26 Mar 2012 16:56:25 -0700
-Message-ID: <20120326235625.EFC30A0363@akpm.mtv.corp.google.com>
+Subject: + mm-memcg-kill-mem_cgroup_lru_del.patch added to -mm tree
+Date: Mon, 26 Mar 2012 16:56:31 -0700
+Message-ID: <20120326235631.2BCD1A0363@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:52708 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757802Ab2CZX41 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:56:27 -0400
-Received: by ggnd2 with SMTP id d2so868959ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:56:26 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:49815 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757876Ab2CZX4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:56:33 -0400
+Received: by wejx9 with SMTP id x9so296347wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:56:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, glommer@parallels.com, hannes@cmpxchg.org, hughd@goog
 
 
 The patch titled
-     Subject: mm: mark mm-inline functions as __always_inline
+     Subject: mm/memcg: kill mem_cgroup_lru_del()
 has been added to the -mm tree.  Its filename is
-     mm-mark-mm-inline-functions-as-__always_inline.patch
+     mm-memcg-kill-mem_cgroup_lru_del.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: mark mm-inline functions as __always_inline
+Subject: mm/memcg: kill mem_cgroup_lru_del()
 
-GCC sometimes ignores "inline" directives even for small and simple functions.
-This supposed to be fixed in gcc 4.7, but it was released only yesterday.
+This patch kills mem_cgroup_lru_del(), we can use
+mem_cgroup_lru_del_list() instead.  On 0-order isolation we already have
+right lru list id.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -49,50 +50,75 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |    5 -----
+ mm/memcontrol.c            |    5 -----
+ mm/vmscan.c                |    7 +++++--
+ 3 files changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-mark-mm-inline-functions-as-__always_inline include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-mark-mm-inline-functions-as-__always_inline
-+++ a/include/linux/mm_inline.h
-@@ -21,7 +21,7 @@ static inline int page_is_file_cache(str
- 	return !PageSwapBacked(page);
+diff -puN include/linux/memcontrol.h~mm-memcg-kill-mem_cgroup_lru_del include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-kill-mem_cgroup_lru_del
++++ a/include/linux/memcontrol.h
+@@ -66,7 +66,6 @@ struct lruvec *mem_cgroup_zone_lruvec(st
+ struct lruvec *mem_cgroup_lru_add_list(struct zone *, struct page *,
+ 				       enum lru_list);
+ void mem_cgroup_lru_del_list(struct page *, enum lru_list);
+-void mem_cgroup_lru_del(struct page *);
+ struct lruvec *mem_cgroup_lru_move_lists(struct zone *, struct page *,
+ 					 enum lru_list, enum lru_list);
+ 
+@@ -260,10 +259,6 @@ static inline void mem_cgroup_lru_del_li
+ {
  }
  
--static inline void
-+static __always_inline void
- add_page_to_lru_list(struct zone *zone, struct page *page, enum lru_list lru)
- {
- 	struct lruvec *lruvec;
-@@ -31,7 +31,7 @@ add_page_to_lru_list(struct zone *zone, 
- 	__mod_zone_page_state(zone, NR_LRU_BASE + lru, hpage_nr_pages(page));
+-static inline void mem_cgroup_lru_del(struct page *page)
+-{
+-}
+-
+ static inline struct lruvec *mem_cgroup_lru_move_lists(struct zone *zone,
+ 						       struct page *page,
+ 						       enum lru_list from,
+diff -puN mm/memcontrol.c~mm-memcg-kill-mem_cgroup_lru_del mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-kill-mem_cgroup_lru_del
++++ a/mm/memcontrol.c
+@@ -1115,11 +1115,6 @@ void mem_cgroup_lru_del_list(struct page
+ 	mz->lru_size[lru] -= 1 << compound_order(page);
  }
  
--static inline void
-+static __always_inline void
- del_page_from_lru_list(struct zone *zone, struct page *page, enum lru_list lru)
- {
- 	mem_cgroup_lru_del_list(page, lru);
-@@ -61,7 +61,7 @@ static inline enum lru_list page_lru_bas
-  * Returns the LRU list a page was on, as an index into the array of LRU
-  * lists; and clears its Unevictable or Active flags, ready for freeing.
-  */
--static inline enum lru_list page_off_lru(struct page *page)
-+static __always_inline enum lru_list page_off_lru(struct page *page)
- {
- 	enum lru_list lru;
+-void mem_cgroup_lru_del(struct page *page)
+-{
+-	mem_cgroup_lru_del_list(page, page_lru(page));
+-}
+-
+ /**
+  * mem_cgroup_lru_move_lists - account for moving a page between lrus
+  * @zone: zone of the page
+diff -puN mm/vmscan.c~mm-memcg-kill-mem_cgroup_lru_del mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcg-kill-mem_cgroup_lru_del
++++ a/mm/vmscan.c
+@@ -1147,7 +1147,7 @@ static unsigned long isolate_lru_pages(u
  
-@@ -85,7 +85,7 @@ static inline enum lru_list page_off_lru
-  * Returns the LRU list a page should be on, as an index
-  * into the array of LRU lists.
-  */
--static inline enum lru_list page_lru(struct page *page)
-+static __always_inline enum lru_list page_lru(struct page *page)
- {
- 	enum lru_list lru;
+ 		switch (__isolate_lru_page(page, mode)) {
+ 		case 0:
+-			mem_cgroup_lru_del(page);
++			mem_cgroup_lru_del_list(page, lru);
+ 			list_move(&page->lru, dst);
+ 			nr_taken += hpage_nr_pages(page);
+ 			break;
+@@ -1205,8 +1205,11 @@ static unsigned long isolate_lru_pages(u
  
+ 			if (__isolate_lru_page(cursor_page, mode) == 0) {
+ 				unsigned int isolated_pages;
++				enum lru_list cursor_lru;
+ 
+-				mem_cgroup_lru_del(cursor_page);
++				cursor_lru = page_lru(cursor_page);
++				mem_cgroup_lru_del_list(cursor_page,
++							cursor_lru);
+ 				list_move(&cursor_page->lru, dst);
+ 				isolated_pages = hpage_nr_pages(cursor_page);
+ 				nr_taken += isolated_pages;
 _
-Subject: Subject: mm: mark mm-inline functions as __always_inline
+Subject: Subject: mm/memcg: kill mem_cgroup_lru_del()
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
