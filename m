@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usermodehelper-use-umh_wait_proc-consistently.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:23 -0700
-Message-ID: <20120326193223.A5E83A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:17 -0700
+Message-ID: <20120326193217.551EFA00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:58080 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754674Ab2CZTcY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:24 -0400
-Received: by ggnd2 with SMTP id d2so830938ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:24 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:38526 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab2CZTcS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:18 -0400
+Received: by mail-vb0-f74.google.com with SMTP id l22so508386vbn.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, FlorianSchandinat@gmx.de, drbd-dev@lists.linbit.com, gregkh@linuxfoundation.org, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, penguin-kernel@i-love.sakura.ne.jp, spock@gentoo.org, takedakn@nttdata.co.jp, mm-commits@vger.kernel.org
+To: oleg@redhat.com, anton.vorontsov@linaro.org, ebiederm@xmission.com, kosaki.motohiro@gmail.com, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usermodehelper: use UMH_WAIT_PROC consistently
+     Subject: signal: cosmetic, s/from_ancestor_ns/force/ in prepare_signal() paths
 has been removed from the -mm tree.  Its filename was
-     usermodehelper-use-umh_wait_proc-consistently.patch
+     signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,99 +26,87 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: usermodehelper: use UMH_WAIT_PROC consistently
+Subject: signal: cosmetic, s/from_ancestor_ns/force/ in prepare_signal() paths
 
-A few call_usermodehelper() callers use the hardcoded constant instead of
-the proper UMH_WAIT_PROC, fix them.
+Cosmetic, rename the from_ancestor_ns argument in prepare_signal() paths. 
+After the previous change it doesn't match the reality.
 
-Reported-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Michal Januszewski <spock@gentoo.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Kentaro Takeda <takedakn@nttdata.co.jp>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: James Morris <jmorris@namei.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_nl.c               |    2 +-
- drivers/staging/rtl8187se/r8180_core.c     |    2 +-
- drivers/staging/rtl8192e/rtl8192e/rtl_dm.c |    4 ++--
- drivers/video/uvesafb.c                    |    2 +-
- security/tomoyo/load_policy.c              |    2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/signal.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/drbd/drbd_nl.c~usermodehelper-use-umh_wait_proc-consistently drivers/block/drbd/drbd_nl.c
---- a/drivers/block/drbd/drbd_nl.c~usermodehelper-use-umh_wait_proc-consistently
-+++ a/drivers/block/drbd/drbd_nl.c
-@@ -179,7 +179,7 @@ int drbd_khelper(struct drbd_conf *mdev,
- 	dev_info(DEV, "helper command: %s %s %s\n", usermode_helper, cmd, mb);
- 
- 	drbd_bcast_ev_helper(mdev, cmd);
--	ret = call_usermodehelper(usermode_helper, argv, envp, 1);
-+	ret = call_usermodehelper(usermode_helper, argv, envp, UMH_WAIT_PROC);
- 	if (ret)
- 		dev_warn(DEV, "helper command: %s %s %s exit code %u (0x%x)\n",
- 				usermode_helper, cmd, mb,
-diff -puN drivers/staging/rtl8187se/r8180_core.c~usermodehelper-use-umh_wait_proc-consistently drivers/staging/rtl8187se/r8180_core.c
---- a/drivers/staging/rtl8187se/r8180_core.c~usermodehelper-use-umh_wait_proc-consistently
-+++ a/drivers/staging/rtl8187se/r8180_core.c
-@@ -4159,7 +4159,7 @@ void GPIOChangeRFWorkItemCallBack(struct
- 		argv[0] = RadioPowerPath;
- 		argv[2] = NULL;
- 
--		call_usermodehelper(RadioPowerPath, argv, envp, 1);
-+		call_usermodehelper(RadioPowerPath, argv, envp, UMH_WAIT_PROC);
- 	}
+diff -puN kernel/signal.c~signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths kernel/signal.c
+--- a/kernel/signal.c~signal-cosmetic-s-from_ancestor_ns-force-in-prepare_signal-paths
++++ a/kernel/signal.c
+@@ -58,21 +58,20 @@ static int sig_handler_ignored(void __us
+ 		(handler == SIG_DFL && sig_kernel_ignore(sig));
  }
  
-diff -puN drivers/staging/rtl8192e/rtl8192e/rtl_dm.c~usermodehelper-use-umh_wait_proc-consistently drivers/staging/rtl8192e/rtl8192e/rtl_dm.c
---- a/drivers/staging/rtl8192e/rtl8192e/rtl_dm.c~usermodehelper-use-umh_wait_proc-consistently
-+++ a/drivers/staging/rtl8192e/rtl8192e/rtl_dm.c
-@@ -208,7 +208,7 @@ static void dm_check_ac_dc_power(struct 
+-static int sig_task_ignored(struct task_struct *t, int sig,
+-		int from_ancestor_ns)
++static int sig_task_ignored(struct task_struct *t, int sig, bool force)
+ {
+ 	void __user *handler;
  
- 	if (priv->rtllib->state != RTLLIB_LINKED)
- 		return;
--	call_usermodehelper(ac_dc_check_script_path, argv, envp, 1);
-+	call_usermodehelper(ac_dc_check_script_path, argv, envp, UMH_WAIT_PROC);
+ 	handler = sig_handler(t, sig);
  
- 	return;
- };
-@@ -2296,7 +2296,7 @@ void dm_CheckRfCtrlGPIO(void *data)
+ 	if (unlikely(t->signal->flags & SIGNAL_UNKILLABLE) &&
+-			handler == SIG_DFL && !from_ancestor_ns)
++			handler == SIG_DFL && !force)
+ 		return 1;
  
- 		argv[0] = RadioPowerPath;
- 		argv[2] = NULL;
--		call_usermodehelper(RadioPowerPath, argv, envp, 1);
-+		call_usermodehelper(RadioPowerPath, argv, envp, UMH_WAIT_PROC);
- 	}
+ 	return sig_handler_ignored(handler, sig);
  }
  
-diff -puN drivers/video/uvesafb.c~usermodehelper-use-umh_wait_proc-consistently drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~usermodehelper-use-umh_wait_proc-consistently
-+++ a/drivers/video/uvesafb.c
-@@ -121,7 +121,7 @@ static int uvesafb_helper_start(void)
- 		NULL,
- 	};
+-static int sig_ignored(struct task_struct *t, int sig, int from_ancestor_ns)
++static int sig_ignored(struct task_struct *t, int sig, bool force)
+ {
+ 	/*
+ 	 * Blocked signals are never ignored, since the
+@@ -82,7 +81,7 @@ static int sig_ignored(struct task_struc
+ 	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
+ 		return 0;
  
--	return call_usermodehelper(v86d_path, argv, envp, 1);
-+	return call_usermodehelper(v86d_path, argv, envp, UMH_WAIT_PROC);
+-	if (!sig_task_ignored(t, sig, from_ancestor_ns))
++	if (!sig_task_ignored(t, sig, force))
+ 		return 0;
+ 
+ 	/*
+@@ -855,7 +854,7 @@ static void ptrace_trap_notify(struct ta
+  * Returns true if the signal should be actually delivered, otherwise
+  * it should be dropped.
+  */
+-static int prepare_signal(int sig, struct task_struct *p, int from_ancestor_ns)
++static int prepare_signal(int sig, struct task_struct *p, bool force)
+ {
+ 	struct signal_struct *signal = p->signal;
+ 	struct task_struct *t;
+@@ -915,7 +914,7 @@ static int prepare_signal(int sig, struc
+ 		}
+ 	}
+ 
+-	return !sig_ignored(p, sig, from_ancestor_ns);
++	return !sig_ignored(p, sig, force);
  }
  
  /*
-diff -puN security/tomoyo/load_policy.c~usermodehelper-use-umh_wait_proc-consistently security/tomoyo/load_policy.c
---- a/security/tomoyo/load_policy.c~usermodehelper-use-umh_wait_proc-consistently
-+++ a/security/tomoyo/load_policy.c
-@@ -102,7 +102,7 @@ void tomoyo_load_policy(const char *file
- 	envp[0] = "HOME=/";
- 	envp[1] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
- 	envp[2] = NULL;
--	call_usermodehelper(argv[0], argv, envp, 1);
-+	call_usermodehelper(argv[0], argv, envp, UMH_WAIT_PROC);
- 	tomoyo_check_profile();
- }
+@@ -1602,7 +1601,7 @@ int send_sigqueue(struct sigqueue *q, st
  
+ 	ret = 1; /* the signal is ignored */
+ 	result = TRACE_SIGNAL_IGNORED;
+-	if (!prepare_signal(sig, t, 0))
++	if (!prepare_signal(sig, t, false))
+ 		goto out;
+ 
+ 	ret = 0;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
