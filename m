@@ -1,63 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] init-do_mountsc-print-error-code-on-mount-failure.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:31:12 -0700
-Message-ID: <20120326193112.57AABA00A9@akpm.mtv.corp.google.com>
+Subject: [merged] rtc-spear-fix-for-balancing-the-enable_irq_wake-in-power-mgmt.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:31:14 -0700
+Message-ID: <20120326193114.63FCAA00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:58916 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558Ab2CZTbN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:13 -0400
-Received: by mail-ee0-f74.google.com with SMTP id c41so293942eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:13 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:47661 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753558Ab2CZTbP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:15 -0400
+Received: by ghbz15 with SMTP id z15so831635ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bernhard@bwalle.de, mm-commits@vger.kernel.org
+To: deepak.sikri@st.com, rajeev-dlh.kumar@st.com, shiraz.hashim@st.com, viresh.kumar@st.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/do_mounts.c: print error code on mount failure
+     Subject: rtc-spear: fix for balancing the enable_irq_wake in Power Mgmt
 has been removed from the -mm tree.  Its filename was
-     init-do_mountsc-print-error-code-on-mount-failure.patch
+     rtc-spear-fix-for-balancing-the-enable_irq_wake-in-power-mgmt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Bernhard Walle <bernhard@bwalle.de>
-Subject: init/do_mounts.c: print error code on mount failure
+From: Deepak Sikri <deepak.sikri@st.com>
+Subject: rtc-spear: fix for balancing the enable_irq_wake in Power Mgmt
 
-Printing the error code makes it easier to debug the cause of a mount
-failure.  For example I had the problem that the root file system could
-not be mounted read-writeable because my SD card was write-protected. 
-Without an error code it looks like the SD card was not detected at all.
+Handle the fix for unbalanced irq for the cases when enable_irq_wake
+fails, and a warning related to same is displayed on the console.  The
+workaround is handled at the driver level.
 
-Signed-off-by: Bernhard Walle <bernhard@bwalle.de>
+Signed-off-by: Deepak Sikri <deepak.sikri@st.com>
+Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
+Acked-by: Rajeev Kumar <rajeev-dlh.kumar@st.com>
+Cc: Shiraz Hashim <shiraz.hashim@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-spear.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN init/do_mounts.c~init-do_mountsc-print-error-code-on-mount-failure init/do_mounts.c
---- a/init/do_mounts.c~init-do_mountsc-print-error-code-on-mount-failure
-+++ a/init/do_mounts.c
-@@ -373,8 +373,8 @@ retry:
- #ifdef CONFIG_BLOCK
- 		__bdevname(ROOT_DEV, b);
- #endif
--		printk("VFS: Cannot open root device \"%s\" or %s\n",
--				root_device_name, b);
-+		printk("VFS: Cannot open root device \"%s\" or %s: error %d\n",
-+				root_device_name, b, err);
- 		printk("Please append a correct \"root=\" boot option; here are the available partitions:\n");
+diff -puN drivers/rtc/rtc-spear.c~rtc-spear-fix-for-balancing-the-enable_irq_wake-in-power-mgmt drivers/rtc/rtc-spear.c
+--- a/drivers/rtc/rtc-spear.c~rtc-spear-fix-for-balancing-the-enable_irq_wake-in-power-mgmt
++++ a/drivers/rtc/rtc-spear.c
+@@ -80,6 +80,7 @@ struct spear_rtc_config {
+ 	struct clk *clk;
+ 	spinlock_t lock;
+ 	void __iomem *ioaddr;
++	unsigned int irq_wake;
+ };
  
- 		printk_all_partitions();
+ static inline void spear_rtc_clear_interrupt(struct spear_rtc_config *config)
+@@ -463,9 +464,10 @@ static int spear_rtc_suspend(struct plat
+ 	int irq;
+ 
+ 	irq = platform_get_irq(pdev, 0);
+-	if (device_may_wakeup(&pdev->dev))
+-		enable_irq_wake(irq);
+-	else {
++	if (device_may_wakeup(&pdev->dev)) {
++		if (!enable_irq_wake(irq))
++			config->irq_wake = 1;
++	} else {
+ 		spear_rtc_disable_interrupt(config);
+ 		clk_disable(config->clk);
+ 	}
+@@ -481,9 +483,12 @@ static int spear_rtc_resume(struct platf
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 
+-	if (device_may_wakeup(&pdev->dev))
+-		disable_irq_wake(irq);
+-	else {
++	if (device_may_wakeup(&pdev->dev)) {
++		if (config->irq_wake) {
++			disable_irq_wake(irq);
++			config->irq_wake = 0;
++		}
++	} else {
+ 		clk_enable(config->clk);
+ 		spear_rtc_enable_interrupt(config);
+ 	}
 _
 
-Patches currently in -mm which might be from bernhard@bwalle.de are
+Patches currently in -mm which might be from deepak.sikri@st.com are
 
 origin.patch
-linux-next.patch
 
