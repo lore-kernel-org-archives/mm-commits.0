@@ -1,99 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-speedup-proc-stat-handling.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:44 -0700
-Message-ID: <20120326193244.90CDCA00A9@akpm.mtv.corp.google.com>
+Subject: [merged] seq_file-add-seq_set_overflow-seq_overflow.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:52 -0700
+Message-ID: <20120326193252.69ACFA00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:58080 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754683Ab2CZTcp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:45 -0400
-Received: by mail-gx0-f202.google.com with SMTP id d2so830938ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:45 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:62114 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754891Ab2CZTcx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:53 -0400
+Received: by mail-yx0-f202.google.com with SMTP id q2so832475yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.dumazet@gmail.com, a.p.zijlstra@chello.nl, adobriyan@gmail.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, linux@arm.linux.org.uk, mingo@elte.hu, pjt@google.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, eric.dumazet@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: speed up /proc/stat handling
+     Subject: seq_file: add seq_set_overflow(), seq_overflow()
 has been removed from the -mm tree.  Its filename was
-     proc-speedup-proc-stat-handling.patch
+     seq_file-add-seq_set_overflow-seq_overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: proc: speed up /proc/stat handling
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: seq_file: add seq_set_overflow(), seq_overflow()
 
-On a typical 16 cpus machine, "cat /proc/stat" gives more than 4096 bytes,
-and is slow :
+It is undocumented but a seq_file's overflow state is indicated by
+m->count == m->size.  Add seq_set_overflow() and seq_overflow() to
+set/check overflow status explicitly.
 
-# strace -T -o /tmp/STRACE cat /proc/stat | wc -c
-5826
-# grep "cpu " /tmp/STRACE
-read(0, "cpu  1949310 19 2144714 12117253"..., 32768) = 5826 <0.001504>
+Based on an idea from Eric Dumazet.
 
-Thats partly because show_stat() must be called twice since initial
-buffer size is too small (4096 bytes for less than 32 possible cpus)
-
-Fix this by :
-
-1) Taking into account nr_irqs in the initial buffer sizing.
-
-2) Using ksize() to allow better filling of initial buffer.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Turner <pjt@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+[akpm@linux-foundation.org: tweak code comment]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/seq_file.c |   36 ++++++++++++++++++++++++++----------
+ 1 file changed, 26 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/stat.c~proc-speedup-proc-stat-handling fs/proc/stat.c
---- a/fs/proc/stat.c~proc-speedup-proc-stat-handling
-+++ a/fs/proc/stat.c
-@@ -157,11 +157,14 @@ static int show_stat(struct seq_file *p,
+diff -puN fs/seq_file.c~seq_file-add-seq_set_overflow-seq_overflow fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-add-seq_set_overflow-seq_overflow
++++ a/fs/seq_file.c
+@@ -13,6 +13,22 @@
+ #include <asm/uaccess.h>
+ #include <asm/page.h>
  
- static int stat_open(struct inode *inode, struct file *file)
- {
--	unsigned size = 4096 * (1 + num_possible_cpus() / 32);
-+	unsigned size = 1024 + 128 * num_possible_cpus();
- 	char *buf;
- 	struct seq_file *m;
- 	int res;
- 
-+	/* minimum size to display an interrupt count : 2 bytes */
-+	size += 2 * nr_irqs;
 +
- 	/* don't ask for more than the kmalloc() max size */
- 	if (size > KMALLOC_MAX_SIZE)
- 		size = KMALLOC_MAX_SIZE;
-@@ -173,7 +176,7 @@ static int stat_open(struct inode *inode
- 	if (!res) {
- 		m = file->private_data;
- 		m->buf = buf;
--		m->size = size;
-+		m->size = ksize(buf);
- 	} else
- 		kfree(buf);
- 	return res;
++/*
++ * seq_files have a buffer which can may overflow. When this happens a larger
++ * buffer is reallocated and all the data will be printed again.
++ * The overflow state is true when m->count == m->size.
++ */
++static bool seq_overflow(struct seq_file *m)
++{
++	return m->count == m->size;
++}
++
++static void seq_set_overflow(struct seq_file *m)
++{
++	m->count = m->size;
++}
++
+ /**
+  *	seq_open -	initialize sequential file
+  *	@file: file we initialize
+@@ -92,7 +108,7 @@ static int traverse(struct seq_file *m, 
+ 			error = 0;
+ 			m->count = 0;
+ 		}
+-		if (m->count == m->size)
++		if (seq_overflow(m))
+ 			goto Eoverflow;
+ 		if (pos + m->count > offset) {
+ 			m->from = offset - pos;
+@@ -234,7 +250,7 @@ Fill:
+ 			break;
+ 		}
+ 		err = m->op->show(m, p);
+-		if (m->count == m->size || err) {
++		if (seq_overflow(m) || err) {
+ 			m->count = offs;
+ 			if (likely(err <= 0))
+ 				break;
+@@ -361,7 +377,7 @@ int seq_escape(struct seq_file *m, const
+ 			*p++ = '0' + (c & 07);
+ 			continue;
+ 		}
+-		m->count = m->size;
++		seq_set_overflow(m);
+ 		return -1;
+         }
+ 	m->count = p - m->buf;
+@@ -383,7 +399,7 @@ int seq_printf(struct seq_file *m, const
+ 			return 0;
+ 		}
+ 	}
+-	m->count = m->size;
++	seq_set_overflow(m);
+ 	return -1;
+ }
+ EXPORT_SYMBOL(seq_printf);
+@@ -512,7 +528,7 @@ int seq_bitmap(struct seq_file *m, const
+ 			return 0;
+ 		}
+ 	}
+-	m->count = m->size;
++	seq_set_overflow(m);
+ 	return -1;
+ }
+ EXPORT_SYMBOL(seq_bitmap);
+@@ -528,7 +544,7 @@ int seq_bitmap_list(struct seq_file *m, 
+ 			return 0;
+ 		}
+ 	}
+-	m->count = m->size;
++	seq_set_overflow(m);
+ 	return -1;
+ }
+ EXPORT_SYMBOL(seq_bitmap_list);
+@@ -639,7 +655,7 @@ int seq_puts(struct seq_file *m, const c
+ 		m->count += len;
+ 		return 0;
+ 	}
+-	m->count = m->size;
++	seq_set_overflow(m);
+ 	return -1;
+ }
+ EXPORT_SYMBOL(seq_puts);
+@@ -673,7 +689,7 @@ int seq_put_decimal_ull(struct seq_file 
+ 	m->count += len;
+ 	return 0;
+ overflow:
+-	m->count = m->size;
++	seq_set_overflow(m);
+ 	return -1;
+ }
+ EXPORT_SYMBOL(seq_put_decimal_ull);
+@@ -683,7 +699,7 @@ int seq_put_decimal_ll(struct seq_file *
+ {
+ 	if (num < 0) {
+ 		if (m->count + 3 >= m->size) {
+-			m->count = m->size;
++			seq_set_overflow(m);
+ 			return -1;
+ 		}
+ 		if (delimiter)
+@@ -711,7 +727,7 @@ int seq_write(struct seq_file *seq, cons
+ 		seq->count += len;
+ 		return 0;
+ 	}
+-	seq->count = seq->size;
++	seq_set_overflow(seq);
+ 	return -1;
+ }
+ EXPORT_SYMBOL(seq_write);
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
-lib-cpumaskc-remove-__any_online_cpu.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
+memcg-change-behavior-of-moving-charges-at-task-move.patch
+memcg-change-behavior-of-moving-charges-at-task-move-fix.patch
+memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
+memcg-swap-use-mem_cgroup_uncharge_swap.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
 
