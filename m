@@ -1,115 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-lp5523c-constify-some-data.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:29:40 -0700
-Message-ID: <20120326192940.55AC9A0560@akpm.mtv.corp.google.com>
+Subject: [merged] leds-lp5521-add-update_config-in-the-lp5521_platform_data.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:29:32 -0700
+Message-ID: <20120326192932.72A20A0560@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:40916 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120Ab2CZT3m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:29:42 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gj3so288108lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:29:41 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:63241 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120Ab2CZT3e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:29:34 -0400
+Received: by mail-we0-f202.google.com with SMTP id x9so290130wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:29:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: Milo.Kim@ti.com, arun.murthy@stericsson.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, srinidhi.kasagar@stericsson.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-lp5523.c: constify some data
+     Subject: drivers/leds/leds-lp5521.c: add 'update_config' in the lp5521_platform_data
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-lp5523c-constify-some-data.patch
+     leds-lp5521-add-update_config-in-the-lp5521_platform_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/leds/leds-lp5523.c: constify some data
+From: "Kim, Milo" <Milo.Kim@ti.com>
+Subject: drivers/leds/leds-lp5521.c: add 'update_config' in the lp5521_platform_data
 
-Saves ~50 bytes text and speeds things up.
+The value of CONFIG register(Addr 08h) is configurable.  For supporting
+this feature, update_config is added in the platform data.  If
+'update_config' is not defined, the default value is 'LP5521_PWRSAVE_EN |
+LP5521_CP_MODE_AUTO | LP5521_R_TO_BATT'.
 
+To define CONFIG register in the platform data, the bit definitions were
+mo= ved to the header file.
+
+Documentation updated : description about 'update_config' and example.
+
+Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Arun MURTHY <arun.murthy@stericsson.com>
+Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp5523.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/leds/leds-lp5521.txt |   19 +++++++++++++++++++
+ drivers/leds/leds-lp5521.c         |   19 ++++---------------
+ include/linux/leds-lp5521.h        |   13 +++++++++++++
+ 3 files changed, 36 insertions(+), 15 deletions(-)
 
-diff -puN drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-constify-some-data drivers/leds/leds-lp5523.c
---- a/drivers/leds/leds-lp5523.c~drivers-leds-leds-lp5523c-constify-some-data
-+++ a/drivers/leds/leds-lp5523.c
-@@ -152,7 +152,7 @@ static inline struct lp5523_chip *led_to
+diff -puN Documentation/leds/leds-lp5521.txt~leds-lp5521-add-update_config-in-the-lp5521_platform_data Documentation/leds/leds-lp5521.txt
+--- a/Documentation/leds/leds-lp5521.txt~leds-lp5521-add-update_config-in-the-lp5521_platform_data
++++ a/Documentation/leds/leds-lp5521.txt
+@@ -92,3 +92,22 @@ static struct lp5521_platform_data lp552
  
- static int lp5523_set_mode(struct lp5523_engine *engine, u8 mode);
- static int lp5523_set_engine_mode(struct lp5523_engine *engine, u8 mode);
--static int lp5523_load_program(struct lp5523_engine *engine, u8 *pattern);
-+static int lp5523_load_program(struct lp5523_engine *engine, const u8 *pattern);
+ If the current is set to 0 in the platform data, that channel is
+ disabled and it is not visible in the sysfs.
++
++The 'update_config' : CONFIG register (ADDR 08h)
++This value is platform-specific data.
++If update_config is not defined, the CONFIG register is set with
++'LP5521_PWRSAVE_EN | LP5521_CP_MODE_AUTO | LP5521_R_TO_BATT'.
++(Enable auto-powersave, set charge pump to auto, red to battery)
++
++example of update_config :
++
++#define LP5521_CONFIGS	(LP5521_PWM_HF | LP5521_PWRSAVE_EN | \
++			LP5521_CP_MODE_AUTO | LP5521_R_TO_BATT | \
++			LP5521_CLK_INT)
++
++static struct lp5521_platform_data lp5521_pdata = {
++	.led_config = lp5521_led_config,
++	.num_channels = ARRAY_SIZE(lp5521_led_config),
++	.clock_mode = LP5521_CLOCK_INT,
++	.update_config = LP5521_CONFIGS,
++};
+diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-add-update_config-in-the-lp5521_platform_data drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~leds-lp5521-add-update_config-in-the-lp5521_platform_data
++++ a/drivers/leds/leds-lp5521.c
+@@ -82,18 +82,6 @@
+ #define LP5521_LOGARITHMIC_PWM		0x80	/* Logarithmic PWM adjustment */
+ #define LP5521_EXEC_RUN			0x2A
  
- static void lp5523_led_brightness_work(struct work_struct *work);
+-/* Bits in CONFIG register */
+-#define LP5521_PWM_HF			0x40	/* PWM: 0 = 256Hz, 1 = 558Hz */
+-#define LP5521_PWRSAVE_EN		0x20	/* 1 = Power save mode */
+-#define LP5521_CP_MODE_OFF		0	/* Charge pump (CP) off */
+-#define LP5521_CP_MODE_BYPASS		8	/* CP forced to bypass mode */
+-#define LP5521_CP_MODE_1X5		0x10	/* CP forced to 1.5x mode */
+-#define LP5521_CP_MODE_AUTO		0x18	/* Automatic mode selection */
+-#define LP5521_R_TO_BATT		4	/* R out: 0 = CP, 1 = Vbat */
+-#define LP5521_CLK_SRC_EXT		0	/* Ext-clk source (CLK_32K) */
+-#define LP5521_CLK_INT			1	/* Internal clock */
+-#define LP5521_CLK_AUTO			2	/* Automatic clock selection */
+-
+ /* Status */
+ #define LP5521_EXT_CLK_USED		0x08
  
-@@ -196,7 +196,7 @@ static int lp5523_configure(struct i2c_c
- 	u8 status;
- 
- 	/* one pattern per engine setting led mux start and stop addresses */
--	u8 pattern[][LP5523_PROGRAM_LENGTH] =  {
-+	static const u8 pattern[][LP5523_PROGRAM_LENGTH] =  {
- 		{ 0x9c, 0x30, 0x9c, 0xb0, 0x9d, 0x80, 0xd8, 0x00, 0},
- 		{ 0x9c, 0x40, 0x9c, 0xc0, 0x9d, 0x80, 0xd8, 0x00, 0},
- 		{ 0x9c, 0x50, 0x9c, 0xd0, 0x9d, 0x80, 0xd8, 0x00, 0},
-@@ -301,7 +301,7 @@ static int lp5523_load_mux(struct lp5523
- 	return ret;
- }
- 
--static int lp5523_load_program(struct lp5523_engine *engine, u8 *pattern)
-+static int lp5523_load_program(struct lp5523_engine *engine, const u8 *pattern)
+@@ -241,15 +229,16 @@ static int lp5521_configure(struct i2c_c
  {
- 	struct lp5523_chip *chip = engine_to_lp5523(engine);
- 	struct i2c_client *client = chip->client;
+ 	struct lp5521_chip *chip = i2c_get_clientdata(client);
+ 	int ret;
++	u8 cfg;
+ 
+ 	lp5521_init_engine(chip);
+ 
+ 	/* Set all PWMs to direct control mode */
+ 	ret = lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
+ 
+-	/* Enable auto-powersave, set charge pump to auto, red to battery */
+-	ret |= lp5521_write(client, LP5521_REG_CONFIG,
+-		LP5521_PWRSAVE_EN | LP5521_CP_MODE_AUTO | LP5521_R_TO_BATT);
++	cfg = chip->pdata->update_config ?
++		: (LP5521_PWRSAVE_EN | LP5521_CP_MODE_AUTO | LP5521_R_TO_BATT);
++	ret |= lp5521_write(client, LP5521_REG_CONFIG, cfg);
+ 
+ 	/* Initialize all channels PWM to zero -> leds off */
+ 	ret |= lp5521_write(client, LP5521_REG_R_PWM, 0);
+diff -puN include/linux/leds-lp5521.h~leds-lp5521-add-update_config-in-the-lp5521_platform_data include/linux/leds-lp5521.h
+--- a/include/linux/leds-lp5521.h~leds-lp5521-add-update_config-in-the-lp5521_platform_data
++++ a/include/linux/leds-lp5521.h
+@@ -36,6 +36,18 @@ struct lp5521_led_config {
+ #define LP5521_CLOCK_INT	1
+ #define LP5521_CLOCK_EXT	2
+ 
++/* Bits in CONFIG register */
++#define LP5521_PWM_HF			0x40	/* PWM: 0 = 256Hz, 1 = 558Hz */
++#define LP5521_PWRSAVE_EN		0x20	/* 1 = Power save mode */
++#define LP5521_CP_MODE_OFF		0	/* Charge pump (CP) off */
++#define LP5521_CP_MODE_BYPASS		8	/* CP forced to bypass mode */
++#define LP5521_CP_MODE_1X5		0x10	/* CP forced to 1.5x mode */
++#define LP5521_CP_MODE_AUTO		0x18	/* Automatic mode selection */
++#define LP5521_R_TO_BATT		4	/* R out: 0 = CP, 1 = Vbat */
++#define LP5521_CLK_SRC_EXT		0	/* Ext-clk source (CLK_32K) */
++#define LP5521_CLK_INT			1	/* Internal clock */
++#define LP5521_CLK_AUTO			2	/* Automatic clock selection */
++
+ struct lp5521_platform_data {
+ 	struct lp5521_led_config *led_config;
+ 	u8	num_channels;
+@@ -44,6 +56,7 @@ struct lp5521_platform_data {
+ 	void	(*release_resources)(void);
+ 	void	(*enable)(bool state);
+ 	const char *label;
++	u8	update_config;
+ };
+ 
+ #endif /* __LINUX_LP5521_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Milo.Kim@ti.com are
 
 origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
-brlocks-lglocks-cleanups.patch
-simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-memcg-change-behavior-of-moving-charges-at-task-move-fix.patch
-cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose-fix.patch
-arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
-radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
