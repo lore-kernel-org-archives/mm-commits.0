@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:32 -0700
-Message-ID: <20120326193232.6BB38A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] kmod-introduce-call_modprobe-helper.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:34 -0700
+Message-ID: <20120326193234.75199A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:62114 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754802Ab2CZTcd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:33 -0400
-Received: by yenq2 with SMTP id q2so832475yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:32 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:39618 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754802Ab2CZTcf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:35 -0400
+Received: by qcsp5 with SMTP id p5so514019qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usermodehelper: ____call_usermodehelper() doesn't need do_exit()
+     Subject: kmod: introduce call_modprobe() helper
 has been removed from the -mm tree.  Its filename was
-     usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
+     kmod-introduce-call_modprobe-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,10 +26,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: usermodehelper: ____call_usermodehelper() doesn't need do_exit()
+Subject: kmod: introduce call_modprobe() helper
 
-Minor cleanup.  ____call_usermodehelper() can simply return, no need to
-call do_exit() explicitely.
+No functional changes.  Move the call_usermodehelper code from
+__request_module() into the new simple helper, call_modprobe().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
@@ -39,21 +39,57 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kmod.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN kernel/kmod.c~usermodehelper-____call_usermodehelper-doesnt-need-do_exit kernel/kmod.c
---- a/kernel/kmod.c~usermodehelper-____call_usermodehelper-doesnt-need-do_exit
+diff -puN kernel/kmod.c~kmod-introduce-call_modprobe-helper kernel/kmod.c
+--- a/kernel/kmod.c~kmod-introduce-call_modprobe-helper
 +++ a/kernel/kmod.c
-@@ -188,7 +188,7 @@ static int ____call_usermodehelper(void 
- 	/* Exec failed? */
- fail:
- 	sub_info->retval = retval;
--	do_exit(0);
-+	return 0;
- }
+@@ -60,6 +60,21 @@ static DECLARE_RWSEM(umhelper_sem);
+ */
+ char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
  
- void call_usermodehelper_freeinfo(struct subprocess_info *info)
++static int call_modprobe(char *module_name, int wait)
++{
++	static char *envp[] = {
++		"HOME=/",
++		"TERM=linux",
++		"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
++		NULL
++	};
++
++	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
++
++	return call_usermodehelper_fns(modprobe_path, argv, envp,
++					wait, NULL, NULL, NULL);
++}
++
+ /**
+  * __request_module - try to load a kernel module
+  * @wait: wait (or not) for the operation to complete
+@@ -81,11 +96,6 @@ int __request_module(bool wait, const ch
+ 	char module_name[MODULE_NAME_LEN];
+ 	unsigned int max_modprobes;
+ 	int ret;
+-	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
+-	static char *envp[] = { "HOME=/",
+-				"TERM=linux",
+-				"PATH=/sbin:/usr/sbin:/bin:/usr/bin",
+-				NULL };
+ 	static atomic_t kmod_concurrent = ATOMIC_INIT(0);
+ #define MAX_KMOD_CONCURRENT 50	/* Completely arbitrary value - KAO */
+ 	static int kmod_loop_msg;
+@@ -128,9 +138,7 @@ int __request_module(bool wait, const ch
+ 
+ 	trace_module_request(module_name, wait, _RET_IP_);
+ 
+-	ret = call_usermodehelper_fns(modprobe_path, argv, envp,
+-			wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC,
+-			NULL, NULL, NULL);
++	ret = call_modprobe(module_name, wait ? UMH_WAIT_PROC : UMH_WAIT_EXEC);
+ 
+ 	atomic_dec(&kmod_concurrent);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
