@@ -1,147 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ptrace-make-ptrace_seize-set-ptrace-options-specified-in-data-parameter.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:07 -0700
-Message-ID: <20120326193207.7F8A1A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] ptrace-dont-send-sigtrap-on-exec-if-seized.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:01 -0700
+Message-ID: <20120326193201.90C1BA00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:45421 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754282Ab2CZTcJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:09 -0400
-Received: by mail-fa0-f74.google.com with SMTP id a19so298511faa.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:08 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:54542 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754224Ab2CZTcF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:05 -0400
+Received: by mail-we0-f202.google.com with SMTP id x9so290191wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vda.linux@googlemail.com, jan.kratochvil@redhat.com, oleg@redhat.com, palves@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, fweisbec@gmail.com, indan@nul.nu, jan.kratochvil@redhat.com, palves@redhat.com, rostedt@goodmis.org, scarybeasts@gmail.com, tj@kernel.org, vda.linux@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace: make PTRACE_SEIZE set ptrace options specified in 'data' parameter
+     Subject: ptrace: don't send SIGTRAP on exec if SEIZED
 has been removed from the -mm tree.  Its filename was
-     ptrace-make-ptrace_seize-set-ptrace-options-specified-in-data-parameter.patch
+     ptrace-dont-send-sigtrap-on-exec-if-seized.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: ptrace: make PTRACE_SEIZE set ptrace options specified in 'data' parameter
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: ptrace: don't send SIGTRAP on exec if SEIZED
 
-This can be used to close a few corner cases in strace where we get
-unwanted racy behavior after attach, but before we have a chance to set
-options (the notorious post-execve SIGTRAP comes to mind), and removes the
-need to track "did we set opts for this task" state in strace internals.
+ptrace_event(PTRACE_EVENT_EXEC) sends SIGTRAP if PT_TRACE_EXEC is not set.
+ This is because this SIGTRAP predates PTRACE_O_TRACEEXEC option, we do
+not need/want this with PT_SEIZED which can set the options during attach.
 
-While we are at it:
-
-Make it possible to extend SEIZE in the future with more functionality by
-passing non-zero 'addr' parameter.  To that end, error out if 'addr' is
-non-zero.  PTRACE_ATTACH did not (and still does not) have such check, and
-users (strace) do pass garbage there...  let's avoid repeating this
-mistake with SEIZE.
-
-Set all task->ptrace bits in one operation - before this change, we were
-adding PT_SEIZED and PT_PTRACE_CAP with task->ptrace |= BIT ops.  This was
-probably ok (not a bug), but let's be on a safer side.
-
-Changes since v2: use (unsigned long) casts instead of (long) ones, move
-PTRACE_SEIZE_DEVEL-related code to separate lines of code.
-
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+Suggested-by: Pedro Alves <palves@redhat.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Chris Evans <scarybeasts@gmail.com>
+Cc: Indan Zupancic <indan@nul.nu>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Pedro Alves <palves@redhat.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |   31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+ include/linux/ptrace.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-make-ptrace_seize-set-ptrace-options-specified-in-data-parameter kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-make-ptrace_seize-set-ptrace-options-specified-in-data-parameter
-+++ a/kernel/ptrace.c
-@@ -231,6 +231,7 @@ bool ptrace_may_access(struct task_struc
+diff -puN include/linux/ptrace.h~ptrace-dont-send-sigtrap-on-exec-if-seized include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace-dont-send-sigtrap-on-exec-if-seized
++++ a/include/linux/ptrace.h
+@@ -199,9 +199,10 @@ static inline void ptrace_event(int even
+ 	if (unlikely(ptrace_event_enabled(current, event))) {
+ 		current->ptrace_message = message;
+ 		ptrace_notify((event << 8) | SIGTRAP);
+-	} else if (event == PTRACE_EVENT_EXEC && unlikely(current->ptrace)) {
++	} else if (event == PTRACE_EVENT_EXEC) {
+ 		/* legacy EXEC report via SIGTRAP */
+-		send_sig(SIGTRAP, current, 0);
++		if ((current->ptrace & (PT_PTRACED|PT_SEIZED)) == PT_PTRACED)
++			send_sig(SIGTRAP, current, 0);
+ 	}
  }
  
- static int ptrace_attach(struct task_struct *task, long request,
-+			 unsigned long addr,
- 			 unsigned long flags)
- {
- 	bool seize = (request == PTRACE_SEIZE);
-@@ -238,19 +239,29 @@ static int ptrace_attach(struct task_str
- 
- 	/*
- 	 * SEIZE will enable new ptrace behaviors which will be implemented
--	 * gradually.  SEIZE_DEVEL is used to prevent applications
-+	 * gradually.  SEIZE_DEVEL bit is used to prevent applications
- 	 * expecting full SEIZE behaviors trapping on kernel commits which
- 	 * are still in the process of implementing them.
- 	 *
- 	 * Only test programs for new ptrace behaviors being implemented
- 	 * should set SEIZE_DEVEL.  If unset, SEIZE will fail with -EIO.
- 	 *
--	 * Once SEIZE behaviors are completely implemented, this flag and
--	 * the following test will be removed.
-+	 * Once SEIZE behaviors are completely implemented, this flag
-+	 * will be removed.
- 	 */
- 	retval = -EIO;
--	if (seize && !(flags & PTRACE_SEIZE_DEVEL))
--		goto out;
-+	if (seize) {
-+		if (addr != 0)
-+			goto out;
-+		if (!(flags & PTRACE_SEIZE_DEVEL))
-+			goto out;
-+		flags &= ~(unsigned long)PTRACE_SEIZE_DEVEL;
-+		if (flags & ~(unsigned long)PTRACE_O_MASK)
-+			goto out;
-+		flags = PT_PTRACED | PT_SEIZED | (flags << PT_OPT_FLAG_SHIFT);
-+	} else {
-+		flags = PT_PTRACED;
-+	}
- 
- 	audit_ptrace(task);
- 
-@@ -282,11 +293,11 @@ static int ptrace_attach(struct task_str
- 	if (task->ptrace)
- 		goto unlock_tasklist;
- 
--	task->ptrace = PT_PTRACED;
- 	if (seize)
--		task->ptrace |= PT_SEIZED;
-+		flags |= PT_SEIZED;
- 	if (ns_capable(task_user_ns(task), CAP_SYS_PTRACE))
--		task->ptrace |= PT_PTRACE_CAP;
-+		flags |= PT_PTRACE_CAP;
-+	task->ptrace = flags;
- 
- 	__ptrace_link(task, current);
- 
-@@ -879,7 +890,7 @@ SYSCALL_DEFINE4(ptrace, long, request, l
- 	}
- 
- 	if (request == PTRACE_ATTACH || request == PTRACE_SEIZE) {
--		ret = ptrace_attach(child, request, data);
-+		ret = ptrace_attach(child, request, addr, data);
- 		/*
- 		 * Some architectures need to do book-keeping after
- 		 * a ptrace attach.
-@@ -1022,7 +1033,7 @@ asmlinkage long compat_sys_ptrace(compat
- 	}
- 
- 	if (request == PTRACE_ATTACH || request == PTRACE_SEIZE) {
--		ret = ptrace_attach(child, request, data);
-+		ret = ptrace_attach(child, request, addr, data);
- 		/*
- 		 * Some architectures need to do book-keeping after
- 		 * a ptrace attach.
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+mips-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
+mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+sh-no-need-to-reset-handler-if-sa_oneshot.patch
+sh-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+alpha-use-set_current_blocked-and-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+c6x-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+powerpc-eeh-remove-eeh_event_handler-daemonize.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
 
