@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-spear-add-device-tree-probing-capability.patch added to -mm tree
-Date: Mon, 26 Mar 2012 14:35:04 -0700
-Message-ID: <20120326213504.A92E0A0496@akpm.mtv.corp.google.com>
+Date: Mon, 26 Mar 2012 15:05:31 -0700
+Message-ID: <20120326220532.5CB2DA0413@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:41586 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757173Ab2CZVfG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 17:35:06 -0400
-Received: by yhgm50 with SMTP id m50so853828yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 14:35:05 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42186 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753120Ab2CZWFd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 18:05:33 -0400
+Received: by qabg24 with SMTP id g24so355230qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 15:05:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viresh.kumar@st.com
+Cc: viresh.kumar@st.com, a.zummo@towertech.it, arnd@arndb.de, rajeev-dlh.kumar@st.com, robherring2@gmail.com, sr@denx.de
 
 
 The patch titled
@@ -41,6 +41,11 @@ SPEAr platforms now support DT and so must convert all drivers support DT.
 too.
 
 Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
+Cc: Stefan Roese <sr@denx.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Rajeev Kumar <rajeev-dlh.kumar@st.com>
+Cc: Rob Herring <robherring2@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
