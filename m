@@ -1,76 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:29:58 -0700
-Message-ID: <20120326192958.68709A0560@akpm.mtv.corp.google.com>
+Subject: [merged] prio_tree-simplify-prio_tree_expand.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:30:09 -0700
+Message-ID: <20120326193009.4C646A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:41509 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120Ab2CZT37 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:29:59 -0400
-Received: by yhgm50 with SMTP id m50so833977yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:29:58 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:38491 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753660Ab2CZTaL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 26 Mar 2012 15:30:11 -0400
+Received: by laai8 with SMTP id i8so288281laa.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:30:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@gmail.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, shreshthakumar.sahu@stericsson.com, mm-commits@vger.kernel.org
+To: xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-lm3530.c: move the code setting gen_config to one place
+     Subject: prio_tree: simplify prio_tree_expand()
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place.patch
+     prio_tree-simplify-prio_tree_expand.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@gmail.com>
-Subject: drivers/leds/leds-lm3530.c: move the code setting gen_config to one place
+From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Subject: prio_tree: simplify prio_tree_expand()
 
-Improve the readability by moving the code setting gen_config to one
-place.
+In current code, the deleted-node is recorded from first to last,
+actually, we can directly attach these node on 'node' we will insert as
+the left child, it can let the code more readable.
 
-[akpm@linux-foundation.org: fix some patch skew]
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Shreshtha Kumar Sahu <shreshthakumar.sahu@stericsson.com>
-Cc: "Milo(Woogyom) Kim" <milo.kim@ti.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3530.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ lib/prio_tree.c |   38 ++++++++++++++------------------------
+ 1 file changed, 14 insertions(+), 24 deletions(-)
 
-diff -puN drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place drivers/leds/leds-lm3530.c
---- a/drivers/leds/leds-lm3530.c~drivers-leds-leds-lm3530c-move-the-code-setting-gen_config-to-one-place
-+++ a/drivers/leds/leds-lm3530.c
-@@ -160,9 +160,16 @@ static int lm3530_init_registers(struct 
- 	gen_config = (pdata->brt_ramp_law << LM3530_RAMP_LAW_SHIFT) |
- 			((pdata->max_current & 7) << LM3530_MAX_CURR_SHIFT);
+diff -puN lib/prio_tree.c~prio_tree-simplify-prio_tree_expand lib/prio_tree.c
+--- a/lib/prio_tree.c~prio_tree-simplify-prio_tree_expand
++++ a/lib/prio_tree.c
+@@ -94,43 +94,33 @@ static inline unsigned long prio_tree_ma
+ static struct prio_tree_node *prio_tree_expand(struct prio_tree_root *root,
+ 		struct prio_tree_node *node, unsigned long max_heap_index)
+ {
+-	struct prio_tree_node *first = NULL, *prev, *last = NULL;
++	struct prio_tree_node *prev;
  
--	if (drvdata->mode == LM3530_BL_MODE_MANUAL ||
--	    drvdata->mode == LM3530_BL_MODE_ALS)
--		gen_config |= (LM3530_ENABLE_I2C);
-+	switch (drvdata->mode) {
-+	case LM3530_BL_MODE_MANUAL:
-+	case LM3530_BL_MODE_ALS:
-+		gen_config |= LM3530_ENABLE_I2C;
-+		break;
-+	case LM3530_BL_MODE_PWM:
-+		gen_config |= LM3530_ENABLE_PWM | LM3530_ENABLE_PWM_SIMPLE |
-+			      (pdata->pwm_pol_hi << LM3530_PWM_POL_SHIFT);
-+		break;
+ 	if (max_heap_index > prio_tree_maxindex(root->index_bits))
+ 		root->index_bits++;
+ 
++	prev = node;
++	INIT_PRIO_TREE_NODE(node);
++
+ 	while (max_heap_index > prio_tree_maxindex(root->index_bits)) {
++		struct prio_tree_node *tmp = root->prio_tree_node;
++
+ 		root->index_bits++;
+ 
+ 		if (prio_tree_empty(root))
+ 			continue;
+ 
+-		if (first == NULL) {
+-			first = root->prio_tree_node;
+-			prio_tree_remove(root, root->prio_tree_node);
+-			INIT_PRIO_TREE_NODE(first);
+-			last = first;
+-		} else {
+-			prev = last;
+-			last = root->prio_tree_node;
+-			prio_tree_remove(root, root->prio_tree_node);
+-			INIT_PRIO_TREE_NODE(last);
+-			prev->left = last;
+-			last->parent = prev;
+-		}
+-	}
+-
+-	INIT_PRIO_TREE_NODE(node);
++		prio_tree_remove(root, root->prio_tree_node);
++		INIT_PRIO_TREE_NODE(tmp);
+ 
+-	if (first) {
+-		node->left = first;
+-		first->parent = node;
+-	} else
+-		last = node;
++		prev->left = tmp;
++		tmp->parent = prev;
++		prev = tmp;
 +	}
  
- 	if (drvdata->mode == LM3530_BL_MODE_ALS) {
- 		if (pdata->als_vmax == 0) {
-@@ -196,11 +203,6 @@ static int lm3530_init_registers(struct 
- 
+ 	if (!prio_tree_empty(root)) {
+-		last->left = root->prio_tree_node;
+-		last->left->parent = last;
++		prev->left = root->prio_tree_node;
++		prev->left->parent = prev;
  	}
  
--	if (drvdata->mode == LM3530_BL_MODE_PWM)
--		gen_config |= (LM3530_ENABLE_PWM) |
--				(pdata->pwm_pol_hi << LM3530_PWM_POL_SHIFT) |
--				(LM3530_ENABLE_PWM_SIMPLE);
+ 	root->prio_tree_node = node;
+_
+
+Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+
+origin.patch
+linux-next.patch
+
