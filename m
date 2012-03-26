@@ -1,141 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kmod-make-__request_module-killable.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:36 -0700
-Message-ID: <20120326193236.74C02A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] coredump-add-vm_nodump-madv_nodump-madv_clear_nodump.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:40 -0700
+Message-ID: <20120326193240.93E18A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:62187 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754077Ab2CZTcj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 26 Mar 2012 15:32:39 -0400
-Received: by laai8 with SMTP id i8so288365laa.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:37 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:58080 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754204Ab2CZTcl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:41 -0400
+Received: by mail-gx0-f202.google.com with SMTP id d2so830938ggn.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
+To: jbaron@redhat.com, avi@redhat.com, cmetcalf@tilera.com, deller@gmx.de, ink@jurassic.park.msu.ru, jejb@parisc-linux.org, mattst88@gmail.com, ralf@linux-mips.org, roland@hack.frob.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: make __request_module() killable
+     Subject: coredump: add VM_NODUMP, MADV_NODUMP, MADV_CLEAR_NODUMP
 has been removed from the -mm tree.  Its filename was
-     kmod-make-__request_module-killable.patch
+     coredump-add-vm_nodump-madv_nodump-madv_clear_nodump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kmod: make __request_module() killable
+From: Jason Baron <jbaron@redhat.com>
+Subject: coredump: add VM_NODUMP, MADV_NODUMP, MADV_CLEAR_NODUMP
 
-As Tetsuo Handa pointed out, request_module() can stress the system while
-the oom-killed caller sleeps in TASK_UNINTERRUPTIBLE.
+Since we no longer need the VM_ALWAYSDUMP flag, let's use the freed bit for
+'VM_NODUMP' flag. The idea is is to add a new madvise() flag: MADV_DONTDUMP,
+which can be set by applications to specifically request memory regions which
+should not dump core. The specific application I have in mind is qemu: we
+can add a flag there that wouldn't dump all of guest memory when qemu dumps
+core. This flag might also be useful for security sensitive apps that want to
+absolutely make sure that parts of memory are not dumped. To clear the flag
+use: MADV_DODUMP.
 
-The task T uses "almost all" memory, then it does something which triggers
-request_module().  Say, it can simply call sys_socket().  This in turn
-needs more memory and leads to OOM.  oom-killer correctly chooses T and
-kills it, but this can't help because it sleeps in TASK_UNINTERRUPTIBLE
-and after that oom-killer becomes "disabled" by the TIF_MEMDIE task T. 
-
-Make __request_module() killable.  The only necessary change is that
-call_modprobe() should kmalloc argv and module_name, they can't live in
-the stack if we use UMH_KILLABLE.  This memory is freed via
-call_usermodehelper_freeinfo()->cleanup.
-
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+[akpm@linux-foundation.org: s/MADV_NODUMP/MADV_DONTDUMP/, s/MADV_CLEAR_NODUMP/MADV_DODUMP/, per Roland]
+[akpm@linux-foundation.org: fix up the architectures which broke]
+Signed-off-by: Jason Baron <jbaron@redhat.com>
+Acked-by: Roland McGrath <roland@hack.frob.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   26 ++++++++++++++++++++++++--
- 1 file changed, 24 insertions(+), 2 deletions(-)
+ arch/alpha/include/asm/mman.h     |    4 ++++
+ arch/mips/include/asm/mman.h      |    4 ++++
+ arch/parisc/include/asm/mman.h    |    4 ++++
+ arch/xtensa/include/asm/mman.h    |    4 ++++
+ fs/binfmt_elf.c                   |    3 +++
+ include/asm-generic/mman-common.h |    4 ++++
+ include/linux/mm.h                |    1 +
+ mm/madvise.c                      |    8 ++++++++
+ 8 files changed, 32 insertions(+)
 
-diff -puN kernel/kmod.c~kmod-make-__request_module-killable kernel/kmod.c
---- a/kernel/kmod.c~kmod-make-__request_module-killable
-+++ a/kernel/kmod.c
-@@ -60,6 +60,12 @@ static DECLARE_RWSEM(umhelper_sem);
- */
- char modprobe_path[KMOD_PATH_LEN] = "/sbin/modprobe";
+diff -puN arch/alpha/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump arch/alpha/include/asm/mman.h
+--- a/arch/alpha/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump
++++ a/arch/alpha/include/asm/mman.h
+@@ -56,6 +56,10 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
  
-+static void free_modprobe_argv(struct subprocess_info *info)
-+{
-+	kfree(info->argv[3]); /* check call_modprobe() */
-+	kfree(info->argv);
-+}
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
 +
- static int call_modprobe(char *module_name, int wait)
- {
- 	static char *envp[] = {
-@@ -69,10 +75,26 @@ static int call_modprobe(char *module_na
- 		NULL
- 	};
+ /* compatibility flags */
+ #define MAP_FILE	0
  
--	char *argv[] = { modprobe_path, "-q", "--", module_name, NULL };
-+	char **argv = kmalloc(sizeof(char *[5]), GFP_KERNEL);
-+	if (!argv)
-+		goto out;
+diff -puN arch/mips/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump arch/mips/include/asm/mman.h
+--- a/arch/mips/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump
++++ a/arch/mips/include/asm/mman.h
+@@ -80,6 +80,10 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
+ 
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
 +
-+	module_name = kstrdup(module_name, GFP_KERNEL);
-+	if (!module_name)
-+		goto free_argv;
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN arch/parisc/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump arch/parisc/include/asm/mman.h
+--- a/arch/parisc/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump
++++ a/arch/parisc/include/asm/mman.h
+@@ -62,6 +62,10 @@
+ #define MADV_HUGEPAGE	67		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	68		/* Not worth backing with hugepages */
+ 
++#define MADV_DONTDUMP   69		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	70		/* Clear the MADV_NODUMP flag */
 +
-+	argv[0] = modprobe_path;
-+	argv[1] = "-q";
-+	argv[2] = "--";
-+	argv[3] = module_name;	/* check free_modprobe_argv() */
-+	argv[4] = NULL;
+ /* compatibility flags */
+ #define MAP_FILE	0
+ #define MAP_VARIABLE	0
+diff -puN arch/xtensa/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump arch/xtensa/include/asm/mman.h
+--- a/arch/xtensa/include/asm/mman.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump
++++ a/arch/xtensa/include/asm/mman.h
+@@ -86,6 +86,10 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
  
- 	return call_usermodehelper_fns(modprobe_path, argv, envp,
--					wait, NULL, NULL, NULL);
-+		wait | UMH_KILLABLE, NULL, free_modprobe_argv, NULL);
-+free_argv:
-+	kfree(argv);
-+out:
-+	return -ENOMEM;
- }
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
  
- /**
+diff -puN fs/binfmt_elf.c~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump
++++ a/fs/binfmt_elf.c
+@@ -1127,6 +1127,9 @@ static unsigned long vma_dump_size(struc
+ 	if (always_dump_vma(vma))
+ 		goto whole;
+ 
++	if (vma->vm_flags & VM_NODUMP)
++		return 0;
++
+ 	/* Hugetlb memory check */
+ 	if (vma->vm_flags & VM_HUGETLB) {
+ 		if ((vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_SHARED))
+diff -puN include/asm-generic/mman-common.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump include/asm-generic/mman-common.h
+--- a/include/asm-generic/mman-common.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump
++++ a/include/asm-generic/mman-common.h
+@@ -48,6 +48,10 @@
+ #define MADV_HUGEPAGE	14		/* Worth backing with hugepages */
+ #define MADV_NOHUGEPAGE	15		/* Not worth backing with hugepages */
+ 
++#define MADV_DONTDUMP   16		/* Explicity exclude from the core dump,
++					   overrides the coredump filter bits */
++#define MADV_DODUMP	17		/* Clear the MADV_NODUMP flag */
++
+ /* compatibility flags */
+ #define MAP_FILE	0
+ 
+diff -puN include/linux/mm.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump include/linux/mm.h
+--- a/include/linux/mm.h~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump
++++ a/include/linux/mm.h
+@@ -111,6 +111,7 @@ extern unsigned int kobjsize(const void 
+ #define VM_HUGEPAGE	0x01000000	/* MADV_HUGEPAGE marked this vma */
+ #endif
+ #define VM_INSERTPAGE	0x02000000	/* The vma has had "vm_insert_page()" done on it */
++#define VM_NODUMP	0x04000000	/* Do not include in the core dump */
+ 
+ #define VM_CAN_NONLINEAR 0x08000000	/* Has ->fault & does nonlinear pages */
+ #define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
+diff -puN mm/madvise.c~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump mm/madvise.c
+--- a/mm/madvise.c~coredump-add-vm_nodump-madv_nodump-madv_clear_nodump
++++ a/mm/madvise.c
+@@ -65,6 +65,12 @@ static long madvise_behavior(struct vm_a
+ 		}
+ 		new_flags &= ~VM_DONTCOPY;
+ 		break;
++	case MADV_DONTDUMP:
++		new_flags |= VM_NODUMP;
++		break;
++	case MADV_DODUMP:
++		new_flags &= ~VM_NODUMP;
++		break;
+ 	case MADV_MERGEABLE:
+ 	case MADV_UNMERGEABLE:
+ 		error = ksm_madvise(vma, start, end, behavior, &new_flags);
+@@ -293,6 +299,8 @@ madvise_behavior_valid(int behavior)
+ 	case MADV_HUGEPAGE:
+ 	case MADV_NOHUGEPAGE:
+ #endif
++	case MADV_DONTDUMP:
++	case MADV_DODUMP:
+ 		return 1;
+ 
+ 	default:
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jbaron@redhat.com are
 
 origin.patch
 linux-next.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-powerpc-eeh-remove-eeh_event_handler-daemonize.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
 
