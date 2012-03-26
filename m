@@ -1,74 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-whitespace-add-remove-blank-lines.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:30:32 -0700
-Message-ID: <20120326193032.54214A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] checkpatch-check-for-quoted-strings-broken-across-lines.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:30:34 -0700
+Message-ID: <20120326193034.83752A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:54481 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753653Ab2CZTad (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:30:33 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so508210vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:30:33 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:55314 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753653Ab2CZTaf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:30:35 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so210331wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:30:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: josh@joshtriplett.org, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: whitespace - add/remove blank lines
+     Subject: checkpatch: check for quoted strings broken across lines
 has been removed from the -mm tree.  Its filename was
-     checkpatch-whitespace-add-remove-blank-lines.patch
+     checkpatch-check-for-quoted-strings-broken-across-lines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: whitespace - add/remove blank lines
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: checkpatch: check for quoted strings broken across lines
 
-Add blank lines between a few tests, remove an extraneous one.
+checkpatch already makes an exception to the 80-column rule for quoted
+strings, and Documentation/CodingStyle recommends not splitting quoted
+strings across lines, because it breaks the ability to grep for the
+string.  Rather than just permitting this, actively warn about quoted
+strings split across lines.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Test case:
+
+void context(void)
+{
+	struct { unsigned magic; const char *strdata; } foo[] = {
+		{ 42, "these strings"
+		      "do not produce warnings" },
+		{ 256, "though perhaps"
+		       "they should" },
+	};
+	pr_err("this string"
+	       " should produce a warning\n");
+	pr_err("this multi-line string\n"
+	       "should not produce a warning\n");
+	asm ("this asm\n\t"
+	     "should not produce a warning");
+}
+
+Results of checkpatch on that test case:
+
+WARNING: quoted string split across lines
++	       " should produce a warning\n");
+
+total: 0 errors, 1 warnings, 15 lines checked
+
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Joe Perches <joe@perches.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-whitespace-add-remove-blank-lines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-whitespace-add-remove-blank-lines
+diff -puN scripts/checkpatch.pl~checkpatch-check-for-quoted-strings-broken-across-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-for-quoted-strings-broken-across-lines
 +++ a/scripts/checkpatch.pl
-@@ -3354,18 +3354,20 @@ sub process {
- 		if ($line =~ /^.\s*sema_init.+,\W?0\W?\)/) {
- 			WARN("CONSIDER_COMPLETION",
- 			     "consider using a completion\n" . $herecurr);
--
+@@ -1772,6 +1772,21 @@ sub process {
+ 			     "line over 80 characters\n" . $herecurr);
  		}
+ 
++# Check for user-visible strings broken across lines, which breaks the ability
++# to grep for the string.  Limited to strings used as parameters (those
++# following an open parenthesis), which almost completely eliminates false
++# positives, as well as warning only once per parameter rather than once per
++# line of the string.  Make an exception when the previous string ends in a
++# newline (multiple lines in one string constant) or \n\t (common in inline
++# assembly to indent the instruction on the following line).
++		if ($line =~ /^\+\s*"/ &&
++		    $prevline =~ /"\s*$/ &&
++		    $prevline =~ /\(/ &&
++		    $prevrawline !~ /\\n(?:\\t)*"\s*$/) {
++			WARN("SPLIT_STRING",
++			     "quoted string split across lines\n" . $hereprev);
++		}
 +
- # recommend kstrto* over simple_strto* and strict_strto*
- 		if ($line =~ /\b((simple|strict)_(strto(l|ll|ul|ull)))\s*\(/) {
- 			WARN("CONSIDER_KSTRTO",
- 			     "$1 is obsolete, use k$3 instead\n" . $herecurr);
- 		}
-+
- # check for __initcall(), use device_initcall() explicitly please
- 		if ($line =~ /^.\s*__initcall\s*\(/) {
- 			WARN("USE_DEVICE_INITCALL",
- 			     "please use device_initcall() instead of __initcall()\n" . $herecurr);
- 		}
-+
- # check for various ops structs, ensure they are const.
- 		my $struct_ops = qr{acpi_dock_ops|
- 				address_space_operations|
+ # check for spaces before a quoted newline
+ 		if ($rawline =~ /^.*\".*\s\\n/) {
+ 			WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
 origin.patch
 linux-next.patch
-maintainers-fix-remoteproc-f-typo.patch
-checkpatch-suggest-pr_level-over-printkkern_level.patch
 
