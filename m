@@ -1,281 +1,298 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-add-driver-for-pca9663-i2c-chip.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:29:42 -0700
-Message-ID: <20120326192942.61961A0560@akpm.mtv.corp.google.com>
+Subject: [merged] leds-lp5521-support-led-pattern-data.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:29:34 -0700
+Message-ID: <20120326192934.7BACBA0560@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:63654 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120Ab2CZT3o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:29:44 -0400
-Received: by mail-ee0-f74.google.com with SMTP id c41so293886eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:29:43 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:64905 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753362Ab2CZT3f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:29:35 -0400
+Received: by qcsp5 with SMTP id p5so513658qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:29:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: p.meerwald@bct-electronic.com, axel.lin@gmail.com, lars@metafoo.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: Milo.Kim@ti.com, arun.murthy@stericsson.com, linus.walleij@linaro.org, milo.kim@ti.com, rpurdie@rpsys.net, srinidhi.kasagar@stericsson.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds: add driver for PCA9633 I2C chip
+     Subject: drivers/leds/leds-lp5521.c: support led pattern data
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-add-driver-for-pca9663-i2c-chip.patch
+     leds-lp5521-support-led-pattern-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Peter Meerwald <p.meerwald@bct-electronic.com>
-Subject: drivers/leds: add driver for PCA9633 I2C chip
+From: "Kim, Milo" <Milo.Kim@ti.com>
+Subject: drivers/leds/leds-lp5521.c: support led pattern data
 
-Driver for the PCA9633 I2C chip supporting four LEDs and 255 brightness
-levels.
+The lp5521 has autonomous operation mode without external control.  Using
+lp5521_platform_data, various led patterns can be configurable.  For
+supporting this feature, new functions and device attribute are added.
 
-[akpm@linux-foundation.org: fix kcalloc() call]
-[axel.lin@gmail.com: fix kcalloc parameters swapped]
-Signed-off-by: Peter Meerwald <p.meerwald@bct-electronic.com>
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
+Structure of lp5521_led_pattern: 3 channels are supported - red, green and
+blue.  Pattern(s) of each channel and numbers of pattern(s) are defined
+in the pla= tform data.  Pattern data are hexa codes which include pattern
+commands such like set pwm, wait, ramp up/down, branch and so on.
+
+Pattern mode functions:
+* lp5521_clear_program_memory
+	Before running new led pattern, program memory should be cleared.
+* lp5521_write_program_memory
+	Pattern data updated in the program memory via the i2c.
+* lp5521_get_pattern
+	Get pattern from predefined in the platform data.
+* lp5521_run_led_pattern
+	Stop current pattern or run new pattern.
+	Transition time is required between different operation mode.
+
+Device attribute - 'led_pattern': To load specific led pattern, new device
+attribute is added.
+
+When the lp5521 driver is unloaded, stop current led pattern mode.
+
+Documentation updated : description about how to define the led patterns
+and example.
+
+[akpm@linux-foundation.org: checkpatch fixes]
+Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Arun MURTHY <arun.murthy@stericsson.com>
+Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig        |    8 +
- drivers/leds/Makefile       |    1 
- drivers/leds/leds-pca9633.c |  195 ++++++++++++++++++++++++++++++++++
- 3 files changed, 204 insertions(+)
+ Documentation/leds/leds-lp5521.txt |   38 ++++++++++
+ drivers/leds/leds-lp5521.c         |  102 ++++++++++++++++++++++++++-
+ include/linux/leds-lp5521.h        |   11 ++
+ 3 files changed, 150 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/Kconfig~drivers-leds-add-driver-for-pca9663-i2c-chip drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~drivers-leds-add-driver-for-pca9663-i2c-chip
-+++ a/drivers/leds/Kconfig
-@@ -234,6 +234,14 @@ config LEDS_PCA955X
- 	  LED driver chips accessed via the I2C bus.  Supported
- 	  devices include PCA9550, PCA9551, PCA9552, and PCA9553.
+diff -puN Documentation/leds/leds-lp5521.txt~leds-lp5521-support-led-pattern-data Documentation/leds/leds-lp5521.txt
+--- a/Documentation/leds/leds-lp5521.txt~leds-lp5521-support-led-pattern-data
++++ a/Documentation/leds/leds-lp5521.txt
+@@ -111,3 +111,41 @@ static struct lp5521_platform_data lp552
+ 	.clock_mode = LP5521_CLOCK_INT,
+ 	.update_config = LP5521_CONFIGS,
+ };
++
++LED patterns : LP5521 has autonomous operation without external control.
++Pattern data can be defined in the platform data.
++
++example of led pattern data :
++
++/* RGB(50,5,0) 500ms on, 500ms off, infinite loop */
++static u8 pattern_red[] = {
++		0x40, 0x32, 0x60, 0x00,	0x40, 0x00, 0x60, 0x00,
++		};
++
++static u8 pattern_green[] = {
++		0x40, 0x05, 0x60, 0x00, 0x40, 0x00, 0x60, 0x00,
++		};
++
++static struct lp5521_led_pattern board_led_patterns[] = {
++	{
++		.r = pattern_red,
++		.g = pattern_green,
++		.size_r = ARRAY_SIZE(pattern_red),
++		.size_g = ARRAY_SIZE(pattern_green),
++	},
++};
++
++static struct lp5521_platform_data lp5521_platform_data = {
++        .led_config     = lp5521_led_config,
++        .num_channels   = ARRAY_SIZE(lp5521_led_config),
++        .clock_mode     = LP5521_CLOCK_EXT,
++	.patterns = board_led_patterns,
++	.num_patterns = ARRAY_SIZE(board_led_patterns),
++};
++
++Then predefined led pattern(s) can be executed via the sysfs.
++To start the pattern #1,
++# echo 1 > /sys/bus/i2c/devices/xxxx/led_pattern
++(xxxx : i2c bus & slave address)
++To end the pattern,
++# echo 0 > /sys/bus/i2c/devices/xxxx/led_pattern
+diff -puN drivers/leds/leds-lp5521.c~leds-lp5521-support-led-pattern-data drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~leds-lp5521-support-led-pattern-data
++++ a/drivers/leds/leds-lp5521.c
+@@ -88,6 +88,9 @@
+ /* default R channel current register value */
+ #define LP5521_REG_R_CURR_DEFAULT	0xAF
  
-+config LEDS_PCA9633
-+	tristate "LED support for PCA9633 I2C chip"
-+	depends on LEDS_CLASS
-+	depends on I2C
-+	help
-+	  This option enables support for LEDs connected to the PCA9633
-+	  LED driver chip accessed via the I2C bus.
++/* Pattern Mode */
++#define PATTERN_OFF	0
 +
- config LEDS_WM831X_STATUS
- 	tristate "LED support for status LEDs on WM831x PMICs"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/Makefile~drivers-leds-add-driver-for-pca9663-i2c-chip drivers/leds/Makefile
---- a/drivers/leds/Makefile~drivers-leds-add-driver-for-pca9663-i2c-chip
-+++ a/drivers/leds/Makefile
-@@ -30,6 +30,7 @@ obj-$(CONFIG_LEDS_HP6XX)		+= leds-hp6xx.
- obj-$(CONFIG_LEDS_OT200)		+= leds-ot200.o
- obj-$(CONFIG_LEDS_FSG)			+= leds-fsg.o
- obj-$(CONFIG_LEDS_PCA955X)		+= leds-pca955x.o
-+obj-$(CONFIG_LEDS_PCA9633)		+= leds-pca9633.o
- obj-$(CONFIG_LEDS_DA903X)		+= leds-da903x.o
- obj-$(CONFIG_LEDS_WM831X_STATUS)	+= leds-wm831x-status.o
- obj-$(CONFIG_LEDS_WM8350)		+= leds-wm8350.o
-diff -puN /dev/null drivers/leds/leds-pca9633.c
---- /dev/null
-+++ a/drivers/leds/leds-pca9633.c
-@@ -0,0 +1,195 @@
-+/*
-+ * Copyright 2011 bct electronic GmbH
-+ *
-+ * Author: Peter Meerwald <p.meerwald@bct-electronic.com>
-+ *
-+ * Based on leds-pca955x.c
-+ *
-+ * This file is subject to the terms and conditions of version 2 of
-+ * the GNU General Public License.  See the file COPYING in the main
-+ * directory of this archive for more details.
-+ *
-+ * LED driver for the PCA9633 I2C LED driver (7-bit slave address 0x62)
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/string.h>
-+#include <linux/ctype.h>
-+#include <linux/leds.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include <linux/workqueue.h>
-+#include <linux/slab.h>
-+
-+/* LED select registers determine the source that drives LED outputs */
-+#define PCA9633_LED_OFF		0x0	/* LED driver off */
-+#define PCA9633_LED_ON		0x1	/* LED driver on */
-+#define PCA9633_LED_PWM		0x2	/* Controlled through PWM */
-+#define PCA9633_LED_GRP_PWM	0x3	/* Controlled through PWM/GRPPWM */
-+
-+#define PCA9633_MODE1		0x00
-+#define PCA9633_MODE2		0x01
-+#define PCA9633_PWM_BASE	0x02
-+#define PCA9633_LEDOUT		0x08
-+
-+static const struct i2c_device_id pca9633_id[] = {
-+	{ "pca9633", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, pca9633_id);
-+
-+struct pca9633_led {
-+	struct i2c_client *client;
-+	struct work_struct work;
-+	enum led_brightness brightness;
-+	struct led_classdev led_cdev;
-+	int led_num; /* 0 .. 3 potentially */
-+	char name[32];
-+};
-+
-+static void pca9633_led_work(struct work_struct *work)
+ struct lp5521_engine {
+ 	int		id;
+ 	u8		mode;
+@@ -493,7 +496,7 @@ static ssize_t store_current(struct devi
+ 	ssize_t ret;
+ 	unsigned long curr;
+ 
+-	if (strict_strtoul(buf, 0, &curr))
++	if (kstrtoul(buf, 0, &curr))
+ 		return -EINVAL;
+ 
+ 	if (curr > led->max_current)
+@@ -525,6 +528,100 @@ static ssize_t lp5521_selftest(struct de
+ 	return sprintf(buf, "%s\n", ret ? "FAIL" : "OK");
+ }
+ 
++static void lp5521_clear_program_memory(struct i2c_client *cl)
 +{
-+	struct pca9633_led *pca9633 = container_of(work,
-+		struct pca9633_led, work);
-+	u8 ledout = i2c_smbus_read_byte_data(pca9633->client, PCA9633_LEDOUT);
-+	int shift = 2 * pca9633->led_num;
-+	u8 mask = 0x3 << shift;
++	int i;
++	u8 rgb_mem[] = {
++		LP5521_REG_R_PROG_MEM,
++		LP5521_REG_G_PROG_MEM,
++		LP5521_REG_B_PROG_MEM,
++	};
 +
-+	switch (pca9633->brightness) {
-+	case LED_FULL:
-+		i2c_smbus_write_byte_data(pca9633->client, PCA9633_LEDOUT,
-+			(ledout & ~mask) | (PCA9633_LED_ON << shift));
-+		break;
-+	case LED_OFF:
-+		i2c_smbus_write_byte_data(pca9633->client, PCA9633_LEDOUT,
-+			ledout & ~mask);
-+		break;
-+	default:
-+		i2c_smbus_write_byte_data(pca9633->client,
-+			PCA9633_PWM_BASE + pca9633->led_num,
-+			pca9633->brightness);
-+		i2c_smbus_write_byte_data(pca9633->client, PCA9633_LEDOUT,
-+			(ledout & ~mask) | (PCA9633_LED_PWM << shift));
-+		break;
++	for (i = 0; i < ARRAY_SIZE(rgb_mem); i++) {
++		lp5521_write(cl, rgb_mem[i], 0);
++		lp5521_write(cl, rgb_mem[i] + 1, 0);
 +	}
 +}
 +
-+static void pca9633_led_set(struct led_classdev *led_cdev,
-+	enum led_brightness value)
++static void lp5521_write_program_memory(struct i2c_client *cl,
++				u8 base, u8 *rgb, int size)
 +{
-+	struct pca9633_led *pca9633;
-+
-+	pca9633 = container_of(led_cdev, struct pca9633_led, led_cdev);
-+
-+	pca9633->brightness = value;
-+
-+	/*
-+	 * Must use workqueue for the actual I/O since I2C operations
-+	 * can sleep.
-+	 */
-+	schedule_work(&pca9633->work);
-+}
-+
-+static int __devinit pca9633_probe(struct i2c_client *client,
-+					const struct i2c_device_id *id)
-+{
-+	struct pca9633_led *pca9633;
-+	struct i2c_adapter *adapter;
-+	struct led_platform_data *pdata;
-+	int i, err;
-+
-+	adapter = to_i2c_adapter(client->dev.parent);
-+	pdata = client->dev.platform_data;
-+
-+	if (pdata) {
-+		if (pdata->num_leds <= 0 || pdata->num_leds > 4) {
-+			dev_err(&client->dev, "board info must claim at most 4 LEDs");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	pca9633 = kcalloc(4, sizeof(*pca9633), GFP_KERNEL);
-+	if (!pca9633)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, pca9633);
-+
-+	for (i = 0; i < 4; i++) {
-+		pca9633[i].client = client;
-+		pca9633[i].led_num = i;
-+
-+		/* Platform data can specify LED names and default triggers */
-+		if (pdata && i < pdata->num_leds) {
-+			if (pdata->leds[i].name)
-+				snprintf(pca9633[i].name,
-+					 sizeof(pca9633[i].name), "pca9633:%s",
-+					 pdata->leds[i].name);
-+			if (pdata->leds[i].default_trigger)
-+				pca9633[i].led_cdev.default_trigger =
-+					pdata->leds[i].default_trigger;
-+		} else {
-+			snprintf(pca9633[i].name, sizeof(pca9633[i].name),
-+				 "pca9633:%d", i);
-+		}
-+
-+		pca9633[i].led_cdev.name = pca9633[i].name;
-+		pca9633[i].led_cdev.brightness_set = pca9633_led_set;
-+
-+		INIT_WORK(&pca9633[i].work, pca9633_led_work);
-+
-+		err = led_classdev_register(&client->dev, &pca9633[i].led_cdev);
-+		if (err < 0)
-+			goto exit;
-+	}
-+
-+	/* Disable LED all-call address and set normal mode */
-+	i2c_smbus_write_byte_data(client, PCA9633_MODE1, 0x00);
-+
-+	/* Turn off LEDs */
-+	i2c_smbus_write_byte_data(client, PCA9633_LEDOUT, 0x00);
-+
-+	return 0;
-+
-+exit:
-+	while (i--) {
-+		led_classdev_unregister(&pca9633[i].led_cdev);
-+		cancel_work_sync(&pca9633[i].work);
-+	}
-+
-+	kfree(pca9633);
-+
-+	return err;
-+}
-+
-+static int __devexit pca9633_remove(struct i2c_client *client)
-+{
-+	struct pca9633_led *pca9633 = i2c_get_clientdata(client);
 +	int i;
 +
-+	for (i = 0; i < 4; i++) {
-+		led_classdev_unregister(&pca9633[i].led_cdev);
-+		cancel_work_sync(&pca9633[i].work);
-+	}
++	if (!rgb || size <= 0)
++		return;
 +
-+	kfree(pca9633);
++	for (i = 0; i < size; i++)
++		lp5521_write(cl, base + i, *(rgb + i));
 +
-+	return 0;
++	lp5521_write(cl, base + i, 0);
++	lp5521_write(cl, base + i + 1, 0);
 +}
 +
-+static struct i2c_driver pca9633_driver = {
-+	.driver = {
-+		.name	= "leds-pca9633",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= pca9633_probe,
-+	.remove	= __devexit_p(pca9633_remove),
-+	.id_table = pca9633_id,
++static inline struct lp5521_led_pattern *lp5521_get_pattern
++					(struct lp5521_chip *chip, u8 offset)
++{
++	struct lp5521_led_pattern *ptn;
++	ptn = chip->pdata->patterns + (offset - 1);
++	return ptn;
++}
++
++static void lp5521_run_led_pattern(int mode, struct lp5521_chip *chip)
++{
++	struct lp5521_led_pattern *ptn;
++	struct i2c_client *cl = chip->client;
++	int num_patterns = chip->pdata->num_patterns;
++
++	if (mode > num_patterns || !(chip->pdata->patterns))
++		return;
++
++	if (mode == PATTERN_OFF) {
++		lp5521_write(cl, LP5521_REG_ENABLE,
++			LP5521_MASTER_ENABLE | LP5521_LOGARITHMIC_PWM);
++		usleep_range(1000, 2000);
++		lp5521_write(cl, LP5521_REG_OP_MODE, LP5521_CMD_DIRECT);
++	} else {
++		ptn = lp5521_get_pattern(chip, mode);
++		if (!ptn)
++			return;
++
++		lp5521_write(cl, LP5521_REG_OP_MODE, LP5521_CMD_LOAD);
++		usleep_range(1000, 2000);
++
++		lp5521_clear_program_memory(cl);
++
++		lp5521_write_program_memory(cl, LP5521_REG_R_PROG_MEM,
++					ptn->r, ptn->size_r);
++		lp5521_write_program_memory(cl, LP5521_REG_G_PROG_MEM,
++					ptn->g, ptn->size_g);
++		lp5521_write_program_memory(cl, LP5521_REG_B_PROG_MEM,
++					ptn->b, ptn->size_b);
++
++		lp5521_write(cl, LP5521_REG_OP_MODE, LP5521_CMD_RUN);
++		usleep_range(1000, 2000);
++		lp5521_write(cl, LP5521_REG_ENABLE,
++			LP5521_MASTER_ENABLE | LP5521_LOGARITHMIC_PWM |
++			LP5521_EXEC_RUN);
++	}
++}
++
++static ssize_t store_led_pattern(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t len)
++{
++	struct lp5521_chip *chip = i2c_get_clientdata(to_i2c_client(dev));
++	unsigned long val;
++	int ret;
++
++	ret = strict_strtoul(buf, 16, &val);
++	if (ret)
++		return ret;
++
++	lp5521_run_led_pattern(val, chip);
++
++	return len;
++}
++
+ /* led class device attributes */
+ static DEVICE_ATTR(led_current, S_IRUGO | S_IWUSR, show_current, store_current);
+ static DEVICE_ATTR(max_current, S_IRUGO , show_max_current, NULL);
+@@ -550,6 +647,7 @@ static DEVICE_ATTR(engine1_load, S_IWUSR
+ static DEVICE_ATTR(engine2_load, S_IWUSR, NULL, store_engine2_load);
+ static DEVICE_ATTR(engine3_load, S_IWUSR, NULL, store_engine3_load);
+ static DEVICE_ATTR(selftest, S_IRUGO, lp5521_selftest, NULL);
++static DEVICE_ATTR(led_pattern, S_IWUSR, NULL, store_led_pattern);
+ 
+ static struct attribute *lp5521_attributes[] = {
+ 	&dev_attr_engine1_mode.attr,
+@@ -559,6 +657,7 @@ static struct attribute *lp5521_attribut
+ 	&dev_attr_engine1_load.attr,
+ 	&dev_attr_engine2_load.attr,
+ 	&dev_attr_engine3_load.attr,
++	&dev_attr_led_pattern.attr,
+ 	NULL
+ };
+ 
+@@ -761,6 +860,7 @@ static int __devexit lp5521_remove(struc
+ 	struct lp5521_chip *chip = i2c_get_clientdata(client);
+ 	int i;
+ 
++	lp5521_run_led_pattern(PATTERN_OFF, chip);
+ 	lp5521_unregister_sysfs(client);
+ 
+ 	for (i = 0; i < chip->num_leds; i++) {
+diff -puN include/linux/leds-lp5521.h~leds-lp5521-support-led-pattern-data include/linux/leds-lp5521.h
+--- a/include/linux/leds-lp5521.h~leds-lp5521-support-led-pattern-data
++++ a/include/linux/leds-lp5521.h
+@@ -32,6 +32,15 @@ struct lp5521_led_config {
+ 	u8		max_current;
+ };
+ 
++struct lp5521_led_pattern {
++	u8 *r;
++	u8 *g;
++	u8 *b;
++	u8 size_r;
++	u8 size_g;
++	u8 size_b;
 +};
 +
-+module_i2c_driver(pca9633_driver);
-+
-+MODULE_AUTHOR("Peter Meerwald <p.meerwald@bct-electronic.com>");
-+MODULE_DESCRIPTION("PCA9633 LED driver");
-+MODULE_LICENSE("GPL v2");
+ #define LP5521_CLOCK_AUTO	0
+ #define LP5521_CLOCK_INT	1
+ #define LP5521_CLOCK_EXT	2
+@@ -57,6 +66,8 @@ struct lp5521_platform_data {
+ 	void	(*enable)(bool state);
+ 	const char *label;
+ 	u8	update_config;
++	struct lp5521_led_pattern *patterns;
++	int num_patterns;
+ };
+ 
+ #endif /* __LINUX_LP5521_H */
 _
 
-Patches currently in -mm which might be from p.meerwald@bct-electronic.com are
+Patches currently in -mm which might be from Milo.Kim@ti.com are
 
 origin.patch
 
