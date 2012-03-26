@@ -1,77 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-twlc-return-correct-rtc-event-from-isr.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:31:33 -0700
-Message-ID: <20120326193133.631FFA00A9@akpm.mtv.corp.google.com>
+Subject: [merged] hexagon-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:13 -0700
+Message-ID: <20120326193213.670B9A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:38526 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754185Ab2CZTbf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:35 -0400
-Received: by vbnl22 with SMTP id l22so508386vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:34 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:39425 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754202Ab2CZTcO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:14 -0400
+Received: by mail-yw0-f74.google.com with SMTP id m50so834231yhg.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbyravarasu@nvidia.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: matt.fleming@intel.com, oleg@redhat.com, rkuo@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-twl.c: return correct RTC event from ISR
+     Subject: Hexagon: use set_current_blocked() and block_sigmask()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-twlc-return-correct-rtc-event-from-isr.patch
+     hexagon-use-set_current_blocked-and-block_sigmask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Venu Byravarasu <vbyravarasu@nvidia.com>
-Subject: drivers/rtc/rtc-twl.c: return correct RTC event from ISR
+From: Matt Fleming <matt.fleming@intel.com>
+Subject: Hexagon: use set_current_blocked() and block_sigmask()
 
-Following changes are made as part of this change:
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check whether the signal we're about to block is
+pending in the shared queue.
 
-1. As TWL RTC supports periodic interrupt, the correct event should be
-   RTC_PF instead of RTC_UF.
+Also, use the new helper function introduced in commit 5e6292c0f28f
+("signal: add block_sigmask() for adding sigmask to current->blocked")
+which centralises the code for updating current->blocked after
+successfully delivering a signal and reduces the amount of duplicate code
+across architectures.  In the past some architectures got this code wrong,
+so using this helper function should stop that from happening again.
 
-2. No need to initialize variable "events" to 0 & then OR it with the
-   event values.  Hence fixing it.
-
-Signed-off-by: Venu Byravarasu <vbyravarasu@nvidia.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Richard Kuo <rkuo@codeaurora.org>
+Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-twl.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/hexagon/kernel/signal.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-return-correct-rtc-event-from-isr drivers/rtc/rtc-twl.c
---- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-return-correct-rtc-event-from-isr
-+++ a/drivers/rtc/rtc-twl.c
-@@ -365,7 +365,7 @@ out:
+diff -puN arch/hexagon/kernel/signal.c~hexagon-use-set_current_blocked-and-block_sigmask arch/hexagon/kernel/signal.c
+--- a/arch/hexagon/kernel/signal.c~hexagon-use-set_current_blocked-and-block_sigmask
++++ a/arch/hexagon/kernel/signal.c
+@@ -192,12 +192,7 @@ static int handle_signal(int sig, siginf
+ 	if (rc)
+ 		return rc;
  
- static irqreturn_t twl_rtc_interrupt(int irq, void *rtc)
- {
--	unsigned long events = 0;
-+	unsigned long events;
- 	int ret = IRQ_NONE;
- 	int res;
- 	u8 rd_reg;
-@@ -380,9 +380,9 @@ static irqreturn_t twl_rtc_interrupt(int
- 	 * by reading RTS_INTERRUPTS_REGISTER[IT_TIMER,IT_ALARM]
- 	 */
- 	if (rd_reg & BIT_RTC_STATUS_REG_ALARM_M)
--		events |= RTC_IRQF | RTC_AF;
-+		events = RTC_IRQF | RTC_AF;
- 	else
--		events |= RTC_IRQF | RTC_UF;
-+		events = RTC_IRQF | RTC_PF;
+-	spin_lock_irq(&current->sighand->siglock);
+-	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
+-	if (!(ka->sa.sa_flags & SA_NODEFER))
+-		sigaddset(&current->blocked, sig);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	block_sigmask(ka, sig);
  
- 	res = twl_rtc_write_u8(BIT_RTC_STATUS_REG_ALARM_M,
- 				   REG_RTC_STATUS_REG);
+ 	return 0;
+ }
+@@ -305,10 +300,7 @@ asmlinkage int sys_rt_sigreturn(void)
+ 		goto badframe;
+ 
+ 	sigdelsetmask(&blocked, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = blocked;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&blocked);
+ 
+ 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
+ 		goto badframe;
 _
 
-Patches currently in -mm which might be from vbyravarasu@nvidia.com are
+Patches currently in -mm which might be from matt.fleming@intel.com are
 
 origin.patch
 linux-next.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+mips-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+sh-no-need-to-reset-handler-if-sa_oneshot.patch
+sh-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+alpha-use-set_current_blocked-and-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+c6x-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+powerpc-eeh-remove-eeh_event_handler-daemonize.patch
 
