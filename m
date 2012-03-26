@@ -1,72 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-mca-section.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:28:40 -0700
-Message-ID: <20120326192840.6FB03A0560@akpm.mtv.corp.google.com>
+Subject: [merged] get_maintainerpl-add-support-for-moderated-lists.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:28:38 -0700
+Message-ID: <20120326192838.601CBA0560@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:41979 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752711Ab2CZT2l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:28:41 -0400
-Received: by mail-vx0-f202.google.com with SMTP id fk26so831226vcb.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:28:41 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:63654 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752401Ab2CZT2k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:28:40 -0400
+Received: by eekc41 with SMTP id c41so293886eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:28:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, greg.pearson@hp.com, mm-commits@vger.kernel.org
+To: richard@nod.at, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update MCA section
+     Subject: get_maintainer.pl: add support for moderated lists
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-mca-section.patch
+     get_maintainerpl-add-support-for-moderated-lists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update MCA section
+From: Richard Weinberger <richard@nod.at>
+Subject: get_maintainer.pl: add support for moderated lists
 
-The MCA section included a file referring to Machine Check rather than
-Microchannel.
+Currently get_maintainer.pl reports moderated lists as open, which is just
+wrong.
 
-Rename the section to spell out Microchannel and drop the bad file
-reference.
-
-Reported-by: Greg Pearson <greg.pearson@hp.com>
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ scripts/get_maintainer.pl |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-mca-section MAINTAINERS
---- a/MAINTAINERS~maintainers-update-mca-section
-+++ a/MAINTAINERS
-@@ -4416,6 +4416,13 @@ T:	git git://git.monstr.eu/linux-2.6-mic
- S:	Supported
- F:	arch/microblaze/
- 
-+MICROCHANNEL ARCHITECTURE (MCA)
-+M:	James Bottomley <James.Bottomley@HansenPartnership.com>
-+S:	Maintained
-+F:	Documentation/mca.txt
-+F:	drivers/mca/
-+F:	include/linux/mca*
-+
- MICROTEK X6 SCANNER
- M:	Oliver Neukum <oliver@neukum.name>
- S:	Maintained
-@@ -4431,14 +4438,6 @@ S:	Supported
- F:	Documentation/mips/
- F:	arch/mips/
- 
--MISCELLANEOUS MCA-SUPPORT
--M:	James Bottomley <James.Bottomley@HansenPartnership.com>
--S:	Maintained
--F:	Documentation/ia64/mca.txt
--F:	Documentation/mca.txt
--F:	drivers/mca/
--F:	include/linux/mca*
+diff -puN scripts/get_maintainer.pl~get_maintainerpl-add-support-for-moderated-lists scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainerpl-add-support-for-moderated-lists
++++ a/scripts/get_maintainer.pl
+@@ -1027,8 +1027,13 @@ sub add_categories {
+ 		    if ($email_list) {
+ 			if (!$hash_list_to{lc($list_address)}) {
+ 			    $hash_list_to{lc($list_address)} = 1;
+-			    push(@list_to, [$list_address,
+-					    "open list${list_role}"]);
++			    if ($list_additional =~ m/moderated/) {
++				push(@list_to, [$list_address,
++						"moderated list${list_role}"]);
++			    } else {
++				push(@list_to, [$list_address,
++						"open list${list_role}"]);
++			    }
+ 			}
+ 		    }
+ 		}
+_
+
+Patches currently in -mm which might be from richard@nod.at are
+
+origin.patch
+linux-next.patch
+um-kernel-trapc-port-oom-changes-to-handle_page_fault.patch
+fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+
