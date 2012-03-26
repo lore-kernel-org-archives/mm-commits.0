@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usermodehelper-kill-umh_wait-renumber-umh_-constants.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:30 -0700
-Message-ID: <20120326193230.7EF3DA00A9@akpm.mtv.corp.google.com>
+Subject: [merged] usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:32 -0700
+Message-ID: <20120326193232.6BB38A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:58080 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754802Ab2CZTcb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:31 -0400
-Received: by mail-gx0-f202.google.com with SMTP id d2so830938ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:31 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:62114 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754802Ab2CZTcd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:33 -0400
+Received: by yenq2 with SMTP id q2so832475yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usermodehelper: kill umh_wait, renumber UMH_* constants
+     Subject: usermodehelper: ____call_usermodehelper() doesn't need do_exit()
 has been removed from the -mm tree.  Its filename was
-     usermodehelper-kill-umh_wait-renumber-umh_-constants.patch
+     usermodehelper-____call_usermodehelper-doesnt-need-do_exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,11 +26,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: usermodehelper: kill umh_wait, renumber UMH_* constants
+Subject: usermodehelper: ____call_usermodehelper() doesn't need do_exit()
 
-No functional changes.  It is not sane to use UMH_KILLABLE with enum
-umh_wait, but obviously we do not want another argument in
-call_usermodehelper_* helpers.  Kill this enum, use the plain int.
+Minor cleanup.  ____call_usermodehelper() can simply return, no need to
+call do_exit() explicitely.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
@@ -40,105 +39,21 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h        |   18 +++++++-----------
- kernel/kmod.c               |    8 ++------
- security/keys/request_key.c |    2 +-
- 3 files changed, 10 insertions(+), 18 deletions(-)
+ kernel/kmod.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kmod.h~usermodehelper-kill-umh_wait-renumber-umh_-constants include/linux/kmod.h
---- a/include/linux/kmod.h~usermodehelper-kill-umh_wait-renumber-umh_-constants
-+++ a/include/linux/kmod.h
-@@ -48,12 +48,9 @@ static inline int request_module_nowait(
- struct cred;
- struct file;
- 
--enum umh_wait {
--	UMH_NO_WAIT = -1,	/* don't wait at all */
--	UMH_WAIT_EXEC = 0,	/* wait for the exec, but not the process */
--	UMH_WAIT_PROC = 1,	/* wait for the process to complete */
--};
--
-+#define UMH_NO_WAIT	0	/* don't wait at all */
-+#define UMH_WAIT_EXEC	1	/* wait for the exec, but not the process */
-+#define UMH_WAIT_PROC	2	/* wait for the process to complete */
- #define UMH_KILLABLE	4	/* wait for EXEC/PROC killable */
- 
- struct subprocess_info {
-@@ -62,7 +59,7 @@ struct subprocess_info {
- 	char *path;
- 	char **argv;
- 	char **envp;
--	enum umh_wait wait;
-+	int wait;
- 	int retval;
- 	int (*init)(struct subprocess_info *info, struct cred *new);
- 	void (*cleanup)(struct subprocess_info *info);
-@@ -80,15 +77,14 @@ void call_usermodehelper_setfns(struct s
- 		    void *data);
- 
- /* Actually execute the sub-process */
--int call_usermodehelper_exec(struct subprocess_info *info, enum umh_wait wait);
-+int call_usermodehelper_exec(struct subprocess_info *info, int wait);
- 
- /* Free the subprocess_info. This is only needed if you're not going
-    to call call_usermodehelper_exec */
- void call_usermodehelper_freeinfo(struct subprocess_info *info);
- 
- static inline int
--call_usermodehelper_fns(char *path, char **argv, char **envp,
--			enum umh_wait wait,
-+call_usermodehelper_fns(char *path, char **argv, char **envp, int wait,
- 			int (*init)(struct subprocess_info *info, struct cred *new),
- 			void (*cleanup)(struct subprocess_info *), void *data)
- {
-@@ -106,7 +102,7 @@ call_usermodehelper_fns(char *path, char
+diff -puN kernel/kmod.c~usermodehelper-____call_usermodehelper-doesnt-need-do_exit kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-____call_usermodehelper-doesnt-need-do_exit
++++ a/kernel/kmod.c
+@@ -188,7 +188,7 @@ static int ____call_usermodehelper(void 
+ 	/* Exec failed? */
+ fail:
+ 	sub_info->retval = retval;
+-	do_exit(0);
++	return 0;
  }
  
- static inline int
--call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
-+call_usermodehelper(char *path, char **argv, char **envp, int wait)
- {
- 	return call_usermodehelper_fns(path, argv, envp, wait,
- 				       NULL, NULL, NULL);
-diff -puN kernel/kmod.c~usermodehelper-kill-umh_wait-renumber-umh_-constants kernel/kmod.c
---- a/kernel/kmod.c~usermodehelper-kill-umh_wait-renumber-umh_-constants
-+++ a/kernel/kmod.c
-@@ -257,12 +257,9 @@ static void __call_usermodehelper(struct
- {
- 	struct subprocess_info *sub_info =
- 		container_of(work, struct subprocess_info, work);
--	enum umh_wait wait = sub_info->wait;
-+	int wait = sub_info->wait & ~UMH_KILLABLE;
- 	pid_t pid;
- 
--	if (wait != UMH_NO_WAIT)
--		wait &= ~UMH_KILLABLE;
--
- 	/* CLONE_VFORK: wait until the usermode helper has execve'd
- 	 * successfully We need the data structures to stay around
- 	 * until that is done.  */
-@@ -451,8 +448,7 @@ EXPORT_SYMBOL(call_usermodehelper_setfns
-  * asynchronously if wait is not set, and runs as a child of keventd.
-  * (ie. it runs with full root capabilities).
-  */
--int call_usermodehelper_exec(struct subprocess_info *sub_info,
--			     enum umh_wait wait)
-+int call_usermodehelper_exec(struct subprocess_info *sub_info, int wait)
- {
- 	DECLARE_COMPLETION_ONSTACK(done);
- 	int retval = 0;
-diff -puN security/keys/request_key.c~usermodehelper-kill-umh_wait-renumber-umh_-constants security/keys/request_key.c
---- a/security/keys/request_key.c~usermodehelper-kill-umh_wait-renumber-umh_-constants
-+++ a/security/keys/request_key.c
-@@ -91,7 +91,7 @@ static void umh_keys_cleanup(struct subp
-  * Call a usermode helper with a specific session keyring.
-  */
- static int call_usermodehelper_keys(char *path, char **argv, char **envp,
--			 struct key *session_keyring, enum umh_wait wait)
-+			 		struct key *session_keyring, int wait)
- {
- 	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
- 	struct subprocess_info *info =
+ void call_usermodehelper_freeinfo(struct subprocess_info *info)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
