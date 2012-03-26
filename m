@@ -1,171 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nmi-watchdog-do-not-use-cpp-symbol-in-kconfig.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:28:13 -0700
-Message-ID: <20120326192813.77F99A0560@akpm.mtv.corp.google.com>
+Subject: [merged] headers-include-linux-typesh-where-appropriate.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:28:15 -0700
+Message-ID: <20120326192815.8EF65A0560@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:55374 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956Ab2CZT2Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:28:16 -0400
-Received: by bkcjm19 with SMTP id jm19so288130bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:28:15 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:57483 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752302Ab2CZT2S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:28:18 -0400
+Received: by wejx9 with SMTP id x9so290097wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:28:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, davem@davemloft.net, dhowells@redhat.com, dzickus@redhat.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: bobbypowers@gmail.com, James.Bottomley@HansenPartnership.com, airlied@linux.ie, cjb@laptop.org, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nmi watchdog: do not use cpp symbol in Kconfig
+     Subject: headers: include linux/types.h where appropriate
 has been removed from the -mm tree.  Its filename was
-     nmi-watchdog-do-not-use-cpp-symbol-in-kconfig.patch
+     headers-include-linux-typesh-where-appropriate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: nmi watchdog: do not use cpp symbol in Kconfig
+From: Bobby Powers <bobbypowers@gmail.com>
+Subject: headers: include linux/types.h where appropriate
 
-ARCH_HAS_NMI_WATCHDOG is a macro defined by arch, but config
-HARDLOCKUP_DETECTOR depends on it.  This is wrong, ARCH_HAS_NMI_WATCHDOG
-has to be a Kconfig config, and arch's need it should select it
-explicitly.
+This addresses some header check warnings.  DRM headers which include
+"drm.h" have been excluded, as they indirectly include types.h.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Acked-by: Mike Frysinger <vapier@gentoo.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Bobby Powers <bobbypowers@gmail.com>
+Cc: Chris Ball <cjb@laptop.org>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                          |    3 +++
- arch/blackfin/Kconfig                 |    1 +
- arch/blackfin/include/asm/irq.h       |    4 ----
- arch/mn10300/Kconfig                  |    1 +
- arch/mn10300/include/asm/reset-regs.h |    4 ----
- arch/sparc/Kconfig                    |    1 +
- arch/sparc/include/asm/irq_64.h       |    1 -
- include/linux/nmi.h                   |    2 +-
- lib/Kconfig.debug                     |    2 +-
- 9 files changed, 8 insertions(+), 11 deletions(-)
+ include/drm/drm_mode.h          |    2 ++
+ include/linux/mmc/ioctl.h       |    3 +++
+ include/scsi/scsi_netlink.h     |    2 +-
+ include/sound/compress_params.h |    2 ++
+ 4 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/Kconfig~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig arch/Kconfig
---- a/arch/Kconfig~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/arch/Kconfig
-@@ -120,6 +120,9 @@ config HAVE_KRETPROBES
+diff -puN include/drm/drm_mode.h~headers-include-linux-typesh-where-appropriate include/drm/drm_mode.h
+--- a/include/drm/drm_mode.h~headers-include-linux-typesh-where-appropriate
++++ a/include/drm/drm_mode.h
+@@ -27,6 +27,8 @@
+ #ifndef _DRM_MODE_H
+ #define _DRM_MODE_H
  
- config HAVE_OPTPROBES
- 	bool
++#include <linux/types.h>
 +
-+config HAVE_NMI_WATCHDOG
-+	bool
- #
- # An arch should select this if it provides all these things:
- #
-diff -puN arch/blackfin/Kconfig~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/arch/blackfin/Kconfig
-@@ -36,6 +36,7 @@ config BLACKFIN
- 	select GENERIC_ATOMIC64
- 	select GENERIC_IRQ_PROBE
- 	select IRQ_PER_CPU if SMP
-+	select HAVE_NMI_WATCHDOG if NMI_WATCHDOG
+ #define DRM_DISPLAY_INFO_LEN	32
+ #define DRM_CONNECTOR_NAME_LEN	32
+ #define DRM_DISPLAY_MODE_LEN	32
+diff -puN include/linux/mmc/ioctl.h~headers-include-linux-typesh-where-appropriate include/linux/mmc/ioctl.h
+--- a/include/linux/mmc/ioctl.h~headers-include-linux-typesh-where-appropriate
++++ a/include/linux/mmc/ioctl.h
+@@ -1,5 +1,8 @@
+ #ifndef LINUX_MMC_IOCTL_H
+ #define LINUX_MMC_IOCTL_H
++
++#include <linux/types.h>
++
+ struct mmc_ioc_cmd {
+ 	/* Implies direction of data.  true = write, false = read */
+ 	int write_flag;
+diff -puN include/scsi/scsi_netlink.h~headers-include-linux-typesh-where-appropriate include/scsi/scsi_netlink.h
+--- a/include/scsi/scsi_netlink.h~headers-include-linux-typesh-where-appropriate
++++ a/include/scsi/scsi_netlink.h
+@@ -23,7 +23,7 @@
+ #define SCSI_NETLINK_H
  
- config GENERIC_CSUM
- 	def_bool y
-diff -puN arch/blackfin/include/asm/irq.h~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig arch/blackfin/include/asm/irq.h
---- a/arch/blackfin/include/asm/irq.h~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/arch/blackfin/include/asm/irq.h
-@@ -38,8 +38,4 @@
- 
- #include <asm-generic/irq.h>
- 
--#ifdef CONFIG_NMI_WATCHDOG
--# define ARCH_HAS_NMI_WATCHDOG
--#endif
--
- #endif				/* _BFIN_IRQ_H_ */
-diff -puN arch/mn10300/Kconfig~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig arch/mn10300/Kconfig
---- a/arch/mn10300/Kconfig~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/arch/mn10300/Kconfig
-@@ -5,6 +5,7 @@ config MN10300
- 	select GENERIC_IRQ_SHOW
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_ARCH_KGDB
-+	select HAVE_NMI_WATCHDOG if MN10300_WD_TIMER
- 
- config AM33_2
- 	def_bool n
-diff -puN arch/mn10300/include/asm/reset-regs.h~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig arch/mn10300/include/asm/reset-regs.h
---- a/arch/mn10300/include/asm/reset-regs.h~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/arch/mn10300/include/asm/reset-regs.h
-@@ -17,10 +17,6 @@
- 
- #ifdef __KERNEL__
- 
--#ifdef CONFIG_MN10300_WD_TIMER
--#define ARCH_HAS_NMI_WATCHDOG		/* See include/linux/nmi.h */
--#endif
--
- /*
-  * watchdog timer registers
-  */
-diff -puN arch/sparc/Kconfig~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/arch/sparc/Kconfig
-@@ -29,6 +29,7 @@ config SPARC
- 	select GENERIC_IRQ_SHOW
- 	select USE_GENERIC_SMP_HELPERS if SMP
- 	select GENERIC_PCI_IOMAP
-+	select HAVE_NMI_WATCHDOG if SPARC64
- 
- config SPARC32
- 	def_bool !64BIT
-diff -puN arch/sparc/include/asm/irq_64.h~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig arch/sparc/include/asm/irq_64.h
---- a/arch/sparc/include/asm/irq_64.h~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/arch/sparc/include/asm/irq_64.h
-@@ -95,7 +95,6 @@ void arch_trigger_all_cpu_backtrace(void
- extern void *hardirq_stack[NR_CPUS];
- extern void *softirq_stack[NR_CPUS];
- #define __ARCH_HAS_DO_SOFTIRQ
--#define ARCH_HAS_NMI_WATCHDOG
- 
- #define NO_IRQ		0xffffffff
- 
-diff -puN include/linux/nmi.h~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig include/linux/nmi.h
---- a/include/linux/nmi.h~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/include/linux/nmi.h
-@@ -14,7 +14,7 @@
-  * may be used to reset the timeout - for code which intentionally
-  * disables interrupts for a long time. This call is stateless.
-  */
--#if defined(ARCH_HAS_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
-+#if defined(CONFIG_HAVE_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
- #include <asm/nmi.h>
- extern void touch_nmi_watchdog(void);
- #else
-diff -puN lib/Kconfig.debug~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig lib/Kconfig.debug
---- a/lib/Kconfig.debug~nmi-watchdog-do-not-use-cpp-symbol-in-kconfig
-+++ a/lib/Kconfig.debug
-@@ -184,7 +184,7 @@ config LOCKUP_DETECTOR
- 
- config HARDLOCKUP_DETECTOR
- 	def_bool LOCKUP_DETECTOR && PERF_EVENTS && HAVE_PERF_EVENTS_NMI && \
--		 !ARCH_HAS_NMI_WATCHDOG
-+		 !HAVE_NMI_WATCHDOG
- 
- config BOOTPARAM_HARDLOCKUP_PANIC
- 	bool "Panic (Reboot) On Hard Lockups"
-_
-
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
-
-origin.patch
-linux-next.patch
-cris-select-generic_atomic64.patch
-proc-clean-up-proc-pid-environ-handling.patch
-kdump-x86-fix-total-mem-size-calculation-for-reservation.patch
-
+ #include <linux/netlink.h>
