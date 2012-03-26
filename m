@@ -1,80 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-ds1307-simplify-irq-setup-code.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:31:48 -0700
-Message-ID: <20120326193148.67410A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] rtc-ds1307-generalise-ram-size-and-offset.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:31:53 -0700
+Message-ID: <20120326193153.6C8CDA00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:43084 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754440Ab2CZTbv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:51 -0400
-Received: by eaaq10 with SMTP id q10so290016eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:50 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:38526 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754494Ab2CZTby (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:54 -0400
+Received: by mail-vb0-f74.google.com with SMTP id l22so508386vbn.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w.sang@pengutronix.de, Austin.Boyle@aviatnet.com, alessandro.zummo@towertech.it, danders.dev@gmail.com, mm-commits@vger.kernel.org
+To: Austin.Boyle@aviatnet.com, alessandro.zummo@towertech.it, danders.dev@gmail.com, rdunlap@xenotime.net, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: ds1307: simplify irq setup code
+     Subject: rtc: ds1307: generalise ram size and offset
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1307-simplify-irq-setup-code.patch
+     rtc-ds1307-generalise-ram-size-and-offset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: rtc: ds1307: simplify irq setup code
+From: Austin Boyle <Austin.Boyle@aviatnet.com>
+Subject: rtc: ds1307: generalise ram size and offset
 
-No need to have two seperate if-blocks for setting up the irq.
+Generalise NVRAM to support RAM with other size and offset, such as the 64
+bytes of SRAM on the mcp7941x.
 
+[rdunlap@xenotime.net: fix printk format warning]
+Signed-off-by: Austin Boyle <Austin.Boyle@aviatnet.com>
 Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Tested-by: David Anders <danders.dev@gmail.com>
-Cc: Austin Boyle <Austin.Boyle@aviatnet.com>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: David Anders <danders.dev@gmail.com>
 Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-ds1307.c |   78 ++++++++++++++++++++++---------------
+ 1 file changed, 47 insertions(+), 31 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-simplify-irq-setup-code drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-simplify-irq-setup-code
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-generalise-ram-size-and-offset drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-generalise-ram-size-and-offset
 +++ a/drivers/rtc/rtc-ds1307.c
-@@ -646,11 +646,6 @@ static int __devinit ds1307_probe(struct
- 	case ds_1337:
- 	case ds_1339:
- 	case ds_3231:
--		/* has IRQ? */
--		if (ds1307->client->irq > 0 && chip->alarm) {
--			INIT_WORK(&ds1307->work, ds1307_work);
--			want_irq = true;
--		}
- 		/* get registers that the "rtc" read below won't read... */
- 		tmp = ds1307->read_block_data(ds1307->client,
- 				DS1337_REG_CONTROL, 2, buf);
-@@ -668,10 +663,14 @@ static int __devinit ds1307_probe(struct
- 		 * For some variants, be sure alarms can trigger when we're
- 		 * running on Vbackup (BBSQI/BBSQW)
- 		 */
--		if (want_irq) {
-+		if (ds1307->client->irq > 0 && chip->alarm) {
-+			INIT_WORK(&ds1307->work, ds1307_work);
-+
- 			ds1307->regs[0] |= DS1337_BIT_INTCN
- 					| bbsqi_bitpos[ds1307->type];
- 			ds1307->regs[0] &= ~(DS1337_BIT_A2IE | DS1337_BIT_A1IE);
-+
-+			want_irq = true;
- 		}
+@@ -105,6 +105,8 @@ enum ds_type {
+ struct ds1307 {
+ 	u8			offset; /* register's offset */
+ 	u8			regs[11];
++	u16			nvram_offset;
++	struct bin_attribute	*nvram;
+ 	enum ds_type		type;
+ 	unsigned long		flags;
+ #define HAS_NVRAM	0		/* bit 0 == sysfs file active */
+@@ -119,19 +121,22 @@ struct ds1307 {
+ };
  
- 		i2c_smbus_write_byte_data(client, DS1337_REG_CONTROL,
+ struct chip_desc {
+-	unsigned		nvram56:1;
+ 	unsigned		alarm:1;
++	u16			nvram_offset;
++	u16			nvram_size;
+ };
+ 
+ static const struct chip_desc chips[last_ds_type] = {
+ 	[ds_1307] = {
+-		.nvram56	= 1,
++		.nvram_offset	= 8,
++		.nvram_size	= 56,
+ 	},
+ 	[ds_1337] = {
+ 		.alarm		= 1,
+ 	},
+ 	[ds_1338] = {
+-		.nvram56	= 1,
++		.nvram_offset	= 8,
++		.nvram_size	= 56,
+ 	},
+ 	[ds_1339] = {
+ 		.alarm		= 1,
+@@ -139,6 +144,11 @@ static const struct chip_desc chips[last
+ 	[ds_3231] = {
+ 		.alarm		= 1,
+ 	},
++	[mcp7941x] = {
++		/* this is battery backed SRAM */
++		.nvram_offset	= 0x20,
++		.nvram_size	= 0x40,
++	},
+ };
+ 
+ static const struct i2c_device_id ds1307_id[] = {
+@@ -543,8 +553,6 @@ static const struct rtc_class_ops ds13xx
+ 
+ /*----------------------------------------------------------------------*/
+ 
+-#define NVRAM_SIZE	56
+-
+ static ssize_t
+ ds1307_nvram_read(struct file *filp, struct kobject *kobj,
+ 		struct bin_attribute *attr,
+@@ -557,14 +565,15 @@ ds1307_nvram_read(struct file *filp, str
+ 	client = kobj_to_i2c_client(kobj);
+ 	ds1307 = i2c_get_clientdata(client);
+ 
+-	if (unlikely(off >= NVRAM_SIZE))
++	if (unlikely(off >= ds1307->nvram->size))
+ 		return 0;
+-	if ((off + count) > NVRAM_SIZE)
+-		count = NVRAM_SIZE - off;
++	if ((off + count) > ds1307->nvram->size)
++		count = ds1307->nvram->size - off;
+ 	if (unlikely(!count))
+ 		return count;
+ 
+-	result = ds1307->read_block_data(client, 8 + off, count, buf);
++	result = ds1307->read_block_data(client, ds1307->nvram_offset + off,
++								count, buf);
+ 	if (result < 0)
+ 		dev_err(&client->dev, "%s error %d\n", "nvram read", result);
+ 	return result;
+@@ -582,14 +591,15 @@ ds1307_nvram_write(struct file *filp, st
+ 	client = kobj_to_i2c_client(kobj);
+ 	ds1307 = i2c_get_clientdata(client);
+ 
+-	if (unlikely(off >= NVRAM_SIZE))
++	if (unlikely(off >= ds1307->nvram->size))
+ 		return -EFBIG;
+-	if ((off + count) > NVRAM_SIZE)
+-		count = NVRAM_SIZE - off;
++	if ((off + count) > ds1307->nvram->size)
++		count = ds1307->nvram->size - off;
+ 	if (unlikely(!count))
+ 		return count;
+ 
+-	result = ds1307->write_block_data(client, 8 + off, count, buf);
++	result = ds1307->write_block_data(client, ds1307->nvram_offset + off,
++								count, buf);
+ 	if (result < 0) {
+ 		dev_err(&client->dev, "%s error %d\n", "nvram write", result);
+ 		return result;
+@@ -597,17 +607,6 @@ ds1307_nvram_write(struct file *filp, st
+ 	return count;
+ }
+ 
+-static struct bin_attribute nvram = {
+-	.attr = {
+-		.name	= "nvram",
+-		.mode	= S_IRUGO | S_IWUSR,
+-	},
+-
+-	.read	= ds1307_nvram_read,
+-	.write	= ds1307_nvram_write,
+-	.size	= NVRAM_SIZE,
+-};
+-
+ /*----------------------------------------------------------------------*/
+ 
+ static int __devinit ds1307_probe(struct i2c_client *client,
+@@ -894,16 +893,31 @@ read_rtc:
+ 		dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
+ 	}
+ 
+-	if (chip->nvram56) {
+-		err = sysfs_create_bin_file(&client->dev.kobj, &nvram);
+-		if (err == 0) {
+-			set_bit(HAS_NVRAM, &ds1307->flags);
+-			dev_info(&client->dev, "56 bytes nvram\n");
++	if (chip->nvram_size) {
++		ds1307->nvram = kzalloc(sizeof(struct bin_attribute),
++							GFP_KERNEL);
++		if (!ds1307->nvram) {
++			err = -ENOMEM;
++			goto exit_nvram;
++		}
++		ds1307->nvram->attr.name = "nvram";
++		ds1307->nvram->attr.mode = S_IRUGO | S_IWUSR;
++		ds1307->nvram->read = ds1307_nvram_read,
++		ds1307->nvram->write = ds1307_nvram_write,
++		ds1307->nvram->size = chip->nvram_size;
++		ds1307->nvram_offset = chip->nvram_offset;
++		err = sysfs_create_bin_file(&client->dev.kobj, ds1307->nvram);
++		if (err) {
++			kfree(ds1307->nvram);
++			goto exit_nvram;
+ 		}
++		set_bit(HAS_NVRAM, &ds1307->flags);
++		dev_info(&client->dev, "%zu bytes nvram\n", ds1307->nvram->size);
+ 	}
+ 
+ 	return 0;
+ 
++exit_nvram:
+ exit_irq:
+ 	rtc_device_unregister(ds1307->rtc);
+ exit_free:
+@@ -920,8 +934,10 @@ static int __devexit ds1307_remove(struc
+ 		cancel_work_sync(&ds1307->work);
+ 	}
+ 
+-	if (test_and_clear_bit(HAS_NVRAM, &ds1307->flags))
+-		sysfs_remove_bin_file(&client->dev.kobj, &nvram);
++	if (test_and_clear_bit(HAS_NVRAM, &ds1307->flags)) {
++		sysfs_remove_bin_file(&client->dev.kobj, ds1307->nvram);
++		kfree(ds1307->nvram);
++	}
+ 
+ 	rtc_device_unregister(ds1307->rtc);
+ 	kfree(ds1307);
 _
 
-Patches currently in -mm which might be from w.sang@pengutronix.de are
+Patches currently in -mm which might be from Austin.Boyle@aviatnet.com are
 
 origin.patch
-linux-next.patch
 
