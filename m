@@ -1,96 +1,390 @@
 From: akpm@linux-foundation.org
-Subject: [merged] string-memchr_inv-speed-improvements.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:30:02 -0700
-Message-ID: <20120326193002.AD421A0560@akpm.mtv.corp.google.com>
+Subject: [merged] crc32-move-long-comment-about-crc32-fundamentals-to-documentation.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:30:38 -0700
+Message-ID: <20120326193038.647DFA00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:49450 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753527Ab2CZTaF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:30:05 -0400
-Received: by wibhj13 with SMTP id hj13so233232wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:30:03 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61526 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753660Ab2CZTaj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:30:39 -0400
+Received: by mail-yx0-f202.google.com with SMTP id q2so832238yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:30:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, computersforpeace@gmail.com, eric.dumazet@gmail.com, mm-commits@vger.kernel.org
+To: rpearson@systemfabricworks.com, djwong@us.ibm.com, linux@horizon.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: string: memchr_inv() speed improvements
+     Subject: crc32: move long comment about crc32 fundamentals to Documentation/
 has been removed from the -mm tree.  Its filename was
-     string-memchr_inv-speed-improvements.patch
+     crc32-move-long-comment-about-crc32-fundamentals-to-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: string: memchr_inv() speed improvements
+From: Bob Pearson <rpearson@systemfabricworks.com>
+Subject: crc32: move long comment about crc32 fundamentals to Documentation/
 
-- Generate a 64-bit pattern more efficiently
+Move a long comment from lib/crc32.c to Documentation/crc32.txt where it
+will more likely get read.
 
-memchr_inv needs to generate a 64-bit pattern filled with a target
-character.  The operation can be done by more efficient way.
+Edited the resulting document to add an explanation of the slicing-by-n
+algorithm.
 
-- Don't call the slow check_bytes() if the memory area is 64-bit aligned
-
-memchr_inv compares contiguous 64-bit words with the 64-bit pattern as
-much as possible.  The outside of the region is checked by check_bytes()
-that scans for each byte.  Unfortunately, the first 64-bit word is
-unexpectedly scanned by check_bytes() even if the memory area is aligned
-to a 64-bit boundary.
-
-Both changes were originally suggested by Eric Dumazet.
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Brian Norris <computersforpeace@gmail.com>
+[djwong@us.ibm.com: minor changelog tweaks]
+[akpm@linux-foundation.org: fix typo, per George]
+Signed-off-by: George Spelvin <linux@horizon.com>
+Signed-off-by: Bob Pearson <rpearson@systemfabricworks.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ Documentation/00-INDEX  |    2 
+ Documentation/crc32.txt |  183 ++++++++++++++++++++++++++++++++++++++
+ lib/crc32.c             |  129 --------------------------
+ 3 files changed, 187 insertions(+), 127 deletions(-)
 
-diff -puN lib/string.c~string-memchr_inv-speed-improvements lib/string.c
---- a/lib/string.c~string-memchr_inv-speed-improvements
-+++ a/lib/string.c
-@@ -785,12 +785,24 @@ void *memchr_inv(const void *start, int 
- 	if (bytes <= 16)
- 		return check_bytes8(start, value, bytes);
- 
--	value64 = value | value << 8 | value << 16 | value << 24;
--	value64 = (value64 & 0xffffffff) | value64 << 32;
--	prefix = 8 - ((unsigned long)start) % 8;
-+	value64 = value;
-+#if defined(ARCH_HAS_FAST_MULTIPLIER) && BITS_PER_LONG == 64
-+	value64 *= 0x0101010101010101;
-+#elif defined(ARCH_HAS_FAST_MULTIPLIER)
-+	value64 *= 0x01010101;
-+	value64 |= value64 << 32;
-+#else
-+	value64 |= value64 << 8;
-+	value64 |= value64 << 16;
-+	value64 |= value64 << 32;
-+#endif
- 
-+	prefix = (unsigned long)start % 8;
- 	if (prefix) {
--		u8 *r = check_bytes8(start, value, prefix);
-+		u8 *r;
+diff -puN Documentation/00-INDEX~crc32-move-long-comment-about-crc32-fundamentals-to-documentation Documentation/00-INDEX
+--- a/Documentation/00-INDEX~crc32-move-long-comment-about-crc32-fundamentals-to-documentation
++++ a/Documentation/00-INDEX
+@@ -104,6 +104,8 @@ cpuidle/
+ 	- info on CPU_IDLE, CPU idle state management subsystem.
+ cputopology.txt
+ 	- documentation on how CPU topology info is exported via sysfs.
++crc32.txt
++	- brief tutorial on CRC computation
+ cris/
+ 	- directory with info about Linux on CRIS architecture.
+ crypto/
+diff -puN /dev/null Documentation/crc32.txt
+--- /dev/null
++++ a/Documentation/crc32.txt
+@@ -0,0 +1,183 @@
++A brief CRC tutorial.
 +
-+		prefix = 8 - prefix;
-+		r = check_bytes8(start, value, prefix);
- 		if (r)
- 			return r;
- 		start += prefix;
-_
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-origin.patch
-linux-next.patch
-ocfs2-use-find_last_bit.patch
-ocfs2-use-bitmap_weight.patch
-sysctl-use-bitmap-library-functions.patch
-
++A CRC is a long-division remainder.  You add the CRC to the message,
++and the whole thing (message+CRC) is a multiple of the given
++CRC polynomial.  To check the CRC, you can either check that the
++CRC matches the recomputed value, *or* you can check that the
++remainder computed on the message+CRC is 0.  This latter approach
++is used by a lot of hardware implementations, and is why so many
++protocols put the end-of-frame flag after the CRC.
++
++It's actually the same long division you learned in school, except that
++- We're working in binary, so the digits are only 0 and 1, and
++- When dividing polynomials, there are no carries.  Rather than add and
++  subtract, we just xor.  Thus, we tend to get a bit sloppy about
++  the difference between adding and subtracting.
++
++Like all division, the remainder is always smaller than the divisor.
++To produce a 32-bit CRC, the divisor is actually a 33-bit CRC polynomial.
++Since it's 33 bits long, bit 32 is always going to be set, so usually the
++CRC is written in hex with the most significant bit omitted.  (If you're
++familiar with the IEEE 754 floating-point format, it's the same idea.)
++
++Note that a CRC is computed over a string of *bits*, so you have
++to decide on the endianness of the bits within each byte.  To get
++the best error-detecting properties, this should correspond to the
++order they're actually sent.  For example, standard RS-232 serial is
++little-endian; the most significant bit (sometimes used for parity)
++is sent last.  And when appending a CRC word to a message, you should
++do it in the right order, matching the endianness.
++
++Just like with ordinary division, you proceed one digit (bit) at a time.
++Each step of the division you take one more digit (bit) of the dividend
++and append it to the current remainder.  Then you figure out the
++appropriate multiple of the divisor to subtract to being the remainder
++back into range.  In binary, this is easy - it has to be either 0 or 1,
++and to make the XOR cancel, it's just a copy of bit 32 of the remainder.
++
++When computing a CRC, we don't care about the quotient, so we can
++throw the quotient bit away, but subtract the appropriate multiple of
++the polynomial from the remainder and we're back to where we started,
++ready to process the next bit.
++
++A big-endian CRC written this way would be coded like:
++for (i = 0; i < input_bits; i++) {
++	multiple = remainder & 0x80000000 ? CRCPOLY : 0;
++	remainder = (remainder << 1 | next_input_bit()) ^ multiple;
++}
++
++Notice how, to get at bit 32 of the shifted remainder, we look
++at bit 31 of the remainder *before* shifting it.
++
++But also notice how the next_input_bit() bits we're shifting into
++the remainder don't actually affect any decision-making until
++32 bits later.  Thus, the first 32 cycles of this are pretty boring.
++Also, to add the CRC to a message, we need a 32-bit-long hole for it at
++the end, so we have to add 32 extra cycles shifting in zeros at the
++end of every message,
++
++These details lead to a standard trick: rearrange merging in the
++next_input_bit() until the moment it's needed.  Then the first 32 cycles
++can be precomputed, and merging in the final 32 zero bits to make room
++for the CRC can be skipped entirely.  This changes the code to:
++
++for (i = 0; i < input_bits; i++) {
++	remainder ^= next_input_bit() << 31;
++	multiple = (remainder & 0x80000000) ? CRCPOLY : 0;
++	remainder = (remainder << 1) ^ multiple;
++}
++
++With this optimization, the little-endian code is particularly simple:
++for (i = 0; i < input_bits; i++) {
++	remainder ^= next_input_bit();
++	multiple = (remainder & 1) ? CRCPOLY : 0;
++	remainder = (remainder >> 1) ^ multiple;
++}
++
++The most significant coefficient of the remainder polynomial is stored
++in the least significant bit of the binary "remainder" variable.
++The other details of endianness have been hidden in CRCPOLY (which must
++be bit-reversed) and next_input_bit().
++
++As long as next_input_bit is returning the bits in a sensible order, we don't
++*have* to wait until the last possible moment to merge in additional bits.
++We can do it 8 bits at a time rather than 1 bit at a time:
++for (i = 0; i < input_bytes; i++) {
++	remainder ^= next_input_byte() << 24;
++	for (j = 0; j < 8; j++) {
++		multiple = (remainder & 0x80000000) ? CRCPOLY : 0;
++		remainder = (remainder << 1) ^ multiple;
++	}
++}
++
++Or in little-endian:
++for (i = 0; i < input_bytes; i++) {
++	remainder ^= next_input_byte();
++	for (j = 0; j < 8; j++) {
++		multiple = (remainder & 1) ? CRCPOLY : 0;
++		remainder = (remainder >> 1) ^ multiple;
++	}
++}
++
++If the input is a multiple of 32 bits, you can even XOR in a 32-bit
++word at a time and increase the inner loop count to 32.
++
++You can also mix and match the two loop styles, for example doing the
++bulk of a message byte-at-a-time and adding bit-at-a-time processing
++for any fractional bytes at the end.
++
++To reduce the number of conditional branches, software commonly uses
++the byte-at-a-time table method, popularized by Dilip V. Sarwate,
++"Computation of Cyclic Redundancy Checks via Table Look-Up", Comm. ACM
++v.31 no.8 (August 1998) p. 1008-1013.
++
++Here, rather than just shifting one bit of the remainder to decide
++in the correct multiple to subtract, we can shift a byte at a time.
++This produces a 40-bit (rather than a 33-bit) intermediate remainder,
++and the correct multiple of the polynomial to subtract is found using
++a 256-entry lookup table indexed by the high 8 bits.
++
++(The table entries are simply the CRC-32 of the given one-byte messages.)
++
++When space is more constrained, smaller tables can be used, e.g. two
++4-bit shifts followed by a lookup in a 16-entry table.
++
++It is not practical to process much more than 8 bits at a time using this
++technique, because tables larger than 256 entries use too much memory and,
++more importantly, too much of the L1 cache.
++
++To get higher software performance, a "slicing" technique can be used.
++See "High Octane CRC Generation with the Intel Slicing-by-8 Algorithm",
++ftp://download.intel.com/technology/comms/perfnet/download/slicing-by-8.pdf
++
++This does not change the number of table lookups, but does increase
++the parallelism.  With the classic Sarwate algorithm, each table lookup
++must be completed before the index of the next can be computed.
++
++A "slicing by 2" technique would shift the remainder 16 bits at a time,
++producing a 48-bit intermediate remainder.  Rather than doing a single
++lookup in a 65536-entry table, the two high bytes are looked up in
++two different 256-entry tables.  Each contains the remainder required
++to cancel out the corresponding byte.  The tables are different because the
++polynomials to cancel are different.  One has non-zero coefficients from
++x^32 to x^39, while the other goes from x^40 to x^47.
++
++Since modern processors can handle many parallel memory operations, this
++takes barely longer than a single table look-up and thus performs almost
++twice as fast as the basic Sarwate algorithm.
++
++This can be extended to "slicing by 4" using 4 256-entry tables.
++Each step, 32 bits of data is fetched, XORed with the CRC, and the result
++broken into bytes and looked up in the tables.  Because the 32-bit shift
++leaves the low-order bits of the intermediate remainder zero, the
++final CRC is simply the XOR of the 4 table look-ups.
++
++But this still enforces sequential execution: a second group of table
++look-ups cannot begin until the previous groups 4 table look-ups have all
++been completed.  Thus, the processor's load/store unit is sometimes idle.
++
++To make maximum use of the processor, "slicing by 8" performs 8 look-ups
++in parallel.  Each step, the 32-bit CRC is shifted 64 bits and XORed
++with 64 bits of input data.  What is important to note is that 4 of
++those 8 bytes are simply copies of the input data; they do not depend
++on the previous CRC at all.  Thus, those 4 table look-ups may commence
++immediately, without waiting for the previous loop iteration.
++
++By always having 4 loads in flight, a modern superscalar processor can
++be kept busy and make full use of its L1 cache.
++
++Two more details about CRC implementation in the real world:
++
++Normally, appending zero bits to a message which is already a multiple
++of a polynomial produces a larger multiple of that polynomial.  Thus,
++a basic CRC will not detect appended zero bits (or bytes).  To enable
++a CRC to detect this condition, it's common to invert the CRC before
++appending it.  This makes the remainder of the message+crc come out not
++as zero, but some fixed non-zero value.  (The CRC of the inversion
++pattern, 0xffffffff.)
++
++The same problem applies to zero bits prepended to the message, and a
++similar solution is used.  Instead of starting the CRC computation with
++a remainder of 0, an initial remainder of all ones is used.  As long as
++you start the same way on decoding, it doesn't make a difference.
++
+diff -puN lib/crc32.c~crc32-move-long-comment-about-crc32-fundamentals-to-documentation lib/crc32.c
+--- a/lib/crc32.c~crc32-move-long-comment-about-crc32-fundamentals-to-documentation
++++ a/lib/crc32.c
+@@ -20,6 +20,8 @@
+  * Version 2.  See the file COPYING for more details.
+  */
+ 
++/* see: Documentation/crc32.txt for a description of algorithms */
++
+ #include <linux/crc32.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -209,133 +211,6 @@ u32 __pure crc32_be(u32 crc, unsigned ch
+ EXPORT_SYMBOL(crc32_le);
+ EXPORT_SYMBOL(crc32_be);
+ 
+-/*
+- * A brief CRC tutorial.
+- *
+- * A CRC is a long-division remainder.  You add the CRC to the message,
+- * and the whole thing (message+CRC) is a multiple of the given
+- * CRC polynomial.  To check the CRC, you can either check that the
+- * CRC matches the recomputed value, *or* you can check that the
+- * remainder computed on the message+CRC is 0.  This latter approach
+- * is used by a lot of hardware implementations, and is why so many
+- * protocols put the end-of-frame flag after the CRC.
+- *
+- * It's actually the same long division you learned in school, except that
+- * - We're working in binary, so the digits are only 0 and 1, and
+- * - When dividing polynomials, there are no carries.  Rather than add and
+- *   subtract, we just xor.  Thus, we tend to get a bit sloppy about
+- *   the difference between adding and subtracting.
+- *
+- * A 32-bit CRC polynomial is actually 33 bits long.  But since it's
+- * 33 bits long, bit 32 is always going to be set, so usually the CRC
+- * is written in hex with the most significant bit omitted.  (If you're
+- * familiar with the IEEE 754 floating-point format, it's the same idea.)
+- *
+- * Note that a CRC is computed over a string of *bits*, so you have
+- * to decide on the endianness of the bits within each byte.  To get
+- * the best error-detecting properties, this should correspond to the
+- * order they're actually sent.  For example, standard RS-232 serial is
+- * little-endian; the most significant bit (sometimes used for parity)
+- * is sent last.  And when appending a CRC word to a message, you should
+- * do it in the right order, matching the endianness.
+- *
+- * Just like with ordinary division, the remainder is always smaller than
+- * the divisor (the CRC polynomial) you're dividing by.  Each step of the
+- * division, you take one more digit (bit) of the dividend and append it
+- * to the current remainder.  Then you figure out the appropriate multiple
+- * of the divisor to subtract to being the remainder back into range.
+- * In binary, it's easy - it has to be either 0 or 1, and to make the
+- * XOR cancel, it's just a copy of bit 32 of the remainder.
+- *
+- * When computing a CRC, we don't care about the quotient, so we can
+- * throw the quotient bit away, but subtract the appropriate multiple of
+- * the polynomial from the remainder and we're back to where we started,
+- * ready to process the next bit.
+- *
+- * A big-endian CRC written this way would be coded like:
+- * for (i = 0; i < input_bits; i++) {
+- * 	multiple = remainder & 0x80000000 ? CRCPOLY : 0;
+- * 	remainder = (remainder << 1 | next_input_bit()) ^ multiple;
+- * }
+- * Notice how, to get at bit 32 of the shifted remainder, we look
+- * at bit 31 of the remainder *before* shifting it.
+- *
+- * But also notice how the next_input_bit() bits we're shifting into
+- * the remainder don't actually affect any decision-making until
+- * 32 bits later.  Thus, the first 32 cycles of this are pretty boring.
+- * Also, to add the CRC to a message, we need a 32-bit-long hole for it at
+- * the end, so we have to add 32 extra cycles shifting in zeros at the
+- * end of every message,
+- *
+- * So the standard trick is to rearrage merging in the next_input_bit()
+- * until the moment it's needed.  Then the first 32 cycles can be precomputed,
+- * and merging in the final 32 zero bits to make room for the CRC can be
+- * skipped entirely.
+- * This changes the code to:
+- * for (i = 0; i < input_bits; i++) {
+- *      remainder ^= next_input_bit() << 31;
+- * 	multiple = (remainder & 0x80000000) ? CRCPOLY : 0;
+- * 	remainder = (remainder << 1) ^ multiple;
+- * }
+- * With this optimization, the little-endian code is simpler:
+- * for (i = 0; i < input_bits; i++) {
+- *      remainder ^= next_input_bit();
+- * 	multiple = (remainder & 1) ? CRCPOLY : 0;
+- * 	remainder = (remainder >> 1) ^ multiple;
+- * }
+- *
+- * Note that the other details of endianness have been hidden in CRCPOLY
+- * (which must be bit-reversed) and next_input_bit().
+- *
+- * However, as long as next_input_bit is returning the bits in a sensible
+- * order, we can actually do the merging 8 or more bits at a time rather
+- * than one bit at a time:
+- * for (i = 0; i < input_bytes; i++) {
+- * 	remainder ^= next_input_byte() << 24;
+- * 	for (j = 0; j < 8; j++) {
+- * 		multiple = (remainder & 0x80000000) ? CRCPOLY : 0;
+- * 		remainder = (remainder << 1) ^ multiple;
+- * 	}
+- * }
+- * Or in little-endian:
+- * for (i = 0; i < input_bytes; i++) {
+- * 	remainder ^= next_input_byte();
+- * 	for (j = 0; j < 8; j++) {
+- * 		multiple = (remainder & 1) ? CRCPOLY : 0;
+- * 		remainder = (remainder << 1) ^ multiple;
+- * 	}
+- * }
+- * If the input is a multiple of 32 bits, you can even XOR in a 32-bit
+- * word at a time and increase the inner loop count to 32.
+- *
+- * You can also mix and match the two loop styles, for example doing the
+- * bulk of a message byte-at-a-time and adding bit-at-a-time processing
+- * for any fractional bytes at the end.
+- *
+- * The only remaining optimization is to the byte-at-a-time table method.
+- * Here, rather than just shifting one bit of the remainder to decide
+- * in the correct multiple to subtract, we can shift a byte at a time.
+- * This produces a 40-bit (rather than a 33-bit) intermediate remainder,
+- * but again the multiple of the polynomial to subtract depends only on
+- * the high bits, the high 8 bits in this case.
+- *
+- * The multiple we need in that case is the low 32 bits of a 40-bit
+- * value whose high 8 bits are given, and which is a multiple of the
+- * generator polynomial.  This is simply the CRC-32 of the given
+- * one-byte message.
+- *
+- * Two more details: normally, appending zero bits to a message which
+- * is already a multiple of a polynomial produces a larger multiple of that
+- * polynomial.  To enable a CRC to detect this condition, it's common to
+- * invert the CRC before appending it.  This makes the remainder of the
+- * message+crc come out not as zero, but some fixed non-zero value.
+- *
+- * The same problem applies to zero bits prepended to the message, and
+- * a similar solution is used.  Instead of starting with a remainder of
+- * 0, an initial remainder of all ones is used.  As long as you start
+- * the same way on decoding, it doesn't make a difference.
+- */
