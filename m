@@ -1,218 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-ds1307-generalise-ram-size-and-offset.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:31:53 -0700
-Message-ID: <20120326193153.6C8CDA00A9@akpm.mtv.corp.google.com>
+Subject: [merged] ptrace-remove-ptrace_seize_devel-bit.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:11 -0700
+Message-ID: <20120326193211.743C2A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:38526 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754494Ab2CZTby (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:54 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so508386vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:54 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:61185 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754202Ab2CZTcQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:16 -0400
+Received: by eekc41 with SMTP id c41so293986eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Austin.Boyle@aviatnet.com, alessandro.zummo@towertech.it, danders.dev@gmail.com, rdunlap@xenotime.net, w.sang@pengutronix.de, mm-commits@vger.kernel.org
+To: vda.linux@googlemail.com, jan.kratochvil@redhat.com, oleg@redhat.com, palves@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: ds1307: generalise ram size and offset
+     Subject: ptrace: remove PTRACE_SEIZE_DEVEL bit
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1307-generalise-ram-size-and-offset.patch
+     ptrace-remove-ptrace_seize_devel-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Austin Boyle <Austin.Boyle@aviatnet.com>
-Subject: rtc: ds1307: generalise ram size and offset
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: ptrace: remove PTRACE_SEIZE_DEVEL bit
 
-Generalise NVRAM to support RAM with other size and offset, such as the 64
-bytes of SRAM on the mcp7941x.
+PTRACE_SEIZE code is tested and ready for production use, remove the code
+which requires special bit in data argument to make PTRACE_SEIZE work.
 
-[rdunlap@xenotime.net: fix printk format warning]
-Signed-off-by: Austin Boyle <Austin.Boyle@aviatnet.com>
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: David Anders <danders.dev@gmail.com>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Strace team prepares for a new release of strace, and we would like to
+ship the code which uses PTRACE_SEIZE, preferably after this change goes
+into released kernel.
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Pedro Alves <palves@redhat.com>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |   78 ++++++++++++++++++++++---------------
- 1 file changed, 47 insertions(+), 31 deletions(-)
+ include/linux/ptrace.h |    5 +----
+ kernel/ptrace.c        |   15 ---------------
+ 2 files changed, 1 insertion(+), 19 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-generalise-ram-size-and-offset drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-generalise-ram-size-and-offset
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -105,6 +105,8 @@ enum ds_type {
- struct ds1307 {
- 	u8			offset; /* register's offset */
- 	u8			regs[11];
-+	u16			nvram_offset;
-+	struct bin_attribute	*nvram;
- 	enum ds_type		type;
- 	unsigned long		flags;
- #define HAS_NVRAM	0		/* bit 0 == sysfs file active */
-@@ -119,19 +121,22 @@ struct ds1307 {
- };
+diff -puN include/linux/ptrace.h~ptrace-remove-ptrace_seize_devel-bit include/linux/ptrace.h
+--- a/include/linux/ptrace.h~ptrace-remove-ptrace_seize_devel-bit
++++ a/include/linux/ptrace.h
+@@ -51,9 +51,6 @@
+ #define PTRACE_INTERRUPT	0x4207
+ #define PTRACE_LISTEN		0x4208
  
- struct chip_desc {
--	unsigned		nvram56:1;
- 	unsigned		alarm:1;
-+	u16			nvram_offset;
-+	u16			nvram_size;
- };
- 
- static const struct chip_desc chips[last_ds_type] = {
- 	[ds_1307] = {
--		.nvram56	= 1,
-+		.nvram_offset	= 8,
-+		.nvram_size	= 56,
- 	},
- 	[ds_1337] = {
- 		.alarm		= 1,
- 	},
- 	[ds_1338] = {
--		.nvram56	= 1,
-+		.nvram_offset	= 8,
-+		.nvram_size	= 56,
- 	},
- 	[ds_1339] = {
- 		.alarm		= 1,
-@@ -139,6 +144,11 @@ static const struct chip_desc chips[last
- 	[ds_3231] = {
- 		.alarm		= 1,
- 	},
-+	[mcp7941x] = {
-+		/* this is battery backed SRAM */
-+		.nvram_offset	= 0x20,
-+		.nvram_size	= 0x40,
-+	},
- };
- 
- static const struct i2c_device_id ds1307_id[] = {
-@@ -543,8 +553,6 @@ static const struct rtc_class_ops ds13xx
- 
- /*----------------------------------------------------------------------*/
- 
--#define NVRAM_SIZE	56
+-/* flags in @data for PTRACE_SEIZE */
+-#define PTRACE_SEIZE_DEVEL	0x80000000 /* temp flag for development */
 -
- static ssize_t
- ds1307_nvram_read(struct file *filp, struct kobject *kobj,
- 		struct bin_attribute *attr,
-@@ -557,14 +565,15 @@ ds1307_nvram_read(struct file *filp, str
- 	client = kobj_to_i2c_client(kobj);
- 	ds1307 = i2c_get_clientdata(client);
+ /* Wait extended result codes for the above trace options.  */
+ #define PTRACE_EVENT_FORK	1
+ #define PTRACE_EVENT_VFORK	2
+@@ -64,7 +61,7 @@
+ /* Extended result codes which enabled by means other than options.  */
+ #define PTRACE_EVENT_STOP	128
  
--	if (unlikely(off >= NVRAM_SIZE))
-+	if (unlikely(off >= ds1307->nvram->size))
- 		return 0;
--	if ((off + count) > NVRAM_SIZE)
--		count = NVRAM_SIZE - off;
-+	if ((off + count) > ds1307->nvram->size)
-+		count = ds1307->nvram->size - off;
- 	if (unlikely(!count))
- 		return count;
+-/* options set using PTRACE_SETOPTIONS */
++/* Options set using PTRACE_SETOPTIONS or using PTRACE_SEIZE @data param */
+ #define PTRACE_O_TRACESYSGOOD	1
+ #define PTRACE_O_TRACEFORK	(1 << PTRACE_EVENT_FORK)
+ #define PTRACE_O_TRACEVFORK	(1 << PTRACE_EVENT_VFORK)
+diff -puN kernel/ptrace.c~ptrace-remove-ptrace_seize_devel-bit kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-remove-ptrace_seize_devel-bit
++++ a/kernel/ptrace.c
+@@ -237,25 +237,10 @@ static int ptrace_attach(struct task_str
+ 	bool seize = (request == PTRACE_SEIZE);
+ 	int retval;
  
--	result = ds1307->read_block_data(client, 8 + off, count, buf);
-+	result = ds1307->read_block_data(client, ds1307->nvram_offset + off,
-+								count, buf);
- 	if (result < 0)
- 		dev_err(&client->dev, "%s error %d\n", "nvram read", result);
- 	return result;
-@@ -582,14 +591,15 @@ ds1307_nvram_write(struct file *filp, st
- 	client = kobj_to_i2c_client(kobj);
- 	ds1307 = i2c_get_clientdata(client);
- 
--	if (unlikely(off >= NVRAM_SIZE))
-+	if (unlikely(off >= ds1307->nvram->size))
- 		return -EFBIG;
--	if ((off + count) > NVRAM_SIZE)
--		count = NVRAM_SIZE - off;
-+	if ((off + count) > ds1307->nvram->size)
-+		count = ds1307->nvram->size - off;
- 	if (unlikely(!count))
- 		return count;
- 
--	result = ds1307->write_block_data(client, 8 + off, count, buf);
-+	result = ds1307->write_block_data(client, ds1307->nvram_offset + off,
-+								count, buf);
- 	if (result < 0) {
- 		dev_err(&client->dev, "%s error %d\n", "nvram write", result);
- 		return result;
-@@ -597,17 +607,6 @@ ds1307_nvram_write(struct file *filp, st
- 	return count;
- }
- 
--static struct bin_attribute nvram = {
--	.attr = {
--		.name	= "nvram",
--		.mode	= S_IRUGO | S_IWUSR,
--	},
--
--	.read	= ds1307_nvram_read,
--	.write	= ds1307_nvram_write,
--	.size	= NVRAM_SIZE,
--};
--
- /*----------------------------------------------------------------------*/
- 
- static int __devinit ds1307_probe(struct i2c_client *client,
-@@ -894,16 +893,31 @@ read_rtc:
- 		dev_dbg(&client->dev, "got IRQ %d\n", client->irq);
- 	}
- 
--	if (chip->nvram56) {
--		err = sysfs_create_bin_file(&client->dev.kobj, &nvram);
--		if (err == 0) {
--			set_bit(HAS_NVRAM, &ds1307->flags);
--			dev_info(&client->dev, "56 bytes nvram\n");
-+	if (chip->nvram_size) {
-+		ds1307->nvram = kzalloc(sizeof(struct bin_attribute),
-+							GFP_KERNEL);
-+		if (!ds1307->nvram) {
-+			err = -ENOMEM;
-+			goto exit_nvram;
-+		}
-+		ds1307->nvram->attr.name = "nvram";
-+		ds1307->nvram->attr.mode = S_IRUGO | S_IWUSR;
-+		ds1307->nvram->read = ds1307_nvram_read,
-+		ds1307->nvram->write = ds1307_nvram_write,
-+		ds1307->nvram->size = chip->nvram_size;
-+		ds1307->nvram_offset = chip->nvram_offset;
-+		err = sysfs_create_bin_file(&client->dev.kobj, ds1307->nvram);
-+		if (err) {
-+			kfree(ds1307->nvram);
-+			goto exit_nvram;
- 		}
-+		set_bit(HAS_NVRAM, &ds1307->flags);
-+		dev_info(&client->dev, "%zu bytes nvram\n", ds1307->nvram->size);
- 	}
- 
- 	return 0;
- 
-+exit_nvram:
- exit_irq:
- 	rtc_device_unregister(ds1307->rtc);
- exit_free:
-@@ -920,8 +934,10 @@ static int __devexit ds1307_remove(struc
- 		cancel_work_sync(&ds1307->work);
- 	}
- 
--	if (test_and_clear_bit(HAS_NVRAM, &ds1307->flags))
--		sysfs_remove_bin_file(&client->dev.kobj, &nvram);
-+	if (test_and_clear_bit(HAS_NVRAM, &ds1307->flags)) {
-+		sysfs_remove_bin_file(&client->dev.kobj, ds1307->nvram);
-+		kfree(ds1307->nvram);
-+	}
- 
- 	rtc_device_unregister(ds1307->rtc);
- 	kfree(ds1307);
+-	/*
+-	 * SEIZE will enable new ptrace behaviors which will be implemented
+-	 * gradually.  SEIZE_DEVEL bit is used to prevent applications
+-	 * expecting full SEIZE behaviors trapping on kernel commits which
+-	 * are still in the process of implementing them.
+-	 *
+-	 * Only test programs for new ptrace behaviors being implemented
+-	 * should set SEIZE_DEVEL.  If unset, SEIZE will fail with -EIO.
+-	 *
+-	 * Once SEIZE behaviors are completely implemented, this flag
+-	 * will be removed.
+-	 */
+ 	retval = -EIO;
+ 	if (seize) {
+ 		if (addr != 0)
+ 			goto out;
+-		if (!(flags & PTRACE_SEIZE_DEVEL))
+-			goto out;
+-		flags &= ~(unsigned long)PTRACE_SEIZE_DEVEL;
+ 		if (flags & ~(unsigned long)PTRACE_O_MASK)
+ 			goto out;
+ 		flags = PT_PTRACED | PT_SEIZED | (flags << PT_OPT_FLAG_SHIFT);
 _
 
-Patches currently in -mm which might be from Austin.Boyle@aviatnet.com are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
 origin.patch
+linux-next.patch
 
