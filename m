@@ -1,112 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hexagon-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:13 -0700
-Message-ID: <20120326193213.670B9A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] rtc-ds1307-refactor-chip_desc-table.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:31:46 -0700
+Message-ID: <20120326193146.8EC37A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:39425 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202Ab2CZTcO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:14 -0400
-Received: by mail-yw0-f74.google.com with SMTP id m50so834231yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:13 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:58674 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754109Ab2CZTbs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:48 -0400
+Received: by wgbdt11 with SMTP id dt11so210371wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, oleg@redhat.com, rkuo@codeaurora.org, mm-commits@vger.kernel.org
+To: w.sang@pengutronix.de, Austin.Boyle@aviatnet.com, alessandro.zummo@towertech.it, danders.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Hexagon: use set_current_blocked() and block_sigmask()
+     Subject: rtc: ds1307: refactor chip_desc table
 has been removed from the -mm tree.  Its filename was
-     hexagon-use-set_current_blocked-and-block_sigmask.patch
+     rtc-ds1307-refactor-chip_desc-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: Hexagon: use set_current_blocked() and block_sigmask()
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: rtc: ds1307: refactor chip_desc table
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
+The chip_desc table is suboptimal.  Currently it requires an entry for
+every new chip type, even if it is empty.  This has already been forgotten
+for the ds1388.  Refactor the code, so new entries are only needed, when
+they chip type really needs a (non-empty) description.  Also make the
+table visually more appealing.
 
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
-
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Richard Kuo <rkuo@codeaurora.org>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Austin Boyle <Austin.Boyle@aviatnet.com>
+Cc: David Anders <danders.dev@gmail.com>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/kernel/signal.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-ds1307.c |   48 ++++++++++++++-----------------------
+ 1 file changed, 19 insertions(+), 29 deletions(-)
 
-diff -puN arch/hexagon/kernel/signal.c~hexagon-use-set_current_blocked-and-block_sigmask arch/hexagon/kernel/signal.c
---- a/arch/hexagon/kernel/signal.c~hexagon-use-set_current_blocked-and-block_sigmask
-+++ a/arch/hexagon/kernel/signal.c
-@@ -192,12 +192,7 @@ static int handle_signal(int sig, siginf
- 	if (rc)
- 		return rc;
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-refactor-chip_desc-table drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-refactor-chip_desc-table
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -36,6 +36,7 @@ enum ds_type {
+ 	m41t00,
+ 	mcp7941x,
+ 	rx_8025,
++	last_ds_type /* always last */
+ 	// rs5c372 too?  different address...
+ };
  
--	spin_lock_irq(&current->sighand->siglock);
--	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked, sig);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	block_sigmask(ka, sig);
+@@ -120,30 +121,23 @@ struct chip_desc {
+ 	unsigned		alarm:1;
+ };
  
- 	return 0;
- }
-@@ -305,10 +300,7 @@ asmlinkage int sys_rt_sigreturn(void)
- 		goto badframe;
+-static const struct chip_desc chips[] = {
+-[ds_1307] = {
+-	.nvram56	= 1,
+-},
+-[ds_1337] = {
+-	.alarm		= 1,
+-},
+-[ds_1338] = {
+-	.nvram56	= 1,
+-},
+-[ds_1339] = {
+-	.alarm		= 1,
+-},
+-[ds_1340] = {
+-},
+-[ds_3231] = {
+-	.alarm		= 1,
+-},
+-[m41t00] = {
+-},
+-[mcp7941x] = {
+-},
+-[rx_8025] = {
+-}, };
++static const struct chip_desc chips[last_ds_type] = {
++	[ds_1307] = {
++		.nvram56	= 1,
++	},
++	[ds_1337] = {
++		.alarm		= 1,
++	},
++	[ds_1338] = {
++		.nvram56	= 1,
++	},
++	[ds_1339] = {
++		.alarm		= 1,
++	},
++	[ds_3231] = {
++		.alarm		= 1,
++	},
++};
  
- 	sigdelsetmask(&blocked, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = blocked;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&blocked);
+ static const struct i2c_device_id ds1307_id[] = {
+ 	{ "ds1307", ds_1307 },
+@@ -836,11 +830,7 @@ read_rtc:
+ 		}
  
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext))
- 		goto badframe;
+ 		break;
+-	case rx_8025:
+-	case ds_1337:
+-	case ds_1339:
+-	case ds_1388:
+-	case ds_3231:
++	default:
+ 		break;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
 origin.patch
 linux-next.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-powerpc-eeh-remove-eeh_event_handler-daemonize.patch
 
