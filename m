@@ -1,70 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kcore-make-get_sparsemem_vmemmap_info-static.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:42 -0700
-Message-ID: <20120326193242.5AB80A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] usermodehelper-introduce-umh_completesub_info.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:25 -0700
+Message-ID: <20120326193225.66162A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:38526 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204Ab2CZTcn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:43 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so508386vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:43 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:45421 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754133Ab2CZTc1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:27 -0400
+Received: by mail-fa0-f74.google.com with SMTP id a19so298511faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tixxdz@opendz.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore.c: make get_sparsemem_vmemmap_info() static
+     Subject: usermodehelper: introduce umh_complete(sub_info)
 has been removed from the -mm tree.  Its filename was
-     kcore-make-get_sparsemem_vmemmap_info-static.patch
+     usermodehelper-introduce-umh_completesub_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Djalal Harouni <tixxdz@opendz.org>
-Subject: fs/proc/kcore.c: make get_sparsemem_vmemmap_info() static
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: usermodehelper: introduce umh_complete(sub_info)
 
-get_sparsemem_vmemmap_info() is only used inside fs/proc/kcore.c
+Preparation.  Add the new trivial helper, umh_complete().  Currently it
+simply does complete(sub_info->complete).
 
-Signed-off-by: Djalal Harouni <tixxdz@opendz.org>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/kmod.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/kcore.c~kcore-make-get_sparsemem_vmemmap_info-static fs/proc/kcore.c
---- a/fs/proc/kcore.c~kcore-make-get_sparsemem_vmemmap_info-static
-+++ a/fs/proc/kcore.c
-@@ -157,7 +157,8 @@ static int kcore_update_ram(void)
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- /* calculate vmemmap's address from given system ram pfn and register it */
--int get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
-+static int
-+get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
- {
- 	unsigned long pfn = __pa(ent->addr) >> PAGE_SHIFT;
- 	unsigned long nr_pages = ent->size >> PAGE_SHIFT;
-@@ -189,7 +190,8 @@ int get_sparsemem_vmemmap_info(struct kc
- 
+diff -puN kernel/kmod.c~usermodehelper-introduce-umh_completesub_info kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-introduce-umh_completesub_info
++++ a/kernel/kmod.c
+@@ -199,6 +199,11 @@ void call_usermodehelper_freeinfo(struct
  }
- #else
--int get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
-+static int
-+get_sparsemem_vmemmap_info(struct kcore_list *ent, struct list_head *head)
+ EXPORT_SYMBOL(call_usermodehelper_freeinfo);
+ 
++static void umh_complete(struct subprocess_info *sub_info)
++{
++	complete(sub_info->complete);
++}
++
+ /* Keventd can't block, but this (a child) can. */
+ static int wait_for_helper(void *data)
  {
- 	return 1;
+@@ -235,7 +240,7 @@ static int wait_for_helper(void *data)
+ 			sub_info->retval = ret;
+ 	}
+ 
+-	complete(sub_info->complete);
++	umh_complete(sub_info);
+ 	return 0;
  }
+ 
+@@ -269,7 +274,7 @@ static void __call_usermodehelper(struct
+ 	case UMH_WAIT_EXEC:
+ 		if (pid < 0)
+ 			sub_info->retval = pid;
+-		complete(sub_info->complete);
++		umh_complete(sub_info);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from tixxdz@opendz.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-notify_change-check-that-i_mutex-is-held.patch
+linux-next.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+mips-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
+mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+sh-no-need-to-reset-handler-if-sa_oneshot.patch
+sh-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+alpha-use-set_current_blocked-and-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+c6x-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+powerpc-eeh-remove-eeh_event_handler-daemonize.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
+pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
 
