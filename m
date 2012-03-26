@@ -1,106 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-fixup-pmd_trans_unstable-locations.patch added to -mm tree
-Date: Fri, 23 Mar 2012 16:16:23 -0700
-Message-ID: <20120323231623.745CDA00AE@akpm.mtv.corp.google.com>
+Subject: [obsolete] checkpatch-add-strict-test-for-strings-split-across-multiple-lines.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:22:55 -0700
+Message-ID: <20120326192257.59A90A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:55212 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753565Ab2CWXQY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Mar 2012 19:16:24 -0400
-Received: by ghbz15 with SMTP id z15so579299ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 23 Mar 2012 16:16:23 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:58824 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956Ab2CZTXG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:23:06 -0400
+Received: by vcbfk26 with SMTP id fk26so830663vcb.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:23:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, msalter@redhat.com, riel@redhat.com, uobergfe@redhat.com
+To: joe@perches.com, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: fix up pmd_trans_unstable() locations
-has been added to the -mm tree.  Its filename is
-     mm-thp-fixup-pmd_trans_unstable-locations.patch
+     Subject: checkpatch: add --strict test for strings split across multiple lines
+has been removed from the -mm tree.  Its filename was
+     checkpatch-add-strict-test-for-strings-split-across-multiple-lines.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: thp: fix up pmd_trans_unstable() locations
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add --strict test for strings split across multiple lines
 
-pmd_trans_unstable() should be called before pmd_offset_map() in the
-locations where the mmap_sem is held for reading.
+Strings split across multiple lines are commonly used as formats.  These
+uncoalesced formats are hard to grep and are relatively error prone.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mark Salter <msalter@redhat.com>
+Suggest coalescing split strings when using --strict.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    5 ++---
- mm/memcontrol.c    |    4 ++++
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~mm-thp-fixup-pmd_trans_unstable-locations fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-thp-fixup-pmd_trans_unstable-locations
-+++ a/fs/proc/task_mmu.c
-@@ -781,9 +781,6 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	int err = 0;
- 	pagemap_entry_t pme = make_pme(PM_NOT_PRESENT);
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-strings-split-across-multiple-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-strings-split-across-multiple-lines
++++ a/scripts/checkpatch.pl
+@@ -1860,6 +1860,12 @@ sub process {
+ 			    "Don't begin block comments with only a /* line, use /* comment...\n" . $hereprev);
+ 		}
  
--	if (pmd_trans_unstable(pmd))
--		return 0;
--
- 	/* find the first VMA at or above 'addr' */
- 	vma = find_vma(walk->mm, addr);
- 	spin_lock(&walk->mm->page_table_lock);
-@@ -802,6 +799,8 @@ static int pagemap_pte_range(pmd_t *pmd,
- 		return err;
- 	}
- 
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
- 	for (; addr != end; addr += PAGE_SIZE) {
- 
- 		/* check to see if we've left 'vma' behind
-diff -puN mm/memcontrol.c~mm-thp-fixup-pmd_trans_unstable-locations mm/memcontrol.c
---- a/mm/memcontrol.c~mm-thp-fixup-pmd_trans_unstable-locations
-+++ a/mm/memcontrol.c
-@@ -5306,6 +5306,8 @@ static int mem_cgroup_count_precharge_pt
- 		return 0;
- 	}
- 
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
- 		if (get_mctgt_type(vma, addr, *pte, NULL))
-@@ -5502,6 +5504,8 @@ static int mem_cgroup_move_charge_pte_ra
- 		return 0;
- 	}
- 
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
- retry:
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; addr += PAGE_SIZE) {
++		if ($prevline =~ /^\+.*"[ \t]*$/ &&
++		    $line =~ /^\+[ \t]*"/) {
++			CHK("COALESCE_STRING",
++			    "Coalesced strings are easier to grep and less error prone\n" . $hereprev);
++		}
++
+ # check for spaces at the beginning of a line.
+ # Exceptions:
+ #  1) within comments
 _
-Subject: Subject: mm: thp: fix up pmd_trans_unstable() locations
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-mm-thp-fixup-pmd_trans_unstable-locations.patch
+checkpatch-warn-on-use-of-yield.patch
+checkpatch-whitespace-add-remove-blank-lines.patch
+checkpatch-check-for-quoted-strings-broken-across-lines.patch
+linux-next.patch
+maintainers-fix-remoteproc-f-typo.patch
+checkpatch-suggest-pr_level-over-printkkern_level.patch
 
