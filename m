@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch added to -mm tree
-Date: Mon, 26 Mar 2012 16:56:33 -0700
-Message-ID: <20120326235634.0437AA0363@akpm.mtv.corp.google.com>
+Subject: + mm-mark-mm-inline-functions-as-__always_inline.patch added to -mm tree
+Date: Mon, 26 Mar 2012 16:56:25 -0700
+Message-ID: <20120326235625.EFC30A0363@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:64513 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757876Ab2CZX4f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:56:35 -0400
-Received: by qcsp5 with SMTP id p5so547533qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:56:34 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:52708 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757802Ab2CZX41 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:56:27 -0400
+Received: by ggnd2 with SMTP id d2so868959ggn.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:56:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujtisu.com, mhocko@suse.cz, minchan@kernel.org
+Cc: khlebnikov@openvz.org, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, minchan@kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: use vm_swappiness from target memory cgroup
+     Subject: mm: mark mm-inline functions as __always_inline
 has been added to the -mm tree.  Its filename is
-     mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+     mm-mark-mm-inline-functions-as-__always_inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/memcg: use vm_swappiness from target memory cgroup
+Subject: mm: mark mm-inline functions as __always_inline
 
-Use vm_swappiness from memory cgroup which is triggered this memory
-reclaim.  This is more reasonable and allows to kill one argument.
+GCC sometimes ignores "inline" directives even for small and simple functions.
+This supposed to be fixed in gcc 4.7, but it was released only yesterday.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -49,40 +49,50 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/mm_inline.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-memcg-use-vm_swappiness-from-target-memory-cgroup mm/vmscan.c
---- a/mm/vmscan.c~mm-memcg-use-vm_swappiness-from-target-memory-cgroup
-+++ a/mm/vmscan.c
-@@ -1840,12 +1840,11 @@ static unsigned long shrink_list(enum lr
- 	return shrink_inactive_list(nr_to_scan, mz, sc, priority, lru);
+diff -puN include/linux/mm_inline.h~mm-mark-mm-inline-functions-as-__always_inline include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-mark-mm-inline-functions-as-__always_inline
++++ a/include/linux/mm_inline.h
+@@ -21,7 +21,7 @@ static inline int page_is_file_cache(str
+ 	return !PageSwapBacked(page);
  }
  
--static int vmscan_swappiness(struct mem_cgroup_zone *mz,
--			     struct scan_control *sc)
-+static int vmscan_swappiness(struct scan_control *sc)
+-static inline void
++static __always_inline void
+ add_page_to_lru_list(struct zone *zone, struct page *page, enum lru_list lru)
  {
- 	if (global_reclaim(sc))
- 		return vm_swappiness;
--	return mem_cgroup_swappiness(mz->mem_cgroup);
-+	return mem_cgroup_swappiness(sc->target_mem_cgroup);
+ 	struct lruvec *lruvec;
+@@ -31,7 +31,7 @@ add_page_to_lru_list(struct zone *zone, 
+ 	__mod_zone_page_state(zone, NR_LRU_BASE + lru, hpage_nr_pages(page));
  }
  
- /*
-@@ -1913,8 +1912,8 @@ static void get_scan_count(struct mem_cg
- 	 * With swappiness at 100, anonymous and file have the same priority.
- 	 * This scanning priority is essentially the inverse of IO cost.
- 	 */
--	anon_prio = vmscan_swappiness(mz, sc);
--	file_prio = 200 - vmscan_swappiness(mz, sc);
-+	anon_prio = vmscan_swappiness(sc);
-+	file_prio = 200 - vmscan_swappiness(sc);
+-static inline void
++static __always_inline void
+ del_page_from_lru_list(struct zone *zone, struct page *page, enum lru_list lru)
+ {
+ 	mem_cgroup_lru_del_list(page, lru);
+@@ -61,7 +61,7 @@ static inline enum lru_list page_lru_bas
+  * Returns the LRU list a page was on, as an index into the array of LRU
+  * lists; and clears its Unevictable or Active flags, ready for freeing.
+  */
+-static inline enum lru_list page_off_lru(struct page *page)
++static __always_inline enum lru_list page_off_lru(struct page *page)
+ {
+ 	enum lru_list lru;
  
- 	/*
- 	 * OK, so we have swap space and a fair amount of page cache
+@@ -85,7 +85,7 @@ static inline enum lru_list page_off_lru
+  * Returns the LRU list a page should be on, as an index
+  * into the array of LRU lists.
+  */
+-static inline enum lru_list page_lru(struct page *page)
++static __always_inline enum lru_list page_lru(struct page *page)
+ {
+ 	enum lru_list lru;
+ 
 _
-Subject: Subject: mm/memcg: use vm_swappiness from target memory cgroup
+Subject: Subject: mm: mark mm-inline functions as __always_inline
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
