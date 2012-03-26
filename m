@@ -1,107 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:19 -0700
-Message-ID: <20120326193219.A0F0EA00A9@akpm.mtv.corp.google.com>
+Subject: [merged] rtc-ds1307-simplify-irq-setup-code.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:31:48 -0700
+Message-ID: <20120326193148.67410A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:60876 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754674Ab2CZTcX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:23 -0400
-Received: by lbbgj3 with SMTP id gj3so288199lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:20 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:43084 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754440Ab2CZTbv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:31:51 -0400
+Received: by eaaq10 with SMTP id q10so290016eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:31:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, anton.vorontsov@linaro.org, ebiederm@xmission.com, kosaki.motohiro@gmail.com, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: w.sang@pengutronix.de, Austin.Boyle@aviatnet.com, alessandro.zummo@towertech.it, danders.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: oom_kill_task: use SEND_SIG_FORCED instead of force_sig()
+     Subject: rtc: ds1307: simplify irq setup code
 has been removed from the -mm tree.  Its filename was
-     signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig.patch
+     rtc-ds1307-simplify-irq-setup-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: oom_kill_task: use SEND_SIG_FORCED instead of force_sig()
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: rtc: ds1307: simplify irq setup code
 
-Change oom_kill_task() to use do_send_sig_info(SEND_SIG_FORCED) instead of
-force_sig(SIGKILL).  With the recent changes we do not need force_ to kill
-the CLONE_NEWPID tasks.
+No need to have two seperate if-blocks for setting up the irq.
 
-And this is more correct.  force_sig() can race with the exiting thread
-even if oom_kill_task() checks p->mm != NULL, while do_send_sig_info(group
-=> true) kille the whole process.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Tested-by: David Anders <danders.dev@gmail.com>
+Cc: Austin Boyle <Austin.Boyle@aviatnet.com>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ds1307.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/oom_kill.c~signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig mm/oom_kill.c
---- a/mm/oom_kill.c~signal-oom_kill_task-use-send_sig_forced-instead-of-force_sig
-+++ a/mm/oom_kill.c
-@@ -521,11 +521,11 @@ static void oom_kill_process(struct task
- 			pr_err("Kill process %d (%s) sharing same memory\n",
- 				task_pid_nr(p), p->comm);
- 			task_unlock(p);
--			force_sig(SIGKILL, p);
-+			do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-simplify-irq-setup-code drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-simplify-irq-setup-code
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -646,11 +646,6 @@ static int __devinit ds1307_probe(struct
+ 	case ds_1337:
+ 	case ds_1339:
+ 	case ds_3231:
+-		/* has IRQ? */
+-		if (ds1307->client->irq > 0 && chip->alarm) {
+-			INIT_WORK(&ds1307->work, ds1307_work);
+-			want_irq = true;
+-		}
+ 		/* get registers that the "rtc" read below won't read... */
+ 		tmp = ds1307->read_block_data(ds1307->client,
+ 				DS1337_REG_CONTROL, 2, buf);
+@@ -668,10 +663,14 @@ static int __devinit ds1307_probe(struct
+ 		 * For some variants, be sure alarms can trigger when we're
+ 		 * running on Vbackup (BBSQI/BBSQW)
+ 		 */
+-		if (want_irq) {
++		if (ds1307->client->irq > 0 && chip->alarm) {
++			INIT_WORK(&ds1307->work, ds1307_work);
++
+ 			ds1307->regs[0] |= DS1337_BIT_INTCN
+ 					| bbsqi_bitpos[ds1307->type];
+ 			ds1307->regs[0] &= ~(DS1337_BIT_A2IE | DS1337_BIT_A1IE);
++
++			want_irq = true;
  		}
  
- 	set_tsk_thread_flag(victim, TIF_MEMDIE);
--	force_sig(SIGKILL, victim);
-+	do_send_sig_info(SIGKILL, SEND_SIG_FORCED, victim, true);
- }
- #undef K
- 
+ 		i2c_smbus_write_byte_data(client, DS1337_REG_CONTROL,
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from w.sang@pengutronix.de are
 
 origin.patch
 linux-next.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-sh-no-need-to-reset-handler-if-sa_oneshot.patch
-sh-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-powerpc-eeh-remove-eeh_event_handler-daemonize.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
 
