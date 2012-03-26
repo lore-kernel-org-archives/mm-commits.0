@@ -1,66 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch added to -mm tree
-Date: Mon, 26 Mar 2012 16:46:28 -0700
-Message-ID: <20120326234628.C600CA02DE@akpm.mtv.corp.google.com>
+Subject: [alternative-merged] memcg-change-behavior-of-moving-charges-at-task-move.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 16:46:38 -0700
+Message-ID: <20120326234638.889EBA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:52493 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956Ab2CZXqb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:46:31 -0400
-Received: by eekc41 with SMTP id c41so300098eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:46:29 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:54647 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956Ab2CZXqj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:46:39 -0400
+Received: by yenq2 with SMTP id q2so868658yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:46:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com
+To: kamezawa.hiroyu@jp.fujitsu.com, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix/change behavior of shared anon at moving task
-has been added to the -mm tree.  Its filename is
-     memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
+     Subject: memcg: change behavior of moving charges at task move
+has been removed from the -mm tree.  Its filename was
+     memcg-change-behavior-of-moving-charges-at-task-move.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an alternative patch was merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: fix/change behavior of shared anon at moving task
+Subject: memcg: change behavior of moving charges at task move
 
-This patch changes memcg's behavior at task_move().
+In documentation, it's said that 'shared anon are not moved'.  But in
+implementation, the check was wrong.
 
-At task_move(), the kernel scans a task's page table and move the changes
-for mapped pages from source cgroup to target cgroup.  There has been a
-bug at handling shared anonymous pages for a long time.
+  if (!move_anon() || page_mapcount(page) > 2)
 
-Before patch:
-  - The spec says 'shared anonymous pages are not moved.'
-  - The implementation was 'shared anonymoys pages may be moved'.
-    If page_mapcount <=2, shared anonymous pages's charge were moved.
+Ah, memcg has been moving shared anon pages for a long time.
 
-After patch:
-  - The spec says 'all anonymous pages are moved'.
-  - The implementation is 'all anonymous pages are moved'.
+Then, here is a discussion about handling of shared anon pages.
 
-Considering usage of memcg, this will not affect user's experience. 
-'shared anonymous' pages only exists between a tree of processes which
-don't do exec().  Moving one of process without exec() seems not sane. 
-For example, libcgroup will not be affected by this change.  (Anyway, no
-one noticed the implementation for a long time...)
-
-Below is a discussion log:
-
- - current spec/implementation are complex
- - Now, shared file caches are moved
+ - It's complex
+ - Now, shared file caches are moved in force.
  - It adds unclear check as page_mapcount(). To do correct check,
    we should check swap users, etc.
  - No one notice this implementation behavior. So, no one get benefit
@@ -72,23 +50,29 @@ Below is a discussion log:
 Here is a patch to allow moving shared pages, completely. This makes
 memcg simpler and fix current broken code.
 
+Note:
+ IIUC, libcgroup's cgroup daemon moves tasks after exec().
+ So, it's not affected.
+ libcgroup's command "cgexec" does move itsef to a memcg and call exec()
+ without fork(). it's not affected.
+
 Suggested-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  Documentation/cgroups/memory.txt |    9 +++-----
  include/linux/swap.h             |    9 --------
- mm/memcontrol.c                  |   22 +++++++++++++-------
+ mm/memcontrol.c                  |   15 ++++++--------
  mm/swapfile.c                    |   31 -----------------------------
- 4 files changed, 18 insertions(+), 53 deletions(-)
+ 4 files changed, 11 insertions(+), 53 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-fix-change-behavior-of-shared-anon-at-moving-task Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-fix-change-behavior-of-shared-anon-at-moving-task
+diff -puN Documentation/cgroups/memory.txt~memcg-change-behavior-of-moving-charges-at-task-move Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-change-behavior-of-moving-charges-at-task-move
 +++ a/Documentation/cgroups/memory.txt
 @@ -185,12 +185,14 @@ behind this approach is that a cgroup th
  page will eventually get charged for it (once it is uncharged from
@@ -125,8 +109,8 @@ diff -puN Documentation/cgroups/memory.txt~memcg-fix-change-behavior-of-shared-a
  - All of moving charge operations are done under cgroup_mutex. It's not good
    behavior to hold the mutex too long, so we may need some trick.
  
-diff -puN include/linux/swap.h~memcg-fix-change-behavior-of-shared-anon-at-moving-task include/linux/swap.h
---- a/include/linux/swap.h~memcg-fix-change-behavior-of-shared-anon-at-moving-task
+diff -puN include/linux/swap.h~memcg-change-behavior-of-moving-charges-at-task-move include/linux/swap.h
+--- a/include/linux/swap.h~memcg-change-behavior-of-moving-charges-at-task-move
 +++ a/include/linux/swap.h
 @@ -390,7 +390,6 @@ static inline void deactivate_swap_token
  #ifdef CONFIG_CGROUP_MEM_RES_CTLR
@@ -151,8 +135,8 @@ diff -puN include/linux/swap.h~memcg-fix-change-behavior-of-shared-anon-at-movin
  #endif /* CONFIG_SWAP */
  #endif /* __KERNEL__*/
  #endif /* _LINUX_SWAP_H */
-diff -puN mm/memcontrol.c~memcg-fix-change-behavior-of-shared-anon-at-moving-task mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-change-behavior-of-shared-anon-at-moving-task
+diff -puN mm/memcontrol.c~memcg-change-behavior-of-moving-charges-at-task-move mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-change-behavior-of-moving-charges-at-task-move
 +++ a/mm/memcontrol.c
 @@ -5147,7 +5147,7 @@ static struct page *mc_handle_present_pt
  		return NULL;
@@ -163,11 +147,7 @@ diff -puN mm/memcontrol.c~memcg-fix-change-behavior-of-shared-anon-at-moving-tas
  			return NULL;
  	} else if (!move_file())
  		/* we ignore mapcount for file pages */
-@@ -5158,26 +5158,32 @@ static struct page *mc_handle_present_pt
- 	return page;
- }
- 
-+#ifdef CONFIG_SWAP
+@@ -5161,18 +5161,17 @@ static struct page *mc_handle_present_pt
  static struct page *mc_handle_swap_pte(struct vm_area_struct *vma,
  			unsigned long addr, pte_t ptent, swp_entry_t *entry)
  {
@@ -183,28 +163,17 @@ diff -puN mm/memcontrol.c~memcg-fix-change-behavior-of-shared-anon-at-moving-tas
 -			put_page(page);
 -		return NULL;
 -	}
++#ifdef CONFIG_SWAP
 +	/*
-+	 * Because lookup_swap_cache() updates some statistics counter,
-+	 * we call find_get_page() with swapper_space directly.
++	 * Avoid lookup_swap_cache() not to update statistics.
 +	 */
 +	page = find_get_page(&swapper_space, ent.val);
++#endif
  	if (do_swap_account)
  		entry->val = ent.val;
  
- 	return page;
- }
-+#else
-+static struct page *mc_handle_swap_pte(struct vm_area_struct *vma,
-+			unsigned long addr, pte_t ptent, swp_entry_t *entry)
-+{
-+	return NULL;
-+}
-+#endif
- 
- static struct page *mc_handle_file_pte(struct vm_area_struct *vma,
- 			unsigned long addr, pte_t ptent, swp_entry_t *entry)
-diff -puN mm/swapfile.c~memcg-fix-change-behavior-of-shared-anon-at-moving-task mm/swapfile.c
---- a/mm/swapfile.c~memcg-fix-change-behavior-of-shared-anon-at-moving-task
+diff -puN mm/swapfile.c~memcg-change-behavior-of-moving-charges-at-task-move mm/swapfile.c
+--- a/mm/swapfile.c~memcg-change-behavior-of-moving-charges-at-task-move
 +++ a/mm/swapfile.c
 @@ -717,37 +717,6 @@ int free_swap_and_cache(swp_entry_t entr
  	return p != NULL;
