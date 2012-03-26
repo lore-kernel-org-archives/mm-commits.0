@@ -1,66 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-handle-string-concatenation-in-simple-defines.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:30:22 -0700
-Message-ID: <20120326193022.57A7DA00A9@akpm.mtv.corp.google.com>
+Subject: [merged] include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:30:13 -0700
+Message-ID: <20120326193013.56D0FA00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:55314 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753679Ab2CZTaY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:30:24 -0400
-Received: by wgbdt11 with SMTP id dt11so210331wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:30:23 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:63241 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753684Ab2CZTaP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:30:15 -0400
+Received: by mail-we0-f202.google.com with SMTP id x9so290130wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:30:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: handle string concatenation in simple #defines
+     Subject: include/ and checkpatch: prefer __scanf to __attribute__((format(scanf,...)
 has been removed from the -mm tree.  Its filename was
-     checkpatch-handle-string-concatenation-in-simple-defines.patch
+     include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andy Whitcroft <apw@canonical.com>
-Subject: checkpatch: handle string concatenation in simple #defines
+From: Joe Perches <joe@perches.com>
+Subject: include/ and checkpatch: prefer __scanf to __attribute__((format(scanf,...)
 
-Adjacent strings indicate concatentation, therefore look at identifiers
-directly adjacent to literal strings as strings too.  This allows us to
-better detect the form below and accept it as a simple constant:
+It's equivalent to __printf, so prefer __scanf.
 
-    #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/compiler-gcc.h |    3 ++-
+ include/linux/kernel.h       |    8 ++++----
+ include/xen/xenbus.h         |    4 ++--
+ scripts/checkpatch.pl        |    6 ++++++
+ 4 files changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-handle-string-concatenation-in-simple-defines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-handle-string-concatenation-in-simple-defines
-+++ a/scripts/checkpatch.pl
-@@ -2894,6 +2894,12 @@ sub process {
- 			{
- 			}
+diff -puN include/linux/compiler-gcc.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
++++ a/include/linux/compiler-gcc.h
+@@ -87,7 +87,8 @@
+  */
+ #define __pure				__attribute__((pure))
+ #define __aligned(x)			__attribute__((aligned(x)))
+-#define __printf(a,b)			__attribute__((format(printf,a,b)))
++#define __printf(a, b)			__attribute__((format(printf, a, b)))
++#define __scanf(a, b)			__attribute__((format(scanf, a, b)))
+ #define  noinline			__attribute__((noinline))
+ #define __attribute_const__		__attribute__((__const__))
+ #define __maybe_unused			__attribute__((unused))
+diff -puN include/linux/kernel.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/linux/kernel.h
+--- a/include/linux/kernel.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
++++ a/include/linux/kernel.h
+@@ -328,10 +328,10 @@ extern __printf(2, 3)
+ char *kasprintf(gfp_t gfp, const char *fmt, ...);
+ extern char *kvasprintf(gfp_t gfp, const char *fmt, va_list args);
  
-+			# Flatten any obvious string concatentation.
-+			while ($dstat =~ s/("X*")\s*$Ident/$1/ ||
-+			       $dstat =~ s/$Ident\s*("X*")/$1/)
-+			{
-+			}
+-extern int sscanf(const char *, const char *, ...)
+-	__attribute__ ((format (scanf, 2, 3)));
+-extern int vsscanf(const char *, const char *, va_list)
+-	__attribute__ ((format (scanf, 2, 0)));
++extern __scanf(2, 3)
++int sscanf(const char *, const char *, ...);
++extern __scanf(2, 0)
++int vsscanf(const char *, const char *, va_list);
+ 
+ extern int get_option(char **str, int *pint);
+ extern char *get_options(const char *str, int nints, int *ints);
+diff -puN include/xen/xenbus.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf include/xen/xenbus.h
+--- a/include/xen/xenbus.h~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
++++ a/include/xen/xenbus.h
+@@ -139,9 +139,9 @@ int xenbus_transaction_start(struct xenb
+ int xenbus_transaction_end(struct xenbus_transaction t, int abort);
+ 
+ /* Single read and scanf: returns -errno or num scanned if > 0. */
++__scanf(4, 5)
+ int xenbus_scanf(struct xenbus_transaction t,
+-		 const char *dir, const char *node, const char *fmt, ...)
+-	__attribute__((format(scanf, 4, 5)));
++		 const char *dir, const char *node, const char *fmt, ...);
+ 
+ /* Single printf and write: returns -errno or 0. */
+ __printf(4, 5)
+diff -puN scripts/checkpatch.pl~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~include-and-checkpatch-prefer-__scanf-to-__attribute__formatscanf
++++ a/scripts/checkpatch.pl
+@@ -3123,6 +3123,12 @@ sub process {
+ 			     "__printf(string-index, first-to-check) is preferred over __attribute__((format(printf, string-index, first-to-check)))\n" . $herecurr);
+ 		}
+ 
++# Check for __attribute__ format(scanf, prefer __scanf
++		if ($line =~ /\b__attribute__\s*\(\s*\(\s*format\s*\(\s*scanf\b/) {
++			WARN("PREFER_SCANF",
++			     "__scanf(string-index, first-to-check) is preferred over __attribute__((format(scanf, string-index, first-to-check)))\n" . $herecurr);
++		}
 +
- 			my $exceptions = qr{
- 				$Declare|
- 				module_param_named|
+ # check for sizeof(&)
+ 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
+ 			WARN("SIZEOF_ADDRESS",
 _
 
-Patches currently in -mm which might be from apw@canonical.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+linux-next.patch
+maintainers-fix-remoteproc-f-typo.patch
+checkpatch-suggest-pr_level-over-printkkern_level.patch
 
