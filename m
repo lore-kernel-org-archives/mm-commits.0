@@ -1,100 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] memcg-change-behavior-of-moving-charges-at-task-move-fix.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 16:46:50 -0700
-Message-ID: <20120326234651.1FCABA02DE@akpm.mtv.corp.google.com>
+Subject: + mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch added to -mm tree
+Date: Mon, 26 Mar 2012 16:56:14 -0700
+Message-ID: <20120326235615.55B5EA0363@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:61680 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755692Ab2CZXqw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:46:52 -0400
-Received: by qabg24 with SMTP id g24so364690qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:46:51 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:36919 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757802Ab2CZX4S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:56:18 -0400
+Received: by wibhj13 with SMTP id hj13so240342wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:56:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hughd@google.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, mhocko@suse.cz, minchan@kernel.org
 
 
 The patch titled
-     Subject: memcg-change-behavior-of-moving-charges-at-task-move-fix
-has been removed from the -mm tree.  Its filename was
-     memcg-change-behavior-of-moving-charges-at-task-move-fix.patch
+     Subject: mm/memcg: scanning_global_lru means mem_cgroup_disabled
+has been added to the -mm tree.  Its filename is
+     mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-change-behavior-of-moving-charges-at-task-move-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/memcg: scanning_global_lru means mem_cgroup_disabled
 
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Although one has to admire the skill with which it has been concealed,
+scanning_global_lru(mz) is actually just an interesting way to test
+mem_cgroup_disabled().  Too many developer hours have been wasted on
+confusing it with global_reclaim(): just use mem_cgroup_disabled().
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-change-behavior-of-moving-charges-at-task-move-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-change-behavior-of-moving-charges-at-task-move-fix
-+++ a/mm/memcontrol.c
-@@ -5137,7 +5137,8 @@ static struct page *mc_handle_swap_pte(s
- 		return NULL;
- #ifdef CONFIG_SWAP
- 	/*
--	 * Avoid lookup_swap_cache() not to update statistics.
-+	 * Use find_get_page() rather than lookup_swap_cache() because the
-+	 * latter alters statistics.
- 	 */
- 	page = find_get_page(&swapper_space, ent.val);
+diff -puN mm/vmscan.c~mm-memcg-scanning_global_lru-means-mem_cgroup_disabled mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcg-scanning_global_lru-means-mem_cgroup_disabled
++++ a/mm/vmscan.c
+@@ -164,26 +164,16 @@ static bool global_reclaim(struct scan_c
+ {
+ 	return !sc->target_mem_cgroup;
+ }
+-
+-static bool scanning_global_lru(struct mem_cgroup_zone *mz)
+-{
+-	return !mz->mem_cgroup;
+-}
+ #else
+ static bool global_reclaim(struct scan_control *sc)
+ {
+ 	return true;
+ }
+-
+-static bool scanning_global_lru(struct mem_cgroup_zone *mz)
+-{
+-	return true;
+-}
  #endif
+ 
+ static struct zone_reclaim_stat *get_reclaim_stat(struct mem_cgroup_zone *mz)
+ {
+-	if (!scanning_global_lru(mz))
++	if (!mem_cgroup_disabled())
+ 		return mem_cgroup_get_reclaim_stat(mz->mem_cgroup, mz->zone);
+ 
+ 	return &mz->zone->reclaim_stat;
+@@ -192,7 +182,7 @@ static struct zone_reclaim_stat *get_rec
+ static unsigned long zone_nr_lru_pages(struct mem_cgroup_zone *mz,
+ 				       enum lru_list lru)
+ {
+-	if (!scanning_global_lru(mz))
++	if (!mem_cgroup_disabled())
+ 		return mem_cgroup_zone_nr_lru_pages(mz->mem_cgroup,
+ 						    zone_to_nid(mz->zone),
+ 						    zone_idx(mz->zone),
+@@ -1806,7 +1796,7 @@ static int inactive_anon_is_low(struct m
+ 	if (!total_swap_pages)
+ 		return 0;
+ 
+-	if (!scanning_global_lru(mz))
++	if (!mem_cgroup_disabled())
+ 		return mem_cgroup_inactive_anon_is_low(mz->mem_cgroup,
+ 						       mz->zone);
+ 
+@@ -1845,7 +1835,7 @@ static int inactive_file_is_low_global(s
+  */
+ static int inactive_file_is_low(struct mem_cgroup_zone *mz)
+ {
+-	if (!scanning_global_lru(mz))
++	if (!mem_cgroup_disabled())
+ 		return mem_cgroup_inactive_file_is_low(mz->mem_cgroup,
+ 						       mz->zone);
+ 
 _
+Subject: Subject: mm/memcg: scanning_global_lru means mem_cgroup_disabled
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
-fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
+mm-for-fs-add-truncate_pagecache_range.patch
+mm-thp-fixup-pmd_trans_unstable-locations.patch
+swapon-check-validity-of-swap_flags.patch
+radix-tree-introduce-bit-optimized-iterator.patch
+radix-tree-introduce-bit-optimized-iterator-v3.patch
 radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-selftests-makefile-make-run_tests-depend-on-all.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix.patch
-move-hugepage-test-examples-to-tools-testing-selftests-vm-fix-fix.patch
+radix-tree-rewrite-gang-lookup-with-using-iterator.patch
+radix-tree-use-iterators-in-find_get_pages-functions.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
-brlocks-lglocks-cleanups.patch
-simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions-fix.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch
-arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
+memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
+memcg-swap-use-mem_cgroup_uncharge_swap.patch
+mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
+mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-mark-mm-inline-functions-as-__always_inline.patch
+mm-remove-lru-type-checks-from-__isolate_lru_page.patch
+mm-memcg-kill-mem_cgroup_lru_del.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+prio_tree-debugging-patch.patch
 
