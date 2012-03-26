@@ -1,93 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow.patch removed from -mm tree
-Date: Mon, 26 Mar 2012 12:32:54 -0700
-Message-ID: <20120326193254.86786A00A9@akpm.mtv.corp.google.com>
+Subject: [merged] sched-fix-compiler-warning-about-declared-inline-after-use.patch removed from -mm tree
+Date: Mon, 26 Mar 2012 12:32:56 -0700
+Message-ID: <20120326193256.817D4A00A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:50046 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754905Ab2CZTc4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:56 -0400
-Received: by wgbdt11 with SMTP id dt11so210404wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:55 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:45421 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754690Ab2CZTc6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 15:32:58 -0400
+Received: by mail-fa0-f74.google.com with SMTP id a19so298511faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 12:32:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, fweisbec@gmail.com, hpa@zytor.com, mingo@kernel.org, namhyung@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: stop recursive fault in print_context_stack after stack overflow
+     Subject: sched: fix compiler warning about declared inline after use
 has been removed from the -mm tree.  Its filename was
-     x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow.patch
+     sched-fix-compiler-warning-about-declared-inline-after-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: x86: stop recursive fault in print_context_stack after stack overflow
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: sched: fix compiler warning about declared inline after use
 
-After printing out the first line of a stack backtrace,
-print_context_stack() calls print_ftrace_graph_addr() to check if it's
-making a graph of function calls, usually not the case.  But unfortunate
-ordering of assignments causes this to oops if an earlier stack overflow
-corrupted threadinfo->task.  Reorder to avoid that irritation.
+kernel/sched/fair.c:420: warning: 'account_cfs_rq_runtime' declared inline =
+after being called
+kernel/sched/fair.c:420: warning: previous declaration of 'account_cfs_rq_r=
+untime' was here
+kernel/sched/fair.c:1165: warning: 'return_cfs_rq_runtime' declared inline =
+after being called
+kernel/sched/fair.c:1165: warning: previous declaration of 'return_cfs_rq_r=
+untime' was here
 
-(The fact that there was a stack overflow may often be more interesting
-than the stack that can now be shown; but integrating that information
-with this stacktrace is awkward, so leave it to overflow reporting.)
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Namhyung Kim <namhyung@gmail.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/dumpstack.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/sched/fair.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kernel/dumpstack.c~x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow arch/x86/kernel/dumpstack.c
---- a/arch/x86/kernel/dumpstack.c~x86-stop-recursive-fault-in-print_context_stack-after-stack-overflow
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -37,13 +37,16 @@ print_ftrace_graph_addr(unsigned long ad
- 			const struct stacktrace_ops *ops,
- 			struct thread_info *tinfo, int *graph)
+diff -puN kernel/sched/fair.c~sched-fix-compiler-warning-about-declared-inline-after-use kernel/sched/fair.c
+--- a/kernel/sched/fair.c~sched-fix-compiler-warning-about-declared-inline-after-use
++++ a/kernel/sched/fair.c
+@@ -416,8 +416,8 @@ find_matching_se(struct sched_entity **s
+ 
+ #endif	/* CONFIG_FAIR_GROUP_SCHED */
+ 
+-static void account_cfs_rq_runtime(struct cfs_rq *cfs_rq,
+-				   unsigned long delta_exec);
++static __always_inline
++void account_cfs_rq_runtime(struct cfs_rq *cfs_rq, unsigned long delta_exec);
+ 
+ /**************************************************************
+  * Scheduling class tree data structure manipulation methods:
+@@ -1162,7 +1162,7 @@ static void clear_buddies(struct cfs_rq 
+ 		__clear_buddies_skip(se);
+ }
+ 
+-static void return_cfs_rq_runtime(struct cfs_rq *cfs_rq);
++static __always_inline void return_cfs_rq_runtime(struct cfs_rq *cfs_rq);
+ 
+ static void
+ dequeue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
+@@ -1546,8 +1546,8 @@ static void __account_cfs_rq_runtime(str
+ 		resched_task(rq_of(cfs_rq)->curr);
+ }
+ 
+-static __always_inline void account_cfs_rq_runtime(struct cfs_rq *cfs_rq,
+-						   unsigned long delta_exec)
++static __always_inline
++void account_cfs_rq_runtime(struct cfs_rq *cfs_rq, unsigned long delta_exec)
  {
--	struct task_struct *task = tinfo->task;
-+	struct task_struct *task;
- 	unsigned long ret_addr;
--	int index = task->curr_ret_stack;
-+	int index;
- 
- 	if (addr != (unsigned long)return_to_handler)
+ 	if (!cfs_bandwidth_used() || !cfs_rq->runtime_enabled)
  		return;
+@@ -2073,11 +2073,11 @@ void unthrottle_offline_cfs_rqs(struct r
+ }
  
-+	task = tinfo->task;
-+	index = task->curr_ret_stack;
-+
- 	if (!task->ret_stack || index < *graph)
- 		return;
+ #else /* CONFIG_CFS_BANDWIDTH */
+-static void account_cfs_rq_runtime(struct cfs_rq *cfs_rq,
+-				     unsigned long delta_exec) {}
++static __always_inline
++void account_cfs_rq_runtime(struct cfs_rq *cfs_rq, unsigned long delta_exec) {}
+ static void check_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
+ static void check_enqueue_throttle(struct cfs_rq *cfs_rq) {}
+-static void return_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
++static __always_inline void return_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
  
+ static inline int cfs_rq_throttled(struct cfs_rq *cfs_rq)
+ {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
 linux-next.patch
-mm-for-fs-add-truncate_pagecache_range.patch
-mm-thp-fixup-pmd_trans_unstable-locations.patch
-swapon-check-validity-of-swap_flags.patch
-memcg-change-behavior-of-moving-charges-at-task-move.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-radix-tree-introduce-bit-optimized-iterator.patch
-radix-tree-introduce-bit-optimized-iterator-v3.patch
-radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-radix-tree-rewrite-gang-lookup-with-using-iterator.patch
-radix-tree-use-iterators-in-find_get_pages-functions.patch
-prio_tree-debugging-patch.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+smp-introduce-a-generic-on_each_cpu_mask-function.patch
+arm-move-arm-over-to-generic-on_each_cpu_mask.patch
+tile-move-tile-to-use-generic-on_each_cpu_mask.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
+fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
+ipc-semc-alternatives-to-preempt_disable.patch
 
