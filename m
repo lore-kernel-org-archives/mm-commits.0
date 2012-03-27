@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + vsprintf-further-optimize-decimal-conversion-v2.patch added to -mm tree
-Date: Tue, 27 Mar 2012 15:00:55 -0700
-Message-ID: <20120327220056.2BD18A02EB@akpm.mtv.corp.google.com>
+Subject: + fs-xattrc-suppress-page-allocation-failure-warnings-from-sys_listxattr.patch added to -mm tree
+Date: Tue, 27 Mar 2012 15:49:08 -0700
+Message-ID: <20120327224908.CE00CA00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:32810 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756264Ab2C0WA5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 18:00:57 -0400
-Received: by yenq2 with SMTP id q2so60009yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 15:00:57 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:64528 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756840Ab2C0WtL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 18:49:11 -0400
+Received: by wgbdt11 with SMTP id dt11so19457wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 15:49:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vda.linux@googlemail.com, jones@cs.uiowa.edu, mina86@mina86.com
+Cc: davej@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: vsprintf-further-optimize-decimal-conversion-v2
+     Subject: fs/xattr.c: suppress page allocation failure warnings from sys_listxattr()
 has been added to the -mm tree.  Its filename is
-     vsprintf-further-optimize-decimal-conversion-v2.patch
+     fs-xattrc-suppress-page-allocation-failure-warnings-from-sys_listxattr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,98 +33,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: vsprintf-further-optimize-decimal-conversion-v2
+From: Dave Jones <davej@redhat.com>
+Subject: fs/xattr.c: suppress page allocation failure warnings from sys_listxattr()
 
-Here is a new version. I also plugged a hole in num_to_str() -
-it was assuming it's safe to call put_dec() for num=0.
-(We never tripped over it before because the single caller
-of num_to_str() takes care of that case).
+This size is user controllable, up to a maximum of XATTR_LIST_MAX (64k). 
+So it's trivial for someone to trigger a stream of order:4 page allocation
+errors.
 
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Douglas W Jones <jones@cs.uiowa.edu>
+Signed-off-by: Dave Jones <davej@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitsperlong.h |    4 ++++
- lib/vsprintf.c                    |   15 +++++++++++----
- 2 files changed, 15 insertions(+), 4 deletions(-)
+ fs/xattr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/bitsperlong.h~vsprintf-further-optimize-decimal-conversion-v2 include/asm-generic/bitsperlong.h
---- a/include/asm-generic/bitsperlong.h~vsprintf-further-optimize-decimal-conversion-v2
-+++ a/include/asm-generic/bitsperlong.h
-@@ -28,5 +28,9 @@
- #error Inconsistent word size. Check asm/bitsperlong.h
- #endif
- 
-+#ifndef BITS_PER_LONG_LONG
-+#define BITS_PER_LONG_LONG 64
-+#endif
-+
- #endif /* __KERNEL__ */
- #endif /* __ASM_GENERIC_BITS_PER_LONG */
-diff -puN lib/vsprintf.c~vsprintf-further-optimize-decimal-conversion-v2 lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-further-optimize-decimal-conversion-v2
-+++ a/lib/vsprintf.c
-@@ -116,7 +116,7 @@ int skip_atoi(const char **s)
-  * (with permission from the author, Douglas W. Jones).
-  */
- 
--#if BITS_PER_LONG != 32 || (~(0ULL)>>1) != ((1ULL<<63)-1)
-+#if BITS_PER_LONG != 32 || BITS_PER_LONG_LONG != 64
- /* Formats correctly any integer in [0, 999999999] */
- static noinline_for_stack
- char *put_dec_full9(char *buf, unsigned q)
-@@ -215,7 +215,7 @@ char *put_dec_trunc8(char *buf, unsigned
-  * Else (if long is 32 bits and long long is 64 bits) we use second one.
-  */
- 
--#if BITS_PER_LONG != 32 || ((~0ULL)>>1) != ((1ULL<<63)-1)
-+#if BITS_PER_LONG != 32 || BITS_PER_LONG_LONG != 64
- 
- /* First algorithm: generic */
- 
-@@ -233,7 +233,7 @@ char *put_dec(char *buf, unsigned long l
- 
- #else
- 
--/* Second algorithm: valid only for 32-bit longs, 64-bit long longs */
-+/* Second algorithm: valid only for 64-bit long longs */
- 
- static noinline_for_stack
- char *put_dec_full4(char *buf, unsigned q)
-@@ -296,6 +296,7 @@ char *put_dec(char *buf, unsigned long l
- }
- 
- #endif
-+
- /*
-  * Convert passed number to decimal string.
-  * Returns the length of string.  On buffer overflow, returns 0.
-@@ -307,7 +308,13 @@ int num_to_str(char *buf, int size, unsi
- 	char tmp[sizeof(num) * 3];
- 	int idx, len;
- 
--	len = put_dec(tmp, num) - tmp;
-+	/* put_dec() may work incorrectly for num = 0 (generate "", not "0") */
-+	if (num <= 9) {
-+		tmp[0] = '0' + num;
-+		len = 1;
-+	} else {
-+		len = put_dec(tmp, num) - tmp;
-+	}
- 
- 	if (len > size)
- 		return 0;
+diff -puN fs/xattr.c~fs-xattrc-suppress-page-allocation-failure-warnings-from-sys_listxattr fs/xattr.c
+--- a/fs/xattr.c~fs-xattrc-suppress-page-allocation-failure-warnings-from-sys_listxattr
++++ a/fs/xattr.c
+@@ -496,7 +496,7 @@ listxattr(struct dentry *d, char __user 
+ 	if (size) {
+ 		if (size > XATTR_LIST_MAX)
+ 			size = XATTR_LIST_MAX;
+-		klist = kmalloc(size, GFP_KERNEL);
++		klist = kmalloc(size, __GFP_NOWARN | GFP_KERNEL);
+ 		if (!klist)
+ 			return -ENOMEM;
+ 	}
 _
-Subject: Subject: vsprintf-further-optimize-decimal-conversion-v2
+Subject: Subject: fs/xattr.c: suppress page allocation failure warnings from sys_listxattr()
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from davej@redhat.com are
 
 origin.patch
 linux-next.patch
-vsprintf-further-optimize-decimal-conversion.patch
-vsprintf-further-optimize-decimal-conversion-v2.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+fs-xattrc-suppress-page-allocation-failure-warnings-from-sys_listxattr.patch
 
