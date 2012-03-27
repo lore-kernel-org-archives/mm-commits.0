@@ -1,141 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-kill-mem_cgroup_lru_del.patch added to -mm tree
-Date: Mon, 26 Mar 2012 16:56:31 -0700
-Message-ID: <20120326235631.2BCD1A0363@akpm.mtv.corp.google.com>
+Subject: [merged] headers_check-recursively-search-for-linux-typesh-inclusion.patch removed from -mm tree
+Date: Tue, 27 Mar 2012 11:57:40 -0700
+Message-ID: <20120327185742.8AF0DA033B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:49815 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757876Ab2CZX4d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Mar 2012 19:56:33 -0400
-Received: by wejx9 with SMTP id x9so296347wej.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Mar 2012 16:56:32 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42418 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755863Ab2C0S5n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 14:57:43 -0400
+Received: by qabg24 with SMTP id g24so57747qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 11:57:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, minchan@kernel.org
+To: bobbypowers@gmail.com, airlied@linux.ie, mmarek@suse.cz, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: kill mem_cgroup_lru_del()
-has been added to the -mm tree.  Its filename is
-     mm-memcg-kill-mem_cgroup_lru_del.patch
+     Subject: headers_check: recursively search for linux/types.h inclusion
+has been removed from the -mm tree.  Its filename was
+     headers_check-recursively-search-for-linux-typesh-inclusion.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/memcg: kill mem_cgroup_lru_del()
+From: Bobby Powers <bobbypowers@gmail.com>
+Subject: headers_check: recursively search for linux/types.h inclusion
 
-This patch kills mem_cgroup_lru_del(), we can use
-mem_cgroup_lru_del_list() instead.  On 0-order isolation we already have
-right lru list id.
+headers_check.pl currently emits some spurious warnings, especially for
+the drm headers, about using __[us]{8,16,32,64} types without including
+linux/types.h.  Recursively search for types.h inclusion, avoiding
+circular references.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Bobby Powers <bobbypowers@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 -----
- mm/memcontrol.c            |    5 -----
- mm/vmscan.c                |    7 +++++--
- 3 files changed, 5 insertions(+), 12 deletions(-)
+ scripts/headers_check.pl |   38 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-kill-mem_cgroup_lru_del include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-kill-mem_cgroup_lru_del
-+++ a/include/linux/memcontrol.h
-@@ -66,7 +66,6 @@ struct lruvec *mem_cgroup_zone_lruvec(st
- struct lruvec *mem_cgroup_lru_add_list(struct zone *, struct page *,
- 				       enum lru_list);
- void mem_cgroup_lru_del_list(struct page *, enum lru_list);
--void mem_cgroup_lru_del(struct page *);
- struct lruvec *mem_cgroup_lru_move_lists(struct zone *, struct page *,
- 					 enum lru_list, enum lru_list);
+diff -puN scripts/headers_check.pl~headers_check-recursively-search-for-linux-typesh-inclusion scripts/headers_check.pl
+--- a/scripts/headers_check.pl~headers_check-recursively-search-for-linux-typesh-inclusion
++++ a/scripts/headers_check.pl
+@@ -19,6 +19,7 @@
+ # 3) Check for leaked CONFIG_ symbols
  
-@@ -260,10 +259,6 @@ static inline void mem_cgroup_lru_del_li
+ use strict;
++use File::Basename;
+ 
+ my ($dir, $arch, @files) = @ARGV;
+ 
+@@ -99,6 +100,39 @@ sub check_asm_types
+ }
+ 
+ my $linux_types;
++my %import_stack = ();
++sub check_include_typesh
++{
++	my $path = $_[0];
++	my $import_path;
++
++	my $fh;
++	my @file_paths = ($path, $dir . "/" .  $path, dirname($filename) . "/" . $path);
++	for my $possible ( @file_paths ) {
++	    if (not $import_stack{$possible} and open($fh, '<', $possible)) {
++		$import_path = $possible;
++		$import_stack{$import_path} = 1;
++		last;
++	    }
++	}
++	if (eof $fh) {
++	    return;
++	}
++
++	my $line;
++	while ($line = <$fh>) {
++		if ($line =~ m/^\s*#\s*include\s+<linux\/types.h>/) {
++			$linux_types = 1;
++			last;
++		}
++		if (my $included = ($line =~ /^\s*#\s*include\s+[<"](\S+)[>"]/)[0]) {
++			check_include_typesh($included);
++		}
++	}
++	close $fh;
++	delete $import_stack{$import_path};
++}
++
+ sub check_sizetypes
  {
+ 	if ($filename =~ /types.h|int-l64.h|int-ll64.h/o) {
+@@ -113,6 +147,9 @@ sub check_sizetypes
+ 		$linux_types = 1;
+ 		return;
+ 	}
++	if (my $included = ($line =~ /^\s*#\s*include\s+[<"](\S+)[>"]/)[0]) {
++		check_include_typesh($included);
++	}
+ 	if ($line =~ m/__[us](8|16|32|64)\b/) {
+ 		printf STDERR "$filename:$lineno: " .
+ 		              "found __[us]{8,16,32,64} type " .
+@@ -122,4 +159,3 @@ sub check_sizetypes
+ 		#$ret = 1;
+ 	}
  }
- 
--static inline void mem_cgroup_lru_del(struct page *page)
--{
--}
--
- static inline struct lruvec *mem_cgroup_lru_move_lists(struct zone *zone,
- 						       struct page *page,
- 						       enum lru_list from,
-diff -puN mm/memcontrol.c~mm-memcg-kill-mem_cgroup_lru_del mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-kill-mem_cgroup_lru_del
-+++ a/mm/memcontrol.c
-@@ -1115,11 +1115,6 @@ void mem_cgroup_lru_del_list(struct page
- 	mz->lru_size[lru] -= 1 << compound_order(page);
- }
- 
--void mem_cgroup_lru_del(struct page *page)
--{
--	mem_cgroup_lru_del_list(page, page_lru(page));
--}
--
- /**
-  * mem_cgroup_lru_move_lists - account for moving a page between lrus
-  * @zone: zone of the page
-diff -puN mm/vmscan.c~mm-memcg-kill-mem_cgroup_lru_del mm/vmscan.c
---- a/mm/vmscan.c~mm-memcg-kill-mem_cgroup_lru_del
-+++ a/mm/vmscan.c
-@@ -1147,7 +1147,7 @@ static unsigned long isolate_lru_pages(u
- 
- 		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
--			mem_cgroup_lru_del(page);
-+			mem_cgroup_lru_del_list(page, lru);
- 			list_move(&page->lru, dst);
- 			nr_taken += hpage_nr_pages(page);
- 			break;
-@@ -1205,8 +1205,11 @@ static unsigned long isolate_lru_pages(u
- 
- 			if (__isolate_lru_page(cursor_page, mode) == 0) {
- 				unsigned int isolated_pages;
-+				enum lru_list cursor_lru;
- 
--				mem_cgroup_lru_del(cursor_page);
-+				cursor_lru = page_lru(cursor_page);
-+				mem_cgroup_lru_del_list(cursor_page,
-+							cursor_lru);
- 				list_move(&cursor_page->lru, dst);
- 				isolated_pages = hpage_nr_pages(cursor_page);
- 				nr_taken += isolated_pages;
-_
-Subject: Subject: mm/memcg: kill mem_cgroup_lru_del()
-
-Patches currently in -mm which might be from khlebnikov@openvz.org are
-
-origin.patch
-radix-tree-introduce-bit-optimized-iterator.patch
-radix-tree-introduce-bit-optimized-iterator-v3.patch
-radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
-radix-tree-rewrite-gang-lookup-with-using-iterator.patch
-radix-tree-use-iterators-in-find_get_pages-functions.patch
-linux-next.patch
-mm-fix-page-faults-detection-in-swap-token-logic.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-
