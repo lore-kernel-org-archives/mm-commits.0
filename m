@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-convert-two-call-sites-to-call_usermodehelper_fns.patch added to -mm tree
-Date: Tue, 27 Mar 2012 14:07:20 -0700
-Message-ID: <20120327210720.1F077A032F@akpm.mtv.corp.google.com>
+Subject: + vsprintf-further-optimize-decimal-conversion-v2.patch added to -mm tree
+Date: Tue, 27 Mar 2012 15:00:55 -0700
+Message-ID: <20120327220056.2BD18A02EB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:64401 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:32810 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756020Ab2C0VHV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 17:07:21 -0400
-Received: by yenq2 with SMTP id q2so53054yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 14:07:20 -0700 (PDT)
+	with ESMTP id S1756264Ab2C0WA5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 18:00:57 -0400
+Received: by yenq2 with SMTP id q2so60009yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 15:00:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bharrosh@panasas.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp
+Cc: vda.linux@googlemail.com, jones@cs.uiowa.edu, mina86@mina86.com
 
 
 The patch titled
-     Subject: kmod: convert two call sites to call_usermodehelper_fns()
+     Subject: vsprintf-further-optimize-decimal-conversion-v2
 has been added to the -mm tree.  Its filename is
-     kmod-convert-two-call-sites-to-call_usermodehelper_fns.patch
+     vsprintf-further-optimize-decimal-conversion-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Boaz Harrosh <bharrosh@panasas.com>
-Subject: kmod: convert two call sites to call_usermodehelper_fns()
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: vsprintf-further-optimize-decimal-conversion-v2
 
-Both kernel/sys.c && security/keys/request_key.c where inlining the exact
-same code as call_usermodehelper_fns(); So simply convert these sites to
-directly use call_usermodehelper_fns().
+Here is a new version. I also plugged a hole in num_to_str() -
+it was assuming it's safe to call put_dec() for num=0.
+(We never tripped over it before because the single caller
+of num_to_str() takes care of that case).
 
-Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Douglas W Jones <jones@cs.uiowa.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c                |   19 ++++++++-----------
- security/keys/request_key.c |   13 +++----------
- 2 files changed, 11 insertions(+), 21 deletions(-)
+ include/asm-generic/bitsperlong.h |    4 ++++
+ lib/vsprintf.c                    |   15 +++++++++++----
+ 2 files changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sys.c~kmod-convert-two-call-sites-to-call_usermodehelper_fns kernel/sys.c
---- a/kernel/sys.c~kmod-convert-two-call-sites-to-call_usermodehelper_fns
-+++ a/kernel/sys.c
-@@ -2022,7 +2022,6 @@ int orderly_poweroff(bool force)
- 		NULL
- 	};
- 	int ret = -ENOMEM;
--	struct subprocess_info *info;
+diff -puN include/asm-generic/bitsperlong.h~vsprintf-further-optimize-decimal-conversion-v2 include/asm-generic/bitsperlong.h
+--- a/include/asm-generic/bitsperlong.h~vsprintf-further-optimize-decimal-conversion-v2
++++ a/include/asm-generic/bitsperlong.h
+@@ -28,5 +28,9 @@
+ #error Inconsistent word size. Check asm/bitsperlong.h
+ #endif
  
- 	if (argv == NULL) {
- 		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
-@@ -2030,18 +2029,16 @@ int orderly_poweroff(bool force)
- 		goto out;
- 	}
++#ifndef BITS_PER_LONG_LONG
++#define BITS_PER_LONG_LONG 64
++#endif
++
+ #endif /* __KERNEL__ */
+ #endif /* __ASM_GENERIC_BITS_PER_LONG */
+diff -puN lib/vsprintf.c~vsprintf-further-optimize-decimal-conversion-v2 lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-further-optimize-decimal-conversion-v2
++++ a/lib/vsprintf.c
+@@ -116,7 +116,7 @@ int skip_atoi(const char **s)
+  * (with permission from the author, Douglas W. Jones).
+  */
  
--	info = call_usermodehelper_setup(argv[0], argv, envp, GFP_ATOMIC);
--	if (info == NULL) {
--		argv_free(argv);
--		goto out;
--	}
-+	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_NO_WAIT,
-+				      NULL, argv_cleanup, NULL);
-+out:
-+	if (likely(!ret))
-+		return 0;
+-#if BITS_PER_LONG != 32 || (~(0ULL)>>1) != ((1ULL<<63)-1)
++#if BITS_PER_LONG != 32 || BITS_PER_LONG_LONG != 64
+ /* Formats correctly any integer in [0, 999999999] */
+ static noinline_for_stack
+ char *put_dec_full9(char *buf, unsigned q)
+@@ -215,7 +215,7 @@ char *put_dec_trunc8(char *buf, unsigned
+  * Else (if long is 32 bits and long long is 64 bits) we use second one.
+  */
  
--	call_usermodehelper_setfns(info, NULL, argv_cleanup, NULL);
--
--	ret = call_usermodehelper_exec(info, UMH_NO_WAIT);
-+	if (ret == -ENOMEM)
-+		argv_free(argv);
+-#if BITS_PER_LONG != 32 || ((~0ULL)>>1) != ((1ULL<<63)-1)
++#if BITS_PER_LONG != 32 || BITS_PER_LONG_LONG != 64
  
--  out:
--	if (ret && force) {
-+	if (force) {
- 		printk(KERN_WARNING "Failed to start orderly shutdown: "
- 		       "forcing the issue\n");
+ /* First algorithm: generic */
  
-diff -puN security/keys/request_key.c~kmod-convert-two-call-sites-to-call_usermodehelper_fns security/keys/request_key.c
---- a/security/keys/request_key.c~kmod-convert-two-call-sites-to-call_usermodehelper_fns
-+++ a/security/keys/request_key.c
-@@ -93,16 +93,9 @@ static void umh_keys_cleanup(struct subp
- static int call_usermodehelper_keys(char *path, char **argv, char **envp,
- 					struct key *session_keyring, int wait)
- {
--	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
--	struct subprocess_info *info =
--		call_usermodehelper_setup(path, argv, envp, gfp_mask);
--
--	if (!info)
--		return -ENOMEM;
+@@ -233,7 +233,7 @@ char *put_dec(char *buf, unsigned long l
+ 
+ #else
+ 
+-/* Second algorithm: valid only for 32-bit longs, 64-bit long longs */
++/* Second algorithm: valid only for 64-bit long longs */
+ 
+ static noinline_for_stack
+ char *put_dec_full4(char *buf, unsigned q)
+@@ -296,6 +296,7 @@ char *put_dec(char *buf, unsigned long l
+ }
+ 
+ #endif
++
+ /*
+  * Convert passed number to decimal string.
+  * Returns the length of string.  On buffer overflow, returns 0.
+@@ -307,7 +308,13 @@ int num_to_str(char *buf, int size, unsi
+ 	char tmp[sizeof(num) * 3];
+ 	int idx, len;
+ 
+-	len = put_dec(tmp, num) - tmp;
++	/* put_dec() may work incorrectly for num = 0 (generate "", not "0") */
++	if (num <= 9) {
++		tmp[0] = '0' + num;
++		len = 1;
++	} else {
++		len = put_dec(tmp, num) - tmp;
++	}
+ 
+ 	if (len > size)
+ 		return 0;
+_
+Subject: Subject: vsprintf-further-optimize-decimal-conversion-v2
+
+Patches currently in -mm which might be from vda.linux@googlemail.com are
+
+origin.patch
+linux-next.patch
+vsprintf-further-optimize-decimal-conversion.patch
+vsprintf-further-optimize-decimal-conversion-v2.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+
