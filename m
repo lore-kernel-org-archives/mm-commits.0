@@ -1,110 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] headers_check-recursively-search-for-linux-typesh-inclusion.patch removed from -mm tree
-Date: Tue, 27 Mar 2012 11:57:40 -0700
-Message-ID: <20120327185742.8AF0DA033B@akpm.mtv.corp.google.com>
+Subject: - net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch removed from -mm tree
+Date: Tue, 27 Mar 2012 13:41:42 -0700
+Message-ID: <20120327204143.030BDA032F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:42418 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755863Ab2C0S5n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 14:57:43 -0400
-Received: by qabg24 with SMTP id g24so57747qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 11:57:43 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:60525 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755717Ab2C0Ulo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 16:41:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bobbypowers@gmail.com, airlied@linux.ie, mmarek@suse.cz, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: alex@alex.org.uk, adobriyan@gmail.com, davem@davemloft.net, kaber@trash.net, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: headers_check: recursively search for linux/types.h inclusion
+     Subject: net/netfilter/nf_conntrack_netlink.c: fix Oops on container destroy
 has been removed from the -mm tree.  Its filename was
-     headers_check-recursively-search-for-linux-typesh-inclusion.patch
+     net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was fixed by 70e9942f17a6193e9172a804
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Bobby Powers <bobbypowers@gmail.com>
-Subject: headers_check: recursively search for linux/types.h inclusion
+From: Alex Bligh <alex@alex.org.uk>
+Subject: net/netfilter/nf_conntrack_netlink.c: fix Oops on container destroy
 
-headers_check.pl currently emits some spurious warnings, especially for
-the drm headers, about using __[us]{8,16,32,64} types without including
-linux/types.h.  Recursively search for types.h inclusion, avoiding
-circular references.
+Problem:
 
-Signed-off-by: Bobby Powers <bobbypowers@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Dave Airlie <airlied@linux.ie>
-Cc: Michal Marek <mmarek@suse.cz>
+A repeatable Oops can be caused if a container with networking
+unshared is destroyed when it has nf_conntrack entries yet to expire.
+
+A copy of the oops follows below. A perl program generating the oops
+repeatably is attached inline below.
+
+Analysis:
+
+The oops is called from cleanup_net when the namespace is
+destroyed. conntrack iterates through outstanding events and calls
+death_by_timeout on each of them, which in turn produces a call to
+ctnetlink_conntrack_event. This calls nf_netlink_has_listeners, which
+oopses because net->nfnl is NULL.
+
+The perl program generates the container through fork() then
+clone(NS_NEWNET). I does not explicitly	set up netlink
+explicitly set up netlink, but I presume it was set up else net->nfnl
+would have been NULL earlier (i.e. when an earlier connection
+timed out). This would thus suggest that net->nfnl is made NULL
+during the destruction of the container, which I think is done by
+nfnetlink_net_exit_batch.
+
+I can see that the various subsystems are deinitialised in the opposite
+order to which the relevant register_pernet_subsys calls are called,
+and both nf_conntrack and nfnetlink_net_ops register their relevant
+subsystems. If nfnetlink_net_ops registered later than nfconntrack,
+then its exit routine would have been called first, which would cause
+the oops described. I am not sure there is anything to prevent this
+happening in a container environment.
+
+Whilst there's perhaps a more complex problem revolving around ordering
+of subsystem deinit, it seems to me that missing a netlink event on a
+container that is dying is not a disaster. An early check for net->nfnl
+being non-NULL in ctnetlink_conntrack_event appears to fix this. There
+may remain a potential race condition if it becomes NULL immediately
+after being checked (I am not sure any lock is held at this point or
+how synchronisation for subsystem deinitialization works).
+
+Patch:
+
+The patch attached should apply on everything from 2.6.26 (if not before)
+onwards; it appears to be a problem on all kernels. This was taken against
+Ubuntu-3.0.0-11.17 which is very close to 3.0.4. I have torture-tested it
+with the above perl script for 15 minutes or so; the perl script hung the
+machine within 20 seconds without this patch.
+
+Applicability:
+
+If this is the right solution, it should be applied to all stable kernels
+as well as head. Apart from the minor overhead of checking one variable
+against NULL, it can never 'do the wrong thing', because if net->nfnl
+is NULL, an oops will inevitably result. Therefore, checking is a reasonable
+thing to do unless it can be proven than net->nfnl will never be NULL.
+
+Check net->nfnl for NULL in ctnetlink_conntrack_event to avoid Oops on
+container destroy
+
+Signed-off-by: Alex Bligh <alex@alex.org.uk>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: David Miller <davem@davemloft.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <stable@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/headers_check.pl |   38 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 37 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_netlink.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN scripts/headers_check.pl~headers_check-recursively-search-for-linux-typesh-inclusion scripts/headers_check.pl
---- a/scripts/headers_check.pl~headers_check-recursively-search-for-linux-typesh-inclusion
-+++ a/scripts/headers_check.pl
-@@ -19,6 +19,7 @@
- # 3) Check for leaked CONFIG_ symbols
+diff -puN net/netfilter/nf_conntrack_netlink.c~net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy net/netfilter/nf_conntrack_netlink.c
+--- a/net/netfilter/nf_conntrack_netlink.c~net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy
++++ a/net/netfilter/nf_conntrack_netlink.c
+@@ -585,6 +585,11 @@ ctnetlink_conntrack_event(unsigned int e
+ 		return 0;
  
- use strict;
-+use File::Basename;
- 
- my ($dir, $arch, @files) = @ARGV;
- 
-@@ -99,6 +100,39 @@ sub check_asm_types
- }
- 
- my $linux_types;
-+my %import_stack = ();
-+sub check_include_typesh
-+{
-+	my $path = $_[0];
-+	my $import_path;
+ 	net = nf_ct_net(ct);
 +
-+	my $fh;
-+	my @file_paths = ($path, $dir . "/" .  $path, dirname($filename) . "/" . $path);
-+	for my $possible ( @file_paths ) {
-+	    if (not $import_stack{$possible} and open($fh, '<', $possible)) {
-+		$import_path = $possible;
-+		$import_stack{$import_path} = 1;
-+		last;
-+	    }
-+	}
-+	if (eof $fh) {
-+	    return;
-+	}
++	/* container deinit, netlink may have died before death_by_timeout */
++	if (!net->nfnl)
++		return 0;
 +
-+	my $line;
-+	while ($line = <$fh>) {
-+		if ($line =~ m/^\s*#\s*include\s+<linux\/types.h>/) {
-+			$linux_types = 1;
-+			last;
-+		}
-+		if (my $included = ($line =~ /^\s*#\s*include\s+[<"](\S+)[>"]/)[0]) {
-+			check_include_typesh($included);
-+		}
-+	}
-+	close $fh;
-+	delete $import_stack{$import_path};
-+}
-+
- sub check_sizetypes
- {
- 	if ($filename =~ /types.h|int-l64.h|int-ll64.h/o) {
-@@ -113,6 +147,9 @@ sub check_sizetypes
- 		$linux_types = 1;
- 		return;
- 	}
-+	if (my $included = ($line =~ /^\s*#\s*include\s+[<"](\S+)[>"]/)[0]) {
-+		check_include_typesh($included);
-+	}
- 	if ($line =~ m/__[us](8|16|32|64)\b/) {
- 		printf STDERR "$filename:$lineno: " .
- 		              "found __[us]{8,16,32,64} type " .
-@@ -122,4 +159,3 @@ sub check_sizetypes
- 		#$ret = 1;
- 	}
- }
+ 	if (!item->report && !nfnetlink_has_listeners(net, group))
+ 		return 0;
+ 
+_
+
+Patches currently in -mm which might be from alex@alex.org.uk are
+
+
