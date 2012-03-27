@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch added to -mm tree
-Date: Tue, 27 Mar 2012 16:15:15 -0700
-Message-ID: <20120327231516.0C436A0395@akpm.mtv.corp.google.com>
+Subject: + floppy-revert-floppy-disable-halt-warning.patch added to -mm tree
+Date: Tue, 27 Mar 2012 16:27:07 -0700
+Message-ID: <20120327232707.B9C5CA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:52035 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755884Ab2C0XPR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 19:15:17 -0400
+Received: from mail-we0-f202.google.com ([74.125.82.202]:62134 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756729Ab2C0X1K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 19:27:10 -0400
+Received: by wejx9 with SMTP id x9so17648wej.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 16:27:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, schwidefsky@de.ibm.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, tglx@linutronix.de
+Cc: shemminger@vyatta.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, lenb@kernel.org, mingo@elte.hu
 
 
 The patch titled
-     Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
+     Subject: floppy: revert floppy disable halt warning
 has been added to the -mm tree.  Its filename is
-     nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
+     floppy-revert-floppy-disable-halt-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,87 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: floppy: revert floppy disable halt warning
 
-Commit 09a1d34f8535ecf9 ("nohz: Make idle/iowait counter update
-conditional") introduced a bug in regard to cpu hotplug.  The effect is
-that the number of idle ticks in the cpu summary line in /proc/stat is
-still counting ticks for offline cpus.
+Remove the stupid floppy disable halt warning.  It is meaningless since
+the API is local to floppy driver.  Our boot scripts check for the floppy
+drive, and this causes the warning to trigger every time.  This confuses
+support, breaks automated tests that look for backtraces on boot, and adds
+no value.
 
-Reproduction is easy, just start a workload that keeps all cpus busy,
-switch off one or more cpus and then watch the idle field in top.  On a
-dual-core with one cpu 100% busy and one offline cpu you will get
-something like this:
+The message is being displayed to the wrong audience, it looks like it was
+intended as a compromise of a long discussion on LKML about supporting
+older x86 hardware; but users don't know or understand what it is saying.
 
-%Cpu(s): 48.7 us,  1.3 sy,  0.0 ni, 50.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+If you want to change halt handling then just fix the floppy driver, don't
+whine about it.
 
-The problem is that an offline cpu still has ts->idle_active == 1.  To fix
-this we should make sure that the cpu is online when calling
-get_cpu_idle_time_us and get_cpu_iowait_time_us.
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Reported-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@vger.kernel.org>	[3.2.x]
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/block/floppy.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat fs/proc/stat.c
---- a/fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat
-+++ a/fs/proc/stat.c
-@@ -24,10 +24,13 @@
- 
- static u64 get_idle_time(int cpu)
+diff -puN drivers/block/floppy.c~floppy-revert-floppy-disable-halt-warning drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-revert-floppy-disable-halt-warning
++++ a/drivers/block/floppy.c
+@@ -1037,7 +1037,6 @@ static void floppy_disable_hlt(void)
  {
--	u64 idle, idle_time = get_cpu_idle_time_us(cpu, NULL);
-+	u64 idle, idle_time = -1ULL;
-+
-+	if (cpu_online(cpu))
-+		idle_time = get_cpu_idle_time_us(cpu, NULL);
+ 	unsigned long flags;
  
- 	if (idle_time == -1ULL) {
--		/* !NO_HZ so we can rely on cpustat.idle */
-+		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
- 		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
- 		idle += arch_idle_time(cpu);
- 	} else
-@@ -38,10 +41,13 @@ static u64 get_idle_time(int cpu)
- 
- static u64 get_iowait_time(int cpu)
- {
--	u64 iowait, iowait_time = get_cpu_iowait_time_us(cpu, NULL);
-+	u64 iowait, iowait_time = -1ULL;
-+
-+	if (cpu_online(cpu))
-+		iowait_time = get_cpu_iowait_time_us(cpu, NULL);
- 
- 	if (iowait_time == -1ULL)
--		/* !NO_HZ so we can rely on cpustat.iowait */
-+		/* !NO_HZ or cpu offline so we can rely on cpustat.iowait */
- 		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
- 	else
- 		iowait = usecs_to_cputime64(iowait_time);
+-	WARN_ONCE(1, "floppy_disable_hlt() scheduled for removal in 2012");
+ 	spin_lock_irqsave(&floppy_hlt_lock, flags);
+ 	if (!hlt_disabled) {
+ 		hlt_disabled = 1;
 _
-Subject: Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
+Subject: Subject: floppy: revert floppy disable halt warning
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from shemminger@vyatta.com are
 
 origin.patch
-nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+floppy-revert-floppy-disable-halt-warning.patch
 
