@@ -1,119 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch removed from -mm tree
-Date: Tue, 27 Mar 2012 13:41:42 -0700
-Message-ID: <20120327204143.030BDA032F@akpm.mtv.corp.google.com>
+Subject: + kmod-unexport-call_usermodehelper_freeinfo.patch added to -mm tree
+Date: Tue, 27 Mar 2012 14:07:17 -0700
+Message-ID: <20120327210718.6792BA032F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:60525 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755717Ab2C0Ulo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 16:41:44 -0400
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:59909 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756026Ab2C0VHT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 17:07:19 -0400
+Received: by qabg24 with SMTP id g24so73962qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 14:07:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex@alex.org.uk, adobriyan@gmail.com, davem@davemloft.net, kaber@trash.net, stable@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bharrosh@panasas.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp
 
 
 The patch titled
-     Subject: net/netfilter/nf_conntrack_netlink.c: fix Oops on container destroy
-has been removed from the -mm tree.  Its filename was
-     net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy.patch
+     Subject: kmod: unexport call_usermodehelper_freeinfo()
+has been added to the -mm tree.  Its filename is
+     kmod-unexport-call_usermodehelper_freeinfo.patch
 
-This patch was dropped because it was fixed by 70e9942f17a6193e9172a804
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Bligh <alex@alex.org.uk>
-Subject: net/netfilter/nf_conntrack_netlink.c: fix Oops on container destroy
+From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: kmod: unexport call_usermodehelper_freeinfo()
 
-Problem:
+call_usermodehelper_freeinfo() is not used outside of kmod.c.  So unexport
+it, and make it static to kmod.c
 
-A repeatable Oops can be caused if a container with networking
-unshared is destroyed when it has nf_conntrack entries yet to expire.
-
-A copy of the oops follows below. A perl program generating the oops
-repeatably is attached inline below.
-
-Analysis:
-
-The oops is called from cleanup_net when the namespace is
-destroyed. conntrack iterates through outstanding events and calls
-death_by_timeout on each of them, which in turn produces a call to
-ctnetlink_conntrack_event. This calls nf_netlink_has_listeners, which
-oopses because net->nfnl is NULL.
-
-The perl program generates the container through fork() then
-clone(NS_NEWNET). I does not explicitly	set up netlink
-explicitly set up netlink, but I presume it was set up else net->nfnl
-would have been NULL earlier (i.e. when an earlier connection
-timed out). This would thus suggest that net->nfnl is made NULL
-during the destruction of the container, which I think is done by
-nfnetlink_net_exit_batch.
-
-I can see that the various subsystems are deinitialised in the opposite
-order to which the relevant register_pernet_subsys calls are called,
-and both nf_conntrack and nfnetlink_net_ops register their relevant
-subsystems. If nfnetlink_net_ops registered later than nfconntrack,
-then its exit routine would have been called first, which would cause
-the oops described. I am not sure there is anything to prevent this
-happening in a container environment.
-
-Whilst there's perhaps a more complex problem revolving around ordering
-of subsystem deinit, it seems to me that missing a netlink event on a
-container that is dying is not a disaster. An early check for net->nfnl
-being non-NULL in ctnetlink_conntrack_event appears to fix this. There
-may remain a potential race condition if it becomes NULL immediately
-after being checked (I am not sure any lock is held at this point or
-how synchronisation for subsystem deinitialization works).
-
-Patch:
-
-The patch attached should apply on everything from 2.6.26 (if not before)
-onwards; it appears to be a problem on all kernels. This was taken against
-Ubuntu-3.0.0-11.17 which is very close to 3.0.4. I have torture-tested it
-with the above perl script for 15 minutes or so; the perl script hung the
-machine within 20 seconds without this patch.
-
-Applicability:
-
-If this is the right solution, it should be applied to all stable kernels
-as well as head. Apart from the minor overhead of checking one variable
-against NULL, it can never 'do the wrong thing', because if net->nfnl
-is NULL, an oops will inevitably result. Therefore, checking is a reasonable
-thing to do unless it can be proven than net->nfnl will never be NULL.
-
-Check net->nfnl for NULL in ctnetlink_conntrack_event to avoid Oops on
-container destroy
-
-Signed-off-by: Alex Bligh <alex@alex.org.uk>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: David Miller <davem@davemloft.net>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <stable@kernel.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/netfilter/nf_conntrack_netlink.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/kmod.h |    4 ----
+ kernel/kmod.c        |    3 +--
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN net/netfilter/nf_conntrack_netlink.c~net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy net/netfilter/nf_conntrack_netlink.c
---- a/net/netfilter/nf_conntrack_netlink.c~net-netfilter-nf_conntrack_netlinkc-fix-oops-on-container-destroy
-+++ a/net/netfilter/nf_conntrack_netlink.c
-@@ -585,6 +585,11 @@ ctnetlink_conntrack_event(unsigned int e
- 		return 0;
+diff -puN include/linux/kmod.h~kmod-unexport-call_usermodehelper_freeinfo include/linux/kmod.h
+--- a/include/linux/kmod.h~kmod-unexport-call_usermodehelper_freeinfo
++++ a/include/linux/kmod.h
+@@ -79,10 +79,6 @@ void call_usermodehelper_setfns(struct s
+ /* Actually execute the sub-process */
+ int call_usermodehelper_exec(struct subprocess_info *info, int wait);
  
- 	net = nf_ct_net(ct);
-+
-+	/* container deinit, netlink may have died before death_by_timeout */
-+	if (!net->nfnl)
-+		return 0;
-+
- 	if (!item->report && !nfnetlink_has_listeners(net, group))
- 		return 0;
+-/* Free the subprocess_info. This is only needed if you're not going
+-   to call call_usermodehelper_exec */
+-void call_usermodehelper_freeinfo(struct subprocess_info *info);
+-
+ static inline int
+ call_usermodehelper_fns(char *path, char **argv, char **envp, int wait,
+ 			int (*init)(struct subprocess_info *info, struct cred *new),
+diff -puN kernel/kmod.c~kmod-unexport-call_usermodehelper_freeinfo kernel/kmod.c
+--- a/kernel/kmod.c~kmod-unexport-call_usermodehelper_freeinfo
++++ a/kernel/kmod.c
+@@ -221,13 +221,12 @@ fail:
+ 	return 0;
+ }
  
+-void call_usermodehelper_freeinfo(struct subprocess_info *info)
++static void call_usermodehelper_freeinfo(struct subprocess_info *info)
+ {
+ 	if (info->cleanup)
+ 		(*info->cleanup)(info);
+ 	kfree(info);
+ }
+-EXPORT_SYMBOL(call_usermodehelper_freeinfo);
+ 
+ static void umh_complete(struct subprocess_info *sub_info)
+ {
 _
+Subject: Subject: kmod: unexport call_usermodehelper_freeinfo()
 
-Patches currently in -mm which might be from alex@alex.org.uk are
+Patches currently in -mm which might be from bharrosh@panasas.com are
 
+origin.patch
+linux-next.patch
+kmod-unexport-call_usermodehelper_freeinfo.patch
+kmod-convert-two-call-sites-to-call_usermodehelper_fns.patch
+kmod-move-call_usermodehelper_fns-to-c-file-and-unexport-all-its-helpers.patch
 
