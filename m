@@ -1,196 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-olpc-add-debugfs-interface-for-ec-commands.patch removed from -mm tree
-Date: Wed, 28 Mar 2012 12:43:05 -0700
-Message-ID: <20120328194305.8EB3BA00AA@akpm.mtv.corp.google.com>
+Subject: [folded] arm-move-arm-over-to-generic-on_each_cpu_mask.patch removed from -mm tree
+Date: Wed, 28 Mar 2012 14:28:22 -0700
+Message-ID: <20120328212823.04754A0443@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:48573 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758404Ab2C1TnH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 15:43:07 -0400
-Received: by vbnl22 with SMTP id l22so170144vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 12:43:06 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:46153 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932969Ab2C1V2Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 17:28:24 -0400
+Received: by yhgm50 with SMTP id m50so192145yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 14:28:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dsd@laptop.org, dilinger@queued.net, hpa@zytor.com, mingo@elte.hu, pgf@laptop.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: gilad@benyossef.com, a.p.zijlstra@chello.nl, linux@arm.linux.org.uk, mina86@mina86.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, olpc: add debugfs interface for EC commands
+     Subject: arm: move arm over to generic on_each_cpu_mask
 has been removed from the -mm tree.  Its filename was
-     x86-olpc-add-debugfs-interface-for-ec-commands.patch
+     arm-move-arm-over-to-generic-on_each_cpu_mask.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into smp-introduce-a-generic-on_each_cpu_mask-function.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Daniel Drake <dsd@laptop.org>
-Subject: x86, olpc: add debugfs interface for EC commands
+From: Gilad Ben-Yossef <gilad@benyossef.com>
+Subject: arm: move arm over to generic on_each_cpu_mask
 
-Add a debugfs interface for sending commands to the OLPC Embedded
-Controller (EC) and reading the responses.  The EC provides functionality
-for machine identification, battery and AC control, wakeup control, etc.
+Note that the generic version is a little different then the Arm one:
 
-Having a debugfs interface available is useful for EC development and
-debugging.
+1. It has the mask as first parameter
+2. It calls the function on the calling CPU with interrupts disabled,
+   but this should be OK since the function is called on the other CPUs
+   with interrupts disabled anyway.
 
-Based on code by Paul Fox.
+Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Michal Nazarewicz <mina86@mina86.org>
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
-Signed-off-by: Paul Fox <pgf@laptop.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andres Salomon <dilinger@queued.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/debugfs-olpc |   16 ++++
- arch/x86/platform/olpc/olpc.c          |   86 +++++++++++++++++++++++
- 2 files changed, 102 insertions(+)
+ arch/arm/kernel/smp_tlb.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/debugfs-olpc
---- /dev/null
-+++ a/Documentation/ABI/testing/debugfs-olpc
-@@ -0,0 +1,16 @@
-+What:		/sys/kernel/debug/olpc-ec/generic
-+Date:		Dec 2011
-+KernelVersion:	3.3
-+Contact:	devel@lists.laptop.org
-+Description:
-+
-+A generic interface for executing OLPC Embedded Controller commands and
-+reading their responses.
-+
-+To execute a command, write data with the format: CC:N A A A A
-+CC is the (hex) command, N is the count of expected reply bytes, and A A A A
-+are optional (hex) arguments.
-+
-+To read the response (if any), read from the generic node after executing
-+a command. Hex reply bytes will be returned, *whether or not* they came from
-+the immediately previous command.
-diff -puN arch/x86/platform/olpc/olpc.c~x86-olpc-add-debugfs-interface-for-ec-commands arch/x86/platform/olpc/olpc.c
---- a/arch/x86/platform/olpc/olpc.c~x86-olpc-add-debugfs-interface-for-ec-commands
-+++ a/arch/x86/platform/olpc/olpc.c
-@@ -20,6 +20,7 @@
- #include <linux/platform_device.h>
- #include <linux/of.h>
- #include <linux/syscore_ops.h>
-+#include <linux/debugfs.h>
+diff -puN arch/arm/kernel/smp_tlb.c~arm-move-arm-over-to-generic-on_each_cpu_mask arch/arm/kernel/smp_tlb.c
+--- a/arch/arm/kernel/smp_tlb.c~arm-move-arm-over-to-generic-on_each_cpu_mask
++++ a/arch/arm/kernel/smp_tlb.c
+@@ -13,18 +13,6 @@
+ #include <asm/smp_plat.h>
+ #include <asm/tlbflush.h>
  
- #include <asm/geode.h>
- #include <asm/setup.h>
-@@ -31,6 +32,13 @@ EXPORT_SYMBOL_GPL(olpc_platform_info);
+-static void on_each_cpu_mask(void (*func)(void *), void *info, int wait,
+-	const struct cpumask *mask)
+-{
+-	preempt_disable();
+-
+-	smp_call_function_many(mask, func, info, wait);
+-	if (cpumask_test_cpu(smp_processor_id(), mask))
+-		func(info);
+-
+-	preempt_enable();
+-}
+-
+ /**********************************************************************/
  
- static DEFINE_SPINLOCK(ec_lock);
- 
-+/* debugfs interface to EC commands */
-+#define EC_MAX_CMD_ARGS (5 + 1)	/* cmd byte + 5 args */
-+#define EC_MAX_CMD_REPLY (8)
-+static struct dentry *ec_debugfs_dir;
-+static unsigned char ec_debugfs_resp[EC_MAX_CMD_REPLY];
-+static unsigned int ec_debugfs_resp_bytes;
-+
- /* EC event mask to be applied during suspend (defining wakeup sources). */
- static u16 ec_wakeup_mask;
- 
-@@ -269,6 +277,83 @@ int olpc_ec_sci_query(u16 *sci_value)
- }
- EXPORT_SYMBOL_GPL(olpc_ec_sci_query);
- 
-+static ssize_t ec_gen_write(struct file *file, const char __user *buf,
-+			    size_t size, loff_t *ppos)
-+{
-+	int i, m;
-+	unsigned char ec_cmd[EC_MAX_CMD_ARGS];
-+	unsigned int ec_cmd_int[EC_MAX_CMD_ARGS];
-+	char cmdbuf[64];
-+	int ec_cmd_bytes;
-+
-+	size = simple_write_to_buffer(cmdbuf, sizeof(cmdbuf), ppos, buf, size);
-+
-+	m = sscanf(cmdbuf, "%x:%u %x %x %x %x %x", &ec_cmd_int[0],
-+		   &ec_debugfs_resp_bytes,
-+		   &ec_cmd_int[1], &ec_cmd_int[2], &ec_cmd_int[3],
-+		   &ec_cmd_int[4], &ec_cmd_int[5]);
-+	if (m < 2 || ec_debugfs_resp_bytes > EC_MAX_CMD_REPLY) {
-+		printk(KERN_DEBUG "olpc-ec: bad ec cmd:  "
-+		       "cmd:response-count [arg1 [arg2 ...]]\n");
-+		return -EINVAL;
-+	}
-+
-+	/* convert scanf'd ints to char */
-+	ec_cmd_bytes = m - 2;
-+	for (i = 0; i <= ec_cmd_bytes; i++)
-+		ec_cmd[i] = ec_cmd_int[i];
-+
-+	printk(KERN_DEBUG "olpc-ec: debugfs cmd 0x%02x with %d args "
-+	       "%02x %02x %02x %02x %02x, want %d returns\n",
-+	       ec_cmd[0], ec_cmd_bytes, ec_cmd[1], ec_cmd[2], ec_cmd[3],
-+	       ec_cmd[4], ec_cmd[5], ec_debugfs_resp_bytes);
-+
-+	olpc_ec_cmd((unsigned char) ec_cmd[0],
-+		(ec_cmd_bytes == 0) ? NULL : &ec_cmd[1],
-+		ec_cmd_bytes, ec_debugfs_resp, ec_debugfs_resp_bytes);
-+
-+	printk(KERN_DEBUG "olpc-ec: response "
-+	       "%02x %02x %02x %02x %02x %02x %02x %02x (%d bytes expected)\n",
-+	       ec_debugfs_resp[0], ec_debugfs_resp[1], ec_debugfs_resp[2],
-+	       ec_debugfs_resp[3], ec_debugfs_resp[4], ec_debugfs_resp[5],
-+	       ec_debugfs_resp[6], ec_debugfs_resp[7], ec_debugfs_resp_bytes);
-+
-+	return size;
-+}
-+
-+static ssize_t ec_gen_read(struct file *file, char __user *buf,
-+			   size_t size, loff_t *ppos)
-+{
-+	unsigned int i, r;
-+	char *rp;
-+	char respbuf[64];
-+
-+	rp = respbuf;
-+	rp += sprintf(rp, "%02x", ec_debugfs_resp[0]);
-+	for (i = 1; i < ec_debugfs_resp_bytes; i++)
-+		rp += sprintf(rp, ", %02x", ec_debugfs_resp[i]);
-+	rp += sprintf(rp, "\n");
-+
-+	r = rp - respbuf;
-+
-+	return simple_read_from_buffer(buf, size, ppos, respbuf, r);
-+}
-+
-+static const struct file_operations ec_debugfs_genops = {
-+	.write	 = ec_gen_write,
-+	.read	 = ec_gen_read,
-+};
-+
-+static void setup_debugfs(void)
-+{
-+	ec_debugfs_dir = debugfs_create_dir("olpc-ec", 0);
-+	if (ec_debugfs_dir == ERR_PTR(-ENODEV))
-+		return;
-+
-+	debugfs_create_file("generic", 0600, ec_debugfs_dir, NULL,
-+			    &ec_debugfs_genops);
-+}
-+
- static int olpc_ec_suspend(void)
+ /*
+@@ -87,7 +75,7 @@ void flush_tlb_all(void)
+ void flush_tlb_mm(struct mm_struct *mm)
  {
- 	return olpc_ec_mask_write(ec_wakeup_mask);
-@@ -372,6 +457,7 @@ static int __init olpc_init(void)
- 	}
- 
- 	register_syscore_ops(&olpc_syscore_ops);
-+	setup_debugfs();
- 
- 	return 0;
+ 	if (tlb_ops_need_broadcast())
+-		on_each_cpu_mask(ipi_flush_tlb_mm, mm, 1, mm_cpumask(mm));
++		on_each_cpu_mask(mm_cpumask(mm), ipi_flush_tlb_mm, mm, 1);
+ 	else
+ 		local_flush_tlb_mm(mm);
+ }
+@@ -98,7 +86,8 @@ void flush_tlb_page(struct vm_area_struc
+ 		struct tlb_args ta;
+ 		ta.ta_vma = vma;
+ 		ta.ta_start = uaddr;
+-		on_each_cpu_mask(ipi_flush_tlb_page, &ta, 1, mm_cpumask(vma->vm_mm));
++		on_each_cpu_mask(mm_cpumask(vma->vm_mm), ipi_flush_tlb_page,
++					&ta, 1);
+ 	} else
+ 		local_flush_tlb_page(vma, uaddr);
+ }
+@@ -121,7 +110,8 @@ void flush_tlb_range(struct vm_area_stru
+ 		ta.ta_vma = vma;
+ 		ta.ta_start = start;
+ 		ta.ta_end = end;
+-		on_each_cpu_mask(ipi_flush_tlb_range, &ta, 1, mm_cpumask(vma->vm_mm));
++		on_each_cpu_mask(mm_cpumask(vma->vm_mm), ipi_flush_tlb_range,
++					&ta, 1);
+ 	} else
+ 		local_flush_tlb_range(vma, start, end);
  }
 _
 
-Patches currently in -mm which might be from dsd@laptop.org are
+Patches currently in -mm which might be from gilad@benyossef.com are
 
-origin.patch
-linux-next.patch
+smp-introduce-a-generic-on_each_cpu_mask-function.patch
+tile-move-tile-to-use-generic-on_each_cpu_mask.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
+smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
+slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
+fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist-update.patch
+mm-only-ipi-cpus-to-drain-local-pages-if-they-exist-v9.patch
 
