@@ -1,149 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [folded] fs-hardlink-creation-restrictions-cleanup.patch removed from -mm tree
-Date: Wed, 28 Mar 2012 15:14:13 -0700
-Message-ID: <20120328221413.B079CA00AE@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] proc-clean-up-proc-pid-environ-handling.patch removed from -mm tree
+Date: Wed, 28 Mar 2012 15:39:50 -0700
+Message-ID: <20120328223951.22070A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:37938 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758083Ab2C1WOO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 18:14:14 -0400
-Received: by ggnd2 with SMTP id d2so196850ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 15:14:14 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:56846 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758899Ab2C1Wjx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 18:39:53 -0400
+Received: by wibhj13 with SMTP id hj13so83173wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 15:39:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: hardlink creation restriction cleanup
+     Subject: proc: clean up /proc/<pid>/environ handling
 has been removed from the -mm tree.  Its filename was
-     fs-hardlink-creation-restrictions-cleanup.patch
+     proc-clean-up-proc-pid-environ-handling.patch
 
-This patch was dropped because it was folded into fs-hardlink-creation-restrictions.patch
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fs: hardlink creation restriction cleanup
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: proc: clean up /proc/<pid>/environ handling
 
-Clean-up of hardlink restriction logic, as suggested by Andrew Morton.
+Similar to e268337dfe2 ("proc: clean up and fix /proc/<pid>/mem
+handling"), move the check of permission to open(), this will simplify
+read() code.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   62 ++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 44 insertions(+), 18 deletions(-)
+ fs/proc/base.c |   55 +++++++++++++++++++++++++++++------------------
+ 1 file changed, 35 insertions(+), 20 deletions(-)
 
-diff -puN fs/namei.c~fs-hardlink-creation-restrictions-cleanup fs/namei.c
---- a/fs/namei.c~fs-hardlink-creation-restrictions-cleanup
-+++ a/fs/namei.c
-@@ -693,46 +693,72 @@ static inline int may_follow_link(struct
- }
+diff -puN fs/proc/base.c~proc-clean-up-proc-pid-environ-handling fs/proc/base.c
+--- a/fs/proc/base.c~proc-clean-up-proc-pid-environ-handling
++++ a/fs/proc/base.c
+@@ -801,28 +801,38 @@ static const struct file_operations proc
+ 	.release	= mem_release,
+ };
  
- /**
-+ * safe_hardlink_source - Check for safe hardlink conditions
-+ * @inode: the source inode to hardlink from
-+ *
-+ * Return false if at least one of the following conditions:
-+ *    - inode is not a regular file
-+ *    - inode is setuid
-+ *    - inode is setgid and group-exec
-+ *    - access failure for read and write
-+ *
-+ * Otherwise returns true.
-+ */
-+static bool safe_hardlink_source(struct inode *inode)
++static int environ_open(struct inode *inode, struct file *file)
 +{
-+	mode_t mode = inode->i_mode;
++	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
++	struct mm_struct *mm;
 +
-+	/* Special files should not get pinned to the filesystem. */
-+	if (!S_ISREG(mode))
-+		return false;
++	if (!task)
++		return -ESRCH;
 +
-+	/* Setuid files should not get pinned to the filesystem. */
-+	if (mode & S_ISUID)
-+		return false;
++	mm = mm_for_maps(task);
++	put_task_struct(task);
 +
-+	/* Executable setgid files should not get pinned to the filesystem. */
-+	if ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP))
-+		return false;
++	if (!mm)
++		return -ENOENT;
++	if (IS_ERR(mm))
++		return PTR_ERR(mm);
 +
-+	/* Hardlinking to unreadable or unwritable sources is dangerous. */
-+	if (inode_permission(inode, MAY_READ | MAY_WRITE))
-+		return false;
++	file->private_data = mm;
 +
-+	return true;
++	return 0;
 +}
 +
-+/**
-  * may_linkat - Check permissions for creating a hardlink
-  * @link: the source to hardlink from
-  *
-  * Block hardlink when all of:
-  *  - sysctl_protected_hardlinks enabled
-  *  - fsuid does not match inode
-- *  - at least one of:
-- *    - inode is not a regular file
-- *    - inode is setuid
-- *    - inode is setgid and group-exec
-- *    - access failure for read and write
-+ *  - hardlink source is unsafe (see safe_hardlink_source() above)
-  *  - not CAP_FOWNER
-  *
-  * Returns 0 if successful, -ve on error.
-  */
- static int may_linkat(struct path *link)
+ static ssize_t environ_read(struct file *file, char __user *buf,
+ 			size_t count, loff_t *ppos)
  {
--	int error = 0;
- 	const struct cred *cred;
- 	struct inode *inode;
--	int mode;
+-	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
+ 	char *page;
+ 	unsigned long src = *ppos;
+-	int ret = -ESRCH;
+-	struct mm_struct *mm;
++	int ret = 0;
++	struct mm_struct *mm = file->private_data;
  
- 	if (!sysctl_protected_hardlinks)
- 		return 0;
- 
- 	cred = current_cred();
- 	inode = link->dentry->d_inode;
--	mode = inode->i_mode;
+-	if (!task)
+-		goto out_no_task;
 -
--	if (cred->fsuid != inode->i_uid &&
--	    (!S_ISREG(mode) || (mode & S_ISUID) ||
--	     ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP)) ||
--	     (inode_permission(inode, MAY_READ | MAY_WRITE))) &&
--	    !capable(CAP_FOWNER))
--		error = -EPERM;
+-	ret = -ENOMEM;
+ 	page = (char *)__get_free_page(GFP_TEMPORARY);
+ 	if (!page)
+-		goto out;
+-
+-
+-	mm = mm_for_maps(task);
+-	ret = PTR_ERR(mm);
+-	if (!mm || IS_ERR(mm))
+-		goto out_free;
++		return -ENOMEM;
  
--	if (error)
--		audit_log_link_denied("linkat", link);
-+	/* Source inode owner (or CAP_FOWNER) can hardlink all they like,
-+	 * otherwise, it must be a safe source.
-+	 */
-+	if (cred->fsuid == inode->i_uid || safe_hardlink_source(inode) ||
-+	    capable(CAP_FOWNER))
-+		return 0;
+ 	ret = 0;
+ 	while (count > 0) {
+@@ -836,7 +846,7 @@ static ssize_t environ_read(struct file 
+ 		max_len = (count > PAGE_SIZE) ? PAGE_SIZE : count;
+ 		this_len = (this_len > max_len) ? max_len : this_len;
  
--	return error;
-+	audit_log_link_denied("linkat", link);
-+	return -EPERM;
+-		retval = access_process_vm(task, (mm->env_start + src),
++		retval = access_remote_vm(mm, (mm->env_start + src),
+ 			page, this_len, 0);
+ 
+ 		if (retval <= 0) {
+@@ -856,18 +866,23 @@ static ssize_t environ_read(struct file 
+ 	}
+ 	*ppos = src;
+ 
+-	mmput(mm);
+-out_free:
+ 	free_page((unsigned long) page);
+-out:
+-	put_task_struct(task);
+-out_no_task:
+ 	return ret;
  }
- #else
- static inline int may_follow_link(struct path *link)
+ 
++static int environ_release(struct inode *inode, struct file *file)
++{
++	struct mm_struct *mm = file->private_data;
++
++	mmput(mm);
++	return 0;
++}
++
+ static const struct file_operations proc_environ_operations = {
++	.open		= environ_open,
+ 	.read		= environ_read,
+ 	.llseek		= generic_file_llseek,
++	.release	= environ_release,
+ };
+ 
+ static ssize_t oom_adjust_read(struct file *file, char __user *buf,
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
+kdump-x86-fix-total-mem-size-calculation-for-reservation.patch
 linux-next.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
-c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-ramoops-use-pstore-interface.patch
-ramoops-use-pstore-interface-fix.patch
+cris-select-generic_atomic64.patch
 
