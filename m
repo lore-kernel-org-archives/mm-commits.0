@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch removed from -mm tree
-Date: Wed, 28 Mar 2012 14:32:41 -0700
-Message-ID: <20120328213242.1EC60A0496@akpm.mtv.corp.google.com>
+Subject: [folded] pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 28 Mar 2012 14:32:44 -0700
+Message-ID: <20120328213244.A8418A0496@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:49076 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932249Ab2C1Vcn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 17:32:43 -0400
-Received: by yhgm50 with SMTP id m50so192565yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 14:32:42 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:43075 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932249Ab2C1Vcw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 17:32:52 -0400
+Received: by wibhj13 with SMTP id hj13so81469wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 14:32:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel.lezcano@free.fr, ebiederm@xmission.com, mtk.manpages@gmail.com, oleg@redhat.com, serge.hallyn@canonical.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.lezcano@free.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix
+     Subject: pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix.patch
+     pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
 
@@ -26,52 +26,40 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix
+Subject: pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes
 
-tweak and add comments
+ERROR: space required before the open parenthesis '('
+#111: FILE: kernel/pid_namespace.c:233:
++	switch(cmd) {
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+total: 1 errors, 0 warnings, 95 lines checked
+
+./patches/pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Daniel Lezcano <daniel.lezcano@free.fr>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |    2 +-
- kernel/sys.c                  |    7 ++++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ kernel/pid_namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pid_namespace.h~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix
-+++ a/include/linux/pid_namespace.h
-@@ -33,7 +33,7 @@ struct pid_namespace {
- #endif
- 	gid_t pid_gid;
- 	int hide_pid;
--	int reboot;
-+	int reboot;	/* group exit code if this pidns was rebooted */
- };
+diff -puN kernel/pid_namespace.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes
++++ a/kernel/pid_namespace.c
+@@ -226,7 +226,7 @@ int reboot_pid_ns(struct pid_namespace *
+ 	if (pid_ns == &init_pid_ns)
+ 		return 0;
  
- extern struct pid_namespace init_pid_ns;
-diff -puN kernel/sys.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix kernel/sys.c
---- a/kernel/sys.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-fix
-+++ a/kernel/sys.c
-@@ -444,9 +444,10 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
- 	                magic2 != LINUX_REBOOT_MAGIC2C))
- 		return -EINVAL;
- 
--	/* In case the pid namespaces are enabled, the current task is in a
--	 * child pid_namespace and the command is handled by 'reboot_pid_ns',
--	 * this one will invoke 'do_exit'.
-+	/*
-+	 * If pid namespaces are enabled and the current task is in a child
-+	 * pid_namespace, the command is handled by reboot_pid_ns() which will
-+	 * call do_exit().
- 	 */
- 	ret = reboot_pid_ns(task_active_pid_ns(current), cmd);
- 	if (ret)
+-	switch(cmd) {
++	switch (cmd) {
+ 	case LINUX_REBOOT_CMD_RESTART2:
+ 	case LINUX_REBOOT_CMD_RESTART:
+ 		pid_ns->reboot = SIGHUP;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +67,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
 pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
-pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall-checkpatch-fixes.patch
 fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
 radix-tree-introduce-bit-optimized-iterator-v3-fix.patch
 selftests-makefile-make-run_tests-depend-on-all.patch
