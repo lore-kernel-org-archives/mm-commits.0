@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] arm-move-arm-over-to-generic-on_each_cpu_mask.patch removed from -mm tree
-Date: Wed, 28 Mar 2012 14:28:22 -0700
-Message-ID: <20120328212823.04754A0443@akpm.mtv.corp.google.com>
+Subject: [folded] tile-move-tile-to-use-generic-on_each_cpu_mask.patch removed from -mm tree
+Date: Wed, 28 Mar 2012 14:28:26 -0700
+Message-ID: <20120328212826.3C891A0443@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:46153 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932969Ab2C1V2Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 17:28:24 -0400
-Received: by yhgm50 with SMTP id m50so192145yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 14:28:23 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:55272 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932969Ab2C1V22 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 17:28:28 -0400
+Received: by wibhj13 with SMTP id hj13so81400wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 14:28:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gilad@benyossef.com, a.p.zijlstra@chello.nl, linux@arm.linux.org.uk, mina86@mina86.org, mm-commits@vger.kernel.org
+To: gilad@benyossef.com, a.p.zijlstra@chello.nl, cmetcalf@tilera.com, mina86@mina86.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: move arm over to generic on_each_cpu_mask
+     Subject: tile: move tile to use generic on_each_cpu_mask
 has been removed from the -mm tree.  Its filename was
-     arm-move-arm-over-to-generic-on_each_cpu_mask.patch
+     tile-move-tile-to-use-generic-on_each_cpu_mask.patch
 
 This patch was dropped because it was folded into smp-introduce-a-generic-on_each_cpu_mask-function.patch
 
@@ -26,92 +26,72 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Gilad Ben-Yossef <gilad@benyossef.com>
-Subject: arm: move arm over to generic on_each_cpu_mask
+Subject: tile: move tile to use generic on_each_cpu_mask
 
-Note that the generic version is a little different then the Arm one:
+The API is the same as the tile private one, but the generic version
+also calls the function on the with interrupts disabled in UP case
 
-1. It has the mask as first parameter
-2. It calls the function on the calling CPU with interrupts disabled,
-   but this should be OK since the function is called on the other CPUs
-   with interrupts disabled anyway.
+This is OK since the function is called on the other CPUs
+with interrupts disabled.
 
 Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>
 Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Acked-by: Michal Nazarewicz <mina86@mina86.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/smp_tlb.c |   20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+ arch/tile/include/asm/smp.h |    7 -------
+ arch/tile/kernel/smp.c      |   19 -------------------
+ 2 files changed, 26 deletions(-)
 
-diff -puN arch/arm/kernel/smp_tlb.c~arm-move-arm-over-to-generic-on_each_cpu_mask arch/arm/kernel/smp_tlb.c
---- a/arch/arm/kernel/smp_tlb.c~arm-move-arm-over-to-generic-on_each_cpu_mask
-+++ a/arch/arm/kernel/smp_tlb.c
-@@ -13,18 +13,6 @@
- #include <asm/smp_plat.h>
- #include <asm/tlbflush.h>
+diff -puN arch/tile/include/asm/smp.h~tile-move-tile-to-use-generic-on_each_cpu_mask arch/tile/include/asm/smp.h
+--- a/arch/tile/include/asm/smp.h~tile-move-tile-to-use-generic-on_each_cpu_mask
++++ a/arch/tile/include/asm/smp.h
+@@ -43,10 +43,6 @@ void evaluate_message(int tag);
+ /* Boot a secondary cpu */
+ void online_secondary(void);
  
--static void on_each_cpu_mask(void (*func)(void *), void *info, int wait,
--	const struct cpumask *mask)
+-/* Call a function on a specified set of CPUs (may include this one). */
+-extern void on_each_cpu_mask(const struct cpumask *mask,
+-			     void (*func)(void *), void *info, bool wait);
+-
+ /* Topology of the supervisor tile grid, and coordinates of boot processor */
+ extern HV_Topology smp_topology;
+ 
+@@ -91,9 +87,6 @@ void print_disabled_cpus(void);
+ 
+ #else /* !CONFIG_SMP */
+ 
+-#define on_each_cpu_mask(mask, func, info, wait)		\
+-  do { if (cpumask_test_cpu(0, (mask))) func(info); } while (0)
+-
+ #define smp_master_cpu		0
+ #define smp_height		1
+ #define smp_width		1
+diff -puN arch/tile/kernel/smp.c~tile-move-tile-to-use-generic-on_each_cpu_mask arch/tile/kernel/smp.c
+--- a/arch/tile/kernel/smp.c~tile-move-tile-to-use-generic-on_each_cpu_mask
++++ a/arch/tile/kernel/smp.c
+@@ -87,25 +87,6 @@ void send_IPI_allbutself(int tag)
+ 	send_IPI_many(&mask, tag);
+ }
+ 
+-
+-/*
+- * Provide smp_call_function_mask, but also run function locally
+- * if specified in the mask.
+- */
+-void on_each_cpu_mask(const struct cpumask *mask, void (*func)(void *),
+-		      void *info, bool wait)
 -{
--	preempt_disable();
--
+-	int cpu = get_cpu();
 -	smp_call_function_many(mask, func, info, wait);
--	if (cpumask_test_cpu(smp_processor_id(), mask))
+-	if (cpumask_test_cpu(cpu, mask)) {
+-		local_irq_disable();
 -		func(info);
--
--	preempt_enable();
+-		local_irq_enable();
+-	}
+-	put_cpu();
 -}
 -
- /**********************************************************************/
- 
- /*
-@@ -87,7 +75,7 @@ void flush_tlb_all(void)
- void flush_tlb_mm(struct mm_struct *mm)
- {
- 	if (tlb_ops_need_broadcast())
--		on_each_cpu_mask(ipi_flush_tlb_mm, mm, 1, mm_cpumask(mm));
-+		on_each_cpu_mask(mm_cpumask(mm), ipi_flush_tlb_mm, mm, 1);
- 	else
- 		local_flush_tlb_mm(mm);
- }
-@@ -98,7 +86,8 @@ void flush_tlb_page(struct vm_area_struc
- 		struct tlb_args ta;
- 		ta.ta_vma = vma;
- 		ta.ta_start = uaddr;
--		on_each_cpu_mask(ipi_flush_tlb_page, &ta, 1, mm_cpumask(vma->vm_mm));
-+		on_each_cpu_mask(mm_cpumask(vma->vm_mm), ipi_flush_tlb_page,
-+					&ta, 1);
- 	} else
- 		local_flush_tlb_page(vma, uaddr);
- }
-@@ -121,7 +110,8 @@ void flush_tlb_range(struct vm_area_stru
- 		ta.ta_vma = vma;
- 		ta.ta_start = start;
- 		ta.ta_end = end;
--		on_each_cpu_mask(ipi_flush_tlb_range, &ta, 1, mm_cpumask(vma->vm_mm));
-+		on_each_cpu_mask(mm_cpumask(vma->vm_mm), ipi_flush_tlb_range,
-+					&ta, 1);
- 	} else
- 		local_flush_tlb_range(vma, start, end);
- }
-_
-
-Patches currently in -mm which might be from gilad@benyossef.com are
-
-smp-introduce-a-generic-on_each_cpu_mask-function.patch
-tile-move-tile-to-use-generic-on_each_cpu_mask.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-update-fix.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9.patch
-smp-add-func-to-ipi-cpus-based-on-parameter-func-v9-fix.patch
-slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
-fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
-mm-only-ipi-cpus-to-drain-local-pages-if-they-exist.patch
-mm-only-ipi-cpus-to-drain-local-pages-if-they-exist-update.patch
-mm-only-ipi-cpus-to-drain-local-pages-if-they-exist-v9.patch
-
