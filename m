@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback.patch added to -mm tree
-Date: Tue, 27 Mar 2012 16:48:12 -0700
-Message-ID: <20120327234812.C64C2A02DE@akpm.mtv.corp.google.com>
+Subject: + hugetlbfs-remove-unregister_filesystem-when-initializing-module.patch added to -mm tree
+Date: Wed, 28 Mar 2012 12:22:52 -0700
+Message-ID: <20120328192254.9CF34A00AA@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:40899 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756071Ab2C0XsP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Mar 2012 19:48:15 -0400
-Received: by eekc41 with SMTP id c41so18997eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Mar 2012 16:48:13 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:62239 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756518Ab2C1TW4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Mar 2012 15:22:56 -0400
+Received: by ghbz15 with SMTP id z15so175382ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Mar 2012 12:22:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jtzhou@marvell.com, a.zummo@towertech.it, axel.lin@gmail.com, haojian.zhuang@marvell.com
+Cc: dhillf@gmail.com, rientjes@google.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-88pm860x.c: fix rtc irq enable callback
+     Subject: hugetlbfs: remove unregister_filesystem() when initializing module
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback.patch
+     hugetlbfs-remove-unregister_filesystem-when-initializing-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Jett.Zhou" <jtzhou@marvell.com>
-Subject: drivers/rtc/rtc-88pm860x.c: fix rtc irq enable callback
+From: Hillf Danton <dhillf@gmail.com>
+Subject: hugetlbfs: remove unregister_filesystem() when initializing module
 
-According to 88pm860x spec, rtc alarm irq enable control is bit3 for
-RTC_ALARM_EN, so fix it.
+It was introduced by d1d5e05ffd ("hugetlbfs: return error code when
+initializing module") but as Al pointed out, is a bad idea.
 
-Signed-off-by: Jett.Zhou <jtzhou@marvell.com>
-Cc: Axel Lin <axel.lin@gmail.com>
-Cc: Haojian Zhuang <haojian.zhuang@marvell.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Quoted comments from Al.
+Note that unregister_filesystem() in module init is *always* wrong; it's not
+an issue here (it's done too early to care about and realistically the box
+is not going anywhere - it'll panic when attempt to exec /sbin/init fails,
+if not earlier), but it's a damn bad example.
+
+Consider a normal fs module.  Somebody loads it and in parallel with that
+we get a mount attempt on that fs type.  It comes between register and
+failure exits that causes unregister; at that point we are screwed since
+grabbing a reference to module as done by mount is enough to prevent
+exit, but not to prevent the failure of init.  As the result, module will
+get freed when init fails, mounted fs of that type be damned.
+end of quote
+
+So remove it.
+
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-88pm860x.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback drivers/rtc/rtc-88pm860x.c
---- a/drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback
-+++ a/drivers/rtc/rtc-88pm860x.c
-@@ -72,9 +72,9 @@ static int pm860x_rtc_alarm_irq_enable(s
- 	struct pm860x_rtc_info *info = dev_get_drvdata(dev);
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-remove-unregister_filesystem-when-initializing-module fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-remove-unregister_filesystem-when-initializing-module
++++ a/fs/hugetlbfs/inode.c
+@@ -1031,7 +1031,6 @@ static int __init init_hugetlbfs_fs(void
+ 	}
  
- 	if (enabled)
--		pm860x_set_bits(info->i2c, PM8607_RTC1, ALARM, ALARM);
-+		pm860x_set_bits(info->i2c, PM8607_RTC1, ALARM_EN, ALARM_EN);
- 	else
--		pm860x_set_bits(info->i2c, PM8607_RTC1, ALARM, 0);
-+		pm860x_set_bits(info->i2c, PM8607_RTC1, ALARM_EN, 0);
- 	return 0;
- }
+ 	error = PTR_ERR(vfsmount);
+-	unregister_filesystem(&hugetlbfs_fs_type);
  
+  out:
+ 	kmem_cache_destroy(hugetlbfs_inode_cachep);
 _
-Subject: Subject: drivers/rtc/rtc-88pm860x.c: fix rtc irq enable callback
+Subject: Subject: hugetlbfs: remove unregister_filesystem() when initializing module
 
-Patches currently in -mm which might be from jtzhou@marvell.com are
+Patches currently in -mm which might be from dhillf@gmail.com are
 
-linux-next.patch
-drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback.patch
+origin.patch
+hugetlbfs-remove-unregister_filesystem-when-initializing-module.patch
 
