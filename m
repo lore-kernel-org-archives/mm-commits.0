@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-ethernet-smsc-smsc911xh-use-lockdep_assert_held-instead-of-home-grown-buggy-construct.patch added to -mm tree
-Date: Thu, 29 Mar 2012 14:39:17 -0700
-Message-ID: <20120329213917.DD17FA06A4@akpm.mtv.corp.google.com>
+Subject: + futex-use-lockdep_assert_held-for-lock-checking.patch added to -mm tree
+Date: Thu, 29 Mar 2012 14:39:12 -0700
+Message-ID: <20120329213912.34389A05B5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:50823 "EHLO
 	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933860Ab2C2VjT (ORCPT
+	by vger.kernel.org with ESMTP id S933437Ab2C2VjO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2012 17:39:19 -0400
+	Thu, 29 Mar 2012 17:39:14 -0400
 Received: by mail-lpp01m010-f74.google.com with SMTP id i8so149511laa.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:18 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, davem@davemloft.net, steve.glendinning@smsc.com
+Cc: ak@linux.intel.com, a.p.zijlstra@chello.nl, dvhart@linux.intel.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: drivers/net/ethernet/smsc/smsc911x.h: use lockdep_assert_held() instead of home grown buggy construct
+     Subject: futex: use lockdep_assert_held() for lock checking
 has been added to the -mm tree.  Its filename is
-     drivers-net-ethernet-smsc-smsc911xh-use-lockdep_assert_held-instead-of-home-grown-buggy-construct.patch
+     futex-use-lockdep_assert_held-for-lock-checking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,31 +35,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: drivers/net/ethernet/smsc/smsc911x.h: use lockdep_assert_held() instead of home grown buggy construct
+Subject: futex: use lockdep_assert_held() for lock checking
+
+Use lockdep_assert_held() for lock checking instead of a strange homegrown
+variant.  This removes the return for this case, but that is unlikely to
+be useful anyway.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Steve Glendinning <steve.glendinning@smsc.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Darren Hart <dvhart@linux.intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/smsc/smsc911x.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/futex.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ethernet/smsc/smsc911x.h~drivers-net-ethernet-smsc-smsc911xh-use-lockdep_assert_held-instead-of-home-grown-buggy-construct drivers/net/ethernet/smsc/smsc911x.h
---- a/drivers/net/ethernet/smsc/smsc911x.h~drivers-net-ethernet-smsc-smsc911xh-use-lockdep_assert_held-instead-of-home-grown-buggy-construct
-+++ a/drivers/net/ethernet/smsc/smsc911x.h
-@@ -52,7 +52,7 @@
+diff -puN kernel/futex.c~futex-use-lockdep_assert_held-for-lock-checking kernel/futex.c
+--- a/kernel/futex.c~futex-use-lockdep_assert_held-for-lock-checking
++++ a/kernel/futex.c
+@@ -823,8 +823,9 @@ static void __unqueue_futex(struct futex
+ {
+ 	struct futex_hash_bucket *hb;
  
- #ifdef CONFIG_DEBUG_SPINLOCK
- #define SMSC_ASSERT_MAC_LOCK(pdata) \
--		WARN_ON(!spin_is_locked(&pdata->mac_lock))
-+		lockdep_assert_held(&(pdata)->mac_lock)
- #else
- #define SMSC_ASSERT_MAC_LOCK(pdata) do {} while (0)
- #endif				/* CONFIG_DEBUG_SPINLOCK */
+-	if (WARN_ON_SMP(!q->lock_ptr || !spin_is_locked(q->lock_ptr))
+-	    || WARN_ON(plist_node_empty(&q->list)))
++	if (q->lock_ptr)
++		lockdep_assert_held(q->lock_ptr);
++	if (WARN_ON(plist_node_empty(&q->list)))
+ 		return;
+ 
+ 	hb = container_of(q->lock_ptr, struct futex_hash_bucket, lock);
 _
-Subject: Subject: drivers/net/ethernet/smsc/smsc911x.h: use lockdep_assert_held() instead of home grown buggy construct
+Subject: Subject: futex: use lockdep_assert_held() for lock checking
 
 Patches currently in -mm which might be from ak@linux.intel.com are
 
