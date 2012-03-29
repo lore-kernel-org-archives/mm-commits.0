@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch added to -mm tree
-Date: Thu, 29 Mar 2012 14:09:40 -0700
-Message-ID: <20120329210940.A75B6A0203@akpm.mtv.corp.google.com>
+Subject: + block-use-lockdep_assert_held-for-queue-locking.patch added to -mm tree
+Date: Thu, 29 Mar 2012 14:38:41 -0700
+Message-ID: <20120329213842.38696A05B5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:53401 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933576Ab2C2VJn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:09:43 -0400
-Received: by wibhj13 with SMTP id hj13so438wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:09:42 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:35761 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933245Ab2C2Vin (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:38:43 -0400
+Received: by yhgm50 with SMTP id m50so323182yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:38:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, dhowells@redhat.com, jmorris@namei.org
+Cc: ak@linux.intel.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: security/keys/keyctl.c: suppress memory allocation failure warning	
+     Subject: block: use lockdep_assert_held() for queue locking
 has been added to the -mm tree.  Its filename is
-     security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+     block-use-lockdep_assert_held-for-queue-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: security/keys/keyctl.c: suppress memory allocation failure warning	
+From: Andi Kleen <ak@linux.intel.com>
+Subject: block: use lockdep_assert_held() for queue locking
 
-This allocation may be large.  The code is probing to see if it will
-succeed and if not, it falls back to vmalloc().  We should suppress any
-page-allocation failure messages when the fallback happens.
+Instead of an ugly open coded variant.
 
-Reported-by: Dave Jones <davej@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/keyctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/blk-throttle.c   |    2 +-
+ include/linux/blkdev.h |   18 +++++++-----------
+ 2 files changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN security/keys/keyctl.c~security-keys-keyctlc-suppress-memory-allocation-failure-warning security/keys/keyctl.c
---- a/security/keys/keyctl.c~security-keys-keyctlc-suppress-memory-allocation-failure-warning
-+++ a/security/keys/keyctl.c
-@@ -84,7 +84,7 @@ SYSCALL_DEFINE5(add_key, const char __us
- 	vm = false;
- 	if (_payload) {
- 		ret = -ENOMEM;
--		payload = kmalloc(plen, GFP_KERNEL);
-+		payload = kmalloc(plen, GFP_KERNEL | __GFP_NOWARN);
- 		if (!payload) {
- 			if (plen <= PAGE_SIZE)
- 				goto error2;
+diff -puN block/blk-throttle.c~block-use-lockdep_assert_held-for-queue-locking block/blk-throttle.c
+--- a/block/blk-throttle.c~block-use-lockdep_assert_held-for-queue-locking
++++ a/block/blk-throttle.c
+@@ -993,7 +993,7 @@ void blk_throtl_drain(struct request_que
+ 	struct bio_list bl;
+ 	struct bio *bio;
+ 
+-	WARN_ON_ONCE(!queue_is_locked(q));
++	queue_lockdep_assert_held(q);
+ 
+ 	bio_list_init(&bl);
+ 
+diff -puN include/linux/blkdev.h~block-use-lockdep_assert_held-for-queue-locking include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-use-lockdep_assert_held-for-queue-locking
++++ a/include/linux/blkdev.h
+@@ -435,14 +435,10 @@ struct request_queue {
+ 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
+ 				 (1 << QUEUE_FLAG_ADD_RANDOM))
+ 
+-static inline int queue_is_locked(struct request_queue *q)
++static inline void queue_lockdep_assert_held(struct request_queue *q)
+ {
+-#ifdef CONFIG_SMP
+-	spinlock_t *lock = q->queue_lock;
+-	return lock && spin_is_locked(lock);
+-#else
+-	return 1;
+-#endif
++	if (q->queue_lock)
++		lockdep_assert_held(q->queue_lock);
+ }
+ 
+ static inline void queue_flag_set_unlocked(unsigned int flag,
+@@ -454,7 +450,7 @@ static inline void queue_flag_set_unlock
+ static inline int queue_flag_test_and_clear(unsigned int flag,
+ 					    struct request_queue *q)
+ {
+-	WARN_ON_ONCE(!queue_is_locked(q));
++	queue_lockdep_assert_held(q);
+ 
+ 	if (test_bit(flag, &q->queue_flags)) {
+ 		__clear_bit(flag, &q->queue_flags);
+@@ -467,7 +463,7 @@ static inline int queue_flag_test_and_cl
+ static inline int queue_flag_test_and_set(unsigned int flag,
+ 					  struct request_queue *q)
+ {
+-	WARN_ON_ONCE(!queue_is_locked(q));
++	queue_lockdep_assert_held(q);
+ 
+ 	if (!test_bit(flag, &q->queue_flags)) {
+ 		__set_bit(flag, &q->queue_flags);
+@@ -479,7 +475,7 @@ static inline int queue_flag_test_and_se
+ 
+ static inline void queue_flag_set(unsigned int flag, struct request_queue *q)
+ {
+-	WARN_ON_ONCE(!queue_is_locked(q));
++	queue_lockdep_assert_held(q);
+ 	__set_bit(flag, &q->queue_flags);
+ }
+ 
+@@ -496,7 +492,7 @@ static inline int queue_in_flight(struct
+ 
+ static inline void queue_flag_clear(unsigned int flag, struct request_queue *q)
+ {
+-	WARN_ON_ONCE(!queue_is_locked(q));
++	queue_lockdep_assert_held(q);
+ 	__clear_bit(flag, &q->queue_flags);
+ }
+ 
 _
-Subject: Subject: security/keys/keyctl.c: suppress memory allocation failure warning	
+Subject: Subject: block: use lockdep_assert_held() for queue locking
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
-fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
-simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
 brlocks-lglocks-cleanups.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+block-use-lockdep_assert_held-for-queue-locking.patch
+sgi-xp-use-lockdep_assert_held.patch
+ada152x-remove-broken-usage-of-spin_is_locked.patch
+xfs-fix-lock-assert-on-up.patch
+huge-memory-use-lockdep_assert_held.patch
+futex-use-lockdep_assert_held-for-lock-checking.patch
+irda-remove-spin_is_locked.patch
+smsc911x-use-lockdep_assert_held-instead-of-home-grown-buggy-construct.patch
+add-a-discussion-on-why-spin_is_locked-is-bad-to-spinlockstxt.patch
+add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-usage.patch
+checkpatch-check-for-spin_is_locked.patch
 
