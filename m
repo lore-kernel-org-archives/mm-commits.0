@@ -1,25 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-introduce-bit-optimized-iterator.patch removed from -mm tree
-Date: Thu, 29 Mar 2012 12:14:14 -0700
-Message-ID: <20120329191414.75273A01E3@akpm.mtv.corp.google.com>
+Subject: [merged] radix-tree-rewrite-gang-lookup-with-using-iterator.patch removed from -mm tree
+Date: Thu, 29 Mar 2012 12:14:16 -0700
+Message-ID: <20120329191416.8127EA01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:39142 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933738Ab2C2TOR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2012 15:14:17 -0400
-Received: by mail-lpp01m010-f74.google.com with SMTP id i8so146152laa.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:14:16 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:60502 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933738Ab2C2TOS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:14:18 -0400
+Received: by eaaq10 with SMTP id q10so149339eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:14:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: khlebnikov@openvz.org, hch@lst.de, hughd@google.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: introduce bit-optimized iterator
+     Subject: radix-tree: rewrite gang lookup using iterator
 has been removed from the -mm tree.  Its filename was
-     radix-tree-introduce-bit-optimized-iterator.patch
+     radix-tree-rewrite-gang-lookup-with-using-iterator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -27,325 +26,11 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: radix-tree: introduce bit-optimized iterator
+Subject: radix-tree: rewrite gang lookup using iterator
 
-A series of radix tree cleanups, and usage of them in the core pagecache
-code.
+Rewrite radix_tree_gang_lookup_* functions using the new radix-tree
+iterator.
 
-Micro-benchmark:
-
-lookup 14 slots (typical page-vector size)
-in radix-tree there earch <step> slot filled and tagged
-before/after - nsec per full scan through tree
-
-* Intel Sandy Bridge i7-2620M 4Mb L3
-New code always faster
-
-* AMD Athlon 6000+ 2x1Mb L2, without L3
-New code generally faster,
-Minor degradation (marked with "*") for huge sparse trees
-
-* i386 on Sandy Bridge
-New code faster for common cases: tagged and dense trees.
-Some degradations for non-tagged lookup on sparse trees.
-
-Ideally, there might help __ffs() analog for searching first non-zero
-long element in array, gcc sometimes cannot optimize this loop corretly.
-
-Numbers:
-
-CPU: Intel Sandy Bridge i7-2620M 4Mb L3
-
-radix-tree with 1024 slots:
-
-tagged lookup
-
-step  1      before  7156        after  3613
-step  2      before  5399        after  2696
-step  3      before  4779        after  1928
-step  4      before  4456        after  1429
-step  5      before  4292        after  1213
-step  6      before  4183        after  1052
-step  7      before  4157        after  951
-step  8      before  4016        after  812
-step  9      before  3952        after  851
-step  10     before  3937        after  732
-step  11     before  4023        after  709
-step  12     before  3872        after  657
-step  13     before  3892        after  633
-step  14     before  3720        after  591
-step  15     before  3879        after  578
-step  16     before  3561        after  513
-
-normal lookup
-
-step  1      before  4266       after  3301
-step  2      before  2695       after  2129
-step  3      before  2083       after  1712
-step  4      before  1801       after  1534
-step  5      before  1628       after  1313
-step  6      before  1551       after  1263
-step  7      before  1475       after  1185
-step  8      before  1432       after  1167
-step  9      before  1373       after  1092
-step  10     before  1339       after  1134
-step  11     before  1292       after  1056
-step  12     before  1319       after  1030
-step  13     before  1276       after  1004
-step  14     before  1256       after  987
-step  15     before  1228       after  992
-step  16     before  1247       after  999
-
-radix-tree with 1024*1024*128 slots:
-
-tagged lookup
-
-step  1      before  1086102841  after  674196409
-step  2      before  816839155   after  498138306
-step  7      before  599728907   after  240676762
-step  15     before  555729253   after  185219677
-step  63     before  606637748   after  128585664
-step  64     before  608384432   after  102945089
-step  65     before  596987114   after  123996019
-step  128    before  304459225   after  56783056
-step  256    before  158846855   after  31232481
-step  512    before  86085652    after  18950595
-step  12345  before  6517189     after  1674057
-
-normal lookup
-
-step  1      before  626064869  after  544418266
-step  2      before  418809975  after  336321473
-step  7      before  242303598  after  207755560
-step  15     before  208380563  after  176496355
-step  63     before  186854206  after  167283638
-step  64     before  176188060  after  170143976
-step  65     before  185139608  after  167487116
-step  128    before  88181865   after  86913490
-step  256    before  45733628   after  45143534
-step  512    before  24506038   after  23859036
-step  12345  before  2177425    after  2018662
-
-* AMD Athlon 6000+ 2x1Mb L2, without L3
-
-radix-tree with 1024 slots:
-
-tag-lookup
-
-step  1      before  8164        after  5379
-step  2      before  5818        after  5581
-step  3      before  4959        after  4213
-step  4      before  4371        after  3386
-step  5      before  4204        after  2997
-step  6      before  4950        after  2744
-step  7      before  4598        after  2480
-step  8      before  4251        after  2288
-step  9      before  4262        after  2243
-step  10     before  4175        after  2131
-step  11     before  3999        after  2024
-step  12     before  3979        after  1994
-step  13     before  3842        after  1929
-step  14     before  3750        after  1810
-step  15     before  3735        after  1810
-step  16     before  3532        after  1660
-
-normal-lookup
-
-step  1      before  7875        after  5847
-step  2      before  4808        after  4071
-step  3      before  4073        after  3462
-step  4      before  3677        after  3074
-step  5      before  4308        after  2978
-step  6      before  3911        after  3807
-step  7      before  3635        after  3522
-step  8      before  3313        after  3202
-step  9      before  3280        after  3257
-step  10     before  3166        after  3083
-step  11     before  3066        after  3026
-step  12     before  2985        after  2982
-step  13     before  2925        after  2924
-step  14     before  2834        after  2808
-step  15     before  2805        after  2803
-step  16     before  2647        after  2622
-
-radix-tree with 1024*1024*128 slots:
-
-tag-lookup
-
-step  1      before  1288059720  after  951736580
-step  2      before  961292300   after  884212140
-step  7      before  768905140   after  547267580
-step  15     before  771319480   after  456550640
-step  63     before  504847640   after  242704304
-step  64     before  392484800   after  177920786
-step  65     before  491162160   after  246895264
-step  128    before  208084064   after  97348392
-step  256    before  112401035   after  51408126
-step  512    before  75825834    after  29145070
-step  12345  before  5603166     after  2847330
-
-normal-lookup
-
-step  1      before  1025677120  after  861375100
-step  2      before  647220080   after  572258540
-step  7      before  505518960   after  484041813
-step  15     before  430483053   after  444815320	*
-step  63     before  388113453   after  404250546	*
-step  64     before  374154666   after  396027440	*
-step  65     before  381423973   after  396704853	*
-step  128    before  190078700   after  202619384	*
-step  256    before  100886756   after  102829108	*
-step  512    before  64074505    after  56158720
-step  12345  before  4237289     after  4422299		*
-
-
-* i686 on Sandy bridge
-
-radix-tree with 1024 slots:
-
-tagged lookup
-
-step  1      before  7990        after  4019
-step  2      before  5698        after  2897
-step  3      before  5013        after  2475
-step  4      before  4630        after  1721
-step  5      before  4346        after  1759
-step  6      before  4299        after  1556
-step  7      before  4098        after  1513
-step  8      before  4115        after  1222
-step  9      before  3983        after  1390
-step  10     before  4077        after  1207
-step  11     before  3921        after  1231
-step  12     before  3894        after  1116
-step  13     before  3840        after  1147
-step  14     before  3799        after  1090
-step  15     before  3797        after  1059
-step  16     before  3783        after  745
-
-normal lookup
-
-step  1      before  5103       after  3499
-step  2      before  3299       after  2550
-step  3      before  2489       after  2370
-step  4      before  2034       after  2302		*
-step  5      before  1846       after  2268		*
-step  6      before  1752       after  2249		*
-step  7      before  1679       after  2164		*
-step  8      before  1627       after  2153		*
-step  9      before  1542       after  2095		*
-step  10     before  1479       after  2109		*
-step  11     before  1469       after  2009		*
-step  12     before  1445       after  2039		*
-step  13     before  1411       after  2013		*
-step  14     before  1374       after  2046		*
-step  15     before  1340       after  1975		*
-step  16     before  1331       after  2000		*
-
-radix-tree with 1024*1024*128 slots:
-
-tagged lookup
-
-step  1      before  1225865377  after  667153553
-step  2      before  842427423   after  471533007
-step  7      before  609296153   after  276260116
-step  15     before  544232060   after  226859105
-step  63     before  519209199   after  141343043
-step  64     before  588980279   after  141951339
-step  65     before  521099710   after  138282060
-step  128    before  298476778   after  83390628
-step  256    before  149358342   after  43602609
-step  512    before  76994713    after  22911077
-step  12345  before  5328666     after  1472111
-
-normal lookup
-
-step  1      before  819284564  after  533635310
-step  2      before  512421605  after  364956155
-step  7      before  271443305  after  305721345	*
-step  15     before  223591630  after  273960216	*
-step  63     before  190320247  after  217770207	*
-step  64     before  178538168  after  267411372	*
-step  65     before  186400423  after  215347937	*
-step  128    before  88106045   after  140540612	*
-step  256    before  44812420   after  70660377		*
-step  512    before  24435438   after  36328275		*
-step  12345  before  2123924    after  2148062		*
-
-
-bloat-o-meter delta for this patchset + patchset with related shmem cleanups
-
-bloat-o-meter: x86_64
-
-add/remove: 4/3 grow/shrink: 5/6 up/down: 928/-939 (-11)
-function                                     old     new   delta
-radix_tree_next_chunk                          -     499    +499
-shmem_unuse                                  428     554    +126
-shmem_radix_tree_replace                     131     227     +96
-find_get_pages_tag                           354     419     +65
-find_get_pages_contig                        345     407     +62
-find_get_pages                               362     396     +34
-__kstrtab_radix_tree_next_chunk                -      22     +22
-__ksymtab_radix_tree_next_chunk                -      16     +16
-__kcrctab_radix_tree_next_chunk                -       8      +8
-radix_tree_gang_lookup_slot                  204     203      -1
-static.shmem_xattr_set                       384     381      -3
-radix_tree_gang_lookup_tag_slot              208     191     -17
-radix_tree_gang_lookup                       231     187     -44
-radix_tree_gang_lookup_tag                   247     199     -48
-shmem_unlock_mapping                         278     190     -88
-__lookup                                     217       -    -217
-__lookup_tag                                 242       -    -242
-radix_tree_locate_item                       279       -    -279
-
-bloat-o-meter: i386
-
-add/remove: 3/3 grow/shrink: 8/9 up/down: 1075/-1275 (-200)
-function                                     old     new   delta
-radix_tree_next_chunk                          -     757    +757
-shmem_unuse                                  352     449     +97
-find_get_pages_contig                        269     322     +53
-shmem_radix_tree_replace                     113     154     +41
-find_get_pages_tag                           277     318     +41
-dcache_dir_lseek                             426     458     +32
-__kstrtab_radix_tree_next_chunk                -      22     +22
-vc_do_resize                                 968     977      +9
-snd_pcm_lib_read1                            725     733      +8
-__ksymtab_radix_tree_next_chunk                -       8      +8
-netlbl_cipsov4_list                         1120    1127      +7
-find_get_pages                               293     291      -2
-new_slab                                     467     459      -8
-bitfill_unaligned_rev                        425     417      -8
-radix_tree_gang_lookup_tag_slot              177     146     -31
-blk_dump_cmd                                 267     229     -38
-radix_tree_gang_lookup_slot                  212     134     -78
-shmem_unlock_mapping                         221     128     -93
-radix_tree_gang_lookup_tag                   275     162    -113
-radix_tree_gang_lookup                       255     126    -129
-__lookup                                     227       -    -227
-__lookup_tag                                 271       -    -271
-radix_tree_locate_item                       277       -    -277
-
-
-
-This patch:
-
-Implement a clean, simple and effective radix-tree iteration routine.
-
-Iterating divided into two phases:
-* lookup next chunk in radix-tree leaf node
-* iterating through slots in this chunk
-
-Main iterator function radix_tree_next_chunk() returns pointer to first
-slot, and stores in the struct radix_tree_iter index of next-to-last slot.
- For tagged-iterating it also constuct bitmask of tags for retunted chunk.
- All additional logic implemented as static-inline functions and macroses.
-
-Also adds radix_tree_find_next_bit() static-inline variant of
-find_next_bit() optimized for small constant size arrays, because
-find_next_bit() too heavy for searching in an array with one/two long
-elements.
-
-[akpm@linux-foundation.org: rework comments a bit]
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Tested-by: Hugh Dickins <hughd@google.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
@@ -353,396 +38,361 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |  196 +++++++++++++++++++++++++++++++++++
- lib/radix-tree.c           |  151 ++++++++++++++++++++++++++
- 2 files changed, 347 insertions(+)
+ lib/radix-tree.c |  291 +++++----------------------------------------
+ 1 file changed, 33 insertions(+), 258 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-introduce-bit-optimized-iterator include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-introduce-bit-optimized-iterator
-+++ a/include/linux/radix-tree.h
-@@ -2,6 +2,7 @@
-  * Copyright (C) 2001 Momchil Velikov
-  * Portions Copyright (C) 2001 Christoph Hellwig
-  * Copyright (C) 2006 Nick Piggin
-+ * Copyright (C) 2012 Konstantin Khlebnikov
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-@@ -257,4 +258,199 @@ static inline void radix_tree_preload_en
- 	preempt_enable();
- }
- 
-+/**
-+ * struct radix_tree_iter - radix tree iterator state
-+ *
-+ * @index:	index of current slot
-+ * @next_index:	next-to-last index for this chunk
-+ * @tags:	bit-mask for tag-iterating
-+ *
-+ * This radix tree iterator works in terms of "chunks" of slots.  A chunk is a
-+ * subinterval of slots contained within one radix tree leaf node.  It is
-+ * described by a pointer to its first slot and a struct radix_tree_iter
-+ * which holds the chunk's position in the tree and its size.  For tagged
-+ * iteration radix_tree_iter also holds the slots' bit-mask for one chosen
-+ * radix tree tag.
-+ */
-+struct radix_tree_iter {
-+	unsigned long	index;
-+	unsigned long	next_index;
-+	unsigned long	tags;
-+};
-+
-+#define RADIX_TREE_ITER_TAG_MASK	0x00FF	/* tag index in lower byte */
-+#define RADIX_TREE_ITER_TAGGED		0x0100	/* lookup tagged slots */
-+#define RADIX_TREE_ITER_CONTIG		0x0200	/* stop at first hole */
-+
-+/**
-+ * radix_tree_iter_init - initialize radix tree iterator
-+ *
-+ * @iter:	pointer to iterator state
-+ * @start:	iteration starting index
-+ * Returns:	NULL
-+ */
-+static __always_inline void **
-+radix_tree_iter_init(struct radix_tree_iter *iter, unsigned long start)
-+{
-+	/*
-+	 * Leave iter->tags uninitialized. radix_tree_next_chunk() will fill it
-+	 * in the case of a successful tagged chunk lookup.  If the lookup was
-+	 * unsuccessful or non-tagged then nobody cares about ->tags.
-+	 *
-+	 * Set index to zero to bypass next_index overflow protection.
-+	 * See the comment in radix_tree_next_chunk() for details.
-+	 */
-+	iter->index = 0;
-+	iter->next_index = start;
-+	return NULL;
-+}
-+
-+/**
-+ * radix_tree_next_chunk - find next chunk of slots for iteration
-+ *
-+ * @root:	radix tree root
-+ * @iter:	iterator state
-+ * @flags:	RADIX_TREE_ITER_* flags and tag index
-+ * Returns:	pointer to chunk first slot, or NULL if there no more left
-+ *
-+ * This function looks up the next chunk in the radix tree starting from
-+ * @iter->next_index.  It returns a pointer to the chunk's first slot.
-+ * Also it fills @iter with data about chunk: position in the tree (index),
-+ * its end (next_index), and constructs a bit mask for tagged iterating (tags).
-+ */
-+void **radix_tree_next_chunk(struct radix_tree_root *root,
-+			     struct radix_tree_iter *iter, unsigned flags);
-+
-+/**
-+ * radix_tree_chunk_size - get current chunk size
-+ *
-+ * @iter:	pointer to radix tree iterator
-+ * Returns:	current chunk size
-+ */
-+static __always_inline unsigned
-+radix_tree_chunk_size(struct radix_tree_iter *iter)
-+{
-+	return iter->next_index - iter->index;
-+}
-+
-+/**
-+ * radix_tree_next_slot - find next slot in chunk
-+ *
-+ * @slot:	pointer to current slot
-+ * @iter:	pointer to interator state
-+ * @flags:	RADIX_TREE_ITER_*, should be constant
-+ * Returns:	pointer to next slot, or NULL if there no more left
-+ *
-+ * This function updates @iter->index in the case of a successful lookup.
-+ * For tagged lookup it also eats @iter->tags.
-+ */
-+static __always_inline void **
-+radix_tree_next_slot(void **slot, struct radix_tree_iter *iter, unsigned flags)
-+{
-+	if (flags & RADIX_TREE_ITER_TAGGED) {
-+		iter->tags >>= 1;
-+		if (likely(iter->tags & 1ul)) {
-+			iter->index++;
-+			return slot + 1;
-+		}
-+		if (!(flags & RADIX_TREE_ITER_CONTIG) && likely(iter->tags)) {
-+			unsigned offset = __ffs(iter->tags);
-+
-+			iter->tags >>= offset;
-+			iter->index += offset + 1;
-+			return slot + offset + 1;
-+		}
-+	} else {
-+		unsigned size = radix_tree_chunk_size(iter) - 1;
-+
-+		while (size--) {
-+			slot++;
-+			iter->index++;
-+			if (likely(*slot))
-+				return slot;
-+			if (flags & RADIX_TREE_ITER_CONTIG)
-+				break;
-+		}
-+	}
-+	return NULL;
-+}
-+
-+/**
-+ * radix_tree_for_each_chunk - iterate over chunks
-+ *
-+ * @slot:	the void** variable for pointer to chunk first slot
-+ * @root:	the struct radix_tree_root pointer
-+ * @iter:	the struct radix_tree_iter pointer
-+ * @start:	iteration starting index
-+ * @flags:	RADIX_TREE_ITER_* and tag index
-+ *
-+ * Locks can be released and reacquired between iterations.
-+ */
-+#define radix_tree_for_each_chunk(slot, root, iter, start, flags)	\
-+	for (slot = radix_tree_iter_init(iter, start) ;			\
-+	      (slot = radix_tree_next_chunk(root, iter, flags)) ;)
-+
-+/**
-+ * radix_tree_for_each_chunk_slot - iterate over slots in one chunk
-+ *
-+ * @slot:	the void** variable, at the beginning points to chunk first slot
-+ * @iter:	the struct radix_tree_iter pointer
-+ * @flags:	RADIX_TREE_ITER_*, should be constant
-+ *
-+ * This macro is designed to be nested inside radix_tree_for_each_chunk().
-+ * @slot points to the radix tree slot, @iter->index contains its index.
-+ */
-+#define radix_tree_for_each_chunk_slot(slot, iter, flags)		\
-+	for (; slot ; slot = radix_tree_next_slot(slot, iter, flags))
-+
-+/**
-+ * radix_tree_for_each_slot - iterate over non-empty slots
-+ *
-+ * @slot:	the void** variable for pointer to slot
-+ * @root:	the struct radix_tree_root pointer
-+ * @iter:	the struct radix_tree_iter pointer
-+ * @start:	iteration starting index
-+ *
-+ * @slot points to radix tree slot, @iter->index contains its index.
-+ */
-+#define radix_tree_for_each_slot(slot, root, iter, start)		\
-+	for (slot = radix_tree_iter_init(iter, start) ;			\
-+	     slot || (slot = radix_tree_next_chunk(root, iter, 0)) ;	\
-+	     slot = radix_tree_next_slot(slot, iter, 0))
-+
-+/**
-+ * radix_tree_for_each_contig - iterate over contiguous slots
-+ *
-+ * @slot:	the void** variable for pointer to slot
-+ * @root:	the struct radix_tree_root pointer
-+ * @iter:	the struct radix_tree_iter pointer
-+ * @start:	iteration starting index
-+ *
-+ * @slot points to radix tree slot, @iter->index contains its index.
-+ */
-+#define radix_tree_for_each_contig(slot, root, iter, start)		\
-+	for (slot = radix_tree_iter_init(iter, start) ;			\
-+	     slot || (slot = radix_tree_next_chunk(root, iter,		\
-+				RADIX_TREE_ITER_CONTIG)) ;		\
-+	     slot = radix_tree_next_slot(slot, iter,			\
-+				RADIX_TREE_ITER_CONTIG))
-+
-+/**
-+ * radix_tree_for_each_tagged - iterate over tagged slots
-+ *
-+ * @slot:	the void** variable for pointer to slot
-+ * @root:	the struct radix_tree_root pointer
-+ * @iter:	the struct radix_tree_iter pointer
-+ * @start:	iteration starting index
-+ * @tag:	tag index
-+ *
-+ * @slot points to radix tree slot, @iter->index contains its index.
-+ */
-+#define radix_tree_for_each_tagged(slot, root, iter, start, tag)	\
-+	for (slot = radix_tree_iter_init(iter, start) ;			\
-+	     slot || (slot = radix_tree_next_chunk(root, iter,		\
-+			      RADIX_TREE_ITER_TAGGED | tag)) ;		\
-+	     slot = radix_tree_next_slot(slot, iter,			\
-+				RADIX_TREE_ITER_TAGGED))
-+
- #endif /* _LINUX_RADIX_TREE_H */
-diff -puN lib/radix-tree.c~radix-tree-introduce-bit-optimized-iterator lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-introduce-bit-optimized-iterator
+diff -puN lib/radix-tree.c~radix-tree-rewrite-gang-lookup-with-using-iterator lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rewrite-gang-lookup-with-using-iterator
 +++ a/lib/radix-tree.c
-@@ -3,6 +3,7 @@
-  * Portions Copyright (C) 2001 Christoph Hellwig
-  * Copyright (C) 2005 SGI, Christoph Lameter
-  * Copyright (C) 2006 Nick Piggin
-+ * Copyright (C) 2012 Konstantin Khlebnikov
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-@@ -146,6 +147,43 @@ static inline int any_tag_set(struct rad
- 	}
- 	return 0;
+@@ -968,57 +968,6 @@ unsigned long radix_tree_prev_hole(struc
  }
-+
-+/**
-+ * radix_tree_find_next_bit - find the next set bit in a memory region
-+ *
-+ * @addr: The address to base the search on
-+ * @size: The bitmap size in bits
-+ * @offset: The bitnumber to start searching at
-+ *
-+ * Unrollable variant of find_next_bit() for constant size arrays.
-+ * Tail bits starting from size to roundup(size, BITS_PER_LONG) must be zero.
-+ * Returns next bit offset, or size if nothing found.
-+ */
-+static __always_inline unsigned long
-+radix_tree_find_next_bit(const unsigned long *addr,
-+			 unsigned long size, unsigned long offset)
-+{
-+	if (!__builtin_constant_p(size))
-+		return find_next_bit(addr, size, offset);
-+
-+	if (offset < size) {
-+		unsigned long tmp;
-+
-+		addr += offset / BITS_PER_LONG;
-+		tmp = *addr >> (offset % BITS_PER_LONG);
-+		if (tmp)
-+			return __ffs(tmp) + offset;
-+		offset = (offset + BITS_PER_LONG) & ~(BITS_PER_LONG - 1);
-+		while (offset < size) {
-+			tmp = *++addr;
-+			if (tmp)
-+				return __ffs(tmp) + offset;
-+			offset += BITS_PER_LONG;
-+		}
-+	}
-+	return size;
-+}
-+
- /*
-  * This assumes that the caller has performed appropriate preallocation, and
-  * that the caller has pinned this thread of control to the current CPU.
-@@ -613,6 +651,119 @@ int radix_tree_tag_get(struct radix_tree
- EXPORT_SYMBOL(radix_tree_tag_get);
+ EXPORT_SYMBOL(radix_tree_prev_hole);
  
+-static unsigned int
+-__lookup(struct radix_tree_node *slot, void ***results, unsigned long *indices,
+-	unsigned long index, unsigned int max_items, unsigned long *next_index)
+-{
+-	unsigned int nr_found = 0;
+-	unsigned int shift, height;
+-	unsigned long i;
+-
+-	height = slot->height;
+-	if (height == 0)
+-		goto out;
+-	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+-
+-	for ( ; height > 1; height--) {
+-		i = (index >> shift) & RADIX_TREE_MAP_MASK;
+-		for (;;) {
+-			if (slot->slots[i] != NULL)
+-				break;
+-			index &= ~((1UL << shift) - 1);
+-			index += 1UL << shift;
+-			if (index == 0)
+-				goto out;	/* 32-bit wraparound */
+-			i++;
+-			if (i == RADIX_TREE_MAP_SIZE)
+-				goto out;
+-		}
+-
+-		shift -= RADIX_TREE_MAP_SHIFT;
+-		slot = rcu_dereference_raw(slot->slots[i]);
+-		if (slot == NULL)
+-			goto out;
+-	}
+-
+-	/* Bottom level: grab some items */
+-	for (i = index & RADIX_TREE_MAP_MASK; i < RADIX_TREE_MAP_SIZE; i++) {
+-		if (slot->slots[i]) {
+-			results[nr_found] = &(slot->slots[i]);
+-			if (indices)
+-				indices[nr_found] = index;
+-			if (++nr_found == max_items) {
+-				index++;
+-				goto out;
+-			}
+-		}
+-		index++;
+-	}
+-out:
+-	*next_index = index;
+-	return nr_found;
+-}
+-
  /**
-+ * radix_tree_next_chunk - find next chunk of slots for iteration
-+ *
-+ * @root:	radix tree root
-+ * @iter:	iterator state
-+ * @flags:	RADIX_TREE_ITER_* flags and tag index
-+ * Returns:	pointer to chunk first slot, or NULL if iteration is over
-+ */
-+void **radix_tree_next_chunk(struct radix_tree_root *root,
-+			     struct radix_tree_iter *iter, unsigned flags)
-+{
-+	unsigned shift, tag = flags & RADIX_TREE_ITER_TAG_MASK;
-+	struct radix_tree_node *rnode, *node;
-+	unsigned long index, offset;
-+
-+	if ((flags & RADIX_TREE_ITER_TAGGED) && !root_tag_get(root, tag))
-+		return NULL;
-+
-+	/*
-+	 * Catch next_index overflow after ~0UL. iter->index never overflows
-+	 * during iterating; it can be zero only at the beginning.
-+	 * And we cannot overflow iter->next_index in a single step,
-+	 * because RADIX_TREE_MAP_SHIFT < BITS_PER_LONG.
-+	 */
-+	index = iter->next_index;
-+	if (!index && iter->index)
-+		return NULL;
-+
-+	rnode = rcu_dereference_raw(root->rnode);
-+	if (radix_tree_is_indirect_ptr(rnode)) {
-+		rnode = indirect_to_ptr(rnode);
-+	} else if (rnode && !index) {
-+		/* Single-slot tree */
-+		iter->index = 0;
-+		iter->next_index = 1;
-+		iter->tags = 1;
-+		return (void **)&root->rnode;
-+	} else
-+		return NULL;
-+
-+restart:
-+	shift = (rnode->height - 1) * RADIX_TREE_MAP_SHIFT;
-+	offset = index >> shift;
-+
-+	/* Index outside of the tree */
-+	if (offset >= RADIX_TREE_MAP_SIZE)
-+		return NULL;
-+
-+	node = rnode;
-+	while (1) {
-+		if ((flags & RADIX_TREE_ITER_TAGGED) ?
-+				!test_bit(offset, node->tags[tag]) :
-+				!node->slots[offset]) {
-+			/* Hole detected */
-+			if (flags & RADIX_TREE_ITER_CONTIG)
-+				return NULL;
-+
-+			if (flags & RADIX_TREE_ITER_TAGGED)
-+				offset = radix_tree_find_next_bit(
-+						node->tags[tag],
-+						RADIX_TREE_MAP_SIZE,
-+						offset + 1);
-+			else
-+				while (++offset	< RADIX_TREE_MAP_SIZE) {
-+					if (node->slots[offset])
-+						break;
-+				}
-+			index &= ~((RADIX_TREE_MAP_SIZE << shift) - 1);
-+			index += offset << shift;
-+			/* Overflow after ~0UL */
-+			if (!index)
-+				return NULL;
-+			if (offset == RADIX_TREE_MAP_SIZE)
-+				goto restart;
-+		}
-+
-+		/* This is leaf-node */
-+		if (!shift)
-+			break;
-+
-+		node = rcu_dereference_raw(node->slots[offset]);
-+		if (node == NULL)
-+			goto restart;
-+		shift -= RADIX_TREE_MAP_SHIFT;
-+		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
-+	}
-+
-+	/* Update the iterator state */
-+	iter->index = index;
-+	iter->next_index = (index | RADIX_TREE_MAP_MASK) + 1;
-+
-+	/* Construct iter->tags bit-mask from node->tags[tag] array */
-+	if (flags & RADIX_TREE_ITER_TAGGED) {
-+		unsigned tag_long, tag_bit;
-+
-+		tag_long = offset / BITS_PER_LONG;
-+		tag_bit  = offset % BITS_PER_LONG;
-+		iter->tags = node->tags[tag][tag_long] >> tag_bit;
-+		/* This never happens if RADIX_TREE_TAG_LONGS == 1 */
-+		if (tag_long < RADIX_TREE_TAG_LONGS - 1) {
-+			/* Pick tags from next element */
-+			if (tag_bit)
-+				iter->tags |= node->tags[tag][tag_long + 1] <<
-+						(BITS_PER_LONG - tag_bit);
-+			/* Clip chunk size, here only BITS_PER_LONG tags */
-+			iter->next_index = index + BITS_PER_LONG;
-+		}
-+	}
-+
-+	return node->slots + offset;
-+}
-+EXPORT_SYMBOL(radix_tree_next_chunk);
-+
-+/**
-  * radix_tree_range_tag_if_tagged - for each item in given range set given
-  *				   tag if item has another tag set
-  * @root:		radix tree root
+  *	radix_tree_gang_lookup - perform multiple lookup on a radix tree
+  *	@root:		radix tree root
+@@ -1042,48 +991,19 @@ unsigned int
+ radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
+ 			unsigned long first_index, unsigned int max_items)
+ {
+-	unsigned long max_index;
+-	struct radix_tree_node *node;
+-	unsigned long cur_index = first_index;
+-	unsigned int ret;
++	struct radix_tree_iter iter;
++	void **slot;
++	unsigned int ret = 0;
+ 
+-	node = rcu_dereference_raw(root->rnode);
+-	if (!node)
++	if (unlikely(!max_items))
+ 		return 0;
+ 
+-	if (!radix_tree_is_indirect_ptr(node)) {
+-		if (first_index > 0)
+-			return 0;
+-		results[0] = node;
+-		return 1;
+-	}
+-	node = indirect_to_ptr(node);
+-
+-	max_index = radix_tree_maxindex(node->height);
+-
+-	ret = 0;
+-	while (ret < max_items) {
+-		unsigned int nr_found, slots_found, i;
+-		unsigned long next_index;	/* Index of next search */
+-
+-		if (cur_index > max_index)
+-			break;
+-		slots_found = __lookup(node, (void ***)results + ret, NULL,
+-				cur_index, max_items - ret, &next_index);
+-		nr_found = 0;
+-		for (i = 0; i < slots_found; i++) {
+-			struct radix_tree_node *slot;
+-			slot = *(((void ***)results)[ret + i]);
+-			if (!slot)
+-				continue;
+-			results[ret + nr_found] =
+-				indirect_to_ptr(rcu_dereference_raw(slot));
+-			nr_found++;
+-		}
+-		ret += nr_found;
+-		if (next_index == 0)
++	radix_tree_for_each_slot(slot, root, &iter, first_index) {
++		results[ret] = indirect_to_ptr(rcu_dereference_raw(*slot));
++		if (!results[ret])
++			continue;
++		if (++ret == max_items)
+ 			break;
+-		cur_index = next_index;
+ 	}
+ 
+ 	return ret;
+@@ -1113,112 +1033,25 @@ radix_tree_gang_lookup_slot(struct radix
+ 			void ***results, unsigned long *indices,
+ 			unsigned long first_index, unsigned int max_items)
+ {
+-	unsigned long max_index;
+-	struct radix_tree_node *node;
+-	unsigned long cur_index = first_index;
+-	unsigned int ret;
++	struct radix_tree_iter iter;
++	void **slot;
++	unsigned int ret = 0;
+ 
+-	node = rcu_dereference_raw(root->rnode);
+-	if (!node)
++	if (unlikely(!max_items))
+ 		return 0;
+ 
+-	if (!radix_tree_is_indirect_ptr(node)) {
+-		if (first_index > 0)
+-			return 0;
+-		results[0] = (void **)&root->rnode;
++	radix_tree_for_each_slot(slot, root, &iter, first_index) {
++		results[ret] = slot;
+ 		if (indices)
+-			indices[0] = 0;
+-		return 1;
+-	}
+-	node = indirect_to_ptr(node);
+-
+-	max_index = radix_tree_maxindex(node->height);
+-
+-	ret = 0;
+-	while (ret < max_items) {
+-		unsigned int slots_found;
+-		unsigned long next_index;	/* Index of next search */
+-
+-		if (cur_index > max_index)
+-			break;
+-		slots_found = __lookup(node, results + ret,
+-				indices ? indices + ret : NULL,
+-				cur_index, max_items - ret, &next_index);
+-		ret += slots_found;
+-		if (next_index == 0)
++			indices[ret] = iter.index;
++		if (++ret == max_items)
+ 			break;
+-		cur_index = next_index;
+ 	}
+ 
+ 	return ret;
+ }
+ EXPORT_SYMBOL(radix_tree_gang_lookup_slot);
+ 
+-/*
+- * FIXME: the two tag_get()s here should use find_next_bit() instead of
+- * open-coding the search.
+- */
+-static unsigned int
+-__lookup_tag(struct radix_tree_node *slot, void ***results, unsigned long index,
+-	unsigned int max_items, unsigned long *next_index, unsigned int tag)
+-{
+-	unsigned int nr_found = 0;
+-	unsigned int shift, height;
+-
+-	height = slot->height;
+-	if (height == 0)
+-		goto out;
+-	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+-
+-	while (height > 0) {
+-		unsigned long i = (index >> shift) & RADIX_TREE_MAP_MASK ;
+-
+-		for (;;) {
+-			if (tag_get(slot, tag, i))
+-				break;
+-			index &= ~((1UL << shift) - 1);
+-			index += 1UL << shift;
+-			if (index == 0)
+-				goto out;	/* 32-bit wraparound */
+-			i++;
+-			if (i == RADIX_TREE_MAP_SIZE)
+-				goto out;
+-		}
+-		height--;
+-		if (height == 0) {	/* Bottom level: grab some items */
+-			unsigned long j = index & RADIX_TREE_MAP_MASK;
+-
+-			for ( ; j < RADIX_TREE_MAP_SIZE; j++) {
+-				index++;
+-				if (!tag_get(slot, tag, j))
+-					continue;
+-				/*
+-				 * Even though the tag was found set, we need to
+-				 * recheck that we have a non-NULL node, because
+-				 * if this lookup is lockless, it may have been
+-				 * subsequently deleted.
+-				 *
+-				 * Similar care must be taken in any place that
+-				 * lookup ->slots[x] without a lock (ie. can't
+-				 * rely on its value remaining the same).
+-				 */
+-				if (slot->slots[j]) {
+-					results[nr_found++] = &(slot->slots[j]);
+-					if (nr_found == max_items)
+-						goto out;
+-				}
+-			}
+-		}
+-		shift -= RADIX_TREE_MAP_SHIFT;
+-		slot = rcu_dereference_raw(slot->slots[i]);
+-		if (slot == NULL)
+-			break;
+-	}
+-out:
+-	*next_index = index;
+-	return nr_found;
+-}
+-
+ /**
+  *	radix_tree_gang_lookup_tag - perform multiple lookup on a radix tree
+  *	                             based on a tag
+@@ -1237,52 +1070,19 @@ radix_tree_gang_lookup_tag(struct radix_
+ 		unsigned long first_index, unsigned int max_items,
+ 		unsigned int tag)
+ {
+-	struct radix_tree_node *node;
+-	unsigned long max_index;
+-	unsigned long cur_index = first_index;
+-	unsigned int ret;
++	struct radix_tree_iter iter;
++	void **slot;
++	unsigned int ret = 0;
+ 
+-	/* check the root's tag bit */
+-	if (!root_tag_get(root, tag))
++	if (unlikely(!max_items))
+ 		return 0;
+ 
+-	node = rcu_dereference_raw(root->rnode);
+-	if (!node)
+-		return 0;
+-
+-	if (!radix_tree_is_indirect_ptr(node)) {
+-		if (first_index > 0)
+-			return 0;
+-		results[0] = node;
+-		return 1;
+-	}
+-	node = indirect_to_ptr(node);
+-
+-	max_index = radix_tree_maxindex(node->height);
+-
+-	ret = 0;
+-	while (ret < max_items) {
+-		unsigned int nr_found, slots_found, i;
+-		unsigned long next_index;	/* Index of next search */
+-
+-		if (cur_index > max_index)
++	radix_tree_for_each_tagged(slot, root, &iter, first_index, tag) {
++		results[ret] = indirect_to_ptr(rcu_dereference_raw(*slot));
++		if (!results[ret])
++			continue;
++		if (++ret == max_items)
+ 			break;
+-		slots_found = __lookup_tag(node, (void ***)results + ret,
+-				cur_index, max_items - ret, &next_index, tag);
+-		nr_found = 0;
+-		for (i = 0; i < slots_found; i++) {
+-			struct radix_tree_node *slot;
+-			slot = *(((void ***)results)[ret + i]);
+-			if (!slot)
+-				continue;
+-			results[ret + nr_found] =
+-				indirect_to_ptr(rcu_dereference_raw(slot));
+-			nr_found++;
+-		}
+-		ret += nr_found;
+-		if (next_index == 0)
+-			break;
+-		cur_index = next_index;
+ 	}
+ 
+ 	return ret;
+@@ -1307,42 +1107,17 @@ radix_tree_gang_lookup_tag_slot(struct r
+ 		unsigned long first_index, unsigned int max_items,
+ 		unsigned int tag)
+ {
+-	struct radix_tree_node *node;
+-	unsigned long max_index;
+-	unsigned long cur_index = first_index;
+-	unsigned int ret;
+-
+-	/* check the root's tag bit */
+-	if (!root_tag_get(root, tag))
+-		return 0;
++	struct radix_tree_iter iter;
++	void **slot;
++	unsigned int ret = 0;
+ 
+-	node = rcu_dereference_raw(root->rnode);
+-	if (!node)
++	if (unlikely(!max_items))
+ 		return 0;
+ 
+-	if (!radix_tree_is_indirect_ptr(node)) {
+-		if (first_index > 0)
+-			return 0;
+-		results[0] = (void **)&root->rnode;
+-		return 1;
+-	}
+-	node = indirect_to_ptr(node);
+-
+-	max_index = radix_tree_maxindex(node->height);
+-
+-	ret = 0;
+-	while (ret < max_items) {
+-		unsigned int slots_found;
+-		unsigned long next_index;	/* Index of next search */
+-
+-		if (cur_index > max_index)
+-			break;
+-		slots_found = __lookup_tag(node, results + ret,
+-				cur_index, max_items - ret, &next_index, tag);
+-		ret += slots_found;
+-		if (next_index == 0)
++	radix_tree_for_each_tagged(slot, root, &iter, first_index, tag) {
++		results[ret] = slot;
++		if (++ret == max_items)
+ 			break;
+-		cur_index = next_index;
+ 	}
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
