@@ -1,140 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-for-fs-add-truncate_pagecache_range.patch removed from -mm tree
-Date: Thu, 29 Mar 2012 12:13:20 -0700
-Message-ID: <20120329191320.A6A9CA01E3@akpm.mtv.corp.google.com>
+Subject: [merged] smp-add-func-to-ipi-cpus-based-on-parameter-func.patch removed from -mm tree
+Date: Thu, 29 Mar 2012 12:13:31 -0700
+Message-ID: <20120329191331.AF952A01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:62030 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933693Ab2C2TNW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:22 -0400
-Received: by qabg24 with SMTP id g24so17792qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:21 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:61032 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933689Ab2C2TNd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:33 -0400
+Received: by ghbz15 with SMTP id z15so303836ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, adilger.kernel@dilger.ca, bpm@sgi.com, david@fromorbit.com, elder@kernel.org, hch@lst.de, jlbec@evilplan.org, mfasheh@suse.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: gilad@benyossef.com, a.p.zijlstra@chello.nl, andi@firstfloor.org, avi@redhat.com, cl@linux-foundation.org, cmetcalf@tilera.com, fweisbec@gmail.com, kosaki.motohiro@gmail.com, levinsasha928@gmail.com, linux@arm.linux.org.uk, miltonm@bga.com, mina86@mina86.org, mpm@selenic.com, penberg@kernel.org, riel@redhat.com, srivatsa.bhat@linux.vnet.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm for fs: add truncate_pagecache_range()
+     Subject: smp: add func to IPI cpus based on parameter func
 has been removed from the -mm tree.  Its filename was
-     mm-for-fs-add-truncate_pagecache_range.patch
+     smp-add-func-to-ipi-cpus-based-on-parameter-func.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm for fs: add truncate_pagecache_range()
+From: Gilad Ben-Yossef <gilad@benyossef.com>
+Subject: smp: add func to IPI cpus based on parameter func
 
-Holepunching filesystems ext4 and xfs are using truncate_inode_pages_range
-but forgetting to unmap pages first (ocfs2 remembers).  This is not really
-a bug, since races already require truncate_inode_page() to handle that
-case once the page is locked; but it can be very inefficient if the file
-being punched happens to be mapped into many vmas.
+Add the on_each_cpu_cond() function that wraps on_each_cpu_mask() and
+calculates the cpumask of cpus to IPI by calling a function supplied as a
+parameter in order to determine whether to IPI each specific cpu.
 
-Provide a drop-in replacement truncate_pagecache_range() which does the
-unmapping pass first, handling the awkward mismatch between arguments to
-truncate_inode_pages_range() and arguments to unmap_mapping_range().
+The function works around allocation failure of cpumask variable in
+CONFIG_CPUMASK_OFFSTACK=y by itereating over cpus sending an IPI a time
+via smp_call_function_single().
 
-Note that holepunching does not unmap privately COWed pages in the range:
-POSIX requires that we do so when truncating, but it's hard to justify,
-difficult to implement without an i_size cutoff, and no filesystem is
-attempting to implement it.
+The function is useful since it allows to seperate the specific code that
+decided in each case whether to IPI a specific cpu for a specific request
+from the common boilerplate code of handling creating the mask, handling
+failures etc.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Ben Myers <bpm@sgi.com>
-Cc: Alex Elder <elder@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+[akpm@linux-foundation.org: s/gfpflags/gfp_flags/]
+[akpm@linux-foundation.org: avoid double-evaluation of `info' (per Michal), parenthesise evaluation of `cond_func']
+[akpm@linux-foundation.org: s/CPU/CPUs, use all 80 cols in comment]
+Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Sasha Levin <levinsasha928@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Avi Kivity <avi@redhat.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.org>
+Cc: Kosaki Motohiro <kosaki.motohiro@gmail.com>
+Cc: Milton Miller <miltonm@bga.com>
+Reviewed-by: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/truncate.c      |   40 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 41 insertions(+), 1 deletion(-)
+ include/linux/smp.h |   24 ++++++++++++++++
+ kernel/smp.c        |   61 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+)
 
-diff -puN include/linux/mm.h~mm-for-fs-add-truncate_pagecache_range include/linux/mm.h
---- a/include/linux/mm.h~mm-for-fs-add-truncate_pagecache_range
-+++ a/include/linux/mm.h
-@@ -954,7 +954,7 @@ extern void truncate_pagecache(struct in
- extern void truncate_setsize(struct inode *inode, loff_t newsize);
- extern int vmtruncate(struct inode *inode, loff_t offset);
- extern int vmtruncate_range(struct inode *inode, loff_t offset, loff_t end);
--
-+void truncate_pagecache_range(struct inode *inode, loff_t offset, loff_t end);
- int truncate_inode_page(struct address_space *mapping, struct page *page);
- int generic_error_remove_page(struct address_space *mapping, struct page *page);
+diff -puN include/linux/smp.h~smp-add-func-to-ipi-cpus-based-on-parameter-func include/linux/smp.h
+--- a/include/linux/smp.h~smp-add-func-to-ipi-cpus-based-on-parameter-func
++++ a/include/linux/smp.h
+@@ -109,6 +109,15 @@ void on_each_cpu_mask(const struct cpuma
+ 		void *info, bool wait);
  
-diff -puN mm/truncate.c~mm-for-fs-add-truncate_pagecache_range mm/truncate.c
---- a/mm/truncate.c~mm-for-fs-add-truncate_pagecache_range
-+++ a/mm/truncate.c
-@@ -626,3 +626,43 @@ int vmtruncate_range(struct inode *inode
- 
- 	return 0;
- }
-+
-+/**
-+ * truncate_pagecache_range - unmap and remove pagecache that is hole-punched
-+ * @inode: inode
-+ * @lstart: offset of beginning of hole
-+ * @lend: offset of last byte of hole
-+ *
-+ * This function should typically be called before the filesystem
-+ * releases resources associated with the freed range (eg. deallocates
-+ * blocks). This way, pagecache will always stay logically coherent
-+ * with on-disk format, and the filesystem would not have to deal with
-+ * situations such as writepage being called for a page that has already
-+ * had its underlying blocks deallocated.
+ /*
++ * Call a function on each processor for which the supplied function
++ * cond_func returns a positive value. This may include the local
++ * processor.
 + */
-+void truncate_pagecache_range(struct inode *inode, loff_t lstart, loff_t lend)
-+{
-+	struct address_space *mapping = inode->i_mapping;
-+	loff_t unmap_start = round_up(lstart, PAGE_SIZE);
-+	loff_t unmap_end = round_down(1 + lend, PAGE_SIZE) - 1;
-+	/*
-+	 * This rounding is currently just for example: unmap_mapping_range
-+	 * expands its hole outwards, whereas we want it to contract the hole
-+	 * inwards.  However, existing callers of truncate_pagecache_range are
-+	 * doing their own page rounding first; and truncate_inode_pages_range
-+	 * currently BUGs if lend is not pagealigned-1 (it handles partial
-+	 * page at start of hole, but not partial page at end of hole).  Note
-+	 * unmap_mapping_range allows holelen 0 for all, and we allow lend -1.
-+	 */
++void on_each_cpu_cond(bool (*cond_func)(int cpu, void *info),
++		smp_call_func_t func, void *info, bool wait,
++		gfp_t gfp_flags);
 +
-+	/*
-+	 * Unlike in truncate_pagecache, unmap_mapping_range is called only
-+	 * once (before truncating pagecache), and without "even_cows" flag:
-+	 * hole-punching should not remove private COWed pages from the hole.
-+	 */
-+	if ((u64)unmap_end > (u64)unmap_start)
-+		unmap_mapping_range(mapping, unmap_start,
-+				    1 + unmap_end - unmap_start, 0);
-+	truncate_inode_pages_range(mapping, lstart, lend);
++/*
+  * Mark the boot cpu "online" so that it can call console drivers in
+  * printk() and can access its per-cpu storage.
+  */
+@@ -153,6 +162,21 @@ static inline int up_smp_call_function(s
+ 			local_irq_enable();		\
+ 		}					\
+ 	} while (0)
++/*
++ * Preemption is disabled here to make sure the cond_func is called under the
++ * same condtions in UP and SMP.
++ */
++#define on_each_cpu_cond(cond_func, func, info, wait, gfp_flags)\
++	do {							\
++		void *__info = (info);				\
++		preempt_disable();				\
++		if ((cond_func)(0, __info)) {			\
++			local_irq_disable();			\
++			(func)(__info);				\
++			local_irq_enable();			\
++		}						\
++		preempt_enable();				\
++	} while (0)
+ 
+ static inline void smp_send_reschedule(int cpu) { }
+ #define num_booting_cpus()			1
+diff -puN kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func kernel/smp.c
+--- a/kernel/smp.c~smp-add-func-to-ipi-cpus-based-on-parameter-func
++++ a/kernel/smp.c
+@@ -730,3 +730,64 @@ void on_each_cpu_mask(const struct cpuma
+ 	put_cpu();
+ }
+ EXPORT_SYMBOL(on_each_cpu_mask);
++
++/*
++ * on_each_cpu_cond(): Call a function on each processor for which
++ * the supplied function cond_func returns true, optionally waiting
++ * for all the required CPUs to finish. This may include the local
++ * processor.
++ * @cond_func:	A callback function that is passed a cpu id and
++ *		the the info parameter. The function is called
++ *		with preemption disabled. The function should
++ *		return a blooean value indicating whether to IPI
++ *		the specified CPU.
++ * @func:	The function to run on all applicable CPUs.
++ *		This must be fast and non-blocking.
++ * @info:	An arbitrary pointer to pass to both functions.
++ * @wait:	If true, wait (atomically) until function has
++ *		completed on other CPUs.
++ * @gfp_flags:	GFP flags to use when allocating the cpumask
++ *		used internally by the function.
++ *
++ * The function might sleep if the GFP flags indicates a non
++ * atomic allocation is allowed.
++ *
++ * Preemption is disabled to protect against CPUs going offline but not online.
++ * CPUs going online during the call will not be seen or sent an IPI.
++ *
++ * You must not call this function with disabled interrupts or
++ * from a hardware interrupt handler or from a bottom half handler.
++ */
++void on_each_cpu_cond(bool (*cond_func)(int cpu, void *info),
++			smp_call_func_t func, void *info, bool wait,
++			gfp_t gfp_flags)
++{
++	cpumask_var_t cpus;
++	int cpu, ret;
++
++	might_sleep_if(gfp_flags & __GFP_WAIT);
++
++	if (likely(zalloc_cpumask_var(&cpus, (gfp_flags|__GFP_NOWARN)))) {
++		preempt_disable();
++		for_each_online_cpu(cpu)
++			if (cond_func(cpu, info))
++				cpumask_set_cpu(cpu, cpus);
++		on_each_cpu_mask(cpus, func, info, wait);
++		preempt_enable();
++		free_cpumask_var(cpus);
++	} else {
++		/*
++		 * No free cpumask, bother. No matter, we'll
++		 * just have to IPI them one by one.
++		 */
++		preempt_disable();
++		for_each_online_cpu(cpu)
++			if (cond_func(cpu, info)) {
++				ret = smp_call_function_single(cpu, func,
++								info, wait);
++				WARN_ON_ONCE(!ret);
++			}
++		preempt_enable();
++	}
 +}
-+EXPORT_SYMBOL(truncate_pagecache_range);
++EXPORT_SYMBOL(on_each_cpu_cond);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from gilad@benyossef.com are
 
 origin.patch
-linux-next.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-prio_tree-debugging-patch.patch
 
