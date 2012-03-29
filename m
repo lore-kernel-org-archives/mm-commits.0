@@ -1,278 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch removed from -mm tree
-Date: Thu, 29 Mar 2012 12:14:06 -0700
-Message-ID: <20120329191406.D70D0A01E3@akpm.mtv.corp.google.com>
+Subject: [merged] fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch removed from -mm tree
+Date: Thu, 29 Mar 2012 12:14:11 -0700
+Message-ID: <20120329191411.72967A01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:41279 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933739Ab2C2TOI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:14:08 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hj13so21845wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:14:08 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:49461 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933738Ab2C2TOM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:14:12 -0400
+Received: by ghbz15 with SMTP id z15so303892ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:14:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.lezcano@free.fr, ebiederm@xmission.com, mtk.manpages@gmail.com, oleg@redhat.com, serge.hallyn@canonical.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.lezcano@free.fr, ebiederm@xmission.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pidns: add reboot_pid_ns() to handle the reboot syscall
+     Subject: fs/proc/namespaces.c: prevent crash when ns_entries[] is empty
 has been removed from the -mm tree.  Its filename was
-     pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall.patch
+     fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Daniel Lezcano <daniel.lezcano@free.fr>
-Subject: pidns: add reboot_pid_ns() to handle the reboot syscall
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/proc/namespaces.c: prevent crash when ns_entries[] is empty
 
-In the case of a child pid namespace, rebooting the system does not really
-makes sense.  When the pid namespace is used in conjunction with the other
-namespaces in order to create a linux container, the reboot syscall leads
-to some problems.
+If CONFIG_NET_NS, CONFIG_UTS_NS and CONFIG_IPC_NS are disabled,
+ns_entries[] becomes empty and things like
+ns_entries[ARRAY_SIZE(ns_entries) - 1] will explode.
 
-A container can reboot the host.  That can be fixed by dropping the
-sys_reboot capability but we are unable to correctly to poweroff/
-halt/reboot a container and the container stays stuck at the shutdown time
-with the container's init process waiting indefinitively.
-
-After several attempts, no solution from userspace was found to reliabily
-handle the shutdown from a container.
-
-This patch propose to make the init process of the child pid namespace to
-exit with a signal status set to : SIGINT if the child pid namespace
-called "halt/poweroff" and SIGHUP if the child pid namespace called
-"reboot".  When the reboot syscall is called and we are not in the initial
-pid namespace, we kill the pid namespace for "HALT", "POWEROFF",
-"RESTART", and "RESTART2".  Otherwise we return EINVAL.
-
-Returning EINVAL is also an easy way to check if this feature is supported
-by the kernel when invoking another 'reboot' option like CAD.
-
-By this way the parent process of the child pid namespace knows if it
-rebooted or not and can take the right decision.
-
-Test case:
-==========
-
-#include <alloca.h>
-#include <stdio.h>
-#include <sched.h>
-#include <unistd.h>
-#include <signal.h>
-#include <sys/reboot.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-
-#include <linux/reboot.h>
-
-static int do_reboot(void *arg)
-{
-        int *cmd = arg;
-
-        if (reboot(*cmd))
-                printf("failed to reboot(%d): %m\n", *cmd);
-}
-
-int test_reboot(int cmd, int sig)
-{
-        long stack_size = 4096;
-        void *stack = alloca(stack_size) + stack_size;
-        int status;
-        pid_t ret;
-
-        ret = clone(do_reboot, stack, CLONE_NEWPID | SIGCHLD, &cmd);
-        if (ret < 0) {
-                printf("failed to clone: %m\n");
-                return -1;
-        }
-
-        if (wait(&status) < 0) {
-                printf("unexpected wait error: %m\n");
-                return -1;
-        }
-
-        if (!WIFSIGNALED(status)) {
-                printf("child process exited but was not signaled\n");
-                return -1;
-        }
-
-        if (WTERMSIG(status) != sig) {
-                printf("signal termination is not the one expected\n");
-                return -1;
-        }
-
-        return 0;
-}
-
-int main(int argc, char *argv[])
-{
-        int status;
-
-        status = test_reboot(LINUX_REBOOT_CMD_RESTART, SIGHUP);
-        if (status < 0)
-                return 1;
-        printf("reboot(LINUX_REBOOT_CMD_RESTART) succeed\n");
-
-        status = test_reboot(LINUX_REBOOT_CMD_RESTART2, SIGHUP);
-        if (status < 0)
-                return 1;
-        printf("reboot(LINUX_REBOOT_CMD_RESTART2) succeed\n");
-
-        status = test_reboot(LINUX_REBOOT_CMD_HALT, SIGINT);
-        if (status < 0)
-                return 1;
-        printf("reboot(LINUX_REBOOT_CMD_HALT) succeed\n");
-
-        status = test_reboot(LINUX_REBOOT_CMD_POWER_OFF, SIGINT);
-        if (status < 0)
-                return 1;
-        printf("reboot(LINUX_REBOOT_CMD_POWERR_OFF) succeed\n");
-
-        status = test_reboot(LINUX_REBOOT_CMD_CAD_ON, -1);
-        if (status >= 0) {
-                printf("reboot(LINUX_REBOOT_CMD_CAD_ON) should have failed\n");
-                return 1;
-        }
-        printf("reboot(LINUX_REBOOT_CMD_CAD_ON) has failed as expected\n");
-
-        return 0;
-}
-
-[akpm@linux-foundation.org: tweak and add comments]
-[akpm@linux-foundation.org: checkpatch fixes]
-Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Tested-by: Serge Hallyn <serge.hallyn@canonical.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Reported-by: Richard Weinberger <richard@nod.at>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Daniel Lezcano <daniel.lezcano@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid_namespace.h |    8 ++++++-
- kernel/pid_namespace.c        |   33 ++++++++++++++++++++++++++++++++
- kernel/sys.c                  |    9 ++++++++
- 3 files changed, 49 insertions(+), 1 deletion(-)
+ fs/proc/namespaces.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/pid_namespace.h~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall include/linux/pid_namespace.h
---- a/include/linux/pid_namespace.h~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall
-+++ a/include/linux/pid_namespace.h
-@@ -33,6 +33,7 @@ struct pid_namespace {
- #endif
- 	gid_t pid_gid;
- 	int hide_pid;
-+	int reboot;	/* group exit code if this pidns was rebooted */
- };
+diff -puN fs/proc/namespaces.c~fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty fs/proc/namespaces.c
+--- a/fs/proc/namespaces.c~fs-proc-namespacesc-prevent-crash-when-ns_entries-is-empty
++++ a/fs/proc/namespaces.c
+@@ -156,15 +156,15 @@ static struct dentry *proc_ns_dir_lookup
+ 	if (!ptrace_may_access(task, PTRACE_MODE_READ))
+ 		goto out;
  
- extern struct pid_namespace init_pid_ns;
-@@ -48,6 +49,7 @@ static inline struct pid_namespace *get_
- extern struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *ns);
- extern void free_pid_ns(struct kref *kref);
- extern void zap_pid_ns_processes(struct pid_namespace *pid_ns);
-+extern int reboot_pid_ns(struct pid_namespace *pid_ns, int cmd);
+-	last = &ns_entries[ARRAY_SIZE(ns_entries) - 1];
+-	for (entry = ns_entries; entry <= last; entry++) {
++	last = &ns_entries[ARRAY_SIZE(ns_entries)];
++	for (entry = ns_entries; entry < last; entry++) {
+ 		if (strlen((*entry)->name) != len)
+ 			continue;
+ 		if (!memcmp(dentry->d_name.name, (*entry)->name, len))
+ 			break;
+ 	}
+ 	error = ERR_PTR(-ENOENT);
+-	if (entry > last)
++	if (entry == last)
+ 		goto out;
  
- static inline void put_pid_ns(struct pid_namespace *ns)
- {
-@@ -75,11 +77,15 @@ static inline void put_pid_ns(struct pid
- {
- }
- 
--
- static inline void zap_pid_ns_processes(struct pid_namespace *ns)
- {
- 	BUG();
- }
-+
-+static inline int reboot_pid_ns(struct pid_namespace *pid_ns, int cmd)
-+{
-+	return 0;
-+}
- #endif /* CONFIG_PID_NS */
- 
- extern struct pid_namespace *task_active_pid_ns(struct task_struct *tsk);
-diff -puN kernel/pid_namespace.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall
-+++ a/kernel/pid_namespace.c
-@@ -15,6 +15,7 @@
- #include <linux/acct.h>
- #include <linux/slab.h>
- #include <linux/proc_fs.h>
-+#include <linux/reboot.h>
- 
- #define BITS_PER_PAGE		(PAGE_SIZE*8)
- 
-@@ -183,6 +184,9 @@ void zap_pid_ns_processes(struct pid_nam
- 		rc = sys_wait4(-1, NULL, __WALL, NULL);
- 	} while (rc != -ECHILD);
- 
-+	if (pid_ns->reboot)
-+		current->signal->group_exit_code = pid_ns->reboot;
-+
- 	acct_exit_ns(pid_ns);
- 	return;
- }
-@@ -217,6 +221,35 @@ static struct ctl_table pid_ns_ctl_table
- 
- static struct ctl_path kern_path[] = { { .procname = "kernel", }, { } };
- 
-+int reboot_pid_ns(struct pid_namespace *pid_ns, int cmd)
-+{
-+	if (pid_ns == &init_pid_ns)
-+		return 0;
-+
-+	switch (cmd) {
-+	case LINUX_REBOOT_CMD_RESTART2:
-+	case LINUX_REBOOT_CMD_RESTART:
-+		pid_ns->reboot = SIGHUP;
-+		break;
-+
-+	case LINUX_REBOOT_CMD_POWER_OFF:
-+	case LINUX_REBOOT_CMD_HALT:
-+		pid_ns->reboot = SIGINT;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	read_lock(&tasklist_lock);
-+	force_sig(SIGKILL, pid_ns->child_reaper);
-+	read_unlock(&tasklist_lock);
-+
-+	do_exit(0);
-+
-+	/* Not reached */
-+	return 0;
-+}
-+
- static __init int pid_namespaces_init(void)
- {
- 	pid_ns_cachep = KMEM_CACHE(pid_namespace, SLAB_PANIC);
-diff -puN kernel/sys.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall kernel/sys.c
---- a/kernel/sys.c~pidns-add-reboot_pid_ns-to-handle-the-reboot-syscall
-+++ a/kernel/sys.c
-@@ -444,6 +444,15 @@ SYSCALL_DEFINE4(reboot, int, magic1, int
- 	                magic2 != LINUX_REBOOT_MAGIC2C))
- 		return -EINVAL;
- 
-+	/*
-+	 * If pid namespaces are enabled and the current task is in a child
-+	 * pid_namespace, the command is handled by reboot_pid_ns() which will
-+	 * call do_exit().
-+	 */
-+	ret = reboot_pid_ns(task_active_pid_ns(current), cmd);
-+	if (ret)
-+		return ret;
-+
- 	/* Instead of trying to make the power_off code look like
- 	 * halt when pm_power_off is not set do it the easy way.
- 	 */
+ 	error = proc_ns_instantiate(dir, dentry, task, *entry);
 _
 
-Patches currently in -mm which might be from daniel.lezcano@free.fr are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
+fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
+simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
