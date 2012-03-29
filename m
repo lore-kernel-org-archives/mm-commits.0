@@ -1,86 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch removed from -mm tree
-Date: Thu, 29 Mar 2012 12:13:24 -0700
-Message-ID: <20120329191324.8989DA01E3@akpm.mtv.corp.google.com>
+Subject: [merged] slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch removed from -mm tree
+Date: Thu, 29 Mar 2012 12:13:34 -0700
+Message-ID: <20120329191334.D4AECA01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:54552 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933464Ab2C2TN0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:26 -0400
-Received: by vcbfk26 with SMTP id fk26so301732vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:24 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:62030 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933746Ab2C2TNg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:36 -0400
+Received: by mail-qa0-f74.google.com with SMTP id g24so17792qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: gilad@benyossef.com, a.p.zijlstra@chello.nl, andi@firstfloor.org, avi@redhat.com, cl@linux.com, cmetcalf@tilera.com, fweisbec@gmail.com, kosaki.motohiro@gmail.com, levinsasha928@gmail.com, linux@arm.linux.org.uk, mel@csn.ul.ie, miltonm@bga.com, mina86@mina86.org, mpm@selenic.com, penberg@kernel.org, riel@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, coredump: fail allocations when coredumping instead of oom killing
+     Subject: slub: only IPI CPUs that have per cpu obj to flush
 has been removed from the -mm tree.  Its filename was
-     mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing.patch
+     slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, coredump: fail allocations when coredumping instead of oom killing
+From: Gilad Ben-Yossef <gilad@benyossef.com>
+Subject: slub: only IPI CPUs that have per cpu obj to flush
 
-The size of coredump files is limited by RLIMIT_CORE, however, allocating
-large amounts of memory results in three negative consequences:
+flush_all() is called for each kmem_cache_destroy().  So every cache being
+destroyed dynamically ends up sending an IPI to each CPU in the system,
+regardless if the cache has ever been used there.
 
- - the coredumping process may be chosen for oom kill and quickly deplete
-   all memory reserves in oom conditions preventing further progress from
-   being made or tasks from exiting,
+For example, if you close the Infinband ipath driver char device file, the
+close file ops calls kmem_cache_destroy().  So running some infiniband
+config tool on one a single CPU dedicated to system tasks might interrupt
+the rest of the 127 CPUs dedicated to some CPU intensive or latency
+sensitive task.
 
- - the coredumping process may cause other processes to be oom killed
-   without fault of their own as the result of a SIGSEGV, for example, in
-   the coredumping process, or
+I suspect there is a good chance that every line in the output of "git
+grep kmem_cache_destroy linux/ | grep '\->'" has a similar scenario.
 
- - the coredumping process may result in a livelock while writing to the
-   dump file if it needs memory to allocate while other threads are in
-   the exit path waiting on the coredumper to complete.
+This patch attempts to rectify this issue by sending an IPI to flush the
+per cpu objects back to the free lists only to CPUs that seem to have such
+objects.
 
-This is fixed by implying __GFP_NORETRY in the page allocator for
-coredumping processes when reclaim has failed so the allocations fail and
-the process continues to exit.
+The check which CPU to IPI is racy but we don't care since asking a CPU
+without per cpu objects to flush does no damage and as far as I can tell
+the flush_all by itself is racy against allocs on remote CPUs anyway, so
+if you required the flush_all to be determinstic, you had to arrange for
+locking regardless.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Without this patch the following artificial test case:
+
+$ cd /sys/kernel/slab
+$ for DIR in *; do cat $DIR/alloc_calls > /dev/null; done
+
+produces 166 IPIs on an cpuset isolated CPU. With it it produces none.
+
+The code path of memory allocation failure for CPUMASK_OFFSTACK=y
+config was tested using fault injection framework.
+
+Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Sasha Levin <levinsasha928@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Michal Nazarewicz <mina86@mina86.org>
+Cc: Kosaki Motohiro <kosaki.motohiro@gmail.com>
+Cc: Milton Miller <miltonm@bga.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/slub.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing mm/page_alloc.c
---- a/mm/page_alloc.c~mm-coredump-fail-allocations-when-coredumping-instead-of-oom-killing
-+++ a/mm/page_alloc.c
-@@ -2308,6 +2308,10 @@ rebalance:
- 		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
- 			if (oom_killer_disabled)
- 				goto nopage;
-+			/* Coredumps can quickly deplete all memory reserves */
-+			if ((current->flags & PF_DUMPCORE) &&
-+			    !(gfp_mask & __GFP_NOFAIL))
-+				goto nopage;
- 			page = __alloc_pages_may_oom(gfp_mask, order,
- 					zonelist, high_zoneidx,
- 					nodemask, preferred_zone,
+diff -puN mm/slub.c~slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush mm/slub.c
+--- a/mm/slub.c~slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush
++++ a/mm/slub.c
+@@ -2028,9 +2028,17 @@ static void flush_cpu_slab(void *d)
+ 	__flush_cpu_slab(s, smp_processor_id());
+ }
+ 
++static bool has_cpu_slab(int cpu, void *info)
++{
++	struct kmem_cache *s = info;
++	struct kmem_cache_cpu *c = per_cpu_ptr(s->cpu_slab, cpu);
++
++	return !!(c->page);
++}
++
+ static void flush_all(struct kmem_cache *s)
+ {
+-	on_each_cpu(flush_cpu_slab, s, 1);
++	on_each_cpu_cond(has_cpu_slab, flush_cpu_slab, s, 1, GFP_ATOMIC);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from gilad@benyossef.com are
 
 origin.patch
-linux-next.patch
-fs-xattrc-suppress-page-allocation-failure-warnings-from-sys_listxattr.patch
-fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
-fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
-hugetlbfs-remove-unregister_filesystem-when-initializing-module.patch
-mm-memory_failure-let-the-compiler-add-the-function-name.patch
 
