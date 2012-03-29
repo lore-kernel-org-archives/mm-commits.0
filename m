@@ -1,86 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch removed from -mm tree
-Date: Thu, 29 Mar 2012 12:13:37 -0700
-Message-ID: <20120329191337.7056CA01E3@akpm.mtv.corp.google.com>
+Subject: [merged] ipmi-increase-kcs-timeouts.patch removed from -mm tree
+Date: Thu, 29 Mar 2012 12:13:54 -0700
+Message-ID: <20120329191354.5E101A01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-yw0-f74.google.com ([209.85.213.74]:63583 "EHLO
 	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933748Ab2C2TNi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:38 -0400
-Received: by yhgm50 with SMTP id m50so303448yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:37 -0700 (PDT)
+	with ESMTP id S933751Ab2C2TNz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:55 -0400
+Received: by mail-yw0-f74.google.com with SMTP id m50so303448yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gilad@benyossef.com, a.p.zijlstra@chello.nl, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mjg@redhat.com, cminyard@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: only send IPI to invalidate LRU BH when needed
+     Subject: ipmi: increase KCS timeouts
 has been removed from the -mm tree.  Its filename was
-     fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
+     ipmi-increase-kcs-timeouts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Gilad Ben-Yossef <gilad@benyossef.com>
-Subject: fs: only send IPI to invalidate LRU BH when needed
+From: Matthew Garrett <mjg@redhat.com>
+Subject: ipmi: increase KCS timeouts
 
-In several code paths, such as when unmounting a file system (but not
-only) we send an IPI to ask each cpu to invalidate its local LRU BHs.
+We currently time out and retry KCS transactions after 1 second of waiting
+for IBF or OBF.  This appears to be too short for some hardware.  The IPMI
+spec says "All system software wait loops should include error timeouts. 
+For simplicity, such timeouts are not shown explicitly in the flow
+diagrams.  A five-second timeout or greater is recommended".  Change the
+timeout to five seconds to satisfy the slow hardware.
 
-For multi-cores systems that have many cpus that may not have any LRU BH
-because they are idle or because they have not performed any file system
-accesses since last invalidation (e.g.  CPU crunching on high perfomance
-computing nodes that write results to shared memory or only using
-filesystems that do not use the bh layer.) This can lead to loss of
-performance each time someone switches the KVM (the virtual keyboard and
-screen type, not the hypervisor) if it has a USB storage stuck in.
-
-This patch attempts to only send an IPI to cpus that have LRU BH.
-
-Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_kcs_sm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/buffer.c~fs-only-send-ipi-to-invalidate-lru-bh-when-needed fs/buffer.c
---- a/fs/buffer.c~fs-only-send-ipi-to-invalidate-lru-bh-when-needed
-+++ a/fs/buffer.c
-@@ -1384,10 +1384,23 @@ static void invalidate_bh_lru(void *arg)
- 	}
- 	put_cpu_var(bh_lrus);
- }
-+
-+static bool has_bh_in_lru(int cpu, void *dummy)
-+{
-+	struct bh_lru *b = per_cpu_ptr(&bh_lrus, cpu);
-+	int i;
- 	
-+	for (i = 0; i < BH_LRU_SIZE; i++) {
-+		if (b->bhs[i])
-+			return 1;
-+	}
-+
-+	return 0;
-+}
-+
- void invalidate_bh_lrus(void)
- {
--	on_each_cpu(invalidate_bh_lru, NULL, 1);
-+	on_each_cpu_cond(has_bh_in_lru, invalidate_bh_lru, NULL, 1, GFP_KERNEL);
- }
- EXPORT_SYMBOL_GPL(invalidate_bh_lrus);
+diff -puN drivers/char/ipmi/ipmi_kcs_sm.c~ipmi-increase-kcs-timeouts drivers/char/ipmi/ipmi_kcs_sm.c
+--- a/drivers/char/ipmi/ipmi_kcs_sm.c~ipmi-increase-kcs-timeouts
++++ a/drivers/char/ipmi/ipmi_kcs_sm.c
+@@ -118,8 +118,8 @@ enum kcs_states {
+ #define MAX_KCS_WRITE_SIZE IPMI_MAX_MSG_LENGTH
+ 
+ /* Timeouts in microseconds. */
+-#define IBF_RETRY_TIMEOUT 1000000
+-#define OBF_RETRY_TIMEOUT 1000000
++#define IBF_RETRY_TIMEOUT 5000000
++#define OBF_RETRY_TIMEOUT 5000000
+ #define MAX_ERROR_RETRIES 10
+ #define ERROR0_OBF_WAIT_JIFFIES (2*HZ)
  
 _
 
-Patches currently in -mm which might be from gilad@benyossef.com are
+Patches currently in -mm which might be from mjg@redhat.com are
 
 origin.patch
+linux-next.patch
+acerhdf-add-support-for-aspire-1410-bios-v13314.patch
+acerhdf-add-support-for-new-hardware.patch
+acerhdf-lowered-default-temp-fanon-fanoff-values.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+intel_mid_powerbtn-mark-irq-as-irqf_no_suspend.patch
 
