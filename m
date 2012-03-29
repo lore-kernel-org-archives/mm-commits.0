@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-aha152xc-remove-broken-usage-of-spin_is_locked.patch added to -mm tree
-Date: Thu, 29 Mar 2012 14:39:04 -0700
-Message-ID: <20120329213904.E93DFA05B5@akpm.mtv.corp.google.com>
+Subject: + include-linux-spinlockh-add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-use.patch added to -mm tree
+Date: Thu, 29 Mar 2012 14:39:21 -0700
+Message-ID: <20120329213921.D7510A05B5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:46635 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933386Ab2C2VjM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:39:12 -0400
-Received: by bkcjm19 with SMTP id jm19so148043bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:10 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:62183 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933904Ab2C2VjW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:39:22 -0400
+Received: by yhgm50 with SMTP id m50so323241yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, James.Bottomley@HansenPartnership.com
+Cc: ak@linux.intel.com, w.sang@pengutronix.de
 
 
 The patch titled
-     Subject: drivers/scsi/aha152x.c: remove broken usage of spin_is_locked()
+     Subject: include/linux/spinlock.h: add a kerneldoc comment to spin_is_locked() that discourages its use
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-aha152xc-remove-broken-usage-of-spin_is_locked.patch
+     include-linux-spinlockh-add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-use.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: drivers/scsi/aha152x.c: remove broken usage of spin_is_locked()
-
-Remove racy usage of spin_is_locked. The author seems to have been
-unclear on the concept of locking.
-
-This is debug code normally not enabled, but I caught it on a tree sweep.
+Subject: include/linux/spinlock.h: add a kerneldoc comment to spin_is_locked() that discourages its use
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aha152x.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/spinlock.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/scsi/aha152x.c~drivers-scsi-aha152xc-remove-broken-usage-of-spin_is_locked drivers/scsi/aha152x.c
---- a/drivers/scsi/aha152x.c~drivers-scsi-aha152xc-remove-broken-usage-of-spin_is_locked
-+++ a/drivers/scsi/aha152x.c
-@@ -287,9 +287,6 @@ static LIST_HEAD(aha152x_host_list);
+diff -puN include/linux/spinlock.h~include-linux-spinlockh-add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-use include/linux/spinlock.h
+--- a/include/linux/spinlock.h~include-linux-spinlockh-add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-use
++++ a/include/linux/spinlock.h
+@@ -360,6 +360,15 @@ static inline void spin_unlock_wait(spin
+ 	raw_spin_unlock_wait(&lock->rlock);
+ }
  
- #define DO_LOCK(flags)	\
- 	do { \
--		if(spin_is_locked(&QLOCK)) { \
--			DPRINTK(debug_intr, DEBUG_LEAD "(%s:%d) already locked at %s:%d\n", CMDINFO(CURRENT_SC), __func__, __LINE__, QLOCKER, QLOCKERL); \
--		} \
- 		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) locking\n", CMDINFO(CURRENT_SC), __func__, __LINE__); \
- 		spin_lock_irqsave(&QLOCK,flags); \
- 		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) locked\n", CMDINFO(CURRENT_SC), __func__, __LINE__); \
++/**
++ * spin_is_locked() - Check if a spinlock is being held.
++ * @lock: Lock to check.
++ *
++ * This function should normally not be used. Especially using it in
++ * WARN and BUG_ONs is usually incorrect or redundant.
++ * If you want to check if a lock is held in a function
++ * use lockdep_assert_held(). A lot of other usages are racy.
++ */
+ static inline int spin_is_locked(spinlock_t *lock)
+ {
+ 	return raw_spin_is_locked(&lock->rlock);
 _
-Subject: Subject: drivers/scsi/aha152x.c: remove broken usage of spin_is_locked()
+Subject: Subject: include/linux/spinlock.h: add a kerneldoc comment to spin_is_locked() that discourages its use
 
 Patches currently in -mm which might be from ak@linux.intel.com are
 
