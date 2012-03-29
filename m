@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + mm-huge_memoryc-use-lockdep_assert_held.patch added to -mm tree
-Date: Thu, 29 Mar 2012 14:39:09 -0700
-Message-ID: <20120329213910.027F6A06A4@akpm.mtv.corp.google.com>
+Subject: + drivers-net-ethernet-smsc-smsc911xh-use-lockdep_assert_held-instead-of-home-grown-buggy-construct.patch added to -mm tree
+Date: Thu, 29 Mar 2012 14:39:17 -0700
+Message-ID: <20120329213917.DD17FA06A4@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:44739 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933245Ab2C2VjL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:39:11 -0400
-Received: by vcbfk26 with SMTP id fk26so321177vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:10 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:50823 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933860Ab2C2VjT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2012 17:39:19 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id i8so149511laa.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, aarcange@redhat.com, hughd@google.com
+Cc: ak@linux.intel.com, davem@davemloft.net, steve.glendinning@smsc.com
 
 
 The patch titled
-     Subject: mm/huge_memory.c: use lockdep_assert_held()
+     Subject: drivers/net/ethernet/smsc/smsc911x.h: use lockdep_assert_held() instead of home grown buggy construct
 has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-use-lockdep_assert_held.patch
+     drivers-net-ethernet-smsc-smsc911xh-use-lockdep_assert_held-instead-of-home-grown-buggy-construct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +35,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: mm/huge_memory.c: use lockdep_assert_held()
-
-Use lockdep_assert_held() to check for locks instead of an opencoded
-variant.
+Subject: drivers/net/ethernet/smsc/smsc911x.h: use lockdep_assert_held() instead of home grown buggy construct
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Steve Glendinning <steve.glendinning@smsc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- mm/swap.c        |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/smsc/smsc911x.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memoryc-use-lockdep_assert_held mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memoryc-use-lockdep_assert_held
-+++ a/mm/huge_memory.c
-@@ -2076,7 +2076,7 @@ static void collect_mm_slot(struct mm_sl
- {
- 	struct mm_struct *mm = mm_slot->mm;
+diff -puN drivers/net/ethernet/smsc/smsc911x.h~drivers-net-ethernet-smsc-smsc911xh-use-lockdep_assert_held-instead-of-home-grown-buggy-construct drivers/net/ethernet/smsc/smsc911x.h
+--- a/drivers/net/ethernet/smsc/smsc911x.h~drivers-net-ethernet-smsc-smsc911xh-use-lockdep_assert_held-instead-of-home-grown-buggy-construct
++++ a/drivers/net/ethernet/smsc/smsc911x.h
+@@ -52,7 +52,7 @@
  
--	VM_BUG_ON(NR_CPUS != 1 && !spin_is_locked(&khugepaged_mm_lock));
-+	lockdep_assert_held(&khugepaged_mm_lock);
- 
- 	if (khugepaged_test_exit(mm)) {
- 		/* free mm_slot */
-@@ -2106,7 +2106,7 @@ static unsigned int khugepaged_scan_mm_s
- 	int progress = 0;
- 
- 	VM_BUG_ON(!pages);
--	VM_BUG_ON(NR_CPUS != 1 && !spin_is_locked(&khugepaged_mm_lock));
-+	lockdep_assert_held(&khugepaged_mm_lock);
- 
- 	if (khugepaged_scan.mm_slot)
- 		mm_slot = khugepaged_scan.mm_slot;
-diff -puN mm/swap.c~mm-huge_memoryc-use-lockdep_assert_held mm/swap.c
---- a/mm/swap.c~mm-huge_memoryc-use-lockdep_assert_held
-+++ a/mm/swap.c
-@@ -653,7 +653,7 @@ void lru_add_page_tail(struct zone* zone
- 	VM_BUG_ON(!PageHead(page));
- 	VM_BUG_ON(PageCompound(page_tail));
- 	VM_BUG_ON(PageLRU(page_tail));
--	VM_BUG_ON(NR_CPUS != 1 && !spin_is_locked(&zone->lru_lock));
-+	lockdep_assert_held(&zone->lru_lock);
- 
- 	SetPageLRU(page_tail);
- 
+ #ifdef CONFIG_DEBUG_SPINLOCK
+ #define SMSC_ASSERT_MAC_LOCK(pdata) \
+-		WARN_ON(!spin_is_locked(&pdata->mac_lock))
++		lockdep_assert_held(&(pdata)->mac_lock)
+ #else
+ #define SMSC_ASSERT_MAC_LOCK(pdata) do {} while (0)
+ #endif				/* CONFIG_DEBUG_SPINLOCK */
 _
-Subject: Subject: mm/huge_memory.c: use lockdep_assert_held()
+Subject: Subject: drivers/net/ethernet/smsc/smsc911x.h: use lockdep_assert_held() instead of home grown buggy construct
 
 Patches currently in -mm which might be from ak@linux.intel.com are
 
