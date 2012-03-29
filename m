@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + futex-use-lockdep_assert_held-for-lock-checking.patch added to -mm tree
-Date: Thu, 29 Mar 2012 14:39:12 -0700
-Message-ID: <20120329213912.34389A05B5@akpm.mtv.corp.google.com>
+Subject: + drivers-scsi-aha152xc-remove-broken-usage-of-spin_is_locked.patch added to -mm tree
+Date: Thu, 29 Mar 2012 14:39:04 -0700
+Message-ID: <20120329213904.E93DFA05B5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:50823 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933437Ab2C2VjO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2012 17:39:14 -0400
-Received: by mail-lpp01m010-f74.google.com with SMTP id i8so149511laa.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:13 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:46635 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933386Ab2C2VjM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:39:12 -0400
+Received: by bkcjm19 with SMTP id jm19so148043bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, a.p.zijlstra@chello.nl, dvhart@linux.intel.com, tglx@linutronix.de
+Cc: ak@linux.intel.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     Subject: futex: use lockdep_assert_held() for lock checking
+     Subject: drivers/scsi/aha152x.c: remove broken usage of spin_is_locked()
 has been added to the -mm tree.  Its filename is
-     futex-use-lockdep_assert_held-for-lock-checking.patch
+     drivers-scsi-aha152xc-remove-broken-usage-of-spin_is_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,39 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: futex: use lockdep_assert_held() for lock checking
+Subject: drivers/scsi/aha152x.c: remove broken usage of spin_is_locked()
 
-Use lockdep_assert_held() for lock checking instead of a strange homegrown
-variant.  This removes the return for this case, but that is unlikely to
-be useful anyway.
+Remove racy usage of spin_is_locked. The author seems to have been
+unclear on the concept of locking.
+
+This is debug code normally not enabled, but I caught it on a tree sweep.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Darren Hart <dvhart@linux.intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/scsi/aha152x.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/futex.c~futex-use-lockdep_assert_held-for-lock-checking kernel/futex.c
---- a/kernel/futex.c~futex-use-lockdep_assert_held-for-lock-checking
-+++ a/kernel/futex.c
-@@ -823,8 +823,9 @@ static void __unqueue_futex(struct futex
- {
- 	struct futex_hash_bucket *hb;
+diff -puN drivers/scsi/aha152x.c~drivers-scsi-aha152xc-remove-broken-usage-of-spin_is_locked drivers/scsi/aha152x.c
+--- a/drivers/scsi/aha152x.c~drivers-scsi-aha152xc-remove-broken-usage-of-spin_is_locked
++++ a/drivers/scsi/aha152x.c
+@@ -287,9 +287,6 @@ static LIST_HEAD(aha152x_host_list);
  
--	if (WARN_ON_SMP(!q->lock_ptr || !spin_is_locked(q->lock_ptr))
--	    || WARN_ON(plist_node_empty(&q->list)))
-+	if (q->lock_ptr)
-+		lockdep_assert_held(q->lock_ptr);
-+	if (WARN_ON(plist_node_empty(&q->list)))
- 		return;
- 
- 	hb = container_of(q->lock_ptr, struct futex_hash_bucket, lock);
+ #define DO_LOCK(flags)	\
+ 	do { \
+-		if(spin_is_locked(&QLOCK)) { \
+-			DPRINTK(debug_intr, DEBUG_LEAD "(%s:%d) already locked at %s:%d\n", CMDINFO(CURRENT_SC), __func__, __LINE__, QLOCKER, QLOCKERL); \
+-		} \
+ 		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) locking\n", CMDINFO(CURRENT_SC), __func__, __LINE__); \
+ 		spin_lock_irqsave(&QLOCK,flags); \
+ 		DPRINTK(debug_locking, DEBUG_LEAD "(%s:%d) locked\n", CMDINFO(CURRENT_SC), __func__, __LINE__); \
 _
-Subject: Subject: futex: use lockdep_assert_held() for lock checking
+Subject: Subject: drivers/scsi/aha152x.c: remove broken usage of spin_is_locked()
 
 Patches currently in -mm which might be from ak@linux.intel.com are
 
