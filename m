@@ -1,75 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kdump-x86-fix-total-mem-size-calculation-for-reservation.patch removed from -mm tree
-Date: Thu, 29 Mar 2012 12:13:50 -0700
-Message-ID: <20120329191350.7D9E7A01E3@akpm.mtv.corp.google.com>
+Subject: [merged] fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch removed from -mm tree
+Date: Thu, 29 Mar 2012 12:13:37 -0700
+Message-ID: <20120329191337.7056CA01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:52280 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933735Ab2C2TNw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:52 -0400
-Received: by wejx9 with SMTP id x9so96325wej.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:51 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:63583 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933748Ab2C2TNi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:38 -0400
+Received: by yhgm50 with SMTP id m50so303448yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dyoung@redhat.com, horms@verge.net.au, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: gilad@benyossef.com, a.p.zijlstra@chello.nl, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump x86: fix total mem size calculation for reservation
+     Subject: fs: only send IPI to invalidate LRU BH when needed
 has been removed from the -mm tree.  Its filename was
-     kdump-x86-fix-total-mem-size-calculation-for-reservation.patch
+     fs-only-send-ipi-to-invalidate-lru-bh-when-needed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dave Young <dyoung@redhat.com>
-Subject: kdump x86: fix total mem size calculation for reservation
+From: Gilad Ben-Yossef <gilad@benyossef.com>
+Subject: fs: only send IPI to invalidate LRU BH when needed
 
-crashkernel reservation need know the total memory size.  Current
-get_total_mem simply use max_pfn - min_low_pfn.  It is wrong because it
-will including memory holes in the middle.
+In several code paths, such as when unmounting a file system (but not
+only) we send an IPI to ask each cpu to invalidate its local LRU BHs.
 
-Especially for kvm guest with memory > 0xe0000000, there's below in qemu
-code: qemu split memory as below:
+For multi-cores systems that have many cpus that may not have any LRU BH
+because they are idle or because they have not performed any file system
+accesses since last invalidation (e.g.  CPU crunching on high perfomance
+computing nodes that write results to shared memory or only using
+filesystems that do not use the bh layer.) This can lead to loss of
+performance each time someone switches the KVM (the virtual keyboard and
+screen type, not the hypervisor) if it has a USB storage stuck in.
 
-    if (ram_size >= 0xe0000000 ) {
-        above_4g_mem_size = ram_size - 0xe0000000;
-        below_4g_mem_size = 0xe0000000;
-    } else {
-        below_4g_mem_size = ram_size;
-    }
+This patch attempts to only send an IPI to cpus that have LRU BH.
 
-So for 4G mem guest, seabios will insert a 512M usable region beyond of
-4G.  Thus in above case max_pfn - min_low_pfn will be more than original
-memsize.
-
-Fixing this issue by using memblock_phys_mem_size() to get the total
-memsize.
-
-Signed-off-by: Dave Young <dyoung@redhat.com>
-Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
-Reviewed-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ fs/buffer.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/setup.c~kdump-x86-fix-total-mem-size-calculation-for-reservation arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~kdump-x86-fix-total-mem-size-calculation-for-reservation
-+++ a/arch/x86/kernel/setup.c
-@@ -509,15 +509,6 @@ static void __init memblock_x86_reserve_
+diff -puN fs/buffer.c~fs-only-send-ipi-to-invalidate-lru-bh-when-needed fs/buffer.c
+--- a/fs/buffer.c~fs-only-send-ipi-to-invalidate-lru-bh-when-needed
++++ a/fs/buffer.c
+@@ -1384,10 +1384,23 @@ static void invalidate_bh_lru(void *arg)
+ 	}
+ 	put_cpu_var(bh_lrus);
+ }
++
++static bool has_bh_in_lru(int cpu, void *dummy)
++{
++	struct bh_lru *b = per_cpu_ptr(&bh_lrus, cpu);
++	int i;
+ 	
++	for (i = 0; i < BH_LRU_SIZE; i++) {
++		if (b->bhs[i])
++			return 1;
++	}
++
++	return 0;
++}
++
+ void invalidate_bh_lrus(void)
+ {
+-	on_each_cpu(invalidate_bh_lru, NULL, 1);
++	on_each_cpu_cond(has_bh_in_lru, invalidate_bh_lru, NULL, 1, GFP_KERNEL);
+ }
+ EXPORT_SYMBOL_GPL(invalidate_bh_lrus);
  
- #ifdef CONFIG_KEXEC
- 
--static inline unsigned long long get_total_mem(void)
--{
--	unsigned long long total;
--
--	total = max_pfn - min_low_pfn;
--
--	return total << PAGE_SHIFT;
--}
+_
+
+Patches currently in -mm which might be from gilad@benyossef.com are
+
+origin.patch
+
