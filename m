@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xp-use-lockdep_assert_held.patch added to -mm tree
-Date: Thu, 29 Mar 2012 14:39:02 -0700
-Message-ID: <20120329213902.CA4C0A05B5@akpm.mtv.corp.google.com>
+Subject: + xfs-fix-lock-assert-on-up.patch added to -mm tree
+Date: Thu, 29 Mar 2012 14:39:07 -0700
+Message-ID: <20120329213908.0AE6CA06A4@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:50823 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933245Ab2C2VjG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 29 Mar 2012 17:39:06 -0400
-Received: by laai8 with SMTP id i8so149511laa.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:04 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:56892 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933336Ab2C2VjJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:39:09 -0400
+Received: by ggnd2 with SMTP id d2so321363ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, holt@sgi.com
+Cc: ak@linux.intel.com, bpm@sgi.com, elder@kernel.org
 
 
 The patch titled
-     Subject: sgi-xp: use lockdep_assert_held()
+     Subject: XFS: fix lock ASSERT on UP
 has been added to the -mm tree.  Its filename is
-     sgi-xp-use-lockdep_assert_held.patch
+     xfs-fix-lock-assert-on-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,80 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sgi-xp: use lockdep_assert_held()
+Subject: XFS: fix lock ASSERT on UP
 
-!spin_is_locked() is always true on a UP build, so it cannot be used for
-assertions.  Replace with lockdep_assert_held().
-
-I realize UP builds are not very likely for this driver, but it's still
-better to fix it.
+ASSERT(!spin_is_locked()) doesn't work on UP builds.  Replace with a
+standard lockdep_assert_held()
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Acked-by: Robin Holt <holt@sgi.com>
+Cc: Ben Myers <bpm@sgi.com>
+Cc: Alex Elder <elder@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_channel.c |    6 +++---
- drivers/misc/sgi-xp/xpc_sn2.c     |    2 +-
- drivers/misc/sgi-xp/xpc_uv.c      |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ fs/xfs/xfs_iget.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-use-lockdep_assert_held drivers/misc/sgi-xp/xpc_channel.c
---- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-use-lockdep_assert_held
-+++ a/drivers/misc/sgi-xp/xpc_channel.c
-@@ -28,7 +28,7 @@ xpc_process_connect(struct xpc_channel *
- {
- 	enum xp_retval ret;
+diff -puN fs/xfs/xfs_iget.c~xfs-fix-lock-assert-on-up fs/xfs/xfs_iget.c
+--- a/fs/xfs/xfs_iget.c~xfs-fix-lock-assert-on-up
++++ a/fs/xfs/xfs_iget.c
+@@ -76,7 +76,7 @@ xfs_inode_alloc(
+ 	}
  
--	DBUG_ON(!spin_is_locked(&ch->lock));
-+	lockdep_assert_held(&ch->lock);
+ 	ASSERT(atomic_read(&ip->i_pincount) == 0);
+-	ASSERT(!spin_is_locked(&ip->i_flags_lock));
++	lockdep_assert_held(&ip->i_flags_lock);
+ 	ASSERT(!xfs_isiflocked(ip));
+ 	ASSERT(ip->i_ino == 0);
  
- 	if (!(ch->flags & XPC_C_OPENREQUEST) ||
- 	    !(ch->flags & XPC_C_ROPENREQUEST)) {
-@@ -82,7 +82,7 @@ xpc_process_disconnect(struct xpc_channe
- 	struct xpc_partition *part = &xpc_partitions[ch->partid];
- 	u32 channel_was_connected = (ch->flags & XPC_C_WASCONNECTED);
+@@ -146,7 +146,7 @@ xfs_inode_free(
  
--	DBUG_ON(!spin_is_locked(&ch->lock));
-+	lockdep_assert_held(&ch->lock);
+ 	/* asserts to verify all state is correct here */
+ 	ASSERT(atomic_read(&ip->i_pincount) == 0);
+-	ASSERT(!spin_is_locked(&ip->i_flags_lock));
++	lockdep_assert_held(&ip->i_flags_lock);
+ 	ASSERT(!xfs_isiflocked(ip));
  
- 	if (!(ch->flags & XPC_C_DISCONNECTING))
- 		return;
-@@ -758,7 +758,7 @@ xpc_disconnect_channel(const int line, s
- {
- 	u32 channel_was_connected = (ch->flags & XPC_C_CONNECTED);
- 
--	DBUG_ON(!spin_is_locked(&ch->lock));
-+	lockdep_assert_held(&ch->lock);
- 
- 	if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_DISCONNECTED))
- 		return;
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-use-lockdep_assert_held drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-use-lockdep_assert_held
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -1674,7 +1674,7 @@ xpc_teardown_msg_structures_sn2(struct x
- {
- 	struct xpc_channel_sn2 *ch_sn2 = &ch->sn.sn2;
- 
--	DBUG_ON(!spin_is_locked(&ch->lock));
-+	lockdep_assert_held(&ch->lock);
- 
- 	ch_sn2->remote_msgqueue_pa = 0;
- 
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-use-lockdep_assert_held drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-use-lockdep_assert_held
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -1181,7 +1181,7 @@ xpc_teardown_msg_structures_uv(struct xp
- {
- 	struct xpc_channel_uv *ch_uv = &ch->sn.uv;
- 
--	DBUG_ON(!spin_is_locked(&ch->lock));
-+	lockdep_assert_held(&ch->lock);
- 
- 	kfree(ch_uv->cached_notify_gru_mq_desc);
- 	ch_uv->cached_notify_gru_mq_desc = NULL;
+ 	/*
 _
-Subject: Subject: sgi-xp: use lockdep_assert_held()
+Subject: Subject: XFS: fix lock ASSERT on UP
 
 Patches currently in -mm which might be from ak@linux.intel.com are
 
