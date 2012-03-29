@@ -1,114 +1,322 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch removed from -mm tree
-Date: Thu, 29 Mar 2012 12:13:34 -0700
-Message-ID: <20120329191334.D4AECA01E3@akpm.mtv.corp.google.com>
+Subject: [merged] ipmi-use-a-tasklet-for-handling-received-messages.patch removed from -mm tree
+Date: Thu, 29 Mar 2012 12:13:56 -0700
+Message-ID: <20120329191356.4125FA01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:62030 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933746Ab2C2TNg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:36 -0400
-Received: by mail-qa0-f74.google.com with SMTP id g24so17792qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:35 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:39142 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933751Ab2C2TN6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Thu, 29 Mar 2012 15:13:58 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id i8so146152laa.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gilad@benyossef.com, a.p.zijlstra@chello.nl, andi@firstfloor.org, avi@redhat.com, cl@linux.com, cmetcalf@tilera.com, fweisbec@gmail.com, kosaki.motohiro@gmail.com, levinsasha928@gmail.com, linux@arm.linux.org.uk, mel@csn.ul.ie, miltonm@bga.com, mina86@mina86.org, mpm@selenic.com, penberg@kernel.org, riel@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: cminyard@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: only IPI CPUs that have per cpu obj to flush
+     Subject: ipmi: use a tasklet for handling received messages
 has been removed from the -mm tree.  Its filename was
-     slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush.patch
+     ipmi-use-a-tasklet-for-handling-received-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Gilad Ben-Yossef <gilad@benyossef.com>
-Subject: slub: only IPI CPUs that have per cpu obj to flush
+From: Corey Minyard <cminyard@mvista.com>
+Subject: ipmi: use a tasklet for handling received messages
 
-flush_all() is called for each kmem_cache_destroy().  So every cache being
-destroyed dynamically ends up sending an IPI to each CPU in the system,
-regardless if the cache has ever been used there.
+The IPMI driver would release a lock, deliver a message, then relock. 
+This is obviously ugly, and this patch converts the message handler
+interface to use a tasklet to schedule work.  This lets the receive
+handler be called from an interrupt handler with interrupts enabled.
 
-For example, if you close the Infinband ipath driver char device file, the
-close file ops calls kmem_cache_destroy().  So running some infiniband
-config tool on one a single CPU dedicated to system tasks might interrupt
-the rest of the 127 CPUs dedicated to some CPU intensive or latency
-sensitive task.
-
-I suspect there is a good chance that every line in the output of "git
-grep kmem_cache_destroy linux/ | grep '\->'" has a similar scenario.
-
-This patch attempts to rectify this issue by sending an IPI to flush the
-per cpu objects back to the free lists only to CPUs that seem to have such
-objects.
-
-The check which CPU to IPI is racy but we don't care since asking a CPU
-without per cpu objects to flush does no damage and as far as I can tell
-the flush_all by itself is racy against allocs on remote CPUs anyway, so
-if you required the flush_all to be determinstic, you had to arrange for
-locking regardless.
-
-Without this patch the following artificial test case:
-
-$ cd /sys/kernel/slab
-$ for DIR in *; do cat $DIR/alloc_calls > /dev/null; done
-
-produces 166 IPIs on an cpuset isolated CPU. With it it produces none.
-
-The code path of memory allocation failure for CPUMASK_OFFSTACK=y
-config was tested using fault injection framework.
-
-Signed-off-by: Gilad Ben-Yossef <gilad@benyossef.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Sasha Levin <levinsasha928@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Michal Nazarewicz <mina86@mina86.org>
-Cc: Kosaki Motohiro <kosaki.motohiro@gmail.com>
-Cc: Milton Miller <miltonm@bga.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_msghandler.c |  141 +++++++++++++++-----------
+ drivers/char/ipmi/ipmi_si_intf.c    |   14 --
+ 2 files changed, 88 insertions(+), 67 deletions(-)
 
-diff -puN mm/slub.c~slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush mm/slub.c
---- a/mm/slub.c~slub-only-ipi-cpus-that-have-per-cpu-obj-to-flush
-+++ a/mm/slub.c
-@@ -2028,9 +2028,17 @@ static void flush_cpu_slab(void *d)
- 	__flush_cpu_slab(s, smp_processor_id());
- }
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-use-a-tasklet-for-handling-received-messages drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-use-a-tasklet-for-handling-received-messages
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -46,6 +46,7 @@
+ #include <linux/init.h>
+ #include <linux/proc_fs.h>
+ #include <linux/rcupdate.h>
++#include <linux/interrupt.h>
  
-+static bool has_cpu_slab(int cpu, void *info)
-+{
-+	struct kmem_cache *s = info;
-+	struct kmem_cache_cpu *c = per_cpu_ptr(s->cpu_slab, cpu);
+ #define PFX "IPMI message handler: "
+ 
+@@ -53,6 +54,8 @@
+ 
+ static struct ipmi_recv_msg *ipmi_alloc_recv_msg(void);
+ static int ipmi_init_msghandler(void);
++static void smi_recv_tasklet(unsigned long);
++static void handle_new_recv_msgs(ipmi_smi_t intf);
+ 
+ static int initialized;
+ 
+@@ -355,12 +358,15 @@ struct ipmi_smi {
+ 	int curr_seq;
+ 
+ 	/*
+-	 * Messages that were delayed for some reason (out of memory,
+-	 * for instance), will go in here to be processed later in a
+-	 * periodic timer interrupt.
++	 * Messages queued for delivery.  If delivery fails (out of memory
++	 * for instance), They will stay in here to be processed later in a
++	 * periodic timer interrupt.  The tasklet is for handling received
++	 * messages directly from the handler.
+ 	 */
+ 	spinlock_t       waiting_msgs_lock;
+ 	struct list_head waiting_msgs;
++	atomic_t	 watchdog_pretimeouts_to_deliver;
++	struct tasklet_struct recv_tasklet;
+ 
+ 	/*
+ 	 * The list of command receivers that are registered for commands
+@@ -493,6 +499,8 @@ static void clean_up_interface_data(ipmi
+ 	struct cmd_rcvr  *rcvr, *rcvr2;
+ 	struct list_head list;
+ 
++	tasklet_kill(&intf->recv_tasklet);
 +
-+	return !!(c->page);
-+}
+ 	free_smi_msg_list(&intf->waiting_msgs);
+ 	free_recv_msg_list(&intf->waiting_events);
+ 
+@@ -2792,6 +2800,9 @@ void ipmi_poll_interface(ipmi_user_t use
+ 
+ 	if (intf->handlers->poll)
+ 		intf->handlers->poll(intf->send_info);
 +
- static void flush_all(struct kmem_cache *s)
- {
--	on_each_cpu(flush_cpu_slab, s, 1);
-+	on_each_cpu_cond(has_cpu_slab, flush_cpu_slab, s, 1, GFP_ATOMIC);
++	/* In case something came in */
++	handle_new_recv_msgs(intf);
+ }
+ EXPORT_SYMBOL(ipmi_poll_interface);
+ 
+@@ -2860,6 +2871,10 @@ int ipmi_register_smi(struct ipmi_smi_ha
+ #endif
+ 	spin_lock_init(&intf->waiting_msgs_lock);
+ 	INIT_LIST_HEAD(&intf->waiting_msgs);
++	tasklet_init(&intf->recv_tasklet,
++		     smi_recv_tasklet,
++		     (unsigned long) intf);
++	atomic_set(&intf->watchdog_pretimeouts_to_deliver, 0);
+ 	spin_lock_init(&intf->events_lock);
+ 	INIT_LIST_HEAD(&intf->waiting_events);
+ 	intf->waiting_events_count = 0;
+@@ -3622,11 +3637,11 @@ static int handle_bmc_rsp(ipmi_smi_t    
  }
  
  /*
+- * Handle a new message.  Return 1 if the message should be requeued,
++ * Handle a received message.  Return 1 if the message should be requeued,
+  * 0 if the message should be freed, or -1 if the message should not
+  * be freed or requeued.
+  */
+-static int handle_new_recv_msg(ipmi_smi_t          intf,
++static int handle_one_recv_msg(ipmi_smi_t          intf,
+ 			       struct ipmi_smi_msg *msg)
+ {
+ 	int requeue;
+@@ -3784,12 +3799,72 @@ static int handle_new_recv_msg(ipmi_smi_
+ 	return requeue;
+ }
+ 
++/*
++ * If there are messages in the queue or pretimeouts, handle them.
++ */
++static void handle_new_recv_msgs(ipmi_smi_t intf)
++{
++	struct ipmi_smi_msg  *smi_msg;
++	unsigned long        flags = 0;
++	int                  rv;
++	int                  run_to_completion = intf->run_to_completion;
++
++	/* See if any waiting messages need to be processed. */
++	if (!run_to_completion)
++		spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
++	while (!list_empty(&intf->waiting_msgs)) {
++		smi_msg = list_entry(intf->waiting_msgs.next,
++				     struct ipmi_smi_msg, link);
++		list_del(&smi_msg->link);
++		if (!run_to_completion)
++			spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
++		rv = handle_one_recv_msg(intf, smi_msg);
++		if (!run_to_completion)
++			spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
++		if (rv == 0) {
++			/* Message handled */
++			ipmi_free_smi_msg(smi_msg);
++		} else if (rv < 0) {
++			/* Fatal error on the message, del but don't free. */
++		} else {
++			/*
++			 * To preserve message order, quit if we
++			 * can't handle a message.
++			 */
++			list_add(&smi_msg->link, &intf->waiting_msgs);
++			break;
++		}
++	}
++	if (!run_to_completion)
++		spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
++
++	/*
++	 * If the pretimout count is non-zero, decrement one from it and
++	 * deliver pretimeouts to all the users.
++	 */
++	if (atomic_add_unless(&intf->watchdog_pretimeouts_to_deliver, -1, 0)) {
++		ipmi_user_t user;
++
++		rcu_read_lock();
++		list_for_each_entry_rcu(user, &intf->users, link) {
++			if (user->handler->ipmi_watchdog_pretimeout)
++				user->handler->ipmi_watchdog_pretimeout(
++					user->handler_data);
++		}
++		rcu_read_unlock();
++	}
++}
++
++static void smi_recv_tasklet(unsigned long val)
++{
++	handle_new_recv_msgs((ipmi_smi_t) val);
++}
++
+ /* Handle a new message from the lower layer. */
+ void ipmi_smi_msg_received(ipmi_smi_t          intf,
+ 			   struct ipmi_smi_msg *msg)
+ {
+ 	unsigned long flags = 0; /* keep us warning-free. */
+-	int           rv;
+ 	int           run_to_completion;
+ 
+ 
+@@ -3843,31 +3918,11 @@ void ipmi_smi_msg_received(ipmi_smi_t   
+ 	run_to_completion = intf->run_to_completion;
+ 	if (!run_to_completion)
+ 		spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
+-	if (!list_empty(&intf->waiting_msgs)) {
+-		list_add_tail(&msg->link, &intf->waiting_msgs);
+-		if (!run_to_completion)
+-			spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
+-		goto out;
+-	}
++	list_add_tail(&msg->link, &intf->waiting_msgs);
+ 	if (!run_to_completion)
+ 		spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
+ 
+-	rv = handle_new_recv_msg(intf, msg);
+-	if (rv > 0) {
+-		/*
+-		 * Could not handle the message now, just add it to a
+-		 * list to handle later.
+-		 */
+-		run_to_completion = intf->run_to_completion;
+-		if (!run_to_completion)
+-			spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
+-		list_add_tail(&msg->link, &intf->waiting_msgs);
+-		if (!run_to_completion)
+-			spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
+-	} else if (rv == 0) {
+-		ipmi_free_smi_msg(msg);
+-	}
+-
++	tasklet_schedule(&intf->recv_tasklet);
+  out:
+ 	return;
+ }
+@@ -3875,16 +3930,8 @@ EXPORT_SYMBOL(ipmi_smi_msg_received);
+ 
+ void ipmi_smi_watchdog_pretimeout(ipmi_smi_t intf)
+ {
+-	ipmi_user_t user;
+-
+-	rcu_read_lock();
+-	list_for_each_entry_rcu(user, &intf->users, link) {
+-		if (!user->handler->ipmi_watchdog_pretimeout)
+-			continue;
+-
+-		user->handler->ipmi_watchdog_pretimeout(user->handler_data);
+-	}
+-	rcu_read_unlock();
++	atomic_set(&intf->watchdog_pretimeouts_to_deliver, 1);
++	tasklet_schedule(&intf->recv_tasklet);
+ }
+ EXPORT_SYMBOL(ipmi_smi_watchdog_pretimeout);
+ 
+@@ -3998,28 +4045,12 @@ static void ipmi_timeout_handler(long ti
+ 	ipmi_smi_t           intf;
+ 	struct list_head     timeouts;
+ 	struct ipmi_recv_msg *msg, *msg2;
+-	struct ipmi_smi_msg  *smi_msg, *smi_msg2;
+ 	unsigned long        flags;
+ 	int                  i;
+ 
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(intf, &ipmi_interfaces, link) {
+-		/* See if any waiting messages need to be processed. */
+-		spin_lock_irqsave(&intf->waiting_msgs_lock, flags);
+-		list_for_each_entry_safe(smi_msg, smi_msg2,
+-					 &intf->waiting_msgs, link) {
+-			if (!handle_new_recv_msg(intf, smi_msg)) {
+-				list_del(&smi_msg->link);
+-				ipmi_free_smi_msg(smi_msg);
+-			} else {
+-				/*
+-				 * To preserve message order, quit if we
+-				 * can't handle a message.
+-				 */
+-				break;
+-			}
+-		}
+-		spin_unlock_irqrestore(&intf->waiting_msgs_lock, flags);
++		tasklet_schedule(&intf->recv_tasklet);
+ 
+ 		/*
+ 		 * Go through the seq table and find any messages that
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-use-a-tasklet-for-handling-received-messages drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-use-a-tasklet-for-handling-received-messages
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -320,16 +320,8 @@ static int register_xaction_notifier(str
+ static void deliver_recv_msg(struct smi_info *smi_info,
+ 			     struct ipmi_smi_msg *msg)
+ {
+-	/* Deliver the message to the upper layer with the lock
+-	   released. */
+-
+-	if (smi_info->run_to_completion) {
+-		ipmi_smi_msg_received(smi_info->intf, msg);
+-	} else {
+-		spin_unlock(&(smi_info->si_lock));
+-		ipmi_smi_msg_received(smi_info->intf, msg);
+-		spin_lock(&(smi_info->si_lock));
+-	}
++	/* Deliver the message to the upper layer. */
++	ipmi_smi_msg_received(smi_info->intf, msg);
+ }
+ 
+ static void return_hosed_msg(struct smi_info *smi_info, int cCode)
+@@ -481,9 +473,7 @@ static void handle_flags(struct smi_info
+ 
+ 		start_clear_flags(smi_info);
+ 		smi_info->msg_flags &= ~WDT_PRE_TIMEOUT_INT;
+-		spin_unlock(&(smi_info->si_lock));
+ 		ipmi_smi_watchdog_pretimeout(smi_info->intf);
+-		spin_lock(&(smi_info->si_lock));
+ 	} else if (smi_info->msg_flags & RECEIVE_MSG_AVAIL) {
+ 		/* Messages available. */
+ 		smi_info->curr_msg = ipmi_alloc_smi_msg();
 _
 
-Patches currently in -mm which might be from gilad@benyossef.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
 origin.patch
 
