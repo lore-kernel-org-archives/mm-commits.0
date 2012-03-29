@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-spinlockh-add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-use.patch added to -mm tree
-Date: Thu, 29 Mar 2012 14:39:21 -0700
-Message-ID: <20120329213921.D7510A05B5@akpm.mtv.corp.google.com>
+Subject: + spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad.patch added to -mm tree
+Date: Thu, 29 Mar 2012 14:39:19 -0700
+Message-ID: <20120329213919.E607EA06A4@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:62183 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933904Ab2C2VjW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:39:22 -0400
-Received: by yhgm50 with SMTP id m50so323241yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:22 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:44739 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933904Ab2C2VjV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 17:39:21 -0400
+Received: by mail-vx0-f202.google.com with SMTP id fk26so321177vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 14:39:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ak@linux.intel.com, w.sang@pengutronix.de
 
 
 The patch titled
-     Subject: include/linux/spinlock.h: add a kerneldoc comment to spin_is_locked() that discourages its use
+     Subject: spinlocks.txt: add a discussion on why spin_is_locked() is bad
 has been added to the -mm tree.  Its filename is
-     include-linux-spinlockh-add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-use.patch
+     spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: include/linux/spinlock.h: add a kerneldoc comment to spin_is_locked() that discourages its use
+Subject: spinlocks.txt: add a discussion on why spin_is_locked() is bad
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ Documentation/spinlocks.txt |   43 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff -puN include/linux/spinlock.h~include-linux-spinlockh-add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-use include/linux/spinlock.h
---- a/include/linux/spinlock.h~include-linux-spinlockh-add-a-kerneldoc-comment-to-spin_is_locked-that-discourages-its-use
-+++ a/include/linux/spinlock.h
-@@ -360,6 +360,15 @@ static inline void spin_unlock_wait(spin
- 	raw_spin_unlock_wait(&lock->rlock);
- }
+diff -puN Documentation/spinlocks.txt~spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad Documentation/spinlocks.txt
+--- a/Documentation/spinlocks.txt~spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad
++++ a/Documentation/spinlocks.txt
+@@ -146,6 +146,49 @@ indeed), while write-locks need to prote
  
-+/**
-+ * spin_is_locked() - Check if a spinlock is being held.
-+ * @lock: Lock to check.
-+ *
-+ * This function should normally not be used. Especially using it in
-+ * WARN and BUG_ONs is usually incorrect or redundant.
-+ * If you want to check if a lock is held in a function
-+ * use lockdep_assert_held(). A lot of other usages are racy.
-+ */
- static inline int spin_is_locked(spinlock_t *lock)
- {
- 	return raw_spin_is_locked(&lock->rlock);
+ ----
+ 
++spin_is_locked is a bad idea
++
++spin_is_locked checks if a lock is currently hold.  On uniprocessor kernels
++it always returns 0. In general this function should be avoided because most
++uses of it are either redundant or broken.
++
++People often use spin_is_locked() to check if a particular lock is hold when a function
++is called to enforce a locking discipline, like
++
++	WARN_ON(!spin_is_locked(!my_lock))
++
++or
++
++	BUG_ON(!spin_is_locked(!my_lock))
++
++or some variant of those.
++
++This does not work on uniprocessor kernels because they will always fail.
++While there are ways around that they are ugly and not recommended.
++Better use lockdep_assert_held(). This also only checks on a lock debugging
++kernel (which you should occasionally run on your code anyways because
++it catches many more problems).
++
++In generally this would be better done with static annotation anyways
++(there's some support for it in sparse)
++
++	BUG_ON(spin_is_locked(obj->lock));
++	kfree(obj);
++
++Another usage is checking whether a lock is not hold when freeing an object.
++However this is redundant because lock debugging supports this anyways
++without explicit code. Just delete the BUG_ON.
++
++A third usage is to check in a console function if a lock is hold, to get
++a panic crash dump out even when some other thread died in it.
++This is better implemented with spin_try_lock() et.al. and a timeout.
++
++Other usages are usually simply races.
++
++In summary just don't use it.
++
++----
++
+ Reference information:
+ 
+ For dynamic initialization, use spin_lock_init() or rwlock_init() as
 _
-Subject: Subject: include/linux/spinlock.h: add a kerneldoc comment to spin_is_locked() that discourages its use
+Subject: Subject: spinlocks.txt: add a discussion on why spin_is_locked() is bad
 
 Patches currently in -mm which might be from ak@linux.intel.com are
 
