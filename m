@@ -1,96 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-thp-fixup-pmd_trans_unstable-locations.patch removed from -mm tree
-Date: Thu, 29 Mar 2012 12:13:22 -0700
-Message-ID: <20120329191322.85121A01E3@akpm.mtv.corp.google.com>
+Subject: [merged] kdump-x86-fix-total-mem-size-calculation-for-reservation.patch removed from -mm tree
+Date: Thu, 29 Mar 2012 12:13:50 -0700
+Message-ID: <20120329191350.7D9E7A01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:44703 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933720Ab2C2TNY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:24 -0400
-Received: by eaaq10 with SMTP id q10so149313eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:23 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:52280 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933735Ab2C2TNw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Mar 2012 15:13:52 -0400
+Received: by wejx9 with SMTP id x9so96325wej.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Mar 2012 12:13:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, msalter@redhat.com, riel@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: dyoung@redhat.com, horms@verge.net.au, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: fix up pmd_trans_unstable() locations
+     Subject: kdump x86: fix total mem size calculation for reservation
 has been removed from the -mm tree.  Its filename was
-     mm-thp-fixup-pmd_trans_unstable-locations.patch
+     kdump-x86-fix-total-mem-size-calculation-for-reservation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: thp: fix up pmd_trans_unstable() locations
+From: Dave Young <dyoung@redhat.com>
+Subject: kdump x86: fix total mem size calculation for reservation
 
-pmd_trans_unstable() should be called before pmd_offset_map() in the
-locations where the mmap_sem is held for reading.
+crashkernel reservation need know the total memory size.  Current
+get_total_mem simply use max_pfn - min_low_pfn.  It is wrong because it
+will including memory holes in the middle.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mark Salter <msalter@redhat.com>
+Especially for kvm guest with memory > 0xe0000000, there's below in qemu
+code: qemu split memory as below:
+
+    if (ram_size >= 0xe0000000 ) {
+        above_4g_mem_size = ram_size - 0xe0000000;
+        below_4g_mem_size = 0xe0000000;
+    } else {
+        below_4g_mem_size = ram_size;
+    }
+
+So for 4G mem guest, seabios will insert a 512M usable region beyond of
+4G.  Thus in above case max_pfn - min_low_pfn will be more than original
+memsize.
+
+Fixing this issue by using memblock_phys_mem_size() to get the total
+memsize.
+
+Signed-off-by: Dave Young <dyoung@redhat.com>
+Reviewed-by: WANG Cong <xiyou.wangcong@gmail.com>
+Reviewed-by: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    5 ++---
- mm/memcontrol.c    |    4 ++++
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ arch/x86/kernel/setup.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-thp-fixup-pmd_trans_unstable-locations fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-thp-fixup-pmd_trans_unstable-locations
-+++ a/fs/proc/task_mmu.c
-@@ -781,9 +781,6 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	int err = 0;
- 	pagemap_entry_t pme = make_pme(PM_NOT_PRESENT);
+diff -puN arch/x86/kernel/setup.c~kdump-x86-fix-total-mem-size-calculation-for-reservation arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~kdump-x86-fix-total-mem-size-calculation-for-reservation
++++ a/arch/x86/kernel/setup.c
+@@ -509,15 +509,6 @@ static void __init memblock_x86_reserve_
  
--	if (pmd_trans_unstable(pmd))
--		return 0;
+ #ifdef CONFIG_KEXEC
+ 
+-static inline unsigned long long get_total_mem(void)
+-{
+-	unsigned long long total;
 -
- 	/* find the first VMA at or above 'addr' */
- 	vma = find_vma(walk->mm, addr);
- 	spin_lock(&walk->mm->page_table_lock);
-@@ -802,6 +799,8 @@ static int pagemap_pte_range(pmd_t *pmd,
- 		return err;
- 	}
- 
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
- 	for (; addr != end; addr += PAGE_SIZE) {
- 
- 		/* check to see if we've left 'vma' behind
-diff -puN mm/memcontrol.c~mm-thp-fixup-pmd_trans_unstable-locations mm/memcontrol.c
---- a/mm/memcontrol.c~mm-thp-fixup-pmd_trans_unstable-locations
-+++ a/mm/memcontrol.c
-@@ -5306,6 +5306,8 @@ static int mem_cgroup_count_precharge_pt
- 		return 0;
- 	}
- 
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE)
- 		if (get_mctgt_type(vma, addr, *pte, NULL))
-@@ -5502,6 +5504,8 @@ static int mem_cgroup_move_charge_pte_ra
- 		return 0;
- 	}
- 
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
- retry:
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; addr += PAGE_SIZE) {
-_
-
-Patches currently in -mm which might be from aarcange@redhat.com are
-
-origin.patch
-
+-	total = max_pfn - min_low_pfn;
+-
+-	return total << PAGE_SHIFT;
+-}
