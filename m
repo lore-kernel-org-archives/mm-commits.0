@@ -1,16 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-led-driver-for-lm3556-chip-fix.patch added to -mm tree
-Date: Fri, 30 Mar 2012 11:27:15 -0700
-Message-ID: <20120330182715.E0CB4A01E3@akpm.mtv.corp.google.com>
+Subject: + leds-add-led-driver-for-lm3556-chip-fix-2.patch added to -mm tree
+Date: Fri, 30 Mar 2012 11:41:35 -0700
+Message-ID: <20120330184136.4A122A01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:57752 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759688Ab2C3S1S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 30 Mar 2012 14:27:18 -0400
-Received: by laai8 with SMTP id i8so48260laa.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Mar 2012 11:27:17 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:59388 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760799Ab2C3Slh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Mar 2012 14:41:37 -0400
+Received: by qabg24 with SMTP id g24so100669qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Mar 2012 11:41:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +17,9 @@ Cc: akpm@linux-foundation.org, axel.lin@gmail.com, daniel.jeong@ti.com, gshark.j
 
 
 The patch titled
-     Subject: leds-add-led-driver-for-lm3556-chip-fix
+     Subject: leds-add-led-driver-for-lm3556-chip-fix-2
 has been added to the -mm tree.  Its filename is
-     leds-add-led-driver-for-lm3556-chip-fix.patch
+     leds-add-led-driver-for-lm3556-chip-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: leds-add-led-driver-for-lm3556-chip-fix
+Subject: leds-add-led-driver-for-lm3556-chip-fix-2
 
-check kzalloc() result
+include module.h
 
 Cc: Axel Lin <axel.lin@gmail.com>
 Cc: Daniel Jeong <daniel.jeong@ti.com>
@@ -46,31 +45,22 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lm3556.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/leds/leds-lm3556.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/leds-lm3556.c~leds-add-led-driver-for-lm3556-chip-fix drivers/leds/leds-lm3556.c
---- a/drivers/leds/leds-lm3556.c~leds-add-led-driver-for-lm3556-chip-fix
+diff -puN drivers/leds/leds-lm3556.c~leds-add-led-driver-for-lm3556-chip-fix-2 drivers/leds/leds-lm3556.c
+--- a/drivers/leds/leds-lm3556.c~leds-add-led-driver-for-lm3556-chip-fix-2
 +++ a/drivers/leds/leds-lm3556.c
-@@ -346,7 +346,6 @@ static int lm3556_probe(struct i2c_clien
- {
- 	struct lm3556_platform_data *pdata = client->dev.platform_data;
- 	struct lm3556_chip_data *chip;
--
- 	int err = -ENODEV;
- 
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
-@@ -360,6 +359,8 @@ static int lm3556_probe(struct i2c_clien
- 	}
- 
- 	chip = kzalloc(sizeof(struct lm3556_chip_data), GFP_KERNEL);
-+	if (!chip)
-+		return -ENOMEM;
- 	chip->client = client;
- 	chip->pdata = pdata;
- 
+@@ -11,6 +11,7 @@
+ #include <linux/delay.h>
+ #include <linux/i2c.h>
+ #include <linux/leds.h>
++#include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/platform_device.h>
+ #include <linux/types.h>
 _
-Subject: Subject: leds-add-led-driver-for-lm3556-chip-fix
+Subject: Subject: leds-add-led-driver-for-lm3556-chip-fix-2
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -100,6 +90,8 @@ security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
 spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
 arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
 vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-2.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
 leds-add-led-driver-for-lm3556-chip-fix.patch
 kmod-avoid-deadlock-by-recursive-kmod-call.patch
 syscalls-x86-add-__nr_kcmp-syscall-v8.patch
