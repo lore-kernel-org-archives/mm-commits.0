@@ -1,124 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 03 Apr 2012 12:55:46 -0700
-Message-ID: <20120403195549.5F779A01F8@akpm.mtv.corp.google.com>
+Subject: [merged] pagemap-remove-remaining-unneeded-spin_lock.patch removed from -mm tree
+Date: Tue, 03 Apr 2012 13:10:39 -0700
+Message-ID: <20120403201040.002FCA0341@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:42962 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753415Ab2DCTzw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Apr 2012 15:55:52 -0400
-Received: by qabg24 with SMTP id g24so42643qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Apr 2012 12:55:50 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:35417 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753286Ab2DCUKm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Apr 2012 16:10:42 -0400
+Received: by wgbdt11 with SMTP id dt11so4116wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Apr 2012 13:10:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, levinsasha928@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: pagemap: remove remaining unneeded spin_lock()
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     pagemap-remove-remaining-unneeded-spin_lock.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: pagemap: remove remaining unneeded spin_lock()
 
+commit: 025c5b2451e4 ("thp: optimize away unnecessary page table locking")
+moves spin_lock() into pmd_trans_huge_lock() in order to avoid locking
+unless pmd is for thp.  So this spin_lock() is a bug.
+
+Reported-by: Sasha Levin <levinsasha928@gmail.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig                               |    3 ---
- arch/arm/mach-tegra/include/mach/debug-macro.S |    4 ----
- drivers/input/tablet/wacom_sys.c               |    3 ---
- 3 files changed, 10 deletions(-)
+ fs/proc/task_mmu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/arm/Kconfig~linux-next-git-rejects arch/arm/Kconfig
---- a/arch/arm/Kconfig~linux-next-git-rejects
-+++ a/arch/arm/Kconfig
-@@ -34,10 +34,7 @@ config ARM
- 	select CPU_PM if (SUSPEND || CPU_IDLE)
- 	select GENERIC_PCI_IOMAP
- 	select HAVE_BPF_JIT if NET
--<<<<<<< HEAD
--=======
- 	select IRQ_DOMAIN
-->>>>>>> linux-next/akpm-end
- 	help
- 	  The ARM series is a line of low-power-consumption RISC chip designs
- 	  licensed by ARM Ltd and targeted at embedded applications and
-diff -puN arch/arm/mach-tegra/include/mach/debug-macro.S~linux-next-git-rejects arch/arm/mach-tegra/include/mach/debug-macro.S
---- a/arch/arm/mach-tegra/include/mach/debug-macro.S~linux-next-git-rejects
-+++ a/arch/arm/mach-tegra/include/mach/debug-macro.S
-@@ -25,10 +25,6 @@
-  */
+diff -puN fs/proc/task_mmu.c~pagemap-remove-remaining-unneeded-spin_lock fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-remove-remaining-unneeded-spin_lock
++++ a/fs/proc/task_mmu.c
+@@ -783,7 +783,6 @@ static int pagemap_pte_range(pmd_t *pmd,
  
- #include <linux/serial_reg.h>
--<<<<<<< HEAD
--
--=======
-->>>>>>> linux-next/akpm-end
- #include <mach/iomap.h>
- #include <mach/irammap.h>
- 
-diff -puN drivers/input/tablet/wacom_sys.c~linux-next-git-rejects drivers/input/tablet/wacom_sys.c
---- a/drivers/input/tablet/wacom_sys.c~linux-next-git-rejects
-+++ a/drivers/input/tablet/wacom_sys.c
-@@ -1002,11 +1002,8 @@ static int wacom_probe(struct usb_interf
- 		return -EINVAL;
- 
- 	wacom = kzalloc(sizeof(struct wacom), GFP_KERNEL);
--<<<<<<< HEAD
- 	if (!wacom)
- 		return -ENOMEM;
--=======
-->>>>>>> linux-next/akpm-end
- 
- 	wacom_wac = &wacom->wacom_wac;
- 	wacom_wac->features = *((struct wacom_features *)id->driver_info);
+ 	/* find the first VMA at or above 'addr' */
+ 	vma = find_vma(walk->mm, addr);
+-	spin_lock(&walk->mm->page_table_lock);
+ 	if (pmd_trans_huge_lock(pmd, vma) == 1) {
+ 		for (; addr != end; addr += PAGE_SIZE) {
+ 			unsigned long offset;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
-fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
-simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-cpuidle-add-a-sysfs-entry-to-disable-specific-c-state-for-debug-purpose.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-net-netfilter-nfnetlink_acctc-use-linux-atomich.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-leds-add-led-driver-for-lm3556-chip-fix-2.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-leds-add-led-driver-for-lm3556-chip-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
 
