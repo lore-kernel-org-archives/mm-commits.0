@@ -1,68 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch removed from -mm tree
-Date: Tue, 03 Apr 2012 13:10:57 -0700
-Message-ID: <20120403201057.5F07FA0341@akpm.mtv.corp.google.com>
+Subject: + x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch added to -mm tree
+Date: Tue, 03 Apr 2012 14:03:35 -0700
+Message-ID: <20120403214747.7B30A1E0058@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:60002 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873Ab2DCULA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Apr 2012 16:11:00 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so15088vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Apr 2012 13:10:58 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:43639 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754866Ab2DCVrs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Apr 2012 17:47:48 -0400
+Received: by qcsp5 with SMTP id p5so27777qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Apr 2012 14:47:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, grant.likely@secretlab.ca, paulus@samba.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alex.shi@intel.com
 
 
 The patch titled
-     Subject: arch/powerpc/platforms/pseries/eeh_event.c: slightly fix set_current_state() wart
-has been removed from the -mm tree.  Its filename was
-     arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart.patch
+     Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+has been added to the -mm tree.  Its filename is
+     x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/powerpc/platforms/pseries/eeh_event.c: slightly fix set_current_state() wart
+Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
 
-That set_current_state() won't work very well: the subsequent mutex_lock()
-might flip the task back into TASK_RUNNING.
-
-Attempt to put it somewhere where it might have been meant to be, and
-attempt to describe why it might have been added.
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Alex Shi <alex.shi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/eeh_event.c |    2 +-
+ arch/x86/kernel/process.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/platforms/pseries/eeh_event.c~arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart arch/powerpc/platforms/pseries/eeh_event.c
---- a/arch/powerpc/platforms/pseries/eeh_event.c~arch-powerpc-platforms-pseries-eeh_eventc-slightly-fix-set_current_state-wart
-+++ a/arch/powerpc/platforms/pseries/eeh_event.c
-@@ -60,7 +60,6 @@ static int eeh_event_handler(void * dumm
- 	struct eeh_dev *edev;
+diff -puN arch/x86/kernel/process.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix arch/x86/kernel/process.c
+--- a/arch/x86/kernel/process.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
++++ a/arch/x86/kernel/process.c
+@@ -377,7 +377,7 @@ static inline void play_dead(void)
+ #ifdef CONFIG_X86_64
+ void enter_idle(void)
+ {
+-	percpu_write(is_idle, 1);
++	__this_cpu_write(is_idle, 1);
+ 	atomic_notifier_call_chain(&idle_notifier, IDLE_START, NULL);
+ }
  
- 	set_task_comm(current, "eehd");
--	set_current_state(TASK_INTERRUPTIBLE);
- 
- 	spin_lock_irqsave(&eeh_eventlist_lock, flags);
- 	event = NULL;
-@@ -83,6 +82,7 @@ static int eeh_event_handler(void * dumm
- 	printk(KERN_INFO "EEH: Detected PCI bus error on device %s\n",
- 	       eeh_pci_name(edev->pdev));
- 
-+	set_current_state(TASK_INTERRUPTIBLE);	/* Don't add to load average */
- 	edev = handle_eeh_events(event);
- 
- 	eeh_clear_slot(eeh_dev_to_of_node(edev), EEH_MODE_RECOVERING);
 _
+Subject: Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -78,6 +72,7 @@ simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 drivers-xen-kconfig-fix-kconfig-layout.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
 percpu-remove-percpu_xxx-functions-fix.patch
 fs-symlink-restrictions-on-sticky-directories.patch
 fs-hardlink-creation-restrictions.patch
