@@ -1,223 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sh-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
-Date: Tue, 03 Apr 2012 13:10:44 -0700
-Message-ID: <20120403201044.7207CA0341@akpm.mtv.corp.google.com>
+Subject: [merged] aspm-fix-pcie-devices-with-non-pcie-children.patch removed from -mm tree
+Date: Tue, 03 Apr 2012 13:10:46 -0700
+Message-ID: <20120403201046.C6302A0341@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:63105 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753765Ab2DCUKr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Apr 2012 16:10:47 -0400
-Received: by bkcjm19 with SMTP id jm19so3524bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Apr 2012 13:10:45 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:35556 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753765Ab2DCUKs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Apr 2012 16:10:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, lethal@linux-sh.org, oleg@redhat.com, mm-commits@vger.kernel.org
+To: mjg@redhat.com, apw@canonical.com, bandidoirlandes@gmail.com, bhelgaas@google.com, colin.king@canonical.com, hatem.masmoudi@gmail.com, jan0x6c@gmail.com, jbarnes@virtuousgeek.org, jrnieder@gmail.com, romain@orebokech.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: use set_current_blocked() and block_sigmask()
+     Subject: ASPM: fix pcie devices with non-pcie children
 has been removed from the -mm tree.  Its filename was
-     sh-use-set_current_blocked-and-block_sigmask.patch
+     aspm-fix-pcie-devices-with-non-pcie-children.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: sh: use set_current_blocked() and block_sigmask()
+From: Matthew Garrett <mjg@redhat.com>
+Subject: ASPM: fix pcie devices with non-pcie children
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
+Since 3.2.12 and 3.3, some systems are failing to boot with a BUG_ON. 
+Some other systems using the pata_jmicron driver fail to boot because no
+disks are detected.  Passing pcie_aspm=force on the kernel command line
+works around it.
 
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
+The cause: commit 4949be16822e ("PCI: ignore pre-1.1 ASPM quirking when
+ASPM is disabled") changed the behaviour of pcie_aspm_sanity_check() to
+always return 0 if aspm is disabled, in order to avoid cases where we
+changed ASPM state on pre-PCIe 1.1 devices.  This skipped the secondary
+function of pcie_aspm_sanity_check which was to avoid us enabling ASPM on
+devices that had non-PCIe children, causing trouble later on.  Move the
+aspm_disabled check so we continue to honour that scenario.
 
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=42979 and
+          http://bugs.debian.org/665420
+
+[jn: with more symptoms in log message]
+Reported-by: Romain Francoise <romain@orebokech.com> # kernel panic
+Reported-by: Chris Holland <bandidoirlandes@gmail.com> # disk detection trouble
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Cc: <stable@vger.kernel.org>
+Tested-by: Hatem Masmoudi <hatem.masmoudi@gmail.com> # Dell Latitude E5520
+Tested-by: janek <jan0x6c@gmail.com> # pata_jmicron with JMB362/JMB363
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/signal_32.c |   32 +++++++++---------------------
- arch/sh/kernel/signal_64.c |   37 +++++++++--------------------------
- 2 files changed, 20 insertions(+), 49 deletions(-)
+ drivers/pci/pcie/aspm.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN arch/sh/kernel/signal_32.c~sh-use-set_current_blocked-and-block_sigmask arch/sh/kernel/signal_32.c
---- a/arch/sh/kernel/signal_32.c~sh-use-set_current_blocked-and-block_sigmask
-+++ a/arch/sh/kernel/signal_32.c
-@@ -58,12 +58,13 @@ sys_sigsuspend(old_sigset_t mask,
- 	       unsigned long r5, unsigned long r6, unsigned long r7,
- 	       struct pt_regs __regs)
- {
--	mask &= _BLOCKABLE;
--	spin_lock_irq(&current->sighand->siglock);
-+	sigset_t blocked;
-+
- 	current->saved_sigmask = current->blocked;
--	siginitset(&current->blocked, mask);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+
-+	mask &= _BLOCKABLE;
-+	siginitset(&blocked, mask);
-+	set_current_blocked(&blocked);
+diff -puN drivers/pci/pcie/aspm.c~aspm-fix-pcie-devices-with-non-pcie-children drivers/pci/pcie/aspm.c
+--- a/drivers/pci/pcie/aspm.c~aspm-fix-pcie-devices-with-non-pcie-children
++++ a/drivers/pci/pcie/aspm.c
+@@ -508,9 +508,6 @@ static int pcie_aspm_sanity_check(struct
+ 	int pos;
+ 	u32 reg32;
  
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -240,11 +241,7 @@ asmlinkage int sys_sigreturn(unsigned lo
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	if (aspm_disabled)
+-		return 0;
 -
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->sc, &r0))
- 		goto badframe;
-@@ -274,10 +271,7 @@ asmlinkage int sys_rt_sigreturn(unsigned
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext, &r0))
- 		goto badframe;
-@@ -548,14 +542,8 @@ handle_signal(unsigned long sig, struct 
- 	else
- 		ret = setup_frame(sig, ka, oldset, regs);
- 
--	if (ret == 0) {
--		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--		if (!(ka->sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked,sig);
--		recalc_sigpending();
--		spin_unlock_irq(&current->sighand->siglock);
--	}
-+	if (ret == 0)
-+		block_sigmask(ka, sig);
- 
- 	return ret;
- }
-diff -puN arch/sh/kernel/signal_64.c~sh-use-set_current_blocked-and-block_sigmask arch/sh/kernel/signal_64.c
---- a/arch/sh/kernel/signal_64.c~sh-use-set_current_blocked-and-block_sigmask
-+++ a/arch/sh/kernel/signal_64.c
-@@ -159,14 +159,13 @@ sys_sigsuspend(old_sigset_t mask,
- 	       unsigned long r6, unsigned long r7,
- 	       struct pt_regs * regs)
- {
--	sigset_t saveset;
-+	sigset_t saveset, blocked;
- 
--	mask &= _BLOCKABLE;
--	spin_lock_irq(&current->sighand->siglock);
- 	saveset = current->blocked;
--	siginitset(&current->blocked, mask);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
+ 	/*
+ 	 * Some functions in a slot might not all be PCIe functions,
+ 	 * very strange. Disable ASPM for the whole slot
+@@ -519,6 +516,16 @@ static int pcie_aspm_sanity_check(struct
+ 		pos = pci_pcie_cap(child);
+ 		if (!pos)
+ 			return -EINVAL;
 +
-+	mask &= _BLOCKABLE;
-+	siginitset(&blocked, mask);
-+	set_current_blocked(&blocked);
- 
- 	REF_REG_RET = -EINTR;
- 	while (1) {
-@@ -198,11 +197,8 @@ sys_rt_sigsuspend(sigset_t *unewset, siz
- 	if (copy_from_user(&newset, unewset, sizeof(newset)))
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
- 	saveset = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	REF_REG_RET = -EINTR;
- 	while (1) {
-@@ -408,11 +404,7 @@ asmlinkage int sys_sigreturn(unsigned lo
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->sc, &ret))
- 		goto badframe;
-@@ -445,10 +437,7 @@ asmlinkage int sys_rt_sigreturn(unsigned
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext, &ret))
- 		goto badframe;
-@@ -734,14 +723,8 @@ handle_signal(unsigned long sig, siginfo
- 	else
- 		ret = setup_frame(sig, ka, oldset, regs);
- 
--	if (ret == 0) {
--		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--		if (!(ka->sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked,sig);
--		recalc_sigpending();
--		spin_unlock_irq(&current->sighand->siglock);
--	}
-+	if (ret == 0)
-+		block_sigmask(ka, sig);
- 
- 	return ret;
- }
++		/*
++		 * If ASPM is disabled then we're not going to change
++		 * the BIOS state. It's safe to continue even if it's a
++		 * pre-1.1 device
++		 */
++
++		if (aspm_disabled)
++			continue;
++
+ 		/*
+ 		 * Disable ASPM for pre-1.1 PCIe device, we follow MS to use
+ 		 * RBER bit to determine if a function is 1.1 version device
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from mjg@redhat.com are
 
-origin.patch
 linux-next.patch
-alpha-use-set_current_blocked-and-block_sigmask.patch
-c6x-use-set_current_blocked-and-block_sigmask.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
+acerhdf-add-support-for-aspire-1410-bios-v13314.patch
+acerhdf-add-support-for-new-hardware.patch
+acerhdf-lowered-default-temp-fanon-fanoff-values.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+intel_mid_powerbtn-mark-irq-as-irqf_no_suspend.patch
 
