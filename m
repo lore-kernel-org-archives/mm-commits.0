@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch added to -mm tree
-Date: Tue, 03 Apr 2012 14:03:35 -0700
-Message-ID: <20120403214747.7B30A1E0058@wpzn4.hot.corp.google.com>
+Subject: + fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix.patch added to -mm tree
+Date: Tue, 03 Apr 2012 14:28:06 -0700
+Message-ID: <20120403221218.96F891E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:43639 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754866Ab2DCVrs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Apr 2012 17:47:48 -0400
-Received: by qcsp5 with SMTP id p5so27777qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Apr 2012 14:47:47 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:44838 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754133Ab2DCWMU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Apr 2012 18:12:20 -0400
+Received: by qabg24 with SMTP id g24so61409qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Apr 2012 15:12:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alex.shi@intel.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+     Subject: fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix
 has been added to the -mm tree.  Its filename is
-     x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+     fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+Subject: fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix
 
-Cc: Alex Shi <alex.shi@intel.com>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/process.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xattr.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/process.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix arch/x86/kernel/process.c
---- a/arch/x86/kernel/process.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
-+++ a/arch/x86/kernel/process.c
-@@ -377,7 +377,7 @@ static inline void play_dead(void)
- #ifdef CONFIG_X86_64
- void enter_idle(void)
- {
--	percpu_write(is_idle, 1);
-+	__this_cpu_write(is_idle, 1);
- 	atomic_notifier_call_chain(&idle_notifier, IDLE_START, NULL);
- }
+diff -puN fs/xattr.c~fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix fs/xattr.c
+--- a/fs/xattr.c~fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix
++++ a/fs/xattr.c
+@@ -19,8 +19,9 @@
+ #include <linux/export.h>
+ #include <linux/fsnotify.h>
+ #include <linux/audit.h>
+-#include <asm/uaccess.h>
++#include <linux/vmalloc.h>
  
++#include <asm/uaccess.h>
+ 
+ /*
+  * Check permissions for extended attribute access.  This is a bit complicated
 _
-Subject: Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+Subject: Subject: fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -67,6 +70,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
+fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix.patch
 fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
 simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
