@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + umem-fix-up-unplugging.patch added to -mm tree
-Date: Wed, 04 Apr 2012 14:48:03 -0700
-Message-ID: <20120404214803.D5FFFA02DE@akpm.mtv.corp.google.com>
+Subject: + fsnotify-remove-unused-parameter-from-send_to_group.patch added to -mm tree
+Date: Wed, 04 Apr 2012 14:57:25 -0700
+Message-ID: <20120404215725.BD929A0518@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:43430 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757137Ab2DDVsF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 17:48:05 -0400
-Received: by qcsp5 with SMTP id p5so97867qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 14:48:04 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:41675 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757161Ab2DDV50 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 17:57:26 -0400
+Received: by yhgm50 with SMTP id m50so99283yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 14:57:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: glorioustao@gmail.com, Tao.Guo@emc.com, axboe@kernel.dk, neilb@suse.de
+Cc: dan.carpenter@oracle.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: umem: fix up unplugging
+     Subject: fsnotify: remove unused parameter from send_to_group()
 has been added to the -mm tree.  Its filename is
-     umem-fix-up-unplugging.patch
+     fsnotify-remove-unused-parameter-from-send_to_group.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tao Guo <glorioustao@gmail.com>
-Subject: umem: fix up unplugging
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: fsnotify: remove unused parameter from send_to_group()
 
-We need to implement unplugging to make umem start to work, or I/O
-will never be triggered.
+We don't use "mnt" anymore in send_to_group() after 1968f5eed5 ("fanotify:
+use both marks when possible") was applied.
 
-Signed-off-by: Tao Guo <Tao.Guo@emc.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/umem.c |   33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+ fs/notify/fsnotify.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/umem.c~umem-fix-up-unplugging drivers/block/umem.c
---- a/drivers/block/umem.c~umem-fix-up-unplugging
-+++ a/drivers/block/umem.c
-@@ -111,7 +111,8 @@ struct cardinfo {
- 	int		current_idx;
- 	sector_t	current_sector;
- 
--	struct request_queue *queue;
-+	struct request_queue	*queue;
-+	struct blk_plug_cb	plug_cb;
- 
- 	struct mm_page {
- 		dma_addr_t		page_dma;
-@@ -513,6 +514,33 @@ static void process_page(unsigned long d
- 	}
+diff -puN fs/notify/fsnotify.c~fsnotify-remove-unused-parameter-from-send_to_group fs/notify/fsnotify.c
+--- a/fs/notify/fsnotify.c~fsnotify-remove-unused-parameter-from-send_to_group
++++ a/fs/notify/fsnotify.c
+@@ -123,7 +123,7 @@ int __fsnotify_parent(struct path *path,
  }
+ EXPORT_SYMBOL_GPL(__fsnotify_parent);
  
-+static void mm_unplug(struct blk_plug_cb *cb)
-+{
-+	struct cardinfo *card = container_of(cb, struct cardinfo, plug_cb);
-+
-+	spin_lock_irq(&card->lock);
-+	activate(card);
-+	spin_unlock_irq(&card->lock);
-+}
-+
-+int mm_check_plugged(struct cardinfo *card)
-+{
-+	struct blk_plug *plug = current->plug;
-+	struct cardinfo *c;
-+
-+	if (!plug)
-+		return 0;
-+
-+	list_for_each_entry(c, &plug->cb_list, plug_cb.list) {
-+		if (c == card)
-+			return 1;
-+	}
-+
-+	/* set up unplug callback */
-+	list_add(&card->plug_cb.list, &plug->cb_list);
-+	return 1;
-+}
-+
- static void mm_make_request(struct request_queue *q, struct bio *bio)
- {
- 	struct cardinfo *card = q->queuedata;
-@@ -523,6 +551,8 @@ static void mm_make_request(struct reque
- 	*card->biotail = bio;
- 	bio->bi_next = NULL;
- 	card->biotail = &bio->bi_next;
-+	if (bio->bi_rw & REQ_SYNC || !mm_check_plugged(card))
-+		activate(card);
- 	spin_unlock_irq(&card->lock);
+-static int send_to_group(struct inode *to_tell, struct vfsmount *mnt,
++static int send_to_group(struct inode *to_tell,
+ 			 struct fsnotify_mark *inode_mark,
+ 			 struct fsnotify_mark *vfsmount_mark,
+ 			 __u32 mask, void *data,
+@@ -168,10 +168,10 @@ static int send_to_group(struct inode *t
+ 			vfsmount_test_mask &= ~inode_mark->ignored_mask;
+ 	}
  
- 	return;
-@@ -884,6 +914,7 @@ static int __devinit mm_pci_probe(struct
- 	blk_queue_make_request(card->queue, mm_make_request);
- 	card->queue->queue_lock = &card->lock;
- 	card->queue->queuedata = card;
-+	card->plug_cb.callback = mm_unplug;
+-	pr_debug("%s: group=%p to_tell=%p mnt=%p mask=%x inode_mark=%p"
++	pr_debug("%s: group=%p to_tell=%p mask=%x inode_mark=%p"
+ 		 " inode_test_mask=%x vfsmount_mark=%p vfsmount_test_mask=%x"
+ 		 " data=%p data_is=%d cookie=%d event=%p\n",
+-		 __func__, group, to_tell, mnt, mask, inode_mark,
++		 __func__, group, to_tell, mask, inode_mark,
+ 		 inode_test_mask, vfsmount_mark, vfsmount_test_mask, data,
+ 		 data_is, cookie, *event);
  
- 	tasklet_init(&card->tasklet, process_page, (unsigned long)card);
+@@ -258,16 +258,16 @@ int fsnotify(struct inode *to_tell, __u3
  
+ 		if (inode_group > vfsmount_group) {
+ 			/* handle inode */
+-			ret = send_to_group(to_tell, NULL, inode_mark, NULL, mask, data,
++			ret = send_to_group(to_tell, inode_mark, NULL, mask, data,
+ 					    data_is, cookie, file_name, &event);
+ 			/* we didn't use the vfsmount_mark */
+ 			vfsmount_group = NULL;
+ 		} else if (vfsmount_group > inode_group) {
+-			ret = send_to_group(to_tell, &mnt->mnt, NULL, vfsmount_mark, mask, data,
++			ret = send_to_group(to_tell, NULL, vfsmount_mark, mask, data,
+ 					    data_is, cookie, file_name, &event);
+ 			inode_group = NULL;
+ 		} else {
+-			ret = send_to_group(to_tell, &mnt->mnt, inode_mark, vfsmount_mark,
++			ret = send_to_group(to_tell, inode_mark, vfsmount_mark,
+ 					    mask, data, data_is, cookie, file_name,
+ 					    &event);
+ 		}
 _
-Subject: Subject: umem: fix up unplugging
+Subject: Subject: fsnotify: remove unused parameter from send_to_group()
 
-Patches currently in -mm which might be from glorioustao@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-umem-fix-up-unplugging.patch
+origin.patch
+linux-next.patch
+fsnotify-remove-unused-parameter-from-send_to_group.patch
 
