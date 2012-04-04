@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-redundant-parentheses.patch added to -mm tree
-Date: Wed, 04 Apr 2012 14:37:34 -0700
-Message-ID: <20120404213734.DFEC5A001B@akpm.mtv.corp.google.com>
+Subject: + umem-fix-up-unplugging.patch added to -mm tree
+Date: Wed, 04 Apr 2012 14:48:03 -0700
+Message-ID: <20120404214803.D5FFFA02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:55963 "EHLO
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:43430 "EHLO
 	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757127Ab2DDVhg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 17:37:36 -0400
-Received: by qcsp5 with SMTP id p5so96639qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 14:37:35 -0700 (PDT)
+	with ESMTP id S1757137Ab2DDVsF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 17:48:05 -0400
+Received: by qcsp5 with SMTP id p5so97867qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 14:48:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill@shutemov.name, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: glorioustao@gmail.com, Tao.Guo@emc.com, axboe@kernel.dk, neilb@suse.de
 
 
 The patch titled
-     Subject: memcg: remove redundant parentheses
+     Subject: umem: fix up unplugging
 has been added to the -mm tree.  Its filename is
-     memcg-remove-redundant-parentheses.patch
+     umem-fix-up-unplugging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: memcg: remove redundant parentheses
+From: Tao Guo <glorioustao@gmail.com>
+Subject: umem: fix up unplugging
 
-Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+We need to implement unplugging to make umem start to work, or I/O
+will never be triggered.
+
+Signed-off-by: Tao Guo <Tao.Guo@emc.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/block/umem.c |   33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-redundant-parentheses mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-redundant-parentheses
-+++ a/mm/memcontrol.c
-@@ -73,7 +73,7 @@ static int really_do_swap_account __init
- #endif
+diff -puN drivers/block/umem.c~umem-fix-up-unplugging drivers/block/umem.c
+--- a/drivers/block/umem.c~umem-fix-up-unplugging
++++ a/drivers/block/umem.c
+@@ -111,7 +111,8 @@ struct cardinfo {
+ 	int		current_idx;
+ 	sector_t	current_sector;
  
- #else
--#define do_swap_account		(0)
-+#define do_swap_account		0
- #endif
+-	struct request_queue *queue;
++	struct request_queue	*queue;
++	struct blk_plug_cb	plug_cb;
  
+ 	struct mm_page {
+ 		dma_addr_t		page_dma;
+@@ -513,6 +514,33 @@ static void process_page(unsigned long d
+ 	}
+ }
  
-@@ -112,9 +112,9 @@ enum mem_cgroup_events_target {
- 	MEM_CGROUP_TARGET_NUMAINFO,
- 	MEM_CGROUP_NTARGETS,
- };
--#define THRESHOLDS_EVENTS_TARGET (128)
--#define SOFTLIMIT_EVENTS_TARGET (1024)
--#define NUMAINFO_EVENTS_TARGET	(1024)
-+#define THRESHOLDS_EVENTS_TARGET 128
-+#define SOFTLIMIT_EVENTS_TARGET 1024
-+#define NUMAINFO_EVENTS_TARGET	1024
++static void mm_unplug(struct blk_plug_cb *cb)
++{
++	struct cardinfo *card = container_of(cb, struct cardinfo, plug_cb);
++
++	spin_lock_irq(&card->lock);
++	activate(card);
++	spin_unlock_irq(&card->lock);
++}
++
++int mm_check_plugged(struct cardinfo *card)
++{
++	struct blk_plug *plug = current->plug;
++	struct cardinfo *c;
++
++	if (!plug)
++		return 0;
++
++	list_for_each_entry(c, &plug->cb_list, plug_cb.list) {
++		if (c == card)
++			return 1;
++	}
++
++	/* set up unplug callback */
++	list_add(&card->plug_cb.list, &plug->cb_list);
++	return 1;
++}
++
+ static void mm_make_request(struct request_queue *q, struct bio *bio)
+ {
+ 	struct cardinfo *card = q->queuedata;
+@@ -523,6 +551,8 @@ static void mm_make_request(struct reque
+ 	*card->biotail = bio;
+ 	bio->bi_next = NULL;
+ 	card->biotail = &bio->bi_next;
++	if (bio->bi_rw & REQ_SYNC || !mm_check_plugged(card))
++		activate(card);
+ 	spin_unlock_irq(&card->lock);
  
- struct mem_cgroup_stat_cpu {
- 	long count[MEM_CGROUP_STAT_NSTATS];
-@@ -359,8 +359,8 @@ static bool move_file(void)
-  * Maximum loops in mem_cgroup_hierarchical_reclaim(), used for soft
-  * limit reclaim to prevent infinite loops, if they ever occur.
-  */
--#define	MEM_CGROUP_MAX_RECLAIM_LOOPS		(100)
--#define	MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS	(2)
-+#define	MEM_CGROUP_MAX_RECLAIM_LOOPS		100
-+#define	MEM_CGROUP_MAX_SOFT_LIMIT_RECLAIM_LOOPS	2
+ 	return;
+@@ -884,6 +914,7 @@ static int __devinit mm_pci_probe(struct
+ 	blk_queue_make_request(card->queue, mm_make_request);
+ 	card->queue->queue_lock = &card->lock;
+ 	card->queue->queuedata = card;
++	card->plug_cb.callback = mm_unplug;
  
- enum charge_type {
- 	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
-@@ -376,8 +376,8 @@ enum charge_type {
- #define _MEM			(0)
- #define _MEMSWAP		(1)
- #define _OOM_TYPE		(2)
--#define MEMFILE_PRIVATE(x, val)	(((x) << 16) | (val))
--#define MEMFILE_TYPE(val)	(((val) >> 16) & 0xffff)
-+#define MEMFILE_PRIVATE(x, val)	((x) << 16 | (val))
-+#define MEMFILE_TYPE(val)	((val) >> 16 & 0xffff)
- #define MEMFILE_ATTR(val)	((val) & 0xffff)
- /* Used for OOM nofiier */
- #define OOM_CONTROL		(0)
-@@ -1977,7 +1977,7 @@ struct memcg_stock_pcp {
- 	unsigned int nr_pages;
- 	struct work_struct work;
- 	unsigned long flags;
--#define FLUSHING_CACHED_CHARGE	(0)
-+#define FLUSHING_CACHED_CHARGE	0
- };
- static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock);
- static DEFINE_MUTEX(percpu_charge_mutex);
-@@ -2532,7 +2532,7 @@ static void __mem_cgroup_commit_charge(s
+ 	tasklet_init(&card->tasklet, process_page, (unsigned long)card);
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 
--#define PCGF_NOCOPY_AT_SPLIT ((1 << PCG_LOCK) | (1 << PCG_MIGRATION))
-+#define PCGF_NOCOPY_AT_SPLIT (1 << PCG_LOCK | 1 << PCG_MIGRATION)
- /*
-  * Because tail pages are not marked as "used", set it. We're under
-  * zone->lru_lock, 'splitting on pmd' and compound_lock.
 _
-Subject: Subject: memcg: remove redundant parentheses
+Subject: Subject: umem: fix up unplugging
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from glorioustao@gmail.com are
 
-memcg-fix-broken-boolen-expression.patch
-memcg-mark-more-functions-variables-as-static.patch
-memcg-remove-unused-variable.patch
-memcg-mark-stat-field-of-mem_cgroup-struct-as-__percpu.patch
-memcg-remove-redundant-parentheses.patch
+umem-fix-up-unplugging.patch
 
