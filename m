@@ -1,85 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] nfs-inotify-inotify-user-when-deleting-files-on-nfs.patch removed from -mm tree
-Date: Wed, 04 Apr 2012 16:49:18 -0700
-Message-ID: <20120404234918.BCF4BA038B@akpm.mtv.corp.google.com>
+Subject: + timeconstpl-remove-deprecated-defined-array.patch added to -mm tree
+Date: Wed, 04 Apr 2012 16:57:53 -0700
+Message-ID: <20120404235754.13988A03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:40905 "EHLO
+Received: from mail-we0-f202.google.com ([74.125.82.202]:38715 "EHLO
 	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753983Ab2DDXtU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 19:49:20 -0400
-Received: by wejx9 with SMTP id x9so40857wej.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 16:49:19 -0700 (PDT)
+	with ESMTP id S1753799Ab2DDX54 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 19:57:56 -0400
+Received: by wejx9 with SMTP id x9so41134wej.1
+        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 16:57:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maxim.uvarov@oracle.com, bharrosh@panasas.com, chuck.lever@oracle.com, eparis@redhat.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ilmari@ilmari.org, hpa@zytor.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: nfs/inotify: inotify user when deleting files on nfs
-has been removed from the -mm tree.  Its filename was
-     nfs-inotify-inotify-user-when-deleting-files-on-nfs.patch
+     Subject: timeconst.pl: remove deprecated defined(@array)
+has been added to the -mm tree.  Its filename is
+     timeconstpl-remove-deprecated-defined-array.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Maxim Uvarov <maxim.uvarov@oracle.com>
-Subject: nfs/inotify: inotify user when deleting files on nfs
+=46rom: Dagfinn Ilmari Manns=E5ker <ilmari@ilmari.org>
+Subject: timeconst.pl: remove deprecated defined(@array)
 
-This issue was introduced with LTP inotify02 test.  If file system is not
-NFS user inotify application gets IN_DELETE event.  But on NFS code avoids
-d_delete() which sends this event.  This patch makes notification on NFS
-the same as non-NFS.  I.e.  vfs_unlink still avoids deletion but it sends
-event for NFS sillyrenamed files.
+The use of defined() on arrays and hashes has been deprecated since per=
+l
+5.6, but until 5.17.6 it only warned on lexicals, not package globals.
 
-More details here: https://lkml.org/lkml/2011/11/29/421
-
-Signed-off-by: Maxim Uvarov <maxim.uvarov@oracle.com>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Dagfinn Ilmari Manns=E5ker <ilmari@ilmari.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ kernel/timeconst.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namei.c~nfs-inotify-inotify-user-when-deleting-files-on-nfs fs/namei.c
---- a/fs/namei.c~nfs-inotify-inotify-user-when-deleting-files-on-nfs
-+++ a/fs/namei.c
-@@ -2850,10 +2850,23 @@ int vfs_unlink(struct inode *dir, struct
+diff -puN kernel/timeconst.pl~timeconstpl-remove-deprecated-defined-arr=
+ay kernel/timeconst.pl
+--- a/kernel/timeconst.pl~timeconstpl-remove-deprecated-defined-array
++++ a/kernel/timeconst.pl
+@@ -370,7 +370,7 @@ if ($hz eq '--can') {
  	}
- 	mutex_unlock(&dentry->d_inode->i_mutex);
- 
--	/* We don't d_delete() NFS sillyrenamed files--they still exist. */
--	if (!error && !(dentry->d_flags & DCACHE_NFSFS_RENAMED)) {
-+
-+	if (!error) {
- 		fsnotify_link_count(dentry->d_inode);
--		d_delete(dentry);
-+		if (!(dentry->d_flags & DCACHE_NFSFS_RENAMED))
-+			d_delete(dentry);
-+		else {
-+			/* We don't d_delete() NFS sillyrenamed files - they
-+			 * still exist. But from user side this file was
-+			 * deleted. So that we need to generate notify event
-+			 * about it.
-+			 */
-+			struct inode *inode;
-+			int isdir;
-+			inode = dentry->d_inode;
-+			isdir = S_ISDIR(inode->i_mode);
-+			fsnotify_nameremove(dentry, isdir);
-+		}
+=20
+ 	@val =3D @{$canned_values{$hz}};
+-	if (!defined(@val)) {
++	if (!@val) {
+ 		@val =3D compute_values($hz);
  	}
- 
- 	return error;
+ 	output($hz, @val);
 _
+Subject: Subject: timeconst.pl: remove deprecated defined(@array)
 
-Patches currently in -mm which might be from maxim.uvarov@oracle.com are
+Patches currently in -mm which might be from ilmari@ilmari.org are
 
+timeconstpl-remove-deprecated-defined-array.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
