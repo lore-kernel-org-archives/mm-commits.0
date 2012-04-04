@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch added to -mm tree
-Date: Wed, 04 Apr 2012 15:28:00 -0700
-Message-ID: <20120404222800.EFD83A03A4@akpm.mtv.corp.google.com>
+Subject: + umem-fix-up-unplugging.patch added to -mm tree
+Date: Wed, 04 Apr 2012 15:34:52 -0700
+Message-ID: <20120404223453.0E8A3A042C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:37685 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753556Ab2DDW2C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 18:28:02 -0400
-Received: by yhgm50 with SMTP id m50so102377yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 15:28:01 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:41965 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757283Ab2DDWez (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 18:34:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexander.stein@systec-electronic.com, a.zummo@towertech.it, jesper.nilsson@axis.com, starvik@axis.com
+Cc: glorioustao@gmail.com, Tao.Guo@emc.com, axboe@kernel.dk, neilb@suse.de, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: add RTC_VL_READ/RTC_VL_CLR ioctl feature
+     Subject: umem: fix up unplugging
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch
+     umem-fix-up-unplugging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +31,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Stein <alexander.stein@systec-electronic.com>
-Subject: drivers/rtc/rtc-pcf8563.c: add RTC_VL_READ/RTC_VL_CLR ioctl feature
+From: Tao Guo <glorioustao@gmail.com>
+Subject: umem: fix up unplugging
 
-Changes are based on arch/cris/arch-v10/drivers/pcf8563.c
+Fix a regression introduced by 7eaceaccab5f40 ("block: remove per-queue
+plugging").  In that patch, Jens removed the whole mm_unplug_device()
+function, which used to be the trigger to make umem start to work.
 
-Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+We need to implement unplugging to make umem start to work, or I/O
+will never be triggered.
+
+Signed-off-by: Tao Guo <Tao.Guo@emc.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |   44 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+ drivers/block/umem.c |   33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -64,6 +64,7 @@ struct pcf8563 {
- 	 * 1970...2069.
- 	 */
- 	int c_polarity;	/* 0: MO_C=1 means 19xx, otherwise MO_C=1 means 20xx */
-+	int voltage_low; /* incicates if a low_voltage was detected */
- };
+diff -puN drivers/block/umem.c~umem-fix-up-unplugging drivers/block/umem.c
+--- a/drivers/block/umem.c~umem-fix-up-unplugging
++++ a/drivers/block/umem.c
+@@ -111,7 +111,8 @@ struct cardinfo {
+ 	int		current_idx;
+ 	sector_t	current_sector;
  
- /*
-@@ -86,9 +87,11 @@ static int pcf8563_get_datetime(struct i
- 		return -EIO;
+-	struct request_queue *queue;
++	struct request_queue	*queue;
++	struct blk_plug_cb	plug_cb;
+ 
+ 	struct mm_page {
+ 		dma_addr_t		page_dma;
+@@ -513,6 +514,33 @@ static void process_page(unsigned long d
  	}
- 
--	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV)
-+	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV) {
-+		pcf8563->voltage_low = 1;
- 		dev_info(&client->dev,
- 			"low voltage detected, date/time is not reliable.\n");
-+	}
- 
- 	dev_dbg(&client->dev,
- 		"%s: raw data is st1=%02x, st2=%02x, sec=%02x, min=%02x, hr=%02x, "
-@@ -173,6 +176,44 @@ static int pcf8563_set_datetime(struct i
- 	return 0;
  }
  
-+#ifdef CONFIG_RTC_INTF_DEV
-+static int pcf8563_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
++static void mm_unplug(struct blk_plug_cb *cb)
 +{
-+	struct pcf8563 *pcf8563 = i2c_get_clientdata(to_i2c_client(dev));
-+	struct rtc_time tm;
++	struct cardinfo *card = container_of(cb, struct cardinfo, plug_cb);
 +
-+	switch (cmd) {
-+	case RTC_VL_READ:
-+		if (pcf8563->voltage_low)
-+			dev_info(dev, "low voltage detected, date/time is not reliable.\n");
-+
-+		if (copy_to_user((int *) arg, &pcf8563->voltage_low,
-+					sizeof(int)))
-+			return -EFAULT;
-+		return 0;
-+	case RTC_VL_CLR:
-+		/*
-+		 * Clear the VL bit in the seconds register in case
-+		 * the time has not been set already (which would
-+		 * have cleared it). This does not really matter
-+		 * because of the cached voltage_low value but do it
-+		 * anyway for consistency.
-+		 */
-+		if (pcf8563_get_datetime(to_i2c_client(dev), &tm))
-+			pcf8563_set_datetime(to_i2c_client(dev), &tm);
-+
-+		/* Clear the cached value. */
-+		pcf8563->voltage_low = 0;
-+
-+		return 0;
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
++	spin_lock_irq(&card->lock);
++	activate(card);
++	spin_unlock_irq(&card->lock);
 +}
-+#else
-+#define pcf8563_rtc_ioctl NULL
-+#endif
 +
- static int pcf8563_rtc_read_time(struct device *dev, struct rtc_time *tm)
++int mm_check_plugged(struct cardinfo *card)
++{
++	struct blk_plug *plug = current->plug;
++	struct cardinfo *c;
++
++	if (!plug)
++		return 0;
++
++	list_for_each_entry(c, &plug->cb_list, plug_cb.list) {
++		if (c == card)
++			return 1;
++	}
++
++	/* set up unplug callback */
++	list_add(&card->plug_cb.list, &plug->cb_list);
++	return 1;
++}
++
+ static void mm_make_request(struct request_queue *q, struct bio *bio)
  {
- 	return pcf8563_get_datetime(to_i2c_client(dev), tm);
-@@ -184,6 +225,7 @@ static int pcf8563_rtc_set_time(struct d
- }
+ 	struct cardinfo *card = q->queuedata;
+@@ -523,6 +551,8 @@ static void mm_make_request(struct reque
+ 	*card->biotail = bio;
+ 	bio->bi_next = NULL;
+ 	card->biotail = &bio->bi_next;
++	if (bio->bi_rw & REQ_SYNC || !mm_check_plugged(card))
++		activate(card);
+ 	spin_unlock_irq(&card->lock);
  
- static const struct rtc_class_ops pcf8563_rtc_ops = {
-+	.ioctl		= pcf8563_rtc_ioctl,
- 	.read_time	= pcf8563_rtc_read_time,
- 	.set_time	= pcf8563_rtc_set_time,
- };
+ 	return;
+@@ -884,6 +914,7 @@ static int __devinit mm_pci_probe(struct
+ 	blk_queue_make_request(card->queue, mm_make_request);
+ 	card->queue->queue_lock = &card->lock;
+ 	card->queue->queuedata = card;
++	card->plug_cb.callback = mm_unplug;
+ 
+ 	tasklet_init(&card->tasklet, process_page, (unsigned long)card);
+ 
 _
-Subject: Subject: drivers/rtc/rtc-pcf8563.c: add RTC_VL_READ/RTC_VL_CLR ioctl feature
+Subject: Subject: umem: fix up unplugging
 
-Patches currently in -mm which might be from alexander.stein@systec-electronic.com are
+Patches currently in -mm which might be from glorioustao@gmail.com are
 
-rtc-add-ioctl-to-get-clear-battery-low-voltage-status.patch
-drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch
+umem-fix-up-unplugging.patch
 
