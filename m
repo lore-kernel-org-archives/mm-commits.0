@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ad-driver-for-da9052-53-pmic-v1.patch added to -mm tree
-Date: Wed, 04 Apr 2012 15:12:13 -0700
-Message-ID: <20120404221213.C4E89A042C@akpm.mtv.corp.google.com>
+Subject: + memcg-fix-up-documentation-on-global-lru.patch added to -mm tree
+Date: Wed, 04 Apr 2012 15:14:57 -0700
+Message-ID: <20120404221457.A9D10A042C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:43571 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756749Ab2DDWMP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 18:12:15 -0400
-Received: by qabg24 with SMTP id g24so102578qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 15:12:14 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:61076 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757034Ab2DDWPB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 18:15:01 -0400
+Received: by wibhj13 with SMTP id hj13so42600wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 15:14:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ashish.jangam@kpitcummins.com, dchen@diasemi.com, rpurdie@rpsys.net, sameo@linux.intel.com
+Cc: yinghan@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: backlight: ad driver for DA9052/53 PMIC v1
+     Subject: memcg: fix up documentation on global LRU
 has been added to the -mm tree.  Its filename is
-     backlight-ad-driver-for-da9052-53-pmic-v1.patch
+     memcg-fix-up-documentation-on-global-lru.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,253 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Subject: backlight: ad driver for DA9052/53 PMIC v1
+From: Ying Han <yinghan@google.com>
+Subject: memcg: fix up documentation on global LRU
 
-DA9052/53 PMIC has capability to supply power for upto 3 banks of 6 white
-serial LEDS.  It can also control intensity of independent banks and to
-drive these banks boost converter will provide up to 24V and forward
-current of max.  50mA.
+In v3.3-rc1, the global LRU has been removed with commit "mm: make
+per-memcg LRU lists exclusive".  The patch fixes up the memcg docs.
 
-This patch allows to control intensity of the individual WLEDs bank
-through DA9052/53 PMIC.
+I left the swap session to someone who has better understanding of
+'memory+swap'.
 
-This patch is functionally tested on Samsung SMDKV6410.
-
-Signed-off-by: David Dajun Chen <dchen@diasemi.com>
-Signed-off-by: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Ying Han <yinghan@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig     |    6 
- drivers/video/backlight/Makefile    |    1 
- drivers/video/backlight/da9052_bl.c |  187 ++++++++++++++++++++++++++
- 3 files changed, 194 insertions(+)
+ Documentation/cgroups/memory.txt |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/Kconfig~backlight-ad-driver-for-da9052-53-pmic-v1 drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-ad-driver-for-da9052-53-pmic-v1
-+++ a/drivers/video/backlight/Kconfig
-@@ -245,6 +245,12 @@ config BACKLIGHT_DA903X
- 	  If you have a LCD backlight connected to the WLED output of DA9030
- 	  or DA9034 WLED output, say Y here to enable this driver.
+diff -puN Documentation/cgroups/memory.txt~memcg-fix-up-documentation-on-global-lru Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-fix-up-documentation-on-global-lru
++++ a/Documentation/cgroups/memory.txt
+@@ -34,8 +34,7 @@ Current Status: linux-2.6.34-mmotm(devel
  
-+config BACKLIGHT_DA9052
-+	tristate "Dialog DA9052/DA9053 WLED"
-+	depends on PMIC_DA9052
-+	help
-+	  Enable the Backlight Driver for DA9052-BC and DA9053-AA/Bx PMICs.
-+
- config BACKLIGHT_MAX8925
- 	tristate "Backlight driver for MAX8925"
- 	depends on MFD_MAX8925
-diff -puN drivers/video/backlight/Makefile~backlight-ad-driver-for-da9052-53-pmic-v1 drivers/video/backlight/Makefile
---- a/drivers/video/backlight/Makefile~backlight-ad-driver-for-da9052-53-pmic-v1
-+++ a/drivers/video/backlight/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_BACKLIGHT_PROGEAR) += proge
- obj-$(CONFIG_BACKLIGHT_CARILLO_RANCH) += cr_bllcd.o
- obj-$(CONFIG_BACKLIGHT_PWM)	+= pwm_bl.o
- obj-$(CONFIG_BACKLIGHT_DA903X)	+= da903x_bl.o
-+obj-$(CONFIG_BACKLIGHT_DA9052)	+= da9052_bl.o
- obj-$(CONFIG_BACKLIGHT_MAX8925)	+= max8925_bl.o
- obj-$(CONFIG_BACKLIGHT_APPLE)	+= apple_bl.o
- obj-$(CONFIG_BACKLIGHT_TOSA)	+= tosa_bl.o
-diff -puN /dev/null drivers/video/backlight/da9052_bl.c
---- /dev/null
-+++ a/drivers/video/backlight/da9052_bl.c
-@@ -0,0 +1,187 @@
-+/*
-+ * Backlight Driver for Dialog DA9052 PMICs
-+ *
-+ * Copyright(c) 2012 Dialog Semiconductor Ltd.
-+ *
-+ * Author: David Dajun Chen <dchen@diasemi.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+
-+#include <linux/backlight.h>
-+#include <linux/delay.h>
-+#include <linux/fb.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+
-+#include <linux/mfd/da9052/da9052.h>
-+#include <linux/mfd/da9052/reg.h>
-+
-+#define DA9052_MAX_BRIGHTNESS		0xFF
-+
-+enum {
-+	DA9052_WLEDS_OFF,
-+	DA9052_WLEDS_ON,
-+};
-+
-+enum {
-+	DA9052_TYPE_WLED1,
-+	DA9052_TYPE_WLED2,
-+	DA9052_TYPE_WLED3,
-+};
-+
-+static unsigned char wled_bank[] = {
-+	DA9052_LED1_CONF_REG,
-+	DA9052_LED2_CONF_REG,
-+	DA9052_LED3_CONF_REG,
-+};
-+
-+struct da9052_bl {
-+	struct da9052 *da9052;
-+	uint brightness;
-+	uint state;
-+	uint led_reg;
-+};
-+
-+static int da9052_adjust_wled_brightness(struct da9052_bl *wleds)
-+{
-+	unsigned char boost_en;
-+	unsigned char i_sink;
-+	int ret;
-+
-+	boost_en = 0x3F;
-+	i_sink = 0xFF;
-+	if (wleds->state == DA9052_WLEDS_OFF) {
-+		boost_en = 0x00;
-+		i_sink = 0x00;
-+	}
-+
-+	ret = da9052_reg_write(wleds->da9052, DA9052_BOOST_REG, boost_en);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = da9052_reg_write(wleds->da9052, DA9052_LED_CONT_REG, i_sink);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = da9052_reg_write(wleds->da9052, wled_bank[wleds->led_reg], 0x0);
-+	if (ret < 0)
-+		return ret;
-+
-+	msleep(10);
-+
-+	if (wleds->brightness) {
-+		ret = da9052_reg_write(wleds->da9052, wled_bank[wleds->led_reg],
-+				       wleds->brightness);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int da9052_backlight_update_status(struct backlight_device *bl)
-+{
-+	int brightness = bl->props.brightness;
-+	struct da9052_bl *wleds = bl_get_data(bl);
-+
-+	wleds->brightness = brightness;
-+	wleds->state = DA9052_WLEDS_ON;
-+
-+	return da9052_adjust_wled_brightness(wleds);
-+}
-+
-+static int da9052_backlight_get_brightness(struct backlight_device *bl)
-+{
-+	struct da9052_bl *wleds = bl_get_data(bl);
-+
-+	return wleds->brightness;
-+}
-+
-+static const struct backlight_ops da9052_backlight_ops = {
-+	.update_status = da9052_backlight_update_status,
-+	.get_brightness = da9052_backlight_get_brightness,
-+};
-+
-+static int da9052_backlight_probe(struct platform_device *pdev)
-+{
-+	struct backlight_device *bl;
-+	struct backlight_properties props;
-+	struct da9052_bl *wleds;
-+
-+	wleds = devm_kzalloc(&pdev->dev, sizeof(struct da9052_bl), GFP_KERNEL);
-+	if (!wleds)
-+		return -ENOMEM;
-+
-+	wleds->da9052 = dev_get_drvdata(pdev->dev.parent);
-+	wleds->brightness = 0;
-+	wleds->led_reg = platform_get_device_id(pdev)->driver_data;
-+	wleds->state = DA9052_WLEDS_OFF;
-+
-+	props.type = BACKLIGHT_RAW;
-+	props.max_brightness = DA9052_MAX_BRIGHTNESS;
-+
-+	bl = backlight_device_register(pdev->name, wleds->da9052->dev, wleds,
-+				       &da9052_backlight_ops, &props);
-+	if (IS_ERR(bl)) {
-+		dev_err(&pdev->dev, "Failed to register backlight\n");
-+		devm_kfree(&pdev->dev, wleds);
-+		return PTR_ERR(bl);
-+	}
-+
-+	bl->props.max_brightness = DA9052_MAX_BRIGHTNESS;
-+	bl->props.brightness = 0;
-+	platform_set_drvdata(pdev, bl);
-+
-+	return da9052_adjust_wled_brightness(wleds);
-+}
-+
-+static int da9052_backlight_remove(struct platform_device *pdev)
-+{
-+	struct backlight_device *bl = platform_get_drvdata(pdev);
-+	struct da9052_bl *wleds = bl_get_data(bl);
-+
-+	wleds->brightness = 0;
-+	wleds->state = DA9052_WLEDS_OFF;
-+	da9052_adjust_wled_brightness(wleds);
-+	backlight_device_unregister(bl);
-+	devm_kfree(&pdev->dev, wleds);
-+
-+	return 0;
-+}
-+
-+static struct platform_device_id da9052_wled_ids[] = {
-+	{
-+		.name		= "da9052-wled1",
-+		.driver_data	= DA9052_TYPE_WLED1,
-+	},
-+	{
-+		.name		= "da9052-wled2",
-+		.driver_data	= DA9052_TYPE_WLED2,
-+	},
-+	{
-+		.name		= "da9052-wled3",
-+		.driver_data	= DA9052_TYPE_WLED3,
-+	},
-+};
-+
-+static struct platform_driver da9052_wled_driver = {
-+	.probe		= da9052_backlight_probe,
-+	.remove		= da9052_backlight_remove,
-+	.id_table	= da9052_wled_ids,
-+	.driver	= {
-+		.name	= "da9052-wled",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+module_platform_driver(da9052_wled_driver);
-+
-+MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
-+MODULE_DESCRIPTION("Backlight driver for DA9052 PMIC");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:da9052-backlight");
+ Features:
+  - accounting anonymous pages, file caches, swap caches usage and limiting them.
+- - private LRU and reclaim routine. (system's global LRU and private LRU
+-   work independently from each other)
++ - pages are linked to per-memcg LRU exclusively, and there is no global LRU.
+  - optionally, memory+swap usage can be accounted and limited.
+  - hierarchical accounting
+  - soft limit
+@@ -154,7 +153,7 @@ updated. page_cgroup has its own LRU on 
+ 2.2.1 Accounting details
+ 
+ All mapped anon pages (RSS) and cache pages (Page Cache) are accounted.
+-Some pages which are never reclaimable and will not be on the global LRU
++Some pages which are never reclaimable and will not be on the LRU
+ are not accounted. We just account pages under usual VM management.
+ 
+ RSS pages are accounted at page_fault unless they've already been accounted
 _
-Subject: Subject: backlight: ad driver for DA9052/53 PMIC v1
+Subject: Subject: memcg: fix up documentation on global LRU
 
-Patches currently in -mm which might be from ashish.jangam@kpitcummins.com are
+Patches currently in -mm which might be from yinghan@google.com are
 
-backlight-ad-driver-for-da9052-53-pmic-v1.patch
+memcg-fix-up-documentation-on-global-lru.patch
 
