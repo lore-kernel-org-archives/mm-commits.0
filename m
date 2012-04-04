@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix.patch added to -mm tree
-Date: Wed, 04 Apr 2012 15:52:38 -0700
-Message-ID: <20120404225239.1C4BBA0341@akpm.mtv.corp.google.com>
+Subject: + c-r-ipc-message-queue-receive-cleanup.patch added to -mm tree
+Date: Wed, 04 Apr 2012 16:12:38 -0700
+Message-ID: <20120404231239.76562A04F2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:53936 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757350Ab2DDWwk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 18:52:40 -0400
-Received: by yhgm50 with SMTP id m50so105366yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 15:52:39 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:61004 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757243Ab2DDXMl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 19:12:41 -0400
+Received: by wibhj13 with SMTP id hj13so43626wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 16:12:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bharrosh@panasas.com, chuck.lever@oracle.com, eparis@redhat.com, maxim.uvarov@oracle.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk
+Cc: skinsbursky@parallels.com, arnd@arndb.de, cmetcalf@tilera.com, gorcunov@openvz.org, lucas.de.marchi@gmail.com, xemul@parallels.com
 
 
 The patch titled
-     Subject: nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix
+     Subject: c/r: ipc: message queue receive cleanup
 has been added to the -mm tree.  Its filename is
-     nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix.patch
+     c-r-ipc-message-queue-receive-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,195 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix
+From: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Subject: c/r: ipc: message queue receive cleanup
 
-tweak the comment
+Move all message related manipulation into one function msg_fill(). 
+Actually, two functions because of the compat one.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Maxim Uvarov <maxim.uvarov@oracle.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/compat.h |    2 +
+ include/linux/msg.h    |    5 ++--
+ ipc/compat.c           |   33 +++++++++++++++--------------
+ ipc/msg.c              |   44 ++++++++++++++++++++-------------------
+ 4 files changed, 45 insertions(+), 39 deletions(-)
 
-diff -puN fs/namei.c~nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix fs/namei.c
---- a/fs/namei.c~nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix
-+++ a/fs/namei.c
-@@ -2856,10 +2856,10 @@ int vfs_unlink(struct inode *dir, struct
- 		if (!(dentry->d_flags & DCACHE_NFSFS_RENAMED))
- 			d_delete(dentry);
- 		else {
--			/* We don't d_delete() NFS sillyrenamed files - they
--			 * still exist. But from user side this file was
--			 * deleted. So that we need to generate notify event
--			 * about it.
-+			/*
-+			 * We don't d_delete() NFS sillyrenamed files - they
-+			 * still exist.  But from the user side this file was
-+			 * deleted, so we need to generate a notify event.
+diff -puN include/linux/compat.h~c-r-ipc-message-queue-receive-cleanup include/linux/compat.h
+--- a/include/linux/compat.h~c-r-ipc-message-queue-receive-cleanup
++++ a/include/linux/compat.h
+@@ -245,6 +245,7 @@ struct compat_sysctl_args;
+ struct compat_kexec_segment;
+ struct compat_mq_attr;
+ struct compat_msgbuf;
++struct msg_msg;
+ 
+ extern void compat_exit_robust_list(struct task_struct *curr);
+ 
+@@ -258,6 +259,7 @@ compat_sys_get_robust_list(int pid, comp
+ #ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
+ long compat_sys_semctl(int first, int second, int third, void __user *uptr);
+ long compat_sys_msgsnd(int first, int second, int third, void __user *uptr);
++long compat_do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz);
+ long compat_sys_msgrcv(int first, int second, int msgtyp, int third,
+ 		int version, void __user *uptr);
+ long compat_sys_shmat(int first, int second, compat_uptr_t third, int version,
+diff -puN include/linux/msg.h~c-r-ipc-message-queue-receive-cleanup include/linux/msg.h
+--- a/include/linux/msg.h~c-r-ipc-message-queue-receive-cleanup
++++ a/include/linux/msg.h
+@@ -104,8 +104,9 @@ struct msg_queue {
+ /* Helper routines for sys_msgsnd and sys_msgrcv */
+ extern long do_msgsnd(int msqid, long mtype, void __user *mtext,
+ 			size_t msgsz, int msgflg);
+-extern long do_msgrcv(int msqid, long *pmtype, void __user *mtext,
+-			size_t msgsz, long msgtyp, int msgflg);
++extern long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
++		      int msgflg,
++		      long (*msg_fill)(void __user *, struct msg_msg *, size_t ));
+ 
+ #endif /* __KERNEL__ */
+ 
+diff -puN ipc/compat.c~c-r-ipc-message-queue-receive-cleanup ipc/compat.c
+--- a/ipc/compat.c~c-r-ipc-message-queue-receive-cleanup
++++ a/ipc/compat.c
+@@ -334,13 +334,23 @@ long compat_sys_msgsnd(int first, int se
+ 	return do_msgsnd(first, type, up->mtext, second, third);
+ }
+ 
++long compat_do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
++{
++	struct compat_msgbuf __user *msgp;
++	size_t msgsz;
++
++	if (put_user(msg->m_type, &msgp->mtype))
++		return -EFAULT;
++
++	msgsz = (bufsz > msg->m_ts) ? msg->m_ts : bufsz;
++	if (store_msg(msgp->mtext, msg, msgsz))
++		return -EFAULT;
++	return msgsz;
++}
++
+ long compat_sys_msgrcv(int first, int second, int msgtyp, int third,
+ 			   int version, void __user *uptr)
+ {
+-	struct compat_msgbuf __user *up;
+-	long type;
+-	int err;
+-
+ 	if (first < 0)
+ 		return -EINVAL;
+ 	if (second < 0)
+@@ -348,23 +358,14 @@ long compat_sys_msgrcv(int first, int se
+ 
+ 	if (!version) {
+ 		struct compat_ipc_kludge ipck;
+-		err = -EINVAL;
+ 		if (!uptr)
+-			goto out;
+-		err = -EFAULT;
++			return -EINVAL;
+ 		if (copy_from_user (&ipck, uptr, sizeof(ipck)))
+-			goto out;
++			return -EFAULT;
+ 		uptr = compat_ptr(ipck.msgp);
+ 		msgtyp = ipck.msgtyp;
+ 	}
+-	up = uptr;
+-	err = do_msgrcv(first, &type, up->mtext, second, msgtyp, third);
+-	if (err < 0)
+-		goto out;
+-	if (put_user(type, &up->mtype))
+-		err = -EFAULT;
+-out:
+-	return err;
++	return do_msgrcv(first, uptr, second, msgtyp, third, compat_do_msg_fill);
+ }
+ #else
+ long compat_sys_semctl(int semid, int semnum, int cmd, int arg)
+diff -puN ipc/msg.c~c-r-ipc-message-queue-receive-cleanup ipc/msg.c
+--- a/ipc/msg.c~c-r-ipc-message-queue-receive-cleanup
++++ a/ipc/msg.c
+@@ -752,15 +752,30 @@ static inline int convert_mode(long *msg
+ 	return SEARCH_EQUAL;
+ }
+ 
+-long do_msgrcv(int msqid, long *pmtype, void __user *mtext,
+-		size_t msgsz, long msgtyp, int msgflg)
++static long do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
++{
++	struct msgbuf __user *msgp = dest;
++	size_t msgsz;
++
++	if (put_user(msg->m_type, &msgp->mtype))
++		return -EFAULT;
++
++	msgsz = (bufsz > msg->m_ts) ? msg->m_ts : bufsz;
++	if (store_msg(msgp->mtext, msg, msgsz))
++		return -EFAULT;
++	return msgsz;
++}
++
++long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
++	       int msgflg,
++	       long (*msg_fill)(void __user *, struct msg_msg *, size_t ))
+ {
+ 	struct msg_queue *msq;
+ 	struct msg_msg *msg;
+ 	int mode;
+ 	struct ipc_namespace *ns;
+ 
+-	if (msqid < 0 || (long) msgsz < 0)
++	if (msqid < 0 || (long) bufsz < 0)
+ 		return -EINVAL;
+ 	mode = convert_mode(&msgtyp, msgflg);
+ 	ns = current->nsproxy->ipc_ns;
+@@ -804,7 +819,7 @@ long do_msgrcv(int msqid, long *pmtype, 
+ 			 * Found a suitable message.
+ 			 * Unlink it from the queue.
  			 */
- 			struct inode *inode;
- 			int isdir;
-_
-Subject: Subject: nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
-fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix.patch
-fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
-simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-leds-add-led-driver-for-lm3556-chip-fix-2.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-leds-add-led-driver-for-lm3556-chip-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-			if ((msgsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
++			if ((bufsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
+ 				msg = ERR_PTR(-E2BIG);
+ 				goto out_unlock;
+ 			}
+@@ -831,7 +846,7 @@ long do_msgrcv(int msqid, long *pmtype, 
+ 		if (msgflg & MSG_NOERROR)
+ 			msr_d.r_maxsize = INT_MAX;
+ 		else
+-			msr_d.r_maxsize = msgsz;
++			msr_d.r_maxsize = bufsz;
+ 		msr_d.r_msg = ERR_PTR(-EAGAIN);
+ 		current->state = TASK_INTERRUPTIBLE;
+ 		msg_unlock(msq);
+@@ -894,29 +909,16 @@ out_unlock:
+ 	if (IS_ERR(msg))
+ 		return PTR_ERR(msg);
+ 
+-	msgsz = (msgsz > msg->m_ts) ? msg->m_ts : msgsz;
+-	*pmtype = msg->m_type;
+-	if (store_msg(mtext, msg, msgsz))
+-		msgsz = -EFAULT;
+-
++	bufsz = msg_fill(buf, msg, bufsz);
+ 	free_msg(msg);
+ 
+-	return msgsz;
++	return bufsz;
+ }
+ 
+ SYSCALL_DEFINE5(msgrcv, int, msqid, struct msgbuf __user *, msgp, size_t, msgsz,
+ 		long, msgtyp, int, msgflg)
+ {
+-	long err, mtype;
+-
+-	err =  do_msgrcv(msqid, &mtype, msgp->mtext, msgsz, msgtyp, msgflg);
+-	if (err < 0)
+-		goto out;
