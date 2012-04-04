@@ -1,105 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix.patch removed from -mm tree
-Date: Wed, 04 Apr 2012 16:49:04 -0700
-Message-ID: <20120404234905.5C1ECA038B@akpm.mtv.corp.google.com>
+Subject: [withdrawn] nfs-inotify-inotify-user-when-deleting-files-on-nfs.patch removed from -mm tree
+Date: Wed, 04 Apr 2012 16:49:18 -0700
+Message-ID: <20120404234918.BCF4BA038B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:44207 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753937Ab2DDXtH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 19:49:07 -0400
-Received: by eaaq10 with SMTP id q10so41018eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 16:49:06 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:40905 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753983Ab2DDXtU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Apr 2012 19:49:20 -0400
+Received: by wejx9 with SMTP id x9so40857wej.1
+        for <mm-commits@vger.kernel.org>; Wed, 04 Apr 2012 16:49:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bharrosh@panasas.com, chuck.lever@oracle.com, eparis@redhat.com, maxim.uvarov@oracle.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: maxim.uvarov@oracle.com, bharrosh@panasas.com, chuck.lever@oracle.com, eparis@redhat.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix
+     Subject: nfs/inotify: inotify user when deleting files on nfs
 has been removed from the -mm tree.  Its filename was
-     nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix.patch
+     nfs-inotify-inotify-user-when-deleting-files-on-nfs.patch
 
 This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix
+From: Maxim Uvarov <maxim.uvarov@oracle.com>
+Subject: nfs/inotify: inotify user when deleting files on nfs
 
-tweak the comment
+This issue was introduced with LTP inotify02 test.  If file system is not
+NFS user inotify application gets IN_DELETE event.  But on NFS code avoids
+d_delete() which sends this event.  This patch makes notification on NFS
+the same as non-NFS.  I.e.  vfs_unlink still avoids deletion but it sends
+event for NFS sillyrenamed files.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+More details here: https://lkml.org/lkml/2011/11/29/421
+
+Signed-off-by: Maxim Uvarov <maxim.uvarov@oracle.com>
 Cc: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Chuck Lever <chuck.lever@oracle.com>
 Cc: Eric Paris <eparis@redhat.com>
-Cc: Maxim Uvarov <maxim.uvarov@oracle.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/namei.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN fs/namei.c~nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix fs/namei.c
---- a/fs/namei.c~nfs-inotify-inotify-user-when-deleting-files-on-nfs-fix
+diff -puN fs/namei.c~nfs-inotify-inotify-user-when-deleting-files-on-nfs fs/namei.c
+--- a/fs/namei.c~nfs-inotify-inotify-user-when-deleting-files-on-nfs
 +++ a/fs/namei.c
-@@ -2856,10 +2856,10 @@ int vfs_unlink(struct inode *dir, struct
- 		if (!(dentry->d_flags & DCACHE_NFSFS_RENAMED))
- 			d_delete(dentry);
- 		else {
--			/* We don't d_delete() NFS sillyrenamed files - they
--			 * still exist. But from user side this file was
--			 * deleted. So that we need to generate notify event
--			 * about it.
-+			/*
-+			 * We don't d_delete() NFS sillyrenamed files - they
-+			 * still exist.  But from the user side this file was
-+			 * deleted, so we need to generate a notify event.
- 			 */
- 			struct inode *inode;
- 			int isdir;
+@@ -2850,10 +2850,23 @@ int vfs_unlink(struct inode *dir, struct
+ 	}
+ 	mutex_unlock(&dentry->d_inode->i_mutex);
+ 
+-	/* We don't d_delete() NFS sillyrenamed files--they still exist. */
+-	if (!error && !(dentry->d_flags & DCACHE_NFSFS_RENAMED)) {
++
++	if (!error) {
+ 		fsnotify_link_count(dentry->d_inode);
+-		d_delete(dentry);
++		if (!(dentry->d_flags & DCACHE_NFSFS_RENAMED))
++			d_delete(dentry);
++		else {
++			/* We don't d_delete() NFS sillyrenamed files - they
++			 * still exist. But from user side this file was
++			 * deleted. So that we need to generate notify event
++			 * about it.
++			 */
++			struct inode *inode;
++			int isdir;
++			inode = dentry->d_inode;
++			isdir = S_ISDIR(inode->i_mode);
++			fsnotify_nameremove(dentry, isdir);
++		}
+ 	}
+ 
+ 	return error;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from maxim.uvarov@oracle.com are
 
-origin.patch
-fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
-fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix.patch
-fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
-simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-leds-add-led-driver-for-lm3556-chip-fix-2.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-leds-add-led-driver-for-lm3556-chip-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
