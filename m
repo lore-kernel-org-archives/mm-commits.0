@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + leds-led-module-for-da9052-53-pmic-v2-fix.patch added to -mm tree
-Date: Thu, 05 Apr 2012 15:53:10 -0700
-Message-ID: <20120405225310.F284CA0517@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected.patch added to -mm tree
+Date: Thu, 05 Apr 2012 16:31:05 -0700
+Message-ID: <20120405233105.C98DCA03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:59979 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756581Ab2DEWxN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Apr 2012 18:53:13 -0400
-Received: by eaaq10 with SMTP id q10so95299eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 05 Apr 2012 15:53:11 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:56246 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752513Ab2DEXbI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Apr 2012 19:31:08 -0400
+Received: by bkcjm19 with SMTP id jm19so95313bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 05 Apr 2012 16:31:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ashish.jangam@kpitcummins.com, dchen@diasemi.com, lars@metafoo.de, rpurdie@rpsys.net
+Cc: andreas.dumberger@tqs.de, a.zummo@towertech.it, agust@denx.de
 
 
 The patch titled
-     Subject: leds-led-module-for-da9052-53-pmic-v2-fix
+     Subject: drivers/rtc/rtc-r9701.c: reset registers if invalid values are detected
 has been added to the -mm tree.  Its filename is
-     leds-led-module-for-da9052-53-pmic-v2-fix.patch
+     drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: leds-led-module-for-da9052-53-pmic-v2-fix
+From: Andreas Dumberger <andreas.dumberger@tqs.de>
+Subject: drivers/rtc/rtc-r9701.c: reset registers if invalid values are detected
 
-Cc: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Cc: David Dajun Chen <dchen@diasemi.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+hwclock refuses to set date/time if RTC registers contain invalid values. 
+Check the date/time register values at probe time and initialize them to
+make hwclock happy.
+
+Signed-off-by: Andreas Dumberger <andreas.dumberger@tqs.de>
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-da9052.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-r9701.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN drivers/leds/leds-da9052.c~leds-led-module-for-da9052-53-pmic-v2-fix drivers/leds/leds-da9052.c
---- a/drivers/leds/leds-da9052.c~leds-led-module-for-da9052-53-pmic-v2-fix
-+++ a/drivers/leds/leds-da9052.c
-@@ -40,7 +40,7 @@ struct da9052_led {
- 	int brightness;
- };
+diff -puN drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected drivers/rtc/rtc-r9701.c
+--- a/drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected
++++ a/drivers/rtc/rtc-r9701.c
+@@ -122,6 +122,7 @@ static const struct rtc_class_ops r9701_
+ static int __devinit r9701_probe(struct spi_device *spi)
+ {
+ 	struct rtc_device *rtc;
++	struct rtc_time dt;
+ 	unsigned char tmp;
+ 	int res;
  
--unsigned char led_reg[] = {
-+static unsigned char led_reg[] = {
- 	DA9052_LED_CONT_4_REG,
- 	DA9052_LED_CONT_5_REG,
- };
+@@ -132,6 +133,27 @@ static int __devinit r9701_probe(struct 
+ 		return -ENODEV;
+ 	}
+ 
++	/*
++	 * The device seems to be present. Now check if the registers
++	 * contain invalid values. If so, try to write a default date:
++	 * 2000/1/1 00:00:00
++	 */
++	r9701_get_datetime(&spi->dev, &dt);
++	if (rtc_valid_tm(&dt)) {
++		dev_info(&spi->dev, "trying to repair invalid date/time\n");
++		dt.tm_sec  = 0;
++		dt.tm_min  = 0;
++		dt.tm_hour = 0;
++		dt.tm_mday = 1;
++		dt.tm_mon  = 0;
++		dt.tm_year = 100;
++
++		if (r9701_set_datetime(&spi->dev, &dt)) {
++			dev_err(&spi->dev, "cannot repair RTC register\n");
++			return -ENODEV;
++		}
++	}
++
+ 	rtc = rtc_device_register("r9701",
+ 				&spi->dev, &r9701_rtc_ops, THIS_MODULE);
+ 	if (IS_ERR(rtc))
 _
-Subject: Subject: leds-led-module-for-da9052-53-pmic-v2-fix
+Subject: Subject: drivers/rtc/rtc-r9701.c: reset registers if invalid values are detected
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andreas.dumberger@tqs.de are
 
-origin.patch
-fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
-fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
-simple_open-automatically-convert-to-simple_open.patch
-linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-leds-led-module-for-da9052-53-pmic-v2-fix.patch
-leds-add-led-driver-for-lm3556-chip-fix-2.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-leds-add-led-driver-for-lm3556-chip-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
-c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected.patch
 
