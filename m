@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected.patch added to -mm tree
-Date: Thu, 05 Apr 2012 16:31:05 -0700
-Message-ID: <20120405233105.C98DCA03CD@akpm.mtv.corp.google.com>
+Subject: + memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch added to -mm tree
+Date: Thu, 05 Apr 2012 16:38:25 -0700
+Message-ID: <20120405233825.BCDF2A04F2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:56246 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752513Ab2DEXbI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Apr 2012 19:31:08 -0400
-Received: by bkcjm19 with SMTP id jm19so95313bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 05 Apr 2012 16:31:07 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:57308 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753049Ab2DEXi0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Apr 2012 19:38:26 -0400
+Received: by yenq2 with SMTP id q2so229944yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 05 Apr 2012 16:38:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andreas.dumberger@tqs.de, a.zummo@towertech.it, agust@denx.de
+Cc: handai.szj@taobao.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-r9701.c: reset registers if invalid values are detected
+     Subject: memcg: revise the position of threshold index while unregistering event
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected.patch
+     memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Dumberger <andreas.dumberger@tqs.de>
-Subject: drivers/rtc/rtc-r9701.c: reset registers if invalid values are detected
+From: Sha Zhengju <handai.szj@taobao.com>
+Subject: memcg: revise the position of threshold index while unregistering event
 
-hwclock refuses to set date/time if RTC registers contain invalid values. 
-Check the date/time register values at probe time and initialize them to
-make hwclock happy.
+Index current_threshold should point to threshold just below or equal to
+usage.  See below: http://www.spinics.net/lists/cgroups/msg00844.html
 
-Signed-off-by: Andreas Dumberger <andreas.dumberger@tqs.de>
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-
+Signed-off-by: Sha Zhengju <handai.szj@taobao.com>
+Reviewed-by: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-r9701.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected drivers/rtc/rtc-r9701.c
---- a/drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected
-+++ a/drivers/rtc/rtc-r9701.c
-@@ -122,6 +122,7 @@ static const struct rtc_class_ops r9701_
- static int __devinit r9701_probe(struct spi_device *spi)
- {
- 	struct rtc_device *rtc;
-+	struct rtc_time dt;
- 	unsigned char tmp;
- 	int res;
+diff -puN mm/memcontrol.c~memcg-revise-the-position-of-threshold-index-while-unregistering-event mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-revise-the-position-of-threshold-index-while-unregistering-event
++++ a/mm/memcontrol.c
+@@ -4470,7 +4470,7 @@ static void mem_cgroup_usage_unregister_
+ 			continue;
  
-@@ -132,6 +133,27 @@ static int __devinit r9701_probe(struct 
- 		return -ENODEV;
- 	}
- 
-+	/*
-+	 * The device seems to be present. Now check if the registers
-+	 * contain invalid values. If so, try to write a default date:
-+	 * 2000/1/1 00:00:00
-+	 */
-+	r9701_get_datetime(&spi->dev, &dt);
-+	if (rtc_valid_tm(&dt)) {
-+		dev_info(&spi->dev, "trying to repair invalid date/time\n");
-+		dt.tm_sec  = 0;
-+		dt.tm_min  = 0;
-+		dt.tm_hour = 0;
-+		dt.tm_mday = 1;
-+		dt.tm_mon  = 0;
-+		dt.tm_year = 100;
-+
-+		if (r9701_set_datetime(&spi->dev, &dt)) {
-+			dev_err(&spi->dev, "cannot repair RTC register\n");
-+			return -ENODEV;
-+		}
-+	}
-+
- 	rtc = rtc_device_register("r9701",
- 				&spi->dev, &r9701_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
+ 		new->entries[j] = thresholds->primary->entries[i];
+-		if (new->entries[j].threshold < usage) {
++		if (new->entries[j].threshold <= usage) {
+ 			/*
+ 			 * new->current_threshold will not be used
+ 			 * until rcu_assign_pointer(), so it's safe to increment
 _
-Subject: Subject: drivers/rtc/rtc-r9701.c: reset registers if invalid values are detected
+Subject: Subject: memcg: revise the position of threshold index while unregistering event
 
-Patches currently in -mm which might be from andreas.dumberger@tqs.de are
+Patches currently in -mm which might be from handai.szj@taobao.com are
 
-drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected.patch
+memcg-make-threshold-index-in-the-right-position.patch
+memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
 
