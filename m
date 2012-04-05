@@ -1,125 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-swap-use-mem_cgroup_uncharge_swap-fix.patch added to -mm tree
-Date: Thu, 05 Apr 2012 12:35:59 -0700
-Message-ID: <20120405193601.B6C54A0734@akpm.mtv.corp.google.com>
+Subject: [folded] fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix.patch removed from -mm tree
+Date: Thu, 05 Apr 2012 14:17:38 -0700
+Message-ID: <20120405211739.2F7C2A03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:60907 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517Ab2DETgF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Apr 2012 15:36:05 -0400
-Received: by wejx9 with SMTP id x9so90154wej.1
-        for <mm-commits@vger.kernel.org>; Thu, 05 Apr 2012 12:36:03 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:57076 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752753Ab2DEVRm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Apr 2012 17:17:42 -0400
+Received: by faaa19 with SMTP id a19so94617faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 05 Apr 2012 14:17:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, nishimura@mxp.nes.nec.co.jp, rientjes@google.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg swap: use mem_cgroup_uncharge_swap fix
-has been added to the -mm tree.  Its filename is
-     memcg-swap-use-mem_cgroup_uncharge_swap-fix.patch
+     Subject: fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix
+has been removed from the -mm tree.  Its filename was
+     fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg swap: use mem_cgroup_uncharge_swap fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix
 
-Although mem_cgroup_uncharge_swap has an empty placeholder for
-!CONFIG_CGROUP_MEM_RES_CTLR_SWAP the definition is placed in the
-CONFIG_SWAP ifdef block so we are missing the same definition for
-!CONFIG_SWAP which implies !CONFIG_CGROUP_MEM_RES_CTLR_SWAP.
 
-This was not an issue until "memcg swap: use mem_cgroup_uncharge_swap()"
-because mem_cgroup_uncharge_swap was not called from !CONFIG_SWAP context
-but now we are calling it from __mem_cgroup_commit_charge_swapin which is
-defined also for !CONFIG_SWAP.
 
-Let's move both the empty definition and declaration outside of the
-CONFIG_SWAP block to fix the following compilation error:
-
-mm/memcontrol.c: In function '__mem_cgroup_commit_charge_swapin':
-mm/memcontrol.c:2837: error: implicit declaration of function 'mem_cgroup_uncharge_swap'
-
-if CONFIG_SWAP is disabled.
-
-Reported-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/xattr.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~memcg-swap-use-mem_cgroup_uncharge_swap-fix include/linux/swap.h
---- a/include/linux/swap.h~memcg-swap-use-mem_cgroup_uncharge_swap-fix
-+++ a/include/linux/swap.h
-@@ -311,6 +311,13 @@ static inline int mem_cgroup_swappiness(
- 	return vm_swappiness;
- }
- #endif
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
-+extern void mem_cgroup_uncharge_swap(swp_entry_t ent);
-+#else
-+static inline void mem_cgroup_uncharge_swap(swp_entry_t ent)
-+{
-+}
-+#endif
- #ifdef CONFIG_SWAP
- /* linux/mm/page_io.c */
- extern int swap_readpage(struct page *);
-@@ -400,13 +407,6 @@ mem_cgroup_uncharge_swapcache(struct pag
- {
- }
- #endif
--#ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
--extern void mem_cgroup_uncharge_swap(swp_entry_t ent);
--#else
--static inline void mem_cgroup_uncharge_swap(swp_entry_t ent)
--{
--}
--#endif
+diff -puN fs/xattr.c~fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix fs/xattr.c
+--- a/fs/xattr.c~fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed-fix
++++ a/fs/xattr.c
+@@ -19,8 +19,9 @@
+ #include <linux/export.h>
+ #include <linux/fsnotify.h>
+ #include <linux/audit.h>
+-#include <asm/uaccess.h>
++#include <linux/vmalloc.h>
  
- #else /* CONFIG_SWAP */
++#include <asm/uaccess.h>
  
+ /*
+  * Check permissions for extended attribute access.  This is a bit complicated
 _
-Subject: Subject: memcg swap: use mem_cgroup_uncharge_swap fix
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-swap-use-mem_cgroup_uncharge_swap-fix.patch
+origin.patch
+fs-xattrc-listxattr-fall-back-to-vmalloc-if-kmalloc-failed.patch
+fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
+simple_open-automatically-convert-to-simple_open-checkpatch-fixes.patch
 linux-next.patch
-memcg-fix-up-documentation-on-global-lru.patch
-memcg-fix-broken-boolen-expression.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
+linux-next-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
 mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-memcg-mark-more-functions-variables-as-static.patch
-memcg-remove-unused-variable.patch
-memcg-mark-stat-field-of-mem_cgroup-struct-as-__percpu.patch
-memcg-remove-redundant-parentheses.patch
-memcg-make-threshold-index-in-the-right-position.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-2.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
