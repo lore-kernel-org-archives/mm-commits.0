@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-s3cc-add-placeholder-for-driver-private-data.patch added to -mm tree
-Date: Fri, 06 Apr 2012 12:15:18 -0700
-Message-ID: <20120406191518.20629A03B2@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch added to -mm tree
+Date: Fri, 06 Apr 2012 12:19:39 -0700
+Message-ID: <20120406191939.DCFD0A03B2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:55325 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757724Ab2DFTPT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 15:15:19 -0400
-Received: by qcsp5 with SMTP id p5so302838qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 12:15:18 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:52867 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757705Ab2DFTTl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 15:19:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tushar.behera@linaro.org, a.zummo@towertech.it, heiko@sntech.de
+Cc: x0155534@ti.com, a.zummo@towertech.it, b-cousson@ti.com, gg@slimlogic.co.uk, linux-omap@vger.kernel.org, nm@ti.com, oleksandr.dmytryshyn@ti.com, x0174904@ti.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-s3c.c: add placeholder for driver private data
+     Subject: drivers/rtc/rtc-twl.c: use static register while reading time
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-s3cc-add-placeholder-for-driver-private-data.patch
+     drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,98 +31,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tushar Behera <tushar.behera@linaro.org>
-Subject: drivers/rtc/rtc-s3c.c: add placeholder for driver private data
+From: Konstantin Shlyakhovoy <x0155534@ti.com>
+Subject: drivers/rtc/rtc-twl.c: use static register while reading time
 
-Driver data field is a pointer, hence assigning that to an integer results
-in compilation warnings.
+RTC stores time and date in several registers.  Due to the fact that these
+registers can't be read instantaneously, there is a chance that reading
+from counting registers gives an error of one minute, one hour, one day,
+etc.
 
-Fixes following compilation warnigs.
+To address this issue, the RTC has hardware support to copy the RTC
+counting registers to static shadowed registers.  The current
+implementation does not use this feature, and in a stress test, we can
+reproduce this error at a rate of around two times per 300000 readings.
 
-drivers/rtc/rtc-s3c.c: In function `s3c_rtc_get_driver_data':
-drivers/rtc/rtc-s3c.c:452:3: warning: return makes integer from pointer without a cast [enabled by default]
-drivers/rtc/rtc-s3c.c: At top level:
-drivers/rtc/rtc-s3c.c:674:3: warning: initialization makes pointer from integer without a cast [enabled by default]
-drivers/rtc/rtc-s3c.c:674:3: warning: (near initialization for `s3c_rtc_dt_match[1].data') [enabled by default]
-drivers/rtc/rtc-s3c.c:677:3: warning: initialization makes pointer from integer without a cast [enabled by default]
-drivers/rtc/rtc-s3c.c:677:3: warning: (near initialization for `s3c_rtc_dt_match[2].data') [enabled by default]
-drivers/rtc/rtc-s3c.c:680:3: warning: initialization makes pointer from integer without a cast [enabled by default]
-drivers/rtc/rtc-s3c.c:680:3: warning: (near initialization for `s3c_rtc_dt_match[3].data') [enabled by default]
+Fix the implementation to ensure that the right snapshot of time is
+captured.
 
-Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
-Cc: Heiko Stuebner <heiko@sntech.de>
+Signed-off-by: Konstantin Shlyakhovoy <x0155534@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
+Acked-by: Mykola Oleksiienko <x0174904@ti.com>
+Acked-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |   23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-twl.c |   43 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 38 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-add-placeholder-for-driver-private-data drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-add-placeholder-for-driver-private-data
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -40,6 +40,10 @@ enum s3c_cpu_type {
- 	TYPE_S3C64XX,
- };
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time
++++ a/drivers/rtc/rtc-twl.c
+@@ -112,6 +112,7 @@ static const u8 twl6030_rtc_reg_map[] = 
+ #define BIT_RTC_CTRL_REG_TEST_MODE_M             0x10
+ #define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        0x20
+ #define BIT_RTC_CTRL_REG_GET_TIME_M              0x40
++#define BIT_RTC_CTRL_REG_RTC_V_OPT               0x80
  
-+struct s3c_rtc_drv_data {
-+	int cpu_type;
-+};
+ /* RTC_STATUS_REG bitfields */
+ #define BIT_RTC_STATUS_REG_RUN_M                 0x02
+@@ -235,25 +236,57 @@ static int twl_rtc_read_time(struct devi
+ 	unsigned char rtc_data[ALL_TIME_REGS + 1];
+ 	int ret;
+ 	u8 save_control;
++	u8 rtc_control;
+ 
+ 	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
+-	if (ret < 0)
++	if (ret < 0) {
++		dev_err(dev, "%s: reading CTRL_REG, error %d\n", __func__, ret);
+ 		return ret;
++	}
++	/* for twl6030/32 make sure BIT_RTC_CTRL_REG_GET_TIME_M is clear */
++	if (twl_class_is_6030()) {
++		if (save_control & BIT_RTC_CTRL_REG_GET_TIME_M) {
++			save_control &= ~BIT_RTC_CTRL_REG_GET_TIME_M;
++			ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
++			if (ret < 0) {
++				dev_err(dev, "%s clr GET_TIME, error %d\n",
++					__func__, ret);
++				return ret;
++			}
++		}
++	}
+ 
+-	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
++	/* Copy RTC counting registers to static registers or latches */
++	rtc_control = save_control | BIT_RTC_CTRL_REG_GET_TIME_M;
+ 
+-	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
+-	if (ret < 0)
++	/* for twl6030/32 enable read access to static shadowed registers */
++	if (twl_class_is_6030())
++		rtc_control |= BIT_RTC_CTRL_REG_RTC_V_OPT;
 +
- /* I have yet to find an S3C implementation with more than one
-  * of these rtc blocks in */
++	ret = twl_rtc_write_u8(rtc_control, REG_RTC_CTRL_REG);
++	if (ret < 0) {
++		dev_err(dev, "%s: writing CTRL_REG, error %d\n", __func__, ret);
+ 		return ret;
++	}
  
-@@ -446,10 +450,12 @@ static const struct of_device_id s3c_rtc
- static inline int s3c_rtc_get_driver_data(struct platform_device *pdev)
- {
- #ifdef CONFIG_OF
-+	struct s3c_rtc_drv_data *data;
- 	if (pdev->dev.of_node) {
- 		const struct of_device_id *match;
- 		match = of_match_node(s3c_rtc_dt_match, pdev->dev.of_node);
--		return match->data;
-+		data = (struct s3c_rtc_drv_data *) match->data;
-+		return data->cpu_type;
+ 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
+ 			(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
+ 
+ 	if (ret < 0) {
+-		dev_err(dev, "rtc_read_time error %d\n", ret);
++		dev_err(dev, "%s: reading data, error %d\n", __func__, ret);
+ 		return ret;
  	}
- #endif
- 	return platform_get_device_id(pdev)->driver_data;
-@@ -664,20 +670,27 @@ static int s3c_rtc_resume(struct platfor
- #define s3c_rtc_resume  NULL
- #endif
  
-+static struct s3c_rtc_drv_data s3c_rtc_drv_data_array[] = {
-+	[TYPE_S3C2410] = { TYPE_S3C2410 },
-+	[TYPE_S3C2416] = { TYPE_S3C2416 },
-+	[TYPE_S3C2443] = { TYPE_S3C2443 },
-+	[TYPE_S3C64XX] = { TYPE_S3C64XX },
-+};
++	/* for twl6030 restore original state of rtc control register */
++	if (twl_class_is_6030()) {
++		ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
++		if (ret < 0) {
++			dev_err(dev, "%s: restore CTRL_REG, error %d\n",
++				__func__, ret);
++			return ret;
++		}
++	}
 +
- #ifdef CONFIG_OF
- static const struct of_device_id s3c_rtc_dt_match[] = {
- 	{
- 		.compatible = "samsung,s3c2410-rtc",
--		.data = TYPE_S3C2410,
-+		.data = &s3c_rtc_drv_data_array[TYPE_S3C2410],
- 	}, {
- 		.compatible = "samsung,s3c2416-rtc",
--		.data = TYPE_S3C2416,
-+		.data = &s3c_rtc_drv_data_array[TYPE_S3C2416],
- 	}, {
- 		.compatible = "samsung,s3c2443-rtc",
--		.data = TYPE_S3C2443,
-+		.data = &s3c_rtc_drv_data_array[TYPE_S3C2443],
- 	}, {
- 		.compatible = "samsung,s3c6410-rtc",
--		.data = TYPE_S3C64XX,
-+		.data = &s3c_rtc_drv_data_array[TYPE_S3C64XX],
- 	},
- 	{},
- };
+ 	tm->tm_sec = bcd2bin(rtc_data[0]);
+ 	tm->tm_min = bcd2bin(rtc_data[1]);
+ 	tm->tm_hour = bcd2bin(rtc_data[2]);
 _
-Subject: Subject: drivers/rtc/rtc-s3c.c: add placeholder for driver private data
+Subject: Subject: drivers/rtc/rtc-twl.c: use static register while reading time
 
-Patches currently in -mm which might be from tushar.behera@linaro.org are
+Patches currently in -mm which might be from x0155534@ti.com are
 
-drivers-rtc-rtc-s3cc-fix-compilation-error.patch
-drivers-rtc-rtc-s3cc-add-placeholder-for-driver-private-data.patch
+drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch
 
