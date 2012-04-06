@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch added to -mm tree
-Date: Fri, 06 Apr 2012 12:19:39 -0700
-Message-ID: <20120406191939.DCFD0A03B2@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-remove-reclaim_mode_t.patch added to -mm tree
+Date: Fri, 06 Apr 2012 12:34:53 -0700
+Message-ID: <20120406193454.0DD97A02DE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:52867 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757705Ab2DFTTl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 15:19:41 -0400
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54480 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757873Ab2DFTez (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 15:34:55 -0400
+Received: by qabg24 with SMTP id g24so94020qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 12:34:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: x0155534@ti.com, a.zummo@towertech.it, b-cousson@ti.com, gg@slimlogic.co.uk, linux-omap@vger.kernel.org, nm@ti.com, oleksandr.dmytryshyn@ti.com, x0174904@ti.com
+Cc: mgorman@suse.de, apw@shadowen.org, hughd@google.com, khlebnikov@openvz.org, riel@redhat.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-twl.c: use static register while reading time
+     Subject: mm: vmscan: remove reclaim_mode_t
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch
+     mm-vmscan-remove-reclaim_mode_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,114 +33,205 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Shlyakhovoy <x0155534@ti.com>
-Subject: drivers/rtc/rtc-twl.c: use static register while reading time
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmscan: remove reclaim_mode_t
 
-RTC stores time and date in several registers.  Due to the fact that these
-registers can't be read instantaneously, there is a chance that reading
-from counting registers gives an error of one minute, one hour, one day,
-etc.
+There is little motiviation for reclaim_mode_t once RECLAIM_MODE_[A]SYNC
+and lumpy reclaim have been removed.  This patch gets rid of
+reclaim_mode_t as well and improves the documentation about what
+reclaim/compaction is and when it is triggered.
 
-To address this issue, the RTC has hardware support to copy the RTC
-counting registers to static shadowed registers.  The current
-implementation does not use this feature, and in a stress test, we can
-reproduce this error at a rate of around two times per 300000 readings.
-
-Fix the implementation to ensure that the right snapshot of time is
-captured.
-
-Signed-off-by: Konstantin Shlyakhovoy <x0155534@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
-Acked-by: Mykola Oleksiienko <x0174904@ti.com>
-Acked-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
-Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-twl.c |   43 +++++++++++++++++++++++++++++++++++-----
- 1 file changed, 38 insertions(+), 5 deletions(-)
+ include/trace/events/vmscan.h |    4 -
+ mm/vmscan.c                   |   72 +++++++++-----------------------
+ 2 files changed, 24 insertions(+), 52 deletions(-)
 
-diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time drivers/rtc/rtc-twl.c
---- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time
-+++ a/drivers/rtc/rtc-twl.c
-@@ -112,6 +112,7 @@ static const u8 twl6030_rtc_reg_map[] = 
- #define BIT_RTC_CTRL_REG_TEST_MODE_M             0x10
- #define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        0x20
- #define BIT_RTC_CTRL_REG_GET_TIME_M              0x40
-+#define BIT_RTC_CTRL_REG_RTC_V_OPT               0x80
+diff -puN include/trace/events/vmscan.h~mm-vmscan-remove-reclaim_mode_t include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-vmscan-remove-reclaim_mode_t
++++ a/include/trace/events/vmscan.h
+@@ -25,12 +25,12 @@
+ 		{RECLAIM_WB_ASYNC,	"RECLAIM_WB_ASYNC"}	\
+ 		) : "RECLAIM_WB_NONE"
  
- /* RTC_STATUS_REG bitfields */
- #define BIT_RTC_STATUS_REG_RUN_M                 0x02
-@@ -235,25 +236,57 @@ static int twl_rtc_read_time(struct devi
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
- 	int ret;
- 	u8 save_control;
-+	u8 rtc_control;
+-#define trace_reclaim_flags(page, sync) ( \
++#define trace_reclaim_flags(page) ( \
+ 	(page_is_file_cache(page) ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
+ 	(RECLAIM_WB_ASYNC)   \
+ 	)
  
- 	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
--	if (ret < 0)
-+	if (ret < 0) {
-+		dev_err(dev, "%s: reading CTRL_REG, error %d\n", __func__, ret);
- 		return ret;
-+	}
-+	/* for twl6030/32 make sure BIT_RTC_CTRL_REG_GET_TIME_M is clear */
-+	if (twl_class_is_6030()) {
-+		if (save_control & BIT_RTC_CTRL_REG_GET_TIME_M) {
-+			save_control &= ~BIT_RTC_CTRL_REG_GET_TIME_M;
-+			ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+			if (ret < 0) {
-+				dev_err(dev, "%s clr GET_TIME, error %d\n",
-+					__func__, ret);
-+				return ret;
-+			}
-+		}
-+	}
+-#define trace_shrink_flags(file, sync) ( \
++#define trace_shrink_flags(file) \
+ 	( \
+ 		(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) |  \
+ 		(RECLAIM_WB_ASYNC) \
+diff -puN mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t
++++ a/mm/vmscan.c
+@@ -53,16 +53,6 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/vmscan.h>
  
--	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
-+	/* Copy RTC counting registers to static registers or latches */
-+	rtc_control = save_control | BIT_RTC_CTRL_REG_GET_TIME_M;
+-/*
+- * reclaim_mode determines how the inactive list is shrunk
+- * RECLAIM_MODE_SINGLE: Reclaim only order-0 pages
+- * RECLAIM_MODE_COMPACTION: For high-order allocations, reclaim a number of
+- *			order-0 pages and then compact the zone
+- */
+-typedef unsigned __bitwise__ reclaim_mode_t;
+-#define RECLAIM_MODE_SINGLE		((__force reclaim_mode_t)0x01u)
+-#define RECLAIM_MODE_COMPACTION		((__force reclaim_mode_t)0x10u)
+-
+ struct scan_control {
+ 	/* Incremented by the number of inactive pages that were scanned */
+ 	unsigned long nr_scanned;
+@@ -89,12 +79,6 @@ struct scan_control {
+ 	int order;
  
--	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
--	if (ret < 0)
-+	/* for twl6030/32 enable read access to static shadowed registers */
-+	if (twl_class_is_6030())
-+		rtc_control |= BIT_RTC_CTRL_REG_RTC_V_OPT;
-+
-+	ret = twl_rtc_write_u8(rtc_control, REG_RTC_CTRL_REG);
-+	if (ret < 0) {
-+		dev_err(dev, "%s: writing CTRL_REG, error %d\n", __func__, ret);
- 		return ret;
-+	}
+ 	/*
+-	 * Intend to reclaim enough continuous memory rather than reclaim
+-	 * enough amount of memory. i.e, mode for high order allocation.
+-	 */
+-	reclaim_mode_t reclaim_mode;
+-
+-	/*
+ 	 * The memory cgroup that hit its limit and as a result is the
+ 	 * primary target of this reclaim invocation.
+ 	 */
+@@ -356,25 +340,6 @@ out:
+ 	return ret;
+ }
  
- 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
- 			(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
+-static void set_reclaim_mode(int priority, struct scan_control *sc)
+-{
+-	/*
+-	 * Restrict reclaim/compaction to costly allocations or when
+-	 * under memory pressure
+-	 */
+-	if (COMPACTION_BUILD && sc->order &&
+-			(sc->order > PAGE_ALLOC_COSTLY_ORDER ||
+-			 priority < DEF_PRIORITY - 2))
+-		sc->reclaim_mode = RECLAIM_MODE_COMPACTION;
+-	else
+-		sc->reclaim_mode = RECLAIM_MODE_SINGLE;
+-}
+-
+-static void reset_reclaim_mode(struct scan_control *sc)
+-{
+-	sc->reclaim_mode = RECLAIM_MODE_SINGLE;
+-}
+-
+ static inline int is_page_cache_freeable(struct page *page)
+ {
+ 	/*
+@@ -497,8 +462,7 @@ static pageout_t pageout(struct page *pa
+ 			/* synchronous write or broken a_ops? */
+ 			ClearPageReclaim(page);
+ 		}
+-		trace_mm_vmscan_writepage(page,
+-			trace_reclaim_flags(page, sc->reclaim_mode));
++		trace_mm_vmscan_writepage(page, trace_reclaim_flags(page));
+ 		inc_zone_page_state(page, NR_VMSCAN_WRITE);
+ 		return PAGE_SUCCESS;
+ 	}
+@@ -953,7 +917,6 @@ cull_mlocked:
+ 			try_to_free_swap(page);
+ 		unlock_page(page);
+ 		putback_lru_page(page);
+-		reset_reclaim_mode(sc);
+ 		continue;
  
- 	if (ret < 0) {
--		dev_err(dev, "rtc_read_time error %d\n", ret);
-+		dev_err(dev, "%s: reading data, error %d\n", __func__, ret);
- 		return ret;
+ activate_locked:
+@@ -1348,8 +1311,6 @@ shrink_inactive_list(unsigned long nr_to
+ 			return SWAP_CLUSTER_MAX;
  	}
  
-+	/* for twl6030 restore original state of rtc control register */
-+	if (twl_class_is_6030()) {
-+		ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+		if (ret < 0) {
-+			dev_err(dev, "%s: restore CTRL_REG, error %d\n",
-+				__func__, ret);
-+			return ret;
-+		}
-+	}
+-	set_reclaim_mode(priority, sc);
+-
+ 	lru_add_drain();
+ 
+ 	if (!sc->may_unmap)
+@@ -1428,7 +1389,7 @@ shrink_inactive_list(unsigned long nr_to
+ 		zone_idx(zone),
+ 		nr_scanned, nr_reclaimed,
+ 		priority,
+-		trace_shrink_flags(file, sc->reclaim_mode));
++		trace_shrink_flags(file));
+ 	return nr_reclaimed;
+ }
+ 
+@@ -1507,8 +1468,6 @@ static void shrink_active_list(unsigned 
+ 
+ 	lru_add_drain();
+ 
+-	reset_reclaim_mode(sc);
+-
+ 	if (!sc->may_unmap)
+ 		isolate_mode |= ISOLATE_UNMAPPED;
+ 	if (!sc->may_writepage)
+@@ -1821,23 +1780,35 @@ out:
+ 	}
+ }
+ 
++/* Use reclaim/compaction for costly allocs or under memory pressure */
++static bool in_reclaim_compaction(int priority, struct scan_control *sc)
++{
++	if (COMPACTION_BUILD && sc->order &&
++			(sc->order > PAGE_ALLOC_COSTLY_ORDER ||
++			 priority < DEF_PRIORITY - 2))
++		return true;
 +
- 	tm->tm_sec = bcd2bin(rtc_data[0]);
- 	tm->tm_min = bcd2bin(rtc_data[1]);
- 	tm->tm_hour = bcd2bin(rtc_data[2]);
++	return false;
++}
++
+ /*
+- * Reclaim/compaction depends on a number of pages being freed. To avoid
+- * disruption to the system, a small number of order-0 pages continue to be
+- * rotated and reclaimed in the normal fashion. However, by the time we get
+- * back to the allocator and call try_to_compact_zone(), we ensure that
+- * there are enough free pages for it to be likely successful
++ * Reclaim/compaction is used for high-order allocation requests. It reclaims
++ * order-0 pages before compacting the zone. should_continue_reclaim() returns
++ * true if more pages should be reclaimed such that when the page allocator
++ * calls try_to_compact_zone() that it will have enough free pages to succeed.
++ * It will give up earlier than that if there is difficulty reclaiming pages.
+  */
+ static inline bool should_continue_reclaim(struct mem_cgroup_zone *mz,
+ 					unsigned long nr_reclaimed,
+ 					unsigned long nr_scanned,
++					int priority,
+ 					struct scan_control *sc)
+ {
+ 	unsigned long pages_for_compaction;
+ 	unsigned long inactive_lru_pages;
+ 
+ 	/* If not in reclaim/compaction mode, stop */
+-	if (!(sc->reclaim_mode & RECLAIM_MODE_COMPACTION))
++	if (!in_reclaim_compaction(priority, sc))
+ 		return false;
+ 
+ 	/* Consider stopping depending on scan and reclaim activity */
+@@ -1944,7 +1915,8 @@ restart:
+ 
+ 	/* reclaim/compaction might need reclaim to continue */
+ 	if (should_continue_reclaim(mz, nr_reclaimed,
+-					sc->nr_scanned - nr_scanned, sc))
++					sc->nr_scanned - nr_scanned,
++					priority, sc))
+ 		goto restart;
+ 
+ 	throttle_vm_writeout(sc->gfp_mask);
 _
-Subject: Subject: drivers/rtc/rtc-twl.c: use static register while reading time
+Subject: Subject: mm: vmscan: remove reclaim_mode_t
 
-Patches currently in -mm which might be from x0155534@ti.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch
+mm-vmscan-remove-lumpy-reclaim.patch
+mm-vmscan-remove-reclaim_mode_t.patch
 
