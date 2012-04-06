@@ -1,82 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-fix-mount-t-proc-o-aaa.patch removed from -mm tree
-Date: Fri, 06 Apr 2012 11:48:41 -0700
-Message-ID: <20120406184841.CDD90A0443@akpm.mtv.corp.google.com>
+Subject: [merged] fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch removed from -mm tree
+Date: Fri, 06 Apr 2012 11:48:50 -0700
+Message-ID: <20120406184850.94AA7A0443@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:51472 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755800Ab2DFSso (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 14:48:44 -0400
-Received: by wgbdt11 with SMTP id dt11so142012wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 11:48:42 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:57413 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754960Ab2DFSsx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 14:48:53 -0400
+Received: by laai8 with SMTP id i8so128152laa.1
+        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 11:48:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: segoon@openwall.com, Valdis.Kletnieks@vt.edu, a.miskiewicz@gmail.com, adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davej@codemonkey.org.uk, david@fromorbit.com, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: fix mount -t proc -o AAA
+     Subject: fs/xattr.c:setxattr(): improve handling of allocation failures
 has been removed from the -mm tree.  Its filename was
-     proc-fix-mount-t-proc-o-aaa.patch
+     fs-xattrc-setxattr-improve-handling-of-allocation-failures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Vasiliy Kulikov <segoon@openwall.com>
-Subject: proc: fix mount -t proc -o AAA
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/xattr.c:setxattr(): improve handling of allocation failures
 
-The proc_parse_options() call from proc_mount() runs only once at boot
-time.  So on any later mount attempt, any mount options are ignored
-because ->s_root is already initialized.
+This allocation can be as large as 64k.
 
-As a consequence, "mount -o <options>" will ignore the options.  The only
-way to change mount options is "mount -o remount,<options>".
+- Add __GFP_NOWARN so the a falied kmalloc() is silent
 
-To fix this, parse the mount options unconditionally.
+- Fall back to vmalloc() if the kmalloc() failed
 
-Signed-off-by: Vasiliy Kulikov <segoon@openwall.com>
-Reported-by: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
-Tested-by: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/root.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/xattr.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/root.c~proc-fix-mount-t-proc-o-aaa fs/proc/root.c
---- a/fs/proc/root.c~proc-fix-mount-t-proc-o-aaa
-+++ a/fs/proc/root.c
-@@ -115,12 +115,13 @@ static struct dentry *proc_mount(struct 
- 	if (IS_ERR(sb))
- 		return ERR_CAST(sb);
+diff -puN fs/xattr.c~fs-xattrc-setxattr-improve-handling-of-allocation-failures fs/xattr.c
+--- a/fs/xattr.c~fs-xattrc-setxattr-improve-handling-of-allocation-failures
++++ a/fs/xattr.c
+@@ -321,6 +321,7 @@ setxattr(struct dentry *d, const char __
+ {
+ 	int error;
+ 	void *kvalue = NULL;
++	void *vvalue = NULL;	/* If non-NULL, we used vmalloc() */
+ 	char kname[XATTR_NAME_MAX + 1];
  
-+	if (!proc_parse_options(options, ns)) {
-+		deactivate_locked_super(sb);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
- 	if (!sb->s_root) {
- 		sb->s_flags = flags;
--		if (!proc_parse_options(options, ns)) {
--			deactivate_locked_super(sb);
--			return ERR_PTR(-EINVAL);
--		}
- 		err = proc_fill_super(sb);
- 		if (err) {
- 			deactivate_locked_super(sb);
+ 	if (flags & ~(XATTR_CREATE|XATTR_REPLACE))
+@@ -335,13 +336,25 @@ setxattr(struct dentry *d, const char __
+ 	if (size) {
+ 		if (size > XATTR_SIZE_MAX)
+ 			return -E2BIG;
+-		kvalue = memdup_user(value, size);
+-		if (IS_ERR(kvalue))
+-			return PTR_ERR(kvalue);
++		kvalue = kmalloc(size, GFP_KERNEL | __GFP_NOWARN);
++		if (!kvalue) {
++			vvalue = vmalloc(size);
++			if (!vvalue)
++				return -ENOMEM;
++			kvalue = vvalue;
++		}
++		if (copy_from_user(kvalue, value, size)) {
++			error = -EFAULT;
++			goto out;
++		}
+ 	}
+ 
+ 	error = vfs_setxattr(d, kname, kvalue, size, flags);
+-	kfree(kvalue);
++out:
++	if (vvalue)
++		vfree(vvalue);
++	else
++		kfree(kvalue);
+ 	return error;
+ }
+ 
 _
 
-Patches currently in -mm which might be from segoon@openwall.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-fix-2.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
 syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
-c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
