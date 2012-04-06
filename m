@@ -1,87 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: [merged] libfs-add-simple_open.patch removed from -mm tree
-Date: Fri, 06 Apr 2012 11:48:57 -0700
-Message-ID: <20120406184857.807C2A0443@akpm.mtv.corp.google.com>
+Subject: [merged] alpha-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
+Date: Fri, 06 Apr 2012 11:49:02 -0700
+Message-ID: <20120406184902.BDD41A04F2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:39661 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754815Ab2DFStA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 14:49:00 -0400
-Received: by lboi15 with SMTP id i15so55682lbo.1
-        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 11:48:58 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:57413 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756024Ab2DFStE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 14:49:04 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id i8so128152laa.1
+        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 11:49:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, Julia.Lawall@lip6.fr, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: matt.fleming@intel.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, oleg@redhat.com, rth@twiddle.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: libfs: add simple_open()
+     Subject: alpha: use set_current_blocked() and block_sigmask()
 has been removed from the -mm tree.  Its filename was
-     libfs-add-simple_open.patch
+     alpha-use-set_current_blocked-and-block_sigmask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: libfs: add simple_open()
+From: Matt Fleming <matt.fleming@intel.com>
+Subject: alpha: use set_current_blocked() and block_sigmask()
 
-debugfs and a few other drivers use an open-coded version of simple_open()
-to pass a pointer from the file to the read/write file ops.  Add support
-for this simple case to libfs so that we can remove the many duplicate
-copies of this simple function.
+As described in e6fa16ab ("signal: sigprocmask() should do
+retarget_shared_pending()") the modification of current->blocked is
+incorrect as we need to check for shared signals we're about to block.
 
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Also, use the new helper function introduced in commit 5e6292c0f28f
+("signal: add block_sigmask() for adding sigmask to current->blocked")
+which centralises the code for updating current->blocked after
+successfully delivering a signal and reduces the amount of duplicate code
+across architectures.  In the past some architectures got this code wrong,
+so using this helper function should stop that from happening again.
+
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c         |    8 ++++++++
- include/linux/fs.h |    1 +
- 2 files changed, 9 insertions(+)
+ arch/alpha/kernel/signal.c |   31 ++++++++++---------------------
+ 1 file changed, 10 insertions(+), 21 deletions(-)
 
-diff -puN fs/libfs.c~libfs-add-simple_open fs/libfs.c
---- a/fs/libfs.c~libfs-add-simple_open
-+++ a/fs/libfs.c
-@@ -264,6 +264,13 @@ Enomem:
- 	return ERR_PTR(-ENOMEM);
- }
- 
-+int simple_open(struct inode *inode, struct file *file)
-+{
-+	if (inode->i_private)
-+		file->private_data = inode->i_private;
-+	return 0;
-+}
-+
- int simple_link(struct dentry *old_dentry, struct inode *dir, struct dentry *dentry)
+diff -puN arch/alpha/kernel/signal.c~alpha-use-set_current_blocked-and-block_sigmask arch/alpha/kernel/signal.c
+--- a/arch/alpha/kernel/signal.c~alpha-use-set_current_blocked-and-block_sigmask
++++ a/arch/alpha/kernel/signal.c
+@@ -120,12 +120,13 @@ SYSCALL_DEFINE5(rt_sigaction, int, sig, 
+  */
+ SYSCALL_DEFINE1(sigsuspend, old_sigset_t, mask)
  {
- 	struct inode *inode = old_dentry->d_inode;
-@@ -984,6 +991,7 @@ EXPORT_SYMBOL(simple_dir_operations);
- EXPORT_SYMBOL(simple_empty);
- EXPORT_SYMBOL(simple_fill_super);
- EXPORT_SYMBOL(simple_getattr);
-+EXPORT_SYMBOL(simple_open);
- EXPORT_SYMBOL(simple_link);
- EXPORT_SYMBOL(simple_lookup);
- EXPORT_SYMBOL(simple_pin_fs);
-diff -puN include/linux/fs.h~libfs-add-simple_open include/linux/fs.h
---- a/include/linux/fs.h~libfs-add-simple_open
-+++ a/include/linux/fs.h
-@@ -2506,6 +2506,7 @@ extern int dcache_readdir(struct file *,
- extern int simple_setattr(struct dentry *, struct iattr *);
- extern int simple_getattr(struct vfsmount *, struct dentry *, struct kstat *);
- extern int simple_statfs(struct dentry *, struct kstatfs *);
-+extern int simple_open(struct inode *inode, struct file *file);
- extern int simple_link(struct dentry *, struct inode *, struct dentry *);
- extern int simple_unlink(struct inode *, struct dentry *);
- extern int simple_rmdir(struct inode *, struct dentry *);
+-	mask &= _BLOCKABLE;
+-	spin_lock_irq(&current->sighand->siglock);
++	sigset_t blocked;
++
+ 	current->saved_sigmask = current->blocked;
+-	siginitset(&current->blocked, mask);
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++
++	mask &= _BLOCKABLE;
++	siginitset(&blocked, mask);
++	set_current_blocked(&blocked);
+ 
+ 	current->state = TASK_INTERRUPTIBLE;
+ 	schedule();
+@@ -238,10 +239,7 @@ do_sigreturn(struct sigcontext __user *s
+ 		goto give_sigsegv;
+ 
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 
+ 	if (restore_sigcontext(sc, regs, sw))
+ 		goto give_sigsegv;
+@@ -276,10 +274,7 @@ do_rt_sigreturn(struct rt_sigframe __use
+ 		goto give_sigsegv;
+ 
+ 	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->blocked = set;
+-	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
++	set_current_blocked(&set);
+ 
+ 	if (restore_sigcontext(&frame->uc.uc_mcontext, regs, sw))
+ 		goto give_sigsegv;
+@@ -501,14 +496,8 @@ handle_signal(int sig, struct k_sigactio
+ 	else
+ 		ret = setup_frame(sig, ka, oldset, regs, sw);
+ 
+-	if (ret == 0) {
+-		spin_lock_irq(&current->sighand->siglock);
+-		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
+-		if (!(ka->sa.sa_flags & SA_NODEFER)) 
+-			sigaddset(&current->blocked,sig);
+-		recalc_sigpending();
+-		spin_unlock_irq(&current->sighand->siglock);
+-	}
++	if (ret == 0)
++		block_sigmask(ka, sig);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from matt.fleming@intel.com are
 
 origin.patch
+linux-next.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+mips-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
 
