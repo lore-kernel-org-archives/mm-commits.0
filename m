@@ -1,121 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-coccinelle-api-simple_opencocci-semantic-patch-for-simple_open.patch removed from -mm tree
-Date: Fri, 06 Apr 2012 11:48:59 -0700
-Message-ID: <20120406184859.74364A0443@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback.patch removed from -mm tree
+Date: Fri, 06 Apr 2012 11:48:52 -0700
+Message-ID: <20120406184852.AF300A0443@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gx0-f202.google.com ([209.85.161.202]:34634 "EHLO
-	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754859Ab2DFStA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 14:49:00 -0400
-Received: by mail-gx0-f202.google.com with SMTP id d2so298977ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 11:48:59 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:46886 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754790Ab2DFSsy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 14:48:54 -0400
+Received: by wejx9 with SMTP id x9so128812wej.1
+        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 11:48:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Julia.Lawall@lip6.fr, sboyd@codeaurora.org, mm-commits@vger.kernel.org
+To: jtzhou@marvell.com, a.zummo@towertech.it, axel.lin@gmail.com, haojian.zhuang@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/coccinelle/api/simple_open.cocci: semantic patch for simple_open()
+     Subject: drivers/rtc/rtc-88pm860x.c: fix rtc irq enable callback
 has been removed from the -mm tree.  Its filename was
-     scripts-coccinelle-api-simple_opencocci-semantic-patch-for-simple_open.patch
+     drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: scripts/coccinelle/api/simple_open.cocci: semantic patch for simple_open()
+From: "Jett.Zhou" <jtzhou@marvell.com>
+Subject: drivers/rtc/rtc-88pm860x.c: fix rtc irq enable callback
 
-Find instances of an open-coded simple_open() and replace them with calls
-to simple_open().
+According to 88pm860x spec, rtc alarm irq enable control is bit3 for
+RTC_ALARM_EN, so fix it.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Reported-by: Stephen Boyd <sboyd@codeaurora.org>
+Signed-off-by: Jett.Zhou <jtzhou@marvell.com>
+Cc: Axel Lin <axel.lin@gmail.com>
+Cc: Haojian Zhuang <haojian.zhuang@marvell.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/coccinelle/api/simple_open.cocci |   70 +++++++++++++++++++++
- 1 file changed, 70 insertions(+)
+ drivers/rtc/rtc-88pm860x.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null scripts/coccinelle/api/simple_open.cocci
---- /dev/null
-+++ a/scripts/coccinelle/api/simple_open.cocci
-@@ -0,0 +1,70 @@
-+/// This removes an open coded simple_open() function
-+/// and replaces file operations references to the function
-+/// with simple_open() instead.
-+///
-+// Confidence: High
-+// Comments:
-+// Options: -no_includes -include_headers
-+
-+virtual patch
-+virtual report
-+
-+@ open depends on patch @
-+identifier open_f != simple_open;
-+identifier i, f;
-+@@
-+-int open_f(struct inode *i, struct file *f)
-+-{
-+(
-+-if (i->i_private)
-+-f->private_data = i->i_private;
-+|
-+-f->private_data = i->i_private;
-+)
-+-return 0;
-+-}
-+
-+@ has_open depends on open @
-+identifier fops;
-+identifier open.open_f;
-+@@
-+struct file_operations fops = {
-+...,
-+-.open = open_f,
-++.open = simple_open,
-+...
-+};
-+
-+@ openr depends on report @
-+identifier open_f != simple_open;
-+identifier i, f;
-+position p;
-+@@
-+int open_f@p(struct inode *i, struct file *f)
-+{
-+(
-+if (i->i_private)
-+f->private_data = i->i_private;
-+|
-+f->private_data = i->i_private;
-+)
-+return 0;
-+}
-+
-+@ has_openr depends on openr @
-+identifier fops;
-+identifier openr.open_f;
-+position p;
-+@@
-+struct file_operations fops = {
-+...,
-+.open = open_f@p,
-+...
-+};
-+
-+@script:python@
-+pf << openr.p;
-+ps << has_openr.p;
-+@@
-+
-+coccilib.report.print_report(pf[0],"WARNING opportunity for simple_open, see also structure on line %s"%(ps[0].line))
+diff -puN drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback drivers/rtc/rtc-88pm860x.c
+--- a/drivers/rtc/rtc-88pm860x.c~drivers-rtc-rtc-88pm860xc-fix-rtc-irq-enable-callback
++++ a/drivers/rtc/rtc-88pm860x.c
+@@ -72,9 +72,9 @@ static int pm860x_rtc_alarm_irq_enable(s
+ 	struct pm860x_rtc_info *info = dev_get_drvdata(dev);
+ 
+ 	if (enabled)
+-		pm860x_set_bits(info->i2c, PM8607_RTC1, ALARM, ALARM);
++		pm860x_set_bits(info->i2c, PM8607_RTC1, ALARM_EN, ALARM_EN);
+ 	else
+-		pm860x_set_bits(info->i2c, PM8607_RTC1, ALARM, 0);
++		pm860x_set_bits(info->i2c, PM8607_RTC1, ALARM_EN, 0);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from jtzhou@marvell.com are
 
 origin.patch
 linux-next.patch
