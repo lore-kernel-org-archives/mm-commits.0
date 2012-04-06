@@ -1,113 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict.patch added to -mm tree
-Date: Fri, 06 Apr 2012 15:34:57 -0700
-Message-ID: <20120406223457.C5F9BA0308@akpm.mtv.corp.google.com>
+Subject: [folded] c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-v2.patch removed from -mm tree
+Date: Fri, 06 Apr 2012 15:45:56 -0700
+Message-ID: <20120406224556.AAC95A04C2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:55084 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754858Ab2DFWe7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 18:34:59 -0400
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:43306 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754658Ab2DFWp5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 18:45:57 -0400
+Received: by ghbz15 with SMTP id z15so317583ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 15:45:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: keescook@chromium.org, plougher@redhat.com, richard@nod.at, serge.hallyn@canonical.com, stable@vger.kernel.org
+To: gorcunov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: fix write access to dmesg_restrict/kptr_restrict
-has been added to the -mm tree.  Its filename is
-     sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict.patch
+     Subject: c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-v2
+has been removed from the -mm tree.  Its filename was
+     c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-v2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: sysctl: fix write access to dmesg_restrict/kptr_restrict
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-v2
 
-Commit bfdc0b4 ("sysctl: restrict write access to dmesg_restrict") adds
-code to restrict access to dmesg_restrict, however, it incorrectly alters
-kptr_restrict rather than dmesg_restrict.
-
-The original patch from Richard Weinberger
-(https://lkml.org/lkml/2011/3/14/362) alters dmesg_restrict as expected,
-and so the patch seems to have been misapplied.
-
-This adds the CAP_SYS_ADMIN check to both dmesg_restrict and
-kptr_restrict, since both are sensitive.
-
-Reported-by: Phillip Lougher <plougher@redhat.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: <stable@vger.kernel.org>
-Acked-by: Richard Weinberger <richard@nod.at>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/sys.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict
-+++ a/kernel/sysctl.c
-@@ -170,7 +170,7 @@ static int proc_taint(struct ctl_table *
- #endif
+diff -puN kernel/sys.c~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-v2 kernel/sys.c
+--- a/kernel/sys.c~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-v2
++++ a/kernel/sys.c
+@@ -1719,9 +1719,8 @@ static int prctl_set_mm_exe_file(struct 
+ 	int err;
  
- #ifdef CONFIG_PRINTK
--static int proc_dmesg_restrict(struct ctl_table *table, int write,
-+static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
- 				void __user *buffer, size_t *lenp, loff_t *ppos);
- #endif
+ 	/*
+-	 * Setting new mm::exe_file is only allowed
+-	 * when no VM_EXECUTABLE vma's left. So make
+-	 * a fast test first.
++	 * Setting new mm::exe_file is only allowed when no VM_EXECUTABLE vma's
++	 * remain. So perform a quick test first.
+ 	 */
+ 	if (mm->num_exe_file_vmas)
+ 		return -EBUSY;
+@@ -1733,10 +1732,9 @@ static int prctl_set_mm_exe_file(struct 
+ 	dentry = exe_file->f_path.dentry;
  
-@@ -703,7 +703,7 @@ static struct ctl_table kern_table[] = {
- 		.data		= &dmesg_restrict,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
-+		.proc_handler	= proc_dointvec_minmax_sysadmin,
- 		.extra1		= &zero,
- 		.extra2		= &one,
- 	},
-@@ -712,7 +712,7 @@ static struct ctl_table kern_table[] = {
- 		.data		= &kptr_restrict,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dmesg_restrict,
-+		.proc_handler	= proc_dointvec_minmax_sysadmin,
- 		.extra1		= &zero,
- 		.extra2		= &two,
- 	},
-@@ -1943,7 +1943,7 @@ static int proc_taint(struct ctl_table *
- }
+ 	/*
+-	 * Because the original mm->exe_file
+-	 * points to executable file, make sure
+-	 * this one is executable as well to not
+-	 * break an overall picture.
++	 * Because the original mm->exe_file points to executable file, make
++	 * sure that this one is executable as well, to avoid breaking an
++	 * overall picture.
+ 	 */
+ 	err = -EACCES;
+ 	if (!S_ISREG(dentry->d_inode->i_mode)	||
+@@ -1748,8 +1746,10 @@ static int prctl_set_mm_exe_file(struct 
+ 		goto exit;
  
- #ifdef CONFIG_PRINTK
--static int proc_dmesg_restrict(struct ctl_table *table, int write,
-+static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
- 				void __user *buffer, size_t *lenp, loff_t *ppos)
- {
- 	if (write && !capable(CAP_SYS_ADMIN))
+ 	/*
+-	 * For security reason changing mm->exe_file
+-	 * is one-shot action.
++	 * The symlink can be changed only once, just to disallow arbitrary
++	 * transitions malicious software might bring in. This means one
++	 * could make a snapshot over all processes running and monitor
++	 * /proc/pid/exe changes to notice unusual activity if needed.
+ 	 */
+ 	down_write(&mm->mmap_sem);
+ 	if (likely(!mm->exe_file))
 _
-Subject: Subject: sysctl: fix write access to dmesg_restrict/kptr_restrict
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
+origin.patch
 linux-next.patch
-sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
 fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
 c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
 c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
 c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-ramoops-use-pstore-interface.patch
-ramoops-use-pstore-interface-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+c-r-ipc-message-queue-receive-cleanup.patch
+c-r-ipc-message-queue-stealing-feature-introduced.patch
 
