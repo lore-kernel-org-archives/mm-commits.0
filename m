@@ -1,25 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-include-asm-spinlockh-fix-comment.patch added to -mm tree
-Date: Fri, 06 Apr 2012 14:59:02 -0700
-Message-ID: <20120406215902.5DF85A0308@akpm.mtv.corp.google.com>
+Subject: + kstrtox-mark-const-init-data-with-__initconst-instead-of-__initdata.patch added to -mm tree
+Date: Fri, 06 Apr 2012 15:17:11 -0700
+Message-ID: <20120406221711.D6F78A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:34696 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755281Ab2DFV7F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 17:59:05 -0400
-Received: by wibhj13 with SMTP id hj13so46086wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 14:59:03 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:56656 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755487Ab2DFWRM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 18:17:12 -0400
+Received: by ghbz15 with SMTP id z15so315607ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 15:17:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@nod.at, mingo@elte.hu
+Cc: u.kleine-koenig@pengutronix.de, adobriyan@gmail.com
 
 
 The patch titled
-     Subject: arch/x86/include/asm/spinlock.h: fix comment
+     Subject: lib/test-kstrtox.c: mark const init data with __initconst=
+ instead of __initdata
 has been added to the -mm tree.  Its filename is
-     arch-x86-include-asm-spinlockh-fix-comment.patch
+     kstrtox-mark-const-init-data-with-__initconst-instead-of-__initdat=
+a.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,45 +32,73 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: arch/x86/include/asm/spinlock.h: fix comment
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: lib/test-kstrtox.c: mark const init data with __initconst inst=
+ead of __initdata
 
-This comment is no longer true.  We support up to 2^16 CPUs because
-__ticket_t is an u16 if NR_CPUS is larger than 256.
+As long as there is no other non-const variable marked __initdata in th=
+e
+same compilation unit it doesn't hurt. If there were one however
+compilation would fail with
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Ingo Molnar <mingo@elte.hu>
+	error: $variablename causes a section type conflict
+
+because a section containing const variables is marked read only and so
+cannot contain non-const variables.
+
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/spinlock.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/test-kstrtox.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/include/asm/spinlock.h~arch-x86-include-asm-spinlockh-fix-comment arch/x86/include/asm/spinlock.h
---- a/arch/x86/include/asm/spinlock.h~arch-x86-include-asm-spinlockh-fix-comment
-+++ a/arch/x86/include/asm/spinlock.h
-@@ -12,8 +12,7 @@
-  * Simple spin lock operations.  There are two variants, one clears IRQ's
-  * on the local processor, one does not.
-  *
-- * These are fair FIFO ticket locks, which are currently limited to 256
-- * CPUs.
-+ * These are fair FIFO ticket locks, which support up to 2^16 CPUs.
-  *
-  * (the type definitions are in asm/spinlock_types.h)
-  */
+diff -puN lib/test-kstrtox.c~kstrtox-mark-const-init-data-with-__initco=
+nst-instead-of-__initdata lib/test-kstrtox.c
+--- a/lib/test-kstrtox.c~kstrtox-mark-const-init-data-with-__initconst-=
+instead-of-__initdata
++++ a/lib/test-kstrtox.c
+@@ -11,7 +11,7 @@ struct test_fail {
+ };
+=20
+ #define DEFINE_TEST_FAIL(test)	\
+-	const struct test_fail test[] __initdata
++	const struct test_fail test[] __initconst
+=20
+ #define DECLARE_TEST_OK(type, test_type)	\
+ 	test_type {				\
+@@ -21,7 +21,7 @@ struct test_fail {
+ 	}
+=20
+ #define DEFINE_TEST_OK(type, test)	\
+-	const type test[] __initdata
++	const type test[] __initconst
+=20
+ #define TEST_FAIL(fn, type, fmt, test)					\
+ {									\
 _
-Subject: Subject: arch/x86/include/asm/spinlock.h: fix comment
+Subject: Subject: lib/test-kstrtox.c: mark const init data with __initc=
+onst instead of __initdata
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
+origin.patch
 linux-next.patch
-arch-x86-include-asm-spinlockh-fix-comment.patch
-um-kernel-trapc-port-oom-changes-to-handle_page_fault.patch
+hamradio-scc-orphan-driver-in-maintainers.patch
+kstrtox-mark-const-init-data-with-__initconst-instead-of-__initdata.pat=
+ch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
