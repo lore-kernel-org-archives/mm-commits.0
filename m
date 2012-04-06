@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers.patch added to -mm tree
-Date: Fri, 06 Apr 2012 14:55:49 -0700
-Message-ID: <20120406215550.BE8EBA0395@akpm.mtv.corp.google.com>
+Subject: + rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch added to -mm tree
+Date: Fri, 06 Apr 2012 14:56:09 -0700
+Message-ID: <20120406215610.0B695A0395@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:57783 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861Ab2DFVzx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 17:55:53 -0400
-Received: by bkcjm19 with SMTP id jm19so131995bkc.1
-        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 14:55:52 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:37572 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754230Ab2DFV4L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 17:56:11 -0400
+Received: by yhgm50 with SMTP id m50so314421yhg.1
+        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 14:56:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: festevam@gmail.com, a.zummo@towertech.it, fabio.estevam@freescale.com, w.sang@pengutronix.de
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, fabio.estevam@freescale.com, festevam@gmail.com, w.sang@pengutronix.de
 
 
 The patch titled
-     Subject: drivers/rtc/Kconfig: place RTC_DRV_IMXDI and RTC_MXC under "on-CPU RTC drivers"
+     Subject: rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix
 has been added to the -mm tree.  Its filename is
-     rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers.patch
+     rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabio Estevam <festevam@gmail.com>
-Subject: drivers/rtc/Kconfig: place RTC_DRV_IMXDI and RTC_MXC under "on-CPU RTC drivers"
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix
 
-RTC_DRV_IMXDI and RTC_MXC are on-chip RTC modules, so move them under
-"on-CPU RTC drivers" selection menu.
-
-While at it change the dependency of RTC_DRV_IMXDI from ARCH_MX25 to
-SOC_IMX25.
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Fabio Estevam <festevam@gmail.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |   42 +++++++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ arch/arm/configs/imx_v6_v7_defconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers
-+++ a/drivers/rtc/Kconfig
-@@ -620,27 +620,6 @@ config RTC_DRV_MSM6242
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-msm6242.
- 
--config RTC_DRV_IMXDI
--	tristate "Freescale IMX DryIce Real Time Clock"
--	depends on ARCH_MX25
--	depends on RTC_CLASS
--	help
--	   Support for Freescale IMX DryIce RTC
--
--	   This driver can also be built as a module, if so, the module
--	   will be called "rtc-imxdi".
--
--config RTC_MXC
--	tristate "Freescale MXC Real Time Clock"
--	depends on ARCH_MXC
--	depends on RTC_CLASS
--	help
--	   If you say yes here you get support for the Freescale MXC
--	   RTC module.
--
--	   This driver can also be built as a module, if so, the module
--	   will be called "rtc-mxc".
--
- config RTC_DRV_BQ4802
- 	tristate "TI BQ4802"
- 	help
-@@ -738,6 +717,16 @@ config RTC_DRV_DAVINCI
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-davinci.
- 
-+config RTC_DRV_IMXDI
-+	tristate "Freescale IMX DryIce Real Time Clock"
-+	depends on SOC_IMX25
-+	depends on RTC_CLASS
-+	help
-+	   Support for Freescale IMX DryIce RTC
-+
-+	   This driver can also be built as a module, if so, the module
-+	   will be called "rtc-imxdi".
-+
- config RTC_DRV_OMAP
- 	tristate "TI OMAP1"
- 	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX
-@@ -1087,4 +1076,15 @@ config RTC_DRV_LOONGSON1
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-ls1x.
- 
-+config RTC_MXC
-+	tristate "Freescale MXC Real Time Clock"
-+	depends on ARCH_MXC
-+	depends on RTC_CLASS
-+	help
-+	   If you say yes here you get support for the Freescale MXC
-+	   RTC module.
-+
-+	   This driver can also be built as a module, if so, the module
-+	   will be called "rtc-mxc".
-+
- endif # RTC_CLASS
+diff -puN arch/arm/configs/imx_v6_v7_defconfig~rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix arch/arm/configs/imx_v6_v7_defconfig
+--- a/arch/arm/configs/imx_v6_v7_defconfig~rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix
++++ a/arch/arm/configs/imx_v6_v7_defconfig
+@@ -172,7 +172,7 @@ CONFIG_NEW_LEDS=y
+ CONFIG_LEDS_CLASS=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_INTF_DEV_UIE_EMUL=y
+-CONFIG_RTC_MXC=y
++CONFIG_RTC_DRV_MXC=y
+ CONFIG_DMADEVICES=y
+ CONFIG_IMX_SDMA=y
+ CONFIG_EXT2_FS=y
 _
-Subject: Subject: drivers/rtc/Kconfig: place RTC_DRV_IMXDI and RTC_MXC under "on-CPU RTC drivers"
+Subject: Subject: rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix
 
-Patches currently in -mm which might be from festevam@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-fix-2.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix.patch
 rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
