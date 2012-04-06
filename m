@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-fix-race-condition-in-hugetlb_fault.patch added to -mm tree
-Date: Fri, 06 Apr 2012 15:23:29 -0700
-Message-ID: <20120406222329.EE567A04C2@akpm.mtv.corp.google.com>
+Subject: + sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict.patch added to -mm tree
+Date: Fri, 06 Apr 2012 15:34:57 -0700
+Message-ID: <20120406223457.C5F9BA0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:57230 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754150Ab2DFWXc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 18:23:32 -0400
-Received: by wgbdt11 with SMTP id dt11so146770wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 06 Apr 2012 15:23:31 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:55084 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754858Ab2DFWe7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 18:34:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmetcalf@tilera.com, dhillf@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, stable@kernel.org
+Cc: keescook@chromium.org, plougher@redhat.com, richard@nod.at, serge.hallyn@canonical.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix race condition in hugetlb_fault()
+     Subject: sysctl: fix write access to dmesg_restrict/kptr_restrict
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-race-condition-in-hugetlb_fault.patch
+     sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +31,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Metcalf <cmetcalf@tilera.com>
-Subject: hugetlb: fix race condition in hugetlb_fault()
+From: Kees Cook <keescook@chromium.org>
+Subject: sysctl: fix write access to dmesg_restrict/kptr_restrict
 
-The race is as follows.
+Commit bfdc0b4 ("sysctl: restrict write access to dmesg_restrict") adds
+code to restrict access to dmesg_restrict, however, it incorrectly alters
+kptr_restrict rather than dmesg_restrict.
 
-Suppose a multi-threaded task forks a new process (on cpu A), thus bumping
-up the ref count on all the pages.  While the fork is occurring (and thus
-we have marked all the PTEs as read-only), another thread in the original
-process (on cpu B) tries to write to a huge page, taking an access
-violation from the write-protect and calling hugetlb_cow().  Now, suppose
-the fork() fails.  It will undo the COW and decrement the ref count on the
-pages, so the ref count on the huge page drops back to 1.  Meanwhile
-hugetlb_cow() also decrements the ref count by one on the original page,
-since the original address space doesn't need it any more, having copied a
-new page to replace the original page.  This leaves the ref count at zero,
-and when we call unlock_page(), we panic.
+The original patch from Richard Weinberger
+(https://lkml.org/lkml/2011/3/14/362) alters dmesg_restrict as expected,
+and so the patch seems to have been misapplied.
 
-	fork on CPU A				fault on CPU B
-	=============				==============
-	...
-	down_write(&parent->mmap_sem);
-	down_write_nested(&child->mmap_sem);
-	...
-	while duplicating vmas
-		if error
-			break;
-	...
-	up_write(&child->mmap_sem);
-	up_write(&parent->mmap_sem);		...
-						down_read(&parent->mmap_sem);
-						...
-						lock_page(page);
-						handle COW
-						page_mapcount(old_page) == 2
-						alloc and prepare new_page
-	...
-	handle error
-	page_remove_rmap(page);
-	put_page(page);
-	...
-						fold new_page into pte
-						page_remove_rmap(page);
-						put_page(page);
-						...
-				oops ==>	unlock_page(page);
-						up_read(&parent->mmap_sem);
+This adds the CAP_SYS_ADMIN check to both dmesg_restrict and
+kptr_restrict, since both are sensitive.
 
-The solution is to take an extra reference to the page while we are
-holding the lock on it.
-
-Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
-Reviewed-by: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@kernel.org>
+Reported-by: Phillip Lougher <plougher@redhat.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: <stable@vger.kernel.org>
+Acked-by: Richard Weinberger <richard@nod.at>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/sysctl.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-race-condition-in-hugetlb_fault mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-race-condition-in-hugetlb_fault
-+++ a/mm/hugetlb.c
-@@ -2792,6 +2792,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 	 * so no worry about deadlock.
- 	 */
- 	page = pte_page(entry);
-+	get_page(page);
- 	if (page != pagecache_page)
- 		lock_page(page);
+diff -puN kernel/sysctl.c~sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict
++++ a/kernel/sysctl.c
+@@ -170,7 +170,7 @@ static int proc_taint(struct ctl_table *
+ #endif
  
-@@ -2823,6 +2824,7 @@ out_page_table_lock:
- 	}
- 	if (page != pagecache_page)
- 		unlock_page(page);
-+	put_page(page);
+ #ifdef CONFIG_PRINTK
+-static int proc_dmesg_restrict(struct ctl_table *table, int write,
++static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
+ 				void __user *buffer, size_t *lenp, loff_t *ppos);
+ #endif
  
- out_mutex:
- 	mutex_unlock(&hugetlb_instantiation_mutex);
+@@ -703,7 +703,7 @@ static struct ctl_table kern_table[] = {
+ 		.data		= &dmesg_restrict,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
++		.proc_handler	= proc_dointvec_minmax_sysadmin,
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
+@@ -712,7 +712,7 @@ static struct ctl_table kern_table[] = {
+ 		.data		= &kptr_restrict,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dmesg_restrict,
++		.proc_handler	= proc_dointvec_minmax_sysadmin,
+ 		.extra1		= &zero,
+ 		.extra2		= &two,
+ 	},
+@@ -1943,7 +1943,7 @@ static int proc_taint(struct ctl_table *
+ }
+ 
+ #ifdef CONFIG_PRINTK
+-static int proc_dmesg_restrict(struct ctl_table *table, int write,
++static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
+ 				void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	if (write && !capable(CAP_SYS_ADMIN))
 _
-Subject: Subject: hugetlb: fix race condition in hugetlb_fault()
+Subject: Subject: sysctl: fix write access to dmesg_restrict/kptr_restrict
 
-Patches currently in -mm which might be from cmetcalf@tilera.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-origin.patch
 linux-next.patch
-hugetlb-fix-race-condition-in-hugetlb_fault.patch
-list_debug-warn-for-adding-something-already-in-the-list.patch
-c-r-ipc-message-queue-receive-cleanup.patch
-c-r-ipc-message-queue-stealing-feature-introduced.patch
+sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
 
