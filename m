@@ -1,73 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants.patch added to -mm tree
-Date: Fri, 06 Apr 2012 16:30:16 -0700
-Message-ID: <20120406233016.5478AA0395@akpm.mtv.corp.google.com>
+Subject: [folded] syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch removed from -mm tree
+Date: Mon, 09 Apr 2012 14:59:43 -0700
+Message-ID: <20120409215944.91AE0A0331@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:38897 "EHLO
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:35017 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758308Ab2DFXaS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Apr 2012 19:30:18 -0400
+	with ESMTP id S1752394Ab2DIV7r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Apr 2012 17:59:47 -0400
+Received: by eekc41 with SMTP id c41so217777eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Apr 2012 14:59:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: linus.walleij@linaro.org, mian.yousaf.kaukab@stericsson.com, rubini@unipv.it, stable@vger.kernel.org
+To: akpm@linux-foundation.org, gorcunov@openvz.org, rdunlap@xenotime.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pl031.c: enable clock on all ST variants
-has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants.patch
+     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
+has been removed from the -mm tree.  Its filename was
+     syscalls-x86-add-__nr_kcmp-syscall-v8-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into syscalls-x86-add-__nr_kcmp-syscall-v8.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Linus Walleij" <linus.walleij@linaro.org>
-Subject: drivers/rtc/rtc-pl031.c: enable clock on all ST variants
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-fix
 
-The ST variants of the PL031 all require bit 26 in the control register to
-be set before they work properly.  Discovered this when testing on the
-Nomadik board where it would suprisingly just stand still.
-
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mian Yousaf Kaukab <mian.yousaf.kaukab@stericsson.com>
-Cc: Alessandro Rubini <rubini@unipv.it>
-Cc: <stable@vger.kernel.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pl031.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/kcmp.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants drivers/rtc/rtc-pl031.c
---- a/drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants
-+++ a/drivers/rtc/rtc-pl031.c
-@@ -339,8 +339,7 @@ static int pl031_probe(struct amba_devic
- 	dev_dbg(&adev->dev, "revision = 0x%01x\n", ldata->hw_revision);
- 
- 	/* Enable the clockwatch on ST Variants */
--	if ((ldata->hw_designer == AMBA_VENDOR_ST) &&
--	    (ldata->hw_revision > 1))
-+	if (ldata->hw_designer == AMBA_VENDOR_ST)
- 		writel(readl(ldata->base + RTC_CR) | RTC_CR_CWEN,
- 		       ldata->base + RTC_CR);
- 
+diff -puN kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix kernel/kcmp.c
+--- a/kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-fix
++++ a/kernel/kcmp.c
+@@ -5,6 +5,7 @@
+ #include <linux/random.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/errno.h>
+ #include <linux/cache.h>
+ #include <linux/bug.h>
+ #include <linux/err.h>
 _
-Subject: Subject: drivers/rtc/rtc-pl031.c: enable clock on all ST variants
 
-Patches currently in -mm which might be from linus.walleij@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants.patch
-arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-fix-2.patch
+c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
