@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-swap-token-code.patch added to -mm tree
-Date: Tue, 10 Apr 2012 12:30:52 -0700
-Message-ID: <20120410193052.A1B48A03B2@akpm.mtv.corp.google.com>
+Subject: + leds-add-led-driver-for-lm3556-chip.patch added to -mm tree
+Date: Tue, 10 Apr 2012 12:44:23 -0700
+Message-ID: <20120410194423.F0A30A01B8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:46422 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755447Ab2DJTax (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Apr 2012 15:30:53 -0400
-Received: by yenq2 with SMTP id q2so25591yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Apr 2012 12:30:53 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:42685 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758818Ab2DJTo1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Apr 2012 15:44:27 -0400
+Received: by faaa19 with SMTP id a19so13465faa.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Apr 2012 12:44:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, hannes@cmpxchg.org, hughd@google.com, khlebnikov@openvz.org, mel@csn.ul.ie
+Cc: gshark.jeong@gmail.com, broonie@opensource.wolfsonmicro.com, daniel.jeong@ti.com, greg@kroah.com, rpurdie@rpsys.net, shuahkhan@gmail.com, w.sang@pengutronix.de
 
 
 The patch titled
-     Subject: mm: remove swap token code
+     Subject: leds: add LED driver for lm3556 chip
 has been added to the -mm tree.  Its filename is
-     mm-remove-swap-token-code.patch
+     leds-add-led-driver-for-lm3556-chip.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,476 +33,789 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: mm: remove swap token code
+From: Geon Si Jeong <gshark.jeong@gmail.com>
+Subject: leds: add LED driver for lm3556 chip
 
-The swap token code no longer fits in with the current VM model.  It does
-not play well with cgroups or the better NUMA placement code in
-development, since we have only one swap token globally.
+A simple driver for the Texas Instruments LM3556 chip.
 
-It also has the potential to mess with scalability of the system, by
-increasing the number of non-reclaimable pages on the active and inactive
-anon LRU lists.
+The LM3556 is a 4 MHz fixed-frequency synchronous boost converter plus
+1.5A constant current driver for a high-current white LED.  Datasheet:
+www.national.com/ds/LM/LM3556.pdf
 
-Last but not least, the swap token code has been broken for a year without
-complaints, as reported by Konstantin Khlebnikov.  This suggests we no
-longer have much use for it.
+Tested on OMAP4430
 
-The days of sub-1G memory systems with heavy use of swap are over.  If we
-ever need thrashing reducing code in the future, we will have to implement
-something that does scale.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Geon Si Jeong <gshark.jeong@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Daniel Jeong <daniel.jeong@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Shuah Khan <shuahkhan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h      |   11 --
- include/linux/swap.h          |   35 -------
- include/trace/events/vmscan.h |   82 ----------------
- kernel/fork.c                 |    9 -
- mm/Makefile                   |    2 
- mm/memcontrol.c               |    1 
- mm/memory.c                   |    2 
- mm/rmap.c                     |    6 -
- mm/thrash.c                   |  155 --------------------------------
- mm/vmscan.c                   |    6 -
- 10 files changed, 2 insertions(+), 307 deletions(-)
+ drivers/leds/Kconfig        |    9 
+ drivers/leds/Makefile       |    2 
+ drivers/leds/leds-lm3556.c  |  471 ++++++++++++++++++++++++++++++++++
+ include/linux/leds-lm3556.h |  242 +++++++++++++++++
+ 4 files changed, 723 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm_types.h~mm-remove-swap-token-code include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-remove-swap-token-code
-+++ a/include/linux/mm_types.h
-@@ -345,17 +345,6 @@ struct mm_struct {
- 	/* Architecture-specific MM context */
- 	mm_context_t context;
+diff -puN drivers/leds/Kconfig~leds-add-led-driver-for-lm3556-chip drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-add-led-driver-for-lm3556-chip
++++ a/drivers/leds/Kconfig
+@@ -402,6 +402,15 @@ config LEDS_MAX8997
+ 	  This option enables support for on-chip LED drivers on
+ 	  MAXIM MAX8997 PMIC.
  
--	/* Swap token stuff */
--	/*
--	 * Last value of global fault stamp as seen by this process.
--	 * In other words, this value gives an indication of how long
--	 * it has been since this task got the token.
--	 * Look at mm/thrash.c
--	 */
--	unsigned int faultstamp;
--	unsigned int token_priority;
--	unsigned int last_interval;
--
- 	unsigned long flags; /* Must use atomic bitops to access the bits */
- 
- 	struct core_state *core_state; /* coredumping support */
-diff -puN include/linux/swap.h~mm-remove-swap-token-code include/linux/swap.h
---- a/include/linux/swap.h~mm-remove-swap-token-code
-+++ a/include/linux/swap.h
-@@ -359,23 +359,6 @@ extern int reuse_swap_page(struct page *
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
- 
--/* linux/mm/thrash.c */
--extern struct mm_struct *swap_token_mm;
--extern void grab_swap_token(struct mm_struct *);
--extern void __put_swap_token(struct mm_struct *);
--extern void disable_swap_token(struct mem_cgroup *memcg);
--
--static inline int has_swap_token(struct mm_struct *mm)
--{
--	return (mm == swap_token_mm);
--}
--
--static inline void put_swap_token(struct mm_struct *mm)
--{
--	if (has_swap_token(mm))
--		__put_swap_token(mm);
--}
--
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- extern void
- mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout);
-@@ -480,24 +463,6 @@ static inline swp_entry_t get_swap_page(
- 	return entry;
- }
- 
--/* linux/mm/thrash.c */
--static inline void put_swap_token(struct mm_struct *mm)
--{
--}
--
--static inline void grab_swap_token(struct mm_struct *mm)
--{
--}
--
--static inline int has_swap_token(struct mm_struct *mm)
--{
--	return 0;
--}
--
--static inline void disable_swap_token(struct mem_cgroup *memcg)
--{
--}
--
- static inline void
- mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent)
- {
-diff -puN include/trace/events/vmscan.h~mm-remove-swap-token-code include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-remove-swap-token-code
-+++ a/include/trace/events/vmscan.h
-@@ -377,88 +377,6 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
- 
--TRACE_EVENT(replace_swap_token,
--	TP_PROTO(struct mm_struct *old_mm,
--		 struct mm_struct *new_mm),
--
--	TP_ARGS(old_mm, new_mm),
--
--	TP_STRUCT__entry(
--		__field(struct mm_struct*,	old_mm)
--		__field(unsigned int,		old_prio)
--		__field(struct mm_struct*,	new_mm)
--		__field(unsigned int,		new_prio)
--	),
--
--	TP_fast_assign(
--		__entry->old_mm   = old_mm;
--		__entry->old_prio = old_mm ? old_mm->token_priority : 0;
--		__entry->new_mm   = new_mm;
--		__entry->new_prio = new_mm->token_priority;
--	),
--
--	TP_printk("old_token_mm=%p old_prio=%u new_token_mm=%p new_prio=%u",
--		  __entry->old_mm, __entry->old_prio,
--		  __entry->new_mm, __entry->new_prio)
--);
--
--DECLARE_EVENT_CLASS(put_swap_token_template,
--	TP_PROTO(struct mm_struct *swap_token_mm),
--
--	TP_ARGS(swap_token_mm),
--
--	TP_STRUCT__entry(
--		__field(struct mm_struct*, swap_token_mm)
--	),
--
--	TP_fast_assign(
--		__entry->swap_token_mm = swap_token_mm;
--	),
--
--	TP_printk("token_mm=%p", __entry->swap_token_mm)
--);
--
--DEFINE_EVENT(put_swap_token_template, put_swap_token,
--	TP_PROTO(struct mm_struct *swap_token_mm),
--	TP_ARGS(swap_token_mm)
--);
--
--DEFINE_EVENT_CONDITION(put_swap_token_template, disable_swap_token,
--	TP_PROTO(struct mm_struct *swap_token_mm),
--	TP_ARGS(swap_token_mm),
--	TP_CONDITION(swap_token_mm != NULL)
--);
--
--TRACE_EVENT_CONDITION(update_swap_token_priority,
--	TP_PROTO(struct mm_struct *mm,
--		 unsigned int old_prio,
--		 struct mm_struct *swap_token_mm),
--
--	TP_ARGS(mm, old_prio, swap_token_mm),
--
--	TP_CONDITION(mm->token_priority != old_prio),
--
--	TP_STRUCT__entry(
--		__field(struct mm_struct*, mm)
--		__field(unsigned int, old_prio)
--		__field(unsigned int, new_prio)
--		__field(struct mm_struct*, swap_token_mm)
--		__field(unsigned int, swap_token_prio)
--	),
--
--	TP_fast_assign(
--		__entry->mm		= mm;
--		__entry->old_prio	= old_prio;
--		__entry->new_prio	= mm->token_priority;
--		__entry->swap_token_mm	= swap_token_mm;
--		__entry->swap_token_prio = swap_token_mm ? swap_token_mm->token_priority : 0;
--	),
--
--	TP_printk("mm=%p old_prio=%u new_prio=%u swap_token_mm=%p token_prio=%u",
--		  __entry->mm, __entry->old_prio, __entry->new_prio,
--		  __entry->swap_token_mm, __entry->swap_token_prio)
--);
--
- #endif /* _TRACE_VMSCAN_H */
- 
- /* This part must be outside protection */
-diff -puN kernel/fork.c~mm-remove-swap-token-code kernel/fork.c
---- a/kernel/fork.c~mm-remove-swap-token-code
-+++ a/kernel/fork.c
-@@ -584,7 +584,6 @@ void mmput(struct mm_struct *mm)
- 			list_del(&mm->mmlist);
- 			spin_unlock(&mmlist_lock);
- 		}
--		put_swap_token(mm);
- 		if (mm->binfmt)
- 			module_put(mm->binfmt->module);
- 		mmdrop(mm);
-@@ -809,10 +808,6 @@ struct mm_struct *dup_mm(struct task_str
- 	memcpy(mm, oldmm, sizeof(*mm));
- 	mm_init_cpumask(mm);
- 
--	/* Initializing for Swap token stuff */
--	mm->token_priority = 0;
--	mm->last_interval = 0;
--
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	mm->pmd_huge_pte = NULL;
- #endif
-@@ -891,10 +886,6 @@ static int copy_mm(unsigned long clone_f
- 		goto fail_nomem;
- 
- good_mm:
--	/* Initializing for Swap token stuff */
--	mm->token_priority = 0;
--	mm->last_interval = 0;
--
- 	tsk->mm = mm;
- 	tsk->active_mm = mm;
- 	return 0;
-diff -puN mm/Makefile~mm-remove-swap-token-code mm/Makefile
---- a/mm/Makefile~mm-remove-swap-token-code
-+++ a/mm/Makefile
-@@ -25,7 +25,7 @@ endif
- obj-$(CONFIG_HAVE_MEMBLOCK) += memblock.o
- 
- obj-$(CONFIG_BOUNCE)	+= bounce.o
--obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
-+obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o
- obj-$(CONFIG_FRONTSWAP)	+= frontswap.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
- obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
-diff -puN mm/memcontrol.c~mm-remove-swap-token-code mm/memcontrol.c
---- a/mm/memcontrol.c~mm-remove-swap-token-code
-+++ a/mm/memcontrol.c
-@@ -5600,7 +5600,6 @@ static void mem_cgroup_move_task(struct 
- 	if (mm) {
- 		if (mc.to)
- 			mem_cgroup_move_charge(mm);
--		put_swap_token(mm);
- 		mmput(mm);
- 	}
- 	if (mc.to)
-diff -puN mm/memory.c~mm-remove-swap-token-code mm/memory.c
---- a/mm/memory.c~mm-remove-swap-token-code
-+++ a/mm/memory.c
-@@ -2911,7 +2911,6 @@ static int do_swap_page(struct mm_struct
- 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
- 	page = lookup_swap_cache(entry);
- 	if (!page) {
--		grab_swap_token(mm); /* Contend for token _before_ read-in */
- 		page = swapin_readahead(entry,
- 					GFP_HIGHUSER_MOVABLE, vma, address);
- 		if (!page) {
-@@ -2941,6 +2940,7 @@ static int do_swap_page(struct mm_struct
- 	}
- 
- 	locked = lock_page_or_retry(page, mm, flags);
++config LEDS_LM3556
++	tristate "LED Support for TI LM3556 Chip"
++	depends on LEDS_CLASS
++	depends on I2C
++	help
++	  This option enables support for LEDs connected to LM3556.
++	  LM3556 includes Torch, Flash and Indicator functions and
++	  controlled via I2C.
 +
- 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 	if (!locked) {
- 		ret |= VM_FAULT_RETRY;
-diff -puN mm/rmap.c~mm-remove-swap-token-code mm/rmap.c
---- a/mm/rmap.c~mm-remove-swap-token-code
-+++ a/mm/rmap.c
-@@ -755,12 +755,6 @@ int page_referenced_one(struct page *pag
- 		pte_unmap_unlock(pte, ptl);
- 	}
+ config LEDS_OT200
+ 	tristate "LED support for the Bachmann OT200"
+ 	depends on LEDS_CLASS && HAS_IOMEM
+diff -puN drivers/leds/Makefile~leds-add-led-driver-for-lm3556-chip drivers/leds/Makefile
+--- a/drivers/leds/Makefile~leds-add-led-driver-for-lm3556-chip
++++ a/drivers/leds/Makefile
+@@ -46,7 +46,7 @@ obj-$(CONFIG_LEDS_NETXBIG)		+= leds-netx
+ obj-$(CONFIG_LEDS_ASIC3)		+= leds-asic3.o
+ obj-$(CONFIG_LEDS_RENESAS_TPU)		+= leds-renesas-tpu.o
+ obj-$(CONFIG_LEDS_MAX8997)		+= leds-max8997.o
+-
++obj-$(CONFIG_LEDS_LM3556)		+= leds-lm3556.o
+ # LED SPI Drivers
+ obj-$(CONFIG_LEDS_DAC124S085)		+= leds-dac124s085.o
  
--	/* Pretend the page is referenced if the task has the
--	   swap token and is in the middle of a page fault. */
--	if (mm != current->mm && has_swap_token(mm) &&
--			rwsem_is_locked(&mm->mmap_sem))
--		referenced++;
--
- 	(*mapcount)--;
- 
- 	if (referenced)
-diff -puN mm/thrash.c~mm-remove-swap-token-code /dev/null
---- a/mm/thrash.c
-+++ /dev/null
-@@ -1,155 +0,0 @@
--/*
-- * mm/thrash.c
-- *
-- * Copyright (C) 2004, Red Hat, Inc.
-- * Copyright (C) 2004, Rik van Riel <riel@redhat.com>
-- * Released under the GPL, see the file COPYING for details.
-- *
-- * Simple token based thrashing protection, using the algorithm
-- * described in: http://www.cse.ohio-state.edu/hpcs/WWW/HTML/publications/abs05-1.html
-- *
-- * Sep 2006, Ashwin Chaugule <ashwin.chaugule@celunite.com>
-- * Improved algorithm to pass token:
-- * Each task has a priority which is incremented if it contended
-- * for the token in an interval less than its previous attempt.
-- * If the token is acquired, that task's priority is boosted to prevent
-- * the token from bouncing around too often and to let the task make
-- * some progress in its execution.
-- */
--
--#include <linux/jiffies.h>
--#include <linux/mm.h>
--#include <linux/sched.h>
--#include <linux/swap.h>
--#include <linux/memcontrol.h>
--
--#include <trace/events/vmscan.h>
--
--#define TOKEN_AGING_INTERVAL	(0xFF)
--
--static DEFINE_SPINLOCK(swap_token_lock);
--struct mm_struct *swap_token_mm;
--static struct mem_cgroup *swap_token_memcg;
--
--#ifdef CONFIG_CGROUP_MEM_RES_CTLR
--static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
--{
--	struct mem_cgroup *memcg;
--
--	memcg = try_get_mem_cgroup_from_mm(mm);
--	if (memcg)
--		css_put(mem_cgroup_css(memcg));
--
--	return memcg;
--}
--#else
--static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
--{
--	return NULL;
--}
--#endif
--
--void grab_swap_token(struct mm_struct *mm)
--{
--	int current_interval;
--	unsigned int old_prio = mm->token_priority;
--	static unsigned int global_faults;
--	static unsigned int last_aging;
--
--	global_faults++;
--
--	current_interval = global_faults - mm->faultstamp;
--
--	if (!spin_trylock(&swap_token_lock))
--		return;
--
--	/* First come first served */
--	if (!swap_token_mm)
--		goto replace_token;
--
--	/*
--	 * Usually, we don't need priority aging because long interval faults
--	 * makes priority decrease quickly. But there is one exception. If the
--	 * token owner task is sleeping, it never make long interval faults.
--	 * Thus, we need a priority aging mechanism instead. The requirements
--	 * of priority aging are
--	 *  1) An aging interval is reasonable enough long. Too short aging
--	 *     interval makes quick swap token lost and decrease performance.
--	 *  2) The swap token owner task have to get priority aging even if
--	 *     it's under sleep.
--	 */
--	if ((global_faults - last_aging) > TOKEN_AGING_INTERVAL) {
--		swap_token_mm->token_priority /= 2;
--		last_aging = global_faults;
--	}
--
--	if (mm == swap_token_mm) {
--		mm->token_priority += 2;
--		goto update_priority;
--	}
--
--	if (current_interval < mm->last_interval)
--		mm->token_priority++;
--	else {
--		if (likely(mm->token_priority > 0))
--			mm->token_priority--;
--	}
--
--	/* Check if we deserve the token */
--	if (mm->token_priority > swap_token_mm->token_priority)
--		goto replace_token;
--
--update_priority:
--	trace_update_swap_token_priority(mm, old_prio, swap_token_mm);
--
--out:
--	mm->faultstamp = global_faults;
--	mm->last_interval = current_interval;
--	spin_unlock(&swap_token_lock);
--	return;
--
--replace_token:
--	mm->token_priority += 2;
--	trace_replace_swap_token(swap_token_mm, mm);
--	swap_token_mm = mm;
--	swap_token_memcg = swap_token_memcg_from_mm(mm);
--	last_aging = global_faults;
--	goto out;
--}
--
--/* Called on process exit. */
--void __put_swap_token(struct mm_struct *mm)
--{
--	spin_lock(&swap_token_lock);
--	if (likely(mm == swap_token_mm)) {
--		trace_put_swap_token(swap_token_mm);
--		swap_token_mm = NULL;
--		swap_token_memcg = NULL;
--	}
--	spin_unlock(&swap_token_lock);
--}
--
--static bool match_memcg(struct mem_cgroup *a, struct mem_cgroup *b)
--{
--	if (!a)
--		return true;
--	if (!b)
--		return true;
--	if (a == b)
--		return true;
--	return false;
--}
--
--void disable_swap_token(struct mem_cgroup *memcg)
--{
--	/* memcg reclaim don't disable unrelated mm token. */
--	if (match_memcg(memcg, swap_token_memcg)) {
--		spin_lock(&swap_token_lock);
--		if (match_memcg(memcg, swap_token_memcg)) {
--			trace_disable_swap_token(swap_token_mm);
--			swap_token_mm = NULL;
--			swap_token_memcg = NULL;
--		}
--		spin_unlock(&swap_token_lock);
--	}
--}
-diff -puN mm/vmscan.c~mm-remove-swap-token-code mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-swap-token-code
-+++ a/mm/vmscan.c
-@@ -2136,8 +2136,6 @@ static unsigned long do_try_to_free_page
- 
- 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
- 		sc->nr_scanned = 0;
--		if (!priority)
--			disable_swap_token(sc->target_mem_cgroup);
- 		aborted_reclaim = shrink_zones(priority, zonelist, sc);
- 
- 		/*
-@@ -2488,10 +2486,6 @@ loop_again:
- 		unsigned long lru_pages = 0;
- 		int has_under_min_watermark_zone = 0;
- 
--		/* The swap token gets in the way of swapout... */
--		if (!priority)
--			disable_swap_token(NULL);
+diff -puN /dev/null drivers/leds/leds-lm3556.c
+--- /dev/null
++++ a/drivers/leds/leds-lm3556.c
+@@ -0,0 +1,471 @@
++/*
++ * Simple driver for Texas Instruments LM3556 LED Flash driver chip (Rev0x03)
++ * Copyright (C) 2012 Texas Instruments
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/leds.h>
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/types.h>
++#include <linux/ctype.h>
++#include <linux/fs.h>
++#include <linux/leds-lm3556.h>
++
++#define	REG_FILT_TIME			(0x0)
++#define	REG_IVFM_MODE			(0x1)
++#define	REG_NTC				(0x2)
++#define	REG_INDIC_TIME			(0x3)
++#define	REG_INDIC_BLINK			(0x4)
++#define	REG_INDIC_PERIOD		(0x5)
++#define	REG_TORCH_TIME			(0x6)
++#define	REG_CONF			(0x7)
++#define	REG_FLASH			(0x8)
++#define	REG_I_CTRL			(0x9)
++#define	REG_ENABLE			(0xA)
++#define	REG_FLAG			(0xB)
++#define	REG_MAX				(0xC)
++
++#define	IVFM_FILTER_TIME_SHIFT		(3)
++#define	UVLO_EN_SHIFT			(7)
++#define	HYSTERSIS_SHIFT			(5)
++#define	IVM_D_TH_SHIFT			(2)
++#define	IVFM_ADJ_MODE_SHIFT		(0)
++#define	NTC_EVENT_LVL_SHIFT		(5)
++#define	NTC_TRIP_TH_SHIFT		(2)
++#define	NTC_BIAS_I_LVL_SHIFT		(0)
++#define	INDIC_RAMP_UP_TIME_SHIFT	(3)
++#define	INDIC_RAMP_DN_TIME_SHIFT	(0)
++#define	INDIC_N_BLANK_SHIFT		(4)
++#define	INDIC_PULSE_TIME_SHIFT		(0)
++#define	INDIC_N_PERIOD_SHIFT		(0)
++#define	TORCH_RAMP_UP_TIME_SHIFT	(3)
++#define	TORCH_RAMP_DN_TIME_SHIFT	(0)
++#define	STROBE_USUAGE_SHIFT		(7)
++#define	STROBE_PIN_POLARITY_SHIFT	(6)
++#define	TORCH_PIN_POLARITY_SHIFT	(5)
++#define	TX_PIN_POLARITY_SHIFT		(4)
++#define	TX_EVENT_LVL_SHIFT		(3)
++#define	IVFM_EN_SHIFT			(2)
++#define	NTC_MODE_SHIFT			(1)
++#define	INDIC_MODE_SHIFT		(0)
++#define	INDUCTOR_I_LIMIT_SHIFT		(6)
++#define	FLASH_RAMP_TIME_SHIFT		(3)
++#define	FLASH_TOUT_TIME_SHIFT		(0)
++#define	TORCH_I_SHIFT			(4)
++#define	FLASH_I_SHIFT			(0)
++#define	NTC_EN_SHIFT			(7)
++#define	TX_PIN_EN_SHIFT			(6)
++#define	STROBE_PIN_EN_SHIFT		(5)
++#define	TORCH_PIN_EN_SHIFT		(4)
++#define	PRECHG_MODE_EN_SHIFT		(3)
++#define	PASS_MODE_ONLY_EN_SHIFT		(2)
++#define	MODE_BITS_SHIFT			(0)
++
++#define	IVFM_FILTER_TIME_MASK		(0x3)
++#define	UVLO_EN_MASK			(0x1)
++#define	HYSTERSIS_MASK			(0x3)
++#define	IVM_D_TH_MASK			(0x7)
++#define	IVFM_ADJ_MODE_MASK		(0x3)
++#define	NTC_EVENT_LVL_MASK		(0x1)
++#define	NTC_TRIP_TH_MASK		(0x7)
++#define	NTC_BIAS_I_LVL_MASK		(0x3)
++#define	INDIC_RAMP_UP_TIME_MASK		(0x7)
++#define	INDIC_RAMP_DN_TIME_MASK		(0x7)
++#define	INDIC_N_BLANK_MASK		(0x7)
++#define	INDIC_PULSE_TIME_MASK		(0x7)
++#define	INDIC_N_PERIOD_MASK		(0x7)
++#define	TORCH_RAMP_UP_TIME_MASK		(0x7)
++#define	TORCH_RAMP_DN_TIME_MASK		(0x7)
++#define	STROBE_USUAGE_MASK		(0x1)
++#define	STROBE_PIN_POLARITY_MASK	(0x1)
++#define	TORCH_PIN_POLARITY_MASK		(0x1)
++#define	TX_PIN_POLARITY_MASK		(0x1)
++#define	TX_EVENT_LVL_MASK		(0x1)
++#define	IVFM_EN_MASK			(0x1)
++#define	NTC_MODE_MASK			(0x1)
++#define	INDIC_MODE_MASK			(0x1)
++#define	INDUCTOR_I_LIMIT_MASK		(0x3)
++#define	FLASH_RAMP_TIME_MASK		(0x7)
++#define	FLASH_TOUT_TIME_MASK		(0x7)
++#define	TORCH_I_MASK			(0x7)
++#define	FLASH_I_MASK			(0xF)
++#define	NTC_EN_MASK			(0x1)
++#define	TX_PIN_EN_MASK			(0x1)
++#define	STROBE_PIN_EN_MASK		(0x1)
++#define	TORCH_PIN_EN_MASK		(0x1)
++#define	PRECHG_MODE_EN_MASK		(0x1)
++#define	PASS_MODE_ONLY_EN_MASK		(0x1)
++#define	MODE_BITS_MASK			(0x13)
++#define EX_PIN_CONTROL_MASK		(0xF1)
++#define EX_PIN_ENABLE_MASK		(0x70)
++
++#define INDIC_PATTERN_SIZE 4
++
++struct indicator {
++	u8 blinking;
++	u8 period_cnt;
++};
++
++struct lm3556_chip_data {
++	struct i2c_client *client;
++
++	struct led_classdev cdev_flash;
++	struct led_classdev cdev_torch;
++	struct led_classdev cdev_indicator;
++
++	struct lm3556_platform_data *pdata;
++	struct mutex lock;
++
++	u8 last_flag;
++};
++
++/*Indicator Pattern*/
++static struct indicator indicator_pattern[INDIC_PATTERN_SIZE] = {
++	[0] = {(INDIC_N_BLANK_1 << INDIC_N_BLANK_SHIFT)
++	       | PULSE_TIME_32_MS, INDIC_PERIOD_1},
++	[1] = {(INDIC_N_BLANK_15 << INDIC_N_BLANK_SHIFT)
++	       | PULSE_TIME_32_MS, INDIC_PERIOD_2},
++	[2] = {(INDIC_N_BLANK_10 << INDIC_N_BLANK_SHIFT)
++	       | PULSE_TIME_32_MS, INDIC_PERIOD_4},
++	[3] = {(INDIC_N_BLANK_5 << INDIC_N_BLANK_SHIFT)
++	       | PULSE_TIME_32_MS, INDIC_PERIOD_7},
++};
++
++/* i2c access*/
++static int lm3556_read_reg(struct i2c_client *client, u8 reg, u8 * val)
++{
++	int ret;
++
++	ret = i2c_smbus_read_byte_data(client, reg);
++	if (ret < 0) {
++		dev_err(&client->dev, "i2c reading fail at 0x%02x error %d\n",
++			reg, ret);
++		return ret;
++	}
++	*val = ret & 0xff;
++	return ret;
++}
++
++static int lm3556_write_reg(struct i2c_client *client, u8 reg, u8 val)
++{
++	int ret = 0;
++
++	ret = i2c_smbus_write_byte_data(client, reg, val);
++
++	if (ret < 0)
++		dev_err(&client->dev, "i2c writting fail at 0x%02x\n", reg);
++	return ret;
++}
++
++static int lm3556_write_bits(struct i2c_client *client,
++			     u8 reg, u8 val, u8 mask, u8 shift)
++{
++	int ret;
++	u8 reg_val;
++	struct lm3556_chip_data *chip = i2c_get_clientdata(client);
++
++	mutex_lock(&chip->lock);
++	ret = lm3556_read_reg(client, reg, &reg_val);
++	if (ret < 0)
++		goto out;
++	reg_val &= (~(mask << shift));
++	reg_val |= ((val & mask) << shift);
++	ret = lm3556_write_reg(client, reg, reg_val);
++out:
++	mutex_unlock(&chip->lock);
++	return ret;
++}
++
++/* chip initialize*/
++static int lm3556_chip_init(struct lm3556_chip_data *chip)
++{
++	u8 reg_val;
++	int ret;
++	struct i2c_client *client = chip->client;
++	struct lm3556_platform_data *pdata = chip->pdata;
++
++	/*set config register */
++	ret = lm3556_read_reg(client, REG_CONF, &reg_val);
++	if (ret < 0)
++		goto out;
++	reg_val &= (~EX_PIN_CONTROL_MASK);
++	reg_val |= ((pdata->torch_pin_polarity & 0x01)
++		    << TORCH_PIN_POLARITY_SHIFT);
++	reg_val |= ((pdata->strobe_usuage & 0x01) << STROBE_USUAGE_SHIFT);
++	reg_val |= ((pdata->strobe_pin_polarity & 0x01)
++		    << STROBE_PIN_POLARITY_SHIFT);
++	reg_val |= ((pdata->tx_pin_polarity & 0x01) << TX_PIN_POLARITY_SHIFT);
++	reg_val |= ((pdata->indicator_mode & 0x01) << INDIC_MODE_SHIFT);
++	ret = lm3556_write_reg(client, REG_CONF, reg_val);
++	if (ret < 0)
++		goto out;
++
++	/*set enable register */
++	ret = lm3556_read_reg(client, REG_ENABLE, &reg_val);
++	if (ret < 0)
++		goto out;
++	reg_val &= (~EX_PIN_ENABLE_MASK);
++	reg_val |= ((pdata->torch_pin_en & 0x01) << TORCH_PIN_EN_SHIFT);
++	reg_val |= ((pdata->strobe_pin_en & 0x01) << STROBE_PIN_EN_SHIFT);
++	reg_val |= ((pdata->tx_pin_en & 0x01) << TX_PIN_EN_SHIFT);
++	ret = lm3556_write_reg(client, REG_ENABLE, reg_val);
++
++out:
++	return ret;
++}
++
++/* chip control*/
++static int lm3556_control(struct lm3556_chip_data *chip,
++			  u8 brightness, enum lm3556_mode opmode)
++{
++	int ret;
++	struct i2c_client *client = chip->client;
++	struct lm3556_platform_data *pdata = chip->pdata;
++
++	ret = lm3556_read_reg(client, REG_FLAG, &chip->last_flag);
++	if (ret < 0)
++		goto out;
++	if (chip->last_flag)
++		dev_info(&client->dev, "Last FLAG is 0x%x\n", chip->last_flag);
++
++	/*brightness 0 means off-state */
++	if (!brightness)
++		opmode = MODES_STASNDBY;
++
++	switch (opmode) {
++	case MODES_TORCH:
++		ret = lm3556_write_bits(client, REG_I_CTRL,
++					brightness - 1, TORCH_I_MASK,
++					TORCH_I_SHIFT);
++
++		if (pdata->torch_pin_en)
++			opmode |= (TORCH_PIN_EN_MASK << TORCH_PIN_EN_SHIFT);
++		break;
++
++	case MODES_FLASH:
++		ret = lm3556_write_bits(client, REG_I_CTRL,
++					brightness - 1, FLASH_I_MASK,
++					FLASH_I_SHIFT);
++		break;
++
++	case MODES_INDIC:
++		ret = lm3556_write_bits(client, REG_I_CTRL,
++					brightness - 1, TORCH_I_MASK,
++					TORCH_I_SHIFT);
++		break;
++
++	case MODES_STASNDBY:
++		if (pdata->torch_pin_en)
++			opmode |= (TORCH_PIN_EN_MASK << TORCH_PIN_EN_SHIFT);
++		break;
++
++	default:
++		return ret;
++	}
++	if (ret < 0)
++		goto out;
++	ret = lm3556_write_bits(client, REG_ENABLE,
++				opmode, MODE_BITS_MASK, MODE_BITS_SHIFT);
++out:
++	return ret;
++}
++
++/*torch */
++static void lm3556_torch_brightness_set(struct led_classdev *cdev,
++					enum led_brightness brightness)
++{
++	struct lm3556_chip_data *chip =
++	    container_of(cdev, struct lm3556_chip_data, cdev_torch);
++
++	lm3556_control(chip, brightness, MODES_TORCH);
++	return;
++}
++
++/* flash */
++static void lm3556_strobe_brightness_set(struct led_classdev *cdev,
++					 enum led_brightness brightness)
++{
++	struct lm3556_chip_data *chip =
++	    container_of(cdev, struct lm3556_chip_data, cdev_flash);
++
++	lm3556_control(chip, brightness, MODES_FLASH);
++	return;
++}
++
++/* indicator */
++static void lm3556_indicator_brightness_set(struct led_classdev *cdev,
++					    enum led_brightness brightness)
++{
++	struct lm3556_chip_data *chip =
++	    container_of(cdev, struct lm3556_chip_data, cdev_indicator);
++
++	lm3556_control(chip, brightness, MODES_INDIC);
++	return;
++}
++
++static ssize_t lm3556_indicator_pattern_store(struct device *dev,
++					      struct device_attribute *devAttr,
++					      const char *buf, size_t size)
++{
++	ssize_t ret;
++	struct i2c_client *client = container_of(dev->parent,
++						 struct i2c_client, dev);
++	unsigned int state;
++
++	ret = kstrtouint(buf, 10, &state);
++	if (ret)
++		goto out;
++	if (state > INDIC_PATTERN_SIZE - 1)
++		state = INDIC_PATTERN_SIZE - 1;
++
++	ret = lm3556_write_reg(client, REG_INDIC_BLINK,
++			       indicator_pattern[state].blinking);
++	if (ret < 0)
++		goto out;
++	ret = lm3556_write_reg(client, REG_INDIC_PERIOD,
++			       indicator_pattern[state].period_cnt);
++	if (ret < 0)
++		goto out;
++	return size;
++out:
++	dev_err(&client->dev, "pattern doesn't saved\n");
++	return size;
++}
++
++static DEVICE_ATTR(pattern, 0644, NULL, lm3556_indicator_pattern_store);
++
++/* Module Initialize */
++static int lm3556_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct lm3556_platform_data *pdata = client->dev.platform_data;
++	struct lm3556_chip_data *chip;
++
++	int err;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
++		dev_err(&client->dev, "i2c functionality check fail.\n");
++		return -EOPNOTSUPP;
++	}
++
++	if (pdata == NULL) {
++		dev_err(&client->dev, "Needs Platform Data.\n");
++		return -ENODATA;
++	}
++
++	chip =
++	    devm_kzalloc(&client->dev, sizeof(struct lm3556_chip_data),
++			 GFP_KERNEL);
++	if (!chip)
++		return -ENOMEM;
++
++	chip->client = client;
++	chip->pdata = pdata;
++
++	mutex_init(&chip->lock);
++	i2c_set_clientdata(client, chip);
++
++	err = lm3556_chip_init(chip);
++	if (err < 0)
++		goto err_chip_init;
++
++	/*flash */
++	chip->cdev_flash.name = "flash";
++	chip->cdev_flash.max_brightness = 16;
++	chip->cdev_flash.brightness_set = lm3556_strobe_brightness_set;
++	err = led_classdev_register((struct device *)
++				    &client->dev, &chip->cdev_flash);
++	if (err < 0)
++		goto err_create_flash_file;
++	/*torch */
++	chip->cdev_torch.name = "torch";
++	chip->cdev_torch.max_brightness = 8;
++	chip->cdev_torch.brightness_set = lm3556_torch_brightness_set;
++	err = led_classdev_register((struct device *)
++				    &client->dev, &chip->cdev_torch);
++	if (err < 0)
++		goto err_create_torch_file;
++	/*indicator */
++	chip->cdev_indicator.name = "indicator";
++	chip->cdev_indicator.max_brightness = 8;
++	chip->cdev_indicator.brightness_set = lm3556_indicator_brightness_set;
++	err = led_classdev_register((struct device *)
++				    &client->dev, &chip->cdev_indicator);
++	if (err < 0)
++		goto err_create_indicator_file;
++
++	err = device_create_file(chip->cdev_indicator.dev, &dev_attr_pattern);
++	if (err < 0)
++		goto err_create_pattern_file;
++
++	return 0;
++
++err_create_pattern_file:
++	led_classdev_unregister(&chip->cdev_indicator);
++err_create_indicator_file:
++	led_classdev_unregister(&chip->cdev_torch);
++err_create_torch_file:
++	led_classdev_unregister(&chip->cdev_flash);
++err_create_flash_file:
++err_chip_init:
++	i2c_set_clientdata(client, NULL);
++	kfree(chip);
++	return err;
++}
++
++static int lm3556_remove(struct i2c_client *client)
++{
++	struct lm3556_chip_data *chip = i2c_get_clientdata(client);
++
++	device_remove_file(chip->cdev_indicator.dev, &dev_attr_pattern);
++	led_classdev_unregister(&chip->cdev_indicator);
++	led_classdev_unregister(&chip->cdev_torch);
++	led_classdev_unregister(&chip->cdev_flash);
++	lm3556_write_reg(client, REG_ENABLE, 0);
++
++	kfree(chip);
++	return 0;
++}
++
++static const struct i2c_device_id lm3556_id[] = {
++	{LM3556_NAME, 0},
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, lm3556_id);
++
++static struct i2c_driver lm3556_i2c_driver = {
++	.driver = {
++		   .name = LM3556_NAME,
++		   .owner = THIS_MODULE,
++		   .pm = NULL,
++		   },
++	.probe = lm3556_probe,
++	.remove = __devexit_p(lm3556_remove),
++	.id_table = lm3556_id,
++};
++
++static int __init lm3556_init(void)
++{
++	return i2c_add_driver(&lm3556_i2c_driver);
++}
++
++static void __exit lm3556_exit(void)
++{
++	i2c_del_driver(&lm3556_i2c_driver);
++}
++
++module_init(lm3556_init);
++module_exit(lm3556_exit);
++
++MODULE_DESCRIPTION("Texas Instruments Flash Lighting driver for LM3556");
++MODULE_AUTHOR
++("Geon Si Jeong <daniel.jeong@ti.com>, Woogyom Kim <milo.kim@ti.com>");
++MODULE_LICENSE("GPL v2");
+diff -puN /dev/null include/linux/leds-lm3556.h
+--- /dev/null
++++ a/include/linux/leds-lm3556.h
+@@ -0,0 +1,242 @@
++/*
++ * Simple driver for Texas Instruments LM3556 LED Flash driver chip (Rev0x03)
++ * Copyright (C) 2012 Texas Instruments
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#ifndef __LINUX_LM3556_H
++#define __LINUX_LM3556_H
++
++#define LM3556_NAME "leds-lm3556"
++
++enum lm3556_ivfm_filter_time {
++	IVFM_FILTER_TIME_HALF_CURRENT_STEP = 0,
++	IVFM_FILTER_TIME_256_USEC,
++	IVFM_FILTER_TIME_512_USEC,
++	IVFM_FILTER_TIME_1024_USEC
++};
++
++enum lm3556_ivfm_adj_mode {
++	IVFM_ADJ_MODE_REPORT = 0,
++	IVFM_ADJ_MODESTOP_HOLD,
++	IVFM_ADJ_MODE_DOWN,
++	IVFM_ADJ_MODE_UP_DOWN,
++};
++
++enum lm3556_ivfm_down_threshold {
++	IVFM_DN_TH_2_7_V = 0,
++	IVFM_DN_TH_2_8_V,
++	IVFM_DN_TH_2_9_V,
++	IVFM_DN_TH_3_0_V,
++	IVFM_DN_TH_3_1_V,
++	IVFM_DN_TH_3_2_V,
++	IVFM_DN_TH_3_3_V,
++	IVFM_DN_TH_3_4_V,
++};
++
++enum lm3556_ivfm_hyst {
++	IVFM_HYST_50_MV = 0,
++	IVFM_HYST_100_MV,
++	IVFM_HYST_150_MV,
++	IVFM_HYST_DIS
++};
++
++enum lm3556_ntc_curr_lvl {
++	NTC_CURR_LVL_25_UA = 0,
++	NTC_CURR_LVL_50_UA,
++	NTC_CURR_LVL_75_UA,
++	NTC_CURR_LVL_100_UA
++};
++
++enum lm3556_ntc_trip_threshold {
++	NTC_TRIP_THRESHOLD_200_MV = 0,
++	NTC_TRIP_THRESHOLD_300_MV,
++	NTC_TRIP_THRESHOLD_400_MV,
++	NTC_TRIP_THRESHOLD_500_MV,
++	NTC_TRIP_THRESHOLD_600_MV,
++	NTC_TRIP_THRESHOLD_700_MV,
++	NTC_TRIP_THRESHOLD_800_MV,
++	NTC_TRIP_THRESHOLD_900_MV
++};
++
++enum lm3556_ntc_event_lvl {
++	NTC_EVENT_LVL_STANDBY = 0,
++	NTC_EVENT_LVL_REDUCE_MIN_TORCH
++};
++
++enum lm3556_torch_indic_ramp_time {
++	TORCH_INDIC_RAMP_TIME_16_MS = 0,
++	TORCH_INDIC_RAMP_TIME_32_MS,
++	TORCH_INDIC_RAMP_TIME_64_MS,
++	TORCH_INDIC_RAMP_TIME_128_MS,
++	TORCH_INDIC_RAMP_TIME_256_MS,
++	TORCH_INDIC_RAMP_TIME_512_MS,
++	TORCH_INDIC_RAMP_TIME_1024_MS,
++	TORCH_INDIC_RAMP_TIME_2048_MS,
++};
++
++enum lm3556_indic_pulse_time {
++	PULSE_TIME_0_MS = 0,
++	PULSE_TIME_32_MS,
++	PULSE_TIME_64_MS,
++	PULSE_TIME_92_MS,
++	PULSE_TIME_128_MS,
++	PULSE_TIME_160_MS,
++	PULSE_TIME_196_MS,
++	PULSE_TIME_224_MS,
++	PULSE_TIME_256_MS,
++	PULSE_TIME_288_MS,
++	PULSE_TIME_320_MS,
++	PULSE_TIME_352_MS,
++	PULSE_TIME_384_MS,
++	PULSE_TIME_416_MS,
++	PULSE_TIME_448_MS,
++	PULSE_TIME_480_MS,
++};
++
++enum lm3556_indic_n_blank {
++	INDIC_N_BLANK_0 = 0,
++	INDIC_N_BLANK_1,
++	INDIC_N_BLANK_2,
++	INDIC_N_BLANK_3,
++	INDIC_N_BLANK_4,
++	INDIC_N_BLANK_5,
++	INDIC_N_BLANK_6,
++	INDIC_N_BLANK_7,
++	INDIC_N_BLANK_8,
++	INDIC_N_BLANK_9,
++	INDIC_N_BLANK_10,
++	INDIC_N_BLANK_11,
++	INDIC_N_BLANK_12,
++	INDIC_N_BLANK_13,
++	INDIC_N_BLANK_14,
++	INDIC_N_BLANK_15,
++};
++
++enum lm3556_indic_period {
++	INDIC_PERIOD_0 = 0,
++	INDIC_PERIOD_1,
++	INDIC_PERIOD_2,
++	INDIC_PERIOD_3,
++	INDIC_PERIOD_4,
++	INDIC_PERIOD_5,
++	INDIC_PERIOD_6,
++	INDIC_PERIOD_7,
++};
++
++enum lm3556_indic_mode {
++	INDIC_MODE_INTERNAL = 0,
++	INDIC_MODE_EXTERNAL,
++};
++
++enum lm3556_flash_timeout {
++	FLASH_TIMEOUT_50_MS = 0,
++	FLASH_TIMEOUT_100_MS,
++	FLASH_TIMEOUT_150_MS,
++	FLASH_TIMEOUT_200_MS,
++	FLASH_TIMEOUT_250_MS,
++	FLASH_TIMEOUT_300_MS,
++	FLASH_TIMEOUT_350_MS,
++	FLASH_TIMEOUT_400_MS,
++};
++
++enum lm3556_flash_ramp_time {
++	FLASH_RAMP_TIME_256_US = 0,
++	FLASH_RAMP_TIME_512_US,
++	FLASH_RAMP_TIME_1024_US,
++	FLASH_RAMP_TIME_2048_US,
++	FLASH_RAMP_TIME_4096_US,
++	FLASH_RAMP_TIME_8192_US,
++	FLASH_RAMP_TIME_16384_US,
++	FLASH_RAMP_TIME_32768_US,
++};
++
++enum lm3556_inductor_current_limit {
++	INDIC_I_LIMIT_1500_MA = 0,
++	INDIC_I_LIMIT_2000_MA,
++	INDIC_I_LIMIT_2500_MA,
++	INDIC_I_LIMIT_3000_MA
++};
++
++enum lm3556_flash_current {
++	FLASH_I_93750_UA = 0,
++	FLASH_I_187500_UA,
++	FLASH_I_281250_UA,
++	FLASH_I_375000_UA,
++	FLASH_I_468750_UA,
++	FLASH_I_562500_UA,
++	FLASH_I_656250_UA,
++	FLASH_I_750000_UA,
++	FLASH_I_843750_UA,
++	FLASH_I_937500_UA,
++	FLASH_I_1031250_UA,
++	FLASH_I_1125000_UA,
++	FLASH_I_1218750_UA,
++	FLASH_I_1312500_UA,
++	FLASH_I_1406250_UA,
++	FLASH_I_1500000_UA,
++
++};
++
++enum lm3556_torch_current {
++	TORCH_I_46880_UA = 0,
++	TORCH_I_93750_UA,
++	TORCH_I_1406300_UA,
++	TORCH_I_187500_UA,
++	TORCH_I_234380_UA,
++	TORCH_I_281250_UA,
++	TORCH_I_328130_UA,
++	TORCH_I_375000_UA,
++};
++
++enum lm3556_mode {
++	MODES_STASNDBY = 0,
++	MODES_INDIC,
++	MODES_TORCH,
++	MODES_FLASH
++};
++
++enum lm3556_pass_mode {
++	PASS_MODE_NORMAL = 0,
++	PASS_MODE_PASS_ONLY
++};
++
++enum lm3556_prechg_mode {
++	PRE_CHARGE_MODE_NORMAL = 0,
++	PRE_CHARGE_MODE_PRE_CHARGE
++};
++
++enum lm3556_pin_polarity {
++	PIN_LOW_ACTIVE = 0,
++	PIN_HIGH_ACTIVE,
++};
++
++enum lm3556_pin_enable {
++	PIN_DISABLED = 0,
++	PIN_ENABLED,
++};
++
++enum lm3556_strobe_usuage {
++	STROBE_EDGE_DETECT = 0,
++	STROBE_LEVEL_DETECT,
++};
++
++struct lm3556_platform_data {
++	enum lm3556_pin_enable torch_pin_en;
++	enum lm3556_pin_polarity torch_pin_polarity;
++
++	enum lm3556_strobe_usuage strobe_usuage;
++	enum lm3556_pin_enable strobe_pin_en;
++	enum lm3556_pin_polarity strobe_pin_polarity;
++
++	enum lm3556_pin_enable tx_pin_en;
++	enum lm3556_pin_polarity tx_pin_polarity;
++
++	enum lm3556_indic_mode indicator_mode;
++};
++
++#endif /* __LINUX_LM3556_H */
+_
+Subject: Subject: leds: add LED driver for lm3556 chip
+
+Patches currently in -mm which might be from gshark.jeong@gmail.com are
+
+leds-add-led-driver-for-lm3556-chip.patch
+
