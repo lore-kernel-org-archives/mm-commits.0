@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cred-copy_process-should-clear-child-replacement_session_keyring.patch added to -mm tree
-Date: Tue, 10 Apr 2012 11:54:16 -0700
-Message-ID: <20120410185416.E009FA032F@akpm.mtv.corp.google.com>
+Subject: + panic-fix-stack-dump-print-on-direct-call-to-panic.patch added to -mm tree
+Date: Tue, 10 Apr 2012 12:20:39 -0700
+Message-ID: <20120410192039.ACD13A026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:64856 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754060Ab2DJSyS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Apr 2012 14:54:18 -0400
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:42857 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758905Ab2DJTUm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Apr 2012 15:20:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, dhowells@redhat.com, jmorris@namei.org, stable@vger.kernel.org
+Cc: jason.wessel@windriver.com, ak@linux.intel.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: cred: copy_process() should clear child->replacement_session_keyring
+     Subject: panic: fix stack dump print on direct call to panic()
 has been added to the -mm tree.  Its filename is
-     cred-copy_process-should-clear-child-replacement_session_keyring.patch
+     panic-fix-stack-dump-print-on-direct-call-to-panic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,77 +31,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: cred: copy_process() should clear child->replacement_session_keyring
+From: Jason Wessel <jason.wessel@windriver.com>
+Subject: panic: fix stack dump print on direct call to panic()
 
-keyctl_session_to_parent(task) sets ->replacement_session_keyring, it
-should be processed and cleared by key_replace_session_keyring().
+Commit 6e6f0a1f0 ("panic: don't print redundant backtraces on oops")
+causes a regression where no stack trace will be printed at all for the
+case where kernel code calls panic() directly while not processing an
+oops, and of course there are 100's of instances of this type of call.
 
-However, this task can fork before it notices TIF_NOTIFY_RESUME and the
-new child gets the bogus ->replacement_session_keyring copied by
-dup_task_struct().  This is obviously wrong and, if nothing else, this
-leads to put_cred(already_freed_cred).
+The original commit executed the check (!oops_in_progress), but this will
+always be false because just before the dump_stack() there is a call to
+bust_spinlocks(1), which does the following:
 
-change copy_creds() to clear this member.  If copy_process() fails before
-this point the wrong ->replacement_session_keyring doesn't matter,
-exit_creds() won't be called.
+  void __attribute__((weak)) bust_spinlocks(int yes)
+  {
+	if (yes) {
+		++oops_in_progress;
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: <stable@vger.kernel.org>
+The proper way to resolve the problem that original commit tried to solve
+is to avoid printing a stack dump from panic() when the either of the
+following conditions is true:
+
+  1) TAINT_DIE has been set (this is done by oops_end())
+     This indicates and oops has already been printed.
+  2) oops_in_progress > 1
+     This guards against the rare case where panic() is invoked
+     a second time, or in between oops_begin() and oops_end()
+
+Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: <stable@vger.kernel.org>	[3.3+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cred.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/panic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cred.c~cred-copy_process-should-clear-child-replacement_session_keyring kernel/cred.c
---- a/kernel/cred.c~cred-copy_process-should-clear-child-replacement_session_keyring
-+++ a/kernel/cred.c
-@@ -386,6 +386,8 @@ int copy_creds(struct task_struct *p, un
- 	struct cred *new;
- 	int ret;
+diff -puN kernel/panic.c~panic-fix-stack-dump-print-on-direct-call-to-panic kernel/panic.c
+--- a/kernel/panic.c~panic-fix-stack-dump-print-on-direct-call-to-panic
++++ a/kernel/panic.c
+@@ -97,7 +97,7 @@ void panic(const char *fmt, ...)
+ 	/*
+ 	 * Avoid nested stack-dumping if a panic occurs during oops processing
+ 	 */
+-	if (!oops_in_progress)
++	if (!test_taint(TAINT_DIE) && oops_in_progress <= 1)
+ 		dump_stack();
+ #endif
  
-+	p->replacement_session_keyring = NULL;
-+
- 	if (
- #ifdef CONFIG_KEYS
- 		!p->cred->thread_keyring &&
 _
-Subject: Subject: cred: copy_process() should clear child->replacement_session_keyring
+Subject: Subject: panic: fix stack dump print on direct call to panic()
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jason.wessel@windriver.com are
 
-linux-next.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
-cred-copy_process-should-clear-child-replacement_session_keyring.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-kmod-unexport-call_usermodehelper_freeinfo.patch
-kmod-convert-two-call-sites-to-call_usermodehelper_fns.patch
-kmod-move-call_usermodehelper_fns-to-c-file-and-unexport-all-its-helpers.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
+panic-fix-stack-dump-print-on-direct-call-to-panic.patch
 
