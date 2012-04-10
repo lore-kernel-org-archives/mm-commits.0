@@ -1,59 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded] c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch removed from -mm tree
-Date: Tue, 10 Apr 2012 11:32:21 -0700
-Message-ID: <20120410183221.58A63A035C@akpm.mtv.corp.google.com>
+Subject: + mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch added to -mm tree
+Date: Tue, 10 Apr 2012 11:43:45 -0700
+Message-ID: <20120410184345.C5CADA0358@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:36621 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756489Ab2DJScW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Apr 2012 14:32:22 -0400
-Received: by yhgm50 with SMTP id m50so14307yhg.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Apr 2012 11:32:21 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:37824 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758562Ab2DJSnq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Apr 2012 14:43:46 -0400
+Received: by ghbz15 with SMTP id z15so15288ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Apr 2012 11:43:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avagin@openvz.org, gorcunov@openvz.org, oleg@redhat.com, palves@redhat.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, markus@trippelsdorf.de, oleg@redhat.com
 
 
 The patch titled
-     Subject: c-r-prctl-add-ability-to-get-clear_tid_address-fix
-has been removed from the -mm tree.  Its filename was
-     c-r-prctl-add-ability-to-get-clear_tid_address-fix.patch
+     Subject: mm-correctly-synchronize-rss-counters-at-exit-exec-fix
+has been added to the -mm tree.  Its filename is
+     mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
 
-This patch was dropped because it was folded into c-r-prctl-add-ability-to-get-clear_tid_address.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: c-r-prctl-add-ability-to-get-clear_tid_address-fix
+Subject: mm-correctly-synchronize-rss-counters-at-exit-exec-fix
 
-fix prctl numbering
-
-Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Pedro Alves <palves@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/prctl.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/fork.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/prctl.h~c-r-prctl-add-ability-to-get-clear_tid_address-fix include/linux/prctl.h
---- a/include/linux/prctl.h~c-r-prctl-add-ability-to-get-clear_tid_address-fix
-+++ a/include/linux/prctl.h
-@@ -130,6 +130,6 @@
- #define PR_SET_CHILD_SUBREAPER 36
- #define PR_GET_CHILD_SUBREAPER 37
+diff -puN kernel/fork.c~mm-correctly-synchronize-rss-counters-at-exit-exec-fix kernel/fork.c
+--- a/kernel/fork.c~mm-correctly-synchronize-rss-counters-at-exit-exec-fix
++++ a/kernel/fork.c
+@@ -782,8 +782,8 @@ void mm_release(struct task_struct *tsk,
+ 	}
  
--#define PR_GET_TID_ADDRESS		36
-+#define PR_GET_TID_ADDRESS     38
- 
- #endif /* _LINUX_PRCTL_H */
+ 	/*
+-	 * Final rss-counter synchronization. After this point must be
+-	 * no page-faults into this mm from current context, otherwise
++	 * Final rss-counter synchronization. After this point there must be
++	 * no pagefaults into this mm from the current context.  Otherwise
+ 	 * mm->rss_stat will be inconsistent.
+ 	 */
+ 	if (mm)
 _
+Subject: Subject: mm-correctly-synchronize-rss-counters-at-exit-exec-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -62,6 +71,7 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 drivers-xen-kconfig-fix-kconfig-layout.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
