@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch added to -mm tree
-Date: Wed, 11 Apr 2012 16:32:29 -0700
-Message-ID: <20120411233229.CD8F9A03B2@akpm.mtv.corp.google.com>
+Subject: + blacklight-remove-redundant-spi-driver-bus-initialization.patch added to -mm tree
+Date: Wed, 11 Apr 2012 16:27:41 -0700
+Message-ID: <20120411232742.D918FA00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:35624 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965075Ab2DKXcc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Apr 2012 19:32:32 -0400
-Received: by wibhj13 with SMTP id hj13so68922wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Apr 2012 16:32:31 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:57137 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933526Ab2DKX1o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Apr 2012 19:27:44 -0400
+Received: by qcsp5 with SMTP id p5so190006qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Apr 2012 16:27:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gorcunov@openvz.org, hpa@zytor.com
+Cc: lars@metafoo.de, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix
+     Subject: blacklight: remove redundant spi driver bus initialization
 has been added to the -mm tree.  Its filename is
-     syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+     blacklight-remove-redundant-spi-driver-bus-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: blacklight: remove redundant spi driver bus initialization
 
-tweak comment text
+In ancient times it was necessary to manually initialize the bus field of
+an spi_driver to spi_bus_type.  These days this is done in
+spi_driver_register() so we can drop the manual assignment.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+The patch was generated using the following coccinelle semantic patch:
+// <smpl>
+@@
+identifier _driver;
+@@
+struct spi_driver _driver = {
+	.driver = {
+-		.bus = &spi_bus_type,
+	},
+};
+// </smpl>
+
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcmp.c |   24 +++++++++++-------------
- 1 file changed, 11 insertions(+), 13 deletions(-)
+ drivers/video/backlight/ams369fg06.c |    1 -
+ drivers/video/backlight/ld9040.c     |    1 -
+ drivers/video/backlight/ltv350qv.c   |    1 -
+ drivers/video/backlight/s6e63m0.c    |    1 -
+ 4 files changed, 4 deletions(-)
 
-diff -puN kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix kernel/kcmp.c
---- a/kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix
-+++ a/kernel/kcmp.c
-@@ -14,21 +14,19 @@
- #include <asm/unistd.h>
+diff -puN drivers/video/backlight/ams369fg06.c~blacklight-remove-redundant-spi-driver-bus-initialization drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~blacklight-remove-redundant-spi-driver-bus-initialization
++++ a/drivers/video/backlight/ams369fg06.c
+@@ -619,7 +619,6 @@ static void ams369fg06_shutdown(struct s
+ static struct spi_driver ams369fg06_driver = {
+ 	.driver = {
+ 		.name	= "ams369fg06",
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= ams369fg06_probe,
+diff -puN drivers/video/backlight/ld9040.c~blacklight-remove-redundant-spi-driver-bus-initialization drivers/video/backlight/ld9040.c
+--- a/drivers/video/backlight/ld9040.c~blacklight-remove-redundant-spi-driver-bus-initialization
++++ a/drivers/video/backlight/ld9040.c
+@@ -846,7 +846,6 @@ static void ld9040_shutdown(struct spi_d
+ static struct spi_driver ld9040_driver = {
+ 	.driver = {
+ 		.name	= "ld9040",
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= ld9040_probe,
+diff -puN drivers/video/backlight/ltv350qv.c~blacklight-remove-redundant-spi-driver-bus-initialization drivers/video/backlight/ltv350qv.c
+--- a/drivers/video/backlight/ltv350qv.c~blacklight-remove-redundant-spi-driver-bus-initialization
++++ a/drivers/video/backlight/ltv350qv.c
+@@ -310,7 +310,6 @@ static void ltv350qv_shutdown(struct spi
+ static struct spi_driver ltv350qv_driver = {
+ 	.driver = {
+ 		.name		= "ltv350qv",
+-		.bus		= &spi_bus_type,
+ 		.owner		= THIS_MODULE,
+ 	},
  
- /*
-- * We don't expose real in-memory order of objects for security
-- * reasons, still the comparison results should be suitable for
-- * sorting. Thus, we obfuscate kernel pointers values and compare
-- * the production instead.
-+ * We don't expose the real in-memory order of objects for security reasons.
-+ * But still the comparison results should be suitable for sorting. So we
-+ * obfuscate kernel pointers values and compare the production instead.
-  *
-- * The obfuscation is done in two steps. First -- we use xor on
-- * kernel pointer with random value, which puts pointer into
-- * a new position in reordered space. Second -- we multiply
-- * the xor production with big odd random number to permute
-- * bits even more (the odd multiplier guarantees that the product
-- * is unique ever after the high bits are truncated, since any odd
-- * number is relative prime to 2^n).
-+ * The obfuscation is done in two steps. First we xor the kernel pointer with
-+ * a random value, which puts pointer into a new position in a reordered space.
-+ * Secondly we multiply the xor production with a large odd random number to
-+ * permute its bits even more (the odd multiplier guarantees that the product
-+ * is unique ever after the high bits are truncated, since any odd number is
-+ * relative prime to 2^n).
-  *
-- * Note also the obfuscation itself is invisible to user-space
-- * and if needed it can be changed to any suitable scheme.
-+ * Note also that the obfuscation itself is invisible to userspace and if needed
-+ * it can be changed to an alternate scheme.
-  */
- static unsigned long cookies[KCMP_TYPES][2] __read_mostly;
- 
+diff -puN drivers/video/backlight/s6e63m0.c~blacklight-remove-redundant-spi-driver-bus-initialization drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~blacklight-remove-redundant-spi-driver-bus-initialization
++++ a/drivers/video/backlight/s6e63m0.c
+@@ -899,7 +899,6 @@ static void s6e63m0_shutdown(struct spi_
+ static struct spi_driver s6e63m0_driver = {
+ 	.driver = {
+ 		.name	= "s6e63m0",
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= s6e63m0_probe,
 _
-Subject: Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix
+Subject: Subject: blacklight: remove redundant spi driver bus initialization
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lars@metafoo.de are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+blacklight-remove-redundant-spi-driver-bus-initialization.patch
+leds-led-module-for-da9052-53-pmic-v2.patch
 leds-led-module-for-da9052-53-pmic-v2-fix.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
