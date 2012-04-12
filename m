@@ -1,28 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-vmscan-remove-reclaim_mode_t.patch removed from -mm tree
-Date: Thu, 12 Apr 2012 16:48:52 -0700
-Message-ID: <20120412234852.519D7A02DE@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-remove-reclaim_mode_t.patch added to -mm tree
+Date: Thu, 12 Apr 2012 16:56:41 -0700
+Message-ID: <20120412235641.2A5B5A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:40124 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197Ab2DLXsx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Apr 2012 19:48:53 -0400
-Received: by ghbz15 with SMTP id z15so313167ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Apr 2012 16:48:52 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:42991 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757452Ab2DLX4m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Apr 2012 19:56:42 -0400
+Received: by qcsp5 with SMTP id p5so318512qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Apr 2012 16:56:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, apw@shadowen.org, hughd@google.com, khlebnikov@openvz.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mgorman@suse.de, apw@shadowen.org, hughd@google.com, khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, yinghan@google.com
 
 
 The patch titled
      Subject: mm: vmscan: remove reclaim_mode_t
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-vmscan-remove-reclaim_mode_t.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
@@ -34,9 +42,11 @@ reclaim_mode_t as well and improves the documentation about what
 reclaim/compaction is and when it is triggered.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Ying Han <yinghan@google.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -55,13 +65,13 @@ diff -puN include/trace/events/vmscan.h~mm-vmscan-remove-reclaim_mode_t include/
 -#define trace_reclaim_flags(page, sync) ( \
 +#define trace_reclaim_flags(page) ( \
  	(page_is_file_cache(page) ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
- 	(RECLAIM_WB_ASYNC)   \
+ 	(RECLAIM_WB_ASYNC) \
  	)
  
 -#define trace_shrink_flags(file, sync) ( \
 +#define trace_shrink_flags(file) \
  	( \
- 		(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) |  \
+ 		(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
  		(RECLAIM_WB_ASYNC) \
 diff -puN mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t mm/vmscan.c
 --- a/mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t
@@ -149,7 +159,7 @@ diff -puN mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t mm/vmscan.c
  	lru_add_drain();
  
  	if (!sc->may_unmap)
-@@ -1428,7 +1389,7 @@ shrink_inactive_list(unsigned long nr_to
+@@ -1433,7 +1394,7 @@ shrink_inactive_list(unsigned long nr_to
  		zone_idx(zone),
  		nr_scanned, nr_reclaimed,
  		priority,
@@ -158,7 +168,7 @@ diff -puN mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t mm/vmscan.c
  	return nr_reclaimed;
  }
  
-@@ -1507,8 +1468,6 @@ static void shrink_active_list(unsigned 
+@@ -1512,8 +1473,6 @@ static void shrink_active_list(unsigned 
  
  	lru_add_drain();
  
@@ -167,7 +177,7 @@ diff -puN mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t mm/vmscan.c
  	if (!sc->may_unmap)
  		isolate_mode |= ISOLATE_UNMAPPED;
  	if (!sc->may_writepage)
-@@ -1821,23 +1780,35 @@ out:
+@@ -1826,23 +1785,35 @@ out:
  	}
  }
  
@@ -220,9 +230,11 @@ diff -puN mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t mm/vmscan.c
  
  	throttle_vm_writeout(sc->gfp_mask);
 _
+Subject: Subject: mm: vmscan: remove reclaim_mode_t
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
 mm-vmscan-remove-lumpy-reclaim.patch
 mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
+mm-vmscan-remove-reclaim_mode_t.patch
 
