@@ -1,152 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: + cred-remove-task_is_dead-from-__task_cred-validation.patch added to -mm tree
-Date: Thu, 12 Apr 2012 15:27:30 -0700
-Message-ID: <20120412222731.88502A03B2@akpm.mtv.corp.google.com>
+Subject: [withdrawn] proc-use-task_access_lock-instead-of-ptrace_may_access.patch removed from -mm tree
+Date: Thu, 12 Apr 2012 15:59:14 -0700
+Message-ID: <20120412225915.2584AA02AD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:44134 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966110Ab2DLW1e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Apr 2012 18:27:34 -0400
-Received: by bkcjm19 with SMTP id jm19so110688bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Apr 2012 15:27:32 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:33218 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756699Ab2DLW7R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Apr 2012 18:59:17 -0400
+Received: by eekc41 with SMTP id c41so112677eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Apr 2012 15:59:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, jolsa@redhat.com, paulmck@linux.vnet.ibm.com
+To: xiyou.wangcong@gmail.com, adobriyan@gmail.com, hughd@google.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cred: remove task_is_dead() from __task_cred() validation
-has been added to the -mm tree.  Its filename is
-     cred-remove-task_is_dead-from-__task_cred-validation.patch
+     Subject: proc: use task_access_lock() instead of ptrace_may_access()
+has been removed from the -mm tree.  Its filename was
+     proc-use-task_access_lock-instead-of-ptrace_may_access.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was withdrawn
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: cred: remove task_is_dead() from __task_cred() validation
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: proc: use task_access_lock() instead of ptrace_may_access()
 
-commit 8f92054e ("CRED: Fix __task_cred()'s lockdep check and banner
-comment"):
+There are several places in fs/proc/base.c still use ptrace_may_access()
+directly to check the permission, actually this just gets a snapshot of
+the permission, nothing prevents the target task from raising the
+priviledges itself, it is better to use task_access_lock() for these
+places, to hold the priviledges.
 
-    add the following validation condition:
-
-        task->exit_state >= 0
-
-    to permit the access if the target task is dead and therefore
-    unable to change its own credentials.
-
-OK, but afaics currently this can only help wait_task_zombie() which calls
-__task_cred() without rcu lock.
-
-Remove this validation and change wait_task_zombie() to use task_uid()
-instead.  This means we do rcu_read_lock() only to shut up the lockdep,
-but we already do the same in, say, wait_task_stopped().
-
-task_is_dead() should die, task->exit_state != 0 means that this task has
-passed exit_notify(), only do_wait-like code paths should use this.
-
-Unfortunately, we can't kill task_is_dead() right now, it has already
-acquired buggy users in drivers/staging.  The fix already exists.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Cc: Jiri Olsa <jolsa@redhat.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cred.h |   10 +++-------
- kernel/exit.c        |    2 +-
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ fs/proc/base.c |   74 ++++++++++++++++++++---------------------------
+ 1 file changed, 33 insertions(+), 41 deletions(-)
 
-diff -puN include/linux/cred.h~cred-remove-task_is_dead-from-__task_cred-validation include/linux/cred.h
---- a/include/linux/cred.h~cred-remove-task_is_dead-from-__task_cred-validation
-+++ a/include/linux/cred.h
-@@ -276,17 +276,13 @@ static inline void put_cred(const struct
-  * @task: The task to query
-  *
-  * Access the objective credentials of a task.  The caller must hold the RCU
-- * readlock or the task must be dead and unable to change its own credentials.
-+ * readlock.
-  *
-  * The result of this function should not be passed directly to get_cred();
-  * rather get_task_cred() should be used instead.
-  */
--#define __task_cred(task)						\
--	({								\
--		const struct task_struct *__t = (task);			\
--		rcu_dereference_check(__t->real_cred,			\
--				      task_is_dead(__t));		\
--	})
-+#define __task_cred(task)	\
-+	rcu_dereference((task)->real_cred)
+diff -puN fs/proc/base.c~proc-use-task_access_lock-instead-of-ptrace_may_access fs/proc/base.c
+--- a/fs/proc/base.c~proc-use-task_access_lock-instead-of-ptrace_may_access
++++ a/fs/proc/base.c
+@@ -253,6 +253,23 @@ static int proc_pid_auxv(struct task_str
+ 	return res;
+ }
  
- /**
-  * get_current_cred - Get the current task's subjective credentials
-diff -puN kernel/exit.c~cred-remove-task_is_dead-from-__task_cred-validation kernel/exit.c
---- a/kernel/exit.c~cred-remove-task_is_dead-from-__task_cred-validation
-+++ a/kernel/exit.c
-@@ -1214,7 +1214,7 @@ static int wait_task_zombie(struct wait_
- 	unsigned long state;
- 	int retval, status, traced;
- 	pid_t pid = task_pid_vnr(p);
--	uid_t uid = __task_cred(p)->uid;
-+	uid_t uid = task_uid(p);
- 	struct siginfo __user *infop;
++static int task_access_lock(struct task_struct *task, unsigned int mode)
++
++{
++	int err = mutex_lock_killable(&task->signal->cred_guard_mutex);
++	if (err)
++		return err;
++	if (!ptrace_may_access(task, mode)) {
++		mutex_unlock(&task->signal->cred_guard_mutex);
++		return -EPERM;
++	}
++	return 0;
++}
++
++static void task_access_unlock(struct task_struct *task)
++{
++	mutex_unlock(&task->signal->cred_guard_mutex);
++}
  
- 	if (!likely(wo->wo_flags & WEXITED))
+ #ifdef CONFIG_KALLSYMS
+ /*
+@@ -264,35 +281,18 @@ static int proc_pid_wchan(struct task_st
+ 	unsigned long wchan;
+ 	char symname[KSYM_NAME_LEN];
+ 
++	if (task_access_lock(task, PTRACE_MODE_READ))
++		return 0;
+ 	wchan = get_wchan(task);
+ 
++	task_access_unlock(task);
+ 	if (lookup_symbol_name(wchan, symname) < 0)
+-		if (!ptrace_may_access(task, PTRACE_MODE_READ))
+-			return 0;
+-		else
+-			return sprintf(buffer, "%lu", wchan);
++		return sprintf(buffer, "%lu", wchan);
+ 	else
+ 		return sprintf(buffer, "%s", symname);
+ }
+ #endif /* CONFIG_KALLSYMS */
+ 
+-static int task_access_lock(struct task_struct *task, unsigned int mode)
+-{
+-	int err = mutex_lock_killable(&task->signal->cred_guard_mutex);
+-	if (err)
+-		return err;
+-	if (!ptrace_may_access(task, mode)) {
+-		mutex_unlock(&task->signal->cred_guard_mutex);
+-		return -EPERM;
+-	}
+-	return 0;
+-}
+-
+-static void task_access_unlock(struct task_struct *task)
+-{
+-	mutex_unlock(&task->signal->cred_guard_mutex);
+-}
+-
+ #ifdef CONFIG_STACKTRACE
+ 
+ #define MAX_STACK_TRACE_DEPTH	64
+@@ -512,23 +512,6 @@ static int proc_pid_syscall(struct task_
+ /*                       Here the fs part begins                        */
+ /************************************************************************/
+ 
+-/* permission checks */
+-static int proc_fd_access_allowed(struct inode *inode)
+-{
+-	struct task_struct *task;
+-	int allowed = 0;
+-	/* Allow access to a task's file descriptors if it is us or we
+-	 * may use ptrace attach to the process and find out that
+-	 * information.
+-	 */
+-	task = get_proc_task(inode);
+-	if (task) {
+-		allowed = ptrace_may_access(task, PTRACE_MODE_READ);
+-		put_task_struct(task);
+-	}
+-	return allowed;
+-}
+-
+ int proc_setattr(struct dentry *dentry, struct iattr *attr)
+ {
+ 	int error;
+@@ -1425,17 +1408,21 @@ static int proc_exe_link(struct dentry *
+ static void *proc_pid_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct inode *inode = dentry->d_inode;
++	struct task_struct *task = get_proc_task(inode);
+ 	int error = -EACCES;
+ 
+ 	/* We don't need a base pointer in the /proc filesystem */
+ 	path_put(&nd->path);
+ 
+ 	/* Are we allowed to snoop on the tasks file descriptors? */
+-	if (!proc_fd_access_allowed(inode))
++	error = task_access_lock(task, PTRACE_MODE_READ);
++	if (error)
+ 		goto out;
+ 
+ 	error = PROC_I(inode)->op.proc_get_link(dentry, &nd->path);
++	task_access_unlock(task);
+ out:
++	put_task_struct(task);
+ 	return ERR_PTR(error);
+ }
+ 
+@@ -1467,19 +1454,24 @@ static int proc_pid_readlink(struct dent
+ {
+ 	int error = -EACCES;
+ 	struct inode *inode = dentry->d_inode;
++	struct task_struct *task = get_proc_task(inode);
+ 	struct path path;
+ 
+ 	/* Are we allowed to snoop on the tasks file descriptors? */
+-	if (!proc_fd_access_allowed(inode))
++	error = task_access_lock(task, PTRACE_MODE_READ);
++	if (error)
+ 		goto out;
+ 
+ 	error = PROC_I(inode)->op.proc_get_link(dentry, &path);
+ 	if (error)
+-		goto out;
++		goto out_unlock;
+ 
+ 	error = do_proc_readlink(&path, buffer, buflen);
+ 	path_put(&path);
++out_unlock:
++	task_access_unlock(task);
+ out:
++	put_task_struct(task);
+ 	return error;
+ }
+ 
 _
-Subject: Subject: cred: remove task_is_dead() from __task_cred() validation
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-origin.patch
 linux-next.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-mips-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
-kmod-unexport-call_usermodehelper_freeinfo.patch
-kmod-convert-two-call-sites-to-call_usermodehelper_fns.patch
-kmod-move-call_usermodehelper_fns-to-c-file-and-unexport-all-its-helpers.patch
-cred-remove-task_is_dead-from-__task_cred-validation.patch
+cris-select-generic_atomic64.patch
 proc-clean-up-proc-pid-environ-handling.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
 proc-unify-ptrace_may_access-locking-code.patch
 proc-remove-mm_for_maps.patch
 proc-use-mm_access-instead-of-ptrace_may_access.patch
-proc-use-task_access_lock-instead-of-ptrace_may_access.patch
 proc-use-is_err_or_null.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
 
