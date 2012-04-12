@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch added to -mm tree
-Date: Thu, 12 Apr 2012 16:37:27 -0700
-Message-ID: <20120412233727.C8DE0A02AD@akpm.mtv.corp.google.com>
+Subject: + fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch added to -mm tree
+Date: Thu, 12 Apr 2012 16:38:08 -0700
+Message-ID: <20120412233809.0EF12A026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:48552 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966211Ab2DLXh3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Apr 2012 19:37:29 -0400
-Received: by vcbfk26 with SMTP id fk26so315466vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Apr 2012 16:37:28 -0700 (PDT)
+Received: from mail-gx0-f202.google.com ([209.85.161.202]:44631 "EHLO
+	mail-gx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757900Ab2DLXiK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Apr 2012 19:38:10 -0400
+Received: by ggnd2 with SMTP id d2so315890ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Apr 2012 16:38:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mar
 
 
 The patch titled
-     Subject: mm: call complete_vfork_done() after clearing child_tid and flushing rss-counters
+     Subject: fork: call complete_vfork_done() after clearing child_tid and flushing rss-counters
 has been added to the -mm tree.  Its filename is
-     mm-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+     fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: call complete_vfork_done() after clearing child_tid and flushing rss-counters
+Subject: fork: call complete_vfork_done() after clearing child_tid and flushing rss-counters
 
 Child should wake up the parent from vfork() only after finishing all
 operations with shared mm.  There is no sense in using
@@ -53,8 +53,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/fork.c |   10 +++++++---
  1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN kernel/fork.c~mm-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters kernel/fork.c
---- a/kernel/fork.c~mm-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters
+diff -puN kernel/fork.c~fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters kernel/fork.c
+--- a/kernel/fork.c~fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters
 +++ a/kernel/fork.c
 @@ -756,9 +756,6 @@ void mm_release(struct task_struct *tsk,
  	/* Get rid of any cached register state */
@@ -81,7 +81,7 @@ diff -puN kernel/fork.c~mm-call-complete_vfork_done-after-clearing-child_tid-and
  
  /*
 _
-Subject: Subject: mm: call complete_vfork_done() after clearing child_tid and flushing rss-counters
+Subject: Subject: fork: call complete_vfork_done() after clearing child_tid and flushing rss-counters
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
@@ -100,5 +100,5 @@ mm-mark-mm-inline-functions-as-__always_inline.patch
 mm-remove-lru-type-checks-from-__isolate_lru_page.patch
 mm-memcg-kill-mem_cgroup_lru_del.patch
 mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-mm-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
 
