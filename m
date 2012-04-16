@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch added to -mm tree
-Date: Mon, 16 Apr 2012 16:16:20 -0700
-Message-ID: <20120416231620.9930CA0186@akpm.mtv.corp.google.com>
+Subject: + hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch added to -mm tree
+Date: Mon, 16 Apr 2012 16:16:16 -0700
+Message-ID: <20120416231617.13B05A0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:40934 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754673Ab2DPXQX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:23 -0400
-Received: by eekc41 with SMTP id c41so264736eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:21 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:65522 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755340Ab2DPXQS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:18 -0400
+Received: by ghbz15 with SMTP id z15so662232ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hann
 
 
 The patch titled
-     Subject: memcg: move HugeTLB resource count to parent cgroup on memcg removal
+     Subject: hugetlbfs: add a list for tracking in-use HugeTLB pages
 has been added to the -mm tree.  Its filename is
-     memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+     hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: memcg: move HugeTLB resource count to parent cgroup on memcg removal
+Subject: hugetlbfs: add a list for tracking in-use HugeTLB pages
 
-Add support for memcg removal with HugeTLB resource usage.
+hugepage_activelist will be used to track currently used HugeTLB pages. 
+We need to find the in-use HugeTLB pages to support memcg removal.  On
+memcg removal we update the page's memory cgroup to point to parent
+cgroup.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -47,213 +50,99 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h    |    8 ++++
- include/linux/memcontrol.h |   14 +++++++
- mm/hugetlb.c               |   43 +++++++++++++++++++++++
- mm/memcontrol.c            |   65 +++++++++++++++++++++++++++++------
- 4 files changed, 120 insertions(+), 10 deletions(-)
+ include/linux/hugetlb.h |    1 +
+ mm/hugetlb.c            |   12 +++++++-----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/hugetlb.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal
+diff -puN include/linux/hugetlb.h~hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages
 +++ a/include/linux/hugetlb.h
-@@ -335,4 +335,12 @@ static inline unsigned int pages_per_hug
- #define hstate_index(h) 0
- #endif
- 
-+#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
-+extern int hugetlb_force_memcg_empty(struct cgroup *cgroup);
-+#else
-+static inline int hugetlb_force_memcg_empty(struct cgroup *cgroup)
-+{
-+	return 0;
-+}
-+#endif
- #endif /* _LINUX_HUGETLB_H */
-diff -puN include/linux/memcontrol.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal
-+++ a/include/linux/memcontrol.h
-@@ -460,6 +460,9 @@ extern void mem_cgroup_hugetlb_uncharge_
- extern void mem_cgroup_hugetlb_uncharge_memcg(int idx, unsigned long nr_pages,
- 					      struct mem_cgroup *memcg);
- extern int mem_cgroup_hugetlb_file_init(int idx) __init;
-+extern int mem_cgroup_move_hugetlb_parent(int idx, struct cgroup *cgroup,
-+					  struct page *page);
-+extern bool mem_cgroup_have_hugetlb_usage(struct cgroup *cgroup);
- 
- #else
- static inline int
-@@ -496,6 +499,17 @@ static inline int mem_cgroup_hugetlb_fil
- 	return 0;
- }
- 
-+static inline int
-+mem_cgroup_move_hugetlb_parent(int idx, struct cgroup *cgroup,
-+			       struct page *page)
-+{
-+	return 0;
-+}
-+
-+static inline bool mem_cgroup_have_hugetlb_usage(struct cgroup *cgroup)
-+{
-+	return 0;
-+}
- #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
- #endif /* _LINUX_MEMCONTROL_H */
- 
-diff -puN mm/hugetlb.c~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal mm/hugetlb.c
---- a/mm/hugetlb.c~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal
+@@ -200,6 +200,7 @@ struct hstate {
+ 	unsigned long resv_huge_pages;
+ 	unsigned long surplus_huge_pages;
+ 	unsigned long nr_overcommit_huge_pages;
++	struct list_head hugepage_activelist;
+ 	struct list_head hugepage_freelists[MAX_NUMNODES];
+ 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int free_huge_pages_node[MAX_NUMNODES];
+diff -puN mm/hugetlb.c~hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages
 +++ a/mm/hugetlb.c
-@@ -1909,6 +1909,49 @@ static int __init hugetlb_init(void)
- }
- module_init(hugetlb_init);
- 
-+#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
-+/*
-+ * Force the memcg to empty the hugetlb resources by moving them to
-+ * the parent cgroup. We can fail if the parent cgroup's limit prevented
-+ * the charging. This should only happen if use_hierarchy is not set.
-+ */
-+int hugetlb_force_memcg_empty(struct cgroup *cgroup)
-+{
-+	struct hstate *h;
-+	struct page *page;
-+	int ret = 0, idx = 0;
-+
-+	do {
-+		if (cgroup_task_count(cgroup) || !list_empty(&cgroup->children))
-+			goto out;
-+		/*
-+		 * If the task doing the cgroup_rmdir got a signal
-+		 * we don't really need to loop till the hugetlb resource
-+		 * usage become zero.
-+		 */
-+		if (signal_pending(current)) {
-+			ret = -EINTR;
-+			goto out;
-+		}
-+		for_each_hstate(h) {
-+			spin_lock(&hugetlb_lock);
-+			list_for_each_entry(page, &h->hugepage_activelist, lru) {
-+				ret = mem_cgroup_move_hugetlb_parent(idx, cgroup, page);
-+				if (ret) {
-+					spin_unlock(&hugetlb_lock);
-+					goto out;
-+				}
-+			}
-+			spin_unlock(&hugetlb_lock);
-+			idx++;
-+		}
-+		cond_resched();
-+	} while (mem_cgroup_have_hugetlb_usage(cgroup));
-+out:
-+	return ret;
-+}
-+#endif
-+
- /* Should be called on processing a hugepagesz=... option */
- void __init hugetlb_add_hstate(unsigned order)
+@@ -512,7 +512,7 @@ void copy_huge_page(struct page *dst, st
+ static void enqueue_huge_page(struct hstate *h, struct page *page)
  {
-diff -puN mm/memcontrol.c~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal
-+++ a/mm/memcontrol.c
-@@ -3228,9 +3228,11 @@ static inline int mem_cgroup_move_swap_a
- #endif
- 
- #ifdef CONFIG_MEM_RES_CTLR_HUGETLB
--static bool mem_cgroup_have_hugetlb_usage(struct mem_cgroup *memcg)
-+bool mem_cgroup_have_hugetlb_usage(struct cgroup *cgroup)
- {
- 	int idx;
-+	struct mem_cgroup *memcg = mem_cgroup_from_cont(cgroup);
-+
- 	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
- 		if ((res_counter_read_u64(&memcg->hugepage[idx], RES_USAGE)) > 0)
- 			return 1;
-@@ -3328,10 +3330,54 @@ void mem_cgroup_hugetlb_uncharge_memcg(i
- 	res_counter_uncharge(&memcg->hugepage[idx], csize);
- 	return;
+ 	int nid = page_to_nid(page);
+-	list_add(&page->lru, &h->hugepage_freelists[nid]);
++	list_move(&page->lru, &h->hugepage_freelists[nid]);
+ 	h->free_huge_pages++;
+ 	h->free_huge_pages_node[nid]++;
  }
--#else
--static bool mem_cgroup_have_hugetlb_usage(struct mem_cgroup *memcg)
-+
-+int mem_cgroup_move_hugetlb_parent(int idx, struct cgroup *cgroup,
-+				   struct page *page)
- {
--	return 0;
-+	struct page_cgroup *pc;
-+	int csize,  ret = 0;
-+	struct res_counter *fail_res;
-+	struct cgroup *pcgrp = cgroup->parent;
-+	struct mem_cgroup *parent = mem_cgroup_from_cont(pcgrp);
-+	struct mem_cgroup *memcg  = mem_cgroup_from_cont(cgroup);
-+
-+	if (!get_page_unless_zero(page))
-+		goto out;
-+
-+	pc = lookup_page_cgroup(page);
-+	lock_page_cgroup(pc);
-+	if (!PageCgroupUsed(pc) || pc->mem_cgroup != memcg)
-+		goto err_out;
-+
-+	csize = PAGE_SIZE << compound_order(page);
-+	/*
-+	 * If we have use_hierarchy set we can never fail here. So instead of
-+	 * using res_counter_uncharge use the open-coded variant which just
-+	 * uncharge the child res_counter. The parent will retain the charge.
-+	 */
-+	if (parent->use_hierarchy) {
-+		unsigned long flags;
-+		struct res_counter *counter;
-+
-+		counter = &memcg->hugepage[idx];
-+		spin_lock_irqsave(&counter->lock, flags);
-+		res_counter_uncharge_locked(counter, csize);
-+		spin_unlock_irqrestore(&counter->lock, flags);
-+	} else {
-+		ret = res_counter_charge(&parent->hugepage[idx],
-+					 csize, &fail_res);
-+		if (ret) {
-+			ret = -EBUSY;
-+			goto err_out;
-+		}
-+		res_counter_uncharge(&memcg->hugepage[idx], csize);
-+	}
-+	pc->mem_cgroup = parent;
-+err_out:
-+	unlock_page_cgroup(pc);
-+	put_page(page);
-+out:
-+	return ret;
- }
- #endif /* CONFIG_MEM_RES_CTLR_HUGETLB */
+@@ -524,7 +524,7 @@ static struct page *dequeue_huge_page_no
+ 	if (list_empty(&h->hugepage_freelists[nid]))
+ 		return NULL;
+ 	page = list_entry(h->hugepage_freelists[nid].next, struct page, lru);
+-	list_del(&page->lru);
++	list_move(&page->lru, &h->hugepage_activelist);
+ 	set_page_refcounted(page);
+ 	h->free_huge_pages--;
+ 	h->free_huge_pages_node[nid]--;
+@@ -628,12 +628,13 @@ static void free_huge_page(struct page *
+ 	page->mapping = NULL;
+ 	BUG_ON(page_count(page));
+ 	BUG_ON(page_mapcount(page));
+-	INIT_LIST_HEAD(&page->lru);
  
-@@ -3852,6 +3898,11 @@ static int mem_cgroup_force_empty(struct
- 	/* should free all ? */
- 	if (free_all)
- 		goto try_to_free;
-+
-+	/* move the hugetlb charges */
-+	ret = hugetlb_force_memcg_empty(cgrp);
-+	if (ret)
-+		goto out;
- move_account:
- 	do {
- 		ret = -EBUSY;
-@@ -5176,12 +5227,6 @@ free_out:
- static int mem_cgroup_pre_destroy(struct cgroup *cont)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
--	/*
--	 * Don't allow memcg removal if we have HugeTLB resource
--	 * usage.
--	 */
--	if (mem_cgroup_have_hugetlb_usage(memcg))
--		return -EBUSY;
+ 	mem_cgroup_hugetlb_uncharge_page(hstate_index(h),
+ 					 pages_per_huge_page(h), page);
+ 	spin_lock(&hugetlb_lock);
+ 	if (h->surplus_huge_pages_node[nid] && huge_page_order(h) < MAX_ORDER) {
++		/* remove the page from active list */
++		list_del(&page->lru);
+ 		update_and_free_page(h, page);
+ 		h->surplus_huge_pages--;
+ 		h->surplus_huge_pages_node[nid]--;
+@@ -646,6 +647,7 @@ static void free_huge_page(struct page *
  
- 	return mem_cgroup_force_empty(memcg, false);
- }
+ static void prep_new_huge_page(struct hstate *h, struct page *page, int nid)
+ {
++	INIT_LIST_HEAD(&page->lru);
+ 	set_compound_page_dtor(page, free_huge_page);
+ 	spin_lock(&hugetlb_lock);
+ 	h->nr_huge_pages++;
+@@ -894,6 +896,7 @@ static struct page *alloc_buddy_huge_pag
+ 
+ 	spin_lock(&hugetlb_lock);
+ 	if (page) {
++		INIT_LIST_HEAD(&page->lru);
+ 		r_nid = page_to_nid(page);
+ 		set_compound_page_dtor(page, free_huge_page);
+ 		/*
+@@ -998,7 +1001,6 @@ retry:
+ 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+ 		if ((--needed) < 0)
+ 			break;
+-		list_del(&page->lru);
+ 		/*
+ 		 * This page is now managed by the hugetlb allocator and has
+ 		 * no users -- drop the buddy allocator's reference.
+@@ -1013,7 +1015,6 @@ free:
+ 	/* Free unnecessary surplus pages to the buddy allocator */
+ 	if (!list_empty(&surplus_list)) {
+ 		list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+-			list_del(&page->lru);
+ 			put_page(page);
+ 		}
+ 	}
+@@ -1927,6 +1928,7 @@ void __init hugetlb_add_hstate(unsigned 
+ 	h->free_huge_pages = 0;
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
+ 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
++	INIT_LIST_HEAD(&h->hugepage_activelist);
+ 	h->next_nid_to_alloc = first_node(node_states[N_HIGH_MEMORY]);
+ 	h->next_nid_to_free = first_node(node_states[N_HIGH_MEMORY]);
+ 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
 _
-Subject: Subject: memcg: move HugeTLB resource count to parent cgroup on memcg removal
+Subject: Subject: hugetlbfs: add a list for tracking in-use HugeTLB pages
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
