@@ -1,88 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected.patch removed from -mm tree
-Date: Mon, 16 Apr 2012 13:15:24 -0700
-Message-ID: <20120416201524.72A05A0308@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-char-randomc-fix-boot-id-uniqueness-race.patch removed from -mm tree
+Date: Mon, 16 Apr 2012 13:15:22 -0700
+Message-ID: <20120416201522.696E4A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:41089 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753552Ab2DPUPZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:25 -0400
-Received: by mail-yx0-f202.google.com with SMTP id q2so644423yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 13:15:24 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:37999 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753552Ab2DPUPX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:23 -0400
+Received: by yhgm50 with SMTP id m50so640589yhg.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 13:15:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.dumberger@tqs.de, a.zummo@towertech.it, agust@denx.de, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@efficios.com, eric.dumazet@gmail.com, greg@kroah.com, mpm@selenic.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-r9701.c: reset registers if invalid values are detected
+     Subject: drivers/char/random.c: fix boot id uniqueness race
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected.patch
+     drivers-char-randomc-fix-boot-id-uniqueness-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andreas Dumberger <andreas.dumberger@tqs.de>
-Subject: drivers/rtc/rtc-r9701.c: reset registers if invalid values are detected
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: drivers/char/random.c: fix boot id uniqueness race
 
-hwclock refuses to set date/time if RTC registers contain invalid values. 
-Check the date/time register values at probe time and initialize them to
-make hwclock happy.
+/proc/sys/kernel/random/boot_id can be read concurrently by userspace
+processes.  If two (or more) user-space processes concurrently read
+boot_id when sysctl_bootid is not yet assigned, a race can occur making
+boot_id differ between the reads.  Because the whole point of the boot id
+is to be unique across a kernel execution, fix this by protecting this
+operation with a spinlock.
 
-Signed-off-by: Andreas Dumberger <andreas.dumberger@tqs.de>
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Given that this operation is not frequently used, hitting the spinlock
+on each call should not be an issue.
 
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-r9701.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/char/random.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected drivers/rtc/rtc-r9701.c
---- a/drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-reset-registers-if-invalid-values-are-detected
-+++ a/drivers/rtc/rtc-r9701.c
-@@ -122,6 +122,7 @@ static const struct rtc_class_ops r9701_
- static int __devinit r9701_probe(struct spi_device *spi)
- {
- 	struct rtc_device *rtc;
-+	struct rtc_time dt;
- 	unsigned char tmp;
- 	int res;
- 
-@@ -132,6 +133,27 @@ static int __devinit r9701_probe(struct 
- 		return -ENODEV;
- 	}
- 
-+	/*
-+	 * The device seems to be present. Now check if the registers
-+	 * contain invalid values. If so, try to write a default date:
-+	 * 2000/1/1 00:00:00
-+	 */
-+	r9701_get_datetime(&spi->dev, &dt);
-+	if (rtc_valid_tm(&dt)) {
-+		dev_info(&spi->dev, "trying to repair invalid date/time\n");
-+		dt.tm_sec  = 0;
-+		dt.tm_min  = 0;
-+		dt.tm_hour = 0;
-+		dt.tm_mday = 1;
-+		dt.tm_mon  = 0;
-+		dt.tm_year = 100;
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-boot-id-uniqueness-race drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-boot-id-uniqueness-race
++++ a/drivers/char/random.c
+@@ -1260,10 +1260,15 @@ static int proc_do_uuid(ctl_table *table
+ 	uuid = table->data;
+ 	if (!uuid) {
+ 		uuid = tmp_uuid;
+-		uuid[8] = 0;
+-	}
+-	if (uuid[8] == 0)
+ 		generate_random_uuid(uuid);
++	} else {
++		static DEFINE_SPINLOCK(bootid_spinlock);
 +
-+		if (r9701_set_datetime(&spi->dev, &dt)) {
-+			dev_err(&spi->dev, "cannot repair RTC register\n");
-+			return -ENODEV;
-+		}
++		spin_lock(&bootid_spinlock);
++		if (!uuid[8])
++			generate_random_uuid(uuid);
++		spin_unlock(&bootid_spinlock);
 +	}
-+
- 	rtc = rtc_device_register("r9701",
- 				&spi->dev, &r9701_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc))
+ 
+ 	sprintf(buf, "%pU", uuid);
+ 
 _
 
-Patches currently in -mm which might be from andreas.dumberger@tqs.de are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
 
