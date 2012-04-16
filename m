@@ -1,56 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-git-url-for-acpi.patch removed from -mm tree
-Date: Mon, 16 Apr 2012 13:15:14 -0700
-Message-ID: <20120416201514.69580A0308@akpm.mtv.corp.google.com>
+Subject: [merged] sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict.patch removed from -mm tree
+Date: Mon, 16 Apr 2012 13:15:09 -0700
+Message-ID: <20120416201511.7A480A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:38496 "EHLO
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:49435 "EHLO
 	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687Ab2DPUPP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:15 -0400
-Received: by vbnl22 with SMTP id l22so645205vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 13:15:15 -0700 (PDT)
+	with ESMTP id S1751687Ab2DPUPN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: intergalactic.anonymous@gmail.com, e-mail@date.by, len.brown@intel.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, plougher@redhat.com, richard@nod.at, serge.hallyn@canonical.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update git url for ACPI
+     Subject: sysctl: fix write access to dmesg_restrict/kptr_restrict
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-git-url-for-acpi.patch
+     sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Igor Murzov <intergalactic.anonymous@gmail.com>
-Subject: MAINTAINERS: update git url for ACPI
+From: Kees Cook <keescook@chromium.org>
+Subject: sysctl: fix write access to dmesg_restrict/kptr_restrict
 
-Signed-off-by: Igor Murzov <e-mail@date.by>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
+Commit bfdc0b4 ("sysctl: restrict write access to dmesg_restrict") adds
+code to restrict access to dmesg_restrict, however, it incorrectly alters
+kptr_restrict rather than dmesg_restrict.
+
+The original patch from Richard Weinberger
+(https://lkml.org/lkml/2011/3/14/362) alters dmesg_restrict as expected,
+and so the patch seems to have been misapplied.
+
+This adds the CAP_SYS_ADMIN check to both dmesg_restrict and
+kptr_restrict, since both are sensitive.
+
+Reported-by: Phillip Lougher <plougher@redhat.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: <stable@vger.kernel.org>
+Acked-by: Richard Weinberger <richard@nod.at>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-git-url-for-acpi MAINTAINERS
---- a/MAINTAINERS~maintainers-update-git-url-for-acpi
-+++ a/MAINTAINERS
-@@ -228,7 +228,7 @@ M:	Len Brown <lenb@kernel.org>
- L:	linux-acpi@vger.kernel.org
- W:	http://www.lesswatts.org/projects/acpi/
- Q:	http://patchwork.kernel.org/project/linux-acpi/list/
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux-acpi-2.6.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/lenb/linux
- S:	Supported
- F:	drivers/acpi/
- F:	drivers/pnp/pnpacpi/
+diff -puN kernel/sysctl.c~sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-fix-write-access-to-dmesg_restrict-kptr_restrict
++++ a/kernel/sysctl.c
+@@ -170,7 +170,7 @@ static int proc_taint(struct ctl_table *
+ #endif
+ 
+ #ifdef CONFIG_PRINTK
+-static int proc_dmesg_restrict(struct ctl_table *table, int write,
++static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
+ 				void __user *buffer, size_t *lenp, loff_t *ppos);
+ #endif
+ 
+@@ -703,7 +703,7 @@ static struct ctl_table kern_table[] = {
+ 		.data		= &dmesg_restrict,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
++		.proc_handler	= proc_dointvec_minmax_sysadmin,
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
+@@ -712,7 +712,7 @@ static struct ctl_table kern_table[] = {
+ 		.data		= &kptr_restrict,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_dmesg_restrict,
++		.proc_handler	= proc_dointvec_minmax_sysadmin,
+ 		.extra1		= &zero,
+ 		.extra2		= &two,
+ 	},
+@@ -1943,7 +1943,7 @@ static int proc_taint(struct ctl_table *
+ }
+ 
+ #ifdef CONFIG_PRINTK
+-static int proc_dmesg_restrict(struct ctl_table *table, int write,
++static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
+ 				void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	if (write && !capable(CAP_SYS_ADMIN))
 _
 
-Patches currently in -mm which might be from intergalactic.anonymous@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
+linux-next.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
 
