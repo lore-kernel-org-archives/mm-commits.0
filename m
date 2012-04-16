@@ -1,60 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-efic-fix-section-mismatch-warning.patch removed from -mm tree
-Date: Mon, 16 Apr 2012 13:15:26 -0700
-Message-ID: <20120416201526.6095DA0308@akpm.mtv.corp.google.com>
+Subject: [merged] maintainers-add-pcdp-console-maintainer.patch removed from -mm tree
+Date: Mon, 16 Apr 2012 13:15:30 -0700
+Message-ID: <20120416201530.43F45A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:62613 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753552Ab2DPUP2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:28 -0400
-Received: by bkcjm19 with SMTP id jm19so257591bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 13:15:27 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:37999 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754517Ab2DPUPa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:30 -0400
+Received: by mail-yw0-f74.google.com with SMTP id m50so640589yhg.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 13:15:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JBeulich@suse.com, a.zummo@towertech.it, jbeulich@suse.com, mjg@redhat.com, mm-commits@vger.kernel.org
+To: khalid@hp.com, joe@perches.com, khalid.aziz@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-efi.c: fix section mismatch warning
+     Subject: MAINTAINERS: add PCDP console maintainer
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-efic-fix-section-mismatch-warning.patch
+     maintainers-add-pcdp-console-maintainer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: drivers/rtc/rtc-efi.c: fix section mismatch warning
+From: Khalid Aziz <khalid@hp.com>
+Subject: MAINTAINERS: add PCDP console maintainer
 
-efi_rtc_init() uses platform_driver_probe(), so there's no need to also
-set efi_rtc_driver's probe member (as it won't be used anyway).  This
-fixes a modpost section mismatch warning (as efi_rtc_probe() validly is
-__init).
+Add missing maintainer info for PCDP console code.
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Khalid Aziz <khalid.aziz@hp.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-efi.c |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/rtc/rtc-efi.c~drivers-rtc-rtc-efic-fix-section-mismatch-warning drivers/rtc/rtc-efi.c
---- a/drivers/rtc/rtc-efi.c~drivers-rtc-rtc-efic-fix-section-mismatch-warning
-+++ a/drivers/rtc/rtc-efi.c
-@@ -213,7 +213,6 @@ static struct platform_driver efi_rtc_dr
- 		.name = "rtc-efi",
- 		.owner = THIS_MODULE,
- 	},
--	.probe = efi_rtc_probe,
- 	.remove = __exit_p(efi_rtc_remove),
- };
+diff -puN MAINTAINERS~maintainers-add-pcdp-console-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-pcdp-console-maintainer
++++ a/MAINTAINERS
+@@ -5118,6 +5118,11 @@ F:	drivers/i2c/busses/i2c-pca-*
+ F:	include/linux/i2c-algo-pca.h
+ F:	include/linux/i2c-pca-platform.h
  
++PCDP - PRIMARY CONSOLE AND DEBUG PORT
++M:	Khalid Aziz <khalid.aziz@hp.com>
++S:	Maintained
++F:	drivers/firmware/pcdp.*
++
+ PCI ERROR RECOVERY
+ M:     Linas Vepstas <linasvepstas@gmail.com>
+ L:	linux-pci@vger.kernel.org
 _
 
-Patches currently in -mm which might be from JBeulich@suse.com are
+Patches currently in -mm which might be from khalid@hp.com are
 
 
