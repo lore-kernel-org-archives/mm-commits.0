@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch added to -mm tree
-Date: Mon, 16 Apr 2012 16:16:16 -0700
-Message-ID: <20120416231617.13B05A0186@akpm.mtv.corp.google.com>
+Subject: + hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch added to -mm tree
+Date: Mon, 16 Apr 2012 16:16:14 -0700
+Message-ID: <20120416231614.37400A0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:65522 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755340Ab2DPXQS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:18 -0400
-Received: by ghbz15 with SMTP id z15so662232ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:18 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:61370 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754673Ab2DPXQT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:19 -0400
+Received: by bkcjm19 with SMTP id jm19so261352bkc.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hann
 
 
 The patch titled
-     Subject: hugetlbfs: add a list for tracking in-use HugeTLB pages
+     Subject: hugetlbfs: add memcg control files for hugetlbfs
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+     hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlbfs: add a list for tracking in-use HugeTLB pages
+Subject: hugetlbfs: add memcg control files for hugetlbfs
 
-hugepage_activelist will be used to track currently used HugeTLB pages. 
-We need to find the in-use HugeTLB pages to support memcg removal.  On
-memcg removal we update the page's memory cgroup to point to parent
-cgroup.
+Add the control files for hugetlbfs in memcg.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -50,99 +47,133 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- mm/hugetlb.c            |   12 +++++++-----
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ include/linux/hugetlb.h    |    5 +++
+ include/linux/memcontrol.h |    7 ++++
+ mm/hugetlb.c               |    2 -
+ mm/memcontrol.c            |   51 +++++++++++++++++++++++++++++++++++
+ 4 files changed, 64 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages
+diff -puN include/linux/hugetlb.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs
 +++ a/include/linux/hugetlb.h
-@@ -200,6 +200,7 @@ struct hstate {
- 	unsigned long resv_huge_pages;
- 	unsigned long surplus_huge_pages;
- 	unsigned long nr_overcommit_huge_pages;
-+	struct list_head hugepage_activelist;
- 	struct list_head hugepage_freelists[MAX_NUMNODES];
+@@ -4,6 +4,7 @@
+ #include <linux/mm_types.h>
+ #include <linux/fs.h>
+ #include <linux/hugetlb_inline.h>
++#include <linux/cgroup.h>
+ 
+ struct ctl_table;
+ struct user_struct;
+@@ -203,6 +204,10 @@ struct hstate {
  	unsigned int nr_huge_pages_node[MAX_NUMNODES];
  	unsigned int free_huge_pages_node[MAX_NUMNODES];
-diff -puN mm/hugetlb.c~hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages
-+++ a/mm/hugetlb.c
-@@ -512,7 +512,7 @@ void copy_huge_page(struct page *dst, st
- static void enqueue_huge_page(struct hstate *h, struct page *page)
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
++#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
++	/* mem cgroup control files */
++	struct cftype mem_cgroup_files[4];
++#endif
+ 	char name[HSTATE_NAME_LEN];
+ };
+ 
+diff -puN include/linux/memcontrol.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs
++++ a/include/linux/memcontrol.h
+@@ -459,6 +459,7 @@ extern void mem_cgroup_hugetlb_uncharge_
+ 					     struct page *page);
+ extern void mem_cgroup_hugetlb_uncharge_memcg(int idx, unsigned long nr_pages,
+ 					      struct mem_cgroup *memcg);
++extern int mem_cgroup_hugetlb_file_init(int idx) __init;
+ 
+ #else
+ static inline int
+@@ -489,6 +490,12 @@ mem_cgroup_hugetlb_uncharge_memcg(int id
  {
- 	int nid = page_to_nid(page);
--	list_add(&page->lru, &h->hugepage_freelists[nid]);
-+	list_move(&page->lru, &h->hugepage_freelists[nid]);
- 	h->free_huge_pages++;
- 	h->free_huge_pages_node[nid]++;
+ 	return;
  }
-@@ -524,7 +524,7 @@ static struct page *dequeue_huge_page_no
- 	if (list_empty(&h->hugepage_freelists[nid]))
- 		return NULL;
- 	page = list_entry(h->hugepage_freelists[nid].next, struct page, lru);
--	list_del(&page->lru);
-+	list_move(&page->lru, &h->hugepage_activelist);
- 	set_page_refcounted(page);
- 	h->free_huge_pages--;
- 	h->free_huge_pages_node[nid]--;
-@@ -628,12 +628,13 @@ static void free_huge_page(struct page *
- 	page->mapping = NULL;
- 	BUG_ON(page_count(page));
- 	BUG_ON(page_mapcount(page));
--	INIT_LIST_HEAD(&page->lru);
++
++static inline int mem_cgroup_hugetlb_file_init(int idx)
++{
++	return 0;
++}
++
+ #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
+ #endif /* _LINUX_MEMCONTROL_H */
  
- 	mem_cgroup_hugetlb_uncharge_page(hstate_index(h),
- 					 pages_per_huge_page(h), page);
- 	spin_lock(&hugetlb_lock);
- 	if (h->surplus_huge_pages_node[nid] && huge_page_order(h) < MAX_ORDER) {
-+		/* remove the page from active list */
-+		list_del(&page->lru);
- 		update_and_free_page(h, page);
- 		h->surplus_huge_pages--;
- 		h->surplus_huge_pages_node[nid]--;
-@@ -646,6 +647,7 @@ static void free_huge_page(struct page *
- 
- static void prep_new_huge_page(struct hstate *h, struct page *page, int nid)
- {
-+	INIT_LIST_HEAD(&page->lru);
- 	set_compound_page_dtor(page, free_huge_page);
- 	spin_lock(&hugetlb_lock);
- 	h->nr_huge_pages++;
-@@ -894,6 +896,7 @@ static struct page *alloc_buddy_huge_pag
- 
- 	spin_lock(&hugetlb_lock);
- 	if (page) {
-+		INIT_LIST_HEAD(&page->lru);
- 		r_nid = page_to_nid(page);
- 		set_compound_page_dtor(page, free_huge_page);
- 		/*
-@@ -998,7 +1001,6 @@ retry:
- 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
- 		if ((--needed) < 0)
- 			break;
--		list_del(&page->lru);
- 		/*
- 		 * This page is now managed by the hugetlb allocator and has
- 		 * no users -- drop the buddy allocator's reference.
-@@ -1013,7 +1015,6 @@ free:
- 	/* Free unnecessary surplus pages to the buddy allocator */
- 	if (!list_empty(&surplus_list)) {
- 		list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
--			list_del(&page->lru);
- 			put_page(page);
- 		}
- 	}
-@@ -1927,6 +1928,7 @@ void __init hugetlb_add_hstate(unsigned 
- 	h->free_huge_pages = 0;
- 	for (i = 0; i < MAX_NUMNODES; ++i)
- 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
-+	INIT_LIST_HEAD(&h->hugepage_activelist);
- 	h->next_nid_to_alloc = first_node(node_states[N_HIGH_MEMORY]);
+diff -puN mm/hugetlb.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs
++++ a/mm/hugetlb.c
+@@ -1931,7 +1931,7 @@ void __init hugetlb_add_hstate(unsigned 
  	h->next_nid_to_free = first_node(node_states[N_HIGH_MEMORY]);
  	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
+ 					huge_page_size(h)/1024);
+-
++	mem_cgroup_hugetlb_file_init(hugetlb_max_hstate - 1);
+ 	parsed_hstate = h;
+ }
+ 
+diff -puN mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs mm/memcontrol.c
+--- a/mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs
++++ a/mm/memcontrol.c
+@@ -5195,6 +5195,57 @@ static void mem_cgroup_destroy(struct cg
+ 	mem_cgroup_put(memcg);
+ }
+ 
++#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
++static char *mem_fmt(char *buf, unsigned long n)
++{
++	if (n >= (1UL << 30))
++		sprintf(buf, "%luGB", n >> 30);
++	else if (n >= (1UL << 20))
++		sprintf(buf, "%luMB", n >> 20);
++	else
++		sprintf(buf, "%luKB", n >> 10);
++	return buf;
++}
++
++int __init mem_cgroup_hugetlb_file_init(int idx)
++{
++	char buf[32];
++	struct cftype *cft;
++	struct hstate *h = &hstates[idx];
++
++	/* format the size */
++	mem_fmt(buf, huge_page_size(h));
++
++	/* Add the limit file */
++	cft = &h->mem_cgroup_files[0];
++	snprintf(cft->name, MAX_CFTYPE_NAME, "hugetlb.%s.limit_in_bytes", buf);
++	cft->private = __MEMFILE_PRIVATE(idx, _MEMHUGETLB, RES_LIMIT);
++	cft->read = mem_cgroup_read;
++	cft->write_string = mem_cgroup_write;
++
++	/* Add the usage file */
++	cft = &h->mem_cgroup_files[1];
++	snprintf(cft->name, MAX_CFTYPE_NAME, "hugetlb.%s.usage_in_bytes", buf);
++	cft->private  = __MEMFILE_PRIVATE(idx, _MEMHUGETLB, RES_USAGE);
++	cft->read = mem_cgroup_read;
++
++	/* Add the MAX usage file */
++	cft = &h->mem_cgroup_files[2];
++	snprintf(cft->name, MAX_CFTYPE_NAME, "hugetlb.%s.max_usage_in_bytes", buf);
++	cft->private  = __MEMFILE_PRIVATE(idx, _MEMHUGETLB, RES_MAX_USAGE);
++	cft->trigger  = mem_cgroup_reset;
++	cft->read = mem_cgroup_read;
++
++	/* NULL terminate the last cft */
++	cft = &h->mem_cgroup_files[3];
++	memset(cft, 0, sizeof(*cft));
++
++	WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys, h->mem_cgroup_files));
++
++	return 0;
++}
++#endif
++
+ #ifdef CONFIG_MMU
+ /* Handlers for move charge at task migration. */
+ #define PRECHARGE_COUNT_AT_ONCE	256
 _
-Subject: Subject: hugetlbfs: add a list for tracking in-use HugeTLB pages
+Subject: Subject: hugetlbfs: add memcg control files for hugetlbfs
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
