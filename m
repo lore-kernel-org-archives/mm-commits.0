@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 16 Apr 2012 15:14:52 -0700
-Message-ID: <20120416221452.A3EDBA01F8@akpm.mtv.corp.google.com>
+Subject: + hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch added to -mm tree
+Date: Mon, 16 Apr 2012 16:15:41 -0700
+Message-ID: <20120416231542.65170A0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:33928 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751319Ab2DPWOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 16 Apr 2012 18:14:55 -0400
-Received: by laai8 with SMTP id i8so261668laa.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 15:14:54 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:59717 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754208Ab2DPXPp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:15:45 -0400
+Received: by lbol12 with SMTP id l12so76621lbo.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:15:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, skinsbursky@parallels.com
+Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes
+     Subject: hugetlb: rename max_hstate to hugetlb_max_hstate
 has been added to the -mm tree.  Its filename is
-     c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes.patch
+     hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +33,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: hugetlb: rename max_hstate to hugetlb_max_hstate
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#92: FILE: tools/testing/selftests/ipc/msgque_peek_all.c:29:
-+const char *test_doc="Tests sysv5 msg queues supporting by checkpointing";
-                     ^
+This patchset implements a memory controller extension to control HugeTLB
+allocations.  The extension allows to limit the HugeTLB usage per control
+group and enforces the controller limit during page fault.  Since HugeTLB
+doesn't support page reclaim, enforcing the limit at page fault time
+implies that, the application will get SIGBUS signal if it tries to access
+HugeTLB pages beyond its limit.  This requires the application to know
+beforehand how much HugeTLB memory it would require for its use.
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#93: FILE: tools/testing/selftests/ipc/msgque_peek_all.c:30:
-+const char *test_author="Stanislav Kinsbursky <skinsbursky@openvz.org>";
-                        ^
+The goal is to control how many HugeTLB pages a group of tasks can
+allocate.  It can be looked at as an extension of the existing quota
+interface which limits the number of HugeTLB pages per hugetlbfs
+superblock.  An HPC job scheduler requires jobs to specify their resource
+requirements in the job file.  Once their requirements can be met, job
+schedulers (such as SLURM) will schedule the job.  We need to make sure
+that the jobs won't consume more resources than requested.  If they do we
+should either error out or kill the application.
 
-ERROR: space required before the open parenthesis '('
-#114: FILE: tools/testing/selftests/ipc/msgque_peek_all.c:51:
-+	while(messages[i].mtype > 0) {
+This patch:
 
-WARNING: quoted string split across lines
-#123: FILE: tools/testing/selftests/ipc/msgque_peek_all.c:60:
-+			printf("Received message[%i] size is wrong: %d "
-+					"(should be %ld)\n", i,
+Rename max_hstate to hugetlb_max_hstate.  We will be using this from other
+subsystems like memcg in later patches.
 
-WARNING: line over 80 characters
-#170: FILE: tools/testing/selftests/ipc/msgque_peek_all.c:107:
-+			printf("Peeked message type is wrong: %ld (should be %ld)\n",
-
-WARNING: line over 80 characters
-#178: FILE: tools/testing/selftests/ipc/msgque_peek_all.c:115:
-+		ptr += round_up(msg->msize + sizeof(struct msgbuf_a), sizeof(struct msgbuf_a));
-
-ERROR: space required before the open parenthesis '('
-#188: FILE: tools/testing/selftests/ipc/msgque_peek_all.c:125:
-+	while(messages[i].mtype > 0) {
-
-WARNING: line over 80 characters
-#189: FILE: tools/testing/selftests/ipc/msgque_peek_all.c:126:
-+		if (msgsnd(msgq, &messages[i], strlen(messages[i].mtext) + 1, IPC_NOWAIT) != 0) {
-
-total: 4 errors, 4 warnings, 201 lines checked
-
-./patches/c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Hillf Danton <dhillf@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/ipc/msgque_peek_all.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN tools/testing/selftests/ipc/msgque_peek_all.c~c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes tools/testing/selftests/ipc/msgque_peek_all.c
---- a/tools/testing/selftests/ipc/msgque_peek_all.c~c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes
-+++ a/tools/testing/selftests/ipc/msgque_peek_all.c
-@@ -26,8 +26,8 @@ struct msgbuf_a {
- };
- #endif
+diff -puN mm/hugetlb.c~hugetlb-rename-max_hstate-to-hugetlb_max_hstate mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-rename-max_hstate-to-hugetlb_max_hstate
++++ a/mm/hugetlb.c
+@@ -34,7 +34,7 @@ const unsigned long hugetlb_zero = 0, hu
+ static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
  
--const char *test_doc="Tests sysv5 msg queues supporting by checkpointing";
--const char *test_author="Stanislav Kinsbursky <skinsbursky@openvz.org>";
-+const char *test_doc = "Tests sysv5 msg queues supporting by checkpointing";
-+const char *test_author = "Stanislav Kinsbursky <skinsbursky@openvz.org>";
+-static int max_hstate;
++static int hugetlb_max_hstate;
+ unsigned int default_hstate_idx;
+ struct hstate hstates[HUGE_MAX_HSTATE];
  
- #define MAX_MSG_LENGTH		32
+@@ -46,7 +46,7 @@ static unsigned long __initdata default_
+ static unsigned long __initdata default_hstate_size;
  
-@@ -48,7 +48,7 @@ static int receive_messages(int msgq)
- 	struct my_msg msgbuf;
+ #define for_each_hstate(h) \
+-	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
++	for ((h) = hstates; (h) < &hstates[hugetlb_max_hstate]; (h)++)
  
- 	i = 0;
--	while(messages[i].mtype > 0) {
-+	while (messages[i].mtype > 0) {
- 		ret = msgrcv(msgq, &msgbuf, MAX_MSG_LENGTH,
- 				messages[i].mtype, IPC_NOWAIT);
- 		if (ret < 0) {
-@@ -122,7 +122,7 @@ static int send_messages(int msgq)
- {
- 	int i = 0;
+ /*
+  * Protects updates to hugepage_freelists, nr_huge_pages, and free_huge_pages
+@@ -1897,9 +1897,9 @@ void __init hugetlb_add_hstate(unsigned 
+ 		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
+ 		return;
+ 	}
+-	BUG_ON(max_hstate >= HUGE_MAX_HSTATE);
++	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
+ 	BUG_ON(order == 0);
+-	h = &hstates[max_hstate++];
++	h = &hstates[hugetlb_max_hstate++];
+ 	h->order = order;
+ 	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
+ 	h->nr_huge_pages = 0;
+@@ -1920,10 +1920,10 @@ static int __init hugetlb_nrpages_setup(
+ 	static unsigned long *last_mhp;
  
--	while(messages[i].mtype > 0) {
-+	while (messages[i].mtype > 0) {
- 		if (msgsnd(msgq, &messages[i], strlen(messages[i].mtext) + 1, IPC_NOWAIT) != 0) {
- 			printf("Parent: msgsnd[%i] failed (%m)", i);
- 			return -errno;
+ 	/*
+-	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
++	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter yet,
+ 	 * so this hugepages= parameter goes to the "default hstate".
+ 	 */
+-	if (!max_hstate)
++	if (!hugetlb_max_hstate)
+ 		mhp = &default_hstate_max_huge_pages;
+ 	else
+ 		mhp = &parsed_hstate->max_huge_pages;
+@@ -1942,7 +1942,7 @@ static int __init hugetlb_nrpages_setup(
+ 	 * But we need to allocate >= MAX_ORDER hstates here early to still
+ 	 * use the bootmem allocator.
+ 	 */
+-	if (max_hstate && parsed_hstate->order >= MAX_ORDER)
++	if (hugetlb_max_hstate && parsed_hstate->order >= MAX_ORDER)
+ 		hugetlb_hstate_alloc_pages(parsed_hstate);
+ 
+ 	last_mhp = mhp;
 _
-Subject: Subject: c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes
+Subject: Subject: hugetlb: rename max_hstate to hugetlb_max_hstate
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-leds-led-module-for-da9052-53-pmic-v2-fix.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+hugetlbfs-lockdep-annotate-root-inode-properly.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+memcg-add-hugetlb-extension.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
 
