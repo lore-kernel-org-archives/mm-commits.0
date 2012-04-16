@@ -1,106 +1,241 @@
 From: akpm@linux-foundation.org
-Subject: + pagemaph-fix-warning-about-possibly-used-before-init-var.patch added to -mm tree
-Date: Mon, 16 Apr 2012 14:50:58 -0700
-Message-ID: <20120416215058.6F869A035C@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] c-r-ipc-message-queue-stealing-feature-introduced.patch removed from -mm tree
+Date: Mon, 16 Apr 2012 14:59:29 -0700
+Message-ID: <20120416215930.34805A03A4@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:57738 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754292Ab2DPVvA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 17:51:00 -0400
-Received: by qcsp5 with SMTP id p5so659757qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 14:50:59 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:59267 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701Ab2DPV7c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 17:59:32 -0400
+Received: by eekc41 with SMTP id c41so263488eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 14:59:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: paul.gortmaker@windriver.com, daniel.vetter@ffwll.ch
+To: skinsbursky@parallels.com, arnd@arndb.de, cmetcalf@tilera.com, gorcunov@openvz.org, lucas.de.marchi@gmail.com, mtk.manpages@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pagemap.h: fix warning about possibly used before init var
-has been added to the -mm tree.  Its filename is
-     pagemaph-fix-warning-about-possibly-used-before-init-var.patch
+     Subject: c/r: ipc: message queue stealing feature introduced
+has been removed from the -mm tree.  Its filename was
+     c-r-ipc-message-queue-stealing-feature-introduced.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: pagemap.h: fix warning about possibly used before init var
+From: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Subject: c/r: ipc: message queue stealing feature introduced
 
-Commit f56f821feb7b36223f309e0ec05986bb137ce418 (linux-next)
+This patch is required for checkpoint/restore in userspace.
 
-    "mm: extend prefault helpers to fault in more than PAGE_SIZE"
+IOW, c/r requires some way to get all pending IPC messages without
+deleting them for the queue (checkpoint can fail and in this case tasks
+will be resumed, so queue have to be valid).
 
-added in the new functions:
+To achieve this, the new operation flag MSG_STEAL for sys_msgrcv() system
+call introduced.  If this flag is set, then passed struct msgbuf pointer
+will be used for storing array of structures:
 
-	fault_in_multipages_writeable
-	fault_in_multipages_readable
+struct msgbuf_a {
+	long mtype;         /* type of message */
+	int msize;          /* size of message */
+	char mtext[0];      /* message text */
+};
 
-However, we currently see:
+each of which will be followed by corresponding message data.
 
-  include/linux/pagemap.h:492: warning: 'ret' may be used uninitialized in this function
-  include/linux/pagemap.h:492: note: 'ret' was declared here
-
-Unlike a lot of gcc nags, this one appears somewhat legit.  i.e.  passing
-in an invalid negative value of "size" does make it look like all the
-conditionals in there would be bypassed and the uninitialized value would
-be returned.
-
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/msg.h |    8 +++++++
+ ipc/compat.c        |   31 +++++++++++++++++++++++++++-
+ ipc/msg.c           |   46 +++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 83 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pagemap.h~pagemaph-fix-warning-about-possibly-used-before-init-var include/linux/pagemap.h
---- a/include/linux/pagemap.h~pagemaph-fix-warning-about-possibly-used-before-init-var
-+++ a/include/linux/pagemap.h
-@@ -460,11 +460,11 @@ static inline int fault_in_pages_readabl
-  */
- static inline int fault_in_multipages_writeable(char __user *uaddr, int size)
+diff -puN include/linux/msg.h~c-r-ipc-message-queue-stealing-feature-introduced include/linux/msg.h
+--- a/include/linux/msg.h~c-r-ipc-message-queue-stealing-feature-introduced
++++ a/include/linux/msg.h
+@@ -10,6 +10,7 @@
+ /* msgrcv options */
+ #define MSG_NOERROR     010000  /* no error if message is too big */
+ #define MSG_EXCEPT      020000  /* recv any msg except of specified type.*/
++#define MSG_STEAL       040000  /* copy (not remove) all queue messages */
+ 
+ /* Obsolete, used only for backwards compatibility and libc5 compiles */
+ struct msqid_ds {
+@@ -37,6 +38,13 @@ struct msgbuf {
+ 	char mtext[1];      /* message text */
+ };
+ 
++/* message buffer for msgrcv in case of array calls */
++struct msgbuf_a {
++	long mtype;         /* type of message */
++	int msize;          /* size of message */
++	char mtext[0];      /* message text */
++};
++
+ /* buffer for msgctl calls IPC_INFO, MSG_INFO */
+ struct msginfo {
+ 	int msgpool;
+diff -puN ipc/compat.c~c-r-ipc-message-queue-stealing-feature-introduced ipc/compat.c
+--- a/ipc/compat.c~c-r-ipc-message-queue-stealing-feature-introduced
++++ a/ipc/compat.c
+@@ -39,6 +39,12 @@ struct compat_msgbuf {
+ 	char mtext[1];
+ };
+ 
++struct compat_msgbuf_a {
++	compat_long_t mtype;
++	int msize;
++	char mtext[0];
++};
++
+ struct compat_ipc_perm {
+ 	key_t key;
+ 	__compat_uid_t uid;
+@@ -334,6 +340,27 @@ long compat_sys_msgsnd(int first, int se
+ 	return do_msgsnd(first, type, up->mtext, second, third);
+ }
+ 
++
++static long compat_do_msg_steal(void __user *dest, struct msg_msg *msg, size_t bufsz)
++{
++	struct compat_msgbuf_a __user *msgp = dest;
++	size_t msgsz;
++
++	msgsz = roundup(sizeof(struct msgbuf_a) + msg->m_ts,
++			__alignof__(struct msgbuf_a));
++
++	if (bufsz < msgsz)
++		return -E2BIG;
++
++	if (put_user(msg->m_type, &msgp->mtype))
++		return -EFAULT;
++	if (put_user(msg->m_ts, &msgp->msize))
++		return -EFAULT;
++	if (store_msg(msgp->mtext, msg, msg->m_ts))
++		return -EFAULT;
++	return msgsz;
++}
++
+ long compat_do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
  {
--	int ret;
-+	int ret = 0;
- 	char __user *end = uaddr + size - 1;
+ 	struct compat_msgbuf __user *msgp;
+@@ -365,7 +392,9 @@ long compat_sys_msgrcv(int first, int se
+ 		uptr = compat_ptr(ipck.msgp);
+ 		msgtyp = ipck.msgtyp;
+ 	}
+-	return do_msgrcv(first, uptr, second, msgtyp, third, compat_do_msg_fill);
++	return do_msgrcv(first, uptr, second, msgtyp, third,
++			 (third & MSG_STEAL) ? compat_do_msg_steal
++					      : compat_do_msg_fill);
+ }
+ #else
+ long compat_sys_semctl(int semid, int semnum, int cmd, int arg)
+diff -puN ipc/msg.c~c-r-ipc-message-queue-stealing-feature-introduced ipc/msg.c
+--- a/ipc/msg.c~c-r-ipc-message-queue-stealing-feature-introduced
++++ a/ipc/msg.c
+@@ -752,6 +752,33 @@ static inline int convert_mode(long *msg
+ 	return SEARCH_EQUAL;
+ }
  
- 	if (unlikely(size == 0))
--		return 0;
-+		return ret;
- 
- 	/*
- 	 * Writing zeroes into userspace here is OK, because we know that if
-@@ -489,11 +489,11 @@ static inline int fault_in_multipages_re
- 					       int size)
++static long do_msg_steal(void __user *dest, struct msg_msg *msg, size_t bufsz)
++{
++	struct msgbuf_a __user *msgp = dest;
++	size_t msgsz;
++
++	/*
++	 * Message size have to be aligned.
++	 */
++	msgsz = roundup(sizeof(struct msgbuf_a) + msg->m_ts,
++			__alignof__(struct msgbuf_a));
++
++	/*
++	 * No need to support MSG_NOERROR flag because truncated message array
++	 * is useless.
++	 */
++	if (bufsz < msgsz)
++		return -E2BIG;
++
++	if (put_user(msg->m_type, &msgp->mtype))
++		return -EFAULT;
++	if (put_user(msg->m_ts, &msgp->msize))
++		return -EFAULT;
++	if (store_msg(msgp->mtext, msg, msg->m_ts))
++		return -EFAULT;
++	return msgsz;
++}
++
+ static long do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
  {
- 	volatile char c;
--	int ret;
-+	int ret = 0;
- 	const char __user *end = uaddr + size - 1;
+ 	struct msgbuf __user *msgp = dest;
+@@ -774,6 +801,7 @@ long do_msgrcv(int msqid, void __user *b
+ 	struct msg_msg *msg;
+ 	int mode;
+ 	struct ipc_namespace *ns;
++	size_t arrsz = bufsz;
  
- 	if (unlikely(size == 0))
--		return 0;
-+		return ret;
+ 	if (msqid < 0 || (long) bufsz < 0)
+ 		return -EINVAL;
+@@ -807,6 +835,16 @@ long do_msgrcv(int msqid, void __user *b
+ 						walk_msg->m_type != 1) {
+ 					msg = walk_msg;
+ 					msgtyp = walk_msg->m_type - 1;
++				} else if (msgflg & MSG_STEAL) {
++					long ret;
++
++					ret = msg_fill(buf, msg, arrsz);
++					if (ret < 0) {
++						msg = ERR_PTR(ret);
++						goto out_unlock;
++					}
++					buf += ret;
++					arrsz -= ret;
+ 				} else {
+ 					msg = walk_msg;
+ 					break;
+@@ -815,6 +853,8 @@ long do_msgrcv(int msqid, void __user *b
+ 			tmp = tmp->next;
+ 		}
+ 		if (!IS_ERR(msg)) {
++			if (msgflg & MSG_STEAL)
++				goto out_unlock;
+ 			/*
+ 			 * Found a suitable message.
+ 			 * Unlink it from the queue.
+@@ -909,6 +949,9 @@ out_unlock:
+ 	if (IS_ERR(msg))
+ 		return PTR_ERR(msg);
  
- 	while (uaddr <= end) {
- 		ret = __get_user(c, uaddr);
++	if (msgflg & MSG_STEAL)
++		return bufsz - arrsz;
++
+ 	bufsz = msg_fill(buf, msg, bufsz);
+ 	free_msg(msg);
+ 
+@@ -918,7 +961,8 @@ out_unlock:
+ SYSCALL_DEFINE5(msgrcv, int, msqid, struct msgbuf __user *, msgp, size_t, msgsz,
+ 		long, msgtyp, int, msgflg)
+ {
+-	return do_msgrcv(msqid, msgp, msgsz, msgtyp, msgflg, do_msg_fill);
++	return do_msgrcv(msqid, msgp, msgsz, msgtyp, msgflg,
++			 (msgflg & MSG_STEAL) ? do_msg_steal : do_msg_fill);
+ }
+ 
+ #ifdef CONFIG_PROC_FS
 _
-Subject: Subject: pagemap.h: fix warning about possibly used before init var
 
-Patches currently in -mm which might be from paul.gortmaker@windriver.com are
+Patches currently in -mm which might be from skinsbursky@parallels.com are
 
 linux-next.patch
-pagemaph-fix-warning-about-possibly-used-before-init-var.patch
-rapidio-add-dma-engine-support-for-rio-data-transfers.patch
-rapidio-tsi721-add-dma-engine-support.patch
+c-r-ipc-message-queue-receive-cleanup.patch
 
