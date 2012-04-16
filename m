@@ -1,28 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] c-r-ipc-message-queue-stealing-feature-introduced.patch removed from -mm tree
-Date: Mon, 16 Apr 2012 14:59:29 -0700
-Message-ID: <20120416215930.34805A03A4@akpm.mtv.corp.google.com>
+Subject: + c-r-ipc-message-queue-stealing-feature-introduced.patch added to -mm tree
+Date: Mon, 16 Apr 2012 15:12:06 -0700
+Message-ID: <20120416221206.63ECEA03A4@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:59267 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab2DPV7c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 17:59:32 -0400
-Received: by eekc41 with SMTP id c41so263488eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 14:59:31 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54491 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753957Ab2DPWMH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 18:12:07 -0400
+Received: by qabg24 with SMTP id g24so682667qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 15:12:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: skinsbursky@parallels.com, arnd@arndb.de, cmetcalf@tilera.com, gorcunov@openvz.org, lucas.de.marchi@gmail.com, mtk.manpages@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: skinsbursky@parallels.com, arnd@arndb.de, cmetcalf@tilera.com, gorcunov@openvz.org, lucas.de.marchi@gmail.com, mtk.manpages@gmail.com, serue@us.ibm.com, xemul@parallels.com
 
 
 The patch titled
      Subject: c/r: ipc: message queue stealing feature introduced
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      c-r-ipc-message-queue-stealing-feature-introduced.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Stanislav Kinsbursky <skinsbursky@parallels.com>
@@ -30,13 +38,12 @@ Subject: c/r: ipc: message queue stealing feature introduced
 
 This patch is required for checkpoint/restore in userspace.
 
-IOW, c/r requires some way to get all pending IPC messages without
-deleting them for the queue (checkpoint can fail and in this case tasks
-will be resumed, so queue have to be valid).
-
-To achieve this, the new operation flag MSG_STEAL for sys_msgrcv() system
-call introduced.  If this flag is set, then passed struct msgbuf pointer
-will be used for storing array of structures:
+c/r requires some way to get all pending IPC messages without deleting
+them for the queue (checkpoint can fail and in this case tasks will be
+resumed, so queue have to be valid).  To achive this, new operation flag
+MSG_STEAL for sys_msgrcv() system call introduced.  If this flag is set,
+then passed struct msgbuf pointer will be used for storing array of
+structures:
 
 struct msgbuf_a {
 	long mtype;         /* type of message */
@@ -47,19 +54,20 @@ struct msgbuf_a {
 each of which will be followed by corresponding message data.
 
 Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
 Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/msg.h |    8 +++++++
- ipc/compat.c        |   31 +++++++++++++++++++++++++++-
- ipc/msg.c           |   46 +++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 83 insertions(+), 2 deletions(-)
+ include/linux/msg.h |    8 +++++
+ ipc/compat.c        |   42 +++++++++++++++++++++++++--
+ ipc/msg.c           |   65 +++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 112 insertions(+), 3 deletions(-)
 
 diff -puN include/linux/msg.h~c-r-ipc-message-queue-stealing-feature-introduced include/linux/msg.h
 --- a/include/linux/msg.h~c-r-ipc-message-queue-stealing-feature-introduced
@@ -68,7 +76,7 @@ diff -puN include/linux/msg.h~c-r-ipc-message-queue-stealing-feature-introduced 
  /* msgrcv options */
  #define MSG_NOERROR     010000  /* no error if message is too big */
  #define MSG_EXCEPT      020000  /* recv any msg except of specified type.*/
-+#define MSG_STEAL       040000  /* copy (not remove) all queue messages */
++#define MSG_PEEK_ALL    040000  /* copy (not remove) all queue messages */
  
  /* Obsolete, used only for backwards compatibility and libc5 compiles */
  struct msqid_ds {
@@ -102,12 +110,12 @@ diff -puN ipc/compat.c~c-r-ipc-message-queue-stealing-feature-introduced ipc/com
  struct compat_ipc_perm {
  	key_t key;
  	__compat_uid_t uid;
-@@ -334,6 +340,27 @@ long compat_sys_msgsnd(int first, int se
+@@ -334,6 +340,33 @@ long compat_sys_msgsnd(int first, int se
  	return do_msgsnd(first, type, up->mtext, second, third);
  }
  
-+
-+static long compat_do_msg_steal(void __user *dest, struct msg_msg *msg, size_t bufsz)
++#ifdef CONFIG_CHECKPOINT_RESTORE
++static long compat_do_msg_peek_all(void __user *dest, struct msg_msg *msg, size_t bufsz)
 +{
 +	struct compat_msgbuf_a __user *msgp = dest;
 +	size_t msgsz;
@@ -126,29 +134,48 @@ diff -puN ipc/compat.c~c-r-ipc-message-queue-stealing-feature-introduced ipc/com
 +		return -EFAULT;
 +	return msgsz;
 +}
++#else
++static long compat_do_msg_peek_all(void __user *dest, struct msg_msg *msg, size_t bufsz)
++{
++	return -EINVAL;
++}
++#endif
 +
  long compat_do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
  {
  	struct compat_msgbuf __user *msgp;
-@@ -365,7 +392,9 @@ long compat_sys_msgrcv(int first, int se
+@@ -355,7 +388,10 @@ long compat_sys_msgrcv(int first, int se
+ 		return -EINVAL;
+ 	if (second < 0)
+ 		return -EINVAL;
+-
++#ifndef CONFIG_CHECKPOINT_RESTORE
++	if (third & MSG_PEEK_ALL)
++		return -ENOSYS;
++#endif
+ 	if (!version) {
+ 		struct compat_ipc_kludge ipck;
+ 		if (!uptr)
+@@ -365,7 +401,9 @@ long compat_sys_msgrcv(int first, int se
  		uptr = compat_ptr(ipck.msgp);
  		msgtyp = ipck.msgtyp;
  	}
 -	return do_msgrcv(first, uptr, second, msgtyp, third, compat_do_msg_fill);
 +	return do_msgrcv(first, uptr, second, msgtyp, third,
-+			 (third & MSG_STEAL) ? compat_do_msg_steal
-+					      : compat_do_msg_fill);
++			 (third & MSG_PEEK_ALL) ? compat_do_msg_peek_all
++						: compat_do_msg_fill);
  }
  #else
  long compat_sys_semctl(int semid, int semnum, int cmd, int arg)
 diff -puN ipc/msg.c~c-r-ipc-message-queue-stealing-feature-introduced ipc/msg.c
 --- a/ipc/msg.c~c-r-ipc-message-queue-stealing-feature-introduced
 +++ a/ipc/msg.c
-@@ -752,6 +752,33 @@ static inline int convert_mode(long *msg
+@@ -752,6 +752,40 @@ static inline int convert_mode(long *msg
  	return SEARCH_EQUAL;
  }
  
-+static long do_msg_steal(void __user *dest, struct msg_msg *msg, size_t bufsz)
++#ifdef CONFIG_CHECKPOINT_RESTORE
++static long do_msg_peek_all(void __user *dest, struct msg_msg *msg, size_t bufsz)
 +{
 +	struct msgbuf_a __user *msgp = dest;
 +	size_t msgsz;
@@ -174,23 +201,39 @@ diff -puN ipc/msg.c~c-r-ipc-message-queue-stealing-feature-introduced ipc/msg.c
 +		return -EFAULT;
 +	return msgsz;
 +}
++#else
++static long do_msg_peek_all(void __user *dest, struct msg_msg *msg, size_t bufsz)
++{
++	return -EINVAL;
++}
++#endif
 +
  static long do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
  {
  	struct msgbuf __user *msgp = dest;
-@@ -774,6 +801,7 @@ long do_msgrcv(int msqid, void __user *b
+@@ -774,9 +808,16 @@ long do_msgrcv(int msqid, void __user *b
  	struct msg_msg *msg;
  	int mode;
  	struct ipc_namespace *ns;
++#ifdef CONFIG_CHECKPOINT_RESTORE
 +	size_t arrsz = bufsz;
++#endif
  
  	if (msqid < 0 || (long) bufsz < 0)
  		return -EINVAL;
-@@ -807,6 +835,16 @@ long do_msgrcv(int msqid, void __user *b
++#ifndef CONFIG_CHECKPOINT_RESTORE
++	if (msgflg & MSG_PEEK_ALL)
++		return -ENOSYS;
++#endif
+ 	mode = convert_mode(&msgtyp, msgflg);
+ 	ns = current->nsproxy->ipc_ns;
+ 
+@@ -807,6 +848,18 @@ long do_msgrcv(int msqid, void __user *b
  						walk_msg->m_type != 1) {
  					msg = walk_msg;
  					msgtyp = walk_msg->m_type - 1;
-+				} else if (msgflg & MSG_STEAL) {
++#ifdef CONFIG_CHECKPOINT_RESTORE
++				} else if (msgflg & MSG_PEEK_ALL) {
 +					long ret;
 +
 +					ret = msg_fill(buf, msg, arrsz);
@@ -200,42 +243,50 @@ diff -puN ipc/msg.c~c-r-ipc-message-queue-stealing-feature-introduced ipc/msg.c
 +					}
 +					buf += ret;
 +					arrsz -= ret;
++#endif
  				} else {
  					msg = walk_msg;
  					break;
-@@ -815,6 +853,8 @@ long do_msgrcv(int msqid, void __user *b
+@@ -815,6 +868,10 @@ long do_msgrcv(int msqid, void __user *b
  			tmp = tmp->next;
  		}
  		if (!IS_ERR(msg)) {
-+			if (msgflg & MSG_STEAL)
++#ifdef CONFIG_CHECKPOINT_RESTORE
++			if (msgflg & MSG_PEEK_ALL)
 +				goto out_unlock;
++#endif
  			/*
  			 * Found a suitable message.
  			 * Unlink it from the queue.
-@@ -909,6 +949,9 @@ out_unlock:
+@@ -909,6 +966,11 @@ out_unlock:
  	if (IS_ERR(msg))
  		return PTR_ERR(msg);
  
-+	if (msgflg & MSG_STEAL)
++#ifdef CONFIG_CHECKPOINT_RESTORE
++	if (msgflg & MSG_PEEK_ALL)
 +		return bufsz - arrsz;
++#endif
 +
  	bufsz = msg_fill(buf, msg, bufsz);
  	free_msg(msg);
  
-@@ -918,7 +961,8 @@ out_unlock:
+@@ -918,7 +980,8 @@ out_unlock:
  SYSCALL_DEFINE5(msgrcv, int, msqid, struct msgbuf __user *, msgp, size_t, msgsz,
  		long, msgtyp, int, msgflg)
  {
 -	return do_msgrcv(msqid, msgp, msgsz, msgtyp, msgflg, do_msg_fill);
 +	return do_msgrcv(msqid, msgp, msgsz, msgtyp, msgflg,
-+			 (msgflg & MSG_STEAL) ? do_msg_steal : do_msg_fill);
++			 (msgflg & MSG_PEEK_ALL) ? do_msg_peek_all : do_msg_fill);
  }
  
  #ifdef CONFIG_PROC_FS
 _
+Subject: Subject: c/r: ipc: message queue stealing feature introduced
 
 Patches currently in -mm which might be from skinsbursky@parallels.com are
 
 linux-next.patch
 c-r-ipc-message-queue-receive-cleanup.patch
+c-r-ipc-message-queue-stealing-feature-introduced.patch
+c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv.patch
 
