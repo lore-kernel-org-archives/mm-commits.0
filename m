@@ -1,78 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] panic-fix-stack-dump-print-on-direct-call-to-panic.patch removed from -mm tree
-Date: Mon, 16 Apr 2012 13:15:44 -0700
-Message-ID: <20120416201544.8447FA0308@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants.patch removed from -mm tree
+Date: Mon, 16 Apr 2012 13:15:42 -0700
+Message-ID: <20120416201542.660EAA0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:37999 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754760Ab2DPUPp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:45 -0400
+Received: from mail-we0-f202.google.com ([74.125.82.202]:52584 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754297Ab2DPUPo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jason.wessel@windriver.com, ak@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: linus.walleij@linaro.org, mian.yousaf.kaukab@stericsson.com, rubini@unipv.it, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: fix stack dump print on direct call to panic()
+     Subject: drivers/rtc/rtc-pl031.c: enable clock on all ST variants
 has been removed from the -mm tree.  Its filename was
-     panic-fix-stack-dump-print-on-direct-call-to-panic.patch
+     drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jason Wessel <jason.wessel@windriver.com>
-Subject: panic: fix stack dump print on direct call to panic()
+From: "Linus Walleij" <linus.walleij@linaro.org>
+Subject: drivers/rtc/rtc-pl031.c: enable clock on all ST variants
 
-Commit 6e6f0a1f0 ("panic: don't print redundant backtraces on oops")
-causes a regression where no stack trace will be printed at all for the
-case where kernel code calls panic() directly while not processing an
-oops, and of course there are 100's of instances of this type of call.
+The ST variants of the PL031 all require bit 26 in the control register to
+be set before they work properly.  Discovered this when testing on the
+Nomadik board where it would suprisingly just stand still.
 
-The original commit executed the check (!oops_in_progress), but this will
-always be false because just before the dump_stack() there is a call to
-bust_spinlocks(1), which does the following:
-
-  void __attribute__((weak)) bust_spinlocks(int yes)
-  {
-	if (yes) {
-		++oops_in_progress;
-
-The proper way to resolve the problem that original commit tried to solve
-is to avoid printing a stack dump from panic() when the either of the
-following conditions is true:
-
-  1) TAINT_DIE has been set (this is done by oops_end())
-     This indicates and oops has already been printed.
-  2) oops_in_progress > 1
-     This guards against the rare case where panic() is invoked
-     a second time, or in between oops_begin() and oops_end()
-
-Signed-off-by: Jason Wessel <jason.wessel@windriver.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[3.3+]
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mian Yousaf Kaukab <mian.yousaf.kaukab@stericsson.com>
+Cc: Alessandro Rubini <rubini@unipv.it>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-pl031.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/panic.c~panic-fix-stack-dump-print-on-direct-call-to-panic kernel/panic.c
---- a/kernel/panic.c~panic-fix-stack-dump-print-on-direct-call-to-panic
-+++ a/kernel/panic.c
-@@ -97,7 +97,7 @@ void panic(const char *fmt, ...)
- 	/*
- 	 * Avoid nested stack-dumping if a panic occurs during oops processing
- 	 */
--	if (!oops_in_progress)
-+	if (!test_taint(TAINT_DIE) && oops_in_progress <= 1)
- 		dump_stack();
- #endif
+diff -puN drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants drivers/rtc/rtc-pl031.c
+--- a/drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl031c-enable-clock-on-all-st-variants
++++ a/drivers/rtc/rtc-pl031.c
+@@ -339,8 +339,7 @@ static int pl031_probe(struct amba_devic
+ 	dev_dbg(&adev->dev, "revision = 0x%01x\n", ldata->hw_revision);
+ 
+ 	/* Enable the clockwatch on ST Variants */
+-	if ((ldata->hw_designer == AMBA_VENDOR_ST) &&
+-	    (ldata->hw_revision > 1))
++	if (ldata->hw_designer == AMBA_VENDOR_ST)
+ 		writel(readl(ldata->base + RTC_CR) | RTC_CR_CWEN,
+ 		       ldata->base + RTC_CR);
  
 _
 
-Patches currently in -mm which might be from jason.wessel@windriver.com are
+Patches currently in -mm which might be from linus.walleij@linaro.org are
 
+linux-next.patch
+arch-arm-mach-ux500-mbox-db5500c-world-writable-sysfs-fifo-file.patch
 
