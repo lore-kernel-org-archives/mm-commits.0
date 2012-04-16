@@ -1,115 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-fix-race-condition-in-hugetlb_fault.patch removed from -mm tree
-Date: Mon, 16 Apr 2012 13:15:38 -0700
-Message-ID: <20120416201538.91D9FA0308@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch removed from -mm tree
+Date: Mon, 16 Apr 2012 13:15:36 -0700
+Message-ID: <20120416201536.A7AF6A0308__25311.033803928$1334607351$gmane$org@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:53968 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752381Ab2DPUPl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:41 -0400
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45990 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760Ab2DPUPh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 16:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmetcalf@tilera.com, dhillf@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: x0155534@ti.com, a.zummo@towertech.it, b-cousson@ti.com, gg@slimlogic.co.uk, linux-omap@vger.kernel.org, nm@ti.com, oleksandr.dmytryshyn@ti.com, x0174904@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix race condition in hugetlb_fault()
+     Subject: drivers/rtc/rtc-twl.c: use static register while reading time
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-race-condition-in-hugetlb_fault.patch
+     drivers-rtc-rtc-twlc-use-static-register-while-reading-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Chris Metcalf <cmetcalf@tilera.com>
-Subject: hugetlb: fix race condition in hugetlb_fault()
+From: Konstantin Shlyakhovoy <x0155534@ti.com>
+Subject: drivers/rtc/rtc-twl.c: use static register while reading time
 
-The race is as follows.
+RTC stores time and date in several registers.  Due to the fact that these
+registers can't be read instantaneously, there is a chance that reading
+from counting registers gives an error of one minute, one hour, one day,
+etc.
 
-Suppose a multi-threaded task forks a new process (on cpu A), thus bumping
-up the ref count on all the pages.  While the fork is occurring (and thus
-we have marked all the PTEs as read-only), another thread in the original
-process (on cpu B) tries to write to a huge page, taking an access
-violation from the write-protect and calling hugetlb_cow().  Now, suppose
-the fork() fails.  It will undo the COW and decrement the ref count on the
-pages, so the ref count on the huge page drops back to 1.  Meanwhile
-hugetlb_cow() also decrements the ref count by one on the original page,
-since the original address space doesn't need it any more, having copied a
-new page to replace the original page.  This leaves the ref count at zero,
-and when we call unlock_page(), we panic.
+To address this issue, the RTC has hardware support to copy the RTC
+counting registers to static shadowed registers.  The current
+implementation does not use this feature, and in a stress test, we can
+reproduce this error at a rate of around two times per 300000 readings.
 
-	fork on CPU A				fault on CPU B
-	=============				==============
-	...
-	down_write(&parent->mmap_sem);
-	down_write_nested(&child->mmap_sem);
-	...
-	while duplicating vmas
-		if error
-			break;
-	...
-	up_write(&child->mmap_sem);
-	up_write(&parent->mmap_sem);		...
-						down_read(&parent->mmap_sem);
-						...
-						lock_page(page);
-						handle COW
-						page_mapcount(old_page) == 2
-						alloc and prepare new_page
-	...
-	handle error
-	page_remove_rmap(page);
-	put_page(page);
-	...
-						fold new_page into pte
-						page_remove_rmap(page);
-						put_page(page);
-						...
-				oops ==>	unlock_page(page);
-						up_read(&parent->mmap_sem);
+Fix the implementation to ensure that the right snapshot of time is
+captured.
 
-The solution is to take an extra reference to the page while we are
-holding the lock on it.
-
-Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Konstantin Shlyakhovoy <x0155534@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
+Acked-by: Mykola Oleksiienko <x0174904@ti.com>
+Acked-by: Oleksandr Dmytryshyn <oleksandr.dmytryshyn@ti.com>
+Acked-by: Graeme Gregory <gg@slimlogic.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-twl.c |   43 +++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 38 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-race-condition-in-hugetlb_fault mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-race-condition-in-hugetlb_fault
-+++ a/mm/hugetlb.c
-@@ -2791,6 +2791,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 	 * so no worry about deadlock.
- 	 */
- 	page = pte_page(entry);
-+	get_page(page);
- 	if (page != pagecache_page)
- 		lock_page(page);
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-use-static-register-while-reading-time
++++ a/drivers/rtc/rtc-twl.c
+@@ -112,6 +112,7 @@ static const u8 twl6030_rtc_reg_map[] = 
+ #define BIT_RTC_CTRL_REG_TEST_MODE_M             0x10
+ #define BIT_RTC_CTRL_REG_SET_32_COUNTER_M        0x20
+ #define BIT_RTC_CTRL_REG_GET_TIME_M              0x40
++#define BIT_RTC_CTRL_REG_RTC_V_OPT               0x80
  
-@@ -2822,6 +2823,7 @@ out_page_table_lock:
+ /* RTC_STATUS_REG bitfields */
+ #define BIT_RTC_STATUS_REG_RUN_M                 0x02
+@@ -235,25 +236,57 @@ static int twl_rtc_read_time(struct devi
+ 	unsigned char rtc_data[ALL_TIME_REGS + 1];
+ 	int ret;
+ 	u8 save_control;
++	u8 rtc_control;
+ 
+ 	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
+-	if (ret < 0)
++	if (ret < 0) {
++		dev_err(dev, "%s: reading CTRL_REG, error %d\n", __func__, ret);
+ 		return ret;
++	}
++	/* for twl6030/32 make sure BIT_RTC_CTRL_REG_GET_TIME_M is clear */
++	if (twl_class_is_6030()) {
++		if (save_control & BIT_RTC_CTRL_REG_GET_TIME_M) {
++			save_control &= ~BIT_RTC_CTRL_REG_GET_TIME_M;
++			ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
++			if (ret < 0) {
++				dev_err(dev, "%s clr GET_TIME, error %d\n",
++					__func__, ret);
++				return ret;
++			}
++		}
++	}
+ 
+-	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
++	/* Copy RTC counting registers to static registers or latches */
++	rtc_control = save_control | BIT_RTC_CTRL_REG_GET_TIME_M;
+ 
+-	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
+-	if (ret < 0)
++	/* for twl6030/32 enable read access to static shadowed registers */
++	if (twl_class_is_6030())
++		rtc_control |= BIT_RTC_CTRL_REG_RTC_V_OPT;
++
++	ret = twl_rtc_write_u8(rtc_control, REG_RTC_CTRL_REG);
++	if (ret < 0) {
++		dev_err(dev, "%s: writing CTRL_REG, error %d\n", __func__, ret);
+ 		return ret;
++	}
+ 
+ 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
+ 			(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
+ 
+ 	if (ret < 0) {
+-		dev_err(dev, "rtc_read_time error %d\n", ret);
++		dev_err(dev, "%s: reading data, error %d\n", __func__, ret);
+ 		return ret;
  	}
- 	if (page != pagecache_page)
- 		unlock_page(page);
-+	put_page(page);
  
- out_mutex:
- 	mutex_unlock(&hugetlb_instantiation_mutex);
++	/* for twl6030 restore original state of rtc control register */
++	if (twl_class_is_6030()) {
++		ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
++		if (ret < 0) {
++			dev_err(dev, "%s: restore CTRL_REG, error %d\n",
++				__func__, ret);
++			return ret;
++		}
++	}
++
+ 	tm->tm_sec = bcd2bin(rtc_data[0]);
+ 	tm->tm_min = bcd2bin(rtc_data[1]);
+ 	tm->tm_hour = bcd2bin(rtc_data[2]);
 _
 
-Patches currently in -mm which might be from cmetcalf@tilera.com are
+Patches currently in -mm which might be from x0155534@ti.com are
 
-linux-next.patch
-list_debug-warn-for-adding-something-already-in-the-list.patch
-c-r-ipc-message-queue-receive-cleanup.patch
-c-r-ipc-message-queue-stealing-feature-introduced.patch
 
