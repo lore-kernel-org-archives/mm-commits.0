@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch added to -mm tree
-Date: Mon, 16 Apr 2012 16:16:14 -0700
-Message-ID: <20120416231614.37400A0186@akpm.mtv.corp.google.com>
+Subject: + hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch added to -mm tree
+Date: Mon, 16 Apr 2012 16:16:23 -0700
+Message-ID: <20120416231623.EC185A0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:61370 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754673Ab2DPXQT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:19 -0400
-Received: by bkcjm19 with SMTP id jm19so261352bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:17 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:65522 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754673Ab2DPXQY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:24 -0400
+Received: by mail-gy0-f202.google.com with SMTP id z15so662232ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hann
 
 
 The patch titled
-     Subject: hugetlbfs: add memcg control files for hugetlbfs
+     Subject: hugetlb: migrate memcg info from oldpage to new page during migration
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+     hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlbfs: add memcg control files for hugetlbfs
+Subject: hugetlb: migrate memcg info from oldpage to new page during migration
 
-Add the control files for hugetlbfs in memcg.
+With HugeTLB pages, memcg is uncharged in compound page destructor.  Since
+we are holding a hugepage reference, we can be sure that old page won't
+get uncharged till the last put_page().  On successful migrate, we can
+move the memcg information to new page's page_cgroup and mark the old
+page's page_cgroup unused.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -47,133 +51,90 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h    |    5 +++
- include/linux/memcontrol.h |    7 ++++
- mm/hugetlb.c               |    2 -
- mm/memcontrol.c            |   51 +++++++++++++++++++++++++++++++++++
- 4 files changed, 64 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    8 ++++++++
+ mm/memcontrol.c            |   28 ++++++++++++++++++++++++++++
+ mm/migrate.c               |    4 ++++
+ 3 files changed, 40 insertions(+)
 
-diff -puN include/linux/hugetlb.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs
-+++ a/include/linux/hugetlb.h
-@@ -4,6 +4,7 @@
- #include <linux/mm_types.h>
- #include <linux/fs.h>
- #include <linux/hugetlb_inline.h>
-+#include <linux/cgroup.h>
- 
- struct ctl_table;
- struct user_struct;
-@@ -203,6 +204,10 @@ struct hstate {
- 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
- 	unsigned int free_huge_pages_node[MAX_NUMNODES];
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
-+#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
-+	/* mem cgroup control files */
-+	struct cftype mem_cgroup_files[4];
-+#endif
- 	char name[HSTATE_NAME_LEN];
- };
- 
-diff -puN include/linux/memcontrol.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs
+diff -puN include/linux/memcontrol.h~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration
 +++ a/include/linux/memcontrol.h
-@@ -459,6 +459,7 @@ extern void mem_cgroup_hugetlb_uncharge_
- 					     struct page *page);
- extern void mem_cgroup_hugetlb_uncharge_memcg(int idx, unsigned long nr_pages,
- 					      struct mem_cgroup *memcg);
-+extern int mem_cgroup_hugetlb_file_init(int idx) __init;
+@@ -464,6 +464,8 @@ extern int mem_cgroup_move_hugetlb_paren
+ 					  struct page *page);
+ extern bool mem_cgroup_have_hugetlb_usage(struct cgroup *cgroup);
  
++extern void  mem_cgroup_hugetlb_migrate(struct page *oldhpage,
++					struct page *newhpage);
  #else
  static inline int
-@@ -489,6 +490,12 @@ mem_cgroup_hugetlb_uncharge_memcg(int id
+ mem_cgroup_hugetlb_charge_page(int idx, unsigned long nr_pages,
+@@ -510,6 +512,12 @@ static inline bool mem_cgroup_have_huget
  {
- 	return;
+ 	return 0;
  }
 +
-+static inline int mem_cgroup_hugetlb_file_init(int idx)
++static inline  void  mem_cgroup_hugetlb_migrate(struct page *oldhpage,
++						struct page *newhpage)
 +{
-+	return 0;
++	return;
 +}
-+
  #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
  #endif /* _LINUX_MEMCONTROL_H */
  
-diff -puN mm/hugetlb.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs
-+++ a/mm/hugetlb.c
-@@ -1931,7 +1931,7 @@ void __init hugetlb_add_hstate(unsigned 
- 	h->next_nid_to_free = first_node(node_states[N_HIGH_MEMORY]);
- 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
- 					huge_page_size(h)/1024);
--
-+	mem_cgroup_hugetlb_file_init(hugetlb_max_hstate - 1);
- 	parsed_hstate = h;
- }
- 
-diff -puN mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs mm/memcontrol.c
---- a/mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs
+diff -puN mm/memcontrol.c~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration mm/memcontrol.c
+--- a/mm/memcontrol.c~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration
 +++ a/mm/memcontrol.c
-@@ -5195,6 +5195,57 @@ static void mem_cgroup_destroy(struct cg
- 	mem_cgroup_put(memcg);
+@@ -3379,6 +3379,34 @@ err_out:
+ out:
+ 	return ret;
  }
++
++void  mem_cgroup_hugetlb_migrate(struct page *oldhpage, struct page *newhpage)
++{
++	struct mem_cgroup *memcg;
++	struct page_cgroup *pc;
++
++	VM_BUG_ON(!PageHuge(oldhpage));
++
++	if (mem_cgroup_disabled())
++		return;
++
++	pc = lookup_page_cgroup(oldhpage);
++	lock_page_cgroup(pc);
++	memcg = pc->mem_cgroup;
++	pc->mem_cgroup = root_mem_cgroup;
++	ClearPageCgroupUsed(pc);
++	cgroup_exclude_rmdir(&memcg->css);
++	unlock_page_cgroup(pc);
++
++	/* move the mem_cg details to new cgroup */
++	pc = lookup_page_cgroup(newhpage);
++	lock_page_cgroup(pc);
++	pc->mem_cgroup = memcg;
++	SetPageCgroupUsed(pc);
++	unlock_page_cgroup(pc);
++	cgroup_release_and_wakeup_rmdir(&memcg->css);
++	return;
++}
+ #endif /* CONFIG_MEM_RES_CTLR_HUGETLB */
  
-+#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
-+static char *mem_fmt(char *buf, unsigned long n)
-+{
-+	if (n >= (1UL << 30))
-+		sprintf(buf, "%luGB", n >> 30);
-+	else if (n >= (1UL << 20))
-+		sprintf(buf, "%luMB", n >> 20);
-+	else
-+		sprintf(buf, "%luKB", n >> 10);
-+	return buf;
-+}
+ /*
+diff -puN mm/migrate.c~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration mm/migrate.c
+--- a/mm/migrate.c~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration
++++ a/mm/migrate.c
+@@ -928,6 +928,10 @@ static int unmap_and_move_huge_page(new_
+ 
+ 	if (anon_vma)
+ 		put_anon_vma(anon_vma);
 +
-+int __init mem_cgroup_hugetlb_file_init(int idx)
-+{
-+	char buf[32];
-+	struct cftype *cft;
-+	struct hstate *h = &hstates[idx];
++	if (!rc)
++		mem_cgroup_hugetlb_migrate(hpage, new_hpage);
 +
-+	/* format the size */
-+	mem_fmt(buf, huge_page_size(h));
-+
-+	/* Add the limit file */
-+	cft = &h->mem_cgroup_files[0];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "hugetlb.%s.limit_in_bytes", buf);
-+	cft->private = __MEMFILE_PRIVATE(idx, _MEMHUGETLB, RES_LIMIT);
-+	cft->read = mem_cgroup_read;
-+	cft->write_string = mem_cgroup_write;
-+
-+	/* Add the usage file */
-+	cft = &h->mem_cgroup_files[1];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "hugetlb.%s.usage_in_bytes", buf);
-+	cft->private  = __MEMFILE_PRIVATE(idx, _MEMHUGETLB, RES_USAGE);
-+	cft->read = mem_cgroup_read;
-+
-+	/* Add the MAX usage file */
-+	cft = &h->mem_cgroup_files[2];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "hugetlb.%s.max_usage_in_bytes", buf);
-+	cft->private  = __MEMFILE_PRIVATE(idx, _MEMHUGETLB, RES_MAX_USAGE);
-+	cft->trigger  = mem_cgroup_reset;
-+	cft->read = mem_cgroup_read;
-+
-+	/* NULL terminate the last cft */
-+	cft = &h->mem_cgroup_files[3];
-+	memset(cft, 0, sizeof(*cft));
-+
-+	WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys, h->mem_cgroup_files));
-+
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_MMU
- /* Handlers for move charge at task migration. */
- #define PRECHARGE_COUNT_AT_ONCE	256
+ 	unlock_page(hpage);
+ out:
+ 	put_page(new_hpage);
 _
-Subject: Subject: hugetlbfs: add memcg control files for hugetlbfs
+Subject: Subject: hugetlb: migrate memcg info from oldpage to new page during migration
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
