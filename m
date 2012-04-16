@@ -1,15 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch added to -mm tree
-Date: Mon, 16 Apr 2012 16:16:07 -0700
-Message-ID: <20120416231607.CB55DA0186@akpm.mtv.corp.google.com>
+Subject: + memcg-track-resource-index-in-cftype-private.patch added to -mm tree
+Date: Mon, 16 Apr 2012 16:16:10 -0700
+Message-ID: <20120416231610.D4C70A0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:55690 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754673Ab2DPXQI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:08 -0400
-Received: by mail-qa0-f74.google.com with SMTP id g24so4979qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:08 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58945 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754673Ab2DPXQM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 16 Apr 2012 19:16:12 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id i8so262631laa.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +18,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hann
 
 
 The patch titled
-     Subject: hugetlb: add charge/uncharge calls for HugeTLB alloc/free
+     Subject: memcg: track resource index in cftype private
 has been added to the -mm tree.  Its filename is
-     hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+     memcg-track-resource-index-in-cftype-private.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +35,91 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb: add charge/uncharge calls for HugeTLB alloc/free
+Subject: memcg: track resource index in cftype private
 
-This adds necessary charge/uncharge calls in the HugeTLB code.  We do
-memcg charge in page alloc and uncharge in compound page destructor.  We
-also need to ignore HugeTLB pages in __mem_cgroup_uncharge_common because
-that get called from delete_from_page_cache
+This patch adds a new charge type _MEMHUGETLB for tracking hugetlb
+resources.  We also use cftype to encode the hugetlb resource index.  This
+helps in using same memcg callbacks for hugetlb control files.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Hillf Danton <dhillf@gmail.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c    |   20 +++++++++++++++++++-
- mm/memcontrol.c |    5 +++++
- 2 files changed, 24 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free
-+++ a/mm/hugetlb.c
-@@ -21,6 +21,8 @@
- #include <linux/rmap.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-+#include <linux/memcontrol.h>
-+#include <linux/page_cgroup.h>
- 
- #include <asm/page.h>
- #include <asm/pgtable.h>
-@@ -628,6 +630,8 @@ static void free_huge_page(struct page *
- 	BUG_ON(page_mapcount(page));
- 	INIT_LIST_HEAD(&page->lru);
- 
-+	mem_cgroup_hugetlb_uncharge_page(hstate_index(h),
-+					 pages_per_huge_page(h), page);
- 	spin_lock(&hugetlb_lock);
- 	if (h->surplus_huge_pages_node[nid] && huge_page_order(h) < MAX_ORDER) {
- 		update_and_free_page(h, page);
-@@ -1113,7 +1117,10 @@ static struct page *alloc_huge_page(stru
- 	struct hstate *h = hstate_vma(vma);
- 	struct page *page;
- 	long chg;
-+	int ret, idx;
-+	struct mem_cgroup *memcg;
- 
-+	idx = hstate_index(h);
- 	/*
- 	 * Processes that did not create the mapping will have no
- 	 * reserves and will not have accounted against subpool
-@@ -1129,6 +1136,12 @@ static struct page *alloc_huge_page(stru
- 		if (hugepage_subpool_get_pages(spool, chg))
- 			return ERR_PTR(-ENOSPC);
- 
-+	ret = mem_cgroup_hugetlb_charge_page(idx, pages_per_huge_page(h),
-+					     &memcg);
-+	if (ret) {
-+		hugepage_subpool_put_pages(spool, chg);
-+		return ERR_PTR(-ENOSPC);
-+	}
- 	spin_lock(&hugetlb_lock);
- 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve);
- 	spin_unlock(&hugetlb_lock);
-@@ -1136,6 +1149,9 @@ static struct page *alloc_huge_page(stru
- 	if (!page) {
- 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
- 		if (!page) {
-+			mem_cgroup_hugetlb_uncharge_memcg(idx,
-+							  pages_per_huge_page(h),
-+							  memcg);
- 			hugepage_subpool_put_pages(spool, chg);
- 			return ERR_PTR(-ENOSPC);
- 		}
-@@ -1144,7 +1160,9 @@ static struct page *alloc_huge_page(stru
- 	set_page_private(page, (unsigned long)spool);
- 
- 	vma_commit_reservation(h, vma, addr);
--
-+	/* update page cgroup details */
-+	mem_cgroup_hugetlb_commit_charge(idx, pages_per_huge_page(h),
-+					 memcg, page);
- 	return page;
- }
- 
-diff -puN mm/memcontrol.c~hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free mm/memcontrol.c
---- a/mm/memcontrol.c~hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free
+diff -puN mm/memcontrol.c~memcg-track-resource-index-in-cftype-private mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-track-resource-index-in-cftype-private
 +++ a/mm/memcontrol.c
-@@ -2966,6 +2966,11 @@ __mem_cgroup_uncharge_common(struct page
+@@ -381,9 +381,14 @@ enum charge_type {
+ #define _MEM			(0)
+ #define _MEMSWAP		(1)
+ #define _OOM_TYPE		(2)
+-#define MEMFILE_PRIVATE(x, val)	(((x) << 16) | (val))
+-#define MEMFILE_TYPE(val)	(((val) >> 16) & 0xffff)
+-#define MEMFILE_ATTR(val)	((val) & 0xffff)
++#define _MEMHUGETLB		(3)
++
++/*  0 ... val ...16.... x...24...idx...32*/
++#define __MEMFILE_PRIVATE(idx, x, val)	(((idx) << 24) | ((x) << 16) | (val))
++#define MEMFILE_PRIVATE(x, val)		__MEMFILE_PRIVATE(0, x, val)
++#define MEMFILE_TYPE(val)		(((val) >> 16) & 0xff)
++#define MEMFILE_IDX(val)		(((val) >> 24) & 0xff)
++#define MEMFILE_ATTR(val)		((val) & 0xffff)
+ /* Used for OOM nofiier */
+ #define OOM_CONTROL		(0)
  
- 	if (PageSwapCache(page))
- 		return NULL;
-+	/*
-+	 * HugeTLB page uncharge happen in the HugeTLB compound page destructor
-+	 */
-+	if (PageHuge(page))
-+		return NULL;
+@@ -4003,7 +4008,7 @@ static ssize_t mem_cgroup_read(struct cg
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+ 	char str[64];
+ 	u64 val;
+-	int type, name, len;
++	int type, name, len, idx;
  
- 	if (PageTransHuge(page)) {
- 		nr_pages <<= compound_order(page);
+ 	type = MEMFILE_TYPE(cft->private);
+ 	name = MEMFILE_ATTR(cft->private);
+@@ -4024,6 +4029,10 @@ static ssize_t mem_cgroup_read(struct cg
+ 		else
+ 			val = res_counter_read_u64(&memcg->memsw, name);
+ 		break;
++	case _MEMHUGETLB:
++		idx = MEMFILE_IDX(cft->private);
++		val = res_counter_read_u64(&memcg->hugepage[idx], name);
++		break;
+ 	default:
+ 		BUG();
+ 	}
+@@ -4061,7 +4070,10 @@ static int mem_cgroup_write(struct cgrou
+ 			break;
+ 		if (type == _MEM)
+ 			ret = mem_cgroup_resize_limit(memcg, val);
+-		else
++		else if (type == _MEMHUGETLB) {
++			int idx = MEMFILE_IDX(cft->private);
++			ret = res_counter_set_limit(&memcg->hugepage[idx], val);
++		} else
+ 			ret = mem_cgroup_resize_memsw_limit(memcg, val);
+ 		break;
+ 	case RES_SOFT_LIMIT:
+@@ -4127,7 +4139,10 @@ static int mem_cgroup_reset(struct cgrou
+ 	case RES_MAX_USAGE:
+ 		if (type == _MEM)
+ 			res_counter_reset_max(&memcg->res);
+-		else
++		else if (type == _MEMHUGETLB) {
++			int idx = MEMFILE_IDX(event);
++			res_counter_reset_max(&memcg->hugepage[idx]);
++		} else
+ 			res_counter_reset_max(&memcg->memsw);
+ 		break;
+ 	case RES_FAILCNT:
 _
-Subject: Subject: hugetlb: add charge/uncharge calls for HugeTLB alloc/free
+Subject: Subject: memcg: track resource index in cftype private
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
