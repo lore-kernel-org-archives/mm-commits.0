@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-simplify-migrate_huge_page.patch added to -mm tree
-Date: Mon, 16 Apr 2012 16:15:59 -0700
-Message-ID: <20120416231559.DF21EA0186@akpm.mtv.corp.google.com>
+Subject: + memcg-add-hugetlb-extension.patch added to -mm tree
+Date: Mon, 16 Apr 2012 16:16:03 -0700
+Message-ID: <20120416231603.20BDBA0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:59642 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504Ab2DPXQB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:01 -0400
-Received: by qcsp5 with SMTP id p5so668703qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:00 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:63969 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754673Ab2DPXQH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:07 -0400
+Received: by wibhj13 with SMTP id hj13so781wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hann
 
 
 The patch titled
-     Subject: hugetlb: simplify migrate_huge_page()
+     Subject: memcg: add HugeTLB extension
 has been added to the -mm tree.  Its filename is
-     hugetlb-simplify-migrate_huge_page.patch
+     memcg-add-hugetlb-extension.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb: simplify migrate_huge_page()
+Subject: memcg: add HugeTLB extension
 
-Since we migrate only one hugepage don't use linked list for passing the
-page around.  Directly pass page that need to be migrated as argument. 
-This also remove the usage page->lru in migrate path.
+This patch implements a memcg extension that allows us to control HugeTLB
+allocations via memory controller.  The extension allows to limit the
+HugeTLB usage per control group and enforces the controller limit during
+page fault.  Since HugeTLB doesn't support page reclaim, enforcing the
+limit at page fault time implies that, the application will get SIGBUS
+signal if it tries to access HugeTLB pages beyond its limit.  This
+requires the application to know beforehand how much HugeTLB pages it
+would require for its use.
+
+The charge/uncharge calls will be added to HugeTLB code in later patch. 
+Support for memcg removal will be added in later patches.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -49,155 +57,280 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    4 +-
- mm/memory-failure.c     |   13 +------
- mm/migrate.c            |   63 ++++++++++++--------------------------
- 3 files changed, 24 insertions(+), 56 deletions(-)
+ include/linux/hugetlb.h    |    1 
+ include/linux/memcontrol.h |   42 +++++++++++
+ init/Kconfig               |    8 ++
+ mm/hugetlb.c               |    2 
+ mm/memcontrol.c            |  132 +++++++++++++++++++++++++++++++++++
+ 5 files changed, 184 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/migrate.h~hugetlb-simplify-migrate_huge_page include/linux/migrate.h
---- a/include/linux/migrate.h~hugetlb-simplify-migrate_huge_page
-+++ a/include/linux/migrate.h
-@@ -15,7 +15,7 @@ extern int migrate_page(struct address_s
- extern int migrate_pages(struct list_head *l, new_page_t x,
- 			unsigned long private, bool offlining,
- 			enum migrate_mode mode);
--extern int migrate_huge_pages(struct list_head *l, new_page_t x,
-+extern int migrate_huge_page(struct page *, new_page_t x,
- 			unsigned long private, bool offlining,
- 			enum migrate_mode mode);
+diff -puN include/linux/hugetlb.h~memcg-add-hugetlb-extension include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~memcg-add-hugetlb-extension
++++ a/include/linux/hugetlb.h
+@@ -226,6 +226,7 @@ struct hstate *size_to_hstate(unsigned l
+ #define HUGE_MAX_HSTATE 1
+ #endif
  
-@@ -36,7 +36,7 @@ static inline void putback_lru_pages(str
- static inline int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private, bool offlining,
- 		enum migrate_mode mode) { return -ENOSYS; }
--static inline int migrate_huge_pages(struct list_head *l, new_page_t x,
-+static inline int migrate_huge_page(struct page *page, new_page_t x,
- 		unsigned long private, bool offlining,
- 		enum migrate_mode mode) { return -ENOSYS; }
++extern int hugetlb_max_hstate;
+ extern struct hstate hstates[HUGE_MAX_HSTATE];
+ extern unsigned int default_hstate_idx;
  
-diff -puN mm/memory-failure.c~hugetlb-simplify-migrate_huge_page mm/memory-failure.c
---- a/mm/memory-failure.c~hugetlb-simplify-migrate_huge_page
-+++ a/mm/memory-failure.c
-@@ -1414,7 +1414,6 @@ static int soft_offline_huge_page(struct
- 	int ret;
- 	unsigned long pfn = page_to_pfn(page);
- 	struct page *hpage = compound_head(page);
--	LIST_HEAD(pagelist);
- 
- 	ret = get_any_page(page, pfn, flags);
- 	if (ret < 0)
-@@ -1429,19 +1428,11 @@ static int soft_offline_huge_page(struct
- 	}
- 
- 	/* Keep page count to indicate a given hugepage is isolated. */
--
--	list_add(&hpage->lru, &pagelist);
--	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0,
--				true);
-+	ret = migrate_huge_page(page, new_page, MPOL_MF_MOVE_ALL, 0, true);
-+	put_page(page);
- 	if (ret) {
--		struct page *page1, *page2;
--		list_for_each_entry_safe(page1, page2, &pagelist, lru)
--			put_page(page1);
--
- 		pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
- 			pfn, ret, page->flags);
--		if (ret > 0)
--			ret = -EIO;
- 		return ret;
- 	}
- done:
-diff -puN mm/migrate.c~hugetlb-simplify-migrate_huge_page mm/migrate.c
---- a/mm/migrate.c~hugetlb-simplify-migrate_huge_page
-+++ a/mm/migrate.c
-@@ -929,15 +929,8 @@ static int unmap_and_move_huge_page(new_
- 	if (anon_vma)
- 		put_anon_vma(anon_vma);
- 	unlock_page(hpage);
--
- out:
--	if (rc != -EAGAIN) {
--		list_del(&hpage->lru);
--		put_page(hpage);
--	}
--
- 	put_page(new_hpage);
--
- 	if (result) {
- 		if (rc)
- 			*result = rc;
-@@ -1013,48 +1006,32 @@ out:
- 	return nr_failed + retry;
- }
- 
--int migrate_huge_pages(struct list_head *from,
--		new_page_t get_new_page, unsigned long private, bool offlining,
--		enum migrate_mode mode)
-+int migrate_huge_page(struct page *hpage, new_page_t get_new_page,
-+		      unsigned long private, bool offlining,
-+		      enum migrate_mode mode)
+diff -puN include/linux/memcontrol.h~memcg-add-hugetlb-extension include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-hugetlb-extension
++++ a/include/linux/memcontrol.h
+@@ -448,5 +448,47 @@ static inline void sock_release_memcg(st
  {
--	int retry = 1;
--	int nr_failed = 0;
--	int pass = 0;
--	struct page *page;
--	struct page *page2;
--	int rc;
-+	int pass, rc;
- 
--	for (pass = 0; pass < 10 && retry; pass++) {
--		retry = 0;
--
--		list_for_each_entry_safe(page, page2, from, lru) {
-+	for (pass = 0; pass < 10; pass++) {
-+		rc = unmap_and_move_huge_page(get_new_page,
-+					      private, hpage, pass > 2, offlining,
-+					      mode);
-+		switch (rc) {
-+		case -ENOMEM:
-+			goto out;
-+		case -EAGAIN:
-+			/* try again */
- 			cond_resched();
--
--			rc = unmap_and_move_huge_page(get_new_page,
--					private, page, pass > 2, offlining,
--					mode);
--
--			switch(rc) {
--			case -ENOMEM:
--				goto out;
--			case -EAGAIN:
--				retry++;
--				break;
--			case 0:
--				break;
--			default:
--				/* Permanent failure */
--				nr_failed++;
--				break;
--			}
-+			break;
-+		case 0:
-+			goto out;
-+		default:
-+			rc = -EIO;
-+			goto out;
- 		}
- 	}
--	rc = 0;
- out:
--	if (rc)
--		return rc;
--
--	return nr_failed + retry;
-+	return rc;
  }
+ #endif /* CONFIG_CGROUP_MEM_RES_CTLR_KMEM */
++
++#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
++extern int mem_cgroup_hugetlb_charge_page(int idx, unsigned long nr_pages,
++					  struct mem_cgroup **ptr);
++extern void mem_cgroup_hugetlb_commit_charge(int idx, unsigned long nr_pages,
++					     struct mem_cgroup *memcg,
++					     struct page *page);
++extern void mem_cgroup_hugetlb_uncharge_page(int idx, unsigned long nr_pages,
++					     struct page *page);
++extern void mem_cgroup_hugetlb_uncharge_memcg(int idx, unsigned long nr_pages,
++					      struct mem_cgroup *memcg);
++
++#else
++static inline int
++mem_cgroup_hugetlb_charge_page(int idx, unsigned long nr_pages,
++						 struct mem_cgroup **ptr)
++{
++	return 0;
++}
++
++static inline void
++mem_cgroup_hugetlb_commit_charge(int idx, unsigned long nr_pages,
++				 struct mem_cgroup *memcg,
++				 struct page *page)
++{
++	return;
++}
++
++static inline void
++mem_cgroup_hugetlb_uncharge_page(int idx, unsigned long nr_pages,
++				 struct page *page)
++{
++	return;
++}
++
++static inline void
++mem_cgroup_hugetlb_uncharge_memcg(int idx, unsigned long nr_pages,
++				  struct mem_cgroup *memcg)
++{
++	return;
++}
++#endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
+ #endif /* _LINUX_MEMCONTROL_H */
  
- #ifdef CONFIG_NUMA
+diff -puN init/Kconfig~memcg-add-hugetlb-extension init/Kconfig
+--- a/init/Kconfig~memcg-add-hugetlb-extension
++++ a/init/Kconfig
+@@ -716,6 +716,14 @@ config CGROUP_PERF
+ 
+ 	  Say N if unsure.
+ 
++config MEM_RES_CTLR_HUGETLB
++	bool "Memory Resource Controller HugeTLB Extension (EXPERIMENTAL)"
++	depends on CGROUP_MEM_RES_CTLR && HUGETLB_PAGE && EXPERIMENTAL
++	default n
++	help
++	  Add HugeTLB management to memory resource controller. When you
++	  enable this, you can put a per cgroup limit on HugeTLB usage.
++
+ menuconfig CGROUP_SCHED
+ 	bool "Group CPU scheduler"
+ 	default n
+diff -puN mm/hugetlb.c~memcg-add-hugetlb-extension mm/hugetlb.c
+--- a/mm/hugetlb.c~memcg-add-hugetlb-extension
++++ a/mm/hugetlb.c
+@@ -35,7 +35,7 @@ const unsigned long hugetlb_zero = 0, hu
+ static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
+ 
+-static int hugetlb_max_hstate;
++int hugetlb_max_hstate;
+ unsigned int default_hstate_idx;
+ struct hstate hstates[HUGE_MAX_HSTATE];
+ 
+diff -puN mm/memcontrol.c~memcg-add-hugetlb-extension mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-hugetlb-extension
++++ a/mm/memcontrol.c
+@@ -252,6 +252,10 @@ struct mem_cgroup {
+ 	};
+ 
+ 	/*
++	 * the counter to account for hugepages from hugetlb.
++	 */
++	struct res_counter hugepage[HUGE_MAX_HSTATE];
++	/*
+ 	 * Per cgroup active and inactive list, similar to the
+ 	 * per zone LRU lists.
+ 	 */
+@@ -3213,6 +3217,114 @@ static inline int mem_cgroup_move_swap_a
+ }
+ #endif
+ 
++#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
++static bool mem_cgroup_have_hugetlb_usage(struct mem_cgroup *memcg)
++{
++	int idx;
++	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
++		if ((res_counter_read_u64(&memcg->hugepage[idx], RES_USAGE)) > 0)
++			return 1;
++	}
++	return 0;
++}
++
++int mem_cgroup_hugetlb_charge_page(int idx, unsigned long nr_pages,
++				   struct mem_cgroup **ptr)
++{
++	int ret = 0;
++	struct mem_cgroup *memcg = NULL;
++	struct res_counter *fail_res;
++	unsigned long csize = nr_pages * PAGE_SIZE;
++
++	if (mem_cgroup_disabled())
++		goto done;
++again:
++	rcu_read_lock();
++	memcg = mem_cgroup_from_task(current);
++	if (!memcg)
++		memcg = root_mem_cgroup;
++
++	if (!css_tryget(&memcg->css)) {
++		rcu_read_unlock();
++		goto again;
++	}
++	rcu_read_unlock();
++
++	ret = res_counter_charge(&memcg->hugepage[idx], csize, &fail_res);
++	css_put(&memcg->css);
++done:
++	*ptr = memcg;
++	return ret;
++}
++
++void mem_cgroup_hugetlb_commit_charge(int idx, unsigned long nr_pages,
++				      struct mem_cgroup *memcg,
++				      struct page *page)
++{
++	struct page_cgroup *pc;
++
++	if (mem_cgroup_disabled())
++		return;
++
++	pc = lookup_page_cgroup(page);
++	lock_page_cgroup(pc);
++	if (unlikely(PageCgroupUsed(pc))) {
++		unlock_page_cgroup(pc);
++		mem_cgroup_hugetlb_uncharge_memcg(idx, nr_pages, memcg);
++		return;
++	}
++	pc->mem_cgroup = memcg;
++	SetPageCgroupUsed(pc);
++	unlock_page_cgroup(pc);
++	return;
++}
++
++void mem_cgroup_hugetlb_uncharge_page(int idx, unsigned long nr_pages,
++				      struct page *page)
++{
++	struct page_cgroup *pc;
++	struct mem_cgroup *memcg;
++	unsigned long csize = nr_pages * PAGE_SIZE;
++
++	if (mem_cgroup_disabled())
++		return;
++
++	pc = lookup_page_cgroup(page);
++	if (unlikely(!PageCgroupUsed(pc)))
++		return;
++
++	lock_page_cgroup(pc);
++	if (!PageCgroupUsed(pc)) {
++		unlock_page_cgroup(pc);
++		return;
++	}
++	memcg = pc->mem_cgroup;
++	pc->mem_cgroup = root_mem_cgroup;
++	ClearPageCgroupUsed(pc);
++	unlock_page_cgroup(pc);
++
++	res_counter_uncharge(&memcg->hugepage[idx], csize);
++	return;
++}
++
++void mem_cgroup_hugetlb_uncharge_memcg(int idx, unsigned long nr_pages,
++				       struct mem_cgroup *memcg)
++{
++	unsigned long csize = nr_pages * PAGE_SIZE;
++
++	if (mem_cgroup_disabled())
++		return;
++
++	res_counter_uncharge(&memcg->hugepage[idx], csize);
++	return;
++}
++#else
++static bool mem_cgroup_have_hugetlb_usage(struct mem_cgroup *memcg)
++{
++	return 0;
++}
++#endif /* CONFIG_MEM_RES_CTLR_HUGETLB */
++
+ /*
+  * Before starting migration, account PAGE_SIZE to mem_cgroup that the old
+  * page belongs to.
+@@ -4955,6 +5067,7 @@ err_cleanup:
+ static struct cgroup_subsys_state * __ref
+ mem_cgroup_create(struct cgroup *cont)
+ {
++	int idx;
+ 	struct mem_cgroup *memcg, *parent;
+ 	long error = -ENOMEM;
+ 	int node;
+@@ -4997,9 +5110,22 @@ mem_cgroup_create(struct cgroup *cont)
+ 		 * mem_cgroup(see mem_cgroup_put).
+ 		 */
+ 		mem_cgroup_get(parent);
++		/*
++		 * We could get called before hugetlb init is called.
++		 * Use HUGE_MAX_HSTATE as the max index.
++		 */
++		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
++			res_counter_init(&memcg->hugepage[idx],
++					 &parent->hugepage[idx]);
+ 	} else {
+ 		res_counter_init(&memcg->res, NULL);
+ 		res_counter_init(&memcg->memsw, NULL);
++		/*
++		 * We could get called before hugetlb init is called.
++		 * Use HUGE_MAX_HSTATE as the max index.
++		 */
++		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
++			res_counter_init(&memcg->hugepage[idx], NULL);
+ 	}
+ 	memcg->last_scanned_node = MAX_NUMNODES;
+ 	INIT_LIST_HEAD(&memcg->oom_notify);
+@@ -5030,6 +5156,12 @@ free_out:
+ static int mem_cgroup_pre_destroy(struct cgroup *cont)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
++	/*
++	 * Don't allow memcg removal if we have HugeTLB resource
++	 * usage.
++	 */
++	if (mem_cgroup_have_hugetlb_usage(memcg))
++		return -EBUSY;
+ 
+ 	return mem_cgroup_force_empty(memcg, false);
+ }
 _
-Subject: Subject: hugetlb: simplify migrate_huge_page()
+Subject: Subject: memcg: add HugeTLB extension
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
