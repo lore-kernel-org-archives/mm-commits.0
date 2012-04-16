@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch added to -mm tree
-Date: Mon, 16 Apr 2012 16:15:49 -0700
-Message-ID: <20120416231549.E52BFA0186@akpm.mtv.corp.google.com>
+Subject: + hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch added to -mm tree
+Date: Mon, 16 Apr 2012 16:15:57 -0700
+Message-ID: <20120416231557.26F4BA0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:55690 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030Ab2DPXPv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:15:51 -0400
-Received: by qabg24 with SMTP id g24so4979qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:15:50 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:51445 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753504Ab2DPXP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:15:59 -0400
+Received: by wejx9 with SMTP id x9so262230wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:15:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hann
 
 
 The patch titled
-     Subject: hugetlbfs: add an inline helper for finding hstate index
+     Subject: hugetlb: avoid taking i_mmap_mutex in unmap_single_vma() for hugetlb
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+     hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlbfs: add an inline helper for finding hstate index
+Subject: hugetlb: avoid taking i_mmap_mutex in unmap_single_vma() for hugetlb
 
-Add an inline helper and use it in the code.
+i_mmap_mutex lock was added in unmap_single_vma by 502717f4e ("hugetlb:
+fix linked list corruption in unmap_hugepage_range()") but we don't use
+page->lru in unmap_hugepage_range any more.  Also the lock was taken
+higher up in the stack in some code path.  That would result in deadlock.
+
+unmap_mapping_range (i_mmap_mutex)
+ -> unmap_mapping_range_tree
+    -> unmap_mapping_range_vma
+       -> zap_page_range_single
+         -> unmap_single_vma
+	      -> unmap_hugepage_range (i_mmap_mutex)
+
+For shared pagetable support for huge pages, since pagetable pages are ref
+counted we don't need any lock during huge_pmd_unshare.  We do take
+i_mmap_mutex in huge_pmd_share while walking the vma_prio_tree in mapping.
+(39dde65c9940c97f ("shared page table for hugetlb page")).
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 ++++++
- mm/hugetlb.c            |   18 ++++++++++--------
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ mm/memory.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlbfs-add-an-inline-helper-for-finding-hstate-index include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-add-an-inline-helper-for-finding-hstate-index
-+++ a/include/linux/hugetlb.h
-@@ -302,6 +302,11 @@ static inline unsigned hstate_index_to_s
- 	return hstates[index].order + PAGE_SHIFT;
- }
- 
-+static inline int hstate_index(struct hstate *h)
-+{
-+	return h - hstates;
-+}
-+
- #else
- struct hstate {};
- #define alloc_huge_page_node(h, nid) NULL
-@@ -320,6 +325,7 @@ static inline unsigned int pages_per_hug
- 	return 1;
- }
- #define hstate_index_to_shift(index) 0
-+#define hstate_index(h) 0
- #endif
- 
- #endif /* _LINUX_HUGETLB_H */
-diff -puN mm/hugetlb.c~hugetlbfs-add-an-inline-helper-for-finding-hstate-index mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-add-an-inline-helper-for-finding-hstate-index
-+++ a/mm/hugetlb.c
-@@ -1646,7 +1646,7 @@ static int hugetlb_sysfs_add_hstate(stru
- 				    struct attribute_group *hstate_attr_group)
- {
- 	int retval;
--	int hi = h - hstates;
-+	int hi = hstate_index(h);
- 
- 	hstate_kobjs[hi] = kobject_create_and_add(h->name, parent);
- 	if (!hstate_kobjs[hi])
-@@ -1741,11 +1741,13 @@ void hugetlb_unregister_node(struct node
- 	if (!nhs->hugepages_kobj)
- 		return;		/* no hstate attributes */
- 
--	for_each_hstate(h)
--		if (nhs->hstate_kobjs[h - hstates]) {
--			kobject_put(nhs->hstate_kobjs[h - hstates]);
--			nhs->hstate_kobjs[h - hstates] = NULL;
-+	for_each_hstate(h) {
-+		int idx = hstate_index(h);
-+		if (nhs->hstate_kobjs[idx]) {
-+			kobject_put(nhs->hstate_kobjs[idx]);
-+			nhs->hstate_kobjs[idx] = NULL;
- 		}
-+	}
- 
- 	kobject_put(nhs->hugepages_kobj);
- 	nhs->hugepages_kobj = NULL;
-@@ -1848,7 +1850,7 @@ static void __exit hugetlb_exit(void)
- 	hugetlb_unregister_all_nodes();
- 
- 	for_each_hstate(h) {
--		kobject_put(hstate_kobjs[h - hstates]);
-+		kobject_put(hstate_kobjs[hstate_index(h)]);
+diff -puN mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb mm/memory.c
+--- a/mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb
++++ a/mm/memory.c
+@@ -1329,11 +1329,8 @@ static void unmap_single_vma(struct mmu_
+ 			 * Since no pte has actually been setup, it is
+ 			 * safe to do nothing in this case.
+ 			 */
+-			if (vma->vm_file) {
+-				mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
++			if (vma->vm_file)
+ 				__unmap_hugepage_range(tlb, vma, start, end, NULL);
+-				mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
+-			}
+ 		} else
+ 			unmap_page_range(tlb, vma, start, end, details);
  	}
- 
- 	kobject_put(hugepages_kobj);
-@@ -2679,7 +2681,7 @@ retry:
- 		 */
- 		if (unlikely(PageHWPoison(page))) {
- 			ret = VM_FAULT_HWPOISON |
--			      VM_FAULT_SET_HINDEX(h - hstates);
-+				VM_FAULT_SET_HINDEX(hstate_index(h));
- 			goto backout_unlocked;
- 		}
- 	}
-@@ -2752,7 +2754,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 			return 0;
- 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
- 			return VM_FAULT_HWPOISON_LARGE |
--			       VM_FAULT_SET_HINDEX(h - hstates);
-+				VM_FAULT_SET_HINDEX(hstate_index(h));
- 	}
- 
- 	ptep = huge_pte_alloc(mm, address, huge_page_size(h));
 _
-Subject: Subject: hugetlbfs: add an inline helper for finding hstate index
+Subject: Subject: hugetlb: avoid taking i_mmap_mutex in unmap_single_vma() for hugetlb
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
