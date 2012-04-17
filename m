@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-memory-controller-documentation-for-hugetlb-management.patch added to -mm tree
-Date: Mon, 16 Apr 2012 16:16:26 -0700
-Message-ID: <20120416231627.076FCA0186@akpm.mtv.corp.google.com>
+Subject: + mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch added to -mm tree
+Date: Tue, 17 Apr 2012 13:57:33 -0700
+Message-ID: <20120417205735.B4667A038B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:59642 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754118Ab2DPXQ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Apr 2012 19:16:27 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so668703qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Apr 2012 16:16:27 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:41143 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152Ab2DQU5h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Apr 2012 16:57:37 -0400
+Received: by yenq2 with SMTP id q2so779812yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Apr 2012 13:57:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: khlebnikov@openvz.org, mgorman@suse.de, rientjes@google.com
 
 
 The patch titled
-     Subject: memcg: add memory controller documentation for hugetlb management
+     Subject: mm/hugetlb: fix warning in alloc_huge_page/dequeue_huge_page_vma
 has been added to the -mm tree.  Its filename is
-     memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+     mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: memcg: add memory controller documentation for hugetlb management
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm/hugetlb: fix warning in alloc_huge_page/dequeue_huge_page_vma
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Fix a gcc warning (and bug?) introduced in cc9a6c877 ("cpuset: mm: reduce
+large amounts of memory barrier related damage v3")
+
+Local variable "page" can be uninitialized if the nodemask from vma policy
+does not intersects with nodemask from cpuset.  Even if it doesn't happens
+it is better to initialize this variable explicitly than to introduce
+a kernel oops in a weird corner case.
+
+mm/hugetlb.c: In function `alloc_huge_page':
+mm/hugetlb.c:1135:5: warning: `page' may be used uninitialized in this function
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-add-memory-controller-documentation-for-hugetlb-management Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-add-memory-controller-documentation-for-hugetlb-management
-+++ a/Documentation/cgroups/memory.txt
-@@ -42,6 +42,7 @@ Features:
-  - usage threshold notifier
-  - oom-killer disable knob and oom-notifier
-  - Root cgroup has no limit controls.
-+ - resource accounting for HugeTLB pages
- 
-  Kernel memory support is work in progress, and the current version provides
-  basically functionality. (See Section 2.7)
-@@ -74,6 +75,12 @@ Brief summary of control files.
-  memory.kmem.tcp.limit_in_bytes  # set/show hard limit for tcp buf memory
-  memory.kmem.tcp.usage_in_bytes  # show current tcp buf memory allocation
- 
-+
-+ memory.hugetlb.<hugepagesize>.limit_in_bytes     # set/show limit of "hugepagesize" hugetlb usage
-+ memory.hugetlb.<hugepagesize>.max_usage_in_bytes # show max "hugepagesize" hugetlb  usage recorded
-+ memory.hugetlb.<hugepagesize>.usage_in_bytes     # show current res_counter usage for "hugepagesize" hugetlb
-+						  # see 5.7 for details
-+
- 1. History
- 
- The memory controller has a long history. A request for comments for the memory
-@@ -278,6 +285,15 @@ per cgroup, instead of globally.
- 
- * tcp memory pressure: sockets memory pressure for the tcp protocol.
- 
-+2.8 HugeTLB extension
-+
-+This extension allows to limit the HugeTLB usage per control group and
-+enforces the controller limit during page fault. Since HugeTLB doesn't
-+support page reclaim, enforcing the limit at page fault time implies that,
-+the application will get SIGBUS signal if it tries to access HugeTLB pages
-+beyond its limit. This requires the application to know beforehand how much
-+HugeTLB pages it would require for its use.
-+
- 3. User Interface
- 
- 0. Configuration
-@@ -286,6 +302,7 @@ a. Enable CONFIG_CGROUPS
- b. Enable CONFIG_RESOURCE_COUNTERS
- c. Enable CONFIG_CGROUP_MEM_RES_CTLR
- d. Enable CONFIG_CGROUP_MEM_RES_CTLR_SWAP (to use swap extension)
-+f. Enable CONFIG_MEM_RES_CTLR_HUGETLB (to use HugeTLB extension)
- 
- 1. Prepare the cgroups (see cgroups.txt, Why are cgroups needed?)
- # mount -t tmpfs none /sys/fs/cgroup
-@@ -509,6 +526,18 @@ unevictable=<total anon pages> N0=<node 
- 
- And we have total = file + anon + unevictable.
- 
-+5.7 HugeTLB resource control files
-+For a system supporting two hugepage size (16M and 16G) the control
-+files include:
-+
-+ memory.hugetlb.16GB.limit_in_bytes
-+ memory.hugetlb.16GB.max_usage_in_bytes
-+ memory.hugetlb.16GB.usage_in_bytes
-+ memory.hugetlb.16MB.limit_in_bytes
-+ memory.hugetlb.16MB.max_usage_in_bytes
-+ memory.hugetlb.16MB.usage_in_bytes
-+
-+
- 6. Hierarchy support
- 
- The memory controller supports a deep hierarchy and hierarchical accounting.
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma
++++ a/mm/hugetlb.c
+@@ -535,7 +535,7 @@ static struct page *dequeue_huge_page_vm
+ 				struct vm_area_struct *vma,
+ 				unsigned long address, int avoid_reserve)
+ {
+-	struct page *page;
++	struct page *page = NULL;
+ 	struct mempolicy *mpol;
+ 	nodemask_t *nodemask;
+ 	struct zonelist *zonelist;
 _
-Subject: Subject: memcg: add memory controller documentation for hugetlb management
+Subject: Subject: mm/hugetlb: fix warning in alloc_huge_page/dequeue_huge_page_vma
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
+mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch
 linux-next.patch
-hugetlbfs-lockdep-annotate-root-inode-properly.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-memcg-add-hugetlb-extension.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done.patch
+mm-remove-swap-token-code.patch
+mm-vmscan-remove-lumpy-reclaim.patch
+mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
+mm-vmscan-remove-reclaim_mode_t.patch
+mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
+mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-mark-mm-inline-functions-as-__always_inline.patch
+mm-remove-lru-type-checks-from-__isolate_lru_page.patch
+mm-memcg-kill-mem_cgroup_lru_del.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
 
