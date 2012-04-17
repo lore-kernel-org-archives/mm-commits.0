@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-mqueue-cleanup-definition-names-and-locations.patch added to -mm tree
-Date: Tue, 17 Apr 2012 15:17:48 -0700
-Message-ID: <20120417221748.B2E0DA038B@akpm.mtv.corp.google.com>
+Subject: + ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch added to -mm tree
+Date: Tue, 17 Apr 2012 15:17:56 -0700
+Message-ID: <20120417221757.06F17A038B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:44962 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753833Ab2DQWRu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Apr 2012 18:17:50 -0400
-Received: by qabg24 with SMTP id g24so4840qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Apr 2012 15:17:49 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:53861 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879Ab2DQWR6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Apr 2012 18:17:58 -0400
+Received: by qcsp5 with SMTP id p5so789924qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Apr 2012 15:17:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: dledford@redhat.com, amwang@redhat.com, joe.korty@ccur.com, jslaby@suse.cz, 
 
 
 The patch titled
-     Subject: ipc/mqueue: cleanup definition names and locations
+     Subject: ipc/mqueue: update maximums for the mqueue subsystem
 has been added to the -mm tree.  Its filename is
-     ipc-mqueue-cleanup-definition-names-and-locations.patch
+     ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Doug Ledford <dledford@redhat.com>
-Subject: ipc/mqueue: cleanup definition names and locations
+Subject: ipc/mqueue: update maximums for the mqueue subsystem
 
-Since commit b231cca4381 ("message queues: increase range limits") on Oct
-18, 2008, calls to mq_open() that did not pass in an attribute struct and
-expected to get default values for the size of the queue and the max
-message size now get the system wide maximums instead of hardwired
-defaults like they used to get.
+Commit b231cca4381e ("message queues: increase range limits") changed the
+maximum size of a message in a message queue from INT_MAX to 8192*128. 
+Unfortunately, we had customers that relied on a size much larger than
+8192*128 on their production systems.  After reviewing POSIX, we found
+that it is silent on the maximum message size.  We did find a couple other
+areas in which it was not silent.  Fix up the mqueue maximums so that the
+customer's system can continue to work, and document both the POSIX and
+real world requirements in ipc_namespace.h so that we don't have this
+issue crop back up.
 
-This was uncovered when one of the earlier patches in this patch set
-increased the default system wide maximums at the same time it increased
-the hard ceiling on the system wide maximums (a customer specifically
-needed the hard ceiling brought back up, the new ceiling that commit
-b231cca4381 introduced was too low for their production systems).  By
-increasing the default maximums and not realising they were tied to any
-attempt to create a message queue without an attribute struct, I had
-inadvertently made it such that all message queue creation attempts
-without an attribute struct were failing because the new default maximums
-would create a queue that exceeded the default rlimit for message queue
-bytes.
-
-As a result, the system wide defaults were brought back down to their
-previous levels, and the system wide ceilings on the maximums were raised
-to meet the customer's needs.  However, the fact that the no attribute
-struct behavior of mq_open() could be broken by changing the system wide
-maximums for message queues was seen as fundamentally broken itself.  So
-we hardwired the no attribute case back like it used to be.  But, then we
-realized that on the very off chance that some piece of software in the
-wild depended on that behavior, we could work around that issue by adding
-two new knobs to /proc that allowed setting the defaults for message
-queues created without an attr struct separately from the system wide
-maximums.
-
-What is not an option IMO is to leave the current behavior in place.  No
-piece of software should ever rely on setting the system wide maximums in
-order to get a desired message queue.  Such a reliance would be so
-fundamentally multitasking OS unfriendly as to not really be tolerable. 
-Fortunately, we don't know of any software in the wild that uses this
-except for a regression test program that caught the issue in the first
-place.  If there is though, we have made accommodations with the two new
-/proc knobs (and that's all the accommodations such fundamentally broken
-software can be allowed)..
-
-
-
-This patch:
-
-The various defines for minimums and maximums of the sysctl controllable
-mqueue values are scattered amongst different files and named
-inconsistently.  Move them all into ipc_namespace.h and make them have
-consistent names.  Additionally, make the number of queues per namespace
-also have a minimum and maximum and use the same sysctl function as the
-other two settable variables.
+Also, commit 9cf18e1dd74cd0 ("ipc: HARD_MSGMAX should be higher not lower
+on 64bit") fiddled with HARD_MSGMAX without realizing that the number was
+intentionally in place to limit the msg queue depth to one that was small
+enough to kmalloc an array of pointers (hence why we divided 128k by
+sizeof(long)).  If we wish to meet POSIX requirements, we have no choice
+but to change our allocation to a vmalloc instead (at least for the large
+queue size case).  With that, it's possible to increase our allowed
+maximum to the POSIX requirements (or more if we choose).
 
 Signed-off-by: Doug Ledford <dledford@redhat.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
@@ -97,99 +65,96 @@ Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    5 +++++
- ipc/mq_sysctl.c               |   31 ++++++++-----------------------
- 2 files changed, 13 insertions(+), 23 deletions(-)
+ include/linux/ipc_namespace.h |   47 +++++++++++++++++++++++---------
+ ipc/mqueue.c                  |   10 +++++-
+ 2 files changed, 43 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~ipc-mqueue-cleanup-definition-names-and-locations include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~ipc-mqueue-cleanup-definition-names-and-locations
+diff -puN include/linux/ipc_namespace.h~ipc-mqueue-update-maximums-for-the-mqueue-subsystem include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-mqueue-update-maximums-for-the-mqueue-subsystem
 +++ a/include/linux/ipc_namespace.h
-@@ -91,10 +91,15 @@ static inline void shm_destroy_orphaned(
+@@ -90,18 +90,41 @@ static inline void shm_destroy_orphaned(
+ 
  #ifdef CONFIG_POSIX_MQUEUE
  extern int mq_init_ns(struct ipc_namespace *ns);
- /* default values */
-+#define MIN_QUEUESMAX  1
- #define DFLT_QUEUESMAX 256     /* max number of message queues */
-+#define HARD_QUEUESMAX 1024
-+#define MIN_MSGMAX     1
- #define DFLT_MSGMAX    10      /* max number of messages in each queue */
- #define HARD_MSGMAX    (32768*sizeof(void *)/4)
-+#define MIN_MSGSIZEMAX  128
- #define DFLT_MSGSIZEMAX 8192   /* max message size */
-+#define HARD_MSGSIZEMAX (8192*128)
+-/* default values */
+-#define MIN_QUEUESMAX  1
+-#define DFLT_QUEUESMAX 256     /* max number of message queues */
+-#define HARD_QUEUESMAX 1024
+-#define MIN_MSGMAX     1
+-#define DFLT_MSG       10U
+-#define DFLT_MSGMAX    10      /* max number of messages in each queue */
+-#define HARD_MSGMAX    (32768*sizeof(void *)/4)
+-#define MIN_MSGSIZEMAX  128
+-#define DFLT_MSGSIZE    8192U
+-#define DFLT_MSGSIZEMAX 8192   /* max message size */
+-#define HARD_MSGSIZEMAX (8192*128)
++/*
++ * POSIX Message Queue default values:
++ *
++ * MIN_*: Lowest value an admin can set the maximum unprivileged limit to
++ * DFLT_*MAX: Default values for the maximum unprivileged limits
++ * DFLT_{MSG,MSGSIZE}: Default values used when the user doesn't supply
++ *   an attribute to the open call and the queue must be created
++ * HARD_*: Highest value the maximums can be set to.  These are enforced
++ *   on CAP_SYS_RESOURCE apps as well making them inviolate (so make them
++ *   suitably high)
++ *
++ * POSIX Requirements:
++ *   Per app minimum openable message queues - 8.  This does not map well
++ *     to the fact that we limit the number of queues on a per namespace
++ *     basis instead of a per app basis.  So, make the default high enough
++ *     that no given app should have a hard time opening 8 queues.
++ *   Minimum maximum for HARD_MSGMAX - 32767.  I bumped this to 65536.
++ *   Minimum maximum for HARD_MSGSIZEMAX - POSIX is silent on this.  However,
++ *     we have run into a situation where running applications in the wild
++ *     require this to be at least 5MB, and preferably 10MB, so I set the
++ *     value to 16MB in hopes that this user is the worst of the bunch and
++ *     the new maximum will handle anyone else.  I may have to revisit this
++ *     in the future.
++ */
++#define MIN_QUEUESMAX			1
++#define DFLT_QUEUESMAX		      256
++#define HARD_QUEUESMAX		     1024
++#define MIN_MSGMAX			1
++#define DFLT_MSG		       64U
++#define DFLT_MSGMAX		     1024
++#define HARD_MSGMAX		    65536
++#define MIN_MSGSIZEMAX		      128
++#define DFLT_MSGSIZE		     8192U
++#define DFLT_MSGSIZEMAX	       (1024*1024)
++#define HARD_MSGSIZEMAX	    (16*1024*1024)
  #else
  static inline int mq_init_ns(struct ipc_namespace *ns) { return 0; }
  #endif
-diff -puN ipc/mq_sysctl.c~ipc-mqueue-cleanup-definition-names-and-locations ipc/mq_sysctl.c
---- a/ipc/mq_sysctl.c~ipc-mqueue-cleanup-definition-names-and-locations
-+++ a/ipc/mq_sysctl.c
-@@ -13,15 +13,6 @@
- #include <linux/ipc_namespace.h>
- #include <linux/sysctl.h>
+diff -puN ipc/mqueue.c~ipc-mqueue-update-maximums-for-the-mqueue-subsystem ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-mqueue-update-maximums-for-the-mqueue-subsystem
++++ a/ipc/mqueue.c
+@@ -150,7 +150,10 @@ static struct inode *mqueue_get_inode(st
+ 			info->attr.mq_msgsize = attr->mq_msgsize;
+ 		}
+ 		mq_msg_tblsz = info->attr.mq_maxmsg * sizeof(struct msg_msg *);
+-		info->messages = kmalloc(mq_msg_tblsz, GFP_KERNEL);
++		if (mq_msg_tblsz > KMALLOC_MAX_SIZE)
++			info->messages = vmalloc(mq_msg_tblsz);
++		else
++			info->messages = kmalloc(mq_msg_tblsz, GFP_KERNEL);
+ 		if (!info->messages)
+ 			goto out_inode;
  
--/*
-- * Define the ranges various user-specified maximum values can
-- * be set to.
-- */
--#define MIN_MSGMAX	1		/* min value for msg_max */
--#define MAX_MSGMAX	HARD_MSGMAX	/* max value for msg_max */
--#define MIN_MSGSIZEMAX	128		/* min value for msgsize_max */
--#define MAX_MSGSIZEMAX	(8192*128)	/* max value for msgsize_max */
--
- #ifdef CONFIG_PROC_SYSCTL
- static void *get_mq(ctl_table *table)
- {
-@@ -31,16 +22,6 @@ static void *get_mq(ctl_table *table)
- 	return which;
- }
+@@ -260,7 +263,10 @@ static void mqueue_evict_inode(struct in
+ 	spin_lock(&info->lock);
+ 	for (i = 0; i < info->attr.mq_curmsgs; i++)
+ 		free_msg(info->messages[i]);
+-	kfree(info->messages);
++	if (info->attr.mq_maxmsg * sizeof(struct msg_msg *) > KMALLOC_MAX_SIZE)
++		vfree(info->messages);
++	else
++		kfree(info->messages);
+ 	spin_unlock(&info->lock);
  
--static int proc_mq_dointvec(ctl_table *table, int write,
--	void __user *buffer, size_t *lenp, loff_t *ppos)
--{
--	struct ctl_table mq_table;
--	memcpy(&mq_table, table, sizeof(mq_table));
--	mq_table.data = get_mq(table);
--
--	return proc_dointvec(&mq_table, write, buffer, lenp, ppos);
--}
--
- static int proc_mq_dointvec_minmax(ctl_table *table, int write,
- 	void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -52,15 +33,17 @@ static int proc_mq_dointvec_minmax(ctl_t
- 					lenp, ppos);
- }
- #else
--#define proc_mq_dointvec NULL
- #define proc_mq_dointvec_minmax NULL
- #endif
- 
-+static int msg_queues_limit_min = MIN_QUEUESMAX;
-+static int msg_queues_limit_max = HARD_QUEUESMAX;
-+
- static int msg_max_limit_min = MIN_MSGMAX;
--static int msg_max_limit_max = MAX_MSGMAX;
-+static int msg_max_limit_max = HARD_MSGMAX;
- 
- static int msg_maxsize_limit_min = MIN_MSGSIZEMAX;
--static int msg_maxsize_limit_max = MAX_MSGSIZEMAX;
-+static int msg_maxsize_limit_max = HARD_MSGSIZEMAX;
- 
- static ctl_table mq_sysctls[] = {
- 	{
-@@ -68,7 +51,9 @@ static ctl_table mq_sysctls[] = {
- 		.data		= &init_ipc_ns.mq_queues_max,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_mq_dointvec,
-+		.proc_handler	= proc_mq_dointvec_minmax,
-+		.extra1		= &msg_queues_limit_min,
-+		.extra2		= &msg_queues_limit_max,
- 	},
- 	{
- 		.procname	= "msg_max",
+ 	/* Total amount of bytes accounted for the mqueue */
 _
-Subject: Subject: ipc/mqueue: cleanup definition names and locations
+Subject: Subject: ipc/mqueue: update maximums for the mqueue subsystem
 
 Patches currently in -mm which might be from dledford@redhat.com are
 
