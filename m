@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + mqueue-revert-bump-up-dflt_max.patch added to -mm tree
-Date: Tue, 17 Apr 2012 15:17:59 -0700
-Message-ID: <20120417221759.E38DDA038B@akpm.mtv.corp.google.com>
+Subject: + mqueue-dont-use-kmalloc-with-kmalloc_max_size.patch added to -mm tree
+Date: Tue, 17 Apr 2012 15:18:02 -0700
+Message-ID: <20120417221802.E4154A038B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:61558 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753879Ab2DQWSA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Apr 2012 18:18:00 -0400
-Received: by ghbz15 with SMTP id z15so783480ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Apr 2012 15:18:00 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:53082 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753762Ab2DQWSG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 17 Apr 2012 18:18:06 -0400
+Received: by laai8 with SMTP id i8so323968laa.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Apr 2012 15:18:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, amwang@redhat.com, dledford@redhat.com, joe.korty@ccur.com, jslaby@suse.cz, manfred@colorfullife.com, serue@us.ibm.com
+Cc: kosaki.motohiro@jp.fujitsu.com, amwang@redhat.com, dledford@redhat.com, joe.korty@ccur.com, jslaby@suse.cz, manfred@colorfullife.com, mkosaki@jp.fujitsu.com, serue@us.ibm.com
 
 
 The patch titled
-     Subject: mqueue: revert bump up DFLT_*MAX
+     Subject: mqueue: don't use kmalloc with KMALLOC_MAX_SIZE
 has been added to the -mm tree.  Its filename is
-     mqueue-revert-bump-up-dflt_max.patch
+     mqueue-dont-use-kmalloc-with-kmalloc_max_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +35,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mqueue: revert bump up DFLT_*MAX
+Subject: mqueue: don't use kmalloc with KMALLOC_MAX_SIZE
 
-Mqueue limitation is slightly naieve parameter likes other ipcs because
-unprivileged user can consume kernel memory by using ipcs.
+KMALLOC_MAX_SIZE is not a good threshold.  It is extremely high and
+problematic.  Unfortunately, some silly drivers depend on this and we
+can't change it.  But any new code needn't use such extreme ugly high
+order allocations.  It brings us awful fragmentation issues and system
+slowdown.
 
-Thus, too aggressive raise bring us security issue.  Example, current
-setting allow evil unprivileged user use 256GB (= 256 * 1024 * 1024*1024)
-and it's enough large to system will belome unresponsive.  Don't do that.
-
-Instead, every admin should adjust the knobs for their own systems.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: KOSAKI Motohiro <mkosaki@jp.fujitsu.com>
 Acked-by: Doug Ledford <dledford@redhat.com>
 Acked-by: Joe Korty <joe.korty@ccur.com>
 Cc: Amerigo Wang <amwang@redhat.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
 Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Joe Korty <joe.korty@ccur.com>
 Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/mqueue.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~mqueue-revert-bump-up-dflt_max include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~mqueue-revert-bump-up-dflt_max
-+++ a/include/linux/ipc_namespace.h
-@@ -118,12 +118,12 @@ extern int mq_init_ns(struct ipc_namespa
- #define DFLT_QUEUESMAX		      256
- #define HARD_QUEUESMAX		     1024
- #define MIN_MSGMAX			1
--#define DFLT_MSG		       64U
--#define DFLT_MSGMAX		     1024
-+#define DFLT_MSG		       10U
-+#define DFLT_MSGMAX		       10
- #define HARD_MSGMAX		    65536
- #define MIN_MSGSIZEMAX		      128
- #define DFLT_MSGSIZE		     8192U
--#define DFLT_MSGSIZEMAX	       (1024*1024)
-+#define DFLT_MSGSIZEMAX		     8192
- #define HARD_MSGSIZEMAX	    (16*1024*1024)
- #else
- static inline int mq_init_ns(struct ipc_namespace *ns) { return 0; }
+diff -puN ipc/mqueue.c~mqueue-dont-use-kmalloc-with-kmalloc_max_size ipc/mqueue.c
+--- a/ipc/mqueue.c~mqueue-dont-use-kmalloc-with-kmalloc_max_size
++++ a/ipc/mqueue.c
+@@ -150,7 +150,7 @@ static struct inode *mqueue_get_inode(st
+ 			info->attr.mq_msgsize = attr->mq_msgsize;
+ 		}
+ 		mq_msg_tblsz = info->attr.mq_maxmsg * sizeof(struct msg_msg *);
+-		if (mq_msg_tblsz > KMALLOC_MAX_SIZE)
++		if (mq_msg_tblsz > PAGE_SIZE)
+ 			info->messages = vmalloc(mq_msg_tblsz);
+ 		else
+ 			info->messages = kmalloc(mq_msg_tblsz, GFP_KERNEL);
+@@ -263,7 +263,7 @@ static void mqueue_evict_inode(struct in
+ 	spin_lock(&info->lock);
+ 	for (i = 0; i < info->attr.mq_curmsgs; i++)
+ 		free_msg(info->messages[i]);
+-	if (info->attr.mq_maxmsg * sizeof(struct msg_msg *) > KMALLOC_MAX_SIZE)
++	if (is_vmalloc_addr(info->messages))
+ 		vfree(info->messages);
+ 	else
+ 		kfree(info->messages);
 _
-Subject: Subject: mqueue: revert bump up DFLT_*MAX
+Subject: Subject: mqueue: don't use kmalloc with KMALLOC_MAX_SIZE
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
