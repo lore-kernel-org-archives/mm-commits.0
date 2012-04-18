@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-ufs-fix-evaluation-of-task_failed-status.patch added to -mm tree
-Date: Wed, 18 Apr 2012 15:57:26 -0700
-Message-ID: <20120418225727.0EDF5A03A5@akpm.mtv.corp.google.com>
+Subject: + debugobjects-fill_pool-returns-void-now.patch added to -mm tree
+Date: Wed, 18 Apr 2012 16:01:53 -0700
+Message-ID: <20120418230153.AAA63A0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:54978 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320Ab2DRW53 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Apr 2012 18:57:29 -0400
-Received: by eaaq10 with SMTP id q10so379799eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Apr 2012 15:57:28 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:65185 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751537Ab2DRXBy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Apr 2012 19:01:54 -0400
+Received: by yenq2 with SMTP id q2so915577yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Apr 2012 16:01:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: svenkatr@ti.com, James.Bottomley@HansenPartnership.com, joe@perches.com, linkinjeon@gmail.com, santoshsy@gmail.com
+Cc: dan.carpenter@oracle.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: drivers/scsi/ufs: fix evaluation of task_failed status
+     Subject: debugobjects: fill_pool() returns void now
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-ufs-fix-evaluation-of-task_failed-status.patch
+     debugobjects-fill_pool-returns-void-now.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Venkatraman S <svenkatr@ti.com>
-Subject: drivers/scsi/ufs: fix evaluation of task_failed status
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: debugobjects: fill_pool() returns void now
 
-Else FAILED would be set even if task_result was originally equal to
-UPIU_TASK_MANAGEMENT_FUNC_SUCCEEDED.
+There was a return missed in 1fda107d44 "debugobjects: Remove unused
+return value from fill_pool()".  It makes gcc complain:
 
-Reported-by: Joe Perches <joe@perches.com>
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
-Reviewed-by: Namjae Jeon <linkinjeon@gmail.com>
-Acked-by: Santosh Y <santoshsy@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+	lib/debugobjects.c: In function `fill_pool':
+	lib/debugobjects.c:98:4: warning: `return' with a value, in
+		function returning void [enabled by default]
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ufs/ufshcd.c |    2 +-
+ lib/debugobjects.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ufs/ufshcd.c~drivers-scsi-ufs-fix-evaluation-of-task_failed-status drivers/scsi/ufs/ufshcd.c
---- a/drivers/scsi/ufs/ufshcd.c~drivers-scsi-ufs-fix-evaluation-of-task_failed-status
-+++ a/drivers/scsi/ufs/ufshcd.c
-@@ -1160,7 +1160,7 @@ static int ufshcd_task_req_compl(struct 
- 		task_result = be32_to_cpu(task_rsp_upiup->header.dword_1);
- 		task_result = ((task_result & MASK_TASK_RESPONSE) >> 8);
+diff -puN lib/debugobjects.c~debugobjects-fill_pool-returns-void-now lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-fill_pool-returns-void-now
++++ a/lib/debugobjects.c
+@@ -95,7 +95,7 @@ static void fill_pool(void)
  
--		if (task_result != UPIU_TASK_MANAGEMENT_FUNC_COMPL ||
-+		if (task_result != UPIU_TASK_MANAGEMENT_FUNC_COMPL &&
- 		    task_result != UPIU_TASK_MANAGEMENT_FUNC_SUCCEEDED)
- 			task_result = FAILED;
- 	} else {
+ 		new = kmem_cache_zalloc(obj_cache, gfp);
+ 		if (!new)
+-			return obj_pool_free;
++			return;
+ 
+ 		raw_spin_lock_irqsave(&pool_lock, flags);
+ 		hlist_add_head(&new->node, &obj_pool);
 _
-Subject: Subject: drivers/scsi/ufs: fix evaluation of task_failed status
+Subject: Subject: debugobjects: fill_pool() returns void now
 
-Patches currently in -mm which might be from svenkatr@ti.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 linux-next.patch
-drivers-scsi-ufs-use-module_pci_driver.patch
-drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic.patch
-drivers-scsi-ufs-fix-evaluation-of-task_failed-status.patch
+debugobjects-fill_pool-returns-void-now.patch
+fsnotify-remove-unused-parameter-from-send_to_group.patch
+drivers-leds-leds-lp5521c-fix-lp5521_read-error-handling.patch
+hpfs-remove-printk-macro.patch
 
