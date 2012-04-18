@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + leds-ledtrig-timer-trigger_data-allocation-fix.patch added to -mm tree
-Date: Tue, 17 Apr 2012 16:12:57 -0700
-Message-ID: <20120417231258.50E3BA018B@akpm.mtv.corp.google.com>
+Subject: + kconfig-update-compression-algorithm-info.patch added to -mm tree
+Date: Wed, 18 Apr 2012 15:14:45 -0700
+Message-ID: <20120418221448.7DFC8A018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:41739 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753438Ab2DQXM7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Apr 2012 19:12:59 -0400
-Received: by vbnl22 with SMTP id l22so792793vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Apr 2012 16:12:59 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:35164 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751045Ab2DRWOu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Apr 2012 18:14:50 -0400
+Received: by ghbz15 with SMTP id z15so905081ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Apr 2012 15:14:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shuahkhan@gmail.com, rpurdie@rpsys.net
+Cc: rdunlap@xenotime.net, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, lasse.collin@tukaani.org, markus@trippelsdorf.de, qasdfgtyuiop@gmail.com
 
 
 The patch titled
-     Subject: leds: ledtrig-timer trigger_data allocation fix
+     Subject: kconfig: update compression algorithm info
 has been added to the -mm tree.  Its filename is
-     leds-ledtrig-timer-trigger_data-allocation-fix.patch
+     kconfig-update-compression-algorithm-info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shuah Khan <shuahkhan@gmail.com>
-Subject: leds: ledtrig-timer trigger_data allocation fix
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: kconfig: update compression algorithm info
 
-ledtrig-timer doesn't allocate memory for trigger_data and assigns (void
-*)1 to save state.  Fix it to allocate int instead.  Note that non-null
-trigger_data is used to key off of to do proper cleanup in deactivation
-routine and not used during the life of the trigger itself.
+There have been new compression algorithms added without updating nearby
+relevant descriptive text that refers to (a) the number of compression
+algorithms and (b) the most recent one.  Fix these inconsistencies.
 
-Signed-off-by: Shuah Khan <shuahkhan@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Reported-by: <qasdfgtyuiop@gmail.com>
+Cc: Lasse Collin <lasse.collin@tukaani.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/ledtrig-timer.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ init/Kconfig |   11 +++++------
+ usr/Kconfig  |   10 +++++-----
+ 2 files changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/leds/ledtrig-timer.c~leds-ledtrig-timer-trigger_data-allocation-fix drivers/leds/ledtrig-timer.c
---- a/drivers/leds/ledtrig-timer.c~leds-ledtrig-timer-trigger_data-allocation-fix
-+++ a/drivers/leds/ledtrig-timer.c
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/device.h>
- #include <linux/ctype.h>
-+#include <linux/slab.h>
- #include <linux/leds.h>
- #include "leds.h"
+diff -puN init/Kconfig~kconfig-update-compression-algorithm-info init/Kconfig
+--- a/init/Kconfig~kconfig-update-compression-algorithm-info
++++ a/init/Kconfig
+@@ -164,7 +164,7 @@ config KERNEL_BZIP2
+ 	depends on HAVE_KERNEL_BZIP2
+ 	help
+ 	  Its compression ratio and speed is intermediate.
+-	  Decompression speed is slowest among the three.  The kernel
++	  Decompression speed is slowest among the choices.  The kernel
+ 	  size is about 10% smaller with bzip2, in comparison to gzip.
+ 	  Bzip2 uses a large amount of memory. For modern kernels you
+ 	  will need at least 8MB RAM or more for booting.
+@@ -173,10 +173,9 @@ config KERNEL_LZMA
+ 	bool "LZMA"
+ 	depends on HAVE_KERNEL_LZMA
+ 	help
+-	  The most recent compression algorithm.
+-	  Its ratio is best, decompression speed is between the other
+-	  two. Compression is slowest.	The kernel size is about 33%
+-	  smaller with LZMA in comparison to gzip.
++	  This compression algorithm's ratio is best.  Decompression speed
++	  is between gzip and bzip2.  Compression is slowest.
++	  The kernel size is about 33% smaller with LZMA in comparison to gzip.
  
-@@ -88,10 +89,14 @@ static void timer_trig_activate(struct l
- 	led_blink_set(led_cdev, &led_cdev->blink_delay_on,
- 		      &led_cdev->blink_delay_off);
+ config KERNEL_XZ
+ 	bool "XZ"
+@@ -197,7 +196,7 @@ config KERNEL_LZO
+ 	bool "LZO"
+ 	depends on HAVE_KERNEL_LZO
+ 	help
+-	  Its compression ratio is the poorest among the 4. The kernel
++	  Its compression ratio is the poorest among the choices. The kernel
+ 	  size is about 10% bigger than gzip; however its speed
+ 	  (both compression and decompression) is the fastest.
  
--	led_cdev->trigger_data = (void *)1;
-+	led_cdev->trigger_data = kzalloc(sizeof(int), GFP_KERNEL);
-+	if (!led_cdev->trigger_data)
-+		goto err_out_delayoff;
+diff -puN usr/Kconfig~kconfig-update-compression-algorithm-info usr/Kconfig
+--- a/usr/Kconfig~kconfig-update-compression-algorithm-info
++++ a/usr/Kconfig
+@@ -134,7 +134,7 @@ config INITRAMFS_COMPRESSION_BZIP2
+ 	depends on RD_BZIP2
+ 	help
+ 	  Its compression ratio and speed is intermediate.
+-	  Decompression speed is slowest among the four.  The initramfs
++	  Decompression speed is slowest among the choices.  The initramfs
+ 	  size is about 10% smaller with bzip2, in comparison to gzip.
+ 	  Bzip2 uses a large amount of memory. For modern kernels you
+ 	  will need at least 8MB RAM or more for booting.
+@@ -143,9 +143,9 @@ config INITRAMFS_COMPRESSION_LZMA
+ 	bool "LZMA"
+ 	depends on RD_LZMA
+ 	help
+-	  The most recent compression algorithm.
+-	  Its ratio is best, decompression speed is between the other
+-	  three. Compression is slowest. The initramfs size is about 33%
++	  This algorithm's compression ratio is best.
++	  Decompression speed is between the other choices.
++	  Compression is slowest. The initramfs size is about 33%
+ 	  smaller with LZMA in comparison to gzip.
  
- 	return;
+ config INITRAMFS_COMPRESSION_XZ
+@@ -161,7 +161,7 @@ config INITRAMFS_COMPRESSION_LZO
+ 	bool "LZO"
+ 	depends on RD_LZO
+ 	help
+-	  Its compression ratio is the poorest among the four. The kernel
++	  Its compression ratio is the poorest among the choices. The kernel
+ 	  size is about 10% bigger than gzip; however its speed
+ 	  (both compression and decompression) is the fastest.
  
-+err_out_delayoff:
-+	device_remove_file(led_cdev->dev, &dev_attr_delay_off);
- err_out_delayon:
- 	device_remove_file(led_cdev->dev, &dev_attr_delay_on);
- }
-@@ -101,6 +106,7 @@ static void timer_trig_deactivate(struct
- 	if (led_cdev->trigger_data) {
- 		device_remove_file(led_cdev->dev, &dev_attr_delay_on);
- 		device_remove_file(led_cdev->dev, &dev_attr_delay_off);
-+		kfree(led_cdev->trigger_data);
- 	}
- 
- 	/* Stop blinking */
 _
-Subject: Subject: leds: ledtrig-timer trigger_data allocation fix
+Subject: Subject: kconfig: update compression algorithm info
 
-Patches currently in -mm which might be from shuahkhan@gmail.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
+origin.patch
 linux-next.patch
-leds-add-led-driver-for-lm3556-chip.patch
-leds-simple_strtoul-cleanup.patch
-leds-ledtrig-timer-trigger_data-allocation-fix.patch
-leds-ledtrig-timer-trigger_data-allocation-fix-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
+kconfig-update-compression-algorithm-info.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
