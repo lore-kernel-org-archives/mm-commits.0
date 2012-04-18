@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch added to -mm tree
-Date: Wed, 18 Apr 2012 15:36:31 -0700
-Message-ID: <20120418223631.AF9D4A018B@akpm.mtv.corp.google.com>
+Subject: + lib-string_helpersc-make-arrays-static.patch added to -mm tree
+Date: Wed, 18 Apr 2012 15:36:53 -0700
+Message-ID: <20120418223653.75A4BA018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:49739 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753895Ab2DRWge (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Apr 2012 18:36:34 -0400
-Received: by lbol12 with SMTP id l12so192269lbo.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Apr 2012 15:36:33 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:46431 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751639Ab2DRWgy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Apr 2012 18:36:54 -0400
+Received: by yhgm50 with SMTP id m50so908218yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Apr 2012 15:36:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, aneesh.kumar@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix
+     Subject: lib/string_helpers.c: make arrays static
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+     lib-string_helpersc-make-arrays-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix
+Subject: lib/string_helpers.c: make arrays static
 
-s/scnprintf/snprintf/
+Moving these arrays into static storage shrinks the kernel a bit:
 
+   text    data     bss     dec     hex filename
+    723     112      64     899     383 lib/string_helpers.o
+    516     272      64     852     354 lib/string_helpers.o
+
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++----
+ lib/string_helpers.c |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix mm/memcontrol.c
---- a/mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix
-+++ a/mm/memcontrol.c
-@@ -4037,7 +4037,7 @@ static ssize_t mem_cgroup_read(struct cg
- 		BUG();
- 	}
- 
--	len = scnprintf(str, sizeof(str), "%llu\n", (unsigned long long)val);
-+	len = snprintf(str, sizeof(str), "%llu\n", (unsigned long long)val);
- 	return simple_read_from_buffer(buf, nbytes, ppos, str, len);
- }
- /*
-@@ -5199,11 +5199,11 @@ static void mem_cgroup_destroy(struct cg
- static char *mem_fmt(char *buf, int size, unsigned long hsize)
+diff -puN lib/string_helpers.c~lib-string_helpersc-make-arrays-static lib/string_helpers.c
+--- a/lib/string_helpers.c~lib-string_helpersc-make-arrays-static
++++ a/lib/string_helpers.c
+@@ -23,15 +23,15 @@
+ int string_get_size(u64 size, const enum string_size_units units,
+ 		    char *buf, int len)
  {
- 	if (hsize >= (1UL << 30))
--		scnprintf(buf, size, "%luGB", hsize >> 30);
-+		snprintf(buf, size, "%luGB", hsize >> 30);
- 	else if (hsize >= (1UL << 20))
--		scnprintf(buf, size, "%luMB", hsize >> 20);
-+		snprintf(buf, size, "%luMB", hsize >> 20);
- 	else
--		scnprintf(buf, size, "%luKB", hsize >> 10);
-+		snprintf(buf, size, "%luKB", hsize >> 10);
- 	return buf;
- }
- 
+-	const char *units_10[] = { "B", "kB", "MB", "GB", "TB", "PB",
++	static const char *units_10[] = { "B", "kB", "MB", "GB", "TB", "PB",
+ 				   "EB", "ZB", "YB", NULL};
+-	const char *units_2[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB",
++	static const char *units_2[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB",
+ 				 "EiB", "ZiB", "YiB", NULL };
+-	const char **units_str[] = {
++	static const char **units_str[] = {
+ 		[STRING_UNITS_10] =  units_10,
+ 		[STRING_UNITS_2] = units_2,
+ 	};
+-	const unsigned int divisor[] = {
++	static const unsigned int divisor[] = {
+ 		[STRING_UNITS_10] = 1000,
+ 		[STRING_UNITS_2] = 1024,
+ 	};
 _
-Subject: Subject: hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix
+Subject: Subject: lib/string_helpers.c: make arrays static
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
