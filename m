@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch added to -mm tree
-Date: Wed, 18 Apr 2012 15:32:16 -0700
-Message-ID: <20120418223216.90C84A018B@akpm.mtv.corp.google.com>
+Subject: + hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch added to -mm tree
+Date: Wed, 18 Apr 2012 15:36:31 -0700
+Message-ID: <20120418223631.AF9D4A018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:46377 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751009Ab2DRWcS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Apr 2012 18:32:18 -0400
-Received: by eekc41 with SMTP id c41so381005eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Apr 2012 15:32:17 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:49739 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753895Ab2DRWge (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Apr 2012 18:36:34 -0400
+Received: by lbol12 with SMTP id l12so192269lbo.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Apr 2012 15:36:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: memcg: use scnprintf instead of sprintf
+     Subject: hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+     hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: memcg: use scnprintf instead of sprintf
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix
 
-Make sure we don't overflow.
+s/scnprintf/snprintf/
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf mm/memcontrol.c
---- a/mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf
+diff -puN mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix
 +++ a/mm/memcontrol.c
-@@ -5196,14 +5196,14 @@ static void mem_cgroup_destroy(struct cg
- }
+@@ -4037,7 +4037,7 @@ static ssize_t mem_cgroup_read(struct cg
+ 		BUG();
+ 	}
  
- #ifdef CONFIG_MEM_RES_CTLR_HUGETLB
--static char *mem_fmt(char *buf, unsigned long n)
-+static char *mem_fmt(char *buf, int size, unsigned long hsize)
+-	len = scnprintf(str, sizeof(str), "%llu\n", (unsigned long long)val);
++	len = snprintf(str, sizeof(str), "%llu\n", (unsigned long long)val);
+ 	return simple_read_from_buffer(buf, nbytes, ppos, str, len);
+ }
+ /*
+@@ -5199,11 +5199,11 @@ static void mem_cgroup_destroy(struct cg
+ static char *mem_fmt(char *buf, int size, unsigned long hsize)
  {
--	if (n >= (1UL << 30))
--		sprintf(buf, "%luGB", n >> 30);
--	else if (n >= (1UL << 20))
--		sprintf(buf, "%luMB", n >> 20);
-+	if (hsize >= (1UL << 30))
-+		scnprintf(buf, size, "%luGB", hsize >> 30);
-+	else if (hsize >= (1UL << 20))
-+		scnprintf(buf, size, "%luMB", hsize >> 20);
+ 	if (hsize >= (1UL << 30))
+-		scnprintf(buf, size, "%luGB", hsize >> 30);
++		snprintf(buf, size, "%luGB", hsize >> 30);
+ 	else if (hsize >= (1UL << 20))
+-		scnprintf(buf, size, "%luMB", hsize >> 20);
++		snprintf(buf, size, "%luMB", hsize >> 20);
  	else
--		sprintf(buf, "%luKB", n >> 10);
-+		scnprintf(buf, size, "%luKB", hsize >> 10);
+-		scnprintf(buf, size, "%luKB", hsize >> 10);
++		snprintf(buf, size, "%luKB", hsize >> 10);
  	return buf;
  }
  
-@@ -5214,7 +5214,7 @@ int __init mem_cgroup_hugetlb_file_init(
- 	struct hstate *h = &hstates[idx];
- 
- 	/* format the size */
--	mem_fmt(buf, huge_page_size(h));
-+	mem_fmt(buf, 32, huge_page_size(h));
- 
- 	/* Add the limit file */
- 	cft = &h->mem_cgroup_files[0];
 _
-Subject: Subject: memcg: use scnprintf instead of sprintf
+Subject: Subject: hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-hugetlbfs-lockdep-annotate-root-inode-properly.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-memcg-add-hugetlb-extension.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+mm-add-extra-free-kbytes-tunable-update-checkpatch-fixes.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-ledtrig-timer-trigger_data-allocation-fix-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
