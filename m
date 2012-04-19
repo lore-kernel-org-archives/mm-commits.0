@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch added to -mm tree
-Date: Thu, 19 Apr 2012 11:52:21 -0700
-Message-ID: <20120419185221.E8ED6A055E@akpm.mtv.corp.google.com>
+Subject: + aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector.patch added to -mm tree
+Date: Thu, 19 Apr 2012 12:27:04 -0700
+Message-ID: <20120419192704.AA2B4A055E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:64358 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754723Ab2DSSwY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Apr 2012 14:52:24 -0400
-Received: by eaaq10 with SMTP id q10so426624eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 19 Apr 2012 11:52:23 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:52171 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752958Ab2DST1I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Apr 2012 15:27:08 -0400
+Received: by wgbdt11 with SMTP id dt11so478141wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 19 Apr 2012 12:27:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, gorcunov@openvz.org, keescook@chromium.org, kosaki.motohiro@jp.fujitsu.com, matthltc@us.ibm.com, oleg@redhat.com, tj@kernel.org, xemul@parallels.com
+Cc: cyeoh@au1.ibm.com, oleg@redhat.com, yeohc@au1.ibm.com
 
 
 The patch titled
-     Subject: c/r: prctl: update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal
+     Subject: aio/vfs: cleanup of rw_copy_check_uvector() and compat_rw_copy_check_uvector()
 has been added to the -mm tree.  Its filename is
-     c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+     aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,229 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: c/r: prctl: update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal
+From: Christopher Yeoh <cyeoh@au1.ibm.com>
+Subject: aio/vfs: cleanup of rw_copy_check_uvector() and compat_rw_copy_check_uvector()
 
-[ fix for "c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-v2" from mm tree ]
+A cleanup of rw_copy_check_uvector and compat_rw_copy_check_uvector after
+changes made to support CMA in an earlier patch.
 
-After removing mm->num_exe_file_vmas kernel keeps mm->exe_file until final
-mmput(), it never becomes NULL while task is alive.
+Rather than having an additional check_access parameter to these
+functions, the first paramater type is overloaded to allow the caller to
+specify CHECK_IOVEC_ONLY which means check that the contents of the iovec
+are valid, but do not check the memory that they point to.  This is used
+by process_vm_readv/writev where we need to validate that a iovec passed
+to the syscall is valid but do not want to check the memory that it points
+to at this point because it refers to an address space in another process.
 
-We can check for other mapped files in mm instead of checking
-mm->num_exe_file_vmas, and mark mm with flag MMF_EXE_FILE_CHANGED in order
-to forbid second changing of mm->exe_file.
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Chris Yeoh <yeohc@au1.ibm.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 +
- kernel/sys.c          |   31 +++++++++++++++++++------------
- 2 files changed, 20 insertions(+), 12 deletions(-)
+ fs/aio.c               |    4 ++--
+ fs/compat.c            |    6 +++---
+ fs/read_write.c        |    7 +++----
+ include/linux/compat.h |    3 +--
+ include/linux/fs.h     |   12 ++++++++++--
+ mm/process_vm_access.c |   16 ++++++++--------
+ security/keys/compat.c |    2 +-
+ security/keys/keyctl.c |    2 +-
+ 8 files changed, 29 insertions(+), 23 deletions(-)
 
-diff -puN include/linux/sched.h~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal include/linux/sched.h
---- a/include/linux/sched.h~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal
-+++ a/include/linux/sched.h
-@@ -437,6 +437,7 @@ extern int get_dumpable(struct mm_struct
- 					/* leave room for more dump flags */
- #define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
- #define MMF_VM_HUGEPAGE		17	/* set when VM_HUGEPAGE is set on vma */
-+#define MMF_EXE_FILE_CHANGED	18	/* see prctl_set_mm_exe_file() */
+diff -puN fs/aio.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector fs/aio.c
+--- a/fs/aio.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/fs/aio.c
+@@ -1436,13 +1436,13 @@ static ssize_t aio_setup_vectored_rw(int
+ 		ret = compat_rw_copy_check_uvector(type,
+ 				(struct compat_iovec __user *)kiocb->ki_buf,
+ 				kiocb->ki_nbytes, 1, &kiocb->ki_inline_vec,
+-				&kiocb->ki_iovec, 1);
++				&kiocb->ki_iovec);
+ 	else
+ #endif
+ 		ret = rw_copy_check_uvector(type,
+ 				(struct iovec __user *)kiocb->ki_buf,
+ 				kiocb->ki_nbytes, 1, &kiocb->ki_inline_vec,
+-				&kiocb->ki_iovec, 1);
++				&kiocb->ki_iovec);
+ 	if (ret < 0)
+ 		goto out;
  
- #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
- 
-diff -puN kernel/sys.c~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal kernel/sys.c
---- a/kernel/sys.c~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal
-+++ a/kernel/sys.c
-@@ -1714,17 +1714,11 @@ static bool vma_flags_mismatch(struct vm
- 
- static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+diff -puN fs/compat.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector fs/compat.c
+--- a/fs/compat.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/fs/compat.c
+@@ -532,7 +532,7 @@ out:
+ ssize_t compat_rw_copy_check_uvector(int type,
+ 		const struct compat_iovec __user *uvector, unsigned long nr_segs,
+ 		unsigned long fast_segs, struct iovec *fast_pointer,
+-		struct iovec **ret_pointer, int check_access)
++		struct iovec **ret_pointer)
  {
-+	struct vm_area_struct *vma;
- 	struct file *exe_file;
- 	struct dentry *dentry;
- 	int err;
+ 	compat_ssize_t tot_len;
+ 	struct iovec *iov = *ret_pointer = fast_pointer;
+@@ -579,7 +579,7 @@ ssize_t compat_rw_copy_check_uvector(int
+ 		}
+ 		if (len < 0)	/* size_t not fitting in compat_ssize_t .. */
+ 			goto out;
+-		if (check_access &&
++		if (type >= 0 &&
+ 		    !access_ok(vrfy_dir(type), compat_ptr(buf), len)) {
+ 			ret = -EFAULT;
+ 			goto out;
+@@ -1094,7 +1094,7 @@ static ssize_t compat_do_readv_writev(in
+ 		goto out;
  
--	/*
--	 * Setting new mm::exe_file is only allowed when no VM_EXECUTABLE vma's
--	 * remain. So perform a quick test first.
--	 */
--	if (mm->num_exe_file_vmas)
--		return -EBUSY;
--
- 	exe_file = fget(fd);
- 	if (!exe_file)
- 		return -EBADF;
-@@ -1745,17 +1739,30 @@ static int prctl_set_mm_exe_file(struct 
- 	if (err)
- 		goto exit;
+ 	tot_len = compat_rw_copy_check_uvector(type, uvector, nr_segs,
+-					       UIO_FASTIOV, iovstack, &iov, 1);
++					       UIO_FASTIOV, iovstack, &iov);
+ 	if (tot_len == 0) {
+ 		ret = 0;
+ 		goto out;
+diff -puN fs/read_write.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector fs/read_write.c
+--- a/fs/read_write.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/fs/read_write.c
+@@ -633,8 +633,7 @@ ssize_t do_loop_readv_writev(struct file
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
+-			      struct iovec **ret_pointer,
+-			      int check_access)
++			      struct iovec **ret_pointer)
+ {
+ 	unsigned long seg;
+ 	ssize_t ret;
+@@ -690,7 +689,7 @@ ssize_t rw_copy_check_uvector(int type, 
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+-		if (check_access
++		if (type >= 0
+ 		    && unlikely(!access_ok(vrfy_dir(type), buf, len))) {
+ 			ret = -EFAULT;
+ 			goto out;
+@@ -723,7 +722,7 @@ static ssize_t do_readv_writev(int type,
+ 	}
  
-+	down_write(&mm->mmap_sem);
-+
-+	/*
-+	 * Forbid mm->exe_file change if there are mapped other files.
-+	 */
-+	err = -EBUSY;
-+	for (vma = mm->mmap; vma; vma = vma->vm_next) {
-+		if (vma->vm_file && !path_equal(&vma->vm_file->f_path,
-+						&exe_file->f_path))
-+			goto exit_unlock;
-+	}
-+
- 	/*
- 	 * The symlink can be changed only once, just to disallow arbitrary
- 	 * transitions malicious software might bring in. This means one
- 	 * could make a snapshot over all processes running and monitor
- 	 * /proc/pid/exe changes to notice unusual activity if needed.
- 	 */
--	down_write(&mm->mmap_sem);
--	if (likely(!mm->exe_file))
--		set_mm_exe_file(mm, exe_file);
--	else
--		err = -EBUSY;
-+	err = -EPERM;
-+	if (test_and_set_bit(MMF_EXE_FILE_CHANGED, &mm->flags))
-+		goto exit_unlock;
-+
-+	set_mm_exe_file(mm, exe_file);
-+exit_unlock:
- 	up_write(&mm->mmap_sem);
+ 	ret = rw_copy_check_uvector(type, uvector, nr_segs,
+-				    ARRAY_SIZE(iovstack), iovstack, &iov, 1);
++				    ARRAY_SIZE(iovstack), iovstack, &iov);
+ 	if (ret <= 0)
+ 		goto out;
  
- exit:
+diff -puN include/linux/compat.h~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector include/linux/compat.h
+--- a/include/linux/compat.h~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/include/linux/compat.h
+@@ -577,8 +577,7 @@ extern ssize_t compat_rw_copy_check_uvec
+ 		const struct compat_iovec __user *uvector,
+ 		unsigned long nr_segs,
+ 		unsigned long fast_segs, struct iovec *fast_pointer,
+-		struct iovec **ret_pointer,
+-		int check_access);
++		struct iovec **ret_pointer);
+ 
+ extern void __user *compat_alloc_user_space(unsigned long len);
+ 
+diff -puN include/linux/fs.h~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector include/linux/fs.h
+--- a/include/linux/fs.h~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/include/linux/fs.h
+@@ -173,6 +173,15 @@ struct inodes_stat_t {
+ #define WRITE_FUA		(WRITE | REQ_SYNC | REQ_NOIDLE | REQ_FUA)
+ #define WRITE_FLUSH_FUA		(WRITE | REQ_SYNC | REQ_NOIDLE | REQ_FLUSH | REQ_FUA)
+ 
++
++/*
++ * Flag for rw_copy_check_uvector and compat_rw_copy_check_uvector
++ * that indicates that they should check the contents of the iovec are
++ * valid, but not check the memory that the iovec elements
++ * points too.
++ */
++#define CHECK_IOVEC_ONLY -1
++
+ #define SEL_IN		1
+ #define SEL_OUT		2
+ #define SEL_EX		4
+@@ -1673,8 +1682,7 @@ struct seq_file;
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
+-			      struct iovec **ret_pointer,
+-			      int check_access);
++			      struct iovec **ret_pointer);
+ 
+ extern ssize_t vfs_read(struct file *, char __user *, size_t, loff_t *);
+ extern ssize_t vfs_write(struct file *, const char __user *, size_t, loff_t *);
+diff -puN mm/process_vm_access.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector mm/process_vm_access.c
+--- a/mm/process_vm_access.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/mm/process_vm_access.c
+@@ -371,15 +371,15 @@ static ssize_t process_vm_rw(pid_t pid,
+ 	/* Check iovecs */
+ 	if (vm_write)
+ 		rc = rw_copy_check_uvector(WRITE, lvec, liovcnt, UIO_FASTIOV,
+-					   iovstack_l, &iov_l, 1);
++					   iovstack_l, &iov_l);
+ 	else
+ 		rc = rw_copy_check_uvector(READ, lvec, liovcnt, UIO_FASTIOV,
+-					   iovstack_l, &iov_l, 1);
++					   iovstack_l, &iov_l);
+ 	if (rc <= 0)
+ 		goto free_iovecs;
+ 
+-	rc = rw_copy_check_uvector(READ, rvec, riovcnt, UIO_FASTIOV,
+-				   iovstack_r, &iov_r, 0);
++	rc = rw_copy_check_uvector(CHECK_IOVEC_ONLY, rvec, riovcnt, UIO_FASTIOV,
++				   iovstack_r, &iov_r);
+ 	if (rc <= 0)
+ 		goto free_iovecs;
+ 
+@@ -438,16 +438,16 @@ compat_process_vm_rw(compat_pid_t pid,
+ 	if (vm_write)
+ 		rc = compat_rw_copy_check_uvector(WRITE, lvec, liovcnt,
+ 						  UIO_FASTIOV, iovstack_l,
+-						  &iov_l, 1);
++						  &iov_l);
+ 	else
+ 		rc = compat_rw_copy_check_uvector(READ, lvec, liovcnt,
+ 						  UIO_FASTIOV, iovstack_l,
+-						  &iov_l, 1);
++						  &iov_l);
+ 	if (rc <= 0)
+ 		goto free_iovecs;
+-	rc = compat_rw_copy_check_uvector(READ, rvec, riovcnt,
++	rc = compat_rw_copy_check_uvector(CHECK_IOVEC_ONLY, rvec, riovcnt,
+ 					  UIO_FASTIOV, iovstack_r,
+-					  &iov_r, 0);
++					  &iov_r);
+ 	if (rc <= 0)
+ 		goto free_iovecs;
+ 
+diff -puN security/keys/compat.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector security/keys/compat.c
+--- a/security/keys/compat.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/security/keys/compat.c
+@@ -38,7 +38,7 @@ long compat_keyctl_instantiate_key_iov(
+ 
+ 	ret = compat_rw_copy_check_uvector(WRITE, _payload_iov, ioc,
+ 					   ARRAY_SIZE(iovstack),
+-					   iovstack, &iov, 1);
++					   iovstack, &iov);
+ 	if (ret < 0)
+ 		return ret;
+ 	if (ret == 0)
+diff -puN security/keys/keyctl.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector security/keys/keyctl.c
+--- a/security/keys/keyctl.c~cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/security/keys/keyctl.c
+@@ -1079,7 +1079,7 @@ long keyctl_instantiate_key_iov(key_seri
+ 		goto no_payload;
+ 
+ 	ret = rw_copy_check_uvector(WRITE, _payload_iov, ioc,
+-				    ARRAY_SIZE(iovstack), iovstack, &iov, 1);
++				    ARRAY_SIZE(iovstack), iovstack, &iov);
+ 	if (ret < 0)
+ 		return ret;
+ 	if (ret == 0)
 _
-Subject: Subject: c/r: prctl: update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal
+Subject: Subject: aio/vfs: cleanup of rw_copy_check_uvector() and compat_rw_copy_check_uvector()
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from cyeoh@au1.ibm.com are
 
-mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch
-linux-next.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done.patch
-mm-remove-swap-token-code.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector.patch
 
