@@ -1,36 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + w1-add-fast-search-for-single-slave-bus.patch added to -mm tree
-Date: Fri, 20 Apr 2012 13:12:00 -0700
-Message-ID: <20120420201200.9BEF8A035C@akpm.mtv.corp.google.com>
+Subject: [merged] w1-add-fast-search-for-single-slave-bus.patch removed from -mm tree
+Date: Fri, 20 Apr 2012 13:12:21 -0700
+Message-ID: <20120420201221.D8E81A035C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-yx0-f202.google.com ([209.85.213.202]:37693 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab2DTUMC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 16:12:02 -0400
-Received: by yenq2 with SMTP id q2so1144921yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 13:12:01 -0700 (PDT)
+	with ESMTP id S1750724Ab2DTUMW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 16:12:22 -0400
+Received: by mail-yx0-f202.google.com with SMTP id q2so1144921yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 13:12:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: h.feurstein@gmail.com, dagenaisj@sonatest.com, greg@kroah.com, zbr@ioremap.net
+To: h.feurstein@gmail.com, dagenaisj@sonatest.com, greg@kroah.com, zbr@ioremap.net, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: w1: add fast search for single slave bus
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      w1-add-fast-search-for-single-slave-bus.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hubert Feurstein <h.feurstein@gmail.com>
@@ -71,9 +63,7 @@ diff -puN drivers/w1/w1.c~w1-add-fast-search-for-single-slave-bus drivers/w1/w1.
  		w1_write_8(dev, search_type);
  		for (i = 0; i < 64; ++i) {
 _
-Subject: Subject: w1: add fast search for single slave bus
 
 Patches currently in -mm which might be from h.feurstein@gmail.com are
 
-w1-add-fast-search-for-single-slave-bus.patch
 
