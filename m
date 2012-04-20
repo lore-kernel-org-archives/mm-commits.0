@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-new-field-to-led_classdev-struct-to-save-activation-state.patch added to -mm tree
-Date: Fri, 20 Apr 2012 14:02:37 -0700
-Message-ID: <20120420210237.80172A03CD@akpm.mtv.corp.google.com>
+Subject: + leds-change-ledtrig-timer-to-use-activated-flag.patch added to -mm tree
+Date: Fri, 20 Apr 2012 14:02:41 -0700
+Message-ID: <20120420210242.1E83DA03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:55593 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276Ab2DTVCk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 17:02:40 -0400
-Received: by lbol12 with SMTP id l12so292680lbo.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 14:02:38 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:50051 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754161Ab2DTVCo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 17:02:44 -0400
+Received: by wejx9 with SMTP id x9so478174wej.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 14:02:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: shuahkhan@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: leds: add new field to led_classdev struct to save activation state
+     Subject: leds: change ledtrig-timer to use activated flag
 has been added to the -mm tree.  Its filename is
-     leds-add-new-field-to-led_classdev-struct-to-save-activation-state.patch
+     leds-change-ledtrig-timer-to-use-activated-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Shuah Khan <shuahkhan@gmail.com>
-Subject: leds: add new field to led_classdev struct to save activation state
+Subject: leds: change ledtrig-timer to use activated flag
 
-Add a new field to led_classdev to save activattion state after activate
-routine is successful.  This saved state is used in deactivate routine to
-do cleanup such as removing device files, and free memory allocated during
-activation.  Currently trigger_data not being null is used for this
-purpose.
-
-Existing triggers will need changes to use this new field.
+Change existing timer trigger to use the new ->activated flag to set
+activate successful status in activate routine and check it in deactivate
+routine to do cleanup.
 
 Signed-off-by: Shuah Khan <shuahkhan@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/leds.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/leds/ledtrig-timer.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/leds.h~leds-add-new-field-to-led_classdev-struct-to-save-activation-state include/linux/leds.h
---- a/include/linux/leds.h~leds-add-new-field-to-led_classdev-struct-to-save-activation-state
-+++ a/include/linux/leds.h
-@@ -73,6 +73,8 @@ struct led_classdev {
- 	struct led_trigger	*trigger;
- 	struct list_head	 trig_list;
- 	void			*trigger_data;
-+	/* true if activated - deactivate routine uses it to do cleanup */
-+	bool			activated;
- #endif
- };
+diff -puN drivers/leds/ledtrig-timer.c~leds-change-ledtrig-timer-to-use-activated-flag drivers/leds/ledtrig-timer.c
+--- a/drivers/leds/ledtrig-timer.c~leds-change-ledtrig-timer-to-use-activated-flag
++++ a/drivers/leds/ledtrig-timer.c
+@@ -87,8 +87,7 @@ static void timer_trig_activate(struct l
  
+ 	led_blink_set(led_cdev, &led_cdev->blink_delay_on,
+ 		      &led_cdev->blink_delay_off);
+-
+-	led_cdev->trigger_data = (void *)1;
++	led_cdev->activated = true;
+ 
+ 	return;
+ 
+@@ -98,9 +97,10 @@ err_out_delayon:
+ 
+ static void timer_trig_deactivate(struct led_classdev *led_cdev)
+ {
+-	if (led_cdev->trigger_data) {
++	if (led_cdev->activated) {
+ 		device_remove_file(led_cdev->dev, &dev_attr_delay_on);
+ 		device_remove_file(led_cdev->dev, &dev_attr_delay_off);
++		led_cdev->activated = false;
+ 	}
+ 
+ 	/* Stop blinking */
 _
-Subject: Subject: leds: add new field to led_classdev struct to save activation state
+Subject: Subject: leds: change ledtrig-timer to use activated flag
 
 Patches currently in -mm which might be from shuahkhan@gmail.com are
 
