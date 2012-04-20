@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + leds-change-existing-triggers-to-use-activated-flag.patch added to -mm tree
-Date: Fri, 20 Apr 2012 14:02:40 -0700
-Message-ID: <20120420210240.4616CA03CD@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled.patch added to -mm tree
+Date: Fri, 20 Apr 2012 14:28:42 -0700
+Message-ID: <20120420212843.00F29A0172@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:40749 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753656Ab2DTVCm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 17:02:42 -0400
-Received: by qabg24 with SMTP id g24so109294qab.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 14:02:40 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:34806 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754591Ab2DTV2p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 17:28:45 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so293171lbo.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 14:28:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shuahkhan@gmail.com, rpurdie@rpsys.net
+Cc: agust@denx.de, a.zummo@towertech.it, ebiederm@xmission.com, gregkh@suse.de, sbabic@denx.de, w.sang@pengutronix.de
 
 
 The patch titled
-     Subject: leds: change existing triggers to use activated flag
+     Subject: drivers/rtc/rtc-ds1307.c: fix BUG shown with lock debugging enabled
 has been added to the -mm tree.  Its filename is
-     leds-change-existing-triggers-to-use-activated-flag.patch
+     drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,106 +33,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shuah Khan <shuahkhan@gmail.com>
-Subject: leds: change existing triggers to use activated flag
+From: Anatolij Gustschin <agust@denx.de>
+Subject: drivers/rtc/rtc-ds1307.c: fix BUG shown with lock debugging enabled
 
-Change existing triggers backlight, gpio, and heartbeat to use the new
-->activated flag to set activate successful status in their activate
-routines and check it in their deactivate routines to do cleanup.
+Add struct bin_attribute initialization to fix the following bug:
 
-Signed-off-by: Shuah Khan <shuahkhan@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+rtc-ds1307 3-0068: rtc core: registered ds1307 as rtc0
+BUG: key cfb14fcc not in .data!
+------------[ cut here ]------------
+WARNING: at kernel/lockdep.c:2986 sysfs_add_file_mode+0x84/0xdc()
+Modules linked in:
+[<c0018d94>] (unwind_backtrace+0x0/0xf8) from [<c0031f7c>] (warn_slowpath_common+0x4c/0x64)
+[<c0031f7c>] (warn_slowpath_common+0x4c/0x64) from [<c0031fb0>] (warn_slowpath_null+0x1c/0x24)
+[<c0031fb0>] (warn_slowpath_null+0x1c/0x24) from [<c012f7ac>] (sysfs_add_file_mode+0x84/0xdc)
+[<c012f7ac>] (sysfs_add_file_mode+0x84/0xdc) from [<c04b11e4>] (ds1307_probe+0x5e4/0x6ac)
+[<c04b11e4>] (ds1307_probe+0x5e4/0x6ac) from [<c036e600>] (i2c_device_probe+0xdc/0x108)
+[<c036e600>] (i2c_device_probe+0xdc/0x108) from [<c02cdf84>] (driver_probe_device+0x90/0x210)
+[<c02cdf84>] (driver_probe_device+0x90/0x210) from [<c02ce198>] (__driver_attach+0x94/0x98)
+[<c02ce198>] (__driver_attach+0x94/0x98) from [<c02cc824>] (bus_for_each_dev+0x50/0x7c)
+[<c02cc824>] (bus_for_each_dev+0x50/0x7c) from [<c02cd780>] (bus_add_driver+0x184/0x244)
+[<c02cd780>] (bus_add_driver+0x184/0x244) from [<c02ce43c>] (driver_register+0x78/0x12c)
+[<c02ce43c>] (driver_register+0x78/0x12c) from [<c03701ac>] (i2c_register_driver+0x2c/0xb4)
+[<c03701ac>] (i2c_register_driver+0x2c/0xb4) from [<c0008798>] (do_one_initcall+0x34/0x178)
+[<c0008798>] (do_one_initcall+0x34/0x178) from [<c0691860>] (kernel_init+0xdc/0x194)
+[<c0691860>] (kernel_init+0xdc/0x194) from [<c0013cf0>] (kernel_thread_exit+0x0/0x8)
+
+Since commit 6992f5334995af4 ("sysfs: Use one lockdep class per sysfs
+attribute") this initialization is required.
+
+Reported-by: Stefano Babic <sbabic@denx.de>
+Tested-by: Stefano Babic <sbabic@denx.de>
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Stefano Babic <sbabic@denx.de>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/ledtrig-backlight.c |    4 +++-
- drivers/leds/ledtrig-gpio.c      |    4 +++-
- drivers/leds/ledtrig-heartbeat.c |    4 +++-
- 3 files changed, 9 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-ds1307.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/ledtrig-backlight.c~leds-change-existing-triggers-to-use-activated-flag drivers/leds/ledtrig-backlight.c
---- a/drivers/leds/ledtrig-backlight.c~leds-change-existing-triggers-to-use-activated-flag
-+++ a/drivers/leds/ledtrig-backlight.c
-@@ -120,6 +120,7 @@ static void bl_trig_activate(struct led_
- 	ret = fb_register_client(&n->notifier);
- 	if (ret)
- 		dev_err(led->dev, "unable to register backlight trigger\n");
-+	led->activated = true;
- 
- 	return;
- 
-@@ -133,10 +134,11 @@ static void bl_trig_deactivate(struct le
- 	struct bl_trig_notifier *n =
- 		(struct bl_trig_notifier *) led->trigger_data;
- 
--	if (n) {
-+	if (led->activated) {
- 		device_remove_file(led->dev, &dev_attr_inverted);
- 		fb_unregister_client(&n->notifier);
- 		kfree(n);
-+		led->activated = false;
- 	}
- }
- 
-diff -puN drivers/leds/ledtrig-gpio.c~leds-change-existing-triggers-to-use-activated-flag drivers/leds/ledtrig-gpio.c
---- a/drivers/leds/ledtrig-gpio.c~leds-change-existing-triggers-to-use-activated-flag
-+++ a/drivers/leds/ledtrig-gpio.c
-@@ -200,6 +200,7 @@ static void gpio_trig_activate(struct le
- 	gpio_data->led = led;
- 	led->trigger_data = gpio_data;
- 	INIT_WORK(&gpio_data->work, gpio_trig_work);
-+	led->activated = true;
- 
- 	return;
- 
-@@ -217,7 +218,7 @@ static void gpio_trig_deactivate(struct 
- {
- 	struct gpio_trig_data *gpio_data = led->trigger_data;
- 
--	if (gpio_data) {
-+	if (led->activated) {
- 		device_remove_file(led->dev, &dev_attr_gpio);
- 		device_remove_file(led->dev, &dev_attr_inverted);
- 		device_remove_file(led->dev, &dev_attr_desired_brightness);
-@@ -225,6 +226,7 @@ static void gpio_trig_deactivate(struct 
- 		if (gpio_data->gpio != 0)
- 			free_irq(gpio_to_irq(gpio_data->gpio), led);
- 		kfree(gpio_data);
-+		led->activated = false;
- 	}
- }
- 
-diff -puN drivers/leds/ledtrig-heartbeat.c~leds-change-existing-triggers-to-use-activated-flag drivers/leds/ledtrig-heartbeat.c
---- a/drivers/leds/ledtrig-heartbeat.c~leds-change-existing-triggers-to-use-activated-flag
-+++ a/drivers/leds/ledtrig-heartbeat.c
-@@ -83,15 +83,17 @@ static void heartbeat_trig_activate(stru
- 		    led_heartbeat_function, (unsigned long) led_cdev);
- 	heartbeat_data->phase = 0;
- 	led_heartbeat_function(heartbeat_data->timer.data);
-+	led_cdev->activated = true;
- }
- 
- static void heartbeat_trig_deactivate(struct led_classdev *led_cdev)
- {
- 	struct heartbeat_trig_data *heartbeat_data = led_cdev->trigger_data;
- 
--	if (heartbeat_data) {
-+	if (led_cdev->activated) {
- 		del_timer_sync(&heartbeat_data->timer);
- 		kfree(heartbeat_data);
-+		led_cdev->activated = false;
- 	}
- }
- 
+diff -puN drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -902,6 +902,7 @@ read_rtc:
+ 		}
+ 		ds1307->nvram->attr.name = "nvram";
+ 		ds1307->nvram->attr.mode = S_IRUGO | S_IWUSR;
++		sysfs_bin_attr_init(ds1307->nvram);
+ 		ds1307->nvram->read = ds1307_nvram_read,
+ 		ds1307->nvram->write = ds1307_nvram_write,
+ 		ds1307->nvram->size = chip->nvram_size;
 _
-Subject: Subject: leds: change existing triggers to use activated flag
+Subject: Subject: drivers/rtc/rtc-ds1307.c: fix BUG shown with lock debugging enabled
 
-Patches currently in -mm which might be from shuahkhan@gmail.com are
+Patches currently in -mm which might be from agust@denx.de are
 
 linux-next.patch
-leds-add-led-driver-for-lm3556-chip.patch
-leds-simple_strtoul-cleanup.patch
-leds-add-new-field-to-led_classdev-struct-to-save-activation-state.patch
-leds-change-existing-triggers-to-use-activated-flag.patch
-leds-change-ledtrig-timer-to-use-activated-flag.patch
+drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled.patch
 
