@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment.patch added to -mm tree
-Date: Fri, 20 Apr 2012 15:44:01 -0700
-Message-ID: <20120420224401.C9698A03B2@akpm.mtv.corp.google.com>
+Subject: + introduce-size_max.patch added to -mm tree
+Date: Fri, 20 Apr 2012 16:04:05 -0700
+Message-ID: <20120420230405.D5F3AA03B2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:53044 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755420Ab2DTWoE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 18:44:04 -0400
-Received: by qcsp5 with SMTP id p5so1162961qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 15:44:03 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:56002 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932216Ab2DTXEM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 19:04:12 -0400
+Received: by qabg24 with SMTP id g24so119744qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 16:04:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com
+Cc: xi.wang@gmail.com, airlied@linux.ie, elder@dreamhost.com, penberg@kernel.org
 
 
 The patch titled
-     Subject: c/r: prctl: simplify PR_SET_MM on mm::code/data assignment
+     Subject: introduce SIZE_MAX
 has been added to the -mm tree.  Its filename is
-     c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment.patch
+     introduce-size_max.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,118 +33,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: c/r: prctl: simplify PR_SET_MM on mm::code/data assignment
+From: Xi Wang <xi.wang@gmail.com>
+Subject: introduce SIZE_MAX
 
-The mm::start_code, end_code, start_data, end_data members are set during
-startup of executable file and are not changed after.
+ULONG_MAX is often used to check for integer overflow when calculating
+allocation size.  While ULONG_MAX happens to work on most systems, there
+is no guarantee that `size_t' must be the same size as `long'.
 
-But the program itself might map new executable or/and data areas in time
-so the original values written into mm fields mentioned above might not
-have correspond VMA area at all, thus if one try to use this prctl codes
-without underlied VMA, the error will be returned.
+This patch introduces SIZE_MAX, the maximum value of `size_t', to improve
+portability and readability for allocation size validation.
 
-Drop this requirement.  This shrinks the code and eliminates redundant
-calls to vma_flags_mismatch.  The worst thing one can do (if say to write
-some bad values here) -- the weird results will be shown in
-/proc/$pid/statm or in /proc/pid/stat.
-
-Still, assignement of data on stack (such as command line and environment
-variables) requires the underlied VMA to exist.
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Cc: Alex Elder <elder@dreamhost.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   35 ++++++++---------------------------
- 1 file changed, 8 insertions(+), 27 deletions(-)
+ fs/ceph/snap.c             |    2 +-
+ include/drm/drm_mem_util.h |    4 ++--
+ include/linux/kernel.h     |    1 +
+ include/linux/slab.h       |    2 +-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sys.c~c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment kernel/sys.c
---- a/kernel/sys.c~c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment
-+++ a/kernel/sys.c
-@@ -1727,42 +1727,21 @@ static int prctl_set_mm(int opt, unsigne
- 	if (addr >= TASK_SIZE)
- 		return -EINVAL;
+diff -puN fs/ceph/snap.c~introduce-size_max fs/ceph/snap.c
+--- a/fs/ceph/snap.c~introduce-size_max
++++ a/fs/ceph/snap.c
+@@ -331,7 +331,7 @@ static int build_snap_context(struct cep
  
--	error = -EINVAL;
--
- 	down_read(&mm->mmap_sem);
- 	vma = find_vma(mm, addr);
+ 	/* alloc new snap context */
+ 	err = -ENOMEM;
+-	if (num > (ULONG_MAX - sizeof(*snapc)) / sizeof(u64))
++	if (num > (SIZE_MAX - sizeof(*snapc)) / sizeof(u64))
+ 		goto fail;
+ 	snapc = kzalloc(sizeof(*snapc) + num*sizeof(u64), GFP_NOFS);
+ 	if (!snapc)
+diff -puN include/drm/drm_mem_util.h~introduce-size_max include/drm/drm_mem_util.h
+--- a/include/drm/drm_mem_util.h~introduce-size_max
++++ a/include/drm/drm_mem_util.h
+@@ -31,7 +31,7 @@
  
--	if (opt != PR_SET_MM_START_BRK &&
--	    opt != PR_SET_MM_BRK &&
--	    opt != PR_SET_MM_AUXV) {
--		/* It must be existing VMA */
--		if (!vma || vma->vm_start > addr)
--			goto out;
--	}
--
- 	switch (opt) {
- 	case PR_SET_MM_START_CODE:
-+		mm->start_code = addr;
-+		break;
- 	case PR_SET_MM_END_CODE:
--		if (vma_flags_mismatch(vma, VM_READ | VM_EXEC,
--				       VM_WRITE | VM_MAYSHARE))
--			goto out;
--
--		if (opt == PR_SET_MM_START_CODE)
--			mm->start_code = addr;
--		else
--			mm->end_code = addr;
-+		mm->end_code = addr;
- 		break;
--
- 	case PR_SET_MM_START_DATA:
-+		mm->start_data = addr;
-+		break;
- 	case PR_SET_MM_END_DATA:
--		if (vma_flags_mismatch(vma, VM_READ | VM_WRITE,
--				       VM_EXEC | VM_MAYSHARE))
--			goto out;
--
--		if (opt == PR_SET_MM_START_DATA)
--			mm->start_data = addr;
--		else
--			mm->end_data = addr;
-+		mm->end_data = addr;
- 		break;
+ static __inline__ void *drm_calloc_large(size_t nmemb, size_t size)
+ {
+-	if (size != 0 && nmemb > ULONG_MAX / size)
++	if (size != 0 && nmemb > SIZE_MAX / size)
+ 		return NULL;
  
- 	case PR_SET_MM_START_BRK:
-@@ -1801,6 +1780,8 @@ static int prctl_set_mm(int opt, unsigne
- 	case PR_SET_MM_ARG_END:
- 	case PR_SET_MM_ENV_START:
- 	case PR_SET_MM_ENV_END:
-+		if (!vma)
-+			goto out;
- #ifdef CONFIG_STACK_GROWSUP
- 		if (vma_flags_mismatch(vma, VM_READ | VM_WRITE | VM_GROWSUP, 0))
- #else
+ 	if (size * nmemb <= PAGE_SIZE)
+@@ -44,7 +44,7 @@ static __inline__ void *drm_calloc_large
+ /* Modeled after cairo's malloc_ab, it's like calloc but without the zeroing. */
+ static __inline__ void *drm_malloc_ab(size_t nmemb, size_t size)
+ {
+-	if (size != 0 && nmemb > ULONG_MAX / size)
++	if (size != 0 && nmemb > SIZE_MAX / size)
+ 		return NULL;
+ 
+ 	if (size * nmemb <= PAGE_SIZE)
+diff -puN include/linux/kernel.h~introduce-size_max include/linux/kernel.h
+--- a/include/linux/kernel.h~introduce-size_max
++++ a/include/linux/kernel.h
+@@ -35,6 +35,7 @@
+ #define LLONG_MAX	((long long)(~0ULL>>1))
+ #define LLONG_MIN	(-LLONG_MAX - 1)
+ #define ULLONG_MAX	(~0ULL)
++#define SIZE_MAX	(~(size_t)0)
+ 
+ #define STACK_MAGIC	0xdeadbeef
+ 
+diff -puN include/linux/slab.h~introduce-size_max include/linux/slab.h
+--- a/include/linux/slab.h~introduce-size_max
++++ a/include/linux/slab.h
+@@ -242,7 +242,7 @@ size_t ksize(const void *);
+  */
+ static inline void *kmalloc_array(size_t n, size_t size, gfp_t flags)
+ {
+-	if (size != 0 && n > ULONG_MAX / size)
++	if (size != 0 && n > SIZE_MAX / size)
+ 		return NULL;
+ 	return __kmalloc(n * size, flags);
+ }
 _
-Subject: Subject: c/r: prctl: simplify PR_SET_MM on mm::code/data assignment
+Subject: Subject: introduce SIZE_MAX
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from xi.wang@gmail.com are
 
 linux-next.patch
-sethostname-setdomainname-notify-userspace-when-there-is-a-change-in-uts_kern_table.patch
-sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
-c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
-c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-c-r-ipc-message-queue-receive-cleanup.patch
-c-r-ipc-message-queue-receive-cleanup-fix.patch
-c-r-ipc-message-queue-stealing-feature-introduced.patch
-c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv.patch
+codingstyle-add-kmalloc_array-to-memory-allocators.patch
+introduce-size_max.patch
 
