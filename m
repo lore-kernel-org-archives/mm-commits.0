@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + leds-use-kcalloc-instead-of-kzalloc-to-allocate-array.patch added to -mm tree
-Date: Fri, 20 Apr 2012 13:09:24 -0700
-Message-ID: <20120420200924.4EC97A00AB@akpm.mtv.corp.google.com>
+Subject: + w1-add-fast-search-for-single-slave-bus.patch added to -mm tree
+Date: Fri, 20 Apr 2012 13:12:00 -0700
+Message-ID: <20120420201200.9BEF8A035C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vx0-f202.google.com ([209.85.220.202]:55187 "EHLO
-	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab2DTUJZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 16:09:25 -0400
-Received: by vcbfk26 with SMTP id fk26so1147290vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 13:09:24 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:37693 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750724Ab2DTUMC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 16:12:02 -0400
+Received: by yenq2 with SMTP id q2so1144921yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 13:12:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thomas@m3y3r.de
+Cc: h.feurstein@gmail.com, dagenaisj@sonatest.com, greg@kroah.com, zbr@ioremap.net
 
 
 The patch titled
-     Subject: leds: Use kcalloc instead of kzalloc to allocate array
+     Subject: w1: add fast search for single slave bus
 has been added to the -mm tree.  Its filename is
-     leds-use-kcalloc-instead-of-kzalloc-to-allocate-array.patch
+     w1-add-fast-search-for-single-slave-bus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: leds: Use kcalloc instead of kzalloc to allocate array
+From: Hubert Feurstein <h.feurstein@gmail.com>
+Subject: w1: add fast search for single slave bus
 
-The advantage of kcalloc is that will prevent integer overflows which
-could result from the multiplication of number of elements and size and it
-is also a bit nicer to read.
+This enables a much more efficient way of device searching.  It uses the
+1-wire read-rom operation which allows the direct reading of the slave
+address.  BUT this works only with exactly one slave on the bus.
 
-The semantic patch that makes this change is available
-in https://lkml.org/lkml/2011/11/25/107
-
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+Signed-off-by: Hubert Feurstein <h.feurstein@gmail.com>
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jean-Franois Dagenais <dagenaisj@sonatest.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-mc13783.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/w1/w1.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/leds/leds-mc13783.c~leds-use-kcalloc-instead-of-kzalloc-to-allocate-array drivers/leds/leds-mc13783.c
---- a/drivers/leds/leds-mc13783.c~leds-use-kcalloc-instead-of-kzalloc-to-allocate-array
-+++ a/drivers/leds/leds-mc13783.c
-@@ -280,7 +280,7 @@ static int __devinit mc13783_led_probe(s
- 		return -EINVAL;
- 	}
+diff -puN drivers/w1/w1.c~w1-add-fast-search-for-single-slave-bus drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-add-fast-search-for-single-slave-bus
++++ a/drivers/w1/w1.c
+@@ -902,6 +902,16 @@ void w1_search(struct w1_master *dev, u8
+ 			break;
+ 		}
  
--	led = kzalloc(sizeof(*led) * pdata->num_leds, GFP_KERNEL);
-+	led = kcalloc(pdata->num_leds, sizeof(*led), GFP_KERNEL);
- 	if (led == NULL) {
- 		dev_err(&pdev->dev, "failed to alloc memory\n");
- 		return -ENOMEM;
++		/* Do fast search on single slave bus */
++		if (dev->max_slave_count == 1) {
++			w1_write_8(dev, W1_READ_ROM);
++
++			if (w1_read_block(dev, (u8 *)&rn, 8) == 8 && rn)
++				cb(dev, rn);
++
++			break;
++		}
++
+ 		/* Start the search */
+ 		w1_write_8(dev, search_type);
+ 		for (i = 0; i < 64; ++i) {
 _
-Subject: Subject: leds: Use kcalloc instead of kzalloc to allocate array
+Subject: Subject: w1: add fast search for single slave bus
 
-Patches currently in -mm which might be from thomas@m3y3r.de are
+Patches currently in -mm which might be from h.feurstein@gmail.com are
 
-linux-next.patch
-mm-use-kcalloc-instead-of-kzalloc-to-allocate-array.patch
-leds-use-kcalloc-instead-of-kzalloc-to-allocate-array.patch
+w1-add-fast-search-for-single-slave-bus.patch
 
