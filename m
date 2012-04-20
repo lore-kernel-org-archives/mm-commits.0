@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-null-ptr-dereference-in-move_pages.patch added to -mm tree
-Date: Fri, 20 Apr 2012 14:59:35 -0700
-Message-ID: <20120420215935.440B0A00AB@akpm.mtv.corp.google.com>
+Subject: + c-r-ipc-message-queue-receive-cleanup-fix.patch added to -mm tree
+Date: Fri, 20 Apr 2012 15:03:25 -0700
+Message-ID: <20120420220325.E7F2EA0172@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:51620 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754559Ab2DTV7g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 17:59:36 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so1159781qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 14:59:35 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:63373 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755960Ab2DTWD2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Apr 2012 18:03:28 -0400
+Received: by wejx9 with SMTP id x9so479334wej.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Apr 2012 15:03:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: levinsasha928@gmail.com, cl@linux.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
+Cc: dan.carpenter@oracle.com, gorcunov@openvz.org, skinsbursky@parallels.com
 
 
 The patch titled
-     Subject: mm: fix NULL ptr dereference in move_pages
+     Subject: c/r: ipc: uninitialized variable in compat_do_msg_fill()
 has been added to the -mm tree.  Its filename is
-     mm-fix-null-ptr-dereference-in-move_pages.patch
+     c-r-ipc-message-queue-receive-cleanup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sasha Levin <levinsasha928@gmail.com>
-Subject: mm: fix NULL ptr dereference in move_pages
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: c/r: ipc: uninitialized variable in compat_do_msg_fill()
 
-Commit 3268c63 ("mm: fix move/migrate_pages() race on task struct") has
-added an odd construct where 'mm' is checked for being NULL, and if it is,
-it would get dereferenced anyways by mput()ing it.
+We never initialize "msgp".  It's unfortunate that GCC doesn't warn
+about this.
 
-Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hughd@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ ipc/compat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-fix-null-ptr-dereference-in-move_pages mm/migrate.c
---- a/mm/migrate.c~mm-fix-null-ptr-dereference-in-move_pages
-+++ a/mm/migrate.c
-@@ -1388,14 +1388,14 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
- 	mm = get_task_mm(task);
- 	put_task_struct(task);
+diff -puN ipc/compat.c~c-r-ipc-message-queue-receive-cleanup-fix ipc/compat.c
+--- a/ipc/compat.c~c-r-ipc-message-queue-receive-cleanup-fix
++++ a/ipc/compat.c
+@@ -336,7 +336,7 @@ long compat_sys_msgsnd(int first, int se
  
--	if (mm) {
--		if (nodes)
--			err = do_pages_move(mm, task_nodes, nr_pages, pages,
--					    nodes, status, flags);
--		else
--			err = do_pages_stat(mm, nr_pages, pages, status);
--	} else
--		err = -EINVAL;
-+	if (!mm)
-+		return -EINVAL;
-+
-+	if (nodes)
-+		err = do_pages_move(mm, task_nodes, nr_pages, pages,
-+				    nodes, status, flags);
-+	else
-+		err = do_pages_stat(mm, nr_pages, pages, status);
+ long compat_do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
+ {
+-	struct compat_msgbuf __user *msgp;
++	struct compat_msgbuf __user *msgp = dest;
+ 	size_t msgsz;
  
- 	mmput(mm);
- 	return err;
+ 	if (put_user(msg->m_type, &msgp->mtype))
 _
-Subject: Subject: mm: fix NULL ptr dereference in move_pages
+Subject: Subject: c/r: ipc: uninitialized variable in compat_do_msg_fill()
 
-Patches currently in -mm which might be from levinsasha928@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
+origin.patch
 linux-next.patch
-mm-fix-null-ptr-dereference-in-migrate_pages.patch
-mm-fix-null-ptr-dereference-in-move_pages.patch
-brlocks-lglocks-cleanups.patch
+debugobjects-fill_pool-returns-void-now.patch
+fsnotify-remove-unused-parameter-from-send_to_group.patch
+drivers-leds-leds-lp5521c-fix-lp5521_read-error-handling.patch
+hpfs-remove-printk-macro.patch
+c-r-ipc-message-queue-receive-cleanup-fix.patch
 
