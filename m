@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drm-i915-fix-integer-overflow-in-i915_gem_execbuffer2.patch added to -mm tree
-Date: Mon, 23 Apr 2012 14:22:11 -0700
-Message-ID: <20120423212211.AD868A038B@akpm.mtv.corp.google.com>
+Subject: + leds-add-led-driver-for-lm3556-chip-fix.patch added to -mm tree
+Date: Mon, 23 Apr 2012 14:35:34 -0700
+Message-ID: <20120423213534.CBE8EA018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:64244 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753833Ab2DWVWO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 17:22:14 -0400
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:61734 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753833Ab2DWVfh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 17:35:37 -0400
+Received: by bkcjk7 with SMTP id jk7so69bkc.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 14:35:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xi.wang@gmail.com, chris@chris-wilson.co.uk, stable@vger.kernel.org
+Cc: axel.lin@gmail.com, gshark.jeong@gmail.com
 
 
 The patch titled
-     Subject: drm/i915: fix integer overflow in i915_gem_execbuffer2()
+     From: Axel Lin <axel.lin@gmail.com>
 has been added to the -mm tree.  Its filename is
-     drm-i915-fix-integer-overflow-in-i915_gem_execbuffer2.patch
+     leds-add-led-driver-for-lm3556-chip-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,45 +33,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xi Wang <xi.wang@gmail.com>
-Subject: drm/i915: fix integer overflow in i915_gem_execbuffer2()
+From: Axel Lin <axel.lin@gmail.com>
+Subject: leds: lm3556: Don't call kfree for the memory allocated by devm_kzalloc
 
-On 32-bit systems, a large args->buffer_count from userspace via ioctl may
-overflow the allocation size, leading to out-of-bounds access.
+The devm_* functions eliminate the need for manual resource releasing
+and simplify error handling. Resources allocated by devm_* are freed
+automatically on driver detach.
 
-This vulnerability was introduced in commit 8408c282 ("drm/i915: First try
-a normal large kmalloc for the temporary exec buffers").
+Thus adding kfree calls here will introduce double free bug.
 
-Signed-off-by: Xi Wang <xi.wang@gmail.com>
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Geon Si Jeong <gshark.jeong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_gem_execbuffer.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/leds/leds-lm3556.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_gem_execbuffer.c~drm-i915-fix-integer-overflow-in-i915_gem_execbuffer2 drivers/gpu/drm/i915/i915_gem_execbuffer.c
---- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c~drm-i915-fix-integer-overflow-in-i915_gem_execbuffer2
-+++ a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
-@@ -1446,7 +1446,8 @@ i915_gem_execbuffer2(struct drm_device *
- 	struct drm_i915_gem_exec_object2 *exec2_list = NULL;
- 	int ret;
- 
--	if (args->buffer_count < 1) {
-+	if (args->buffer_count < 1 ||
-+	    args->buffer_count > UINT_MAX / sizeof(*exec2_list)) {
- 		DRM_DEBUG("execbuf2 with %d buffers\n", args->buffer_count);
- 		return -EINVAL;
+diff -puN drivers/leds/leds-lm3556.c~leds-add-led-driver-for-lm3556-chip-fix drivers/leds/leds-lm3556.c
+--- a/drivers/leds/leds-lm3556.c~leds-add-led-driver-for-lm3556-chip-fix
++++ a/drivers/leds/leds-lm3556.c
+@@ -360,9 +360,8 @@ static int lm3556_probe(struct i2c_clien
+ 		return -ENODATA;
  	}
+ 
+-	chip =
+-	    devm_kzalloc(&client->dev, sizeof(struct lm3556_chip_data),
+-			 GFP_KERNEL);
++	chip = devm_kzalloc(&client->dev, sizeof(struct lm3556_chip_data),
++			    GFP_KERNEL);
+ 	if (!chip)
+ 		return -ENOMEM;
+ 
+@@ -416,7 +415,6 @@ err_create_torch_file:
+ err_create_flash_file:
+ err_chip_init:
+ 	i2c_set_clientdata(client, NULL);
+-	kfree(chip);
+ 	return err;
+ }
+ 
+@@ -430,7 +428,6 @@ static int lm3556_remove(struct i2c_clie
+ 	led_classdev_unregister(&chip->cdev_flash);
+ 	lm3556_write_reg(client, REG_ENABLE, 0);
+ 
+-	kfree(chip);
+ 	return 0;
+ }
+ 
 _
-Subject: Subject: drm/i915: fix integer overflow in i915_gem_execbuffer2()
+Subject: From: Axel Lin <axel.lin@gmail.com>
 
-Patches currently in -mm which might be from xi.wang@gmail.com are
+Patches currently in -mm which might be from axel.lin@gmail.com are
 
 linux-next.patch
-drm-i915-fix-integer-overflow-in-i915_gem_execbuffer2.patch
-drm-i915-fix-integer-overflow-in-i915_gem_do_execbuffer.patch
-codingstyle-add-kmalloc_array-to-memory-allocators.patch
-introduce-size_max.patch
+leds-add-led-driver-for-lm3556-chip-fix.patch
 
