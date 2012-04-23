@@ -1,120 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch added to -mm tree
-Date: Mon, 23 Apr 2012 13:53:30 -0700
-Message-ID: <20120423205330.D03A0A0423@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] c-r-ipc-message-queue-receive-cleanup.patch removed from -mm tree
+Date: Mon, 23 Apr 2012 13:56:08 -0700
+Message-ID: <20120423205608.D8527A0423@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:50099 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755396Ab2DWUxc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 16:53:32 -0400
-Received: by qabg24 with SMTP id g24so347521qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 13:53:31 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:57739 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819Ab2DWU4L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 16:56:11 -0400
+Received: by wgbdt11 with SMTP id dt11so656231wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 13:56:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: n.voss@weinmann.de, a.zummo@towertech.it, grant.likely@secretlab.ca
+To: skinsbursky@parallels.com, arnd@arndb.de, cmetcalf@tilera.com, gorcunov@openvz.org, lucas.de.marchi@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset error state
-has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch
+     Subject: c/r: ipc: message queue receive cleanup
+has been removed from the -mm tree.  Its filename was
+     c-r-ipc-message-queue-receive-cleanup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Nikolaus Voss <n.voss@weinmann.de>
-Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset error state
+From: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Subject: c/r: ipc: message queue receive cleanup
 
-If the rtc reports the time might be invalid due to oscillator failure,
-the M41T93_FLAG_ST flag must not be reset by get_time() as the read
-operation doesn't make the time valid.
+Move all message related manipulation into one function msg_fill(). 
+Actually, two functions because of the compat one.
 
-Instead, the M41T93_FLAG_ST flag is reset in set_time() when a valid time
-is to be written.
-
-Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t93.c |   46 +++++++++++++++++++++----------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ include/linux/compat.h |    2 +
+ include/linux/msg.h    |    5 ++--
+ ipc/compat.c           |   33 +++++++++++++++--------------
+ ipc/msg.c              |   44 ++++++++++++++++++++-------------------
+ 4 files changed, 45 insertions(+), 39 deletions(-)
 
-diff -puN drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state drivers/rtc/rtc-m41t93.c
---- a/drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state
-+++ a/drivers/rtc/rtc-m41t93.c
-@@ -48,6 +48,7 @@ static inline int m41t93_set_reg(struct 
- static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
+diff -puN include/linux/compat.h~c-r-ipc-message-queue-receive-cleanup include/linux/compat.h
+--- a/include/linux/compat.h~c-r-ipc-message-queue-receive-cleanup
++++ a/include/linux/compat.h
+@@ -245,6 +245,7 @@ struct compat_sysctl_args;
+ struct compat_kexec_segment;
+ struct compat_mq_attr;
+ struct compat_msgbuf;
++struct msg_msg;
+ 
+ extern void compat_exit_robust_list(struct task_struct *curr);
+ 
+@@ -258,6 +259,7 @@ compat_sys_get_robust_list(int pid, comp
+ #ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
+ long compat_sys_semctl(int first, int second, int third, void __user *uptr);
+ long compat_sys_msgsnd(int first, int second, int third, void __user *uptr);
++long compat_do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz);
+ long compat_sys_msgrcv(int first, int second, int msgtyp, int third,
+ 		int version, void __user *uptr);
+ long compat_sys_shmat(int first, int second, compat_uptr_t third, int version,
+diff -puN include/linux/msg.h~c-r-ipc-message-queue-receive-cleanup include/linux/msg.h
+--- a/include/linux/msg.h~c-r-ipc-message-queue-receive-cleanup
++++ a/include/linux/msg.h
+@@ -104,8 +104,9 @@ struct msg_queue {
+ /* Helper routines for sys_msgsnd and sys_msgrcv */
+ extern long do_msgsnd(int msqid, long mtype, void __user *mtext,
+ 			size_t msgsz, int msgflg);
+-extern long do_msgrcv(int msqid, long *pmtype, void __user *mtext,
+-			size_t msgsz, long msgtyp, int msgflg);
++extern long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
++		      int msgflg,
++		      long (*msg_fill)(void __user *, struct msg_msg *, size_t ));
+ 
+ #endif /* __KERNEL__ */
+ 
+diff -puN ipc/compat.c~c-r-ipc-message-queue-receive-cleanup ipc/compat.c
+--- a/ipc/compat.c~c-r-ipc-message-queue-receive-cleanup
++++ a/ipc/compat.c
+@@ -334,13 +334,23 @@ long compat_sys_msgsnd(int first, int se
+ 	return do_msgsnd(first, type, up->mtext, second, third);
+ }
+ 
++long compat_do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
++{
++	struct compat_msgbuf __user *msgp;
++	size_t msgsz;
++
++	if (put_user(msg->m_type, &msgp->mtype))
++		return -EFAULT;
++
++	msgsz = (bufsz > msg->m_ts) ? msg->m_ts : bufsz;
++	if (store_msg(msgp->mtext, msg, msgsz))
++		return -EFAULT;
++	return msgsz;
++}
++
+ long compat_sys_msgrcv(int first, int second, int msgtyp, int third,
+ 			   int version, void __user *uptr)
  {
- 	struct spi_device *spi = to_spi_device(dev);
-+	int tmp;
- 	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
- 	u8 * const data = &buf[1]; /* ptr to first data byte */
- 
-@@ -62,6 +63,30 @@ static int m41t93_set_time(struct device
- 		return -EINVAL;
- 	}
- 
-+	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-+	if (tmp < 0)
-+		return tmp;
-+
-+	if (tmp & M41T93_FLAG_OF) {
-+		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
-+		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
-+
-+		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-+		if (tmp < 0) {
-+			return tmp;
-+		} else if (tmp & M41T93_FLAG_OF) {
-+			/* OF cannot be immediately reset: oscillator has to be
-+			 * restarted. */
-+			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
-+
-+			dev_warn(&spi->dev,
-+				 "OF bit is still set, kickstarting clock.\n");
-+			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
-+			reset_osc &= ~M41T93_FLAG_ST;
-+			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
-+		}
-+	}
-+
- 	data[M41T93_REG_SSEC]		= 0;
- 	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
- 	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
-@@ -89,10 +114,7 @@ static int m41t93_get_time(struct device
- 	   1. halt bit (HT) is set: the clock is running but update of readout
- 	      registers has been disabled due to power failure. This is normal
- 	      case after poweron. Time is valid after resetting HT bit.
--	   2. oscillator fail bit (OF) is set. Oscillator has be stopped and
--	      time is invalid:
--	      a) OF can be immeditely reset.
--	      b) OF cannot be immediately reset: oscillator has to be restarted.
-+	   2. oscillator fail bit (OF) is set: time is invalid.
- 	*/
- 	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
- 	if (tmp < 0)
-@@ -110,21 +132,7 @@ static int m41t93_get_time(struct device
- 
- 	if (tmp & M41T93_FLAG_OF) {
- 		ret = -EINVAL;
--		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
--		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
+-	struct compat_msgbuf __user *up;
+-	long type;
+-	int err;
 -
--		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
--		if (tmp < 0)
--			return tmp;
--		else if (tmp & M41T93_FLAG_OF) {
--			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
+ 	if (first < 0)
+ 		return -EINVAL;
+ 	if (second < 0)
+@@ -348,23 +358,14 @@ long compat_sys_msgrcv(int first, int se
+ 
+ 	if (!version) {
+ 		struct compat_ipc_kludge ipck;
+-		err = -EINVAL;
+ 		if (!uptr)
+-			goto out;
+-		err = -EFAULT;
++			return -EINVAL;
+ 		if (copy_from_user (&ipck, uptr, sizeof(ipck)))
+-			goto out;
++			return -EFAULT;
+ 		uptr = compat_ptr(ipck.msgp);
+ 		msgtyp = ipck.msgtyp;
+ 	}
+-	up = uptr;
+-	err = do_msgrcv(first, &type, up->mtext, second, msgtyp, third);
+-	if (err < 0)
+-		goto out;
+-	if (put_user(type, &up->mtype))
+-		err = -EFAULT;
+-out:
+-	return err;
++	return do_msgrcv(first, uptr, second, msgtyp, third, compat_do_msg_fill);
+ }
+ #else
+ long compat_sys_semctl(int semid, int semnum, int cmd, int arg)
+diff -puN ipc/msg.c~c-r-ipc-message-queue-receive-cleanup ipc/msg.c
+--- a/ipc/msg.c~c-r-ipc-message-queue-receive-cleanup
++++ a/ipc/msg.c
+@@ -752,15 +752,30 @@ static inline int convert_mode(long *msg
+ 	return SEARCH_EQUAL;
+ }
+ 
+-long do_msgrcv(int msqid, long *pmtype, void __user *mtext,
+-		size_t msgsz, long msgtyp, int msgflg)
++static long do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
++{
++	struct msgbuf __user *msgp = dest;
++	size_t msgsz;
++
++	if (put_user(msg->m_type, &msgp->mtype))
++		return -EFAULT;
++
++	msgsz = (bufsz > msg->m_ts) ? msg->m_ts : bufsz;
++	if (store_msg(msgp->mtext, msg, msgsz))
++		return -EFAULT;
++	return msgsz;
++}
++
++long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
++	       int msgflg,
++	       long (*msg_fill)(void __user *, struct msg_msg *, size_t ))
+ {
+ 	struct msg_queue *msq;
+ 	struct msg_msg *msg;
+ 	int mode;
+ 	struct ipc_namespace *ns;
+ 
+-	if (msqid < 0 || (long) msgsz < 0)
++	if (msqid < 0 || (long) bufsz < 0)
+ 		return -EINVAL;
+ 	mode = convert_mode(&msgtyp, msgflg);
+ 	ns = current->nsproxy->ipc_ns;
+@@ -804,7 +819,7 @@ long do_msgrcv(int msqid, long *pmtype, 
+ 			 * Found a suitable message.
+ 			 * Unlink it from the queue.
+ 			 */
+-			if ((msgsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
++			if ((bufsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
+ 				msg = ERR_PTR(-E2BIG);
+ 				goto out_unlock;
+ 			}
+@@ -831,7 +846,7 @@ long do_msgrcv(int msqid, long *pmtype, 
+ 		if (msgflg & MSG_NOERROR)
+ 			msr_d.r_maxsize = INT_MAX;
+ 		else
+-			msr_d.r_maxsize = msgsz;
++			msr_d.r_maxsize = bufsz;
+ 		msr_d.r_msg = ERR_PTR(-EAGAIN);
+ 		current->state = TASK_INTERRUPTIBLE;
+ 		msg_unlock(msq);
+@@ -894,29 +909,16 @@ out_unlock:
+ 	if (IS_ERR(msg))
+ 		return PTR_ERR(msg);
+ 
+-	msgsz = (msgsz > msg->m_ts) ? msg->m_ts : msgsz;
+-	*pmtype = msg->m_type;
+-	if (store_msg(mtext, msg, msgsz))
+-		msgsz = -EFAULT;
+-
++	bufsz = msg_fill(buf, msg, bufsz);
+ 	free_msg(msg);
+ 
+-	return msgsz;
++	return bufsz;
+ }
+ 
+ SYSCALL_DEFINE5(msgrcv, int, msqid, struct msgbuf __user *, msgp, size_t, msgsz,
+ 		long, msgtyp, int, msgflg)
+ {
+-	long err, mtype;
+-
+-	err =  do_msgrcv(msqid, &mtype, msgp->mtext, msgsz, msgtyp, msgflg);
+-	if (err < 0)
+-		goto out;
