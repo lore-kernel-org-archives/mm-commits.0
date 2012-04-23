@@ -1,267 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv.patch removed from -mm tree
-Date: Mon, 23 Apr 2012 13:56:14 -0700
-Message-ID: <20120423205614.EF433A0423@akpm.mtv.corp.google.com>
+Subject: + drm-i915-fix-integer-overflow-in-i915_gem_do_execbuffer.patch added to -mm tree
+Date: Mon, 23 Apr 2012 14:22:14 -0700
+Message-ID: <20120423212214.3F502A038B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:56575 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754025Ab2DWU4S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 16:56:18 -0400
-Received: by bkcjk7 with SMTP id jk7so86656bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 13:56:16 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:64244 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753833Ab2DWVWQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 17:22:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: skinsbursky@parallels.com, arnd@arndb.de, cmetcalf@tilera.com, fweisbec@gmail.com, gorcunov@openvz.org, lucas.de.marchi@gmail.com, mtk.manpages@gmail.com, serue@us.ibm.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: xi.wang@gmail.com, chris@chris-wilson.co.uk, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: c/r: ipc: selftest tor new MSG_PEEK_ALL flag for msgrcv()
-has been removed from the -mm tree.  Its filename was
-     c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv.patch
+     Subject: drm/i915: fix integer overflow in i915_gem_do_execbuffer()
+has been added to the -mm tree.  Its filename is
+     drm-i915-fix-integer-overflow-in-i915_gem_do_execbuffer.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Subject: c/r: ipc: selftest tor new MSG_PEEK_ALL flag for msgrcv()
+From: Xi Wang <xi.wang@gmail.com>
+Subject: drm/i915: fix integer overflow in i915_gem_do_execbuffer()
 
-This test sends two messages, then peeks at them and checks that they are
-equal to the original messages.  Then it receives messages and checks once
-more to make sure that messages are not corrupted or lost after the peek
-operation.
+On 32-bit systems, a large args->num_cliprects from userspace via ioctl
+may overflow the allocation size, leading to out-of-bounds access.
 
-Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
+This vulnerability was introduced in commit 432e58ed ("drm/i915: Avoid
+allocation for execbuffer object list").
+
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/ipc/Makefile          |   31 ++
- tools/testing/selftests/ipc/msgque_peek_all.c |  170 ++++++++++++++++
- 2 files changed, 201 insertions(+)
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN /dev/null tools/testing/selftests/ipc/Makefile
---- /dev/null
-+++ a/tools/testing/selftests/ipc/Makefile
-@@ -0,0 +1,31 @@
-+ifeq ($(strip $(V)),)
-+	E = @echo
-+	Q = @
-+else
-+	E = @\#
-+	Q =
-+endif
-+export E Q
-+
-+uname_M := $(shell uname -m 2>/dev/null || echo not)
-+ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
-+ifeq ($(ARCH),i386)
-+        ARCH := X86
-+	CFLAGS := -DCONFIG_X86_32 -D__i386__
-+endif
-+ifeq ($(ARCH),x86_64)
-+	ARCH := X86
-+	CFLAGS := -DCONFIG_X86_64 -D__x86_64__
-+endif
-+
-+all:
-+ifeq ($(ARCH),X86)
-+	$(E) "  CC run_test"
-+	$(Q) gcc msgque_peek_all.c -o run_test
-+else
-+	$(E) "Not an x86 target, can't build kcmp selftest"
-+endif
-+
-+clean:
-+	$(E) "  CLEAN"
-+	$(Q) rm -fr ./run_test
-diff -puN /dev/null tools/testing/selftests/ipc/msgque_peek_all.c
---- /dev/null
-+++ a/tools/testing/selftests/ipc/msgque_peek_all.c
-@@ -0,0 +1,170 @@
-+#define _GNU_SOURCE
-+#include <sched.h>
-+
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <sys/types.h>
-+#include <sys/wait.h>
-+#include <sys/sem.h>
-+#include <sys/ipc.h>
-+#include <sys/msg.h>
-+#include <signal.h>
-+#include <errno.h>
-+
-+#define __round_mask(x, y)	((__typeof__(x))((y) - 1))
-+#define round_up(x, y)		((((x) - 1) | __round_mask(x, y)) + 1)
-+
-+#ifndef MSG_PEEK_ALL
-+#define MSG_PEEK_ALL		040000
-+/* message buffer for msgrcv in case of array calls */
-+struct msgbuf_a {
-+	long mtype;	/* type of message */
-+	int msize;	/* size of message */
-+	char mtext[0];	/* message text */
-+};
-+#endif
-+
-+const char *test_doc="Tests sysv5 msg queues supporting by checkpointing";
-+const char *test_author="Stanislav Kinsbursky <skinsbursky@openvz.org>";
-+
-+#define MAX_MSG_LENGTH		32
-+
-+struct my_msg {
-+	long mtype;
-+	char mtext[MAX_MSG_LENGTH];
-+};
-+
-+struct my_msg messages[] = {
-+	{ 1, "Test sysv5 msg" },
-+	{ 26538, "Yet another test sysv5 msg"},
-+	{ 0, "" }
-+};
-+
-+static int receive_messages(int msgq)
-+{
-+	int i, ret;
-+	struct my_msg msgbuf;
-+
-+	i = 0;
-+	while(messages[i].mtype > 0) {
-+		ret = msgrcv(msgq, &msgbuf, MAX_MSG_LENGTH,
-+				messages[i].mtype, IPC_NOWAIT);
-+		if (ret < 0) {
-+			printf("Child: msgrcv failed (%m)\n");
-+			return -errno;
-+		}
-+		if (ret != strlen(messages[i].mtext) + 1) {
-+			printf("Received message[%i] size is wrong: %d "
-+					"(should be %ld)\n", i,
-+					ret, strlen(messages[i].mtext) + 1);
+diff -puN drivers/gpu/drm/i915/i915_gem_execbuffer.c~drm-i915-fix-integer-overflow-in-i915_gem_do_execbuffer drivers/gpu/drm/i915/i915_gem_execbuffer.c
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c~drm-i915-fix-integer-overflow-in-i915_gem_do_execbuffer
++++ a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -1175,6 +1175,11 @@ i915_gem_do_execbuffer(struct drm_device
+ 			return -EINVAL;
+ 		}
+ 
++		if (args->num_cliprects > UINT_MAX / sizeof(*cliprects)) {
++			DRM_DEBUG("execbuf with %u cliprects\n",
++				  args->num_cliprects);
 +			return -EINVAL;
 +		}
-+		if (memcmp(msgbuf.mtext, messages[i].mtext, ret)) {
-+			printf("Received message content is wrong\n");
-+			return -EINVAL;
-+		}
-+		i++;
-+	}
-+	return 0;
-+}
-+
-+static int peek_messages(int msgq)
-+{
-+	void *msg_array, *ptr;
-+	int array_size;
-+	struct msqid_ds ds;
-+	int id, ret, i;
-+
-+	ret = msgctl(msgq, IPC_STAT, &ds);
-+	if (ret < 0) {
-+		printf("Failed to get stats for IPC message queue (%m)\n");
-+		return -errno;
-+	}
-+
-+	/*
-+	 * Here we allocate memory for struct msgbuf_a twice becase messages in
-+	 * array will be aligned by struct msgbuf_a.
-+	 */
-+	array_size = ds.msg_qnum * sizeof(struct msgbuf_a) * 2 + ds.msg_cbytes;
-+	msg_array = malloc(array_size);
-+	if (msg_array == 0)
-+		return -ENOMEM;
-+
-+	ret = msgrcv(msgq, msg_array, array_size, 0, IPC_NOWAIT | MSG_PEEK_ALL);
-+	if (ret < 0) {
-+		printf("Failed to receive IPC messages array (%m)");
-+		return -errno;
-+	}
-+
-+	i = 0;
-+	ptr = msg_array;
-+	while (i < ds.msg_qnum) {
-+		struct msgbuf_a *msg = ptr;
-+
-+		if (msg->mtype != messages[i].mtype) {
-+			printf("Peeked message type is wrong: %ld (should be %ld)\n",
-+				msg->mtype, messages[i].mtype);
-+			return -EINVAL;
-+		}
-+		if (memcmp(msg->mtext, messages[i].mtext, msg->msize)) {
-+			printf("Peeked message content is wrong\n");
-+			return -EINVAL;
-+		}
-+		ptr += round_up(msg->msize + sizeof(struct msgbuf_a), sizeof(struct msgbuf_a));
-+		i++;
-+	}
-+	return 0;
-+}
-+
-+static int send_messages(int msgq)
-+{
-+	int i = 0;
-+
-+	while(messages[i].mtype > 0) {
-+		if (msgsnd(msgq, &messages[i], strlen(messages[i].mtext) + 1, IPC_NOWAIT) != 0) {
-+			printf("Parent: msgsnd[%i] failed (%m)", i);
-+			return -errno;
-+		};
-+		i++;
-+	}
-+	return 0;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	key_t key;
-+	int msgq, ret;
-+
-+	key = ftok(argv[0], 822155650);
-+	if (key == -1) {
-+		printf("Can't make key");
-+		return -errno;
-+	}
-+
-+	msgq = msgget(key, IPC_CREAT | IPC_EXCL | 0666);
-+	if (msgq == -1) {
-+		msgq = msgget(key, 0666);
-+		if (msgq == -1) {
-+			printf("Can't get queue");
-+			return -errno;
-+		}
-+	}
-+
-+	ret = send_messages(msgq);
-+	if (ret)
-+		goto out;
-+	ret = peek_messages(msgq);
-+	if (ret)
-+		goto out;
-+	ret = receive_messages(msgq);
-+	if (ret)
-+		goto out;
-+out:
-+	if (msgctl(msgq, IPC_RMID, 0)) {
-+		printf("Failed to destroy message queue (%m)\n");
-+		return -errno;
-+	}
-+	return ret;
-+}
+ 		cliprects = kmalloc(args->num_cliprects * sizeof(*cliprects),
+ 				    GFP_KERNEL);
+ 		if (cliprects == NULL) {
 _
+Subject: Subject: drm/i915: fix integer overflow in i915_gem_do_execbuffer()
 
-Patches currently in -mm which might be from skinsbursky@parallels.com are
+Patches currently in -mm which might be from xi.wang@gmail.com are
 
 linux-next.patch
-c-r-ipc-selftest-tor-new-msg_peek_all-flag-for-msgrcv-checkpatch-fixes.patch
+drm-i915-fix-integer-overflow-in-i915_gem_execbuffer2.patch
+drm-i915-fix-integer-overflow-in-i915_gem_do_execbuffer.patch
+codingstyle-add-kmalloc_array-to-memory-allocators.patch
+introduce-size_max.patch
 
