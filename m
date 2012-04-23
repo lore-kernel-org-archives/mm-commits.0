@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sound-usb-endpointc-suppress-warning.patch added to -mm tree
-Date: Mon, 23 Apr 2012 15:21:50 -0700
-Message-ID: <20120423230629.837D6100052@wpzn3.hot.corp.google.com>
+Subject: + hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch added to -mm tree
+Date: Mon, 23 Apr 2012 15:59:37 -0700
+Message-ID: <20120423234418.0C99610004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:45871 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753833Ab2DWXGa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 19:06:30 -0400
-Received: by yhgm50 with SMTP id m50so11985yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 16:06:30 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42600 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755855Ab2DWXoT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 19:44:19 -0400
+Received: by qabg24 with SMTP id g24so367442qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 16:44:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tiwai@suse.de, zonque@gmail.com
+Cc: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: sound/usb/endpoint.c: suppress warning
+     Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix
 has been added to the -mm tree.  Its filename is
-     sound-usb-endpointc-suppress-warning.patch
+     hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,56 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sound/usb/endpoint.c: suppress warning
+Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix
 
-sound/usb/endpoint.c: In function 'queue_pending_output_urbs':
-sound/usb/endpoint.c:298: warning: 'packet' may be used uninitialized in this function
+fix CONFIG_HUGETLB_PAGE=n build
 
-Cc: Daniel Mack <zonque@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+mm/memory.c: In function 'unmap_single_vma':
+mm/memory.c:1334: error: implicit declaration of function '__unmap_hugepage_range'
+
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/usb/endpoint.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/hugetlb.h |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN sound/usb/endpoint.c~sound-usb-endpointc-suppress-warning sound/usb/endpoint.c
---- a/sound/usb/endpoint.c~sound-usb-endpointc-suppress-warning
-+++ a/sound/usb/endpoint.c
-@@ -295,7 +295,7 @@ static void queue_pending_output_urbs(st
- 	while (test_bit(EP_FLAG_RUNNING, &ep->flags)) {
+diff -puN include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix
++++ a/include/linux/hugetlb.h
+@@ -41,8 +41,9 @@ int follow_hugetlb_page(struct mm_struct
+ 			unsigned long *, int *, int, unsigned int flags);
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *);
+-void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *,
+-			    unsigned long, unsigned long, struct page *);
++void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vms,
++				unsigned long start, unsigned long end,
++				struct page *ref_page);
+ int hugetlb_prefault(struct address_space *, struct vm_area_struct *);
+ void hugetlb_report_meminfo(struct seq_file *);
+ int hugetlb_report_node_meminfo(int, char *);
+@@ -119,6 +120,12 @@ static inline void copy_huge_page(struct
  
- 		unsigned long flags;
--		struct snd_usb_packet_info *packet;
-+		struct snd_usb_packet_info *uninitialized_var(packet);
- 		struct snd_urb_ctx *ctx = NULL;
- 		struct urb *urb;
- 		int err, i;
+ #define hugetlb_change_protection(vma, address, end, newprot)
+ 
++static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
++			struct vm_area_struct *vma, unsigned long start,
++			unsigned long end, struct page *ref_page)
++{
++}
++
+ #endif /* !CONFIG_HUGETLB_PAGE */
+ 
+ #define HUGETLB_ANON_FILE "anon_hugepage"
 _
-Subject: Subject: sound/usb/endpoint.c: suppress warning
+Subject: Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -82,6 +105,7 @@ fs-symlink-restrictions-on-sticky-directories.patch
 fs-hardlink-creation-restrictions.patch
 brlocks-lglocks-cleanups.patch
 mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
 hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
