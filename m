@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch added to -mm tree
-Date: Mon, 23 Apr 2012 15:01:05 -0700
-Message-ID: <20120423224546.ABD855C0050@hpza9.eem.corp.google.com>
+Subject: + hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch added to -mm tree
+Date: Mon, 23 Apr 2012 15:02:30 -0700
+Message-ID: <20120423224710.53D605C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:63850 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755993Ab2DWWpt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 18:45:49 -0400
-Received: by wibhj13 with SMTP id hj13so1833wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 15:45:48 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:63099 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753504Ab2DWWrM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 18:47:12 -0400
+Received: by lbol12 with SMTP id l12so1604lbo.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 15:47:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix
+     Subject: hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix
 has been added to the -mm tree.  Its filename is
-     memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+     hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix
+Subject: hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix
 
-fix CONFIG_MEM_RES_CTLR_HUGETLB=n warnings
+remove strange double-spaces
 
-include/linux/memcontrol.h:504: warning: 'struct cgroup' declared inside parameter list
-include/linux/memcontrol.h:504: warning: its scope is only this definition or declaration, which is probably not what you want
-include/linux/memcontrol.h:509: warning: 'struct cgroup' declared inside parameter list
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h    |    6 +-----
- include/linux/memcontrol.h |   11 -----------
- 2 files changed, 1 insertion(+), 16 deletions(-)
+ include/linux/memcontrol.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix
-+++ a/include/linux/hugetlb.h
-@@ -337,10 +337,6 @@ static inline unsigned int pages_per_hug
- 
- #ifdef CONFIG_MEM_RES_CTLR_HUGETLB
- extern int hugetlb_force_memcg_empty(struct cgroup *cgroup);
--#else
--static inline int hugetlb_force_memcg_empty(struct cgroup *cgroup)
--{
--	return 0;
--}
- #endif
-+
- #endif /* _LINUX_HUGETLB_H */
-diff -puN include/linux/memcontrol.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix
+diff -puN include/linux/memcontrol.h~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix
 +++ a/include/linux/memcontrol.h
-@@ -499,17 +499,6 @@ static inline int mem_cgroup_hugetlb_fil
+@@ -501,7 +501,7 @@ static inline int mem_cgroup_hugetlb_fil
  	return 0;
  }
  
--static inline int
--mem_cgroup_move_hugetlb_parent(int idx, struct cgroup *cgroup,
--			       struct page *page)
--{
--	return 0;
--}
--
--static inline bool mem_cgroup_have_hugetlb_usage(struct cgroup *cgroup)
--{
--	return 0;
--}
- #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
- #endif /* _LINUX_MEMCONTROL_H */
- 
+-static inline  void  mem_cgroup_hugetlb_migrate(struct page *oldhpage,
++static inline void mem_cgroup_hugetlb_migrate(struct page *oldhpage,
+ 						struct page *newhpage)
+ {
+ 	return;
 _
-Subject: Subject: memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix
+Subject: Subject: hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -115,6 +81,7 @@ brlocks-lglocks-cleanups.patch
 mm.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
 mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
 mm-push-lru-index-into-shrink_active_list-fix.patch
 security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
