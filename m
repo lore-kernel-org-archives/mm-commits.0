@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap.patch added to -mm tree
-Date: Mon, 23 Apr 2012 13:43:51 -0700
-Message-ID: <20120423204352.3A42AA00AE@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch added to -mm tree
+Date: Mon, 23 Apr 2012 13:53:30 -0700
+Message-ID: <20120423205330.D03A0A0423@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:45371 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755046Ab2DWUnx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 16:43:53 -0400
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:50099 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755396Ab2DWUxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 16:53:32 -0400
+Received: by qabg24 with SMTP id g24so347521qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 13:53:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, heiko.carstens@de.ibm.com, kenchen@google.com, mgorman@suse.de, riel@redhat.com, schwidefsky@de.ibm.com, stable@vger.kernel.org
+Cc: n.voss@weinmann.de, a.zummo@towertech.it, grant.likely@secretlab.ca
 
 
 The patch titled
-     Subject: mm: fix s390 BUG by __set_page_dirty_no_writeback on swap
+     Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset error state
 has been added to the -mm tree.  Its filename is
-     mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap.patch
+     drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,92 +33,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix s390 BUG by __set_page_dirty_no_writeback on swap
+From: Nikolaus Voss <n.voss@weinmann.de>
+Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset error state
 
-Mel reports a BUG_ON(slot == NULL) in radix_tree_tag_set() on s390 3.0.13:
-called from __set_page_dirty_nobuffers() when page_remove_rmap() tries to
-transfer dirty flag from s390 storage key to struct page and radix_tree.
+If the rtc reports the time might be invalid due to oscillator failure,
+the M41T93_FLAG_ST flag must not be reset by get_time() as the read
+operation doesn't make the time valid.
 
-That would be because of reclaim's shrink_page_list() calling
-add_to_swap() on this page at the same time: first PageSwapCache is set
-(causing page_mapping(page) to appear as &swapper_space), then
-page->private set, then tree_lock taken, then page inserted into
-radix_tree - so there's an interval before taking the lock when the
-radix_tree slot is empty.
+Instead, the M41T93_FLAG_ST flag is reset in set_time() when a valid time
+is to be written.
 
-We could fix this by moving __add_to_swap_cache()'s spin_lock_irq up
-before the SetPageSwapCache.  But a better fix is simply to do what's five
-years overdue: Ken Chen introduced __set_page_dirty_no_writeback() (if
-!PageDirty TestSetPageDirty) for tmpfs to skip all the radix_tree
-overhead, and swap is just the same - it ignores the radix_tree tag, and
-does not participate in dirty page accounting, so should be using
-__set_page_dirty_no_writeback() too.
-
-s390 testing now confirms that this does indeed fix the problem.
-
-Reported-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ken Chen <kenchen@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-m41t93.c |   46 +++++++++++++++++++++----------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
-diff -puN mm/swap_state.c~mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap mm/swap_state.c
---- a/mm/swap_state.c~mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap
-+++ a/mm/swap_state.c
-@@ -26,7 +26,7 @@
-  */
- static const struct address_space_operations swap_aops = {
- 	.writepage	= swap_writepage,
--	.set_page_dirty	= __set_page_dirty_nobuffers,
-+	.set_page_dirty	= __set_page_dirty_no_writeback,
- 	.migratepage	= migrate_page,
- };
+diff -puN drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state drivers/rtc/rtc-m41t93.c
+--- a/drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state
++++ a/drivers/rtc/rtc-m41t93.c
+@@ -48,6 +48,7 @@ static inline int m41t93_set_reg(struct 
+ static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	struct spi_device *spi = to_spi_device(dev);
++	int tmp;
+ 	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
+ 	u8 * const data = &buf[1]; /* ptr to first data byte */
  
-_
-Subject: Subject: mm: fix s390 BUG by __set_page_dirty_no_writeback on swap
-
-Patches currently in -mm which might be from hughd@google.com are
-
-linux-next.patch
-mm-fix-up-the-vmscan-stat-in-vmstat.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done.patch
-revert-proc-clear_refs-do-not-clear-reserved-pages.patch
-mm-fix-null-ptr-dereference-in-migrate_pages.patch
-mm-fix-null-ptr-dereference-in-move_pages.patch
-mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap.patch
-kvm-dont-call-mmu_shrinker-w-o-used_mmu_pages.patch
-mm-remove-swap-token-code.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-mm-huge_memoryc-use-lockdep_assert_held.patch
-proc-clean-up-proc-pid-environ-handling.patch
-proc-unify-ptrace_may_access-locking-code.patch
-proc-remove-mm_for_maps.patch
-proc-use-mm_access-instead-of-ptrace_may_access.patch
-proc-use-is_err_or_null.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-prio_tree-debugging-patch.patch
-
+@@ -62,6 +63,30 @@ static int m41t93_set_time(struct device
+ 		return -EINVAL;
+ 	}
+ 
++	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
++	if (tmp < 0)
++		return tmp;
++
++	if (tmp & M41T93_FLAG_OF) {
++		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
++		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
++
++		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
++		if (tmp < 0) {
++			return tmp;
++		} else if (tmp & M41T93_FLAG_OF) {
++			/* OF cannot be immediately reset: oscillator has to be
++			 * restarted. */
++			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
++
++			dev_warn(&spi->dev,
++				 "OF bit is still set, kickstarting clock.\n");
++			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++			reset_osc &= ~M41T93_FLAG_ST;
++			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++		}
++	}
++
+ 	data[M41T93_REG_SSEC]		= 0;
+ 	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
+ 	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
+@@ -89,10 +114,7 @@ static int m41t93_get_time(struct device
+ 	   1. halt bit (HT) is set: the clock is running but update of readout
+ 	      registers has been disabled due to power failure. This is normal
+ 	      case after poweron. Time is valid after resetting HT bit.
+-	   2. oscillator fail bit (OF) is set. Oscillator has be stopped and
+-	      time is invalid:
+-	      a) OF can be immeditely reset.
+-	      b) OF cannot be immediately reset: oscillator has to be restarted.
++	   2. oscillator fail bit (OF) is set: time is invalid.
+ 	*/
+ 	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
+ 	if (tmp < 0)
+@@ -110,21 +132,7 @@ static int m41t93_get_time(struct device
+ 
+ 	if (tmp & M41T93_FLAG_OF) {
+ 		ret = -EINVAL;
+-		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
+-		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
+-
+-		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
+-		if (tmp < 0)
+-			return tmp;
+-		else if (tmp & M41T93_FLAG_OF) {
+-			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
