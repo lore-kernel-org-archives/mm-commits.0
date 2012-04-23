@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch added to -mm tree
-Date: Mon, 23 Apr 2012 15:02:30 -0700
-Message-ID: <20120423224710.53D605C0050@hpza9.eem.corp.google.com>
+Subject: + sound-usb-endpointc-suppress-warning.patch added to -mm tree
+Date: Mon, 23 Apr 2012 15:21:50 -0700
+Message-ID: <20120423230629.837D6100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:63099 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504Ab2DWWrM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 18:47:12 -0400
-Received: by lbol12 with SMTP id l12so1604lbo.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 15:47:11 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:45871 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753833Ab2DWXGa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 19:06:30 -0400
+Received: by yhgm50 with SMTP id m50so11985yhg.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 16:06:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, tiwai@suse.de, zonque@gmail.com
 
 
 The patch titled
-     Subject: hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix
+     Subject: sound/usb/endpoint.c: suppress warning
 has been added to the -mm tree.  Its filename is
-     hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+     sound-usb-endpointc-suppress-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix
+Subject: sound/usb/endpoint.c: suppress warning
 
-remove strange double-spaces
+sound/usb/endpoint.c: In function 'queue_pending_output_urbs':
+sound/usb/endpoint.c:298: warning: 'packet' may be used uninitialized in this function
 
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Daniel Mack <zonque@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
+ sound/usb/endpoint.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix
-+++ a/include/linux/memcontrol.h
-@@ -501,7 +501,7 @@ static inline int mem_cgroup_hugetlb_fil
- 	return 0;
- }
+diff -puN sound/usb/endpoint.c~sound-usb-endpointc-suppress-warning sound/usb/endpoint.c
+--- a/sound/usb/endpoint.c~sound-usb-endpointc-suppress-warning
++++ a/sound/usb/endpoint.c
+@@ -295,7 +295,7 @@ static void queue_pending_output_urbs(st
+ 	while (test_bit(EP_FLAG_RUNNING, &ep->flags)) {
  
--static inline  void  mem_cgroup_hugetlb_migrate(struct page *oldhpage,
-+static inline void mem_cgroup_hugetlb_migrate(struct page *oldhpage,
- 						struct page *newhpage)
- {
- 	return;
+ 		unsigned long flags;
+-		struct snd_usb_packet_info *packet;
++		struct snd_usb_packet_info *uninitialized_var(packet);
+ 		struct snd_urb_ctx *ctx = NULL;
+ 		struct urb *urb;
+ 		int err, i;
 _
-Subject: Subject: hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix
+Subject: Subject: sound/usb/endpoint.c: suppress warning
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -72,6 +74,7 @@ mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
 drivers-xen-kconfig-fix-kconfig-layout.patch
+sound-usb-endpointc-suppress-warning.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
 percpu-remove-percpu_xxx-functions-fix.patch
