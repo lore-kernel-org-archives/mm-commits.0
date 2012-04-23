@@ -1,94 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] kvm-dont-call-mmu_shrinker-w-o-used_mmu_pages.patch removed from -mm tree
-Date: Mon, 23 Apr 2012 14:36:16 -0700
-Message-ID: <20120423213616.32F3CA018B@akpm.mtv.corp.google.com>
+Subject: + mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch added to -mm tree
+Date: Mon, 23 Apr 2012 14:38:27 -0700
+Message-ID: <20120423213827.BC44DA0162@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:41095 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755210Ab2DWVgS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Apr 2012 17:36:18 -0400
-Received: by wejx9 with SMTP id x9so74wej.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 14:36:17 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:64138 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755734Ab2DWVia (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 23 Apr 2012 17:38:30 -0400
+Received: by laai8 with SMTP id i8so144laa.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Apr 2012 14:38:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghan@google.com, avi@redhat.com, dan.magenheimer@oracle.com, dhillf@gmail.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, mtosatti@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rajman.mekaco@gmail.com, consul.kautuk@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     Subject: kvm: don't call mmu_shrinker w/o used_mmu_pages
-has been removed from the -mm tree.  Its filename was
-     kvm-dont-call-mmu_shrinker-w-o-used_mmu_pages.patch
+     Subject: mm/mmap.c: find_vma(): remove unnecessary if(mm) check
+has been added to the -mm tree.  Its filename is
+     mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ying Han <yinghan@google.com>
-Subject: kvm: don't call mmu_shrinker w/o used_mmu_pages
+From: Rajman Mekaco <rajman.mekaco@gmail.com>
+Subject: mm/mmap.c: find_vma(): remove unnecessary if(mm) check
 
-mmu_shrink() is heavy by itself by iterating all kvms and holding the
-kvm_lock.  spotted the code w/ Rik during LSF, and it turns out we don't
-need to call the shrinker if nothing to shrink.
+The if(mm) check is not required in find_vma, as the kernel code calls
+find_vma only when it is absolutely sure that the mm_struct arg to it is
+non-NULL.
 
-Signed-off-by: Ying Han <yinghan@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hillf Danton <dhillf@gmail.com>
+Remove the if(mm) check and adding the a WARN_ONCE(!mm) for now.  This
+will serve the purpose of mandating that the execution
+context(user-mode/kernel-mode) be known before find_vma is called.  Also
+fixed 2 checkpatch.pl errors in the declaration of the rb_node and vma_tmp
+local variables.
+
+I was browsing through the internet and read a discussion at
+https://lkml.org/lkml/2012/3/27/342 which discusses removal of the
+validation check within find_vma.  Since no-one responded, I decided to
+send this patch with Andrew's suggestions.
+
+Signed-off-by: Rajman Mekaco <rajman.mekaco@gmail.com>
+Cc: Kautuk Consul <consul.kautuk@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: xAvi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/mmap.c |   53 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 27 insertions(+), 26 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~kvm-dont-call-mmu_shrinker-w-o-used_mmu_pages arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~kvm-dont-call-mmu_shrinker-w-o-used_mmu_pages
-+++ a/arch/x86/kvm/mmu.c
-@@ -189,6 +189,11 @@ static u64 __read_mostly shadow_mmio_mas
- 
- static void mmu_spte_set(u64 *sptep, u64 spte);
- 
-+static inline int get_kvm_total_used_mmu_pages()
-+{
-+	return percpu_counter_read_positive(&kvm_total_used_mmu_pages);
-+}
-+
- void kvm_mmu_set_mmio_spte_mask(u64 mmio_mask)
+diff -puN mm/mmap.c~mm-mmapc-find_vma-remove-unnecessary-ifmm-check mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-find_vma-remove-unnecessary-ifmm-check
++++ a/mm/mmap.c
+@@ -1639,33 +1639,34 @@ struct vm_area_struct *find_vma(struct m
  {
- 	shadow_mmio_mask = mmio_mask;
-@@ -3964,6 +3969,9 @@ static int mmu_shrink(struct shrinker *s
- 	if (nr_to_scan == 0)
- 		goto out;
+ 	struct vm_area_struct *vma = NULL;
  
-+	if (!get_kvm_total_used_mmu_pages())
-+		return 0;
+-	if (mm) {
+-		/* Check the cache first. */
+-		/* (Cache hit rate is typically around 35%.) */
+-		vma = mm->mmap_cache;
+-		if (!(vma && vma->vm_end > addr && vma->vm_start <= addr)) {
+-			struct rb_node * rb_node;
+-
+-			rb_node = mm->mm_rb.rb_node;
+-			vma = NULL;
+-
+-			while (rb_node) {
+-				struct vm_area_struct * vma_tmp;
+-
+-				vma_tmp = rb_entry(rb_node,
+-						struct vm_area_struct, vm_rb);
+-
+-				if (vma_tmp->vm_end > addr) {
+-					vma = vma_tmp;
+-					if (vma_tmp->vm_start <= addr)
+-						break;
+-					rb_node = rb_node->rb_left;
+-				} else
+-					rb_node = rb_node->rb_right;
+-			}
+-			if (vma)
+-				mm->mmap_cache = vma;
++	if (WARN_ON_ONCE(!mm))
++		return NULL;
 +
- 	raw_spin_lock(&kvm_lock);
- 
- 	list_for_each_entry(kvm, &vm_list, vm_list) {
-@@ -3990,7 +3998,7 @@ static int mmu_shrink(struct shrinker *s
- 	raw_spin_unlock(&kvm_lock);
- 
- out:
--	return percpu_counter_read_positive(&kvm_total_used_mmu_pages);
-+	return get_kvm_total_used_mmu_pages();
++	/* Check the cache first. */
++	/* (Cache hit rate is typically around 35%.) */
++	vma = mm->mmap_cache;
++	if (!(vma && vma->vm_end > addr && vma->vm_start <= addr)) {
++		struct rb_node *rb_node;
++
++		rb_node = mm->mm_rb.rb_node;
++		vma = NULL;
++
++		while (rb_node) {
++			struct vm_area_struct *vma_tmp;
++
++			vma_tmp = rb_entry(rb_node,
++					   struct vm_area_struct, vm_rb);
++
++			if (vma_tmp->vm_end > addr) {
++				vma = vma_tmp;
++				if (vma_tmp->vm_start <= addr)
++					break;
++				rb_node = rb_node->rb_left;
++			} else
++				rb_node = rb_node->rb_right;
+ 		}
++		if (vma)
++			mm->mmap_cache = vma;
+ 	}
+ 	return vma;
  }
- 
- static struct shrinker mmu_shrinker = {
 _
+Subject: Subject: mm/mmap.c: find_vma(): remove unnecessary if(mm) check
 
-Patches currently in -mm which might be from yinghan@google.com are
+Patches currently in -mm which might be from rajman.mekaco@gmail.com are
 
-mm-fix-up-the-vmscan-stat-in-vmstat.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
 
