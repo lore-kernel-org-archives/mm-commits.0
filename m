@@ -1,23 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fork-fix-overflow-in-vma-length-when-copying-mmap-on-clone.patch added to -mm tree
-Date: Tue, 24 Apr 2012 12:31:56 -0700
-Message-ID: <20120424193156.E75C4A05C5@akpm.mtv.corp.google.com>
+Subject: + c-r-prctl-return-efault-instead-of-einval-in-case-if-underlied-vma-is-not-found.patch added to -mm tree
+Date: Tue, 24 Apr 2012 13:38:30 -0700
+Message-ID: <20120424203830.DFF50A0172@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:35895 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757114Ab2DXTb7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Apr 2012 15:31:59 -0400
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:42669 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757135Ab2DXUid (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Apr 2012 16:38:33 -0400
+Received: by lbol12 with SMTP id l12so54948lbo.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Apr 2012 13:38:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: siddhesh.poyarekar@gmail.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, hughd@google.com, oleg@redhat.com, stable@vger.kernel.org, tj@kernel.org
+Cc: gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, kosaki.motohiro@gmail.com, mtk.manpages@gmail.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com
 
 
 The patch titled
-     Subject: mm/fork: fix overflow in vma length when copying mmap on clone
+     Subject: c/r: prctl: return -EFAULT instead of -EINVAL in case if underlied VMA is not found
 has been added to the -mm tree.  Its filename is
-     mm-fork-fix-overflow-in-vma-length-when-copying-mmap-on-clone.patch
+     c-r-prctl-return-efault-instead-of-einval-in-case-if-underlied-vma-is-not-found.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,81 +33,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
-Subject: mm/fork: fix overflow in vma length when copying mmap on clone
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: c/r: prctl: return -EFAULT instead of -EINVAL in case if underlied VMA is not found
 
-The vma length in dup_mmap is calculated and stored in a unsigned int,
-which is insufficient and hence overflows for very large maps (beyond
-16TB). The following program demonstrates this:
+In case if underlied VMA is not found prctl_set_mm will return -EINVAL,
+but Michael proposed to return -EFAULT and Kosaki seconded.  Make it so.
 
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/mman.h>
-
-#define GIG 1024 * 1024 * 1024L
-#define EXTENT 16393
-
-int main(void)
-{
-        int i, r;
-        void *m;
-        char buf[1024];
-
-        for (i = 0; i < EXTENT; i++) {
-                m = mmap(NULL, (size_t) 1 * 1024 * 1024 * 1024L,
-                         PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-
-                if (m == (void *)-1)
-                        printf("MMAP Failed: %d\n", m);
-                else
-                        printf("%d : MMAP returned %p\n", i, m);
-
-                r = fork();
-
-                if (r == 0) {
-                        printf("%d: successed\n", i);
-                        return 0;
-                } else if (r < 0)
-                        printf("FORK Failed: %d\n", r);
-                else if (r > 0)
-                        wait(NULL);
-        }
-        return 0;
-}
-
-Increase the storage size of the result to unsigned long, which is
-sufficient for storing the difference between addresses.
-
-Signed-off-by: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Reported-by: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>,
 Cc: Tejun Heo <tj@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sys.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~mm-fork-fix-overflow-in-vma-length-when-copying-mmap-on-clone kernel/fork.c
---- a/kernel/fork.c~mm-fork-fix-overflow-in-vma-length-when-copying-mmap-on-clone
-+++ a/kernel/fork.c
-@@ -358,7 +358,8 @@ static int dup_mmap(struct mm_struct *mm
- 		}
- 		charge = 0;
- 		if (mpnt->vm_flags & VM_ACCOUNT) {
--			unsigned int len = (mpnt->vm_end - mpnt->vm_start) >> PAGE_SHIFT;
-+			unsigned long len;
-+			len = (mpnt->vm_end - mpnt->vm_start) >> PAGE_SHIFT;
- 			if (security_vm_enough_memory_mm(oldmm, len)) /* sic */
- 				goto fail_nomem;
- 			charge = len;
+diff -puN kernel/sys.c~c-r-prctl-return-efault-instead-of-einval-in-case-if-underlied-vma-is-not-found kernel/sys.c
+--- a/kernel/sys.c~c-r-prctl-return-efault-instead-of-einval-in-case-if-underlied-vma-is-not-found
++++ a/kernel/sys.c
+@@ -1780,8 +1780,10 @@ static int prctl_set_mm(int opt, unsigne
+ 	case PR_SET_MM_ARG_END:
+ 	case PR_SET_MM_ENV_START:
+ 	case PR_SET_MM_ENV_END:
+-		if (!vma)
++		if (!vma) {
++			error = -EFAULT;
+ 			goto out;
++		}
+ #ifdef CONFIG_STACK_GROWSUP
+ 		if (vma_flags_mismatch(vma, VM_READ | VM_WRITE | VM_GROWSUP, 0))
+ #else
 _
-Subject: Subject: mm/fork: fix overflow in vma length when copying mmap on clone
+Subject: Subject: c/r: prctl: return -EFAULT instead of -EINVAL in case if underlied VMA is not found
 
-Patches currently in -mm which might be from siddhesh.poyarekar@gmail.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
-mm-fork-fix-overflow-in-vma-length-when-copying-mmap-on-clone.patch
+linux-next.patch
+sethostname-setdomainname-notify-userspace-when-there-is-a-change-in-uts_kern_table.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment.patch
+c-r-prctl-return-efault-instead-of-einval-in-case-if-underlied-vma-is-not-found.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
 
