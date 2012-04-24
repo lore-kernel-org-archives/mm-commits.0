@@ -1,97 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap.patch removed from -mm tree
-Date: Tue, 24 Apr 2012 12:02:48 -0700
-Message-ID: <20120424190248.DCF75A0162@akpm.mtv.corp.google.com>
+Subject: + mm-memcg-move-pc-lookup-point-to-commit_charge.patch added to -mm tree
+Date: Tue, 24 Apr 2012 12:29:19 -0700
+Message-ID: <20120424192919.E7DADA00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:53238 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755888Ab2DXTCv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Apr 2012 15:02:51 -0400
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:39480 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756821Ab2DXT3V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Apr 2012 15:29:21 -0400
+Received: by yenq2 with SMTP id q2so119296yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Apr 2012 12:29:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, heiko.carstens@de.ibm.com, kenchen@google.com, mgorman@suse.de, riel@redhat.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mszeredi@suse.cz
 
 
 The patch titled
-     Subject: mm: fix s390 BUG by __set_page_dirty_no_writeback on swap
-has been removed from the -mm tree.  Its filename was
-     mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap.patch
+     Subject: mm: memcg: move pc lookup point to commit_charge()
+has been added to the -mm tree.  Its filename is
+     mm-memcg-move-pc-lookup-point-to-commit_charge.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix s390 BUG by __set_page_dirty_no_writeback on swap
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: move pc lookup point to commit_charge()
 
-Mel reports a BUG_ON(slot == NULL) in radix_tree_tag_set() on s390 3.0.13:
-called from __set_page_dirty_nobuffers() when page_remove_rmap() tries to
-transfer dirty flag from s390 storage key to struct page and radix_tree.
+None of the callsites actually need the page_cgroup descriptor themselves,
+so just pass the page and do the look up in there.
 
-That would be because of reclaim's shrink_page_list() calling
-add_to_swap() on this page at the same time: first PageSwapCache is set
-(causing page_mapping(page) to appear as &swapper_space), then
-page->private set, then tree_lock taken, then page inserted into
-radix_tree - so there's an interval before taking the lock when the
-radix_tree slot is empty.
+We already had two bugs: 6568d4a ("mm: memcg: update the correct soft
+limit tree during migration") and 9b7f43afd4 ("memcg: fix Bad page state
+after replace_page_cache") where the passed page and pc were not referring
+to the same page frame.
 
-We could fix this by moving __add_to_swap_cache()'s spin_lock_irq up
-before the SetPageSwapCache.  But a better fix is simply to do what's five
-years overdue: Ken Chen introduced __set_page_dirty_no_writeback() (if
-!PageDirty TestSetPageDirty) for tmpfs to skip all the radix_tree
-overhead, and swap is just the same - it ignores the radix_tree tag, and
-does not participate in dirty page accounting, so should be using
-__set_page_dirty_no_writeback() too.
-
-s390 testing now confirms that this does indeed fix the problem.
-
-Reported-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ken Chen <kenchen@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN mm/swap_state.c~mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap mm/swap_state.c
---- a/mm/swap_state.c~mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap
-+++ a/mm/swap_state.c
-@@ -26,7 +26,7 @@
-  */
- static const struct address_space_operations swap_aops = {
- 	.writepage	= swap_writepage,
--	.set_page_dirty	= __set_page_dirty_nobuffers,
-+	.set_page_dirty	= __set_page_dirty_no_writeback,
- 	.migratepage	= migrate_page,
- };
+diff -puN mm/memcontrol.c~mm-memcg-move-pc-lookup-point-to-commit_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-move-pc-lookup-point-to-commit_charge
++++ a/mm/memcontrol.c
+@@ -2470,10 +2470,10 @@ struct mem_cgroup *try_get_mem_cgroup_fr
+ static void __mem_cgroup_commit_charge(struct mem_cgroup *memcg,
+ 				       struct page *page,
+ 				       unsigned int nr_pages,
+-				       struct page_cgroup *pc,
+ 				       enum charge_type ctype,
+ 				       bool lrucare)
+ {
++	struct page_cgroup *pc = lookup_page_cgroup(page);
+ 	struct zone *uninitialized_var(zone);
+ 	bool was_on_lru = false;
+ 	bool anon;
+@@ -2710,7 +2710,6 @@ static int mem_cgroup_charge_common(stru
+ {
+ 	struct mem_cgroup *memcg = NULL;
+ 	unsigned int nr_pages = 1;
+-	struct page_cgroup *pc;
+ 	bool oom = true;
+ 	int ret;
  
+@@ -2724,11 +2723,10 @@ static int mem_cgroup_charge_common(stru
+ 		oom = false;
+ 	}
+ 
+-	pc = lookup_page_cgroup(page);
+ 	ret = __mem_cgroup_try_charge(mm, gfp_mask, nr_pages, &memcg, oom);
+ 	if (ret == -ENOMEM)
+ 		return ret;
+-	__mem_cgroup_commit_charge(memcg, page, nr_pages, pc, ctype, false);
++	__mem_cgroup_commit_charge(memcg, page, nr_pages, ctype, false);
+ 	return 0;
+ }
+ 
+@@ -2825,16 +2823,13 @@ static void
+ __mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *memcg,
+ 					enum charge_type ctype)
+ {
+-	struct page_cgroup *pc;
+-
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 	if (!memcg)
+ 		return;
+ 	cgroup_exclude_rmdir(&memcg->css);
+ 
+-	pc = lookup_page_cgroup(page);
+-	__mem_cgroup_commit_charge(memcg, page, 1, pc, ctype, true);
++	__mem_cgroup_commit_charge(memcg, page, 1, ctype, true);
+ 	/*
+ 	 * Now swap is on-memory. This means this page may be
+ 	 * counted both as mem and swap....double count.
+@@ -3450,14 +3445,13 @@ int mem_cgroup_prepare_migration(struct 
+ 	 * page. In the case new page is migrated but not remapped, new page's
+ 	 * mapcount will be finally 0 and we call uncharge in end_migration().
+ 	 */
+-	pc = lookup_page_cgroup(newpage);
+ 	if (PageAnon(page))
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_MAPPED;
+ 	else if (page_is_file_cache(page))
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
+ 	else
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
+-	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, ctype, false);
++	__mem_cgroup_commit_charge(memcg, newpage, 1, ctype, false);
+ 	return ret;
+ }
+ 
+@@ -3544,8 +3538,7 @@ void mem_cgroup_replace_page_cache(struc
+ 	 * the newpage may be on LRU(or pagevec for LRU) already. We lock
+ 	 * LRU while we overwrite pc->mem_cgroup.
+ 	 */
+-	pc = lookup_page_cgroup(newpage);
+-	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, type, true);
++	__mem_cgroup_commit_charge(memcg, newpage, 1, type, true);
+ }
+ 
+ #ifdef CONFIG_DEBUG_VM
 _
+Subject: Subject: mm: memcg: move pc lookup point to commit_charge()
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-origin.patch
 linux-next.patch
 mm-fix-up-the-vmscan-stat-in-vmstat.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done.patch
-revert-proc-clear_refs-do-not-clear-reserved-pages.patch
 mm-fix-null-ptr-dereference-in-migrate_pages.patch
 mm-fix-null-ptr-dereference-in-move_pages.patch
 mm-remove-swap-token-code.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+memcg-add-hugetlb-extension.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
 memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
 memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
 memcg-swap-use-mem_cgroup_uncharge_swap.patch
@@ -102,13 +175,7 @@ mm-push-lru-index-into-shrink_active_list-fix.patch
 mm-mark-mm-inline-functions-as-__always_inline.patch
 mm-remove-lru-type-checks-from-__isolate_lru_page.patch
 mm-memcg-kill-mem_cgroup_lru_del.patch
+memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
 mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-mm-huge_memoryc-use-lockdep_assert_held.patch
-proc-clean-up-proc-pid-environ-handling.patch
-proc-unify-ptrace_may_access-locking-code.patch
-proc-remove-mm_for_maps.patch
-proc-use-mm_access-instead-of-ptrace_may_access.patch
-proc-use-is_err_or_null.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-prio_tree-debugging-patch.patch
+mm-memcg-move-pc-lookup-point-to-commit_charge.patch
 
