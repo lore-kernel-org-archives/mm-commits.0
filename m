@@ -1,83 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmsplice-relax-alignement-requirements-for-splice_f_gift.patch removed from -mm tree
-Date: Tue, 24 Apr 2012 12:02:46 -0700
-Message-ID: <20120424190246.71095A0162@akpm.mtv.corp.google.com>
+Subject: [merged] mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap.patch removed from -mm tree
+Date: Tue, 24 Apr 2012 12:02:48 -0700
+Message-ID: <20120424190248.DCF75A0162@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:35347 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755888Ab2DXTCs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Apr 2012 15:02:48 -0400
-Received: by wibhj13 with SMTP id hj13so59162wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Apr 2012 12:02:47 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:53238 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755888Ab2DXTCv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Apr 2012 15:02:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.dumazet@gmail.com, axboe@kernel.dk, davem@davemloft.net, hughd@google.com, mszeredi@suse.cz, therbert@google.com, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, xiaosuo@gmail.com, mm-commits@vger.kernel.org
+To: hughd@google.com, heiko.carstens@de.ibm.com, kenchen@google.com, mgorman@suse.de, riel@redhat.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmsplice: relax alignement requirements for SPLICE_F_GIFT
+     Subject: mm: fix s390 BUG by __set_page_dirty_no_writeback on swap
 has been removed from the -mm tree.  Its filename was
-     vmsplice-relax-alignement-requirements-for-splice_f_gift.patch
+     mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: vmsplice: relax alignement requirements for SPLICE_F_GIFT
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix s390 BUG by __set_page_dirty_no_writeback on swap
 
-It seems there is no fundamental reason to limit vmsplice() SPLICE_F_GIFT
-to page aligned chunks.
+Mel reports a BUG_ON(slot == NULL) in radix_tree_tag_set() on s390 3.0.13:
+called from __set_page_dirty_nobuffers() when page_remove_rmap() tries to
+transfer dirty flag from s390 storage key to struct page and radix_tree.
 
-All helpers are prepared to cope with offsets in page.
+That would be because of reclaim's shrink_page_list() calling
+add_to_swap() on this page at the same time: first PageSwapCache is set
+(causing page_mapping(page) to appear as &swapper_space), then
+page->private set, then tree_lock taken, then page inserted into
+radix_tree - so there's an interval before taking the lock when the
+radix_tree slot is empty.
 
-This limitation makes vmsplice() API very impractical in the zero-copy
-land.
+We could fix this by moving __add_to_swap_cache()'s spin_lock_irq up
+before the SetPageSwapCache.  But a better fix is simply to do what's five
+years overdue: Ken Chen introduced __set_page_dirty_no_writeback() (if
+!PageDirty TestSetPageDirty) for tmpfs to skip all the radix_tree
+overhead, and swap is just the same - it ignores the radix_tree tag, and
+does not participate in dirty page accounting, so should be using
+__set_page_dirty_no_writeback() too.
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Tom Herbert <therbert@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: David Miller <davem@davemloft.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Changli Gao <xiaosuo@gmail.com>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+s390 testing now confirms that this does indeed fix the problem.
+
+Reported-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ken Chen <kenchen@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/splice.c~vmsplice-relax-alignement-requirements-for-splice_f_gift fs/splice.c
---- a/fs/splice.c~vmsplice-relax-alignement-requirements-for-splice_f_gift
-+++ a/fs/splice.c
-@@ -1388,7 +1388,7 @@ static long do_splice(struct file *in, l
+diff -puN mm/swap_state.c~mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap mm/swap_state.c
+--- a/mm/swap_state.c~mm-fix-s390-bug-by-__set_page_dirty_no_writeback-on-swap
++++ a/mm/swap_state.c
+@@ -26,7 +26,7 @@
   */
- static int get_iovec_page_array(const struct iovec __user *iov,
- 				unsigned int nr_vecs, struct page **pages,
--				struct partial_page *partial, int aligned,
-+				struct partial_page *partial, bool aligned,
- 				unsigned int pipe_buffers)
- {
- 	int buffers = 0, error = 0;
-@@ -1626,7 +1626,7 @@ static long vmsplice_to_pipe(struct file
- 		return -ENOMEM;
+ static const struct address_space_operations swap_aops = {
+ 	.writepage	= swap_writepage,
+-	.set_page_dirty	= __set_page_dirty_nobuffers,
++	.set_page_dirty	= __set_page_dirty_no_writeback,
+ 	.migratepage	= migrate_page,
+ };
  
- 	spd.nr_pages = get_iovec_page_array(iov, nr_segs, spd.pages,
--					    spd.partial, flags & SPLICE_F_GIFT,
-+					    spd.partial, false,
- 					    pipe->buffers);
- 	if (spd.nr_pages <= 0)
- 		ret = spd.nr_pages;
 _
 
-Patches currently in -mm which might be from eric.dumazet@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
 linux-next.patch
-net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+mm-fix-up-the-vmscan-stat-in-vmstat.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done.patch
+revert-proc-clear_refs-do-not-clear-reserved-pages.patch
+mm-fix-null-ptr-dereference-in-migrate_pages.patch
+mm-fix-null-ptr-dereference-in-move_pages.patch
+mm-remove-swap-token-code.patch
+mm-vmscan-remove-lumpy-reclaim.patch
+mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
+mm-vmscan-remove-reclaim_mode_t.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
+memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
+memcg-swap-use-mem_cgroup_uncharge_swap.patch
+mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
+mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-mark-mm-inline-functions-as-__always_inline.patch
+mm-remove-lru-type-checks-from-__isolate_lru_page.patch
+mm-memcg-kill-mem_cgroup_lru_del.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+mm-huge_memoryc-use-lockdep_assert_held.patch
+proc-clean-up-proc-pid-environ-handling.patch
+proc-unify-ptrace_may_access-locking-code.patch
+proc-remove-mm_for_maps.patch
+proc-use-mm_access-instead-of-ptrace_may_access.patch
+proc-use-is_err_or_null.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+prio_tree-debugging-patch.patch
 
