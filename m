@@ -1,25 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch added to -mm tree
-Date: Tue, 24 Apr 2012 14:11:40 -0700
-Message-ID: <20120424211140.767CFA013D@akpm.mtv.corp.google.com>
+Subject: + drivers-scsi-atp870uc-fix-bad-use-of-udelay.patch added to -mm tree
+Date: Tue, 24 Apr 2012 14:18:59 -0700
+Message-ID: <20120424211859.BCCF2A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:39228 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757650Ab2DXVLs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Apr 2012 17:11:48 -0400
-Received: by eekc41 with SMTP id c41so15147eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Apr 2012 14:11:46 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:39359 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757687Ab2DXVTC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Apr 2012 17:19:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: n.voss@weinmann.de, a.zummo@towertech.it, grant.likely@secretlab.ca
+Cc: tbm@cyrius.com, James.Bottomley@HansenPartnership.com, jrnieder@gmail.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset M41T93_FLAG_OF
+     Subject: drivers/scsi/atp870u.c: fix bad use of udelay
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch
+     drivers-scsi-atp870uc-fix-bad-use-of-udelay.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +31,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nikolaus Voss <n.voss@weinmann.de>
-Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset M41T93_FLAG_OF
+From: Martin Michlmayr <tbm@cyrius.com>
+Subject: drivers/scsi/atp870u.c: fix bad use of udelay
 
-If the rtc reports the time might be invalid due to oscillator failure,
-M41T93_FLAG_OF flag must not be reset by get_time() as the read operation
-doesn't make the time valid.
+The ACARD driver calls udelay() with a value > 2000, which leads to
+to the following compilation error on ARM:
+  ERROR: "__bad_udelay" [drivers/scsi/atp870u.ko] undefined!
+  make[1]: *** [__modpost] Error 1
 
-Without this patch, only the first get_time() reported an invalid time,
-the second get_time() reported a valid time althought the reported time is
-probably wrong due to oscillator failure.
+This is because udelay is defined on ARM, roughly speaking, as
 
-Instead of resetting in get_time(), with this patch M41T93_FLAG_OF is
-reset in set_time() when a valid time is to be written.
+	#define udelay(n) ((n) > 2000 ? __bad_udelay() : \
+		__const_udelay((n) * ((2199023U*HZ)>>11)))
 
-Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+The argument to __const_udelay is the number of jiffies to wait divided by
+4, but this does not work unless the multiplication does not overflow, and
+that is what the build error is designed to prevent.  The intended
+behavior can be achieved by using mdelay to call udelay multiple times in
+a loop.
+
+[jn: adding context]
+Signed-off-by: Martin Michlmayr <tbm@cyrius.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t93.c |   46 +++++++++++++++++++++----------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ drivers/scsi/atp870u.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state drivers/rtc/rtc-m41t93.c
---- a/drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state
-+++ a/drivers/rtc/rtc-m41t93.c
-@@ -48,6 +48,7 @@ static inline int m41t93_set_reg(struct 
- static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
- {
- 	struct spi_device *spi = to_spi_device(dev);
-+	int tmp;
- 	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
- 	u8 * const data = &buf[1]; /* ptr to first data byte */
- 
-@@ -62,6 +63,30 @@ static int m41t93_set_time(struct device
- 		return -EINVAL;
- 	}
- 
-+	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-+	if (tmp < 0)
-+		return tmp;
-+
-+	if (tmp & M41T93_FLAG_OF) {
-+		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
-+		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
-+
-+		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-+		if (tmp < 0) {
-+			return tmp;
-+		} else if (tmp & M41T93_FLAG_OF) {
-+			/* OF cannot be immediately reset: oscillator has to be
-+			 * restarted. */
-+			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
-+
-+			dev_warn(&spi->dev,
-+				 "OF bit is still set, kickstarting clock.\n");
-+			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
-+			reset_osc &= ~M41T93_FLAG_ST;
-+			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
-+		}
-+	}
-+
- 	data[M41T93_REG_SSEC]		= 0;
- 	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
- 	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
-@@ -89,10 +114,7 @@ static int m41t93_get_time(struct device
- 	   1. halt bit (HT) is set: the clock is running but update of readout
- 	      registers has been disabled due to power failure. This is normal
- 	      case after poweron. Time is valid after resetting HT bit.
--	   2. oscillator fail bit (OF) is set. Oscillator has be stopped and
--	      time is invalid:
--	      a) OF can be immeditely reset.
--	      b) OF cannot be immediately reset: oscillator has to be restarted.
-+	   2. oscillator fail bit (OF) is set: time is invalid.
- 	*/
- 	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
- 	if (tmp < 0)
-@@ -110,21 +132,7 @@ static int m41t93_get_time(struct device
- 
- 	if (tmp & M41T93_FLAG_OF) {
- 		ret = -EINVAL;
--		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
--		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
--
--		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
--		if (tmp < 0)
--			return tmp;
--		else if (tmp & M41T93_FLAG_OF) {
--			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
+diff -puN drivers/scsi/atp870u.c~drivers-scsi-atp870uc-fix-bad-use-of-udelay drivers/scsi/atp870u.c
+--- a/drivers/scsi/atp870u.c~drivers-scsi-atp870uc-fix-bad-use-of-udelay
++++ a/drivers/scsi/atp870u.c
+@@ -1173,7 +1173,16 @@ wait_io1:
+ 	outw(val, tmport);
+ 	outb(2, 0x80);
+ TCM_SYNC:
+-	udelay(0x800);
++	/*
++	 * The funny division into multiple delays is to accomodate
++	 * arches like ARM where udelay() multiplies its argument by
++	 * a large number to initialize a loop counter.  To avoid
++	 * overflow, the maximum supported udelay is 2000 microseconds.
++	 *
++	 * XXX it would be more polite to find a way to use msleep()
++	 */
++	mdelay(2);
++	udelay(48);
+ 	if ((inb(tmport) & 0x80) == 0x00) {	/* bsy ? */
+ 		outw(0, tmport--);
+ 		outb(0, tmport);
+_
+Subject: Subject: drivers/scsi/atp870u.c: fix bad use of udelay
+
+Patches currently in -mm which might be from tbm@cyrius.com are
+
+drivers-scsi-atp870uc-fix-bad-use-of-udelay.patch
+
