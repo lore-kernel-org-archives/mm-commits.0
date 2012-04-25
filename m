@@ -1,90 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done.patch removed from -mm tree
-Date: Wed, 25 Apr 2012 13:00:29 -0700
-Message-ID: <20120425200029.9AF0AA038B@akpm.mtv.corp.google.com>
+Subject: + thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch added to -mm tree
+Date: Wed, 25 Apr 2012 14:07:05 -0700
+Message-ID: <20120425210705.E9169A0423@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:48570 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758548Ab2DYUAa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Apr 2012 16:00:30 -0400
-Received: by qabg24 with SMTP id g24so201140qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Apr 2012 13:00:30 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:44491 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757504Ab2DYVHI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Apr 2012 17:07:08 -0400
+Received: by wibhj13 with SMTP id hj13so24560wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Apr 2012 14:07:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, markus@trippelsdorf.de, oleg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, aarcange@redhat.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: mm: set task exit code before complete_vfork_done()
-has been removed from the -mm tree.  Its filename was
-     mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done.patch
+     Subject: thp, memcg: split hugepage for memcg oom on cow
+has been added to the -mm tree.  Its filename is
+     thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
 
-This patch was dropped because it was folded into mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: set task exit code before complete_vfork_done()
+From: David Rientjes <rientjes@google.com>
+Subject: thp, memcg: split hugepage for memcg oom on cow
 
-kthread_stop() uses task->vfork_done for synchronization.  The exiting
-kthread shouldn't do complete_vfork_done() until it sets ->exit_code.
+On COW, a new hugepage is allocated and charged to the memcg.  If the
+system is oom or the charge to the memcg fails, however, the fault handler
+will return VM_FAULT_OOM which results in an oom kill.
 
-fix for mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+Instead, it's possible to fallback to splitting the hugepage so that the
+COW results only in an order-0 page being allocated and charged to the
+memcg which has a higher liklihood to succeed.  This is expensive because
+the hugepage must be split in the page fault handler, but it is much
+better than unnecessarily oom killing a process.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    3 +++
+ mm/memory.c      |   18 +++++++++++++++---
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN kernel/exit.c~mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done kernel/exit.c
---- a/kernel/exit.c~mm-correctly-synchronize-rss-counters-at-exit-exec-set-task-exit-code-before-complete_vfork_done
-+++ a/kernel/exit.c
-@@ -960,6 +960,9 @@ void do_exit(long code)
+diff -puN mm/huge_memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow
++++ a/mm/huge_memory.c
+@@ -952,6 +952,8 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		ret = do_huge_pmd_wp_page_fallback(mm, vma, address,
+ 						   pmd, orig_pmd, page, haddr);
++		if (ret & VM_FAULT_OOM)
++			split_huge_page(page);
+ 		put_page(page);
+ 		goto out;
+ 	}
+@@ -959,6 +961,7 @@ int do_huge_pmd_wp_page(struct mm_struct
  
- 	acct_update_integrals(tsk);
+ 	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
+ 		put_page(new_page);
++		split_huge_page(page);
+ 		put_page(page);
+ 		ret |= VM_FAULT_OOM;
+ 		goto out;
+diff -puN mm/memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow mm/memory.c
+--- a/mm/memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow
++++ a/mm/memory.c
+@@ -3492,6 +3492,7 @@ int handle_mm_fault(struct mm_struct *mm
+ 	if (unlikely(is_vm_hugetlb_page(vma)))
+ 		return hugetlb_fault(mm, vma, address, flags);
  
-+	/* Set exit_code before complete_vfork_done() in mm_release() */
-+	tsk->exit_code = code;
++retry:
+ 	pgd = pgd_offset(mm, address);
+ 	pud = pud_alloc(mm, pgd, address);
+ 	if (!pud)
+@@ -3505,13 +3506,24 @@ int handle_mm_fault(struct mm_struct *mm
+ 							  pmd, flags);
+ 	} else {
+ 		pmd_t orig_pmd = *pmd;
++		int ret;
 +
- 	/* Release mm and sync mm's RSS info before statistics gathering */
- 	mm_release(tsk, tsk->mm);
- 
-@@ -975,7 +978,6 @@ void do_exit(long code)
- 		tty_audit_exit();
- 	audit_free(tsk);
- 
--	tsk->exit_code = code;
- 	taskstats_exit(tsk, group_dead);
- 
- 	exit_mm(tsk);
+ 		barrier();
+ 		if (pmd_trans_huge(orig_pmd)) {
+ 			if (flags & FAULT_FLAG_WRITE &&
+ 			    !pmd_write(orig_pmd) &&
+-			    !pmd_trans_splitting(orig_pmd))
+-				return do_huge_pmd_wp_page(mm, vma, address,
+-							   pmd, orig_pmd);
++			    !pmd_trans_splitting(orig_pmd)) {
++				ret = do_huge_pmd_wp_page(mm, vma, address, pmd,
++							  orig_pmd);
++				/*
++				 * If COW results in an oom, the huge pmd will
++				 * have been split, so retry the fault on the
++				 * pte for a smaller charge.
++				 */
++				if (unlikely(ret & VM_FAULT_OOM))
++					goto retry;
++				return ret;
++			}
+ 			return 0;
+ 		}
+ 	}
 _
+Subject: Subject: thp, memcg: split hugepage for memcg oom on cow
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch
 linux-next.patch
-mm-remove-swap-token-code.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+mm-memory_failure-let-the-compiler-add-the-function-name.patch
+mm-mempolicyc-use-enum-value-mpol_rebind_once-instead-of-0-in-mpol_rebind_policy.patch
+mm-hugetlbc-cleanup-to-use-long-vars-instead-of-int-in-region_count.patch
+mm-thp-remove-unnecessary-ret-variable.patch
+mm-thp-allow-fallback-when-pte_alloc_one-fails-for-huge-pmd.patch
+mm-vmstatc-remov-debug-fs-entries-on-failure-of-file-creation-and-made-extfrag_debug_root-dentry-local.patch
+thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
 
