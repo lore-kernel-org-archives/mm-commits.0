@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch added to -mm tree
-Date: Thu, 26 Apr 2012 16:39:30 -0700
-Message-ID: <20120426233930.C399EA03CD@akpm.mtv.corp.google.com>
+Subject: + documentation-memcg-future-proof-hierarchical-statistics-documentation.patch added to -mm tree
+Date: Thu, 26 Apr 2012 16:40:32 -0700
+Message-ID: <20120426234032.73931A042D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:60637 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752077Ab2DZXjc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 19:39:32 -0400
-Received: by qabg24 with SMTP id g24so4419qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 16:39:31 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:41911 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759483Ab2DZXkd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 19:40:33 -0400
+Received: by vcbfk26 with SMTP id fk26so28529vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 16:40:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, aarcange@redhat.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, yinghan@google.com
 
 
 The patch titled
-     Subject: mm, thp: drop page_table_lock to uncharge memcg pages
+     Subject: Documentation: memcg: future proof hierarchical statistics documentation
 has been added to the -mm tree.  Its filename is
-     mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
+     documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: drop page_table_lock to uncharge memcg pages
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: Documentation: memcg: future proof hierarchical statistics documentation
 
-mm->page_table_lock is hotly contested for page fault tests and isn't
-necessary to do mem_cgroup_uncharge_page() in do_huge_pmd_wp_page().
+The hierarchical versions of per-memcg counters in memory.stat are all
+calculated the same way and are all named total_<counter>.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Documenting the pattern is easier for maintenance than listing each
+counter twice.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Ying Han <yinghan@google.com>
+Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/cgroups/memory.txt |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-drop-page_table_lock-to-uncharge-memcg-pages mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-drop-page_table_lock-to-uncharge-memcg-pages
-+++ a/mm/huge_memory.c
-@@ -973,8 +973,10 @@ int do_huge_pmd_wp_page(struct mm_struct
- 	spin_lock(&mm->page_table_lock);
- 	put_page(page);
- 	if (unlikely(!pmd_same(*pmd, orig_pmd))) {
-+		spin_unlock(&mm->page_table_lock);
- 		mem_cgroup_uncharge_page(new_page);
- 		put_page(new_page);
-+		goto out;
- 	} else {
- 		pmd_t entry;
- 		VM_BUG_ON(!PageHead(page));
+diff -puN Documentation/cgroups/memory.txt~documentation-memcg-future-proof-hierarchical-statistics-documentation Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~documentation-memcg-future-proof-hierarchical-statistics-documentation
++++ a/Documentation/cgroups/memory.txt
+@@ -447,17 +447,10 @@ hierarchical_memory_limit - # of bytes o
+ hierarchical_memsw_limit - # of bytes of memory+swap limit with regard to
+ 			hierarchy under which memory cgroup is.
+ 
+-total_cache		- sum of all children's "cache"
+-total_rss		- sum of all children's "rss"
+-total_mapped_file	- sum of all children's "cache"
+-total_pgpgin		- sum of all children's "pgpgin"
+-total_pgpgout		- sum of all children's "pgpgout"
+-total_swap		- sum of all children's "swap"
+-total_inactive_anon	- sum of all children's "inactive_anon"
+-total_active_anon	- sum of all children's "active_anon"
+-total_inactive_file	- sum of all children's "inactive_file"
+-total_active_file	- sum of all children's "active_file"
+-total_unevictable	- sum of all children's "unevictable"
++total_<counter>		- # hierarchical version of <counter>, which in
++			addition to the cgroup's own value includes the
++			sum of all hierarchical children's values of
++			<counter>, i.e. total_cache
+ 
+ # The following additional stats are dependent on CONFIG_DEBUG_VM.
+ 
 _
-Subject: Subject: mm, thp: drop page_table_lock to uncharge memcg pages
+Subject: Subject: Documentation: memcg: future proof hierarchical statistics documentation
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch
+origin.patch
+mm-fix-up-the-vmscan-stat-in-vmstat.patch
+mm-fix-null-ptr-dereference-in-migrate_pages.patch
+mm-fix-null-ptr-dereference-in-move_pages.patch
 linux-next.patch
-mm-memory_failure-let-the-compiler-add-the-function-name.patch
-mm-mempolicyc-use-enum-value-mpol_rebind_once-instead-of-0-in-mpol_rebind_policy.patch
-mm-hugetlbc-cleanup-to-use-long-vars-instead-of-int-in-region_count.patch
-mm-thp-remove-unnecessary-ret-variable.patch
-mm-thp-allow-fallback-when-pte_alloc_one-fails-for-huge-pmd.patch
-mm-vmstatc-remov-debug-fs-entries-on-failure-of-file-creation-and-made-extfrag_debug_root-dentry-local.patch
-thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
+mm-remove-swap-token-code.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+memcg-add-hugetlb-extension.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
 mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
+documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
+memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
+memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
+memcg-swap-use-mem_cgroup_uncharge_swap.patch
+mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
+mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-mark-mm-inline-functions-as-__always_inline.patch
+mm-remove-lru-type-checks-from-__isolate_lru_page.patch
+mm-memcg-kill-mem_cgroup_lru_del.patch
+memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
 
