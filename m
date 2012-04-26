@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch added to -mm tree
-Date: Thu, 26 Apr 2012 14:18:50 -0700
-Message-ID: <20120426211851.40592A0533@akpm.mtv.corp.google.com>
+Subject: + mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch added to -mm tree
+Date: Thu, 26 Apr 2012 14:18:53 -0700
+Message-ID: <20120426211853.41CF8A0533@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:45869 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755359Ab2DZVSw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 17:18:52 -0400
-Received: by yenq2 with SMTP id q2so13371yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 14:18:51 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:41595 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755359Ab2DZVSz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 17:18:55 -0400
+Received: by wibhj13 with SMTP id hj13so2130wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 14:18:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lwoodman@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mkosaki@redhat.com, riel@redhat.com
+Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, lwoodman@redhat.com, mel@csn.ul.ie, mkosaki@redhat.com, riel@redhat.com
 
 
 The patch titled
-     Subject: mm: do_migrate_pages() calls migrate_to_node() even if task is already on a correct node
+     Subject: mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix
 has been added to the -mm tree.  Its filename is
-     mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
+     mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,232 +33,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Larry Woodman <lwoodman@redhat.com>
-Subject: mm: do_migrate_pages() calls migrate_to_node() even if task is already on a correct node
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix
 
-While running an application that moves tasks from one cpuset to another I
-noticed that it takes much longer and moves many more pages than expected.
- The reason for this is do_migrate_pages() does its best to preserve the
-relative node differential from the first node of the cpuset because the
-application may have been written with that in mind.  If memory was
-interleaved on the nodes of the source cpuset by an application
-do_migrate_pages() will try its best to maintain that interleaving on the
-nodes of the destination cpuset.  This means copying the memory from all
-source nodes to the destination nodes even if the source and destination
-nodes overlap.
+clean up comment layout
 
-This is a problem for userspace NUMA placement tools.  The amount of time
-spent doing extra memory moves cancels out some of the NUMA performance
-improvements.  Furthermore, if the number of source and destination nodes
-are to maintain the previous interleaving layout anyway.
-
-This patch changes do_migrate_pages() to only preserve the relative layout
-inside the program if the number of NUMA nodes in the source and
-destination mask are the same.  If the number is different, we do a much
-more efficient migration by not touching memory that is in an allowed
-node.
-
-This preserves the old behaviour for programs that want it, while allowing
-a userspace NUMA placement tool to use the new, faster migration.  This
-improves performance in our tests by up to a factor of 7.
-
-Without this change migrating tasks from a cpuset containing nodes 0-7 to
-a cpuset containing nodes 3-4, we migrate from ALL the nodes even if they
-are in the both the source and destination nodesets:
-
-   Migrating 7 to 4
-   Migrating 6 to 3
-   Migrating 5 to 4
-   Migrating 4 to 3
-   Migrating 1 to 4
-   Migrating 3 to 4
-   Migrating 0 to 3
-   Migrating 2 to 3
-
-With this change we only migrate from nodes that are not in the
-destination nodesets:
-
-   Migrating 7 to 4
-   Migrating 6 to 3
-   Migrating 5 to 4
-   Migrating 2 to 3
-   Migrating 1 to 4
-   Migrating 0 to 3
-
-Yet if we move from a cpuset containing nodes 2,3,4 to a cpuset
-containing 3,4,5 we still
-do move everything so that we preserve the desired NUMA offsets:
-
-Migrating 4 to 5
-Migrating 3 to 4
-Migrating 2 to 3
-
-As far as performance is concerned this simple patch improves the time it
-takes to move 14, 20 and 26 large tasks from a cpuset containing nodes 0-7
-to a cpuset containing nodes 1 & 3 by up to a factor of 7.  Here are the
-timings with and without the patch:
-
-BEFORE PATCH -- Move times: 59, 140, 651 seconds
-============
-
-Moving 14 tasks from nodes (0-7) to nodes (1,3)
-numad(8780) do_migrate_pages (mm=0xffff88081d414400
-from_nodes=0xffff880818c81d28 to_nodes=0xffff880818c81ce8 flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x7 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x6 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x5 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x4 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x2 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x1 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x0 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 14 tasks...)
-PID 8890 moved to node(s) 1,3 in 59.2 seconds
-
-Moving 20 tasks from nodes (0-7) to nodes (1,4-5)
-numad(8780) do_migrate_pages (mm=0xffff88081d88c700
-from_nodes=0xffff880818c81d28 to_nodes=0xffff880818c81ce8 flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x7 dest=0x4
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x6 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x3 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x2 dest=0x5
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x1 dest=0x4
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x0 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 20 tasks...)
-PID 8962 moved to node(s) 1,4-5 in 139.88 seconds
-
-Moving 26 tasks from nodes (0-7) to nodes (1-3,5)
-numad(8780) do_migrate_pages (mm=0xffff88081d5bc740
-from_nodes=0xffff880818c81d28 to_nodes=0xffff880818c81ce8 flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x7 dest=0x5
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x6 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x5 dest=0x2
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x3 dest=0x5
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x2 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x1 dest=0x2
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x0 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x4 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 26 tasks...)
-PID 9058 moved to node(s) 1-3,5 in 651.45 seconds
-
-AFTER PATCH -- Move times: 42, 56, 93 seconds
-===========
-
-Moving 14 tasks from nodes (0-7) to nodes (5,7)
-numad(33209) do_migrate_pages (mm=0xffff88101d5ff140
-from_nodes=0xffff88101e7b5d28 to_nodes=0xffff88101e7b5ce8 flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x6 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x4 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x3 dest=0x7
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x2 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x1 dest=0x7
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x0 dest=0x5
-flags=0x4)
-(Above moves repeated for each of the 14 tasks...)
-PID 33221 moved to node(s) 5,7 in 41.67 seconds
-
-Moving 20 tasks from nodes (0-7) to nodes (1,3,5)
-numad(33209) do_migrate_pages (mm=0xffff88101d6c37c0
-from_nodes=0xffff88101e7b5d28 to_nodes=0xffff88101e7b5ce8 flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x7 dest=0x3
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x6 dest=0x1
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x4 dest=0x3
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x2 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x0 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 20 tasks...)
-PID 33289 moved to node(s) 1,3,5 in 56.3 seconds
-
-Moving 26 tasks from nodes (0-7) to nodes (1,3,5,7)
-numad(33209) do_migrate_pages (mm=0xffff88101d924400
-from_nodes=0xffff88101e7b5d28 to_nodes=0xffff88101e7b5ce8 flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d924400 source=0x6 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d924400 source=0x4 dest=0x1
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d924400 source=0x2 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d924400 source=0x0 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 26 tasks...)
-PID 33372 moved to node(s) 1,3,5,7 in 92.67 seconds
-
-Signed-off-by: Larry Woodman <lwoodman@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <mkosaki@redhat.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ mm/mempolicy.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node mm/mempolicy.c
---- a/mm/mempolicy.c~mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node
+diff -puN mm/mempolicy.c~mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix
 +++ a/mm/mempolicy.c
-@@ -1012,6 +1012,26 @@ int do_migrate_pages(struct mm_struct *m
- 		int dest = 0;
- 
+@@ -1014,18 +1014,18 @@ int do_migrate_pages(struct mm_struct *m
  		for_each_node_mask(s, tmp) {
-+
-+			/*
-+			 * do_migrate_pages() tries to maintain the
-+			 * relative node relationship of the pages
-+			 * established between threads and memory areas.
-+                         *
-+			 * However if the number of source nodes is not
-+			 * equal to the number of destination nodes we
-+			 * can not preserve this node relative relationship.
-+			 * In that case, skip copying memory from a node that
-+			 * is in the destination mask.
-+			 *
-+			 * Example: [2,3,4] -> [3,4,5] moves everything.
-+			 *                 [0-7] - > [3,4,5] moves only 0,1,2,6,7.
-+			 */
-+
-+			if ((nodes_weight(*from_nodes) != nodes_weight(*to_nodes)) &&
-+						(node_isset(s, *to_nodes)))
-+				continue;
-+
- 			d = node_remap(s, *from_nodes, *to_nodes);
- 			if (s == d)
- 				continue;
+ 
+ 			/*
+-			 * do_migrate_pages() tries to maintain the
+-			 * relative node relationship of the pages
+-			 * established between threads and memory areas.
++			 * do_migrate_pages() tries to maintain the relative
++			 * node relationship of the pages established between
++			 * threads and memory areas.
+                          *
+-			 * However if the number of source nodes is not
+-			 * equal to the number of destination nodes we
+-			 * can not preserve this node relative relationship.
+-			 * In that case, skip copying memory from a node that
+-			 * is in the destination mask.
++			 * However if the number of source nodes is not equal to
++			 * the number of destination nodes we can not preserve
++			 * this node relative relationship.  In that case, skip
++			 * copying memory from a node that is in the destination
++			 * mask.
+ 			 *
+ 			 * Example: [2,3,4] -> [3,4,5] moves everything.
+-			 *                 [0-7] - > [3,4,5] moves only 0,1,2,6,7.
++			 *          [0-7] - > [3,4,5] moves only 0,1,2,6,7.
+ 			 */
+ 
+ 			if ((nodes_weight(*from_nodes) != nodes_weight(*to_nodes)) &&
 _
-Subject: Subject: mm: do_migrate_pages() calls migrate_to_node() even if task is already on a correct node
+Subject: Subject: mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix
 
-Patches currently in -mm which might be from lwoodman@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+sound-usb-endpointc-suppress-warning.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
 mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
 mm-do_migrate_pages-rename-arguments.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
