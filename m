@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch added to -mm tree
-Date: Thu, 26 Apr 2012 14:37:44 -0700
-Message-ID: <20120426213744.C4D00A03CD@akpm.mtv.corp.google.com>
+Subject: + mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch added to -mm tree
+Date: Thu, 26 Apr 2012 14:37:47 -0700
+Message-ID: <20120426213747.9AFDAA03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:61060 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab2DZVhq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 17:37:46 -0400
-Received: by qabg24 with SMTP id g24so31834qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 14:37:45 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:59424 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754158Ab2DZVhs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 17:37:48 -0400
+Received: by ghbz15 with SMTP id z15so15468ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 14:37:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, l
 
 
 The patch titled
-     Subject: kernel: cgroup: push rcu read locking from css_is_ancestor() to callsite
+     Subject: mm: memcg: count pte references from every member of the reclaimed hierarchy
 has been added to the -mm tree.  Its filename is
-     kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
+     mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,135 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: kernel: cgroup: push rcu read locking from css_is_ancestor() to callsite
+Subject: mm: memcg: count pte references from every member of the reclaimed hierarchy
 
-Library functions should not grab locks when the callsites can do it, even
-if the lock nests like the rcu read-side lock does.
+The rmap walker checking page table references has historically
+ignored references from VMAs that were not part of the memcg that was
+being reclaimed during memcg hard limit reclaim.
 
-Push the rcu_read_lock() from css_is_ancestor() to its single user,
-mem_cgroup_same_or_subtree() in preparation for another user that may
-already hold the rcu read-side lock.
+When transitioning global reclaim to memcg hierarchy reclaim, I missed
+that bit and now references from outside a memcg are ignored even
+during global reclaim.
+
+Reverting back to traditional behaviour - count all references during
+global reclaim and only mind references of the memcg being reclaimed
+during limit reclaim would be one option.
+
+However, the more generic idea is to ignore references exactly then
+when they are outside the hierarchy that is currently under reclaim;
+because only then will their reclamation be of any use to help the
+pressure situation.  It makes no sense to ignore references from a
+sibling memcg and then evict a page that will be immediately refaulted
+by that sibling which contributes to the same usage of the common
+ancestor under reclaim.
+
+The solution: make the rmap walker ignore references from VMAs that
+are not part of the hierarchy that is being reclaimed.
+
+Flat limit reclaim will stay the same, hierarchical limit reclaim will
+mind the references only to pages that the hierarchy owns.  Global
+reclaim, since it reclaims from all memcgs, will be fixed to regard
+all references.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Li Zefan <lizf@cn.fujitsu.com>
+Reported-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: Konstantin Khlebnikov<khlebnikov@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   20 ++++++++++----------
- mm/memcontrol.c |   14 +++++++++-----
- 2 files changed, 19 insertions(+), 15 deletions(-)
+ include/linux/memcontrol.h |    6 +++++-
+ mm/memcontrol.c            |   16 +++++++++++-----
+ mm/vmscan.c                |    6 ++++--
+ 3 files changed, 20 insertions(+), 8 deletions(-)
 
-diff -puN kernel/cgroup.c~kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite kernel/cgroup.c
---- a/kernel/cgroup.c~kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite
-+++ a/kernel/cgroup.c
-@@ -5132,7 +5132,7 @@ EXPORT_SYMBOL_GPL(css_depth);
-  * @root: the css supporsed to be an ancestor of the child.
-  *
-  * Returns true if "root" is an ancestor of "child" in its hierarchy. Because
-- * this function reads css->id, this use rcu_dereference() and rcu_read_lock().
-+ * this function reads css->id, the caller must hold rcu_read_lock().
-  * But, considering usual usage, the csses should be valid objects after test.
-  * Assuming that the caller will do some action to the child if this returns
-  * returns true, the caller must take "child";s reference count.
-@@ -5144,18 +5144,18 @@ bool css_is_ancestor(struct cgroup_subsy
- {
- 	struct css_id *child_id;
- 	struct css_id *root_id;
--	bool ret = true;
+diff -puN include/linux/memcontrol.h~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy
++++ a/include/linux/memcontrol.h
+@@ -79,6 +79,7 @@ extern void mem_cgroup_uncharge_cache_pa
  
--	rcu_read_lock();
- 	child_id  = rcu_dereference(child->id);
-+	if (!child_id)
-+		return false;
- 	root_id = rcu_dereference(root->id);
--	if (!child_id
--	    || !root_id
--	    || (child_id->depth < root_id->depth)
--	    || (child_id->stack[root_id->depth] != root_id->id))
--		ret = false;
--	rcu_read_unlock();
--	return ret;
-+	if (!root_id)
-+		return false;
-+	if (child_id->depth < root_id->depth)
-+		return false;
-+	if (child_id->stack[root_id->depth] != root_id->id)
-+		return false;
-+	return true;
+ extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+ 				     int order);
++bool __mem_cgroup_same_or_subtree(const struct mem_cgroup *, struct mem_cgroup *);
+ int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg);
+ 
+ extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+@@ -92,10 +93,13 @@ static inline
+ int mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *cgroup)
+ {
+ 	struct mem_cgroup *memcg;
++	int match;
++
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_task(rcu_dereference((mm)->owner));
++	match = __mem_cgroup_same_or_subtree(cgroup, memcg);
+ 	rcu_read_unlock();
+-	return cgroup == memcg;
++	return match;
  }
  
- void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css)
-diff -puN mm/memcontrol.c~kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite mm/memcontrol.c
---- a/mm/memcontrol.c~kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite
+ extern struct cgroup_subsys_state *mem_cgroup_css(struct mem_cgroup *memcg);
+diff -puN mm/memcontrol.c~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy
 +++ a/mm/memcontrol.c
-@@ -1161,12 +1161,16 @@ struct lruvec *mem_cgroup_lru_move_lists
- static bool mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
- 		struct mem_cgroup *memcg)
+@@ -1158,17 +1158,23 @@ struct lruvec *mem_cgroup_lru_move_lists
+  * Checks whether given mem is same or in the root_mem_cgroup's
+  * hierarchy subtree
+  */
+-static bool mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
+-		struct mem_cgroup *memcg)
++bool __mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
++				  struct mem_cgroup *memcg)
  {
--	if (root_memcg != memcg) {
--		return (root_memcg->use_hierarchy &&
--			css_is_ancestor(&memcg->css, &root_memcg->css));
--	}
+-	bool ret;
+-
+ 	if (root_memcg == memcg)
+ 		return true;
+ 	if (!root_memcg->use_hierarchy)
+ 		return false;
++	return css_is_ancestor(&memcg->css, &root_memcg->css);
++}
++
++static bool mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
++				       struct mem_cgroup *memcg)
++{
 +	bool ret;
- 
--	return true;
-+	if (root_memcg == memcg)
-+		return true;
-+	if (!root_memcg->use_hierarchy)
-+		return false;
-+	rcu_read_lock();
-+	ret = css_is_ancestor(&memcg->css, &root_memcg->css);
-+	rcu_read_unlock();
-+	return ret;
++
+ 	rcu_read_lock();
+-	ret = css_is_ancestor(&memcg->css, &root_memcg->css);
++	ret = __mem_cgroup_same_or_subtree(root_memcg, memcg);
+ 	rcu_read_unlock();
+ 	return ret;
  }
+diff -puN mm/vmscan.c~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy
++++ a/mm/vmscan.c
+@@ -645,7 +645,8 @@ static enum page_references page_check_r
+ 	int referenced_ptes, referenced_page;
+ 	unsigned long vm_flags;
  
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg)
+-	referenced_ptes = page_referenced(page, 1, mz->mem_cgroup, &vm_flags);
++	referenced_ptes = page_referenced(page, 1, sc->target_mem_cgroup,
++					  &vm_flags);
+ 	referenced_page = TestClearPageReferenced(page);
+ 
+ 	/*
+@@ -1513,7 +1514,8 @@ static void shrink_active_list(unsigned 
+ 			}
+ 		}
+ 
+-		if (page_referenced(page, 0, mz->mem_cgroup, &vm_flags)) {
++		if (page_referenced(page, 0, sc->target_mem_cgroup,
++				    &vm_flags)) {
+ 			nr_rotated += hpage_nr_pages(page);
+ 			/*
+ 			 * Identify referenced, file-backed active pages and
 _
-Subject: Subject: kernel: cgroup: push rcu read locking from css_is_ancestor() to callsite
+Subject: Subject: mm: memcg: count pte references from every member of the reclaimed hierarchy
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
