@@ -1,134 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: + thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch added to -mm tree
-Date: Wed, 25 Apr 2012 14:07:05 -0700
-Message-ID: <20120425210705.E9169A0423@akpm.mtv.corp.google.com>
+Subject: [merged] mm-memcg-move-pc-lookup-point-to-commit_charge.patch removed from -mm tree
+Date: Thu, 26 Apr 2012 13:49:07 -0700
+Message-ID: <20120426204909.D1C8DA04C2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:44491 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757504Ab2DYVHI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Apr 2012 17:07:08 -0400
-Received: by wibhj13 with SMTP id hj13so24560wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Apr 2012 14:07:07 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:41239 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758042Ab2DZUtM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 16:49:12 -0400
+Received: by qabg24 with SMTP id g24so21807qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 13:49:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, aarcange@redhat.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+To: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp, memcg: split hugepage for memcg oom on cow
-has been added to the -mm tree.  Its filename is
-     thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
+     Subject: mm: memcg: move pc lookup point to commit_charge()
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-move-pc-lookup-point-to-commit_charge.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: thp, memcg: split hugepage for memcg oom on cow
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: move pc lookup point to commit_charge()
 
-On COW, a new hugepage is allocated and charged to the memcg.  If the
-system is oom or the charge to the memcg fails, however, the fault handler
-will return VM_FAULT_OOM which results in an oom kill.
+None of the callsites actually need the page_cgroup descriptor themselves,
+so just pass the page and do the look up in there.
 
-Instead, it's possible to fallback to splitting the hugepage so that the
-COW results only in an order-0 page being allocated and charged to the
-memcg which has a higher liklihood to succeed.  This is expensive because
-the hugepage must be split in the page fault handler, but it is much
-better than unnecessarily oom killing a process.
+We already had two bugs: 6568d4a ("mm: memcg: update the correct soft
+limit tree during migration") and 9b7f43afd4 ("memcg: fix Bad page state
+after replace_page_cache") where the passed page and pc were not referring
+to the same page frame.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Miklos Szeredi <mszeredi@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +++
- mm/memory.c      |   18 +++++++++++++++---
- 2 files changed, 18 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow mm/huge_memory.c
---- a/mm/huge_memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow
-+++ a/mm/huge_memory.c
-@@ -952,6 +952,8 @@ int do_huge_pmd_wp_page(struct mm_struct
- 		count_vm_event(THP_FAULT_FALLBACK);
- 		ret = do_huge_pmd_wp_page_fallback(mm, vma, address,
- 						   pmd, orig_pmd, page, haddr);
-+		if (ret & VM_FAULT_OOM)
-+			split_huge_page(page);
- 		put_page(page);
- 		goto out;
- 	}
-@@ -959,6 +961,7 @@ int do_huge_pmd_wp_page(struct mm_struct
+diff -puN mm/memcontrol.c~mm-memcg-move-pc-lookup-point-to-commit_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-move-pc-lookup-point-to-commit_charge
++++ a/mm/memcontrol.c
+@@ -2470,10 +2470,10 @@ struct mem_cgroup *try_get_mem_cgroup_fr
+ static void __mem_cgroup_commit_charge(struct mem_cgroup *memcg,
+ 				       struct page *page,
+ 				       unsigned int nr_pages,
+-				       struct page_cgroup *pc,
+ 				       enum charge_type ctype,
+ 				       bool lrucare)
+ {
++	struct page_cgroup *pc = lookup_page_cgroup(page);
+ 	struct zone *uninitialized_var(zone);
+ 	bool was_on_lru = false;
+ 	bool anon;
+@@ -2710,7 +2710,6 @@ static int mem_cgroup_charge_common(stru
+ {
+ 	struct mem_cgroup *memcg = NULL;
+ 	unsigned int nr_pages = 1;
+-	struct page_cgroup *pc;
+ 	bool oom = true;
+ 	int ret;
  
- 	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
- 		put_page(new_page);
-+		split_huge_page(page);
- 		put_page(page);
- 		ret |= VM_FAULT_OOM;
- 		goto out;
-diff -puN mm/memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow mm/memory.c
---- a/mm/memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow
-+++ a/mm/memory.c
-@@ -3492,6 +3492,7 @@ int handle_mm_fault(struct mm_struct *mm
- 	if (unlikely(is_vm_hugetlb_page(vma)))
- 		return hugetlb_fault(mm, vma, address, flags);
- 
-+retry:
- 	pgd = pgd_offset(mm, address);
- 	pud = pud_alloc(mm, pgd, address);
- 	if (!pud)
-@@ -3505,13 +3506,24 @@ int handle_mm_fault(struct mm_struct *mm
- 							  pmd, flags);
- 	} else {
- 		pmd_t orig_pmd = *pmd;
-+		int ret;
-+
- 		barrier();
- 		if (pmd_trans_huge(orig_pmd)) {
- 			if (flags & FAULT_FLAG_WRITE &&
- 			    !pmd_write(orig_pmd) &&
--			    !pmd_trans_splitting(orig_pmd))
--				return do_huge_pmd_wp_page(mm, vma, address,
--							   pmd, orig_pmd);
-+			    !pmd_trans_splitting(orig_pmd)) {
-+				ret = do_huge_pmd_wp_page(mm, vma, address, pmd,
-+							  orig_pmd);
-+				/*
-+				 * If COW results in an oom, the huge pmd will
-+				 * have been split, so retry the fault on the
-+				 * pte for a smaller charge.
-+				 */
-+				if (unlikely(ret & VM_FAULT_OOM))
-+					goto retry;
-+				return ret;
-+			}
- 			return 0;
- 		}
+@@ -2724,11 +2723,10 @@ static int mem_cgroup_charge_common(stru
+ 		oom = false;
  	}
+ 
+-	pc = lookup_page_cgroup(page);
+ 	ret = __mem_cgroup_try_charge(mm, gfp_mask, nr_pages, &memcg, oom);
+ 	if (ret == -ENOMEM)
+ 		return ret;
+-	__mem_cgroup_commit_charge(memcg, page, nr_pages, pc, ctype, false);
++	__mem_cgroup_commit_charge(memcg, page, nr_pages, ctype, false);
+ 	return 0;
+ }
+ 
+@@ -2825,16 +2823,13 @@ static void
+ __mem_cgroup_commit_charge_swapin(struct page *page, struct mem_cgroup *memcg,
+ 					enum charge_type ctype)
+ {
+-	struct page_cgroup *pc;
+-
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 	if (!memcg)
+ 		return;
+ 	cgroup_exclude_rmdir(&memcg->css);
+ 
+-	pc = lookup_page_cgroup(page);
+-	__mem_cgroup_commit_charge(memcg, page, 1, pc, ctype, true);
++	__mem_cgroup_commit_charge(memcg, page, 1, ctype, true);
+ 	/*
+ 	 * Now swap is on-memory. This means this page may be
+ 	 * counted both as mem and swap....double count.
+@@ -3450,14 +3445,13 @@ int mem_cgroup_prepare_migration(struct 
+ 	 * page. In the case new page is migrated but not remapped, new page's
+ 	 * mapcount will be finally 0 and we call uncharge in end_migration().
+ 	 */
+-	pc = lookup_page_cgroup(newpage);
+ 	if (PageAnon(page))
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_MAPPED;
+ 	else if (page_is_file_cache(page))
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
+ 	else
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
+-	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, ctype, false);
++	__mem_cgroup_commit_charge(memcg, newpage, 1, ctype, false);
+ 	return ret;
+ }
+ 
+@@ -3544,8 +3538,7 @@ void mem_cgroup_replace_page_cache(struc
+ 	 * the newpage may be on LRU(or pagevec for LRU) already. We lock
+ 	 * LRU while we overwrite pc->mem_cgroup.
+ 	 */
+-	pc = lookup_page_cgroup(newpage);
+-	__mem_cgroup_commit_charge(memcg, newpage, 1, pc, type, true);
++	__mem_cgroup_commit_charge(memcg, newpage, 1, type, true);
+ }
+ 
+ #ifdef CONFIG_DEBUG_VM
 _
-Subject: Subject: thp, memcg: split hugepage for memcg oom on cow
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch
+origin.patch
+mm-fix-up-the-vmscan-stat-in-vmstat.patch
+mm-fix-null-ptr-dereference-in-migrate_pages.patch
+mm-fix-null-ptr-dereference-in-move_pages.patch
 linux-next.patch
-mm-memory_failure-let-the-compiler-add-the-function-name.patch
-mm-mempolicyc-use-enum-value-mpol_rebind_once-instead-of-0-in-mpol_rebind_policy.patch
-mm-hugetlbc-cleanup-to-use-long-vars-instead-of-int-in-region_count.patch
-mm-thp-remove-unnecessary-ret-variable.patch
-mm-thp-allow-fallback-when-pte_alloc_one-fails-for-huge-pmd.patch
-mm-vmstatc-remov-debug-fs-entries-on-failure-of-file-creation-and-made-extfrag_debug_root-dentry-local.patch
-thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
+mm-remove-swap-token-code.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+memcg-add-hugetlb-extension.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
+memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
+memcg-swap-use-mem_cgroup_uncharge_swap.patch
+mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
+mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-mark-mm-inline-functions-as-__always_inline.patch
+mm-remove-lru-type-checks-from-__isolate_lru_page.patch
+mm-memcg-kill-mem_cgroup_lru_del.patch
+memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
 
