@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-a-couple-of-task-mm-handling-fixes.patch added to -mm tree
-Date: Thu, 26 Apr 2012 17:06:02 -0700
-Message-ID: <20120427000602.6AD28A075F@akpm.mtv.corp.google.com>
+Subject: + powerpc-use-clear_tasks_mm_cpumask.patch added to -mm tree
+Date: Thu, 26 Apr 2012 17:05:57 -0700
+Message-ID: <20120427000557.41CDEA042D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:58711 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757554Ab2D0AGD (ORCPT
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:41352 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757384Ab2D0AGD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 20:06:03 -0400
-Received: by yenq2 with SMTP id q2so30545yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:06:03 -0700 (PDT)
+Received: by qcsp5 with SMTP id p5so31074qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:06:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anton.vorontsov@linaro.org, oleg@redhat.com, vapier@gentoo.org
+Cc: anton.vorontsov@linaro.org, benh@kernel.crashing.org, oleg@redhat.com
 
 
 The patch titled
-     Subject: blackfin: a couple of task->mm handling fixes
+     Subject: powerpc: use clear_tasks_mm_cpumask()
 has been added to the -mm tree.  Its filename is
-     blackfin-a-couple-of-task-mm-handling-fixes.patch
+     powerpc-use-clear_tasks_mm_cpumask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anton Vorontsov <anton.vorontsov@linaro.org>
-Subject: blackfin: a couple of task->mm handling fixes
+Subject: powerpc: use clear_tasks_mm_cpumask()
 
-The patch fixes two problems:
+Current CPU hotplug code has some task->mm handling issues:
 
 1. Working with task->mm w/o getting mm or grabing the task lock is
    dangerous as ->mm might disappear (exit_mm() assigns NULL under
    task_lock(), so tasklist lock is not enough).
 
    We can't use get_task_mm()/mmput() pair as mmput() might sleep,
-   so we have to take the task lock while handle its mm.
+   so we must take the task lock while handle its mm.
 
 2. Checking for process->mm is not enough because process' main
    thread may exit or detach its mm via use_mm(), but other threads
    may still have a valid mm.
 
-   To catch this we use find_lock_task_mm(), which walks up all
-   threads and returns an appropriate task (with task lock held).
+   To fix this we would need to use find_lock_task_mm(), which would
+   walk up all threads and returns an appropriate task (with task
+   lock held).
+
+clear_tasks_mm_cpumask() has all the issues fixed, so let's use it.
 
 Suggested-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/trace.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ arch/powerpc/mm/mmu_context_nohash.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN arch/blackfin/kernel/trace.c~blackfin-a-couple-of-task-mm-handling-fixes arch/blackfin/kernel/trace.c
---- a/arch/blackfin/kernel/trace.c~blackfin-a-couple-of-task-mm-handling-fixes
-+++ a/arch/blackfin/kernel/trace.c
-@@ -10,6 +10,8 @@
- #include <linux/hardirq.h>
- #include <linux/thread_info.h>
- #include <linux/mm.h>
-+#include <linux/oom.h>
-+#include <linux/sched.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
- #include <linux/kallsyms.h>
-@@ -28,7 +30,6 @@ void decode_address(char *buf, unsigned 
- 	struct task_struct *p;
- 	struct mm_struct *mm;
- 	unsigned long flags, offset;
--	unsigned char in_atomic = (bfin_read_IPEND() & 0x10) || in_atomic();
- 	struct rb_node *n;
- 
- #ifdef CONFIG_KALLSYMS
-@@ -114,15 +115,15 @@ void decode_address(char *buf, unsigned 
- 	 */
- 	write_lock_irqsave(&tasklist_lock, flags);
- 	for_each_process(p) {
--		mm = (in_atomic ? p->mm : get_task_mm(p));
--		if (!mm)
--			continue;
-+		struct task_struct *t;
- 
--		if (!down_read_trylock(&mm->mmap_sem)) {
--			if (!in_atomic)
--				mmput(mm);
-+		t = find_lock_task_mm(p);
-+		if (!t)
- 			continue;
--		}
+diff -puN arch/powerpc/mm/mmu_context_nohash.c~powerpc-use-clear_tasks_mm_cpumask arch/powerpc/mm/mmu_context_nohash.c
+--- a/arch/powerpc/mm/mmu_context_nohash.c~powerpc-use-clear_tasks_mm_cpumask
++++ a/arch/powerpc/mm/mmu_context_nohash.c
+@@ -333,9 +333,7 @@ static int __cpuinit mmu_context_cpu_not
+ 					    unsigned long action, void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned int)(long)hcpu;
+-#ifdef CONFIG_HOTPLUG_CPU
+-	struct task_struct *p;
+-#endif
 +
-+		mm = t->mm;
-+		if (!down_read_trylock(&mm->mmap_sem))
-+			goto __continue;
+ 	/* We don't touch CPU 0 map, it's allocated at aboot and kept
+ 	 * around forever
+ 	 */
+@@ -358,12 +356,7 @@ static int __cpuinit mmu_context_cpu_not
+ 		stale_map[cpu] = NULL;
  
- 		for (n = rb_first(&mm->mm_rb); n; n = rb_next(n)) {
- 			struct vm_area_struct *vma;
-@@ -131,7 +132,7 @@ void decode_address(char *buf, unsigned 
- 
- 			if (address >= vma->vm_start && address < vma->vm_end) {
- 				char _tmpbuf[256];
--				char *name = p->comm;
-+				char *name = t->comm;
- 				struct file *file = vma->vm_file;
- 
- 				if (file) {
-@@ -164,8 +165,7 @@ void decode_address(char *buf, unsigned 
- 						name, vma->vm_start, vma->vm_end);
- 
- 				up_read(&mm->mmap_sem);
--				if (!in_atomic)
--					mmput(mm);
-+				task_unlock(t);
- 
- 				if (buf[0] == '\0')
- 					sprintf(buf, "[ %s ] dynamic memory", name);
-@@ -175,8 +175,8 @@ void decode_address(char *buf, unsigned 
- 		}
- 
- 		up_read(&mm->mmap_sem);
--		if (!in_atomic)
--			mmput(mm);
-+__continue:
-+		task_unlock(t);
+ 		/* We also clear the cpu_vm_mask bits of CPUs going away */
+-		read_lock(&tasklist_lock);
+-		for_each_process(p) {
+-			if (p->mm)
+-				cpumask_clear_cpu(cpu, mm_cpumask(p->mm));
+-		}
+-		read_unlock(&tasklist_lock);
++		clear_tasks_mm_cpumask(cpu);
+ 	break;
+ #endif /* CONFIG_HOTPLUG_CPU */
  	}
- 
- 	/*
 _
-Subject: Subject: blackfin: a couple of task->mm handling fixes
+Subject: Subject: powerpc: use clear_tasks_mm_cpumask()
 
 Patches currently in -mm which might be from anton.vorontsov@linaro.org are
 
