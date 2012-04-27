@@ -1,90 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-bufferc-remove-bug-in-possible-but-rare-condition.patch removed from -mm tree
-Date: Fri, 27 Apr 2012 12:35:14 -0700
-Message-ID: <20120427193514.63D55A02CD@akpm.mtv.corp.google.com>
+Subject: [merged] mm-fix-up-the-vmscan-stat-in-vmstat.patch removed from -mm tree
+Date: Fri, 27 Apr 2012 12:35:11 -0700
+Message-ID: <20120427193511.AF5B3A02CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:61838 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761328Ab2D0TfQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:16 -0400
-Received: by qcsp5 with SMTP id p5so121090qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:14 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:44814 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760569Ab2D0TfO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:14 -0400
+Received: by wgbdt11 with SMTP id dt11so59812wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glommer@parallels.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: yinghan@google.com, cl@linux.com, dan.magenheimer@oracle.com, dhillf@gmail.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/buffer.c: remove BUG() in possible but rare condition
+     Subject: mm: fix up the vmscan stat in vmstat
 has been removed from the -mm tree.  Its filename was
-     fs-bufferc-remove-bug-in-possible-but-rare-condition.patch
+     mm-fix-up-the-vmscan-stat-in-vmstat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@parallels.com>
-Subject: fs/buffer.c: remove BUG() in possible but rare condition
+From: Ying Han <yinghan@google.com>
+Subject: mm: fix up the vmscan stat in vmstat
 
-While stressing the kernel with with failing allocations today, I hit the
-following chain of events:
+The "pgsteal" stat is confusing because it counts both direct reclaim as
+well as background reclaim.  However, we have "kswapd_steal" which also
+counts background reclaim value.
 
-alloc_page_buffers():
+This patch fixes it and also makes it match the existng "pgscan_" stats.
 
-	bh = alloc_buffer_head(GFP_NOFS);
-	if (!bh)
-		goto no_grow; <= path taken
+Test:
+pgsteal_kswapd_dma32 447623
+pgsteal_kswapd_normal 42272677
+pgsteal_kswapd_movable 0
+pgsteal_direct_dma32 2801
+pgsteal_direct_normal 44353270
+pgsteal_direct_movable 0
 
-grow_dev_page():
-        bh = alloc_page_buffers(page, size, 0);
-        if (!bh)
-                goto failed;  <= taken, consequence of the above
-
-and then the failed path BUG()s the kernel.
-
-The failure is inserted a litte bit artificially, but even then, I see no
-reason why it should be deemed impossible in a real box.
-
-Even though this is not a condition that we expect to see around every
-time, failed allocations are expected to be handled, and BUG() sounds just
-too much.  As a matter of fact, grow_dev_page() can return NULL just fine
-in other circumstances, so I propose we just remove it, then.
-
-Signed-off-by: Glauber Costa <glommer@parallels.com>
+Signed-off-by: Ying Han <yinghan@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/vm_event_item.h |    5 +++--
+ mm/vmscan.c                   |   11 ++++++++---
+ mm/vmstat.c                   |    4 ++--
+ 3 files changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN fs/buffer.c~fs-bufferc-remove-bug-in-possible-but-rare-condition fs/buffer.c
---- a/fs/buffer.c~fs-bufferc-remove-bug-in-possible-but-rare-condition
-+++ a/fs/buffer.c
-@@ -985,7 +985,6 @@ grow_dev_page(struct block_device *bdev,
- 	return page;
+diff -puN include/linux/vm_event_item.h~mm-fix-up-the-vmscan-stat-in-vmstat include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-fix-up-the-vmscan-stat-in-vmstat
++++ a/include/linux/vm_event_item.h
+@@ -26,13 +26,14 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		PGFREE, PGACTIVATE, PGDEACTIVATE,
+ 		PGFAULT, PGMAJFAULT,
+ 		FOR_ALL_ZONES(PGREFILL),
+-		FOR_ALL_ZONES(PGSTEAL),
++		FOR_ALL_ZONES(PGSTEAL_KSWAPD),
++		FOR_ALL_ZONES(PGSTEAL_DIRECT),
+ 		FOR_ALL_ZONES(PGSCAN_KSWAPD),
+ 		FOR_ALL_ZONES(PGSCAN_DIRECT),
+ #ifdef CONFIG_NUMA
+ 		PGSCAN_ZONE_RECLAIM_FAILED,
+ #endif
+-		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
++		PGINODESTEAL, SLABS_SCANNED, KSWAPD_INODESTEAL,
+ 		KSWAPD_LOW_WMARK_HIT_QUICKLY, KSWAPD_HIGH_WMARK_HIT_QUICKLY,
+ 		KSWAPD_SKIP_CONGESTION_WAIT,
+ 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
+diff -puN mm/vmscan.c~mm-fix-up-the-vmscan-stat-in-vmstat mm/vmscan.c
+--- a/mm/vmscan.c~mm-fix-up-the-vmscan-stat-in-vmstat
++++ a/mm/vmscan.c
+@@ -1568,9 +1568,14 @@ shrink_inactive_list(unsigned long nr_to
+ 	reclaim_stat->recent_scanned[0] += nr_anon;
+ 	reclaim_stat->recent_scanned[1] += nr_file;
  
- failed:
--	BUG();
- 	unlock_page(page);
- 	page_cache_release(page);
- 	return NULL;
+-	if (current_is_kswapd())
+-		__count_vm_events(KSWAPD_STEAL, nr_reclaimed);
+-	__count_zone_vm_events(PGSTEAL, zone, nr_reclaimed);
++	if (global_reclaim(sc)) {
++		if (current_is_kswapd())
++			__count_zone_vm_events(PGSTEAL_KSWAPD, zone,
++					       nr_reclaimed);
++		else
++			__count_zone_vm_events(PGSTEAL_DIRECT, zone,
++					       nr_reclaimed);
++	}
+ 
+ 	putback_inactive_pages(mz, &page_list);
+ 
+diff -puN mm/vmstat.c~mm-fix-up-the-vmscan-stat-in-vmstat mm/vmstat.c
+--- a/mm/vmstat.c~mm-fix-up-the-vmscan-stat-in-vmstat
++++ a/mm/vmstat.c
+@@ -738,7 +738,8 @@ const char * const vmstat_text[] = {
+ 	"pgmajfault",
+ 
+ 	TEXTS_FOR_ZONES("pgrefill")
+-	TEXTS_FOR_ZONES("pgsteal")
++	TEXTS_FOR_ZONES("pgsteal_kswapd")
++	TEXTS_FOR_ZONES("pgsteal_direct")
+ 	TEXTS_FOR_ZONES("pgscan_kswapd")
+ 	TEXTS_FOR_ZONES("pgscan_direct")
+ 
+@@ -747,7 +748,6 @@ const char * const vmstat_text[] = {
+ #endif
+ 	"pginodesteal",
+ 	"slabs_scanned",
+-	"kswapd_steal",
+ 	"kswapd_inodesteal",
+ 	"kswapd_low_wmark_hit_quickly",
+ 	"kswapd_high_wmark_hit_quickly",
 _
 
-Patches currently in -mm which might be from glommer@parallels.com are
+Patches currently in -mm which might be from yinghan@google.com are
 
 origin.patch
-linux-next.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+mm-vmscan-remove-lumpy-reclaim.patch
+mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
+mm-vmscan-remove-reclaim_mode_t.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
 
