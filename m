@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix.patch added to -mm tree
-Date: Fri, 27 Apr 2012 15:04:18 -0700
-Message-ID: <20120427220419.59E38A0423@akpm.mtv.corp.google.com>
+Subject: + hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2.patch added to -mm tree
+Date: Fri, 27 Apr 2012 15:15:05 -0700
+Message-ID: <20120427221505.7578FA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:42150 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755607Ab2D0WEU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 18:04:20 -0400
-Received: by yenq2 with SMTP id q2so137398yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 15:04:20 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:48771 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620Ab2D0WPJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 18:15:09 -0400
+Received: by eekc41 with SMTP id c41so59891eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 15:15:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: snanda@chromium.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, mingo@elte.hu, msb@chromium.org, rjw@sisk.pl
+Cc: aneesh.kumar@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix
+     Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2
 has been added to the -mm tree.  Its filename is
-     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix.patch
+     hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sameer Nanda <snanda@chromium.org>
-Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2
 
-tweak comment further
+Further cleanup of the above patch
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mandeep Singh Baines <msb@chromium.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Sameer Nanda <snanda@chromium.org>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix kernel/watchdog.c
---- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix
-+++ a/kernel/watchdog.c
-@@ -598,9 +598,10 @@ static struct notifier_block __cpuinitda
- };
- 
- /*
-- * On entry to suspend we force an offline->online transition on the boot CPU so
-- * that PMU state is available to that CPU when it comes back online after
-- * resume.  This information is required for restarting the NMI watchdog.
-+ * On exit from suspend we force an offline->online transition on the boot CPU
-+ * so that the PMU state that was lost while in suspended state gets set up
-+ * properly for the boot CPU.  This information is required for restarting the
-+ * NMI watchdog.
-  */
- void lockup_detector_bootcpu_resume(void)
+diff -puN include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2 include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2
++++ a/include/linux/hugetlb.h
+@@ -100,7 +100,6 @@ static inline unsigned long hugetlb_tota
+ #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
+ #define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
+ #define hugetlb_prefault(mapping, vma)		({ BUG(); 0; })
+-#define unmap_hugepage_range(vma, start, end, page)	BUG()
+ static inline void hugetlb_report_meminfo(struct seq_file *m)
  {
+ }
+@@ -114,7 +113,11 @@ static inline void hugetlb_report_meminf
+ #define hugetlb_free_pgd_range(tlb, addr, end, floor, ceiling) ({BUG(); 0; })
+ #define hugetlb_fault(mm, vma, addr, flags)	({ BUG(); 0; })
+ #define huge_pte_offset(mm, address)	0
+-#define dequeue_hwpoisoned_huge_page(page)	0
++static inline int dequeue_hwpoisoned_huge_page(struct page *page)
++{
++	return 0;
++}
++
+ static inline void copy_huge_page(struct page *dst, struct page *src)
+ {
+ }
+@@ -125,6 +128,7 @@ static inline void __unmap_hugepage_rang
+ 			struct vm_area_struct *vma, unsigned long start,
+ 			unsigned long end, struct page *ref_page)
+ {
++	BUG();
+ }
+ 
+ #endif /* !CONFIG_HUGETLB_PAGE */
 _
-Subject: Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix
+Subject: Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2
 
-Patches currently in -mm which might be from snanda@chromium.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+origin.patch
+linux-next.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+memcg-add-hugetlb-extension.patch
+memcg-add-hugetlb-extension-fix.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+lib-string_helpersc-make-arrays-static.patch
 
