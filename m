@@ -1,108 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sound-usb-endpointc-suppress-warning.patch removed from -mm tree
-Date: Fri, 27 Apr 2012 12:35:38 -0700
-Message-ID: <20120427193538.5A224A02CD@akpm.mtv.corp.google.com>
+Subject: + memcg-add-hugetlb-extension-fix.patch added to -mm tree
+Date: Fri, 27 Apr 2012 13:35:27 -0700
+Message-ID: <20120427203527.D5A7BA00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:42687 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761337Ab2D0Tfj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:39 -0400
-Received: by mail-ee0-f74.google.com with SMTP id c41so54713eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:39 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:37828 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752191Ab2D0Ufa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 16:35:30 -0400
+Received: by wibhj13 with SMTP id hj13so59038wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 13:35:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tiwai@suse.de, zonque@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: sound/usb/endpoint.c: suppress warning
-has been removed from the -mm tree.  Its filename was
-     sound-usb-endpointc-suppress-warning.patch
+     Subject: memcg-add-hugetlb-extension-fix
+has been added to the -mm tree.  Its filename is
+     memcg-add-hugetlb-extension-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sound/usb/endpoint.c: suppress warning
+From: David Rientjes <rientjes@google.com>
+Subject: memcg-add-hugetlb-extension-fix
 
-sound/usb/endpoint.c: In function 'queue_pending_output_urbs':
-sound/usb/endpoint.c:298: warning: 'packet' may be used uninitialized in this function
+Fix UML build:
 
-Cc: Daniel Mack <zonque@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+mm/memcontrol.c:256:30: error: 'HUGE_MAX_HSTATE' undeclared here (not in a function)
+
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/usb/endpoint.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/include/asm/page.h   |    2 +-
+ arch/tile/include/asm/page.h      |    3 +--
+ arch/x86/include/asm/page_types.h |    2 ++
+ include/linux/hugetlb.h           |    1 +
+ 4 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN sound/usb/endpoint.c~sound-usb-endpointc-suppress-warning sound/usb/endpoint.c
---- a/sound/usb/endpoint.c~sound-usb-endpointc-suppress-warning
-+++ a/sound/usb/endpoint.c
-@@ -295,7 +295,7 @@ static void queue_pending_output_urbs(st
- 	while (test_bit(EP_FLAG_RUNNING, &ep->flags)) {
+diff -puN arch/powerpc/include/asm/page.h~memcg-add-hugetlb-extension-fix arch/powerpc/include/asm/page.h
+--- a/arch/powerpc/include/asm/page.h~memcg-add-hugetlb-extension-fix
++++ a/arch/powerpc/include/asm/page.h
+@@ -39,13 +39,13 @@
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_HUGETLB_PAGE
+ extern unsigned int HPAGE_SHIFT;
++#define HUGE_MAX_HSTATE		(MMU_PAGE_COUNT-1)
+ #else
+ #define HPAGE_SHIFT PAGE_SHIFT
+ #endif
+ #define HPAGE_SIZE		((1UL) << HPAGE_SHIFT)
+ #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+-#define HUGE_MAX_HSTATE		(MMU_PAGE_COUNT-1)
+ #endif
  
- 		unsigned long flags;
--		struct snd_usb_packet_info *packet;
-+		struct snd_usb_packet_info *uninitialized_var(packet);
- 		struct snd_urb_ctx *ctx = NULL;
- 		struct urb *urb;
- 		int err, i;
+ /* We do define AT_SYSINFO_EHDR but don't use the gate mechanism */
+diff -puN arch/tile/include/asm/page.h~memcg-add-hugetlb-extension-fix arch/tile/include/asm/page.h
+--- a/arch/tile/include/asm/page.h~memcg-add-hugetlb-extension-fix
++++ a/arch/tile/include/asm/page.h
+@@ -136,9 +136,8 @@ static inline __attribute_const__ int ge
+ 
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ 
+-#define HUGE_MAX_HSTATE		6
+-
+ #ifdef CONFIG_HUGETLB_PAGE
++#define HUGE_MAX_HSTATE		6
+ #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ #endif
+ 
+diff -puN arch/x86/include/asm/page_types.h~memcg-add-hugetlb-extension-fix arch/x86/include/asm/page_types.h
+--- a/arch/x86/include/asm/page_types.h~memcg-add-hugetlb-extension-fix
++++ a/arch/x86/include/asm/page_types.h
+@@ -25,7 +25,9 @@
+ #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ 
++#ifdef CONFIG_HUGETLB_PAGE
+ #define HUGE_MAX_HSTATE 2
++#endif
+ 
+ #define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
+ 
+diff -puN include/linux/hugetlb.h~memcg-add-hugetlb-extension-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~memcg-add-hugetlb-extension-fix
++++ a/include/linux/hugetlb.h
+@@ -318,6 +318,7 @@ static inline int hstate_index(struct hs
+ 
+ #else
+ struct hstate {};
++#define HUGE_MAX_HSTATE 0
+ #define alloc_huge_page_node(h, nid) NULL
+ #define alloc_bootmem_huge_page(h) NULL
+ #define hstate_file(f) NULL
 _
+Subject: Subject: memcg-add-hugetlb-extension-fix
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
-mm-do_migrate_pages-rename-arguments.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
-mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-leds-led-module-for-da9052-53-pmic-v2-fix.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
-lib-string_helpersc-make-arrays-static.patch
-lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-memory_failure-let-the-compiler-add-the-function-name.patch
+mm-mempolicyc-use-enum-value-mpol_rebind_once-instead-of-0-in-mpol_rebind_policy.patch
+mm-hugetlbc-cleanup-to-use-long-vars-instead-of-int-in-region_count.patch
+mm-thp-remove-unnecessary-ret-variable.patch
+mm-thp-allow-fallback-when-pte_alloc_one-fails-for-huge-pmd.patch
+memcg-add-hugetlb-extension-fix.patch
+mm-vmstatc-remov-debug-fs-entries-on-failure-of-file-creation-and-made-extfrag_debug_root-dentry-local.patch
+thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
+mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
 
