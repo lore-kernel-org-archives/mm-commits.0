@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-fix-possible-deadlock-in-decode_address.patch added to -mm tree
-Date: Thu, 26 Apr 2012 17:06:04 -0700
-Message-ID: <20120427000604.E918EA042D@akpm.mtv.corp.google.com>
+Subject: + sh-use-clear_tasks_mm_cpumask.patch added to -mm tree
+Date: Thu, 26 Apr 2012 17:05:59 -0700
+Message-ID: <20120427000600.0FC48A075F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:54477 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758020Ab2D0AGI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 26 Apr 2012 20:06:08 -0400
-Received: by laai8 with SMTP id i8so5582laa.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:06:06 -0700 (PDT)
+Received: from mail-vx0-f202.google.com ([209.85.220.202]:40625 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757576Ab2D0AGD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 20:06:03 -0400
+Received: by vcbfk26 with SMTP id fk26so31306vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:06:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anton.vorontsov@linaro.org, oleg@redhat.com, vapier@gentoo.org
+Cc: anton.vorontsov@linaro.org, lethal@linux-sh.org, oleg@redhat.com
 
 
 The patch titled
-     Subject: blackfin: fix possible deadlock in decode_address()
+     Subject: sh: use clear_tasks_mm_cpumask()
 has been added to the -mm tree.  Its filename is
-     blackfin-fix-possible-deadlock-in-decode_address.patch
+     sh-use-clear_tasks_mm_cpumask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,58 +34,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anton Vorontsov <anton.vorontsov@linaro.org>
-Subject: blackfin: fix possible deadlock in decode_address()
+Subject: sh: use clear_tasks_mm_cpumask()
 
-Oleg Nesterov found an interesting deadlock possibility:
+Checking for process->mm is not enough because process' main thread may
+exit or detach its mm via use_mm(), but other threads may still have a
+valid mm.
 
-> sysrq_showregs_othercpus() does smp_call_function(showacpu)
-> and showacpu() show_stack()->decode_address(). Now suppose that IPI
-> interrupts the task holding read_lock(tasklist).
+To fix this we would need to use find_lock_task_mm(), which would walk up
+all threads and returns an appropriate task (with task lock held).
 
-To fix this, blackfin should not grab the write_ variant of the
-tasklist lock, read_ one is enough.
+clear_tasks_mm_cpumask() has the issue fixed, so let's use it.
 
 Suggested-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/trace.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/sh/kernel/smp.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN arch/blackfin/kernel/trace.c~blackfin-fix-possible-deadlock-in-decode_address arch/blackfin/kernel/trace.c
---- a/arch/blackfin/kernel/trace.c~blackfin-fix-possible-deadlock-in-decode_address
-+++ a/arch/blackfin/kernel/trace.c
-@@ -29,7 +29,7 @@ void decode_address(char *buf, unsigned 
+diff -puN arch/sh/kernel/smp.c~sh-use-clear_tasks_mm_cpumask arch/sh/kernel/smp.c
+--- a/arch/sh/kernel/smp.c~sh-use-clear_tasks_mm_cpumask
++++ a/arch/sh/kernel/smp.c
+@@ -123,7 +123,6 @@ void native_play_dead(void)
+ int __cpu_disable(void)
  {
- 	struct task_struct *p;
- 	struct mm_struct *mm;
--	unsigned long flags, offset;
-+	unsigned long offset;
- 	struct rb_node *n;
+ 	unsigned int cpu = smp_processor_id();
+-	struct task_struct *p;
+ 	int ret;
  
- #ifdef CONFIG_KALLSYMS
-@@ -113,7 +113,7 @@ void decode_address(char *buf, unsigned 
- 	 * mappings of all our processes and see if we can't be a whee
- 	 * bit more specific
- 	 */
--	write_lock_irqsave(&tasklist_lock, flags);
-+	read_lock(&tasklist_lock);
- 	for_each_process(p) {
- 		struct task_struct *t;
+ 	ret = mp_ops->cpu_disable(cpu);
+@@ -153,11 +152,7 @@ int __cpu_disable(void)
+ 	flush_cache_all();
+ 	local_flush_tlb_all();
  
-@@ -186,7 +186,7 @@ __continue:
- 	sprintf(buf, "/* kernel dynamic memory */");
+-	read_lock(&tasklist_lock);
+-	for_each_process(p)
+-		if (p->mm)
+-			cpumask_clear_cpu(cpu, mm_cpumask(p->mm));
+-	read_unlock(&tasklist_lock);
++	clear_tasks_mm_cpumask(cpu);
  
- done:
--	write_unlock_irqrestore(&tasklist_lock, flags);
-+	read_unlock(&tasklist_lock);
+ 	return 0;
  }
- 
- #define EXPAND_LEN ((1 << CONFIG_DEBUG_BFIN_HWTRACE_EXPAND_LEN) * 256 - 1)
 _
-Subject: Subject: blackfin: fix possible deadlock in decode_address()
+Subject: Subject: sh: use clear_tasks_mm_cpumask()
 
 Patches currently in -mm which might be from anton.vorontsov@linaro.org are
 
