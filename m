@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-use-clear_tasks_mm_cpumask.patch added to -mm tree
-Date: Thu, 26 Apr 2012 17:05:57 -0700
-Message-ID: <20120427000557.41CDEA042D@akpm.mtv.corp.google.com>
+Subject: + blackfin-fix-possible-deadlock-in-decode_address.patch added to -mm tree
+Date: Thu, 26 Apr 2012 17:06:04 -0700
+Message-ID: <20120427000604.E918EA042D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41352 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757384Ab2D0AGD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 20:06:03 -0400
-Received: by qcsp5 with SMTP id p5so31074qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:06:02 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:54477 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758020Ab2D0AGI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Thu, 26 Apr 2012 20:06:08 -0400
+Received: by laai8 with SMTP id i8so5582laa.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:06:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anton.vorontsov@linaro.org, benh@kernel.crashing.org, oleg@redhat.com
+Cc: anton.vorontsov@linaro.org, oleg@redhat.com, vapier@gentoo.org
 
 
 The patch titled
-     Subject: powerpc: use clear_tasks_mm_cpumask()
+     Subject: blackfin: fix possible deadlock in decode_address()
 has been added to the -mm tree.  Its filename is
-     powerpc-use-clear_tasks_mm_cpumask.patch
+     blackfin-fix-possible-deadlock-in-decode_address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +35,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anton Vorontsov <anton.vorontsov@linaro.org>
-Subject: powerpc: use clear_tasks_mm_cpumask()
+Subject: blackfin: fix possible deadlock in decode_address()
 
-Current CPU hotplug code has some task->mm handling issues:
+Oleg Nesterov found an interesting deadlock possibility:
 
-1. Working with task->mm w/o getting mm or grabing the task lock is
-   dangerous as ->mm might disappear (exit_mm() assigns NULL under
-   task_lock(), so tasklist lock is not enough).
+> sysrq_showregs_othercpus() does smp_call_function(showacpu)
+> and showacpu() show_stack()->decode_address(). Now suppose that IPI
+> interrupts the task holding read_lock(tasklist).
 
-   We can't use get_task_mm()/mmput() pair as mmput() might sleep,
-   so we must take the task lock while handle its mm.
-
-2. Checking for process->mm is not enough because process' main
-   thread may exit or detach its mm via use_mm(), but other threads
-   may still have a valid mm.
-
-   To fix this we would need to use find_lock_task_mm(), which would
-   walk up all threads and returns an appropriate task (with task
-   lock held).
-
-clear_tasks_mm_cpumask() has all the issues fixed, so let's use it.
+To fix this, blackfin should not grab the write_ variant of the
+tasklist lock, read_ one is enough.
 
 Suggested-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mmu_context_nohash.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ arch/blackfin/kernel/trace.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/mm/mmu_context_nohash.c~powerpc-use-clear_tasks_mm_cpumask arch/powerpc/mm/mmu_context_nohash.c
---- a/arch/powerpc/mm/mmu_context_nohash.c~powerpc-use-clear_tasks_mm_cpumask
-+++ a/arch/powerpc/mm/mmu_context_nohash.c
-@@ -333,9 +333,7 @@ static int __cpuinit mmu_context_cpu_not
- 					    unsigned long action, void *hcpu)
+diff -puN arch/blackfin/kernel/trace.c~blackfin-fix-possible-deadlock-in-decode_address arch/blackfin/kernel/trace.c
+--- a/arch/blackfin/kernel/trace.c~blackfin-fix-possible-deadlock-in-decode_address
++++ a/arch/blackfin/kernel/trace.c
+@@ -29,7 +29,7 @@ void decode_address(char *buf, unsigned 
  {
- 	unsigned int cpu = (unsigned int)(long)hcpu;
--#ifdef CONFIG_HOTPLUG_CPU
--	struct task_struct *p;
--#endif
-+
- 	/* We don't touch CPU 0 map, it's allocated at aboot and kept
- 	 * around forever
- 	 */
-@@ -358,12 +356,7 @@ static int __cpuinit mmu_context_cpu_not
- 		stale_map[cpu] = NULL;
+ 	struct task_struct *p;
+ 	struct mm_struct *mm;
+-	unsigned long flags, offset;
++	unsigned long offset;
+ 	struct rb_node *n;
  
- 		/* We also clear the cpu_vm_mask bits of CPUs going away */
--		read_lock(&tasklist_lock);
--		for_each_process(p) {
--			if (p->mm)
--				cpumask_clear_cpu(cpu, mm_cpumask(p->mm));
--		}
--		read_unlock(&tasklist_lock);
-+		clear_tasks_mm_cpumask(cpu);
- 	break;
- #endif /* CONFIG_HOTPLUG_CPU */
- 	}
+ #ifdef CONFIG_KALLSYMS
+@@ -113,7 +113,7 @@ void decode_address(char *buf, unsigned 
+ 	 * mappings of all our processes and see if we can't be a whee
+ 	 * bit more specific
+ 	 */
+-	write_lock_irqsave(&tasklist_lock, flags);
++	read_lock(&tasklist_lock);
+ 	for_each_process(p) {
+ 		struct task_struct *t;
+ 
+@@ -186,7 +186,7 @@ __continue:
+ 	sprintf(buf, "/* kernel dynamic memory */");
+ 
+ done:
+-	write_unlock_irqrestore(&tasklist_lock, flags);
++	read_unlock(&tasklist_lock);
+ }
+ 
+ #define EXPAND_LEN ((1 << CONFIG_DEBUG_BFIN_HWTRACE_EXPAND_LEN) * 256 - 1)
 _
-Subject: Subject: powerpc: use clear_tasks_mm_cpumask()
+Subject: Subject: blackfin: fix possible deadlock in decode_address()
 
 Patches currently in -mm which might be from anton.vorontsov@linaro.org are
 
