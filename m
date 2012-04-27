@@ -1,87 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled.patch removed from -mm tree
-Date: Fri, 27 Apr 2012 12:35:27 -0700
-Message-ID: <20120427193527.B1538A02CD@akpm.mtv.corp.google.com>
+Subject: [merged] mm-fix-null-ptr-dereference-in-migrate_pages.patch removed from -mm tree
+Date: Fri, 27 Apr 2012 12:35:32 -0700
+Message-ID: <20120427193532.A9DBBA02CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:39420 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761022Ab2D0Tfa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:30 -0400
-Received: by faaa25 with SMTP id a25so57350faa.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:28 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:34869 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761331Ab2D0Tfd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:33 -0400
+Received: by yenq2 with SMTP id q2so121005yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agust@denx.de, a.zummo@towertech.it, ebiederm@xmission.com, gregkh@suse.de, sbabic@denx.de, w.sang@pengutronix.de, mm-commits@vger.kernel.org
+To: levinsasha928@gmail.com, cl@linux.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1307.c: fix BUG shown with lock debugging enabled
+     Subject: mm: fix NULL ptr dereference in migrate_pages
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled.patch
+     mm-fix-null-ptr-dereference-in-migrate_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Anatolij Gustschin <agust@denx.de>
-Subject: drivers/rtc/rtc-ds1307.c: fix BUG shown with lock debugging enabled
+From: Sasha Levin <levinsasha928@gmail.com>
+Subject: mm: fix NULL ptr dereference in migrate_pages
 
-Add struct bin_attribute initialization to fix the following bug:
+Commit 3268c63 ("mm: fix move/migrate_pages() race on task struct") has
+added an odd construct where 'mm' is checked for being NULL, and if it is,
+it would get dereferenced anyways by mput()ing it.
 
-rtc-ds1307 3-0068: rtc core: registered ds1307 as rtc0
-BUG: key cfb14fcc not in .data!
-------------[ cut here ]------------
-WARNING: at kernel/lockdep.c:2986 sysfs_add_file_mode+0x84/0xdc()
-Modules linked in:
-[<c0018d94>] (unwind_backtrace+0x0/0xf8) from [<c0031f7c>] (warn_slowpath_common+0x4c/0x64)
-[<c0031f7c>] (warn_slowpath_common+0x4c/0x64) from [<c0031fb0>] (warn_slowpath_null+0x1c/0x24)
-[<c0031fb0>] (warn_slowpath_null+0x1c/0x24) from [<c012f7ac>] (sysfs_add_file_mode+0x84/0xdc)
-[<c012f7ac>] (sysfs_add_file_mode+0x84/0xdc) from [<c04b11e4>] (ds1307_probe+0x5e4/0x6ac)
-[<c04b11e4>] (ds1307_probe+0x5e4/0x6ac) from [<c036e600>] (i2c_device_probe+0xdc/0x108)
-[<c036e600>] (i2c_device_probe+0xdc/0x108) from [<c02cdf84>] (driver_probe_device+0x90/0x210)
-[<c02cdf84>] (driver_probe_device+0x90/0x210) from [<c02ce198>] (__driver_attach+0x94/0x98)
-[<c02ce198>] (__driver_attach+0x94/0x98) from [<c02cc824>] (bus_for_each_dev+0x50/0x7c)
-[<c02cc824>] (bus_for_each_dev+0x50/0x7c) from [<c02cd780>] (bus_add_driver+0x184/0x244)
-[<c02cd780>] (bus_add_driver+0x184/0x244) from [<c02ce43c>] (driver_register+0x78/0x12c)
-[<c02ce43c>] (driver_register+0x78/0x12c) from [<c03701ac>] (i2c_register_driver+0x2c/0xb4)
-[<c03701ac>] (i2c_register_driver+0x2c/0xb4) from [<c0008798>] (do_one_initcall+0x34/0x178)
-[<c0008798>] (do_one_initcall+0x34/0x178) from [<c0691860>] (kernel_init+0xdc/0x194)
-[<c0691860>] (kernel_init+0xdc/0x194) from [<c0013cf0>] (kernel_thread_exit+0x0/0x8)
+This would lead to the following NULL ptr deref and BUG() when calling
+migrate_pages() with a pid that has no mm struct:
 
-Since commit 6992f5334995af4 ("sysfs: Use one lockdep class per sysfs
-attribute") this initialization is required.
+[25904.193704] BUG: unable to handle kernel NULL pointer dereference at 0000000000000050
+[25904.194235] IP: [<ffffffff810b0de7>] mmput+0x27/0xf0
+[25904.194235] PGD 773e6067 PUD 77da0067 PMD 0
+[25904.194235] Oops: 0002 [#1] PREEMPT SMP
+[25904.194235] CPU 2
+[25904.194235] Pid: 31608, comm: trinity Tainted: G        W    3.4.0-rc2-next-20120412-sasha #69
+[25904.194235] RIP: 0010:[<ffffffff810b0de7>]  [<ffffffff810b0de7>] mmput+0x27/0xf0
+[25904.194235] RSP: 0018:ffff880077d49e08  EFLAGS: 00010202
+[25904.194235] RAX: 0000000000000286 RBX: 0000000000000000 RCX: 0000000000000000
+[25904.194235] RDX: ffff880075ef8000 RSI: 000000000000023d RDI: 0000000000000286
+[25904.194235] RBP: ffff880077d49e18 R08: 0000000000000001 R09: 0000000000000001
+[25904.194235] R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+[25904.194235] R13: 00000000ffffffea R14: ffff880034287740 R15: ffff8800218d3010
+[25904.194235] FS:  00007fc8b244c700(0000) GS:ffff880029800000(0000) knlGS:0000000000000000
+[25904.194235] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[25904.194235] CR2: 0000000000000050 CR3: 00000000767c6000 CR4: 00000000000406e0
+[25904.194235] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[25904.194235] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[25904.194235] Process trinity (pid: 31608, threadinfo ffff880077d48000, task ffff880075ef8000)
+[25904.194235] Stack:
+[25904.194235]  ffff8800342876c0 0000000000000000 ffff880077d49f78 ffffffff811b8020
+[25904.194235]  ffffffff811b7d91 ffff880075ef8000 ffff88002256d200 0000000000000000
+[25904.194235]  00000000000003ff 0000000000000000 0000000000000000 0000000000000000
+[25904.194235] Call Trace:
+[25904.194235]  [<ffffffff811b8020>] sys_migrate_pages+0x340/0x3a0
+[25904.194235]  [<ffffffff811b7d91>] ? sys_migrate_pages+0xb1/0x3a0
+[25904.194235]  [<ffffffff8266cbb9>] system_call_fastpath+0x16/0x1b
+[25904.194235] Code: c9 c3 66 90 55 31 d2 48 89 e5 be 3d 02 00 00 48 83 ec 10 48 89 1c 24 4c 89 64 24 08 48 89 fb 48 c7 c7 cf 0e e1 82 e8 69 18 03 00 <f0> ff 4b 50 0f 94 c0 84 c0 0f 84 aa 00 00 00 48 89 df e8 72 f1
+[25904.194235] RIP  [<ffffffff810b0de7>] mmput+0x27/0xf0
+[25904.194235]  RSP <ffff880077d49e08>
+[25904.194235] CR2: 0000000000000050
+[25904.348999] ---[ end trace a307b3ed40206b4b ]---
 
-Reported-by: Stefano Babic <sbabic@denx.de>
-Tested-by: Stefano Babic <sbabic@denx.de>
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Stefano Babic <sbabic@denx.de>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
+Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mempolicy.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-fix-bug-shown-with-lock-debugging-enabled
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -902,6 +902,7 @@ read_rtc:
- 		}
- 		ds1307->nvram->attr.name = "nvram";
- 		ds1307->nvram->attr.mode = S_IRUGO | S_IWUSR;
-+		sysfs_bin_attr_init(ds1307->nvram);
- 		ds1307->nvram->read = ds1307_nvram_read,
- 		ds1307->nvram->write = ds1307_nvram_write,
- 		ds1307->nvram->size = chip->nvram_size;
+diff -puN mm/mempolicy.c~mm-fix-null-ptr-dereference-in-migrate_pages mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-fix-null-ptr-dereference-in-migrate_pages
++++ a/mm/mempolicy.c
+@@ -1361,11 +1361,14 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 
+ 	mm = get_task_mm(task);
+ 	put_task_struct(task);
+-	if (mm)
+-		err = do_migrate_pages(mm, old, new,
+-			capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
+-	else
++
++	if (!mm) {
+ 		err = -EINVAL;
++		goto out;
++	}
++
++	err = do_migrate_pages(mm, old, new,
++		capable(CAP_SYS_NICE) ? MPOL_MF_MOVE_ALL : MPOL_MF_MOVE);
+ 
+ 	mmput(mm);
+ out:
 _
 
-Patches currently in -mm which might be from agust@denx.de are
+Patches currently in -mm which might be from levinsasha928@gmail.com are
 
 origin.patch
 linux-next.patch
+brlocks-lglocks-cleanups.patch
 
