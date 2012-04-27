@@ -1,100 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + um-properly-check-all-process-threads-for-a-live-mm.patch added to -mm tree
-Date: Thu, 26 Apr 2012 17:06:10 -0700
-Message-ID: <20120427000611.040A3A042D@akpm.mtv.corp.google.com>
+Subject: [merged] mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch removed from -mm tree
+Date: Fri, 27 Apr 2012 12:35:04 -0700
+Message-ID: <20120427193506.48B58A02CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41352 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758596Ab2D0AGL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 20:06:11 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so31074qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:06:11 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:36741 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760531Ab2D0TfI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:08 -0400
+Received: by qabg24 with SMTP id g24so97481qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: anton.vorontsov@linaro.org, oleg@redhat.com, richard@nod.at
+To: khlebnikov@openvz.org, mgorman@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: um: properly check all process' threads for a live mm
-has been added to the -mm tree.  Its filename is
-     um-properly-check-all-process-threads-for-a-live-mm.patch
+     Subject: mm/hugetlb: fix warning in alloc_huge_page/dequeue_huge_page_vma
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Anton Vorontsov <anton.vorontsov@linaro.org>
-Subject: um: properly check all process' threads for a live mm
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm/hugetlb: fix warning in alloc_huge_page/dequeue_huge_page_vma
 
-kill_off_processes() might miss a valid process, this is because checking
-for process->mm is not enough.  Process' main thread may exit or detach
-its mm via use_mm(), but other threads may still have a valid mm.
+Fix a gcc warning (and bug?) introduced in cc9a6c877 ("cpuset: mm: reduce
+large amounts of memory barrier related damage v3")
 
-To catch this we use find_lock_task_mm(), which walks up all threads and
-returns an appropriate task (with task lock held).
+Local variable "page" can be uninitialized if the nodemask from vma policy
+does not intersects with nodemask from cpuset.  Even if it doesn't happens
+it is better to initialize this variable explicitly than to introduce
+a kernel oops in a weird corner case.
 
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: Richard Weinberger <richard@nod.at>
+mm/hugetlb.c: In function `alloc_huge_page':
+mm/hugetlb.c:1135:5: warning: `page' may be used uninitialized in this function
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/reboot.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/kernel/reboot.c~um-properly-check-all-process-threads-for-a-live-mm arch/um/kernel/reboot.c
---- a/arch/um/kernel/reboot.c~um-properly-check-all-process-threads-for-a-live-mm
-+++ a/arch/um/kernel/reboot.c
-@@ -6,6 +6,7 @@
- #include "linux/sched.h"
- #include "linux/spinlock.h"
- #include "linux/slab.h"
-+#include "linux/oom.h"
- #include "kern_util.h"
- #include "os.h"
- #include "skas.h"
-@@ -25,13 +26,13 @@ static void kill_off_processes(void)
- 
- 		read_lock(&tasklist_lock);
- 		for_each_process(p) {
--			task_lock(p);
--			if (!p->mm) {
--				task_unlock(p);
-+			struct task_struct *t;
-+
-+			t = find_lock_task_mm(p);
-+			if (!t)
- 				continue;
--			}
--			pid = p->mm->context.id.u.pid;
--			task_unlock(p);
-+			pid = t->mm->context.id.u.pid;
-+			task_unlock(t);
- 			os_kill_ptraced_process(pid, 1);
- 		}
- 		read_unlock(&tasklist_lock);
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-warning-in-alloc_huge_page-dequeue_huge_page_vma
++++ a/mm/hugetlb.c
+@@ -532,7 +532,7 @@ static struct page *dequeue_huge_page_vm
+ 				struct vm_area_struct *vma,
+ 				unsigned long address, int avoid_reserve)
+ {
+-	struct page *page;
++	struct page *page = NULL;
+ 	struct mempolicy *mpol;
+ 	nodemask_t *nodemask;
+ 	struct zonelist *zonelist;
 _
-Subject: Subject: um: properly check all process' threads for a live mm
 
-Patches currently in -mm which might be from anton.vorontsov@linaro.org are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
-cpu-introduce-clear_tasks_mm_cpumask-helper.patch
-arm-use-clear_tasks_mm_cpumask.patch
-powerpc-use-clear_tasks_mm_cpumask.patch
-sh-use-clear_tasks_mm_cpumask.patch
-blackfin-a-couple-of-task-mm-handling-fixes.patch
-blackfin-fix-possible-deadlock-in-decode_address.patch
-um-should-hold-tasklist_lock-while-traversing-processes.patch
-um-fix-possible-race-on-task-mm.patch
-um-properly-check-all-process-threads-for-a-live-mm.patch
+origin.patch
+linux-next.patch
+mm-remove-swap-token-code.patch
+mm-vmscan-remove-lumpy-reclaim.patch
+mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
+mm-vmscan-remove-reclaim_mode_t.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
+mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-mark-mm-inline-functions-as-__always_inline.patch
+mm-remove-lru-type-checks-from-__isolate_lru_page.patch
+mm-memcg-kill-mem_cgroup_lru_del.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
 
