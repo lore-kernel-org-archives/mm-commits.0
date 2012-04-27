@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arm-use-clear_tasks_mm_cpumask.patch added to -mm tree
-Date: Thu, 26 Apr 2012 17:05:54 -0700
-Message-ID: <20120427000554.358CDA042D@akpm.mtv.corp.google.com>
+Subject: + um-should-hold-tasklist_lock-while-traversing-processes.patch added to -mm tree
+Date: Thu, 26 Apr 2012 17:06:06 -0700
+Message-ID: <20120427000607.0A778A042D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:60768 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755264Ab2D0AFz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 20:05:55 -0400
-Received: by qabg24 with SMTP id g24so7213qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:05:54 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:58711 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757825Ab2D0AGH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Apr 2012 20:06:07 -0400
+Received: by mail-yx0-f202.google.com with SMTP id q2so30545yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 26 Apr 2012 17:06:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anton.vorontsov@linaro.org, oleg@redhat.com, rmk@arm.linux.org.uk
+Cc: anton.vorontsov@linaro.org, oleg@redhat.com, richard@nod.at
 
 
 The patch titled
-     Subject: arm: use clear_tasks_mm_cpumask()
+     Subject: um: should hold tasklist_lock while traversing processes
 has been added to the -mm tree.  Its filename is
-     arm-use-clear_tasks_mm_cpumask.patch
+     um-should-hold-tasklist_lock-while-traversing-processes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anton Vorontsov <anton.vorontsov@linaro.org>
-Subject: arm: use clear_tasks_mm_cpumask()
+Subject: um: should hold tasklist_lock while traversing processes
 
-Checking for process->mm is not enough because process' main thread may
-exit or detach its mm via use_mm(), but other threads may still have a
-valid mm.
+Traversing the tasks requires holding tasklist_lock, otherwise it is
+unsafe.
 
-To fix this we would need to use find_lock_task_mm(), which would walk up
-all threads and returns an appropriate task (with task lock held).
+p.s.  However, I'm not sure that calling os_kill_ptraced_process() in the
+atomic context is correct.  It seem to work, but please take a closer
+look.
 
-clear_tasks_mm_cpumask() has this issue fixed, so let's use it.
-
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/smp.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ arch/um/kernel/reboot.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/arm/kernel/smp.c~arm-use-clear_tasks_mm_cpumask arch/arm/kernel/smp.c
---- a/arch/arm/kernel/smp.c~arm-use-clear_tasks_mm_cpumask
-+++ a/arch/arm/kernel/smp.c
-@@ -130,7 +130,6 @@ static void percpu_timer_stop(void);
- int __cpu_disable(void)
- {
- 	unsigned int cpu = smp_processor_id();
--	struct task_struct *p;
- 	int ret;
+diff -puN arch/um/kernel/reboot.c~um-should-hold-tasklist_lock-while-traversing-processes arch/um/kernel/reboot.c
+--- a/arch/um/kernel/reboot.c~um-should-hold-tasklist_lock-while-traversing-processes
++++ a/arch/um/kernel/reboot.c
+@@ -4,6 +4,7 @@
+  */
  
- 	ret = platform_cpu_disable(cpu);
-@@ -160,12 +159,7 @@ int __cpu_disable(void)
- 	flush_cache_all();
- 	local_flush_tlb_all();
+ #include "linux/sched.h"
++#include "linux/spinlock.h"
+ #include "linux/slab.h"
+ #include "kern_util.h"
+ #include "os.h"
+@@ -22,6 +23,7 @@ static void kill_off_processes(void)
+ 		struct task_struct *p;
+ 		int pid;
  
--	read_lock(&tasklist_lock);
--	for_each_process(p) {
--		if (p->mm)
--			cpumask_clear_cpu(cpu, mm_cpumask(p->mm));
--	}
--	read_unlock(&tasklist_lock);
-+	clear_tasks_mm_cpumask(cpu);
- 
- 	return 0;
++		read_lock(&tasklist_lock);
+ 		for_each_process(p) {
+ 			if (p->mm == NULL)
+ 				continue;
+@@ -29,6 +31,7 @@ static void kill_off_processes(void)
+ 			pid = p->mm->context.id.u.pid;
+ 			os_kill_ptraced_process(pid, 1);
+ 		}
++		read_unlock(&tasklist_lock);
+ 	}
  }
+ 
 _
-Subject: Subject: arm: use clear_tasks_mm_cpumask()
+Subject: Subject: um: should hold tasklist_lock while traversing processes
 
 Patches currently in -mm which might be from anton.vorontsov@linaro.org are
 
