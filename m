@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch added to -mm tree
-Date: Fri, 27 Apr 2012 14:13:22 -0700
-Message-ID: <20120427211322.3907EA042D@akpm.mtv.corp.google.com>
+Subject: + nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch added to -mm tree
+Date: Fri, 27 Apr 2012 14:13:24 -0700
+Message-ID: <20120427211325.11FFDA042D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:48819 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752953Ab2D0VNX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 17:13:23 -0400
-Received: by ghbz15 with SMTP id z15so131793ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 14:13:22 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:48992 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113Ab2D0VN1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 17:13:27 -0400
+Received: by wgbdt11 with SMTP id dt11so63291wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 14:13:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, mingo
 
 
 The patch titled
-     Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix
+     Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix
 has been added to the -mm tree.  Its filename is
-     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix
+Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix
 
-fiddle with code comment
+make lockup_detector_bootcpu_resume() conditional on CONFIG_SUSPEND
 
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Don Zickus <dzickus@redhat.com>
@@ -47,40 +47,54 @@ Cc: Sameer Nanda <snanda@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ include/linux/sched.h |    6 +++++-
+ kernel/watchdog.c     |    2 ++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix kernel/watchdog.c
---- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix
+diff -puN include/linux/sched.h~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix include/linux/sched.h
+--- a/include/linux/sched.h~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix
++++ a/include/linux/sched.h
+@@ -317,7 +317,6 @@ extern int proc_dowatchdog_thresh(struct
+ 				  size_t *lenp, loff_t *ppos);
+ extern unsigned int  softlockup_panic;
+ void lockup_detector_init(void);
+-void lockup_detector_bootcpu_resume(void);
+ #else
+ static inline void touch_softlockup_watchdog(void)
+ {
+@@ -331,6 +330,11 @@ static inline void touch_all_softlockup_
+ static inline void lockup_detector_init(void)
+ {
+ }
++#endif
++
++#if defined(CONFIG_LOCKUP_DETECTOR) && defined(CONFIG_SUSPEND)
++void lockup_detector_bootcpu_resume(void);
++#else
+ static inline void lockup_detector_bootcpu_resume(void)
+ {
+ }
+diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix
 +++ a/kernel/watchdog.c
-@@ -597,20 +597,17 @@ static struct notifier_block __cpuinitda
+@@ -597,6 +597,7 @@ static struct notifier_block __cpuinitda
  	.notifier_call = cpu_callback
  };
  
-+/*
-+ * On entry to suspend we force an offline->online transition on the boot CPU so
-+ * that PMU state is available to that CPU when it comes back online after
-+ * resume.  This information is required for restarting the NMI watchdog.
-+ */
- void lockup_detector_bootcpu_resume(void)
- {
- 	void *cpu = (void *)(long)smp_processor_id();
- 
--	/*
--	 * On the suspend/resume path the boot CPU does not go though the
--	 * offline->online transition. This breaks the NMI detector post
--	 * resume. Force an offline->online transition for the boot CPU on
--	 * resume.
--	 */
++#ifdef CONFIG_SUSPEND
+ /*
+  * On entry to suspend we force an offline->online transition on the boot CPU so
+  * that PMU state is available to that CPU when it comes back online after
+@@ -609,6 +610,7 @@ void lockup_detector_bootcpu_resume(void
  	cpu_callback(&cpu_nfb, CPU_DEAD, cpu);
  	cpu_callback(&cpu_nfb, CPU_ONLINE, cpu);
--
--	return;
  }
++#endif
  
  void __init lockup_detector_init(void)
+ {
 _
-Subject: Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix
+Subject: Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
