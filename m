@@ -1,67 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] debugobjects-fill_pool-returns-void-now.patch removed from -mm tree
-Date: Fri, 27 Apr 2012 12:35:36 -0700
-Message-ID: <20120427193536.73E03A02CD@akpm.mtv.corp.google.com>
+Subject: [merged] mm-fix-null-ptr-dereference-in-move_pages.patch removed from -mm tree
+Date: Fri, 27 Apr 2012 12:35:34 -0700
+Message-ID: <20120427193534.948DAA02CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:61838 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761337Ab2D0Tfh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:37 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so121090qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:36 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:41549 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761334Ab2D0Tfg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:36 -0400
+Received: by mail-bk0-f74.google.com with SMTP id j5so54044bkw.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: levinsasha928@gmail.com, cl@linux.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debugobjects: fill_pool() returns void now
+     Subject: mm: fix NULL ptr dereference in move_pages
 has been removed from the -mm tree.  Its filename was
-     debugobjects-fill_pool-returns-void-now.patch
+     mm-fix-null-ptr-dereference-in-move_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: debugobjects: fill_pool() returns void now
+From: Sasha Levin <levinsasha928@gmail.com>
+Subject: mm: fix NULL ptr dereference in move_pages
 
-There was a return missed in 1fda107d44 "debugobjects: Remove unused
-return value from fill_pool()".  It makes gcc complain:
+Commit 3268c63 ("mm: fix move/migrate_pages() race on task struct") has
+added an odd construct where 'mm' is checked for being NULL, and if it is,
+it would get dereferenced anyways by mput()ing it.
 
-	lib/debugobjects.c: In function `fill_pool':
-	lib/debugobjects.c:98:4: warning: `return' with a value, in
-		function returning void [enabled by default]
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN lib/debugobjects.c~debugobjects-fill_pool-returns-void-now lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-fill_pool-returns-void-now
-+++ a/lib/debugobjects.c
-@@ -95,7 +95,7 @@ static void fill_pool(void)
+diff -puN mm/migrate.c~mm-fix-null-ptr-dereference-in-move_pages mm/migrate.c
+--- a/mm/migrate.c~mm-fix-null-ptr-dereference-in-move_pages
++++ a/mm/migrate.c
+@@ -1388,14 +1388,14 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, 
+ 	mm = get_task_mm(task);
+ 	put_task_struct(task);
  
- 		new = kmem_cache_zalloc(obj_cache, gfp);
- 		if (!new)
--			return obj_pool_free;
-+			return;
+-	if (mm) {
+-		if (nodes)
+-			err = do_pages_move(mm, task_nodes, nr_pages, pages,
+-					    nodes, status, flags);
+-		else
+-			err = do_pages_stat(mm, nr_pages, pages, status);
+-	} else
+-		err = -EINVAL;
++	if (!mm)
++		return -EINVAL;
++
++	if (nodes)
++		err = do_pages_move(mm, task_nodes, nr_pages, pages,
++				    nodes, status, flags);
++	else
++		err = do_pages_stat(mm, nr_pages, pages, status);
  
- 		raw_spin_lock_irqsave(&pool_lock, flags);
- 		hlist_add_head(&new->node, &obj_pool);
+ 	mmput(mm);
+ 	return err;
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from levinsasha928@gmail.com are
 
 origin.patch
 linux-next.patch
-fsnotify-remove-unused-parameter-from-send_to_group.patch
-drivers-leds-leds-lp5521c-fix-lp5521_read-error-handling.patch
-hpfs-remove-printk-macro.patch
+brlocks-lglocks-cleanups.patch
 
