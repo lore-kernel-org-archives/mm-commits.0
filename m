@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-hugetlb-extension-fix.patch added to -mm tree
-Date: Fri, 27 Apr 2012 13:35:27 -0700
-Message-ID: <20120427203527.D5A7BA00AE@akpm.mtv.corp.google.com>
+Subject: + nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch added to -mm tree
+Date: Fri, 27 Apr 2012 14:13:19 -0700
+Message-ID: <20120427211320.19ABEA042D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:37828 "EHLO
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:57407 "EHLO
 	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752191Ab2D0Ufa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 16:35:30 -0400
-Received: by wibhj13 with SMTP id hj13so59038wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 13:35:29 -0700 (PDT)
+	with ESMTP id S1752944Ab2D0VNW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 17:13:22 -0400
+Received: by wibhj13 with SMTP id hj13so60386wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 14:13:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: snanda@chromium.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, mingo@elte.hu, msb@chromium.org, rjw@sisk.pl
 
 
 The patch titled
-     Subject: memcg-add-hugetlb-extension-fix
+     Subject: NMI watchdog: fix for lockup detector breakage on resume
 has been added to the -mm tree.  Its filename is
-     memcg-add-hugetlb-extension-fix.patch
+     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,98 +33,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: memcg-add-hugetlb-extension-fix
+From: Sameer Nanda <snanda@chromium.org>
+Subject: NMI watchdog: fix for lockup detector breakage on resume
 
-Fix UML build:
+On the suspend/resume path the boot CPU does not go though an
+offline->online transition.  This breaks the NMI detector post-resume
+since it depends on PMU state that is lost when the system gets suspended.
 
-mm/memcontrol.c:256:30: error: 'HUGE_MAX_HSTATE' undeclared here (not in a function)
+Fix this by forcing a CPU offline->online transition for the lockup
+detector on the boot CPU during resume.
 
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+To provide more context, we enable NMI watchdog on Chrome OS.  We have
+seen several reports of systems freezing up completely which indicated
+that the NMI watchdog was not firing for some reason.
+
+Debugging further, we found a simple way of repro'ing system freezes --
+issuing the command 'tasket 1 sh -c "echo nmilockup > /proc/breakme"'
+after the system has been suspended/resumed one or more times.
+
+With this patch in place, the system freeze result in panics, as expected.
+ These panics provide a nice stack trace for us to debug the actual issue
+causing the freeze.
+
+Signed-off-by: Sameer Nanda <snanda@chromium.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Mandeep Singh Baines <msb@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/page.h   |    2 +-
- arch/tile/include/asm/page.h      |    3 +--
- arch/x86/include/asm/page_types.h |    2 ++
- include/linux/hugetlb.h           |    1 +
- 4 files changed, 5 insertions(+), 3 deletions(-)
+ include/linux/sched.h  |    4 ++++
+ kernel/power/suspend.c |    3 +++
+ kernel/watchdog.c      |   16 ++++++++++++++++
+ 3 files changed, 23 insertions(+)
 
-diff -puN arch/powerpc/include/asm/page.h~memcg-add-hugetlb-extension-fix arch/powerpc/include/asm/page.h
---- a/arch/powerpc/include/asm/page.h~memcg-add-hugetlb-extension-fix
-+++ a/arch/powerpc/include/asm/page.h
-@@ -39,13 +39,13 @@
- #ifndef __ASSEMBLY__
- #ifdef CONFIG_HUGETLB_PAGE
- extern unsigned int HPAGE_SHIFT;
-+#define HUGE_MAX_HSTATE		(MMU_PAGE_COUNT-1)
+diff -puN include/linux/sched.h~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume include/linux/sched.h
+--- a/include/linux/sched.h~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
++++ a/include/linux/sched.h
+@@ -317,6 +317,7 @@ extern int proc_dowatchdog_thresh(struct
+ 				  size_t *lenp, loff_t *ppos);
+ extern unsigned int  softlockup_panic;
+ void lockup_detector_init(void);
++void lockup_detector_bootcpu_resume(void);
  #else
- #define HPAGE_SHIFT PAGE_SHIFT
- #endif
- #define HPAGE_SIZE		((1UL) << HPAGE_SHIFT)
- #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
--#define HUGE_MAX_HSTATE		(MMU_PAGE_COUNT-1)
- #endif
- 
- /* We do define AT_SYSINFO_EHDR but don't use the gate mechanism */
-diff -puN arch/tile/include/asm/page.h~memcg-add-hugetlb-extension-fix arch/tile/include/asm/page.h
---- a/arch/tile/include/asm/page.h~memcg-add-hugetlb-extension-fix
-+++ a/arch/tile/include/asm/page.h
-@@ -136,9 +136,8 @@ static inline __attribute_const__ int ge
- 
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
- 
--#define HUGE_MAX_HSTATE		6
--
- #ifdef CONFIG_HUGETLB_PAGE
-+#define HUGE_MAX_HSTATE		6
- #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ static inline void touch_softlockup_watchdog(void)
+ {
+@@ -330,6 +331,9 @@ static inline void touch_all_softlockup_
+ static inline void lockup_detector_init(void)
+ {
+ }
++static inline void lockup_detector_bootcpu_resume(void)
++{
++}
  #endif
  
-diff -puN arch/x86/include/asm/page_types.h~memcg-add-hugetlb-extension-fix arch/x86/include/asm/page_types.h
---- a/arch/x86/include/asm/page_types.h~memcg-add-hugetlb-extension-fix
-+++ a/arch/x86/include/asm/page_types.h
-@@ -25,7 +25,9 @@
- #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ #ifdef CONFIG_DETECT_HUNG_TASK
+diff -puN kernel/power/suspend.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume kernel/power/suspend.c
+--- a/kernel/power/suspend.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
++++ a/kernel/power/suspend.c
+@@ -177,6 +177,9 @@ static int suspend_enter(suspend_state_t
+ 	arch_suspend_enable_irqs();
+ 	BUG_ON(irqs_disabled());
  
-+#ifdef CONFIG_HUGETLB_PAGE
- #define HUGE_MAX_HSTATE 2
-+#endif
++	/* Kick the lockup detector */
++	lockup_detector_bootcpu_resume();
++
+  Enable_cpus:
+ 	enable_nonboot_cpus();
  
- #define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
+diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume kernel/watchdog.c
+--- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
++++ a/kernel/watchdog.c
+@@ -597,6 +597,22 @@ static struct notifier_block __cpuinitda
+ 	.notifier_call = cpu_callback
+ };
  
-diff -puN include/linux/hugetlb.h~memcg-add-hugetlb-extension-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~memcg-add-hugetlb-extension-fix
-+++ a/include/linux/hugetlb.h
-@@ -318,6 +318,7 @@ static inline int hstate_index(struct hs
- 
- #else
- struct hstate {};
-+#define HUGE_MAX_HSTATE 0
- #define alloc_huge_page_node(h, nid) NULL
- #define alloc_bootmem_huge_page(h) NULL
- #define hstate_file(f) NULL
++void lockup_detector_bootcpu_resume(void)
++{
++	void *cpu = (void *)(long)smp_processor_id();
++
++	/*
++	 * On the suspend/resume path the boot CPU does not go though the
++	 * offline->online transition. This breaks the NMI detector post
++	 * resume. Force an offline->online transition for the boot CPU on
++	 * resume.
++	 */
++	cpu_callback(&cpu_nfb, CPU_DEAD, cpu);
++	cpu_callback(&cpu_nfb, CPU_ONLINE, cpu);
++
++	return;
++}
++
+ void __init lockup_detector_init(void)
+ {
+ 	void *cpu = (void *)(long)smp_processor_id();
 _
-Subject: Subject: memcg-add-hugetlb-extension-fix
+Subject: Subject: NMI watchdog: fix for lockup detector breakage on resume
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from snanda@chromium.org are
 
-origin.patch
-linux-next.patch
-mm-memory_failure-let-the-compiler-add-the-function-name.patch
-mm-mempolicyc-use-enum-value-mpol_rebind_once-instead-of-0-in-mpol_rebind_policy.patch
-mm-hugetlbc-cleanup-to-use-long-vars-instead-of-int-in-region_count.patch
-mm-thp-remove-unnecessary-ret-variable.patch
-mm-thp-allow-fallback-when-pte_alloc_one-fails-for-huge-pmd.patch
-memcg-add-hugetlb-extension-fix.patch
-mm-vmstatc-remov-debug-fs-entries-on-failure-of-file-creation-and-made-extfrag_debug_root-dentry-local.patch
-thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
-mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
 
