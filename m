@@ -1,229 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mips-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
-Date: Fri, 27 Apr 2012 12:35:40 -0700
-Message-ID: <20120427193540.6D85FA02CD@akpm.mtv.corp.google.com>
+Subject: [merged] sound-usb-endpointc-suppress-warning.patch removed from -mm tree
+Date: Fri, 27 Apr 2012 12:35:38 -0700
+Message-ID: <20120427193538.5A224A02CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:48035 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761337Ab2D0Tfn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:43 -0400
-Received: by eaaq10 with SMTP id q10so54159eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:41 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:42687 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761337Ab2D0Tfj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Apr 2012 15:35:39 -0400
+Received: by mail-ee0-f74.google.com with SMTP id c41so54713eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 27 Apr 2012 12:35:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, ddaney@caviumnetworks.com, oleg@redhat.com, ralf@linux-mips.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tiwai@suse.de, zonque@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MIPS: use set_current_blocked() and block_sigmask()
+     Subject: sound/usb/endpoint.c: suppress warning
 has been removed from the -mm tree.  Its filename was
-     mips-use-set_current_blocked-and-block_sigmask.patch
+     sound-usb-endpointc-suppress-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: MIPS: use set_current_blocked() and block_sigmask()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sound/usb/endpoint.c: suppress warning
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
+sound/usb/endpoint.c: In function 'queue_pending_output_urbs':
+sound/usb/endpoint.c:298: warning: 'packet' may be used uninitialized in this function
 
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
-
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Daney <ddaney@caviumnetworks.com>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
+Cc: Daniel Mack <zonque@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/signal.c     |   27 +++++----------------------
- arch/mips/kernel/signal32.c   |   20 ++++----------------
- arch/mips/kernel/signal_n32.c |   10 ++--------
- 3 files changed, 11 insertions(+), 46 deletions(-)
+ sound/usb/endpoint.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/kernel/signal.c~mips-use-set_current_blocked-and-block_sigmask arch/mips/kernel/signal.c
---- a/arch/mips/kernel/signal.c~mips-use-set_current_blocked-and-block_sigmask
-+++ a/arch/mips/kernel/signal.c
-@@ -257,11 +257,8 @@ asmlinkage int sys_sigsuspend(nabi_no_re
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
+diff -puN sound/usb/endpoint.c~sound-usb-endpointc-suppress-warning sound/usb/endpoint.c
+--- a/sound/usb/endpoint.c~sound-usb-endpointc-suppress-warning
++++ a/sound/usb/endpoint.c
+@@ -295,7 +295,7 @@ static void queue_pending_output_urbs(st
+ 	while (test_bit(EP_FLAG_RUNNING, &ep->flags)) {
  
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -286,11 +283,8 @@ asmlinkage int sys_rt_sigsuspend(nabi_no
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -362,10 +356,7 @@ asmlinkage void sys_sigreturn(nabi_no_re
- 		goto badframe;
- 
- 	sigdelsetmask(&blocked, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = blocked;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&blocked);
- 
- 	sig = restore_sigcontext(&regs, &frame->sf_sc);
- 	if (sig < 0)
-@@ -401,10 +392,7 @@ asmlinkage void sys_rt_sigreturn(nabi_no
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	sig = restore_sigcontext(&regs, &frame->rs_uc.uc_mcontext);
- 	if (sig < 0)
-@@ -580,12 +568,7 @@ static int handle_signal(unsigned long s
- 	if (ret)
- 		return ret;
- 
--	spin_lock_irq(&current->sighand->siglock);
--	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked, sig);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	block_sigmask(ka, sig);
- 
- 	return ret;
- }
-diff -puN arch/mips/kernel/signal32.c~mips-use-set_current_blocked-and-block_sigmask arch/mips/kernel/signal32.c
---- a/arch/mips/kernel/signal32.c~mips-use-set_current_blocked-and-block_sigmask
-+++ a/arch/mips/kernel/signal32.c
-@@ -290,11 +290,8 @@ asmlinkage int sys32_sigsuspend(nabi_no_
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -318,11 +315,8 @@ asmlinkage int sys32_rt_sigsuspend(nabi_
- 		return -EFAULT;
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -488,10 +482,7 @@ asmlinkage void sys32_sigreturn(nabi_no_
- 		goto badframe;
- 
- 	sigdelsetmask(&blocked, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = blocked;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&blocked);
- 
- 	sig = restore_sigcontext32(&regs, &frame->sf_sc);
- 	if (sig < 0)
-@@ -529,10 +520,7 @@ asmlinkage void sys32_rt_sigreturn(nabi_
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	sig = restore_sigcontext32(&regs, &frame->rs_uc.uc_mcontext);
- 	if (sig < 0)
-diff -puN arch/mips/kernel/signal_n32.c~mips-use-set_current_blocked-and-block_sigmask arch/mips/kernel/signal_n32.c
---- a/arch/mips/kernel/signal_n32.c~mips-use-set_current_blocked-and-block_sigmask
-+++ a/arch/mips/kernel/signal_n32.c
-@@ -93,11 +93,8 @@ asmlinkage int sysn32_rt_sigsuspend(nabi
- 	sigset_from_compat(&newset, &uset);
- 	sigdelsetmask(&newset, ~_BLOCKABLE);
- 
--	spin_lock_irq(&current->sighand->siglock);
- 	current->saved_sigmask = current->blocked;
--	current->blocked = newset;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&newset);
- 
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -121,10 +118,7 @@ asmlinkage void sysn32_rt_sigreturn(nabi
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	sig = restore_sigcontext(&regs, &frame->rs_uc.uc_mcontext);
- 	if (sig < 0)
+ 		unsigned long flags;
+-		struct snd_usb_packet_info *packet;
++		struct snd_usb_packet_info *uninitialized_var(packet);
+ 		struct snd_urb_ctx *ctx = NULL;
+ 		struct urb *urb;
+ 		int err, i;
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-avr32-dont-mask-signals-in-the-error-path.patch
-avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
-avr32-use-block_sigmask.patch
-m32r-use-set_current_blocked-and-block_sigmask.patch
-m68k-use-set_current_blocked-and-block_sigmask.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
-cris-use-set_current_blocked-and-block_sigmask.patch
-ia64-use-set_current_blocked-and-block_sigmask.patch
-microblaze-dont-reimplement-force_sigsegv.patch
-microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
-microblaze-fix-signal-masking.patch
-microblaze-use-set_current_blocked-and-block_sigmask.patch
-score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
-score-use-set_current_blocked-and-block_sigmask.patch
-h8300-use-set_current_blocked-and-block_sigmask.patch
-unicore32-use-block_sigmask.patch
-blackfin-use-set_current_blocked-and-block_sigmask.patch
-frv-use-set_current_blocked-and-block_sigmask.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
