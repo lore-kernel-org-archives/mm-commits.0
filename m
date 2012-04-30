@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch added to -mm tree
-Date: Mon, 30 Apr 2012 16:33:33 -0700
-Message-ID: <20120430233333.D36F5A0270@akpm.mtv.corp.google.com>
+Subject: + task_work_add-generic-process-context-callbacks.patch added to -mm tree
+Date: Mon, 30 Apr 2012 16:50:50 -0700
+Message-ID: <20120430235051.5AB12A04C2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:49823 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757277Ab2D3Xdf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:33:35 -0400
-Received: by yenq2 with SMTP id q2so402911yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:33:34 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:38543 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757374Ab2D3Xuy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:50:54 -0400
+Received: by bkwj5 with SMTP id j5so171867bkw.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:50:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viresh.linux@gmail.com, dan.carpenter@oracle.com, lenb@kernel.org, vincenzo.frascino@st.com, viresh.kumar@st.com
+Cc: oleg@redhat.com, agordeev@redhat.com, chris@zankel.net, dhowells@redhat.com, dsmith@redhat.com, fche@redhat.com, geert@linux-m68k.org, lwoodman@redhat.com, mingo@elte.hu, peterz@infradead.org, rkuo@codeaurora.org, tglx@linutronix.de, tj@kernel.org, torvalds@linux-foundation.org
 
 
 The patch titled
-     Subject: drivers/thermal/spear_thermal.c: add Device Tree probing capability
+     Subject: task_work_add: generic process-context callbacks
 has been added to the -mm tree.  Its filename is
-     drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
+     task_work_add-generic-process-context-callbacks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,157 +33,342 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.linux@gmail.com>
-Subject: drivers/thermal/spear_thermal.c: add Device Tree probing capability
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: task_work_add: generic process-context callbacks
 
-SPEAr platforms now support DT and so must convert all drivers to support
-DT.  This patch adds DT probing support for SPEAr thermal sensor driver
-and updates its documentation too.
+Provide a simple mechanism that allows running code in the (nonatomic)
+context of the arbitrary task.
 
-Also, as SPEAr is the only user of this driver and is only available with
-DT, make this an only DT driver.  So, platform_data is completely removed
-and passed via DT now.
+The caller does task_work_add(task, task_work) and this task executes
+task_work->func() either from do_notify_resume() or from do_exit().  The
+callback can rely on PF_EXITING to detect the latter case.
 
-Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@st.com>
+"struct task_work" can be embedded in another struct, still it has "void
+*data" to handle the most common/simple case.
+
+This allows us to kill the ->replacement_session_keyring hack, and
+potentially this can have more users.
+
+Performance-wise, this adds 2 "unlikely(!hlist_empty())" checks into
+tracehook_notify_resume() and do_exit().  But at the same time we can
+remove the "replacement_session_keyring != NULL" checks from
+arch/*/signal.c and exit_creds().
+
+Note: task_work_add/task_work_run abuses ->pi_lock.  This is only because
+this lock is already used by lookup_pi_state() to synchronize with
+do_exit() setting PF_EXITING.  Fortunately the scope of this lock in
+task_work.c is really tiny, and the code is unlikely anyway.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alexander Gordeev <agordeev@redhat.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Smith <dsmith@redhat.com>
+Cc: "Frank Ch. Eigler" <fche@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/thermal/spear-thermal.txt |   14 +++++
- drivers/thermal/Kconfig                                     |    1 
- drivers/thermal/spear_thermal.c                             |   26 ++++++----
- include/linux/platform_data/spear_thermal.h                 |   26 ----------
- 4 files changed, 31 insertions(+), 36 deletions(-)
+ include/linux/sched.h     |    2 
+ include/linux/task_work.h |   33 ++++++++++++++
+ include/linux/tracehook.h |   13 ++++-
+ kernel/Makefile           |    2 
+ kernel/exit.c             |    5 +-
+ kernel/fork.c             |    1 
+ kernel/task_work.c        |   84 ++++++++++++++++++++++++++++++++++++
+ 7 files changed, 136 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/thermal/spear-thermal.txt
+diff -puN include/linux/sched.h~task_work_add-generic-process-context-callbacks include/linux/sched.h
+--- a/include/linux/sched.h~task_work_add-generic-process-context-callbacks
++++ a/include/linux/sched.h
+@@ -1455,6 +1455,8 @@ struct task_struct {
+ 	int (*notifier)(void *priv);
+ 	void *notifier_data;
+ 	sigset_t *notifier_mask;
++	struct hlist_head task_works;
++
+ 	struct audit_context *audit_context;
+ #ifdef CONFIG_AUDITSYSCALL
+ 	uid_t loginuid;
+diff -puN /dev/null include/linux/task_work.h
 --- /dev/null
-+++ a/Documentation/devicetree/bindings/thermal/spear-thermal.txt
-@@ -0,0 +1,14 @@
-+* SPEAr Thermal
++++ a/include/linux/task_work.h
+@@ -0,0 +1,33 @@
++#ifndef _LINUX_TASK_WORK_H
++#define _LINUX_TASK_WORK_H
 +
-+Required properties:
-+- compatible : "st,thermal-spear1340"
-+- reg : Address range of the thermal registers
-+- st,thermal-flags: flags used to enable thermal sensor
++#include <linux/list.h>
++#include <linux/sched.h>
 +
-+Example:
++struct task_work;
++typedef void (*task_work_func_t)(struct task_work *);
 +
-+	thermal@fc000000 {
-+		compatible = "st,thermal-spear1340";
-+		reg = <0xfc000000 0x1000>;
-+		st,thermal-flags = <0x7000>;
-+	};
-diff -puN drivers/thermal/Kconfig~drivers-thermal-spear_thermalc-add-device-tree-probing-capability drivers/thermal/Kconfig
---- a/drivers/thermal/Kconfig~drivers-thermal-spear_thermalc-add-device-tree-probing-capability
-+++ a/drivers/thermal/Kconfig
-@@ -23,6 +23,7 @@ config SPEAR_THERMAL
- 	bool "SPEAr thermal sensor driver"
- 	depends on THERMAL
- 	depends on PLAT_SPEAR
-+	depends on OF
- 	help
- 	  Enable this to plug the SPEAr thermal sensor driver into the Linux
- 	  thermal framework
-diff -puN drivers/thermal/spear_thermal.c~drivers-thermal-spear_thermalc-add-device-tree-probing-capability drivers/thermal/spear_thermal.c
---- a/drivers/thermal/spear_thermal.c~drivers-thermal-spear_thermalc-add-device-tree-probing-capability
-+++ a/drivers/thermal/spear_thermal.c
-@@ -20,9 +20,9 @@
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/kernel.h>
-+#include <linux/of.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/platform_data/spear_thermal.h>
- #include <linux/thermal.h>
- 
- #define MD_FACTOR	1000
-@@ -103,21 +103,20 @@ static int spear_thermal_probe(struct pl
- {
- 	struct thermal_zone_device *spear_thermal = NULL;
- 	struct spear_thermal_dev *stdev;
--	struct spear_thermal_pdata *pdata;
--	int ret = 0;
-+	struct device_node *np = pdev->dev.of_node;
- 	struct resource *stres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	int ret = 0, val;
++struct task_work {
++	struct hlist_node hlist;
++	task_work_func_t func;
++	void *data;
++};
 +
-+	if (!np || !of_property_read_u32(np, "st,thermal-flags", &val)) {
-+		dev_err(&pdev->dev, "Failed: DT Pdata not passed\n");
-+		return -EINVAL;
-+	}
++static inline void
++init_task_work(struct task_work *twork, task_work_func_t func, void *data)
++{
++	twork->func = func;
++	twork->data = data;
++}
++
++int task_work_add(struct task_struct *task, struct task_work *twork, bool);
++struct task_work *task_work_cancel(struct task_struct *, task_work_func_t);
++void task_work_run(void);
++
++static inline void exit_task_work(struct task_struct *task)
++{
++	if (unlikely(!hlist_empty(&task->task_works)))
++		task_work_run();
++}
++
++#endif	/* _LINUX_TASK_WORK_H */
+diff -puN include/linux/tracehook.h~task_work_add-generic-process-context-callbacks include/linux/tracehook.h
+--- a/include/linux/tracehook.h~task_work_add-generic-process-context-callbacks
++++ a/include/linux/tracehook.h
+@@ -49,6 +49,7 @@
+ #include <linux/sched.h>
+ #include <linux/ptrace.h>
+ #include <linux/security.h>
++#include <linux/task_work.h>
+ struct linux_binprm;
  
- 	if (!stres) {
- 		dev_err(&pdev->dev, "memory resource missing\n");
- 		return -ENODEV;
- 	}
- 
--	pdata = dev_get_platdata(&pdev->dev);
--	if (!pdata) {
--		dev_err(&pdev->dev, "platform data is NULL\n");
--		return -EINVAL;
--	}
--
- 	stdev = devm_kzalloc(&pdev->dev, sizeof(*stdev), GFP_KERNEL);
- 	if (!stdev) {
- 		dev_err(&pdev->dev, "kzalloc fail\n");
-@@ -144,7 +143,7 @@ static int spear_thermal_probe(struct pl
- 		goto put_clk;
- 	}
- 
--	stdev->flags = pdata->thermal_flags;
-+	stdev->flags = val;
- 	writel_relaxed(stdev->flags, stdev->thermal_base);
- 
- 	spear_thermal = thermal_zone_device_register("spear_thermal", 0,
-@@ -189,6 +188,12 @@ static int spear_thermal_exit(struct pla
- 	return 0;
+ /*
+@@ -153,7 +154,6 @@ static inline void tracehook_signal_hand
+ 		ptrace_notify(SIGTRAP);
  }
  
-+static const struct of_device_id spear_thermal_id_table[] = {
-+	{ .compatible = "st,thermal-spear1340" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, spear_thermal_id_table);
-+
- static struct platform_driver spear_thermal_driver = {
- 	.probe = spear_thermal_probe,
- 	.remove = spear_thermal_exit,
-@@ -196,6 +201,7 @@ static struct platform_driver spear_ther
- 		.name = "spear_thermal",
- 		.owner = THIS_MODULE,
- 		.pm = &spear_thermal_pm_ops,
-+		.of_match_table = of_match_ptr(spear_thermal_id_table),
- 	},
- };
+-#ifdef TIF_NOTIFY_RESUME
+ /**
+  * set_notify_resume - cause tracehook_notify_resume() to be called
+  * @task:		task that will call tracehook_notify_resume()
+@@ -165,8 +165,10 @@ static inline void tracehook_signal_hand
+  */
+ static inline void set_notify_resume(struct task_struct *task)
+ {
++#ifdef TIF_NOTIFY_RESUME
+ 	if (!test_and_set_tsk_thread_flag(task, TIF_NOTIFY_RESUME))
+ 		kick_process(task);
++#endif
+ }
  
-diff -puN include/linux/platform_data/spear_thermal.h~drivers-thermal-spear_thermalc-add-device-tree-probing-capability /dev/null
---- a/include/linux/platform_data/spear_thermal.h
-+++ /dev/null
-@@ -1,26 +0,0 @@
--/*
-- * SPEAr thermal driver platform data.
-- *
-- * Copyright (C) 2011-2012 ST Microelectronics
-- * Author: Vincenzo Frascino <vincenzo.frascino@st.com>
-- *
-- * This software is licensed under the terms of the GNU General Public
-- * License version 2, as published by the Free Software Foundation, and
-- * may be copied, distributed, and modified under those terms.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--#ifndef SPEAR_THERMAL_H
--#define SPEAR_THERMAL_H
--
--/* SPEAr Thermal Sensor Platform Data */
--struct spear_thermal_pdata {
--	/* flags used to enable thermal sensor */
--	unsigned int thermal_flags;
--};
+ /**
+@@ -184,7 +186,14 @@ static inline void set_notify_resume(str
+  */
+ static inline void tracehook_notify_resume(struct pt_regs *regs)
+ {
++	/*
++	 * The caller just cleared TIF_NOTIFY_RESUME. This barrier
++	 * pairs with task_work_add()->set_notify_resume() after
++	 * hlist_add_head(task->task_works);
++	 */
++	smp_mb__after_clear_bit();
++	if (unlikely(!hlist_empty(&current->task_works)))
++		task_work_run();
+ }
+-#endif	/* TIF_NOTIFY_RESUME */
+ 
+ #endif	/* <linux/tracehook.h> */
+diff -puN kernel/Makefile~task_work_add-generic-process-context-callbacks kernel/Makefile
+--- a/kernel/Makefile~task_work_add-generic-process-context-callbacks
++++ a/kernel/Makefile
+@@ -5,7 +5,7 @@
+ obj-y     = fork.o exec_domain.o panic.o printk.o \
+ 	    cpu.o exit.o itimer.o time.o softirq.o resource.o \
+ 	    sysctl.o sysctl_binary.o capability.o ptrace.o timer.o user.o \
+-	    signal.o sys.o kmod.o workqueue.o pid.o \
++	    signal.o sys.o kmod.o workqueue.o pid.o task_work.o \
+ 	    rcupdate.o extable.o params.o posix-timers.o \
+ 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
+ 	    hrtimer.o rwsem.o nsproxy.o srcu.o semaphore.o \
+diff -puN kernel/exit.c~task_work_add-generic-process-context-callbacks kernel/exit.c
+--- a/kernel/exit.c~task_work_add-generic-process-context-callbacks
++++ a/kernel/exit.c
+@@ -946,11 +946,14 @@ void do_exit(long code)
+ 	exit_signals(tsk);  /* sets PF_EXITING */
+ 	/*
+ 	 * tsk->flags are checked in the futex code to protect against
+-	 * an exiting task cleaning up the robust pi futexes.
++	 * an exiting task cleaning up the robust pi futexes, and in
++	 * task_work_add() to avoid the race with exit_task_work().
+ 	 */
+ 	smp_mb();
+ 	raw_spin_unlock_wait(&tsk->pi_lock);
+ 
++	exit_task_work(tsk);
++
+ 	exit_irq_thread();
+ 
+ 	if (unlikely(in_atomic()))
+diff -puN kernel/fork.c~task_work_add-generic-process-context-callbacks kernel/fork.c
+--- a/kernel/fork.c~task_work_add-generic-process-context-callbacks
++++ a/kernel/fork.c
+@@ -1391,6 +1391,7 @@ static struct task_struct *copy_process(
+ 	 */
+ 	p->group_leader = p;
+ 	INIT_LIST_HEAD(&p->thread_group);
++	INIT_HLIST_HEAD(&p->task_works);
+ 
+ 	/* Now that the task is set up, run cgroup callbacks if
+ 	 * necessary. We need to run them before the task is visible
+diff -puN /dev/null kernel/task_work.c
+--- /dev/null
++++ a/kernel/task_work.c
+@@ -0,0 +1,84 @@
++#include <linux/spinlock.h>
++#include <linux/task_work.h>
++#include <linux/tracehook.h>
++
++int
++task_work_add(struct task_struct *task, struct task_work *twork, bool notify)
++{
++	unsigned long flags;
++	int err = -ESRCH;
++
++#ifndef TIF_NOTIFY_RESUME
++	if (notify)
++		return -ENOTSUPP;
++#endif
++	/*
++	 * We must not insert the new work if the task has already passed
++	 * exit_task_work(). We rely on do_exit()->raw_spin_unlock_wait()
++	 * and check PF_EXITING under pi_lock.
++	 */
++	raw_spin_lock_irqsave(&task->pi_lock, flags);
++	if (likely(!(task->flags & PF_EXITING))) {
++		hlist_add_head(&twork->hlist, &task->task_works);
++		err = 0;
++	}
++	raw_spin_unlock_irqrestore(&task->pi_lock, flags);
++
++	/* test_and_set_bit() implies mb(), see tracehook_notify_resume(). */
++	if (likely(!err) && notify)
++		set_notify_resume(task);
++	return err;
++}
++
++struct task_work *
++task_work_cancel(struct task_struct *task, task_work_func_t func)
++{
++	unsigned long flags;
++	struct task_work *twork;
++	struct hlist_node *pos;
++
++	raw_spin_lock_irqsave(&task->pi_lock, flags);
++	hlist_for_each_entry(twork, pos, &task->task_works, hlist) {
++		if (twork->func == func) {
++			hlist_del(&twork->hlist);
++			goto found;
++		}
++	}
++	twork = NULL;
++ found:
++	raw_spin_unlock_irqrestore(&task->pi_lock, flags);
++
++	return twork;
++}
++
++void task_work_run(void)
++{
++	struct task_struct *task = current;
++	struct hlist_head task_works;
++	struct hlist_node *pos;
++
++	raw_spin_lock_irq(&task->pi_lock);
++	hlist_move_list(&task->task_works, &task_works);
++	raw_spin_unlock_irq(&task->pi_lock);
++
++	if (unlikely(hlist_empty(&task_works)))
++		return;
++	/*
++	 * We use hlist to save the space in task_struct, but we want fifo.
++	 * Find the last entry, the list should be short, then process them
++	 * in reverse order.
++	 */
++	for (pos = task_works.first; pos->next; pos = pos->next)
++		;
++
++	for (;;) {
++		struct hlist_node **pprev = pos->pprev;
++		struct task_work *twork = container_of(pos, struct task_work,
++							hlist);
++		twork->func(twork);
++
++		if (pprev == &task_works.first)
++			break;
++		pos = container_of(pprev, struct hlist_node, next);
++	}
++}
+_
+Subject: Subject: task_work_add: generic process-context callbacks
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+linux-next.patch
+avr32-dont-mask-signals-in-the-error-path.patch
+avr32-use-set_current_blocked-in-handle_signal-sys_rt_sigreturn.patch
+avr32-use-block_sigmask.patch
+m32r-use-set_current_blocked-and-block_sigmask.patch
+m68k-use-set_current_blocked-and-block_sigmask.patch
+mn10300-use-set_current_blocked-and-block_sigmask.patch
+cris-use-set_current_blocked-and-block_sigmask.patch
+ia64-use-set_current_blocked-and-block_sigmask.patch
+microblaze-dont-reimplement-force_sigsegv.patch
+microblaze-no-need-to-reset-handler-if-sa_oneshot.patch
+microblaze-fix-signal-masking.patch
+microblaze-use-set_current_blocked-and-block_sigmask.patch
+score-dont-mask-signals-if-we-fail-to-setup-signal-stack.patch
+score-use-set_current_blocked-and-block_sigmask.patch
+h8300-use-set_current_blocked-and-block_sigmask.patch
+unicore32-use-block_sigmask.patch
+blackfin-use-set_current_blocked-and-block_sigmask.patch
+mm-fork-fix-overflow-in-vma-length-when-copying-mmap-on-clone.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+frv-use-set_current_blocked-and-block_sigmask.patch
+parisc-use-set_current_blocked-and-block_sigmask.patch
+task_work_add-generic-process-context-callbacks.patch
+genirq-reimplement-exit_irq_thread-hook-via-task_work_add.patch
+hexagon-do_notify_resume-needs-tracehook_notify_resume.patch
+keys-change-keyctl_session_to_parent-to-use-task_work_add.patch
+keys-kill-the-dummy-key_replace_session_keyring.patch
+keys-kill-task_struct-replacement_session_keyring.patch
+kmod-unexport-call_usermodehelper_freeinfo.patch
+kmod-convert-two-call-sites-to-call_usermodehelper_fns.patch
+kmod-move-call_usermodehelper_fns-to-c-file-and-unexport-all-its-helpers.patch
+cred-remove-task_is_dead-from-__task_cred-validation.patch
+stack-usage-add-pid-to-warning-printk-in-check_stack_usage.patch
+proc-clean-up-proc-pid-environ-handling.patch
+proc-unify-ptrace_may_access-locking-code.patch
+proc-remove-mm_for_maps.patch
+proc-use-mm_access-instead-of-ptrace_may_access.patch
+proc-use-is_err_or_null.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+cpu-introduce-clear_tasks_mm_cpumask-helper.patch
+arm-use-clear_tasks_mm_cpumask.patch
+powerpc-use-clear_tasks_mm_cpumask.patch
+sh-use-clear_tasks_mm_cpumask.patch
+blackfin-a-couple-of-task-mm-handling-fixes.patch
+blackfin-fix-possible-deadlock-in-decode_address.patch
+um-should-hold-tasklist_lock-while-traversing-processes.patch
+um-fix-possible-race-on-task-mm.patch
+um-properly-check-all-process-threads-for-a-live-mm.patch
+aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9-fix.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment.patch
+
