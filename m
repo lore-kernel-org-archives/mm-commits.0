@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + proc-smaps-carefully-handle-migration-entries.patch added to -mm tree
-Date: Mon, 30 Apr 2012 13:56:44 -0700
-Message-ID: <20120430205645.75705A0A1C@akpm.mtv.corp.google.com>
+Subject: + proc-smaps-show-amount-of-hwpoison-pages.patch added to -mm tree
+Date: Mon, 30 Apr 2012 13:56:51 -0700
+Message-ID: <20120430205651.53375A0A1C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-we0-f202.google.com ([74.125.82.202]:41989 "EHLO
 	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754920Ab2D3U4s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 16:56:48 -0400
-Received: by wejx9 with SMTP id x9so168094wej.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 13:56:46 -0700 (PDT)
+	with ESMTP id S1756917Ab2D3U4x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 16:56:53 -0400
+Received: by mail-we0-f202.google.com with SMTP id x9so168094wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 13:56:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, adobriyan@gmail.com, andi@firstfloor.org, xemul@paral
 
 
 The patch titled
-     Subject: proc/smaps: carefully handle migration entries
+     Subject: proc/smaps: show amount of hwpoison pages
 has been added to the -mm tree.  Its filename is
-     proc-smaps-carefully-handle-migration-entries.patch
+     proc-smaps-show-amount-of-hwpoison-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: proc/smaps: carefully handle migration entries
+Subject: proc/smaps: show amount of hwpoison pages
 
-Currently smaps reports migration entries as "swap", as result "swap" can
-appears in shared mapping.
-
-This patch converts migration entries into pages and handles them as usual.
+Add the line "HWPoinson: <size> kB" into /proc/pid/smaps if
+CONFIG_MEMORY_FAILURE=y and some HWPoison pages were found.  This may be
+useful for searching applications which use a broken memory.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -48,43 +47,52 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ fs/proc/task_mmu.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~proc-smaps-carefully-handle-migration-entries fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-smaps-carefully-handle-migration-entries
+diff -puN fs/proc/task_mmu.c~proc-smaps-show-amount-of-hwpoison-pages fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-smaps-show-amount-of-hwpoison-pages
 +++ a/fs/proc/task_mmu.c
-@@ -402,18 +402,20 @@ static void smaps_pte_entry(pte_t ptent,
- {
- 	struct mem_size_stats *mss = walk->private;
- 	struct vm_area_struct *vma = mss->vma;
--	struct page *page;
-+	struct page *page = NULL;
- 	int mapcount;
+@@ -394,6 +394,7 @@ struct mem_size_stats {
+ 	unsigned long anonymous_thp;
+ 	unsigned long swap;
+ 	unsigned long nonlinear;
++	unsigned long hwpoison;
+ 	u64 pss;
+ };
  
--	if (is_swap_pte(ptent)) {
--		mss->swap += ptent_size;
--		return;
--	}
-+	if (pte_present(ptent)) {
-+		page = vm_normal_page(vma, addr, ptent);
-+	} else if (is_swap_pte(ptent)) {
-+		swp_entry_t swpent = pte_to_swp_entry(ptent);
+@@ -416,6 +417,8 @@ static void smaps_pte_entry(pte_t ptent,
+ 			mss->swap += ptent_size;
+ 		else if (is_migration_entry(swpent))
+ 			page = migration_entry_to_page(swpent);
++		else if (is_hwpoison_entry(swpent))
++			mss->hwpoison += ptent_size;
+ 	} else if (pte_file(ptent)) {
+ 		if (pte_to_pgoff(ptent) != pgoff)
+ 			mss->nonlinear += ptent_size;
+@@ -430,6 +433,9 @@ static void smaps_pte_entry(pte_t ptent,
+ 	if (page->index != pgoff)
+ 		mss->nonlinear += ptent_size;
  
--	if (!pte_present(ptent))
--		return;
-+		if (!non_swap_entry(swpent))
-+			mss->swap += ptent_size;
-+		else if (is_migration_entry(swpent))
-+			page = migration_entry_to_page(swpent);
-+	}
++	if (PageHWPoison(page))
++		mss->hwpoison += ptent_size;
++
+ 	mss->resident += ptent_size;
+ 	/* Accumulate the size in pages that have been accessed. */
+ 	if (pte_young(ptent) || PageReferenced(page))
+@@ -535,6 +541,10 @@ static int show_smap(struct seq_file *m,
+ 		seq_printf(m, "Nonlinear:      %8lu kB\n",
+ 				mss.nonlinear >> 10);
  
--	page = vm_normal_page(vma, addr, ptent);
- 	if (!page)
- 		return;
- 
++	if (IS_ENABLED(CONFIG_MEMORY_FAILURE) && mss.hwpoison)
++		seq_printf(m, "HWPoison:       %8lu kB\n",
++				mss.hwpoison >> 10);
++
+ 	if (m->count < m->size)  /* vma is copied successfully */
+ 		m->version = (vma != get_gate_vma(task->mm))
+ 			? vma->vm_start : 0;
 _
-Subject: Subject: proc/smaps: carefully handle migration entries
+Subject: Subject: proc/smaps: show amount of hwpoison pages
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
