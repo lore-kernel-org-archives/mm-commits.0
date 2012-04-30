@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-hugetlb-extension-fix-fix.patch added to -mm tree
-Date: Mon, 30 Apr 2012 16:20:24 -0700
-Message-ID: <20120430232024.826F2A03CD@akpm.mtv.corp.google.com>
+Subject: + x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch added to -mm tree
+Date: Mon, 30 Apr 2012 16:27:17 -0700
+Message-ID: <20120430232718.503A9A04B2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:42249 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756884Ab2D3XU1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:20:27 -0400
-Received: by eaaq10 with SMTP id q10so171673eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:20:25 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:36356 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757370Ab2D3X1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:27:20 -0400
+Received: by wibhj13 with SMTP id hj13so186596wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:27:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
+Cc: bhelgaas@google.com, hpa@zytor.com, konrad.wilk@oracle.com, mingo@elte.hu, tglx@linutronix.de, yinghai@kernel.org
 
 
 The patch titled
-     Subject: memcg-add-hugetlb-extension-fix-fix
+     Subject: x86: print e820 physical addresses consistently with other parts of kernel
 has been added to the -mm tree.  Its filename is
-     memcg-add-hugetlb-extension-fix-fix.patch
+     x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,134 +33,206 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-add-hugetlb-extension-fix-fix
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: x86: print e820 physical addresses consistently with other parts of kernel
 
-optimise CONFIG_HUGETLB_PAGE=y, CONFIG_MEM_RES_CTLR_HUGETLB=n
+Print physical address info in a style consistent with the %pR style used
+elsewhere in the kernel.  For example:
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+    -BIOS-provided physical RAM map:
+    +e820: BIOS-provided physical RAM map:
+    - BIOS-e820: 0000000000000100 - 000000000009e000 (usable)
+    +BIOS-e820: [mem 0x0000000000000100-0x000000000009dfff] usable
+    -Allocating PCI resources starting at 90000000 (gap: 90000000:6ed1c000)
+    +e820: [mem 0x90000000-0xfed1bfff] available for PCI devices
+    -reserve RAM buffer: 000000000009e000 - 000000000009ffff
+    +e820: reserve RAM buffer [mem 0x0009e000-0x0009ffff]
+
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ arch/x86/kernel/e820.c |   53 +++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 26 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-hugetlb-extension-fix-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-hugetlb-extension-fix-fix
-+++ a/mm/memcontrol.c
-@@ -57,6 +57,16 @@
+diff -puN arch/x86/kernel/e820.c~x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/kernel/e820.c
+@@ -113,7 +113,9 @@ static void __init __e820_add_region(str
+ 	int x = e820x->nr_map;
  
- #include <trace/events/vmscan.h>
- 
-+/*
-+ * If CONFIG_MEM_RES_CTLR_HUGETLB=n, CONFIG_HUGETLB_PAGE=y we can avoid
-+ * generating any code or storage for the resource counters
-+ */
-+#ifdef CONFIG_MEM_RES_CTLR_HUGETLB
-+#define NR_HUGEPAGE_RES_COUNTERS HUGE_MAX_HSTATE
-+#else
-+#define NR_HUGEPAGE_RES_COUNTERS 0
-+#endif
-+
- struct cgroup_subsys mem_cgroup_subsys __read_mostly;
- #define MEM_CGROUP_RECLAIM_RETRIES	5
- struct mem_cgroup *root_mem_cgroup __read_mostly;
-@@ -254,7 +264,7 @@ struct mem_cgroup {
- 	/*
- 	 * the counter to account for hugepages from hugetlb.
- 	 */
--	struct res_counter hugepage[HUGE_MAX_HSTATE];
-+	struct res_counter hugepage[NR_HUGEPAGE_RES_COUNTERS];
- 	/*
- 	 * Per cgroup active and inactive list, similar to the
- 	 * per zone LRU lists.
-@@ -5106,9 +5116,9 @@ mem_cgroup_create(struct cgroup *cont)
- 		mem_cgroup_get(parent);
- 		/*
- 		 * We could get called before hugetlb init is called.
--		 * Use HUGE_MAX_HSTATE as the max index.
-+		 * Use NR_HUGEPAGE_RES_COUNTERS as the max index.
- 		 */
--		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
-+		for (idx = 0; idx < NR_HUGEPAGE_RES_COUNTERS; idx++)
- 			res_counter_init(&memcg->hugepage[idx],
- 					 &parent->hugepage[idx]);
- 	} else {
-@@ -5116,9 +5126,9 @@ mem_cgroup_create(struct cgroup *cont)
- 		res_counter_init(&memcg->memsw, NULL);
- 		/*
- 		 * We could get called before hugetlb init is called.
--		 * Use HUGE_MAX_HSTATE as the max index.
-+		 * Use NR_HUGEPAGE_RES_COUNTERS as the max index.
- 		 */
--		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
-+		for (idx = 0; idx < NR_HUGEPAGE_RES_COUNTERS; idx++)
- 			res_counter_init(&memcg->hugepage[idx], NULL);
+ 	if (x >= ARRAY_SIZE(e820x->map)) {
+-		printk(KERN_ERR "Ooops! Too many entries in the memory map!\n");
++		printk(KERN_ERR "e820: too many entries; ignoring [mem %#010llx-%#010llx]\n",
++		       (unsigned long long) start,
++		       (unsigned long long) (start + size - 1));
+ 		return;
  	}
- 	memcg->last_scanned_node = MAX_NUMNODES;
+ 
+@@ -133,20 +135,20 @@ static void __init e820_print_type(u32 t
+ 	switch (type) {
+ 	case E820_RAM:
+ 	case E820_RESERVED_KERN:
+-		printk(KERN_CONT "(usable)");
++		printk(KERN_CONT "usable");
+ 		break;
+ 	case E820_RESERVED:
+ 	case E820_RESERVED_EFI:
+-		printk(KERN_CONT "(reserved)");
++		printk(KERN_CONT "reserved");
+ 		break;
+ 	case E820_ACPI:
+-		printk(KERN_CONT "(ACPI data)");
++		printk(KERN_CONT "ACPI data");
+ 		break;
+ 	case E820_NVS:
+-		printk(KERN_CONT "(ACPI NVS)");
++		printk(KERN_CONT "ACPI NVS");
+ 		break;
+ 	case E820_UNUSABLE:
+-		printk(KERN_CONT "(unusable)");
++		printk(KERN_CONT "unusable");
+ 		break;
+ 	default:
+ 		printk(KERN_CONT "type %u", type);
+@@ -159,10 +161,10 @@ void __init e820_print_map(char *who)
+ 	int i;
+ 
+ 	for (i = 0; i < e820.nr_map; i++) {
+-		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
++		printk(KERN_INFO "%s: [mem %#018Lx-%#018Lx] ", who,
+ 		       (unsigned long long) e820.map[i].addr,
+ 		       (unsigned long long)
+-		       (e820.map[i].addr + e820.map[i].size));
++		       (e820.map[i].addr + e820.map[i].size - 1));
+ 		e820_print_type(e820.map[i].type);
+ 		printk(KERN_CONT "\n");
+ 	}
+@@ -429,9 +431,8 @@ static u64 __init __e820_update_range(st
+ 		size = ULLONG_MAX - start;
+ 
+ 	end = start + size;
+-	printk(KERN_DEBUG "e820 update range: %016Lx - %016Lx ",
+-		       (unsigned long long) start,
+-		       (unsigned long long) end);
++	printk(KERN_DEBUG "e820: update [mem %#010Lx-%#010Lx] ",
++	       (unsigned long long) start, (unsigned long long) (end - 1));
+ 	e820_print_type(old_type);
+ 	printk(KERN_CONT " ==> ");
+ 	e820_print_type(new_type);
+@@ -510,9 +511,8 @@ u64 __init e820_remove_range(u64 start, 
+ 		size = ULLONG_MAX - start;
+ 
+ 	end = start + size;
+-	printk(KERN_DEBUG "e820 remove range: %016Lx - %016Lx ",
+-		       (unsigned long long) start,
+-		       (unsigned long long) end);
++	printk(KERN_DEBUG "e820: remove [mem %#010Lx-%#010Lx] ",
++	       (unsigned long long) start, (unsigned long long) (end - 1));
+ 	if (checktype)
+ 		e820_print_type(old_type);
+ 	printk(KERN_CONT "\n");
+@@ -568,7 +568,7 @@ void __init update_e820(void)
+ 	if (sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &nr_map))
+ 		return;
+ 	e820.nr_map = nr_map;
+-	printk(KERN_INFO "modified physical RAM map:\n");
++	printk(KERN_INFO "e820: modified physical RAM map:\n");
+ 	e820_print_map("modified");
+ }
+ static void __init update_e820_saved(void)
+@@ -638,8 +638,8 @@ __init void e820_setup_gap(void)
+ 	if (!found) {
+ 		gapstart = (max_pfn << PAGE_SHIFT) + 1024*1024;
+ 		printk(KERN_ERR
+-	"PCI: Warning: Cannot find a gap in the 32bit address range\n"
+-	"PCI: Unassigned devices with 32bit resource registers may break!\n");
++	"e820: cannot find a gap in the 32bit address range\n"
++	"e820: PCI devices with unassigned 32bit BARs may break!\n");
+ 	}
+ #endif
+ 
+@@ -649,8 +649,8 @@ __init void e820_setup_gap(void)
+ 	pci_mem_start = gapstart;
+ 
+ 	printk(KERN_INFO
+-	       "Allocating PCI resources starting at %lx (gap: %lx:%lx)\n",
+-	       pci_mem_start, gapstart, gapsize);
++	       "e820: [mem %#010lx-%#010lx] available for PCI devices\n",
++	       gapstart, gapstart + gapsize - 1);
+ }
+ 
+ /**
+@@ -668,7 +668,7 @@ void __init parse_e820_ext(struct setup_
+ 	extmap = (struct e820entry *)(sdata->data);
+ 	__append_e820_map(extmap, entries);
+ 	sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &e820.nr_map);
+-	printk(KERN_INFO "extended physical RAM map:\n");
++	printk(KERN_INFO "e820: extended physical RAM map:\n");
+ 	e820_print_map("extended");
+ }
+ 
+@@ -735,7 +735,7 @@ u64 __init early_reserve_e820(u64 size, 
+ 	addr = __memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ACCESSIBLE);
+ 	if (addr) {
+ 		e820_update_range_saved(addr, size, E820_RAM, E820_RESERVED);
+-		printk(KERN_INFO "update e820_saved for early_reserve_e820\n");
++		printk(KERN_INFO "e820: update e820_saved for early_reserve_e820\n");
+ 		update_e820_saved();
+ 	}
+ 
+@@ -785,7 +785,7 @@ unsigned long __init e820_end_pfn(unsign
+ 	if (last_pfn > max_arch_pfn)
+ 		last_pfn = max_arch_pfn;
+ 
+-	printk(KERN_INFO "last_pfn = %#lx max_arch_pfn = %#lx\n",
++	printk(KERN_INFO "e820: last_pfn = %#lx max_arch_pfn = %#lx\n",
+ 			 last_pfn, max_arch_pfn);
+ 	return last_pfn;
+ }
+@@ -889,7 +889,7 @@ void __init finish_e820_parsing(void)
+ 			early_panic("Invalid user supplied memory map");
+ 		e820.nr_map = nr;
+ 
+-		printk(KERN_INFO "user-defined physical RAM map:\n");
++		printk(KERN_INFO "e820: user-defined physical RAM map:\n");
+ 		e820_print_map("user");
+ 	}
+ }
+@@ -997,8 +997,9 @@ void __init e820_reserve_resources_late(
+ 			end = MAX_RESOURCE_SIZE;
+ 		if (start >= end)
+ 			continue;
+-		printk(KERN_DEBUG "reserve RAM buffer: %016llx - %016llx ",
+-			       start, end);
++		printk(KERN_DEBUG
++		       "e820: reserve RAM buffer [mem %#010llx-%#010llx]\n",
++		       start, end);
+ 		reserve_region_with_split(&iomem_resource, start, end,
+ 					  "RAM buffer");
+ 	}
+@@ -1048,7 +1049,7 @@ void __init setup_memory_map(void)
+ 
+ 	who = x86_init.resources.memory_setup();
+ 	memcpy(&e820_saved, &e820, sizeof(struct e820map));
+-	printk(KERN_INFO "BIOS-provided physical RAM map:\n");
++	printk(KERN_INFO "e820: BIOS-provided physical RAM map:\n");
+ 	e820_print_map(who);
+ }
+ 
 _
-Subject: Subject: memcg-add-hugetlb-extension-fix-fix
+Subject: Subject: x86: print e820 physical addresses consistently with other parts of kernel
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bhelgaas@google.com are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
-mm-do_migrate_pages-rename-arguments.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
-mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-memcg-add-mlock-statistic-in-memorystat-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-leds-led-module-for-da9052-53-pmic-v2-fix.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
-lib-string_helpersc-make-arrays-static.patch
-lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch
+x86-print-physical-addresses-consistently-with-other-parts-of-kernel.patch
+swiotlb-print-physical-addresses-consistently-with-other-parts-of-kernel.patch
+mm-print-physical-addresses-consistently-with-other-parts-of-kernel.patch
 
