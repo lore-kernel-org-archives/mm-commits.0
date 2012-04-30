@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-add-checks-to-avoid-null-pointer-dereference.patch added to -mm tree
-Date: Mon, 30 Apr 2012 14:12:48 -0700
-Message-ID: <20120430211248.E1C59A0395@akpm.mtv.corp.google.com>
+Subject: + mm-fix-division-by-0-in-percpu_pagelist_fraction.patch added to -mm tree
+Date: Mon, 30 Apr 2012 15:42:32 -0700
+Message-ID: <20120430224232.B64DDA00AA@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:43257 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757148Ab2D3VMv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 17:12:51 -0400
-Received: by wgbdt11 with SMTP id dt11so84864wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 14:12:50 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:34704 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756603Ab2D3Wmf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 30 Apr 2012 18:42:35 -0400
+Received: by laai8 with SMTP id i8so170165laa.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 15:42:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srivatsa.bhat@linux.vnet.ibm.com, daniel.lezcano@linaro.org, len.brown@intel.com, lenb@kernel.org
+Cc: levinsasha928@gmail.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: cpuidle: add checks to avoid NULL pointer dereference
+     Subject: mm: fix division by 0 in percpu_pagelist_fraction()
 has been added to the -mm tree.  Its filename is
-     cpuidle-add-checks-to-avoid-null-pointer-dereference.patch
+     mm-fix-division-by-0-in-percpu_pagelist_fraction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +34,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: cpuidle: add checks to avoid NULL pointer dereference
+From: Sasha Levin <levinsasha928@gmail.com>
+Subject: mm: fix division by 0 in percpu_pagelist_fraction()
 
-The existing check for dev == NULL in __cpuidle_register_device() is
-rendered useless because dev is dereferenced before the check itself. 
-Moreover, correctly speaking, it is the job of the callers of this
-function, i.e., cpuidle_register_device() & cpuidle_enable_device() (which
-also happen to be exported functions) to ensure that
-__cpuidle_register_device() is called with a non-NULL dev.
+percpu_pagelist_fraction_sysctl_handler() has only considered -EINVAL as a
+possible error from proc_dointvec_minmax().  If any other error is
+returned, it would proceed to divide by zero since
+percpu_pagelist_fraction wasn't getting initialized at any point.  For
+example, writing 0 bytes into the proc file would trigger the issue.
 
-So add the necessary dev == NULL checks in the two callers and remove the
-(useless) check from __cpuidle_register_device().
-
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
+Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-add-checks-to-avoid-null-pointer-dereference drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-add-checks-to-avoid-null-pointer-dereference
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -285,6 +285,9 @@ int cpuidle_enable_device(struct cpuidle
- 	int ret, i;
- 	struct cpuidle_driver *drv = cpuidle_get_driver();
+diff -puN mm/page_alloc.c~mm-fix-division-by-0-in-percpu_pagelist_fraction mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-division-by-0-in-percpu_pagelist_fraction
++++ a/mm/page_alloc.c
+@@ -106,7 +106,7 @@ unsigned long totalreserve_pages __read_
+  */
+ unsigned long dirty_balance_reserve __read_mostly;
  
-+	if (!dev)
-+		return -EINVAL;
-+
- 	if (dev->enabled)
- 		return 0;
- 	if (!drv || !cpuidle_curr_governor)
-@@ -369,8 +372,6 @@ static int __cpuidle_register_device(str
- 	struct device *cpu_dev = get_cpu_device((unsigned long)dev->cpu);
- 	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
+-int percpu_pagelist_fraction;
++int percpu_pagelist_fraction = 8;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
  
--	if (!dev)
--		return -EINVAL;
- 	if (!try_module_get(cpuidle_driver->owner))
- 		return -EINVAL;
- 
-@@ -395,6 +396,9 @@ int cpuidle_register_device(struct cpuid
- {
+ #ifdef CONFIG_PM_SLEEP
+@@ -5271,7 +5271,7 @@ int percpu_pagelist_fraction_sysctl_hand
  	int ret;
  
-+	if (!dev)
-+		return -EINVAL;
-+
- 	mutex_lock(&cpuidle_lock);
- 
- 	if ((ret = __cpuidle_register_device(dev))) {
+ 	ret = proc_dointvec_minmax(table, write, buffer, length, ppos);
+-	if (!write || (ret == -EINVAL))
++	if (!write || (ret < 0))
+ 		return ret;
+ 	for_each_populated_zone(zone) {
+ 		for_each_possible_cpu(cpu) {
 _
-Subject: Subject: cpuidle: add checks to avoid NULL pointer dereference
+Subject: Subject: mm: fix division by 0 in percpu_pagelist_fraction()
 
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
+Patches currently in -mm which might be from levinsasha928@gmail.com are
 
-cpuidle-add-checks-to-avoid-null-pointer-dereference.patch
+linux-next.patch
+mm-fix-division-by-0-in-percpu_pagelist_fraction.patch
+brlocks-lglocks-cleanups.patch
 
