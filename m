@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch added to -mm tree
-Date: Mon, 30 Apr 2012 13:56:48 -0700
-Message-ID: <20120430205648.41436A0A1C@akpm.mtv.corp.google.com>
+Subject: + proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas.patch added to -mm tree
+Date: Mon, 30 Apr 2012 14:04:28 -0700
+Message-ID: <20120430210428.9C783A036E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:58953 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755439Ab2D3U4v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Apr 2012 16:56:51 -0400
-Received: by laai8 with SMTP id i8so167830laa.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 13:56:49 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:43643 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754769Ab2D3VEb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 17:04:31 -0400
+Received: by wejx9 with SMTP id x9so168346wej.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 14:04:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, adobriyan@gmail.com, andi@firstfloor.org, xemul@parallels.com
+Cc: khlebnikov@openvz.org, ak@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, xemul@parallels.com
 
 
 The patch titled
-     Subject: proc/smaps: show amount of nonlinear ptes in vma
+     Subject: proc/pid/pagemap: correctly report non-present ptes and holes between vmas
 has been added to the -mm tree.  Its filename is
-     proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch
+     proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,82 +34,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: proc/smaps: show amount of nonlinear ptes in vma
+Subject: proc/pid/pagemap: correctly report non-present ptes and holes between vmas
 
-Currently, nonlinear mappings can not be distinguished from ordinary
-mappings.  This patch adds into /proc/pid/smaps line "Nonlinear: <size>
-kB", where size is amount of nonlinear ptes in vma, this line appears only
-if VM_NONLINEAR is set.  This information may be useful not only for
-checkpoint/restore project.
+Reset the current pagemap-entry if the current pte isn't present, or if
+current vma is over.  Otherwise pagemap reports last entry again and
+again.
 
-Requested by Pavel Emelyanov.
+non-present pte reporting was broken in commit v3.3-3738-g092b50b
+("pagemap: introduce data structure for pagemap entry")
+
+reporting for holes was broken in commit v3.3-3734-g5aaabe8
+("pagemap: avoid splitting thp when reading /proc/pid/pagemap")
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Reported-by: Pavel Emelyanov <xemul@parallels.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/proc/task_mmu.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~proc-smaps-show-amount-of-nonlinear-ptes-in-vma fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-smaps-show-amount-of-nonlinear-ptes-in-vma
+diff -puN fs/proc/task_mmu.c~proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas
 +++ a/fs/proc/task_mmu.c
-@@ -393,6 +393,7 @@ struct mem_size_stats {
- 	unsigned long anonymous;
- 	unsigned long anonymous_thp;
- 	unsigned long swap;
-+	unsigned long nonlinear;
- 	u64 pss;
- };
+@@ -747,6 +747,8 @@ static void pte_to_pagemap_entry(pagemap
+ 	else if (pte_present(pte))
+ 		*pme = make_pme(PM_PFRAME(pte_pfn(pte))
+ 				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT);
++	else
++		*pme = make_pme(PM_NOT_PRESENT);
+ }
  
-@@ -402,6 +403,7 @@ static void smaps_pte_entry(pte_t ptent,
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -761,6 +763,8 @@ static void thp_pmd_to_pagemap_entry(pag
+ 	if (pmd_present(pmd))
+ 		*pme = make_pme(PM_PFRAME(pmd_pfn(pmd) + offset)
+ 				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT);
++	else
++		*pme = make_pme(PM_NOT_PRESENT);
+ }
+ #else
+ static inline void thp_pmd_to_pagemap_entry(pagemap_entry_t *pme,
+@@ -801,8 +805,10 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 
+ 		/* check to see if we've left 'vma' behind
+ 		 * and need a new, higher one */
+-		if (vma && (addr >= vma->vm_end))
++		if (vma && (addr >= vma->vm_end)) {
+ 			vma = find_vma(walk->mm, addr);
++			pme = make_pme(PM_NOT_PRESENT);
++		}
+ 
+ 		/* check that 'vma' actually covers this address,
+ 		 * and that it isn't a huge page vma */
+@@ -830,6 +836,8 @@ static void huge_pte_to_pagemap_entry(pa
+ 	if (pte_present(pte))
+ 		*pme = make_pme(PM_PFRAME(pte_pfn(pte) + offset)
+ 				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT);
++	else
++		*pme = make_pme(PM_NOT_PRESENT);
+ }
+ 
+ /* This function walks within one hugetlb entry in the single call */
+@@ -839,7 +847,7 @@ static int pagemap_hugetlb_range(pte_t *
  {
- 	struct mem_size_stats *mss = walk->private;
- 	struct vm_area_struct *vma = mss->vma;
-+	pgoff_t pgoff = linear_page_index(vma, addr);
- 	struct page *page = NULL;
- 	int mapcount;
+ 	struct pagemapread *pm = walk->private;
+ 	int err = 0;
+-	pagemap_entry_t pme = make_pme(PM_NOT_PRESENT);
++	pagemap_entry_t pme;
  
-@@ -414,6 +416,9 @@ static void smaps_pte_entry(pte_t ptent,
- 			mss->swap += ptent_size;
- 		else if (is_migration_entry(swpent))
- 			page = migration_entry_to_page(swpent);
-+	} else if (pte_file(ptent)) {
-+		if (pte_to_pgoff(ptent) != pgoff)
-+			mss->nonlinear += ptent_size;
- 	}
- 
- 	if (!page)
-@@ -422,6 +427,9 @@ static void smaps_pte_entry(pte_t ptent,
- 	if (PageAnon(page))
- 		mss->anonymous += ptent_size;
- 
-+	if (page->index != pgoff)
-+		mss->nonlinear += ptent_size;
-+
- 	mss->resident += ptent_size;
- 	/* Accumulate the size in pages that have been accessed. */
- 	if (pte_young(ptent) || PageReferenced(page))
-@@ -523,6 +531,10 @@ static int show_smap(struct seq_file *m,
- 		   (vma->vm_flags & VM_LOCKED) ?
- 			(unsigned long)(mss.pss >> (10 + PSS_SHIFT)) : 0);
- 
-+	if (vma->vm_flags & VM_NONLINEAR)
-+		seq_printf(m, "Nonlinear:      %8lu kB\n",
-+				mss.nonlinear >> 10);
-+
- 	if (m->count < m->size)  /* vma is copied successfully */
- 		m->version = (vma != get_gate_vma(task->mm))
- 			? vma->vm_start : 0;
+ 	for (; addr != end; addr += PAGE_SIZE) {
+ 		int offset = (addr & ~hmask) >> PAGE_SHIFT;
 _
-Subject: Subject: proc/smaps: show amount of nonlinear ptes in vma
+Subject: Subject: proc/pid/pagemap: correctly report non-present ptes and holes between vmas
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 linux-next.patch
+proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas.patch
 mm-remove-swap-token-code.patch
 mm-vmscan-remove-lumpy-reclaim.patch
 mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
@@ -127,6 +131,7 @@ mm-mark-mm-inline-functions-as-__always_inline.patch
 mm-remove-lru-type-checks-from-__isolate_lru_page.patch
 mm-memcg-kill-mem_cgroup_lru_del.patch
 mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+proc-report-file-anon-bit-in-proc-pid-pagemap.patch
 proc-smaps-carefully-handle-migration-entries.patch
 proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch
 proc-smaps-show-amount-of-hwpoison-pages.patch
