@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas.patch added to -mm tree
-Date: Mon, 30 Apr 2012 14:04:28 -0700
-Message-ID: <20120430210428.9C783A036E@akpm.mtv.corp.google.com>
+Subject: + proc-report-file-anon-bit-in-proc-pid-pagemap.patch added to -mm tree
+Date: Mon, 30 Apr 2012 14:06:26 -0700
+Message-ID: <20120430210626.EE70DA036E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:43643 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769Ab2D3VEb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 17:04:31 -0400
-Received: by wejx9 with SMTP id x9so168346wej.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 14:04:29 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:33136 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755439Ab2D3VGa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 17:06:30 -0400
+Received: by qcsp5 with SMTP id p5so386256qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 14:06:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, ak@linux.intel.com, kamezawa.hiroyu@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, xemul@parallels.com
+Cc: khlebnikov@openvz.org, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com, riel@redhat.com, xemul@parallels.com
 
 
 The patch titled
-     Subject: proc/pid/pagemap: correctly report non-present ptes and holes between vmas
+     From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 has been added to the -mm tree.  Its filename is
-     proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas.patch
+     proc-report-file-anon-bit-in-proc-pid-pagemap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,146 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: proc/pid/pagemap: correctly report non-present ptes and holes between vmas
+Subject: proc: report file/anon bit in /proc/pid/pagemap
 
-Reset the current pagemap-entry if the current pte isn't present, or if
-current vma is over.  Otherwise pagemap reports last entry again and
-again.
+This is an implementation of Andrew's proposal to extend the pagemap file
+bits to report what is missing about tasks' working set.
 
-non-present pte reporting was broken in commit v3.3-3738-g092b50b
-("pagemap: introduce data structure for pagemap entry")
+The problem with the working set detection is multilateral.  In the criu
+(checkpoint/restore) project we dump the tasks' memory into image files
+and to do it properly we need to detect which pages inside mappings are
+really in use.  The mincore syscall I though could help with this did not.
+ First, it doesn't report swapped pages, thus we cannot find out which
+parts of anonymous mappings to dump.  Next, it does report pages from page
+cache as present even if they are not mapped, and it doesn't make that has
+not been cow-ed.
 
-reporting for holes was broken in commit v3.3-3734-g5aaabe8
-("pagemap: avoid splitting thp when reading /proc/pid/pagemap")
+Note, that issue with swap pages is critical -- we must dump swap pages to
+image file.  But the issues with file pages are optimization -- we can
+take all file pages to image, this would be correct, but if we know that a
+page is not mapped or not cow-ed, we can remove them from dump file.  The
+dump would still be self-consistent, though significantly smaller in size
+(up to 10 times smaller on real apps).
+
+Andrew noticed, that the proc pagemap file solved 2 of 3 above issues --
+it reports whether a page is present or swapped and it doesn't report not
+mapped page cache pages.  But, it doesn't distinguish cow-ed file pages
+from not cow-ed.
+
+I would like to make the last unused bit in this file to report whether the
+page mapped into respective pte is PageAnon or not.
+
+[comment stolen from Pavel Emelyanov's v1 patch]
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Reported-by: Pavel Emelyanov <xemul@parallels.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ Documentation/vm/pagemap.txt |    2 -
+ fs/proc/task_mmu.c           |   46 ++++++++++++++++++++-------------
+ 2 files changed, 30 insertions(+), 18 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas
+diff -puN Documentation/vm/pagemap.txt~proc-report-file-anon-bit-in-proc-pid-pagemap Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~proc-report-file-anon-bit-in-proc-pid-pagemap
++++ a/Documentation/vm/pagemap.txt
+@@ -16,7 +16,7 @@ There are three components to pagemap:
+     * Bits 0-4   swap type if swapped
+     * Bits 5-54  swap offset if swapped
+     * Bits 55-60 page shift (page size = 1<<page shift)
+-    * Bit  61    reserved for future use
++    * Bit  61    page is file-page or shared-anon
+     * Bit  62    page swapped
+     * Bit  63    page present
+ 
+diff -puN fs/proc/task_mmu.c~proc-report-file-anon-bit-in-proc-pid-pagemap fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-report-file-anon-bit-in-proc-pid-pagemap
 +++ a/fs/proc/task_mmu.c
-@@ -747,6 +747,8 @@ static void pte_to_pagemap_entry(pagemap
- 	else if (pte_present(pte))
- 		*pme = make_pme(PM_PFRAME(pte_pfn(pte))
- 				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT);
-+	else
-+		*pme = make_pme(PM_NOT_PRESENT);
+@@ -700,6 +700,7 @@ struct pagemapread {
+ 
+ #define PM_PRESENT          PM_STATUS(4LL)
+ #define PM_SWAP             PM_STATUS(2LL)
++#define PM_FILE             PM_STATUS(1LL)
+ #define PM_NOT_PRESENT      PM_PSHIFT(PAGE_SHIFT)
+ #define PM_END_OF_BUFFER    1
+ 
+@@ -733,22 +734,33 @@ static int pagemap_pte_hole(unsigned lon
+ 	return err;
+ }
+ 
+-static u64 swap_pte_to_pagemap_entry(pte_t pte)
++static void pte_to_pagemap_entry(pagemap_entry_t *pme,
++		struct vm_area_struct *vma, unsigned long addr, pte_t pte)
+ {
+-	swp_entry_t e = pte_to_swp_entry(pte);
+-	return swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
+-}
++	u64 frame, flags;
++	struct page *page = NULL;
+ 
+-static void pte_to_pagemap_entry(pagemap_entry_t *pme, pte_t pte)
+-{
+-	if (is_swap_pte(pte))
+-		*pme = make_pme(PM_PFRAME(swap_pte_to_pagemap_entry(pte))
+-				| PM_PSHIFT(PAGE_SHIFT) | PM_SWAP);
+-	else if (pte_present(pte))
+-		*pme = make_pme(PM_PFRAME(pte_pfn(pte))
+-				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT);
+-	else
++	if (pte_present(pte)) {
++		frame = pte_pfn(pte);
++		flags = PM_PRESENT;
++		page = vm_normal_page(vma, addr, pte);
++	} else if (is_swap_pte(pte)) {
++		swp_entry_t entry = pte_to_swp_entry(pte);
++
++		frame = swp_type(entry) |
++			(swp_offset(entry) << MAX_SWAPFILES_SHIFT);
++		flags = PM_SWAP;
++		if (is_migration_entry(entry))
++			page = migration_entry_to_page(entry);
++	} else {
+ 		*pme = make_pme(PM_NOT_PRESENT);
++		return;
++	}
++
++	if (page && !PageAnon(page))
++		flags |= PM_FILE;
++
++	*pme = make_pme(PM_PFRAME(frame) | PM_PSHIFT(PAGE_SHIFT) | flags);
  }
  
  #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -761,6 +763,8 @@ static void thp_pmd_to_pagemap_entry(pag
- 	if (pmd_present(pmd))
- 		*pme = make_pme(PM_PFRAME(pmd_pfn(pmd) + offset)
- 				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT);
-+	else
-+		*pme = make_pme(PM_NOT_PRESENT);
- }
- #else
- static inline void thp_pmd_to_pagemap_entry(pagemap_entry_t *pme,
-@@ -801,8 +805,10 @@ static int pagemap_pte_range(pmd_t *pmd,
- 
- 		/* check to see if we've left 'vma' behind
- 		 * and need a new, higher one */
--		if (vma && (addr >= vma->vm_end))
-+		if (vma && (addr >= vma->vm_end)) {
- 			vma = find_vma(walk->mm, addr);
-+			pme = make_pme(PM_NOT_PRESENT);
-+		}
- 
- 		/* check that 'vma' actually covers this address,
- 		 * and that it isn't a huge page vma */
-@@ -830,6 +836,8 @@ static void huge_pte_to_pagemap_entry(pa
- 	if (pte_present(pte))
- 		*pme = make_pme(PM_PFRAME(pte_pfn(pte) + offset)
- 				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT);
-+	else
-+		*pme = make_pme(PM_NOT_PRESENT);
- }
- 
- /* This function walks within one hugetlb entry in the single call */
-@@ -839,7 +847,7 @@ static int pagemap_hugetlb_range(pte_t *
- {
- 	struct pagemapread *pm = walk->private;
- 	int err = 0;
--	pagemap_entry_t pme = make_pme(PM_NOT_PRESENT);
-+	pagemap_entry_t pme;
- 
- 	for (; addr != end; addr += PAGE_SIZE) {
- 		int offset = (addr & ~hmask) >> PAGE_SHIFT;
+@@ -815,7 +827,7 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 		if (vma && (vma->vm_start <= addr) &&
+ 		    !is_vm_hugetlb_page(vma)) {
+ 			pte = pte_offset_map(pmd, addr);
+-			pte_to_pagemap_entry(&pme, *pte);
++			pte_to_pagemap_entry(&pme, vma, addr, *pte);
+ 			/* unmap before userspace copy */
+ 			pte_unmap(pte);
+ 		}
+@@ -869,11 +881,11 @@ static int pagemap_hugetlb_range(pte_t *
+  * For each page in the address space, this file contains one 64-bit entry
+  * consisting of the following:
+  *
+- * Bits 0-55  page frame number (PFN) if present
++ * Bits 0-54  page frame number (PFN) if present
+  * Bits 0-4   swap type if swapped
+- * Bits 5-55  swap offset if swapped
++ * Bits 5-54  swap offset if swapped
+  * Bits 55-60 page shift (page size = 1<<page shift)
+- * Bit  61    reserved for future use
++ * Bit  61    page is file-page or shared-anon
+  * Bit  62    page swapped
+  * Bit  63    page present
+  *
 _
-Subject: Subject: proc/pid/pagemap: correctly report non-present ptes and holes between vmas
+Subject: From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
