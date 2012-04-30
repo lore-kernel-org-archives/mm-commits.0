@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch added to -mm tree
-Date: Mon, 30 Apr 2012 16:27:17 -0700
-Message-ID: <20120430232718.503A9A04B2@akpm.mtv.corp.google.com>
+Subject: + x86-print-physical-addresses-consistently-with-other-parts-of-kernel.patch added to -mm tree
+Date: Mon, 30 Apr 2012 16:27:21 -0700
+Message-ID: <20120430232721.5856CA04B2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:36356 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757370Ab2D3X1U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:27:20 -0400
-Received: by wibhj13 with SMTP id hj13so186596wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:27:19 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:51326 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757370Ab2D3X1W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:27:22 -0400
+Received: by qcsp5 with SMTP id p5so404657qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:27:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: bhelgaas@google.com, hpa@zytor.com, konrad.wilk@oracle.com, mingo@elte.hu, t
 
 
 The patch titled
-     Subject: x86: print e820 physical addresses consistently with other parts of kernel
+     Subject: x86: print physical addresses consistently with other parts of kernel
 has been added to the -mm tree.  Its filename is
-     x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch
+     x86-print-physical-addresses-consistently-with-other-parts-of-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: x86: print e820 physical addresses consistently with other parts of kernel
+Subject: x86: print physical addresses consistently with other parts of kernel
 
 Print physical address info in a style consistent with the %pR style used
 elsewhere in the kernel.  For example:
 
-    -BIOS-provided physical RAM map:
-    +e820: BIOS-provided physical RAM map:
-    - BIOS-e820: 0000000000000100 - 000000000009e000 (usable)
-    +BIOS-e820: [mem 0x0000000000000100-0x000000000009dfff] usable
-    -Allocating PCI resources starting at 90000000 (gap: 90000000:6ed1c000)
-    +e820: [mem 0x90000000-0xfed1bfff] available for PCI devices
-    -reserve RAM buffer: 000000000009e000 - 000000000009ffff
-    +e820: reserve RAM buffer [mem 0x0009e000-0x0009ffff]
+    -found SMP MP-table at [ffff8800000fce90] fce90
+    +found SMP MP-table at [mem 0x000fce90-0x000fce9f] mapped at [ffff8800000fce90]
+    -initial memory mapped : 0 - 20000000
+    +initial memory mapped: [mem 0x00000000-0x1fffffff]
+    -Base memory trampoline at [ffff88000009c000] 9c000 size 8192
+    +Base memory trampoline [mem 0x0009c000-0x0009dfff] mapped at [ffff88000009c000]
+    -SRAT: Node 0 PXM 0 0-80000000
+    +SRAT: Node 0 PXM 0 [mem 0x00000000-0x7fffffff]
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
@@ -57,176 +57,376 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c |   53 +++++++++++++++++++--------------------
- 1 file changed, 27 insertions(+), 26 deletions(-)
+ arch/x86/kernel/mpparse.c    |   10 ++++---
+ arch/x86/kernel/setup.c      |   16 ++++++------
+ arch/x86/kernel/trampoline.c |    5 ++-
+ arch/x86/mm/init.c           |   16 +++++++-----
+ arch/x86/mm/numa.c           |   32 ++++++++++++-------------
+ arch/x86/mm/numa_emulation.c |    4 +--
+ arch/x86/mm/pat.c            |   42 ++++++++++++++-------------------
+ arch/x86/mm/srat.c           |    5 ++-
+ 8 files changed, 66 insertions(+), 64 deletions(-)
 
-diff -puN arch/x86/kernel/e820.c~x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel
-+++ a/arch/x86/kernel/e820.c
-@@ -113,7 +113,9 @@ static void __init __e820_add_region(str
- 	int x = e820x->nr_map;
+diff -puN arch/x86/kernel/mpparse.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/kernel/mpparse.c
+--- a/arch/x86/kernel/mpparse.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/kernel/mpparse.c
+@@ -573,8 +573,8 @@ static int __init smp_scan_config(unsign
+ 	struct mpf_intel *mpf;
+ 	unsigned long mem;
  
- 	if (x >= ARRAY_SIZE(e820x->map)) {
--		printk(KERN_ERR "Ooops! Too many entries in the memory map!\n");
-+		printk(KERN_ERR "e820: too many entries; ignoring [mem %#010llx-%#010llx]\n",
-+		       (unsigned long long) start,
-+		       (unsigned long long) (start + size - 1));
- 		return;
- 	}
+-	apic_printk(APIC_VERBOSE, "Scan SMP from %p for %ld bytes.\n",
+-			bp, length);
++	apic_printk(APIC_VERBOSE, "Scan for SMP in [mem %#010lx-%#010lx]\n",
++		    base, base + length - 1);
+ 	BUILD_BUG_ON(sizeof(*mpf) != 16);
  
-@@ -133,20 +135,20 @@ static void __init e820_print_type(u32 t
- 	switch (type) {
- 	case E820_RAM:
- 	case E820_RESERVED_KERN:
--		printk(KERN_CONT "(usable)");
-+		printk(KERN_CONT "usable");
- 		break;
- 	case E820_RESERVED:
- 	case E820_RESERVED_EFI:
--		printk(KERN_CONT "(reserved)");
-+		printk(KERN_CONT "reserved");
- 		break;
- 	case E820_ACPI:
--		printk(KERN_CONT "(ACPI data)");
-+		printk(KERN_CONT "ACPI data");
- 		break;
- 	case E820_NVS:
--		printk(KERN_CONT "(ACPI NVS)");
-+		printk(KERN_CONT "ACPI NVS");
- 		break;
- 	case E820_UNUSABLE:
--		printk(KERN_CONT "(unusable)");
-+		printk(KERN_CONT "unusable");
- 		break;
- 	default:
- 		printk(KERN_CONT "type %u", type);
-@@ -159,10 +161,10 @@ void __init e820_print_map(char *who)
- 	int i;
+ 	while (length > 0) {
+@@ -589,8 +589,10 @@ static int __init smp_scan_config(unsign
+ #endif
+ 			mpf_found = mpf;
  
- 	for (i = 0; i < e820.nr_map; i++) {
--		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
-+		printk(KERN_INFO "%s: [mem %#018Lx-%#018Lx] ", who,
- 		       (unsigned long long) e820.map[i].addr,
- 		       (unsigned long long)
--		       (e820.map[i].addr + e820.map[i].size));
-+		       (e820.map[i].addr + e820.map[i].size - 1));
- 		e820_print_type(e820.map[i].type);
- 		printk(KERN_CONT "\n");
- 	}
-@@ -429,9 +431,8 @@ static u64 __init __e820_update_range(st
- 		size = ULLONG_MAX - start;
+-			printk(KERN_INFO "found SMP MP-table at [%p] %llx\n",
+-			       mpf, (u64)virt_to_phys(mpf));
++			printk(KERN_INFO "found SMP MP-table at [mem %#010llx-%#010llx] mapped at [%p]\n",
++			       (unsigned long long) virt_to_phys(mpf),
++			       (unsigned long long) virt_to_phys(mpf) +
++			       sizeof(*mpf) - 1, mpf);
  
- 	end = start + size;
--	printk(KERN_DEBUG "e820 update range: %016Lx - %016Lx ",
--		       (unsigned long long) start,
--		       (unsigned long long) end);
-+	printk(KERN_DEBUG "e820: update [mem %#010Lx-%#010Lx] ",
-+	       (unsigned long long) start, (unsigned long long) (end - 1));
- 	e820_print_type(old_type);
- 	printk(KERN_CONT " ==> ");
- 	e820_print_type(new_type);
-@@ -510,9 +511,8 @@ u64 __init e820_remove_range(u64 start, 
- 		size = ULLONG_MAX - start;
+ 			mem = virt_to_phys(mpf);
+ 			memblock_reserve(mem, sizeof(*mpf));
+diff -puN arch/x86/kernel/setup.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/kernel/setup.c
+@@ -341,8 +341,8 @@ static void __init relocate_initrd(void)
+ 	memblock_reserve(ramdisk_here, area_size);
+ 	initrd_start = ramdisk_here + PAGE_OFFSET;
+ 	initrd_end   = initrd_start + ramdisk_size;
+-	printk(KERN_INFO "Allocated new RAMDISK: %08llx - %08llx\n",
+-			 ramdisk_here, ramdisk_here + ramdisk_size);
++	printk(KERN_INFO "Allocated new RAMDISK: [mem %#010llx-%#010llx]\n",
++			 ramdisk_here, ramdisk_here + ramdisk_size - 1);
  
- 	end = start + size;
--	printk(KERN_DEBUG "e820 remove range: %016Lx - %016Lx ",
--		       (unsigned long long) start,
--		       (unsigned long long) end);
-+	printk(KERN_DEBUG "e820: remove [mem %#010Lx-%#010Lx] ",
-+	       (unsigned long long) start, (unsigned long long) (end - 1));
- 	if (checktype)
- 		e820_print_type(old_type);
- 	printk(KERN_CONT "\n");
-@@ -568,7 +568,7 @@ void __init update_e820(void)
- 	if (sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &nr_map))
- 		return;
- 	e820.nr_map = nr_map;
--	printk(KERN_INFO "modified physical RAM map:\n");
-+	printk(KERN_INFO "e820: modified physical RAM map:\n");
- 	e820_print_map("modified");
+ 	q = (char *)initrd_start;
+ 
+@@ -373,8 +373,8 @@ static void __init relocate_initrd(void)
+ 	/* high pages is not converted by early_res_to_bootmem */
+ 	ramdisk_image = boot_params.hdr.ramdisk_image;
+ 	ramdisk_size  = boot_params.hdr.ramdisk_size;
+-	printk(KERN_INFO "Move RAMDISK from %016llx - %016llx to"
+-		" %08llx - %08llx\n",
++	printk(KERN_INFO "Move RAMDISK from [mem %#010llx-%#010llx] to"
++		" [mem %#010llx-%#010llx]\n",
+ 		ramdisk_image, ramdisk_image + ramdisk_size - 1,
+ 		ramdisk_here, ramdisk_here + ramdisk_size - 1);
  }
- static void __init update_e820_saved(void)
-@@ -638,8 +638,8 @@ __init void e820_setup_gap(void)
- 	if (!found) {
- 		gapstart = (max_pfn << PAGE_SHIFT) + 1024*1024;
- 		printk(KERN_ERR
--	"PCI: Warning: Cannot find a gap in the 32bit address range\n"
--	"PCI: Unassigned devices with 32bit resource registers may break!\n");
-+	"e820: cannot find a gap in the 32bit address range\n"
-+	"e820: PCI devices with unassigned 32bit BARs may break!\n");
+@@ -400,8 +400,8 @@ static void __init reserve_initrd(void)
+ 		return;
  	}
+ 
+-	printk(KERN_INFO "RAMDISK: %08llx - %08llx\n", ramdisk_image,
+-			ramdisk_end);
++	printk(KERN_INFO "RAMDISK: [mem %#010llx-%#010llx]\n", ramdisk_image,
++			ramdisk_end - 1);
+ 
+ 
+ 	if (ramdisk_end <= end_of_lowmem) {
+@@ -917,8 +917,8 @@ void __init setup_arch(char **cmdline_p)
+ 	setup_bios_corruption_check();
  #endif
  
-@@ -649,8 +649,8 @@ __init void e820_setup_gap(void)
- 	pci_mem_start = gapstart;
+-	printk(KERN_DEBUG "initial memory mapped : 0 - %08lx\n",
+-			max_pfn_mapped<<PAGE_SHIFT);
++	printk(KERN_DEBUG "initial memory mapped: [mem 0x00000000-%#010lx]\n",
++			(max_pfn_mapped<<PAGE_SHIFT) - 1);
  
- 	printk(KERN_INFO
--	       "Allocating PCI resources starting at %lx (gap: %lx:%lx)\n",
--	       pci_mem_start, gapstart, gapsize);
-+	       "e820: [mem %#010lx-%#010lx] available for PCI devices\n",
-+	       gapstart, gapstart + gapsize - 1);
+ 	setup_trampolines();
+ 
+diff -puN arch/x86/kernel/trampoline.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/kernel/trampoline.c
+--- a/arch/x86/kernel/trampoline.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/kernel/trampoline.c
+@@ -20,8 +20,9 @@ void __init setup_trampolines(void)
+ 	x86_trampoline_base = __va(mem);
+ 	memblock_reserve(mem, size);
+ 
+-	printk(KERN_DEBUG "Base memory trampoline at [%p] %llx size %zu\n",
+-	       x86_trampoline_base, (unsigned long long)mem, size);
++	printk(KERN_DEBUG "Base memory trampoline [mem %#010llx-%#010llx] mapped at [%p]\n",
++	       (unsigned long long) mem, (unsigned long long) mem + size - 1,
++	       x86_trampoline_base);
+ 
+ 	memcpy(x86_trampoline_base, x86_trampoline_start, size);
+ }
+diff -puN arch/x86/mm/init.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/mm/init.c
+@@ -84,8 +84,9 @@ static void __init find_early_table_spac
+ 	pgt_buf_end = pgt_buf_start;
+ 	pgt_buf_top = pgt_buf_start + (tables >> PAGE_SHIFT);
+ 
+-	printk(KERN_DEBUG "kernel direct mapping tables up to %lx @ %lx-%lx\n",
+-		end, pgt_buf_start << PAGE_SHIFT, pgt_buf_top << PAGE_SHIFT);
++	printk(KERN_DEBUG "kernel direct mapping tables up to %#lx @ [mem %#010lx-%#010lx]\n",
++		end - 1, pgt_buf_start << PAGE_SHIFT,
++		(pgt_buf_top << PAGE_SHIFT) - 1);
  }
  
- /**
-@@ -668,7 +668,7 @@ void __init parse_e820_ext(struct setup_
- 	extmap = (struct e820entry *)(sdata->data);
- 	__append_e820_map(extmap, entries);
- 	sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &e820.nr_map);
--	printk(KERN_INFO "extended physical RAM map:\n");
-+	printk(KERN_INFO "e820: extended physical RAM map:\n");
- 	e820_print_map("extended");
- }
+ void __init native_pagetable_reserve(u64 start, u64 end)
+@@ -132,7 +133,8 @@ unsigned long __init_refok init_memory_m
+ 	int nr_range, i;
+ 	int use_pse, use_gbpages;
  
-@@ -735,7 +735,7 @@ u64 __init early_reserve_e820(u64 size, 
- 	addr = __memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ACCESSIBLE);
- 	if (addr) {
- 		e820_update_range_saved(addr, size, E820_RAM, E820_RESERVED);
--		printk(KERN_INFO "update e820_saved for early_reserve_e820\n");
-+		printk(KERN_INFO "e820: update e820_saved for early_reserve_e820\n");
- 		update_e820_saved();
+-	printk(KERN_INFO "init_memory_mapping: %016lx-%016lx\n", start, end);
++	printk(KERN_INFO "init_memory_mapping: [mem %#010lx-%#010lx]\n",
++	       start, end - 1);
+ 
+ #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_KMEMCHECK)
+ 	/*
+@@ -251,8 +253,8 @@ unsigned long __init_refok init_memory_m
  	}
  
-@@ -785,7 +785,7 @@ unsigned long __init e820_end_pfn(unsign
- 	if (last_pfn > max_arch_pfn)
- 		last_pfn = max_arch_pfn;
+ 	for (i = 0; i < nr_range; i++)
+-		printk(KERN_DEBUG " %010lx - %010lx page %s\n",
+-				mr[i].start, mr[i].end,
++		printk(KERN_DEBUG " [mem %#010lx-%#010lx] page %s\n",
++				mr[i].start, mr[i].end - 1,
+ 			(mr[i].page_size_mask & (1<<PG_LEVEL_1G))?"1G":(
+ 			 (mr[i].page_size_mask & (1<<PG_LEVEL_2M))?"2M":"4k"));
  
--	printk(KERN_INFO "last_pfn = %#lx max_arch_pfn = %#lx\n",
-+	printk(KERN_INFO "e820: last_pfn = %#lx max_arch_pfn = %#lx\n",
- 			 last_pfn, max_arch_pfn);
- 	return last_pfn;
- }
-@@ -889,7 +889,7 @@ void __init finish_e820_parsing(void)
- 			early_panic("Invalid user supplied memory map");
- 		e820.nr_map = nr;
+@@ -350,8 +352,8 @@ void free_init_pages(char *what, unsigne
+ 	 * create a kernel page fault:
+ 	 */
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+-	printk(KERN_INFO "debug: unmapping init memory %08lx..%08lx\n",
+-		begin, end);
++	printk(KERN_INFO "debug: unmapping init [mem %#010lx-%#010lx]\n",
++		begin, end - 1);
+ 	set_memory_np(begin, (end - begin) >> PAGE_SHIFT);
+ #else
+ 	/*
+diff -puN arch/x86/mm/numa.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/mm/numa.c
+--- a/arch/x86/mm/numa.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/mm/numa.c
+@@ -141,8 +141,8 @@ static int __init numa_add_memblk_to(int
  
--		printk(KERN_INFO "user-defined physical RAM map:\n");
-+		printk(KERN_INFO "e820: user-defined physical RAM map:\n");
- 		e820_print_map("user");
+ 	/* whine about and ignore invalid blks */
+ 	if (start > end || nid < 0 || nid >= MAX_NUMNODES) {
+-		pr_warning("NUMA: Warning: invalid memblk node %d (%Lx-%Lx)\n",
+-			   nid, start, end);
++		pr_warning("NUMA: Warning: invalid memblk node %d [mem %#010Lx-%#010Lx]\n",
++			   nid, start, end - 1);
+ 		return 0;
  	}
- }
-@@ -997,8 +997,9 @@ void __init e820_reserve_resources_late(
- 			end = MAX_RESOURCE_SIZE;
- 		if (start >= end)
- 			continue;
--		printk(KERN_DEBUG "reserve RAM buffer: %016llx - %016llx ",
+ 
+@@ -210,8 +210,8 @@ static void __init setup_node_data(int n
+ 
+ 	start = roundup(start, ZONE_ALIGN);
+ 
+-	printk(KERN_INFO "Initmem setup node %d %016Lx-%016Lx\n",
+-	       nid, start, end);
++	printk(KERN_INFO "Initmem setup node %d [mem %#010Lx-%#010Lx]\n",
++	       nid, start, end - 1);
+ 
+ 	/*
+ 	 * Allocate node data.  Try remap allocator first, node-local
+@@ -232,7 +232,7 @@ static void __init setup_node_data(int n
+ 	}
+ 
+ 	/* report and initialize */
+-	printk(KERN_INFO "  NODE_DATA [%016Lx - %016Lx]%s\n",
++	printk(KERN_INFO "  NODE_DATA [mem %#010Lx-%#010Lx]%s\n",
+ 	       nd_pa, nd_pa + nd_size - 1, remapped ? " (remapped)" : "");
+ 	tnid = early_pfn_to_nid(nd_pa >> PAGE_SHIFT);
+ 	if (!remapped && tnid != nid)
+@@ -291,14 +291,14 @@ int __init numa_cleanup_meminfo(struct n
+ 			 */
+ 			if (bi->end > bj->start && bi->start < bj->end) {
+ 				if (bi->nid != bj->nid) {
+-					pr_err("NUMA: node %d (%Lx-%Lx) overlaps with node %d (%Lx-%Lx)\n",
+-					       bi->nid, bi->start, bi->end,
+-					       bj->nid, bj->start, bj->end);
++					pr_err("NUMA: node %d [mem %#010Lx-%#010Lx] overlaps with node %d [mem %#010Lx-%#010Lx]\n",
++					       bi->nid, bi->start, bi->end - 1,
++					       bj->nid, bj->start, bj->end - 1);
+ 					return -EINVAL;
+ 				}
+-				pr_warning("NUMA: Warning: node %d (%Lx-%Lx) overlaps with itself (%Lx-%Lx)\n",
+-					   bi->nid, bi->start, bi->end,
+-					   bj->start, bj->end);
++				pr_warning("NUMA: Warning: node %d [mem %#010Lx-%#010Lx] overlaps with itself [mem %#010Lx-%#010Lx]\n",
++					   bi->nid, bi->start, bi->end - 1,
++					   bj->start, bj->end - 1);
+ 			}
+ 
+ 			/*
+@@ -320,9 +320,9 @@ int __init numa_cleanup_meminfo(struct n
+ 			}
+ 			if (k < mi->nr_blks)
+ 				continue;
+-			printk(KERN_INFO "NUMA: Node %d [%Lx,%Lx) + [%Lx,%Lx) -> [%Lx,%Lx)\n",
+-			       bi->nid, bi->start, bi->end, bj->start, bj->end,
 -			       start, end);
-+		printk(KERN_DEBUG
-+		       "e820: reserve RAM buffer [mem %#010llx-%#010llx]\n",
-+		       start, end);
- 		reserve_region_with_split(&iomem_resource, start, end,
- 					  "RAM buffer");
- 	}
-@@ -1048,7 +1049,7 @@ void __init setup_memory_map(void)
++			printk(KERN_INFO "NUMA: Node %d [mem %#010Lx-%#010Lx] + [mem %#010Lx-%#010Lx] -> [mem %#010Lx-%#010Lx]\n",
++			       bi->nid, bi->start, bi->end - 1, bj->start,
++			       bj->end - 1, start, end - 1);
+ 			bi->start = start;
+ 			bi->end = end;
+ 			numa_remove_memblk_from(j--, mi);
+@@ -616,8 +616,8 @@ static int __init dummy_numa_init(void)
+ {
+ 	printk(KERN_INFO "%s\n",
+ 	       numa_off ? "NUMA turned off" : "No NUMA configuration found");
+-	printk(KERN_INFO "Faking a node at %016Lx-%016Lx\n",
+-	       0LLU, PFN_PHYS(max_pfn));
++	printk(KERN_INFO "Faking a node at [mem %#018Lx-%#018Lx]\n",
++	       0LLU, PFN_PHYS(max_pfn) - 1);
  
- 	who = x86_init.resources.memory_setup();
- 	memcpy(&e820_saved, &e820, sizeof(struct e820map));
--	printk(KERN_INFO "BIOS-provided physical RAM map:\n");
-+	printk(KERN_INFO "e820: BIOS-provided physical RAM map:\n");
- 	e820_print_map(who);
+ 	node_set(0, numa_nodes_parsed);
+ 	numa_add_memblk(0, 0, PFN_PHYS(max_pfn));
+diff -puN arch/x86/mm/numa_emulation.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/mm/numa_emulation.c
+--- a/arch/x86/mm/numa_emulation.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/mm/numa_emulation.c
+@@ -68,8 +68,8 @@ static int __init emu_setup_memblk(struc
+ 		numa_remove_memblk_from(phys_blk, pi);
+ 	}
+ 
+-	printk(KERN_INFO "Faking node %d at %016Lx-%016Lx (%LuMB)\n", nid,
+-	       eb->start, eb->end, (eb->end - eb->start) >> 20);
++	printk(KERN_INFO "Faking node %d at [mem %#018Lx-%#018Lx] (%LuMB)\n",
++	       nid, eb->start, eb->end - 1, (eb->end - eb->start) >> 20);
+ 	return 0;
  }
  
+diff -puN arch/x86/mm/pat.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/mm/pat.c
+--- a/arch/x86/mm/pat.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/mm/pat.c
+@@ -209,9 +209,8 @@ static int reserve_ram_pages_type(u64 st
+ 		page = pfn_to_page(pfn);
+ 		type = get_page_memtype(page);
+ 		if (type != -1) {
+-			printk(KERN_INFO "reserve_ram_pages_type failed "
+-				"0x%Lx-0x%Lx, track 0x%lx, req 0x%lx\n",
+-				start, end, type, req_type);
++			printk(KERN_INFO "reserve_ram_pages_type failed [mem %#010Lx-%#010Lx], track 0x%lx, req 0x%lx\n",
++				start, end - 1, type, req_type);
+ 			if (new_type)
+ 				*new_type = type;
+ 
+@@ -314,9 +313,9 @@ int reserve_memtype(u64 start, u64 end, 
+ 
+ 	err = rbt_memtype_check_insert(new, new_type);
+ 	if (err) {
+-		printk(KERN_INFO "reserve_memtype failed 0x%Lx-0x%Lx, "
+-		       "track %s, req %s\n",
+-		       start, end, cattr_name(new->type), cattr_name(req_type));
++		printk(KERN_INFO "reserve_memtype failed [mem %#010Lx-%#010Lx], track %s, req %s\n",
++		       start, end - 1,
++		       cattr_name(new->type), cattr_name(req_type));
+ 		kfree(new);
+ 		spin_unlock(&memtype_lock);
+ 
+@@ -325,8 +324,8 @@ int reserve_memtype(u64 start, u64 end, 
+ 
+ 	spin_unlock(&memtype_lock);
+ 
+-	dprintk("reserve_memtype added 0x%Lx-0x%Lx, track %s, req %s, ret %s\n",
+-		start, end, cattr_name(new->type), cattr_name(req_type),
++	dprintk("reserve_memtype added [mem %#010Lx-%#010Lx], track %s, req %s, ret %s\n",
++		start, end - 1, cattr_name(new->type), cattr_name(req_type),
+ 		new_type ? cattr_name(*new_type) : "-");
+ 
+ 	return err;
+@@ -360,14 +359,14 @@ int free_memtype(u64 start, u64 end)
+ 	spin_unlock(&memtype_lock);
+ 
+ 	if (!entry) {
+-		printk(KERN_INFO "%s:%d freeing invalid memtype %Lx-%Lx\n",
+-			current->comm, current->pid, start, end);
++		printk(KERN_INFO "%s:%d freeing invalid memtype [mem %#010Lx-%#010Lx]\n",
++		       current->comm, current->pid, start, end - 1);
+ 		return -EINVAL;
+ 	}
+ 
+ 	kfree(entry);
+ 
+-	dprintk("free_memtype request 0x%Lx-0x%Lx\n", start, end);
++	dprintk("free_memtype request [mem %#010Lx-%#010Lx]\n", start, end - 1);
+ 
+ 	return 0;
+ }
+@@ -491,9 +490,8 @@ static inline int range_is_allowed(unsig
+ 
+ 	while (cursor < to) {
+ 		if (!devmem_is_allowed(pfn)) {
+-			printk(KERN_INFO
+-		"Program %s tried to access /dev/mem between %Lx->%Lx.\n",
+-				current->comm, from, to);
++			printk(KERN_INFO "Program %s tried to access /dev/mem between [mem %#010Lx-%#010Lx]\n",
++				current->comm, from, to - 1);
+ 			return 0;
+ 		}
+ 		cursor += PAGE_SIZE;
+@@ -554,12 +552,11 @@ int kernel_map_sync_memtype(u64 base, un
+ 				size;
+ 
+ 	if (ioremap_change_attr((unsigned long)__va(base), id_sz, flags) < 0) {
+-		printk(KERN_INFO
+-			"%s:%d ioremap_change_attr failed %s "
+-			"for %Lx-%Lx\n",
++		printk(KERN_INFO "%s:%d ioremap_change_attr failed %s "
++			"for [mem %#010Lx-%#010Lx]\n",
+ 			current->comm, current->pid,
+ 			cattr_name(flags),
+-			base, (unsigned long long)(base + size));
++			base, (unsigned long long)(base + size-1));
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+@@ -591,12 +588,11 @@ static int reserve_pfn_range(u64 paddr, 
+ 
+ 		flags = lookup_memtype(paddr);
+ 		if (want_flags != flags) {
+-			printk(KERN_WARNING
+-			"%s:%d map pfn RAM range req %s for %Lx-%Lx, got %s\n",
++			printk(KERN_WARNING "%s:%d map pfn RAM range req %s for [mem %#010Lx-%#010Lx], got %s\n",
+ 				current->comm, current->pid,
+ 				cattr_name(want_flags),
+ 				(unsigned long long)paddr,
+-				(unsigned long long)(paddr + size),
++				(unsigned long long)(paddr + size - 1),
+ 				cattr_name(flags));
+ 			*vma_prot = __pgprot((pgprot_val(*vma_prot) &
+ 					      (~_PAGE_CACHE_MASK)) |
+@@ -614,11 +610,11 @@ static int reserve_pfn_range(u64 paddr, 
+ 		    !is_new_memtype_allowed(paddr, size, want_flags, flags)) {
+ 			free_memtype(paddr, paddr + size);
+ 			printk(KERN_ERR "%s:%d map pfn expected mapping type %s"
+-				" for %Lx-%Lx, got %s\n",
++				" for [mem %#010Lx-%#010Lx], got %s\n",
+ 				current->comm, current->pid,
+ 				cattr_name(want_flags),
+ 				(unsigned long long)paddr,
+-				(unsigned long long)(paddr + size),
++				(unsigned long long)(paddr + size - 1),
+ 				cattr_name(flags));
+ 			return -EINVAL;
+ 		}
+diff -puN arch/x86/mm/srat.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/mm/srat.c
+--- a/arch/x86/mm/srat.c~x86-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/mm/srat.c
+@@ -176,8 +176,9 @@ acpi_numa_memory_affinity_init(struct ac
+ 		return;
+ 	}
+ 
+-	printk(KERN_INFO "SRAT: Node %u PXM %u %Lx-%Lx\n", node, pxm,
+-	       start, end);
++	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
++	       node, pxm,
++	       (unsigned long long) start, (unsigned long long) end - 1);
+ }
+ 
+ void __init acpi_numa_arch_fixup(void) {}
 _
-Subject: Subject: x86: print e820 physical addresses consistently with other parts of kernel
+Subject: Subject: x86: print physical addresses consistently with other parts of kernel
 
 Patches currently in -mm which might be from bhelgaas@google.com are
 
