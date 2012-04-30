@@ -1,15 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + genirq-reimplement-exit_irq_thread-hook-via-task_work_add.patch added to -mm tree
-Date: Mon, 30 Apr 2012 16:50:54 -0700
-Message-ID: <20120430235054.378E2A04C2@akpm.mtv.corp.google.com>
+Subject: + hexagon-do_notify_resume-needs-tracehook_notify_resume.patch added to -mm tree
+Date: Mon, 30 Apr 2012 16:50:56 -0700
+Message-ID: <20120430235057.125B8A04C2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:56523 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757339Ab2D3Xu5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:50:57 -0400
-Received: by wibhj13 with SMTP id hj13so187199wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:50:55 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:41978 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757374Ab2D3Xu7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 30 Apr 2012 19:50:59 -0400
+Received: by laai8 with SMTP id i8so171580laa.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:50:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +18,9 @@ Cc: oleg@redhat.com, agordeev@redhat.com, chris@zankel.net, dhowells@redhat.com,
 
 
 The patch titled
-     Subject: genirq: reimplement exit_irq_thread() hook via task_work_add()
+     Subject: hexagon: do_notify_resume() needs tracehook_notify_resume()
 has been added to the -mm tree.  Its filename is
-     genirq-reimplement-exit_irq_thread-hook-via-task_work_add.patch
+     hexagon-do_notify_resume-needs-tracehook_notify_resume.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +35,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: genirq: reimplement exit_irq_thread() hook via task_work_add()
+Subject: hexagon: do_notify_resume() needs tracehook_notify_resume()
 
-exit_irq_thread() and task->irq_thread are needed to handle the unexpected
-(and unlikely) exit of irq-thread.
-
-We can use task_work instead and make this all private to
-kernel/irq/manage.c, cleanup plus micro-optimization.
-
-1. rename exit_irq_thread() to irq_thread_dtor(), make it
-   static, and move it up before irq_thread().
-
-2. change irq_thread() to do task_work_add(irq_thread_dtor)
-   at the start and task_work_cancel() before return.
-
-   tracehook_notify_resume() can never play with kthreads,
-   only do_exit()->exit_task_work() can call the callback
-   and this is what we want.
-
-3. remove task_struct->irq_thread and the special hook
-   in do_exit().
+arch/hexagon/kernel/signal.c:do_notify_resume() forgets to call
+tracehook_notify_resume() if TIF_NOTIFY_RESUME is set.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Richard Kuo <rkuo@codeaurora.org>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Alexander Gordeev <agordeev@redhat.com>
 Cc: Chris Zankel <chris@zankel.net>
@@ -72,183 +57,22 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |    4 --
- include/linux/sched.h     |   10 +----
- kernel/exit.c             |    2 -
- kernel/irq/manage.c       |   68 +++++++++++++++++-------------------
- 4 files changed, 35 insertions(+), 49 deletions(-)
+ arch/hexagon/kernel/signal.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/interrupt.h~genirq-reimplement-exit_irq_thread-hook-via-task_work_add include/linux/interrupt.h
---- a/include/linux/interrupt.h~genirq-reimplement-exit_irq_thread-hook-via-task_work_add
-+++ a/include/linux/interrupt.h
-@@ -142,8 +142,6 @@ request_any_context_irq(unsigned int irq
- extern int __must_check
- request_percpu_irq(unsigned int irq, irq_handler_t handler,
- 		   const char *devname, void __percpu *percpu_dev_id);
--
--extern void exit_irq_thread(void);
- #else
+diff -puN arch/hexagon/kernel/signal.c~hexagon-do_notify_resume-needs-tracehook_notify_resume arch/hexagon/kernel/signal.c
+--- a/arch/hexagon/kernel/signal.c~hexagon-do_notify_resume-needs-tracehook_notify_resume
++++ a/arch/hexagon/kernel/signal.c
+@@ -272,6 +272,7 @@ void do_notify_resume(struct pt_regs *re
  
- extern int __must_check
-@@ -177,8 +175,6 @@ request_percpu_irq(unsigned int irq, irq
- {
- 	return request_irq(irq, handler, 0, devname, percpu_dev_id);
- }
--
--static inline void exit_irq_thread(void) { }
- #endif
- 
- extern void free_irq(unsigned int, void *);
-diff -puN include/linux/sched.h~genirq-reimplement-exit_irq_thread-hook-via-task_work_add include/linux/sched.h
---- a/include/linux/sched.h~genirq-reimplement-exit_irq_thread-hook-via-task_work_add
-+++ a/include/linux/sched.h
-@@ -1356,11 +1356,6 @@ struct task_struct {
- 	unsigned sched_reset_on_fork:1;
- 	unsigned sched_contributes_to_load:1;
- 
--#ifdef CONFIG_GENERIC_HARDIRQS
--	/* IRQ handler threads */
--	unsigned irq_thread:1;
--#endif
--
- 	pid_t pid;
- 	pid_t tgid;
- 
-@@ -1368,10 +1363,9 @@ struct task_struct {
- 	/* Canary value for the -fstack-protector gcc feature */
- 	unsigned long stack_canary;
- #endif
--
--	/* 
-+	/*
- 	 * pointers to (original) parent process, youngest child, younger sibling,
--	 * older sibling, respectively.  (p->father can be replaced with 
-+	 * older sibling, respectively.  (p->father can be replaced with
- 	 * p->real_parent->pid)
- 	 */
- 	struct task_struct __rcu *real_parent; /* real parent process */
-diff -puN kernel/exit.c~genirq-reimplement-exit_irq_thread-hook-via-task_work_add kernel/exit.c
---- a/kernel/exit.c~genirq-reimplement-exit_irq_thread-hook-via-task_work_add
-+++ a/kernel/exit.c
-@@ -954,8 +954,6 @@ void do_exit(long code)
- 
- 	exit_task_work(tsk);
- 
--	exit_irq_thread();
--
- 	if (unlikely(in_atomic()))
- 		printk(KERN_INFO "note: %s[%d] exited with preempt_count %d\n",
- 				current->comm, task_pid_nr(current),
-diff -puN kernel/irq/manage.c~genirq-reimplement-exit_irq_thread-hook-via-task_work_add kernel/irq/manage.c
---- a/kernel/irq/manage.c~genirq-reimplement-exit_irq_thread-hook-via-task_work_add
-+++ a/kernel/irq/manage.c
-@@ -14,6 +14,7 @@
- #include <linux/interrupt.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-+#include <linux/task_work.h>
- 
- #include "internals.h"
- 
-@@ -773,11 +774,39 @@ static void wake_threads_waitq(struct ir
- 		wake_up(&desc->wait_for_threads);
- }
- 
-+static void irq_thread_dtor(struct task_work *unused)
-+{
-+	struct task_struct *tsk = current;
-+	struct irq_desc *desc;
-+	struct irqaction *action;
-+
-+	if (WARN_ON_ONCE(!(current->flags & PF_EXITING)))
-+		return;
-+
-+	action = kthread_data(tsk);
-+
-+	pr_err("genirq: exiting task \"%s\" (%d) is an active IRQ thread (irq %d)\n",
-+	       tsk->comm ? tsk->comm : "", tsk->pid, action->irq);
-+
-+
-+	desc = irq_to_desc(action->irq);
-+	/*
-+	 * If IRQTF_RUNTHREAD is set, we need to decrement
-+	 * desc->threads_active and wake possible waiters.
-+	 */
-+	if (test_and_clear_bit(IRQTF_RUNTHREAD, &action->thread_flags))
-+		wake_threads_waitq(desc);
-+
-+	/* Prevent a stale desc->threads_oneshot */
-+	irq_finalize_oneshot(desc, action);
-+}
-+
- /*
-  * Interrupt handler thread
-  */
- static int irq_thread(void *data)
- {
-+	struct task_work on_exit_work;
- 	static const struct sched_param param = {
- 		.sched_priority = MAX_USER_RT_PRIO/2,
- 	};
-@@ -793,7 +822,9 @@ static int irq_thread(void *data)
- 		handler_fn = irq_thread_fn;
- 
- 	sched_setscheduler(current, SCHED_FIFO, &param);
--	current->irq_thread = 1;
-+
-+	init_task_work(&on_exit_work, irq_thread_dtor, NULL);
-+	task_work_add(current, &on_exit_work, false);
- 
- 	while (!irq_wait_for_interrupt(action)) {
- 		irqreturn_t action_ret;
-@@ -815,44 +846,11 @@ static int irq_thread(void *data)
- 	 * cannot touch the oneshot mask at this point anymore as
- 	 * __setup_irq() might have given out currents thread_mask
- 	 * again.
--	 *
--	 * Clear irq_thread. Otherwise exit_irq_thread() would make
--	 * fuzz about an active irq thread going into nirvana.
- 	 */
--	current->irq_thread = 0;
-+	task_work_cancel(current, irq_thread_dtor);
- 	return 0;
- }
- 
--/*
-- * Called from do_exit()
-- */
--void exit_irq_thread(void)
--{
--	struct task_struct *tsk = current;
--	struct irq_desc *desc;
--	struct irqaction *action;
--
--	if (!tsk->irq_thread)
--		return;
--
--	action = kthread_data(tsk);
--
--	pr_err("genirq: exiting task \"%s\" (%d) is an active IRQ thread (irq %d)\n",
--	       tsk->comm ? tsk->comm : "", tsk->pid, action->irq);
--
--	desc = irq_to_desc(action->irq);
--
--	/*
--	 * If IRQTF_RUNTHREAD is set, we need to decrement
--	 * desc->threads_active and wake possible waiters.
--	 */
--	if (test_and_clear_bit(IRQTF_RUNTHREAD, &action->thread_flags))
--		wake_threads_waitq(desc);
--
--	/* Prevent a stale desc->threads_oneshot */
--	irq_finalize_oneshot(desc, action);
--}
--
- static void irq_setup_forced_threading(struct irqaction *new)
- {
- 	if (!force_irqthreads)
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
++		tracehook_notify_resume(regs);
+ 		if (current->replacement_session_keyring)
+ 			key_replace_session_keyring();
+ 	}
 _
-Subject: Subject: genirq: reimplement exit_irq_thread() hook via task_work_add()
+Subject: Subject: hexagon: do_notify_resume() needs tracehook_notify_resume()
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
