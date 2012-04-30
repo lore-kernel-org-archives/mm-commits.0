@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + keys-kill-task_struct-replacement_session_keyring.patch added to -mm tree
-Date: Mon, 30 Apr 2012 16:51:07 -0700
-Message-ID: <20120430235107.71E06A04C2@akpm.mtv.corp.google.com>
+Subject: + keys-kill-the-dummy-key_replace_session_keyring.patch added to -mm tree
+Date: Mon, 30 Apr 2012 16:51:04 -0700
+Message-ID: <20120430235104.C13FCA04C2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:55038 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757456Ab2D3XvI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:51:08 -0400
-Received: by ghbz15 with SMTP id z15so403871ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:51:07 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:58012 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757070Ab2D3XvG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Apr 2012 19:51:06 -0400
+Received: by qabg24 with SMTP id g24so210305qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Apr 2012 16:51:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, agordeev@redhat.com, chris@zankel.net, dhowells@redhat.com,
 
 
 The patch titled
-     Subject: keys: kill task_struct->replacement_session_keyring
+     Subject: keys: kill the dummy key_replace_session_keyring()
 has been added to the -mm tree.  Its filename is
-     keys-kill-task_struct-replacement_session_keyring.patch
+     keys-kill-the-dummy-key_replace_session_keyring.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: keys: kill task_struct->replacement_session_keyring
+Subject: keys: kill the dummy key_replace_session_keyring()
 
-Kill the no longer used task_struct->replacement_session_keyring, update
-copy_creds() and exit_creds().
+After the previouse change key_replace_session_keyring() becomes a nop. 
+Remove the dummy definition in key.h and update the callers in
+arch/*/kernel/signal.c.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: David Howells <dhowells@redhat.com>
@@ -56,50 +57,322 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 --
- kernel/cred.c         |    9 ---------
- 2 files changed, 11 deletions(-)
+ arch/alpha/kernel/signal.c     |    2 --
+ arch/arm/kernel/signal.c       |    2 --
+ arch/avr32/kernel/signal.c     |    2 --
+ arch/blackfin/kernel/signal.c  |    2 --
+ arch/c6x/kernel/signal.c       |    2 --
+ arch/cris/kernel/ptrace.c      |    2 --
+ arch/frv/kernel/signal.c       |    2 --
+ arch/h8300/kernel/signal.c     |    2 --
+ arch/hexagon/kernel/signal.c   |    2 --
+ arch/ia64/kernel/process.c     |    2 --
+ arch/m32r/kernel/signal.c      |    2 --
+ arch/mips/kernel/signal.c      |    2 --
+ arch/mn10300/kernel/signal.c   |    2 --
+ arch/openrisc/kernel/signal.c  |    2 --
+ arch/parisc/kernel/signal.c    |    2 --
+ arch/powerpc/kernel/signal.c   |    2 --
+ arch/s390/kernel/signal.c      |    2 --
+ arch/sh/kernel/signal_32.c     |    2 --
+ arch/sh/kernel/signal_64.c     |    2 --
+ arch/sparc/kernel/signal_32.c  |    2 --
+ arch/sparc/kernel/signal_64.c  |    2 --
+ arch/tile/kernel/process.c     |    2 --
+ arch/unicore32/kernel/signal.c |    2 --
+ arch/x86/kernel/signal.c       |    2 --
+ include/linux/key.h            |    2 --
+ 25 files changed, 50 deletions(-)
 
-diff -puN include/linux/sched.h~keys-kill-task_struct-replacement_session_keyring include/linux/sched.h
---- a/include/linux/sched.h~keys-kill-task_struct-replacement_session_keyring
-+++ a/include/linux/sched.h
-@@ -1412,8 +1412,6 @@ struct task_struct {
- 					 * credentials (COW) */
- 	const struct cred __rcu *cred;	/* effective (overridable) subjective task
- 					 * credentials (COW) */
--	struct cred *replacement_session_keyring; /* for KEYCTL_SESSION_TO_PARENT */
--
- 	char comm[TASK_COMM_LEN]; /* executable name excluding path
- 				     - access with [gs]et_task_comm (which lock
- 				       it with task_lock())
-diff -puN kernel/cred.c~keys-kill-task_struct-replacement_session_keyring kernel/cred.c
---- a/kernel/cred.c~keys-kill-task_struct-replacement_session_keyring
-+++ a/kernel/cred.c
-@@ -198,13 +198,6 @@ void exit_creds(struct task_struct *tsk)
- 	validate_creds(cred);
- 	alter_cred_subscribers(cred, -1);
- 	put_cred(cred);
--
--	cred = (struct cred *) tsk->replacement_session_keyring;
--	if (cred) {
--		tsk->replacement_session_keyring = NULL;
--		validate_creds(cred);
--		put_cred(cred);
--	}
+diff -puN arch/alpha/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/alpha/kernel/signal.c
+--- a/arch/alpha/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/alpha/kernel/signal.c
+@@ -616,7 +616,5 @@ do_notify_resume(struct pt_regs *regs, s
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/arm/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/arm/kernel/signal.c
+--- a/arch/arm/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/arm/kernel/signal.c
+@@ -737,7 +737,5 @@ do_notify_resume(struct pt_regs *regs, u
+ 	if (thread_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/avr32/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/avr32/kernel/signal.c
+--- a/arch/avr32/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/avr32/kernel/signal.c
+@@ -317,7 +317,5 @@ asmlinkage void do_notify_resume(struct 
+ 	if (ti->flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/blackfin/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/blackfin/kernel/signal.c
+--- a/arch/blackfin/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/blackfin/kernel/signal.c
+@@ -338,8 +338,6 @@ asmlinkage void do_notify_resume(struct 
+ 	if (test_thread_flag(TIF_NOTIFY_RESUME)) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
  }
  
- /**
-@@ -386,8 +379,6 @@ int copy_creds(struct task_struct *p, un
- 	struct cred *new;
- 	int ret;
+diff -puN arch/c6x/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/c6x/kernel/signal.c
+--- a/arch/c6x/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/c6x/kernel/signal.c
+@@ -361,7 +361,5 @@ asmlinkage void do_notify_resume(struct 
+ 	if (thread_info_flags & (1 << TIF_NOTIFY_RESUME)) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/cris/kernel/ptrace.c~keys-kill-the-dummy-key_replace_session_keyring arch/cris/kernel/ptrace.c
+--- a/arch/cris/kernel/ptrace.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/cris/kernel/ptrace.c
+@@ -40,7 +40,5 @@ void do_notify_resume(int canrestart, st
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/frv/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/frv/kernel/signal.c
+--- a/arch/frv/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/frv/kernel/signal.c
+@@ -571,8 +571,6 @@ asmlinkage void do_notify_resume(__u32 t
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(__frame);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
  
--	p->replacement_session_keyring = NULL;
+ } /* end do_notify_resume() */
+diff -puN arch/h8300/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/h8300/kernel/signal.c
+--- a/arch/h8300/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/h8300/kernel/signal.c
+@@ -542,7 +542,5 @@ asmlinkage void do_notify_resume(struct 
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/hexagon/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/hexagon/kernel/signal.c
+--- a/arch/hexagon/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/hexagon/kernel/signal.c
+@@ -273,8 +273,6 @@ void do_notify_resume(struct pt_regs *re
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+ 
+diff -puN arch/ia64/kernel/process.c~keys-kill-the-dummy-key_replace_session_keyring arch/ia64/kernel/process.c
+--- a/arch/ia64/kernel/process.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/ia64/kernel/process.c
+@@ -199,8 +199,6 @@ do_notify_resume_user(sigset_t *unused, 
+ 	if (test_thread_flag(TIF_NOTIFY_RESUME)) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(&scr->pt);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ 
+ 	/* copy user rbs to kernel rbs */
+diff -puN arch/m32r/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/m32r/kernel/signal.c
+--- a/arch/m32r/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/m32r/kernel/signal.c
+@@ -383,8 +383,6 @@ void do_notify_resume(struct pt_regs *re
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ 
+ 	clear_thread_flag(TIF_IRET);
+diff -puN arch/mips/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/mips/kernel/signal.c
+--- a/arch/mips/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/mips/kernel/signal.c
+@@ -652,8 +652,6 @@ asmlinkage void do_notify_resume(struct 
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+ 
+diff -puN arch/mn10300/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/mn10300/kernel/signal.c
+--- a/arch/mn10300/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/mn10300/kernel/signal.c
+@@ -563,7 +563,5 @@ asmlinkage void do_notify_resume(struct 
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(current_frame());
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/openrisc/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/openrisc/kernel/signal.c
+--- a/arch/openrisc/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/openrisc/kernel/signal.c
+@@ -376,7 +376,5 @@ asmlinkage void do_notify_resume(struct 
+ 	if (current_thread_info()->flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/parisc/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/parisc/kernel/signal.c
+--- a/arch/parisc/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/parisc/kernel/signal.c
+@@ -639,7 +639,5 @@ void do_notify_resume(struct pt_regs *re
+ 	if (test_thread_flag(TIF_NOTIFY_RESUME)) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/powerpc/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/powerpc/kernel/signal.c
+--- a/arch/powerpc/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/powerpc/kernel/signal.c
+@@ -193,8 +193,6 @@ void do_notify_resume(struct pt_regs *re
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+ 
+diff -puN arch/s390/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/s390/kernel/signal.c
+--- a/arch/s390/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/s390/kernel/signal.c
+@@ -517,6 +517,4 @@ void do_notify_resume(struct pt_regs *re
+ {
+ 	clear_thread_flag(TIF_NOTIFY_RESUME);
+ 	tracehook_notify_resume(regs);
+-	if (current->replacement_session_keyring)
+-		key_replace_session_keyring();
+ }
+diff -puN arch/sh/kernel/signal_32.c~keys-kill-the-dummy-key_replace_session_keyring arch/sh/kernel/signal_32.c
+--- a/arch/sh/kernel/signal_32.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/sh/kernel/signal_32.c
+@@ -633,7 +633,5 @@ asmlinkage void do_notify_resume(struct 
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/sh/kernel/signal_64.c~keys-kill-the-dummy-key_replace_session_keyring arch/sh/kernel/signal_64.c
+--- a/arch/sh/kernel/signal_64.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/sh/kernel/signal_64.c
+@@ -737,7 +737,5 @@ asmlinkage void do_notify_resume(struct 
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+diff -puN arch/sparc/kernel/signal_32.c~keys-kill-the-dummy-key_replace_session_keyring arch/sparc/kernel/signal_32.c
+--- a/arch/sparc/kernel/signal_32.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/sparc/kernel/signal_32.c
+@@ -603,8 +603,6 @@ void do_notify_resume(struct pt_regs *re
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+ 
+diff -puN arch/sparc/kernel/signal_64.c~keys-kill-the-dummy-key_replace_session_keyring arch/sparc/kernel/signal_64.c
+--- a/arch/sparc/kernel/signal_64.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/sparc/kernel/signal_64.c
+@@ -618,8 +618,6 @@ void do_notify_resume(struct pt_regs *re
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+ 
+diff -puN arch/tile/kernel/process.c~keys-kill-the-dummy-key_replace_session_keyring arch/tile/kernel/process.c
+--- a/arch/tile/kernel/process.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/tile/kernel/process.c
+@@ -580,8 +580,6 @@ int do_work_pending(struct pt_regs *regs
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 		return 1;
+ 	}
+ 	if (thread_info_flags & _TIF_SINGLESTEP) {
+diff -puN arch/unicore32/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/unicore32/kernel/signal.c
+--- a/arch/unicore32/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/unicore32/kernel/signal.c
+@@ -467,8 +467,6 @@ asmlinkage void do_notify_resume(struct 
+ 	if (thread_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ }
+ 
+diff -puN arch/x86/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring arch/x86/kernel/signal.c
+--- a/arch/x86/kernel/signal.c~keys-kill-the-dummy-key_replace_session_keyring
++++ a/arch/x86/kernel/signal.c
+@@ -837,8 +837,6 @@ do_notify_resume(struct pt_regs *regs, v
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
+-		if (current->replacement_session_keyring)
+-			key_replace_session_keyring();
+ 	}
+ 	if (thread_info_flags & _TIF_USER_RETURN_NOTIFY)
+ 		fire_user_return_notifiers();
+diff -puN include/linux/key.h~keys-kill-the-dummy-key_replace_session_keyring include/linux/key.h
+--- a/include/linux/key.h~keys-kill-the-dummy-key_replace_session_keyring
++++ a/include/linux/key.h
+@@ -33,8 +33,6 @@ typedef uint32_t key_perm_t;
+ 
+ struct key;
+ 
+-#define key_replace_session_keyring()	do { } while (0)
 -
- 	if (
  #ifdef CONFIG_KEYS
- 		!p->cred->thread_keyring &&
+ 
+ #undef KEY_DEBUGGING
 _
-Subject: Subject: keys: kill task_struct->replacement_session_keyring
+Subject: Subject: keys: kill the dummy key_replace_session_keyring()
 
 Patches currently in -mm which might be from oleg@redhat.com are
 
