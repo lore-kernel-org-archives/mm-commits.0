@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-correct-__devexit-annotations.patch added to -mm tree
-Date: Tue, 01 May 2012 15:33:32 -0700
-Message-ID: <20120501223332.92E74A0395@akpm.mtv.corp.google.com>
+Subject: + ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch added to -mm tree
+Date: Tue, 01 May 2012 16:11:38 -0700
+Message-ID: <20120501231138.C4776A036E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:53382 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753625Ab2EAWde (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 18:33:34 -0400
-Received: by qabg24 with SMTP id g24so7366qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 15:33:33 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:51665 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756954Ab2EAXLk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 19:11:40 -0400
+Received: by qcsp5 with SMTP id p5so7249qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 16:11:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arnd@arndb.de, mathieu.poirier@linaro.org
+Cc: akpm@linux-foundation.org, dledford@redhat.com, kosaki.motohiro@jp.fujitsu.com, manfred@colorfullife.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: drivers/leds: correct __devexit annotations
+     Subject: ipc-mqueue-strengthen-checks-on-mqueue-creation-fix
 has been added to the -mm tree.  Its filename is
-     drivers-leds-correct-__devexit-annotations.patch
+     ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/leds: correct __devexit annotations
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-mqueue-strengthen-checks-on-mqueue-creation-fix
 
-__devexit functions are discarded without CONFIG_HOTPLUG, so they need to
-be referenced carefully.  A __devexit function may also not be called from
-a __devinit function.
+s/ENOMEM/EOVERFLOW/
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-netxbig.c |    4 ++--
- drivers/leds/leds-ns2.c     |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ ipc/mqueue.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/leds-netxbig.c~drivers-leds-correct-__devexit-annotations drivers/leds/leds-netxbig.c
---- a/drivers/leds/leds-netxbig.c~drivers-leds-correct-__devexit-annotations
-+++ a/drivers/leds/leds-netxbig.c
-@@ -112,7 +112,7 @@ err_free_addr:
- 	return err;
+diff -puN ipc/mqueue.c~ipc-mqueue-strengthen-checks-on-mqueue-creation-fix ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-mqueue-strengthen-checks-on-mqueue-creation-fix
++++ a/ipc/mqueue.c
+@@ -687,13 +687,13 @@ static int mq_attr_ok(struct ipc_namespa
+ 	}
+ 	/* check for overflow */
+ 	if (attr->mq_msgsize > ULONG_MAX/attr->mq_maxmsg)
+-		return -ENOMEM;
++		return -EOVERFLOW;
+ 	mq_treesize = attr->mq_maxmsg * sizeof(struct msg_msg) +
+ 		min_t(unsigned int, attr->mq_maxmsg, MQ_PRIO_MAX) *
+ 		sizeof(struct posix_msg_tree_node);
+ 	total_size = attr->mq_maxmsg * attr->mq_msgsize;
+ 	if (total_size + mq_treesize < total_size)
+-		return -ENOMEM;
++		return -EOVERFLOW;
+ 	return 0;
  }
  
--static void __devexit gpio_ext_free(struct netxbig_gpio_ext *gpio_ext)
-+static void gpio_ext_free(struct netxbig_gpio_ext *gpio_ext)
- {
- 	int i;
- 
-@@ -294,7 +294,7 @@ static ssize_t netxbig_led_sata_show(str
- 
- static DEVICE_ATTR(sata, 0644, netxbig_led_sata_show, netxbig_led_sata_store);
- 
--static void __devexit delete_netxbig_led(struct netxbig_led_data *led_dat)
-+static void delete_netxbig_led(struct netxbig_led_data *led_dat)
- {
- 	if (led_dat->mode_val[NETXBIG_LED_SATA] != NETXBIG_LED_INVALID_MODE)
- 		device_remove_file(led_dat->cdev.dev, &dev_attr_sata);
-diff -puN drivers/leds/leds-ns2.c~drivers-leds-correct-__devexit-annotations drivers/leds/leds-ns2.c
---- a/drivers/leds/leds-ns2.c~drivers-leds-correct-__devexit-annotations
-+++ a/drivers/leds/leds-ns2.c
-@@ -255,7 +255,7 @@ err_free_cmd:
- 	return ret;
- }
- 
--static void __devexit delete_ns2_led(struct ns2_led_data *led_dat)
-+static void delete_ns2_led(struct ns2_led_data *led_dat)
- {
- 	device_remove_file(led_dat->cdev.dev, &dev_attr_sata);
- 	led_classdev_unregister(&led_dat->cdev);
 _
-Subject: Subject: drivers/leds: correct __devexit annotations
+Subject: Subject: ipc-mqueue-strengthen-checks-on-mqueue-creation-fix
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-drivers-leds-correct-__devexit-annotations.patch
-rtc-spear-add-device-tree-probing-capability.patch
-ramoops-use-pstore-interface.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+memcg-add-mlock-statistic-in-memorystat-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
