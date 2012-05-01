@@ -1,36 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + irqdesc-add-reference-counting.patch added to -mm tree
-Date: Tue, 01 May 2012 14:16:24 -0700
-Message-ID: <20120501211624.E1378A03CD@akpm.mtv.corp.google.com>
+Subject: [withdrawn] irqdesc-add-reference-counting.patch removed from -mm tree
+Date: Tue, 01 May 2012 15:30:31 -0700
+Message-ID: <20120501223032.19756A0395@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:35110 "EHLO
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:50391 "EHLO
 	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752392Ab2EAVQ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 17:16:27 -0400
-Received: by bkty5 with SMTP id y5so39428bkt.1
-        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 14:16:26 -0700 (PDT)
+	with ESMTP id S1751689Ab2EAWae (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 18:30:34 -0400
+Received: by bkty5 with SMTP id y5so517bkt.1
+        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 15:30:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: grant.likely@secretlab.ca, benh@kernel.crashing.org, tglx@linutronix.de
+To: grant.likely@secretlab.ca, benh@kernel.crashing.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: irqdesc: add reference counting
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      irqdesc-add-reference-counting.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was withdrawn
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Grant Likely <grant.likely@secretlab.ca>
