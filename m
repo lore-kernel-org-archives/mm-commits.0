@@ -1,77 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-free-spare-array-to-avoid-memory-leak.patch added to -mm tree
-Date: Tue, 01 May 2012 14:03:22 -0700
-Message-ID: <20120501210322.99A1CA020E@akpm.mtv.corp.google.com>
+Subject: [nacked] ufs-add-scsi-host-lock-push-down-for-ufs.patch removed from -mm tree
+Date: Tue, 01 May 2012 14:04:33 -0700
+Message-ID: <20120501210433.C240EA020E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:40322 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756025Ab2EAVDX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 17:03:23 -0400
-Received: by qabg24 with SMTP id g24so319849qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 14:03:23 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:46419 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751868Ab2EAVEe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 17:04:34 -0400
+Received: by ghbz15 with SMTP id z15so513396ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 14:04:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: handai.szj@taobao.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name
+To: linkinjeon@gmail.com, James.Bottomley@HansenPartnership.com, santoshsy@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: free spare array to avoid memory leak
-has been added to the -mm tree.  Its filename is
-     memcg-free-spare-array-to-avoid-memory-leak.patch
+     Subject: drivers/scsi/ufs/ufshcd.c: add SCSI host lock push-down for ufs
+has been removed from the -mm tree.  Its filename was
+     ufs-add-scsi-host-lock-push-down-for-ufs.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was nacked
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Sha Zhengju <handai.szj@taobao.com>
-Subject: memcg: free spare array to avoid memory leak
+From: Namjae Jeon <linkinjeon@gmail.com>
+Subject: drivers/scsi/ufs/ufshcd.c: add SCSI host lock push-down for ufs
 
-When the last event is unregistered, there is no need to keep the spare
-array anymore.  So free it to avoid memory leak.
+The SCSI host lock push-down change has not yet been made the n ufs host
+driver.  After adding it, I removed an unneeded spinlock in queuecommand()
+also.
 
-Signed-off-by: Sha Zhengju <handai.szj@taobao.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Kirill A. Shutemov <kirill@shutemov.name>
+Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
+Cc: Santosh Y <santoshsy@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/scsi/ufs/ufshcd.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-free-spare-array-to-avoid-memory-leak mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-free-spare-array-to-avoid-memory-leak
-+++ a/mm/memcontrol.c
-@@ -4523,6 +4523,12 @@ static void mem_cgroup_usage_unregister_
- swap_buffers:
- 	/* Swap primary and spare array */
- 	thresholds->spare = thresholds->primary;
-+	/* If all events are unregistered, free the spare array */
-+	if (!new) {
-+		kfree(thresholds->spare);
-+		thresholds->spare = NULL;
-+	}
-+
- 	rcu_assign_pointer(thresholds->primary, new);
+diff -puN drivers/scsi/ufs/ufshcd.c~ufs-add-scsi-host-lock-push-down-for-ufs drivers/scsi/ufs/ufshcd.c
+--- a/drivers/scsi/ufs/ufshcd.c~ufs-add-scsi-host-lock-push-down-for-ufs
++++ a/drivers/scsi/ufs/ufshcd.c
+@@ -658,23 +658,23 @@ static void ufshcd_compose_upiu(struct u
+ }
  
- 	/* To be sure that nobody uses thresholds */
+ /**
+- * ufshcd_queuecommand - main entry point for SCSI requests
++ * ufshcd_queuecommand_lck - main entry point for SCSI requests
+  * @cmd: command from SCSI Midlayer
+  * @done: call back function
+  *
+  * Returns 0 for success, non-zero in case of failure
+  */
+-static int ufshcd_queuecommand(struct Scsi_Host *host, struct scsi_cmnd *cmd)
++static int
++ufshcd_queuecommand_lck(struct scsi_cmnd *scp, void (*done)(struct scsi_cmnd *))
+ {
+ 	struct ufshcd_lrb *lrbp;
+ 	struct ufs_hba *hba;
+-	unsigned long flags;
+ 	int tag;
+ 	int err = 0;
+ 
+-	hba = shost_priv(host);
++	hba = shost_priv(scp->device->host);
+ 
+-	tag = cmd->request->tag;
++	tag = scp->request->tag;
+ 
+ 	if (hba->ufshcd_state != UFSHCD_STATE_OPERATIONAL) {
+ 		err = SCSI_MLQUEUE_HOST_BUSY;
+@@ -683,11 +683,11 @@ static int ufshcd_queuecommand(struct Sc
+ 
+ 	lrbp = &hba->lrb[tag];
+ 
+-	lrbp->cmd = cmd;
++	lrbp->cmd = scp;
+ 	lrbp->sense_bufflen = SCSI_SENSE_BUFFERSIZE;
+-	lrbp->sense_buffer = cmd->sense_buffer;
++	lrbp->sense_buffer = scp->sense_buffer;
+ 	lrbp->task_tag = tag;
+-	lrbp->lun = cmd->device->lun;
++	lrbp->lun = scp->device->lun;
+ 
+ 	lrbp->command_type = UTP_CMD_TYPE_SCSI;
+ 
+@@ -698,13 +698,13 @@ static int ufshcd_queuecommand(struct Sc
+ 		goto out;
+ 
+ 	/* issue command to the controller */
+-	spin_lock_irqsave(hba->host->host_lock, flags);
+ 	ufshcd_send_command(hba, tag);
+-	spin_unlock_irqrestore(hba->host->host_lock, flags);
+ out:
+ 	return err;
+ }
+ 
++static DEF_SCSI_QCMD(ufshcd_queuecommand);
++
+ /**
+  * ufshcd_memory_alloc - allocate memory for host memory space data structures
+  * @hba: per adapter instance
 _
-Subject: Subject: memcg: free spare array to avoid memory leak
 
-Patches currently in -mm which might be from handai.szj@taobao.com are
+Patches currently in -mm which might be from linkinjeon@gmail.com are
 
-memcg-free-spare-array-to-avoid-memory-leak.patch
-memcg-make-threshold-index-in-the-right-position.patch
-memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
-eventfd-change-int-to-__u64-in-eventfd_signal.patch
-eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic.patch
+drivers-scsi-ufs-fix-evaluation-of-task_failed-status.patch
+ufs-fix-incorrect-return-value-about-success-and-failed.patch
 
