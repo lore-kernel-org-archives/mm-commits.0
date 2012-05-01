@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + tools-selftests-add-mq_perf_tests.patch added to -mm tree
-Date: Tue, 01 May 2012 12:36:54 -0700
-Message-ID: <20120501193655.0EF8EA0444@akpm.mtv.corp.google.com>
+Subject: + tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 01 May 2012 12:54:20 -0700
+Message-ID: <20120501195420.CF08CA03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:51204 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758386Ab2EATg6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 15:36:58 -0400
-Received: by laai8 with SMTP id i8so211959laa.1
-        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 12:36:56 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:56138 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753977Ab2EATyW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 15:54:22 -0400
+Received: by yhgm50 with SMTP id m50so511732yhg.1
+        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 12:54:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dledford@redhat.com, fweisbec@gmail.com, manfred@colorfullife.com, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, dledford@redhat.com, fweisbec@gmail.com, manfred@colorfullife.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: tools/selftests: add mq_perf_tests
+     Subject: tools-selftests-add-mq_perf_tests-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     tools-selftests-add-mq_perf_tests.patch
+     tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,802 +33,430 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Doug Ledford <dledford@redhat.com>
-Subject: tools/selftests: add mq_perf_tests
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tools-selftests-add-mq_perf_tests-checkpatch-fixes
 
-Add the mq_perf_tests tool I used when creating my mq performance patch. 
-Also add a local .gitignore to keep the binaries from showing up in git
-status output.
+Cc: Doug Ledford <dledford@redhat.com>
 
-Signed-off-by: Doug Ledford <dledford@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+ERROR: space required after that ',' (ctx:VxV)
+#117: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:73:
++#define min(a,b) ((a) < (b) ? (a) : (b))
+              ^
+
+ERROR: that open brace { should be on the previous line
+#145: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:101:
++const struct poptOption options[] =
++{
+
+WARNING: externs should be avoided in .c files
+#196: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:152:
++void shutdown(int exit_val, char *err_cause, int line_no);
+
+WARNING: externs should be avoided in .c files
+#197: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:153:
++void sig_action_SIGUSR1(int signum, siginfo_t *info, void *context);
+
+WARNING: externs should be avoided in .c files
+#198: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:154:
++void sig_action(int signum, siginfo_t *info, void *context);
+
+WARNING: externs should be avoided in .c files
+#205: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:161:
++void increase_limits(void);
+
+ERROR: do not initialise statics to 0 or NULL
+#217: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:173:
++	static int in_shutdown = 0;
+
+ERROR: spaces required around that '=' (ctx:VxV)
+#225: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:181:
++	for (i=0; i < num_cpus_to_pin; i++)
+ 	      ^
+
+WARNING: quoted string split across lines
+#258: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:214:
++		fprintf(stderr, "Caught signal %d in SIGUSR1 handler, "
++			"exiting\n", signum);
+
+ERROR: do not use assignment in if condition
+#336: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:292:
++	if ((queue = mq_open(queue_path, flags, perms, attr)) == -1)
+
+ERROR: spaces required around that '=' (ctx:VxV)
+#352: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:308:
++	for (i=0; i < num_cpus_to_pin; i++)
+ 	      ^
+
+ERROR: space required before the open parenthesis '('
+#357: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:313:
++	while(1) ;
+
+ERROR: trailing statements should be on next line
+#357: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:313:
++	while(1) ;
+
+ERROR: spaces required around that '=' (ctx:VxV)
+#365: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:321:
++	for (i=0; i < num_cpus_to_pin; i++)
+ 	      ^
+
+ERROR: space required before the open parenthesis '('
+#370: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:326:
++	while(1) {
+
+ERROR: space required before the open parenthesis '('
+#371: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:327:
++		while(mq_send(queue, buff, sizeof(buff), 0) == 0);
+
+ERROR: trailing statements should be on next line
+#371: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:327:
++		while(mq_send(queue, buff, sizeof(buff), 0) == 0);
+
+ERROR: Macros with complex values should be enclosed in parenthesis
+#376: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:332:
++#define drain_queue() \
++	while (mq_receive(queue, buff, MSG_SIZE, &prio_in) == MSG_SIZE)
+
+ERROR: space required before the open parenthesis '('
+#383: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:339:
++	} while(0)
+
+WARNING: Statements terminations use 1 semicolon
+#423: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:379:
++		*prio = 0;;
+
+ERROR: do not use assignment in if condition
+#475: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:431:
++	if ((mq_prio_max = sysconf(_SC_MQ_PRIO_MAX)) == -1)
+
+WARNING: quoted string split across lines
+#490: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:446:
++	printf("\n\tTest #1: Time send/recv message, queue "
++	       "empty\n");
+
+ERROR: trailing statements should be on next line
+#566: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:522:
++	while (try_set(max_msgs, cur_max_msgs += 10));
+
+ERROR: trailing statements should be on next line
+#568: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:524:
++	while (try_set(max_msgsize, cur_max_msgsize += 1024));
+
+ERROR: do not use assignment in if condition
+#593: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:549:
++	if ((cpu_set = CPU_ALLOC(cpus_online)) == NULL) {
+
+WARNING: quoted string split across lines
+#615: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:571:
++					fprintf(stderr, "CPU %d exceeds "
++						"cpus online, ignoring.\n",
+
+WARNING: quoted string split across lines
+#628: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:584:
++					fprintf(stderr, "Any given CPU may "
++						"only be given once.\n");
+
+WARNING: quoted string split across lines
+#660: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:616:
++		fprintf(stderr, "Must pass at least one CPU to continuous "
++			"mode.\n");
+
+WARNING: quoted string split across lines
+#670: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:626:
++		fprintf(stderr, "Not running as root, but almost all tests "
++			"require root in order to modify\nsystem settings.  "
+
+ERROR: spaces required around that '=' (ctx:VxV)
+#721: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:677:
++	for(cpu=1; cpu < num_cpus_to_pin; cpu++)
+ 	       ^
+
+ERROR: space required before the open parenthesis '('
+#721: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:677:
++	for(cpu=1; cpu < num_cpus_to_pin; cpu++)
+
+ERROR: spaces required around that '=' (ctx:VxV)
+#750: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:706:
++	for (i=0; i < num_cpus_to_pin; i++) {
+ 	      ^
+
+ERROR: space required before the open parenthesis '('
+#776: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:732:
++		while(1) sleep(1);
+
+ERROR: trailing statements should be on next line
+#776: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:732:
++		while(1) sleep(1);
+
+ERROR: space required after that ',' (ctx:VxV)
+#777: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:733:
++	shutdown(0,"",0);
+ 	          ^
+
+ERROR: space required after that ',' (ctx:VxV)
+#777: FILE: tools/testing/selftests/mqueue/mq_perf_tests.c:733:
++	shutdown(0,"",0);
+ 	             ^
+
+total: 25 errors, 11 warnings, 747 lines checked
+
+./patches/tools-selftests-add-mq_perf_tests.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Doug Ledford <dledford@redhat.com>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mqueue/.gitignore      |    2 
- tools/testing/selftests/mqueue/Makefile        |    4 
- tools/testing/selftests/mqueue/mq_perf_tests.c |  734 +++++++++++++++
- 3 files changed, 739 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mqueue/mq_perf_tests.c |   55 ++++++++-------
+ 1 file changed, 31 insertions(+), 24 deletions(-)
 
-diff -puN /dev/null tools/testing/selftests/mqueue/.gitignore
---- /dev/null
-+++ a/tools/testing/selftests/mqueue/.gitignore
-@@ -0,0 +1,2 @@
-+mq_open_tests
-+mq_perf_tests
-diff -puN tools/testing/selftests/mqueue/Makefile~tools-selftests-add-mq_perf_tests tools/testing/selftests/mqueue/Makefile
---- a/tools/testing/selftests/mqueue/Makefile~tools-selftests-add-mq_perf_tests
-+++ a/tools/testing/selftests/mqueue/Makefile
-@@ -1,8 +1,10 @@
- all:
- 	gcc -O2 -lrt mq_open_tests.c -o mq_open_tests
-+	gcc -O2 -lrt -lpthread -lpopt -o mq_perf_tests mq_perf_tests.c
- 
- run_tests:
- 	./mq_open_tests /test1
-+	./mq_perf_tests
- 
- clean:
--	rm -f mq_open_tests
-+	rm -f mq_open_tests mq_perf_tests
-diff -puN /dev/null tools/testing/selftests/mqueue/mq_perf_tests.c
---- /dev/null
+diff -puN tools/testing/selftests/mqueue/.gitignore~tools-selftests-add-mq_perf_tests-checkpatch-fixes tools/testing/selftests/mqueue/.gitignore
+diff -puN tools/testing/selftests/mqueue/Makefile~tools-selftests-add-mq_perf_tests-checkpatch-fixes tools/testing/selftests/mqueue/Makefile
+diff -puN tools/testing/selftests/mqueue/mq_perf_tests.c~tools-selftests-add-mq_perf_tests-checkpatch-fixes tools/testing/selftests/mqueue/mq_perf_tests.c
+--- a/tools/testing/selftests/mqueue/mq_perf_tests.c~tools-selftests-add-mq_perf_tests-checkpatch-fixes
 +++ a/tools/testing/selftests/mqueue/mq_perf_tests.c
-@@ -0,0 +1,734 @@
-+/*
-+ * This application is Copyright 2012 Red Hat, Inc.
-+ *	Doug Ledford <dledford@redhat.com>
-+ *
-+ * mq_perf_tests is free software: you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation, version 3.
-+ *
-+ * mq_perf_tests is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * For the full text of the license, see <http://www.gnu.org/licenses/>.
-+ *
-+ * mq_perf_tests.c
-+ *   Tests various types of message queue workloads, concentrating on those
-+ *   situations that invole large message sizes, large message queue depths,
-+ *   or both, and reports back useful metrics about kernel message queue
-+ *   performance.
-+ *
-+ */
-+#define _GNU_SOURCE
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <fcntl.h>
-+#include <string.h>
-+#include <limits.h>
-+#include <errno.h>
-+#include <signal.h>
-+#include <pthread.h>
-+#include <sched.h>
-+#include <sys/types.h>
-+#include <sys/time.h>
-+#include <sys/resource.h>
-+#include <sys/stat.h>
-+#include <mqueue.h>
-+#include <popt.h>
-+
-+static char *usage =
-+"Usage:\n"
-+"  %s [-c #[,#..] -f] path\n"
-+"\n"
-+"	-c #	Skip most tests and go straight to a high queue depth test\n"
-+"		and then run that test continuously (useful for running at\n"
-+"		the same time as some other workload to see how much the\n"
-+"		cache thrashing caused by adding messages to a very deep\n"
-+"		queue impacts the performance of other programs).  The number\n"
-+"		indicates which CPU core we should bind the process to during\n"
-+"		the run.  If you have more than one physical CPU, then you\n"
-+"		will need one copy per physical CPU package, and you should\n"
-+"		specify the CPU cores to pin ourself to via a comma separated\n"
-+"		list of CPU values.\n"
-+"	-f	Only usable with continuous mode.  Pin ourself to the CPUs\n"
-+"		as requested, then instead of looping doing a high mq\n"
-+"		workload, just busy loop.  This will allow us to lock up a\n"
-+"		single CPU just like we normally would, but without actually\n"
-+"		thrashing the CPU cache.  This is to make it easier to get\n"
-+"		comparable numbers from some other workload running on the\n"
-+"		other CPUs.  One set of numbers with # CPUs locked up running\n"
-+"		an mq workload, and another set of numbers with those same\n"
-+"		CPUs locked away from the test workload, but not doing\n"
-+"		anything to trash the cache like the mq workload might.\n"
-+"	path	Path name of the message queue to create\n"
-+"\n"
-+"	Note: this program must be run as root in order to enable all tests\n"
-+"\n";
-+
-+char *MAX_MSGS = "/proc/sys/fs/mqueue/msg_max";
-+char *MAX_MSGSIZE = "/proc/sys/fs/mqueue/msgsize_max";
-+
-+#define min(a,b) ((a) < (b) ? (a) : (b))
-+#define MAX_CPUS 64
-+char *cpu_option_string;
-+int cpus_to_pin[MAX_CPUS];
-+int num_cpus_to_pin;
-+pthread_t cpu_threads[MAX_CPUS];
-+pthread_t main_thread;
-+cpu_set_t *cpu_set;
-+int cpu_set_size;
-+int cpus_online;
-+
-+#define MSG_SIZE 16
-+#define TEST1_LOOPS 10000000
-+#define TEST2_LOOPS 100000
-+int continuous_mode;
-+int continuous_mode_fake;
-+
-+struct rlimit saved_limits, cur_limits;
-+int saved_max_msgs, saved_max_msgsize;
-+int cur_max_msgs, cur_max_msgsize;
-+FILE *max_msgs, *max_msgsize;
-+int cur_nice;
-+char *queue_path = "/mq_perf_tests";
-+mqd_t queue = -1;
-+struct mq_attr result;
-+int mq_prio_max;
-+
-+const struct poptOption options[] =
-+{
-+	{
-+		.longName = "continuous",
-+		.shortName = 'c',
-+		.argInfo = POPT_ARG_STRING,
-+		.arg = &cpu_option_string,
-+		.val = 'c',
-+		.descrip = "Run continuous tests at a high queue depth in "
-+			"order to test the effects of cache thrashing on "
-+			"other tasks on the system.  This test is intended "
-+			"to be run on one core of each physical CPU while "
-+			"some other CPU intensive task is run on all the other "
-+			"cores of that same physical CPU and the other task "
-+			"is timed.  It is assumed that the process of adding "
-+			"messages to the message queue in a tight loop will "
-+			"impact that other task to some degree.  Once the "
-+			"tests are performed in this way, you should then "
-+			"re-run the tests using fake mode in order to check "
-+			"the difference in time required to perform the CPU "
-+			"intensive task",
-+		.argDescrip = "cpu[,cpu]",
-+	},
-+	{
-+		.longName = "fake",
-+		.shortName = 'f',
-+		.argInfo = POPT_ARG_NONE,
-+		.arg = &continuous_mode_fake,
-+		.val = 0,
-+		.descrip = "Tie up the CPUs that we would normally tie up in"
-+			"continuous mode, but don't actually do any mq stuff, "
-+			"just keep the CPU busy so it can't be used to process "
-+			"system level tasks as this would free up resources on "
-+			"the other CPU cores and skew the comparison between "
-+			"the no-mqueue work and mqueue work tests",
-+		.argDescrip = NULL,
-+	},
-+	{
-+		.longName = "path",
-+		.shortName = 'p',
-+		.argInfo = POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT,
-+		.arg = &queue_path,
-+		.val = 'p',
-+		.descrip = "The name of the path to use in the mqueue "
-+			"filesystem for our tests",
-+		.argDescrip = "pathname",
-+	},
-+	POPT_AUTOHELP
-+	POPT_TABLEEND
-+};
-+
-+static inline void __set(FILE *stream, int value, char *err_msg);
-+void shutdown(int exit_val, char *err_cause, int line_no);
-+void sig_action_SIGUSR1(int signum, siginfo_t *info, void *context);
-+void sig_action(int signum, siginfo_t *info, void *context);
-+static inline int get(FILE *stream);
-+static inline void set(FILE *stream, int value);
-+static inline int try_set(FILE *stream, int value);
-+static inline void getr(int type, struct rlimit *rlim);
-+static inline void setr(int type, struct rlimit *rlim);
-+static inline void open_queue(struct mq_attr *attr);
-+void increase_limits(void);
-+
-+static inline void __set(FILE *stream, int value, char *err_msg)
-+{
-+	rewind(stream);
-+	if (fprintf(stream, "%d", value) < 0)
-+		perror(err_msg);
-+}
-+
-+
-+void shutdown(int exit_val, char *err_cause, int line_no)
-+{
-+	static int in_shutdown = 0;
-+	int errno_at_shutdown = errno;
-+	int i;
-+
-+	/* In case we get called by multiple threads or from an sighandler */
-+	if (in_shutdown++)
-+		return;
-+
-+	for (i=0; i < num_cpus_to_pin; i++)
-+		if (cpu_threads[i]) {
-+			pthread_kill(cpu_threads[i], SIGUSR1);
-+			pthread_join(cpu_threads[i], NULL);
-+		}
-+
-+	if (queue != -1)
-+		if (mq_close(queue))
-+			perror("mq_close() during shutdown");
-+	if (queue_path)
-+		/*
-+		 * Be silent if this fails, if we cleaned up already it's
-+		 * expected to fail
-+		 */
-+		mq_unlink(queue_path);
-+	if (saved_max_msgs)
-+		__set(max_msgs, saved_max_msgs,
-+		      "failed to restore saved_max_msgs");
-+	if (saved_max_msgsize)
-+		__set(max_msgsize, saved_max_msgsize,
-+		      "failed to restore saved_max_msgsize");
-+	if (exit_val)
-+		error(exit_val, errno_at_shutdown, "%s at %d",
-+		      err_cause, line_no);
-+	exit(0);
-+}
-+
-+void sig_action_SIGUSR1(int signum, siginfo_t *info, void *context)
-+{
-+	if (pthread_self() != main_thread)
-+		pthread_exit(0);
-+	else {
-+		fprintf(stderr, "Caught signal %d in SIGUSR1 handler, "
-+			"exiting\n", signum);
-+		shutdown(0, "", 0);
-+		fprintf(stderr, "\n\nReturned from shutdown?!?!\n\n");
-+		exit(0);
-+	}
-+}
-+
-+void sig_action(int signum, siginfo_t *info, void *context)
-+{
-+	if (pthread_self() != main_thread)
-+		pthread_kill(main_thread, signum);
-+	else {
-+		fprintf(stderr, "Caught signal %d, exiting\n", signum);
-+		shutdown(0, "", 0);
-+		fprintf(stderr, "\n\nReturned from shutdown?!?!\n\n");
-+		exit(0);
-+	}
-+}
-+
-+static inline int get(FILE *stream)
-+{
-+	int value;
-+	rewind(stream);
-+	if (fscanf(stream, "%d", &value) != 1)
-+		shutdown(4, "Error reading /proc entry", __LINE__);
-+	return value;
-+}
-+
-+static inline void set(FILE *stream, int value)
-+{
-+	int new_value;
-+
-+	rewind(stream);
-+	if (fprintf(stream, "%d", value) < 0)
-+		return shutdown(5, "Failed writing to /proc file", __LINE__);
-+	new_value = get(stream);
-+	if (new_value != value)
-+		return shutdown(5, "We didn't get what we wrote to /proc back",
-+				__LINE__);
-+}
-+
-+static inline int try_set(FILE *stream, int value)
-+{
-+	int new_value;
-+
-+	rewind(stream);
-+	fprintf(stream, "%d", value);
-+	new_value = get(stream);
-+	return new_value == value;
-+}
-+
-+static inline void getr(int type, struct rlimit *rlim)
-+{
-+	if (getrlimit(type, rlim))
-+		shutdown(6, "getrlimit()", __LINE__);
-+}
-+
-+static inline void setr(int type, struct rlimit *rlim)
-+{
-+	if (setrlimit(type, rlim))
-+		shutdown(7, "setrlimit()", __LINE__);
-+}
-+
-+/**
-+ * open_queue - open the global queue for testing
-+ * @attr - An attr struct specifying the desired queue traits
-+ * @result - An attr struct that lists the actual traits the queue has
-+ *
-+ * This open is not allowed to fail, failure will result in an orderly
-+ * shutdown of the program.  The global queue_path is used to set what
-+ * queue to open, the queue descriptor is saved in the global queue
-+ * variable.
-+ */
-+static inline void open_queue(struct mq_attr *attr)
-+{
-+	int flags = O_RDWR | O_EXCL | O_CREAT | O_NONBLOCK;
-+	int perms = DEFFILEMODE;
-+
-+	if ((queue = mq_open(queue_path, flags, perms, attr)) == -1)
-+		shutdown(1, "mq_open()", __LINE__);
-+	if (mq_getattr(queue, &result))
-+		shutdown(1, "mq_getattr()", __LINE__);
-+	printf("\n\tQueue %s created:\n", queue_path);
-+	printf("\t\tmq_flags:\t\t\t%s\n", result.mq_flags & O_NONBLOCK ?
-+	       "O_NONBLOCK" : "(null)");
-+	printf("\t\tmq_maxmsg:\t\t\t%d\n", result.mq_maxmsg);
-+	printf("\t\tmq_msgsize:\t\t\t%d\n", result.mq_msgsize);
-+	printf("\t\tmq_curmsgs:\t\t\t%d\n", result.mq_curmsgs);
-+}
-+
-+void *fake_cont_thread(void *arg)
-+{
-+	int i;
-+
-+	for (i=0; i < num_cpus_to_pin; i++)
-+		if (cpu_threads[i] == pthread_self())
-+			break;
-+	printf("\tStarted fake continuous mode thread %d on CPU %d\n", i,
-+	       cpus_to_pin[i]);
-+	while(1) ;
-+}
-+
-+void *cont_thread(void *arg)
-+{
-+	char buff[MSG_SIZE];
-+	int i, priority;
-+
-+	for (i=0; i < num_cpus_to_pin; i++)
-+		if (cpu_threads[i] == pthread_self())
-+			break;
-+	printf("\tStarted continuous mode thread %d on CPU %d\n", i,
-+	       cpus_to_pin[i]);
-+	while(1) {
-+		while(mq_send(queue, buff, sizeof(buff), 0) == 0);
-+		mq_receive(queue, buff, sizeof(buff), &priority);
-+	}
-+}
-+
-+#define drain_queue() \
-+	while (mq_receive(queue, buff, MSG_SIZE, &prio_in) == MSG_SIZE)
-+
-+#define do_untimed_send() \
-+	do { \
-+		if (mq_send(queue, buff, MSG_SIZE, prio_out)) \
-+			shutdown(3, "Test send failure", __LINE__); \
-+	} while(0)
-+
-+#define do_send_recv() \
-+	do { \
-+		clock_gettime(clock, &start); \
-+		if (mq_send(queue, buff, MSG_SIZE, prio_out)) \
-+			shutdown(3, "Test send failure", __LINE__); \
-+		clock_gettime(clock, &middle); \
-+		if (mq_receive(queue, buff, MSG_SIZE, &prio_in) != MSG_SIZE) \
-+			shutdown(3, "Test receive failure", __LINE__); \
-+		clock_gettime(clock, &end); \
-+		nsec = ((middle.tv_sec - start.tv_sec) * 1000000000) + \
-+			(middle.tv_nsec - start.tv_nsec); \
-+		send_total.tv_nsec += nsec; \
-+		if (send_total.tv_nsec >= 1000000000) { \
-+			send_total.tv_sec++; \
-+			send_total.tv_nsec -= 1000000000; \
-+		} \
-+		nsec = ((end.tv_sec - middle.tv_sec) * 1000000000) + \
-+			(end.tv_nsec - middle.tv_nsec); \
-+		recv_total.tv_nsec += nsec; \
-+		if (recv_total.tv_nsec >= 1000000000) { \
-+			recv_total.tv_sec++; \
-+			recv_total.tv_nsec -= 1000000000; \
-+		} \
+@@ -70,7 +70,7 @@ static char *usage =
+ char *MAX_MSGS = "/proc/sys/fs/mqueue/msg_max";
+ char *MAX_MSGSIZE = "/proc/sys/fs/mqueue/msgsize_max";
+ 
+-#define min(a,b) ((a) < (b) ? (a) : (b))
++#define min(a, b) ((a) < (b) ? (a) : (b))
+ #define MAX_CPUS 64
+ char *cpu_option_string;
+ int cpus_to_pin[MAX_CPUS];
+@@ -97,8 +97,7 @@ mqd_t queue = -1;
+ struct mq_attr result;
+ int mq_prio_max;
+ 
+-const struct poptOption options[] =
+-{
++const struct poptOption options[] = {
+ 	{
+ 		.longName = "continuous",
+ 		.shortName = 'c',
+@@ -178,7 +177,7 @@ void shutdown(int exit_val, char *err_ca
+ 	if (in_shutdown++)
+ 		return;
+ 
+-	for (i=0; i < num_cpus_to_pin; i++)
++	for (i = 0; i < num_cpus_to_pin; i++)
+ 		if (cpu_threads[i]) {
+ 			pthread_kill(cpu_threads[i], SIGUSR1);
+ 			pthread_join(cpu_threads[i], NULL);
+@@ -211,7 +210,7 @@ void sig_action_SIGUSR1(int signum, sigi
+ 		pthread_exit(0);
+ 	else {
+ 		fprintf(stderr, "Caught signal %d in SIGUSR1 handler, "
+-			"exiting\n", signum);
++				"exiting\n", signum);
+ 		shutdown(0, "", 0);
+ 		fprintf(stderr, "\n\nReturned from shutdown?!?!\n\n");
+ 		exit(0);
+@@ -289,7 +288,8 @@ static inline void open_queue(struct mq_
+ 	int flags = O_RDWR | O_EXCL | O_CREAT | O_NONBLOCK;
+ 	int perms = DEFFILEMODE;
+ 
+-	if ((queue = mq_open(queue_path, flags, perms, attr)) == -1)
++	queue = mq_open(queue_path, flags, perms, attr);
++	if (queue == -1)
+ 		shutdown(1, "mq_open()", __LINE__);
+ 	if (mq_getattr(queue, &result))
+ 		shutdown(1, "mq_getattr()", __LINE__);
+@@ -305,12 +305,13 @@ void *fake_cont_thread(void *arg)
+ {
+ 	int i;
+ 
+-	for (i=0; i < num_cpus_to_pin; i++)
++	for (i = 0; i < num_cpus_to_pin; i++)
+ 		if (cpu_threads[i] == pthread_self())
+ 			break;
+ 	printf("\tStarted fake continuous mode thread %d on CPU %d\n", i,
+ 	       cpus_to_pin[i]);
+-	while(1) ;
++	while (1)
++		;
+ }
+ 
+ void *cont_thread(void *arg)
+@@ -318,13 +319,14 @@ void *cont_thread(void *arg)
+ 	char buff[MSG_SIZE];
+ 	int i, priority;
+ 
+-	for (i=0; i < num_cpus_to_pin; i++)
++	for (i = 0; i < num_cpus_to_pin; i++)
+ 		if (cpu_threads[i] == pthread_self())
+ 			break;
+ 	printf("\tStarted continuous mode thread %d on CPU %d\n", i,
+ 	       cpus_to_pin[i]);
+-	while(1) {
+-		while(mq_send(queue, buff, sizeof(buff), 0) == 0);
++	while (1) {
++		while(mq_send(queue, buff, sizeof(buff), 0) == 0)
++			;
+ 		mq_receive(queue, buff, sizeof(buff), &priority);
+ 	}
+ }
+@@ -336,7 +338,7 @@ void *cont_thread(void *arg)
+ 	do { \
+ 		if (mq_send(queue, buff, MSG_SIZE, prio_out)) \
+ 			shutdown(3, "Test send failure", __LINE__); \
+-	} while(0)
 +	} while (0)
-+
-+struct test {
-+	char *desc;
-+	void (*func)(int *);
-+};
-+
-+void const_prio(int *prio)
-+{
-+	return;
-+}
-+
-+void inc_prio(int *prio)
-+{
-+	if (++*prio == mq_prio_max)
-+		*prio = 0;;
-+}
-+
-+void dec_prio(int *prio)
-+{
-+	if (--*prio < 0)
-+		*prio = mq_prio_max - 1;
-+}
-+
-+void random_prio(int *prio)
-+{
-+	*prio = random() % mq_prio_max;
-+}
-+
-+struct test test2[] = {
-+	{"\n\tTest #2a: Time send/recv message, queue full, constant prio\n",
-+		const_prio},
-+	{"\n\tTest #2b: Time send/recv message, queue full, increasing prio\n",
-+		inc_prio},
-+	{"\n\tTest #2c: Time send/recv message, queue full, decreasing prio\n",
-+		dec_prio},
-+	{"\n\tTest #2d: Time send/recv message, queue full, random prio\n",
-+		random_prio},
-+	{NULL, NULL}
-+};
-+
-+/**
-+ * Tests to perform (all done with MSG_SIZE messages):
-+ *
-+ * 1) Time to add/remove message with 0 messages on queue
-+ * 1a) with constant prio
-+ * 2) Time to add/remove message when queue close to capacity:
-+ * 2a) with constant prio
-+ * 2b) with increasing prio
-+ * 2c) with decreasing prio
-+ * 2d) with random prio
-+ * 3) Test limits of priorities honored (double check _SC_MQ_PRIO_MAX)
-+ */
-+void *perf_test_thread(void *arg)
-+{
-+	char buff[MSG_SIZE];
-+	int prio_out, prio_in;
-+	int i;
-+	clockid_t clock;
-+	pthread_t *t;
-+	struct timespec res, start, middle, end, send_total, recv_total;
-+	unsigned long long nsec;
-+	struct test *cur_test;
-+
-+	t = &cpu_threads[0];
-+	printf("\n\tStarted mqueue performance test thread on CPU %d\n",
-+	       cpus_to_pin[0]);
-+	if ((mq_prio_max = sysconf(_SC_MQ_PRIO_MAX)) == -1)
-+		shutdown(2, "sysconf(_SC_MQ_PRIO_MAX)", __LINE__);
-+	if (pthread_getcpuclockid(cpu_threads[0], &clock) != 0)
-+		shutdown(2, "pthread_getcpuclockid", __LINE__);
-+
-+	if (clock_getres(clock, &res))
-+		shutdown(2, "clock_getres()", __LINE__);
-+
-+	printf("\t\tMax priorities:\t\t\t%d\n", mq_prio_max);
-+	printf("\t\tClock resolution:\t\t%d nsec%s\n", res.tv_nsec,
-+	       res.tv_nsec > 1 ? "s" : "");
-+
-+
-+
-+	printf("\n\tTest #1: Time send/recv message, queue "
-+	       "empty\n");
-+	printf("\t\t(%d iterations)\n", TEST1_LOOPS);
-+	prio_out = 0;
-+	send_total.tv_sec = 0;
-+	send_total.tv_nsec = 0;
-+	recv_total.tv_sec = 0;
-+	recv_total.tv_nsec = 0;
-+	for (i = 0; i < TEST1_LOOPS; i++)
-+		do_send_recv();
-+	printf("\t\tSend msg:\t\t\t%d.%ds total time\n",
-+	       send_total.tv_sec, send_total.tv_nsec);
-+	nsec = ((unsigned long long)send_total.tv_sec * 1000000000 +
-+		 send_total.tv_nsec) / TEST1_LOOPS;
-+	printf("\t\t\t\t\t\t%d nsec/msg\n", nsec);
-+	printf("\t\tRecv msg:\t\t\t%d.%ds total time\n",
-+	       recv_total.tv_sec, recv_total.tv_nsec);
-+	nsec = ((unsigned long long)recv_total.tv_sec * 1000000000 +
-+		recv_total.tv_nsec) / TEST1_LOOPS;
-+	printf("\t\t\t\t\t\t%d nsec/msg\n", nsec);
-+
-+
-+	for (cur_test = test2; cur_test->desc != NULL; cur_test++) {
-+		printf(cur_test->desc);
-+		printf("\t\t(%d iterations)\n", TEST2_LOOPS);
-+		prio_out = 0;
-+		send_total.tv_sec = 0;
-+		send_total.tv_nsec = 0;
-+		recv_total.tv_sec = 0;
-+		recv_total.tv_nsec = 0;
-+		printf("\t\tFilling queue...");
-+		fflush(stdout);
-+		clock_gettime(clock, &start);
-+		for (i = 0; i < result.mq_maxmsg - 1; i++) {
-+			do_untimed_send();
-+			cur_test->func(&prio_out);
-+		}
-+		clock_gettime(clock, &end);
-+		nsec = ((unsigned long long)(end.tv_sec - start.tv_sec) *
-+			1000000000) + (end.tv_nsec - start.tv_nsec);
-+		printf("done.\t\t%lld.%llds\n", nsec / 1000000000,
-+		       nsec % 1000000000);
-+		printf("\t\tTesting...");
-+		fflush(stdout);
-+		for (i = 0; i < TEST2_LOOPS; i++) {
-+			do_send_recv();
-+			cur_test->func(&prio_out);
-+		}
-+		printf("done.\n");
-+		printf("\t\tSend msg:\t\t\t%d.%ds total time\n",
-+		       send_total.tv_sec, send_total.tv_nsec);
-+		nsec = ((unsigned long long)send_total.tv_sec * 1000000000 +
-+			 send_total.tv_nsec) / TEST2_LOOPS;
-+		printf("\t\t\t\t\t\t%d nsec/msg\n", nsec);
-+		printf("\t\tRecv msg:\t\t\t%d.%ds total time\n",
-+		       recv_total.tv_sec, recv_total.tv_nsec);
-+		nsec = ((unsigned long long)recv_total.tv_sec * 1000000000 +
-+			recv_total.tv_nsec) / TEST2_LOOPS;
-+		printf("\t\t\t\t\t\t%d nsec/msg\n", nsec);
-+		printf("\t\tDraining queue...");
-+		fflush(stdout);
-+		clock_gettime(clock, &start);
-+		drain_queue();
-+		clock_gettime(clock, &end);
-+		nsec = ((unsigned long long)(end.tv_sec - start.tv_sec) *
-+			1000000000) + (end.tv_nsec - start.tv_nsec);
-+		printf("done.\t\t%lld.%llds\n", nsec / 1000000000,
-+		       nsec % 1000000000);
-+	}
-+	return 0;
-+}
-+
-+void increase_limits(void)
-+{
-+	cur_limits.rlim_cur = RLIM_INFINITY;
-+	cur_limits.rlim_max = RLIM_INFINITY;
-+	setr(RLIMIT_MSGQUEUE, &cur_limits);
-+	while (try_set(max_msgs, cur_max_msgs += 10));
-+	cur_max_msgs = get(max_msgs);
-+	while (try_set(max_msgsize, cur_max_msgsize += 1024));
-+	cur_max_msgsize = get(max_msgsize);
-+	if (setpriority(PRIO_PROCESS, 0, -20) != 0)
-+		shutdown(2, "setpriority()", __LINE__);
-+	cur_nice = -20;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct mq_attr attr;
-+	char *option, *next_option;
-+	int i, cpu;
-+	struct sigaction sa;
-+	poptContext popt_context;
-+	char rc;
-+	void *retval;
-+
-+	main_thread = pthread_self();
-+	num_cpus_to_pin = 0;
-+
-+	if (sysconf(_SC_NPROCESSORS_ONLN) == -1) {
-+		perror("sysconf(_SC_NPROCESSORS_ONLN)");
-+		exit(1);
-+	}
-+	cpus_online = min(MAX_CPUS, sysconf(_SC_NPROCESSORS_ONLN));
-+	if ((cpu_set = CPU_ALLOC(cpus_online)) == NULL) {
-+		perror("CPU_ALLOC()");
-+		exit(1);
-+	}
-+	cpu_set_size = CPU_ALLOC_SIZE(cpus_online);
-+	CPU_ZERO_S(cpu_set_size, cpu_set);
-+
-+	popt_context = poptGetContext(NULL, argc, (const char **)argv,
-+				      options, 0);
-+
-+	while ((rc = poptGetNextOpt(popt_context)) > 0) {
-+		switch (rc) {
-+		case 'c':
-+			continuous_mode = 1;
-+			option = cpu_option_string;
-+			do {
-+				next_option = strchr(option, ',');
-+				if (next_option)
-+					*next_option = '\0';
-+				cpu = atoi(option);
-+				if (cpu >= cpus_online)
-+					fprintf(stderr, "CPU %d exceeds "
-+						"cpus online, ignoring.\n",
-+						cpu);
-+				else
-+					cpus_to_pin[num_cpus_to_pin++] = cpu;
-+				if (next_option)
-+					option = ++next_option;
-+			} while (next_option && num_cpus_to_pin < MAX_CPUS);
-+			/* Double check that they didn't give us the same CPU
-+			 * more than once */
-+			for (cpu = 0; cpu < num_cpus_to_pin; cpu++) {
-+				if (CPU_ISSET_S(cpus_to_pin[cpu], cpu_set_size,
-+						cpu_set)) {
-+					fprintf(stderr, "Any given CPU may "
-+						"only be given once.\n");
-+					exit(1);
-+				} else
-+					CPU_SET_S(cpus_to_pin[cpu],
-+						  cpu_set_size, cpu_set);
-+			}
-+			break;
-+		case 'p':
-+			/*
-+			 * Although we can create a msg queue with a
-+			 * non-absolute path name, unlink will fail.  So,
-+			 * if the name doesn't start with a /, add one
-+			 * when we save it.
-+			 */
-+			option = queue_path;
-+			if (*option != '/') {
-+				queue_path = malloc(strlen(option) + 2);
-+				if (!queue_path) {
-+					perror("malloc()");
-+					exit(1);
-+				}
-+				queue_path[0] = '/';
-+				queue_path[1] = 0;
-+				strcat(queue_path, option);
-+				free(option);
-+			}
-+			break;
-+		}
-+	}
-+
-+	if (continuous_mode && num_cpus_to_pin == 0) {
-+		fprintf(stderr, "Must pass at least one CPU to continuous "
-+			"mode.\n");
-+		poptPrintUsage(popt_context, stderr, 0);
-+		exit(1);
-+	} else if (!continuous_mode) {
-+		num_cpus_to_pin = 1;
-+		cpus_to_pin[0] = cpus_online - 1;
-+	}
-+
-+	if (getuid() != 0) {
-+		fprintf(stderr, "Not running as root, but almost all tests "
-+			"require root in order to modify\nsystem settings.  "
-+			"Exiting.\n");
-+		exit(1);
-+	}
-+
-+	max_msgs = fopen(MAX_MSGS, "r+");
-+	max_msgsize = fopen(MAX_MSGSIZE, "r+");
-+	if (!max_msgs)
-+		shutdown(2, "Failed to open msg_max", __LINE__);
-+	if (!max_msgsize)
-+		shutdown(2, "Failed to open msgsize_max", __LINE__);
-+
-+	/* Load up the current system values for everything we can */
-+	getr(RLIMIT_MSGQUEUE, &saved_limits);
-+	cur_limits = saved_limits;
-+	saved_max_msgs = cur_max_msgs = get(max_msgs);
-+	saved_max_msgsize = cur_max_msgsize = get(max_msgsize);
-+	errno = 0;
-+	cur_nice = getpriority(PRIO_PROCESS, 0);
-+	if (errno)
-+		shutdown(2, "getpriority()", __LINE__);
-+
-+	/* Tell the user our initial state */
-+	printf("\nInitial system state:\n");
-+	printf("\tUsing queue path:\t\t\t%s\n", queue_path);
-+	printf("\tRLIMIT_MSGQUEUE(soft):\t\t\t%d\n", saved_limits.rlim_cur);
-+	printf("\tRLIMIT_MSGQUEUE(hard):\t\t\t%d\n", saved_limits.rlim_max);
-+	printf("\tMaximum Message Size:\t\t\t%d\n", saved_max_msgsize);
-+	printf("\tMaximum Queue Size:\t\t\t%d\n", saved_max_msgs);
-+	printf("\tNice value:\t\t\t\t%d\n", cur_nice);
-+	printf("\n");
-+
-+	increase_limits();
-+
-+	printf("Adjusted system state for testing:\n");
-+	if (cur_limits.rlim_cur == RLIM_INFINITY) {
-+		printf("\tRLIMIT_MSGQUEUE(soft):\t\t\t(unlimited)\n");
-+		printf("\tRLIMIT_MSGQUEUE(hard):\t\t\t(unlimited)\n");
+ 
+ #define do_send_recv() \
+ 	do { \
+@@ -376,7 +378,7 @@ void const_prio(int *prio)
+ void inc_prio(int *prio)
+ {
+ 	if (++*prio == mq_prio_max)
+-		*prio = 0;;
++		*prio = 0;
+ }
+ 
+ void dec_prio(int *prio)
+@@ -428,7 +430,8 @@ void *perf_test_thread(void *arg)
+ 	t = &cpu_threads[0];
+ 	printf("\n\tStarted mqueue performance test thread on CPU %d\n",
+ 	       cpus_to_pin[0]);
+-	if ((mq_prio_max = sysconf(_SC_MQ_PRIO_MAX)) == -1)
++	mq_prio_max = sysconf(_SC_MQ_PRIO_MAX);
++	if (mq_prio_max == -1)
+ 		shutdown(2, "sysconf(_SC_MQ_PRIO_MAX)", __LINE__);
+ 	if (pthread_getcpuclockid(cpu_threads[0], &clock) != 0)
+ 		shutdown(2, "pthread_getcpuclockid", __LINE__);
+@@ -442,8 +445,7 @@ void *perf_test_thread(void *arg)
+ 
+ 
+ 
+-	printf("\n\tTest #1: Time send/recv message, queue "
+-	       "empty\n");
++	printf("\n\tTest #1: Time send/recv message, queue empty\n");
+ 	printf("\t\t(%d iterations)\n", TEST1_LOOPS);
+ 	prio_out = 0;
+ 	send_total.tv_sec = 0;
+@@ -519,9 +521,11 @@ void increase_limits(void)
+ 	cur_limits.rlim_cur = RLIM_INFINITY;
+ 	cur_limits.rlim_max = RLIM_INFINITY;
+ 	setr(RLIMIT_MSGQUEUE, &cur_limits);
+-	while (try_set(max_msgs, cur_max_msgs += 10));
++	while (try_set(max_msgs, cur_max_msgs += 10))
++		;
+ 	cur_max_msgs = get(max_msgs);
+-	while (try_set(max_msgsize, cur_max_msgsize += 1024));
++	while (try_set(max_msgsize, cur_max_msgsize += 1024))
++		;
+ 	cur_max_msgsize = get(max_msgsize);
+ 	if (setpriority(PRIO_PROCESS, 0, -20) != 0)
+ 		shutdown(2, "setpriority()", __LINE__);
+@@ -546,7 +550,8 @@ int main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ 	cpus_online = min(MAX_CPUS, sysconf(_SC_NPROCESSORS_ONLN));
+-	if ((cpu_set = CPU_ALLOC(cpus_online)) == NULL) {
++	cpu_set = CPU_ALLOC(cpus_online);
++	if (cpu_set == NULL) {
+ 		perror("CPU_ALLOC()");
+ 		exit(1);
+ 	}
+@@ -674,7 +679,7 @@ int main(int argc, char *argv[])
+ 	       (continuous_mode_fake ? "fake mode" : "enabled") :
+ 	       "disabled");
+ 	printf("\tCPUs to pin:\t\t\t\t%d", cpus_to_pin[0]);
+-	for(cpu=1; cpu < num_cpus_to_pin; cpu++)
++	for (cpu = 1; cpu < num_cpus_to_pin; cpu++)
+ 			printf(",%d", cpus_to_pin[cpu]);
+ 	printf("\n");
+ 
+@@ -703,7 +708,7 @@ int main(int argc, char *argv[])
+ 		attr.mq_msgsize = MSG_SIZE;
+ 		open_queue(&attr);
+ 	}
+-	for (i=0; i < num_cpus_to_pin; i++) {
++	for (i = 0; i < num_cpus_to_pin; i++) {
+ 		pthread_attr_t thread_attr;
+ 		void *thread_func;
+ 
+@@ -728,7 +733,9 @@ int main(int argc, char *argv[])
+ 	if (!continuous_mode) {
+ 		pthread_join(cpu_threads[0], &retval);
+ 		shutdown((long)retval, "perf_test_thread()", __LINE__);
+-	} else
+-		while(1) sleep(1);
+-	shutdown(0,"",0);
 +	} else {
-+		printf("\tRLIMIT_MSGQUEUE(soft):\t\t\t%d\n",
-+		       cur_limits.rlim_cur);
-+		printf("\tRLIMIT_MSGQUEUE(hard):\t\t\t%d\n",
-+		       cur_limits.rlim_max);
++		while (1)
++			sleep(1);
 +	}
-+	printf("\tMaximum Message Size:\t\t\t%d\n", cur_max_msgsize);
-+	printf("\tMaximum Queue Size:\t\t\t%d\n", cur_max_msgs);
-+	printf("\tNice value:\t\t\t\t%d\n", cur_nice);
-+	printf("\tContinuous mode:\t\t\t(%s)\n", continuous_mode ?
-+	       (continuous_mode_fake ? "fake mode" : "enabled") :
-+	       "disabled");
-+	printf("\tCPUs to pin:\t\t\t\t%d", cpus_to_pin[0]);
-+	for(cpu=1; cpu < num_cpus_to_pin; cpu++)
-+			printf(",%d", cpus_to_pin[cpu]);
-+	printf("\n");
-+
-+	sa.sa_sigaction = sig_action_SIGUSR1;
-+	sigemptyset(&sa.sa_mask);
-+	sigaddset(&sa.sa_mask, SIGHUP);
-+	sigaddset(&sa.sa_mask, SIGINT);
-+	sigaddset(&sa.sa_mask, SIGQUIT);
-+	sigaddset(&sa.sa_mask, SIGTERM);
-+	sa.sa_flags = SA_SIGINFO;
-+	if (sigaction(SIGUSR1, &sa, NULL) == -1)
-+		shutdown(1, "sigaction(SIGUSR1)", __LINE__);
-+	sa.sa_sigaction = sig_action;
-+	if (sigaction(SIGHUP, &sa, NULL) == -1)
-+		shutdown(1, "sigaction(SIGHUP)", __LINE__);
-+	if (sigaction(SIGINT, &sa, NULL) == -1)
-+		shutdown(1, "sigaction(SIGINT)", __LINE__);
-+	if (sigaction(SIGQUIT, &sa, NULL) == -1)
-+		shutdown(1, "sigaction(SIGQUIT)", __LINE__);
-+	if (sigaction(SIGTERM, &sa, NULL) == -1)
-+		shutdown(1, "sigaction(SIGTERM)", __LINE__);
-+
-+	if (!continuous_mode_fake) {
-+		attr.mq_flags = O_NONBLOCK;
-+		attr.mq_maxmsg = cur_max_msgs;
-+		attr.mq_msgsize = MSG_SIZE;
-+		open_queue(&attr);
-+	}
-+	for (i=0; i < num_cpus_to_pin; i++) {
-+		pthread_attr_t thread_attr;
-+		void *thread_func;
-+
-+		if (continuous_mode_fake)
-+			thread_func = &fake_cont_thread;
-+		else if (continuous_mode)
-+			thread_func = &cont_thread;
-+		else
-+			thread_func = &perf_test_thread;
-+
-+		CPU_ZERO_S(cpu_set_size, cpu_set);
-+		CPU_SET_S(cpus_to_pin[i], cpu_set_size, cpu_set);
-+		pthread_attr_init(&thread_attr);
-+		pthread_attr_setaffinity_np(&thread_attr, cpu_set_size,
-+					    cpu_set);
-+		if (pthread_create(&cpu_threads[i], &thread_attr, thread_func,
-+				   NULL))
-+			shutdown(1, "pthread_create()", __LINE__);
-+		pthread_attr_destroy(&thread_attr);
-+	}
-+
-+	if (!continuous_mode) {
-+		pthread_join(cpu_threads[0], &retval);
-+		shutdown((long)retval, "perf_test_thread()", __LINE__);
-+	} else
-+		while(1) sleep(1);
-+	shutdown(0,"",0);
-+}
++	shutdown(0, "", 0);
+ }
 _
-Subject: Subject: tools/selftests: add mq_perf_tests
+Subject: Subject: tools-selftests-add-mq_perf_tests-checkpatch-fixes
 
-Patches currently in -mm which might be from dledford@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ipc-mqueue-cleanup-definition-names-and-locations.patch
-ipc-mqueue-switch-back-to-using-non-max-values-on-create.patch
-ipc-mqueue-enforce-hard-limits.patch
-ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
-ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch
-mqueue-revert-bump-up-dflt_max.patch
-mqueue-dont-use-kmalloc-with-kmalloc_max_size.patch
-mqueue-separate-mqueue-default-value-from-maximum-value-v2.patch
-selftests-add-mq_open_tests.patch
-ipc-mqueue-improve-performance-of-send-recv.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+memcg-add-mlock-statistic-in-memorystat-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
 ipc-mqueue-improve-performance-of-send-recv-fix.patch
-ipc-mqueue-correct-mq_attr_ok-test.patch
 ipc-mqueue-correct-mq_attr_ok-test-fix.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation.patch
-tools-selftests-add-mq_perf_tests.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
