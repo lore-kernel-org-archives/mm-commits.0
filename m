@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch added to -mm tree
-Date: Tue, 01 May 2012 16:11:38 -0700
-Message-ID: <20120501231138.C4776A036E@akpm.mtv.corp.google.com>
+Subject: + tools-vm-page-typesc-cleanups.patch added to -mm tree
+Date: Wed, 02 May 2012 12:11:51 -0700
+Message-ID: <20120502191154.23A52A0423@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:51665 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756954Ab2EAXLk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 May 2012 19:11:40 -0400
-Received: by qcsp5 with SMTP id p5so7249qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 01 May 2012 16:11:39 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37793 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755587Ab2EBTL4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 15:11:56 -0400
+Received: by vbnl22 with SMTP id l22so104534vbn.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 12:11:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dledford@redhat.com, kosaki.motohiro@jp.fujitsu.com, manfred@colorfullife.com, sfr@canb.auug.org.au
+Cc: drepper@akkadia.org, drepper@gmail.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     Subject: ipc-mqueue-strengthen-checks-on-mqueue-creation-fix
+     Subject: tools/vm/page-types.c: cleanups
 has been added to the -mm tree.  Its filename is
-     ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+     tools-vm-page-typesc-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-mqueue-strengthen-checks-on-mqueue-creation-fix
+From: Ulrich Drepper <drepper@akkadia.org>
+Subject: tools/vm/page-types.c: cleanups
 
-s/ENOMEM/EOVERFLOW/
+Compiling page-type.c with a recent compiler produces many warnings,
+mostly related to signed/unsigned comparisons.  This patch cleans up most
+of them.
 
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+One remaining warning is about an unused parameter.  The <compiler.h> file
+doesn't define a __unused macro (or the like) yet.  This can be addressed
+later.
+
+Signed-off-by: Ulrich Drepper <drepper@gmail.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/vm/page-types.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-strengthen-checks-on-mqueue-creation-fix ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-strengthen-checks-on-mqueue-creation-fix
-+++ a/ipc/mqueue.c
-@@ -687,13 +687,13 @@ static int mq_attr_ok(struct ipc_namespa
- 	}
- 	/* check for overflow */
- 	if (attr->mq_msgsize > ULONG_MAX/attr->mq_maxmsg)
--		return -ENOMEM;
-+		return -EOVERFLOW;
- 	mq_treesize = attr->mq_maxmsg * sizeof(struct msg_msg) +
- 		min_t(unsigned int, attr->mq_maxmsg, MQ_PRIO_MAX) *
- 		sizeof(struct posix_msg_tree_node);
- 	total_size = attr->mq_maxmsg * attr->mq_msgsize;
- 	if (total_size + mq_treesize < total_size)
--		return -ENOMEM;
-+		return -EOVERFLOW;
- 	return 0;
- }
+diff -puN tools/vm/page-types.c~tools-vm-page-typesc-cleanups tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-page-typesc-cleanups
++++ a/tools/vm/page-types.c
+@@ -326,7 +326,7 @@ static char *page_flag_name(uint64_t fla
+ {
+ 	static char buf[65];
+ 	int present;
+-	int i, j;
++	size_t i, j;
  
+ 	for (i = 0, j = 0; i < ARRAY_SIZE(page_flag_names); i++) {
+ 		present = (flags >> i) & 1;
+@@ -344,7 +344,7 @@ static char *page_flag_name(uint64_t fla
+ static char *page_flag_longname(uint64_t flags)
+ {
+ 	static char buf[1024];
+-	int i, n;
++	size_t i, n;
+ 
+ 	for (i = 0, n = 0; i < ARRAY_SIZE(page_flag_names); i++) {
+ 		if (!page_flag_names[i])
+@@ -402,7 +402,7 @@ static void show_page(unsigned long voff
+ 
+ static void show_summary(void)
+ {
+-	int i;
++	size_t i;
+ 
+ 	printf("             flags\tpage-count       MB"
+ 		"  symbolic-flags\t\t\tlong-symbolic-flags\n");
+@@ -500,7 +500,7 @@ static int debugfs_valid_mountpoint(cons
+ /* find the path to the mounted debugfs */
+ static const char *debugfs_find_mountpoint(void)
+ {
+-	const char **ptr;
++	const char *const *ptr;
+ 	char type[100];
+ 	FILE *fp;
+ 
+@@ -537,7 +537,7 @@ static const char *debugfs_find_mountpoi
+ 
+ static void debugfs_mount(void)
+ {
+-	const char **ptr;
++	const char *const *ptr;
+ 
+ 	/* see if it's already mounted */
+ 	if (debugfs_find_mountpoint())
+@@ -614,10 +614,10 @@ static int unpoison_page(unsigned long o
+  * page frame walker
+  */
+ 
+-static int hash_slot(uint64_t flags)
++static size_t hash_slot(uint64_t flags)
+ {
+-	int k = HASH_KEY(flags);
+-	int i;
++	size_t k = HASH_KEY(flags);
++	size_t i;
+ 
+ 	/* Explicitly reserve slot 0 for flags 0: the following logic
+ 	 * cannot distinguish an unoccupied slot from slot (flags==0).
+@@ -670,7 +670,7 @@ static void walk_pfn(unsigned long voffs
+ {
+ 	uint64_t buf[KPAGEFLAGS_BATCH];
+ 	unsigned long batch;
+-	long pages;
++	unsigned long pages;
+ 	unsigned long i;
+ 
+ 	while (count) {
+@@ -779,7 +779,7 @@ static const char *page_flag_type(uint64
+ 
+ static void usage(void)
+ {
+-	int i, j;
++	size_t i, j;
+ 
+ 	printf(
+ "page-types [options]\n"
+@@ -938,7 +938,7 @@ static void add_bits_filter(uint64_t mas
+ 
+ static uint64_t parse_flag_name(const char *str, int len)
+ {
+-	int i;
++	size_t i;
+ 
+ 	if (!*str || !len)
+ 		return 0;
 _
-Subject: Subject: ipc-mqueue-strengthen-checks-on-mqueue-creation-fix
+Subject: Subject: tools/vm/page-types.c: cleanups
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from drepper@akkadia.org are
 
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
-drivers-xen-kconfig-fix-kconfig-layout.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
-percpu-remove-percpu_xxx-functions-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-brlocks-lglocks-cleanups.patch
-mm.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
-mm-do_migrate_pages-rename-arguments.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
-mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-memcg-add-mlock-statistic-in-memorystat-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-leds-led-module-for-da9052-53-pmic-v2-fix.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
-lib-string_helpersc-make-arrays-static.patch
-lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-ipc-mqueue-improve-performance-of-send-recv-fix.patch
-ipc-mqueue-correct-mq_attr_ok-test-fix.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
-tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
-eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+tools-vm-page-typesc-cleanups.patch
 
