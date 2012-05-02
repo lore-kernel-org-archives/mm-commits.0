@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-push-zone-pointer-into-shrink_page_list.patch added to -mm tree
-Date: Wed, 02 May 2012 14:21:16 -0700
-Message-ID: <20120502212116.4B84FA0413@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages.patch added to -mm tree
+Date: Wed, 02 May 2012 14:21:21 -0700
+Message-ID: <20120502212121.E6649A0413@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:47594 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280Ab2EBVVW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:22 -0400
-Received: by ghbz15 with SMTP id z15so123744ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:21 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:35866 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280Ab2EBVVY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:24 -0400
+Received: by lbbgp10 with SMTP id gp10so58662lbb.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel
 
 
 The patch titled
-     Subject: mm/vmscan: push zone pointer into shrink_page_list()
+     Subject: mm/vmscan: push lruvec pointer into putback_inactive_pages()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-push-zone-pointer-into-shrink_page_list.patch
+     mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/vmscan: push zone pointer into shrink_page_list()
+Subject: mm/vmscan: push lruvec pointer into putback_inactive_pages()
 
-It doesn't need a pointer to the cgroup - pointer to the zone is enough. 
-This patch also kills the "mz" argument of page_check_references() - it is
-unused after "mm: memcg: count pte references from every member of the
-reclaimed hierarch"
+As zone_reclaim_stat is now located in the lruvec, we can reach it
+directly.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -48,67 +46,38 @@ Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/vmscan.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-push-zone-pointer-into-shrink_page_list mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-push-zone-pointer-into-shrink_page_list
+diff -puN mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages
 +++ a/mm/vmscan.c
-@@ -629,7 +629,6 @@ enum page_references {
- };
+@@ -1155,11 +1155,11 @@ static int too_many_isolated(struct zone
+ }
  
- static enum page_references page_check_references(struct page *page,
--						  struct mem_cgroup_zone *mz,
- 						  struct scan_control *sc)
+ static noinline_for_stack void
+-putback_inactive_pages(struct mem_cgroup_zone *mz,
++putback_inactive_pages(struct lruvec *lruvec,
+ 		       struct list_head *page_list)
  {
- 	int referenced_ptes, referenced_page;
-@@ -688,7 +687,7 @@ static enum page_references page_check_r
-  * shrink_page_list() returns the number of reclaimed pages
-  */
- static unsigned long shrink_page_list(struct list_head *page_list,
--				      struct mem_cgroup_zone *mz,
-+				      struct zone *zone,
- 				      struct scan_control *sc,
- 				      unsigned long *ret_nr_dirty,
- 				      unsigned long *ret_nr_writeback)
-@@ -718,7 +717,7 @@ static unsigned long shrink_page_list(st
- 			goto keep;
+-	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
+-	struct zone *zone = mz->zone;
++	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
++	struct zone *zone = lruvec_zone(lruvec);
+ 	LIST_HEAD(pages_to_free);
  
- 		VM_BUG_ON(PageActive(page));
--		VM_BUG_ON(page_zone(page) != mz->zone);
-+		VM_BUG_ON(page_zone(page) != zone);
+ 	/*
+@@ -1278,7 +1278,7 @@ shrink_inactive_list(unsigned long nr_to
+ 					       nr_reclaimed);
+ 	}
  
- 		sc->nr_scanned++;
+-	putback_inactive_pages(mz, &page_list);
++	putback_inactive_pages(lruvec, &page_list);
  
-@@ -741,7 +740,7 @@ static unsigned long shrink_page_list(st
- 			goto keep;
- 		}
+ 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
  
--		references = page_check_references(page, mz, sc);
-+		references = page_check_references(page, sc);
- 		switch (references) {
- 		case PAGEREF_ACTIVATE:
- 			goto activate_locked;
-@@ -931,7 +930,7 @@ keep:
- 	 * will encounter the same problem
- 	 */
- 	if (nr_dirty && nr_dirty == nr_congested && global_reclaim(sc))
--		zone_set_flag(mz->zone, ZONE_CONGESTED);
-+		zone_set_flag(zone, ZONE_CONGESTED);
- 
- 	free_hot_cold_page_list(&free_pages, 1);
- 
-@@ -1309,7 +1308,7 @@ shrink_inactive_list(unsigned long nr_to
- 
- 	update_isolated_counts(mz, &page_list, &nr_anon, &nr_file);
- 
--	nr_reclaimed = shrink_page_list(&page_list, mz, sc,
-+	nr_reclaimed = shrink_page_list(&page_list, zone, sc,
- 						&nr_dirty, &nr_writeback);
- 
- 	spin_lock_irq(&zone->lru_lock);
 _
-Subject: Subject: mm/vmscan: push zone pointer into shrink_page_list()
+Subject: Subject: mm/vmscan: push lruvec pointer into putback_inactive_pages()
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
