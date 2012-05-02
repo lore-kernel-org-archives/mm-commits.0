@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-link-from-struct-lruvec-to-struct-zone.patch added to -mm tree
-Date: Wed, 02 May 2012 14:21:11 -0700
-Message-ID: <20120502212111.372CFA0413@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages.patch added to -mm tree
+Date: Wed, 02 May 2012 14:21:13 -0700
+Message-ID: <20120502212113.EEDB0A0413@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:62927 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893Ab2EBVVM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:12 -0400
-Received: by qcsp5 with SMTP id p5so123749qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:11 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:43483 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab2EBVVO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:14 -0400
+Received: by mail-yw0-f74.google.com with SMTP id m50so95432yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel
 
 
 The patch titled
-     Subject: mm: add link from struct lruvec to struct zone
+     Subject: mm/vmscan: push lruvec pointer into isolate_lru_pages()
 has been added to the -mm tree.  Its filename is
-     mm-add-link-from-struct-lruvec-to-struct-zone.patch
+     mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: add link from struct lruvec to struct zone
+Subject: mm/vmscan: push lruvec pointer into isolate_lru_pages()
 
-This is the first stage of struct mem_cgroup_zone removal.  Further
-patches replace struct mem_cgroup_zone with a pointer to struct lruvec.
-
-If CONFIG_CGROUP_MEM_RES_CTLR=n lruvec_zone() is just container_of().
+Move the mem_cgroup_zone_lruvec() call from isolate_lru_pages() into
+shrink_[in]active_list().  Further patches push it to shrink_zone() step
+by step.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -48,112 +47,80 @@ Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   14 ++++++++++++++
- mm/memcontrol.c        |    4 +---
- mm/mmzone.c            |   14 ++++++++++++++
- mm/page_alloc.c        |    8 +-------
- 4 files changed, 30 insertions(+), 10 deletions(-)
+ mm/vmscan.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-add-link-from-struct-lruvec-to-struct-zone include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-add-link-from-struct-lruvec-to-struct-zone
-+++ a/include/linux/mmzone.h
-@@ -201,6 +201,9 @@ struct zone_reclaim_stat {
- struct lruvec {
- 	struct list_head lists[NR_LRU_LISTS];
- 	struct zone_reclaim_stat reclaim_stat;
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+	struct zone *zone;
-+#endif
- };
- 
- /* Mask used at gathering information at once (see memcontrol.c) */
-@@ -729,6 +732,17 @@ extern int init_currently_empty_zone(str
- 				     unsigned long size,
- 				     enum memmap_context context);
- 
-+extern void lruvec_init(struct lruvec *lruvec, struct zone *zone);
-+
-+static inline struct zone *lruvec_zone(struct lruvec *lruvec)
-+{
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+	return lruvec->zone;
-+#else
-+	return container_of(lruvec, struct zone, lruvec);
-+#endif
-+}
-+
- #ifdef CONFIG_HAVE_MEMORY_PRESENT
- void memory_present(int nid, unsigned long start, unsigned long end);
- #else
-diff -puN mm/memcontrol.c~mm-add-link-from-struct-lruvec-to-struct-zone mm/memcontrol.c
---- a/mm/memcontrol.c~mm-add-link-from-struct-lruvec-to-struct-zone
-+++ a/mm/memcontrol.c
-@@ -4966,7 +4966,6 @@ static int alloc_mem_cgroup_per_zone_inf
+diff -puN mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages
++++ a/mm/vmscan.c
+@@ -1027,7 +1027,7 @@ int __isolate_lru_page(struct page *page
+  * Appropriate locks must be held before calling this function.
+  *
+  * @nr_to_scan:	The number of pages to look through on the list.
+- * @mz:		The mem_cgroup_zone to pull pages from.
++ * @lruvec:	The LRU vector to pull pages from.
+  * @dst:	The temp list to put pages on to.
+  * @nr_scanned:	The number of pages that were scanned.
+  * @sc:		The scan_control struct for this reclaim session
+@@ -1037,17 +1037,15 @@ int __isolate_lru_page(struct page *page
+  * returns how many pages were moved onto *@dst.
+  */
+ static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
+-		struct mem_cgroup_zone *mz, struct list_head *dst,
++		struct lruvec *lruvec, struct list_head *dst,
+ 		unsigned long *nr_scanned, struct scan_control *sc,
+ 		isolate_mode_t mode, enum lru_list lru)
  {
- 	struct mem_cgroup_per_node *pn;
- 	struct mem_cgroup_per_zone *mz;
--	enum lru_list lru;
- 	int zone, tmp = node;
- 	/*
- 	 * This routine is called against possible nodes.
-@@ -4984,8 +4983,7 @@ static int alloc_mem_cgroup_per_zone_inf
+-	struct lruvec *lruvec;
+ 	struct list_head *src;
+ 	unsigned long nr_taken = 0;
+ 	unsigned long scan;
+ 	int file = is_file_lru(lru);
  
- 	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
- 		mz = &pn->zoneinfo[zone];
--		for_each_lru(lru)
--			INIT_LIST_HEAD(&mz->lruvec.lists[lru]);
-+		lruvec_init(&mz->lruvec, &NODE_DATA(node)->node_zones[zone]);
- 		mz->usage_in_excess = 0;
- 		mz->on_tree = false;
- 		mz->memcg = memcg;
-diff -puN mm/mmzone.c~mm-add-link-from-struct-lruvec-to-struct-zone mm/mmzone.c
---- a/mm/mmzone.c~mm-add-link-from-struct-lruvec-to-struct-zone
-+++ a/mm/mmzone.c
-@@ -86,3 +86,17 @@ int memmap_valid_within(unsigned long pf
- 	return 1;
- }
- #endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
-+
-+void lruvec_init(struct lruvec *lruvec, struct zone *zone)
-+{
-+	enum lru_list lru;
-+
-+	memset(lruvec, 0, sizeof(struct lruvec));
-+
-+	for_each_lru(lru)
-+		INIT_LIST_HEAD(&lruvec->lists[lru]);
-+
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+	lruvec->zone = zone;
-+#endif
-+}
-diff -puN mm/page_alloc.c~mm-add-link-from-struct-lruvec-to-struct-zone mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-link-from-struct-lruvec-to-struct-zone
-+++ a/mm/page_alloc.c
-@@ -4371,7 +4371,6 @@ static void __paginginit free_area_init_
- 	for (j = 0; j < MAX_NR_ZONES; j++) {
- 		struct zone *zone = pgdat->node_zones + j;
- 		unsigned long size, realsize, memmap_pages;
--		enum lru_list lru;
+-	lruvec = mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup);
+ 	src = &lruvec->lists[lru];
  
- 		size = zone_spanned_pages_in_node(nid, j, zones_size);
- 		realsize = size - zone_absent_pages_in_node(nid, j,
-@@ -4421,12 +4420,7 @@ static void __paginginit free_area_init_
- 		zone->zone_pgdat = pgdat;
+ 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
+@@ -1274,6 +1272,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	int file = is_file_lru(lru);
+ 	struct zone *zone = mz->zone;
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
++	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, mz->mem_cgroup);
  
- 		zone_pcp_init(zone);
--		for_each_lru(lru)
--			INIT_LIST_HEAD(&zone->lruvec.lists[lru]);
--		zone->lruvec.reclaim_stat.recent_rotated[0] = 0;
--		zone->lruvec.reclaim_stat.recent_rotated[1] = 0;
--		zone->lruvec.reclaim_stat.recent_scanned[0] = 0;
--		zone->lruvec.reclaim_stat.recent_scanned[1] = 0;
-+		lruvec_init(&zone->lruvec, zone);
- 		zap_zone_vm_stats(zone);
- 		zone->flags = 0;
- 		if (!size)
+ 	while (unlikely(too_many_isolated(zone, file, sc))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+@@ -1292,8 +1291,8 @@ shrink_inactive_list(unsigned long nr_to
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+-	nr_taken = isolate_lru_pages(nr_to_scan, mz, &page_list, &nr_scanned,
+-				     sc, isolate_mode, lru);
++	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &page_list,
++				     &nr_scanned, sc, isolate_mode, lru);
+ 	if (global_reclaim(sc)) {
+ 		zone->pages_scanned += nr_scanned;
+ 		if (current_is_kswapd())
+@@ -1444,6 +1443,7 @@ static void shrink_active_list(unsigned 
+ 	isolate_mode_t isolate_mode = 0;
+ 	int file = is_file_lru(lru);
+ 	struct zone *zone = mz->zone;
++	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, mz->mem_cgroup);
+ 
+ 	lru_add_drain();
+ 
+@@ -1454,8 +1454,8 @@ static void shrink_active_list(unsigned 
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+-	nr_taken = isolate_lru_pages(nr_to_scan, mz, &l_hold, &nr_scanned, sc,
+-				     isolate_mode, lru);
++	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &l_hold,
++				     &nr_scanned, sc, isolate_mode, lru);
+ 	if (global_reclaim(sc))
+ 		zone->pages_scanned += nr_scanned;
+ 
 _
-Subject: Subject: mm: add link from struct lruvec to struct zone
+Subject: Subject: mm/vmscan: push lruvec pointer into isolate_lru_pages()
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
