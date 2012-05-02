@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-push-lruvec-pointer-into-get_scan_count.patch added to -mm tree
-Date: Wed, 02 May 2012 14:21:32 -0700
-Message-ID: <20120502212132.8A8C8A0413@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-push-lruvec-pointer-into-should_continue_reclaim.patch added to -mm tree
+Date: Wed, 02 May 2012 14:21:35 -0700
+Message-ID: <20120502212135.6D048A0413@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gy0-f202.google.com ([209.85.160.202]:47594 "EHLO
-	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280Ab2EBVVd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:33 -0400
-Received: by mail-gy0-f202.google.com with SMTP id z15so123744ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:33 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:51331 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280Ab2EBVVh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:37 -0400
+Received: by eekc41 with SMTP id c41so59153eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel
 
 
 The patch titled
-     Subject: mm/vmscan: push lruvec pointer into get_scan_count()
+     Subject: mm/vmscan: push lruvec pointer into should_continue_reclaim()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-push-lruvec-pointer-into-get_scan_count.patch
+     mm-vmscan-push-lruvec-pointer-into-should_continue_reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/vmscan: push lruvec pointer into get_scan_count()
+Subject: mm/vmscan: push lruvec pointer into should_continue_reclaim()
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -43,99 +43,56 @@ Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   25 +++++++++----------------
- 1 file changed, 9 insertions(+), 16 deletions(-)
+ mm/vmscan.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-get_scan_count mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-get_scan_count
+diff -puN mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-should_continue_reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-should_continue_reclaim
 +++ a/mm/vmscan.c
-@@ -150,11 +150,6 @@ static bool global_reclaim(struct scan_c
- }
- #endif
- 
--static struct zone_reclaim_stat *get_reclaim_stat(struct mem_cgroup_zone *mz)
--{
--	return &mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup)->reclaim_stat;
--}
--
- static unsigned long get_lruvec_size(struct lruvec *lruvec, enum lru_list lru)
- {
- 	if (!mem_cgroup_disabled())
-@@ -1581,20 +1576,18 @@ static int vmscan_swappiness(struct scan
-  *
-  * nr[0] = anon pages to scan; nr[1] = file pages to scan
+@@ -1708,14 +1708,13 @@ static bool in_reclaim_compaction(struct
+  * calls try_to_compact_zone() that it will have enough free pages to succeed.
+  * It will give up earlier than that if there is difficulty reclaiming pages.
   */
--static void get_scan_count(struct mem_cgroup_zone *mz, struct scan_control *sc,
-+static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
- 			   unsigned long *nr)
+-static inline bool should_continue_reclaim(struct mem_cgroup_zone *mz,
++static inline bool should_continue_reclaim(struct lruvec *lruvec,
+ 					unsigned long nr_reclaimed,
+ 					unsigned long nr_scanned,
+ 					struct scan_control *sc)
  {
- 	unsigned long anon, file, free;
- 	unsigned long anon_prio, file_prio;
- 	unsigned long ap, fp;
--	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
-+	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
- 	u64 fraction[2], denominator;
- 	enum lru_list lru;
- 	int noswap = 0;
- 	bool force_scan = false;
+ 	unsigned long pages_for_compaction;
+ 	unsigned long inactive_lru_pages;
 -	struct lruvec *lruvec;
--
+ 
+ 	/* If not in reclaim/compaction mode, stop */
+ 	if (!in_reclaim_compaction(sc))
+@@ -1748,7 +1747,6 @@ static inline bool should_continue_recla
+ 	 * If we have not reclaimed enough pages for compaction and the
+ 	 * inactive lists are large enough, continue reclaiming
+ 	 */
 -	lruvec = mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup);
-+	struct zone *zone = lruvec_zone(lruvec);
+ 	pages_for_compaction = (2UL << sc->order);
+ 	inactive_lru_pages = get_lruvec_size(lruvec, LRU_INACTIVE_FILE);
+ 	if (nr_swap_pages > 0)
+@@ -1759,7 +1757,7 @@ static inline bool should_continue_recla
+ 		return true;
  
- 	/*
- 	 * If the zone or memcg is small, nr[l] can be 0.  This
-@@ -1606,7 +1599,7 @@ static void get_scan_count(struct mem_cg
- 	 * latencies, so it's better to scan a minimum amount there as
- 	 * well.
- 	 */
--	if (current_is_kswapd() && mz->zone->all_unreclaimable)
-+	if (current_is_kswapd() && zone->all_unreclaimable)
- 		force_scan = true;
- 	if (!global_reclaim(sc))
- 		force_scan = true;
-@@ -1626,10 +1619,10 @@ static void get_scan_count(struct mem_cg
- 		get_lruvec_size(lruvec, LRU_INACTIVE_FILE);
+ 	/* If compaction would go ahead or the allocation would succeed, stop */
+-	switch (compaction_suitable(mz->zone, sc->order)) {
++	switch (compaction_suitable(lruvec_zone(lruvec), sc->order)) {
+ 	case COMPACT_PARTIAL:
+ 	case COMPACT_CONTINUE:
+ 		return false;
+@@ -1826,7 +1824,7 @@ restart:
+ 				   sc, LRU_ACTIVE_ANON);
  
- 	if (global_reclaim(sc)) {
--		free  = zone_page_state(mz->zone, NR_FREE_PAGES);
-+		free  = zone_page_state(zone, NR_FREE_PAGES);
- 		/* If we have very few page cache pages,
- 		   force-scan anon pages. */
--		if (unlikely(file + free <= high_wmark_pages(mz->zone))) {
-+		if (unlikely(file + free <= high_wmark_pages(zone))) {
- 			fraction[0] = 1;
- 			fraction[1] = 0;
- 			denominator = 1;
-@@ -1655,7 +1648,7 @@ static void get_scan_count(struct mem_cg
- 	 *
- 	 * anon in [0], file in [1]
- 	 */
--	spin_lock_irq(&mz->zone->lru_lock);
-+	spin_lock_irq(&zone->lru_lock);
- 	if (unlikely(reclaim_stat->recent_scanned[0] > anon / 4)) {
- 		reclaim_stat->recent_scanned[0] /= 2;
- 		reclaim_stat->recent_rotated[0] /= 2;
-@@ -1676,7 +1669,7 @@ static void get_scan_count(struct mem_cg
+ 	/* reclaim/compaction might need reclaim to continue */
+-	if (should_continue_reclaim(mz, nr_reclaimed,
++	if (should_continue_reclaim(lruvec, nr_reclaimed,
+ 				    sc->nr_scanned - nr_scanned, sc))
+ 		goto restart;
  
- 	fp = (file_prio + 1) * (reclaim_stat->recent_scanned[1] + 1);
- 	fp /= reclaim_stat->recent_rotated[1] + 1;
--	spin_unlock_irq(&mz->zone->lru_lock);
-+	spin_unlock_irq(&zone->lru_lock);
- 
- 	fraction[0] = ap;
- 	fraction[1] = fp;
-@@ -1794,7 +1787,7 @@ static void shrink_mem_cgroup_zone(struc
- restart:
- 	nr_reclaimed = 0;
- 	nr_scanned = sc->nr_scanned;
--	get_scan_count(mz, sc, nr);
-+	get_scan_count(lruvec, sc, nr);
- 
- 	blk_start_plug(&plug);
- 	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
 _
-Subject: Subject: mm/vmscan: push lruvec pointer into get_scan_count()
+Subject: Subject: mm/vmscan: push lruvec pointer into should_continue_reclaim()
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
