@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low.patch added to -mm tree
-Date: Wed, 02 May 2012 14:21:25 -0700
-Message-ID: <20120502212125.E131FA0413@akpm.mtv.corp.google.com>
+Subject: + mm-vmscan-push-lruvec-pointer-into-shrink_list.patch added to -mm tree
+Date: Wed, 02 May 2012 14:21:29 -0700
+Message-ID: <20120502212129.3858EA0413@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:47395 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525Ab2EBVV1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:27 -0400
-Received: by yenq2 with SMTP id q2so123450yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:26 -0700 (PDT)
+Received: from mail-gy0-f202.google.com ([209.85.160.202]:47594 "EHLO
+	mail-gy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280Ab2EBVVa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:30 -0400
+Received: by mail-gy0-f202.google.com with SMTP id z15so123744ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel
 
 
 The patch titled
-     Subject: mm/vmscan: push lruvec pointer into inactive_list_is_low()
+     Subject: mm/vmscan: push lruvec pointer into shrink_list()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low.patch
+     mm-vmscan-push-lruvec-pointer-into-shrink_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/vmscan: push lruvec pointer into inactive_list_is_low()
-
-Switch mem_cgroup_inactive_anon_is_low() to lruvec pointers,
-mem_cgroup_get_lruvec_size() is more effective than
-mem_cgroup_zone_nr_lru_pages()
+Subject: mm/vmscan: push lruvec pointer into shrink_list()
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -47,211 +43,117 @@ Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 +++-----
- mm/memcontrol.c            |   20 +++++------------
- mm/vmscan.c                |   40 +++++++++++++++++++----------------
- 3 files changed, 32 insertions(+), 38 deletions(-)
+ mm/vmscan.c |   34 ++++++++++++----------------------
+ 1 file changed, 12 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low
-+++ a/include/linux/memcontrol.h
-@@ -119,10 +119,8 @@ void mem_cgroup_iter_break(struct mem_cg
- /*
-  * For memory reclaim.
-  */
--int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg,
--				    struct zone *zone);
--int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg,
--				    struct zone *zone);
-+int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec);
-+int mem_cgroup_inactive_file_is_low(struct lruvec *lruvec);
- int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
- unsigned long mem_cgroup_get_lruvec_size(struct lruvec *lruvec, enum lru_list);
- struct zone_reclaim_stat*
-@@ -331,13 +329,13 @@ static inline bool mem_cgroup_disabled(v
- }
- 
- static inline int
--mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
-+mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
- {
- 	return 1;
- }
- 
- static inline int
--mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg, struct zone *zone)
-+mem_cgroup_inactive_file_is_low(struct lruvec *lruvec)
- {
- 	return 1;
- }
-diff -puN mm/memcontrol.c~mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low mm/memcontrol.c
---- a/mm/memcontrol.c~mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low
-+++ a/mm/memcontrol.c
-@@ -1228,19 +1228,15 @@ int task_in_mem_cgroup(struct task_struc
- 	return ret;
- }
- 
--int mem_cgroup_inactive_anon_is_low(struct mem_cgroup *memcg, struct zone *zone)
-+int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
- {
- 	unsigned long inactive_ratio;
--	int nid = zone_to_nid(zone);
--	int zid = zone_idx(zone);
- 	unsigned long inactive;
- 	unsigned long active;
- 	unsigned long gb;
- 
--	inactive = mem_cgroup_zone_nr_lru_pages(memcg, nid, zid,
--						BIT(LRU_INACTIVE_ANON));
--	active = mem_cgroup_zone_nr_lru_pages(memcg, nid, zid,
--					      BIT(LRU_ACTIVE_ANON));
-+	inactive = mem_cgroup_get_lruvec_size(lruvec, LRU_INACTIVE_ANON);
-+	active = mem_cgroup_get_lruvec_size(lruvec, LRU_ACTIVE_ANON);
- 
- 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
- 	if (gb)
-@@ -1251,17 +1247,13 @@ int mem_cgroup_inactive_anon_is_low(stru
- 	return inactive * inactive_ratio < active;
- }
- 
--int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg, struct zone *zone)
-+int mem_cgroup_inactive_file_is_low(struct lruvec *lruvec)
- {
- 	unsigned long active;
- 	unsigned long inactive;
--	int zid = zone_idx(zone);
--	int nid = zone_to_nid(zone);
- 
--	inactive = mem_cgroup_zone_nr_lru_pages(memcg, nid, zid,
--						BIT(LRU_INACTIVE_FILE));
--	active = mem_cgroup_zone_nr_lru_pages(memcg, nid, zid,
--					      BIT(LRU_ACTIVE_FILE));
-+	inactive = mem_cgroup_get_lruvec_size(lruvec, LRU_INACTIVE_FILE);
-+	active = mem_cgroup_get_lruvec_size(lruvec, LRU_ACTIVE_FILE);
- 
- 	return (active > inactive);
- }
-diff -puN mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low
+diff -puN mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-shrink_list mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-shrink_list
 +++ a/mm/vmscan.c
-@@ -1488,13 +1488,12 @@ static int inactive_anon_is_low_global(s
- 
- /**
-  * inactive_anon_is_low - check if anonymous pages need to be deactivated
-- * @zone: zone to check
-- * @sc:   scan control of this context
-+ * @lruvec: LRU vector to check
-  *
-  * Returns true if the zone does not have enough inactive anon pages,
-  * meaning some active anon pages need to be deactivated.
+@@ -1205,7 +1205,7 @@ putback_inactive_pages(struct lruvec *lr
+  * of reclaimed pages
   */
--static int inactive_anon_is_low(struct mem_cgroup_zone *mz)
-+static int inactive_anon_is_low(struct lruvec *lruvec)
+ static noinline_for_stack unsigned long
+-shrink_inactive_list(unsigned long nr_to_scan, struct mem_cgroup_zone *mz,
++shrink_inactive_list(unsigned long nr_to_scan, struct lruvec *lruvec,
+ 		     struct scan_control *sc, enum lru_list lru)
  {
- 	/*
- 	 * If we don't have swap space, anonymous page deactivation
-@@ -1504,13 +1503,12 @@ static int inactive_anon_is_low(struct m
- 		return 0;
+ 	LIST_HEAD(page_list);
+@@ -1216,9 +1216,8 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_writeback = 0;
+ 	isolate_mode_t isolate_mode = 0;
+ 	int file = is_file_lru(lru);
+-	struct zone *zone = mz->zone;
+-	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
+-	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, mz->mem_cgroup);
++	struct zone *zone = lruvec_zone(lruvec);
++	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
  
- 	if (!mem_cgroup_disabled())
--		return mem_cgroup_inactive_anon_is_low(mz->mem_cgroup,
--						       mz->zone);
-+		return mem_cgroup_inactive_anon_is_low(lruvec);
- 
--	return inactive_anon_is_low_global(mz->zone);
-+	return inactive_anon_is_low_global(lruvec_zone(lruvec));
- }
- #else
--static inline int inactive_anon_is_low(struct mem_cgroup_zone *mz)
-+static inline int inactive_anon_is_low(struct lruvec *lruvec)
- {
- 	return 0;
- }
-@@ -1528,7 +1526,7 @@ static int inactive_file_is_low_global(s
- 
- /**
-  * inactive_file_is_low - check if file pages need to be deactivated
-- * @mz: memory cgroup and zone to check
-+ * @lruvec: LRU vector to check
-  *
-  * When the system is doing streaming IO, memory pressure here
-  * ensures that active file pages get deactivated, until more
-@@ -1540,21 +1538,20 @@ static int inactive_file_is_low_global(s
-  * This uses a different ratio than the anonymous pages, because
-  * the page cache uses a use-once replacement algorithm.
-  */
--static int inactive_file_is_low(struct mem_cgroup_zone *mz)
-+static int inactive_file_is_low(struct lruvec *lruvec)
- {
- 	if (!mem_cgroup_disabled())
--		return mem_cgroup_inactive_file_is_low(mz->mem_cgroup,
--						       mz->zone);
-+		return mem_cgroup_inactive_file_is_low(lruvec);
- 
--	return inactive_file_is_low_global(mz->zone);
-+	return inactive_file_is_low_global(lruvec_zone(lruvec));
+ 	while (unlikely(too_many_isolated(zone, file, sc))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+@@ -1373,7 +1372,7 @@ static void move_active_pages_to_lru(str
  }
  
--static int inactive_list_is_low(struct mem_cgroup_zone *mz, int file)
-+static int inactive_list_is_low(struct lruvec *lruvec, int file)
+ static void shrink_active_list(unsigned long nr_to_scan,
+-			       struct mem_cgroup_zone *mz,
++			       struct lruvec *lruvec,
+ 			       struct scan_control *sc,
+ 			       enum lru_list lru)
  {
- 	if (file)
--		return inactive_file_is_low(mz);
-+		return inactive_file_is_low(lruvec);
- 	else
--		return inactive_anon_is_low(mz);
-+		return inactive_anon_is_low(lruvec);
+@@ -1384,12 +1383,11 @@ static void shrink_active_list(unsigned 
+ 	LIST_HEAD(l_active);
+ 	LIST_HEAD(l_inactive);
+ 	struct page *page;
+-	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
++	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ 	unsigned long nr_rotated = 0;
+ 	isolate_mode_t isolate_mode = 0;
+ 	int file = is_file_lru(lru);
+-	struct zone *zone = mz->zone;
+-	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, mz->mem_cgroup);
++	struct zone *zone = lruvec_zone(lruvec);
+ 
+ 	lru_add_drain();
+ 
+@@ -1555,21 +1553,17 @@ static int inactive_list_is_low(struct l
  }
  
  static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
-@@ -1564,7 +1561,10 @@ static unsigned long shrink_list(enum lr
+-				 struct mem_cgroup_zone *mz,
+-				 struct scan_control *sc)
++				 struct lruvec *lruvec, struct scan_control *sc)
+ {
  	int file = is_file_lru(lru);
  
  	if (is_active_lru(lru)) {
--		if (inactive_list_is_low(mz, file))
-+		struct lruvec *lruvec = mem_cgroup_zone_lruvec(mz->zone,
-+							       mz->mem_cgroup);
-+
-+		if (inactive_list_is_low(lruvec, file))
- 			shrink_active_list(nr_to_scan, mz, sc, lru);
+-		struct lruvec *lruvec = mem_cgroup_zone_lruvec(mz->zone,
+-							       mz->mem_cgroup);
+-
+ 		if (inactive_list_is_low(lruvec, file))
+-			shrink_active_list(nr_to_scan, mz, sc, lru);
++			shrink_active_list(nr_to_scan, lruvec, sc, lru);
  		return 0;
  	}
-@@ -1793,6 +1793,9 @@ static void shrink_mem_cgroup_zone(struc
- 	unsigned long nr_reclaimed, nr_scanned;
- 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
- 	struct blk_plug plug;
-+	struct lruvec *lruvec;
-+
-+	lruvec = mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup);
  
- restart:
- 	nr_reclaimed = 0;
-@@ -1831,7 +1834,7 @@ restart:
- 	 * Even if we did not try to evict anon pages at all, we want to
+-	return shrink_inactive_list(nr_to_scan, mz, sc, lru);
++	return shrink_inactive_list(nr_to_scan, lruvec, sc, lru);
+ }
+ 
+ static int vmscan_swappiness(struct scan_control *sc)
+@@ -1812,7 +1806,7 @@ restart:
+ 				nr[lru] -= nr_to_scan;
+ 
+ 				nr_reclaimed += shrink_list(lru, nr_to_scan,
+-							    mz, sc);
++							    lruvec, sc);
+ 			}
+ 		}
+ 		/*
+@@ -1835,7 +1829,7 @@ restart:
  	 * rebalance the anon lru active/inactive ratio.
  	 */
--	if (inactive_anon_is_low(mz))
-+	if (inactive_anon_is_low(lruvec))
- 		shrink_active_list(SWAP_CLUSTER_MAX, mz,
+ 	if (inactive_anon_is_low(lruvec))
+-		shrink_active_list(SWAP_CLUSTER_MAX, mz,
++		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
  				   sc, LRU_ACTIVE_ANON);
  
-@@ -2264,12 +2267,13 @@ static void age_active_anon(struct zone 
- 
+ 	/* reclaim/compaction might need reclaim to continue */
+@@ -2268,13 +2262,9 @@ static void age_active_anon(struct zone 
  	memcg = mem_cgroup_iter(NULL, NULL, NULL);
  	do {
-+		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
- 		struct mem_cgroup_zone mz = {
- 			.mem_cgroup = memcg,
- 			.zone = zone,
- 		};
+ 		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
+-		struct mem_cgroup_zone mz = {
+-			.mem_cgroup = memcg,
+-			.zone = zone,
+-		};
  
--		if (inactive_anon_is_low(&mz))
-+		if (inactive_anon_is_low(lruvec))
- 			shrink_active_list(SWAP_CLUSTER_MAX, &mz,
+ 		if (inactive_anon_is_low(lruvec))
+-			shrink_active_list(SWAP_CLUSTER_MAX, &mz,
++			shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
  					   sc, LRU_ACTIVE_ANON);
  
+ 		memcg = mem_cgroup_iter(NULL, memcg, NULL);
 _
-Subject: Subject: mm/vmscan: push lruvec pointer into inactive_list_is_low()
+Subject: Subject: mm/vmscan: push lruvec pointer into shrink_list()
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
 
