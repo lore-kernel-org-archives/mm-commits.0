@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-kill-struct-mem_cgroup_zone.patch added to -mm tree
-Date: Wed, 02 May 2012 14:21:38 -0700
-Message-ID: <20120502212138.56510A0413@akpm.mtv.corp.google.com>
+Subject: + drivers-gpu-drm-gma500-mdfld_devicec-fix-build.patch added to -mm tree
+Date: Wed, 02 May 2012 15:49:58 -0700
+Message-ID: <20120502233451.C856420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:38935 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280Ab2EBVVj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 17:21:39 -0400
-Received: by vbnl22 with SMTP id l22so122888vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 14:21:39 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:44976 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752187Ab2EBXey (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 19:34:54 -0400
+Received: by wgbdt11 with SMTP id dt11so68986wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 16:34:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, airlied@redhat.com, alan@linux.intel.com
 
 
 The patch titled
-     Subject: mm/vmscan: kill struct mem_cgroup_zone
+     Subject: drivers/gpu/drm/gma500/mdfld_device.c: fix build
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-kill-struct-mem_cgroup_zone.patch
+     drivers-gpu-drm-gma500-mdfld_devicec-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,136 +33,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/vmscan: kill struct mem_cgroup_zone
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/gpu/drm/gma500/mdfld_device.c: fix build
 
-Kill struct mem_cgroup_zone and rename shrink_mem_cgroup_zone() to
-shrink_lruvec(), it always shrinks one lruvec which it takes as an
-argument.
+drivers/gpu/drm/gma500/mdfld_device.c:675: error: expected '}' before ';' token
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Repairs "cdv: continue synching up with updated reference code".
+
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Dave Airlie <airlied@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   26 ++++++--------------------
- 1 file changed, 6 insertions(+), 20 deletions(-)
+ drivers/gpu/drm/gma500/mdfld_device.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-kill-struct-mem_cgroup_zone mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-kill-struct-mem_cgroup_zone
-+++ a/mm/vmscan.c
-@@ -94,11 +94,6 @@ struct scan_control {
- 	nodemask_t	*nodemask;
- };
+diff -puN drivers/gpu/drm/gma500/mdfld_device.c~drivers-gpu-drm-gma500-mdfld_devicec-fix-build drivers/gpu/drm/gma500/mdfld_device.c
+--- a/drivers/gpu/drm/gma500/mdfld_device.c~drivers-gpu-drm-gma500-mdfld_devicec-fix-build
++++ a/drivers/gpu/drm/gma500/mdfld_device.c
+@@ -672,8 +672,8 @@ const struct psb_ops mdfld_chip_ops = {
+ 	.accel_2d = 0,
+ 	.pipes = 3,
+ 	.crtcs = 3,
+-	.lvds_mask = (1 << 1);
+-	.hdmi_mask = (1 << 1);
++	.lvds_mask = (1 << 1),
++	.hdmi_mask = (1 << 1),
+ 	.sgx_offset = MRST_SGX_OFFSET,
  
--struct mem_cgroup_zone {
--	struct mem_cgroup *mem_cgroup;
--	struct zone *zone;
--};
--
- #define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
- 
- #ifdef ARCH_HAS_PREFETCH
-@@ -1769,8 +1764,7 @@ static inline bool should_continue_recla
- /*
-  * This is a basic per-zone page freer.  Used by both kswapd and direct reclaim.
-  */
--static void shrink_mem_cgroup_zone(struct mem_cgroup_zone *mz,
--				   struct scan_control *sc)
-+static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
- {
- 	unsigned long nr[NR_LRU_LISTS];
- 	unsigned long nr_to_scan;
-@@ -1778,9 +1772,6 @@ static void shrink_mem_cgroup_zone(struc
- 	unsigned long nr_reclaimed, nr_scanned;
- 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
- 	struct blk_plug plug;
--	struct lruvec *lruvec;
--
--	lruvec = mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup);
- 
- restart:
- 	nr_reclaimed = 0;
-@@ -1842,12 +1833,10 @@ static void shrink_zone(struct zone *zon
- 
- 	memcg = mem_cgroup_iter(root, NULL, &reclaim);
- 	do {
--		struct mem_cgroup_zone mz = {
--			.mem_cgroup = memcg,
--			.zone = zone,
--		};
-+		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
-+
-+		shrink_lruvec(lruvec, sc);
- 
--		shrink_mem_cgroup_zone(&mz, sc);
- 		/*
- 		 * Limit reclaim has historically picked one memcg and
- 		 * scanned it with decreasing priority levels until
-@@ -2172,10 +2161,7 @@ unsigned long mem_cgroup_shrink_node_zon
- 		.priority = 0,
- 		.target_mem_cgroup = memcg,
- 	};
--	struct mem_cgroup_zone mz = {
--		.mem_cgroup = memcg,
--		.zone = zone,
--	};
-+	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
- 
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
-@@ -2191,7 +2177,7 @@ unsigned long mem_cgroup_shrink_node_zon
- 	 * will pick up pages from other mem cgroup's as well. We hack
- 	 * the priority and make it zero.
- 	 */
--	shrink_mem_cgroup_zone(&mz, &sc);
-+	shrink_lruvec(lruvec, &sc);
- 
- 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
- 
+ 	.chip_setup = mid_chip_setup,
 _
-Subject: Subject: mm/vmscan: kill struct mem_cgroup_zone
+Subject: Subject: drivers/gpu/drm/gma500/mdfld_device.c: fix build
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-proc-pagemap-correctly-report-non-present-ptes-and-holes-between-vmas.patch
-mm-remove-swap-token-code.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
+drivers-xen-kconfig-fix-kconfig-layout.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+percpu-remove-percpu_xxx-functions-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+brlocks-lglocks-cleanups.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
 mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
 mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
-bug-introduce-build_bug_on_invalid-macro.patch
-bug-completely-remove-code-generated-by-disabled-vm_bug_on.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
 mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-mm-vmscan-store-priority-in-struct-scan_control.patch
-mm-add-link-from-struct-lruvec-to-struct-zone.patch
-mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages.patch
-mm-vmscan-push-zone-pointer-into-shrink_page_list.patch
-mm-vmscan-remove-update_isolated_counts.patch
-mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages.patch
-mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size.patch
-mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low.patch
-mm-vmscan-push-lruvec-pointer-into-shrink_list.patch
-mm-vmscan-push-lruvec-pointer-into-get_scan_count.patch
-mm-vmscan-push-lruvec-pointer-into-should_continue_reclaim.patch
-mm-vmscan-kill-struct-mem_cgroup_zone.patch
-proc-report-file-anon-bit-in-proc-pid-pagemap.patch
-proc-smaps-carefully-handle-migration-entries.patch
-proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch
-proc-smaps-show-amount-of-hwpoison-pages.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+memcg-add-mlock-statistic-in-memorystat-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+drivers-gpu-drm-gma500-mdfld_devicec-fix-build.patch
 
