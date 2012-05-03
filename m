@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-gma500-mdfld_devicec-fix-build.patch added to -mm tree
-Date: Wed, 02 May 2012 15:49:58 -0700
-Message-ID: <20120502233451.C856420004E@hpza10.eem.corp.google.com>
+Subject: + nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch added to -mm tree
+Date: Thu, 03 May 2012 15:18:41 -0700
+Message-ID: <20120503230335.A511D100073@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:44976 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187Ab2EBXey (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 May 2012 19:34:54 -0400
-Received: by wgbdt11 with SMTP id dt11so68986wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 02 May 2012 16:34:53 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:59952 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758933Ab2ECXDh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 May 2012 19:03:37 -0400
+Received: by yenq2 with SMTP id q2so256278yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 03 May 2012 16:03:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@redhat.com, alan@linux.intel.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, mingo@elte.hu, msb@chromium.org, rjw@sisk.pl, snanda@chromium.org, srivatsa.bhat@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: drivers/gpu/drm/gma500/mdfld_device.c: fix build
+     Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-gma500-mdfld_devicec-fix-build.patch
+     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/gpu/drm/gma500/mdfld_device.c: fix build
+Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix
 
-drivers/gpu/drm/gma500/mdfld_device.c:675: error: expected '}' before ';' token
+fix section errors
 
-Repairs "cdv: continue synching up with updated reference code".
+WARNING: vmlinux.o(.text+0x13b6eb): Section mismatch in reference from the function lockup_detector_bootcpu_resume() to the function .cpuinit.text:cpu_callback()
+The function lockup_detector_bootcpu_resume() references
+the function __cpuinit cpu_callback().
+This is often because lockup_detector_bootcpu_resume lacks a __cpuinit 
+annotation or the annotation of cpu_callback is wrong.
 
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Dave Airlie <airlied@redhat.com>
+
+WARNING: vmlinux.o(.text+0x13b6f5): Section mismatch in reference from the function lockup_detector_bootcpu_resume() to the variable .cpuinit.data:cpu_nfb
+The function lockup_detector_bootcpu_resume() references
+the variable __cpuinitdata cpu_nfb.
+This is often because lockup_detector_bootcpu_resume lacks a __cpuinitdata 
+annotation or the annotation of cpu_nfb is wrong.
+
+
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mandeep Singh Baines <msb@chromium.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Sameer Nanda <snanda@chromium.org>
+Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/gma500/mdfld_device.c |    4 ++--
+ kernel/watchdog.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/gma500/mdfld_device.c~drivers-gpu-drm-gma500-mdfld_devicec-fix-build drivers/gpu/drm/gma500/mdfld_device.c
---- a/drivers/gpu/drm/gma500/mdfld_device.c~drivers-gpu-drm-gma500-mdfld_devicec-fix-build
-+++ a/drivers/gpu/drm/gma500/mdfld_device.c
-@@ -672,8 +672,8 @@ const struct psb_ops mdfld_chip_ops = {
- 	.accel_2d = 0,
- 	.pipes = 3,
- 	.crtcs = 3,
--	.lvds_mask = (1 << 1);
--	.hdmi_mask = (1 << 1);
-+	.lvds_mask = (1 << 1),
-+	.hdmi_mask = (1 << 1),
- 	.sgx_offset = MRST_SGX_OFFSET,
+diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix
++++ a/kernel/watchdog.c
+@@ -546,7 +546,7 @@ out:
+ /*
+  * Create/destroy watchdog threads as CPUs come and go:
+  */
+-static int __cpuinit
++static int
+ cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
+ {
+ 	int hotcpu = (unsigned long)hcpu;
+@@ -581,7 +581,7 @@ cpu_callback(struct notifier_block *nfb,
+ 	return NOTIFY_OK;
+ }
  
- 	.chip_setup = mid_chip_setup,
+-static struct notifier_block __cpuinitdata cpu_nfb = {
++static struct notifier_block cpu_nfb = {
+ 	.notifier_call = cpu_callback
+ };
+ 
 _
-Subject: Subject: drivers/gpu/drm/gma500/mdfld_device.c: fix build
+Subject: Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -73,6 +97,7 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+drivers-gpu-drm-gma500-mdfld_devicec-fix-build.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
 drivers-xen-kconfig-fix-kconfig-layout.patch
@@ -102,6 +127,7 @@ security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
 spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
 nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
 nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
 kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
 vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
 vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
@@ -127,5 +153,4 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-drivers-gpu-drm-gma500-mdfld_devicec-fix-build.patch
 
