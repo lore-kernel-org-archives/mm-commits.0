@@ -1,52 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch removed from -mm tree
-Date: Fri, 04 May 2012 14:07:05 -0700
-Message-ID: <20120504210705.6E447A018B@akpm.mtv.corp.google.com>
+Subject: [folded] percpu-remove-percpu_xxx-functions-fix.patch removed from -mm tree
+Date: Fri, 04 May 2012 14:07:54 -0700
+Message-ID: <20120504210754.975D8A0444@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:60753 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932567Ab2EDVHJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2012 17:07:09 -0400
-Received: by bkty5 with SMTP id y5so173446bkt.1
-        for <mm-commits@vger.kernel.org>; Fri, 04 May 2012 14:07:08 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:40692 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932636Ab2EDVHz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2012 17:07:55 -0400
+Received: by qcsp5 with SMTP id p5so356076qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 04 May 2012 14:07:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alex.shi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+     Subject: percpu-remove-percpu_xxx-functions-fix
 has been removed from the -mm tree.  Its filename was
-     x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix.patch
+     percpu-remove-percpu_xxx-functions-fix.patch
 
-This patch was dropped because it was folded into x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+This patch was dropped because it was folded into percpu-remove-percpu_xxx-functions.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
+Subject: percpu-remove-percpu_xxx-functions-fix
 
 Cc: Alex Shi <alex.shi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/process.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/fpu-internal.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/process.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix arch/x86/kernel/process.c
---- a/arch/x86/kernel/process.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs-fix
-+++ a/arch/x86/kernel/process.c
-@@ -377,7 +377,7 @@ static inline void play_dead(void)
- #ifdef CONFIG_X86_64
- void enter_idle(void)
+diff -puN arch/x86/include/asm/fpu-internal.h~percpu-remove-percpu_xxx-functions-fix arch/x86/include/asm/fpu-internal.h
+--- a/arch/x86/include/asm/fpu-internal.h~percpu-remove-percpu_xxx-functions-fix
++++ a/arch/x86/include/asm/fpu-internal.h
+@@ -290,14 +290,14 @@ static inline int __thread_has_fpu(struc
+ static inline void __thread_clear_has_fpu(struct task_struct *tsk)
  {
--	percpu_write(is_idle, 1);
-+	__this_cpu_write(is_idle, 1);
- 	atomic_notifier_call_chain(&idle_notifier, IDLE_START, NULL);
+ 	tsk->thread.fpu.has_fpu = 0;
+-	percpu_write(fpu_owner_task, NULL);
++	__this_cpu_write(fpu_owner_task, NULL);
  }
  
+ /* Must be paired with a 'clts' before! */
+ static inline void __thread_set_has_fpu(struct task_struct *tsk)
+ {
+ 	tsk->thread.fpu.has_fpu = 1;
+-	percpu_write(fpu_owner_task, tsk);
++	__this_cpu_write(fpu_owner_task, tsk);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +71,7 @@ arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.pa
 arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
 drivers-xen-kconfig-fix-kconfig-layout.patch
 x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
-percpu-remove-percpu_xxx-functions-fix.patch
+percpu-remove-percpu_xxx-functions.patch
 fs-symlink-restrictions-on-sticky-directories.patch
 fs-hardlink-creation-restrictions.patch
 brlocks-lglocks-cleanups.patch
