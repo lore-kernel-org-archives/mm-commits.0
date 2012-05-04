@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch removed from -mm tree
-Date: Fri, 04 May 2012 14:29:46 -0700
-Message-ID: <20120504212946.704DDA0274@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch removed from -mm tree
+Date: Fri, 04 May 2012 14:29:52 -0700
+Message-ID: <20120504212952.82940A0274@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:52377 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759854Ab2EDV3r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2012 17:29:47 -0400
-Received: by qcsp5 with SMTP id p5so358190qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 04 May 2012 14:29:47 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:46029 "EHLO
+	mail-vx0-f202.google.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759902Ab2EDV3x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 May 2012 17:29:53 -0400
+Received: by vcbfl13 with SMTP id fl13so236247vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 04 May 2012 14:29:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@intel.com, cl@gentwo.org, hpa@zytor.com, mingo@elte.hu, sfr@canb.auug.org.au, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: alex.shi@intel.com, davem@davemloft.net, eric.dumazet@gmail.com, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: use this_cpu_xxx to replace percpu_xxx funcs
+     Subject: net: use this_cpu_xxx replace percpu_xxx funcs
 has been removed from the -mm tree.  Its filename was
-     x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs.patch
+     net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
 
 This patch was dropped because an updated version will be merged
 
@@ -26,417 +26,95 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Alex Shi <alex.shi@intel.com>
-Subject: x86: use this_cpu_xxx to replace percpu_xxx funcs
+Subject: net: use this_cpu_xxx replace percpu_xxx funcs
 
-Since percpu_xxx() serial functions are duplicate with this_cpu_xxx(). 
-Removing percpu_xxx() definition and replacing them by this_cpu_xxx() in
-code.
+percpu_xxx funcs are duplicated with this_cpu_xxx funcs, so replace them
+for further code clean up.
 
-And further more, as Christoph Lameter's requirement, I try to use
-__this_cpu_xx to replace this_cpu_xxx if it is in preempt safe scenario.
-The preempt safe scenarios include:
-1, in irq/softirq/nmi handler
-2, protected by preempt_disable
-3, protected by spin_lock
-4, if the code context imply that it is preempt safe, like the code is
-follows or be followed a preempt safe code.
+And in preempt safe scenario, __this_cpu_xxx funcs has a bit better
+performance since __this_cpu_xxx has no redundant preempt_disable()
 
-BTW, In fact, this_cpu_xxx are same as __this_cpu_xxx since all funcs
-implement in a single instruction for x86 machine.  But it maybe other
-platforms' performance.
-
-[akpm@linux-foundation.org: fix build]
-[sfr@canb.auug.org.au: arch/x86/include/asm/desc.h: fix smp_processor_id's need for this_cpu_read]
 Signed-off-by: Alex Shi <alex.shi@intel.com>
-Acked-by: Christoph Lameter <cl@gentwo.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/desc.h           |    1 +
- arch/x86/include/asm/hardirq.h        |    9 +++++----
- arch/x86/include/asm/irq_regs.h       |    4 ++--
- arch/x86/include/asm/mmu_context.h    |   12 ++++++------
- arch/x86/include/asm/percpu.h         |    2 +-
- arch/x86/include/asm/smp.h            |    4 ++--
- arch/x86/include/asm/stackprotector.h |    4 ++--
- arch/x86/include/asm/tlbflush.h       |    4 ++--
- arch/x86/kernel/cpu/common.c          |    2 +-
- arch/x86/kernel/cpu/mcheck/mce.c      |    4 ++--
- arch/x86/kernel/i387.c                |    2 +-
- arch/x86/kernel/nmi_selftest.c        |    1 +
- arch/x86/kernel/paravirt.c            |   12 ++++++------
- arch/x86/kernel/process.c             |    2 +-
- arch/x86/kernel/process_32.c          |    2 +-
- arch/x86/kernel/process_64.c          |   10 +++++-----
- arch/x86/mm/tlb.c                     |   10 +++++-----
- include/linux/topology.h              |    4 ++--
- 18 files changed, 46 insertions(+), 43 deletions(-)
+ net/netfilter/xt_TEE.c |   12 ++++++------
+ net/socket.c           |    4 ++--
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/include/asm/desc.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/include/asm/desc.h
---- a/arch/x86/include/asm/desc.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/include/asm/desc.h
-@@ -6,6 +6,7 @@
- #include <asm/mmu.h>
+diff -puN net/netfilter/xt_TEE.c~net-use-this_cpu_xxx-replace-percpu_xxx-funcs net/netfilter/xt_TEE.c
+--- a/net/netfilter/xt_TEE.c~net-use-this_cpu_xxx-replace-percpu_xxx-funcs
++++ a/net/netfilter/xt_TEE.c
+@@ -87,7 +87,7 @@ tee_tg4(struct sk_buff *skb, const struc
+ 	const struct xt_tee_tginfo *info = par->targinfo;
+ 	struct iphdr *iph;
  
- #include <linux/smp.h>
-+#include <linux/percpu.h>
- 
- static inline void fill_ldt(struct desc_struct *desc, const struct user_desc *info)
- {
-diff -puN arch/x86/include/asm/hardirq.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/include/asm/hardirq.h
---- a/arch/x86/include/asm/hardirq.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/include/asm/hardirq.h
-@@ -35,14 +35,15 @@ DECLARE_PER_CPU_SHARED_ALIGNED(irq_cpust
- 
- #define __ARCH_IRQ_STAT
- 
--#define inc_irq_stat(member)	percpu_inc(irq_stat.member)
-+#define inc_irq_stat(member)	__this_cpu_inc(irq_stat.member)
- 
--#define local_softirq_pending()	percpu_read(irq_stat.__softirq_pending)
-+#define local_softirq_pending()	__this_cpu_read(irq_stat.__softirq_pending)
- 
- #define __ARCH_SET_SOFTIRQ_PENDING
- 
--#define set_softirq_pending(x)	percpu_write(irq_stat.__softirq_pending, (x))
--#define or_softirq_pending(x)	percpu_or(irq_stat.__softirq_pending, (x))
-+#define set_softirq_pending(x)	\
-+		__this_cpu_write(irq_stat.__softirq_pending, (x))
-+#define or_softirq_pending(x)	__this_cpu_or(irq_stat.__softirq_pending, (x))
- 
- extern void ack_bad_irq(unsigned int irq);
- 
-diff -puN arch/x86/include/asm/irq_regs.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/include/asm/irq_regs.h
---- a/arch/x86/include/asm/irq_regs.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/include/asm/irq_regs.h
-@@ -15,7 +15,7 @@ DECLARE_PER_CPU(struct pt_regs *, irq_re
- 
- static inline struct pt_regs *get_irq_regs(void)
- {
--	return percpu_read(irq_regs);
-+	return __this_cpu_read(irq_regs);
- }
- 
- static inline struct pt_regs *set_irq_regs(struct pt_regs *new_regs)
-@@ -23,7 +23,7 @@ static inline struct pt_regs *set_irq_re
- 	struct pt_regs *old_regs;
- 
- 	old_regs = get_irq_regs();
--	percpu_write(irq_regs, new_regs);
-+	__this_cpu_write(irq_regs, new_regs);
- 
- 	return old_regs;
- }
-diff -puN arch/x86/include/asm/mmu_context.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/include/asm/mmu_context.h
---- a/arch/x86/include/asm/mmu_context.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/include/asm/mmu_context.h
-@@ -25,8 +25,8 @@ void destroy_context(struct mm_struct *m
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
- #ifdef CONFIG_SMP
--	if (percpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
--		percpu_write(cpu_tlbstate.state, TLBSTATE_LAZY);
-+	if (__this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
-+		__this_cpu_write(cpu_tlbstate.state, TLBSTATE_LAZY);
- #endif
- }
- 
-@@ -37,8 +37,8 @@ static inline void switch_mm(struct mm_s
- 
- 	if (likely(prev != next)) {
- #ifdef CONFIG_SMP
--		percpu_write(cpu_tlbstate.state, TLBSTATE_OK);
--		percpu_write(cpu_tlbstate.active_mm, next);
-+		__this_cpu_write(cpu_tlbstate.state, TLBSTATE_OK);
-+		__this_cpu_write(cpu_tlbstate.active_mm, next);
- #endif
- 		cpumask_set_cpu(cpu, mm_cpumask(next));
- 
-@@ -56,8 +56,8 @@ static inline void switch_mm(struct mm_s
- 	}
- #ifdef CONFIG_SMP
- 	else {
--		percpu_write(cpu_tlbstate.state, TLBSTATE_OK);
--		BUG_ON(percpu_read(cpu_tlbstate.active_mm) != next);
-+		__this_cpu_write(cpu_tlbstate.state, TLBSTATE_OK);
-+		BUG_ON(__this_cpu_read(cpu_tlbstate.active_mm) != next);
- 
- 		if (!cpumask_test_and_set_cpu(cpu, mm_cpumask(next))) {
- 			/* We were in lazy tlb mode and leave_mm disabled
-diff -puN arch/x86/include/asm/percpu.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/include/asm/percpu.h
---- a/arch/x86/include/asm/percpu.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/include/asm/percpu.h
-@@ -46,7 +46,7 @@
- 
- #ifdef CONFIG_SMP
- #define __percpu_prefix		"%%"__stringify(__percpu_seg)":"
--#define __my_cpu_offset		percpu_read(this_cpu_off)
-+#define __my_cpu_offset		__this_cpu_read(this_cpu_off)
- 
- /*
-  * Compared to the generic __my_cpu_offset version, the following
-diff -puN arch/x86/include/asm/smp.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/include/asm/smp.h
---- a/arch/x86/include/asm/smp.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/include/asm/smp.h
-@@ -188,11 +188,11 @@ extern unsigned disabled_cpus __cpuinitd
-  * from the initial startup. We map APIC_BASE very early in page_setup(),
-  * so this is correct in the x86 case.
-  */
--#define raw_smp_processor_id() (percpu_read(cpu_number))
-+#define raw_smp_processor_id() (this_cpu_read(cpu_number))
- extern int safe_smp_processor_id(void);
- 
- #elif defined(CONFIG_X86_64_SMP)
--#define raw_smp_processor_id() (percpu_read(cpu_number))
-+#define raw_smp_processor_id() (this_cpu_read(cpu_number))
- 
- #define stack_smp_processor_id()					\
- ({								\
-diff -puN arch/x86/include/asm/stackprotector.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/include/asm/stackprotector.h
---- a/arch/x86/include/asm/stackprotector.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/include/asm/stackprotector.h
-@@ -75,9 +75,9 @@ static __always_inline void boot_init_st
- 
- 	current->stack_canary = canary;
- #ifdef CONFIG_X86_64
--	percpu_write(irq_stack_union.stack_canary, canary);
-+	__this_cpu_write(irq_stack_union.stack_canary, canary);
- #else
--	percpu_write(stack_canary.canary, canary);
-+	__this_cpu_write(stack_canary.canary, canary);
- #endif
- }
- 
-diff -puN arch/x86/include/asm/tlbflush.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/include/asm/tlbflush.h
---- a/arch/x86/include/asm/tlbflush.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/include/asm/tlbflush.h
-@@ -156,8 +156,8 @@ DECLARE_PER_CPU_SHARED_ALIGNED(struct tl
- 
- static inline void reset_lazy_tlbstate(void)
- {
--	percpu_write(cpu_tlbstate.state, 0);
--	percpu_write(cpu_tlbstate.active_mm, &init_mm);
-+	__this_cpu_write(cpu_tlbstate.state, 0);
-+	__this_cpu_write(cpu_tlbstate.active_mm, &init_mm);
- }
- 
- #endif	/* SMP */
-diff -puN arch/x86/kernel/cpu/common.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -1185,7 +1185,7 @@ void __cpuinit cpu_init(void)
- 	oist = &per_cpu(orig_ist, cpu);
- 
- #ifdef CONFIG_NUMA
--	if (cpu != 0 && percpu_read(numa_node) == 0 &&
-+	if (cpu != 0 && __this_cpu_read(numa_node) == 0 &&
- 	    early_cpu_to_node(cpu) != NUMA_NO_NODE)
- 		set_numa_node(early_cpu_to_node(cpu));
- #endif
-diff -puN arch/x86/kernel/cpu/mcheck/mce.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/kernel/cpu/mcheck/mce.c
---- a/arch/x86/kernel/cpu/mcheck/mce.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -583,7 +583,7 @@ void machine_check_poll(enum mcp_flags f
- 	struct mce m;
- 	int i;
- 
--	percpu_inc(mce_poll_count);
-+	__this_cpu_inc(mce_poll_count);
- 
- 	mce_gather_info(&m, NULL);
- 
-@@ -1015,7 +1015,7 @@ void do_machine_check(struct pt_regs *re
- 
- 	atomic_inc(&mce_entry);
- 
--	percpu_inc(mce_exception_count);
-+	__this_cpu_inc(mce_exception_count);
- 
- 	if (!banks)
- 		goto out;
-diff -puN arch/x86/kernel/i387.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/kernel/i387.c
---- a/arch/x86/kernel/i387.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/kernel/i387.c
-@@ -88,7 +88,7 @@ void kernel_fpu_begin(void)
- 		__thread_clear_has_fpu(me);
- 		/* We do 'stts()' in kernel_fpu_end() */
- 	} else {
--		percpu_write(fpu_owner_task, NULL);
-+		__this_cpu_write(fpu_owner_task, NULL);
- 		clts();
- 	}
- }
-diff -puN arch/x86/kernel/nmi_selftest.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/kernel/nmi_selftest.c
---- a/arch/x86/kernel/nmi_selftest.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/kernel/nmi_selftest.c
-@@ -13,6 +13,7 @@
- #include <linux/cpumask.h>
- #include <linux/delay.h>
- #include <linux/init.h>
-+#include <linux/percpu.h>
- 
- #include <asm/apic.h>
- #include <asm/nmi.h>
-diff -puN arch/x86/kernel/paravirt.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/kernel/paravirt.c
---- a/arch/x86/kernel/paravirt.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/kernel/paravirt.c
-@@ -241,16 +241,16 @@ static DEFINE_PER_CPU(enum paravirt_lazy
- 
- static inline void enter_lazy(enum paravirt_lazy_mode mode)
- {
--	BUG_ON(percpu_read(paravirt_lazy_mode) != PARAVIRT_LAZY_NONE);
-+	BUG_ON(__this_cpu_read(paravirt_lazy_mode) != PARAVIRT_LAZY_NONE);
- 
--	percpu_write(paravirt_lazy_mode, mode);
-+	__this_cpu_write(paravirt_lazy_mode, mode);
- }
- 
- static void leave_lazy(enum paravirt_lazy_mode mode)
- {
--	BUG_ON(percpu_read(paravirt_lazy_mode) != mode);
-+	BUG_ON(__this_cpu_read(paravirt_lazy_mode) != mode);
- 
--	percpu_write(paravirt_lazy_mode, PARAVIRT_LAZY_NONE);
-+	__this_cpu_write(paravirt_lazy_mode, PARAVIRT_LAZY_NONE);
- }
- 
- void paravirt_enter_lazy_mmu(void)
-@@ -267,7 +267,7 @@ void paravirt_start_context_switch(struc
- {
- 	BUG_ON(preemptible());
- 
--	if (percpu_read(paravirt_lazy_mode) == PARAVIRT_LAZY_MMU) {
-+	if (__this_cpu_read(paravirt_lazy_mode) == PARAVIRT_LAZY_MMU) {
- 		arch_leave_lazy_mmu_mode();
- 		set_ti_thread_flag(task_thread_info(prev), TIF_LAZY_MMU_UPDATES);
- 	}
-@@ -289,7 +289,7 @@ enum paravirt_lazy_mode paravirt_get_laz
- 	if (in_interrupt())
- 		return PARAVIRT_LAZY_NONE;
- 
--	return percpu_read(paravirt_lazy_mode);
-+	return __this_cpu_read(paravirt_lazy_mode);
- }
- 
- void arch_flush_lazy_mmu_mode(void)
-diff -puN arch/x86/kernel/process_32.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/kernel/process_32.c
---- a/arch/x86/kernel/process_32.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/kernel/process_32.c
-@@ -302,7 +302,7 @@ __switch_to(struct task_struct *prev_p, 
- 
- 	switch_fpu_finish(next_p, fpu);
- 
--	percpu_write(current_task, next_p);
-+	__this_cpu_write(current_task, next_p);
- 
- 	return prev_p;
- }
-diff -puN arch/x86/kernel/process_64.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/kernel/process_64.c
---- a/arch/x86/kernel/process_64.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/kernel/process_64.c
-@@ -237,7 +237,7 @@ start_thread_common(struct pt_regs *regs
- 	current->thread.usersp	= new_sp;
- 	regs->ip		= new_ip;
- 	regs->sp		= new_sp;
--	percpu_write(old_rsp, new_sp);
-+	this_cpu_write(old_rsp, new_sp);
- 	regs->cs		= _cs;
- 	regs->ss		= _ss;
- 	regs->flags		= X86_EFLAGS_IF;
-@@ -359,11 +359,11 @@ __switch_to(struct task_struct *prev_p, 
+-	if (percpu_read(tee_active))
++	if (__this_cpu_read(tee_active))
+ 		return XT_CONTINUE;
  	/*
- 	 * Switch the PDA and FPU contexts.
- 	 */
--	prev->usersp = percpu_read(old_rsp);
--	percpu_write(old_rsp, next->usersp);
--	percpu_write(current_task, next_p);
-+	prev->usersp = __this_cpu_read(old_rsp);
-+	__this_cpu_write(old_rsp, next->usersp);
-+	__this_cpu_write(current_task, next_p);
+ 	 * Copy the skb, and route the copy. Will later return %XT_CONTINUE for
+@@ -124,9 +124,9 @@ tee_tg4(struct sk_buff *skb, const struc
+ 	ip_send_check(iph);
  
--	percpu_write(kernel_stack,
-+	__this_cpu_write(kernel_stack,
- 		  (unsigned long)task_stack_page(next_p) +
- 		  THREAD_SIZE - KERNEL_STACK_OFFSET);
- 
-diff -puN arch/x86/mm/tlb.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/mm/tlb.c
-@@ -61,8 +61,8 @@ static DEFINE_PER_CPU_READ_MOSTLY(int, t
-  */
- void leave_mm(int cpu)
+ 	if (tee_tg_route4(skb, info)) {
+-		percpu_write(tee_active, true);
++		__this_cpu_write(tee_active, true);
+ 		ip_local_out(skb);
+-		percpu_write(tee_active, false);
++		__this_cpu_write(tee_active, false);
+ 	} else {
+ 		kfree_skb(skb);
+ 	}
+@@ -168,7 +168,7 @@ tee_tg6(struct sk_buff *skb, const struc
  {
--	struct mm_struct *active_mm = percpu_read(cpu_tlbstate.active_mm);
--	if (percpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
-+	struct mm_struct *active_mm = __this_cpu_read(cpu_tlbstate.active_mm);
-+	if (__this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK)
- 		BUG();
- 	if (cpumask_test_cpu(cpu, mm_cpumask(active_mm))) {
- 		cpumask_clear_cpu(cpu, mm_cpumask(active_mm));
-@@ -154,8 +154,8 @@ void smp_invalidate_interrupt(struct pt_
- 		 * BUG();
- 		 */
+ 	const struct xt_tee_tginfo *info = par->targinfo;
  
--	if (f->flush_mm == percpu_read(cpu_tlbstate.active_mm)) {
--		if (percpu_read(cpu_tlbstate.state) == TLBSTATE_OK) {
-+	if (f->flush_mm == __this_cpu_read(cpu_tlbstate.active_mm)) {
-+		if (__this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK) {
- 			if (f->flush_va == TLB_FLUSH_ALL)
- 				local_flush_tlb();
- 			else
-@@ -324,7 +324,7 @@ void flush_tlb_page(struct vm_area_struc
- static void do_flush_tlb_all(void *info)
- {
- 	__flush_tlb_all();
--	if (percpu_read(cpu_tlbstate.state) == TLBSTATE_LAZY)
-+	if (__this_cpu_read(cpu_tlbstate.state) == TLBSTATE_LAZY)
- 		leave_mm(smp_processor_id());
+-	if (percpu_read(tee_active))
++	if (__this_cpu_read(tee_active))
+ 		return XT_CONTINUE;
+ 	skb = pskb_copy(skb, GFP_ATOMIC);
+ 	if (skb == NULL)
+@@ -186,9 +186,9 @@ tee_tg6(struct sk_buff *skb, const struc
+ 		--iph->hop_limit;
+ 	}
+ 	if (tee_tg_route6(skb, info)) {
+-		percpu_write(tee_active, true);
++		__this_cpu_write(tee_active, true);
+ 		ip6_local_out(skb);
+-		percpu_write(tee_active, false);
++		__this_cpu_write(tee_active, false);
+ 	} else {
+ 		kfree_skb(skb);
+ 	}
+diff -puN net/socket.c~net-use-this_cpu_xxx-replace-percpu_xxx-funcs net/socket.c
+--- a/net/socket.c~net-use-this_cpu_xxx-replace-percpu_xxx-funcs
++++ a/net/socket.c
+@@ -479,7 +479,7 @@ static struct socket *sock_alloc(void)
+ 	inode->i_uid = current_fsuid();
+ 	inode->i_gid = current_fsgid();
+ 
+-	percpu_add(sockets_in_use, 1);
++	this_cpu_add(sockets_in_use, 1);
+ 	return sock;
  }
  
-diff -puN include/linux/topology.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs include/linux/topology.h
---- a/include/linux/topology.h~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/include/linux/topology.h
-@@ -239,7 +239,7 @@ static inline int cpu_to_node(int cpu)
- #ifndef set_numa_node
- static inline void set_numa_node(int node)
- {
--	percpu_write(numa_node, node);
-+	__this_cpu_write(numa_node, node);
- }
- #endif
+@@ -522,7 +522,7 @@ void sock_release(struct socket *sock)
+ 	if (rcu_dereference_protected(sock->wq, 1)->fasync_list)
+ 		printk(KERN_ERR "sock_release: fasync list not empty!\n");
  
-@@ -274,7 +274,7 @@ DECLARE_PER_CPU(int, _numa_mem_);
- #ifndef set_numa_mem
- static inline void set_numa_mem(int node)
- {
--	percpu_write(_numa_mem_, node);
-+	__this_cpu_write(_numa_mem_, node);
- }
- #endif
- 
-diff -puN arch/x86/kernel/process.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs arch/x86/kernel/process.c
---- a/arch/x86/kernel/process.c~x86-use-this_cpu_xxx-to-replace-percpu_xxx-funcs
-+++ a/arch/x86/kernel/process.c
-@@ -377,7 +377,7 @@ static inline void play_dead(void)
- #ifdef CONFIG_X86_64
- void enter_idle(void)
- {
--	percpu_write(is_idle, 1);
-+	__this_cpu_write(is_idle, 1);
- 	atomic_notifier_call_chain(&idle_notifier, IDLE_START, NULL);
- }
- 
+-	percpu_sub(sockets_in_use, 1);
++	this_cpu_sub(sockets_in_use, 1);
+ 	if (!sock->file) {
+ 		iput(SOCK_INODE(sock));
+ 		return;
 _
 
 Patches currently in -mm which might be from alex.shi@intel.com are
 
-x86-change-percpu_read_stable-to-this_cpu_read_stable.patch
-net-use-this_cpu_xxx-replace-percpu_xxx-funcs.patch
 percpu-remove-percpu_xxx-functions.patch
 mm-move-is_vma_temporary_stack-declaration-to-huge_mmh.patch
 
