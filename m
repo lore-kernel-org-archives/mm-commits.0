@@ -1,69 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-platform-geode-net5501c-change-active_low-to-0-for-led-driver.patch removed from -mm tree
-Date: Mon, 07 May 2012 14:19:00 -0700
-Message-ID: <20120507211900.B6CF5A0363@akpm.mtv.corp.google.com>
+Subject: [merged] intel_mid_powerbtn-mark-irq-as-irqf_no_suspend.patch removed from -mm tree
+Date: Mon, 07 May 2012 14:20:27 -0700
+Message-ID: <20120507212027.80C45A0363@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:58070 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932084Ab2EGVTC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2012 17:19:02 -0400
-Received: by yhgm50 with SMTP id m50so634030yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 07 May 2012 14:19:01 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:38564 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486Ab2EGVUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2012 17:20:31 -0400
+Received: by bkty5 with SMTP id y5so284733bkt.1
+        for <mm-commits@vger.kernel.org>; Mon, 07 May 2012 14:20:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gurligebis@gentoo.org, hpa@zytor.com, mingo@redhat.com, philipp@redfish-solutions.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: yong.y.wang@intel.com, alan@linux.intel.com, hpa@zytor.com, kangkai.yin@intel.com, kirill.shutemov@linux.intel.com, mingo@elte.hu, mjg@redhat.com, pierre.tardy@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/platform/geode/net5501.c: change active_low to 0 for LED driver
+     Subject: intel_mid_powerbtn: mark irq as IRQF_NO_SUSPEND
 has been removed from the -mm tree.  Its filename was
-     arch-x86-platform-geode-net5501c-change-active_low-to-0-for-led-driver.patch
+     intel_mid_powerbtn-mark-irq-as-irqf_no_suspend.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Bjarke Istrup Pedersen <gurligebis@gentoo.org>
-Subject: arch/x86/platform/geode/net5501.c: change active_low to 0 for LED driver
+From: Yong Wang <yong.y.wang@intel.com>
+Subject: intel_mid_powerbtn: mark irq as IRQF_NO_SUSPEND
 
-It seems that there was an error with the active_low = 1 for the
-LED, since it should be set to 0 (meaning that active is high,
-since 0 is false, hence the confusion.
+So that the power button still wakes up the platform.
 
-The wiki article about it confuses it, since it contradicts itself,
-regarding what turns on the LED.
-
-I have tested 3.4-rc2 on my net5501 with this patch, and it makes the LED
-behave correctly, where "none" turns it off, and "default-on" turns it on,
-when echoed onto the trigger "file" in /sys/class/leds.
-
-Signed-off-by: Bjarke Istrup Pedersen <gurligebis@gentoo.org>
+Signed-off-by: Pierre Tardy <pierre.tardy@intel.com>
+Tested-by: Kangkai Yin <kangkai.yin@intel.com>
+Tested-by: Yong Wang <yong.y.wang@intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Matthew Garrett <mjg@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Philip Prindeville <philipp@redfish-solutions.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/geode/net5501.c |    2 +-
+ drivers/platform/x86/intel_mid_powerbtn.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/platform/geode/net5501.c~arch-x86-platform-geode-net5501c-change-active_low-to-0-for-led-driver arch/x86/platform/geode/net5501.c
---- a/arch/x86/platform/geode/net5501.c~arch-x86-platform-geode-net5501c-change-active_low-to-0-for-led-driver
-+++ a/arch/x86/platform/geode/net5501.c
-@@ -63,7 +63,7 @@ static struct gpio_led net5501_leds[] = 
- 		.name = "net5501:1",
- 		.gpio = 6,
- 		.default_trigger = "default-on",
--		.active_low = 1,
-+		.active_low = 0,
- 	},
- };
+diff -puN drivers/platform/x86/intel_mid_powerbtn.c~intel_mid_powerbtn-mark-irq-as-irqf_no_suspend drivers/platform/x86/intel_mid_powerbtn.c
+--- a/drivers/platform/x86/intel_mid_powerbtn.c~intel_mid_powerbtn-mark-irq-as-irqf_no_suspend
++++ a/drivers/platform/x86/intel_mid_powerbtn.c
+@@ -78,7 +78,7 @@ static int __devinit mfld_pb_probe(struc
  
+ 	input_set_capability(input, EV_KEY, KEY_POWER);
+ 
+-	error = request_threaded_irq(irq, NULL, mfld_pb_isr, 0,
++	error = request_threaded_irq(irq, NULL, mfld_pb_isr, IRQF_NO_SUSPEND,
+ 			DRIVER_NAME, input);
+ 	if (error) {
+ 		dev_err(&pdev->dev, "Unable to request irq %d for mfld power"
 _
 
-Patches currently in -mm which might be from gurligebis@gentoo.org are
+Patches currently in -mm which might be from yong.y.wang@intel.com are
 
 
