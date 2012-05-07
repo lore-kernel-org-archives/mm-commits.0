@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere.patch added to -mm tree
-Date: Mon, 07 May 2012 14:27:53 -0700
-Message-ID: <20120507212753.EA764A0444@akpm.mtv.corp.google.com>
+Subject: + mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata.patch added to -mm tree
+Date: Mon, 07 May 2012 14:27:48 -0700
+Message-ID: <20120507212748.E0760A0444@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-fa0-f74.google.com ([209.85.161.74]:53315 "EHLO
 	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932449Ab2EGV1z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2012 17:27:55 -0400
-Received: by mail-fa0-f74.google.com with SMTP id a25so285342faa.1
-        for <mm-commits@vger.kernel.org>; Mon, 07 May 2012 14:27:55 -0700 (PDT)
+	with ESMTP id S932355Ab2EGV1v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2012 17:27:51 -0400
+Received: by faaa25 with SMTP id a25so285342faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 07 May 2012 14:27:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, davem@davemloft.net, shangw@linux.vnet.ibm.com, tj@kerne
 
 
 The patch titled
-     Subject: mm: bootmem: allocate in order node+goal, goal, node, anywhere
+     Subject: mm: bootmem: rename alloc_bootmem_core to alloc_bootmem_bdata
 has been added to the -mm tree.  Its filename is
-     mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere.patch
+     mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: bootmem: allocate in order node+goal, goal, node, anywhere
+Subject: mm: bootmem: rename alloc_bootmem_core to alloc_bootmem_bdata
 
-Match the nobootmem version of __alloc_bootmem_node.  Try to satisfy both
-the node and the goal, then just the goal, then just the node, then
-allocate anywhere before panicking.
+Callsites need to provide a bootmem_data_t *, make the naming more
+descriptive.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Tejun Heo <tj@kernel.org>
@@ -48,42 +47,77 @@ Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ mm/bootmem.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/bootmem.c~mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere mm/bootmem.c
---- a/mm/bootmem.c~mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere
+diff -puN mm/bootmem.c~mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata
 +++ a/mm/bootmem.c
-@@ -704,6 +704,7 @@ static void * __init ___alloc_bootmem_no
- {
- 	void *ptr;
- 
-+again:
- 	ptr = alloc_arch_preferred_bootmem(bdata, size, align, goal, limit);
- 	if (ptr)
- 		return ptr;
-@@ -712,7 +713,18 @@ static void * __init ___alloc_bootmem_no
- 	if (ptr)
- 		return ptr;
- 
--	return ___alloc_bootmem(size, align, goal, limit);
-+	ptr = alloc_bootmem_core(size, align, goal, limit);
-+	if (ptr)
-+		return ptr;
-+
-+	if (goal) {
-+		goal = 0;
-+		goto again;
-+	}
-+
-+	printk(KERN_ALERT "bootmem alloc of %lu bytes failed!\n", size);
-+	panic("Out of memory");
-+	return NULL;
+@@ -468,7 +468,7 @@ static unsigned long __init align_off(st
+ 	return ALIGN(base + off, align) - base;
  }
  
- /**
+-static void * __init alloc_bootmem_core(struct bootmem_data *bdata,
++static void * __init alloc_bootmem_bdata(struct bootmem_data *bdata,
+ 					unsigned long size, unsigned long align,
+ 					unsigned long goal, unsigned long limit)
+ {
+@@ -589,7 +589,7 @@ static void * __init alloc_arch_preferre
+ 		p_bdata = bootmem_arch_preferred_node(bdata, size, align,
+ 							goal, limit);
+ 		if (p_bdata)
+-			return alloc_bootmem_core(p_bdata, size, align,
++			return alloc_bootmem_bdata(p_bdata, size, align,
+ 							goal, limit);
+ 	}
+ #endif
+@@ -615,7 +615,7 @@ restart:
+ 		if (limit && bdata->node_min_pfn >= PFN_DOWN(limit))
+ 			break;
+ 
+-		region = alloc_bootmem_core(bdata, size, align, goal, limit);
++		region = alloc_bootmem_bdata(bdata, size, align, goal, limit);
+ 		if (region)
+ 			return region;
+ 	}
+@@ -695,7 +695,7 @@ static void * __init ___alloc_bootmem_no
+ 	if (ptr)
+ 		return ptr;
+ 
+-	ptr = alloc_bootmem_core(bdata, size, align, goal, limit);
++	ptr = alloc_bootmem_bdata(bdata, size, align, goal, limit);
+ 	if (ptr)
+ 		return ptr;
+ 
+@@ -744,7 +744,7 @@ void * __init __alloc_bootmem_node_high(
+ 		unsigned long new_goal;
+ 
+ 		new_goal = MAX_DMA32_PFN << PAGE_SHIFT;
+-		ptr = alloc_bootmem_core(pgdat->bdata, size, align,
++		ptr = alloc_bootmem_bdata(pgdat->bdata, size, align,
+ 						 new_goal, 0);
+ 		if (ptr)
+ 			return ptr;
+@@ -773,7 +773,7 @@ void * __init alloc_bootmem_section(unsi
+ 	goal = pfn << PAGE_SHIFT;
+ 	bdata = &bootmem_node_data[early_pfn_to_nid(pfn)];
+ 
+-	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, 0);
++	return alloc_bootmem_bdata(bdata, size, SMP_CACHE_BYTES, goal, 0);
+ }
+ #endif
+ 
+@@ -789,7 +789,7 @@ void * __init __alloc_bootmem_node_nopan
+ 	if (ptr)
+ 		return ptr;
+ 
+-	ptr = alloc_bootmem_core(pgdat->bdata, size, align, goal, 0);
++	ptr = alloc_bootmem_bdata(pgdat->bdata, size, align, goal, 0);
+ 	if (ptr)
+ 		return ptr;
+ 
 _
-Subject: Subject: mm: bootmem: allocate in order node+goal, goal, node, anywhere
+Subject: Subject: mm: bootmem: rename alloc_bootmem_core to alloc_bootmem_bdata
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
