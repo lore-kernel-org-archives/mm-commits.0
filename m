@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bootmem-split-out-goal-to-node-mapping-from-goal-dropping.patch added to -mm tree
-Date: Mon, 07 May 2012 14:27:50 -0700
-Message-ID: <20120507212750.E310AA0444@akpm.mtv.corp.google.com>
+Subject: + mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere.patch added to -mm tree
+Date: Mon, 07 May 2012 14:27:53 -0700
+Message-ID: <20120507212753.EA764A0444@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-fa0-f74.google.com ([209.85.161.74]:53315 "EHLO
 	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932449Ab2EGV1w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2012 17:27:52 -0400
+	with ESMTP id S932449Ab2EGV1z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 May 2012 17:27:55 -0400
 Received: by mail-fa0-f74.google.com with SMTP id a25so285342faa.1
-        for <mm-commits@vger.kernel.org>; Mon, 07 May 2012 14:27:52 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Mon, 07 May 2012 14:27:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, davem@davemloft.net, shangw@linux.vnet.ibm.com, tj@kerne
 
 
 The patch titled
-     Subject: mm: bootmem: split out goal-to-node mapping from goal dropping
+     Subject: mm: bootmem: allocate in order node+goal, goal, node, anywhere
 has been added to the -mm tree.  Its filename is
-     mm-bootmem-split-out-goal-to-node-mapping-from-goal-dropping.patch
+     mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: bootmem: split out goal-to-node mapping from goal dropping
+Subject: mm: bootmem: allocate in order node+goal, goal, node, anywhere
 
-Matching the desired goal to the right node is one thing, dropping the
-goal when it can not be satisfied is another.  Split this into separate
-functions so that subsequent patches can use the node-finding but drop and
-handle the goal fallback on their own terms.
+Match the nobootmem version of __alloc_bootmem_node.  Try to satisfy both
+the node and the goal, then just the goal, then just the node, then
+allocate anywhere before panicking.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Tejun Heo <tj@kernel.org>
@@ -49,52 +48,42 @@ Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ mm/bootmem.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN mm/bootmem.c~mm-bootmem-split-out-goal-to-node-mapping-from-goal-dropping mm/bootmem.c
---- a/mm/bootmem.c~mm-bootmem-split-out-goal-to-node-mapping-from-goal-dropping
+diff -puN mm/bootmem.c~mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere
 +++ a/mm/bootmem.c
-@@ -596,7 +596,7 @@ static void * __init alloc_arch_preferre
- 	return NULL;
- }
+@@ -704,6 +704,7 @@ static void * __init ___alloc_bootmem_no
+ {
+ 	void *ptr;
  
--static void * __init ___alloc_bootmem_nopanic(unsigned long size,
-+static void * __init alloc_bootmem_core(unsigned long size,
- 					unsigned long align,
- 					unsigned long goal,
- 					unsigned long limit)
-@@ -604,7 +604,6 @@ static void * __init ___alloc_bootmem_no
- 	bootmem_data_t *bdata;
- 	void *region;
++again:
+ 	ptr = alloc_arch_preferred_bootmem(bdata, size, align, goal, limit);
+ 	if (ptr)
+ 		return ptr;
+@@ -712,7 +713,18 @@ static void * __init ___alloc_bootmem_no
+ 	if (ptr)
+ 		return ptr;
  
--restart:
- 	region = alloc_arch_preferred_bootmem(NULL, size, align, goal, limit);
- 	if (region)
- 		return region;
-@@ -620,6 +619,20 @@ restart:
- 			return region;
- 	}
- 
-+	return NULL;
-+}
-+
-+static void * __init ___alloc_bootmem_nopanic(unsigned long size,
-+					      unsigned long align,
-+					      unsigned long goal,
-+					      unsigned long limit)
-+{
-+	void *ptr;
-+
-+restart:
+-	return ___alloc_bootmem(size, align, goal, limit);
 +	ptr = alloc_bootmem_core(size, align, goal, limit);
 +	if (ptr)
 +		return ptr;
- 	if (goal) {
- 		goal = 0;
- 		goto restart;
++
++	if (goal) {
++		goal = 0;
++		goto again;
++	}
++
++	printk(KERN_ALERT "bootmem alloc of %lu bytes failed!\n", size);
++	panic("Out of memory");
++	return NULL;
+ }
+ 
+ /**
 _
-Subject: Subject: mm: bootmem: split out goal-to-node mapping from goal dropping
+Subject: Subject: mm: bootmem: allocate in order node+goal, goal, node, anywhere
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
