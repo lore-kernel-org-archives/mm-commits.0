@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-add-missing-kern_cont.patch added to -mm tree
-Date: Tue, 08 May 2012 14:58:05 -0700
-Message-ID: <20120508215805.55350A0363@akpm.mtv.corp.google.com>
+Subject: + clk-add-non-config_have_clk-routines.patch added to -mm tree
+Date: Tue, 08 May 2012 15:32:44 -0700
+Message-ID: <20120508223245.11E03A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:35692 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756980Ab2EHV6M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2012 17:58:12 -0400
-Received: by wgbdt11 with SMTP id dt11so383064wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 08 May 2012 14:58:11 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:56810 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757731Ab2EHWcq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2012 18:32:46 -0400
+Received: by yhgm50 with SMTP id m50so845570yhg.1
+        for <mm-commits@vger.kernel.org>; Tue, 08 May 2012 15:32:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: levinsasha928@gmail.com, davem@davemloft.net, isdn@linux-pingi.de
+Cc: viresh.kumar@st.com
 
 
 The patch titled
-     Subject: ISDN: add missing KERN_CONT
+     Subject: clk: Add non CONFIG_HAVE_CLK routines
 has been added to the -mm tree.  Its filename is
-     isdn-add-missing-kern_cont.patch
+     clk-add-non-config_have_clk-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,245 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sasha Levin <levinsasha928@gmail.com>
-Subject: ISDN: add missing KERN_CONT
+From: Viresh Kumar <viresh.kumar@st.com>
+Subject: clk: Add non CONFIG_HAVE_CLK routines
 
-Prevent this behaviour:
+Many drivers are shared between architectures that may or may not have HAVE_CLK
+selected for them. To remove compilation errors for them we enclose clk_*()
+calls in these drivers within #ifdef CONFIG_HAVE_CLK, #endif.
 
-ISDN subsystem Rev: 1.1.2.3/
-1.1.2.2/
-1.1.2.3/
-1.1.2.2/
-1.1.2.2
+This patch removes the need of these CONFIG_HAVE_CLK statements, by introducing
+dummy routines when HAVE_CLK is not selected by platforms. So, definition of
+these routines will always be available. These calls will return error for
+platforms that don't select HAVE_CLK.
 
-Revealed due to a new modification to printk().
+Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
+---
 
-Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
-Cc: David Miller <davem@davemloft.net>
+index 70cf722..9f84b68 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/i4l/isdn_common.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/clk.h |  168 +++++++++++++++++++++++++++---------------
+ 1 file changed, 109 insertions(+), 59 deletions(-)
 
-diff -puN drivers/isdn/i4l/isdn_common.c~isdn-add-missing-kern_cont drivers/isdn/i4l/isdn_common.c
---- a/drivers/isdn/i4l/isdn_common.c~isdn-add-missing-kern_cont
-+++ a/drivers/isdn/i4l/isdn_common.c
-@@ -2351,18 +2351,18 @@ static int __init isdn_init(void)
- 	strcpy(tmprev, isdn_revision);
- 	printk(KERN_NOTICE "ISDN subsystem Rev: %s/", isdn_getrev(tmprev));
- 	strcpy(tmprev, isdn_net_revision);
--	printk("%s/", isdn_getrev(tmprev));
-+	printk(KERN_CONT "%s/", isdn_getrev(tmprev));
- 	strcpy(tmprev, isdn_ppp_revision);
--	printk("%s/", isdn_getrev(tmprev));
-+	printk(KERN_CONT "%s/", isdn_getrev(tmprev));
- 	strcpy(tmprev, isdn_audio_revision);
--	printk("%s/", isdn_getrev(tmprev));
-+	printk(KERN_CONT "%s/", isdn_getrev(tmprev));
- 	strcpy(tmprev, isdn_v110_revision);
--	printk("%s", isdn_getrev(tmprev));
-+	printk(KERN_CONT "%s", isdn_getrev(tmprev));
+diff -puN include/linux/clk.h~clk-add-non-config_have_clk-routines include/linux/clk.h
+--- a/include/linux/clk.h~clk-add-non-config_have_clk-routines
++++ a/include/linux/clk.h
+@@ -84,6 +84,43 @@ int clk_notifier_unregister(struct clk *
+ #endif /* !CONFIG_COMMON_CLK */
  
- #ifdef MODULE
--	printk(" loaded\n");
-+	printk(KERN_CONT " loaded\n");
- #else
--	printk("\n");
-+	printk(KERN_CONG "\n");
- #endif
- 	isdn_info_update();
- 	return 0;
+ /**
++ * clk_prepare - prepare a clock source
++ * @clk: clock source
++ *
++ * This prepares the clock source for use.
++ *
++ * Must not be called from within atomic context.
++ */
++#ifdef CONFIG_HAVE_CLK_PREPARE
++int clk_prepare(struct clk *clk);
++#else
++static inline int clk_prepare(struct clk *clk)
++{
++	might_sleep();
++	return 0;
++}
++#endif
++
++/**
++ * clk_unprepare - undo preparation of a clock source
++ * @clk: clock source
++ *
++ * This undoes a previously prepared clock.  The caller must balance
++ * the number of prepare and unprepare calls.
++ *
++ * Must not be called from within atomic context.
++ */
++#ifdef CONFIG_HAVE_CLK_PREPARE
++void clk_unprepare(struct clk *clk);
++#else
++static inline void clk_unprepare(struct clk *clk)
++{
++	might_sleep();
++}
++#endif
++
++#ifdef CONFIG_HAVE_CLK
++/**
+  * clk_get - lookup and obtain a reference to a clock producer.
+  * @dev: device for clock "consumer"
+  * @id: clock comsumer ID
+@@ -121,24 +158,6 @@ struct clk *clk_get(struct device *dev, 
+ struct clk *devm_clk_get(struct device *dev, const char *id);
+ 
+ /**
+- * clk_prepare - prepare a clock source
+- * @clk: clock source
+- *
+- * This prepares the clock source for use.
+- *
+- * Must not be called from within atomic context.
+- */
+-#ifdef CONFIG_HAVE_CLK_PREPARE
+-int clk_prepare(struct clk *clk);
+-#else
+-static inline int clk_prepare(struct clk *clk)
+-{
+-	might_sleep();
+-	return 0;
+-}
+-#endif
+-
+-/**
+  * clk_enable - inform the system when the clock source should be running.
+  * @clk: clock source
+  *
+@@ -166,47 +185,6 @@ int clk_enable(struct clk *clk);
+  */
+ void clk_disable(struct clk *clk);
+ 
+-
+-/**
+- * clk_unprepare - undo preparation of a clock source
+- * @clk: clock source
+- *
+- * This undoes a previously prepared clock.  The caller must balance
+- * the number of prepare and unprepare calls.
+- *
+- * Must not be called from within atomic context.
+- */
+-#ifdef CONFIG_HAVE_CLK_PREPARE
+-void clk_unprepare(struct clk *clk);
+-#else
+-static inline void clk_unprepare(struct clk *clk)
+-{
+-	might_sleep();
+-}
+-#endif
+-
+-/* clk_prepare_enable helps cases using clk_enable in non-atomic context. */
+-static inline int clk_prepare_enable(struct clk *clk)
+-{
+-	int ret;
+-
+-	ret = clk_prepare(clk);
+-	if (ret)
+-		return ret;
+-	ret = clk_enable(clk);
+-	if (ret)
+-		clk_unprepare(clk);
+-
+-	return ret;
+-}
+-
+-/* clk_disable_unprepare helps cases using clk_disable in non-atomic context. */
+-static inline void clk_disable_unprepare(struct clk *clk)
+-{
+-	clk_disable(clk);
+-	clk_unprepare(clk);
+-}
+-
+ /**
+  * clk_get_rate - obtain the current clock rate (in Hz) for a clock source.
+  *		  This is only valid once the clock source has been enabled.
+@@ -297,6 +275,78 @@ struct clk *clk_get_parent(struct clk *c
+  */
+ struct clk *clk_get_sys(const char *dev_id, const char *con_id);
+ 
++#else /* !CONFIG_HAVE_CLK */
++
++static inline struct clk *clk_get(struct device *dev, const char *id)
++{
++	return NULL;
++}
++
++static inline struct clk *devm_clk_get(struct device *dev, const char *id)
++{
++	return NULL;
++}
++
++static inline void clk_put(struct clk *clk) {}
++
++static inline void devm_clk_put(struct device *dev, struct clk *clk) {}
++
++static inline int clk_enable(struct clk *clk)
++{
++	return 0;
++}
++
++static inline void clk_disable(struct clk *clk) {}
++
++static inline unsigned long clk_get_rate(struct clk *clk)
++{
++	return 0;
++}
++
++static inline int clk_set_rate(struct clk *clk, unsigned long rate)
++{
++	return 0;
++}
++
++static inline long clk_round_rate(struct clk *clk, unsigned long rate)
++{
++	return 0;
++}
++
++static inline int clk_set_parent(struct clk *clk, struct clk *parent)
++{
++	return 0;
++}
++
++static inline struct clk *clk_get_parent(struct clk *clk)
++{
++	return NULL;
++}
++
++#endif
++
++/* clk_prepare_enable helps cases using clk_enable in non-atomic context. */
++static inline int clk_prepare_enable(struct clk *clk)
++{
++	int ret;
++
++	ret = clk_prepare(clk);
++	if (ret)
++		return ret;
++	ret = clk_enable(clk);
++	if (ret)
++		clk_unprepare(clk);
++
++	return ret;
++}
++
++/* clk_disable_unprepare helps cases using clk_disable in non-atomic context. */
++static inline void clk_disable_unprepare(struct clk *clk)
++{
++	clk_disable(clk);
++	clk_unprepare(clk);
++}
++
+ /**
+  * clk_add_alias - add a new clock alias
+  * @alias: name for clock alias
 _
-Subject: Subject: ISDN: add missing KERN_CONT
+Subject: Subject: clk: Add non CONFIG_HAVE_CLK routines
 
-Patches currently in -mm which might be from levinsasha928@gmail.com are
+Patches currently in -mm which might be from viresh.kumar@st.com are
 
 linux-next.patch
-mm-fix-division-by-0-in-percpu_pagelist_fraction.patch
-brlocks-lglocks-cleanups.patch
-mm-add-missing-kern_cont-to-free_area_init_nodes.patch
-locking-add-kern_cont-when-needed-to-self-test.patch
-x86-nmi-add-missing-kern_cont-to-nmi-selftest.patch
-isdn-add-missing-kern_cont.patch
+drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
+clk-add-non-config_have_clk-routines.patch
+clk-remove-redundant-depends-on-from-drivers-kconfig.patch
+i2c-i2c-pxa-remove-conditional-compilation-of-clk-code.patch
+usb-marvell-remove-conditional-compilation-of-clk-code.patch
+usb-musb-remove-conditional-compilation-of-clk-code.patch
+ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch
+ata-sata_mv-remove-conditional-compilation-of-clk-code.patch
+net-c_can-remove-conditional-compilation-of-clk-code.patch
+net-stmmac-remove-conditional-compilation-of-clk-code.patch
+gadget-m66592-remove-conditional-compilation-of-clk-code.patch
+gadget-r8a66597-remove-conditional-compilation-of-clk-code.patch
+usb-host-r8a66597-remove-conditional-compilation-of-clk-code.patch
+rtc-spear-add-device-tree-probing-capability.patch
 
