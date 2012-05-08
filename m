@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-nmi-add-missing-kern_cont-to-nmi-selftest.patch added to -mm tree
-Date: Tue, 08 May 2012 14:57:21 -0700
-Message-ID: <20120508215721.677F9A0363@akpm.mtv.corp.google.com>
+Subject: + isdn-add-missing-kern_cont.patch added to -mm tree
+Date: Tue, 08 May 2012 14:58:05 -0700
+Message-ID: <20120508215805.55350A0363@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:47269 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757051Ab2EHV5X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2012 17:57:23 -0400
-Received: by werf13 with SMTP id f13so36746wer.1
-        for <mm-commits@vger.kernel.org>; Tue, 08 May 2012 14:57:22 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:35692 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756980Ab2EHV6M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2012 17:58:12 -0400
+Received: by wgbdt11 with SMTP id dt11so383064wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 08 May 2012 14:58:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: levinsasha928@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de
+Cc: levinsasha928@gmail.com, davem@davemloft.net, isdn@linux-pingi.de
 
 
 The patch titled
-     Subject: x86, NMI: add missing KERN_CONT to NMI selftest
+     Subject: ISDN: add missing KERN_CONT
 has been added to the -mm tree.  Its filename is
-     x86-nmi-add-missing-kern_cont-to-nmi-selftest.patch
+     isdn-add-missing-kern_cont.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sasha Levin <levinsasha928@gmail.com>
-Subject: x86, NMI: add missing KERN_CONT to NMI selftest
+Subject: ISDN: add missing KERN_CONT
 
-Fix this behaviour:
+Prevent this behaviour:
 
-----------------
-| NMI testsuite:
---------------------
-  remote IPI:
-  ok  |
-
-   local IPI:
-  ok  |
+ISDN subsystem Rev: 1.1.2.3/
+1.1.2.2/
+1.1.2.3/
+1.1.2.2/
+1.1.2.2
 
 Revealed due to a new modification to printk().
 
 Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/nmi_selftest.c |   12 ++++++------
+ drivers/isdn/i4l/isdn_common.c |   12 ++++++------
  1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kernel/nmi_selftest.c~x86-nmi-add-missing-kern_cont-to-nmi-selftest arch/x86/kernel/nmi_selftest.c
---- a/arch/x86/kernel/nmi_selftest.c~x86-nmi-add-missing-kern_cont-to-nmi-selftest
-+++ a/arch/x86/kernel/nmi_selftest.c
-@@ -117,15 +117,15 @@ static void __init dotest(void (*testcas
- 		unexpected_testcase_failures++;
+diff -puN drivers/isdn/i4l/isdn_common.c~isdn-add-missing-kern_cont drivers/isdn/i4l/isdn_common.c
+--- a/drivers/isdn/i4l/isdn_common.c~isdn-add-missing-kern_cont
++++ a/drivers/isdn/i4l/isdn_common.c
+@@ -2351,18 +2351,18 @@ static int __init isdn_init(void)
+ 	strcpy(tmprev, isdn_revision);
+ 	printk(KERN_NOTICE "ISDN subsystem Rev: %s/", isdn_getrev(tmprev));
+ 	strcpy(tmprev, isdn_net_revision);
+-	printk("%s/", isdn_getrev(tmprev));
++	printk(KERN_CONT "%s/", isdn_getrev(tmprev));
+ 	strcpy(tmprev, isdn_ppp_revision);
+-	printk("%s/", isdn_getrev(tmprev));
++	printk(KERN_CONT "%s/", isdn_getrev(tmprev));
+ 	strcpy(tmprev, isdn_audio_revision);
+-	printk("%s/", isdn_getrev(tmprev));
++	printk(KERN_CONT "%s/", isdn_getrev(tmprev));
+ 	strcpy(tmprev, isdn_v110_revision);
+-	printk("%s", isdn_getrev(tmprev));
++	printk(KERN_CONT "%s", isdn_getrev(tmprev));
  
- 		if (nmi_fail == FAILURE)
--			printk("FAILED |");
-+			printk(KERN_CONT "FAILED |");
- 		else if (nmi_fail == TIMEOUT)
--			printk("TIMEOUT|");
-+			printk(KERN_CONT "TIMEOUT|");
- 		else
--			printk("ERROR  |");
-+			printk(KERN_CONT "ERROR  |");
- 		dump_stack();
- 	} else {
- 		testcase_successes++;
--		printk("  ok  |");
-+		printk(KERN_CONT "  ok  |");
- 	}
- 	testcase_total++;
- 
-@@ -150,10 +150,10 @@ void __init nmi_selftest(void)
- 
- 	print_testname("remote IPI");
- 	dotest(remote_ipi, SUCCESS);
+ #ifdef MODULE
+-	printk(" loaded\n");
++	printk(KERN_CONT " loaded\n");
+ #else
 -	printk("\n");
-+	printk(KERN_CONT "\n");
- 	print_testname("local IPI");
- 	dotest(local_ipi, SUCCESS);
--	printk("\n");
-+	printk(KERN_CONT "\n");
- 
- 	cleanup_nmi_testsuite();
- 
++	printk(KERN_CONG "\n");
+ #endif
+ 	isdn_info_update();
+ 	return 0;
 _
-Subject: Subject: x86, NMI: add missing KERN_CONT to NMI selftest
+Subject: Subject: ISDN: add missing KERN_CONT
 
 Patches currently in -mm which might be from levinsasha928@gmail.com are
 
