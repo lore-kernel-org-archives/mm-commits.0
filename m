@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-flush-disk-caches-in-syncing.patch added to -mm tree
-Date: Tue, 08 May 2012 15:53:43 -0700
-Message-ID: <20120508225343.42F1FA037F@akpm.mtv.corp.google.com>
+Subject: + lib-vsprintfc-%o0-becomes-0-instead-of-00.patch added to -mm tree
+Date: Tue, 08 May 2012 16:28:24 -0700
+Message-ID: <20120508232824.C907CA03B2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:57056 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276Ab2EHWxp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2012 18:53:45 -0400
-Received: by eaaq10 with SMTP id q10so344432eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 08 May 2012 15:53:44 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:34489 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756311Ab2EHX20 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2012 19:28:26 -0400
+Received: by qabg24 with SMTP id g24so186066qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 08 May 2012 16:28:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: konishi.ryusuke@lab.ntt.co.jp
+Cc: pierre@spotify.com, joe@perches.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: nilfs2: flush disk caches in syncing
+     Subject: lib/vsprintf.c: "%#o",0 becomes '0' instead of '00'
 has been added to the -mm tree.  Its filename is
-     nilfs2-flush-disk-caches-in-syncing.patch
+     lib-vsprintfc-%o0-becomes-0-instead-of-00.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: flush disk caches in syncing
+From: Pierre Carrier <pierre@spotify.com>
+Subject: lib/vsprintf.c: "%#o",0 becomes '0' instead of '00'
 
-There are two cases that the cache flush is needed to avoid data loss
-against unexpected hang or power failure.  One is sync file function (i.e.
- nilfs_sync_file) and another is checkpointing ioctl.
+number()'s behaviour is slighly changed: 0 becomes "0" instead of "00"
+when using the flag SPECIAL and base 8.
 
-This issues a cache flush request to device for such cases if barrier
-mount option is enabled, and makes sure data really is on persistent
-storage on their completion.
+Before:
+Number\Format  %o    %#o  %x    %#x
+            0     0   00    0   0x0
+            1     1   01    1   0x1
+           16    20  020   10  0x10
 
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+After:
+Number\Format  %o    %#o  %x    %#x
+            0     0    0    0   0x0
+            1     1   01    1   0x1
+           16    20  020   10  0x10
+
+Signed-off-by: Pierre Carrier <pierre@spotify.com>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/file.c  |   24 ++++++++++++++----------
- fs/nilfs2/ioctl.c |    8 +++++++-
- 2 files changed, 21 insertions(+), 11 deletions(-)
+ lib/vsprintf.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN fs/nilfs2/file.c~nilfs2-flush-disk-caches-in-syncing fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~nilfs2-flush-disk-caches-in-syncing
-+++ a/fs/nilfs2/file.c
-@@ -37,6 +37,7 @@ int nilfs_sync_file(struct file *file, l
- 	 * This function should be implemented when the writeback function
- 	 * will be implemented.
- 	 */
-+	struct the_nilfs *nilfs;
- 	struct inode *inode = file->f_mapping->host;
- 	int err;
+diff -puN lib/vsprintf.c~lib-vsprintfc-%o0-becomes-0-instead-of-00 lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-%o0-becomes-0-instead-of-00
++++ a/lib/vsprintf.c
+@@ -383,6 +383,7 @@ char *number(char *buf, char *end, unsig
+ 	char locase;
+ 	int need_pfx = ((spec.flags & SPECIAL) && spec.base != 10);
+ 	int i;
++	bool is_zero = num == 0LL;
  
-@@ -45,18 +46,21 @@ int nilfs_sync_file(struct file *file, l
- 		return err;
- 	mutex_lock(&inode->i_mutex);
- 
--	if (!nilfs_inode_dirty(inode)) {
--		mutex_unlock(&inode->i_mutex);
--		return 0;
-+	if (nilfs_inode_dirty(inode)) {
-+		if (datasync)
-+			err = nilfs_construct_dsync_segment(inode->i_sb, inode,
-+							    0, LLONG_MAX);
-+		else
-+			err = nilfs_construct_segment(inode->i_sb);
+ 	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
+ 	 * produces same digits or (maybe lowercased) letters */
+@@ -404,8 +405,9 @@ char *number(char *buf, char *end, unsig
+ 		}
  	}
--
--	if (datasync)
--		err = nilfs_construct_dsync_segment(inode->i_sb, inode, 0,
--						    LLONG_MAX);
--	else
--		err = nilfs_construct_segment(inode->i_sb);
--
- 	mutex_unlock(&inode->i_mutex);
-+
-+	nilfs = inode->i_sb->s_fs_info;
-+	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
-+		err = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
-+		if (err != -EIO)
-+			err = 0;
-+	}
- 	return err;
- }
+ 	if (need_pfx) {
+-		spec.field_width--;
+ 		if (spec.base == 16)
++			spec.field_width -= 2;
++		else if (!is_zero)
+ 			spec.field_width--;
+ 	}
  
-diff -puN fs/nilfs2/ioctl.c~nilfs2-flush-disk-caches-in-syncing fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-flush-disk-caches-in-syncing
-+++ a/fs/nilfs2/ioctl.c
-@@ -692,8 +692,14 @@ static int nilfs_ioctl_sync(struct inode
- 	if (ret < 0)
- 		return ret;
- 
-+	nilfs = inode->i_sb->s_fs_info;
-+	if (nilfs_test_opt(nilfs, BARRIER)) {
-+		ret = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
-+		if (ret == -EIO)
-+			return ret;
-+	}
-+
- 	if (argp != NULL) {
--		nilfs = inode->i_sb->s_fs_info;
- 		down_read(&nilfs->ns_segctor_sem);
- 		cno = nilfs->ns_cno - 1;
- 		up_read(&nilfs->ns_segctor_sem);
+@@ -452,9 +454,11 @@ char *number(char *buf, char *end, unsig
+ 	}
+ 	/* "0x" / "0" prefix */
+ 	if (need_pfx) {
+-		if (buf < end)
+-			*buf = '0';
+-		++buf;
++		if (spec.base == 16 || !is_zero) {
++			if (buf < end)
++				*buf = '0';
++			++buf;
++		}
+ 		if (spec.base == 16) {
+ 			if (buf < end)
+ 				*buf = ('X' | locase);
 _
-Subject: Subject: nilfs2: flush disk caches in syncing
+Subject: Subject: lib/vsprintf.c: "%#o",0 becomes '0' instead of '00'
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from pierre@spotify.com are
 
-nilfs2-flush-disk-caches-in-syncing.patch
+lib-vsprintfc-%o0-becomes-0-instead-of-00.patch
 
