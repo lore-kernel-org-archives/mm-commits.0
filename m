@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-use-task_active_pid_ns-in-do_notify_parent.patch added to -mm tree
-Date: Tue, 08 May 2012 15:51:38 -0700
-Message-ID: <20120508225139.38937A03B2@akpm.mtv.corp.google.com>
+Subject: + pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch added to -mm tree
+Date: Tue, 08 May 2012 15:51:43 -0700
+Message-ID: <20120508225144.00181A03B2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:44732 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756867Ab2EHWvk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2012 18:51:40 -0400
-Received: by yhgm50 with SMTP id m50so848526yhg.1
-        for <mm-commits@vger.kernel.org>; Tue, 08 May 2012 15:51:40 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:50412 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756867Ab2EHWvr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 May 2012 18:51:47 -0400
+Received: by lagm6 with SMTP id m6so168539lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 08 May 2012 15:51:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ebiederm@xmission.com, efault@gmx.de, gorcunov@openvz.org, louis.rilling@ker
 
 
 The patch titled
-     Subject: pidns: use task_active_pid_ns in do_notify_parent
+     Subject: pidns: guarantee that the pidns init will be the last pidns process reaped
 has been added to the -mm tree.  Its filename is
-     pidns-use-task_active_pid_ns-in-do_notify_parent.patch
+     pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Eric W. Biederman <ebiederm@xmission.com>
-Subject: pidns: use task_active_pid_ns in do_notify_parent
+Subject: pidns: guarantee that the pidns init will be the last pidns process reaped
 
-Using task_active_pid_ns is more robust because it works even after we
-have called exit_namespaces.  This change allows us to have parent
-processes that are zombies.  Normally a zombie parent processes is crazy
-and the last thing you would want to have but in the case of not letting
-the init process of a pid namespace be reaped until all of it's children
-are dead and reaped a zombie parent process is exactly what we want.
+This change extends the thread group zombie leader logic to work for pid
+namespaces.  The task with pid 1 is declared the pid namespace leader.  A
+pid namespace with no more processes is detected by observing that the
+init task is a zombie in an empty thread group, and the the init task has
+no children.
+
+Instead of moving lingering EXIT_DEAD tasks off of init's ->children list
+we now block init from exiting until those children have self reaped and
+have removed themselves.  Which guarantees that the init task is the last
+task in a pid namespace to be reaped.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -52,39 +56,106 @@ Cc: Mike Galbraith <efault@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ kernel/exit.c |   46 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 35 insertions(+), 11 deletions(-)
 
-diff -puN kernel/signal.c~pidns-use-task_active_pid_ns-in-do_notify_parent kernel/signal.c
---- a/kernel/signal.c~pidns-use-task_active_pid_ns-in-do_notify_parent
-+++ a/kernel/signal.c
-@@ -1666,19 +1666,18 @@ bool do_notify_parent(struct task_struct
- 	info.si_signo = sig;
- 	info.si_errno = 0;
+diff -puN kernel/exit.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped kernel/exit.c
+--- a/kernel/exit.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped
++++ a/kernel/exit.c
+@@ -164,6 +164,16 @@ static void delayed_put_task_struct(stru
+ 	put_task_struct(tsk);
+ }
+ 
++static bool pidns_leader(struct task_struct *tsk)
++{
++	return is_child_reaper(task_pid(tsk));
++}
++
++static bool delay_pidns_leader(struct task_struct *tsk)
++{
++	return pidns_leader(tsk) &&
++	       (!thread_group_empty(tsk) || !list_empty(&tsk->children));
++}
+ 
+ void release_task(struct task_struct * p)
+ {
+@@ -183,15 +193,23 @@ repeat:
+ 	__exit_signal(p);
+ 
  	/*
--	 * we are under tasklist_lock here so our parent is tied to
--	 * us and cannot exit and release its namespace.
-+	 * We are under tasklist_lock here so our parent is tied to
-+	 * us and cannot change.
- 	 *
--	 * the only it can is to switch its nsproxy with sys_unshare,
--	 * bu uncharing pid namespaces is not allowed, so we'll always
--	 * see relevant namespace
-+	 * task_active_pid_ns will always return the same pid namespace
-+	 * until a task passes through release_task.
- 	 *
- 	 * write_lock() currently calls preempt_disable() which is the
- 	 * same as rcu_read_lock(), but according to Oleg, this is not
- 	 * correct to rely on this
+-	 * If we are the last non-leader member of the thread
+-	 * group, and the leader is zombie, then notify the
+-	 * group leader's parent process. (if it wants notification.)
++	 * If we are the last non-leader member of the thread group,
++	 * or the last non-leader member of the pid namespace, and the
++	 * leader is zombie, then notify the leader's parent
++	 * process. (if it wants notification.)
  	 */
- 	rcu_read_lock();
--	info.si_pid = task_pid_nr_ns(tsk, tsk->parent->nsproxy->pid_ns);
-+	info.si_pid = task_pid_nr_ns(tsk, task_active_pid_ns(tsk->parent));
- 	info.si_uid = map_cred_ns(__task_cred(tsk),
- 			task_cred_xxx(tsk->parent, user_ns));
- 	rcu_read_unlock();
+ 	zap_leader = 0;
+-	leader = p->group_leader;
+-	if (leader != p && thread_group_empty(leader) && leader->exit_state == EXIT_ZOMBIE) {
++	leader = NULL;
++	/* Do we need to worry about our thread_group or our pidns leader? */
++	if (p != p->group_leader)
++		leader = p->group_leader;
++	else if (pidns_leader(p->real_parent))
++		leader = p->real_parent;
++
++	if (leader && thread_group_empty(leader) &&
++	    leader->exit_state == EXIT_ZOMBIE && list_empty(&leader->children)) {
+ 		/*
+-		 * If we were the last child thread and the leader has
++		 * If we were the last task in the group and the leader has
+ 		 * exited already, and the leader's parent ignores SIGCHLD,
+ 		 * then we are the one who should release the leader.
+ 		 */
+@@ -720,11 +738,10 @@ static struct task_struct *find_new_reap
+ 		zap_pid_ns_processes(pid_ns);
+ 		write_lock_irq(&tasklist_lock);
+ 		/*
+-		 * We can not clear ->child_reaper or leave it alone.
+-		 * There may by stealth EXIT_DEAD tasks on ->children,
+-		 * forget_original_parent() must move them somewhere.
++		 * Move all lingering EXIT_DEAD tasks onto the
++		 * children list of init's thread group leader.
+ 		 */
+-		pid_ns->child_reaper = init_pid_ns.child_reaper;
++		pid_ns->child_reaper = father->group_leader;
+ 	} else if (father->signal->has_child_subreaper) {
+ 		struct task_struct *reaper;
+ 
+@@ -798,6 +815,12 @@ static void forget_original_parent(struc
+ 	exit_ptrace(father);
+ 	reaper = find_new_reaper(father);
+ 
++	/* Return immediately if we aren't going to reparent anything */
++	if (unlikely(reaper == father)) {
++		write_unlock_irq(&tasklist_lock);
++		return;
++	}
++
+ 	list_for_each_entry_safe(p, n, &father->children, sibling) {
+ 		struct task_struct *t = p;
+ 		do {
+@@ -853,6 +876,7 @@ static void exit_notify(struct task_stru
+ 		autoreap = do_notify_parent(tsk, sig);
+ 	} else if (thread_group_leader(tsk)) {
+ 		autoreap = thread_group_empty(tsk) &&
++			!delay_pidns_leader(tsk) &&
+ 			do_notify_parent(tsk, tsk->exit_signal);
+ 	} else {
+ 		autoreap = true;
+@@ -1583,7 +1607,7 @@ static int wait_consider_task(struct wai
+ 		}
+ 
+ 		/* we don't reap group leaders with subthreads */
+-		if (!delay_group_leader(p))
++		if (!delay_group_leader(p) && !delay_pidns_leader(p))
+ 			return wait_task_zombie(wo, p);
+ 
+ 		/*
 _
-Subject: Subject: pidns: use task_active_pid_ns in do_notify_parent
+Subject: Subject: pidns: guarantee that the pidns init will be the last pidns process reaped
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
 
