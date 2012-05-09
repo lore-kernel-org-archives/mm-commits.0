@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + video-exynos-mipi-dsi-properly-interpret-the-interrupt-source-flags.patch added to -mm tree
-Date: Wed, 09 May 2012 13:40:44 -0700
-Message-ID: <20120509204044.EEB2AA03DB@akpm.mtv.corp.google.com>
+Subject: + video-exynos-mipi-dsi-support-reverse-panel-type.patch added to -mm tree
+Date: Wed, 09 May 2012 13:40:46 -0700
+Message-ID: <20120509204046.D1FCEA01E3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:56233 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932284Ab2EIUks (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2012 16:40:48 -0400
-Received: by lagm6 with SMTP id m6so37995lag.1
-        for <mm-commits@vger.kernel.org>; Wed, 09 May 2012 13:40:45 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:33659 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932284Ab2EIUkx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2012 16:40:53 -0400
+Received: by yenl3 with SMTP id l3so66743yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 09 May 2012 13:40:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: s.nawrocki@samsung.com, FlorianSchandinat@gmx.de, dh09.lee@samsung.com, inki.dae@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net
+Cc: dh09.lee@samsung.com, FlorianSchandinat@gmx.de, inki.dae@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: video: exynos mipi dsi: Properly interpret the interrupt source flags
+     Subject: video: exynos mipi dsi: support reverse panel type
 has been added to the -mm tree.  Its filename is
-     video-exynos-mipi-dsi-properly-interpret-the-interrupt-source-flags.patch
+     video-exynos-mipi-dsi-support-reverse-panel-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,11 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: video: exynos mipi dsi: Properly interpret the interrupt source flags
+From: Donghwa Lee <dh09.lee@samsung.com>
+Subject: video: exynos mipi dsi: support reverse panel type
 
-Rework the interrupt handler so the RX_DONE, FIFO_EMPTY interrupts are
-properly detected.  This prevents missing the interrupts when there are
-other bits set in the INTSRC register than just RX_DONE and FIFO_EMPTY.
+Add panel_reverse variable to support reversed s6e8ax0 panel type.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 Signed-off-by: Donghwa Lee <dh09.lee@samsung.com>
 Signed-off-by: Inki Dae <inki.dae@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
@@ -49,63 +46,56 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/exynos/exynos_mipi_dsi_common.c |   28 +++++-----------
- 1 file changed, 10 insertions(+), 18 deletions(-)
+ drivers/video/exynos/s6e8ax0.c   |   15 +++++++++++++--
+ include/video/exynos_mipi_dsim.h |    1 +
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/exynos/exynos_mipi_dsi_common.c~video-exynos-mipi-dsi-properly-interpret-the-interrupt-source-flags drivers/video/exynos/exynos_mipi_dsi_common.c
---- a/drivers/video/exynos/exynos_mipi_dsi_common.c~video-exynos-mipi-dsi-properly-interpret-the-interrupt-source-flags
-+++ a/drivers/video/exynos/exynos_mipi_dsi_common.c
-@@ -76,33 +76,25 @@ static unsigned int dpll_table[15] = {
+diff -puN drivers/video/exynos/s6e8ax0.c~video-exynos-mipi-dsi-support-reverse-panel-type drivers/video/exynos/s6e8ax0.c
+--- a/drivers/video/exynos/s6e8ax0.c~video-exynos-mipi-dsi-support-reverse-panel-type
++++ a/drivers/video/exynos/s6e8ax0.c
+@@ -293,9 +293,20 @@ static void s6e8ax0_panel_cond(struct s6
+ 		0x6e, 0x00, 0x00, 0x00, 0x02, 0x08, 0x08, 0x23, 0x23, 0xc0,
+ 		0xc8, 0x08, 0x48, 0xc1, 0x00, 0xc1, 0xff, 0xff, 0xc8
+ 	};
++	static const unsigned char data_to_send_panel_reverse[] = {
++		0xf8, 0x19, 0x35, 0x00, 0x00, 0x00, 0x93, 0x00, 0x3c, 0x7d,
++		0x08, 0x27, 0x7d, 0x3f, 0x00, 0x00, 0x00, 0x20, 0x04, 0x08,
++		0x6e, 0x00, 0x00, 0x00, 0x02, 0x08, 0x08, 0x23, 0x23, 0xc0,
++		0xc1, 0x01, 0x41, 0xc1, 0x00, 0xc1, 0xf6, 0xf6, 0xc1
++	};
  
- irqreturn_t exynos_mipi_dsi_interrupt_handler(int irq, void *dev_id)
- {
--	unsigned int intsrc = 0;
--	unsigned int intmsk = 0;
--	struct mipi_dsim_device *dsim = NULL;
--
--	dsim = dev_id;
--	if (!dsim) {
--		dev_dbg(dsim->dev, KERN_ERR "%s:error: wrong parameter\n",
--							__func__);
--		return IRQ_HANDLED;
-+	struct mipi_dsim_device *dsim = dev_id;
-+	unsigned int intsrc, intmsk;
-+
-+	if (dsim == NULL) {
-+		dev_err(dsim->dev, "%s: wrong parameter\n", __func__);
-+		return IRQ_NONE;
- 	}
+-	ops->cmd_write(lcd_to_master(lcd), MIPI_DSI_DCS_LONG_WRITE,
+-		data_to_send, ARRAY_SIZE(data_to_send));
++	if (lcd->dsim_dev->panel_reverse)
++		ops->cmd_write(lcd_to_master(lcd), MIPI_DSI_DCS_LONG_WRITE,
++				data_to_send_panel_reverse,
++				ARRAY_SIZE(data_to_send_panel_reverse));
++	else
++		ops->cmd_write(lcd_to_master(lcd), MIPI_DSI_DCS_LONG_WRITE,
++				data_to_send, ARRAY_SIZE(data_to_send));
+ }
  
- 	intsrc = exynos_mipi_dsi_read_interrupt(dsim);
- 	intmsk = exynos_mipi_dsi_read_interrupt_mask(dsim);
-+	intmsk = ~intmsk & intsrc;
+ static void s6e8ax0_display_cond(struct s6e8ax0 *lcd)
+diff -puN include/video/exynos_mipi_dsim.h~video-exynos-mipi-dsi-support-reverse-panel-type include/video/exynos_mipi_dsim.h
+--- a/include/video/exynos_mipi_dsim.h~video-exynos-mipi-dsi-support-reverse-panel-type
++++ a/include/video/exynos_mipi_dsim.h
+@@ -315,6 +315,7 @@ struct mipi_dsim_lcd_device {
+ 	int			id;
+ 	int			bus_id;
+ 	int			irq;
++	int			panel_reverse;
  
--	intmsk = ~(intmsk) & intsrc;
--
--	switch (intmsk) {
--	case INTMSK_RX_DONE:
-+	if (intsrc & INTMSK_RX_DONE) {
- 		complete(&dsim_rd_comp);
- 		dev_dbg(dsim->dev, "MIPI INTMSK_RX_DONE\n");
--		break;
--	case INTMSK_FIFO_EMPTY:
-+	}
-+	if (intsrc & INTMSK_FIFO_EMPTY) {
- 		complete(&dsim_wr_comp);
- 		dev_dbg(dsim->dev, "MIPI INTMSK_FIFO_EMPTY\n");
--		break;
--	default:
--		break;
- 	}
- 
- 	exynos_mipi_dsi_clear_interrupt(dsim, intmsk);
+ 	struct mipi_dsim_device *master;
+ 	void			*platform_data;
 _
-Subject: Subject: video: exynos mipi dsi: Properly interpret the interrupt source flags
+Subject: Subject: video: exynos mipi dsi: support reverse panel type
 
-Patches currently in -mm which might be from s.nawrocki@samsung.com are
+Patches currently in -mm which might be from dh09.lee@samsung.com are
 
 linux-next.patch
+video-exynos-mipi-dsi-enable-interrupt-again-after-sw-reset.patch
 video-exynos-mipi-dsi-do-not-use-deprecated-suspend-resume-callbacks.patch
 video-exynos-mipi-dsi-avoid-races-in-probe.patch
 video-exynos-mipi-dsi-properly-interpret-the-interrupt-source-flags.patch
+video-exynos-mipi-dsi-support-reverse-panel-type.patch
 
