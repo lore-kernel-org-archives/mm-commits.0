@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fat-switch-to-fsinfo_inode.patch added to -mm tree
-Date: Wed, 09 May 2012 16:07:29 -0700
-Message-ID: <20120509230730.090EBA026F@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-lpc32xxc-add-device-tree-support.patch added to -mm tree
+Date: Wed, 09 May 2012 16:13:54 -0700
+Message-ID: <20120509231354.AD00DA0333@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:49202 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758755Ab2EIXHc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2012 19:07:32 -0400
-Received: by wgbdt11 with SMTP id dt11so46555wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 09 May 2012 16:07:31 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:52235 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759093Ab2EIXN4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 May 2012 19:13:56 -0400
+Received: by qabg24 with SMTP id g24so136070qab.1
+        for <mm-commits@vger.kernel.org>; Wed, 09 May 2012 16:13:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: artem.bityutskiy@linux.intel.com, hirofumi@mail.parknet.co.jp, viro@zeniv.linux.org.uk
+Cc: stigge@antcom.de, a.zummo@towertech.it, arnd@arndb.de, rob.herring@calxeda.com
 
 
 The patch titled
-     Subject: fat: switch to fsinfo_inode
+     Subject: drivers/rtc/rtc-lpc32xx.c: add device tree support
 has been added to the -mm tree.  Its filename is
-     fat-switch-to-fsinfo_inode.patch
+     drivers-rtc-rtc-lpc32xxc-add-device-tree-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,143 +33,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: fat: switch to fsinfo_inode
+From: Roland Stigge <stigge@antcom.de>
+Subject: drivers/rtc/rtc-lpc32xx.c: add device tree support
 
-Currently FAT file-system maps the VFS "superblock" abstraction to the
-FSINFO block.  The FSINFO block contains non-essential data about the
-amount of free clusters and the next free cluster.  FAT file-system can
-always find out this information by scanning the FAT table, but having it
-in the FSINFO block may speed things up sometimes.  So FAT file-system
-relies on the VFS superblock write-out services to make sure the FSINFO
-block is written out to the media from time to time.
+Adds device tree support for rtc-lpc32xx.c
 
-The whole "superblock write-out" VFS infrastructure is served by the
-'sync_supers()' kernel thread, which wakes up every 5 (by default) seconds
-and writes out all dirty superblock using the '->write_super()' call-back.
- But the problem with this thread is that it wastes power by waking up the
-system every 5 seconds no matter what.  So we want to kill it completely
-and thus, we need to make file-systems to stop using the '->write_super'
-VFS service, and then remove it together with the kernel thread.
-
-This patch switches the FAT FSINFO block management from
-'->write_super()'/'->s_dirt' to 'fsinfo_inode'/'->write_inode'.  Now,
-instead of setting the 's_dirt' flag, we just mark the special
-'fsinfo_inode' inode as dirty and let VFS invoke the '->write_inode'
-call-back when needed, where we write-out the FSINFO block.
-
-This patch also makes sure we do not mark the 'fsinfo_inode' inode as
-dirty if we are not FAT32 (FAT16 and FAT12 do not have the FSINFO block)
-or if we are in R/O mode.
-
-As a bonus, we can also remove the '->sync_fs()' and '->write_super()' FAT
-call-back function because they become unneeded.
-
-Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Roland Stigge <stigge@antcom.de>
+Acked-by: Rob Herring <rob.herring@calxeda.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fatent.c |    7 ++++++-
- fs/fat/inode.c  |   42 ++++++++++++------------------------------
- 2 files changed, 18 insertions(+), 31 deletions(-)
+ Documentation/devicetree/bindings/rtc/lpc32xx-rtc.txt |   15 ++++++++++
+ drivers/rtc/rtc-lpc32xx.c                             |   12 +++++++-
+ 2 files changed, 26 insertions(+), 1 deletion(-)
 
-diff -puN fs/fat/fatent.c~fat-switch-to-fsinfo_inode fs/fat/fatent.c
---- a/fs/fat/fatent.c~fat-switch-to-fsinfo_inode
-+++ a/fs/fat/fatent.c
-@@ -310,7 +310,12 @@ void fat_ent_access_init(struct super_bl
- 
- static void mark_fsinfo_dirty(struct super_block *sb)
- {
--	sb->s_dirt = 1;
-+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/lpc32xx-rtc.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/rtc/lpc32xx-rtc.txt
+@@ -0,0 +1,15 @@
++* NXP LPC32xx SoC Real Time Clock controller
 +
-+	if (sb->s_flags & MS_RDONLY || sbi->fat_bits != 32)
-+		return;
++Required properties:
++- compatible: must be "nxp,lpc3220-rtc"
++- reg: physical base address of the controller and length of memory mapped
++  region.
++- interrupts: The RTC interrupt
 +
-+	__mark_inode_dirty(sbi->fsinfo_inode, I_DIRTY_SYNC);
- }
- 
- static inline int fat_ent_update_ptr(struct super_block *sb,
-diff -puN fs/fat/inode.c~fat-switch-to-fsinfo_inode fs/fat/inode.c
---- a/fs/fat/inode.c~fat-switch-to-fsinfo_inode
-+++ a/fs/fat/inode.c
-@@ -459,37 +459,10 @@ static void fat_evict_inode(struct inode
- 	fat_detach(inode);
- }
- 
--static void fat_write_super(struct super_block *sb)
--{
--	lock_super(sb);
--	sb->s_dirt = 0;
--
--	if (!(sb->s_flags & MS_RDONLY))
--		fat_clusters_flush(sb);
--	unlock_super(sb);
--}
--
--static int fat_sync_fs(struct super_block *sb, int wait)
--{
--	int err = 0;
--
--	if (sb->s_dirt) {
--		lock_super(sb);
--		sb->s_dirt = 0;
--		err = fat_clusters_flush(sb);
--		unlock_super(sb);
--	}
--
--	return err;
--}
--
- static void fat_put_super(struct super_block *sb)
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 
--	if (sb->s_dirt)
--		fat_write_super(sb);
--
- 	iput(sbi->fsinfo_inode);
- 	iput(sbi->fat_inode);
- 
-@@ -662,7 +635,18 @@ retry:
- 
- static int fat_write_inode(struct inode *inode, struct writeback_control *wbc)
- {
--	return __fat_write_inode(inode, wbc->sync_mode == WB_SYNC_ALL);
-+	int err;
++Example:
 +
-+	if (inode->i_ino == MSDOS_FSINFO_INO) {
-+		struct super_block *sb = inode->i_sb;
-+
-+		lock_super(sb);
-+		err = fat_clusters_flush(sb);
-+		unlock_super(sb);
-+	} else
-+		err = __fat_write_inode(inode, wbc->sync_mode == WB_SYNC_ALL);
-+
-+	return err;
- }
++	rtc@40024000 {
++		compatible = "nxp,lpc3220-rtc";
++		reg = <0x40024000 0x1000>;
++		interrupts = <52 0>;
++	};
+diff -puN drivers/rtc/rtc-lpc32xx.c~drivers-rtc-rtc-lpc32xxc-add-device-tree-support drivers/rtc/rtc-lpc32xx.c
+--- a/drivers/rtc/rtc-lpc32xx.c~drivers-rtc-rtc-lpc32xxc-add-device-tree-support
++++ a/drivers/rtc/rtc-lpc32xx.c
+@@ -19,6 +19,7 @@
+ #include <linux/rtc.h>
+ #include <linux/slab.h>
+ #include <linux/io.h>
++#include <linux/of.h>
  
- int fat_sync_inode(struct inode *inode)
-@@ -679,8 +663,6 @@ static const struct super_operations fat
- 	.write_inode	= fat_write_inode,
- 	.evict_inode	= fat_evict_inode,
- 	.put_super	= fat_put_super,
--	.write_super	= fat_write_super,
--	.sync_fs	= fat_sync_fs,
- 	.statfs		= fat_statfs,
- 	.remount_fs	= fat_remount,
+ /*
+  * Clock and Power control register offsets
+@@ -386,13 +387,22 @@ static const struct dev_pm_ops lpc32xx_r
+ #define LPC32XX_RTC_PM_OPS NULL
+ #endif
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id lpc32xx_rtc_match[] = {
++	{ .compatible = "nxp,lpc3220-rtc" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, lpc32xx_rtc_match);
++#endif
++
+ static struct platform_driver lpc32xx_rtc_driver = {
+ 	.probe		= lpc32xx_rtc_probe,
+ 	.remove		= __devexit_p(lpc32xx_rtc_remove),
+ 	.driver = {
+ 		.name	= RTC_NAME,
+ 		.owner	= THIS_MODULE,
+-		.pm	= LPC32XX_RTC_PM_OPS
++		.pm	= LPC32XX_RTC_PM_OPS,
++		.of_match_table = of_match_ptr(lpc32xx_rtc_match),
+ 	},
+ };
  
 _
-Subject: Subject: fat: switch to fsinfo_inode
+Subject: Subject: drivers/rtc/rtc-lpc32xx.c: add device tree support
 
-Patches currently in -mm which might be from artem.bityutskiy@linux.intel.com are
+Patches currently in -mm which might be from stigge@antcom.de are
 
 linux-next.patch
-fat-introduce-special-inode-for-managing-the-fsinfo-block.patch
-fat-introduce-mark_fsinfo_dirty-helper.patch
-fat-mark-superblock-as-dirty-less-often.patch
-fat-switch-to-fsinfo_inode.patch
+drivers-rtc-rtc-lpc32xxc-add-device-tree-support.patch
 
