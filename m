@@ -1,575 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-add-lm3533-backlight-driver.patch added to -mm tree
-Date: Thu, 10 May 2012 11:50:25 -0700
-Message-ID: <20120510185025.F0F74A0280@akpm.mtv.corp.google.com>
+Subject: [merged] arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch removed from -mm tree
+Date: Thu, 10 May 2012 13:47:32 -0700
+Message-ID: <20120510204733.738DDA03DB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:40753 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760690Ab2EJSu1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 May 2012 14:50:27 -0400
-Received: by ggeh3 with SMTP id h3so159057gge.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 May 2012 11:50:26 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:64923 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755526Ab2EJUrg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 May 2012 16:47:36 -0400
+Received: by wibhn6 with SMTP id hn6so28736wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 May 2012 13:47:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jhovold@gmail.com, FlorianSchandinat@gmx.de, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@linuxfoundation.org, jic23@cam.ac.uk, rob@landley.net, rpurdie@rpsys.net, sameo@linux.intel.com
+To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: add LM3533 backlight driver
-has been added to the -mm tree.  Its filename is
-     backlight-add-lm3533-backlight-driver.patch
+     Subject: arch/x86/kernel/apic/io_apic.c: move io_apic_level_ack_pending() inside CONFIG_GENERIC_PENDING_IRQ
+has been removed from the -mm tree.  Its filename was
+     arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Johan Hovold <jhovold@gmail.com>
-Subject: backlight: add LM3533 backlight driver
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/x86/kernel/apic/io_apic.c: move io_apic_level_ack_pending() inside CONFIG_GENERIC_PENDING_IRQ
 
-Add sub-driver for the backlights on National Semiconductor / TI LM3533
-lighting power chips.
+x86_64 allnoconfig:
 
-The chip provides 256 brightness levels and ambient-light-sensor and pwm
-input control.
+arch/x86/kernel/apic/io_apic.c:382: warning: 'io_apic_level_ack_pending' defined but not used
 
-Signed-off-by: Johan Hovold <jhovold@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Rob Landley <rob@landley.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-backlight-driver-lm3533 |   41 
- drivers/video/backlight/Kconfig                               |   12 
- drivers/video/backlight/Makefile                              |    1 
- drivers/video/backlight/lm3533_bl.c                           |  423 ++++++++++
- 4 files changed, 477 insertions(+)
+ arch/x86/kernel/apic/io_apic.c |   47 +++++++++++++++----------------
+ 1 file changed, 24 insertions(+), 23 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-class-backlight-driver-lm3533
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-class-backlight-driver-lm3533
-@@ -0,0 +1,41 @@
-+What:		/sys/class/backlight/<backlight>/als
-+Date:		April 2012
-+KernelVersion:	3.5
-+Contact:	Johan Hovold <jhovold@gmail.com>
-+Description:
-+		Set the ALS-control mode (0,..2), where
-+
-+		0 - disabled
-+		1 - ALS-mapper 1 (backlight 0)
-+		2 - ALS-mapper 2 (backlight 1)
-+
-+What:		/sys/class/backlight/<backlight>/id
-+Date:		April 2012
-+KernelVersion:	3.5
-+Contact:	Johan Hovold <jhovold@gmail.com>
-+Description:
-+		Get the id of this backlight (0, 1).
-+
-+What:		/sys/class/backlight/<backlight>/linear
-+Date:		April 2012
-+KernelVersion:	3.5
-+Contact:	Johan Hovold <jhovold@gmail.com>
-+Description:
-+		Set the brightness-mapping mode (0, 1), where
-+
-+		0 - exponential mode
-+		1 - linear mode
-+
-+What:		/sys/class/backlight/<backlight>/pwm
-+Date:		April 2012
-+KernelVersion:	3.5
-+Contact:	Johan Hovold <jhovold@gmail.com>
-+Description:
-+		Set the PWM-input control mask (5 bits), where
-+
-+		bit 5 - PWM-input enabled in Zone 4
-+		bit 4 - PWM-input enabled in Zone 3
-+		bit 3 - PWM-input enabled in Zone 2
-+		bit 2 - PWM-input enabled in Zone 1
-+		bit 1 - PWM-input enabled in Zone 0
-+		bit 0 - PWM-input enabled
-diff -puN drivers/video/backlight/Kconfig~backlight-add-lm3533-backlight-driver drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-add-lm3533-backlight-driver
-+++ a/drivers/video/backlight/Kconfig
-@@ -184,6 +184,18 @@ config BACKLIGHT_GENERIC
- 	  known as the Corgi backlight driver. If you have a Sharp Zaurus
- 	  SL-C7xx, SL-Cxx00 or SL-6000x say y.
+diff -puN arch/x86/kernel/apic/io_apic.c~arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq arch/x86/kernel/apic/io_apic.c
+--- a/arch/x86/kernel/apic/io_apic.c~arch-x86-kernel-apic-io_apicc-move-io_apic_level_ack_pending-inside-config_generic_pending_irq
++++ a/arch/x86/kernel/apic/io_apic.c
+@@ -379,29 +379,6 @@ static void __io_apic_modify(unsigned in
+ 	writel(value, &io_apic->data);
+ }
  
-+config BACKLIGHT_LM3533
-+	tristate "Backlight Driver for LM3533"
-+	depends on BACKLIGHT_CLASS_DEVICE
-+	depends on MFD_LM3533
-+	help
-+	  Say Y to enable the backlight driver for National Semiconductor / TI
-+	  LM3533 Lighting Power chips.
+-static bool io_apic_level_ack_pending(struct irq_cfg *cfg)
+-{
+-	struct irq_pin_list *entry;
+-	unsigned long flags;
+-
+-	raw_spin_lock_irqsave(&ioapic_lock, flags);
+-	for_each_irq_pin(entry, cfg->irq_2_pin) {
+-		unsigned int reg;
+-		int pin;
+-
+-		pin = entry->pin;
+-		reg = io_apic_read(entry->apic, 0x10 + pin*2);
+-		/* Is the remote IRR bit set? */
+-		if (reg & IO_APIC_REDIR_REMOTE_IRR) {
+-			raw_spin_unlock_irqrestore(&ioapic_lock, flags);
+-			return true;
+-		}
+-	}
+-	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
+-
+-	return false;
+-}
+-
+ union entry_union {
+ 	struct { u32 w1, w2; };
+ 	struct IO_APIC_route_entry entry;
+@@ -2552,6 +2529,30 @@ static void ack_apic_edge(struct irq_dat
+ atomic_t irq_mis_count;
+ 
+ #ifdef CONFIG_GENERIC_PENDING_IRQ
 +
-+	  The backlights can be controlled directly, through PWM input, or by
-+	  the ambient-light-sensor interface. The chip supports 256 brightness
-+	  levels.
-+
- config BACKLIGHT_LOCOMO
- 	tristate "Sharp LOCOMO LCD/Backlight Driver"
- 	depends on SHARP_LOCOMO
-diff -puN drivers/video/backlight/Makefile~backlight-add-lm3533-backlight-driver drivers/video/backlight/Makefile
---- a/drivers/video/backlight/Makefile~backlight-add-lm3533-backlight-driver
-+++ a/drivers/video/backlight/Makefile
-@@ -21,6 +21,7 @@ obj-$(CONFIG_BACKLIGHT_EP93XX)	+= ep93xx
- obj-$(CONFIG_BACKLIGHT_GENERIC)	+= generic_bl.o
- obj-$(CONFIG_BACKLIGHT_HP700)	+= jornada720_bl.o
- obj-$(CONFIG_BACKLIGHT_HP680)	+= hp680_bl.o
-+obj-$(CONFIG_BACKLIGHT_LM3533)	+= lm3533_bl.o
- obj-$(CONFIG_BACKLIGHT_LOCOMO)	+= locomolcd.o
- obj-$(CONFIG_BACKLIGHT_LP855X)	+= lp855x_bl.o
- obj-$(CONFIG_BACKLIGHT_OMAP1)	+= omap1_bl.o
-diff -puN /dev/null drivers/video/backlight/lm3533_bl.c
---- /dev/null
-+++ a/drivers/video/backlight/lm3533_bl.c
-@@ -0,0 +1,423 @@
-+/*
-+ * lm3533-bl.c -- LM3533 Backlight driver
-+ *
-+ * Copyright (C) 2011-2012 Texas Instruments
-+ *
-+ * Author: Johan Hovold <jhovold@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under  the terms of the GNU General  Public License as published by the
-+ * Free Software Foundation;  either version 2 of the License, or (at your
-+ * option) any later version.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/backlight.h>
-+#include <linux/fb.h>
-+#include <linux/slab.h>
-+
-+#include <linux/mfd/lm3533.h>
-+
-+
-+#define LM3533_HVCTRLBANK_COUNT		2
-+#define LM3533_BL_MAX_BRIGHTNESS	255
-+
-+#define LM3533_REG_CTRLBANK_AB_BCONF	0x1a
-+
-+
-+struct lm3533_bl {
-+	struct lm3533 *lm3533;
-+	struct lm3533_ctrlbank cb;
-+	struct backlight_device *bd;
-+	int id;
-+};
-+
-+
-+static inline int lm3533_bl_get_ctrlbank_id(struct lm3533_bl *bl)
++static bool io_apic_level_ack_pending(struct irq_cfg *cfg)
 +{
-+	return bl->id;
-+}
++	struct irq_pin_list *entry;
++	unsigned long flags;
 +
-+static int lm3533_bl_update_status(struct backlight_device *bd)
-+{
-+	struct lm3533_bl *bl = bl_get_data(bd);
-+	int brightness = bd->props.brightness;
++	raw_spin_lock_irqsave(&ioapic_lock, flags);
++	for_each_irq_pin(entry, cfg->irq_2_pin) {
++		unsigned int reg;
++		int pin;
 +
-+	if (bd->props.power != FB_BLANK_UNBLANK)
-+		brightness = 0;
-+	if (bd->props.fb_blank != FB_BLANK_UNBLANK)
-+		brightness = 0;
-+
-+	return lm3533_ctrlbank_set_brightness(&bl->cb, (u8)brightness);
-+}
-+
-+static int lm3533_bl_get_brightness(struct backlight_device *bd)
-+{
-+	struct lm3533_bl *bl = bl_get_data(bd);
-+	u8 val;
-+	int ret;
-+
-+	ret = lm3533_ctrlbank_get_brightness(&bl->cb, &val);
-+	if (ret)
-+		return ret;
-+
-+	return val;
-+}
-+
-+static const struct backlight_ops lm3533_bl_ops = {
-+	.get_brightness	= lm3533_bl_get_brightness,
-+	.update_status	= lm3533_bl_update_status,
-+};
-+
-+static ssize_t show_id(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%d\n", bl->id);
-+}
-+
-+/*
-+ * ALS-control setting:
-+ *
-+ *   0 - ALS disabled
-+ *   1 - ALS-mapper 1 (backlight 0)
-+ *   2 - ALS-mapper 2 (backlight 1)
-+ */
-+static ssize_t show_als(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
-+	int ctrlbank = lm3533_bl_get_ctrlbank_id(bl);
-+	u8 val;
-+	u8 mask;
-+	int als;
-+	int ret;
-+
-+	ret = lm3533_read(bl->lm3533, LM3533_REG_CTRLBANK_AB_BCONF, &val);
-+	if (ret)
-+		return ret;
-+
-+	mask = 2 * ctrlbank;
-+	als = val & mask;
-+	if (als)
-+		als = ctrlbank + 1;
-+
-+	return scnprintf(buf, PAGE_SIZE, "%d\n", als);
-+}
-+
-+static ssize_t store_als(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t len)
-+{
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
-+	int ctrlbank = lm3533_bl_get_ctrlbank_id(bl);
-+	int als;
-+	u8 val;
-+	u8 mask;
-+	int ret;
-+
-+	if (kstrtoint(buf, 0, &als))
-+		return -EINVAL;
-+
-+	if (als != 0 && (als != ctrlbank + 1))
-+		return -EINVAL;
-+
-+	mask = 1 << (2 * ctrlbank);
-+
-+	if (als)
-+		val = mask;
-+	else
-+		val = 0;
-+
-+	ret = lm3533_update(bl->lm3533, LM3533_REG_CTRLBANK_AB_BCONF, val,
-+									mask);
-+	if (ret)
-+		return ret;
-+
-+	return len;
-+}
-+
-+static ssize_t show_linear(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
-+	u8 val;
-+	u8 mask;
-+	int linear;
-+	int ret;
-+
-+	ret = lm3533_read(bl->lm3533, LM3533_REG_CTRLBANK_AB_BCONF, &val);
-+	if (ret)
-+		return ret;
-+
-+	mask = 1 << (2 * lm3533_bl_get_ctrlbank_id(bl) + 1);
-+
-+	if (val & mask)
-+		linear = 1;
-+	else
-+		linear = 0;
-+
-+	return scnprintf(buf, PAGE_SIZE, "%x\n", linear);
-+}
-+
-+static ssize_t store_linear(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t len)
-+{
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
-+	unsigned long linear;
-+	u8 mask;
-+	u8 val;
-+	int ret;
-+
-+	if (kstrtoul(buf, 0, &linear))
-+		return -EINVAL;
-+
-+	mask = 1 << (2 * lm3533_bl_get_ctrlbank_id(bl) + 1);
-+
-+	if (linear)
-+		val = mask;
-+	else
-+		val = 0;
-+
-+	ret = lm3533_update(bl->lm3533, LM3533_REG_CTRLBANK_AB_BCONF, val,
-+									mask);
-+	if (ret)
-+		return ret;
-+
-+	return len;
-+}
-+
-+static ssize_t show_pwm(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
-+{
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
-+	u8 val;
-+	int ret;
-+
-+	ret = lm3533_ctrlbank_get_pwm(&bl->cb, &val);
-+	if (ret)
-+		return ret;
-+
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", val);
-+}
-+
-+static ssize_t store_pwm(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t len)
-+{
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
-+	u8 val;
-+	int ret;
-+
-+	if (kstrtou8(buf, 0, &val))
-+		return -EINVAL;
-+
-+	ret = lm3533_ctrlbank_set_pwm(&bl->cb, val);
-+	if (ret)
-+		return ret;
-+
-+	return len;
-+}
-+
-+static LM3533_ATTR_RW(als);
-+static LM3533_ATTR_RO(id);
-+static LM3533_ATTR_RW(linear);
-+static LM3533_ATTR_RW(pwm);
-+
-+static struct attribute *lm3533_bl_attributes[] = {
-+	&dev_attr_als.attr,
-+	&dev_attr_id.attr,
-+	&dev_attr_linear.attr,
-+	&dev_attr_pwm.attr,
-+	NULL,
-+};
-+
-+static mode_t lm3533_bl_attr_is_visible(struct kobject *kobj,
-+					     struct attribute *attr, int n)
-+{
-+	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct lm3533_bl *bl = dev_get_drvdata(dev);
-+	mode_t mode = attr->mode;
-+
-+	if (attr == &dev_attr_als.attr) {
-+		if (!bl->lm3533->have_als)
-+			mode = 0;
++		pin = entry->pin;
++		reg = io_apic_read(entry->apic, 0x10 + pin*2);
++		/* Is the remote IRR bit set? */
++		if (reg & IO_APIC_REDIR_REMOTE_IRR) {
++			raw_spin_unlock_irqrestore(&ioapic_lock, flags);
++			return true;
++		}
 +	}
++	raw_spin_unlock_irqrestore(&ioapic_lock, flags);
 +
-+	return mode;
-+};
-+
-+static struct attribute_group lm3533_bl_attribute_group = {
-+	.is_visible	= lm3533_bl_attr_is_visible,
-+	.attrs		= lm3533_bl_attributes
-+};
-+
-+static int __devinit lm3533_bl_setup(struct lm3533_bl *bl,
-+					struct lm3533_bl_platform_data *pdata)
-+{
-+	int ret;
-+
-+	ret = lm3533_ctrlbank_set_max_current(&bl->cb, pdata->max_current);
-+	if (ret)
-+		return ret;
-+
-+	return lm3533_ctrlbank_set_pwm(&bl->cb, pdata->pwm);
++	return false;
 +}
 +
-+static int __devinit lm3533_bl_probe(struct platform_device *pdev)
-+{
-+	struct lm3533 *lm3533;
-+	struct lm3533_bl_platform_data *pdata;
-+	struct lm3533_bl *bl;
-+	struct backlight_device *bd;
-+	struct backlight_properties props;
-+	int ret;
-+
-+	dev_dbg(&pdev->dev, "%s\n", __func__);
-+
-+	lm3533 = dev_get_drvdata(pdev->dev.parent);
-+	if (!lm3533)
-+		return -EINVAL;
-+
-+	pdata = pdev->dev.platform_data;
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "no platform data\n");
-+		return -EINVAL;
-+	}
-+
-+	if (pdev->id < 0 || pdev->id >= LM3533_HVCTRLBANK_COUNT) {
-+		dev_err(&pdev->dev, "illegal backlight id %d\n", pdev->id);
-+		return -EINVAL;
-+	}
-+
-+	bl = kzalloc(sizeof(*bl), GFP_KERNEL);
-+	if (!bl) {
-+		dev_err(&pdev->dev,
-+				"failed to allocate memory for backlight\n");
-+		return -ENOMEM;
-+	}
-+
-+	bl->lm3533 = lm3533;
-+	bl->id = pdev->id;
-+
-+	bl->cb.lm3533 = lm3533;
-+	bl->cb.id = lm3533_bl_get_ctrlbank_id(bl);
-+	bl->cb.dev = NULL;			/* until registered */
-+
-+	memset(&props, 0, sizeof(props));
-+	props.type = BACKLIGHT_RAW;
-+	props.max_brightness = LM3533_BL_MAX_BRIGHTNESS;
-+	props.brightness = pdata->default_brightness;
-+	bd = backlight_device_register(pdata->name, pdev->dev.parent, bl,
-+						&lm3533_bl_ops, &props);
-+	if (IS_ERR(bd)) {
-+		dev_err(&pdev->dev, "failed to register backlight device\n");
-+		ret = PTR_ERR(bd);
-+		goto err_free;
-+	}
-+
-+	bl->bd = bd;
-+	bl->cb.dev = &bl->bd->dev;
-+
-+	platform_set_drvdata(pdev, bl);
-+
-+	ret = sysfs_create_group(&bd->dev.kobj, &lm3533_bl_attribute_group);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "failed to create sysfs attributes\n");
-+		goto err_unregister;
-+	}
-+
-+	backlight_update_status(bd);
-+
-+	ret = lm3533_bl_setup(bl, pdata);
-+	if (ret)
-+		goto err_sysfs_remove;
-+
-+	ret = lm3533_ctrlbank_enable(&bl->cb);
-+	if (ret)
-+		goto err_sysfs_remove;
-+
-+	return 0;
-+
-+err_sysfs_remove:
-+	sysfs_remove_group(&bd->dev.kobj, &lm3533_bl_attribute_group);
-+err_unregister:
-+	backlight_device_unregister(bd);
-+err_free:
-+	kfree(bl);
-+
-+	return ret;
-+}
-+
-+static int __devexit lm3533_bl_remove(struct platform_device *pdev)
-+{
-+	struct lm3533_bl *bl = platform_get_drvdata(pdev);
-+	struct backlight_device *bd = bl->bd;
-+
-+	dev_dbg(&bd->dev, "%s\n", __func__);
-+
-+	bd->props.power = FB_BLANK_POWERDOWN;
-+	bd->props.brightness = 0;
-+
-+	lm3533_ctrlbank_disable(&bl->cb);
-+	sysfs_remove_group(&bd->dev.kobj, &lm3533_bl_attribute_group);
-+	backlight_device_unregister(bd);
-+	kfree(bl);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int lm3533_bl_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct lm3533_bl *bl = platform_get_drvdata(pdev);
-+
-+	dev_dbg(&pdev->dev, "%s\n", __func__);
-+
-+	return lm3533_ctrlbank_disable(&bl->cb);
-+}
-+
-+static int lm3533_bl_resume(struct platform_device *pdev)
-+{
-+	struct lm3533_bl *bl = platform_get_drvdata(pdev);
-+
-+	dev_dbg(&pdev->dev, "%s\n", __func__);
-+
-+	return lm3533_ctrlbank_enable(&bl->cb);
-+}
-+#else
-+#define lm3533_bl_suspend	NULL
-+#define lm3533_bl_resume	NULL
-+#endif
-+
-+static void lm3533_bl_shutdown(struct platform_device *pdev)
-+{
-+	struct lm3533_bl *bl = platform_get_drvdata(pdev);
-+
-+	dev_dbg(&pdev->dev, "%s\n", __func__);
-+
-+	lm3533_ctrlbank_disable(&bl->cb);
-+}
-+
-+static struct platform_driver lm3533_bl_driver = {
-+	.driver = {
-+		.name	= "lm3533-backlight",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= lm3533_bl_probe,
-+	.remove		= __devexit_p(lm3533_bl_remove),
-+	.shutdown	= lm3533_bl_shutdown,
-+	.suspend	= lm3533_bl_suspend,
-+	.resume		= lm3533_bl_resume,
-+};
-+module_platform_driver(lm3533_bl_driver);
-+
-+MODULE_AUTHOR("Johan Hovold <jhovold@gmail.com>");
-+MODULE_DESCRIPTION("LM3533 Backlight driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:lm3533-backlight");
+ static inline bool ioapic_irqd_mask(struct irq_data *data, struct irq_cfg *cfg)
+ {
+ 	/* If we are moving the irq we need to mask it */
 _
-Subject: Subject: backlight: add LM3533 backlight driver
 
-Patches currently in -mm which might be from jhovold@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-backlight-add-lm3533-backlight-driver.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+memcg-add-mlock-statistic-in-memorystat-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
