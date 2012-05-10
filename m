@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch added to -mm tree
-Date: Thu, 10 May 2012 13:59:45 -0700
-Message-ID: <20120510214450.EE76B20004E@hpza10.eem.corp.google.com>
+Subject: + drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch added to -mm tree
+Date: Thu, 10 May 2012 14:32:37 -0700
+Message-ID: <20120510221742.E613710004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:47258 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761528Ab2EJVox (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 May 2012 17:44:53 -0400
-Received: by wgbdt11 with SMTP id dt11so116629wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 10 May 2012 14:44:52 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:62014 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761527Ab2EJWRp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 May 2012 18:17:45 -0400
+Received: by yhgm50 with SMTP id m50so317437yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 10 May 2012 15:17:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, hannes@cmpxchg.org, shangw@linux.vnet.ibm.com, tj@kernel.org, yinghai@kernel.org
+Cc: akpm@linux-foundation.org, FlorianSchandinat@gmx.de, hartleys@visionengravers.com, hsweeten@visionengravers.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix
+     Subject: drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix
 has been added to the -mm tree.  Its filename is
-     mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
+     drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix
+Subject: drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix
 
-fix build
+Fix resulting build error
 
-mm/sparse.c: In function 'sparse_early_usemaps_alloc_pgdat_section':
-mm/sparse.c:340: error: expected ';' before '}' token
+drivers/video/backlight/apple_bl.c:228: error: redefinition of 'apple_bl_register'
+include/linux/apple_bl.h:15: note: previous definition of 'apple_bl_register' was here
+drivers/video/backlight/apple_bl.c:237: error: redefinition of 'apple_bl_unregister'
+include/linux/apple_bl.h:20: note: previous definition of 'apple_bl_unregister' was here
 
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: H Hartley Sweeten <hartleys@visionengravers.com>
+Cc: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
+ include/linux/apple_bl.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/sparse.c~mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix mm/sparse.c
---- a/mm/sparse.c~mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix
-+++ a/mm/sparse.c
-@@ -336,7 +336,7 @@ static unsigned long * __init
- sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
- 					 unsigned long size)
- {
--	return alloc_bootmem_node_nopanic(pgdat, size)
-+	return alloc_bootmem_node_nopanic(pgdat, size);
- }
+diff -puN include/linux/apple_bl.h~drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix include/linux/apple_bl.h
+--- a/include/linux/apple_bl.h~drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix
++++ a/include/linux/apple_bl.h
+@@ -5,7 +5,7 @@
+ #ifndef _LINUX_APPLE_BL_H
+ #define _LINUX_APPLE_BL_H
  
- static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
+-#ifdef CONFIG_BACKLIGHT_APPLE
++#if defined(CONFIG_BACKLIGHT_APPLE) || defined(CONFIG_BACKLIGHT_APPLE_MODULE)
+ 
+ extern int apple_bl_register(void);
+ extern void apple_bl_unregister(void);
 _
-Subject: Subject: mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix
+Subject: Subject: drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -106,6 +107,7 @@ nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
 kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
 vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
 vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
 leds-led-module-for-da9052-53-pmic-v2-fix.patch
 leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
 leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
