@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch added to -mm tree
-Date: Fri, 11 May 2012 14:23:46 -0700
-Message-ID: <20120511212346.D84DDA02AE@akpm.mtv.corp.google.com>
+Subject: + memcg-dont-uncharge-in-mem_cgroup_move_account.patch added to -mm tree
+Date: Fri, 11 May 2012 14:23:48 -0700
+Message-ID: <20120511212348.F2E14A02AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:40650 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946069Ab2EKVXt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 May 2012 17:23:49 -0400
-Received: by eaaq10 with SMTP id q10so155096eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 11 May 2012 14:23:48 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:57174 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946149Ab2EKVXu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 May 2012 17:23:50 -0400
+Received: by qabg24 with SMTP id g24so277874qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 11 May 2012 14:23:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, aneesh.kumar@linux.vnet.ibm.com, fweisbec@gm
 
 
 The patch titled
-     Subject: memcg: move charges to root cgroup if use_hierarchy=0.
+     Subject: memcg: don't uncharge in mem_cgroup_move_account()
 has been added to the -mm tree.  Its filename is
-     memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
+     memcg-dont-uncharge-in-mem_cgroup_move_account.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: move charges to root cgroup if use_hierarchy=0.
+Subject: memcg: don't uncharge in mem_cgroup_move_account()
 
-Presently, at removal of cgroup, ->pre_destroy() is called and moves
-charges to the parent cgroup.  A major reason for returning -EBUSY from
-->pre_destroy() is that the 'moving' hits the parent's resource
-limitation.  It happens only when use_hierarchy=0.
-
-Considering use_hierarchy=0, all cgroups should be flat.  So, no one
-cannot justify moving charges to parent...parent and children are in flat
-configuration, not hierarchical.
-
-This patch modifes the code to move charges to the root cgroup at
-rmdir/force_empty if use_hierarchy==0.  This will much simplify rmdir()
-and reduce error in ->pre_destroy.
+Now, all callers pass 'false' for 'bool uncharge' so remove this argument.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
@@ -60,146 +49,79 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   13 ++++---
- mm/memcontrol.c                  |   49 ++++++++++-------------------
- 2 files changed, 25 insertions(+), 37 deletions(-)
+ mm/memcontrol.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-move-charges-to-root-cgroup-if-use_hierarchy=0 Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-move-charges-to-root-cgroup-if-use_hierarchy=0
-+++ a/Documentation/cgroups/memory.txt
-@@ -393,14 +393,15 @@ cgroup might have some charge associated
- tasks have migrated away from it. (because we charge against pages, not
- against tasks.)
- 
--Such charges are freed or moved to their parent. At moving, both of RSS
--and CACHES are moved to parent.
--rmdir() may return -EBUSY if freeing/moving fails. See 5.1 also.
-+We move the stats to root (if use_hierarchy==0) or parent (if
-+use_hierarchy==1), and no change on the charge except uncharging
-+from the child.
- 
- Charges recorded in swap information is not updated at removal of cgroup.
- Recorded information is discarded and a cgroup which uses swap (swapcache)
- will be charged as a new owner of it.
- 
-+About use_hierarchy, see Section 6.
- 
- 5. Misc. interfaces.
- 
-@@ -413,13 +414,15 @@ will be charged as a new owner of it.
- 
-   Almost all pages tracked by this memory cgroup will be unmapped and freed.
-   Some pages cannot be freed because they are locked or in-use. Such pages are
--  moved to parent and this cgroup will be empty. This may return -EBUSY if
--  VM is too busy to free/move all pages immediately.
-+  moved to parent(if use_hierarchy==1) or root (if use_hierarchy==0) and this
-+  cgroup will be empty.
- 
-   Typical use case of this interface is that calling this before rmdir().
-   Because rmdir() moves all pages to parent, some out-of-use page caches can be
-   moved to the parent. If you want to avoid that, force_empty will be useful.
- 
-+  About use_hierarchy, see Section 6.
-+
- 5.2 stat file
- 
- memory.stat file includes following statistics
-diff -puN mm/memcontrol.c~memcg-move-charges-to-root-cgroup-if-use_hierarchy=0 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-charges-to-root-cgroup-if-use_hierarchy=0
+diff -puN mm/memcontrol.c~memcg-dont-uncharge-in-mem_cgroup_move_account mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-dont-uncharge-in-mem_cgroup_move_account
 +++ a/mm/memcontrol.c
-@@ -2709,15 +2709,13 @@ static int mem_cgroup_move_parent(struct
- 				  struct mem_cgroup *child,
- 				  gfp_t gfp_mask)
+@@ -2615,23 +2615,19 @@ void mem_cgroup_split_huge_fixup(struct 
+  * @pc:	page_cgroup of the page.
+  * @from: mem_cgroup which the page is moved from.
+  * @to:	mem_cgroup which the page is moved to. @from != @to.
+- * @uncharge: whether we should call uncharge and css_put against @from.
+  *
+  * The caller must confirm following.
+  * - page is not on LRU (isolate_page() is useful.)
+  * - compound_lock is held when nr_pages > 1
+  *
+- * This function doesn't do "charge" nor css_get to new cgroup. It should be
+- * done by a caller(__mem_cgroup_try_charge would be useful). If @uncharge is
+- * true, this function does "uncharge" from old cgroup, but it doesn't if
+- * @uncharge is false, so a caller should do "uncharge".
++ * This function doesn't do "charge" to new cgroup and doesn't do "uncharge"
++ * from old cgroup.
+  */
+ static int mem_cgroup_move_account(struct page *page,
+ 				   unsigned int nr_pages,
+ 				   struct page_cgroup *pc,
+ 				   struct mem_cgroup *from,
+-				   struct mem_cgroup *to,
+-				   bool uncharge)
++				   struct mem_cgroup *to)
  {
--	struct cgroup *cg = child->css.cgroup;
--	struct cgroup *pcg = cg->parent;
- 	struct mem_cgroup *parent;
- 	unsigned int nr_pages;
- 	unsigned long uninitialized_var(flags);
+ 	unsigned long flags;
  	int ret;
+@@ -2673,9 +2669,6 @@ static int mem_cgroup_move_account(struc
+ 		preempt_enable();
+ 	}
+ 	mem_cgroup_charge_statistics(from, anon, -nr_pages);
+-	if (uncharge)
+-		/* This is not "cancel", but cancel_charge does all we need. */
+-		__mem_cgroup_cancel_charge(from, nr_pages);
  
- 	/* Is ROOT ? */
--	if (!pcg)
-+	if (mem_cgroup_is_root(child))
- 		return -EINVAL;
- 
- 	ret = -EBUSY;
-@@ -2728,33 +2726,23 @@ static int mem_cgroup_move_parent(struct
- 
- 	nr_pages = hpage_nr_pages(page);
- 
--	parent = mem_cgroup_from_cont(pcg);
--	if (!parent->use_hierarchy) {
--		ret = __mem_cgroup_try_charge(NULL,
--					gfp_mask, nr_pages, &parent, false);
--		if (ret)
--			goto put_back;
--	}
-+	parent = parent_mem_cgroup(child);
-+	/*
-+	 * If no parent, move charges to root cgroup.
-+	 */
-+	if (!parent)
-+		parent = root_mem_cgroup;
- 
- 	if (nr_pages > 1)
+ 	/* caller should have done css_get */
+ 	pc->mem_cgroup = to;
+@@ -2737,7 +2730,7 @@ static int mem_cgroup_move_parent(struct
  		flags = compound_lock_irqsave(page);
  
--	if (parent->use_hierarchy) {
--		ret = mem_cgroup_move_account(page, nr_pages,
--					pc, child, parent, false);
--		if (!ret)
--			__mem_cgroup_cancel_local_charge(child, nr_pages);
--	} else {
--		ret = mem_cgroup_move_account(page, nr_pages,
--					pc, child, parent, true);
--
--		if (ret)
--			__mem_cgroup_cancel_charge(parent, nr_pages);
--	}
-+	ret = mem_cgroup_move_account(page, nr_pages,
-+				pc, child, parent, false);
-+	if (!ret)
-+		__mem_cgroup_cancel_local_charge(child, nr_pages);
+ 	ret = mem_cgroup_move_account(page, nr_pages,
+-				pc, child, parent, false);
++				pc, child, parent);
+ 	if (!ret)
+ 		__mem_cgroup_cancel_local_charge(child, nr_pages);
  
- 	if (nr_pages > 1)
- 		compound_unlock_irqrestore(page, flags);
--put_back:
- 	putback_lru_page(page);
- put:
- 	put_page(page);
-@@ -3351,9 +3339,8 @@ int mem_cgroup_move_hugetlb_parent(int i
- 	struct page_cgroup *pc;
- 	int csize,  ret = 0;
- 	struct res_counter *fail_res;
--	struct cgroup *pcgrp = cgroup->parent;
--	struct mem_cgroup *parent = mem_cgroup_from_cont(pcgrp);
- 	struct mem_cgroup *memcg  = mem_cgroup_from_cont(cgroup);
-+	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
- 	struct res_counter *counter;
- 
- 	if (!get_page_unless_zero(page))
-@@ -3366,13 +3353,11 @@ int mem_cgroup_move_hugetlb_parent(int i
- 
- 	csize = PAGE_SIZE << compound_order(page);
- 	/* If parent->use_hierarchy == 0, we need to charge parent */
--	if (!parent->use_hierarchy) {
--		ret = res_counter_charge(&parent->hugepage[idx],
--					 csize, &fail_res);
--		if (ret) {
--			ret = -EBUSY;
--			goto err_out;
--		}
-+	if (!parent) {
-+		parent = root_mem_cgroup;
-+		/* root has no limit */
-+		res_counter_charge_nofail(&parent->hugepage[idx],
-+				 csize, &fail_res);
- 	}
- 	counter = &memcg->hugepage[idx];
- 	res_counter_uncharge_until(counter, counter->parent, csize);
+@@ -5755,8 +5748,7 @@ static int mem_cgroup_move_charge_pte_ra
+ 			if (!isolate_lru_page(page)) {
+ 				pc = lookup_page_cgroup(page);
+ 				if (!mem_cgroup_move_account(page, HPAGE_PMD_NR,
+-							     pc, mc.from, mc.to,
+-							     false)) {
++							pc, mc.from, mc.to)) {
+ 					mc.precharge -= HPAGE_PMD_NR;
+ 					mc.moved_charge += HPAGE_PMD_NR;
+ 				}
+@@ -5786,7 +5778,7 @@ retry:
+ 				goto put;
+ 			pc = lookup_page_cgroup(page);
+ 			if (!mem_cgroup_move_account(page, 1, pc,
+-						     mc.from, mc.to, false)) {
++						     mc.from, mc.to)) {
+ 				mc.precharge--;
+ 				/* we uncharge from mc.from later. */
+ 				mc.moved_charge++;
 _
-Subject: Subject: memcg: move charges to root cgroup if use_hierarchy=0.
+Subject: Subject: memcg: don't uncharge in mem_cgroup_move_account()
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
