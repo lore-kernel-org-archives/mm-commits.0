@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-replace-page-if-mapping-excludes-its-zone.patch added to -mm tree
-Date: Mon, 14 May 2012 16:13:43 -0700
-Message-ID: <20120514231344.AE924A00AE@akpm.mtv.corp.google.com>
+Subject: + tmpfs-optimize-clearing-when-writing.patch added to -mm tree
+Date: Mon, 14 May 2012 16:13:52 -0700
+Message-ID: <20120514231352.2A6A4A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:43721 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757353Ab2ENXNr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 May 2012 19:13:47 -0400
-Received: by vbnl22 with SMTP id l22so717450vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 May 2012 16:13:46 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:39786 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757353Ab2ENXNz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 May 2012 19:13:55 -0400
+Received: by faaa25 with SMTP id a25so286809faa.1
+        for <mm-commits@vger.kernel.org>; Mon, 14 May 2012 16:13:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, airlied@gmail.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, daniel@ffwll.ch, hch@infradead.org, kamezawa.hiroyu@jp.fujitsu.com, marcheu@chromium.org, rob.clark@linaro.org
+Cc: hughd@google.com, hch@infradead.org, npiggin@gmail.com
 
 
 The patch titled
-     Subject: shmem: replace page if mapping excludes its zone
+     Subject: tmpfs: optimize clearing when writing
 has been added to the -mm tree.  Its filename is
-     shmem-replace-page-if-mapping-excludes-its-zone.patch
+     tmpfs-optimize-clearing-when-writing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,361 +34,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: replace page if mapping excludes its zone
+Subject: tmpfs: optimize clearing when writing
 
-The GMA500 GPU driver uses GEM shmem objects, but with a new twist: the
-backing RAM has to be below 4GB.  Not a problem while the boards supported
-only 4GB: but now Intel's D2700MUD boards support 8GB, and their GMA3600
-is managed by the GMA500 driver.
+Nick proposed years ago that tmpfs should avoid clearing its pages where
+write will overwrite them with new data, as ramfs has long done.  But I
+messed it up and just got bad data.  Tried again recently, it works fine.
 
-shmem/tmpfs has never pretended to support hardware restrictions on the
-backing memory, but it might have appeared to do so before v3.1, and even
-now it works fine until a page is swapped out then back in.  When
-read_cache_page_gfp() supplied a freshly allocated page for copy, that
-compensated for whatever choice might have been made by earlier swapin
-readahead; but swapoff was likely to destroy the illusion.
+Here's time output for writing 4GiB 16 times on this Core i5 laptop:
 
-We'd like to continue to support GMA500, so now add a new
-shmem_should_replace_page() check on the zone when about to move a page
-from swapcache to filecache (in swapin and swapoff cases), with
-shmem_replace_page() to allocate and substitute a suitable page (given
-gma500/gem.c's mapping_set_gfp_mask GFP_KERNEL | __GFP_DMA32).
+before: real	0m21.169s user	0m0.028s sys	0m21.057s
+        real	0m21.382s user	0m0.016s sys	0m21.289s
+        real	0m21.311s user	0m0.020s sys	0m21.217s
 
-This does involve a minor extension to mem_cgroup_replace_page_cache()
-(the page may or may not have already been charged); and I've removed a
-comment and call to mem_cgroup_uncharge_cache_page(), which in fact is
-always a no-op while PageSwapCache.
+after:  real	0m18.273s user	0m0.032s sys	0m18.165s
+        real	0m18.354s user	0m0.020s sys	0m18.265s
+        real	0m18.440s user	0m0.032s sys	0m18.337s
 
-Also removed optimization of an unlikely path in shmem_getpage_gfp(), now
-that we need to check PageSwapCache more carefully (a racing caller might
-already have made the copy).  And at one point shmem_unuse_inode() needs
-to use the hitherto private page_swapcount(), to guard against racing with
-inode eviction.
+ramfs:  real	0m16.860s user	0m0.028s sys	0m16.765s
+        real	0m17.382s user	0m0.040s sys	0m17.273s
+        real	0m17.133s user	0m0.044s sys	0m17.021s
 
-It would make sense to extend shmem_should_replace_page(), to cover cpuset
-and NUMA mempolicy restrictions too, but set that aside for now: needs a
-cleanup of shmem mempolicy handling, and more testing, and ought to handle
-swap faults in do_swap_page() as well as shmem.
+Yes, I have done perf reports, but they need more explanation than they
+deserve: in summary, clear_page vanishes, its cache loading shifts into
+copy_user_generic_unrolled; shmem_getpage_gfp goes down, and surprisingly
+mark_page_accessed goes way up - I think because they are respectively
+where the cache gets to be reloaded after being purged by clear or copy.
 
+Suggested-by: Nick Piggin <npiggin@gmail.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@infradead.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Stephane Marchesin <marcheu@chromium.org>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Rob Clark <rob.clark@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 +
- mm/memcontrol.c      |   17 +++-
- mm/shmem.c           |  141 +++++++++++++++++++++++++++++++++++------
- mm/swapfile.c        |    2 
- 4 files changed, 142 insertions(+), 24 deletions(-)
+ mm/shmem.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/swap.h~shmem-replace-page-if-mapping-excludes-its-zone include/linux/swap.h
---- a/include/linux/swap.h~shmem-replace-page-if-mapping-excludes-its-zone
-+++ a/include/linux/swap.h
-@@ -355,6 +355,7 @@ extern int swap_type_of(dev_t, sector_t,
- extern unsigned int count_swap_pages(int, int);
- extern sector_t map_swap_page(struct page *, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
-+extern int page_swapcount(struct page *);
- extern int reuse_swap_page(struct page *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
-@@ -449,6 +450,11 @@ static inline void delete_from_swap_cach
- {
- }
- 
-+static inline int page_swapcount(struct page *page)
-+{
-+	return 0;
-+}
-+
- #define reuse_swap_page(page)	(page_mapcount(page) == 1)
- 
- static inline int try_to_free_swap(struct page *page)
-diff -puN mm/memcontrol.c~shmem-replace-page-if-mapping-excludes-its-zone mm/memcontrol.c
---- a/mm/memcontrol.c~shmem-replace-page-if-mapping-excludes-its-zone
-+++ a/mm/memcontrol.c
-@@ -3579,7 +3579,7 @@ void mem_cgroup_end_migration(struct mem
- void mem_cgroup_replace_page_cache(struct page *oldpage,
- 				  struct page *newpage)
- {
--	struct mem_cgroup *memcg;
-+	struct mem_cgroup *memcg = NULL;
- 	struct page_cgroup *pc;
- 	enum charge_type type = MEM_CGROUP_CHARGE_TYPE_CACHE;
- 
-@@ -3589,11 +3589,20 @@ void mem_cgroup_replace_page_cache(struc
- 	pc = lookup_page_cgroup(oldpage);
- 	/* fix accounting on old pages */
- 	lock_page_cgroup(pc);
--	memcg = pc->mem_cgroup;
--	mem_cgroup_charge_statistics(memcg, false, -1);
--	ClearPageCgroupUsed(pc);
-+	if (PageCgroupUsed(pc)) {
-+		memcg = pc->mem_cgroup;
-+		mem_cgroup_charge_statistics(memcg, false, -1);
-+		ClearPageCgroupUsed(pc);
-+	}
- 	unlock_page_cgroup(pc);
- 
-+	/*
-+	 * When called from shmem_replace_page(), in some cases the
-+	 * oldpage has already been charged, and in some cases not.
-+	 */
-+	if (!memcg)
-+		return;
-+
- 	if (PageSwapBacked(oldpage))
- 		type = MEM_CGROUP_CHARGE_TYPE_SHMEM;
- 
-diff -puN mm/shmem.c~shmem-replace-page-if-mapping-excludes-its-zone mm/shmem.c
---- a/mm/shmem.c~shmem-replace-page-if-mapping-excludes-its-zone
+diff -puN mm/shmem.c~tmpfs-optimize-clearing-when-writing mm/shmem.c
+--- a/mm/shmem.c~tmpfs-optimize-clearing-when-writing
 +++ a/mm/shmem.c
-@@ -103,6 +103,9 @@ static unsigned long shmem_default_max_i
- }
- #endif
+@@ -1095,9 +1095,14 @@ repeat:
+ 		shmem_recalc_inode(inode);
+ 		spin_unlock(&info->lock);
  
-+static bool shmem_should_replace_page(struct page *page, gfp_t gfp);
-+static int shmem_replace_page(struct page **pagep, gfp_t gfp,
-+				struct shmem_inode_info *info, pgoff_t index);
- static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
- 	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type);
- 
-@@ -604,12 +607,13 @@ static void shmem_evict_inode(struct ino
-  * If swap found in inode, free it and move page from swapcache to filecache.
-  */
- static int shmem_unuse_inode(struct shmem_inode_info *info,
--			     swp_entry_t swap, struct page *page)
-+			     swp_entry_t swap, struct page **pagep)
- {
- 	struct address_space *mapping = info->vfs_inode.i_mapping;
- 	void *radswap;
- 	pgoff_t index;
--	int error;
-+	gfp_t gfp;
-+	int error = 0;
- 
- 	radswap = swp_to_radix_entry(swap);
- 	index = radix_tree_locate_item(&mapping->page_tree, radswap);
-@@ -625,22 +629,37 @@ static int shmem_unuse_inode(struct shme
- 	if (shmem_swaplist.next != &info->swaplist)
- 		list_move_tail(&shmem_swaplist, &info->swaplist);
- 
-+	gfp = mapping_gfp_mask(mapping);
-+	if (shmem_should_replace_page(*pagep, gfp)) {
-+		mutex_unlock(&shmem_swaplist_mutex);
-+		error = shmem_replace_page(pagep, gfp, info, index);
-+		mutex_lock(&shmem_swaplist_mutex);
+-		clear_highpage(page);
+-		flush_dcache_page(page);
+-		SetPageUptodate(page);
 +		/*
-+		 * We needed to drop mutex to make that restrictive page
-+		 * allocation; but the inode might already be freed by now,
-+		 * and we cannot refer to inode or mapping or info to check.
-+		 * However, we do hold page lock on the PageSwapCache page,
-+		 * so can check if that still has our reference remaining.
++		 * Let SGP_WRITE caller clear ends if write does not fill page
 +		 */
-+		if (!page_swapcount(*pagep))
-+			error = -ENOENT;
-+	}
-+
- 	/*
- 	 * We rely on shmem_swaplist_mutex, not only to protect the swaplist,
- 	 * but also to hold up shmem_evict_inode(): so inode cannot be freed
- 	 * beneath us (pagelock doesn't help until the page is in pagecache).
- 	 */
--	error = shmem_add_to_page_cache(page, mapping, index,
-+	if (!error)
-+		error = shmem_add_to_page_cache(*pagep, mapping, index,
- 						GFP_NOWAIT, radswap);
--	/* which does mem_cgroup_uncharge_cache_page on error */
--
- 	if (error != -ENOMEM) {
- 		/*
- 		 * Truncation and eviction use free_swap_and_cache(), which
- 		 * only does trylock page: if we raced, best clean up here.
- 		 */
--		delete_from_swap_cache(page);
--		set_page_dirty(page);
-+		delete_from_swap_cache(*pagep);
-+		set_page_dirty(*pagep);
- 		if (!error) {
- 			spin_lock(&info->lock);
- 			info->swapped--;
-@@ -660,7 +679,14 @@ int shmem_unuse(swp_entry_t swap, struct
- 	struct list_head *this, *next;
- 	struct shmem_inode_info *info;
- 	int found = 0;
--	int error;
-+	int error = 0;
-+
-+	/*
-+	 * There's a faint possibility that swap page was replaced before
-+	 * caller locked it: it will come back later with the right page.
-+	 */
-+	if (unlikely(!PageSwapCache(page)))
-+		goto out;
- 
- 	/*
- 	 * Charge page using GFP_KERNEL while we can wait, before taking
-@@ -676,7 +702,7 @@ int shmem_unuse(swp_entry_t swap, struct
- 	list_for_each_safe(this, next, &shmem_swaplist) {
- 		info = list_entry(this, struct shmem_inode_info, swaplist);
- 		if (info->swapped)
--			found = shmem_unuse_inode(info, swap, page);
-+			found = shmem_unuse_inode(info, swap, &page);
- 		else
- 			list_del_init(&info->swaplist);
- 		cond_resched();
-@@ -685,8 +711,6 @@ int shmem_unuse(swp_entry_t swap, struct
- 	}
- 	mutex_unlock(&shmem_swaplist_mutex);
- 
--	if (!found)
--		mem_cgroup_uncharge_cache_page(page);
- 	if (found < 0)
- 		error = found;
- out:
-@@ -856,6 +880,84 @@ static inline struct mempolicy *shmem_ge
- #endif
- 
- /*
-+ * When a page is moved from swapcache to shmem filecache (either by the
-+ * usual swapin of shmem_getpage_gfp(), or by the less common swapoff of
-+ * shmem_unuse_inode()), it may have been read in earlier from swap, in
-+ * ignorance of the mapping it belongs to.  If that mapping has special
-+ * constraints (like the gma500 GEM driver, which requires RAM below 4GB),
-+ * we may need to copy to a suitable page before moving to filecache.
-+ *
-+ * In a future release, this may well be extended to respect cpuset and
-+ * NUMA mempolicy, and applied also to anonymous pages in do_swap_page();
-+ * but for now it is a simple matter of zone.
-+ */
-+static bool shmem_should_replace_page(struct page *page, gfp_t gfp)
-+{
-+	return page_zonenum(page) > gfp_zone(gfp);
-+}
-+
-+static int shmem_replace_page(struct page **pagep, gfp_t gfp,
-+				struct shmem_inode_info *info, pgoff_t index)
-+{
-+	struct page *oldpage, *newpage;
-+	struct address_space *swap_mapping;
-+	pgoff_t swap_index;
-+	int error;
-+
-+	oldpage = *pagep;
-+	swap_index = page_private(oldpage);
-+	swap_mapping = page_mapping(oldpage);
-+
-+	/*
-+	 * We have arrived here because our zones are constrained, so don't
-+	 * limit chance of success by further cpuset and node constraints.
-+	 */
-+	gfp &= ~GFP_CONSTRAINT_MASK;
-+	newpage = shmem_alloc_page(gfp, info, index);
-+	if (!newpage)
-+		return -ENOMEM;
-+	VM_BUG_ON(shmem_should_replace_page(newpage, gfp));
-+
-+	*pagep = newpage;
-+	page_cache_get(newpage);
-+	copy_highpage(newpage, oldpage);
-+
-+	VM_BUG_ON(!PageLocked(oldpage));
-+	__set_page_locked(newpage);
-+	VM_BUG_ON(!PageUptodate(oldpage));
-+	SetPageUptodate(newpage);
-+	VM_BUG_ON(!PageSwapBacked(oldpage));
-+	SetPageSwapBacked(newpage);
-+	VM_BUG_ON(!swap_index);
-+	set_page_private(newpage, swap_index);
-+	VM_BUG_ON(!PageSwapCache(oldpage));
-+	SetPageSwapCache(newpage);
-+
-+	/*
-+	 * Our caller will very soon move newpage out of swapcache, but it's
-+	 * a nice clean interface for us to replace oldpage by newpage there.
-+	 */
-+	spin_lock_irq(&swap_mapping->tree_lock);
-+	error = shmem_radix_tree_replace(swap_mapping, swap_index, oldpage,
-+								   newpage);
-+	__inc_zone_page_state(newpage, NR_FILE_PAGES);
-+	__dec_zone_page_state(oldpage, NR_FILE_PAGES);
-+	spin_unlock_irq(&swap_mapping->tree_lock);
-+	BUG_ON(error);
-+
-+	mem_cgroup_replace_page_cache(oldpage, newpage);
-+	lru_cache_add_anon(newpage);
-+
-+	ClearPageSwapCache(oldpage);
-+	set_page_private(oldpage, 0);
-+
-+	unlock_page(oldpage);
-+	page_cache_release(oldpage);
-+	page_cache_release(oldpage);
-+	return 0;
-+}
-+
-+/*
-  * shmem_getpage_gfp - find page in cache, or get from swap, or allocate
-  *
-  * If we allocate a new one we do not mark it dirty. That's up to the
-@@ -923,19 +1025,20 @@ repeat:
- 
- 		/* We have to do this with page locked to prevent races */
- 		lock_page(page);
-+		if (!PageSwapCache(page) || page->mapping) {
-+			error = -EEXIST;	/* try again */
-+			goto failed;
++		if (sgp != SGP_WRITE) {
++			clear_highpage(page);
++			flush_dcache_page(page);
++			SetPageUptodate(page);
 +		}
- 		if (!PageUptodate(page)) {
- 			error = -EIO;
- 			goto failed;
- 		}
- 		wait_on_page_writeback(page);
- 
--		/* Someone may have already done it for us */
--		if (page->mapping) {
--			if (page->mapping == mapping &&
--			    page->index == index)
--				goto done;
--			error = -EEXIST;
--			goto failed;
-+		if (shmem_should_replace_page(page, gfp)) {
-+			error = shmem_replace_page(&page, gfp, info, index);
-+			if (error)
-+				goto failed;
- 		}
- 
- 		error = mem_cgroup_cache_charge(page, current->mm,
-@@ -998,7 +1101,7 @@ repeat:
  		if (sgp == SGP_DIRTY)
  			set_page_dirty(page);
  	}
--done:
-+
- 	/* Perhaps the file has been truncated since we checked */
- 	if (sgp != SGP_WRITE &&
- 	    ((loff_t)index << PAGE_CACHE_SHIFT) >= i_size_read(inode)) {
-diff -puN mm/swapfile.c~shmem-replace-page-if-mapping-excludes-its-zone mm/swapfile.c
---- a/mm/swapfile.c~shmem-replace-page-if-mapping-excludes-its-zone
-+++ a/mm/swapfile.c
-@@ -604,7 +604,7 @@ void swapcache_free(swp_entry_t entry, s
-  * This does not give an exact answer when swap count is continued,
-  * but does include the high COUNT_CONTINUED flag to allow for that.
-  */
--static inline int page_swapcount(struct page *page)
-+int page_swapcount(struct page *page)
- {
- 	int count = 0;
- 	struct swap_info_struct *p;
+@@ -1307,6 +1312,14 @@ shmem_write_end(struct file *file, struc
+ 	if (pos + copied > inode->i_size)
+ 		i_size_write(inode, pos + copied);
+ 
++	if (!PageUptodate(page)) {
++		if (copied < PAGE_CACHE_SIZE) {
++			unsigned from = pos & (PAGE_CACHE_SIZE - 1);
++			zero_user_segments(page, 0, from,
++					from + copied, PAGE_CACHE_SIZE);
++		}
++		SetPageUptodate(page);
++	}
+ 	set_page_dirty(page);
+ 	unlock_page(page);
+ 	page_cache_release(page);
+@@ -1768,6 +1781,7 @@ static int shmem_symlink(struct inode *d
+ 		kaddr = kmap_atomic(page);
+ 		memcpy(kaddr, symname, len);
+ 		kunmap_atomic(kaddr);
++		SetPageUptodate(page);
+ 		set_page_dirty(page);
+ 		unlock_page(page);
+ 		page_cache_release(page);
 _
-Subject: Subject: shmem: replace page if mapping excludes its zone
+Subject: Subject: tmpfs: optimize clearing when writing
 
 Patches currently in -mm which might be from hughd@google.com are
 
