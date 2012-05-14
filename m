@@ -1,16 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-quit-when-fallocate-fills-memory.patch added to -mm tree
-Date: Mon, 14 May 2012 16:14:10 -0700
-Message-ID: <20120514231410.DEC6EA00AE@akpm.mtv.corp.google.com>
+Subject: + tmpfs-undo-fallocation-on-failure.patch added to -mm tree
+Date: Mon, 14 May 2012 16:14:07 -0700
+Message-ID: <20120514231408.00D8EA00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:48272 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757353Ab2ENXON (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 May 2012 19:14:13 -0400
-Received: by lagr15 with SMTP id r15so220683lag.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 May 2012 16:14:12 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:40687 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757353Ab2ENXOK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 May 2012 19:14:10 -0400
+Received: by mail-lb0-f202.google.com with SMTP id gp10so277149lbb.1
+        for <mm-commits@vger.kernel.org>; Mon, 14 May 2012 16:14:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +17,9 @@ Cc: hughd@google.com, amwang@redhat.com, hch@infradead.org, kay@vrfy.org
 
 
 The patch titled
-     Subject: tmpfs: quit when fallocate fills memory
+     Subject: tmpfs: undo fallocation on failure
 has been added to the -mm tree.  Its filename is
-     tmpfs-quit-when-fallocate-fills-memory.patch
+     tmpfs-undo-fallocation-on-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,32 +34,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: quit when fallocate fills memory
+Subject: tmpfs: undo fallocation on failure
 
-As it stands, a large fallocate() on tmpfs is liable to fill memory with
-pages, freed on failure except when they run into swap, at which point
-they become fixed into the file despite the failure.  That feels quite
-wrong, to be consuming resources precisely when they're in short supply.
+In the previous episode, we left the already-fallocated pages attached to
+the file when shmem_fallocate() fails part way through.
 
-Go the other way instead: shmem_fallocate() indicate the range it has
-fallocated to shmem_writepage(), keeping count of pages it's allocating;
-shmem_writepage() reactivate instead of swapping out pages fallocated by
-this syscall (but happily swap out those from earlier occasions), keeping
-count; shmem_fallocate() compare counts and give up once the reactivated
-pages have started to coming back to writepage (approximately: some zones
-would in fact recycle faster than others).
+Now try to do better, by extending the earlier optimization of !Uptodate
+pages (then always under page lock) to !Uptodate pages (outside of page
+lock), representing fallocated pages.  And don't waste time clearing them
+at the time of fallocate(), leave that until later if necessary.
 
-This is a little unusual, but works well: although we could consider the
-failure to swap as a bug, and fix it later with SWAP_MAP_FALLOC handling
-added in swapfile.c and memcontrol.c, I doubt that we shall ever want to.
+Adapt shmem_truncate_range() to shmem_undo_range(), so that a failing
+fallocate can recognize and remove precisely those !Uptodate allocations
+which it added (and were not independently allocated by racing tasks).
 
-(If there's no swap, an over-large fallocate() on tmpfs is limited in the
-same way as writing: stopped by rlimit, or by tmpfs mount size if that was
-set sensibly, or by __vm_enough_memory() heuristics if OVERCOMMIT_GUESS or
-OVERCOMMIT_NEVER.  If OVERCOMMIT_ALWAYS, then it is liable to OOM-kill
-others as writing would, but stops and frees if interrupted.)
-
-Now that everything is freed on failure, we can then skip updating ctime.
+But unless we start playing with swapfile.c and memcontrol.c too, once one
+of our fallocated pages reaches shmem_writepage(), we do then have to
+instantiate it as an ordinarily allocated page, before swapping out.  This
+is unsatisfactory, but improved in the next episode.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -69,127 +60,252 @@ Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   58 +++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 56 insertions(+), 2 deletions(-)
+ mm/shmem.c |  105 ++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 72 insertions(+), 33 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-quit-when-fallocate-fills-memory mm/shmem.c
---- a/mm/shmem.c~tmpfs-quit-when-fallocate-fills-memory
+diff -puN mm/shmem.c~tmpfs-undo-fallocation-on-failure mm/shmem.c
+--- a/mm/shmem.c~tmpfs-undo-fallocation-on-failure
 +++ a/mm/shmem.c
-@@ -84,6 +84,18 @@ struct shmem_xattr {
- 	char value[0];
+@@ -89,7 +89,8 @@ enum sgp_type {
+ 	SGP_READ,	/* don't exceed i_size, don't allocate page */
+ 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
+ 	SGP_DIRTY,	/* like SGP_CACHE, but set new page dirty */
+-	SGP_WRITE,	/* may exceed i_size, may allocate page */
++	SGP_WRITE,	/* may exceed i_size, may allocate !Uptodate page */
++	SGP_FALLOC,	/* like SGP_WRITE, but make existing page Uptodate */
  };
  
-+/*
-+ * shmem_fallocate and shmem_writepage communicate via inode->i_private
-+ * (with i_mutex making sure that it has only one user at a time):
-+ * we would prefer not to enlarge the shmem inode just for that.
-+ */
-+struct shmem_falloc {
-+	pgoff_t start;		/* start of range currently being fallocated */
-+	pgoff_t next;		/* the next page offset to be fallocated */
-+	pgoff_t nr_falloced;	/* how many new pages have been fallocated */
-+	pgoff_t nr_unswapped;	/* how often writepage refused to swap out */
-+};
-+
- /* Flag allocation requirements to shmem_getpage */
- enum sgp_type {
- 	SGP_READ,	/* don't exceed i_size, don't allocate page */
-@@ -791,8 +803,28 @@ static int shmem_writepage(struct page *
- 	 * This is somewhat ridiculous, but without plumbing a SWAP_MAP_FALLOC
- 	 * value into swapfile.c, the only way we can correctly account for a
- 	 * fallocated page arriving here is now to initialize it and write it.
-+	 *
-+	 * That's okay for a page already fallocated earlier, but if we have
-+	 * not yet completed the fallocation, then (a) we want to keep track
-+	 * of this page in case we have to undo it, and (b) it may not be a
-+	 * good idea to continue anyway, once we're pushing into swap.  So
-+	 * reactivate the page, and let shmem_fallocate() quit when too many.
- 	 */
- 	if (!PageUptodate(page)) {
-+		if (inode->i_private) {
-+			struct shmem_falloc *shmem_falloc;
-+			spin_lock(&inode->i_lock);
-+			shmem_falloc = inode->i_private;
-+			if (shmem_falloc &&
-+			    index >= shmem_falloc->start &&
-+			    index < shmem_falloc->next)
-+				shmem_falloc->nr_unswapped++;
-+			else
-+				shmem_falloc = NULL;
-+			spin_unlock(&inode->i_lock);
-+			if (shmem_falloc)
-+				goto redirty;
-+		}
- 		clear_highpage(page);
- 		flush_dcache_page(page);
- 		SetPageUptodate(page);
-@@ -1647,6 +1679,7 @@ static long shmem_fallocate(struct file 
- {
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+	struct shmem_falloc shmem_falloc;
- 	pgoff_t start, index, end;
- 	int error;
+ #ifdef CONFIG_TMPFS
+@@ -427,8 +428,10 @@ void shmem_unlock_mapping(struct address
  
-@@ -1679,6 +1712,14 @@ static long shmem_fallocate(struct file 
- 		goto out;
+ /*
+  * Remove range of pages and swap entries from radix tree, and free them.
++ * If !unfalloc, truncate or punch hole; if unfalloc, undo failed fallocate.
+  */
+-void shmem_truncate_range(struct inode *inode, loff_t lstart, loff_t lend)
++static void shmem_undo_range(struct inode *inode, loff_t lstart, loff_t lend,
++								 bool unfalloc)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+@@ -462,6 +465,8 @@ void shmem_truncate_range(struct inode *
+ 				break;
+ 
+ 			if (radix_tree_exceptional_entry(page)) {
++				if (unfalloc)
++					continue;
+ 				nr_swaps_freed += !shmem_free_swap(mapping,
+ 								index, page);
+ 				continue;
+@@ -469,9 +474,11 @@ void shmem_truncate_range(struct inode *
+ 
+ 			if (!trylock_page(page))
+ 				continue;
+-			if (page->mapping == mapping) {
+-				VM_BUG_ON(PageWriteback(page));
+-				truncate_inode_page(mapping, page);
++			if (!unfalloc || !PageUptodate(page)) {
++				if (page->mapping == mapping) {
++					VM_BUG_ON(PageWriteback(page));
++					truncate_inode_page(mapping, page);
++				}
+ 			}
+ 			unlock_page(page);
+ 		}
+@@ -517,12 +524,12 @@ void shmem_truncate_range(struct inode *
+ 				min(end - index, (pgoff_t)PAGEVEC_SIZE),
+ 							pvec.pages, indices);
+ 		if (!pvec.nr) {
+-			if (index == start)
++			if (index == start || unfalloc)
+ 				break;
+ 			index = start;
+ 			continue;
+ 		}
+-		if (index == start && indices[0] >= end) {
++		if ((index == start || unfalloc) && indices[0] >= end) {
+ 			shmem_deswap_pagevec(&pvec);
+ 			pagevec_release(&pvec);
+ 			break;
+@@ -536,15 +543,19 @@ void shmem_truncate_range(struct inode *
+ 				break;
+ 
+ 			if (radix_tree_exceptional_entry(page)) {
++				if (unfalloc)
++					continue;
+ 				nr_swaps_freed += !shmem_free_swap(mapping,
+ 								index, page);
+ 				continue;
+ 			}
+ 
+ 			lock_page(page);
+-			if (page->mapping == mapping) {
+-				VM_BUG_ON(PageWriteback(page));
+-				truncate_inode_page(mapping, page);
++			if (!unfalloc || !PageUptodate(page)) {
++				if (page->mapping == mapping) {
++					VM_BUG_ON(PageWriteback(page));
++					truncate_inode_page(mapping, page);
++				}
+ 			}
+ 			unlock_page(page);
+ 		}
+@@ -558,7 +569,11 @@ void shmem_truncate_range(struct inode *
+ 	info->swapped -= nr_swaps_freed;
+ 	shmem_recalc_inode(inode);
+ 	spin_unlock(&info->lock);
++}
+ 
++void shmem_truncate_range(struct inode *inode, loff_t lstart, loff_t lend)
++{
++	shmem_undo_range(inode, lstart, lend, false);
+ 	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
+ }
+ EXPORT_SYMBOL_GPL(shmem_truncate_range);
+@@ -771,6 +786,18 @@ static int shmem_writepage(struct page *
+ 		WARN_ON_ONCE(1);	/* Still happens? Tell us about it! */
+ 		goto redirty;
+ 	}
++
++	/*
++	 * This is somewhat ridiculous, but without plumbing a SWAP_MAP_FALLOC
++	 * value into swapfile.c, the only way we can correctly account for a
++	 * fallocated page arriving here is now to initialize it and write it.
++	 */
++	if (!PageUptodate(page)) {
++		clear_highpage(page);
++		flush_dcache_page(page);
++		SetPageUptodate(page);
++	}
++
+ 	swap = get_swap_page();
+ 	if (!swap.val)
+ 		goto redirty;
+@@ -994,6 +1021,7 @@ static int shmem_getpage_gfp(struct inod
+ 	swp_entry_t swap;
+ 	int error;
+ 	int once = 0;
++	int alloced = 0;
+ 
+ 	if (index > (MAX_LFS_FILESIZE >> PAGE_CACHE_SHIFT))
+ 		return -EFBIG;
+@@ -1005,19 +1033,21 @@ repeat:
+ 		page = NULL;
  	}
  
-+	shmem_falloc.start = start;
-+	shmem_falloc.next  = start;
-+	shmem_falloc.nr_falloced = 0;
-+	shmem_falloc.nr_unswapped = 0;
-+	spin_lock(&inode->i_lock);
-+	inode->i_private = &shmem_falloc;
-+	spin_unlock(&inode->i_lock);
-+
- 	for (index = start; index < end; index++) {
- 		struct page *page;
+-	if (sgp != SGP_WRITE &&
++	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
+ 	    ((loff_t)index << PAGE_CACHE_SHIFT) >= i_size_read(inode)) {
+ 		error = -EINVAL;
+ 		goto failed;
+ 	}
  
-@@ -1688,6 +1729,8 @@ static long shmem_fallocate(struct file 
- 		 */
- 		if (signal_pending(current))
- 			error = -EINTR;
-+		else if (shmem_falloc.nr_unswapped > shmem_falloc.nr_falloced)
-+			error = -ENOMEM;
- 		else
- 			error = shmem_getpage(inode, index, &page, SGP_FALLOC,
- 									NULL);
-@@ -1696,10 +1739,18 @@ static long shmem_fallocate(struct file 
- 			shmem_undo_range(inode,
- 				(loff_t)start << PAGE_CACHE_SHIFT,
- 				(loff_t)index << PAGE_CACHE_SHIFT, true);
--			goto ctime;
-+			goto undone;
- 		}
++	/* fallocated page? */
++	if (page && !PageUptodate(page)) {
++		if (sgp != SGP_READ)
++			goto clear;
++		unlock_page(page);
++		page_cache_release(page);
++		page = NULL;
++	}
+ 	if (page || (sgp == SGP_READ && !swap.val)) {
+-		/*
+-		 * Once we can get the page lock, it must be uptodate:
+-		 * if there were an error in reading back from swap,
+-		 * the page would not be inserted into the filecache.
+-		 */
+-		BUG_ON(page && !PageUptodate(page));
+ 		*pagep = page;
+ 		return 0;
+ 	}
+@@ -1114,9 +1144,18 @@ repeat:
+ 		inode->i_blocks += BLOCKS_PER_PAGE;
+ 		shmem_recalc_inode(inode);
+ 		spin_unlock(&info->lock);
++		alloced = true;
  
  		/*
-+		 * Inform shmem_writepage() how far we have reached.
-+		 * No need for lock or barrier: we have the page lock.
+-		 * Let SGP_WRITE caller clear ends if write does not fill page
++		 * Let SGP_FALLOC use the SGP_WRITE optimization on a new page.
 +		 */
-+		shmem_falloc.next++;
-+		if (!PageUptodate(page))
-+			shmem_falloc.nr_falloced++;
-+
++		if (sgp == SGP_FALLOC)
++			sgp = SGP_WRITE;
++clear:
 +		/*
- 		 * If !PageUptodate, leave it that way so that freeable pages
- 		 * can be recognized if we need to rollback on error later.
- 		 * But set_page_dirty so that memory pressure will swap rather
-@@ -1714,8 +1765,11 @@ static long shmem_fallocate(struct file 
++		 * Let SGP_WRITE caller clear ends if write does not fill page;
++		 * but SGP_FALLOC on a page fallocated earlier must initialize
++		 * it now, lest undo on failure cancel our earlier guarantee.
+ 		 */
+ 		if (sgp != SGP_WRITE) {
+ 			clear_highpage(page);
+@@ -1128,10 +1167,13 @@ repeat:
+ 	}
  
- 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
- 		i_size_write(inode, offset + len);
--ctime:
- 	inode->i_ctime = CURRENT_TIME;
-+undone:
-+	spin_lock(&inode->i_lock);
-+	inode->i_private = NULL;
-+	spin_unlock(&inode->i_lock);
- out:
- 	mutex_unlock(&inode->i_mutex);
- 	return error;
+ 	/* Perhaps the file has been truncated since we checked */
+-	if (sgp != SGP_WRITE &&
++	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
+ 	    ((loff_t)index << PAGE_CACHE_SHIFT) >= i_size_read(inode)) {
+ 		error = -EINVAL;
+-		goto trunc;
++		if (alloced)
++			goto trunc;
++		else
++			goto failed;
+ 	}
+ 	*pagep = page;
+ 	return 0;
+@@ -1140,6 +1182,7 @@ repeat:
+ 	 * Error recovery.
+ 	 */
+ trunc:
++	info = SHMEM_I(inode);
+ 	ClearPageDirty(page);
+ 	delete_from_page_cache(page);
+ 	spin_lock(&info->lock);
+@@ -1147,6 +1190,7 @@ trunc:
+ 	inode->i_blocks -= BLOCKS_PER_PAGE;
+ 	spin_unlock(&info->lock);
+ decused:
++	sbinfo = SHMEM_SB(inode->i_sb);
+ 	if (sbinfo->max_blocks)
+ 		percpu_counter_add(&sbinfo->used_blocks, -1);
+ unacct:
+@@ -1645,25 +1689,20 @@ static long shmem_fallocate(struct file 
+ 		if (signal_pending(current))
+ 			error = -EINTR;
+ 		else
+-			error = shmem_getpage(inode, index, &page, SGP_WRITE,
++			error = shmem_getpage(inode, index, &page, SGP_FALLOC,
+ 									NULL);
+ 		if (error) {
+-			/*
+-			 * We really ought to free what we allocated so far,
+-			 * but it would be wrong to free pages allocated
+-			 * earlier, or already now in use: i_mutex does not
+-			 * exclude all cases.  We do not know what to free.
+-			 */
++			/* Remove the !PageUptodate pages we added */
++			shmem_undo_range(inode,
++				(loff_t)start << PAGE_CACHE_SHIFT,
++				(loff_t)index << PAGE_CACHE_SHIFT, true);
+ 			goto ctime;
+ 		}
+ 
+-		if (!PageUptodate(page)) {
+-			clear_highpage(page);
+-			flush_dcache_page(page);
+-			SetPageUptodate(page);
+-		}
+ 		/*
+-		 * set_page_dirty so that memory pressure will swap rather
++		 * If !PageUptodate, leave it that way so that freeable pages
++		 * can be recognized if we need to rollback on error later.
++		 * But set_page_dirty so that memory pressure will swap rather
+ 		 * than free the pages we are allocating (and SGP_CACHE pages
+ 		 * might still be clean: we now need to mark those dirty too).
+ 		 */
 _
-Subject: Subject: tmpfs: quit when fallocate fills memory
+Subject: Subject: tmpfs: undo fallocation on failure
 
 Patches currently in -mm which might be from hughd@google.com are
 
