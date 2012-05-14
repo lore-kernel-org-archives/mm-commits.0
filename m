@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fs-route-madv_remove-to-falloc_fl_punch_hole.patch added to -mm tree
-Date: Mon, 14 May 2012 16:13:57 -0700
-Message-ID: <20120514231357.72724A00AE@akpm.mtv.corp.google.com>
+Subject: + tmpfs-support-fallocate-preallocation.patch added to -mm tree
+Date: Mon, 14 May 2012 16:14:04 -0700
+Message-ID: <20120514231404.621BAA05D0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:57447 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757353Ab2ENXN6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 May 2012 19:13:58 -0400
-Received: by qabg24 with SMTP id g24so583170qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 May 2012 16:13:58 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:48508 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758244Ab2ENXOG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 May 2012 19:14:06 -0400
+Received: by ggeh3 with SMTP id h3so558633gge.1
+        for <mm-commits@vger.kernel.org>; Mon, 14 May 2012 16:14:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, adilger@dilger.ca, amwang@redhat.com, bpm@sgi.com, ccross@android.com, david@fromorbit.com, gregkh@linux-foundation.org, hch@infradead.org, jlbec@evilplan.org, john.stultz@linaro.org, mfasheh@suse.de, mtk.manpages@gmail.com, tytso@mit.edu, viro@zeniv.linux.org.uk
+Cc: hughd@google.com, amwang@redhat.com, hch@infradead.org, kay@vrfy.org
 
 
 The patch titled
-     Subject: mm/fs: route MADV_REMOVE to FALLOC_FL_PUNCH_HOLE
+     Subject: tmpfs: support fallocate preallocation
 has been added to the -mm tree.  Its filename is
-     mm-fs-route-madv_remove-to-falloc_fl_punch_hole.patch
+     tmpfs-support-fallocate-preallocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,136 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/fs: route MADV_REMOVE to FALLOC_FL_PUNCH_HOLE
+Subject: tmpfs: support fallocate preallocation
 
-Now tmpfs supports hole-punching via fallocate(), switch madvise_remove()
-to use do_fallocate() instead of vmtruncate_range(): which extends
-madvise(,,MADV_REMOVE) support from tmpfs to ext4, ocfs2 and xfs.
+The systemd plumbers expressed a wish that tmpfs support preallocation. 
+Cong Wang wrote a patch, but several kernel guys expressed scepticism:
+https://lkml.org/lkml/2011/11/18/137
 
-There is one more user of vmtruncate_range() in our tree,
-staging/android's ashmem_shrink(): convert it to use do_fallocate() too
-(but if its unpinned areas are already unmapped - I don't know - then it
-would do better to use shmem_truncate_range() directly).
+Christoph Hellwig: What for exactly?  Please explain why preallocating on
+tmpfs would make any sense.
+
+Kay Sievers: To be able to safely use mmap(), regarding SIGBUS, on files
+on the /dev/shm filesystem.  The glibc fallback loop for -ENOSYS [or
+-EOPNOTSUPP] on fallocate is just ugly.
+
+Hugh Dickins: If tmpfs is going to support
+fallocate(FALLOC_FL_PUNCH_HOLE), it would seem perverse to permit the
+deallocation but fail the allocation.  Christoph Hellwig: Agreed.
+
+Now that we do have shmem_fallocate() for hole-punching, plumb in basic
+support for preallocation mode too.  It's fairly straightforward (though
+quite a few details needed attention), except for when it fails part way
+through.  What a pity that fallocate(2) was not specified to return the
+length allocated, permitting short fallocations!
+
+As it is, when it fails part way through, we ought to free what has just
+been allocated by this system call; but must be very sure not to free any
+allocated earlier, or any allocated by racing accesses (not all excluded
+by i_mutex).
+
+But we cannot distinguish them: so in this patch simply leak allocations
+on partial failure (they will be freed later if the file is removed).
+
+An attractive alternative approach would have been for fallocate() not to
+allocate pages at all, but note reservations by entries in the radix-tree.
+ But that would give less assurance, and, critically, would be hard to fit
+with mem cgroups (who owns the reservations?): allocating pages lets
+fallocate() behave in just the same way as write().
 
 Based-on-patch-by: Cong Wang <amwang@redhat.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Colin Cross <ccross@android.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linux-foundation.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger@dilger.ca>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ben Myers <bpm@sgi.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Cong Wang <amwang@redhat.com>
+Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/android/ashmem.c |    8 +++++---
- mm/madvise.c                     |   15 +++++++--------
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ mm/shmem.c |   61 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 60 insertions(+), 1 deletion(-)
 
-diff -puN drivers/staging/android/ashmem.c~mm-fs-route-madv_remove-to-falloc_fl_punch_hole drivers/staging/android/ashmem.c
---- a/drivers/staging/android/ashmem.c~mm-fs-route-madv_remove-to-falloc_fl_punch_hole
-+++ a/drivers/staging/android/ashmem.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
- #include <linux/file.h>
- #include <linux/fs.h>
-+#include <linux/falloc.h>
- #include <linux/miscdevice.h>
- #include <linux/security.h>
- #include <linux/mm.h>
-@@ -363,11 +364,12 @@ static int ashmem_shrink(struct shrinker
- 
- 	mutex_lock(&ashmem_mutex);
- 	list_for_each_entry_safe(range, next, &ashmem_lru_list, lru) {
--		struct inode *inode = range->asma->file->f_dentry->d_inode;
- 		loff_t start = range->pgstart * PAGE_SIZE;
--		loff_t end = (range->pgend + 1) * PAGE_SIZE - 1;
-+		loff_t end = (range->pgend + 1) * PAGE_SIZE;
- 
--		vmtruncate_range(inode, start, end);
-+		do_fallocate(range->asma->file,
-+				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-+				start, end - start);
- 		range->purged = ASHMEM_WAS_PURGED;
- 		lru_del(range);
- 
-diff -puN mm/madvise.c~mm-fs-route-madv_remove-to-falloc_fl_punch_hole mm/madvise.c
---- a/mm/madvise.c~mm-fs-route-madv_remove-to-falloc_fl_punch_hole
-+++ a/mm/madvise.c
-@@ -11,8 +11,10 @@
- #include <linux/mempolicy.h>
- #include <linux/page-isolation.h>
- #include <linux/hugetlb.h>
-+#include <linux/falloc.h>
- #include <linux/sched.h>
- #include <linux/ksm.h>
-+#include <linux/fs.h>
- 
- /*
-  * Any behaviour which results in changes to the vma->vm_flags needs to
-@@ -200,8 +202,7 @@ static long madvise_remove(struct vm_are
- 				struct vm_area_struct **prev,
- 				unsigned long start, unsigned long end)
+diff -puN mm/shmem.c~tmpfs-support-fallocate-preallocation mm/shmem.c
+--- a/mm/shmem.c~tmpfs-support-fallocate-preallocation
++++ a/mm/shmem.c
+@@ -1602,7 +1602,9 @@ static long shmem_fallocate(struct file 
+ 							 loff_t len)
  {
--	struct address_space *mapping;
--	loff_t offset, endoff;
-+	loff_t offset;
- 	int error;
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+-	int error = -EOPNOTSUPP;
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++	pgoff_t start, index, end;
++	int error;
  
- 	*prev = NULL;	/* tell sys_madvise we drop mmap_sem */
-@@ -217,16 +218,14 @@ static long madvise_remove(struct vm_are
- 	if ((vma->vm_flags & (VM_SHARED|VM_WRITE)) != (VM_SHARED|VM_WRITE))
- 		return -EACCES;
+ 	mutex_lock(&inode->i_mutex);
  
--	mapping = vma->vm_file->f_mapping;
--
- 	offset = (loff_t)(start - vma->vm_start)
- 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
--	endoff = (loff_t)(end - vma->vm_start - 1)
--			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
+@@ -1617,8 +1619,65 @@ static long shmem_fallocate(struct file 
+ 		shmem_truncate_range(inode, offset, offset + len - 1);
+ 		/* No need to unmap again: hole-punching leaves COWed pages */
+ 		error = 0;
++		goto out;
++	}
++
++	/* We need to check rlimit even when FALLOC_FL_KEEP_SIZE */
++	error = inode_newsize_ok(inode, offset + len);
++	if (error)
++		goto out;
++
++	start = offset >> PAGE_CACHE_SHIFT;
++	end = (offset + len + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++	/* Try to avoid a swapstorm if len is impossible to satisfy */
++	if (sbinfo->max_blocks && end - start > sbinfo->max_blocks) {
++		error = -ENOSPC;
++		goto out;
++	}
++
++	for (index = start; index < end; index++) {
++		struct page *page;
++
++		/*
++		 * Good, the fallocate(2) manpage permits EINTR: we may have
++		 * been interrupted because we are using up too much memory.
++		 */
++		if (signal_pending(current))
++			error = -EINTR;
++		else
++			error = shmem_getpage(inode, index, &page, SGP_WRITE,
++									NULL);
++		if (error) {
++			/*
++			 * We really ought to free what we allocated so far,
++			 * but it would be wrong to free pages allocated
++			 * earlier, or already now in use: i_mutex does not
++			 * exclude all cases.  We do not know what to free.
++			 */
++			goto ctime;
++		}
++
++		if (!PageUptodate(page)) {
++			clear_highpage(page);
++			flush_dcache_page(page);
++			SetPageUptodate(page);
++		}
++		/*
++		 * set_page_dirty so that memory pressure will swap rather
++		 * than free the pages we are allocating (and SGP_CACHE pages
++		 * might still be clean: we now need to mark those dirty too).
++		 */
++		set_page_dirty(page);
++		unlock_page(page);
++		page_cache_release(page);
++		cond_resched();
+ 	}
  
--	/* vmtruncate_range needs to take i_mutex */
-+	/* filesystem's fallocate may need to take i_mutex */
- 	up_read(&current->mm->mmap_sem);
--	error = vmtruncate_range(mapping->host, offset, endoff);
-+	error = do_fallocate(vma->vm_file,
-+				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-+				offset, end - start);
- 	down_read(&current->mm->mmap_sem);
++	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
++		i_size_write(inode, offset + len);
++ctime:
++	inode->i_ctime = CURRENT_TIME;
++out:
+ 	mutex_unlock(&inode->i_mutex);
  	return error;
  }
 _
-Subject: Subject: mm/fs: route MADV_REMOVE to FALLOC_FL_PUNCH_HOLE
+Subject: Subject: tmpfs: support fallocate preallocation
 
 Patches currently in -mm which might be from hughd@google.com are
 
