@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-remove-obsolete-statistics-array-boundary-enum-item.patch added to -mm tree
-Date: Tue, 15 May 2012 14:54:23 -0700
-Message-ID: <20120515215424.37261A028F@akpm.mtv.corp.google.com>
+Subject: + mm-memcg-print-statistics-directly-to-seq_file.patch added to -mm tree
+Date: Tue, 15 May 2012 14:54:42 -0700
+Message-ID: <20120515215442.D29C4A028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:48015 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932839Ab2EOVy1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:54:27 -0400
-Received: by eeit10 with SMTP id t10so2997eei.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:54:25 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:45348 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932944Ab2EOVyn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:54:43 -0400
+Received: by ggeh3 with SMTP id h3so16206gge.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:54:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, tj@kerne
 
 
 The patch titled
-     Subject: mm: memcg: remove obsolete statistics array boundary enum item
+     Subject: mm: memcg: print statistics directly to seq_file
 has been added to the -mm tree.  Its filename is
-     mm-memcg-remove-obsolete-statistics-array-boundary-enum-item.patch
+     mm-memcg-print-statistics-directly-to-seq_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: remove obsolete statistics array boundary enum item
+Subject: mm: memcg: print statistics directly to seq_file
 
-MEM_CGROUP_STAT_DATA is a leftover from when item counters were living in
-the same array as ever-increasing event counters.  It's no longer needed,
-use MEM_CGROUP_STAT_NSTATS to iterate over the stat array.
+Being able to use seq_printf() allows being smarter about statistics name
+strings, which are currently listed twice, with the only
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -48,31 +47,119 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |   56 +++++++++++++++++++++++-----------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-remove-obsolete-statistics-array-boundary-enum-item mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-remove-obsolete-statistics-array-boundary-enum-item
+diff -puN mm/memcontrol.c~mm-memcg-print-statistics-directly-to-seq_file mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-print-statistics-directly-to-seq_file
 +++ a/mm/memcontrol.c
-@@ -99,7 +99,6 @@ enum mem_cgroup_stat_index {
- 	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
- 	MEM_CGROUP_STAT_MLOCK, /* # of pages charged as mlock()ed */
- 	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
--	MEM_CGROUP_STAT_DATA, /* end of data requires synchronization */
- 	MEM_CGROUP_STAT_NSTATS,
+@@ -4282,24 +4282,21 @@ struct mcs_total_stat {
+ 	s64 stat[NR_MCS_STAT];
  };
  
-@@ -2158,7 +2157,7 @@ static void mem_cgroup_drain_pcp_counter
- 	int i;
+-static struct {
+-	char *local_name;
+-	char *total_name;
+-} memcg_stat_strings[NR_MCS_STAT] = {
+-	{"cache", "total_cache"},
+-	{"rss", "total_rss"},
+-	{"mapped_file", "total_mapped_file"},
+-	{"mlock", "total_mlock"},
+-	{"pgpgin", "total_pgpgin"},
+-	{"pgpgout", "total_pgpgout"},
+-	{"swap", "total_swap"},
+-	{"pgfault", "total_pgfault"},
+-	{"pgmajfault", "total_pgmajfault"},
+-	{"inactive_anon", "total_inactive_anon"},
+-	{"active_anon", "total_active_anon"},
+-	{"inactive_file", "total_inactive_file"},
+-	{"active_file", "total_active_file"},
+-	{"unevictable", "total_unevictable"}
++static const char *memcg_stat_strings[NR_MCS_STAT] = {
++	"cache",
++	"rss",
++	"mapped_file",
++	"mlock",
++	"pgpgin",
++	"pgpgout",
++	"swap",
++	"pgfault",
++	"pgmajfault",
++	"inactive_anon",
++	"active_anon",
++	"inactive_file",
++	"active_file",
++	"unevictable",
+ };
  
- 	spin_lock(&memcg->pcp_counter_lock);
--	for (i = 0; i < MEM_CGROUP_STAT_DATA; i++) {
-+	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
- 		long x = per_cpu(memcg->stat->count[i], cpu);
  
- 		per_cpu(memcg->stat->count[i], cpu) = 0;
+@@ -4400,7 +4397,7 @@ static int mem_control_numa_stat_show(st
+ #endif /* CONFIG_NUMA */
+ 
+ static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
+-				 struct cgroup_map_cb *cb)
++				 struct seq_file *m)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+ 	struct mcs_total_stat mystat;
+@@ -4413,16 +4410,18 @@ static int mem_control_stat_show(struct 
+ 	for (i = 0; i < NR_MCS_STAT; i++) {
+ 		if (i == MCS_SWAP && !do_swap_account)
+ 			continue;
+-		cb->fill(cb, memcg_stat_strings[i].local_name, mystat.stat[i]);
++		seq_printf(m, "%s %llu\n", memcg_stat_strings[i],
++			   (unsigned long long)mystat.stat[i]);
+ 	}
+ 
+ 	/* Hierarchical information */
+ 	{
+ 		unsigned long long limit, memsw_limit;
+ 		memcg_get_hierarchical_limit(memcg, &limit, &memsw_limit);
+-		cb->fill(cb, "hierarchical_memory_limit", limit);
++		seq_printf(m, "hierarchical_memory_limit %llu\n", limit);
+ 		if (do_swap_account)
+-			cb->fill(cb, "hierarchical_memsw_limit", memsw_limit);
++			seq_printf(m, "hierarchical_memsw_limit %llu\n",
++				   memsw_limit);
+ 	}
+ 
+ 	memset(&mystat, 0, sizeof(mystat));
+@@ -4430,7 +4429,8 @@ static int mem_control_stat_show(struct 
+ 	for (i = 0; i < NR_MCS_STAT; i++) {
+ 		if (i == MCS_SWAP && !do_swap_account)
+ 			continue;
+-		cb->fill(cb, memcg_stat_strings[i].total_name, mystat.stat[i]);
++		seq_printf(m, "total_%s %llu\n", memcg_stat_strings[i],
++			   (unsigned long long)mystat.stat[i]);
+ 	}
+ 
+ #ifdef CONFIG_DEBUG_VM
+@@ -4451,10 +4451,10 @@ static int mem_control_stat_show(struct 
+ 				recent_scanned[0] += rstat->recent_scanned[0];
+ 				recent_scanned[1] += rstat->recent_scanned[1];
+ 			}
+-		cb->fill(cb, "recent_rotated_anon", recent_rotated[0]);
+-		cb->fill(cb, "recent_rotated_file", recent_rotated[1]);
+-		cb->fill(cb, "recent_scanned_anon", recent_scanned[0]);
+-		cb->fill(cb, "recent_scanned_file", recent_scanned[1]);
++		seq_printf(m, "recent_rotated_anon %lu\n", recent_rotated[0]);
++		seq_printf(m, "recent_rotated_file %lu\n", recent_rotated[1]);
++		seq_printf(m, "recent_scanned_anon %lu\n", recent_scanned[0]);
++		seq_printf(m, "recent_scanned_file %lu\n", recent_scanned[1]);
+ 	}
+ #endif
+ 
+@@ -4888,7 +4888,7 @@ static struct cftype mem_cgroup_files[] 
+ 	},
+ 	{
+ 		.name = "stat",
+-		.read_map = mem_control_stat_show,
++		.read_seq_string = mem_control_stat_show,
+ 	},
+ 	{
+ 		.name = "force_empty",
 _
-Subject: Subject: mm: memcg: remove obsolete statistics array boundary enum item
+Subject: Subject: mm: memcg: print statistics directly to seq_file
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
