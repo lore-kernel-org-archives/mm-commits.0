@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-convert-numa-stat-to-read_seq_string-interface.patch added to -mm tree
-Date: Tue, 15 May 2012 14:54:40 -0700
-Message-ID: <20120515215440.CD53DA028F@akpm.mtv.corp.google.com>
+Subject: + mm-memcg-group-swapped-out-statistics-counter-logically.patch added to -mm tree
+Date: Tue, 15 May 2012 14:54:46 -0700
+Message-ID: <20120515215446.D4804A028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:48018 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932839Ab2EOVyn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:54:43 -0400
-Received: by wgbdt11 with SMTP id dt11so2940wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:54:41 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:63942 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932944Ab2EOVyt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:54:49 -0400
+Received: by eaao13 with SMTP id o13so2454eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:54:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, tj@kerne
 
 
 The patch titled
-     Subject: mm: memcg: convert numa stat to read_seq_string interface
+     Subject: mm: memcg: group swapped-out statistics counter logically
 has been added to the -mm tree.  Its filename is
-     mm-memcg-convert-numa-stat-to-read_seq_string-interface.patch
+     mm-memcg-group-swapped-out-statistics-counter-logically.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: convert numa stat to read_seq_string interface
+Subject: mm: memcg: group swapped-out statistics counter logically
 
-Instead of using the raw seq_file file interface, switch over to the
-read_seq_string cftype callback and let cgroup core code set up the
-seq_file.
+The counter of currently swapped out pages in a memcg (hierarchy) is
+sitting amidst ever-increasing event counters.  Move this item to the
+other counters that reflect current state rather than history.
+
+This technically breaks the kernel ABI, but hopefully nobody relies on the
+order of items in memory.stat.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -48,62 +51,55 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 +++--------------------
- 1 file changed, 3 insertions(+), 20 deletions(-)
+ mm/memcontrol.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-convert-numa-stat-to-read_seq_string-interface mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-convert-numa-stat-to-read_seq_string-interface
+diff -puN mm/memcontrol.c~mm-memcg-group-swapped-out-statistics-counter-logically mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-group-swapped-out-statistics-counter-logically
 +++ a/mm/memcontrol.c
-@@ -4353,12 +4353,12 @@ mem_cgroup_get_total_stat(struct mem_cgr
- }
- 
- #ifdef CONFIG_NUMA
--static int mem_control_numa_stat_show(struct seq_file *m, void *arg)
-+static int mem_control_numa_stat_show(struct cgroup *cont, struct cftype *cft,
-+				      struct seq_file *m)
- {
- 	int nid;
- 	unsigned long total_nr, file_nr, anon_nr, unevictable_nr;
- 	unsigned long node_nr;
--	struct cgroup *cont = m->private;
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
- 
- 	total_nr = mem_cgroup_nr_lru_pages(memcg, LRU_ALL);
-@@ -4833,22 +4833,6 @@ static int mem_cgroup_oom_control_write(
- 	return 0;
- }
- 
--#ifdef CONFIG_NUMA
--static const struct file_operations mem_control_numa_stat_file_operations = {
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static int mem_control_numa_stat_open(struct inode *unused, struct file *file)
--{
--	struct cgroup *cont = file->f_dentry->d_parent->d_fsdata;
--
--	file->f_op = &mem_control_numa_stat_file_operations;
--	return single_open(file, mem_control_numa_stat_show, cont);
--}
--#endif /* CONFIG_NUMA */
--
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_KMEM
- static int memcg_init_kmem(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
- {
-@@ -4936,8 +4920,7 @@ static struct cftype mem_cgroup_files[] 
- #ifdef CONFIG_NUMA
- 	{
- 		.name = "numa_stat",
--		.open = mem_control_numa_stat_open,
--		.mode = S_IRUGO,
-+		.read_seq_string = mem_control_numa_stat_show,
- 	},
- #endif
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+@@ -4265,9 +4265,9 @@ enum {
+ 	MCS_RSS,
+ 	MCS_FILE_MAPPED,
+ 	MCS_MLOCK,
++	MCS_SWAP,
+ 	MCS_PGPGIN,
+ 	MCS_PGPGOUT,
+-	MCS_SWAP,
+ 	MCS_PGFAULT,
+ 	MCS_PGMAJFAULT,
+ 	MCS_INACTIVE_ANON,
+@@ -4287,9 +4287,9 @@ static const char *memcg_stat_strings[NR
+ 	"rss",
+ 	"mapped_file",
+ 	"mlock",
++	"swap",
+ 	"pgpgin",
+ 	"pgpgout",
+-	"swap",
+ 	"pgfault",
+ 	"pgmajfault",
+ 	"inactive_anon",
+@@ -4314,14 +4314,14 @@ mem_cgroup_get_local_stat(struct mem_cgr
+ 	s->stat[MCS_FILE_MAPPED] += val * PAGE_SIZE;
+ 	val = mem_cgroup_read_stat(memcg, MEM_CGROUP_STAT_MLOCK);
+ 	s->stat[MCS_MLOCK] += val * PAGE_SIZE;
+-	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGPGIN);
+-	s->stat[MCS_PGPGIN] += val;
+-	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGPGOUT);
+-	s->stat[MCS_PGPGOUT] += val;
+ 	if (do_swap_account) {
+ 		val = mem_cgroup_read_stat(memcg, MEM_CGROUP_STAT_SWAPOUT);
+ 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
+ 	}
++	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGPGIN);
++	s->stat[MCS_PGPGIN] += val;
++	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGPGOUT);
++	s->stat[MCS_PGPGOUT] += val;
+ 	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGFAULT);
+ 	s->stat[MCS_PGFAULT] += val;
+ 	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGMAJFAULT);
 _
-Subject: Subject: mm: memcg: convert numa stat to read_seq_string interface
+Subject: Subject: mm: memcg: group swapped-out statistics counter logically
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
