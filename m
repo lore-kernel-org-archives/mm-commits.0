@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-readahead-syscall-to-mm-readaheadc.patch added to -mm tree
-Date: Tue, 15 May 2012 14:21:51 -0700
-Message-ID: <20120515212151.59767A028F@akpm.mtv.corp.google.com>
+Subject: + fs-move-file_remove_suid-to-fs-inodec.patch added to -mm tree
+Date: Tue, 15 May 2012 14:22:35 -0700
+Message-ID: <20120515212235.4B8DBA00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:36448 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:58693 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966208Ab2EOVVw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:21:52 -0400
-Received: by yenl3 with SMTP id l3so8659yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:21:51 -0700 (PDT)
+	with ESMTP id S966944Ab2EOVWg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:22:36 -0400
+Received: by yenl3 with SMTP id l3so8731yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:22:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, fengguang.wu@intel.com, viro@zeniv.linux.org.uk
+Cc: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm: move readahead syscall to mm/readahead.c
+     Subject: fs: move file_remove_suid() to fs/inode.c
 has been added to the -mm tree.  Its filename is
-     mm-move-readahead-syscall-to-mm-readaheadc.patch
+     fs-move-file_remove_suid-to-fs-inodec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,146 +34,163 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: mm: move readahead syscall to mm/readahead.c
+Subject: fs: move file_remove_suid() to fs/inode.c
 
-It is better to define readahead(2) in mm/readahead.c than in
-mm/filemap.c.
+file_remove_suid() is a generic function operates on struct file, it
+almost has no relations with file mapping, so move it to fs/inode.c.
 
 Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c   |   39 ---------------------------------------
- mm/readahead.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 40 insertions(+), 39 deletions(-)
+ fs/inode.c   |   65 +++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/filemap.c |   65 -------------------------------------------------
+ 2 files changed, 65 insertions(+), 65 deletions(-)
 
-diff -puN mm/filemap.c~mm-move-readahead-syscall-to-mm-readaheadc mm/filemap.c
---- a/mm/filemap.c~mm-move-readahead-syscall-to-mm-readaheadc
-+++ a/mm/filemap.c
-@@ -29,7 +29,6 @@
- #include <linux/pagevec.h>
- #include <linux/blkdev.h>
- #include <linux/security.h>
--#include <linux/syscalls.h>
- #include <linux/cpuset.h>
- #include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
- #include <linux/memcontrol.h>
-@@ -1478,44 +1477,6 @@ out:
+diff -puN fs/inode.c~fs-move-file_remove_suid-to-fs-inodec fs/inode.c
+--- a/fs/inode.c~fs-move-file_remove_suid-to-fs-inodec
++++ a/fs/inode.c
+@@ -1530,6 +1530,71 @@ void touch_atime(struct path *path)
  }
- EXPORT_SYMBOL(generic_file_aio_read);
+ EXPORT_SYMBOL(touch_atime);
  
--static ssize_t
--do_readahead(struct address_space *mapping, struct file *filp,
--	     pgoff_t index, unsigned long nr)
--{
--	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
--		return -EINVAL;
--
--	force_page_cache_readahead(mapping, filp, index, nr);
--	return 0;
--}
--
--SYSCALL_DEFINE(readahead)(int fd, loff_t offset, size_t count)
--{
--	ssize_t ret;
--	struct file *file;
--
--	ret = -EBADF;
--	file = fget(fd);
--	if (file) {
--		if (file->f_mode & FMODE_READ) {
--			struct address_space *mapping = file->f_mapping;
--			pgoff_t start = offset >> PAGE_CACHE_SHIFT;
--			pgoff_t end = (offset + count - 1) >> PAGE_CACHE_SHIFT;
--			unsigned long len = end - start + 1;
--			ret = do_readahead(mapping, file, start, len);
--		}
--		fput(file);
--	}
--	return ret;
--}
--#ifdef CONFIG_HAVE_SYSCALL_WRAPPERS
--asmlinkage long SyS_readahead(long fd, loff_t offset, long count)
--{
--	return SYSC_readahead((int) fd, offset, (size_t) count);
--}
--SYSCALL_ALIAS(sys_readahead, SyS_readahead);
--#endif
--
- #ifdef CONFIG_MMU
- /**
-  * page_cache_read - adds requested page to the page cache if not already there
-diff -puN mm/readahead.c~mm-move-readahead-syscall-to-mm-readaheadc mm/readahead.c
---- a/mm/readahead.c~mm-move-readahead-syscall-to-mm-readaheadc
-+++ a/mm/readahead.c
-@@ -17,6 +17,8 @@
- #include <linux/task_io_accounting_ops.h>
- #include <linux/pagevec.h>
- #include <linux/pagemap.h>
-+#include <linux/syscalls.h>
-+#include <linux/file.h>
- 
- /*
-  * Initialise a struct file's readahead state.  Assumes that the caller has
-@@ -562,3 +564,41 @@ page_cache_async_readahead(struct addres
- 	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
- }
- EXPORT_SYMBOL_GPL(page_cache_async_readahead);
-+
-+static ssize_t
-+do_readahead(struct address_space *mapping, struct file *filp,
-+	     pgoff_t index, unsigned long nr)
++/*
++ * The logic we want is
++ *
++ *	if suid or (sgid and xgrp)
++ *		remove privs
++ */
++int should_remove_suid(struct dentry *dentry)
 +{
-+	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
-+		return -EINVAL;
++	umode_t mode = dentry->d_inode->i_mode;
++	int kill = 0;
 +
-+	force_page_cache_readahead(mapping, filp, index, nr);
++	/* suid always must be killed */
++	if (unlikely(mode & S_ISUID))
++		kill = ATTR_KILL_SUID;
++
++	/*
++	 * sgid without any exec bits is just a mandatory locking mark; leave
++	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
++	 */
++	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
++		kill |= ATTR_KILL_SGID;
++
++	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
++		return kill;
++
 +	return 0;
 +}
++EXPORT_SYMBOL(should_remove_suid);
 +
-+SYSCALL_DEFINE(readahead)(int fd, loff_t offset, size_t count)
++static int __remove_suid(struct dentry *dentry, int kill)
 +{
-+	ssize_t ret;
-+	struct file *file;
++	struct iattr newattrs;
 +
-+	ret = -EBADF;
-+	file = fget(fd);
-+	if (file) {
-+		if (file->f_mode & FMODE_READ) {
-+			struct address_space *mapping = file->f_mapping;
-+			pgoff_t start = offset >> PAGE_CACHE_SHIFT;
-+			pgoff_t end = (offset + count - 1) >> PAGE_CACHE_SHIFT;
-+			unsigned long len = end - start + 1;
-+			ret = do_readahead(mapping, file, start, len);
-+		}
-+		fput(file);
-+	}
-+	return ret;
++	newattrs.ia_valid = ATTR_FORCE | kill;
++	return notify_change(dentry, &newattrs);
 +}
-+#ifdef CONFIG_HAVE_SYSCALL_WRAPPERS
-+asmlinkage long SyS_readahead(long fd, loff_t offset, long count)
++
++int file_remove_suid(struct file *file)
 +{
-+	return SYSC_readahead((int) fd, offset, (size_t) count);
++	struct dentry *dentry = file->f_path.dentry;
++	struct inode *inode = dentry->d_inode;
++	int killsuid;
++	int killpriv;
++	int error = 0;
++
++	/* Fast path for nothing security related */
++	if (IS_NOSEC(inode))
++		return 0;
++
++	killsuid = should_remove_suid(dentry);
++	killpriv = security_inode_need_killpriv(dentry);
++
++	if (killpriv < 0)
++		return killpriv;
++	if (killpriv)
++		error = security_inode_killpriv(dentry);
++	if (!error && killsuid)
++		error = __remove_suid(dentry, killsuid);
++	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
++		inode->i_flags |= S_NOSEC;
++
++	return error;
 +}
-+SYSCALL_ALIAS(sys_readahead, SyS_readahead);
-+#endif
-_
-Subject: Subject: mm: move readahead syscall to mm/readahead.c
-
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
-
-linux-next.patch
-cris-select-generic_atomic64.patch
-bug-introduce-build_bug_on_invalid-macro.patch
-bug-completely-remove-code-generated-by-disabled-vm_bug_on.patch
-tmpfs-enable-nosec-optimization.patch
-mm-move-readahead-syscall-to-mm-readaheadc.patch
-proc-clean-up-proc-pid-environ-handling.patch
-proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-proc-remove-mm_for_maps.patch
-proc-use-mm_access-instead-of-ptrace_may_access.patch
-proc-use-is_err_or_null.patch
-fs-move-file_remove_suid-to-fs-inodec.patch
-
++EXPORT_SYMBOL(file_remove_suid);
++
+ /**
+  *	file_update_time	-	update mtime and ctime time
+  *	@file: file accessed
+diff -puN mm/filemap.c~fs-move-file_remove_suid-to-fs-inodec mm/filemap.c
+--- a/mm/filemap.c~fs-move-file_remove_suid-to-fs-inodec
++++ a/mm/filemap.c
+@@ -1938,71 +1938,6 @@ struct page *read_cache_page(struct addr
+ }
+ EXPORT_SYMBOL(read_cache_page);
+ 
+-/*
+- * The logic we want is
+- *
+- *	if suid or (sgid and xgrp)
+- *		remove privs
+- */
+-int should_remove_suid(struct dentry *dentry)
+-{
+-	umode_t mode = dentry->d_inode->i_mode;
+-	int kill = 0;
+-
+-	/* suid always must be killed */
+-	if (unlikely(mode & S_ISUID))
+-		kill = ATTR_KILL_SUID;
+-
+-	/*
+-	 * sgid without any exec bits is just a mandatory locking mark; leave
+-	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
+-	 */
+-	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
+-		kill |= ATTR_KILL_SGID;
+-
+-	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
+-		return kill;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(should_remove_suid);
+-
+-static int __remove_suid(struct dentry *dentry, int kill)
+-{
+-	struct iattr newattrs;
+-
+-	newattrs.ia_valid = ATTR_FORCE | kill;
+-	return notify_change(dentry, &newattrs);
+-}
+-
+-int file_remove_suid(struct file *file)
+-{
+-	struct dentry *dentry = file->f_path.dentry;
+-	struct inode *inode = dentry->d_inode;
+-	int killsuid;
+-	int killpriv;
+-	int error = 0;
+-
+-	/* Fast path for nothing security related */
+-	if (IS_NOSEC(inode))
+-		return 0;
+-
+-	killsuid = should_remove_suid(dentry);
+-	killpriv = security_inode_need_killpriv(dentry);
+-
+-	if (killpriv < 0)
+-		return killpriv;
+-	if (killpriv)
+-		error = security_inode_killpriv(dentry);
+-	if (!error && killsuid)
+-		error = __remove_suid(dentry, killsuid);
+-	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
+-		inode->i_flags |= S_NOSEC;
+-
+-	return error;
+-}
+-EXPORT_SYMBOL(file_remove_suid);
