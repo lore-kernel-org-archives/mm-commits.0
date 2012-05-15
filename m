@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-print-statistics-directly-to-seq_file.patch added to -mm tree
-Date: Tue, 15 May 2012 14:54:42 -0700
-Message-ID: <20120515215442.D29C4A028F@akpm.mtv.corp.google.com>
+Subject: + mm-memcg-keep-ratelimit-counter-separate-from-event-counters.patch added to -mm tree
+Date: Tue, 15 May 2012 14:54:44 -0700
+Message-ID: <20120515215444.D9170A028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:45348 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932944Ab2EOVyn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:54:43 -0400
-Received: by ggeh3 with SMTP id h3so16206gge.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:54:43 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:47721 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932944Ab2EOVyp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:54:45 -0400
+Received: by yhgm50 with SMTP id m50so16802yhg.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:54:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, tj@kerne
 
 
 The patch titled
-     Subject: mm: memcg: print statistics directly to seq_file
+     Subject: mm: memcg: keep ratelimit counter separate from event counters
 has been added to the -mm tree.  Its filename is
-     mm-memcg-print-statistics-directly-to-seq_file.patch
+     mm-memcg-keep-ratelimit-counter-separate-from-event-counters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: print statistics directly to seq_file
+Subject: mm: memcg: keep ratelimit counter separate from event counters
 
-Being able to use seq_printf() allows being smarter about statistics name
-strings, which are currently listed twice, with the only
+All events except the ratelimit counter are statistics exported to
+userspace.  Keep this internal value out of the event count array.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -47,119 +47,48 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   56 +++++++++++++++++++++++-----------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+ mm/memcontrol.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-print-statistics-directly-to-seq_file mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-print-statistics-directly-to-seq_file
+diff -puN mm/memcontrol.c~mm-memcg-keep-ratelimit-counter-separate-from-event-counters mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-keep-ratelimit-counter-separate-from-event-counters
 +++ a/mm/memcontrol.c
-@@ -4282,24 +4282,21 @@ struct mcs_total_stat {
- 	s64 stat[NR_MCS_STAT];
+@@ -105,7 +105,6 @@ enum mem_cgroup_stat_index {
+ enum mem_cgroup_events_index {
+ 	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
+ 	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
+-	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
+ 	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
+ 	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
+ 	MEM_CGROUP_EVENTS_NSTATS,
+@@ -129,6 +128,7 @@ enum mem_cgroup_events_target {
+ struct mem_cgroup_stat_cpu {
+ 	long count[MEM_CGROUP_STAT_NSTATS];
+ 	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
++	unsigned long nr_page_events;
+ 	unsigned long targets[MEM_CGROUP_NTARGETS];
  };
  
--static struct {
--	char *local_name;
--	char *total_name;
--} memcg_stat_strings[NR_MCS_STAT] = {
--	{"cache", "total_cache"},
--	{"rss", "total_rss"},
--	{"mapped_file", "total_mapped_file"},
--	{"mlock", "total_mlock"},
--	{"pgpgin", "total_pgpgin"},
--	{"pgpgout", "total_pgpgout"},
--	{"swap", "total_swap"},
--	{"pgfault", "total_pgfault"},
--	{"pgmajfault", "total_pgmajfault"},
--	{"inactive_anon", "total_inactive_anon"},
--	{"active_anon", "total_active_anon"},
--	{"inactive_file", "total_inactive_file"},
--	{"active_file", "total_active_file"},
--	{"unevictable", "total_unevictable"}
-+static const char *memcg_stat_strings[NR_MCS_STAT] = {
-+	"cache",
-+	"rss",
-+	"mapped_file",
-+	"mlock",
-+	"pgpgin",
-+	"pgpgout",
-+	"swap",
-+	"pgfault",
-+	"pgmajfault",
-+	"inactive_anon",
-+	"active_anon",
-+	"inactive_file",
-+	"active_file",
-+	"unevictable",
- };
+@@ -736,7 +736,7 @@ static void mem_cgroup_charge_statistics
+ 		nr_pages = -nr_pages; /* for event */
+ 	}
  
+-	__this_cpu_add(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT], nr_pages);
++	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
  
-@@ -4400,7 +4397,7 @@ static int mem_control_numa_stat_show(st
- #endif /* CONFIG_NUMA */
- 
- static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
--				 struct cgroup_map_cb *cb)
-+				 struct seq_file *m)
+ 	preempt_enable();
+ }
+@@ -797,7 +797,7 @@ static bool mem_cgroup_event_ratelimit(s
  {
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
- 	struct mcs_total_stat mystat;
-@@ -4413,16 +4410,18 @@ static int mem_control_stat_show(struct 
- 	for (i = 0; i < NR_MCS_STAT; i++) {
- 		if (i == MCS_SWAP && !do_swap_account)
- 			continue;
--		cb->fill(cb, memcg_stat_strings[i].local_name, mystat.stat[i]);
-+		seq_printf(m, "%s %llu\n", memcg_stat_strings[i],
-+			   (unsigned long long)mystat.stat[i]);
- 	}
+ 	unsigned long val, next;
  
- 	/* Hierarchical information */
- 	{
- 		unsigned long long limit, memsw_limit;
- 		memcg_get_hierarchical_limit(memcg, &limit, &memsw_limit);
--		cb->fill(cb, "hierarchical_memory_limit", limit);
-+		seq_printf(m, "hierarchical_memory_limit %llu\n", limit);
- 		if (do_swap_account)
--			cb->fill(cb, "hierarchical_memsw_limit", memsw_limit);
-+			seq_printf(m, "hierarchical_memsw_limit %llu\n",
-+				   memsw_limit);
- 	}
- 
- 	memset(&mystat, 0, sizeof(mystat));
-@@ -4430,7 +4429,8 @@ static int mem_control_stat_show(struct 
- 	for (i = 0; i < NR_MCS_STAT; i++) {
- 		if (i == MCS_SWAP && !do_swap_account)
- 			continue;
--		cb->fill(cb, memcg_stat_strings[i].total_name, mystat.stat[i]);
-+		seq_printf(m, "total_%s %llu\n", memcg_stat_strings[i],
-+			   (unsigned long long)mystat.stat[i]);
- 	}
- 
- #ifdef CONFIG_DEBUG_VM
-@@ -4451,10 +4451,10 @@ static int mem_control_stat_show(struct 
- 				recent_scanned[0] += rstat->recent_scanned[0];
- 				recent_scanned[1] += rstat->recent_scanned[1];
- 			}
--		cb->fill(cb, "recent_rotated_anon", recent_rotated[0]);
--		cb->fill(cb, "recent_rotated_file", recent_rotated[1]);
--		cb->fill(cb, "recent_scanned_anon", recent_scanned[0]);
--		cb->fill(cb, "recent_scanned_file", recent_scanned[1]);
-+		seq_printf(m, "recent_rotated_anon %lu\n", recent_rotated[0]);
-+		seq_printf(m, "recent_rotated_file %lu\n", recent_rotated[1]);
-+		seq_printf(m, "recent_scanned_anon %lu\n", recent_scanned[0]);
-+		seq_printf(m, "recent_scanned_file %lu\n", recent_scanned[1]);
- 	}
- #endif
- 
-@@ -4888,7 +4888,7 @@ static struct cftype mem_cgroup_files[] 
- 	},
- 	{
- 		.name = "stat",
--		.read_map = mem_control_stat_show,
-+		.read_seq_string = mem_control_stat_show,
- 	},
- 	{
- 		.name = "force_empty",
+-	val = __this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++	val = __this_cpu_read(memcg->stat->nr_page_events);
+ 	next = __this_cpu_read(memcg->stat->targets[target]);
+ 	/* from time_after() in jiffies.h */
+ 	if ((long)next - (long)val < 0) {
 _
-Subject: Subject: mm: memcg: print statistics directly to seq_file
+Subject: Subject: mm: memcg: keep ratelimit counter separate from event counters
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
