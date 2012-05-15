@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-mqueue-improve-performance-of-send-recv-use-correct-gfp-flags-in-msg_insert.patch added to -mm tree
-Date: Mon, 14 May 2012 16:54:22 -0700
-Message-ID: <20120514235423.1A447A00AE@akpm.mtv.corp.google.com>
+Subject: + leds-add-led-driver-for-lm3556-chip-fix-fix.patch added to -mm tree
+Date: Tue, 15 May 2012 12:15:40 -0700
+Message-ID: <20120515191543.98500A0270@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:41297 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932720Ab2ENXyY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 May 2012 19:54:24 -0400
-Received: by yhgm50 with SMTP id m50so832763yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 May 2012 16:54:23 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34748 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966435Ab2EOTPr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 15:15:47 -0400
+Received: by faaa25 with SMTP id a25so1095faa.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 12:15:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: levinsasha928@gmail.com, dledford@redhat.com, kosaki.motohiro@jp.fujitsu.com, manfred@colorfullife.com, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, gshark.jeong@gmail.com
 
 
 The patch titled
-     Subject: ipc/mqueue: use correct gfp flags in msg_insert
+     Subject: leds-add-led-driver-for-lm3556-chip-fix-fix
 has been added to the -mm tree.  Its filename is
-     ipc-mqueue-improve-performance-of-send-recv-use-correct-gfp-flags-in-msg_insert.patch
+     leds-add-led-driver-for-lm3556-chip-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sasha Levin <levinsasha928@gmail.com>
-Subject: ipc/mqueue: use correct gfp flags in msg_insert
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: leds-add-led-driver-for-lm3556-chip-fix-fix
 
-msg_insert() tries to allocate using GFP_KERNEL, while in both cases when
-it's called, it's coming from an atomic context.  Introduced by 7dd7edf
-("ipc/mqueue: improve performance of send/recv").
+fix spello in printk message
 
-Use GFP_ATOMIC instead.
-
-Also, fix up coding style in the kzalloc while we're there.
-
-Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Geon Si Jeong <gshark.jeong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
+ drivers/leds/leds-lm3556.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-improve-performance-of-send-recv-use-correct-gfp-flags-in-msg_insert ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-improve-performance-of-send-recv-use-correct-gfp-flags-in-msg_insert
-+++ a/ipc/mqueue.c
-@@ -133,7 +133,7 @@ static int msg_insert(struct msg_msg *ms
- 		else
- 			p = &(*p)->rb_right;
- 	}
--	leaf = kzalloc(sizeof(struct posix_msg_tree_node), GFP_KERNEL);
-+	leaf = kzalloc(sizeof(*leaf), GFP_ATOMIC);
- 	if (!leaf)
- 		return -ENOMEM;
- 	rb_init_node(&leaf->rb_node);
+diff -puN drivers/leds/leds-lm3556.c~leds-add-led-driver-for-lm3556-chip-fix-fix drivers/leds/leds-lm3556.c
+--- a/drivers/leds/leds-lm3556.c~leds-add-led-driver-for-lm3556-chip-fix-fix
++++ a/drivers/leds/leds-lm3556.c
+@@ -160,7 +160,7 @@ static int lm3556_write_reg(struct i2c_c
+ 	ret = i2c_smbus_write_byte_data(client, reg, val);
+ 
+ 	if (ret < 0)
+-		dev_err(&client->dev, "i2c writting fail at 0x%02x\n", reg);
++		dev_err(&client->dev, "i2c writing fail at 0x%02x\n", reg);
+ 	return ret;
+ }
+ 
 _
-Subject: Subject: ipc/mqueue: use correct gfp flags in msg_insert
+Subject: Subject: leds-add-led-driver-for-lm3556-chip-fix-fix
 
-Patches currently in -mm which might be from levinsasha928@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-fs-proc-fix-abba-deadlock-in-case-of-execution-attempt-of-map_files-entries.patch
-locking-add-kern_cont-when-needed-to-self-test.patch
-x86-nmi-add-missing-kern_cont-to-nmi-selftest.patch
-isdn-add-missing-kern_cont.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+perf-x86-fix-undefined-reference-to-get_ibs_caps.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+memcg-add-mlock-statistic-in-memorystat-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
 isdn-add-missing-kern_cont-fix.patch
-ipc-mqueue-improve-performance-of-send-recv-use-correct-gfp-flags-in-msg_insert.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
