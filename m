@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch added to -mm tree
-Date: Tue, 15 May 2012 14:41:44 -0700
-Message-ID: <20120515214145.0F887A0341@akpm.mtv.corp.google.com>
+Subject: + memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 15 May 2012 14:42:08 -0700
+Message-ID: <20120515214209.04829A0341@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:34459 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932855Ab2EOVlq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:41:46 -0400
-Received: by yhgm50 with SMTP id m50so13707yhg.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:41:45 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:34305 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932895Ab2EOVmM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:42:12 -0400
+Received: by lbbgp10 with SMTP id gp10so2517lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:42:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, aneesh.kumar@linux.vnet.ibm.com, tj@kernel.org
+Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, tj@kernel.org
 
 
 The patch titled
-     Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2
+     Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
+     memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,120 +33,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes
 
-- clean up.
+ERROR: space required before the open brace '{'
+#25: FILE: mm/hugetlb.c:1926:
++		    !list_empty(&cgroup->children)){
 
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+total: 1 errors, 0 warnings, 10 lines checked
+
+./patches/memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2 mm/hugetlb.c
---- a/mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2
+diff -puN mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes
 +++ a/mm/hugetlb.c
-@@ -1922,8 +1922,8 @@ int hugetlb_force_memcg_empty(struct cgr
- 	int ret = 0, idx = 0;
+@@ -1923,7 +1923,7 @@ int hugetlb_force_memcg_empty(struct cgr
  
  	do {
--		if (cgroup_task_count(cgroup)
--			|| !list_empty(&cgroup->children)) {
-+		if (cgroup_task_count(cgroup) ||
-+		    !list_empty(&cgroup->children)){
+ 		if (cgroup_task_count(cgroup) ||
+-		    !list_empty(&cgroup->children)){
++		    !list_empty(&cgroup->children)) {
  			ret = -EBUSY;
  			goto out;
  		}
 _
-Subject: Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2
+Subject: Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+perf-x86-fix-undefined-reference-to-get_ibs_caps.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+thermal-add-generic-cpufreq-cooling-implementation-fix.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-memcg-add-hugetlb-extension.patch
-memcg-add-hugetlb-extension-fix.patch
 memcg-add-hugetlb-extension-fix-fix.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
 mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
 mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
-mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
 mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
 mm-do_migrate_pages-rename-arguments.patch
-kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
-mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
-documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
 mm-page_allocc-remove-pageblock_default_order.patch
-shmem-replace-page-if-mapping-excludes-its-zone.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
 mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-memcg-mark-more-functions-variables-as-static.patch
-memcg-remove-unused-variable.patch
-memcg-mark-stat-field-of-mem_cgroup-struct-as-__percpu.patch
-memcg-remove-redundant-parentheses.patch
-memcg-make-threshold-index-in-the-right-position.patch
-memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
-memcg-add-mlock-statistic-in-memorystat.patch
 memcg-add-mlock-statistic-in-memorystat-fix.patch
-mm-vmscan-store-priority-in-struct-scan_control.patch
-mm-add-link-from-struct-lruvec-to-struct-zone.patch
-mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages.patch
-mm-vmscan-push-zone-pointer-into-shrink_page_list.patch
-mm-vmscan-remove-update_isolated_counts.patch
-mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages.patch
-mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size.patch
-mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low.patch
-mm-vmscan-push-lruvec-pointer-into-shrink_list.patch
-mm-vmscan-push-lruvec-pointer-into-get_scan_count.patch
-mm-vmscan-push-lruvec-pointer-into-should_continue_reclaim.patch
-mm-vmscan-kill-struct-mem_cgroup_zone.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
-rescounters-add-res_counter_uncharge_until.patch
-memcg-use-res_counter_uncharge_until-in-move_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
-memcg-dont-uncharge-in-mem_cgroup_move_account.patch
-remove-__must_check-for-res_counter_charge_nofail.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
-fs-proc-introduce-proc-pid-task-tid-children-entry-v9-fix.patch
-c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
-c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
-c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
 c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
-c-r-prctl-return-efault-instead-of-einval-in-case-if-underlied-vma-is-not-found.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-add-minimal-address-test-to-pr_set_mm.patch
-c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
