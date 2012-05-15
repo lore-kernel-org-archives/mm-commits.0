@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-group-swapped-out-statistics-counter-logically.patch added to -mm tree
-Date: Tue, 15 May 2012 14:54:46 -0700
-Message-ID: <20120515215446.D4804A028F@akpm.mtv.corp.google.com>
+Subject: + mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 15 May 2012 14:54:52 -0700
+Message-ID: <20120515215452.557FDA028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:63942 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932944Ab2EOVyt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:54:49 -0400
-Received: by eaao13 with SMTP id o13so2454eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:54:47 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:39577 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932944Ab2EOVyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:54:55 -0400
+Received: by bkty5 with SMTP id y5so2583bkt.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:54:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, tj@kernel.org, yinghan@google.com
+Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, tj@kernel.org, yinghan@google.com
 
 
 The patch titled
-     Subject: mm: memcg: group swapped-out statistics counter logically
+     Subject: mm-memcg-print-statistics-from-live-counters-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-memcg-group-swapped-out-statistics-counter-logically.patch
+     mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,143 +33,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: group swapped-out statistics counter logically
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcg-print-statistics-from-live-counters-checkpatch-fixes
 
-The counter of currently swapped out pages in a memcg (hierarchy) is
-sitting amidst ever-increasing event counters.  Move this item to the
-other counters that reflect current state rather than history.
+WARNING: static const char * array should probably be static const char * const
+#68: FILE: mm/memcontrol.c:105:
++static const char *mem_cgroup_stat_names[] = {
 
-This technically breaks the kernel ABI, but hopefully nobody relies on the
-order of items in memory.stat.
+WARNING: static const char * array should probably be static const char * const
+#84: FILE: mm/memcontrol.c:121:
++static const char *mem_cgroup_events_names[] = {
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Ying Han <yinghan@google.com>
+WARNING: static const char * array should probably be static const char * const
+#196: FILE: mm/memcontrol.c:4316:
++static const char *mem_cgroup_lru_names[] = {
+
+total: 0 errors, 3 warnings, 212 lines checked
+
+./patches/mm-memcg-print-statistics-from-live-counters.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-group-swapped-out-statistics-counter-logically mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-group-swapped-out-statistics-counter-logically
+diff -puN mm/memcontrol.c~mm-memcg-print-statistics-from-live-counters-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-print-statistics-from-live-counters-checkpatch-fixes
 +++ a/mm/memcontrol.c
-@@ -4265,9 +4265,9 @@ enum {
- 	MCS_RSS,
- 	MCS_FILE_MAPPED,
- 	MCS_MLOCK,
-+	MCS_SWAP,
- 	MCS_PGPGIN,
- 	MCS_PGPGOUT,
--	MCS_SWAP,
- 	MCS_PGFAULT,
- 	MCS_PGMAJFAULT,
- 	MCS_INACTIVE_ANON,
-@@ -4287,9 +4287,9 @@ static const char *memcg_stat_strings[NR
+@@ -102,7 +102,7 @@ enum mem_cgroup_stat_index {
+ 	MEM_CGROUP_STAT_NSTATS,
+ };
+ 
+-static const char *mem_cgroup_stat_names[] = {
++static const char * const mem_cgroup_stat_names[] = {
+ 	"cache",
  	"rss",
  	"mapped_file",
- 	"mlock",
-+	"swap",
+@@ -118,7 +118,7 @@ enum mem_cgroup_events_index {
+ 	MEM_CGROUP_EVENTS_NSTATS,
+ };
+ 
+-static const char *mem_cgroup_events_names[] = {
++static const char * const mem_cgroup_events_names[] = {
  	"pgpgin",
  	"pgpgout",
--	"swap",
  	"pgfault",
- 	"pgmajfault",
+@@ -4321,13 +4321,14 @@ static int mem_control_numa_stat_show(st
+ }
+ #endif /* CONFIG_NUMA */
+ 
+-static const char *mem_cgroup_lru_names[] = {
++static const char * const mem_cgroup_lru_names[] = {
  	"inactive_anon",
-@@ -4314,14 +4314,14 @@ mem_cgroup_get_local_stat(struct mem_cgr
- 	s->stat[MCS_FILE_MAPPED] += val * PAGE_SIZE;
- 	val = mem_cgroup_read_stat(memcg, MEM_CGROUP_STAT_MLOCK);
- 	s->stat[MCS_MLOCK] += val * PAGE_SIZE;
--	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGPGIN);
--	s->stat[MCS_PGPGIN] += val;
--	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGPGOUT);
--	s->stat[MCS_PGPGOUT] += val;
- 	if (do_swap_account) {
- 		val = mem_cgroup_read_stat(memcg, MEM_CGROUP_STAT_SWAPOUT);
- 		s->stat[MCS_SWAP] += val * PAGE_SIZE;
- 	}
-+	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGPGIN);
-+	s->stat[MCS_PGPGIN] += val;
-+	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGPGOUT);
-+	s->stat[MCS_PGPGOUT] += val;
- 	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGFAULT);
- 	s->stat[MCS_PGFAULT] += val;
- 	val = mem_cgroup_read_events(memcg, MEM_CGROUP_EVENTS_PGMAJFAULT);
+ 	"active_anon",
+ 	"inactive_file",
+ 	"active_file",
+ 	"unevictable",
+ };
++
+ static inline void mem_cgroup_lru_names_not_uptodate(void)
+ {
+ 	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_lru_names) != NR_LRU_LISTS);
 _
-Subject: Subject: mm: memcg: group swapped-out statistics counter logically
+Subject: Subject: mm-memcg-print-statistics-from-live-counters-checkpatch-fixes
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-slab-remove-duplicate-check.patch
-mm-remove-swap-token-code.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+perf-x86-fix-undefined-reference-to-get_ibs_caps.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+thermal-add-generic-cpufreq-cooling-implementation-fix.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-memcg-add-hugetlb-extension.patch
-memcg-add-hugetlb-extension-fix.patch
 memcg-add-hugetlb-extension-fix-fix.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
 mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
-mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
-documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
-mm-bootmem-fix-checking-the-bitmap-when-finally-freeing-bootmem.patch
-mm-bootmem-remove-redundant-offset-check-when-finally-freeing-bootmem.patch
-mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata.patch
-mm-bootmem-split-out-goal-to-node-mapping-from-goal-dropping.patch
-mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere.patch
-mm-bootmem-unify-allocation-policy-of-non-panicking-node-allocations.patch
-mm-nobootmem-panic-on-node-specific-allocation-failure.patch
-mm-nobootmem-unify-allocation-policy-of-non-panicking-node-allocations.patch
-mm-bootmem-pass-pgdat-instead-of-pgdat-bdata-down-the-stack.patch
-mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-page_allocc-remove-pageblock_default_order.patch
 mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
-mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix-2.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
 mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-memcg-add-mlock-statistic-in-memorystat.patch
 memcg-add-mlock-statistic-in-memorystat-fix.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
-rescounters-add-res_counter_uncharge_until.patch
-memcg-use-res_counter_uncharge_until-in-move_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
-memcg-dont-uncharge-in-mem_cgroup_move_account.patch
-remove-__must_check-for-res_counter_charge_nofail.patch
-mm-memcg-remove-obsolete-statistics-array-boundary-enum-item.patch
-mm-memcg-convert-numa-stat-to-read_seq_string-interface.patch
-mm-memcg-print-statistics-directly-to-seq_file.patch
-mm-memcg-keep-ratelimit-counter-separate-from-event-counters.patch
-mm-memcg-group-swapped-out-statistics-counter-logically.patch
-mm-memcg-print-statistics-from-live-counters.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
 mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
