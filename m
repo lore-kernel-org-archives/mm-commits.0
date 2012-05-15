@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-move-file_remove_suid-to-fs-inodec.patch added to -mm tree
-Date: Tue, 15 May 2012 14:22:35 -0700
-Message-ID: <20120515212235.4B8DBA00B0@akpm.mtv.corp.google.com>
+Subject: + memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch added to -mm tree
+Date: Tue, 15 May 2012 14:41:44 -0700
+Message-ID: <20120515214145.0F887A0341@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:58693 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966944Ab2EOVWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:22:36 -0400
-Received: by yenl3 with SMTP id l3so8731yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:22:35 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:34459 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932855Ab2EOVlq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:41:46 -0400
+Received: by yhgm50 with SMTP id m50so13707yhg.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:41:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk
+Cc: kamezawa.hiroyu@jp.fujitsu.com, aneesh.kumar@linux.vnet.ibm.com, tj@kernel.org
 
 
 The patch titled
-     Subject: fs: move file_remove_suid() to fs/inode.c
+     Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2
 has been added to the -mm tree.  Its filename is
-     fs-move-file_remove_suid-to-fs-inodec.patch
+     memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,164 +33,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: fs: move file_remove_suid() to fs/inode.c
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2
 
-file_remove_suid() is a generic function operates on struct file, it
-almost has no relations with file mapping, so move it to fs/inode.c.
+- clean up.
 
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c   |   65 +++++++++++++++++++++++++++++++++++++++++++++++++
- mm/filemap.c |   65 -------------------------------------------------
- 2 files changed, 65 insertions(+), 65 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/inode.c~fs-move-file_remove_suid-to-fs-inodec fs/inode.c
---- a/fs/inode.c~fs-move-file_remove_suid-to-fs-inodec
-+++ a/fs/inode.c
-@@ -1530,6 +1530,71 @@ void touch_atime(struct path *path)
- }
- EXPORT_SYMBOL(touch_atime);
+diff -puN mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2 mm/hugetlb.c
+--- a/mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2
++++ a/mm/hugetlb.c
+@@ -1922,8 +1922,8 @@ int hugetlb_force_memcg_empty(struct cgr
+ 	int ret = 0, idx = 0;
  
-+/*
-+ * The logic we want is
-+ *
-+ *	if suid or (sgid and xgrp)
-+ *		remove privs
-+ */
-+int should_remove_suid(struct dentry *dentry)
-+{
-+	umode_t mode = dentry->d_inode->i_mode;
-+	int kill = 0;
-+
-+	/* suid always must be killed */
-+	if (unlikely(mode & S_ISUID))
-+		kill = ATTR_KILL_SUID;
-+
-+	/*
-+	 * sgid without any exec bits is just a mandatory locking mark; leave
-+	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
-+	 */
-+	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
-+		kill |= ATTR_KILL_SGID;
-+
-+	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
-+		return kill;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(should_remove_suid);
-+
-+static int __remove_suid(struct dentry *dentry, int kill)
-+{
-+	struct iattr newattrs;
-+
-+	newattrs.ia_valid = ATTR_FORCE | kill;
-+	return notify_change(dentry, &newattrs);
-+}
-+
-+int file_remove_suid(struct file *file)
-+{
-+	struct dentry *dentry = file->f_path.dentry;
-+	struct inode *inode = dentry->d_inode;
-+	int killsuid;
-+	int killpriv;
-+	int error = 0;
-+
-+	/* Fast path for nothing security related */
-+	if (IS_NOSEC(inode))
-+		return 0;
-+
-+	killsuid = should_remove_suid(dentry);
-+	killpriv = security_inode_need_killpriv(dentry);
-+
-+	if (killpriv < 0)
-+		return killpriv;
-+	if (killpriv)
-+		error = security_inode_killpriv(dentry);
-+	if (!error && killsuid)
-+		error = __remove_suid(dentry, killsuid);
-+	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
-+		inode->i_flags |= S_NOSEC;
-+
-+	return error;
-+}
-+EXPORT_SYMBOL(file_remove_suid);
-+
- /**
-  *	file_update_time	-	update mtime and ctime time
-  *	@file: file accessed
-diff -puN mm/filemap.c~fs-move-file_remove_suid-to-fs-inodec mm/filemap.c
---- a/mm/filemap.c~fs-move-file_remove_suid-to-fs-inodec
-+++ a/mm/filemap.c
-@@ -1938,71 +1938,6 @@ struct page *read_cache_page(struct addr
- }
- EXPORT_SYMBOL(read_cache_page);
- 
--/*
-- * The logic we want is
-- *
-- *	if suid or (sgid and xgrp)
-- *		remove privs
-- */
--int should_remove_suid(struct dentry *dentry)
--{
--	umode_t mode = dentry->d_inode->i_mode;
--	int kill = 0;
--
--	/* suid always must be killed */
--	if (unlikely(mode & S_ISUID))
--		kill = ATTR_KILL_SUID;
--
--	/*
--	 * sgid without any exec bits is just a mandatory locking mark; leave
--	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
--	 */
--	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
--		kill |= ATTR_KILL_SGID;
--
--	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
--		return kill;
--
--	return 0;
--}
--EXPORT_SYMBOL(should_remove_suid);
--
--static int __remove_suid(struct dentry *dentry, int kill)
--{
--	struct iattr newattrs;
--
--	newattrs.ia_valid = ATTR_FORCE | kill;
--	return notify_change(dentry, &newattrs);
--}
--
--int file_remove_suid(struct file *file)
--{
--	struct dentry *dentry = file->f_path.dentry;
--	struct inode *inode = dentry->d_inode;
--	int killsuid;
--	int killpriv;
--	int error = 0;
--
--	/* Fast path for nothing security related */
--	if (IS_NOSEC(inode))
--		return 0;
--
--	killsuid = should_remove_suid(dentry);
--	killpriv = security_inode_need_killpriv(dentry);
--
--	if (killpriv < 0)
--		return killpriv;
--	if (killpriv)
--		error = security_inode_killpriv(dentry);
--	if (!error && killsuid)
--		error = __remove_suid(dentry, killsuid);
--	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
--		inode->i_flags |= S_NOSEC;
--
--	return error;
--}
--EXPORT_SYMBOL(file_remove_suid);
+ 	do {
+-		if (cgroup_task_count(cgroup)
+-			|| !list_empty(&cgroup->children)) {
++		if (cgroup_task_count(cgroup) ||
++		    !list_empty(&cgroup->children)){
+ 			ret = -EBUSY;
+ 			goto out;
+ 		}
+_
+Subject: Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2
+
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+
+linux-next.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+memcg-add-hugetlb-extension.patch
+memcg-add-hugetlb-extension-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
+documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+shmem-replace-page-if-mapping-excludes-its-zone.patch
+memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
+memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
+memcg-swap-use-mem_cgroup_uncharge_swap.patch
+mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
+mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-mark-mm-inline-functions-as-__always_inline.patch
+mm-remove-lru-type-checks-from-__isolate_lru_page.patch
+mm-memcg-kill-mem_cgroup_lru_del.patch
+memcg-mark-more-functions-variables-as-static.patch
+memcg-remove-unused-variable.patch
+memcg-mark-stat-field-of-mem_cgroup-struct-as-__percpu.patch
+memcg-remove-redundant-parentheses.patch
+memcg-make-threshold-index-in-the-right-position.patch
+memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
+memcg-add-mlock-statistic-in-memorystat.patch
+memcg-add-mlock-statistic-in-memorystat-fix.patch
+mm-vmscan-store-priority-in-struct-scan_control.patch
+mm-add-link-from-struct-lruvec-to-struct-zone.patch
+mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages.patch
+mm-vmscan-push-zone-pointer-into-shrink_page_list.patch
+mm-vmscan-remove-update_isolated_counts.patch
+mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages.patch
+mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size.patch
+mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low.patch
+mm-vmscan-push-lruvec-pointer-into-shrink_list.patch
+mm-vmscan-push-lruvec-pointer-into-get_scan_count.patch
+mm-vmscan-push-lruvec-pointer-into-should_continue_reclaim.patch
+mm-vmscan-kill-struct-mem_cgroup_zone.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
+rescounters-add-res_counter_uncharge_until.patch
+memcg-use-res_counter_uncharge_until-in-move_parent.patch
+memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
+memcg-dont-uncharge-in-mem_cgroup_move_account.patch
+remove-__must_check-for-res_counter_charge_nofail.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9-fix.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
+c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-return-efault-instead-of-einval-in-case-if-underlied-vma-is-not-found.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-add-minimal-address-test-to-pr_set_mm.patch
+c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment.patch
+
