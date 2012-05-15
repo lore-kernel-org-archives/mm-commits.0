@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arm-exynos-add-thermal-sensor-driver-platform-data-support.patch added to -mm tree
-Date: Tue, 15 May 2012 14:01:52 -0700
-Message-ID: <20120515210152.E4E97A0333@akpm.mtv.corp.google.com>
+Subject: + thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch added to -mm tree
+Date: Tue, 15 May 2012 14:01:45 -0700
+Message-ID: <20120515210145.DF318A0333@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:43980 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966786Ab2EOVBx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:01:53 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so6881qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:01:53 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:49962 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966786Ab2EOVBr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 May 2012 17:01:47 -0400
+Received: by vbnl22 with SMTP id l22so8502vbn.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 May 2012 14:01:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amit.kachhap@linaro.org, dg77.kim@samsung.com, durgadoss.r@intel.com, guenter.roeck@ericsson.com, khali@linux-fr.org, lenb@kernel.org, sw.ju@samsung.com
+Cc: akpm@linux-foundation.org, amit.kachhap@linaro.org, dg77.kim@samsung.com, durgadoss.r@intel.com, guenter.roeck@ericsson.com, khali@linux-fr.org, lenb@kernel.org, sw.ju@samsung.com
 
 
 The patch titled
-     Subject: ARM: exynos: add thermal sensor driver platform data support
+     Subject: thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
 has been added to the -mm tree.  Its filename is
-     arm-exynos-add-thermal-sensor-driver-platform-data-support.patch
+     thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,178 +33,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Subject: ARM: exynos: add thermal sensor driver platform data support
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
 
-Add necessary default platform data support needed for TMU driver.  This
-dt/non-dt values are tested for origen exynos4210 and smdk exynos5250
-platforms.
+fix comment layout
 
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>
 Cc: Donggeun Kim <dg77.kim@samsung.com>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: SangWook Ju <sw.ju@samsung.com>
 Cc: Durgadoss <durgadoss.r@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: SangWook Ju <sw.ju@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/exynos_thermal.c |  111 ++++++++++++++++++++++++++++-
- 1 file changed, 110 insertions(+), 1 deletion(-)
+ drivers/thermal/exynos_thermal.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/thermal/exynos_thermal.c~arm-exynos-add-thermal-sensor-driver-platform-data-support drivers/thermal/exynos_thermal.c
---- a/drivers/thermal/exynos_thermal.c~arm-exynos-add-thermal-sensor-driver-platform-data-support
+diff -puN drivers/thermal/exynos_thermal.c~thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix drivers/thermal/exynos_thermal.c
+--- a/drivers/thermal/exynos_thermal.c~thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
 +++ a/drivers/thermal/exynos_thermal.c
-@@ -662,14 +662,121 @@ static irqreturn_t exynos_tmu_irq(int ir
- static struct thermal_sensor_conf exynos_sensor_conf = {
- 	.name			= "exynos-therm",
- 	.read_temperature	= (int (*)(void *))exynos_tmu_read,
-+};
-+
-+#if defined(CONFIG_CPU_EXYNOS4210)
-+static struct exynos_tmu_platform_data const exynos4_default_tmu_data = {
-+	.threshold = 80,
-+	.trigger_levels[0] = 5,
-+	.trigger_levels[1] = 20,
-+	.trigger_levels[2] = 30,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 0,
-+	.gain = 15,
-+	.reference_voltage = 7,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.freq_tab[0] = {
-+		.freq_clip_max = 800 * 1000,
-+		.temp_level = 85,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_max = 200 * 1000,
-+		.temp_level = 100,
-+	},
-+	.freq_tab_count = 2,
-+	.type = SOC_ARCH_EXYNOS4,
-+};
-+#define EXYNOS4_TMU_DRV_DATA (&exynos4_default_tmu_data)
-+#else
-+#define EXYNOS4_TMU_DRV_DATA (NULL)
-+#endif
-+
-+#if defined(CONFIG_SOC_EXYNOS5250)
-+static struct exynos_tmu_platform_data const exynos5_default_tmu_data = {
-+	.trigger_levels[0] = 85,
-+	.trigger_levels[1] = 103,
-+	.trigger_levels[2] = 110,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 0,
-+	.gain = 8,
-+	.reference_voltage = 16,
-+	.noise_cancel_mode = 4,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.efuse_value = 55,
-+	.freq_tab[0] = {
-+		.freq_clip_max = 800 * 1000,
-+		.temp_level = 85,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_max = 200 * 1000,
-+		.temp_level = 103,
-+	},
-+	.freq_tab_count = 2,
-+	.type = SOC_ARCH_EXYNOS5,
-+};
-+#define EXYNOS5_TMU_DRV_DATA (&exynos5_default_tmu_data)
-+#else
-+#define EXYNOS5_TMU_DRV_DATA (NULL)
-+#endif
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id exynos_tmu_match[] = {
-+	{
-+		.compatible = "samsung,exynos4-tmu",
-+		.data = (void *)EXYNOS4_TMU_DRV_DATA,
-+	},
-+	{
-+		.compatible = "samsung,exynos5-tmu",
-+		.data = (void *)EXYNOS5_TMU_DRV_DATA,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos_tmu_match);
-+#else
-+#define  exynos_tmu_match NULL
-+#endif
-+
-+static struct platform_device_id exynos_tmu_driver_ids[] = {
-+	{
-+		.name		= "exynos4-tmu",
-+		.driver_data    = (kernel_ulong_t)EXYNOS4_TMU_DRV_DATA,
-+	},
-+	{
-+		.name		= "exynos5-tmu",
-+		.driver_data    = (kernel_ulong_t)EXYNOS5_TMU_DRV_DATA,
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, exynos4_tmu_driver_ids);
-+
-+static inline struct  exynos_tmu_platform_data *exynos_get_driver_data(
-+			struct platform_device *pdev)
-+{
-+#ifdef CONFIG_OF
-+	if (pdev->dev.of_node) {
-+		const struct of_device_id *match;
-+		match = of_match_node(exynos_tmu_match, pdev->dev.of_node);
-+		if (!match)
-+			return NULL;
-+		return (struct exynos_tmu_platform_data *) match->data;
-+	}
-+#endif
-+	return (struct exynos_tmu_platform_data *)
-+			platform_get_device_id(pdev)->driver_data;
- }
--;
- static int __devinit exynos_tmu_probe(struct platform_device *pdev)
- {
- 	struct exynos_tmu_data *data;
- 	struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
- 	int ret, i;
+@@ -39,7 +39,7 @@
  
-+	if (!pdata)
-+		pdata = exynos_get_driver_data(pdev);
-+
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "No platform init data supplied.\n");
- 		return -ENODEV;
-@@ -832,11 +939,13 @@ static struct platform_driver exynos_tmu
- 	.driver = {
- 		.name   = "exynos-tmu",
- 		.owner  = THIS_MODULE,
-+		.of_match_table = exynos_tmu_match,
- 	},
- 	.probe = exynos_tmu_probe,
- 	.remove	= __devexit_p(exynos_tmu_remove),
- 	.suspend = exynos_tmu_suspend,
- 	.resume = exynos_tmu_resume,
-+	.id_table = exynos_tmu_driver_ids,
- };
+ #include <plat/cpu.h>
  
- module_platform_driver(exynos_tmu_driver);
+-/*Exynos generic registers*/
++/* Exynos generic registers */
+ #define EXYNOS_TMU_REG_TRIMINFO		0x0
+ #define EXYNOS_TMU_REG_CONTROL		0x20
+ #define EXYNOS_TMU_REG_STATUS		0x28
+@@ -55,7 +55,7 @@
+ #define EXYNOS_TMU_CORE_OFF		2
+ #define EXYNOS_TMU_DEF_CODE_TO_TEMP_OFFSET	50
+ 
+-/*Exynos4 specific registers*/
++/* Exynos4 specific registers */
+ #define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
+ #define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
+ #define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
+@@ -72,7 +72,7 @@
+ #define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
+ #define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
+ 
+-/*Exynos5 specific registers*/
++/* Exynos5 specific registers */
+ #define EXYNOS5_TMU_TRIMINFO_CON	0x14
+ #define EXYNOS5_THD_TEMP_RISE		0x50
+ #define EXYNOS5_THD_TEMP_FALL		0x54
+@@ -88,7 +88,7 @@
+ #define EFUSE_MIN_VALUE 40
+ #define EFUSE_MAX_VALUE 100
+ 
+-/*In-kernel thermal framework related macros & definations*/
++/* In-kernel thermal framework related macros & definations */
+ #define SENSOR_NAME_LEN	16
+ #define MAX_TRIP_COUNT	8
+ #define MAX_COOLING_DEVICE 4
 _
-Subject: Subject: ARM: exynos: add thermal sensor driver platform data support
+Subject: Subject: thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
 
-Patches currently in -mm which might be from amit.kachhap@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+perf-x86-fix-undefined-reference-to-get_ibs_caps.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 thermal-add-generic-cpufreq-cooling-implementation-fix.patch
-hwmon-exynos4-move-thermal-sensor-driver-to-driver-thermal-directory.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
 thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
 thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
-arm-exynos-add-thermal-sensor-driver-platform-data-support.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+memcg-add-mlock-statistic-in-memorystat-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+spinlockstxt-add-a-discussion-on-why-spin_is_locked-is-bad-fix.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
