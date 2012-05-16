@@ -1,90 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-leds-correct-__devexit-annotations.patch removed from -mm tree
-Date: Wed, 16 May 2012 11:46:57 -0700
-Message-ID: <20120516184657.51764A028F@akpm.mtv.corp.google.com>
+Subject: [merged] sound-pci-hda-hda_intelc-unbork.patch removed from -mm tree
+Date: Wed, 16 May 2012 11:47:03 -0700
+Message-ID: <20120516184703.4D2C7A028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:63523 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760343Ab2EPSq7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 14:46:59 -0400
-Received: by lbbgp10 with SMTP id gp10so57552lbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 11:46:58 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:49433 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760358Ab2EPSrF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 14:47:05 -0400
+Received: by vbnl22 with SMTP id l22so128216vbn.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 11:47:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, bryan.wu@canonical.com, mathieu.poirier@linaro.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds: correct __devexit annotations
+     Subject: sound/pci/hda/hda_intel.c: unbork
 has been removed from the -mm tree.  Its filename was
-     drivers-leds-correct-__devexit-annotations.patch
+     sound-pci-hda-hda_intelc-unbork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/leds: correct __devexit annotations
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sound/pci/hda/hda_intel.c: unbork
 
-__devexit functions are discarded without CONFIG_HOTPLUG, so they need to
-be referenced carefully.  A __devexit function may also not be called from
-a __devinit function.
+sound/pci/hda/hda_intel.c: In function 'snd_hda_codecs_inuse':
+sound/pci/hda/hda_intel.c:2361: error: implicit declaration of function 'snd_hda_codec_needs_resume'
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
-Cc: Bryan Wu <bryan.wu@canonical.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-netxbig.c |    4 ++--
- drivers/leds/leds-ns2.c     |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ sound/pci/hda/hda_intel.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/leds/leds-netxbig.c~drivers-leds-correct-__devexit-annotations drivers/leds/leds-netxbig.c
---- a/drivers/leds/leds-netxbig.c~drivers-leds-correct-__devexit-annotations
-+++ a/drivers/leds/leds-netxbig.c
-@@ -112,7 +112,7 @@ err_free_addr:
- 	return err;
+diff -puN sound/pci/hda/hda_intel.c~sound-pci-hda-hda_intelc-unbork sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~sound-pci-hda-hda_intelc-unbork
++++ a/sound/pci/hda/hda_intel.c
+@@ -2357,10 +2357,6 @@ static int snd_hda_codecs_inuse(struct h
+ {
+ 	struct hda_codec *codec;
+ 
+-	list_for_each_entry(codec, &bus->codec_list, list) {
+-		if (snd_hda_codec_needs_resume(codec))
+-			return 1;
+-	}
+ 	return 0;
  }
  
--static void __devexit gpio_ext_free(struct netxbig_gpio_ext *gpio_ext)
-+static void gpio_ext_free(struct netxbig_gpio_ext *gpio_ext)
- {
- 	int i;
- 
-@@ -294,7 +294,7 @@ static ssize_t netxbig_led_sata_show(str
- 
- static DEVICE_ATTR(sata, 0644, netxbig_led_sata_show, netxbig_led_sata_store);
- 
--static void __devexit delete_netxbig_led(struct netxbig_led_data *led_dat)
-+static void delete_netxbig_led(struct netxbig_led_data *led_dat)
- {
- 	if (led_dat->mode_val[NETXBIG_LED_SATA] != NETXBIG_LED_INVALID_MODE)
- 		device_remove_file(led_dat->cdev.dev, &dev_attr_sata);
-diff -puN drivers/leds/leds-ns2.c~drivers-leds-correct-__devexit-annotations drivers/leds/leds-ns2.c
---- a/drivers/leds/leds-ns2.c~drivers-leds-correct-__devexit-annotations
-+++ a/drivers/leds/leds-ns2.c
-@@ -255,7 +255,7 @@ err_free_cmd:
- 	return ret;
- }
- 
--static void __devexit delete_ns2_led(struct ns2_led_data *led_dat)
-+static void delete_ns2_led(struct ns2_led_data *led_dat)
- {
- 	device_remove_file(led_dat->cdev.dev, &dev_attr_sata);
- 	led_classdev_unregister(&led_dat->cdev);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-backlight-add-lm3533-backlight-driver.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+thermal-add-generic-cpufreq-cooling-implementation-fix.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
+mm-page_allocc-cleanups.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+memcg-add-mlock-statistic-in-memorystat-fix.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
 backlight-add-lm3533-backlight-driver-fix.patch
 backlight-add-lm3533-backlight-driver-fix-fix.patch
-leds-add-lm3533-led-driver.patch
-rtc-spear-add-device-tree-probing-capability.patch
-drivers-rtc-rtc-lpc32xxc-add-device-tree-support.patch
-ramoops-use-pstore-interface.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
