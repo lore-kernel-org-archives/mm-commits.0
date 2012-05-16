@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-omap1-use-pr_info-instead-of-printk-fix.patch added to -mm tree
-Date: Wed, 16 May 2012 12:59:31 -0700
-Message-ID: <20120516195931.D3713A0270@akpm.mtv.corp.google.com>
+Subject: + memcg-always-free-struct-memcg-through-schedule_work-fix.patch added to -mm tree
+Date: Wed, 16 May 2012 14:13:57 -0700
+Message-ID: <20120516211357.CED75A0358@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:48369 "EHLO
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:50410 "EHLO
 	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964985Ab2EPT7c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:59:32 -0400
-Received: by mail-qa0-f74.google.com with SMTP id g24so154540qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:59:32 -0700 (PDT)
+	with ESMTP id S1755144Ab2EPVN7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 17:13:59 -0400
+Received: by qabg24 with SMTP id g24so166527qab.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 14:13:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balrogg@gmail.com, jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net
+Cc: akpm@linux-foundation.org, glommer@parallels.com
 
 
 The patch titled
-     Subject: backlight-omap1-use-pr_info-instead-of-printk-fix
+     Subject: memcg-always-free-struct-memcg-through-schedule_work-fix
 has been added to the -mm tree.  Its filename is
-     backlight-omap1-use-pr_info-instead-of-printk-fix.patch
+     memcg-always-free-struct-memcg-through-schedule_work-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-omap1-use-pr_info-instead-of-printk-fix
+Subject: memcg-always-free-struct-memcg-through-schedule_work-fix
 
-use KBUILD_MODNAME, per Joe
+tweak comment
 
-Cc: Andrzej Zaborowski <balrogg@gmail.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/omap1_bl.c |    2 +-
+ mm/memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-use-pr_info-instead-of-printk-fix drivers/video/backlight/omap1_bl.c
---- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-use-pr_info-instead-of-printk-fix
-+++ a/drivers/video/backlight/omap1_bl.c
-@@ -18,7 +18,7 @@
-  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  */
- 
--#define pr_fmt(fmt) "omap1_bl: " fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/module.h>
- #include <linux/kernel.h>
+diff -puN mm/memcontrol.c~memcg-always-free-struct-memcg-through-schedule_work-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-always-free-struct-memcg-through-schedule_work-fix
++++ a/mm/memcontrol.c
+@@ -271,7 +271,7 @@ struct mem_cgroup {
+ 		struct rcu_head rcu_freeing;
+ 		/*
+ 		 * We also need some space for a worker in deferred freeing.
+-		 * By the time we call it, rcu_freeing is not longer in use.
++		 * By the time we call it, rcu_freeing is no longer in use.
+ 		 */
+ 		struct work_struct work_freeing;
+ 	};
 _
-Subject: Subject: backlight-omap1-use-pr_info-instead-of-printk-fix
+Subject: Subject: memcg-always-free-struct-memcg-through-schedule_work-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -97,6 +94,8 @@ mm-push-lru-index-into-shrink_active_list-fix.patch
 memcg-add-mlock-statistic-in-memorystat-fix.patch
 memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
 mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
+memcg-always-free-struct-memcg-through-schedule_work-fix.patch
+memcg-decrement-static-keys-at-real-destroy-time-fix.patch
 security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
 isdn-add-missing-kern_cont-fix.patch
 nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
