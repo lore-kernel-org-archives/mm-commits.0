@@ -1,36 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-mqueue-add-rbtree-node-caching-support-fix-2.patch added to -mm tree
-Date: Wed, 16 May 2012 16:16:01 -0700
-Message-ID: <20120516231603.1BBDAA0397@akpm.mtv.corp.google.com>
+Subject: [folded] ipc-mqueue-add-rbtree-node-caching-support-fix-2.patch removed from -mm tree
+Date: Wed, 16 May 2012 16:17:13 -0700
+Message-ID: <20120516231713.C6951A0397@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:48938 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932746Ab2EPXQE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 19:16:04 -0400
-Received: by ggeh3 with SMTP id h3so167640gge.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 16:16:03 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34201 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932248Ab2EPXRQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 19:17:16 -0400
+Received: by faaa25 with SMTP id a25so67354faa.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 16:17:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dledford@redhat.com, fweisbec@gmail.com, kosaki.motohiro@jp.fujitsu.com, manfred@colorfullife.com, sfr@canb.auug.org.au
+To: akpm@linux-foundation.org, dledford@redhat.com, fweisbec@gmail.com, kosaki.motohiro@jp.fujitsu.com, manfred@colorfullife.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: ipc-mqueue-add-rbtree-node-caching-support-fix-2
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      ipc-mqueue-add-rbtree-node-caching-support-fix-2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into ipc-mqueue-add-rbtree-node-caching-support.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -62,7 +54,6 @@ diff -puN ipc/mqueue.c~ipc-mqueue-add-rbtree-node-caching-support-fix-2 ipc/mque
  		*new_leaf = NULL;
  	} else
 _
-Subject: Subject: ipc-mqueue-add-rbtree-node-caching-support-fix-2
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -133,7 +124,7 @@ ipc-mqueue-improve-performance-of-send-recv-fix.patch
 ipc-mqueue-correct-mq_attr_ok-test-fix.patch
 ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
 tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
-ipc-mqueue-add-rbtree-node-caching-support-fix-2.patch
+ipc-mqueue-add-rbtree-node-caching-support.patch
 ipc-mqueue-add-rbtree-node-caching-support-fix.patch
 ipc-mqueue-add-rbtree-node-caching-support-fix-fix.patch
 pidns-make-killed-children-autoreap-checkpatch-fixes.patch
