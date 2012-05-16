@@ -1,78 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] namespaces-fix-leak-on-fork-failure.patch removed from -mm tree
-Date: Wed, 16 May 2012 11:46:53 -0700
-Message-ID: <20120516184653.8A65FA028F@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-leds-correct-__devexit-annotations.patch removed from -mm tree
+Date: Wed, 16 May 2012 11:46:57 -0700
+Message-ID: <20120516184657.51764A028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:32966 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760323Ab2EPSqz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 14:46:55 -0400
-Received: by qcsp5 with SMTP id p5so126689qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 11:46:54 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:63523 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760343Ab2EPSq7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 14:46:59 -0400
+Received: by lbbgp10 with SMTP id gp10so57552lbb.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 11:46:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: efault@gmx.de, ebiederm@xmission.com, gorcunov@openvz.org, louis.rilling@kerlabs.com, oleg@redhat.com, stable@vger.kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, bryan.wu@canonical.com, mathieu.poirier@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: namespaces, pid_ns: fix leakage on fork() failure
+     Subject: drivers/leds: correct __devexit annotations
 has been removed from the -mm tree.  Its filename was
-     namespaces-fix-leak-on-fork-failure.patch
+     drivers-leds-correct-__devexit-annotations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mike Galbraith <efault@gmx.de>
-Subject: namespaces, pid_ns: fix leakage on fork() failure
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: drivers/leds: correct __devexit annotations
 
-Fork() failure post namespace creation for a child cloned with
-CLONE_NEWPID leaks pid_namespace/mnt_cache due to proc being mounted
-during creation, but not unmounted during cleanup.  Call
-pid_ns_release_proc() during cleanup.
+__devexit functions are discarded without CONFIG_HOTPLUG, so they need to
+be referenced carefully.  A __devexit function may also not be called from
+a __devinit function.
 
-Signed-off-by: Mike Galbraith <efault@gmx.de>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Louis Rilling <louis.rilling@kerlabs.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+Cc: Bryan Wu <bryan.wu@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/leds/leds-netxbig.c |    4 ++--
+ drivers/leds/leds-ns2.c     |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/fork.c~namespaces-fix-leak-on-fork-failure kernel/fork.c
---- a/kernel/fork.c~namespaces-fix-leak-on-fork-failure
-+++ a/kernel/fork.c
-@@ -47,6 +47,7 @@
- #include <linux/audit.h>
- #include <linux/memcontrol.h>
- #include <linux/ftrace.h>
-+#include <linux/proc_fs.h>
- #include <linux/profile.h>
- #include <linux/rmap.h>
- #include <linux/ksm.h>
-@@ -1464,6 +1465,8 @@ bad_fork_cleanup_io:
- 	if (p->io_context)
- 		exit_io_context(p);
- bad_fork_cleanup_namespaces:
-+	if (unlikely(clone_flags & CLONE_NEWPID))
-+		pid_ns_release_proc(p->nsproxy->pid_ns);
- 	exit_task_namespaces(p);
- bad_fork_cleanup_mm:
- 	if (p->mm)
+diff -puN drivers/leds/leds-netxbig.c~drivers-leds-correct-__devexit-annotations drivers/leds/leds-netxbig.c
+--- a/drivers/leds/leds-netxbig.c~drivers-leds-correct-__devexit-annotations
++++ a/drivers/leds/leds-netxbig.c
+@@ -112,7 +112,7 @@ err_free_addr:
+ 	return err;
+ }
+ 
+-static void __devexit gpio_ext_free(struct netxbig_gpio_ext *gpio_ext)
++static void gpio_ext_free(struct netxbig_gpio_ext *gpio_ext)
+ {
+ 	int i;
+ 
+@@ -294,7 +294,7 @@ static ssize_t netxbig_led_sata_show(str
+ 
+ static DEVICE_ATTR(sata, 0644, netxbig_led_sata_show, netxbig_led_sata_store);
+ 
+-static void __devexit delete_netxbig_led(struct netxbig_led_data *led_dat)
++static void delete_netxbig_led(struct netxbig_led_data *led_dat)
+ {
+ 	if (led_dat->mode_val[NETXBIG_LED_SATA] != NETXBIG_LED_INVALID_MODE)
+ 		device_remove_file(led_dat->cdev.dev, &dev_attr_sata);
+diff -puN drivers/leds/leds-ns2.c~drivers-leds-correct-__devexit-annotations drivers/leds/leds-ns2.c
+--- a/drivers/leds/leds-ns2.c~drivers-leds-correct-__devexit-annotations
++++ a/drivers/leds/leds-ns2.c
+@@ -255,7 +255,7 @@ err_free_cmd:
+ 	return ret;
+ }
+ 
+-static void __devexit delete_ns2_led(struct ns2_led_data *led_dat)
++static void delete_ns2_led(struct ns2_led_data *led_dat)
+ {
+ 	device_remove_file(led_dat->cdev.dev, &dev_attr_sata);
+ 	led_classdev_unregister(&led_dat->cdev);
 _
 
-Patches currently in -mm which might be from efault@gmx.de are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 linux-next.patch
-ipc-semc-alternatives-to-preempt_disable.patch
-pidns-use-task_active_pid_ns-in-do_notify_parent.patch
-pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch
-pidns-make-killed-children-autoreap.patch
+backlight-add-lm3533-backlight-driver.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+leds-add-lm3533-led-driver.patch
+rtc-spear-add-device-tree-probing-capability.patch
+drivers-rtc-rtc-lpc32xxc-add-device-tree-support.patch
+ramoops-use-pstore-interface.patch
 
