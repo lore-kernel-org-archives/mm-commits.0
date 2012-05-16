@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-progear-use-pr_err-instead-of-printk.patch added to -mm tree
-Date: Wed, 16 May 2012 12:55:12 -0700
-Message-ID: <20120516195512.E4846A0270@akpm.mtv.corp.google.com>
+Subject: + backlight-omap1-use-pr_info-instead-of-printk.patch added to -mm tree
+Date: Wed, 16 May 2012 12:55:10 -0700
+Message-ID: <20120516195510.DFBFDA0270@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:41997 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760517Ab2EPTzO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:55:14 -0400
-Received: by qabg24 with SMTP id g24so153981qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:55:13 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:59058 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760484Ab2EPTzN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:55:13 -0400
+Received: by eeit10 with SMTP id t10so60103eei.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:55:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, joe@perches.com, openembedded@haerwu.biz, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, balrogg@gmail.com, joe@perches.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: progear: use pr_err() instead of printk()
+     Subject: backlight: omap1: use pr_info() instead of printk()
 has been added to the -mm tree.  Its filename is
-     backlight-progear-use-pr_err-instead-of-printk.patch
+     backlight-omap1-use-pr_info-instead-of-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: progear: use pr_err() instead of printk()
+Subject: backlight: omap1: use pr_info() instead of printk()
 
-Use pr_err() instead of printk() to allow dynamic debugging.  The pr_fmt
-prefix for pr_ macros is used.  Also fix checkpatch warnings as below:
+Use pr_info() instead of printk() to allow dynamic debugging.  The pr_fmt
+prefix for pr_ macros is used.  Also fix checkpatch warning as below:
 
-WARNING: printk() should include KERN_ facility level
+WARNING: Prefer pr_info(... to printk(KERN_INFO, ...
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Marcin Juszkiewicz <openembedded@haerwu.biz>
+Cc: Andrzej Zaborowski <balrogg@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/progear_bl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/video/backlight/omap1_bl.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/progear_bl.c~backlight-progear-use-pr_err-instead-of-printk drivers/video/backlight/progear_bl.c
---- a/drivers/video/backlight/progear_bl.c~backlight-progear-use-pr_err-instead-of-printk
-+++ a/drivers/video/backlight/progear_bl.c
-@@ -15,6 +15,8 @@
-  *
+diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-use-pr_info-instead-of-printk drivers/video/backlight/omap1_bl.c
+--- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-use-pr_info-instead-of-printk
++++ a/drivers/video/backlight/omap1_bl.c
+@@ -18,6 +18,8 @@
+  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   */
  
-+#define pr_fmt(fmt) "progear_bl: " fmt
++#define pr_fmt(fmt) "omap1_bl: " fmt
 +
  #include <linux/module.h>
  #include <linux/kernel.h>
  #include <linux/init.h>
-@@ -68,13 +70,13 @@ static int progearbl_probe(struct platfo
+@@ -168,7 +170,7 @@ static int omapbl_probe(struct platform_
+ 	dev->props.brightness = pdata->default_intensity;
+ 	omapbl_update_status(dev);
  
- 	pmu_dev = pci_get_device(PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M7101, NULL);
- 	if (!pmu_dev) {
--		printk("ALI M7101 PMU not found.\n");
-+		pr_err("ALI M7101 PMU not found.\n");
- 		return -ENODEV;
- 	}
+-	printk(KERN_INFO "OMAP LCD backlight initialised\n");
++	pr_info("OMAP LCD backlight initialised\n");
  
- 	sb_dev = pci_get_device(PCI_VENDOR_ID_AL, PCI_DEVICE_ID_AL_M1533, NULL);
- 	if (!sb_dev) {
--		printk("ALI 1533 SB not found.\n");
-+		pr_err("ALI 1533 SB not found.\n");
- 		ret = -ENODEV;
- 		goto put_pmu;
- 	}
+ 	return 0;
+ }
 _
-Subject: Subject: backlight: progear: use pr_err() instead of printk()
+Subject: Subject: backlight: omap1: use pr_info() instead of printk()
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
