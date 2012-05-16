@@ -1,15 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-always-free-struct-memcg-through-schedule_work-fix.patch added to -mm tree
-Date: Wed, 16 May 2012 14:13:57 -0700
-Message-ID: <20120516211357.CED75A0358@akpm.mtv.corp.google.com>
+Subject: + memcg-decrement-static-keys-at-real-destroy-time-fix.patch added to -mm tree
+Date: Wed, 16 May 2012 14:14:01 -0700
+Message-ID: <20120516211401.C2D1DA0358@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:50410 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755144Ab2EPVN7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 17:13:59 -0400
-Received: by qabg24 with SMTP id g24so166527qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 14:13:58 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:40410 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757373Ab2EPVOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Wed, 16 May 2012 17:14:04 -0400
+Received: by lagr15 with SMTP id r15so61251lag.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 14:14:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +18,9 @@ Cc: akpm@linux-foundation.org, glommer@parallels.com
 
 
 The patch titled
-     Subject: memcg-always-free-struct-memcg-through-schedule_work-fix
+     Subject: memcg-decrement-static-keys-at-real-destroy-time-fix
 has been added to the -mm tree.  Its filename is
-     memcg-always-free-struct-memcg-through-schedule_work-fix.patch
+     memcg-decrement-static-keys-at-real-destroy-time-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +35,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-always-free-struct-memcg-through-schedule_work-fix
+Subject: memcg-decrement-static-keys-at-real-destroy-time-fix
 
-tweak comment
+tweak comment text and layout
 
 Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv4/tcp_memcontrol.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-always-free-struct-memcg-through-schedule_work-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-always-free-struct-memcg-through-schedule_work-fix
-+++ a/mm/memcontrol.c
-@@ -271,7 +271,7 @@ struct mem_cgroup {
- 		struct rcu_head rcu_freeing;
+diff -puN net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-fix net/ipv4/tcp_memcontrol.c
+--- a/net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-fix
++++ a/net/ipv4/tcp_memcontrol.c
+@@ -109,19 +109,19 @@ static int tcp_update_limit(struct mem_c
+ 	else if (val != RESOURCE_MAX) {
  		/*
- 		 * We also need some space for a worker in deferred freeing.
--		 * By the time we call it, rcu_freeing is not longer in use.
-+		 * By the time we call it, rcu_freeing is no longer in use.
+ 		 * ->activated needs to be written after the static_key update.
+-		 *  This is what guarantees that the socket activation function
+-		 *  is the last one to run. See sock_update_memcg() for details,
+-		 *  and note that we don't mark any socket as belonging to this
+-		 *  memcg until that flag is up.
++		 * This is what guarantees that the socket activation function
++		 * is the last one to run. See sock_update_memcg() for details,
++		 * and note that we don't mark any socket as belonging to this
++		 * memcg until that flag is up.
+ 		 *
+-		 *  We need to do this, because static_keys will span multiple
+-		 *  sites, but we can't control their order. If we mark a socket
+-		 *  as accounted, but the accounting functions are not patched in
+-		 *  yet, we'll lose accounting.
++		 * We need to do this, because static_keys will span multiple
++		 * sites, but we can't control their order. If we mark a socket
++		 * as accounted but the accounting functions are not patched in
++		 * yet, we'll lose accounting.
+ 		 *
+-		 *  We never race with the readers in sock_update_memcg(), because
+-		 *  when this value change, the code to process it is not patched in
+-		 *  yet.
++		 * We never race with the readers in sock_update_memcg()
++		 * because when this value changes, the code to process it is
++		 * not yet patched in.
  		 */
- 		struct work_struct work_freeing;
- 	};
+ 		if (!cg_proto->activated) {
+ 			static_key_slow_inc(&memcg_socket_limit_enabled);
 _
-Subject: Subject: memcg-always-free-struct-memcg-through-schedule_work-fix
+Subject: Subject: memcg-decrement-static-keys-at-real-destroy-time-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
