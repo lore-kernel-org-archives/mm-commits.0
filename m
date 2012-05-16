@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch added to -mm tree
-Date: Wed, 16 May 2012 12:59:16 -0700
-Message-ID: <20120516195917.4273DA0270@akpm.mtv.corp.google.com>
+Subject: + backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch added to -mm tree
+Date: Wed, 16 May 2012 12:59:19 -0700
+Message-ID: <20120516195919.E3B5AA0270@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:59831 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760600Ab2EPT7U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 May 2012 15:59:20 -0400
-Received: by lagr15 with SMTP id r15so59342lag.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:59:18 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:57738 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760519Ab2EPT7W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:59:22 -0400
+Received: by werf13 with SMTP id f13so59538wer.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:59:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net
+Cc: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, mjg@redhat.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
+     Subject: backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
 has been added to the -mm tree.  Its filename is
-     backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
+     backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,46 +34,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
+Subject: backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
 
 use KBUILD_MODNAME, per Joe
 
 Cc: Jingoo Han <jg1.han@samsung.com>
 Cc: Joe Perches <joe@perches.com>
+Cc: Matthew Garrett <mjg@redhat.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |    2 +-
- drivers/video/backlight/lcd.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/apple_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
-+++ a/drivers/video/backlight/backlight.c
-@@ -5,7 +5,7 @@
-  *
+diff -puN drivers/video/backlight/apple_bl.c~backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix drivers/video/backlight/apple_bl.c
+--- a/drivers/video/backlight/apple_bl.c~backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
++++ a/drivers/video/backlight/apple_bl.c
+@@ -16,7 +16,7 @@
+  *  get at the firmware code in order to figure out what it's actually doing.
   */
  
--#define pr_fmt(fmt) "backlight: " fmt
+-#define pr_fmt(fmt) "apple_backlight: " fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
  #include <linux/module.h>
- #include <linux/init.h>
-diff -puN drivers/video/backlight/lcd.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
-+++ a/drivers/video/backlight/lcd.c
-@@ -5,7 +5,7 @@
-  *
-  */
- 
--#define pr_fmt(fmt) "lcd: " fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/module.h>
- #include <linux/init.h>
+ #include <linux/kernel.h>
 _
-Subject: Subject: backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
+Subject: Subject: backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
