@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-mqueue-add-rbtree-node-caching-support-fix-fix.patch added to -mm tree
-Date: Wed, 16 May 2012 15:12:59 -0700
-Message-ID: <20120516221259.E7DA9A0308@akpm.mtv.corp.google.com>
+Subject: + ipc-mqueue-add-rbtree-node-caching-support-fix.patch added to -mm tree
+Date: Wed, 16 May 2012 15:12:57 -0700
+Message-ID: <20120516221257.CCA91A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:52467 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759594Ab2EPWNA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 18:13:00 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so158725qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 15:13:00 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:48403 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759542Ab2EPWM6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 18:12:58 -0400
+Received: by qabg24 with SMTP id g24so174788qab.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 15:12:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, dledford@redhat.com, fweisbec@gmail.com, kosaki.m
 
 
 The patch titled
-     Subject: ipc-mqueue-add-rbtree-node-caching-support-fix-fix
+     Subject: ipc-mqueue-add-rbtree-node-caching-support-fix
 has been added to the -mm tree.  Its filename is
-     ipc-mqueue-add-rbtree-node-caching-support-fix-fix.patch
+     ipc-mqueue-add-rbtree-node-caching-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-mqueue-add-rbtree-node-caching-support-fix-fix
+Subject: ipc-mqueue-add-rbtree-node-caching-support-fix
 
-simplify msg_insert()
+coding-style fixes
 
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Frederic Weisbecker <fweisbec@gmail.com>
@@ -46,44 +46,100 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ ipc/mqueue.c |   34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-add-rbtree-node-caching-support-fix-fix ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-add-rbtree-node-caching-support-fix-fix
+diff -puN ipc/mqueue.c~ipc-mqueue-add-rbtree-node-caching-support-fix ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-mqueue-add-rbtree-node-caching-support-fix
 +++ a/ipc/mqueue.c
-@@ -138,20 +138,19 @@ static int msg_insert(struct msg_msg *ms
- 	}
- 	if (info->node_cache) {
- 		leaf = info->node_cache;
--	} else if (new_leaf) {
--		leaf = *new_leaf;
--		*new_leaf = NULL;
-+		info->node_cache = NULL;
- 	} else {
--		leaf = kmalloc(sizeof(*leaf), GFP_ATOMIC);
--	}
--	if (!leaf)
--		return -ENOMEM;
--	if (!info->node_cache) {
-+		if (new_leaf) {
-+			leaf = *new_leaf;
-+			*new_leaf = NULL;
-+		} else {
-+			leaf = kmalloc(sizeof(*leaf), GFP_ATOMIC);
-+			if (!leaf)
-+				return -ENOMEM;
-+		}
+@@ -141,16 +141,18 @@ static int msg_insert(struct msg_msg *ms
+ 	} else if (new_leaf) {
+ 		leaf = *new_leaf;
+ 		*new_leaf = NULL;
+-	} else
++	} else {
+ 		leaf = kmalloc(sizeof(*leaf), GFP_ATOMIC);
++	}
+ 	if (!leaf)
+ 		return -ENOMEM;
+ 	if (!info->node_cache) {
  		rb_init_node(&leaf->rb_node);
  		INIT_LIST_HEAD(&leaf->msg_list);
  		info->qsize += sizeof(*leaf);
--	} else {
--		info->node_cache = NULL;
- 	}
+-	} else
++	} else {
+ 		info->node_cache = NULL;
++	}
  	leaf->priority = msg->m_type;
  	rb_link_node(&leaf->rb_node, parent, p);
+ 	rb_insert_color(&leaf->rb_node, &info->msg_tree);
+@@ -196,8 +198,9 @@ try_again:
+ 		if (info->node_cache) {
+ 			info->qsize -= sizeof(*leaf);
+ 			kfree(leaf);
+-		} else
++		} else {
+ 			info->node_cache = leaf;
++		}
+ 		goto try_again;
+ 	} else {
+ 		msg = list_first_entry(&leaf->msg_list,
+@@ -208,8 +211,9 @@ try_again:
+ 			if (info->node_cache) {
+ 				info->qsize -= sizeof(*leaf);
+ 				kfree(leaf);
+-			} else
++			} else {
+ 				info->node_cache = leaf;
++			}
+ 		}
+ 	}
+ 	info->attr.mq_curmsgs--;
+@@ -1033,9 +1037,11 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
+ 	msg_ptr->m_ts = msg_len;
+ 	msg_ptr->m_type = msg_prio;
+ 
+-	/* msg_insert really wants us to have a valid, spare node struct so
+-	 * it doesn't have to kmalloc a GFP_ATOMIC allocation, but it will
+-	 * fall back to that if necessary. */
++	/*
++	 * msg_insert really wants us to have a valid, spare node struct so it
++	 * doesn't have to kmalloc a GFP_ATOMIC allocation, but it will fall
++	 * back to that if necessary.
++	 */
+ 	if (!info->node_cache)
+ 		new_leaf = kmalloc(sizeof(*new_leaf), GFP_KERNEL);
+ 
+@@ -1058,8 +1064,10 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
+ 			wait.msg = (void *) msg_ptr;
+ 			wait.state = STATE_NONE;
+ 			ret = wq_sleep(info, SEND, timeout, &wait);
+-			/* wq_sleep must be called with info->lock held, and
+-			 * returns with the lock released */
++			/*
++			 * wq_sleep must be called with info->lock held, and
++			 * returns with the lock released
++			 */
+ 			goto out_free;
+ 		}
+ 	} else {
+@@ -1136,9 +1144,11 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
+ 		goto out_fput;
+ 	}
+ 
+-	/* msg_insert really wants us to have a valid, spare node struct so
+-	 * it doesn't have to kmalloc a GFP_ATOMIC allocation, but it will
+-	 * fall back to that if necessary. */
++	/*
++	 * msg_insert really wants us to have a valid, spare node struct so it
++	 * doesn't have to kmalloc a GFP_ATOMIC allocation, but it will fall
++	 * back to that if necessary.
++	 */
+ 	if (!info->node_cache)
+ 		new_leaf = kmalloc(sizeof(*new_leaf), GFP_KERNEL);
+ 
 _
-Subject: Subject: ipc-mqueue-add-rbtree-node-caching-support-fix-fix
+Subject: Subject: ipc-mqueue-add-rbtree-node-caching-support-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
