@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch added to -mm tree
-Date: Wed, 16 May 2012 12:55:02 -0700
-Message-ID: <20120516195502.EFAC2A0270@akpm.mtv.corp.google.com>
+Subject: + backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch added to -mm tree
+Date: Wed, 16 May 2012 12:55:04 -0700
+Message-ID: <20120516195504.E7021A0270@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:49692 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758713Ab2EPTzF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:55:05 -0400
-Received: by lbbgp10 with SMTP id gp10so59633lbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:55:04 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:42573 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760096Ab2EPTzG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:55:06 -0400
+Received: by yhgm50 with SMTP id m50so162816yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:55:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, joe@perches.com, mjg@redhat.com, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: apple_bl: use pr_debug()/pr_err() instead of printk()
+     Subject: backlight: cr_bllcd: use pr_err()/pr_info() instead of printk()
 has been added to the -mm tree.  Its filename is
-     backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
+     backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: apple_bl: use pr_debug()/pr_err() instead of printk()
+Subject: backlight: cr_bllcd: use pr_err()/pr_info() instead of printk()
 
-Use pr_debug()/pr_err() instead of printk() to allow dynamic debugging. 
+Use pr_err()/pr_info() instead of printk() to allow dynamic debugging. 
 The pr_fmt prefix for pr_ macros is used.  Also fix checkpatch warnings as
 below:
 
-WARNING: Prefer pr_debug(... to printk(KERN_DEBUG, ...
+WARNING: printk() should include KERN_ facility level
 WARNING: Prefer pr_err(... to printk(KERN_ERR, ...
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Matthew Garrett <mjg@redhat.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/apple_bl.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ drivers/video/backlight/cr_bllcd.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/apple_bl.c~backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk drivers/video/backlight/apple_bl.c
---- a/drivers/video/backlight/apple_bl.c~backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk
-+++ a/drivers/video/backlight/apple_bl.c
-@@ -16,6 +16,8 @@
-  *  get at the firmware code in order to figure out what it's actually doing.
+diff -puN drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk drivers/video/backlight/cr_bllcd.c
+--- a/drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk
++++ a/drivers/video/backlight/cr_bllcd.c
+@@ -27,6 +27,8 @@
+  *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
   */
  
-+#define pr_fmt(fmt) "apple_backlight: " fmt
++#define pr_fmt(fmt) "cr_backlight: " fmt
 +
  #include <linux/module.h>
  #include <linux/kernel.h>
  #include <linux/init.h>
-@@ -40,8 +42,6 @@ struct hw_data {
- 
- static const struct hw_data *hw_data;
- 
--#define DRIVER "apple_backlight: "
--
- /* Module parameters. */
- static int debug;
- module_param_named(debug, debug, int, 0644);
-@@ -61,8 +61,7 @@ static int intel_chipset_send_intensity(
- 	int intensity = bd->props.brightness;
- 
- 	if (debug)
--		printk(KERN_DEBUG DRIVER "setting brightness to %d\n",
--		       intensity);
-+		pr_debug("setting brightness to %d\n", intensity);
- 
- 	intel_chipset_set_brightness(intensity);
- 	return 0;
-@@ -77,8 +76,7 @@ static int intel_chipset_get_intensity(s
- 	intensity = inb(0xb3) >> 4;
- 
- 	if (debug)
--		printk(KERN_DEBUG DRIVER "read brightness of %d\n",
--		       intensity);
-+		pr_debug("read brightness of %d\n", intensity);
- 
- 	return intensity;
- }
-@@ -108,8 +106,7 @@ static int nvidia_chipset_send_intensity
- 	int intensity = bd->props.brightness;
- 
- 	if (debug)
--		printk(KERN_DEBUG DRIVER "setting brightness to %d\n",
--		       intensity);
-+		pr_debug("setting brightness to %d\n", intensity);
- 
- 	nvidia_chipset_set_brightness(intensity);
- 	return 0;
-@@ -124,8 +121,7 @@ static int nvidia_chipset_get_intensity(
- 	intensity = inb(0x52f) >> 4;
- 
- 	if (debug)
--		printk(KERN_DEBUG DRIVER "read brightness of %d\n",
--		       intensity);
-+		pr_debug("read brightness of %d\n", intensity);
- 
- 	return intensity;
- }
-@@ -150,7 +146,7 @@ static int __devinit apple_bl_add(struct
- 	host = pci_get_bus_and_slot(0, 0);
- 
- 	if (!host) {
--		printk(KERN_ERR DRIVER "unable to find PCI host\n");
-+		pr_err("unable to find PCI host\n");
+@@ -180,14 +182,13 @@ static int cr_backlight_probe(struct pla
+ 	lpc_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 					CRVML_DEVICE_LPC, NULL);
+ 	if (!lpc_dev) {
+-		printk("INTEL CARILLO RANCH LPC not found.\n");
++		pr_err("INTEL CARILLO RANCH LPC not found.\n");
  		return -ENODEV;
  	}
  
-@@ -162,7 +158,7 @@ static int __devinit apple_bl_add(struct
- 	pci_dev_put(host);
- 
- 	if (!hw_data) {
--		printk(KERN_ERR DRIVER "unknown hardware\n");
-+		pr_err("unknown hardware\n");
+ 	pci_read_config_byte(lpc_dev, CRVML_REG_GPIOEN, &dev_en);
+ 	if (!(dev_en & CRVML_GPIOEN_BIT)) {
+-		printk(KERN_ERR
+-		       "Carillo Ranch GPIO device was not enabled.\n");
++		pr_err("Carillo Ranch GPIO device was not enabled.\n");
+ 		pci_dev_put(lpc_dev);
  		return -ENODEV;
  	}
+@@ -270,7 +271,7 @@ static int __init cr_backlight_init(void
+ 		return PTR_ERR(crp);
+ 	}
  
+-	printk("Carillo Ranch Backlight Driver Initialized.\n");
++	pr_info("Carillo Ranch Backlight Driver Initialized.\n");
+ 
+ 	return 0;
+ }
 _
-Subject: Subject: backlight: apple_bl: use pr_debug()/pr_err() instead of printk()
+Subject: Subject: backlight: cr_bllcd: use pr_err()/pr_info() instead of printk()
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
