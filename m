@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + slub-missing-test-for-partial-pages-flush-work-in-flush_all.patch added to -mm tree
-Date: Wed, 16 May 2012 15:26:23 -0700
-Message-ID: <20120516222623.CC223A0210@akpm.mtv.corp.google.com>
+Subject: + bitmap_weight-optimize-for-large-bitmaps.patch added to -mm tree
+Date: Wed, 16 May 2012 15:28:58 -0700
+Message-ID: <20120516222858.C7BAFA0210@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:50929 "EHLO
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:52068 "EHLO
 	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759317Ab2EPW0Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 18:26:25 -0400
-Received: by qcsp5 with SMTP id p5so160471qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 15:26:24 -0700 (PDT)
+	with ESMTP id S1759436Ab2EPW3A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 18:29:00 -0400
+Received: by qcsp5 with SMTP id p5so160694qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 15:28:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: majianpeng@gmail.com, cl@linux.com, gilad@benyossef.com, jlayton@redhat.com, penberg@kernel.org
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     Subject: slub: missing test for partial pages flush work in flush_all()
+     Subject: bitmap_weight(): optimize for large bitmaps
 has been added to the -mm tree.  Its filename is
-     slub-missing-test-for-partial-pages-flush-work-in-flush_all.patch
+     bitmap_weight-optimize-for-large-bitmaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,82 +33,195 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: majianpeng <majianpeng@gmail.com>
-Subject: slub: missing test for partial pages flush work in flush_all()
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: bitmap_weight(): optimize for large bitmaps
 
-I found some kernel messages such as:
+The current implementation of bitmap_weight() simply evaluates the
+population count for each long word of the array, and adds.
 
-SLUB raid5-md127: kmem_cache_destroy called for cache that still has objects.
-Pid: 6143, comm: mdadm Tainted: G           O 3.4.0-rc6+        #75
-Call Trace:
-[<ffffffff811227f8>] kmem_cache_destroy+0x328/0x400
-[<ffffffffa005ff1d>] free_conf+0x2d/0xf0 [raid456]
-[<ffffffffa0060791>] stop+0x41/0x60 [raid456]
-[<ffffffffa000276a>] md_stop+0x1a/0x60 [md_mod]
-[<ffffffffa000c974>] do_md_stop+0x74/0x470 [md_mod]
-[<ffffffffa000d0ff>] md_ioctl+0xff/0x11f0 [md_mod]
-[<ffffffff8127c958>] blkdev_ioctl+0xd8/0x7a0
-[<ffffffff8115ef6b>] block_ioctl+0x3b/0x40
-[<ffffffff8113b9c6>] do_vfs_ioctl+0x96/0x560
-[<ffffffff8113bf21>] sys_ioctl+0x91/0xa0
-[<ffffffff816e9d22>] system_call_fastpath+0x16/0x1b
+The subsection "Counting 1-bits in an Array" in the revisions of the book
+'Hacker's Delight' explains more superior methods than the naive method.
 
-Then using kmemleak I found these messages:
+http://www.hackersdelight.org/revisions.pdf
+http://www.hackersdelight.org/HDcode/newCode/pop_arrayHS.c.txt
 
-unreferenced object 0xffff8800b6db7380 (size 112):
-  comm "mdadm", pid 5783, jiffies 4294810749 (age 90.589s)
-  hex dump (first 32 bytes):
-    01 01 db b6 ad 4e ad de ff ff ff ff ff ff ff ff  .....N..........
-    ff ff ff ff ff ff ff ff 98 40 4a 82 ff ff ff ff  .........@J.....
-  backtrace:
-    [<ffffffff816b52c1>] kmemleak_alloc+0x21/0x50
-    [<ffffffff8111a11b>] kmem_cache_alloc+0xeb/0x1b0
-    [<ffffffff8111c431>] kmem_cache_open+0x2f1/0x430
-    [<ffffffff8111c6c8>] kmem_cache_create+0x158/0x320
-    [<ffffffffa008f979>] setup_conf+0x649/0x770 [raid456]
-    [<ffffffffa009044b>] run+0x68b/0x840 [raid456]
-    [<ffffffffa000bde9>] md_run+0x529/0x940 [md_mod]
-    [<ffffffffa000c218>] do_md_run+0x18/0xc0 [md_mod]
-    [<ffffffffa000dba8>] md_ioctl+0xba8/0x11f0 [md_mod]
-    [<ffffffff81272b28>] blkdev_ioctl+0xd8/0x7a0
-    [<ffffffff81155bfb>] block_ioctl+0x3b/0x40
-    [<ffffffff811326d6>] do_vfs_ioctl+0x96/0x560
-    [<ffffffff81132c31>] sys_ioctl+0x91/0xa0
-    [<ffffffff816dd3a2>] system_call_fastpath+0x16/0x1b
-    [<ffffffffffffffff>] 0xffffffffffffffff
+My benchmark results on Intel Core i3 CPU with 32-bit kernel showed 50%
+faster for 8192 bits bitmap.  However, it is not faster for small bitmap
+(< BITS_PER_LONG * 8) than the naive method.  So if the bitmap size is
+known to be small at compile time, use the naive method.
 
-This bug was introduced by a8364d5555b ("slub: only IPI CPUs that have per
-cpu obj to flush"), which did not include checks for per cpu partial pages
-being present on a cpu.
+/*
+ * userspace bitmap_weight() benchmark program
+ */
+extern int __bitmap_weight(const unsigned long *bitmap, int bits);
+extern int __bitmap_weight_fast(const unsigned long *bitmap, int bits);
 
-Signed-off-by: majianpeng <majianpeng@gmail.com>
-Cc: Gilad Ben-Yossef <gilad@benyossef.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Tested-by: Jeff Layton <jlayton@redhat.com>
+int main(int argc, char **argv)
+{
+	int i;
+	struct timeval start[2], stop[2], diff[2];
+	unsigned int bits;
+	unsigned long bitmap[1024 * 1024];
+	int n, m;
+	int iterations;
+
+	if (argc != 4) {
+		fprintf(stderr, "Usage: %s SEED BITS ITERATIONS\n", argv[0]);
+		return -1;
+	}
+
+	srand(atoi(argv[1]));
+	bits = atoi(argv[2]) % (sizeof(bitmap) * 8);
+	iterations = atoi(argv[3]);
+
+	for (i = 0; i < sizeof(bitmap); i++)
+		((unsigned char *)bitmap)[i] = rand();
+
+	/* dummy call */
+	gettimeofday(&start[0], NULL);
+	n = __bitmap_weight(bitmap, bits);
+	gettimeofday(&stop[0], NULL);
+	gettimeofday(&start[1], NULL);
+	m = __bitmap_weight_fast(bitmap, bits);
+	gettimeofday(&stop[1], NULL);
+
+	if (n != m) {
+		fprintf(stderr, "Oops %d != %d (%d)\n", n, m, atoi(argv[1]));
+		return -1;
+	}
+
+	gettimeofday(&start[0], NULL);
+	for (i = 0; i < iterations; i++)
+		n += __bitmap_weight(bitmap, bits);
+	gettimeofday(&stop[0], NULL);
+
+	gettimeofday(&start[1], NULL);
+	for (i = 0; i < iterations; i++)
+		m += __bitmap_weight_fast(bitmap, bits);
+	gettimeofday(&stop[1], NULL);
+
+	if (n != m)
+		return -1;
+
+	timersub(&stop[0], &start[0], &diff[0]);
+	timersub(&stop[1], &start[1], &diff[1]);
+	printf("%d %d: %lu.%06lu %lu.%06lu\n", bits, iterations,
+		diff[0].tv_sec, diff[0].tv_usec,
+		diff[1].tv_sec, diff[1].tv_usec);
+
+	return 0;
+}
+
+
+Which callsites are running btimap_weight() against large bitmaps?
+
+- Some filesystems (udf, omfs, ntfs, and hpfs) use bitmap_weight() to
+  the block size bytes region in statfs() path.
+
+- num_online_cpus() and the variants are bitmap_weight() to the NR_CPUS
+  bitmap and num_online_nodes() and the variants are to the MAX_NUMNODES
+  bitmap.  So these bitmaps could be large on extremely large system.
+
+- bm_count_bits() in drivers/block/drbd/drbd_bitmap.c computes the
+  population count for multiple pages.  But it is currently open-coded
+  loops with hweight_long() which can be converted to bitmap_weight().
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bitmap.h |    5 +++
+ lib/bitmap.c           |   49 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-missing-test-for-partial-pages-flush-work-in-flush_all mm/slub.c
---- a/mm/slub.c~slub-missing-test-for-partial-pages-flush-work-in-flush_all
-+++ a/mm/slub.c
-@@ -2038,7 +2038,7 @@ static bool has_cpu_slab(int cpu, void *
- 	struct kmem_cache *s = info;
- 	struct kmem_cache_cpu *c = per_cpu_ptr(s->cpu_slab, cpu);
+diff -puN include/linux/bitmap.h~bitmap_weight-optimize-for-large-bitmaps include/linux/bitmap.h
+--- a/include/linux/bitmap.h~bitmap_weight-optimize-for-large-bitmaps
++++ a/include/linux/bitmap.h
+@@ -111,6 +111,7 @@ extern int __bitmap_intersects(const uns
+ extern int __bitmap_subset(const unsigned long *bitmap1,
+ 			const unsigned long *bitmap2, int bits);
+ extern int __bitmap_weight(const unsigned long *bitmap, int bits);
++extern int __bitmap_weight_fast(const unsigned long *bitmap, int bits);
  
--	return !!(c->page);
-+	return c->page || c->partial;
+ extern void bitmap_set(unsigned long *map, int i, int len);
+ extern void bitmap_clear(unsigned long *map, int start, int nr);
+@@ -277,7 +278,9 @@ static inline int bitmap_weight(const un
+ {
+ 	if (small_const_nbits(nbits))
+ 		return hweight_long(*src & BITMAP_LAST_WORD_MASK(nbits));
+-	return __bitmap_weight(src, nbits);
++	else if (__builtin_constant_p(nbits) && (nbits) < BITS_PER_LONG * 8)
++		return __bitmap_weight(src, nbits);
++	return __bitmap_weight_fast(src, nbits);
  }
  
- static void flush_all(struct kmem_cache *s)
+ static inline void bitmap_shift_right(unsigned long *dst,
+diff -puN lib/bitmap.c~bitmap_weight-optimize-for-large-bitmaps lib/bitmap.c
+--- a/lib/bitmap.c~bitmap_weight-optimize-for-large-bitmaps
++++ a/lib/bitmap.c
+@@ -273,6 +273,55 @@ int __bitmap_weight(const unsigned long 
+ }
+ EXPORT_SYMBOL(__bitmap_weight);
+ 
++#define CSA(h, l, a, b, c) \
++	{ \
++		unsigned long u = a ^ b; \
++		unsigned long v = c; \
++		h = (a & b) | (u & v); \
++		l = u ^ v; \
++	} while (0)
++
++/**
++ * __bitmap_weight_fast - count the set bits in a bitmap
++ * @bitmap: pointer to bitmap
++ * @bits: bitmap size, in bits
++ *
++ * This implementation is based on the algorithm from the subsection
++ * "Counting 1-bits in an Array" in the revisions of the book
++ * 'Hacker's Delight'.
++ *
++ * http://www.hackersdelight.org/revisions.pdf
++ * http://www.hackersdelight.org/HDcode/newCode/pop_arrayHS.c.txt
++ */
++int __bitmap_weight_fast(const unsigned long *bitmap, int bits)
++{
++	int k, w = 0, lim = bits / BITS_PER_LONG;
++	unsigned long ones, twos, twosA, twosB, fours, foursA, foursB, eights;
++	fours = twos = ones = 0;
++
++	for (k = 0; k < lim - 7; k += 8) {
++		CSA(twosA, ones, ones, bitmap[k], bitmap[k + 1]);
++		CSA(twosB, ones, ones, bitmap[k + 2], bitmap[k + 3]);
++		CSA(foursA, twos, twos, twosA, twosB);
++		CSA(twosA, ones, ones, bitmap[k + 4], bitmap[k + 5]);
++		CSA(twosB, ones, ones, bitmap[k + 6], bitmap[k + 7]);
++		CSA(foursB, twos, twos, twosA, twosB);
++		CSA(eights, fours, fours, foursA, foursB);
++		w += hweight_long(eights);
++	}
++	w = 8 * w + 4 * hweight_long(fours) + 2 * hweight_long(twos) +
++		hweight_long(ones);
++
++	for (; k < lim; k++)
++		w += hweight_long(bitmap[k]);
++
++	if (bits % BITS_PER_LONG)
++		w += hweight_long(bitmap[k] & BITMAP_LAST_WORD_MASK(bits));
++
++	return w;
++}
++EXPORT_SYMBOL(__bitmap_weight_fast);
++
+ void bitmap_set(unsigned long *map, int start, int nr)
+ {
+ 	unsigned long *p = map + BIT_WORD(start);
 _
-Subject: Subject: slub: missing test for partial pages flush work in flush_all()
+Subject: Subject: bitmap_weight(): optimize for large bitmaps
 
-Patches currently in -mm which might be from majianpeng@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
-slub-missing-test-for-partial-pages-flush-work-in-flush_all.patch
+ocfs2-use-find_last_bit.patch
+ocfs2-use-bitmap_weight.patch
+bitmap_weight-optimize-for-large-bitmaps.patch
 
