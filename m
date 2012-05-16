@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch added to -mm tree
-Date: Wed, 16 May 2012 12:55:04 -0700
-Message-ID: <20120516195504.E7021A0270@akpm.mtv.corp.google.com>
+Subject: + backlight-generic_bl-use-pr_info-instead-of-printk.patch added to -mm tree
+Date: Wed, 16 May 2012 12:55:06 -0700
+Message-ID: <20120516195506.DC30AA0270@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:42573 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760096Ab2EPTzG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:55:06 -0400
-Received: by yhgm50 with SMTP id m50so162816yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:55:05 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:35211 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760458Ab2EPTzH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:55:07 -0400
+Received: by qcsp5 with SMTP id p5so137991qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:55:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: cr_bllcd: use pr_err()/pr_info() instead of printk()
+     Subject: backlight: generic_bl: use pr_info() instead of printk()
 has been added to the -mm tree.  Its filename is
-     backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
+     backlight-generic_bl-use-pr_info-instead-of-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: cr_bllcd: use pr_err()/pr_info() instead of printk()
+Subject: backlight: generic_bl: use pr_info() instead of printk()
 
-Use pr_err()/pr_info() instead of printk() to allow dynamic debugging. 
-The pr_fmt prefix for pr_ macros is used.  Also fix checkpatch warnings as
-below:
+Use pr_info() instead of printk() to allow dynamic debugging.  The pr_fmt
+prefix for pr_ macros is used.  Also fix checkpatch warnings as below:
 
 WARNING: printk() should include KERN_ facility level
-WARNING: Prefer pr_err(... to printk(KERN_ERR, ...
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
@@ -49,49 +47,41 @@ Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/video/backlight/generic_bl.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -27,6 +27,8 @@
-  *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
+diff -puN drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-pr_info-instead-of-printk drivers/video/backlight/generic_bl.c
+--- a/drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-pr_info-instead-of-printk
++++ a/drivers/video/backlight/generic_bl.c
+@@ -9,6 +9,8 @@
+  *
   */
  
-+#define pr_fmt(fmt) "cr_backlight: " fmt
++#define pr_fmt(fmt) "generic_bl: " fmt
 +
  #include <linux/module.h>
  #include <linux/kernel.h>
  #include <linux/init.h>
-@@ -180,14 +182,13 @@ static int cr_backlight_probe(struct pla
- 	lpc_dev = pci_get_device(PCI_VENDOR_ID_INTEL,
- 					CRVML_DEVICE_LPC, NULL);
- 	if (!lpc_dev) {
--		printk("INTEL CARILLO RANCH LPC not found.\n");
-+		pr_err("INTEL CARILLO RANCH LPC not found.\n");
- 		return -ENODEV;
- 	}
+@@ -106,7 +108,7 @@ static int genericbl_probe(struct platfo
  
- 	pci_read_config_byte(lpc_dev, CRVML_REG_GPIOEN, &dev_en);
- 	if (!(dev_en & CRVML_GPIOEN_BIT)) {
--		printk(KERN_ERR
--		       "Carillo Ranch GPIO device was not enabled.\n");
-+		pr_err("Carillo Ranch GPIO device was not enabled.\n");
- 		pci_dev_put(lpc_dev);
- 		return -ENODEV;
- 	}
-@@ -270,7 +271,7 @@ static int __init cr_backlight_init(void
- 		return PTR_ERR(crp);
- 	}
+ 	generic_backlight_device = bd;
  
--	printk("Carillo Ranch Backlight Driver Initialized.\n");
-+	pr_info("Carillo Ranch Backlight Driver Initialized.\n");
- 
+-	printk("Generic Backlight Driver Initialized.\n");
++	pr_info("Generic Backlight Driver Initialized.\n");
  	return 0;
  }
+ 
+@@ -120,7 +122,7 @@ static int genericbl_remove(struct platf
+ 
+ 	backlight_device_unregister(bd);
+ 
+-	printk("Generic Backlight Driver Unloaded\n");
++	pr_info("Generic Backlight Driver Unloaded\n");
+ 	return 0;
+ }
+ 
 _
-Subject: Subject: backlight: cr_bllcd: use pr_err()/pr_info() instead of printk()
+Subject: Subject: backlight: generic_bl: use pr_info() instead of printk()
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
