@@ -1,15 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch added to -mm tree
-Date: Wed, 16 May 2012 12:59:25 -0700
-Message-ID: <20120516195925.D2F54A0270@akpm.mtv.corp.google.com>
+Subject: + backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch added to -mm tree
+Date: Wed, 16 May 2012 12:59:16 -0700
+Message-ID: <20120516195917.4273DA0270@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:48369 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473Ab2EPT70 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 15:59:26 -0400
-Received: by qabg24 with SMTP id g24so154540qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:59:26 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:59831 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760600Ab2EPT7U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Wed, 16 May 2012 15:59:20 -0400
+Received: by lagr15 with SMTP id r15so59342lag.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 12:59:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +18,9 @@ Cc: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, rpurdie@rps
 
 
 The patch titled
-     Subject: backlight-generic_bl-use-pr_info-instead-of-printk-fix
+     Subject: backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
 has been added to the -mm tree.  Its filename is
-     backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
+     backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +35,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-generic_bl-use-pr_info-instead-of-printk-fix
+Subject: backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
 
 use KBUILD_MODNAME, per Joe
 
@@ -44,23 +45,36 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/generic_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/backlight.c |    2 +-
+ drivers/video/backlight/lcd.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-pr_info-instead-of-printk-fix drivers/video/backlight/generic_bl.c
---- a/drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-pr_info-instead-of-printk-fix
-+++ a/drivers/video/backlight/generic_bl.c
-@@ -9,7 +9,7 @@
+diff -puN drivers/video/backlight/backlight.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
++++ a/drivers/video/backlight/backlight.c
+@@ -5,7 +5,7 @@
   *
   */
  
--#define pr_fmt(fmt) "generic_bl: " fmt
+-#define pr_fmt(fmt) "backlight: " fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
  #include <linux/module.h>
- #include <linux/kernel.h>
+ #include <linux/init.h>
+diff -puN drivers/video/backlight/lcd.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
++++ a/drivers/video/backlight/lcd.c
+@@ -5,7 +5,7 @@
+  *
+  */
+ 
+-#define pr_fmt(fmt) "lcd: " fmt
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/module.h>
+ #include <linux/init.h>
 _
-Subject: Subject: backlight-generic_bl-use-pr_info-instead-of-printk-fix
+Subject: Subject: backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
