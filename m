@@ -1,87 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-exynos-mipi-dsi-support-reverse-panel-type.patch removed from -mm tree
-Date: Wed, 16 May 2012 11:47:13 -0700
-Message-ID: <20120516184713.4E164A028F@akpm.mtv.corp.google.com>
+Subject: [merged] connector-userns-replace-netlink-uses-of-cap_raised-with-capable.patch removed from -mm tree
+Date: Wed, 16 May 2012 11:47:15 -0700
+Message-ID: <20120516184715.6FA9FA028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:52447 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:38970 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760378Ab2EPSrO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 14:47:14 -0400
-Received: by mail-yx0-f202.google.com with SMTP id l3so125569yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 11:47:13 -0700 (PDT)
+	with ESMTP id S1760378Ab2EPSrQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 May 2012 14:47:16 -0400
+Received: by mail-yx0-f202.google.com with SMTP id l3so125568yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 16 May 2012 11:47:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dh09.lee@samsung.com, FlorianSchandinat@gmx.de, inki.dae@samsung.com, kyungmin.park@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, davem@davemloft.net, dhowells@redhat.com, james.l.morris@oracle.com, kaber@trash.net, morgan@kernel.org, philipp.reisner@linbit.com, segoon@openwall.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video: exynos mipi dsi: support reverse panel type
+     Subject: connector/userns: replace netlink uses of cap_raised() with capable()
 has been removed from the -mm tree.  Its filename was
-     video-exynos-mipi-dsi-support-reverse-panel-type.patch
+     connector-userns-replace-netlink-uses-of-cap_raised-with-capable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Donghwa Lee <dh09.lee@samsung.com>
-Subject: video: exynos mipi dsi: support reverse panel type
+From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: connector/userns: replace netlink uses of cap_raised() with capable()
 
-Add panel_reverse variable to support reversed s6e8ax0 panel type.
+In 2009 Philip Reiser notied that a few users of netlink connector
+interface needed a capability check and added the idiom
+cap_raised(nsp->eff_cap, CAP_SYS_ADMIN) to a few of them, on the premise
+that netlink was asynchronous.
 
-Signed-off-by: Donghwa Lee <dh09.lee@samsung.com>
-Signed-off-by: Inki Dae <inki.dae@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+In 2011 Patrick McHardy noticed we were being silly because netlink is
+synchronous and removed eff_cap from the netlink_skb_params and changed
+the idiom to cap_raised(current_cap(), CAP_SYS_ADMIN).
+
+Looking at those spots with a fresh eye we should be calling
+capable(CAP_SYS_ADMIN).  The only reason I can see for not calling capable
+is that it once appeared we were not in the same task as the caller which
+would have made calling capable() impossible.
+
+In the initial user_namespace the only difference between between
+cap_raised(current_cap(), CAP_SYS_ADMIN) and capable(CAP_SYS_ADMIN) are a
+few sanity checks and the fact that capable(CAP_SYS_ADMIN) sets
+PF_SUPERPRIV if we use the capability.
+
+Since we are going to be using root privilege setting PF_SUPERPRIV seems
+the right thing to do.
+
+The motivation for this that patch is that in a child user namespace
+cap_raised(current_cap(),...) tests your capabilities with respect to that
+child user namespace not capabilities in the initial user namespace and
+thus will allow processes that should be unprivielged to use the kernel
+services that are only protected with cap_raised(current_cap(),..).
+
+To fix possible user_namespace issues and to just clean up the code
+replace cap_raised(current_cap(), CAP_SYS_ADMIN) with
+capable(CAP_SYS_ADMIN).
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
+Acked-by: Serge E. Hallyn <serge.hallyn@canonical.com>
+Acked-by: Andrew G. Morgan <morgan@kernel.org>
+Cc: Vasiliy Kulikov <segoon@openwall.com>
+Cc: David Howells <dhowells@redhat.com>
+Reviewed-by: James Morris <james.l.morris@oracle.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/exynos/s6e8ax0.c   |   15 +++++++++++++--
- include/video/exynos_mipi_dsim.h |    1 +
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ drivers/block/drbd/drbd_nl.c           |    2 +-
+ drivers/md/dm-log-userspace-transfer.c |    2 +-
+ drivers/video/uvesafb.c                |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/exynos/s6e8ax0.c~video-exynos-mipi-dsi-support-reverse-panel-type drivers/video/exynos/s6e8ax0.c
---- a/drivers/video/exynos/s6e8ax0.c~video-exynos-mipi-dsi-support-reverse-panel-type
-+++ a/drivers/video/exynos/s6e8ax0.c
-@@ -293,9 +293,20 @@ static void s6e8ax0_panel_cond(struct s6
- 		0x6e, 0x00, 0x00, 0x00, 0x02, 0x08, 0x08, 0x23, 0x23, 0xc0,
- 		0xc8, 0x08, 0x48, 0xc1, 0x00, 0xc1, 0xff, 0xff, 0xc8
- 	};
-+	static const unsigned char data_to_send_panel_reverse[] = {
-+		0xf8, 0x19, 0x35, 0x00, 0x00, 0x00, 0x93, 0x00, 0x3c, 0x7d,
-+		0x08, 0x27, 0x7d, 0x3f, 0x00, 0x00, 0x00, 0x20, 0x04, 0x08,
-+		0x6e, 0x00, 0x00, 0x00, 0x02, 0x08, 0x08, 0x23, 0x23, 0xc0,
-+		0xc1, 0x01, 0x41, 0xc1, 0x00, 0xc1, 0xf6, 0xf6, 0xc1
-+	};
+diff -puN drivers/block/drbd/drbd_nl.c~connector-userns-replace-netlink-uses-of-cap_raised-with-capable drivers/block/drbd/drbd_nl.c
+--- a/drivers/block/drbd/drbd_nl.c~connector-userns-replace-netlink-uses-of-cap_raised-with-capable
++++ a/drivers/block/drbd/drbd_nl.c
+@@ -2297,7 +2297,7 @@ static void drbd_connector_callback(stru
+ 		return;
+ 	}
  
--	ops->cmd_write(lcd_to_master(lcd), MIPI_DSI_DCS_LONG_WRITE,
--		data_to_send, ARRAY_SIZE(data_to_send));
-+	if (lcd->dsim_dev->panel_reverse)
-+		ops->cmd_write(lcd_to_master(lcd), MIPI_DSI_DCS_LONG_WRITE,
-+				data_to_send_panel_reverse,
-+				ARRAY_SIZE(data_to_send_panel_reverse));
-+	else
-+		ops->cmd_write(lcd_to_master(lcd), MIPI_DSI_DCS_LONG_WRITE,
-+				data_to_send, ARRAY_SIZE(data_to_send));
- }
+-	if (!cap_raised(current_cap(), CAP_SYS_ADMIN)) {
++	if (!capable(CAP_SYS_ADMIN)) {
+ 		retcode = ERR_PERM;
+ 		goto fail;
+ 	}
+diff -puN drivers/md/dm-log-userspace-transfer.c~connector-userns-replace-netlink-uses-of-cap_raised-with-capable drivers/md/dm-log-userspace-transfer.c
+--- a/drivers/md/dm-log-userspace-transfer.c~connector-userns-replace-netlink-uses-of-cap_raised-with-capable
++++ a/drivers/md/dm-log-userspace-transfer.c
+@@ -134,7 +134,7 @@ static void cn_ulog_callback(struct cn_m
+ {
+ 	struct dm_ulog_request *tfr = (struct dm_ulog_request *)(msg + 1);
  
- static void s6e8ax0_display_cond(struct s6e8ax0 *lcd)
-diff -puN include/video/exynos_mipi_dsim.h~video-exynos-mipi-dsi-support-reverse-panel-type include/video/exynos_mipi_dsim.h
---- a/include/video/exynos_mipi_dsim.h~video-exynos-mipi-dsi-support-reverse-panel-type
-+++ a/include/video/exynos_mipi_dsim.h
-@@ -315,6 +315,7 @@ struct mipi_dsim_lcd_device {
- 	int			id;
- 	int			bus_id;
- 	int			irq;
-+	int			panel_reverse;
+-	if (!cap_raised(current_cap(), CAP_SYS_ADMIN))
++	if (!capable(CAP_SYS_ADMIN))
+ 		return;
  
- 	struct mipi_dsim_device *master;
- 	void			*platform_data;
+ 	spin_lock(&receiving_list_lock);
+diff -puN drivers/video/uvesafb.c~connector-userns-replace-netlink-uses-of-cap_raised-with-capable drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~connector-userns-replace-netlink-uses-of-cap_raised-with-capable
++++ a/drivers/video/uvesafb.c
+@@ -73,7 +73,7 @@ static void uvesafb_cn_callback(struct c
+ 	struct uvesafb_task *utask;
+ 	struct uvesafb_ktask *task;
+ 
+-	if (!cap_raised(current_cap(), CAP_SYS_ADMIN))
++	if (!capable(CAP_SYS_ADMIN))
+ 		return;
+ 
+ 	if (msg->seq >= UVESAFB_TASKS_MAX)
 _
 
-Patches currently in -mm which might be from dh09.lee@samsung.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 linux-next.patch
+cred-remove-task_is_dead-from-__task_cred-validation.patch
+pidns-use-task_active_pid_ns-in-do_notify_parent.patch
+pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch
+pidns-make-killed-children-autoreap.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
 
