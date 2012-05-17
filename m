@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch added to -mm tree
-Date: Thu, 17 May 2012 16:39:38 -0700
-Message-ID: <20120517233939.1BBD2A03CD@akpm.mtv.corp.google.com>
+Subject: + mm-bootmemc-cleanup-on-addition-to-bootmem-data-list.patch added to -mm tree
+Date: Thu, 17 May 2012 16:41:54 -0700
+Message-ID: <20120517234154.9C60AA03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:60344 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761133Ab2EQXjl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 19:39:41 -0400
-Received: by eaao13 with SMTP id o13so122437eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 16:39:40 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:45212 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858Ab2EQXl5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 19:41:57 -0400
+Received: by faaa25 with SMTP id a25so125506faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 16:41:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: b.zolnierkie@samsung.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com
+Cc: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
+     Subject: mm/bootmem.c: cleanup on addition to bootmem data list
 has been added to the -mm tree.  Its filename is
-     mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch
+     mm-bootmemc-cleanup-on-addition-to-bootmem-data-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,151 +33,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
+From: Gavin Shan <shangw@linux.vnet.ibm.com>
+Subject: mm/bootmem.c: cleanup on addition to bootmem data list
 
-- document rescue_unmovable_pageblock()
+The objects of "struct bootmem_data_t" are linked together to form
+double-linked list sequentially based on its minimal page frame number. 
 
-- enum result_smt -> enum_smt_result
+The current implementation implicitly supports the following cases, which
+means the inserting point for current bootmem data depends on how
+"list_for_each" works.  That makes the code a little hard to read. 
+Besides, "list_for_each" and "list_entry" can be replaced with
+"list_for_each_entry".
 
-- fix suitable_migration_target() documentation
+        - The linked list is empty.
+        - There has no entry in the linked list, whose minimal page
+          frame number is bigger than current one.
 
-- add comment about zeroing cc->nr_pageblocks_skipped
-
-- fix FAIL_UNMOVABLE_TARGET handling in isolate_freepages()
-
-
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   38 ++++++++++++++++++++++++++------------
- 1 file changed, 26 insertions(+), 12 deletions(-)
+ mm/bootmem.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
-+++ a/mm/compaction.c
-@@ -358,6 +358,10 @@ isolate_migratepages_range(struct zone *
- 
- #endif /* CONFIG_COMPACTION || CONFIG_CMA */
- #ifdef CONFIG_COMPACTION
-+/*
-+ * Returns true if MIGRATE_UNMOVABLE pageblock was successfully
-+ * converted to MIGRATE_MOVABLE type, false otherwise.
-+ */
- static bool rescue_unmovable_pageblock(struct page *page)
+diff -puN mm/bootmem.c~mm-bootmemc-cleanup-on-addition-to-bootmem-data-list mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmemc-cleanup-on-addition-to-bootmem-data-list
++++ a/mm/bootmem.c
+@@ -77,16 +77,16 @@ unsigned long __init bootmem_bootmap_pag
+  */
+ static void __init link_bootmem(bootmem_data_t *bdata)
  {
- 	unsigned long pfn, start_pfn, end_pfn;
-@@ -397,14 +401,18 @@ static bool rescue_unmovable_pageblock(s
- 	return true;
- }
+-	struct list_head *iter;
++	bootmem_data_t *ent;
  
--enum result_smt {
-+enum smt_result {
- 	GOOD_AS_MIGRATION_TARGET,
--	FAIL_UNMOVABLE,
--	FAIL_ETC_REASON,
-+	FAIL_UNMOVABLE_TARGET,
-+	FAIL_BAD_TARGET,
- };
- 
--/* Returns true if the page is within a block suitable for migration to */
--static enum result_smt suitable_migration_target(struct page *page,
-+/*
-+ * Returns GOOD_AS_MIGRATION_TARGET if the page is within a block
-+ * suitable for migration to, FAIL_UNMOVABLE_TARGET if the page
-+ * is within a MIGRATE_UNMOVABLE block, FAIL_BAD_TARGET otherwise.
-+ */
-+static enum smt_result suitable_migration_target(struct page *page,
- 				      struct compact_control *cc)
- {
- 
-@@ -412,7 +420,7 @@ static enum result_smt suitable_migratio
- 
- 	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
- 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
--		return FAIL_ETC_REASON;
-+		return FAIL_BAD_TARGET;
- 
- 	/* If the page is a large free page, then allow migration */
- 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
-@@ -425,7 +433,7 @@ static enum result_smt suitable_migratio
- 
- 	if (cc->mode == COMPACT_ASYNC_MOVABLE &&
- 	    migratetype == MIGRATE_UNMOVABLE)
--		return FAIL_UNMOVABLE;
-+		return FAIL_UNMOVABLE_TARGET;
- 
- 	if (cc->mode != COMPACT_ASYNC_MOVABLE &&
- 	    migratetype == MIGRATE_UNMOVABLE &&
-@@ -433,7 +441,7 @@ static enum result_smt suitable_migratio
- 		return GOOD_AS_MIGRATION_TARGET;
- 
- 	/* Otherwise skip the block */
--	return FAIL_ETC_REASON;
-+	return FAIL_BAD_TARGET;
+-	list_for_each(iter, &bdata_list) {
+-		bootmem_data_t *ent;
+-
+-		ent = list_entry(iter, bootmem_data_t, list);
+-		if (bdata->node_min_pfn < ent->node_min_pfn)
+-			break;
++	list_for_each_entry(ent, &bdata_list, list) {
++		if (bdata->node_min_pfn < ent->node_min_pfn) {
++			list_add_tail(&bdata->list, &ent->list);
++			return;
++		}
+ 	}
+-	list_add_tail(&bdata->list, iter);
++
++	list_add_tail(&bdata->list, &bdata_list);
  }
  
  /*
-@@ -466,6 +474,11 @@ static void isolate_freepages(struct zon
- 
- 	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
- 
-+	/*
-+	 * isolate_freepages() may be called more than once during
-+	 * compact_zone_order() run and we want only the most recent
-+	 * count.
-+	 */
- 	cc->nr_pageblocks_skipped = 0;
- 
- 	/*
-@@ -476,7 +489,7 @@ static void isolate_freepages(struct zon
- 	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
- 					pfn -= pageblock_nr_pages) {
- 		unsigned long isolated;
--		enum result_smt ret;
-+		enum smt_result ret;
- 
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -495,7 +508,7 @@ static void isolate_freepages(struct zon
- 		/* Check the block is suitable for migration */
- 		ret = suitable_migration_target(page, cc);
- 		if (ret != GOOD_AS_MIGRATION_TARGET) {
--			if (ret == FAIL_UNMOVABLE)
-+			if (ret == FAIL_UNMOVABLE_TARGET)
- 				cc->nr_pageblocks_skipped++;
- 			continue;
- 		}
-@@ -513,7 +526,8 @@ static void isolate_freepages(struct zon
- 			isolated = isolate_freepages_block(pfn, end_pfn,
- 							   freelist, false);
- 			nr_freepages += isolated;
--		}
-+		} else if (ret == FAIL_UNMOVABLE_TARGET)
-+			cc->nr_pageblocks_skipped++;
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 
- 		/*
-@@ -745,7 +759,7 @@ static int compact_zone(struct zone *zon
- 
- 		nr_migrate = cc->nr_migratepages;
- 		err = migrate_pages(&cc->migratepages, compaction_alloc,
--			(unsigned long)cc, false,
-+			(unsigned long)&cc->freepages, false,
- 			(cc->mode == COMPACT_SYNC) ? MIGRATE_SYNC_LIGHT
- 						      : MIGRATE_ASYNC);
- 		update_nr_listpages(cc);
 _
-Subject: Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
+Subject: Subject: mm/bootmem.c: cleanup on addition to bootmem data list
 
-Patches currently in -mm which might be from b.zolnierkie@samsung.com are
+Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
 
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch
+mm-slab-remove-duplicate-check.patch
+mm-bootmem-fix-checking-the-bitmap-when-finally-freeing-bootmem.patch
+mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata.patch
+mm-bootmem-split-out-goal-to-node-mapping-from-goal-dropping.patch
+mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere.patch
+mm-bootmem-unify-allocation-policy-of-non-panicking-node-allocations.patch
+mm-nobootmem-panic-on-node-specific-allocation-failure.patch
+mm-nobootmem-unify-allocation-policy-of-non-panicking-node-allocations.patch
+mm-bootmem-pass-pgdat-instead-of-pgdat-bdata-down-the-stack.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix-2.patch
+mm-buddy-dump-pg_compound_lock-page-flag.patch
+mm-page_alloc-catch-out-of-date-list-of-page-flag-names.patch
+mm-page_allocc-cleanups.patch
+mm-bootmemc-cleanup-on-addition-to-bootmem-data-list.patch
 
