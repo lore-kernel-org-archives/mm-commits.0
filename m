@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + ipc-mqueue-add-rbtree-node-caching-support.patch added to -mm tree
-Date: Thu, 17 May 2012 13:45:22 -0700
-Message-ID: <20120517204522.6C423A0308@akpm.mtv.corp.google.com>
+Date: Thu, 17 May 2012 13:46:39 -0700
+Message-ID: <20120517204639.3B999A0241@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:40282 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754136Ab2EQUp2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:45:28 -0400
-Received: by qabg24 with SMTP id g24so305866qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:45:27 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:51969 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753171Ab2EQUql (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:46:41 -0400
+Received: by eaao13 with SMTP id o13so112816eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:46:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dledford@redhat.com
+Cc: dledford@redhat.com, fweisbec@gmail.com, kosaki.motohiro@jp.fujitsu.com, manfred@colorfullife.com, sfr@canb.auug.org.au
 
 
 The patch titled
@@ -94,6 +94,10 @@ slightly higher (about 10 to 20ns depending on which test is the one
 running).
 
 Signed-off-by: Doug Ledford <dledford@redhat.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -331,4 +335,5 @@ ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
 tools-selftests-add-mq_perf_tests.patch
 tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
 ipc-mqueue-add-rbtree-node-caching-support.patch
+ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
 
