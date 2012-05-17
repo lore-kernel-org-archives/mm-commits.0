@@ -1,157 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ata-sata_mv-remove-conditional-compilation-of-clk-code.patch removed from -mm tree
-Date: Thu, 17 May 2012 13:42:25 -0700
-Message-ID: <20120517204226.59F10A0308@akpm.mtv.corp.google.com>
+Subject: [merged] sunrpc-fix-kernel-doc-warnings.patch removed from -mm tree
+Date: Thu, 17 May 2012 13:43:55 -0700
+Message-ID: <20120517204355.8967BA0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:42213 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756099Ab2EQUm1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:42:27 -0400
-Received: by ggeh3 with SMTP id h3so290626gge.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:42:27 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:60648 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754517Ab2EQUn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:43:58 -0400
+Received: by faaa25 with SMTP id a25so115781faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:43:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viresh.kumar@st.com, andrew@lunn.ch, jgarzik@redhat.com, mturquette@linaro.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, Trond.Myklebust@netapp.com, bfields@fieldses.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ata/sata_mv: remove conditional compilation of clk code
+     Subject: sunrpc: fix kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     ata-sata_mv-remove-conditional-compilation-of-clk-code.patch
+     sunrpc-fix-kernel-doc-warnings.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.kumar@st.com>
-Subject: ata/sata_mv: remove conditional compilation of clk code
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: sunrpc: fix kernel-doc warnings
 
-With addition of dummy clk_*() calls for non CONFIG_HAVE_CLK cases in
-clk.h, there is no need to have clk code enclosed in #ifdef
-CONFIG_HAVE_CLK, #endif macros.
+Fix kernel-doc warnings in sunrpc/rpc_pipe.c and sunrpc/rpcb_clnt.c:
 
-Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
-Cc: Jeff Garzik <jgarzik@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Warning(net/sunrpc/rpcb_clnt.c:428): No description found for parameter 'net'
+Warning(net/sunrpc/rpcb_clnt.c:567): No description found for parameter 'net'
+
+Warning(net/sunrpc/rpc_pipe.c:133): No description found for parameter 'pipe'
+Warning(net/sunrpc/rpc_pipe.c:133): Excess function parameter 'inode' description in 'rpc_queue_upcall'
+Warning(net/sunrpc/rpc_pipe.c:839): No description found for parameter 'pipe'
+Warning(net/sunrpc/rpc_pipe.c:839): Excess function parameter 'ops' description in 'rpc_mkpipe_dentry'
+Warning(net/sunrpc/rpc_pipe.c:839): Excess function parameter 'flags' description in 'rpc_mkpipe_dentry'
+Warning(net/sunrpc/rpc_pipe.c:949): No description found for parameter 'dentry'
+Warning(net/sunrpc/rpc_pipe.c:949): Excess function parameter 'clnt' description in 'rpc_remove_client_dir'
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_mv.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ net/sunrpc/rpc_pipe.c  |    8 +++-----
+ net/sunrpc/rpcb_clnt.c |    2 ++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/ata/sata_mv.c~ata-sata_mv-remove-conditional-compilation-of-clk-code drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~ata-sata_mv-remove-conditional-compilation-of-clk-code
-+++ a/drivers/ata/sata_mv.c
-@@ -551,10 +551,8 @@ struct mv_host_priv {
- 	u32			irq_mask_offset;
- 	u32			unmask_all_irqs;
+diff -puN net/sunrpc/rpc_pipe.c~sunrpc-fix-kernel-doc-warnings net/sunrpc/rpc_pipe.c
+--- a/net/sunrpc/rpc_pipe.c~sunrpc-fix-kernel-doc-warnings
++++ a/net/sunrpc/rpc_pipe.c
+@@ -120,7 +120,7 @@ EXPORT_SYMBOL_GPL(rpc_pipe_generic_upcal
  
--#if defined(CONFIG_HAVE_CLK)
- 	struct clk		*clk;
- 	struct clk              **port_clks;
--#endif
- 	/*
- 	 * These consistent DMA memory pools give us guaranteed
- 	 * alignment for hardware-accessed data structures,
-@@ -4028,9 +4026,7 @@ static int mv_platform_probe(struct plat
- 	struct resource *res;
- 	int n_ports = 0;
- 	int rc;
--#if defined(CONFIG_HAVE_CLK)
- 	int port;
--#endif
+ /**
+  * rpc_queue_upcall - queue an upcall message to userspace
+- * @inode: inode of upcall pipe on which to queue given message
++ * @pipe: upcall pipe on which to queue given message
+  * @msg: message to queue
+  *
+  * Call with an @inode created by rpc_mkpipe() to queue an upcall.
+@@ -819,9 +819,7 @@ static int rpc_rmdir_depopulate(struct d
+  * @parent: dentry of directory to create new "pipe" in
+  * @name: name of pipe
+  * @private: private data to associate with the pipe, for the caller's use
+- * @ops: operations defining the behavior of the pipe: upcall, downcall,
+- *	release_pipe, open_pipe, and destroy_msg.
+- * @flags: rpc_pipe flags
++ * @pipe: &rpc_pipe containing input parameters
+  *
+  * Data is made available for userspace to read by calls to
+  * rpc_queue_upcall().  The actual reads will result in calls to
+@@ -943,7 +941,7 @@ struct dentry *rpc_create_client_dir(str
  
- 	ata_print_version_once(&pdev->dev, DRV_VERSION);
- 
-@@ -4058,13 +4054,11 @@ static int mv_platform_probe(struct plat
- 
- 	if (!host || !hpriv)
- 		return -ENOMEM;
--#if defined(CONFIG_HAVE_CLK)
- 	hpriv->port_clks = devm_kzalloc(&pdev->dev,
- 					sizeof(struct clk *) * n_ports,
- 					GFP_KERNEL);
- 	if (!hpriv->port_clks)
- 		return -ENOMEM;
--#endif
- 	host->private_data = hpriv;
- 	hpriv->n_ports = n_ports;
- 	hpriv->board_idx = chip_soc;
-@@ -4074,7 +4068,6 @@ static int mv_platform_probe(struct plat
- 				   resource_size(res));
- 	hpriv->base -= SATAHC0_REG_BASE;
- 
--#if defined(CONFIG_HAVE_CLK)
- 	hpriv->clk = clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(hpriv->clk))
- 		dev_notice(&pdev->dev, "cannot get optional clkdev\n");
-@@ -4088,7 +4081,6 @@ static int mv_platform_probe(struct plat
- 		if (!IS_ERR(hpriv->port_clks[port]))
- 			clk_prepare_enable(hpriv->port_clks[port]);
- 	}
--#endif
- 
- 	/*
- 	 * (Re-)program MBUS remapping windows if we are asked to.
-@@ -4115,7 +4107,6 @@ static int mv_platform_probe(struct plat
- 		return 0;
- 
- err:
--#if defined(CONFIG_HAVE_CLK)
- 	if (!IS_ERR(hpriv->clk)) {
- 		clk_disable_unprepare(hpriv->clk);
- 		clk_put(hpriv->clk);
-@@ -4126,7 +4117,6 @@ err:
- 			clk_put(hpriv->port_clks[port]);
- 		}
- 	}
--#endif
- 
- 	return rc;
- }
-@@ -4142,13 +4132,10 @@ err:
- static int __devexit mv_platform_remove(struct platform_device *pdev)
+ /**
+  * rpc_remove_client_dir - Remove a directory created with rpc_create_client_dir()
+- * @clnt: rpc client
++ * @dentry: dentry for the pipe
+  */
+ int rpc_remove_client_dir(struct dentry *dentry)
  {
- 	struct ata_host *host = platform_get_drvdata(pdev);
--#if defined(CONFIG_HAVE_CLK)
- 	struct mv_host_priv *hpriv = host->private_data;
- 	int port;
--#endif
- 	ata_host_detach(host);
+diff -puN net/sunrpc/rpcb_clnt.c~sunrpc-fix-kernel-doc-warnings net/sunrpc/rpcb_clnt.c
+--- a/net/sunrpc/rpcb_clnt.c~sunrpc-fix-kernel-doc-warnings
++++ a/net/sunrpc/rpcb_clnt.c
+@@ -396,6 +396,7 @@ static int rpcb_register_call(struct rpc
  
--#if defined(CONFIG_HAVE_CLK)
- 	if (!IS_ERR(hpriv->clk)) {
- 		clk_disable_unprepare(hpriv->clk);
- 		clk_put(hpriv->clk);
-@@ -4159,7 +4146,6 @@ static int __devexit mv_platform_remove(
- 			clk_put(hpriv->port_clks[port]);
- 		}
- 	}
--#endif
- 	return 0;
- }
+ /**
+  * rpcb_register - set or unset a port registration with the local rpcbind svc
++ * @net: target network namespace
+  * @prog: RPC program number to bind
+  * @vers: RPC version number to bind
+  * @prot: transport protocol to register
+@@ -523,6 +524,7 @@ static int rpcb_unregister_all_protofami
  
+ /**
+  * rpcb_v4_register - set or unset a port registration with the local rpcbind
++ * @net: target network namespace
+  * @program: RPC program number of service to (un)register
+  * @version: RPC version number of service to (un)register
+  * @address: address family, IP address, and port to (un)register
 _
 
-Patches currently in -mm which might be from viresh.kumar@st.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 linux-next.patch
-drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
-clk-add-non-config_have_clk-routines.patch
-clk-remove-redundant-depends-on-from-drivers-kconfig.patch
-i2c-i2c-pxa-remove-conditional-compilation-of-clk-code.patch
-usb-marvell-remove-conditional-compilation-of-clk-code.patch
-usb-musb-remove-conditional-compilation-of-clk-code.patch
-ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch
-net-c_can-remove-conditional-compilation-of-clk-code.patch
-net-stmmac-remove-conditional-compilation-of-clk-code.patch
-gadget-m66592-remove-conditional-compilation-of-clk-code.patch
-gadget-r8a66597-remove-conditional-compilation-of-clk-code.patch
-usb-host-r8a66597-remove-conditional-compilation-of-clk-code.patch
-rtc-spear-add-device-tree-probing-capability.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
+kmodc-fix-kernel-doc-warning.patch
+ramoops-use-pstore-interface.patch
+ramoops-use-pstore-interface-fix.patch
+kconfig-update-compression-algorithm-info.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
