@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug.patch added to -mm tree
-Date: Thu, 17 May 2012 16:22:10 -0700
-Message-ID: <20120517232210.A292EA02FF@akpm.mtv.corp.google.com>
+Subject: + mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch added to -mm tree
+Date: Thu, 17 May 2012 16:39:38 -0700
+Message-ID: <20120517233939.1BBD2A03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:44942 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750929Ab2EQXWL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 19:22:11 -0400
-Received: by ggeh3 with SMTP id h3so311676gge.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 16:22:11 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:60344 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761133Ab2EQXjl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 19:39:41 -0400
+Received: by eaao13 with SMTP id o13so122437eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 16:39:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, a.p.zijlstra@chello.nl, mingo@elte.hu, rdunlap@xenotime.net
+Cc: b.zolnierkie@samsung.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com
 
 
 The patch titled
-     From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+     Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
 has been added to the -mm tree.  Its filename is
-     sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug.patch
+     mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,151 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: sched: set TAINT_UNSAFE_SMP after sleep-in-atomic bug
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
 
-Usually sleep-in-atomic bugs are followed by dozens other warnings.  This
-patch should help to figure out original source of problem.  This taint
-flag also turns off lockdep, because it can go mad after that.
+- document rescue_unmovable_pageblock()
 
-Original TAINT_UNSAFE_SMP is used only on various ancient buggy K7
-Athlons.  TAINT_UNSAFE_SMP is shown as 'S' in "Tainted" line, so let it be
-acronym for SMP, Scheduler and Sleep-in-atomic.  Probably we should rename
-it into TAINT_SHIT, but TAINT_CRAP is already there.  =)
+- enum result_smt -> enum_smt_result
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+- fix suitable_migration_target() documentation
+
+- add comment about zeroing cc->nr_pageblocks_skipped
+
+- fix FAIL_UNMOVABLE_TARGET handling in isolate_freepages()
+
+
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/oops-tracing.txt  |    2 +-
- Documentation/sysctl/kernel.txt |    1 +
- kernel/sched/core.c             |    1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ mm/compaction.c |   38 ++++++++++++++++++++++++++------------
+ 1 file changed, 26 insertions(+), 12 deletions(-)
 
-diff -puN Documentation/oops-tracing.txt~sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug Documentation/oops-tracing.txt
---- a/Documentation/oops-tracing.txt~sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug
-+++ a/Documentation/oops-tracing.txt
-@@ -237,7 +237,7 @@ characters, each representing a particul
-   3: 'S' if the oops occurred on an SMP kernel running on hardware that
-      hasn't been certified as safe to run multiprocessor.
-      Currently this occurs only on various Athlons that are not
--     SMP capable.
-+     SMP capable. Also cpu scheduler sets this after sleep-in-atomic bug.
+diff -puN mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2 mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
++++ a/mm/compaction.c
+@@ -358,6 +358,10 @@ isolate_migratepages_range(struct zone *
  
-   4: 'R' if a module was force unloaded by "rmmod -f", ' ' if all
-      modules were unloaded normally.
-diff -puN Documentation/sysctl/kernel.txt~sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug
-+++ a/Documentation/sysctl/kernel.txt
-@@ -590,6 +590,7 @@ can be ORed together:
-    2 - A module was force loaded by insmod -f.
-        Set by modutils >= 2.4.9 and module-init-tools.
-    4 - Unsafe SMP processors: SMP with CPUs not designed for SMP.
-+       Also cpu scheduler sets this after sleep-in-atomic bug.
-    8 - A module was forcibly unloaded from the system by rmmod -f.
-   16 - A hardware machine check error occurred on the system.
-   32 - A bad page was discovered on the system.
-diff -puN kernel/sched/core.c~sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug kernel/sched/core.c
---- a/kernel/sched/core.c~sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug
-+++ a/kernel/sched/core.c
-@@ -3133,6 +3133,7 @@ static noinline void __schedule_bug(stru
- 	if (irqs_disabled())
- 		print_irqtrace_events(prev);
- 	dump_stack();
-+	add_taint(TAINT_UNSAFE_SMP);
+ #endif /* CONFIG_COMPACTION || CONFIG_CMA */
+ #ifdef CONFIG_COMPACTION
++/*
++ * Returns true if MIGRATE_UNMOVABLE pageblock was successfully
++ * converted to MIGRATE_MOVABLE type, false otherwise.
++ */
+ static bool rescue_unmovable_pageblock(struct page *page)
+ {
+ 	unsigned long pfn, start_pfn, end_pfn;
+@@ -397,14 +401,18 @@ static bool rescue_unmovable_pageblock(s
+ 	return true;
+ }
+ 
+-enum result_smt {
++enum smt_result {
+ 	GOOD_AS_MIGRATION_TARGET,
+-	FAIL_UNMOVABLE,
+-	FAIL_ETC_REASON,
++	FAIL_UNMOVABLE_TARGET,
++	FAIL_BAD_TARGET,
+ };
+ 
+-/* Returns true if the page is within a block suitable for migration to */
+-static enum result_smt suitable_migration_target(struct page *page,
++/*
++ * Returns GOOD_AS_MIGRATION_TARGET if the page is within a block
++ * suitable for migration to, FAIL_UNMOVABLE_TARGET if the page
++ * is within a MIGRATE_UNMOVABLE block, FAIL_BAD_TARGET otherwise.
++ */
++static enum smt_result suitable_migration_target(struct page *page,
+ 				      struct compact_control *cc)
+ {
+ 
+@@ -412,7 +420,7 @@ static enum result_smt suitable_migratio
+ 
+ 	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
+ 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
+-		return FAIL_ETC_REASON;
++		return FAIL_BAD_TARGET;
+ 
+ 	/* If the page is a large free page, then allow migration */
+ 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
+@@ -425,7 +433,7 @@ static enum result_smt suitable_migratio
+ 
+ 	if (cc->mode == COMPACT_ASYNC_MOVABLE &&
+ 	    migratetype == MIGRATE_UNMOVABLE)
+-		return FAIL_UNMOVABLE;
++		return FAIL_UNMOVABLE_TARGET;
+ 
+ 	if (cc->mode != COMPACT_ASYNC_MOVABLE &&
+ 	    migratetype == MIGRATE_UNMOVABLE &&
+@@ -433,7 +441,7 @@ static enum result_smt suitable_migratio
+ 		return GOOD_AS_MIGRATION_TARGET;
+ 
+ 	/* Otherwise skip the block */
+-	return FAIL_ETC_REASON;
++	return FAIL_BAD_TARGET;
  }
  
  /*
+@@ -466,6 +474,11 @@ static void isolate_freepages(struct zon
+ 
+ 	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+ 
++	/*
++	 * isolate_freepages() may be called more than once during
++	 * compact_zone_order() run and we want only the most recent
++	 * count.
++	 */
+ 	cc->nr_pageblocks_skipped = 0;
+ 
+ 	/*
+@@ -476,7 +489,7 @@ static void isolate_freepages(struct zon
+ 	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
+ 					pfn -= pageblock_nr_pages) {
+ 		unsigned long isolated;
+-		enum result_smt ret;
++		enum smt_result ret;
+ 
+ 		if (!pfn_valid(pfn))
+ 			continue;
+@@ -495,7 +508,7 @@ static void isolate_freepages(struct zon
+ 		/* Check the block is suitable for migration */
+ 		ret = suitable_migration_target(page, cc);
+ 		if (ret != GOOD_AS_MIGRATION_TARGET) {
+-			if (ret == FAIL_UNMOVABLE)
++			if (ret == FAIL_UNMOVABLE_TARGET)
+ 				cc->nr_pageblocks_skipped++;
+ 			continue;
+ 		}
+@@ -513,7 +526,8 @@ static void isolate_freepages(struct zon
+ 			isolated = isolate_freepages_block(pfn, end_pfn,
+ 							   freelist, false);
+ 			nr_freepages += isolated;
+-		}
++		} else if (ret == FAIL_UNMOVABLE_TARGET)
++			cc->nr_pageblocks_skipped++;
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 
+ 		/*
+@@ -745,7 +759,7 @@ static int compact_zone(struct zone *zon
+ 
+ 		nr_migrate = cc->nr_migratepages;
+ 		err = migrate_pages(&cc->migratepages, compaction_alloc,
+-			(unsigned long)cc, false,
++			(unsigned long)&cc->freepages, false,
+ 			(cc->mode == COMPACT_SYNC) ? MIGRATE_SYNC_LIGHT
+ 						      : MIGRATE_ASYNC);
+ 		update_nr_listpages(cc);
 _
-Subject: From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from b.zolnierkie@samsung.com are
 
-linux-next.patch
-fs-proc-fix-abba-deadlock-in-case-of-execution-attempt-of-map_files-entries.patch
-mm-remove-swap-token-code.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
-bug-introduce-build_bug_on_invalid-macro.patch
-bug-completely-remove-code-generated-by-disabled-vm_bug_on.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-mm-vmscan-store-priority-in-struct-scan_control.patch
-mm-add-link-from-struct-lruvec-to-struct-zone.patch
-mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages.patch
-mm-vmscan-push-zone-pointer-into-shrink_page_list.patch
-mm-vmscan-remove-update_isolated_counts.patch
-mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages.patch
-mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size.patch
-mm-vmscan-push-lruvec-pointer-into-inactive_list_is_low.patch
-mm-vmscan-push-lruvec-pointer-into-shrink_list.patch
-mm-vmscan-push-lruvec-pointer-into-get_scan_count.patch
-mm-vmscan-push-lruvec-pointer-into-should_continue_reclaim.patch
-mm-vmscan-kill-struct-mem_cgroup_zone.patch
-mm-memcg-get_lru_size-not-get_lruvec_size.patch
-mm-trivial-cleanups-in-vmscanc.patch
-mm-memcg-apply-add-del_page-to-lruvec.patch
-sched-set-taint_unsafe_smp-after-sleep-in-atomic-bug.patch
-proc-report-file-anon-bit-in-proc-pid-pagemap.patch
-proc-smaps-carefully-handle-migration-entries.patch
-proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch
-proc-smaps-show-amount-of-hwpoison-pages.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch
 
