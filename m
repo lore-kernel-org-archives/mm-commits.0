@@ -1,119 +1,334 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sunrpc-fix-kernel-doc-warnings.patch removed from -mm tree
-Date: Thu, 17 May 2012 13:43:55 -0700
-Message-ID: <20120517204355.8967BA0308@akpm.mtv.corp.google.com>
+Subject: + ipc-mqueue-add-rbtree-node-caching-support.patch added to -mm tree
+Date: Thu, 17 May 2012 13:45:22 -0700
+Message-ID: <20120517204522.6C423A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:60648 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517Ab2EQUn6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:43:58 -0400
-Received: by faaa25 with SMTP id a25so115781faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:43:56 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:40282 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754136Ab2EQUp2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:45:28 -0400
+Received: by qabg24 with SMTP id g24so305866qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:45:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, Trond.Myklebust@netapp.com, bfields@fieldses.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dledford@redhat.com
 
 
 The patch titled
-     Subject: sunrpc: fix kernel-doc warnings
-has been removed from the -mm tree.  Its filename was
-     sunrpc-fix-kernel-doc-warnings.patch
+     Subject: ipc/mqueue: add rbtree node caching support
+has been added to the -mm tree.  Its filename is
+     ipc-mqueue-add-rbtree-node-caching-support.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: sunrpc: fix kernel-doc warnings
+From: Doug Ledford <dledford@redhat.com>
+Subject: ipc/mqueue: add rbtree node caching support
 
-Fix kernel-doc warnings in sunrpc/rpc_pipe.c and sunrpc/rpcb_clnt.c:
+When I wrote the first patch that added the rbtree support for message
+queue insertion, it sped up the case where the queue was very full
+drastically from the original code.  It, however, slowed down the case
+where the queue was empty (not drastically though).
 
-Warning(net/sunrpc/rpcb_clnt.c:428): No description found for parameter 'net'
-Warning(net/sunrpc/rpcb_clnt.c:567): No description found for parameter 'net'
+This patch caches the last freed rbtree node struct so we can quickly
+reuse it when we get a new message.  This is the common path for any queue
+that very frequently goes from 0 to 1 then back to 0 messages in queue.
 
-Warning(net/sunrpc/rpc_pipe.c:133): No description found for parameter 'pipe'
-Warning(net/sunrpc/rpc_pipe.c:133): Excess function parameter 'inode' description in 'rpc_queue_upcall'
-Warning(net/sunrpc/rpc_pipe.c:839): No description found for parameter 'pipe'
-Warning(net/sunrpc/rpc_pipe.c:839): Excess function parameter 'ops' description in 'rpc_mkpipe_dentry'
-Warning(net/sunrpc/rpc_pipe.c:839): Excess function parameter 'flags' description in 'rpc_mkpipe_dentry'
-Warning(net/sunrpc/rpc_pipe.c:949): No description found for parameter 'dentry'
-Warning(net/sunrpc/rpc_pipe.c:949): Excess function parameter 'clnt' description in 'rpc_remove_client_dir'
+Andrew Morton didn't like that we were doing a GFP_ATOMIC allocation in
+msg_insert, so this patch attempts to speculatively allocate a new node
+struct outside of the spin lock when we know we need it, but will still
+fall back to a GFP_ATOMIC allocation if it has to.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Once I added the caching, the necessary various ret = ; spin_unlock
+gyrations in mq_timedsend were getting pretty ugly, so this also slightly
+refactors that function to streamline the flow of the code and the
+function exit.
+
+Finally, while working on getting performance back I made sure that all of
+the node structs were always fully initialized when they were first used,
+rendering the use of kzalloc unnecessary and a waste of CPU cycles.
+
+The net result of all of this is:
+
+1) We will avoid a GFP_ATOMIC allocation when possible, but fall back
+   on it when necessary.
+
+2) We will speculatively allocate a node struct using GFP_KERNEL if our
+   cache is empty (and save the struct to our cache if it's still empty
+   after we have obtained the spin lock).
+
+3) The performance of the common queue empty case has significantly
+   improved and is now much more in line with the older performance for
+   this case.
+
+The performance changes are:
+
+            Old mqueue      new mqueue      new mqueue + caching
+queue empty
+send/recv   305/288ns       349/318ns       310/322ns
+
+I don't think we'll ever be able to get the recv performance back, but
+that's because the old recv performance was a direct result and
+consequence of the old methods abysmal send performance.  The recv path
+simply must do more so that the send path does not incur such a penalty
+under higher queue depths.
+
+As it turns out, the new caching code also sped up the various queue full
+cases relative to my last patch.  That could be because of the difference
+between the syscall path in 3.3.4-rc5 and 3.3.4-rc6, or because of the
+change in code flow in the mq_timedsend routine.  Regardless, I'll take
+it.  It wasn't huge, and I *would* say it was within the margin for error,
+but after many repeated runs what I'm seeing is that the old numbers trend
+slightly higher (about 10 to 20ns depending on which test is the one
+running).
+
+Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/rpc_pipe.c  |    8 +++-----
- net/sunrpc/rpcb_clnt.c |    2 ++
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ ipc/mqueue.c |  104 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 81 insertions(+), 23 deletions(-)
 
-diff -puN net/sunrpc/rpc_pipe.c~sunrpc-fix-kernel-doc-warnings net/sunrpc/rpc_pipe.c
---- a/net/sunrpc/rpc_pipe.c~sunrpc-fix-kernel-doc-warnings
-+++ a/net/sunrpc/rpc_pipe.c
-@@ -120,7 +120,7 @@ EXPORT_SYMBOL_GPL(rpc_pipe_generic_upcal
+diff -puN ipc/mqueue.c~ipc-mqueue-add-rbtree-node-caching-support ipc/mqueue.c
+--- a/ipc/mqueue.c~ipc-mqueue-add-rbtree-node-caching-support
++++ a/ipc/mqueue.c
+@@ -69,6 +69,7 @@ struct mqueue_inode_info {
+ 	wait_queue_head_t wait_q;
  
- /**
-  * rpc_queue_upcall - queue an upcall message to userspace
-- * @inode: inode of upcall pipe on which to queue given message
-+ * @pipe: upcall pipe on which to queue given message
-  * @msg: message to queue
-  *
-  * Call with an @inode created by rpc_mkpipe() to queue an upcall.
-@@ -819,9 +819,7 @@ static int rpc_rmdir_depopulate(struct d
-  * @parent: dentry of directory to create new "pipe" in
-  * @name: name of pipe
-  * @private: private data to associate with the pipe, for the caller's use
-- * @ops: operations defining the behavior of the pipe: upcall, downcall,
-- *	release_pipe, open_pipe, and destroy_msg.
-- * @flags: rpc_pipe flags
-+ * @pipe: &rpc_pipe containing input parameters
-  *
-  * Data is made available for userspace to read by calls to
-  * rpc_queue_upcall().  The actual reads will result in calls to
-@@ -943,7 +941,7 @@ struct dentry *rpc_create_client_dir(str
+ 	struct rb_root msg_tree;
++	struct posix_msg_tree_node *node_cache;
+ 	struct mq_attr attr;
  
- /**
-  * rpc_remove_client_dir - Remove a directory created with rpc_create_client_dir()
-- * @clnt: rpc client
-+ * @dentry: dentry for the pipe
-  */
- int rpc_remove_client_dir(struct dentry *dentry)
- {
-diff -puN net/sunrpc/rpcb_clnt.c~sunrpc-fix-kernel-doc-warnings net/sunrpc/rpcb_clnt.c
---- a/net/sunrpc/rpcb_clnt.c~sunrpc-fix-kernel-doc-warnings
-+++ a/net/sunrpc/rpcb_clnt.c
-@@ -396,6 +396,7 @@ static int rpcb_register_call(struct rpc
+ 	struct sigevent notify;
+@@ -134,15 +135,20 @@ static int msg_insert(struct msg_msg *ms
+ 		else
+ 			p = &(*p)->rb_right;
+ 	}
+-	leaf = kzalloc(sizeof(*leaf), GFP_ATOMIC);
+-	if (!leaf)
+-		return -ENOMEM;
+-	rb_init_node(&leaf->rb_node);
+-	INIT_LIST_HEAD(&leaf->msg_list);
++	if (info->node_cache) {
++		leaf = info->node_cache;
++		info->node_cache = NULL;
++	} else {
++		leaf = kmalloc(sizeof(*leaf), GFP_ATOMIC);
++		if (!leaf)
++			return -ENOMEM;
++		rb_init_node(&leaf->rb_node);
++		INIT_LIST_HEAD(&leaf->msg_list);
++		info->qsize += sizeof(*leaf);
++	}
+ 	leaf->priority = msg->m_type;
+ 	rb_link_node(&leaf->rb_node, parent, p);
+ 	rb_insert_color(&leaf->rb_node, &info->msg_tree);
+-	info->qsize += sizeof(struct posix_msg_tree_node);
+ insert_msg:
+ 	info->attr.mq_curmsgs++;
+ 	info->qsize += msg->m_ts;
+@@ -177,13 +183,17 @@ try_again:
+ 		return NULL;
+ 	}
+ 	leaf = rb_entry(parent, struct posix_msg_tree_node, rb_node);
+-	if (list_empty(&leaf->msg_list)) {
++	if (unlikely(list_empty(&leaf->msg_list))) {
+ 		pr_warn_once("Inconsistency in POSIX message queue, "
+ 			     "empty leaf node but we haven't implemented "
+ 			     "lazy leaf delete!\n");
+ 		rb_erase(&leaf->rb_node, &info->msg_tree);
+-		info->qsize -= sizeof(struct posix_msg_tree_node);
+-		kfree(leaf);
++		if (info->node_cache) {
++			info->qsize -= sizeof(*leaf);
++			kfree(leaf);
++		} else {
++			info->node_cache = leaf;
++		}
+ 		goto try_again;
+ 	} else {
+ 		msg = list_first_entry(&leaf->msg_list,
+@@ -191,8 +201,12 @@ try_again:
+ 		list_del(&msg->m_list);
+ 		if (list_empty(&leaf->msg_list)) {
+ 			rb_erase(&leaf->rb_node, &info->msg_tree);
+-			info->qsize -= sizeof(struct posix_msg_tree_node);
+-			kfree(leaf);
++			if (info->node_cache) {
++				info->qsize -= sizeof(*leaf);
++				kfree(leaf);
++			} else {
++				info->node_cache = leaf;
++			}
+ 		}
+ 	}
+ 	info->attr.mq_curmsgs--;
+@@ -235,6 +249,7 @@ static struct inode *mqueue_get_inode(st
+ 		info->qsize = 0;
+ 		info->user = NULL;	/* set when all is ok */
+ 		info->msg_tree = RB_ROOT;
++		info->node_cache = NULL;
+ 		memset(&info->attr, 0, sizeof(info->attr));
+ 		info->attr.mq_maxmsg = min(ipc_ns->mq_msg_max,
+ 					   ipc_ns->mq_msg_default);
+@@ -367,6 +382,7 @@ static void mqueue_evict_inode(struct in
+ 	spin_lock(&info->lock);
+ 	while ((msg = msg_get(info)) != NULL)
+ 		free_msg(msg);
++	kfree(info->node_cache);
+ 	spin_unlock(&info->lock);
  
- /**
-  * rpcb_register - set or unset a port registration with the local rpcbind svc
-+ * @net: target network namespace
-  * @prog: RPC program number to bind
-  * @vers: RPC version number to bind
-  * @prot: transport protocol to register
-@@ -523,6 +524,7 @@ static int rpcb_unregister_all_protofami
+ 	/* Total amount of bytes accounted for the mqueue */
+@@ -964,7 +980,8 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
+ 	struct mqueue_inode_info *info;
+ 	ktime_t expires, *timeout = NULL;
+ 	struct timespec ts;
+-	int ret;
++	struct posix_msg_tree_node *new_leaf = NULL;
++	int ret = 0;
  
- /**
-  * rpcb_v4_register - set or unset a port registration with the local rpcbind
-+ * @net: target network namespace
-  * @program: RPC program number of service to (un)register
-  * @version: RPC version number of service to (un)register
-  * @address: address family, IP address, and port to (un)register
+ 	if (u_abs_timeout) {
+ 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
+@@ -1012,39 +1029,60 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
+ 	msg_ptr->m_ts = msg_len;
+ 	msg_ptr->m_type = msg_prio;
+ 
++	/*
++	 * msg_insert really wants us to have a valid, spare node struct so
++	 * it doesn't have to kmalloc a GFP_ATOMIC allocation, but it will
++	 * fall back to that if necessary.
++	 */
++	if (!info->node_cache)
++		new_leaf = kmalloc(sizeof(*new_leaf), GFP_KERNEL);
++
+ 	spin_lock(&info->lock);
+ 
++	if (!info->node_cache && new_leaf) {
++		/* Save our speculative allocation into the cache */
++		rb_init_node(&new_leaf->rb_node);
++		INIT_LIST_HEAD(&new_leaf->msg_list);
++		info->node_cache = new_leaf;
++		info->qsize += sizeof(*new_leaf);
++		new_leaf = NULL;
++	} else if (new_leaf) {
++		kfree(new_leaf);
++	}
++
+ 	if (info->attr.mq_curmsgs == info->attr.mq_maxmsg) {
+ 		if (filp->f_flags & O_NONBLOCK) {
+-			spin_unlock(&info->lock);
+ 			ret = -EAGAIN;
+ 		} else {
+ 			wait.task = current;
+ 			wait.msg = (void *) msg_ptr;
+ 			wait.state = STATE_NONE;
+ 			ret = wq_sleep(info, SEND, timeout, &wait);
++			/*
++			 * wq_sleep must be called with info->lock held, and
++			 * returns with the lock released
++			 */
++			goto out_free;
+ 		}
+-		if (ret < 0)
+-			free_msg(msg_ptr);
+ 	} else {
+ 		receiver = wq_get_first_waiter(info, RECV);
+ 		if (receiver) {
+ 			pipelined_send(info, msg_ptr, receiver);
+ 		} else {
+ 			/* adds message to the queue */
+-			if (msg_insert(msg_ptr, info)) {
+-				free_msg(msg_ptr);
+-				ret = -ENOMEM;
+-				spin_unlock(&info->lock);
+-				goto out_fput;
+-			}
++			ret = msg_insert(msg_ptr, info);
++			if (ret)
++				goto out_unlock;
+ 			__do_notify(info);
+ 		}
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime =
+ 				CURRENT_TIME;
+-		spin_unlock(&info->lock);
+-		ret = 0;
+ 	}
++out_unlock:
++	spin_unlock(&info->lock);
++out_free:
++	if (ret)
++		free_msg(msg_ptr);
+ out_fput:
+ 	fput(filp);
+ out:
+@@ -1063,6 +1101,7 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
+ 	struct ext_wait_queue wait;
+ 	ktime_t expires, *timeout = NULL;
+ 	struct timespec ts;
++	struct posix_msg_tree_node *new_leaf = NULL;
+ 
+ 	if (u_abs_timeout) {
+ 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
+@@ -1098,7 +1137,26 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, 
+ 		goto out_fput;
+ 	}
+ 
++	/*
++	 * msg_insert really wants us to have a valid, spare node struct so
++	 * it doesn't have to kmalloc a GFP_ATOMIC allocation, but it will
++	 * fall back to that if necessary.
++	 */
++	if (!info->node_cache)
++		new_leaf = kmalloc(sizeof(*new_leaf), GFP_KERNEL);
++
+ 	spin_lock(&info->lock);
++
++	if (!info->node_cache && new_leaf) {
++		/* Save our speculative allocation into the cache */
++		rb_init_node(&new_leaf->rb_node);
++		INIT_LIST_HEAD(&new_leaf->msg_list);
++		info->node_cache = new_leaf;
++		info->qsize += sizeof(*new_leaf);
++	} else if (new_leaf) {
++		kfree(new_leaf);
++	}
++
+ 	if (info->attr.mq_curmsgs == 0) {
+ 		if (filp->f_flags & O_NONBLOCK) {
+ 			spin_unlock(&info->lock);
 _
+Subject: Subject: ipc/mqueue: add rbtree node caching support
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from dledford@redhat.com are
 
-linux-next.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
-kmodc-fix-kernel-doc-warning.patch
-ramoops-use-pstore-interface.patch
-ramoops-use-pstore-interface-fix.patch
-kconfig-update-compression-algorithm-info.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+ipc-mqueue-cleanup-definition-names-and-locations.patch
+ipc-mqueue-switch-back-to-using-non-max-values-on-create.patch
+ipc-mqueue-enforce-hard-limits.patch
+ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
+ipc-mqueue-update-maximums-for-the-mqueue-subsystem-fix.patch
+mqueue-revert-bump-up-dflt_max.patch
+mqueue-dont-use-kmalloc-with-kmalloc_max_size.patch
+mqueue-separate-mqueue-default-value-from-maximum-value-v2.patch
+selftests-add-mq_open_tests.patch
+ipc-mqueue-improve-performance-of-send-recv.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-use-correct-gfp-flags-in-msg_insert.patch
+ipc-mqueue-correct-mq_attr_ok-test.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+ipc-mqueue-add-rbtree-node-caching-support.patch
 
