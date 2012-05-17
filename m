@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + frv-delete-incorrect-task-prototypes-causing-compile-fail.patch added to -mm tree
-Date: Thu, 17 May 2012 16:12:48 -0700
-Message-ID: <20120517231248.AF6D3A02FF@akpm.mtv.corp.google.com>
+Subject: + drivers-cma-dont-fail-if-migration-returns-eagain.patch added to -mm tree
+Date: Thu, 17 May 2012 16:20:19 -0700
+Message-ID: <20120517232019.A718EA02FF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:50467 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759182Ab2EQXMv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 May 2012 19:12:51 -0400
-Received: by lagr15 with SMTP id r15so119850lag.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 16:12:50 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:47418 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929Ab2EQXUV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 19:20:21 -0400
+Received: by eaao13 with SMTP id o13so121134eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 16:20:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paul.gortmaker@windriver.com, dhowells@redhat.com, tglx@linutronix.de
+Cc: m.szyprowski@samsung.com, haojian.zhuang@gmail.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: frv: delete incorrect task prototypes causing compile fail
+     Subject: drivers/cma: don't fail if migration returns -EAGAIN
 has been added to the -mm tree.  Its filename is
-     frv-delete-incorrect-task-prototypes-causing-compile-fail.patch
+     drivers-cma-dont-fail-if-migration-returns-eagain.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +33,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: frv: delete incorrect task prototypes causing compile fail
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: drivers/cma: don't fail if migration returns -EAGAIN
 
-Commit 41101809 ("fork: Provide weak
-arch_release_[task_struct|thread_info] functions") highlights a problem in
-the frv arch, where it has needles prototypes for alloc_task_struct_node
-and free_task_struct.  This now shows up as:
+alloc_contig_range() might return -EAGAIN if migrate_pages() fails for
+some temporarily locked pages.  Such a case should not be fatal to
+dma_alloc_from_contiguous(), which should retry the allocation, as in the
+-EBUSY case.
 
-kernel/fork.c:120:66: error: static declaration of 'alloc_task_struct_node' follows non-static declaration
-kernel/fork.c:127:51: error: static declaration of 'free_task_struct' follows non-static declaration
-
-since 41101809 turned them into real functions.  Since arch/frv does does
-not define define __HAVE_ARCH_TASK_STRUCT_ALLOCATOR (i.e.  it just uses
-the generic ones) it shouldn't list these at all.
-
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/processor.h |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/base/dma-contiguous.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/include/asm/processor.h~frv-delete-incorrect-task-prototypes-causing-compile-fail arch/frv/include/asm/processor.h
---- a/arch/frv/include/asm/processor.h~frv-delete-incorrect-task-prototypes-causing-compile-fail
-+++ a/arch/frv/include/asm/processor.h
-@@ -135,10 +135,6 @@ unsigned long get_wchan(struct task_stru
- #define	KSTK_EIP(tsk)	((tsk)->thread.frame0->pc)
- #define	KSTK_ESP(tsk)	((tsk)->thread.frame0->sp)
- 
--/* Allocation and freeing of basic task resources. */
--extern struct task_struct *alloc_task_struct_node(int node);
--extern void free_task_struct(struct task_struct *p);
+diff -puN drivers/base/dma-contiguous.c~drivers-cma-dont-fail-if-migration-returns-eagain drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~drivers-cma-dont-fail-if-migration-returns-eagain
++++ a/drivers/base/dma-contiguous.c
+@@ -346,7 +346,7 @@ struct page *dma_alloc_from_contiguous(s
+ 		if (ret == 0) {
+ 			bitmap_set(cma->bitmap, pageno, count);
+ 			break;
+-		} else if (ret != -EBUSY) {
++		} else if (ret != -EBUSY && ret != -EAGAIN) {
+ 			goto error;
+ 		}
+ 		pr_debug("%s(): memory range at %p is busy, retrying\n",
+_
+Subject: Subject: drivers/cma: don't fail if migration returns -EAGAIN
+
+Patches currently in -mm which might be from m.szyprowski@samsung.com are
+
+origin.patch
+linux-next.patch
+drivers-cma-dont-fail-if-migration-returns-eagain.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+
