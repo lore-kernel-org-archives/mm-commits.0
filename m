@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch added to -mm tree
-Date: Thu, 17 May 2012 12:10:26 -0700
-Message-ID: <20120517191028.DFB5DA00B0@akpm.mtv.corp.google.com>
+Subject: + mm-optimize-put_mems_allowed-usage.patch added to -mm tree
+Date: Thu, 17 May 2012 13:16:53 -0700
+Message-ID: <20120517201654.824F5A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:62275 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967636Ab2EQTKb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 15:10:31 -0400
-Received: by ggeh3 with SMTP id h3so278145gge.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 12:10:31 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:33806 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965962Ab2EQUQ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:16:57 -0400
+Received: by faaa25 with SMTP id a25so114479faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:16:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, aarcange@redhat.com
+Cc: a.p.zijlstra@chello.nl, cl@linux.com, mgorman@suse.de, miaox@cn.fujitsu.com, penberg@cs.helsinki.fi, rientjes@google.com, tj@kernel.org
 
 
 The patch titled
-     Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+     Subject: mm: Optimize put_mems_allowed() usage
 has been added to the -mm tree.  Its filename is
-     mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch
+     mm-optimize-put_mems_allowed-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,122 +33,328 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: mm: Optimize put_mems_allowed() usage
 
-Update Documentation/vm/transhuge.txt and
-Documentation/filesystems/proc.txt with some information on monitoring
-transparent huge page usage and the associated overhead.
+Since put_mems_allowed() is strictly optional - it is a seqcount retry -
+we don't need to evaluate the function if the allocation was in fact
+successful, saving a smp_rmb() and some loads and comparisons on some
+relative fast-paths.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Since the naming get/put_mems_allowed() does suggest a mandatory pairing,
+rename the interface as suggested by Mel, to resemble the seqcount
+interface.
+
+This gives us: read_mems_allowed_begin() and read_mems_allowed_retry(),
+where it is important to note that the return value of the latter call is
+inverted from its previous incarnation.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 
- Documentation/vm/transhuge.txt     |   62 +++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ include/linux/cpuset.h |   27 ++++++++++++++-------------
+ kernel/cpuset.c        |    2 +-
+ mm/filemap.c           |    4 ++--
+ mm/hugetlb.c           |    4 ++--
+ mm/mempolicy.c         |   14 +++++++-------
+ mm/page_alloc.c        |    8 ++++----
+ mm/slab.c              |    4 ++--
+ mm/slub.c              |   16 +++-------------
+ 8 files changed, 35 insertions(+), 44 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages
-+++ a/Documentation/filesystems/proc.txt
-@@ -743,6 +743,7 @@ Committed_AS:   100056 kB
- VmallocTotal:   112216 kB
- VmallocUsed:       428 kB
- VmallocChunk:   111088 kB
-+AnonHugePages:   49152 kB
+diff -puN include/linux/cpuset.h~mm-optimize-put_mems_allowed-usage include/linux/cpuset.h
+--- a/include/linux/cpuset.h~mm-optimize-put_mems_allowed-usage
++++ a/include/linux/cpuset.h
+@@ -89,25 +89,26 @@ extern void rebuild_sched_domains(void);
+ extern void cpuset_print_task_mems_allowed(struct task_struct *p);
  
-     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
-               bits and the kernel binary code)
-@@ -776,6 +777,7 @@ VmallocChunk:   111088 kB
-        Dirty: Memory which is waiting to get written back to the disk
-    Writeback: Memory which is actively being written back to the disk
-    AnonPages: Non-file backed pages mapped into userspace page tables
-+AnonHugePages: Non-file backed huge pages mapped into userspace page tables
-       Mapped: files which have been mmaped, such as libraries
-         Slab: in-kernel data structures cache
- SReclaimable: Part of Slab, that might be reclaimed, such as caches
-diff -puN Documentation/vm/transhuge.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages
-+++ a/Documentation/vm/transhuge.txt
-@@ -166,6 +166,68 @@ behavior. So to make them effective you 
- application that could have been using hugepages. This also applies to
- the regions registered in khugepaged.
+ /*
+- * get_mems_allowed is required when making decisions involving mems_allowed
+- * such as during page allocation. mems_allowed can be updated in parallel
+- * and depending on the new value an operation can fail potentially causing
+- * process failure. A retry loop with get_mems_allowed and put_mems_allowed
+- * prevents these artificial failures.
++ * read_mems_allowed_begin is required when making decisions involving
++ * mems_allowed such as during page allocation. mems_allowed can be updated in
++ * parallel and depending on the new value an operation can fail potentially
++ * causing process failure. A retry loop with read_mems_allowed_begin and
++ * read_mems_allowed_retry prevents these artificial failures.
+  */
+-static inline unsigned int get_mems_allowed(void)
++static inline unsigned int read_mems_allowed_begin(void)
+ {
+ 	return read_seqcount_begin(&current->mems_allowed_seq);
+ }
  
-+== Monitoring usage ==
-+
-+The number of transparent huge pages currently used by the system is
-+available by reading the AnonHugePages field in /proc/meminfo. To
-+identify what applications are using transparent huge pages, it is
-+necessary to read /proc/PID/smaps and count the AnonHugePages fields
-+for each mapping. Note that reading the smaps file is expensive and
-+reading it frequently will incur overhead.
-+
-+There are a number of counters in /proc/vmstat that may be used to
-+monitor how successfully the system is providing huge pages for use.
-+
-+thp_fault_alloc is incremented every time a huge page is successfully
-+	allocated to handle a page fault. This applies to both the
-+	first time a page is faulted and for COW faults.
-+
-+thp_collapse_alloc is incremented by khugepaged when it has found
-+	a range of pages to collapse into one huge page and has
-+	successfully allocated a new huge page to store the data.
-+
-+thp_fault_fallback is incremented if a page fault fails to allocate
-+	a huge page and instead falls back to using small pages.
-+
-+thp_collapse_alloc_failed is incremented if khugepaged found a range
-+	of pages that should be collapsed into one huge page but failed
-+	the allocation.
-+
-+thp_split is incremented every time a huge page is split into base
-+	pages. This can happen for a variety of reasons but a common
-+	reason is that a huge page is old and is being reclaimed.
-+
-+As the system ages, allocating huge pages may be expensive as the
-+system uses memory compaction to copy data around memory to free a
-+huge page for use. There are some counters in /proc/vmstat to help
-+monitor this overhead.
-+
-+compact_stall is incremented every time a process stalls to run
-+	memory compaction so that a huge page is free for use.
-+
-+compact_success is incremented if the system compacted memory and
-+	freed a huge page for use.
-+
-+compact_fail is incremented if the system tries to compact memory
-+	but failed.
-+
-+compact_pages_moved is incremented each time a page is moved. If
-+	this value is increasing rapidly, it implies that the system
-+	is copying a lot of data to satisfy the huge page allocation.
-+	It is possible that the cost of copying exceeds any savings
-+	from reduced TLB misses.
-+
-+compact_pagemigrate_failed is incremented when the underlying mechanism
-+	for moving a page failed.
-+
-+compact_blocks_moved is incremented each time memory compaction examines
-+	a huge page aligned range of pages.
-+
-+It is possible to establish how long the stalls were using the function
-+tracer to record how long was spent in __alloc_pages_nodemask and
-+using the mm_page_alloc tracepoint to identify which allocations were
-+for huge pages.
-+
- == get_user_pages and follow_page ==
+ /*
+- * If this returns false, the operation that took place after get_mems_allowed
+- * may have failed. It is up to the caller to retry the operation if
++ * If this returns true, the operation that took place after
++ * read_mems_allowed_begin may have failed artificially due to a concurrent
++ * update of mems_allowed. It is up to the caller to retry the operation if
+  * appropriate.
+  */
+-static inline bool put_mems_allowed(unsigned int seq)
++static inline bool read_mems_allowed_retry(unsigned int seq)
+ {
+-	return !read_seqcount_retry(&current->mems_allowed_seq, seq);
++	return read_seqcount_retry(&current->mems_allowed_seq, seq);
+ }
  
- get_user_pages and follow_page if run on a hugepage, will return the
+ static inline void set_mems_allowed(nodemask_t nodemask)
+@@ -223,14 +224,14 @@ static inline void set_mems_allowed(node
+ {
+ }
+ 
+-static inline unsigned int get_mems_allowed(void)
++static inline unsigned int read_mems_allowed_begin(void)
+ {
+ 	return 0;
+ }
+ 
+-static inline bool put_mems_allowed(unsigned int seq)
++static inline bool read_mems_allowed_retry(unsigned int seq)
+ {
+-	return true;
++	return false;
+ }
+ 
+ #endif /* !CONFIG_CPUSETS */
+diff -puN kernel/cpuset.c~mm-optimize-put_mems_allowed-usage kernel/cpuset.c
+--- a/kernel/cpuset.c~mm-optimize-put_mems_allowed-usage
++++ a/kernel/cpuset.c
+@@ -976,7 +976,7 @@ static void cpuset_change_task_nodemask(
+ 	task_lock(tsk);
+ 	/*
+ 	 * Determine if a loop is necessary if another thread is doing
+-	 * get_mems_allowed().  If at least one node remains unchanged and
++	 * read_mems_allowed_begin().  If at least one node remains unchanged and
+ 	 * tsk does not have a mempolicy, then an empty nodemask will not be
+ 	 * possible when mems_allowed is larger than a word.
+ 	 */
+diff -puN mm/filemap.c~mm-optimize-put_mems_allowed-usage mm/filemap.c
+--- a/mm/filemap.c~mm-optimize-put_mems_allowed-usage
++++ a/mm/filemap.c
+@@ -500,10 +500,10 @@ struct page *__page_cache_alloc(gfp_t gf
+ 	if (cpuset_do_page_mem_spread()) {
+ 		unsigned int cpuset_mems_cookie;
+ 		do {
+-			cpuset_mems_cookie = get_mems_allowed();
++			cpuset_mems_cookie = read_mems_allowed_begin();
+ 			n = cpuset_mem_spread_node();
+ 			page = alloc_pages_exact_node(n, gfp, 0);
+-		} while (!put_mems_allowed(cpuset_mems_cookie) && !page);
++		} while (!page && read_mems_allowed_retry(cpuset_mems_cookie));
+ 
+ 		return page;
+ 	}
+diff -puN mm/hugetlb.c~mm-optimize-put_mems_allowed-usage mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-optimize-put_mems_allowed-usage
++++ a/mm/hugetlb.c
+@@ -544,7 +544,7 @@ static struct page *dequeue_huge_page_vm
+ 	unsigned int cpuset_mems_cookie;
+ 
+ retry_cpuset:
+-	cpuset_mems_cookie = get_mems_allowed();
++	cpuset_mems_cookie = read_mems_allowed_begin();
+ 	zonelist = huge_zonelist(vma, address,
+ 					htlb_alloc_mask, &mpol, &nodemask);
+ 	/*
+@@ -573,7 +573,7 @@ retry_cpuset:
+ 	}
+ 
+ 	mpol_cond_put(mpol);
+-	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
++	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 		goto retry_cpuset;
+ 	return page;
+ 
+diff -puN mm/mempolicy.c~mm-optimize-put_mems_allowed-usage mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-optimize-put_mems_allowed-usage
++++ a/mm/mempolicy.c
+@@ -1715,7 +1715,7 @@ int node_random(const nodemask_t *maskp)
+  * If the effective policy is 'BIND, returns a pointer to the mempolicy's
+  * @nodemask for filtering the zonelist.
+  *
+- * Must be protected by get_mems_allowed()
++ * Must be protected by read_mems_allowed_begin()
+  */
+ struct zonelist *huge_zonelist(struct vm_area_struct *vma, unsigned long addr,
+ 				gfp_t gfp_flags, struct mempolicy **mpol,
+@@ -1880,7 +1880,7 @@ alloc_pages_vma(gfp_t gfp, int order, st
+ 
+ retry_cpuset:
+ 	pol = get_vma_policy(current, vma, addr);
+-	cpuset_mems_cookie = get_mems_allowed();
++	cpuset_mems_cookie = read_mems_allowed_begin();
+ 
+ 	if (unlikely(pol->mode == MPOL_INTERLEAVE)) {
+ 		unsigned nid;
+@@ -1888,7 +1888,7 @@ retry_cpuset:
+ 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT + order);
+ 		mpol_cond_put(pol);
+ 		page = alloc_page_interleave(gfp, order, nid);
+-		if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
++		if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 			goto retry_cpuset;
+ 
+ 		return page;
+@@ -1901,7 +1901,7 @@ retry_cpuset:
+ 		struct page *page =  __alloc_pages_nodemask(gfp, order,
+ 						zl, policy_nodemask(gfp, pol));
+ 		__mpol_put(pol);
+-		if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
++		if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 			goto retry_cpuset;
+ 		return page;
+ 	}
+@@ -1910,7 +1910,7 @@ retry_cpuset:
+ 	 */
+ 	page = __alloc_pages_nodemask(gfp, order, zl,
+ 				      policy_nodemask(gfp, pol));
+-	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
++	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 		goto retry_cpuset;
+ 	return page;
+ }
+@@ -1944,7 +1944,7 @@ struct page *alloc_pages_current(gfp_t g
+ 		pol = &default_policy;
+ 
+ retry_cpuset:
+-	cpuset_mems_cookie = get_mems_allowed();
++	cpuset_mems_cookie = read_mems_allowed_begin();
+ 
+ 	/*
+ 	 * No reference counting needed for current->mempolicy
+@@ -1957,7 +1957,7 @@ retry_cpuset:
+ 				policy_zonelist(gfp, pol, numa_node_id()),
+ 				policy_nodemask(gfp, pol));
+ 
+-	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
++	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 		goto retry_cpuset;
+ 
+ 	return page;
+diff -puN mm/page_alloc.c~mm-optimize-put_mems_allowed-usage mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-optimize-put_mems_allowed-usage
++++ a/mm/page_alloc.c
+@@ -2497,7 +2497,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 		return NULL;
+ 
+ retry_cpuset:
+-	cpuset_mems_cookie = get_mems_allowed();
++	cpuset_mems_cookie = read_mems_allowed_begin();
+ 
+ 	/* The preferred zone is used for statistics later */
+ 	first_zones_zonelist(zonelist, high_zoneidx,
+@@ -2524,7 +2524,7 @@ out:
+ 	 * the mask is being updated. If a page allocation is about to fail,
+ 	 * check if the cpuset changed during allocation and if so, retry.
+ 	 */
+-	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
++	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 		goto retry_cpuset;
+ 
+ 	return page;
+@@ -2746,9 +2746,9 @@ bool skip_free_areas_node(unsigned int f
+ 		goto out;
+ 
+ 	do {
+-		cpuset_mems_cookie = get_mems_allowed();
++		cpuset_mems_cookie = read_mems_allowed_begin();
+ 		ret = !node_isset(nid, cpuset_current_mems_allowed);
+-	} while (!put_mems_allowed(cpuset_mems_cookie));
++	} while (read_mems_allowed_retry(cpuset_mems_cookie));
+ out:
+ 	return ret;
+ }
+diff -puN mm/slab.c~mm-optimize-put_mems_allowed-usage mm/slab.c
+--- a/mm/slab.c~mm-optimize-put_mems_allowed-usage
++++ a/mm/slab.c
+@@ -3367,7 +3367,7 @@ static void *fallback_alloc(struct kmem_
+ 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
+ 
+ retry_cpuset:
+-	cpuset_mems_cookie = get_mems_allowed();
++	cpuset_mems_cookie = read_mems_allowed_begin();
+ 	zonelist = node_zonelist(slab_node(current->mempolicy), flags);
+ 
+ retry:
+@@ -3423,7 +3423,7 @@ retry:
+ 		}
+ 	}
+ 
+-	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !obj))
++	if (unlikely(!obj && read_mems_allowed_retry(cpuset_mems_cookie)))
+ 		goto retry_cpuset;
+ 	return obj;
+ }
+diff -puN mm/slub.c~mm-optimize-put_mems_allowed-usage mm/slub.c
+--- a/mm/slub.c~mm-optimize-put_mems_allowed-usage
++++ a/mm/slub.c
+@@ -1614,7 +1614,7 @@ static struct page *get_any_partial(stru
+ 		return NULL;
+ 
+ 	do {
+-		cpuset_mems_cookie = get_mems_allowed();
++		cpuset_mems_cookie = read_mems_allowed_begin();
+ 		zonelist = node_zonelist(slab_node(current->mempolicy), flags);
+ 		for_each_zone_zonelist(zone, z, zonelist, high_zoneidx) {
+ 			struct kmem_cache_node *n;
+@@ -1624,21 +1624,11 @@ static struct page *get_any_partial(stru
+ 			if (n && cpuset_zone_allowed_hardwall(zone, flags) &&
+ 					n->nr_partial > s->min_partial) {
+ 				object = get_partial_node(s, n, c);
+-				if (object) {
+-					/*
+-					 * Return the object even if
+-					 * put_mems_allowed indicated that
+-					 * the cpuset mems_allowed was
+-					 * updated in parallel. It's a
+-					 * harmless race between the alloc
+-					 * and the cpuset update.
+-					 */
+-					put_mems_allowed(cpuset_mems_cookie);
++				if (object)
+ 					return object;
+-				}
+ 			}
+ 		}
+-	} while (!put_mems_allowed(cpuset_mems_cookie));
++	} while (read_mems_allowed_retry(cpuset_mems_cookie));
+ #endif
+ 	return NULL;
+ }
 _
-Subject: Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+Subject: Subject: mm: Optimize put_mems_allowed() usage
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 linux-next.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
-mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm-fork-fix-overflow-in-vma-length-when-copying-mmap-on-clone.patch
+mm-optimize-put_mems_allowed-usage.patch
+mm-optimize-put_mems_allowed-usage-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms.patch
+spinlock_debug-print-kallsyms-name-for-lock.patch
+kmod-unexport-call_usermodehelper_freeinfo.patch
+kmod-convert-two-call-sites-to-call_usermodehelper_fns.patch
+kmod-move-call_usermodehelper_fns-to-c-file-and-unexport-all-its-helpers.patch
+cpu-introduce-clear_tasks_mm_cpumask-helper.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+ipc-semc-alternatives-to-preempt_disable.patch
 
