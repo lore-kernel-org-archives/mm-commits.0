@@ -1,161 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: + mm-consider-all-swapped-back-pages-in-used-once-logic.patch added to -mm tree
-Date: Thu, 17 May 2012 13:23:32 -0700
-Message-ID: <20120517202332.CCAADA0341@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] ata-sata_mv-remove-conditional-compilation-of-clk-code.patch removed from -mm tree
+Date: Thu, 17 May 2012 13:42:25 -0700
+Message-ID: <20120517204226.59F10A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:45262 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788Ab2EQUXf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:23:35 -0400
-Received: by were53 with SMTP id e53so3504wer.1
-        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:23:34 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:42213 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756099Ab2EQUm1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 May 2012 16:42:27 -0400
+Received: by ggeh3 with SMTP id h3so290626gge.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 May 2012 13:42:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org
+To: viresh.kumar@st.com, andrew@lunn.ch, jgarzik@redhat.com, mturquette@linaro.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: consider all swapped back pages in used-once logic
-has been added to the -mm tree.  Its filename is
-     mm-consider-all-swapped-back-pages-in-used-once-logic.patch
+     Subject: ata/sata_mv: remove conditional compilation of clk code
+has been removed from the -mm tree.  Its filename was
+     ata-sata_mv-remove-conditional-compilation-of-clk-code.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: consider all swapped back pages in used-once logic
+From: Viresh Kumar <viresh.kumar@st.com>
+Subject: ata/sata_mv: remove conditional compilation of clk code
 
-Commit 64574746 ("vmscan: detect mapped file pages used only once") made
-mapped pages have another round in inactive list because they might be
-just short lived and so we could consider them again next time.  This
-heuristic helps to reduce pressure on the active list with a streaming IO
-worklods.
+With addition of dummy clk_*() calls for non CONFIG_HAVE_CLK cases in
+clk.h, there is no need to have clk code enclosed in #ifdef
+CONFIG_HAVE_CLK, #endif macros.
 
-This patch fixes a regression introduced by this commit for heavy shmem
-based workloads because unlike Anon pages, which are excluded from this
-heuristic because they are usually long lived, shmem pages are handled as
-a regular page cache.
-
-This doesn't work quite well, unfortunately, if the workload is mostly
-backed by shmem (in memory database sitting on 80% of memory) with a
-streaming IO in the background (backup - up to 20% of memory).  Anon
-inactive list is full of (dirty) shmem pages when watermarks are hit. 
-Shmem pages are kept in the inactive list (they are referenced) in the
-first round and it is hard to reclaim anything else so we reach lower
-scanning priorities very quickly which leads to an excessive swap out.
-
-Let's fix this by excluding all swap backed pages (they tend to be long
-lived wrt. the regular page cache anyway) from used-once heuristic and
-rather activate them if they are referenced.
-
-The customer's workload is shmem backed database (80% of RAM) and they are
-measuring transactions/s with an IO in the background (20%).  Transactions
-touch more or less random rows in the table.  Total runtime was
-approximately tripled by commit 64574746 and this patch restores the
-previous throughput levels.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>	[2.6.34+]
+Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
+Reviewed-by: Andrew Lunn <andrew@lunn.ch>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ata/sata_mv.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN mm/vmscan.c~mm-consider-all-swapped-back-pages-in-used-once-logic mm/vmscan.c
---- a/mm/vmscan.c~mm-consider-all-swapped-back-pages-in-used-once-logic
-+++ a/mm/vmscan.c
-@@ -657,7 +657,7 @@ static enum page_references page_check_r
- 		return PAGEREF_RECLAIM;
+diff -puN drivers/ata/sata_mv.c~ata-sata_mv-remove-conditional-compilation-of-clk-code drivers/ata/sata_mv.c
+--- a/drivers/ata/sata_mv.c~ata-sata_mv-remove-conditional-compilation-of-clk-code
++++ a/drivers/ata/sata_mv.c
+@@ -551,10 +551,8 @@ struct mv_host_priv {
+ 	u32			irq_mask_offset;
+ 	u32			unmask_all_irqs;
  
- 	if (referenced_ptes) {
--		if (PageAnon(page))
-+		if (PageSwapBacked(page))
- 			return PAGEREF_ACTIVATE;
- 		/*
- 		 * All mapped pages start out with page table
+-#if defined(CONFIG_HAVE_CLK)
+ 	struct clk		*clk;
+ 	struct clk              **port_clks;
+-#endif
+ 	/*
+ 	 * These consistent DMA memory pools give us guaranteed
+ 	 * alignment for hardware-accessed data structures,
+@@ -4028,9 +4026,7 @@ static int mv_platform_probe(struct plat
+ 	struct resource *res;
+ 	int n_ports = 0;
+ 	int rc;
+-#if defined(CONFIG_HAVE_CLK)
+ 	int port;
+-#endif
+ 
+ 	ata_print_version_once(&pdev->dev, DRV_VERSION);
+ 
+@@ -4058,13 +4054,11 @@ static int mv_platform_probe(struct plat
+ 
+ 	if (!host || !hpriv)
+ 		return -ENOMEM;
+-#if defined(CONFIG_HAVE_CLK)
+ 	hpriv->port_clks = devm_kzalloc(&pdev->dev,
+ 					sizeof(struct clk *) * n_ports,
+ 					GFP_KERNEL);
+ 	if (!hpriv->port_clks)
+ 		return -ENOMEM;
+-#endif
+ 	host->private_data = hpriv;
+ 	hpriv->n_ports = n_ports;
+ 	hpriv->board_idx = chip_soc;
+@@ -4074,7 +4068,6 @@ static int mv_platform_probe(struct plat
+ 				   resource_size(res));
+ 	hpriv->base -= SATAHC0_REG_BASE;
+ 
+-#if defined(CONFIG_HAVE_CLK)
+ 	hpriv->clk = clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(hpriv->clk))
+ 		dev_notice(&pdev->dev, "cannot get optional clkdev\n");
+@@ -4088,7 +4081,6 @@ static int mv_platform_probe(struct plat
+ 		if (!IS_ERR(hpriv->port_clks[port]))
+ 			clk_prepare_enable(hpriv->port_clks[port]);
+ 	}
+-#endif
+ 
+ 	/*
+ 	 * (Re-)program MBUS remapping windows if we are asked to.
+@@ -4115,7 +4107,6 @@ static int mv_platform_probe(struct plat
+ 		return 0;
+ 
+ err:
+-#if defined(CONFIG_HAVE_CLK)
+ 	if (!IS_ERR(hpriv->clk)) {
+ 		clk_disable_unprepare(hpriv->clk);
+ 		clk_put(hpriv->clk);
+@@ -4126,7 +4117,6 @@ err:
+ 			clk_put(hpriv->port_clks[port]);
+ 		}
+ 	}
+-#endif
+ 
+ 	return rc;
+ }
+@@ -4142,13 +4132,10 @@ err:
+ static int __devexit mv_platform_remove(struct platform_device *pdev)
+ {
+ 	struct ata_host *host = platform_get_drvdata(pdev);
+-#if defined(CONFIG_HAVE_CLK)
+ 	struct mv_host_priv *hpriv = host->private_data;
+ 	int port;
+-#endif
+ 	ata_host_detach(host);
+ 
+-#if defined(CONFIG_HAVE_CLK)
+ 	if (!IS_ERR(hpriv->clk)) {
+ 		clk_disable_unprepare(hpriv->clk);
+ 		clk_put(hpriv->clk);
+@@ -4159,7 +4146,6 @@ static int __devexit mv_platform_remove(
+ 			clk_put(hpriv->port_clks[port]);
+ 		}
+ 	}
+-#endif
+ 	return 0;
+ }
+ 
 _
-Subject: Subject: mm: consider all swapped back pages in used-once logic
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from viresh.kumar@st.com are
 
 linux-next.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-memcg-add-hugetlb-extension.patch
-memcg-add-hugetlb-extension-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
-kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
-documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
-mm-consider-all-swapped-back-pages-in-used-once-logic.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-memcg-mark-more-functions-variables-as-static.patch
-memcg-remove-unused-variable.patch
-memcg-mark-stat-field-of-mem_cgroup-struct-as-__percpu.patch
-memcg-remove-redundant-parentheses.patch
-memcg-make-threshold-index-in-the-right-position.patch
-memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
-rescounters-add-res_counter_uncharge_until.patch
-memcg-use-res_counter_uncharge_until-in-move_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
-memcg-dont-uncharge-in-mem_cgroup_move_account.patch
-remove-__must_check-for-res_counter_charge_nofail.patch
-mm-memcg-remove-obsolete-statistics-array-boundary-enum-item.patch
-mm-memcg-convert-numa-stat-to-read_seq_string-interface.patch
-mm-memcg-print-statistics-directly-to-seq_file.patch
-mm-memcg-keep-ratelimit-counter-separate-from-event-counters.patch
-mm-memcg-group-swapped-out-statistics-counter-logically.patch
-mm-memcg-print-statistics-from-live-counters.patch
-mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
-mm-memcg-get_lru_size-not-get_lruvec_size.patch
-mm-trivial-cleanups-in-vmscanc.patch
-mm-memcg-apply-add-del_page-to-lruvec.patch
-memcg-always-free-struct-memcg-through-schedule_work.patch
-memcg-decrement-static-keys-at-real-destroy-time.patch
+drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
+clk-add-non-config_have_clk-routines.patch
+clk-remove-redundant-depends-on-from-drivers-kconfig.patch
+i2c-i2c-pxa-remove-conditional-compilation-of-clk-code.patch
+usb-marvell-remove-conditional-compilation-of-clk-code.patch
+usb-musb-remove-conditional-compilation-of-clk-code.patch
+ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch
+net-c_can-remove-conditional-compilation-of-clk-code.patch
+net-stmmac-remove-conditional-compilation-of-clk-code.patch
+gadget-m66592-remove-conditional-compilation-of-clk-code.patch
+gadget-r8a66597-remove-conditional-compilation-of-clk-code.patch
+usb-host-r8a66597-remove-conditional-compilation-of-clk-code.patch
+rtc-spear-add-device-tree-probing-capability.patch
 
