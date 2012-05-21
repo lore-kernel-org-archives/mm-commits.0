@@ -1,80 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] ramoops-use-pstore-interface-fix.patch removed from -mm tree
-Date: Mon, 21 May 2012 15:15:50 -0700
-Message-ID: <20120521221551.04555A0363@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-tegrac-clean-up-probe-remove-routines.patch added to -mm tree
+Date: Mon, 21 May 2012 15:17:25 -0700
+Message-ID: <20120521221725.6DC77A0363@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:61078 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932436Ab2EUWPw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 May 2012 18:15:52 -0400
-Received: by ghbz15 with SMTP id z15so83140ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 May 2012 15:15:51 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:62629 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755465Ab2EUWR2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 May 2012 18:17:28 -0400
+Received: by lbbgp10 with SMTP id gp10so319757lbb.1
+        for <mm-commits@vger.kernel.org>; Mon, 21 May 2012 15:17:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, greg@kroah.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ext-hannu.m.heikkinen@nokia.com, a.zummo@towertech.it, swarren@wwwdotorg.org
 
 
 The patch titled
-     Subject: ramoops: fix printk format warnings
-has been removed from the -mm tree.  Its filename was
-     ramoops-use-pstore-interface-fix.patch
+     Subject: drivers/rtc/rtc-tegra.c: clean up probe/remove routines
+has been added to the -mm tree.  Its filename is
+     drivers-rtc-rtc-tegrac-clean-up-probe-remove-routines.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: ramoops: fix printk format warnings
+From: Hannu Heikkinen <ext-hannu.m.heikkinen@nokia.com>
+Subject: drivers/rtc/rtc-tegra.c: clean up probe/remove routines
 
-Fix printk format warnings for phys_addr_t type variables:
+Use the devres managed resource functions in the probe routine.  Also
+affects the remove routine where the previously used free and release
+functions are not needed.
 
-drivers/char/ramoops.c:246:3: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'phys_addr_t'
-drivers/char/ramoops.c:273:2: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'phys_addr_t'
+The devm_* functions eliminate the need for manual resource releasing and
+simplify error handling.  Resources allocated by devm_* are freed
+automatically on driver detach.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
+Signed-off-by: Hannu Heikkinen <ext-hannu.m.heikkinen@nokia.com>
+Acked-by: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ramoops.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-tegra.c |   50 +++++++++-----------------------------
+ 1 file changed, 13 insertions(+), 37 deletions(-)
 
-diff -puN drivers/char/ramoops.c~ramoops-use-pstore-interface-fix drivers/char/ramoops.c
---- a/drivers/char/ramoops.c~ramoops-use-pstore-interface-fix
-+++ a/drivers/char/ramoops.c
-@@ -243,7 +243,7 @@ static int __init ramoops_probe(struct p
+diff -puN drivers/rtc/rtc-tegra.c~rtc-tegra-cleanup-probe-remove-routines drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~rtc-tegra-cleanup-probe-remove-routines
++++ a/drivers/rtc/rtc-tegra.c
+@@ -309,7 +309,8 @@ static int __devinit tegra_rtc_probe(str
+ 	struct resource *res;
+ 	int ret;
  
- 	if (!request_mem_region(cxt->phys_addr, cxt->size, "ramoops")) {
- 		pr_err("request mem region (0x%lx@0x%llx) failed\n",
--			cxt->size, cxt->phys_addr);
-+			cxt->size, (unsigned long long)cxt->phys_addr);
- 		err = -EINVAL;
- 		goto fail_buf;
+-	info = kzalloc(sizeof(struct tegra_rtc_info), GFP_KERNEL);
++	info = devm_kzalloc(&pdev->dev, sizeof(struct tegra_rtc_info),
++		GFP_KERNEL);
+ 	if (!info)
+ 		return -ENOMEM;
+ 
+@@ -317,29 +318,18 @@ static int __devinit tegra_rtc_probe(str
+ 	if (!res) {
+ 		dev_err(&pdev->dev,
+ 			"Unable to allocate resources for device.\n");
+-		ret = -EBUSY;
+-		goto err_free_info;
++		return -EBUSY;
  	}
-@@ -270,7 +270,8 @@ static int __init ramoops_probe(struct p
- 	dump_oops = pdata->dump_oops;
  
- 	pr_info("attached 0x%lx@0x%llx (%ux0x%zx)\n",
--		cxt->size, cxt->phys_addr, cxt->max_count, cxt->record_size);
-+		cxt->size, (unsigned long long)cxt->phys_addr,
-+		cxt->max_count, cxt->record_size);
+-	if (!request_mem_region(res->start, resource_size(res), pdev->name)) {
+-		dev_err(&pdev->dev,
+-			"Unable to request mem region for device.\n");
+-		ret = -EBUSY;
+-		goto err_free_info;
++	info->rtc_base = devm_request_and_ioremap(&pdev->dev, res);
++	if (!info->rtc_base) {
++		dev_err(&pdev->dev, "Unable to request mem region and grab IOs for device.\n");
++		return -EBUSY;
+ 	}
  
- 	return 0;
+ 	info->tegra_rtc_irq = platform_get_irq(pdev, 0);
+-	if (info->tegra_rtc_irq <= 0) {
+-		ret = -EBUSY;
+-		goto err_release_mem_region;
+-	}
+-
+-	info->rtc_base = ioremap_nocache(res->start, resource_size(res));
+-	if (!info->rtc_base) {
+-		dev_err(&pdev->dev, "Unable to grab IOs for device.\n");
+-		ret = -EBUSY;
+-		goto err_release_mem_region;
+-	}
++	if (info->tegra_rtc_irq <= 0)
++		return -EBUSY;
  
-_
-
-Patches currently in -mm which might be from rdunlap@xenotime.net are
-
-origin.patch
-linux-next.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
-kmodc-fix-kernel-doc-warning.patch
-kconfig-update-compression-algorithm-info.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
-
+ 	/* set context info. */
+ 	info->pdev = pdev;
+@@ -362,11 +352,12 @@ static int __devinit tegra_rtc_probe(str
+ 		dev_err(&pdev->dev,
+ 			"Unable to register device (err=%d).\n",
+ 			ret);
+-		goto err_iounmap;
++		return ret;
+ 	}
+ 
+-	ret = request_irq(info->tegra_rtc_irq, tegra_rtc_irq_handler,
+-		IRQF_TRIGGER_HIGH, "rtc alarm", &pdev->dev);
++	ret = devm_request_irq(&pdev->dev, info->tegra_rtc_irq,
++			tegra_rtc_irq_handler, IRQF_TRIGGER_HIGH,
++			"rtc alarm", &pdev->dev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev,
+ 			"Unable to request interrupt for device (err=%d).\n",
+@@ -380,12 +371,6 @@ static int __devinit tegra_rtc_probe(str
+ 
+ err_dev_unreg:
+ 	rtc_device_unregister(info->rtc_dev);
+-err_iounmap:
+-	iounmap(info->rtc_base);
+-err_release_mem_region:
+-	release_mem_region(res->start, resource_size(res));
+-err_free_info:
+-	kfree(info);
+ 
+ 	return ret;
+ }
+@@ -393,17 +378,8 @@ err_free_info:
+ static int __devexit tegra_rtc_remove(struct platform_device *pdev)
+ {
+ 	struct tegra_rtc_info *info = platform_get_drvdata(pdev);
+-	struct resource *res;
