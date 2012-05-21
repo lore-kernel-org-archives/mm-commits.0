@@ -1,139 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-tegrac-clean-up-probe-remove-routines.patch added to -mm tree
-Date: Mon, 21 May 2012 15:17:25 -0700
-Message-ID: <20120521221725.6DC77A0363@akpm.mtv.corp.google.com>
+Subject: [withdrawn] mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch removed from -mm tree
+Date: Mon, 21 May 2012 15:44:04 -0700
+Message-ID: <20120521224405.559D0A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:62629 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755465Ab2EUWR2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 May 2012 18:17:28 -0400
-Received: by lbbgp10 with SMTP id gp10so319757lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 May 2012 15:17:26 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:35361 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757339Ab2EUWoI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 21 May 2012 18:44:08 -0400
+Received: by lagr15 with SMTP id r15so320153lag.1
+        for <mm-commits@vger.kernel.org>; Mon, 21 May 2012 15:44:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ext-hannu.m.heikkinen@nokia.com, a.zummo@towertech.it, swarren@wwwdotorg.org
+To: mgorman@suse.de, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tegra.c: clean up probe/remove routines
-has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-tegrac-clean-up-probe-remove-routines.patch
+     Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+has been removed from the -mm tree.  Its filename was
+     mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was withdrawn
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hannu Heikkinen <ext-hannu.m.heikkinen@nokia.com>
-Subject: drivers/rtc/rtc-tegra.c: clean up probe/remove routines
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
 
-Use the devres managed resource functions in the probe routine.  Also
-affects the remove routine where the previously used free and release
-functions are not needed.
+Update Documentation/vm/transhuge.txt and
+Documentation/filesystems/proc.txt with some information on monitoring
+transparent huge page usage and the associated overhead.
 
-The devm_* functions eliminate the need for manual resource releasing and
-simplify error handling.  Resources allocated by devm_* are freed
-automatically on driver detach.
-
-Signed-off-by: Hannu Heikkinen <ext-hannu.m.heikkinen@nokia.com>
-Acked-by: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tegra.c |   50 +++++++++-----------------------------
- 1 file changed, 13 insertions(+), 37 deletions(-)
+ Documentation/filesystems/proc.txt |    2 
+ Documentation/vm/transhuge.txt     |   62 +++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+)
 
-diff -puN drivers/rtc/rtc-tegra.c~rtc-tegra-cleanup-probe-remove-routines drivers/rtc/rtc-tegra.c
---- a/drivers/rtc/rtc-tegra.c~rtc-tegra-cleanup-probe-remove-routines
-+++ a/drivers/rtc/rtc-tegra.c
-@@ -309,7 +309,8 @@ static int __devinit tegra_rtc_probe(str
- 	struct resource *res;
- 	int ret;
+diff -puN Documentation/filesystems/proc.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages
++++ a/Documentation/filesystems/proc.txt
+@@ -743,6 +743,7 @@ Committed_AS:   100056 kB
+ VmallocTotal:   112216 kB
+ VmallocUsed:       428 kB
+ VmallocChunk:   111088 kB
++AnonHugePages:   49152 kB
  
--	info = kzalloc(sizeof(struct tegra_rtc_info), GFP_KERNEL);
-+	info = devm_kzalloc(&pdev->dev, sizeof(struct tegra_rtc_info),
-+		GFP_KERNEL);
- 	if (!info)
- 		return -ENOMEM;
+     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
+               bits and the kernel binary code)
+@@ -776,6 +777,7 @@ VmallocChunk:   111088 kB
+        Dirty: Memory which is waiting to get written back to the disk
+    Writeback: Memory which is actively being written back to the disk
+    AnonPages: Non-file backed pages mapped into userspace page tables
++AnonHugePages: Non-file backed huge pages mapped into userspace page tables
+       Mapped: files which have been mmaped, such as libraries
+         Slab: in-kernel data structures cache
+ SReclaimable: Part of Slab, that might be reclaimed, such as caches
+diff -puN Documentation/vm/transhuge.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages
++++ a/Documentation/vm/transhuge.txt
+@@ -166,6 +166,68 @@ behavior. So to make them effective you 
+ application that could have been using hugepages. This also applies to
+ the regions registered in khugepaged.
  
-@@ -317,29 +318,18 @@ static int __devinit tegra_rtc_probe(str
- 	if (!res) {
- 		dev_err(&pdev->dev,
- 			"Unable to allocate resources for device.\n");
--		ret = -EBUSY;
--		goto err_free_info;
-+		return -EBUSY;
- 	}
++== Monitoring usage ==
++
++The number of transparent huge pages currently used by the system is
++available by reading the AnonHugePages field in /proc/meminfo. To
++identify what applications are using transparent huge pages, it is
++necessary to read /proc/PID/smaps and count the AnonHugePages fields
++for each mapping. Note that reading the smaps file is expensive and
++reading it frequently will incur overhead.
++
++There are a number of counters in /proc/vmstat that may be used to
++monitor how successfully the system is providing huge pages for use.
++
++thp_fault_alloc is incremented every time a huge page is successfully
++	allocated to handle a page fault. This applies to both the
++	first time a page is faulted and for COW faults.
++
++thp_collapse_alloc is incremented by khugepaged when it has found
++	a range of pages to collapse into one huge page and has
++	successfully allocated a new huge page to store the data.
++
++thp_fault_fallback is incremented if a page fault fails to allocate
++	a huge page and instead falls back to using small pages.
++
++thp_collapse_alloc_failed is incremented if khugepaged found a range
++	of pages that should be collapsed into one huge page but failed
++	the allocation.
++
++thp_split is incremented every time a huge page is split into base
++	pages. This can happen for a variety of reasons but a common
++	reason is that a huge page is old and is being reclaimed.
++
++As the system ages, allocating huge pages may be expensive as the
++system uses memory compaction to copy data around memory to free a
++huge page for use. There are some counters in /proc/vmstat to help
++monitor this overhead.
++
++compact_stall is incremented every time a process stalls to run
++	memory compaction so that a huge page is free for use.
++
++compact_success is incremented if the system compacted memory and
++	freed a huge page for use.
++
++compact_fail is incremented if the system tries to compact memory
++	but failed.
++
++compact_pages_moved is incremented each time a page is moved. If
++	this value is increasing rapidly, it implies that the system
++	is copying a lot of data to satisfy the huge page allocation.
++	It is possible that the cost of copying exceeds any savings
++	from reduced TLB misses.
++
++compact_pagemigrate_failed is incremented when the underlying mechanism
++	for moving a page failed.
++
++compact_blocks_moved is incremented each time memory compaction examines
++	a huge page aligned range of pages.
++
++It is possible to establish how long the stalls were using the function
++tracer to record how long was spent in __alloc_pages_nodemask and
++using the mm_page_alloc tracepoint to identify which allocations were
++for huge pages.
++
+ == get_user_pages and follow_page ==
  
--	if (!request_mem_region(res->start, resource_size(res), pdev->name)) {
--		dev_err(&pdev->dev,
--			"Unable to request mem region for device.\n");
--		ret = -EBUSY;
--		goto err_free_info;
-+	info->rtc_base = devm_request_and_ioremap(&pdev->dev, res);
-+	if (!info->rtc_base) {
-+		dev_err(&pdev->dev, "Unable to request mem region and grab IOs for device.\n");
-+		return -EBUSY;
- 	}
- 
- 	info->tegra_rtc_irq = platform_get_irq(pdev, 0);
--	if (info->tegra_rtc_irq <= 0) {
--		ret = -EBUSY;
--		goto err_release_mem_region;
--	}
--
--	info->rtc_base = ioremap_nocache(res->start, resource_size(res));
--	if (!info->rtc_base) {
--		dev_err(&pdev->dev, "Unable to grab IOs for device.\n");
--		ret = -EBUSY;
--		goto err_release_mem_region;
--	}
-+	if (info->tegra_rtc_irq <= 0)
-+		return -EBUSY;
- 
- 	/* set context info. */
- 	info->pdev = pdev;
-@@ -362,11 +352,12 @@ static int __devinit tegra_rtc_probe(str
- 		dev_err(&pdev->dev,
- 			"Unable to register device (err=%d).\n",
- 			ret);
--		goto err_iounmap;
-+		return ret;
- 	}
- 
--	ret = request_irq(info->tegra_rtc_irq, tegra_rtc_irq_handler,
--		IRQF_TRIGGER_HIGH, "rtc alarm", &pdev->dev);
-+	ret = devm_request_irq(&pdev->dev, info->tegra_rtc_irq,
-+			tegra_rtc_irq_handler, IRQF_TRIGGER_HIGH,
-+			"rtc alarm", &pdev->dev);
- 	if (ret) {
- 		dev_err(&pdev->dev,
- 			"Unable to request interrupt for device (err=%d).\n",
-@@ -380,12 +371,6 @@ static int __devinit tegra_rtc_probe(str
- 
- err_dev_unreg:
- 	rtc_device_unregister(info->rtc_dev);
--err_iounmap:
--	iounmap(info->rtc_base);
--err_release_mem_region:
--	release_mem_region(res->start, resource_size(res));
--err_free_info:
--	kfree(info);
- 
- 	return ret;
- }
-@@ -393,17 +378,8 @@ err_free_info:
- static int __devexit tegra_rtc_remove(struct platform_device *pdev)
- {
- 	struct tegra_rtc_info *info = platform_get_drvdata(pdev);
--	struct resource *res;
+ get_user_pages and follow_page if run on a hugepage, will return the
+_
+
+Patches currently in -mm which might be from mgorman@suse.de are
+
+linux-next.patch
+mm-vmscan-remove-lumpy-reclaim.patch
+mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
+mm-vmscan-remove-reclaim_mode_t.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch
+mm-optimize-put_mems_allowed-usage-fix.patch
+
