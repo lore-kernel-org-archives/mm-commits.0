@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch added to -mm tree
-Date: Mon, 21 May 2012 15:44:44 -0700
-Message-ID: <20120521224444.5675BA0295@akpm.mtv.corp.google.com>
+Subject: + mm-consider-all-swapped-back-pages-in-used-once-logic.patch added to -mm tree
+Date: Mon, 21 May 2012 15:45:18 -0700
+Message-ID: <20120521224518.8C4DAA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:44205 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932311Ab2EUWop (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 May 2012 18:44:45 -0400
-Received: by yhgm50 with SMTP id m50so792901yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 May 2012 15:44:44 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:59834 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751405Ab2EUWpU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 May 2012 18:45:20 -0400
+Received: by qabg24 with SMTP id g24so328818qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 21 May 2012 15:45:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, aarcange@redhat.com
+Cc: mhocko@suse.cz, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+     Subject: mm: consider all swapped back pages in used-once logic
 has been added to the -mm tree.  Its filename is
-     mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch
+     mm-consider-all-swapped-back-pages-in-used-once-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mm: consider all swapped back pages in used-once logic
 
-Update Documentation/vm/transhuge.txt and
-Documentation/filesystems/proc.txt with some information on monitoring
-transparent huge page usage and the associated overhead.
+Commit 64574746 ("vmscan: detect mapped file pages used only once") made
+mapped pages have another round in inactive list because they might be
+just short lived and so we could consider them again next time.  This
+heuristic helps to reduce pressure on the active list with a streaming IO
+worklods.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+This patch fixes a regression introduced by this commit for heavy shmem
+based workloads because unlike Anon pages, which are excluded from this
+heuristic because they are usually long lived, shmem pages are handled as
+a regular page cache.
+
+This doesn't work quite well, unfortunately, if the workload is mostly
+backed by shmem (in memory database sitting on 80% of memory) with a
+streaming IO in the background (backup - up to 20% of memory).  Anon
+inactive list is full of (dirty) shmem pages when watermarks are hit. 
+Shmem pages are kept in the inactive list (they are referenced) in the
+first round and it is hard to reclaim anything else so we reach lower
+scanning priorities very quickly which leads to an excessive swap out.
+
+Let's fix this by excluding all swap backed pages (they tend to be long
+lived wrt. the regular page cache anyway) from used-once heuristic and
+rather activate them if they are referenced.
+
+The customer's workload is shmem backed database (80% of RAM) and they are
+measuring transactions/s with an IO in the background (20%).  Transactions
+touch more or less random rows in the table.  The transaction rate fell by
+a factor of 3 (in the worst case) because of commit 64574746.  This patch
+restores the previous numbers.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: <stable@vger.kernel.org>	[2.6.34+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 
- Documentation/vm/transhuge.txt     |   62 +++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages
-+++ a/Documentation/filesystems/proc.txt
-@@ -743,6 +743,7 @@ Committed_AS:   100056 kB
- VmallocTotal:   112216 kB
- VmallocUsed:       428 kB
- VmallocChunk:   111088 kB
-+AnonHugePages:   49152 kB
+diff -puN mm/vmscan.c~mm-consider-all-swapped-back-pages-in-used-once-logic mm/vmscan.c
+--- a/mm/vmscan.c~mm-consider-all-swapped-back-pages-in-used-once-logic
++++ a/mm/vmscan.c
+@@ -657,7 +657,7 @@ static enum page_references page_check_r
+ 		return PAGEREF_RECLAIM;
  
-     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
-               bits and the kernel binary code)
-@@ -776,6 +777,7 @@ VmallocChunk:   111088 kB
-        Dirty: Memory which is waiting to get written back to the disk
-    Writeback: Memory which is actively being written back to the disk
-    AnonPages: Non-file backed pages mapped into userspace page tables
-+AnonHugePages: Non-file backed huge pages mapped into userspace page tables
-       Mapped: files which have been mmaped, such as libraries
-         Slab: in-kernel data structures cache
- SReclaimable: Part of Slab, that might be reclaimed, such as caches
-diff -puN Documentation/vm/transhuge.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages
-+++ a/Documentation/vm/transhuge.txt
-@@ -166,6 +166,68 @@ behavior. So to make them effective you 
- application that could have been using hugepages. This also applies to
- the regions registered in khugepaged.
- 
-+== Monitoring usage ==
-+
-+The number of transparent huge pages currently used by the system is
-+available by reading the AnonHugePages field in /proc/meminfo. To
-+identify what applications are using transparent huge pages, it is
-+necessary to read /proc/PID/smaps and count the AnonHugePages fields
-+for each mapping. Note that reading the smaps file is expensive and
-+reading it frequently will incur overhead.
-+
-+There are a number of counters in /proc/vmstat that may be used to
-+monitor how successfully the system is providing huge pages for use.
-+
-+thp_fault_alloc is incremented every time a huge page is successfully
-+	allocated to handle a page fault. This applies to both the
-+	first time a page is faulted and for COW faults.
-+
-+thp_collapse_alloc is incremented by khugepaged when it has found
-+	a range of pages to collapse into one huge page and has
-+	successfully allocated a new huge page to store the data.
-+
-+thp_fault_fallback is incremented if a page fault fails to allocate
-+	a huge page and instead falls back to using small pages.
-+
-+thp_collapse_alloc_failed is incremented if khugepaged found a range
-+	of pages that should be collapsed into one huge page but failed
-+	the allocation.
-+
-+thp_split is incremented every time a huge page is split into base
-+	pages. This can happen for a variety of reasons but a common
-+	reason is that a huge page is old and is being reclaimed.
-+
-+As the system ages, allocating huge pages may be expensive as the
-+system uses memory compaction to copy data around memory to free a
-+huge page for use. There are some counters in /proc/vmstat to help
-+monitor this overhead.
-+
-+compact_stall is incremented every time a process stalls to run
-+	memory compaction so that a huge page is free for use.
-+
-+compact_success is incremented if the system compacted memory and
-+	freed a huge page for use.
-+
-+compact_fail is incremented if the system tries to compact memory
-+	but failed.
-+
-+compact_pages_moved is incremented each time a page is moved. If
-+	this value is increasing rapidly, it implies that the system
-+	is copying a lot of data to satisfy the huge page allocation.
-+	It is possible that the cost of copying exceeds any savings
-+	from reduced TLB misses.
-+
-+compact_pagemigrate_failed is incremented when the underlying mechanism
-+	for moving a page failed.
-+
-+compact_blocks_moved is incremented each time memory compaction examines
-+	a huge page aligned range of pages.
-+
-+It is possible to establish how long the stalls were using the function
-+tracer to record how long was spent in __alloc_pages_nodemask and
-+using the mm_page_alloc tracepoint to identify which allocations were
-+for huge pages.
-+
- == get_user_pages and follow_page ==
- 
- get_user_pages and follow_page if run on a hugepage, will return the
+ 	if (referenced_ptes) {
+-		if (PageAnon(page))
++		if (PageSwapBacked(page))
+ 			return PAGEREF_ACTIVATE;
+ 		/*
+ 		 * All mapped pages start out with page table
 _
-Subject: Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+Subject: Subject: mm: consider all swapped back pages in used-once logic
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 linux-next.patch
-mm-vmscan-remove-lumpy-reclaim.patch
-mm-vmscan-do-not-stall-on-writeback-during-memory-compaction.patch
-mm-vmscan-remove-reclaim_mode_t.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch
-mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch
-mm-optimize-put_mems_allowed-usage-fix.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+memcg-add-hugetlb-extension.patch
+memcg-add-hugetlb-extension-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
+kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
+mm-consider-all-swapped-back-pages-in-used-once-logic.patch
+memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
+memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
+memcg-swap-use-mem_cgroup_uncharge_swap.patch
+mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
+mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-mark-mm-inline-functions-as-__always_inline.patch
+mm-remove-lru-type-checks-from-__isolate_lru_page.patch
+mm-memcg-kill-mem_cgroup_lru_del.patch
+memcg-mark-more-functions-variables-as-static.patch
+memcg-remove-unused-variable.patch
+memcg-mark-stat-field-of-mem_cgroup-struct-as-__percpu.patch
+memcg-remove-redundant-parentheses.patch
+memcg-make-threshold-index-in-the-right-position.patch
+memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
+rescounters-add-res_counter_uncharge_until.patch
+memcg-use-res_counter_uncharge_until-in-move_parent.patch
+memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
+memcg-dont-uncharge-in-mem_cgroup_move_account.patch
+remove-__must_check-for-res_counter_charge_nofail.patch
+mm-memcg-remove-obsolete-statistics-array-boundary-enum-item.patch
+mm-memcg-convert-numa-stat-to-read_seq_string-interface.patch
+mm-memcg-print-statistics-directly-to-seq_file.patch
+mm-memcg-keep-ratelimit-counter-separate-from-event-counters.patch
+mm-memcg-group-swapped-out-statistics-counter-logically.patch
+mm-memcg-print-statistics-from-live-counters.patch
+mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
+mm-memcg-get_lru_size-not-get_lruvec_size.patch
+mm-trivial-cleanups-in-vmscanc.patch
+mm-memcg-apply-add-del_page-to-lruvec.patch
+memcg-always-free-struct-memcg-through-schedule_work.patch
+memcg-decrement-static-keys-at-real-destroy-time.patch
 
