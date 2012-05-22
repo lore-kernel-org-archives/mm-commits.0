@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-fix-resv_map-leak-in-error-path.patch added to -mm tree
-Date: Tue, 22 May 2012 13:46:24 -0700
-Message-ID: <20120522204624.B8BDBA0280@akpm.mtv.corp.google.com>
+Subject: + backlight-initialize-struct-backlight_properties-properly.patch added to -mm tree
+Date: Tue, 22 May 2012 13:59:36 -0700
+Message-ID: <20120522205936.C5501A0241@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:49406 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759969Ab2EVUq1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 May 2012 16:46:27 -0400
-Received: by lagr15 with SMTP id r15so381122lag.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 13:46:26 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:37076 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754933Ab2EVU7j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 May 2012 16:59:39 -0400
+Received: by faaa25 with SMTP id a25so385650faa.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 13:59:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, aarcange@redhat.com, cl@linux.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie
+Cc: corentin.chary@gmail.com, airlied@gmail.com, jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: hugetlb: fix resv_map leak in error path
+     Subject: backlight: initialize struct backlight_properties properly
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-resv_map-leak-in-error-path.patch
+     backlight-initialize-struct-backlight_properties-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +33,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: hugetlb: fix resv_map leak in error path
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: backlight: initialize struct backlight_properties properly
 
-When called for anonymous (non-shared) mappings, hugetlb_reserve_pages()
-does a resv_map_alloc().  It depends on code in hugetlbfs's
-vm_ops->close() to release that allocation.
+In all these files, the .power field was never correctly initialized.
 
-However, in the mmap() failure path, we do a plain unmap_region() without
-the remove_vma() which actually calls vm_ops->close().
-
-This is a decent fix.  This leak could get reintroduced if new code (say,
-after hugetlb_reserve_pages() in hugetlbfs_file_mmap()) decides to return
-an error.  But, I think it would have to unroll the reservation anyway.
-
-Christoph's test case:
-
-	http://marc.info/?l=linux-mm&m=133728900729735
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reported-by: Christoph Lameter <cl@linux.com>
-Tested-by: Christoph Lameter <cl@linux.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/i915/intel_panel.c              |    1 +
+ drivers/gpu/drm/radeon/radeon_legacy_encoders.c |    1 +
+ drivers/platform/x86/toshiba_acpi.c             |    1 +
+ drivers/video/backlight/da903x_bl.c             |    1 +
+ drivers/video/backlight/pcf50633-backlight.c    |    1 +
+ drivers/video/backlight/wm831x_bl.c             |    1 +
+ drivers/video/omap2/displays/panel-acx565akm.c  |    1 +
+ 7 files changed, 7 insertions(+)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-resv_map-leak-in-error-path mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-resv_map-leak-in-error-path
-+++ a/mm/hugetlb.c
-@@ -2223,6 +2223,15 @@ static void hugetlb_vm_op_open(struct vm
- 		kref_get(&reservations->refs);
- }
+diff -puN drivers/gpu/drm/i915/intel_panel.c~backlight-initialize-struct-backlight_properties-properly drivers/gpu/drm/i915/intel_panel.c
+--- a/drivers/gpu/drm/i915/intel_panel.c~backlight-initialize-struct-backlight_properties-properly
++++ a/drivers/gpu/drm/i915/intel_panel.c
+@@ -368,6 +368,7 @@ int intel_panel_setup_backlight(struct d
+ 	else
+ 		return -ENODEV;
  
-+static void resv_map_put(struct vm_area_struct *vma)
-+{
-+	struct resv_map *reservations = vma_resv_map(vma);
-+
-+	if (!reservations)
-+		return;
-+	kref_put(&reservations->refs, resv_map_release);
-+}
-+
- static void hugetlb_vm_op_close(struct vm_area_struct *vma)
- {
- 	struct hstate *h = hstate_vma(vma);
-@@ -2239,7 +2248,7 @@ static void hugetlb_vm_op_close(struct v
- 		reserve = (end - start) -
- 			region_count(&reservations->regions, start, end);
- 
--		kref_put(&reservations->refs, resv_map_release);
-+		resv_map_put(vma);
- 
- 		if (reserve) {
- 			hugetlb_acct_memory(h, -reserve);
-@@ -3075,12 +3084,16 @@ int hugetlb_reserve_pages(struct inode *
- 		set_vma_resv_flags(vma, HPAGE_RESV_OWNER);
++	memset(&props, 0, sizeof(props));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = intel_panel_get_max_backlight(dev);
+ 	dev_priv->backlight =
+diff -puN drivers/gpu/drm/radeon/radeon_legacy_encoders.c~backlight-initialize-struct-backlight_properties-properly drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+--- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c~backlight-initialize-struct-backlight_properties-properly
++++ a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+@@ -369,6 +369,7 @@ void radeon_legacy_backlight_init(struct
+ 		goto error;
  	}
  
--	if (chg < 0)
--		return chg;
-+	if (chg < 0) {
-+		ret = chg;
-+		goto out_err;
-+	}
++	memset(&props, 0, sizeof(props));
+ 	props.max_brightness = MAX_RADEON_LEVEL;
+ 	props.type = BACKLIGHT_RAW;
+ 	bd = backlight_device_register("radeon_bl", &drm_connector->kdev,
+diff -puN drivers/platform/x86/toshiba_acpi.c~backlight-initialize-struct-backlight_properties-properly drivers/platform/x86/toshiba_acpi.c
+--- a/drivers/platform/x86/toshiba_acpi.c~backlight-initialize-struct-backlight_properties-properly
++++ a/drivers/platform/x86/toshiba_acpi.c
+@@ -1095,6 +1095,7 @@ static int __devinit toshiba_acpi_setup_
+ 	ret = get_tr_backlight_status(dev, &enabled);
+ 	dev->tr_backlight_supported = !ret;
  
- 	/* There must be enough pages in the subpool for the mapping */
--	if (hugepage_subpool_get_pages(spool, chg))
--		return -ENOSPC;
-+	if (hugepage_subpool_get_pages(spool, chg)) {
-+		ret = -ENOSPC;
-+		goto out_err;
-+	}
++	memset(&props, 0, sizeof(props));
+ 	props.type = BACKLIGHT_PLATFORM;
+ 	props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
  
- 	/*
- 	 * Check enough hugepages are available for the reservation.
-@@ -3089,7 +3102,7 @@ int hugetlb_reserve_pages(struct inode *
- 	ret = hugetlb_acct_memory(h, chg);
- 	if (ret < 0) {
- 		hugepage_subpool_put_pages(spool, chg);
--		return ret;
-+		goto out_err;
- 	}
+diff -puN drivers/video/backlight/da903x_bl.c~backlight-initialize-struct-backlight_properties-properly drivers/video/backlight/da903x_bl.c
+--- a/drivers/video/backlight/da903x_bl.c~backlight-initialize-struct-backlight_properties-properly
++++ a/drivers/video/backlight/da903x_bl.c
+@@ -136,6 +136,7 @@ static int da903x_backlight_probe(struct
+ 		da903x_write(data->da903x_dev, DA9034_WLED_CONTROL2,
+ 				DA9034_WLED_ISET(pdata->output_current));
  
- 	/*
-@@ -3106,6 +3119,9 @@ int hugetlb_reserve_pages(struct inode *
- 	if (!vma || vma->vm_flags & VM_MAYSHARE)
- 		region_add(&inode->i_mapping->private_list, from, to);
- 	return 0;
-+out_err:
-+	resv_map_put(vma);
-+	return ret;
- }
++	memset(&props, 0, sizeof(props));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = max_brightness;
+ 	bl = backlight_device_register(pdev->name, data->da903x_dev, data,
+diff -puN drivers/video/backlight/pcf50633-backlight.c~backlight-initialize-struct-backlight_properties-properly drivers/video/backlight/pcf50633-backlight.c
+--- a/drivers/video/backlight/pcf50633-backlight.c~backlight-initialize-struct-backlight_properties-properly
++++ a/drivers/video/backlight/pcf50633-backlight.c
+@@ -111,6 +111,7 @@ static int __devinit pcf50633_bl_probe(s
+ 	if (!pcf_bl)
+ 		return -ENOMEM;
  
- void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed)
++	memset(&bl_props, 0, sizeof(bl_props));
+ 	bl_props.type = BACKLIGHT_RAW;
+ 	bl_props.max_brightness = 0x3f;
+ 	bl_props.power = FB_BLANK_UNBLANK;
+diff -puN drivers/video/backlight/wm831x_bl.c~backlight-initialize-struct-backlight_properties-properly drivers/video/backlight/wm831x_bl.c
+--- a/drivers/video/backlight/wm831x_bl.c~backlight-initialize-struct-backlight_properties-properly
++++ a/drivers/video/backlight/wm831x_bl.c
+@@ -194,6 +194,7 @@ static int wm831x_backlight_probe(struct
+ 	data->current_brightness = 0;
+ 	data->isink_reg = isink_reg;
+ 
++	memset(&props, 0, sizeof(props));
+ 	props.type = BACKLIGHT_RAW;
+ 	props.max_brightness = max_isel;
+ 	bl = backlight_device_register("wm831x", &pdev->dev, data,
+diff -puN drivers/video/omap2/displays/panel-acx565akm.c~backlight-initialize-struct-backlight_properties-properly drivers/video/omap2/displays/panel-acx565akm.c
+--- a/drivers/video/omap2/displays/panel-acx565akm.c~backlight-initialize-struct-backlight_properties-properly
++++ a/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -532,6 +532,7 @@ static int acx_panel_probe(struct omap_d
+ 
+ 	/*------- Backlight control --------*/
+ 
++	memset(&props, 0, sizeof(props));
+ 	props.fb_blank = FB_BLANK_UNBLANK;
+ 	props.power = FB_BLANK_UNBLANK;
+ 	props.type = BACKLIGHT_RAW;
 _
-Subject: Subject: hugetlb: fix resv_map leak in error path
+Subject: Subject: backlight: initialize struct backlight_properties properly
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from corentin.chary@gmail.com are
 
-hugetlb-fix-resv_map-leak-in-error-path.patch
+backlight-initialize-struct-backlight_properties-properly.patch
 
