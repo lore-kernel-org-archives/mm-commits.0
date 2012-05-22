@@ -1,140 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-initialize-struct-backlight_properties-properly.patch added to -mm tree
-Date: Tue, 22 May 2012 13:59:36 -0700
-Message-ID: <20120522205936.C5501A0241@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] memcg-decrement-static-keys-at-real-destroy-time-fix.patch removed from -mm tree
+Date: Tue, 22 May 2012 15:10:59 -0700
+Message-ID: <20120522221102.C7618A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:37076 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754933Ab2EVU7j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 May 2012 16:59:39 -0400
-Received: by faaa25 with SMTP id a25so385650faa.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 13:59:38 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:33375 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751748Ab2EVWLH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 May 2012 18:11:07 -0400
+Received: by bkty5 with SMTP id y5so386267bkt.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 15:11:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: corentin.chary@gmail.com, airlied@gmail.com, jg1.han@samsung.com, rpurdie@rpsys.net
+To: akpm@linux-foundation.org, glommer@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: initialize struct backlight_properties properly
-has been added to the -mm tree.  Its filename is
-     backlight-initialize-struct-backlight_properties-properly.patch
+     Subject: memcg-decrement-static-keys-at-real-destroy-time-fix
+has been removed from the -mm tree.  Its filename was
+     memcg-decrement-static-keys-at-real-destroy-time-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: backlight: initialize struct backlight_properties properly
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-decrement-static-keys-at-real-destroy-time-fix
 
-In all these files, the .power field was never correctly initialized.
+tweak comment text and layout
 
-Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_panel.c              |    1 +
- drivers/gpu/drm/radeon/radeon_legacy_encoders.c |    1 +
- drivers/platform/x86/toshiba_acpi.c             |    1 +
- drivers/video/backlight/da903x_bl.c             |    1 +
- drivers/video/backlight/pcf50633-backlight.c    |    1 +
- drivers/video/backlight/wm831x_bl.c             |    1 +
- drivers/video/omap2/displays/panel-acx565akm.c  |    1 +
- 7 files changed, 7 insertions(+)
+ net/ipv4/tcp_memcontrol.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/intel_panel.c~backlight-initialize-struct-backlight_properties-properly drivers/gpu/drm/i915/intel_panel.c
---- a/drivers/gpu/drm/i915/intel_panel.c~backlight-initialize-struct-backlight_properties-properly
-+++ a/drivers/gpu/drm/i915/intel_panel.c
-@@ -368,6 +368,7 @@ int intel_panel_setup_backlight(struct d
- 	else
- 		return -ENODEV;
- 
-+	memset(&props, 0, sizeof(props));
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = intel_panel_get_max_backlight(dev);
- 	dev_priv->backlight =
-diff -puN drivers/gpu/drm/radeon/radeon_legacy_encoders.c~backlight-initialize-struct-backlight_properties-properly drivers/gpu/drm/radeon/radeon_legacy_encoders.c
---- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c~backlight-initialize-struct-backlight_properties-properly
-+++ a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
-@@ -369,6 +369,7 @@ void radeon_legacy_backlight_init(struct
- 		goto error;
- 	}
- 
-+	memset(&props, 0, sizeof(props));
- 	props.max_brightness = MAX_RADEON_LEVEL;
- 	props.type = BACKLIGHT_RAW;
- 	bd = backlight_device_register("radeon_bl", &drm_connector->kdev,
-diff -puN drivers/platform/x86/toshiba_acpi.c~backlight-initialize-struct-backlight_properties-properly drivers/platform/x86/toshiba_acpi.c
---- a/drivers/platform/x86/toshiba_acpi.c~backlight-initialize-struct-backlight_properties-properly
-+++ a/drivers/platform/x86/toshiba_acpi.c
-@@ -1095,6 +1095,7 @@ static int __devinit toshiba_acpi_setup_
- 	ret = get_tr_backlight_status(dev, &enabled);
- 	dev->tr_backlight_supported = !ret;
- 
-+	memset(&props, 0, sizeof(props));
- 	props.type = BACKLIGHT_PLATFORM;
- 	props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
- 
-diff -puN drivers/video/backlight/da903x_bl.c~backlight-initialize-struct-backlight_properties-properly drivers/video/backlight/da903x_bl.c
---- a/drivers/video/backlight/da903x_bl.c~backlight-initialize-struct-backlight_properties-properly
-+++ a/drivers/video/backlight/da903x_bl.c
-@@ -136,6 +136,7 @@ static int da903x_backlight_probe(struct
- 		da903x_write(data->da903x_dev, DA9034_WLED_CONTROL2,
- 				DA9034_WLED_ISET(pdata->output_current));
- 
-+	memset(&props, 0, sizeof(props));
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = max_brightness;
- 	bl = backlight_device_register(pdev->name, data->da903x_dev, data,
-diff -puN drivers/video/backlight/pcf50633-backlight.c~backlight-initialize-struct-backlight_properties-properly drivers/video/backlight/pcf50633-backlight.c
---- a/drivers/video/backlight/pcf50633-backlight.c~backlight-initialize-struct-backlight_properties-properly
-+++ a/drivers/video/backlight/pcf50633-backlight.c
-@@ -111,6 +111,7 @@ static int __devinit pcf50633_bl_probe(s
- 	if (!pcf_bl)
- 		return -ENOMEM;
- 
-+	memset(&bl_props, 0, sizeof(bl_props));
- 	bl_props.type = BACKLIGHT_RAW;
- 	bl_props.max_brightness = 0x3f;
- 	bl_props.power = FB_BLANK_UNBLANK;
-diff -puN drivers/video/backlight/wm831x_bl.c~backlight-initialize-struct-backlight_properties-properly drivers/video/backlight/wm831x_bl.c
---- a/drivers/video/backlight/wm831x_bl.c~backlight-initialize-struct-backlight_properties-properly
-+++ a/drivers/video/backlight/wm831x_bl.c
-@@ -194,6 +194,7 @@ static int wm831x_backlight_probe(struct
- 	data->current_brightness = 0;
- 	data->isink_reg = isink_reg;
- 
-+	memset(&props, 0, sizeof(props));
- 	props.type = BACKLIGHT_RAW;
- 	props.max_brightness = max_isel;
- 	bl = backlight_device_register("wm831x", &pdev->dev, data,
-diff -puN drivers/video/omap2/displays/panel-acx565akm.c~backlight-initialize-struct-backlight_properties-properly drivers/video/omap2/displays/panel-acx565akm.c
---- a/drivers/video/omap2/displays/panel-acx565akm.c~backlight-initialize-struct-backlight_properties-properly
-+++ a/drivers/video/omap2/displays/panel-acx565akm.c
-@@ -532,6 +532,7 @@ static int acx_panel_probe(struct omap_d
- 
- 	/*------- Backlight control --------*/
- 
-+	memset(&props, 0, sizeof(props));
- 	props.fb_blank = FB_BLANK_UNBLANK;
- 	props.power = FB_BLANK_UNBLANK;
- 	props.type = BACKLIGHT_RAW;
+diff -puN net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-fix net/ipv4/tcp_memcontrol.c
+--- a/net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-fix
++++ a/net/ipv4/tcp_memcontrol.c
+@@ -109,19 +109,19 @@ static int tcp_update_limit(struct mem_c
+ 	else if (val != RESOURCE_MAX) {
+ 		/*
+ 		 * ->activated needs to be written after the static_key update.
+-		 *  This is what guarantees that the socket activation function
+-		 *  is the last one to run. See sock_update_memcg() for details,
+-		 *  and note that we don't mark any socket as belonging to this
+-		 *  memcg until that flag is up.
++		 * This is what guarantees that the socket activation function
++		 * is the last one to run. See sock_update_memcg() for details,
++		 * and note that we don't mark any socket as belonging to this
++		 * memcg until that flag is up.
+ 		 *
+-		 *  We need to do this, because static_keys will span multiple
+-		 *  sites, but we can't control their order. If we mark a socket
+-		 *  as accounted, but the accounting functions are not patched in
+-		 *  yet, we'll lose accounting.
++		 * We need to do this, because static_keys will span multiple
++		 * sites, but we can't control their order. If we mark a socket
++		 * as accounted but the accounting functions are not patched in
++		 * yet, we'll lose accounting.
+ 		 *
+-		 *  We never race with the readers in sock_update_memcg(), because
+-		 *  when this value change, the code to process it is not patched in
+-		 *  yet.
++		 * We never race with the readers in sock_update_memcg()
++		 * because when this value changes, the code to process it is
++		 * not yet patched in.
+ 		 */
+ 		if (!cg_proto->activated) {
+ 			static_key_slow_inc(&memcg_socket_limit_enabled);
 _
-Subject: Subject: backlight: initialize struct backlight_properties properly
 
-Patches currently in -mm which might be from corentin.chary@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-backlight-initialize-struct-backlight_properties-properly.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+thermal-add-generic-cpufreq-cooling-implementation-fix.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
+mm-page_allocc-cleanups.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
+memcg-always-free-struct-memcg-through-schedule_work-fix.patch
+memcg-decrement-static-keys-at-real-destroy-time-v6.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
+backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
+backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
+backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-omap1-use-pr_info-instead-of-printk-fix.patch
+backlight-progear-use-pr_err-instead-of-printk-fix.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix.patch
+fs-nls-add-apple-nls-fix.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
