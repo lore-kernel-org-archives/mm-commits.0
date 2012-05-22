@@ -1,161 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: + mm-consider-all-swapped-back-pages-in-used-once-logic.patch added to -mm tree
-Date: Mon, 21 May 2012 15:45:18 -0700
-Message-ID: <20120521224518.8C4DAA0295@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch removed from -mm tree
+Date: Tue, 22 May 2012 12:08:08 -0700
+Message-ID: <20120522190811.1A949A00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:59834 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405Ab2EUWpU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 May 2012 18:45:20 -0400
-Received: by qabg24 with SMTP id g24so328818qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 21 May 2012 15:45:19 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:51487 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750747Ab2EVTIO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 May 2012 15:08:14 -0400
+Received: by yhgm50 with SMTP id m50so922813yhg.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 12:08:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org
+To: ebiederm@xmission.com, efault@gmx.de, gorcunov@openvz.org, louis.rilling@kerlabs.com, oleg@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: consider all swapped back pages in used-once logic
-has been added to the -mm tree.  Its filename is
-     mm-consider-all-swapped-back-pages-in-used-once-logic.patch
+     Subject: pidns: guarantee that the pidns init will be the last pidns process reaped
+has been removed from the -mm tree.  Its filename was
+     pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: consider all swapped back pages in used-once logic
+From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: pidns: guarantee that the pidns init will be the last pidns process reaped
 
-Commit 64574746 ("vmscan: detect mapped file pages used only once") made
-mapped pages have another round in inactive list because they might be
-just short lived and so we could consider them again next time.  This
-heuristic helps to reduce pressure on the active list with a streaming IO
-worklods.
+This change extends the thread group zombie leader logic to work for pid
+namespaces.  The task with pid 1 is declared the pid namespace leader.  A
+pid namespace with no more processes is detected by observing that the
+init task is a zombie in an empty thread group, and the the init task has
+no children.
 
-This patch fixes a regression introduced by this commit for heavy shmem
-based workloads because unlike Anon pages, which are excluded from this
-heuristic because they are usually long lived, shmem pages are handled as
-a regular page cache.
+Instead of moving lingering EXIT_DEAD tasks off of init's ->children list
+we now block init from exiting until those children have self reaped and
+have removed themselves.  Which guarantees that the init task is the last
+task in a pid namespace to be reaped.
 
-This doesn't work quite well, unfortunately, if the workload is mostly
-backed by shmem (in memory database sitting on 80% of memory) with a
-streaming IO in the background (backup - up to 20% of memory).  Anon
-inactive list is full of (dirty) shmem pages when watermarks are hit. 
-Shmem pages are kept in the inactive list (they are referenced) in the
-first round and it is hard to reclaim anything else so we reach lower
-scanning priorities very quickly which leads to an excessive swap out.
-
-Let's fix this by excluding all swap backed pages (they tend to be long
-lived wrt. the regular page cache anyway) from used-once heuristic and
-rather activate them if they are referenced.
-
-The customer's workload is shmem backed database (80% of RAM) and they are
-measuring transactions/s with an IO in the background (20%).  Transactions
-touch more or less random rows in the table.  The transaction rate fell by
-a factor of 3 (in the worst case) because of commit 64574746.  This patch
-restores the previous numbers.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>	[2.6.34+]
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Louis Rilling <louis.rilling@kerlabs.com>
+Cc: Mike Galbraith <efault@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |   46 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 35 insertions(+), 11 deletions(-)
 
-diff -puN mm/vmscan.c~mm-consider-all-swapped-back-pages-in-used-once-logic mm/vmscan.c
---- a/mm/vmscan.c~mm-consider-all-swapped-back-pages-in-used-once-logic
-+++ a/mm/vmscan.c
-@@ -657,7 +657,7 @@ static enum page_references page_check_r
- 		return PAGEREF_RECLAIM;
+diff -puN kernel/exit.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped kernel/exit.c
+--- a/kernel/exit.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped
++++ a/kernel/exit.c
+@@ -164,6 +164,16 @@ static void delayed_put_task_struct(stru
+ 	put_task_struct(tsk);
+ }
  
- 	if (referenced_ptes) {
--		if (PageAnon(page))
-+		if (PageSwapBacked(page))
- 			return PAGEREF_ACTIVATE;
++static bool pidns_leader(struct task_struct *tsk)
++{
++	return is_child_reaper(task_pid(tsk));
++}
++
++static bool delay_pidns_leader(struct task_struct *tsk)
++{
++	return pidns_leader(tsk) &&
++	       (!thread_group_empty(tsk) || !list_empty(&tsk->children));
++}
+ 
+ void release_task(struct task_struct * p)
+ {
+@@ -183,15 +193,23 @@ repeat:
+ 	__exit_signal(p);
+ 
+ 	/*
+-	 * If we are the last non-leader member of the thread
+-	 * group, and the leader is zombie, then notify the
+-	 * group leader's parent process. (if it wants notification.)
++	 * If we are the last non-leader member of the thread group,
++	 * or the last non-leader member of the pid namespace, and the
++	 * leader is zombie, then notify the leader's parent
++	 * process. (if it wants notification.)
+ 	 */
+ 	zap_leader = 0;
+-	leader = p->group_leader;
+-	if (leader != p && thread_group_empty(leader) && leader->exit_state == EXIT_ZOMBIE) {
++	leader = NULL;
++	/* Do we need to worry about our thread_group or our pidns leader? */
++	if (p != p->group_leader)
++		leader = p->group_leader;
++	else if (pidns_leader(p->real_parent))
++		leader = p->real_parent;
++
++	if (leader && thread_group_empty(leader) &&
++	    leader->exit_state == EXIT_ZOMBIE && list_empty(&leader->children)) {
  		/*
- 		 * All mapped pages start out with page table
+-		 * If we were the last child thread and the leader has
++		 * If we were the last task in the group and the leader has
+ 		 * exited already, and the leader's parent ignores SIGCHLD,
+ 		 * then we are the one who should release the leader.
+ 		 */
+@@ -720,11 +738,10 @@ static struct task_struct *find_new_reap
+ 		zap_pid_ns_processes(pid_ns);
+ 		write_lock_irq(&tasklist_lock);
+ 		/*
+-		 * We can not clear ->child_reaper or leave it alone.
+-		 * There may by stealth EXIT_DEAD tasks on ->children,
+-		 * forget_original_parent() must move them somewhere.
++		 * Move all lingering EXIT_DEAD tasks onto the
++		 * children list of init's thread group leader.
+ 		 */
+-		pid_ns->child_reaper = init_pid_ns.child_reaper;
++		pid_ns->child_reaper = father->group_leader;
+ 	} else if (father->signal->has_child_subreaper) {
+ 		struct task_struct *reaper;
+ 
+@@ -798,6 +815,12 @@ static void forget_original_parent(struc
+ 	exit_ptrace(father);
+ 	reaper = find_new_reaper(father);
+ 
++	/* Return immediately if we aren't going to reparent anything */
++	if (unlikely(reaper == father)) {
++		write_unlock_irq(&tasklist_lock);
++		return;
++	}
++
+ 	list_for_each_entry_safe(p, n, &father->children, sibling) {
+ 		struct task_struct *t = p;
+ 		do {
+@@ -853,6 +876,7 @@ static void exit_notify(struct task_stru
+ 		autoreap = do_notify_parent(tsk, sig);
+ 	} else if (thread_group_leader(tsk)) {
+ 		autoreap = thread_group_empty(tsk) &&
++			!delay_pidns_leader(tsk) &&
+ 			do_notify_parent(tsk, tsk->exit_signal);
+ 	} else {
+ 		autoreap = true;
+@@ -1583,7 +1607,7 @@ static int wait_consider_task(struct wai
+ 		}
+ 
+ 		/* we don't reap group leaders with subthreads */
+-		if (!delay_group_leader(p))
++		if (!delay_group_leader(p) && !delay_pidns_leader(p))
+ 			return wait_task_zombie(wo, p);
+ 
+ 		/*
 _
-Subject: Subject: mm: consider all swapped back pages in used-once logic
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
+origin.patch
 linux-next.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-memcg-add-hugetlb-extension.patch
-memcg-add-hugetlb-extension-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
-kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
-documentation-memcg-future-proof-hierarchical-statistics-documentation.patch
-mm-consider-all-swapped-back-pages-in-used-once-logic.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-memcg-swap-mem_cgroup_move_swap_account-never-needs-fixup.patch
-memcg-swap-use-mem_cgroup_uncharge_swap.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
-memcg-mark-more-functions-variables-as-static.patch
-memcg-remove-unused-variable.patch
-memcg-mark-stat-field-of-mem_cgroup-struct-as-__percpu.patch
-memcg-remove-redundant-parentheses.patch
-memcg-make-threshold-index-in-the-right-position.patch
-memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
-rescounters-add-res_counter_uncharge_until.patch
-memcg-use-res_counter_uncharge_until-in-move_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
-memcg-dont-uncharge-in-mem_cgroup_move_account.patch
-remove-__must_check-for-res_counter_charge_nofail.patch
-mm-memcg-remove-obsolete-statistics-array-boundary-enum-item.patch
-mm-memcg-convert-numa-stat-to-read_seq_string-interface.patch
-mm-memcg-print-statistics-directly-to-seq_file.patch
-mm-memcg-keep-ratelimit-counter-separate-from-event-counters.patch
-mm-memcg-group-swapped-out-statistics-counter-logically.patch
-mm-memcg-print-statistics-from-live-counters.patch
-mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
-mm-memcg-get_lru_size-not-get_lruvec_size.patch
-mm-trivial-cleanups-in-vmscanc.patch
-mm-memcg-apply-add-del_page-to-lruvec.patch
-memcg-always-free-struct-memcg-through-schedule_work.patch
-memcg-decrement-static-keys-at-real-destroy-time.patch
+cred-remove-task_is_dead-from-__task_cred-validation.patch
+pidns-use-task_active_pid_ns-in-do_notify_parent.patch
+pidns-make-killed-children-autoreap.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+c-r-procfs-add-arg_start-end-env_start-end-and-exit_code-members-to-proc-pid-stat.patch
 
