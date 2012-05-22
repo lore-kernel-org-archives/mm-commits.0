@@ -1,77 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-decrement-static-keys-at-real-destroy-time-fix.patch removed from -mm tree
-Date: Tue, 22 May 2012 15:10:59 -0700
-Message-ID: <20120522221102.C7618A0308@akpm.mtv.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 22 May 2012 15:41:29 -0700
+Message-ID: <20120522224129.84A10A0684@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:33375 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751748Ab2EVWLH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 May 2012 18:11:07 -0400
-Received: by bkty5 with SMTP id y5so386267bkt.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 15:11:05 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:43816 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756159Ab2EVWlc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 May 2012 18:41:32 -0400
+Received: by were53 with SMTP id e53so278861wer.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 15:41:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, glommer@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: memcg-decrement-static-keys-at-real-destroy-time-fix
-has been removed from the -mm tree.  Its filename was
-     memcg-decrement-static-keys-at-real-destroy-time-fix.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-decrement-static-keys-at-real-destroy-time-fix
+Subject: linux-next-git-rejects
 
-tweak comment text and layout
-
-Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/tcp_memcontrol.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/x86/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-fix net/ipv4/tcp_memcontrol.c
---- a/net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-fix
-+++ a/net/ipv4/tcp_memcontrol.c
-@@ -109,19 +109,19 @@ static int tcp_update_limit(struct mem_c
- 	else if (val != RESOURCE_MAX) {
- 		/*
- 		 * ->activated needs to be written after the static_key update.
--		 *  This is what guarantees that the socket activation function
--		 *  is the last one to run. See sock_update_memcg() for details,
--		 *  and note that we don't mark any socket as belonging to this
--		 *  memcg until that flag is up.
-+		 * This is what guarantees that the socket activation function
-+		 * is the last one to run. See sock_update_memcg() for details,
-+		 * and note that we don't mark any socket as belonging to this
-+		 * memcg until that flag is up.
- 		 *
--		 *  We need to do this, because static_keys will span multiple
--		 *  sites, but we can't control their order. If we mark a socket
--		 *  as accounted, but the accounting functions are not patched in
--		 *  yet, we'll lose accounting.
-+		 * We need to do this, because static_keys will span multiple
-+		 * sites, but we can't control their order. If we mark a socket
-+		 * as accounted but the accounting functions are not patched in
-+		 * yet, we'll lose accounting.
- 		 *
--		 *  We never race with the readers in sock_update_memcg(), because
--		 *  when this value change, the code to process it is not patched in
--		 *  yet.
-+		 * We never race with the readers in sock_update_memcg()
-+		 * because when this value changes, the code to process it is
-+		 * not yet patched in.
- 		 */
- 		if (!cg_proto->activated) {
- 			static_key_slow_inc(&memcg_socket_limit_enabled);
+diff -puN arch/x86/Kconfig~linux-next-git-rejects arch/x86/Kconfig
+--- a/arch/x86/Kconfig~linux-next-git-rejects
++++ a/arch/x86/Kconfig
+@@ -83,10 +83,8 @@ config X86
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select GENERIC_IOMAP
+ 	select DCACHE_WORD_ACCESS
+-<<<<<<< HEAD
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select HAVE_ARCH_SECCOMP_FILTER
+-=======
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select GENERIC_CMOS_UPDATE
+ 	select CLOCKSOURCE_WATCHDOG
+@@ -97,7 +95,6 @@ config X86
+ 	select KTIME_SCALAR if X86_32
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select BUILDTIME_EXTABLE_SORT
+->>>>>>> linux-next/akpm-base
+ 
+ config INSTRUCTION_DECODER
+ 	def_bool (KPROBES || PERF_EVENTS || UPROBES)
 _
+Subject: Subject: linux-next-git-rejects
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -108,7 +102,7 @@ mm-push-lru-index-into-shrink_active_list-fix.patch
 memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
 mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
 memcg-always-free-struct-memcg-through-schedule_work-fix.patch
-memcg-decrement-static-keys-at-real-destroy-time-v6.patch
+memcg-decrement-static-keys-at-real-destroy-time-v6-fix.patch
 security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
 isdn-add-missing-kern_cont-fix.patch
 nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
@@ -157,4 +151,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+linux-next-git-rejects.patch
 
