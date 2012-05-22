@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-ufs-fix-potential-null-pointer-dereferencing-error-in-ufshcd_probe.patch added to -mm tree
-Date: Tue, 22 May 2012 13:15:42 -0700
-Message-ID: <20120522201542.9D080A0241@akpm.mtv.corp.google.com>
+Subject: + leds-add-lm3533-led-driver-fix.patch added to -mm tree
+Date: Tue, 22 May 2012 13:40:16 -0700
+Message-ID: <20120522204016.D7F57A044C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:35368 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932304Ab2EVUPo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 May 2012 16:15:44 -0400
-Received: by eeit10 with SMTP id t10so386852eei.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 13:15:43 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:44482 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933293Ab2EVUkS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 May 2012 16:40:18 -0400
+Received: by qcsp5 with SMTP id p5so791125qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 May 2012 13:40:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linkinjeon@gmail.com, James.Bottomley@HansenPartnership.com, santoshsy@gmail.com
+Cc: jhovold@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: drivers/scsi/ufs: fix potential NULL pointer dereferencing error in ufshcd_probe()
+     Subject: leds: lm3533: use devres to manage driver data
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-ufs-fix-potential-null-pointer-dereferencing-error-in-ufshcd_probe.patch
+     leds-add-lm3533-led-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <linkinjeon@gmail.com>
-Subject: drivers/scsi/ufs: fix potential NULL pointer dereferencing error in ufshcd_probe()
+From: Johan Hovold <jhovold@gmail.com>
+Subject: leds: lm3533: use devres to manage driver data
 
-Avoid dereferencing a NULL pointer if scsi_host_alloc() failed.
+Use devres to manage driver data.
 
-Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
-Acked-by: Santosh Y <santoshsy@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ufs/ufshcd.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/leds/leds-lm3533.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/ufs/ufshcd.c~drivers-scsi-ufs-fix-potential-null-pointer-dereferencing-error-in-ufshcd_probe drivers/scsi/ufs/ufshcd.c
---- a/drivers/scsi/ufs/ufshcd.c~drivers-scsi-ufs-fix-potential-null-pointer-dereferencing-error-in-ufshcd_probe
-+++ a/drivers/scsi/ufs/ufshcd.c
-@@ -1838,7 +1838,7 @@ ufshcd_probe(struct pci_dev *pdev, const
- 	err = pci_request_regions(pdev, UFSHCD);
- 	if (err < 0) {
- 		dev_err(&pdev->dev, "request regions failed\n");
--		goto out_disable;
-+		goto out_host_put;
+diff -puN drivers/leds/leds-lm3533.c~leds-add-lm3533-led-driver-fix drivers/leds/leds-lm3533.c
+--- a/drivers/leds/leds-lm3533.c~leds-add-lm3533-led-driver-fix
++++ a/drivers/leds/leds-lm3533.c
+@@ -632,7 +632,7 @@ static int __devinit lm3533_led_probe(st
+ 		return -EINVAL;
  	}
  
- 	hba->mmio_base = pci_ioremap_bar(pdev, 0);
-@@ -1927,8 +1927,9 @@ out_iounmap:
- 	iounmap(hba->mmio_base);
- out_release_regions:
- 	pci_release_regions(pdev);
--out_disable:
-+out_host_put:
- 	scsi_host_put(host);
-+out_disable:
- 	pci_clear_master(pdev);
- 	pci_disable_device(pdev);
- out_error:
+-	led = kzalloc(sizeof(*led), GFP_KERNEL);
++	led = devm_kzalloc(&pdev->dev, sizeof(*led), GFP_KERNEL);
+ 	if (!led)
+ 		return -ENOMEM;
+ 
+@@ -661,7 +661,7 @@ static int __devinit lm3533_led_probe(st
+ 	ret = led_classdev_register(pdev->dev.parent, &led->cdev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to register LED %d\n", pdev->id);
+-		goto err_free;
++		return ret;
+ 	}
+ 
+ 	led->cb.dev = led->cdev.dev;
+@@ -688,8 +688,6 @@ err_sysfs_remove:
+ err_unregister:
+ 	led_classdev_unregister(&led->cdev);
+ 	flush_work_sync(&led->work);
+-err_free:
+-	kfree(led);
+ 
+ 	return ret;
+ }
+@@ -704,7 +702,6 @@ static int __devexit lm3533_led_remove(s
+ 	sysfs_remove_group(&led->cdev.dev->kobj, &lm3533_led_attribute_group);
+ 	led_classdev_unregister(&led->cdev);
+ 	flush_work_sync(&led->work);
+-	kfree(led);
+ 
+ 	return 0;
+ }
 _
-Subject: Subject: drivers/scsi/ufs: fix potential NULL pointer dereferencing error in ufshcd_probe()
+Subject: Subject: leds: lm3533: use devres to manage driver data
 
-Patches currently in -mm which might be from linkinjeon@gmail.com are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
-origin.patch
 linux-next.patch
-drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic.patch
-ufs-fix-incorrect-return-value-about-success-and-failed.patch
-drivers-scsi-ufs-fix-potential-null-pointer-dereferencing-error-in-ufshcd_probe.patch
-fat-add-fat_msg_ratelimit.patch
-fat-use-fat_msg_ratelimit-in-fat__get_entry.patch
+backlight-add-lm3533-backlight-driver.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+backlight-add-lm3533-backlight-driver-v4.patch
+leds-add-lm3533-led-driver.patch
+leds-add-lm3533-led-driver-fix.patch
 
