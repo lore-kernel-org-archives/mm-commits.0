@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch added to -mm tree
-Date: Wed, 23 May 2012 16:42:21 -0700
-Message-ID: <20120523234222.35F69A028F@akpm.mtv.corp.google.com>
+Date: Wed, 23 May 2012 16:42:53 -0700
+Message-ID: <20120523234253.A0795A028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:64298 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750941Ab2EWXmX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 19:42:23 -0400
-Received: by ggeh3 with SMTP id h3so955821gge.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 16:42:22 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:62183 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750941Ab2EWXm4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 19:42:56 -0400
+Received: by eaao13 with SMTP id o13so450553eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 16:42:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, pmatouse@redhat.com, riel@redhat.com, uobergfe@redhat.com
+Cc: aarcange@redhat.com, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, pmatouse@redhat.com, riel@redhat.com, stable@vger.kernel.org, uobergfe@redhat.com
 
 
 The patch titled
@@ -132,6 +132,7 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Larry Woodman <lwoodman@redhat.com>
 Cc: Petr Matousek <pmatouse@redhat.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
