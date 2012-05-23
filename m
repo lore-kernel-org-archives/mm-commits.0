@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension.patch added to -mm tree
-Date: Wed, 23 May 2012 16:18:18 -0700
-Message-ID: <20120523231818.A4378A00AB@akpm.mtv.corp.google.com>
+Subject: + mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch added to -mm tree
+Date: Wed, 23 May 2012 16:42:21 -0700
+Message-ID: <20120523234222.35F69A028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:54071 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752635Ab2EWXSU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 19:18:20 -0400
-Received: by vbnl22 with SMTP id l22so951741vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 16:18:19 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:64298 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750941Ab2EWXmX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 19:42:23 -0400
+Received: by ggeh3 with SMTP id h3so955821gge.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 16:42:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: aarcange@redhat.com, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, pmatouse@redhat.com, riel@redhat.com, uobergfe@redhat.com
 
 
 The patch titled
-     Subject: memcg/hugetlb: Add failcnt support for hugetlb extension
+     Subject: mm: pmd_read_atomic: fix 32bit PAE pmd walk vs pmd_populate SMP race condition
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension.patch
+     mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,117 +33,229 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: memcg/hugetlb: Add failcnt support for hugetlb extension
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: pmd_read_atomic: fix 32bit PAE pmd walk vs pmd_populate SMP race condition
 
-Expose the failcnt details to userspace similar to memory and memsw.
+When holding the mmap_sem for reading, pmd_offset_map_lock should only
+run on a pmd_t that has been read atomically from the pmdp
+pointer, otherwise we may read only half of it leading to this crash.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+PID: 11679  TASK: f06e8000  CPU: 3   COMMAND: "do_race_2_panic"
+ #0 [f06a9dd8] crash_kexec at c049b5ec
+ #1 [f06a9e2c] oops_end at c083d1c2
+ #2 [f06a9e40] no_context at c0433ded
+ #3 [f06a9e64] bad_area_nosemaphore at c043401a
+ #4 [f06a9e6c] __do_page_fault at c0434493
+ #5 [f06a9eec] do_page_fault at c083eb45
+ #6 [f06a9f04] error_code (via page_fault) at c083c5d5
+    EAX: 01fb470c EBX: fff35000 ECX: 00000003 EDX: 00000100 EBP:
+    00000000
+    DS:  007b     ESI: 9e201000 ES:  007b     EDI: 01fb4700 GS:  00e0
+    CS:  0060     EIP: c083bc14 ERR: ffffffff EFLAGS: 00010246
+ #7 [f06a9f38] _spin_lock at c083bc14
+ #8 [f06a9f44] sys_mincore at c0507b7d
+ #9 [f06a9fb0] system_call at c083becd
+                         start           len
+    EAX: ffffffda  EBX: 9e200000  ECX: 00001000  EDX: 6228537f
+    DS:  007b      ESI: 00000000  ES:  007b      EDI: 003d0f00
+    SS:  007b      ESP: 62285354  EBP: 62285388  GS:  0033
+    CS:  0073      EIP: 00291416  ERR: 000000da  EFLAGS: 00000286
+
+This should be a longstanding bug affecting x86 32bit PAE without
+THP. Only archs with 64bit large pmd_t and 32bit unsigned long should
+be affected.
+
+With THP enabled the barrier() in
+pmd_none_or_trans_huge_or_clear_bad() would partly hide the bug when
+the pmd transition from none to stable, by forcing a re-read of the
+*pmd in pmd_offset_map_lock, but when THP is enabled a new set of
+problem arises by the fact could then transition freely in any of the
+none, pmd_trans_huge or pmd_trans_stable states. So making the barrier
+in pmd_none_or_trans_huge_or_clear_bad() unconditional isn't good idea
+and it would be a flakey solution.
+
+This should be fully fixed by introducing a pmd_read_atomic that reads
+the pmd in order with THP disabled, or by reading the pmd atomically
+with cmpxchg8b with THP enabled.
+
+Luckily this new race condition only triggers in the places that must
+already be covered by pmd_none_or_trans_huge_or_clear_bad() so the fix
+is localized there but this bug is not related to THP.
+
+NOTE: this can trigger on x86 32bit systems with PAE enabled with more
+than 4G of ram, otherwise the high part of the pmd will never risk to
+be truncated because it would be zero at all times, in turn so hiding
+the SMP race.
+
+This bug was discovered and fully debugged by Ulrich, quote:
+
+----
+[..]
+pmd_none_or_trans_huge_or_clear_bad() loads the content of edx and
+eax.
+
+    496 static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t
+    *pmd)
+    497 {
+    498         /* depend on compiler for an atomic pmd read */
+    499         pmd_t pmdval = *pmd;
+
+                                // edi = pmd pointer
+0xc0507a74 <sys_mincore+548>:   mov    0x8(%esp),%edi
+...
+                                // edx = PTE page table high address
+0xc0507a84 <sys_mincore+564>:   mov    0x4(%edi),%edx
+...
+                                // eax = PTE page table low address
+0xc0507a8e <sys_mincore+574>:   mov    (%edi),%eax
+
+[..]
+
+Please note that the PMD is not read atomically. These are two "mov"
+instructions where the high order bits of the PMD entry are fetched
+first. Hence, the above machine code is prone to the following race.
+
+-  The PMD entry {high|low} is 0x0000000000000000.
+   The "mov" at 0xc0507a84 loads 0x00000000 into edx.
+
+-  A page fault (on another CPU) sneaks in between the two "mov"
+   instructions and instantiates the PMD.
+
+-  The PMD entry {high|low} is now 0x00000003fda38067.
+   The "mov" at 0xc0507a8e loads 0xfda38067 into eax.
+----
+
+Reported-by: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Petr Matousek <pmatouse@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 -
- mm/memcontrol.c         |   40 ++++++++++++++++++++++++--------------
- 2 files changed, 27 insertions(+), 15 deletions(-)
+ arch/x86/include/asm/pgtable-3level.h |   50 ++++++++++++++++++++++++
+ include/asm-generic/pgtable.h         |   22 +++++++++-
+ 2 files changed, 70 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension
-+++ a/include/linux/hugetlb.h
-@@ -218,7 +218,7 @@ struct hstate {
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
- #ifdef CONFIG_MEM_RES_CTLR_HUGETLB
- 	/* mem cgroup control files */
--	struct cftype mem_cgroup_files[4];
-+	struct cftype mem_cgroup_files[5];
- #endif
- 	char name[HSTATE_NAME_LEN];
- };
-diff -puN mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension mm/memcontrol.c
---- a/mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension
-+++ a/mm/memcontrol.c
-@@ -4131,7 +4131,7 @@ out:
- static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
--	int type, name;
-+	int type, name, idx;
- 
- 	type = MEMFILE_TYPE(event);
- 	name = MEMFILE_ATTR(event);
-@@ -4139,24 +4139,29 @@ static int mem_cgroup_reset(struct cgrou
- 	if (!do_swap_account && type == _MEMSWAP)
- 		return -EOPNOTSUPP;
- 
--	switch (name) {
--	case RES_MAX_USAGE:
--		if (type == _MEM)
-+	switch (type) {
-+	case _MEM:
-+		if (name == RES_MAX_USAGE)
- 			res_counter_reset_max(&memcg->res);
--		else if (type == _MEMHUGETLB) {
--			int idx = MEMFILE_IDX(event);
--			res_counter_reset_max(&memcg->hugepage[idx]);
--		} else
--			res_counter_reset_max(&memcg->memsw);
--		break;
--	case RES_FAILCNT:
--		if (type == _MEM)
-+		else
- 			res_counter_reset_failcnt(&memcg->res);
-+		break;
-+	case _MEMSWAP:
-+		if (name == RES_MAX_USAGE)
-+			res_counter_reset_max(&memcg->memsw);
- 		else
- 			res_counter_reset_failcnt(&memcg->memsw);
- 		break;
-+	case _MEMHUGETLB:
-+		idx = MEMFILE_IDX(event);
-+		if (name == RES_MAX_USAGE)
-+			res_counter_reset_max(&memcg->hugepage[idx]);
-+		else
-+			res_counter_reset_failcnt(&memcg->hugepage[idx]);
-+		break;
-+	default:
-+		BUG();
- 	}
--
- 	return 0;
+diff -puN arch/x86/include/asm/pgtable-3level.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition arch/x86/include/asm/pgtable-3level.h
+--- a/arch/x86/include/asm/pgtable-3level.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition
++++ a/arch/x86/include/asm/pgtable-3level.h
+@@ -31,6 +31,56 @@ static inline void native_set_pte(pte_t 
+ 	ptep->pte_low = pte.pte_low;
  }
  
-@@ -5246,8 +5251,15 @@ int __init mem_cgroup_hugetlb_file_init(
- 	cft->trigger  = mem_cgroup_reset;
- 	cft->read = mem_cgroup_read;
- 
--	/* NULL terminate the last cft */
-+	/* Add the failcntfile */
- 	cft = &h->mem_cgroup_files[3];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "hugetlb.%s.failcnt", buf);
-+	cft->private  = __MEMFILE_PRIVATE(idx, _MEMHUGETLB, RES_FAILCNT);
-+	cft->trigger  = mem_cgroup_reset;
-+	cft->read = mem_cgroup_read;
++#define pmd_read_atomic pmd_read_atomic
++/*
++ * pte_offset_map_lock on 32bit PAE kernels was reading the pmd_t with
++ * a "*pmdp" dereference done by gcc. Problem is, in certain places
++ * where pte_offset_map_lock is called, concurrent page faults are
++ * allowed, if the mmap_sem is hold for reading. An example is mincore
++ * vs page faults vs MADV_DONTNEED. On the page fault side
++ * pmd_populate rightfully does a set_64bit, but if we're reading the
++ * pmd_t with a "*pmdp" on the mincore side, a SMP race can happen
++ * because gcc will not read the 64bit of the pmd atomically. To fix
++ * this all places running pmd_offset_map_lock() while holding the
++ * mmap_sem in read mode, shall read the pmdp pointer using this
++ * function to know if the pmd is null nor not, and in turn to know if
++ * they can run pmd_offset_map_lock or pmd_trans_huge or other pmd
++ * operations.
++ *
++ * Without THP if the mmap_sem is hold for reading, the
++ * pmd can only transition from null to not null while pmd_read_atomic runs.
++ * So there's no need of literally reading it atomically.
++ *
++ * With THP if the mmap_sem is hold for reading, the pmd can become
++ * THP or null or point to a pte (and in turn become "stable") at any
++ * time under pmd_read_atomic, so it's mandatory to read it atomically
++ * with cmpxchg8b.
++ */
++#ifndef CONFIG_TRANSPARENT_HUGEPAGE
++static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
++{
++	pmdval_t ret;
++	u32 *tmp = (u32 *)pmdp;
 +
-+	/* NULL terminate the last cft */
-+	cft = &h->mem_cgroup_files[4];
- 	memset(cft, 0, sizeof(*cft));
++	ret = (pmdval_t) (*tmp);
++	if (ret) {
++		/*
++		 * If the low part is null, we must not read the high part
++		 * or we can end up with a partial pmd.
++		 */
++		smp_rmb();
++		ret |= ((pmdval_t)*(tmp + 1)) << 32;
++	}
++
++	return (pmd_t) { ret };
++}
++#else /* CONFIG_TRANSPARENT_HUGEPAGE */
++static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
++{
++	return (pmd_t) { atomic64_read((atomic64_t *)pmdp) };
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
+ static inline void native_set_pte_atomic(pte_t *ptep, pte_t pte)
+ {
+ 	set_64bit((unsigned long long *)(ptep), native_pte_val(pte));
+diff -puN include/asm-generic/pgtable.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition
++++ a/include/asm-generic/pgtable.h
+@@ -445,6 +445,18 @@ static inline int pmd_write(pmd_t pmd)
+ #endif /* __HAVE_ARCH_PMD_WRITE */
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- 	WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys, h->mem_cgroup_files));
++#ifndef pmd_read_atomic
++static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
++{
++	/*
++	 * Depend on compiler for an atomic pmd read. NOTE: this is
++	 * only going to work, if the pmdval_t isn't larger than
++	 * an unsigned long.
++	 */
++	return *pmdp;
++}
++#endif
++
+ /*
+  * This function is meant to be used by sites walking pagetables with
+  * the mmap_sem hold in read mode to protect against MADV_DONTNEED and
+@@ -458,11 +470,17 @@ static inline int pmd_write(pmd_t pmd)
+  * undefined so behaving like if the pmd was none is safe (because it
+  * can return none anyway). The compiler level barrier() is critically
+  * important to compute the two checks atomically on the same pmdval.
++ *
++ * For 32bit kernels with a 64bit large pmd_t this automatically takes
++ * care of reading the pmd atomically to avoid SMP race conditions
++ * against pmd_populate() when the mmap_sem is hold for reading by the
++ * caller (a special atomic read not done by "gcc" as in the generic
++ * version above, is also needed when THP is disabled because the page
++ * fault can populate the pmd from under us).
+  */
+ static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t *pmd)
+ {
+-	/* depend on compiler for an atomic pmd read */
+-	pmd_t pmdval = *pmd;
++	pmd_t pmdval = pmd_read_atomic(pmd);
+ 	/*
+ 	 * The barrier will stabilize the pmdval in a register or on
+ 	 * the stack so that it will stop changing under the code.
 _
-Subject: Subject: memcg/hugetlb: Add failcnt support for hugetlb extension
+Subject: Subject: mm: pmd_read_atomic: fix 32bit PAE pmd walk vs pmd_populate SMP race condition
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 linux-next.patch
+mm-fix-null-ptr-deref-when-walking-hugepages.patch
+mm-thp-remove-unnecessary-ret-variable.patch
+mm-thp-allow-fallback-when-pte_alloc_one-fails-for-huge-pmd.patch
 hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
 hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
 hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2.patch
 hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
 hugetlb-simplify-migrate_huge_page.patch
 memcg-add-hugetlb-extension.patch
@@ -154,22 +266,17 @@ memcg-track-resource-index-in-cftype-private.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension.patch
 hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
 hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix-2.patch
 memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-rescounters-add-res_counter_uncharge_until.patch
-memcg-use-res_counter_uncharge_until-in-move_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
-memcg-dont-uncharge-in-mem_cgroup_move_account.patch
-remove-__must_check-for-res_counter_charge_nofail.patch
-lib-string_helpersc-make-arrays-static.patch
+thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
+mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
+mm-move-is_vma_temporary_stack-declaration-to-huge_mmh.patch
+mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch
+hugetlb-fix-resv_map-leak-in-error-path.patch
+mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch
+stack-usage-add-pid-to-warning-printk-in-check_stack_usage.patch
 
