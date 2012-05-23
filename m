@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 23 May 2012 16:09:19 -0700
-Message-ID: <20120523230919.8B4D1A00AB@akpm.mtv.corp.google.com>
+Subject: + hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension.patch added to -mm tree
+Date: Wed, 23 May 2012 16:18:18 -0700
+Message-ID: <20120523231818.A4378A00AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:59964 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752097Ab2EWXJU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 19:09:20 -0400
-Received: by ggeh3 with SMTP id h3so952571gge.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 16:09:20 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:54071 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752635Ab2EWXSU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 19:18:20 -0400
+Received: by vbnl22 with SMTP id l22so951741vbn.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 16:18:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: aneesh.kumar@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: memcg/hugetlb: Add failcnt support for hugetlb extension
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,143 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: memcg/hugetlb: Add failcnt support for hugetlb extension
 
+Expose the failcnt details to userspace similar to memory and memsw.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/hugetlb.h |    2 -
+ mm/memcontrol.c         |   40 ++++++++++++++++++++++++--------------
+ 2 files changed, 27 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/sched.h~linux-next-git-rejects include/linux/sched.h
---- a/include/linux/sched.h~linux-next-git-rejects
-+++ a/include/linux/sched.h
-@@ -861,10 +861,7 @@ enum cpu_idle_type {
- #define SD_ASYM_PACKING		0x0800  /* Place busy groups earlier in the domain */
- #define SD_PREFER_SIBLING	0x1000	/* Prefer to place tasks in a sibling domain */
- #define SD_OVERLAP		0x2000	/* sched_domains of this level overlap */
--<<<<<<< HEAD
--=======
- #define SD_NUMA			0x4000	/* cross-node balancing */
-->>>>>>> linux-next/akpm-base
+diff -puN include/linux/hugetlb.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension
++++ a/include/linux/hugetlb.h
+@@ -218,7 +218,7 @@ struct hstate {
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+ #ifdef CONFIG_MEM_RES_CTLR_HUGETLB
+ 	/* mem cgroup control files */
+-	struct cftype mem_cgroup_files[4];
++	struct cftype mem_cgroup_files[5];
+ #endif
+ 	char name[HSTATE_NAME_LEN];
+ };
+diff -puN mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension mm/memcontrol.c
+--- a/mm/memcontrol.c~hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension
++++ a/mm/memcontrol.c
+@@ -4131,7 +4131,7 @@ out:
+ static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+-	int type, name;
++	int type, name, idx;
  
- extern int __weak arch_sd_sibiling_asym_packing(void);
+ 	type = MEMFILE_TYPE(event);
+ 	name = MEMFILE_ATTR(event);
+@@ -4139,24 +4139,29 @@ static int mem_cgroup_reset(struct cgrou
+ 	if (!do_swap_account && type == _MEMSWAP)
+ 		return -EOPNOTSUPP;
  
+-	switch (name) {
+-	case RES_MAX_USAGE:
+-		if (type == _MEM)
++	switch (type) {
++	case _MEM:
++		if (name == RES_MAX_USAGE)
+ 			res_counter_reset_max(&memcg->res);
+-		else if (type == _MEMHUGETLB) {
+-			int idx = MEMFILE_IDX(event);
+-			res_counter_reset_max(&memcg->hugepage[idx]);
+-		} else
+-			res_counter_reset_max(&memcg->memsw);
+-		break;
+-	case RES_FAILCNT:
+-		if (type == _MEM)
++		else
+ 			res_counter_reset_failcnt(&memcg->res);
++		break;
++	case _MEMSWAP:
++		if (name == RES_MAX_USAGE)
++			res_counter_reset_max(&memcg->memsw);
+ 		else
+ 			res_counter_reset_failcnt(&memcg->memsw);
+ 		break;
++	case _MEMHUGETLB:
++		idx = MEMFILE_IDX(event);
++		if (name == RES_MAX_USAGE)
++			res_counter_reset_max(&memcg->hugepage[idx]);
++		else
++			res_counter_reset_failcnt(&memcg->hugepage[idx]);
++		break;
++	default:
++		BUG();
+ 	}
+-
+ 	return 0;
+ }
+ 
+@@ -5246,8 +5251,15 @@ int __init mem_cgroup_hugetlb_file_init(
+ 	cft->trigger  = mem_cgroup_reset;
+ 	cft->read = mem_cgroup_read;
+ 
+-	/* NULL terminate the last cft */
++	/* Add the failcntfile */
+ 	cft = &h->mem_cgroup_files[3];
++	snprintf(cft->name, MAX_CFTYPE_NAME, "hugetlb.%s.failcnt", buf);
++	cft->private  = __MEMFILE_PRIVATE(idx, _MEMHUGETLB, RES_FAILCNT);
++	cft->trigger  = mem_cgroup_reset;
++	cft->read = mem_cgroup_read;
++
++	/* NULL terminate the last cft */
++	cft = &h->mem_cgroup_files[4];
+ 	memset(cft, 0, sizeof(*cft));
+ 
+ 	WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys, h->mem_cgroup_files));
 _
-Subject: Subject: linux-next-git-rejects
+Subject: Subject: memcg/hugetlb: Add failcnt support for hugetlb extension
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-thermal-add-generic-cpufreq-cooling-implementation-fix.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+memcg-add-hugetlb-extension.patch
+memcg-add-hugetlb-extension-fix.patch
 memcg-add-hugetlb-extension-fix-fix.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
 hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
-mm-do_migrate_pages-rename-arguments.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
-mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
-mm-page_allocc-remove-pageblock_default_order.patch
-mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
-mm-page_allocc-cleanups.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix-2.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
 memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
-memcg-always-free-struct-memcg-through-schedule_work-fix.patch
-memcg-decrement-static-keys-at-real-destroy-time-v6-fix.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-isdn-add-missing-kern_cont-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
-kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
-backlight-add-lm3533-backlight-driver-fix.patch
-backlight-add-lm3533-backlight-driver-fix-fix.patch
-backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
-backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
-backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
-backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
-backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
-backlight-omap1-use-pr_info-instead-of-printk-fix.patch
-backlight-progear-use-pr_err-instead-of-printk-fix.patch
-leds-led-module-for-da9052-53-pmic-v2-fix.patch
-leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
-leds-add-led-driver-for-lm3556-chip-fix-fix.patch
-leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
-drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+rescounters-add-res_counter_uncharge_until.patch
+memcg-use-res_counter_uncharge_until-in-move_parent.patch
+memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
+memcg-dont-uncharge-in-mem_cgroup_move_account.patch
+remove-__must_check-for-res_counter_charge_nofail.patch
 lib-string_helpersc-make-arrays-static.patch
-lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
-drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
-ipc-mqueue-improve-performance-of-send-recv-fix.patch
-ipc-mqueue-correct-mq_attr_ok-test-fix.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
-tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
-ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
-pidns-make-killed-children-autoreap-checkpatch-fixes.patch
-pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix.patch
-fs-nls-add-apple-nls-fix.patch
-eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
