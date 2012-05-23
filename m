@@ -1,116 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] umem-fix-up-unplugging.patch removed from -mm tree
-Date: Wed, 23 May 2012 13:34:41 -0700
-Message-ID: <20120523203442.49676A0210@akpm.mtv.corp.google.com>
+Subject: + mm-avoid-swapping-out-with-swappiness==0.patch added to -mm tree
+Date: Wed, 23 May 2012 14:51:50 -0700
+Message-ID: <20120523215151.2D055A03B2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:39379 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753885Ab2EWUen (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 16:34:43 -0400
-Received: by ghbz15 with SMTP id z15so191709ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 13:34:43 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:64638 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760814Ab2EWVvw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 17:51:52 -0400
+Received: by vbnl22 with SMTP id l22so941672vbn.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 14:51:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glorioustao@gmail.com, Tao.Guo@emc.com, axboe@kernel.dk, neilb@suse.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: satoru.moriya@hds.com, minchan@kernel.org, riel@redhat.com
 
 
 The patch titled
-     Subject: umem: fix up unplugging
-has been removed from the -mm tree.  Its filename was
-     umem-fix-up-unplugging.patch
+     Subject: mm: avoid swapping out with swappiness==0
+has been added to the -mm tree.  Its filename is
+     mm-avoid-swapping-out-with-swappiness==0.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tao Guo <glorioustao@gmail.com>
-Subject: umem: fix up unplugging
+From: Satoru Moriya <satoru.moriya@hds.com>
+Subject: mm: avoid swapping out with swappiness==0
 
-Fix a regression introduced by 7eaceaccab5f40 ("block: remove per-queue
-plugging").  In that patch, Jens removed the whole mm_unplug_device()
-function, which used to be the trigger to make umem start to work.
+Sometimes we'd like to avoid swapping out anonymous memory in particular,
+avoid swapping out pages of important process or process groups while
+there is a reasonable amount of pagecache on RAM so that we can satisfy
+our customers' requirements.
 
-We need to implement unplugging to make umem start to work, or I/O
-will never be triggered.
+OTOH, we can control how aggressive the kernel will swap memory pages with
+/proc/sys/vm/swappiness for global and
+/sys/fs/cgroup/memory/memory.swappiness for each memcg.
 
-Signed-off-by: Tao Guo <Tao.Guo@emc.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
+But with current reclaim implementation, the kernel may swap out even if
+we set swappiness=0 and there is pagecache in RAM.
+
+This patch changes the behavior with swappiness==0.  If we set
+swappiness==0, the kernel does not swap out completely (for global reclaim
+until the amount of free pages and filebacked pages in a zone has been
+reduced to something very very small (nr_free + nr_filebacked < high
+watermark)).
+
+Signed-off-by: Satoru Moriya <satoru.moriya@hds.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/umem.c |   33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/umem.c~umem-fix-up-unplugging drivers/block/umem.c
---- a/drivers/block/umem.c~umem-fix-up-unplugging
-+++ a/drivers/block/umem.c
-@@ -111,7 +111,8 @@ struct cardinfo {
- 	int		current_idx;
- 	sector_t	current_sector;
+diff -puN mm/vmscan.c~mm-avoid-swapping-out-with-swappiness==0 mm/vmscan.c
+--- a/mm/vmscan.c~mm-avoid-swapping-out-with-swappiness==0
++++ a/mm/vmscan.c
+@@ -1761,10 +1761,10 @@ static void get_scan_count(struct mem_cg
+ 	 * proportional to the fraction of recently scanned pages on
+ 	 * each list that were recently referenced and in active use.
+ 	 */
+-	ap = (anon_prio + 1) * (reclaim_stat->recent_scanned[0] + 1);
++	ap = anon_prio * (reclaim_stat->recent_scanned[0] + 1);
+ 	ap /= reclaim_stat->recent_rotated[0] + 1;
  
--	struct request_queue *queue;
-+	struct request_queue	*queue;
-+	struct blk_plug_cb	plug_cb;
+-	fp = (file_prio + 1) * (reclaim_stat->recent_scanned[1] + 1);
++	fp = file_prio * (reclaim_stat->recent_scanned[1] + 1);
+ 	fp /= reclaim_stat->recent_rotated[1] + 1;
+ 	spin_unlock_irq(&mz->zone->lru_lock);
  
- 	struct mm_page {
- 		dma_addr_t		page_dma;
-@@ -513,6 +514,33 @@ static void process_page(unsigned long d
- 	}
- }
+@@ -1777,7 +1777,7 @@ out:
+ 		unsigned long scan;
  
-+static void mm_unplug(struct blk_plug_cb *cb)
-+{
-+	struct cardinfo *card = container_of(cb, struct cardinfo, plug_cb);
-+
-+	spin_lock_irq(&card->lock);
-+	activate(card);
-+	spin_unlock_irq(&card->lock);
-+}
-+
-+int mm_check_plugged(struct cardinfo *card)
-+{
-+	struct blk_plug *plug = current->plug;
-+	struct cardinfo *c;
-+
-+	if (!plug)
-+		return 0;
-+
-+	list_for_each_entry(c, &plug->cb_list, plug_cb.list) {
-+		if (c == card)
-+			return 1;
-+	}
-+
-+	/* set up unplug callback */
-+	list_add(&card->plug_cb.list, &plug->cb_list);
-+	return 1;
-+}
-+
- static void mm_make_request(struct request_queue *q, struct bio *bio)
- {
- 	struct cardinfo *card = q->queuedata;
-@@ -523,6 +551,8 @@ static void mm_make_request(struct reque
- 	*card->biotail = bio;
- 	bio->bi_next = NULL;
- 	card->biotail = &bio->bi_next;
-+	if (bio->bi_rw & REQ_SYNC || !mm_check_plugged(card))
-+		activate(card);
- 	spin_unlock_irq(&card->lock);
- 
- 	return;
-@@ -884,6 +914,7 @@ static int __devinit mm_pci_probe(struct
- 	blk_queue_make_request(card->queue, mm_make_request);
- 	card->queue->queue_lock = &card->lock;
- 	card->queue->queuedata = card;
-+	card->plug_cb.callback = mm_unplug;
- 
- 	tasklet_init(&card->tasklet, process_page, (unsigned long)card);
- 
+ 		scan = zone_nr_lru_pages(mz, lru);
+-		if (priority || noswap) {
++		if (priority || noswap || !vmscan_swappiness(mz, sc)) {
+ 			scan >>= priority;
+ 			if (!scan && force_scan)
+ 				scan = SWAP_CLUSTER_MAX;
 _
+Subject: Subject: mm: avoid swapping out with swappiness==0
 
-Patches currently in -mm which might be from glorioustao@gmail.com are
+Patches currently in -mm which might be from satoru.moriya@hds.com are
 
+linux-next.patch
+mm-avoid-swapping-out-with-swappiness==0.patch
 
