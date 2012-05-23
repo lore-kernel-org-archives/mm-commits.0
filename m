@@ -1,123 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] frv-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
-Date: Wed, 23 May 2012 12:49:58 -0700
-Message-ID: <20120523194958.4F294A0210@akpm.mtv.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 23 May 2012 12:50:58 -0700
+Message-ID: <20120523195058.825D9A0210@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:55757 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760680Ab2EWTt7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 15:49:59 -0400
-Received: by qcsp5 with SMTP id p5so923403qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 12:49:58 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:45492 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932897Ab2EWTu7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 15:50:59 -0400
+Received: by yhgm50 with SMTP id m50so1093508yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 12:50:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, dhowells@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frv: use set_current_blocked() and block_sigmask()
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     frv-use-set_current_blocked-and-block_sigmask.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Matt Fleming <matt.fleming@intel.com>
-Subject: frv: use set_current_blocked() and block_sigmask()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-As described in e6fa16ab ("signal: sigprocmask() should do
-retarget_shared_pending()") the modification of current->blocked is
-incorrect as we need to check whether the signal we're about to block is
-pending in the shared queue.
-
-Also, use the new helper function introduced in commit 5e6292c0f28f
-("signal: add block_sigmask() for adding sigmask to current->blocked")
-which centralises the code for updating current->blocked after
-successfully delivering a signal and reduces the amount of duplicate code
-across architectures.  In the past some architectures got this code wrong,
-so using this helper function should stop that from happening again.
-
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/signal.c |   32 ++++++++++----------------------
- 1 file changed, 10 insertions(+), 22 deletions(-)
+ arch/x86/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/frv/kernel/signal.c~frv-use-set_current_blocked-and-block_sigmask arch/frv/kernel/signal.c
---- a/arch/frv/kernel/signal.c~frv-use-set_current_blocked-and-block_sigmask
-+++ a/arch/frv/kernel/signal.c
-@@ -40,12 +40,13 @@ struct fdpic_func_descriptor {
-  */
- asmlinkage int sys_sigsuspend(int history0, int history1, old_sigset_t mask)
- {
--	mask &= _BLOCKABLE;
--	spin_lock_irq(&current->sighand->siglock);
-+	sigset_t blocked;
-+
- 	current->saved_sigmask = current->blocked;
--	siginitset(&current->blocked, mask);
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+
-+	mask &= _BLOCKABLE;
-+	siginitset(&blocked, mask);
-+	set_current_blocked(&blocked);
+diff -puN arch/x86/Kconfig~linux-next-git-rejects arch/x86/Kconfig
+--- a/arch/x86/Kconfig~linux-next-git-rejects
++++ a/arch/x86/Kconfig
+@@ -83,10 +83,8 @@ config X86
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select GENERIC_IOMAP
+ 	select DCACHE_WORD_ACCESS
+-<<<<<<< HEAD
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select HAVE_ARCH_SECCOMP_FILTER
+-=======
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select GENERIC_CMOS_UPDATE
+ 	select CLOCKSOURCE_WATCHDOG
+@@ -97,7 +95,6 @@ config X86
+ 	select KTIME_SCALAR if X86_32
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select BUILDTIME_EXTABLE_SORT
+->>>>>>> linux-next/akpm-base
  
- 	current->state = TASK_INTERRUPTIBLE;
- 	schedule();
-@@ -158,10 +159,7 @@ asmlinkage int sys_sigreturn(void)
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(&frame->sc, &gr8))
- 		goto badframe;
-@@ -184,10 +182,7 @@ asmlinkage int sys_rt_sigreturn(void)
- 		goto badframe;
- 
- 	sigdelsetmask(&set, ~_BLOCKABLE);
--	spin_lock_irq(&current->sighand->siglock);
--	current->blocked = set;
--	recalc_sigpending();
--	spin_unlock_irq(&current->sighand->siglock);
-+	set_current_blocked(&set);
- 
- 	if (restore_sigcontext(&frame->uc.uc_mcontext, &gr8))
- 		goto badframe;
-@@ -474,15 +469,8 @@ static int handle_signal(unsigned long s
- 	else
- 		ret = setup_frame(sig, ka, oldset);
- 
--	if (ret == 0) {
--		spin_lock_irq(&current->sighand->siglock);
--		sigorsets(&current->blocked, &current->blocked,
--			  &ka->sa.sa_mask);
--		if (!(ka->sa.sa_flags & SA_NODEFER))
--			sigaddset(&current->blocked, sig);
--		recalc_sigpending();
--		spin_unlock_irq(&current->sighand->siglock);
--	}
-+	if (ret == 0)
-+		block_sigmask(ka, sig);
- 
- 	return ret;
- 
+ config INSTRUCTION_DECODER
+ 	def_bool (KPROBES || PERF_EVENTS || UPROBES)
 _
 
-Patches currently in -mm which might be from matt.fleming@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-parisc-use-set_current_blocked-and-block_sigmask.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+thermal-add-generic-cpufreq-cooling-implementation-fix.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
+mm-page_allocc-cleanups.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
+memcg-always-free-struct-memcg-through-schedule_work-fix.patch
+memcg-decrement-static-keys-at-real-destroy-time-v6-fix.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
+backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
+backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
+backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-omap1-use-pr_info-instead-of-printk-fix.patch
+backlight-progear-use-pr_err-instead-of-printk-fix.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-add-led-driver-for-lm3556-chip-checkpatch-fixes.patch
+leds-add-led-driver-for-lm3556-chip-fix-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix.patch
+fs-nls-add-apple-nls-fix.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
