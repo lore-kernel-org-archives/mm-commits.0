@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] m68k-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
-Date: Wed, 23 May 2012 12:47:28 -0700
-Message-ID: <20120523194728.F2572A0210@akpm.mtv.corp.google.com>
+Subject: [alternative-merged] mn10300-use-set_current_blocked-and-block_sigmask.patch removed from -mm tree
+Date: Wed, 23 May 2012 12:47:36 -0700
+Message-ID: <20120523194736.68B86A0210@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:51013 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752447Ab2EWTra (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 15:47:30 -0400
-Received: by qcsp5 with SMTP id p5so922486qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 12:47:29 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:36481 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752447Ab2EWTrh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 15:47:37 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fl13so224821vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 12:47:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matt.fleming@intel.com, geert@linux-m68k.org, gerg@uclinux.org, oleg@redhat.com, mm-commits@vger.kernel.org
+To: matt.fleming@intel.com, dhowells@redhat.com, oleg@redhat.com, viro@zeniv.linux.org.uk, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: use set_current_blocked() and block_sigmask()
+     Subject: mn10300: use set_current_blocked() and block_sigmask()
 has been removed from the -mm tree.  Its filename was
-     m68k-use-set_current_blocked-and-block_sigmask.patch
+     mn10300-use-set_current_blocked-and-block_sigmask.patch
 
 This patch was dropped because an alternative patch was merged
 
@@ -26,7 +26,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Matt Fleming <matt.fleming@intel.com>
-Subject: m68k: use set_current_blocked() and block_sigmask()
+Subject: mn10300: use set_current_blocked() and block_sigmask()
 
 As described in e6fa16ab ("signal: sigprocmask() should do
 retarget_shared_pending()") the modification of current->blocked is
@@ -41,21 +41,22 @@ across architectures.  In the past some architectures got this code wrong,
 so using this helper function should stop that from happening again.
 
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Matt Fleming <matt.fleming@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/signal.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ arch/mn10300/kernel/signal.c |   32 ++++++++++----------------------
+ 1 file changed, 10 insertions(+), 22 deletions(-)
 
-diff -puN arch/m68k/kernel/signal.c~m68k-use-set_current_blocked-and-block_sigmask arch/m68k/kernel/signal.c
---- a/arch/m68k/kernel/signal.c~m68k-use-set_current_blocked-and-block_sigmask
-+++ a/arch/m68k/kernel/signal.c
-@@ -230,12 +230,13 @@ static inline void push_cache(unsigned l
- asmlinkage int
- sys_sigsuspend(int unused0, int unused1, old_sigset_t mask)
+diff -puN arch/mn10300/kernel/signal.c~mn10300-use-set_current_blocked-and-block_sigmask arch/mn10300/kernel/signal.c
+--- a/arch/mn10300/kernel/signal.c~mn10300-use-set_current_blocked-and-block_sigmask
++++ a/arch/mn10300/kernel/signal.c
+@@ -38,12 +38,13 @@
+  */
+ asmlinkage long sys_sigsuspend(int history0, int history1, old_sigset_t mask)
  {
 -	mask &= _BLOCKABLE;
 -	spin_lock_irq(&current->sighand->siglock);
@@ -72,44 +73,53 @@ diff -puN arch/m68k/kernel/signal.c~m68k-use-set_current_blocked-and-block_sigma
  
  	current->state = TASK_INTERRUPTIBLE;
  	schedule();
-@@ -804,8 +805,7 @@ asmlinkage int do_sigreturn(unsigned lon
+@@ -172,10 +173,7 @@ asmlinkage long sys_sigreturn(void)
  		goto badframe;
  
  	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
 -	current->blocked = set;
 -	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
 +	set_current_blocked(&set);
  
- 	if (restore_sigcontext(regs, &frame->sc, frame + 1))
+ 	if (restore_sigcontext(current_frame(), &frame->sc, &d0))
  		goto badframe;
-@@ -830,8 +830,7 @@ asmlinkage int do_rt_sigreturn(unsigned 
+@@ -203,10 +201,7 @@ asmlinkage long sys_rt_sigreturn(void)
  		goto badframe;
  
  	sigdelsetmask(&set, ~_BLOCKABLE);
+-	spin_lock_irq(&current->sighand->siglock);
 -	current->blocked = set;
 -	recalc_sigpending();
+-	spin_unlock_irq(&current->sighand->siglock);
 +	set_current_blocked(&set);
  
- 	if (rt_restore_ucontext(regs, sw, &frame->uc))
+ 	if (restore_sigcontext(current_frame(), &frame->uc.uc_mcontext, &d0))
  		goto badframe;
-@@ -1150,10 +1149,7 @@ handle_signal(int sig, struct k_sigactio
- 	if (err)
- 		return;
+@@ -476,15 +471,8 @@ static int handle_signal(int sig,
+ 	else
+ 		ret = setup_frame(sig, ka, oldset, regs);
  
--	sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
--	if (!(ka->sa.sa_flags & SA_NODEFER))
--		sigaddset(&current->blocked,sig);
--	recalc_sigpending();
-+	block_sigmask(ka, sig);
+-	if (ret == 0) {
+-		spin_lock_irq(&current->sighand->siglock);
+-		sigorsets(&current->blocked, &current->blocked,
+-			  &ka->sa.sa_mask);
+-		if (!(ka->sa.sa_flags & SA_NODEFER))
+-			sigaddset(&current->blocked, sig);
+-		recalc_sigpending();
+-		spin_unlock_irq(&current->sighand->siglock);
+-	}
++	if (ret == 0)
++		block_sigmask(ka, sig);
  
- 	if (test_thread_flag(TIF_DELAYED_TRACE)) {
- 		regs->sr &= ~0x8000;
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from matt.fleming@intel.com are
 
 linux-next.patch
-mn10300-use-set_current_blocked-and-block_sigmask.patch
 cris-use-set_current_blocked-and-block_sigmask.patch
 ia64-use-set_current_blocked-and-block_sigmask.patch
 microblaze-dont-reimplement-force_sigsegv.patch
