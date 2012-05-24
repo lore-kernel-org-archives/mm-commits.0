@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch added to -mm tree
-Date: Wed, 23 May 2012 16:42:53 -0700
-Message-ID: <20120523234253.A0795A028F@akpm.mtv.corp.google.com>
+Subject: + kexec-export-kexech-to-user-space.patch added to -mm tree
+Date: Thu, 24 May 2012 15:06:14 -0700
+Message-ID: <20120524220617.584C6A037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:62183 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750941Ab2EWXm4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 May 2012 19:42:56 -0400
-Received: by eaao13 with SMTP id o13so450553eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 23 May 2012 16:42:55 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:65470 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933192Ab2EXWGU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 May 2012 18:06:20 -0400
+Received: by ggeh3 with SMTP id h3so49281gge.1
+        for <mm-commits@vger.kernel.org>; Thu, 24 May 2012 15:06:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aarcange@redhat.com, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, pmatouse@redhat.com, riel@redhat.com, stable@vger.kernel.org, uobergfe@redhat.com
+Cc: max@stro.at, ebiederm@xmission.com, hbabu@us.ibm.com, horms@verge.net.au, schwidefsky@de.ibm.com, vgoyal@redhat.com
 
 
 The patch titled
-     Subject: mm: pmd_read_atomic: fix 32bit PAE pmd walk vs pmd_populate SMP race condition
+     Subject: kexec: export kexec.h to user space
 has been added to the -mm tree.  Its filename is
-     mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch
+     kexec-export-kexech-to-user-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,251 +33,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: pmd_read_atomic: fix 32bit PAE pmd walk vs pmd_populate SMP race condition
+From: maximilian attems <max@stro.at>
+Subject: kexec: export kexec.h to user space
 
-When holding the mmap_sem for reading, pmd_offset_map_lock should only
-run on a pmd_t that has been read atomically from the pmdp
-pointer, otherwise we may read only half of it leading to this crash.
+Add userspace definitions, guard all relevant kernel structures.  While at
+it document stuff and remove now useless userspace hint.
 
-PID: 11679  TASK: f06e8000  CPU: 3   COMMAND: "do_race_2_panic"
- #0 [f06a9dd8] crash_kexec at c049b5ec
- #1 [f06a9e2c] oops_end at c083d1c2
- #2 [f06a9e40] no_context at c0433ded
- #3 [f06a9e64] bad_area_nosemaphore at c043401a
- #4 [f06a9e6c] __do_page_fault at c0434493
- #5 [f06a9eec] do_page_fault at c083eb45
- #6 [f06a9f04] error_code (via page_fault) at c083c5d5
-    EAX: 01fb470c EBX: fff35000 ECX: 00000003 EDX: 00000100 EBP:
-    00000000
-    DS:  007b     ESI: 9e201000 ES:  007b     EDI: 01fb4700 GS:  00e0
-    CS:  0060     EIP: c083bc14 ERR: ffffffff EFLAGS: 00010246
- #7 [f06a9f38] _spin_lock at c083bc14
- #8 [f06a9f44] sys_mincore at c0507b7d
- #9 [f06a9fb0] system_call at c083becd
-                         start           len
-    EAX: ffffffda  EBX: 9e200000  ECX: 00001000  EDX: 6228537f
-    DS:  007b      ESI: 00000000  ES:  007b      EDI: 003d0f00
-    SS:  007b      ESP: 62285354  EBP: 62285388  GS:  0033
-    CS:  0073      EIP: 00291416  ERR: 000000da  EFLAGS: 00000286
+It is easy to add the relevant system call to respective libc's, but it
+seems pointless to have to duplicate the data structures.
 
-This should be a longstanding bug affecting x86 32bit PAE without
-THP. Only archs with 64bit large pmd_t and 32bit unsigned long should
-be affected.
+This is based on the kexec-tools headers, with the exception of just using
+int on return (succes or failure) and using size_t instead of 'unsigned
+long int' for the number of segments argument of kexec_load().
 
-With THP enabled the barrier() in
-pmd_none_or_trans_huge_or_clear_bad() would partly hide the bug when
-the pmd transition from none to stable, by forcing a re-read of the
-*pmd in pmd_offset_map_lock, but when THP is enabled a new set of
-problem arises by the fact could then transition freely in any of the
-none, pmd_trans_huge or pmd_trans_stable states. So making the barrier
-in pmd_none_or_trans_huge_or_clear_bad() unconditional isn't good idea
-and it would be a flakey solution.
-
-This should be fully fixed by introducing a pmd_read_atomic that reads
-the pmd in order with THP disabled, or by reading the pmd atomically
-with cmpxchg8b with THP enabled.
-
-Luckily this new race condition only triggers in the places that must
-already be covered by pmd_none_or_trans_huge_or_clear_bad() so the fix
-is localized there but this bug is not related to THP.
-
-NOTE: this can trigger on x86 32bit systems with PAE enabled with more
-than 4G of ram, otherwise the high part of the pmd will never risk to
-be truncated because it would be zero at all times, in turn so hiding
-the SMP race.
-
-This bug was discovered and fully debugged by Ulrich, quote:
-
-----
-[..]
-pmd_none_or_trans_huge_or_clear_bad() loads the content of edx and
-eax.
-
-    496 static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t
-    *pmd)
-    497 {
-    498         /* depend on compiler for an atomic pmd read */
-    499         pmd_t pmdval = *pmd;
-
-                                // edi = pmd pointer
-0xc0507a74 <sys_mincore+548>:   mov    0x8(%esp),%edi
-...
-                                // edx = PTE page table high address
-0xc0507a84 <sys_mincore+564>:   mov    0x4(%edi),%edx
-...
-                                // eax = PTE page table low address
-0xc0507a8e <sys_mincore+574>:   mov    (%edi),%eax
-
-[..]
-
-Please note that the PMD is not read atomically. These are two "mov"
-instructions where the high order bits of the PMD entry are fetched
-first. Hence, the above machine code is prone to the following race.
-
--  The PMD entry {high|low} is 0x0000000000000000.
-   The "mov" at 0xc0507a84 loads 0x00000000 into edx.
-
--  A page fault (on another CPU) sneaks in between the two "mov"
-   instructions and instantiates the PMD.
-
--  The PMD entry {high|low} is now 0x00000003fda38067.
-   The "mov" at 0xc0507a8e loads 0xfda38067 into eax.
-----
-
-Reported-by: Ulrich Obergfell <uobergfe@redhat.com>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Petr Matousek <pmatouse@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: maximilian attems <max@stro.at>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Haren Myneni <hbabu@us.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable-3level.h |   50 ++++++++++++++++++++++++
- include/asm-generic/pgtable.h         |   22 +++++++++-
- 2 files changed, 70 insertions(+), 2 deletions(-)
+ include/linux/Kbuild  |    1 
+ include/linux/kexec.h |   75 ++++++++++++++++++++++++++++------------
+ 2 files changed, 54 insertions(+), 22 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable-3level.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition arch/x86/include/asm/pgtable-3level.h
---- a/arch/x86/include/asm/pgtable-3level.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition
-+++ a/arch/x86/include/asm/pgtable-3level.h
-@@ -31,6 +31,56 @@ static inline void native_set_pte(pte_t 
- 	ptep->pte_low = pte.pte_low;
- }
+diff -puN include/linux/Kbuild~kexec-export-kexech-to-user-space include/linux/Kbuild
+--- a/include/linux/Kbuild~kexec-export-kexech-to-user-space
++++ a/include/linux/Kbuild
+@@ -227,6 +227,7 @@ header-y += kdev_t.h
+ header-y += kernel.h
+ header-y += kernelcapi.h
+ header-y += kernel-page-flags.h
++header-y += kexec.h
+ header-y += keyboard.h
+ header-y += keyctl.h
+ header-y += l2tp.h
+diff -puN include/linux/kexec.h~kexec-export-kexech-to-user-space include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-export-kexech-to-user-space
++++ a/include/linux/kexec.h
+@@ -1,8 +1,58 @@
+ #ifndef LINUX_KEXEC_H
+ #define LINUX_KEXEC_H
  
-+#define pmd_read_atomic pmd_read_atomic
-+/*
-+ * pte_offset_map_lock on 32bit PAE kernels was reading the pmd_t with
-+ * a "*pmdp" dereference done by gcc. Problem is, in certain places
-+ * where pte_offset_map_lock is called, concurrent page faults are
-+ * allowed, if the mmap_sem is hold for reading. An example is mincore
-+ * vs page faults vs MADV_DONTNEED. On the page fault side
-+ * pmd_populate rightfully does a set_64bit, but if we're reading the
-+ * pmd_t with a "*pmdp" on the mincore side, a SMP race can happen
-+ * because gcc will not read the 64bit of the pmd atomically. To fix
-+ * this all places running pmd_offset_map_lock() while holding the
-+ * mmap_sem in read mode, shall read the pmdp pointer using this
-+ * function to know if the pmd is null nor not, and in turn to know if
-+ * they can run pmd_offset_map_lock or pmd_trans_huge or other pmd
-+ * operations.
-+ *
-+ * Without THP if the mmap_sem is hold for reading, the
-+ * pmd can only transition from null to not null while pmd_read_atomic runs.
-+ * So there's no need of literally reading it atomically.
-+ *
-+ * With THP if the mmap_sem is hold for reading, the pmd can become
-+ * THP or null or point to a pte (and in turn become "stable") at any
-+ * time under pmd_read_atomic, so it's mandatory to read it atomically
-+ * with cmpxchg8b.
+-#ifdef CONFIG_KEXEC
++/* kexec system call -  It loads the new kernel to boot into.
++ * kexec does not sync, or unmount filesystems so if you need
++ * that to happen you need to do that yourself.
 + */
-+#ifndef CONFIG_TRANSPARENT_HUGEPAGE
-+static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
-+{
-+	pmdval_t ret;
-+	u32 *tmp = (u32 *)pmdp;
 +
-+	ret = (pmdval_t) (*tmp);
-+	if (ret) {
-+		/*
-+		 * If the low part is null, we must not read the high part
-+		 * or we can end up with a partial pmd.
-+		 */
-+		smp_rmb();
-+		ret |= ((pmdval_t)*(tmp + 1)) << 32;
-+	}
+ #include <linux/types.h>
 +
-+	return (pmd_t) { ret };
-+}
-+#else /* CONFIG_TRANSPARENT_HUGEPAGE */
-+static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
-+{
-+	return (pmd_t) { atomic64_read((atomic64_t *)pmdp) };
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++/* kexec flags for different usage scenarios */
++#define KEXEC_ON_CRASH		0x00000001
++#define KEXEC_PRESERVE_CONTEXT	0x00000002
++#define KEXEC_ARCH_MASK		0xffff0000
 +
- static inline void native_set_pte_atomic(pte_t *ptep, pte_t pte)
- {
- 	set_64bit((unsigned long long *)(ptep), native_pte_val(pte));
-diff -puN include/asm-generic/pgtable.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition
-+++ a/include/asm-generic/pgtable.h
-@@ -445,6 +445,18 @@ static inline int pmd_write(pmd_t pmd)
- #endif /* __HAVE_ARCH_PMD_WRITE */
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++/* These values match the ELF architecture values.
++ * Unless there is a good reason that should continue to be the case.
++ */
++#define KEXEC_ARCH_DEFAULT ( 0 << 16)
++#define KEXEC_ARCH_386     ( 3 << 16)
++#define KEXEC_ARCH_X86_64  (62 << 16)
++#define KEXEC_ARCH_PPC     (20 << 16)
++#define KEXEC_ARCH_PPC64   (21 << 16)
++#define KEXEC_ARCH_IA_64   (50 << 16)
++#define KEXEC_ARCH_ARM     (40 << 16)
++#define KEXEC_ARCH_S390    (22 << 16)
++#define KEXEC_ARCH_SH      (42 << 16)
++#define KEXEC_ARCH_MIPS_LE (10 << 16)
++#define KEXEC_ARCH_MIPS    ( 8 << 16)
++
++/* The artificial cap on the number of segments passed to kexec_load. */
++#define KEXEC_SEGMENT_MAX 16
++
++#ifndef __KERNEL__
++/*
++ * This structure is used to hold the arguments that are used when
++ * loading  kernel binaries.
++ */
++struct kexec_segment {
++	const void *buf;
++	size_t bufsz;
++	const void *mem;
++	size_t memsz;
++};
++
++/* Load a new kernel image as described by the kexec_segment array
++ * consisting of passed number of segments at the entry-point address.
++ * The flags allow different useage types.
++ */
++extern int kexec_load(void *, size_t, struct kexec_segment *,
++		unsigned long int);
++#endif /* __KERNEL__ */
++
++#ifdef __KERNEL__
++#ifdef CONFIG_KEXEC
+ #include <linux/list.h>
+ #include <linux/linkage.h>
+ #include <linux/compat.h>
+@@ -67,11 +117,10 @@ typedef unsigned long kimage_entry_t;
+ #define IND_DONE         0x4
+ #define IND_SOURCE       0x8
  
-+#ifndef pmd_read_atomic
-+static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
-+{
-+	/*
-+	 * Depend on compiler for an atomic pmd read. NOTE: this is
-+	 * only going to work, if the pmdval_t isn't larger than
-+	 * an unsigned long.
-+	 */
-+	return *pmdp;
-+}
-+#endif
-+
- /*
-  * This function is meant to be used by sites walking pagetables with
-  * the mmap_sem hold in read mode to protect against MADV_DONTNEED and
-@@ -458,11 +470,17 @@ static inline int pmd_write(pmd_t pmd)
-  * undefined so behaving like if the pmd was none is safe (because it
-  * can return none anyway). The compiler level barrier() is critically
-  * important to compute the two checks atomically on the same pmdval.
-+ *
-+ * For 32bit kernels with a 64bit large pmd_t this automatically takes
-+ * care of reading the pmd atomically to avoid SMP race conditions
-+ * against pmd_populate() when the mmap_sem is hold for reading by the
-+ * caller (a special atomic read not done by "gcc" as in the generic
-+ * version above, is also needed when THP is disabled because the page
-+ * fault can populate the pmd from under us).
-  */
- static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t *pmd)
- {
--	/* depend on compiler for an atomic pmd read */
--	pmd_t pmdval = *pmd;
-+	pmd_t pmdval = pmd_read_atomic(pmd);
- 	/*
- 	 * The barrier will stabilize the pmdval in a register or on
- 	 * the stack so that it will stop changing under the code.
-_
-Subject: Subject: mm: pmd_read_atomic: fix 32bit PAE pmd walk vs pmd_populate SMP race condition
-
-Patches currently in -mm which might be from aarcange@redhat.com are
-
-linux-next.patch
-mm-fix-null-ptr-deref-when-walking-hugepages.patch
-mm-thp-remove-unnecessary-ret-variable.patch
-mm-thp-allow-fallback-when-pte_alloc_one-fails-for-huge-pmd.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-memcg-add-hugetlb-extension.patch
-memcg-add-hugetlb-extension-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
-mm-thp-drop-page_table_lock-to-uncharge-memcg-pages.patch
-mm-move-is_vma_temporary_stack-declaration-to-huge_mmh.patch
-mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch
-hugetlb-fix-resv_map-leak-in-error-path.patch
-mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch
-stack-usage-add-pid-to-warning-printk-in-check_stack_usage.patch
-
+-#define KEXEC_SEGMENT_MAX 16
+ struct kexec_segment {
+ 	void __user *buf;
+ 	size_t bufsz;
+-	unsigned long mem;	/* User space sees this as a (void *) ... */
++	unsigned long mem;
+ 	size_t memsz;
+ };
+ 
+@@ -175,25 +224,6 @@ extern struct kimage *kexec_crash_image;
+ #define kexec_flush_icache_page(page)
+ #endif
+ 
+-#define KEXEC_ON_CRASH		0x00000001
+-#define KEXEC_PRESERVE_CONTEXT	0x00000002
+-#define KEXEC_ARCH_MASK		0xffff0000
+-
+-/* These values match the ELF architecture values.
+- * Unless there is a good reason that should continue to be the case.
+- */
+-#define KEXEC_ARCH_DEFAULT ( 0 << 16)
+-#define KEXEC_ARCH_386     ( 3 << 16)
+-#define KEXEC_ARCH_X86_64  (62 << 16)
+-#define KEXEC_ARCH_PPC     (20 << 16)
+-#define KEXEC_ARCH_PPC64   (21 << 16)
+-#define KEXEC_ARCH_IA_64   (50 << 16)
+-#define KEXEC_ARCH_ARM     (40 << 16)
+-#define KEXEC_ARCH_S390    (22 << 16)
+-#define KEXEC_ARCH_SH      (42 << 16)
+-#define KEXEC_ARCH_MIPS_LE (10 << 16)
+-#define KEXEC_ARCH_MIPS    ( 8 << 16)
