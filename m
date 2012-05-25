@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command.patch added to -mm tree
-Date: Fri, 25 May 2012 14:14:22 -0700
-Message-ID: <20120525211422.D210EA0353@akpm.mtv.corp.google.com>
+Subject: + mm-fix-slab-page-flags-corruption.patch added to -mm tree
+Date: Fri, 25 May 2012 15:32:23 -0700
+Message-ID: <20120525223224.36794A0244@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:36374 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932227Ab2EYVOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 May 2012 17:14:25 -0400
-Received: by lagr15 with SMTP id r15so71113lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 14:14:24 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:58813 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136Ab2EYWcZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 18:32:25 -0400
+Received: by vcbfl13 with SMTP id fl13so111875vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 15:32:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: will.deacon@arm.com, alan@linux.intel.com, axboe@kernel.dk, viro@zeniv.linux.org.uk
+Cc: pshelar@nicira.com, aarcange@redhat.com, abhide@nicira.com, cl@linux.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     Subject: pipe: return -ENOIOCTLCMD instead of -EINVAL on unknown ioctl command
+     Subject: mm: fix slab->page flags corruption
 has been added to the -mm tree.  Its filename is
-     pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command.patch
+     mm-fix-slab-page-flags-corruption.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +33,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: pipe: return -ENOIOCTLCMD instead of -EINVAL on unknown ioctl command
+From: Pravin B Shelar <pshelar@nicira.com>
+Subject: mm: fix slab->page flags corruption
 
-As described in commit 07d106d0a ("vfs: fix up ENOIOCTLCMD error
-handling"), drivers should return -ENOIOCTLCMD if they receive an ioctl
-command which they don't understand.  Doing so will result in -ENOTTY
-being returned to userspace, which matches the behaviour of the compat
-layer if it fails to translate an ioctl command.
+Transparent huge pages can change page->flags (PG_compound_lock) without
+taking Slab lock.  Since THP can not break slab pages we can safely access
+compound page without taking compound lock.
 
-This patch fixes the pipe ioctl to return -ENOIOCTLCMD instead of -EINVAL
-when passed an unknown ioctl command.
+Specifically this patch fixes a race between compound_unlock() and slab
+functions which perform page-flags updates.  This can occur when
+get_page()/put_page() is called on a page from slab.
 
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Acked-by: Alan Cox <alan@linux.intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Reported-by: Amey Bhide <abhide@nicira.com>
+Signed-off-by: Pravin B Shelar <pshelar@nicira.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |    2 ++
+ mm/swap.c          |   34 +++++++++++++++++++++++++++++++++-
+ 2 files changed, 35 insertions(+), 1 deletion(-)
 
-diff -puN fs/pipe.c~pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command fs/pipe.c
---- a/fs/pipe.c~pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command
-+++ a/fs/pipe.c
-@@ -693,7 +693,7 @@ static long pipe_ioctl(struct file *filp
- 
- 			return put_user(count, (int __user *)arg);
- 		default:
--			return -EINVAL;
-+			return -ENOIOCTLCMD;
- 	}
+diff -puN include/linux/mm.h~mm-fix-slab-page-flags-corruption include/linux/mm.h
+--- a/include/linux/mm.h~mm-fix-slab-page-flags-corruption
++++ a/include/linux/mm.h
+@@ -321,6 +321,7 @@ static inline int is_vmalloc_or_module_a
+ static inline void compound_lock(struct page *page)
+ {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	VM_BUG_ON(PageSlab(page));
+ 	bit_spin_lock(PG_compound_lock, &page->flags);
+ #endif
  }
+@@ -328,6 +329,7 @@ static inline void compound_lock(struct 
+ static inline void compound_unlock(struct page *page)
+ {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	VM_BUG_ON(PageSlab(page));
+ 	bit_spin_unlock(PG_compound_lock, &page->flags);
+ #endif
+ }
+diff -puN mm/swap.c~mm-fix-slab-page-flags-corruption mm/swap.c
+--- a/mm/swap.c~mm-fix-slab-page-flags-corruption
++++ a/mm/swap.c
+@@ -82,6 +82,24 @@ static void put_compound_page(struct pag
+ 		if (likely(page != page_head &&
+ 			   get_page_unless_zero(page_head))) {
+ 			unsigned long flags;
++
++			/* THP can not break up slab pages, avoid taking
++			 * compound_lock(). Slab prefer non atomic bit ops
++			 * on page->flags for better performance. In particular
++			 * slab_unlock() in slub used to be a hot path
++			 * item. It is still hot on arches that do not support
++			 * this_cpu_cmpxchg_double. */
++
++			if (PageSlab(page_head)) {
++				if (PageTail(page)) {
++					if (put_page_testzero(page_head))
++						VM_BUG_ON(1);
++
++					atomic_dec(&page->_mapcount);
++					goto skip_lock_tail;
++				} else
++					goto skip_lock;
++			}
+ 			/*
+ 			 * page_head wasn't a dangling pointer but it
+ 			 * may not be a head page anymore by the time
+@@ -92,7 +110,7 @@ static void put_compound_page(struct pag
+ 			if (unlikely(!PageTail(page))) {
+ 				/* __split_huge_page_refcount run before us */
+ 				compound_unlock_irqrestore(page_head, flags);
+-				VM_BUG_ON(PageHead(page_head));
++			skip_lock:
+ 				if (put_page_testzero(page_head))
+ 					__put_single_page(page_head);
+ 			out_put_single:
+@@ -115,6 +133,8 @@ static void put_compound_page(struct pag
+ 			VM_BUG_ON(atomic_read(&page_head->_count) <= 0);
+ 			VM_BUG_ON(atomic_read(&page->_count) != 0);
+ 			compound_unlock_irqrestore(page_head, flags);
++
++			skip_lock_tail:
+ 			if (put_page_testzero(page_head)) {
+ 				if (PageHead(page_head))
+ 					__put_compound_page(page_head);
+@@ -162,6 +182,18 @@ bool __get_page_tail(struct page *page)
+ 	struct page *page_head = compound_trans_head(page);
  
+ 	if (likely(page != page_head && get_page_unless_zero(page_head))) {
++
++		/* Ref to put_compound_page() comment. */
++		if (PageSlab(page_head)) {
++			if (likely(PageTail(page))) {
++				__get_page_tail_foll(page, false);
++				return true;
++			} else {
++				put_page(page_head);
++				return false;
++			}
++		}
++
+ 		/*
+ 		 * page_head wasn't a dangling pointer but it
+ 		 * may not be a head page anymore by the time
 _
-Subject: Subject: pipe: return -ENOIOCTLCMD instead of -EINVAL on unknown ioctl command
+Subject: Subject: mm: fix slab->page flags corruption
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from pshelar@nicira.com are
 
-origin.patch
-linux-next.patch
-pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command.patch
+mm-fix-slab-page-flags-corruption.patch
+mm-fix-slab-page-flags-corruption-fix.patch
 
