@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-adp8870-use-devm_-functions.patch added to -mm tree
-Date: Fri, 25 May 2012 13:47:27 -0700
-Message-ID: <20120525204727.E6D03A00AE@akpm.mtv.corp.google.com>
+Subject: + backlight-corgi_lcd-use-devm_-functions.patch added to -mm tree
+Date: Fri, 25 May 2012 13:47:31 -0700
+Message-ID: <20120525204732.276C3A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:60799 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934007Ab2EYUra (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:30 -0400
-Received: by were53 with SMTP id e53so70524wer.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:29 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:36895 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965290Ab2EYUrd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:33 -0400
+Received: by yhgm50 with SMTP id m50so143427yhg.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, michael.hennerich@analog.com, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, eric.y.miao@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: adp8870: use devm_ functions
+     Subject: backlight: corgi_lcd: use devm_ functions
 has been added to the -mm tree.  Its filename is
-     backlight-adp8870-use-devm_-functions.patch
+     backlight-corgi_lcd-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,111 +34,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: adp8870: use devm_ functions
+Subject: backlight: corgi_lcd: use devm_ functions
 
 The devm_ functions allocate memory that is released when a driver
 detaches.  This patch uses devm_kzalloc of these functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Michael Hennerich <michael.hennerich@analog.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/adp8870_bl.c |   22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+ drivers/video/backlight/corgi_lcd.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/backlight/adp8870_bl.c~backlight-adp8870-use-devm_-functions drivers/video/backlight/adp8870_bl.c
---- a/drivers/video/backlight/adp8870_bl.c~backlight-adp8870-use-devm_-functions
-+++ a/drivers/video/backlight/adp8870_bl.c
-@@ -244,8 +244,8 @@ static int __devinit adp8870_led_probe(s
- 	struct led_info *cur_led;
- 	int ret, i;
- 
--
--	led = kcalloc(pdata->num_leds, sizeof(*led), GFP_KERNEL);
-+	led = devm_kzalloc(&client->dev, pdata->num_leds * sizeof(*led),
-+				GFP_KERNEL);
- 	if (led == NULL) {
- 		dev_err(&client->dev, "failed to alloc memory\n");
- 		return -ENOMEM;
-@@ -253,17 +253,17 @@ static int __devinit adp8870_led_probe(s
- 
- 	ret = adp8870_write(client, ADP8870_ISCLAW, pdata->led_fade_law);
- 	if (ret)
--		goto err_free;
-+		return ret;
- 
- 	ret = adp8870_write(client, ADP8870_ISCT1,
- 			(pdata->led_on_time & 0x3) << 6);
- 	if (ret)
--		goto err_free;
-+		return ret;
- 
- 	ret = adp8870_write(client, ADP8870_ISCF,
- 			FADE_VAL(pdata->led_fade_in, pdata->led_fade_out));
- 	if (ret)
--		goto err_free;
-+		return ret;
- 
- 	for (i = 0; i < pdata->num_leds; ++i) {
- 		cur_led = &pdata->leds[i];
-@@ -317,9 +317,6 @@ static int __devinit adp8870_led_probe(s
- 		cancel_work_sync(&led[i].work);
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-devm_-functions drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-devm_-functions
++++ a/drivers/video/backlight/corgi_lcd.c
+@@ -544,7 +544,7 @@ static int __devinit corgi_lcd_probe(str
+ 		return -EINVAL;
  	}
  
-- err_free:
--	kfree(led);
--
+-	lcd = kzalloc(sizeof(struct corgi_lcd), GFP_KERNEL);
++	lcd = devm_kzalloc(&spi->dev, sizeof(struct corgi_lcd), GFP_KERNEL);
+ 	if (!lcd) {
+ 		dev_err(&spi->dev, "failed to allocate memory\n");
+ 		return -ENOMEM;
+@@ -554,10 +554,9 @@ static int __devinit corgi_lcd_probe(str
+ 
+ 	lcd->lcd_dev = lcd_device_register("corgi_lcd", &spi->dev,
+ 					lcd, &corgi_lcd_ops);
+-	if (IS_ERR(lcd->lcd_dev)) {
+-		ret = PTR_ERR(lcd->lcd_dev);
+-		goto err_free_lcd;
+-	}
++	if (IS_ERR(lcd->lcd_dev))
++		return PTR_ERR(lcd->lcd_dev);
++
+ 	lcd->power = FB_BLANK_POWERDOWN;
+ 	lcd->mode = (pdata) ? pdata->init_mode : CORGI_LCD_MODE_VGA;
+ 
+@@ -591,8 +590,6 @@ err_unregister_bl:
+ 	backlight_device_unregister(lcd->bl_dev);
+ err_unregister_lcd:
+ 	lcd_device_unregister(lcd->lcd_dev);
+-err_free_lcd:
+-	kfree(lcd);
  	return ret;
  }
  
-@@ -335,7 +332,6 @@ static int __devexit adp8870_led_remove(
- 		cancel_work_sync(&data->led[i].work);
- 	}
+@@ -613,7 +610,6 @@ static int __devexit corgi_lcd_remove(st
  
--	kfree(data->led);
- 	return 0;
- }
- #else
-@@ -874,7 +870,7 @@ static int __devinit adp8870_probe(struc
- 		return -ENODEV;
- 	}
- 
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
- 	if (data == NULL)
- 		return -ENOMEM;
- 
-@@ -894,8 +890,7 @@ static int __devinit adp8870_probe(struc
- 			&client->dev, data, &adp8870_bl_ops, &props);
- 	if (IS_ERR(bl)) {
- 		dev_err(&client->dev, "failed to register backlight\n");
--		ret = PTR_ERR(bl);
--		goto out2;
-+		return PTR_ERR(bl);
- 	}
- 
- 	data->bl = bl;
-@@ -930,8 +925,6 @@ out:
- 			&adp8870_bl_attr_group);
- out1:
- 	backlight_device_unregister(bl);
--out2:
--	kfree(data);
- 
- 	return ret;
- }
-@@ -950,7 +943,6 @@ static int __devexit adp8870_remove(stru
- 			&adp8870_bl_attr_group);
- 
- 	backlight_device_unregister(data->bl);
--	kfree(data);
+ 	corgi_lcd_set_power(lcd->lcd_dev, FB_BLANK_POWERDOWN);
+ 	lcd_device_unregister(lcd->lcd_dev);
+-	kfree(lcd);
  
  	return 0;
  }
 _
-Subject: Subject: backlight: adp8870: use devm_ functions
+Subject: Subject: backlight: corgi_lcd: use devm_ functions
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
