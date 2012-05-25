@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-corgi_lcd-use-devm_-functions.patch added to -mm tree
-Date: Fri, 25 May 2012 13:47:31 -0700
-Message-ID: <20120525204732.276C3A00AE@akpm.mtv.corp.google.com>
+Subject: + backlight-ams369fg06-use-devm_-functions.patch added to -mm tree
+Date: Fri, 25 May 2012 13:47:29 -0700
+Message-ID: <20120525204729.E0BD9A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:36895 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965290Ab2EYUrd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:33 -0400
-Received: by yhgm50 with SMTP id m50so143427yhg.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:32 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:59337 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965284Ab2EYUrc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:32 -0400
+Received: by wgbdt11 with SMTP id dt11so78103wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, eric.y.miao@gmail.com, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: corgi_lcd: use devm_ functions
+     Subject: backlight: ams369fg06: use devm_ functions
 has been added to the -mm tree.  Its filename is
-     backlight-corgi_lcd-use-devm_-functions.patch
+     backlight-ams369fg06-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,78 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: corgi_lcd: use devm_ functions
+Subject: backlight: ams369fg06: use devm_ functions
 
 The devm_ functions allocate memory that is released when a driver
 detaches.  This patch uses devm_kzalloc of these functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Eric Miao <eric.y.miao@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/corgi_lcd.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/video/backlight/ams369fg06.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-devm_-functions drivers/video/backlight/corgi_lcd.c
---- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-devm_-functions
-+++ a/drivers/video/backlight/corgi_lcd.c
-@@ -544,7 +544,7 @@ static int __devinit corgi_lcd_probe(str
- 		return -EINVAL;
+diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-devm_-functions drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-devm_-functions
++++ a/drivers/video/backlight/ams369fg06.c
+@@ -482,7 +482,7 @@ static int __devinit ams369fg06_probe(st
+ 	struct backlight_device *bd = NULL;
+ 	struct backlight_properties props;
+ 
+-	lcd = kzalloc(sizeof(struct ams369fg06), GFP_KERNEL);
++	lcd = devm_kzalloc(&spi->dev, sizeof(struct ams369fg06), GFP_KERNEL);
+ 	if (!lcd)
+ 		return -ENOMEM;
+ 
+@@ -492,7 +492,7 @@ static int __devinit ams369fg06_probe(st
+ 	ret = spi_setup(spi);
+ 	if (ret < 0) {
+ 		dev_err(&spi->dev, "spi setup failed.\n");
+-		goto out_free_lcd;
++		return ret;
  	}
  
--	lcd = kzalloc(sizeof(struct corgi_lcd), GFP_KERNEL);
-+	lcd = devm_kzalloc(&spi->dev, sizeof(struct corgi_lcd), GFP_KERNEL);
- 	if (!lcd) {
- 		dev_err(&spi->dev, "failed to allocate memory\n");
- 		return -ENOMEM;
-@@ -554,10 +554,9 @@ static int __devinit corgi_lcd_probe(str
+ 	lcd->spi = spi;
+@@ -501,15 +501,13 @@ static int __devinit ams369fg06_probe(st
+ 	lcd->lcd_pd = spi->dev.platform_data;
+ 	if (!lcd->lcd_pd) {
+ 		dev_err(&spi->dev, "platform data is NULL\n");
+-		goto out_free_lcd;
++		return -EFAULT;
+ 	}
  
- 	lcd->lcd_dev = lcd_device_register("corgi_lcd", &spi->dev,
- 					lcd, &corgi_lcd_ops);
--	if (IS_ERR(lcd->lcd_dev)) {
--		ret = PTR_ERR(lcd->lcd_dev);
--		goto err_free_lcd;
+ 	ld = lcd_device_register("ams369fg06", &spi->dev, lcd,
+ 		&ams369fg06_lcd_ops);
+-	if (IS_ERR(ld)) {
+-		ret = PTR_ERR(ld);
+-		goto out_free_lcd;
 -	}
-+	if (IS_ERR(lcd->lcd_dev))
-+		return PTR_ERR(lcd->lcd_dev);
-+
- 	lcd->power = FB_BLANK_POWERDOWN;
- 	lcd->mode = (pdata) ? pdata->init_mode : CORGI_LCD_MODE_VGA;
++	if (IS_ERR(ld))
++		return PTR_ERR(ld);
  
-@@ -591,8 +590,6 @@ err_unregister_bl:
- 	backlight_device_unregister(lcd->bl_dev);
- err_unregister_lcd:
- 	lcd_device_unregister(lcd->lcd_dev);
--err_free_lcd:
+ 	lcd->ld = ld;
+ 
+@@ -547,8 +545,6 @@ static int __devinit ams369fg06_probe(st
+ 
+ out_lcd_unregister:
+ 	lcd_device_unregister(ld);
+-out_free_lcd:
 -	kfree(lcd);
  	return ret;
  }
  
-@@ -613,7 +610,6 @@ static int __devexit corgi_lcd_remove(st
- 
- 	corgi_lcd_set_power(lcd->lcd_dev, FB_BLANK_POWERDOWN);
- 	lcd_device_unregister(lcd->lcd_dev);
+@@ -559,7 +555,6 @@ static int __devexit ams369fg06_remove(s
+ 	ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
+ 	backlight_device_unregister(lcd->bd);
+ 	lcd_device_unregister(lcd->ld);
 -	kfree(lcd);
  
  	return 0;
  }
 _
-Subject: Subject: backlight: corgi_lcd: use devm_ functions
+Subject: Subject: backlight: ams369fg06: use devm_ functions
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
