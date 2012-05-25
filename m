@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ams369fg06-use-devm_-functions.patch added to -mm tree
-Date: Fri, 25 May 2012 13:47:29 -0700
-Message-ID: <20120525204729.E0BD9A00AE@akpm.mtv.corp.google.com>
+Subject: + backlight-l4f00242t03-use-devm_-functions.patch added to -mm tree
+Date: Fri, 25 May 2012 13:47:35 -0700
+Message-ID: <20120525204736.1784AA00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:59337 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965284Ab2EYUrc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:32 -0400
-Received: by wgbdt11 with SMTP id dt11so78103wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:31 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:61959 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934065Ab2EYUrj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:39 -0400
+Received: by lbbgp10 with SMTP id gp10so70430lbb.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, alberto@amarulasolutions.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: ams369fg06: use devm_ functions
+     Subject: backlight: l4f00242t03: use devm_ functions
 has been added to the -mm tree.  Its filename is
-     backlight-ams369fg06-use-devm_-functions.patch
+     backlight-l4f00242t03-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,109 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ams369fg06: use devm_ functions
+Subject: backlight: l4f00242t03: use devm_ functions
 
 The devm_ functions allocate memory that is released when a driver
 detaches.  This patch uses devm_kzalloc of these functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Alberto Panizzo <alberto@amarulasolutions.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/video/backlight/l4f00242t03.c |   25 ++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-devm_-functions drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-devm_-functions
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -482,7 +482,7 @@ static int __devinit ams369fg06_probe(st
- 	struct backlight_device *bd = NULL;
- 	struct backlight_properties props;
+diff -puN drivers/video/backlight/l4f00242t03.c~backlight-l4f00242t03-use-devm_-functions drivers/video/backlight/l4f00242t03.c
+--- a/drivers/video/backlight/l4f00242t03.c~backlight-l4f00242t03-use-devm_-functions
++++ a/drivers/video/backlight/l4f00242t03.c
+@@ -161,7 +161,8 @@ static int __devinit l4f00242t03_probe(s
+ 		return -EINVAL;
+ 	}
  
--	lcd = kzalloc(sizeof(struct ams369fg06), GFP_KERNEL);
-+	lcd = devm_kzalloc(&spi->dev, sizeof(struct ams369fg06), GFP_KERNEL);
- 	if (!lcd)
- 		return -ENOMEM;
+-	priv = kzalloc(sizeof(struct l4f00242t03_priv), GFP_KERNEL);
++	priv = devm_kzalloc(&spi->dev, sizeof(struct l4f00242t03_priv),
++				GFP_KERNEL);
  
-@@ -492,7 +492,7 @@ static int __devinit ams369fg06_probe(st
- 	ret = spi_setup(spi);
- 	if (ret < 0) {
- 		dev_err(&spi->dev, "spi setup failed.\n");
--		goto out_free_lcd;
+ 	if (priv == NULL) {
+ 		dev_err(&spi->dev, "No memory for this device.\n");
+@@ -179,7 +180,7 @@ static int __devinit l4f00242t03_probe(s
+ 	if (ret) {
+ 		dev_err(&spi->dev,
+ 			"Unable to get the lcd l4f00242t03 reset gpio.\n");
+-		goto err;
 +		return ret;
  	}
  
- 	lcd->spi = spi;
-@@ -501,15 +501,13 @@ static int __devinit ams369fg06_probe(st
- 	lcd->lcd_pd = spi->dev.platform_data;
- 	if (!lcd->lcd_pd) {
- 		dev_err(&spi->dev, "platform data is NULL\n");
--		goto out_free_lcd;
-+		return -EFAULT;
+ 	ret = gpio_request_one(pdata->data_enable_gpio, GPIOF_OUT_INIT_LOW,
+@@ -187,7 +188,7 @@ static int __devinit l4f00242t03_probe(s
+ 	if (ret) {
+ 		dev_err(&spi->dev,
+ 			"Unable to get the lcd l4f00242t03 data en gpio.\n");
+-		goto err2;
++		goto err;
  	}
  
- 	ld = lcd_device_register("ams369fg06", &spi->dev, lcd,
- 		&ams369fg06_lcd_ops);
--	if (IS_ERR(ld)) {
--		ret = PTR_ERR(ld);
--		goto out_free_lcd;
--	}
-+	if (IS_ERR(ld))
-+		return PTR_ERR(ld);
+ 	priv->io_reg = regulator_get(&spi->dev, "vdd");
+@@ -195,7 +196,7 @@ static int __devinit l4f00242t03_probe(s
+ 		ret = PTR_ERR(priv->io_reg);
+ 		dev_err(&spi->dev, "%s: Unable to get the IO regulator\n",
+ 		       __func__);
+-		goto err3;
++		goto err2;
+ 	}
  
- 	lcd->ld = ld;
+ 	priv->core_reg = regulator_get(&spi->dev, "vcore");
+@@ -203,14 +204,14 @@ static int __devinit l4f00242t03_probe(s
+ 		ret = PTR_ERR(priv->core_reg);
+ 		dev_err(&spi->dev, "%s: Unable to get the core regulator\n",
+ 		       __func__);
+-		goto err4;
++		goto err3;
+ 	}
  
-@@ -547,8 +545,6 @@ static int __devinit ams369fg06_probe(st
+ 	priv->ld = lcd_device_register("l4f00242t03",
+ 					&spi->dev, priv, &l4f_ops);
+ 	if (IS_ERR(priv->ld)) {
+ 		ret = PTR_ERR(priv->ld);
+-		goto err5;
++		goto err4;
+ 	}
  
- out_lcd_unregister:
- 	lcd_device_unregister(ld);
--out_free_lcd:
--	kfree(lcd);
- 	return ret;
- }
- 
-@@ -559,7 +555,6 @@ static int __devexit ams369fg06_remove(s
- 	ams369fg06_power(lcd, FB_BLANK_POWERDOWN);
- 	backlight_device_unregister(lcd->bd);
- 	lcd_device_unregister(lcd->ld);
--	kfree(lcd);
+ 	/* Init the LCD */
+@@ -222,16 +223,14 @@ static int __devinit l4f00242t03_probe(s
  
  	return 0;
+ 
+-err5:
+-	regulator_put(priv->core_reg);
+ err4:
+-	regulator_put(priv->io_reg);
++	regulator_put(priv->core_reg);
+ err3:
+-	gpio_free(pdata->data_enable_gpio);
++	regulator_put(priv->io_reg);
+ err2:
+-	gpio_free(pdata->reset_gpio);
++	gpio_free(pdata->data_enable_gpio);
+ err:
+-	kfree(priv);
++	gpio_free(pdata->reset_gpio);
+ 
+ 	return ret;
  }
+@@ -252,8 +251,6 @@ static int __devexit l4f00242t03_remove(
+ 	regulator_put(priv->io_reg);
+ 	regulator_put(priv->core_reg);
+ 
+-	kfree(priv);
+-
+ 	return 0;
+ }
+ 
 _
-Subject: Subject: backlight: ams369fg06: use devm_ functions
+Subject: Subject: backlight: l4f00242t03: use devm_ functions
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
