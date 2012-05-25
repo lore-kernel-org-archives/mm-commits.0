@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-tdo24m-use-devm_-functions.patch added to -mm tree
-Date: Fri, 25 May 2012 13:47:45 -0700
-Message-ID: <20120525204745.EEB48A00AE@akpm.mtv.corp.google.com>
+Subject: + backlight-tosa_lcd-use-devm_-functions.patch added to -mm tree
+Date: Fri, 25 May 2012 13:47:49 -0700
+Message-ID: <20120525204750.28873A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:44717 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934065Ab2EYUrq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:46 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so150530qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:46 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:49537 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934054Ab2EYUrv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:51 -0400
+Received: by ggeh3 with SMTP id h3so149919gge.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, eric.y.miao@gmail.com, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, dbaryshkov@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: tdo24m: use devm_ functions
+     Subject: backlight: tosa_lcd: use devm_ functions
 has been added to the -mm tree.  Its filename is
-     backlight-tdo24m-use-devm_-functions.patch
+     backlight-tosa_lcd-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,61 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: tdo24m: use devm_ functions
+Subject: backlight: tosa_lcd: use devm_ functions
 
 The devm_ functions allocate memory that is released when a driver
 detaches.  This patch uses devm_kzalloc of these functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Eric Miao <eric.y.miao@gmail.com>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tdo24m.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ drivers/video/backlight/tosa_lcd.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/tdo24m.c~backlight-tdo24m-use-devm_-functions drivers/video/backlight/tdo24m.c
---- a/drivers/video/backlight/tdo24m.c~backlight-tdo24m-use-devm_-functions
-+++ a/drivers/video/backlight/tdo24m.c
-@@ -349,7 +349,7 @@ static int __devinit tdo24m_probe(struct
- 	if (err)
- 		return err;
+diff -puN drivers/video/backlight/tosa_lcd.c~backlight-tosa_lcd-use-devm_-functions drivers/video/backlight/tosa_lcd.c
+--- a/drivers/video/backlight/tosa_lcd.c~backlight-tosa_lcd-use-devm_-functions
++++ a/drivers/video/backlight/tosa_lcd.c
+@@ -174,7 +174,8 @@ static int __devinit tosa_lcd_probe(stru
+ 	int ret;
+ 	struct tosa_lcd_data *data;
  
--	lcd = kzalloc(sizeof(struct tdo24m), GFP_KERNEL);
-+	lcd = devm_kzalloc(&spi->dev, sizeof(struct tdo24m), GFP_KERNEL);
- 	if (!lcd)
+-	data = kzalloc(sizeof(struct tosa_lcd_data), GFP_KERNEL);
++	data = devm_kzalloc(&spi->dev, sizeof(struct tosa_lcd_data),
++				GFP_KERNEL);
+ 	if (!data)
  		return -ENOMEM;
  
-@@ -357,11 +357,9 @@ static int __devinit tdo24m_probe(struct
- 	lcd->power = FB_BLANK_POWERDOWN;
- 	lcd->mode = MODE_VGA;	/* default to VGA */
+@@ -187,7 +188,7 @@ static int __devinit tosa_lcd_probe(stru
  
--	lcd->buf = kmalloc(TDO24M_SPI_BUFF_SIZE, GFP_KERNEL);
--	if (lcd->buf == NULL) {
--		kfree(lcd);
-+	lcd->buf = devm_kzalloc(&spi->dev, TDO24M_SPI_BUFF_SIZE, GFP_KERNEL);
-+	if (lcd->buf == NULL)
- 		return -ENOMEM;
--	}
+ 	ret = spi_setup(spi);
+ 	if (ret < 0)
+-		goto err_spi;
++		return ret;
  
- 	m = &lcd->msg;
- 	x = &lcd->xfer;
-@@ -383,15 +381,13 @@ static int __devinit tdo24m_probe(struct
- 		break;
- 	default:
- 		dev_err(&spi->dev, "Unsupported model");
--		goto out_free;
-+		return -EINVAL;
- 	}
- 
- 	lcd->lcd_dev = lcd_device_register("tdo24m", &spi->dev,
- 					lcd, &tdo24m_ops);
--	if (IS_ERR(lcd->lcd_dev)) {
--		err = PTR_ERR(lcd->lcd_dev);
--		goto out_free;
--	}
-+	if (IS_ERR(lcd->lcd_dev))
-+		return PTR_ERR(lcd->lcd_dev);
- 
- 	dev_set_drvdata(&spi->dev, lcd);
- 	err = tdo24m_power(lcd, FB_BLANK_UNBLANK);
-@@ -402,9 +398,6 @@ static int __devinit tdo24m_probe(struct
- 
- out_unregister:
- 	lcd_device_unregister(lcd->lcd_dev);
--out_free:
--	kfree(lcd->buf);
--	kfree(lcd);
- 	return err;
+ 	data->spi = spi;
+ 	dev_set_drvdata(&spi->dev, data);
+@@ -224,8 +225,6 @@ err_gpio_dir:
+ 	gpio_free(TOSA_GPIO_TG_ON);
+ err_gpio_tg:
+ 	dev_set_drvdata(&spi->dev, NULL);
+-err_spi:
+-	kfree(data);
+ 	return ret;
  }
  
-@@ -414,8 +407,6 @@ static int __devexit tdo24m_remove(struc
+@@ -242,7 +241,6 @@ static int __devexit tosa_lcd_remove(str
  
- 	tdo24m_power(lcd, FB_BLANK_POWERDOWN);
- 	lcd_device_unregister(lcd->lcd_dev);
--	kfree(lcd->buf);
--	kfree(lcd);
+ 	gpio_free(TOSA_GPIO_TG_ON);
+ 	dev_set_drvdata(&spi->dev, NULL);
+-	kfree(data);
  
  	return 0;
  }
 _
-Subject: Subject: backlight: tdo24m: use devm_ functions
+Subject: Subject: backlight: tosa_lcd: use devm_ functions
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
