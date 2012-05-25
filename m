@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lms283gf05-use-devm_-functions.patch added to -mm tree
-Date: Fri, 25 May 2012 13:47:39 -0700
-Message-ID: <20120525204739.E6FBEA00AE@akpm.mtv.corp.google.com>
+Subject: + backlight-s6e63m0-use-devm_-functions.patch added to -mm tree
+Date: Fri, 25 May 2012 13:47:43 -0700
+Message-ID: <20120525204743.DE6B2A00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:37329 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934065Ab2EYUrm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:42 -0400
-Received: by faaa25 with SMTP id a25so69944faa.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:41 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:49799 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934073Ab2EYUro (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:44 -0400
+Received: by mail-qa0-f74.google.com with SMTP id g24so204727qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, marek.vasut@gmail.com, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, inki.dae@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: lms283gf05: use devm_ functions
+     Subject: backlight: s6e63m0: use devm_ functions
 has been added to the -mm tree.  Its filename is
-     backlight-lms283gf05-use-devm_-functions.patch
+     backlight-s6e63m0-use-devm_-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,78 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lms283gf05: use devm_ functions
+Subject: backlight: s6e63m0: use devm_ functions
 
 The devm_ functions allocate memory that is released when a driver
 detaches.  This patch uses devm_kzalloc of these functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Marek Vasut <marek.vasut@gmail.com>
+Cc: InKi Dae <inki.dae@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lms283gf05.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/video/backlight/s6e63m0.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-devm_-functions drivers/video/backlight/lms283gf05.c
---- a/drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-devm_-functions
-+++ a/drivers/video/backlight/lms283gf05.c
-@@ -168,7 +168,8 @@ static int __devinit lms283gf05_probe(st
- 			goto err;
+diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-use-devm_-functions drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-use-devm_-functions
++++ a/drivers/video/backlight/s6e63m0.c
+@@ -741,7 +741,7 @@ static int __devinit s6e63m0_probe(struc
+ 	struct backlight_device *bd = NULL;
+ 	struct backlight_properties props;
+ 
+-	lcd = kzalloc(sizeof(struct s6e63m0), GFP_KERNEL);
++	lcd = devm_kzalloc(&spi->dev, sizeof(struct s6e63m0), GFP_KERNEL);
+ 	if (!lcd)
+ 		return -ENOMEM;
+ 
+@@ -751,7 +751,7 @@ static int __devinit s6e63m0_probe(struc
+ 	ret = spi_setup(spi);
+ 	if (ret < 0) {
+ 		dev_err(&spi->dev, "spi setup failed.\n");
+-		goto out_free_lcd;
++		return ret;
  	}
  
--	st = kzalloc(sizeof(struct lms283gf05_state), GFP_KERNEL);
-+	st = devm_kzalloc(&spi->dev, sizeof(struct lms283gf05_state),
-+				GFP_KERNEL);
- 	if (st == NULL) {
- 		dev_err(&spi->dev, "No memory for device state\n");
- 		ret = -ENOMEM;
-@@ -178,7 +179,7 @@ static int __devinit lms283gf05_probe(st
- 	ld = lcd_device_register("lms283gf05", &spi->dev, st, &lms_ops);
- 	if (IS_ERR(ld)) {
- 		ret = PTR_ERR(ld);
--		goto err2;
-+		goto err;
+ 	lcd->spi = spi;
+@@ -760,14 +760,12 @@ static int __devinit s6e63m0_probe(struc
+ 	lcd->lcd_pd = (struct lcd_platform_data *)spi->dev.platform_data;
+ 	if (!lcd->lcd_pd) {
+ 		dev_err(&spi->dev, "platform data is NULL.\n");
+-		goto out_free_lcd;
++		return -EFAULT;
  	}
  
- 	st->spi = spi;
-@@ -193,8 +194,6 @@ static int __devinit lms283gf05_probe(st
+ 	ld = lcd_device_register("s6e63m0", &spi->dev, lcd, &s6e63m0_lcd_ops);
+-	if (IS_ERR(ld)) {
+-		ret = PTR_ERR(ld);
+-		goto out_free_lcd;
+-	}
++	if (IS_ERR(ld))
++		return PTR_ERR(ld);
  
- 	return 0;
+ 	lcd->ld = ld;
  
--err2:
--	kfree(st);
- err:
- 	if (pdata != NULL)
- 		gpio_free(pdata->reset_gpio);
-@@ -212,8 +211,6 @@ static int __devexit lms283gf05_remove(s
- 	if (pdata != NULL)
- 		gpio_free(pdata->reset_gpio);
+@@ -824,8 +822,6 @@ static int __devinit s6e63m0_probe(struc
  
--	kfree(st);
--
- 	return 0;
+ out_lcd_unregister:
+ 	lcd_device_unregister(ld);
+-out_free_lcd:
+-	kfree(lcd);
+ 	return ret;
  }
  
+@@ -838,7 +834,6 @@ static int __devexit s6e63m0_remove(stru
+ 	device_remove_file(&spi->dev, &dev_attr_gamma_mode);
+ 	backlight_device_unregister(lcd->bd);
+ 	lcd_device_unregister(lcd->ld);
+-	kfree(lcd);
+ 
+ 	return 0;
+ }
 _
-Subject: Subject: backlight: lms283gf05: use devm_ functions
+Subject: Subject: backlight: s6e63m0: use devm_ functions
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
