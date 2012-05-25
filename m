@@ -1,129 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-tosa_lcd-use-devm_-functions.patch added to -mm tree
-Date: Fri, 25 May 2012 13:47:49 -0700
-Message-ID: <20120525204750.28873A00AE@akpm.mtv.corp.google.com>
+Subject: [merged] x86-nmi-add-missing-kern_cont-to-nmi-selftest.patch removed from -mm tree
+Date: Fri, 25 May 2012 13:48:27 -0700
+Message-ID: <20120525204827.6D5EEA00AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:49537 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934054Ab2EYUrv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:47:51 -0400
-Received: by ggeh3 with SMTP id h3so149919gge.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:47:50 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:50560 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755868Ab2EYUs2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 16:48:28 -0400
+Received: by vbnl22 with SMTP id l22so148947vbn.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 13:48:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, dbaryshkov@gmail.com, rpurdie@rpsys.net
+To: levinsasha928@gmail.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: tosa_lcd: use devm_ functions
-has been added to the -mm tree.  Its filename is
-     backlight-tosa_lcd-use-devm_-functions.patch
+     Subject: x86, NMI: add missing KERN_CONT to NMI selftest
+has been removed from the -mm tree.  Its filename was
+     x86-nmi-add-missing-kern_cont-to-nmi-selftest.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: tosa_lcd: use devm_ functions
+From: Sasha Levin <levinsasha928@gmail.com>
+Subject: x86, NMI: add missing KERN_CONT to NMI selftest
 
-The devm_ functions allocate memory that is released when a driver
-detaches.  This patch uses devm_kzalloc of these functions.
+Fix this behaviour:
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+----------------
+| NMI testsuite:
+--------------------
+  remote IPI:
+  ok  |
+
+   local IPI:
+  ok  |
+
+Revealed due to a new modification to printk().
+
+Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tosa_lcd.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/x86/kernel/nmi_selftest.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/backlight/tosa_lcd.c~backlight-tosa_lcd-use-devm_-functions drivers/video/backlight/tosa_lcd.c
---- a/drivers/video/backlight/tosa_lcd.c~backlight-tosa_lcd-use-devm_-functions
-+++ a/drivers/video/backlight/tosa_lcd.c
-@@ -174,7 +174,8 @@ static int __devinit tosa_lcd_probe(stru
- 	int ret;
- 	struct tosa_lcd_data *data;
+diff -puN arch/x86/kernel/nmi_selftest.c~x86-nmi-add-missing-kern_cont-to-nmi-selftest arch/x86/kernel/nmi_selftest.c
+--- a/arch/x86/kernel/nmi_selftest.c~x86-nmi-add-missing-kern_cont-to-nmi-selftest
++++ a/arch/x86/kernel/nmi_selftest.c
+@@ -117,15 +117,15 @@ static void __init dotest(void (*testcas
+ 		unexpected_testcase_failures++;
  
--	data = kzalloc(sizeof(struct tosa_lcd_data), GFP_KERNEL);
-+	data = devm_kzalloc(&spi->dev, sizeof(struct tosa_lcd_data),
-+				GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
+ 		if (nmi_fail == FAILURE)
+-			printk("FAILED |");
++			printk(KERN_CONT "FAILED |");
+ 		else if (nmi_fail == TIMEOUT)
+-			printk("TIMEOUT|");
++			printk(KERN_CONT "TIMEOUT|");
+ 		else
+-			printk("ERROR  |");
++			printk(KERN_CONT "ERROR  |");
+ 		dump_stack();
+ 	} else {
+ 		testcase_successes++;
+-		printk("  ok  |");
++		printk(KERN_CONT "  ok  |");
+ 	}
+ 	testcase_total++;
  
-@@ -187,7 +188,7 @@ static int __devinit tosa_lcd_probe(stru
+@@ -150,10 +150,10 @@ void __init nmi_selftest(void)
  
- 	ret = spi_setup(spi);
- 	if (ret < 0)
--		goto err_spi;
-+		return ret;
+ 	print_testname("remote IPI");
+ 	dotest(remote_ipi, SUCCESS);
+-	printk("\n");
++	printk(KERN_CONT "\n");
+ 	print_testname("local IPI");
+ 	dotest(local_ipi, SUCCESS);
+-	printk("\n");
++	printk(KERN_CONT "\n");
  
- 	data->spi = spi;
- 	dev_set_drvdata(&spi->dev, data);
-@@ -224,8 +225,6 @@ err_gpio_dir:
- 	gpio_free(TOSA_GPIO_TG_ON);
- err_gpio_tg:
- 	dev_set_drvdata(&spi->dev, NULL);
--err_spi:
--	kfree(data);
- 	return ret;
- }
+ 	cleanup_nmi_testsuite();
  
-@@ -242,7 +241,6 @@ static int __devexit tosa_lcd_remove(str
- 
- 	gpio_free(TOSA_GPIO_TG_ON);
- 	dev_set_drvdata(&spi->dev, NULL);
--	kfree(data);
- 
- 	return 0;
- }
 _
-Subject: Subject: backlight: tosa_lcd: use devm_ functions
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from levinsasha928@gmail.com are
 
 origin.patch
 linux-next.patch
-backlight-adp8860-use-kstrtoul.patch
-backlight-adp8870-use-kstrtoul.patch
-backlight-adp5520-use-kstrtoul.patch
-backlight-use-pr_warn-and-pr_debug-instead-of-printk.patch
-backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
-backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
-backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
-backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
-backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
-backlight-generic_bl-use-pr_info-instead-of-printk.patch
-backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
-backlight-jornada720-use-pr_err-pr_info-instead-of-printk.patch
-backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
-backlight-omap1-use-pr_info-instead-of-printk.patch
-backlight-omap1-use-pr_info-instead-of-printk-fix.patch
-backlight-progear-use-pr_err-instead-of-printk.patch
-backlight-progear-use-pr_err-instead-of-printk-fix.patch
-drivers-video-backlight-l4f00242t03c-use-pr_fmt.patch
-backlight-initialize-struct-backlight_properties-properly.patch
-backlight-adp8860-use-devm_-functions.patch
-backlight-adp8870-use-devm_-functions.patch
-backlight-ams369fg06-use-devm_-functions.patch
-backlight-corgi_lcd-use-devm_-functions.patch
-backlight-ili9320-use-devm_-functions.patch
-backlight-l4f00242t03-use-devm_-functions.patch
-backlight-ld9040-use-devm_-functions.patch
-backlight-lms283gf05-use-devm_-functions.patch
-backlight-ltv350qv-use-devm_-functions.patch
-backlight-s6e63m0-use-devm_-functions.patch
-backlight-tdo24m-use-devm_-functions.patch
-backlight-tosa_bl-use-devm_-functions.patch
-backlight-tosa_lcd-use-devm_-functions.patch
+mm-fix-null-ptr-deref-when-walking-hugepages.patch
+locking-add-kern_cont-when-needed-to-self-test.patch
+isdn-add-missing-kern_cont.patch
+isdn-add-missing-kern_cont-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-use-correct-gfp-flags-in-msg_insert.patch
 
