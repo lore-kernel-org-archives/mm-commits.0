@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en.patch added to -mm tree
-Date: Fri, 25 May 2012 16:07:48 -0700
-Message-ID: <20120525230748.8F903A022F@akpm.mtv.corp.google.com>
+Subject: + backlight-add-lm3533-backlight-driver-replace-als-attribute-with-als_channel-and-als_en.patch added to -mm tree
+Date: Fri, 25 May 2012 16:08:56 -0700
+Message-ID: <20120525230856.584D2A022F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:53429 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177Ab2EYXHv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 19:07:51 -0400
-Received: by faaa25 with SMTP id a25so73613faa.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 16:07:49 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:37732 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753177Ab2EYXI5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 May 2012 19:08:57 -0400
+Received: by vcbfl13 with SMTP id fl13so114112vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 May 2012 16:08:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jhovold@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: leds: lm3533: replace als attribute with als_channel and als_en
+     Subject: backlight: lm3533: replace als attribute with als_channel and als_en
 has been added to the -mm tree.  Its filename is
-     leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en.patch
+     backlight-add-lm3533-backlight-driver-replace-als-attribute-with-als_channel-and-als_en.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,230 +34,162 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johan Hovold <jhovold@gmail.com>
-Subject: leds: lm3533: replace als attribute with als_channel and als_en
+Subject: backlight: lm3533: replace als attribute with als_channel and als_en
 
 Replace the als attribute with two separate attributes for selecting ALS
 channel and enabling ALS-current-control mode.
 
-This change is needed to reflect changes made to the ALS sub-driver
-which now uses 0-indexed current output channels (rather than 1-indexed
+This change is needed to reflect changes made to the ALS sub-driver which
+now uses 0-indexed current output channels (rather than 1-indexed
 ALS-mapper target sets).
 
 Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-led-driver-lm3533 |   19 +
- drivers/leds/leds-lm3533.c                              |   98 +++++++---
- 2 files changed, 87 insertions(+), 30 deletions(-)
+ Documentation/ABI/testing/sysfs-class-backlight-driver-lm3533 |   19 ++-
+ drivers/video/backlight/lm3533_bl.c                           |   48 +++++-----
+ 2 files changed, 37 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-class-led-driver-lm3533~leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en Documentation/ABI/testing/sysfs-class-led-driver-lm3533
---- a/Documentation/ABI/testing/sysfs-class-led-driver-lm3533~leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en
-+++ a/Documentation/ABI/testing/sysfs-class-led-driver-lm3533
+diff -puN Documentation/ABI/testing/sysfs-class-backlight-driver-lm3533~backlight-add-lm3533-backlight-driver-replace-als-attribute-with-als_channel-and-als_en Documentation/ABI/testing/sysfs-class-backlight-driver-lm3533
+--- a/Documentation/ABI/testing/sysfs-class-backlight-driver-lm3533~backlight-add-lm3533-backlight-driver-replace-als-attribute-with-als_channel-and-als_en
++++ a/Documentation/ABI/testing/sysfs-class-backlight-driver-lm3533
 @@ -1,13 +1,20 @@
--What:		/sys/class/leds/<led>/als
+-What:		/sys/class/backlight/<backlight>/als
 -Date:		April 2012
-+What:		/sys/class/leds/<led>/als_channel
++What:		/sys/class/backlight/<backlight>/als_channel
 +Date:		May 2012
  KernelVersion:	3.5
  Contact:	Johan Hovold <jhovold@gmail.com>
  Description:
--		Set the ALS-control mode (0, 2, 3), where
-+		Set the ALS output channel to use as input in
-+		ALS-current-control mode (1, 2), where
+-		Set the ALS-control mode (0..2), where
++		Get the ALS output channel used as input in
++		ALS-current-control mode (0, 1), where
 +
-+		1 - out_current1
-+		2 - out_current2
++		0 - out_current0 (backlight 0)
++		1 - out_current1 (backlight 1)
  
 -		0 - disabled
--		2 - ALS-mapper 2
--		3 - ALS-mapper 3
-+What:		/sys/class/leds/<led>/als_en
+-		1 - ALS-mapper 1 (backlight 0)
+-		2 - ALS-mapper 2 (backlight 1)
++What:		/sys/class/backlight/<backlight>/als_en
 +Date:		May 2012
 +KernelVersion:	3.5
 +Contact:	Johan Hovold <jhovold@gmail.com>
 +Description:
 +		Enable ALS-current-control mode (0, 1).
  
- What:		/sys/class/leds/<led>/falltime
- What:		/sys/class/leds/<led>/risetime
-diff -puN drivers/leds/leds-lm3533.c~leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en drivers/leds/leds-lm3533.c
---- a/drivers/leds/leds-lm3533.c~leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en
-+++ a/drivers/leds/leds-lm3533.c
-@@ -27,8 +27,8 @@
- #define LM3533_LVCTRLBANK_MAX		5
- #define LM3533_LVCTRLBANK_COUNT		4
- #define LM3533_RISEFALLTIME_MAX		7
--#define LM3533_ALS_LV_MIN		2
--#define LM3533_ALS_LV_MAX		3
-+#define LM3533_ALS_CHANNEL_LV_MIN	1
-+#define LM3533_ALS_CHANNEL_LV_MAX	2
- 
- #define LM3533_REG_CTRLBANK_BCONF_BASE		0x1b
- #define LM3533_REG_PATTERN_ENABLE		0x28
-@@ -39,8 +39,9 @@
- 
- #define LM3533_REG_PATTERN_STEP			0x10
- 
--#define LM3533_REG_CTRLBANK_BCONF_MAPPING_MASK	0x04
--#define LM3533_REG_CTRLBANK_BCONF_ALS_MASK	0x03
-+#define LM3533_REG_CTRLBANK_BCONF_MAPPING_MASK		0x04
-+#define LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK		0x02
-+#define LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK	0x01
- 
- #define LM3533_LED_FLAG_PATTERN_ENABLE		1
- 
-@@ -416,21 +417,14 @@ static ssize_t store_falltime(struct dev
- 					LM3533_REG_PATTERN_FALLTIME_BASE);
+ What:		/sys/class/backlight/<backlight>/id
+ Date:		April 2012
+diff -puN drivers/video/backlight/lm3533_bl.c~backlight-add-lm3533-backlight-driver-replace-als-attribute-with-als_channel-and-als_en drivers/video/backlight/lm3533_bl.c
+--- a/drivers/video/backlight/lm3533_bl.c~backlight-add-lm3533-backlight-driver-replace-als-attribute-with-als_channel-and-als_en
++++ a/drivers/video/backlight/lm3533_bl.c
+@@ -79,55 +79,52 @@ static ssize_t show_id(struct device *de
+ 	return scnprintf(buf, PAGE_SIZE, "%d\n", bl->id);
  }
  
 -/*
 - * ALS-control setting:
 - *
 - *   0 - ALS disabled
-- *   2 - ALS-mapper 2
-- *   3 - ALS-mapper 3
+- *   1 - ALS-mapper 1 (backlight 0)
+- *   2 - ALS-mapper 2 (backlight 1)
 - */
 -static ssize_t show_als(struct device *dev,
 +static ssize_t show_als_channel(struct device *dev,
- 				struct device_attribute *attr, char *buf)
- {
- 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
- 	struct lm3533_led *led = to_lm3533_led(led_cdev);
-+	unsigned channel;
- 	u8 reg;
- 	u8 val;
--	int als;
- 	int ret;
- 
- 	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
-@@ -438,32 +432,85 @@ static ssize_t show_als(struct device *d
- 	if (ret)
- 		return ret;
- 
--	als = val & LM3533_REG_CTRLBANK_BCONF_ALS_MASK;
-+	channel = (val & LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK) + 1;
- 
--	return scnprintf(buf, PAGE_SIZE, "%d\n", als);
++				struct device_attribute *attr, char *buf)
++{
++	struct lm3533_bl *bl = dev_get_drvdata(dev);
++	unsigned channel = lm3533_bl_get_ctrlbank_id(bl);
++
 +	return scnprintf(buf, PAGE_SIZE, "%u\n", channel);
- }
- 
--static ssize_t store_als(struct device *dev,
-+static ssize_t store_als_channel(struct device *dev,
- 					struct device_attribute *attr,
- 					const char *buf, size_t len)
- {
- 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
- 	struct lm3533_led *led = to_lm3533_led(led_cdev);
--	u8 als;
-+	unsigned channel;
- 	u8 reg;
-+	u8 val;
- 	u8 mask;
- 	int ret;
- 
--	if (kstrtou8(buf, 0, &als))
-+	if (kstrtouint(buf, 0, &channel))
- 		return -EINVAL;
- 
--	if (als != 0 && (als < LM3533_ALS_LV_MIN || als > LM3533_ALS_LV_MAX))
-+	if (channel < LM3533_ALS_CHANNEL_LV_MIN ||
-+					channel > LM3533_ALS_CHANNEL_LV_MAX)
- 		return -EINVAL;
- 
- 	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
--	mask = LM3533_REG_CTRLBANK_BCONF_ALS_MASK;
-+	mask = LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK;
-+	val = channel - 1;
-+
-+	ret = lm3533_update(led->lm3533, reg, val, mask);
-+	if (ret)
-+		return ret;
-+
-+	return len;
 +}
 +
 +static ssize_t show_als_en(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct lm3533_led *led = to_lm3533_led(led_cdev);
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	struct lm3533_bl *bl = dev_get_drvdata(dev);
+ 	int ctrlbank = lm3533_bl_get_ctrlbank_id(bl);
+ 	u8 val;
+ 	u8 mask;
+-	int als;
 +	bool enable;
-+	u8 reg;
-+	u8 val;
-+	int ret;
-+
-+	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
-+	ret = lm3533_read(led->lm3533, reg, &val);
-+	if (ret)
-+		return ret;
+ 	int ret;
  
--	ret = lm3533_update(led->lm3533, reg, als, mask);
-+	enable = val & LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK;
-+
-+	return scnprintf(buf, PAGE_SIZE, "%d\n", enable);
-+}
-+
-+static ssize_t store_als_en(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t len)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct lm3533_led *led = to_lm3533_led(led_cdev);
-+	unsigned enable;
-+	u8 reg;
-+	u8 mask;
-+	u8 val;
-+	int ret;
-+
-+	if (kstrtouint(buf, 0, &enable))
-+		return -EINVAL;
-+
-+	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
-+	mask = LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK;
-+
-+	if (enable)
-+		val = mask;
-+	else
-+		val = 0;
-+
-+	ret = lm3533_update(led->lm3533, reg, val, mask);
+ 	ret = lm3533_read(bl->lm3533, LM3533_REG_CTRLBANK_AB_BCONF, &val);
  	if (ret)
  		return ret;
  
-@@ -558,7 +605,8 @@ static ssize_t store_pwm(struct device *
+-	mask = 2 * ctrlbank;
+-	als = val & mask;
+-	if (als)
+-		als = ctrlbank + 1;
++	mask = 1 << (2 * ctrlbank);
++	enable = val & mask;
+ 
+-	return scnprintf(buf, PAGE_SIZE, "%d\n", als);
++	return scnprintf(buf, PAGE_SIZE, "%d\n", enable);
+ }
+ 
+-static ssize_t store_als(struct device *dev,
++static ssize_t store_als_en(struct device *dev,
+ 					struct device_attribute *attr,
+ 					const char *buf, size_t len)
+ {
+ 	struct lm3533_bl *bl = dev_get_drvdata(dev);
+ 	int ctrlbank = lm3533_bl_get_ctrlbank_id(bl);
+-	int als;
++	int enable;
+ 	u8 val;
+ 	u8 mask;
+ 	int ret;
+ 
+-	if (kstrtoint(buf, 0, &als))
+-		return -EINVAL;
+-
+-	if (als != 0 && (als != ctrlbank + 1))
++	if (kstrtoint(buf, 0, &enable))
+ 		return -EINVAL;
+ 
+ 	mask = 1 << (2 * ctrlbank);
+ 
+-	if (als)
++	if (enable)
+ 		val = mask;
+ 	else
+ 		val = 0;
+@@ -224,13 +221,15 @@ static ssize_t store_pwm(struct device *
  	return len;
  }
  
 -static LM3533_ATTR_RW(als);
-+static LM3533_ATTR_RW(als_channel);
++static LM3533_ATTR_RO(als_channel);
 +static LM3533_ATTR_RW(als_en);
- static LM3533_ATTR_RW(falltime);
  static LM3533_ATTR_RO(id);
  static LM3533_ATTR_RW(linear);
-@@ -566,7 +614,8 @@ static LM3533_ATTR_RW(pwm);
- static LM3533_ATTR_RW(risetime);
+ static LM3533_ATTR_RW(pwm);
  
- static struct attribute *lm3533_led_attributes[] = {
+ static struct attribute *lm3533_bl_attributes[] = {
 -	&dev_attr_als.attr,
 +	&dev_attr_als_channel.attr,
 +	&dev_attr_als_en.attr,
- 	&dev_attr_falltime.attr,
  	&dev_attr_id.attr,
  	&dev_attr_linear.attr,
-@@ -583,7 +632,8 @@ static umode_t lm3533_led_attr_is_visibl
- 	struct lm3533_led *led = to_lm3533_led(led_cdev);
+ 	&dev_attr_pwm.attr,
+@@ -244,7 +243,8 @@ static umode_t lm3533_bl_attr_is_visible
+ 	struct lm3533_bl *bl = dev_get_drvdata(dev);
  	umode_t mode = attr->mode;
  
 -	if (attr == &dev_attr_als.attr) {
 +	if (attr == &dev_attr_als_channel.attr ||
 +					attr == &dev_attr_als_en.attr) {
- 		if (!led->lm3533->have_als)
+ 		if (!bl->lm3533->have_als)
  			mode = 0;
  	}
 _
-Subject: Subject: leds: lm3533: replace als attribute with als_channel and als_en
+Subject: Subject: backlight: lm3533: replace als attribute with als_channel and als_en
 
 Patches currently in -mm which might be from jhovold@gmail.com are
 
@@ -267,8 +199,8 @@ backlight-add-lm3533-backlight-driver.patch
 backlight-add-lm3533-backlight-driver-fix.patch
 backlight-add-lm3533-backlight-driver-fix-fix.patch
 backlight-add-lm3533-backlight-driver-v4.patch
+backlight-add-lm3533-backlight-driver-replace-als-attribute-with-als_channel-and-als_en.patch
 leds-add-lm3533-led-driver.patch
 leds-add-lm3533-led-driver-fix.patch
 leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en.patch
-backlight-lm3533-replace-als-attribute-with-als_channel-and-als_en.patch
 
