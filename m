@@ -1,176 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-support-seek_data-and-seek_hole-fix.patch added to -mm tree
-Date: Tue, 29 May 2012 12:51:20 -0700
-Message-ID: <20120529203652.2DCDA1E004D@wpzn4.hot.corp.google.com>
+Subject: [folded] mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:41:19 -0700
+Message-ID: <20120529214120.26839A021B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:46824 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755842Ab2E2Ugx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 16:36:53 -0400
-Received: by ggeh3 with SMTP id h3so448050gge.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 13:36:52 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:52821 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105Ab2E2VlW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:41:22 -0400
+Received: by faaa25 with SMTP id a25so262870faa.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:41:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hughd@google.com
+To: akpm@linux-foundation.org, consul.kautuk@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rajman.mekaco@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs-support-seek_data-and-seek_hole-fix
-has been added to the -mm tree.  Its filename is
-     tmpfs-support-seek_data-and-seek_hole-fix.patch
+     Subject: mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix
+has been removed from the -mm tree.  Its filename was
+     mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tmpfs-support-seek_data-and-seek_hole-fix
+Subject: mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix
 
-fix warning with CONFIG_TMPFS=n
-
-mm/shmem.c:444: warning: 'shmem_seek_hole_data' defined but not used
+add remove-me comment
 
 Cc: Hugh Dickins <hughd@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Kautuk Consul <consul.kautuk@gmail.com>
+Cc: Rajman Mekaco <rajman.mekaco@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  100 +++++++++++++++++++++++++--------------------------
- 1 file changed, 50 insertions(+), 50 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-fix mm/shmem.c
---- a/mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-fix
-+++ a/mm/shmem.c
-@@ -439,56 +439,6 @@ void shmem_unlock_mapping(struct address
- }
- 
- /*
-- * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
-- */
--static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
--				    pgoff_t index, pgoff_t end, int origin)
--{
--	struct page *page;
--	struct pagevec pvec;
--	pgoff_t indices[PAGEVEC_SIZE];
--	bool done = false;
--	int i;
--
--	pagevec_init(&pvec, 0);
--	pvec.nr = 1;		/* start small: we may be there already */
--	while (!done) {
--		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
--					pvec.nr, pvec.pages, indices);
--		if (!pvec.nr) {
--			if (origin == SEEK_DATA)
--				index = end;
--			break;
--		}
--		for (i = 0; i < pvec.nr; i++, index++) {
--			if (index < indices[i]) {
--				if (origin == SEEK_HOLE) {
--					done = true;
--					break;
--				}
--				index = indices[i];
--			}
--			page = pvec.pages[i];
--			if (page && !radix_tree_exceptional_entry(page)) {
--				if (!PageUptodate(page))
--					page = NULL;
--			}
--			if (index >= end ||
--			    (page && origin == SEEK_DATA) ||
--			    (!page && origin == SEEK_HOLE)) {
--				done = true;
--				break;
--			}
--		}
--		shmem_deswap_pagevec(&pvec);
--		pagevec_release(&pvec);
--		pvec.nr = PAGEVEC_SIZE;
--		cond_resched();
--	}
--	return index;
--}
--
--/*
-  * Remove range of pages and swap entries from radix tree, and free them.
-  * If !unfalloc, truncate or punch hole; if unfalloc, undo failed fallocate.
-  */
-@@ -1724,6 +1674,56 @@ static ssize_t shmem_file_splice_read(st
- 	return error;
- }
- 
-+/*
-+ * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
-+ */
-+static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
-+				    pgoff_t index, pgoff_t end, int origin)
-+{
-+	struct page *page;
-+	struct pagevec pvec;
-+	pgoff_t indices[PAGEVEC_SIZE];
-+	bool done = false;
-+	int i;
-+
-+	pagevec_init(&pvec, 0);
-+	pvec.nr = 1;		/* start small: we may be there already */
-+	while (!done) {
-+		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
-+					pvec.nr, pvec.pages, indices);
-+		if (!pvec.nr) {
-+			if (origin == SEEK_DATA)
-+				index = end;
-+			break;
-+		}
-+		for (i = 0; i < pvec.nr; i++, index++) {
-+			if (index < indices[i]) {
-+				if (origin == SEEK_HOLE) {
-+					done = true;
-+					break;
-+				}
-+				index = indices[i];
-+			}
-+			page = pvec.pages[i];
-+			if (page && !radix_tree_exceptional_entry(page)) {
-+				if (!PageUptodate(page))
-+					page = NULL;
-+			}
-+			if (index >= end ||
-+			    (page && origin == SEEK_DATA) ||
-+			    (!page && origin == SEEK_HOLE)) {
-+				done = true;
-+				break;
-+			}
-+		}
-+		shmem_deswap_pagevec(&pvec);
-+		pagevec_release(&pvec);
-+		pvec.nr = PAGEVEC_SIZE;
-+		cond_resched();
-+	}
-+	return index;
-+}
-+
- static loff_t shmem_file_llseek(struct file *file, loff_t offset, int origin)
+diff -puN mm/mmap.c~mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix
++++ a/mm/mmap.c
+@@ -1639,7 +1639,7 @@ struct vm_area_struct *find_vma(struct m
  {
- 	struct address_space *mapping;
+ 	struct vm_area_struct *vma = NULL;
+ 
+-	if (WARN_ON_ONCE(!mm))
++	if (WARN_ON_ONCE(!mm))		/* Remove this in linux-3.6 */
+ 		return NULL;
+ 
+ 	/* Check the cache first. */
 _
-Subject: Subject: tmpfs-support-seek_data-and-seek_hole-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
 mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
 mm-do_migrate_pages-rename-arguments.patch
 mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
