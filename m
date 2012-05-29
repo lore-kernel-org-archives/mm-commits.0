@@ -1,95 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-push-lru-index-into-shrink_active_list-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:45:37 -0700
-Message-ID: <20120529214538.15590A021B@akpm.mtv.corp.google.com>
+Subject: [folded] memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:46:07 -0700
+Message-ID: <20120529214607.6D47DA037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:36240 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558Ab2E2Vpp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:45:45 -0400
-Received: by were53 with SMTP id e53so266134wer.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:45:44 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:60405 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751623Ab2E2VqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:46:08 -0400
+Received: by vbnl22 with SMTP id l22so455805vbn.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:46:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
+To: handai.szj@taobao.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-push-lru-index-into-shrink_active_list-fix
+     Subject: memcg: revise the position of threshold index while unregistering event
 has been removed from the -mm tree.  Its filename was
-     mm-push-lru-index-into-shrink_active_list-fix.patch
+     memcg-revise-the-position-of-threshold-index-while-unregistering-event.patch
 
-This patch was dropped because it was folded into mm-push-lru-index-into-shrink_active_list.patch
+This patch was dropped because it was folded into memcg-make-threshold-index-in-the-right-position.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-push-lru-index-into-shrink_active_list-fix
+From: Sha Zhengju <handai.szj@taobao.com>
+Subject: memcg: revise the position of threshold index while unregistering event
 
-fix kerneldoc, per Minchan
+Index current_threshold should point to threshold just below or equal to
+usage.  See below: http://www.spinics.net/lists/cgroups/msg00844.html
 
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Sha Zhengju <handai.szj@taobao.com>
+Reviewed-by: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
+ mm/memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-push-lru-index-into-shrink_active_list-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-push-lru-index-into-shrink_active_list-fix
-+++ a/mm/vmscan.c
-@@ -1044,7 +1044,7 @@ int __isolate_lru_page(struct page *page
-  * @nr_scanned:	The number of pages that were scanned.
-  * @sc:		The scan_control struct for this reclaim session
-  * @mode:	One of the LRU isolation modes
-- * @lru		LRU list id for isolating
-+ * @lru:	LRU list id for isolating
-  *
-  * returns how many pages were moved onto *@dst.
-  */
+diff -puN mm/memcontrol.c~memcg-revise-the-position-of-threshold-index-while-unregistering-event mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-revise-the-position-of-threshold-index-while-unregistering-event
++++ a/mm/memcontrol.c
+@@ -4695,7 +4695,7 @@ static void mem_cgroup_usage_unregister_
+ 			continue;
+ 
+ 		new->entries[j] = thresholds->primary->entries[i];
+-		if (new->entries[j].threshold < usage) {
++		if (new->entries[j].threshold <= usage) {
+ 			/*
+ 			 * new->current_threshold will not be used
+ 			 * until rcu_assign_pointer(), so it's safe to increment
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from handai.szj@taobao.com are
 
-origin.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
-mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
-mm-do_migrate_pages-rename-arguments.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
-mm-rename-is_mlocked_vma-to-mlocked_vma_newpage.patch
-mm-page_allocc-remove-pageblock_default_order.patch
-mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
-tmpfs-support-seek_data-and-seek_hole.patch
-mm-page_allocc-cleanups.patch
-mm-fix-slab-page-flags-corruption.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup-fix.patch
-mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
-memcg-always-free-struct-memcg-through-schedule_work-fix.patch
-memcg-decrement-static-keys-at-real-destroy-time-v6-fix.patch
-drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
-backlight-add-lm3533-backlight-driver-fix.patch
-backlight-add-lm3533-backlight-driver-fix-fix.patch
-backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
-backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
-backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
-backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
-backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
-backlight-omap1-use-pr_info-instead-of-printk-fix.patch
-backlight-progear-use-pr_err-instead-of-printk-fix.patch
-leds-led-module-for-da9052-53-pmic-v2-fix.patch
-leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
-drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
-lib-string_helpersc-make-arrays-static.patch
-lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
-drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+memcg-make-threshold-index-in-the-right-position.patch
 
