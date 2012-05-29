@@ -1,56 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:42:15 -0700
-Message-ID: <20120529214216.24097A021B@akpm.mtv.corp.google.com>
+Subject: [folded] mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:42:37 -0700
+Message-ID: <20120529214237.B377EA021B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:53399 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751105Ab2E2VmR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:42:17 -0400
-Received: by ghbz15 with SMTP id z15so337711ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:42:16 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:56292 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105Ab2E2Vmj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:42:39 -0400
+Received: by yhgm50 with SMTP id m50so515805yhg.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:42:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, khlebnikov@openvz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujtisu.com, kosaki.motohiro@jp.fujitsu.com, minchan@kernel.org, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix
+     Subject: mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+     mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
 
-This patch was dropped because it was folded into mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+This patch was dropped because it was folded into mm-rename-is_mlocked_vma-to-mlocked_vma_newpage.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix
+Subject: mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix
 
-name the args in the declaration
+s/mlock_vma_newpage/mlock_vma_newpage/, per Minchan.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/internal.h |    4 ++--
+ mm/vmscan.c   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix
-+++ a/include/linux/memcontrol.h
-@@ -79,7 +79,8 @@ extern void mem_cgroup_uncharge_cache_pa
+diff -puN mm/internal.h~mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix mm/internal.h
+--- a/mm/internal.h~mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix
++++ a/mm/internal.h
+@@ -164,7 +164,7 @@ static inline void munlock_vma_pages_all
+  * to determine if it's being mapped into a LOCKED vma.
+  * If so, mark page as mlocked.
+  */
+-static inline int mlock_vma_newpage(struct vm_area_struct *vma,
++static inline int mlocked_vma_newpage(struct vm_area_struct *vma,
+ 				    struct page *page)
+ {
+ 	VM_BUG_ON(PageLRU(page));
+@@ -223,7 +223,7 @@ extern unsigned long vma_address(struct 
+ 				 struct vm_area_struct *vma);
+ #endif
+ #else /* !CONFIG_MMU */
+-static inline int mlock_vma_newpage(struct vm_area_struct *v, struct page *p)
++static inline int mlocked_vma_newpage(struct vm_area_struct *v, struct page *p)
+ {
+ 	return 0;
+ }
+diff -puN mm/vmscan.c~mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix
++++ a/mm/vmscan.c
+@@ -3321,7 +3321,7 @@ int page_evictable(struct page *page, st
+ 	if (mapping_unevictable(page_mapping(page)))
+ 		return 0;
  
- extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
- 				     int order);
--bool __mem_cgroup_same_or_subtree(const struct mem_cgroup *, struct mem_cgroup *);
-+bool __mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
-+				  struct mem_cgroup *memcg);
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg);
+-	if (PageMlocked(page) || (vma && mlock_vma_newpage(vma, page)))
++	if (PageMlocked(page) || (vma && mlocked_vma_newpage(vma, page)))
+ 		return 0;
  
- extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+ 	return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +84,7 @@ mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
 mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
 mm-do_migrate_pages-rename-arguments.patch
 mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
-mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage.patch
 mm-page_allocc-remove-pageblock_default_order.patch
 mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
 tmpfs-support-seek_data-and-seek_hole-fix.patch
