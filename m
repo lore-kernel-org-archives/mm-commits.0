@@ -1,173 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:44:11 -0700
-Message-ID: <20120529214411.EE043A021B@akpm.mtv.corp.google.com>
+Subject: [folded] tmpfs-support-seek_data-and-seek_hole-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:44:37 -0700
+Message-ID: <20120529214437.AD912A021B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:41064 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084Ab2E2VoN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:44:13 -0400
-Received: by qabg24 with SMTP id g24so294311qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:44:12 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:56088 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751084Ab2E2Voj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:44:39 -0400
+Received: by were53 with SMTP id e53so266105wer.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:44:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: b.zolnierkie@samsung.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
+     Subject: tmpfs-support-seek_data-and-seek_hole-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2.patch
+     tmpfs-support-seek_data-and-seek_hole-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+This patch was dropped because it was folded into tmpfs-support-seek_data-and-seek_hole.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tmpfs-support-seek_data-and-seek_hole-fix
 
-- document rescue_unmovable_pageblock()
+fix warning with CONFIG_TMPFS=n
 
-- enum result_smt -> enum_smt_result
+mm/shmem.c:444: warning: 'shmem_seek_hole_data' defined but not used
 
-- fix suitable_migration_target() documentation
-
-- add comment about zeroing cc->nr_pageblocks_skipped
-
-- fix FAIL_UNMOVABLE_TARGET handling in isolate_freepages()
-
-
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   38 ++++++++++++++++++++++++++------------
- 1 file changed, 26 insertions(+), 12 deletions(-)
+ mm/shmem.c |  100 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 50 insertions(+), 50 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-part-2
-+++ a/mm/compaction.c
-@@ -358,6 +358,10 @@ isolate_migratepages_range(struct zone *
- 
- #endif /* CONFIG_COMPACTION || CONFIG_CMA */
- #ifdef CONFIG_COMPACTION
-+/*
-+ * Returns true if MIGRATE_UNMOVABLE pageblock was successfully
-+ * converted to MIGRATE_MOVABLE type, false otherwise.
-+ */
- static bool rescue_unmovable_pageblock(struct page *page)
- {
- 	unsigned long pfn, start_pfn, end_pfn;
-@@ -397,14 +401,18 @@ static bool rescue_unmovable_pageblock(s
- 	return true;
- }
- 
--enum result_smt {
-+enum smt_result {
- 	GOOD_AS_MIGRATION_TARGET,
--	FAIL_UNMOVABLE,
--	FAIL_ETC_REASON,
-+	FAIL_UNMOVABLE_TARGET,
-+	FAIL_BAD_TARGET,
- };
- 
--/* Returns true if the page is within a block suitable for migration to */
--static enum result_smt suitable_migration_target(struct page *page,
-+/*
-+ * Returns GOOD_AS_MIGRATION_TARGET if the page is within a block
-+ * suitable for migration to, FAIL_UNMOVABLE_TARGET if the page
-+ * is within a MIGRATE_UNMOVABLE block, FAIL_BAD_TARGET otherwise.
-+ */
-+static enum smt_result suitable_migration_target(struct page *page,
- 				      struct compact_control *cc)
- {
- 
-@@ -412,7 +420,7 @@ static enum result_smt suitable_migratio
- 
- 	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
- 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
--		return FAIL_ETC_REASON;
-+		return FAIL_BAD_TARGET;
- 
- 	/* If the page is a large free page, then allow migration */
- 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
-@@ -425,7 +433,7 @@ static enum result_smt suitable_migratio
- 
- 	if (cc->mode == COMPACT_ASYNC_MOVABLE &&
- 	    migratetype == MIGRATE_UNMOVABLE)
--		return FAIL_UNMOVABLE;
-+		return FAIL_UNMOVABLE_TARGET;
- 
- 	if (cc->mode != COMPACT_ASYNC_MOVABLE &&
- 	    migratetype == MIGRATE_UNMOVABLE &&
-@@ -433,7 +441,7 @@ static enum result_smt suitable_migratio
- 		return GOOD_AS_MIGRATION_TARGET;
- 
- 	/* Otherwise skip the block */
--	return FAIL_ETC_REASON;
-+	return FAIL_BAD_TARGET;
+diff -puN mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-fix mm/shmem.c
+--- a/mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-fix
++++ a/mm/shmem.c
+@@ -439,56 +439,6 @@ void shmem_unlock_mapping(struct address
  }
  
  /*
-@@ -466,6 +474,11 @@ static void isolate_freepages(struct zon
- 
- 	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
- 
-+	/*
-+	 * isolate_freepages() may be called more than once during
-+	 * compact_zone_order() run and we want only the most recent
-+	 * count.
-+	 */
- 	cc->nr_pageblocks_skipped = 0;
- 
- 	/*
-@@ -476,7 +489,7 @@ static void isolate_freepages(struct zon
- 	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
- 					pfn -= pageblock_nr_pages) {
- 		unsigned long isolated;
--		enum result_smt ret;
-+		enum smt_result ret;
- 
- 		if (!pfn_valid(pfn))
- 			continue;
-@@ -495,7 +508,7 @@ static void isolate_freepages(struct zon
- 		/* Check the block is suitable for migration */
- 		ret = suitable_migration_target(page, cc);
- 		if (ret != GOOD_AS_MIGRATION_TARGET) {
--			if (ret == FAIL_UNMOVABLE)
-+			if (ret == FAIL_UNMOVABLE_TARGET)
- 				cc->nr_pageblocks_skipped++;
- 			continue;
- 		}
-@@ -513,7 +526,8 @@ static void isolate_freepages(struct zon
- 			isolated = isolate_freepages_block(pfn, end_pfn,
- 							   freelist, false);
- 			nr_freepages += isolated;
+- * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
+- */
+-static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
+-				    pgoff_t index, pgoff_t end, int origin)
+-{
+-	struct page *page;
+-	struct pagevec pvec;
+-	pgoff_t indices[PAGEVEC_SIZE];
+-	bool done = false;
+-	int i;
+-
+-	pagevec_init(&pvec, 0);
+-	pvec.nr = 1;		/* start small: we may be there already */
+-	while (!done) {
+-		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
+-					pvec.nr, pvec.pages, indices);
+-		if (!pvec.nr) {
+-			if (origin == SEEK_DATA)
+-				index = end;
+-			break;
 -		}
-+		} else if (ret == FAIL_UNMOVABLE_TARGET)
-+			cc->nr_pageblocks_skipped++;
- 		spin_unlock_irqrestore(&zone->lock, flags);
+-		for (i = 0; i < pvec.nr; i++, index++) {
+-			if (index < indices[i]) {
+-				if (origin == SEEK_HOLE) {
+-					done = true;
+-					break;
+-				}
+-				index = indices[i];
+-			}
+-			page = pvec.pages[i];
+-			if (page && !radix_tree_exceptional_entry(page)) {
+-				if (!PageUptodate(page))
+-					page = NULL;
+-			}
+-			if (index >= end ||
+-			    (page && origin == SEEK_DATA) ||
+-			    (!page && origin == SEEK_HOLE)) {
+-				done = true;
+-				break;
+-			}
+-		}
+-		shmem_deswap_pagevec(&pvec);
+-		pagevec_release(&pvec);
+-		pvec.nr = PAGEVEC_SIZE;
+-		cond_resched();
+-	}
+-	return index;
+-}
+-
+-/*
+  * Remove range of pages and swap entries from radix tree, and free them.
+  * If !unfalloc, truncate or punch hole; if unfalloc, undo failed fallocate.
+  */
+@@ -1724,6 +1674,56 @@ static ssize_t shmem_file_splice_read(st
+ 	return error;
+ }
  
- 		/*
-@@ -745,7 +759,7 @@ static int compact_zone(struct zone *zon
- 
- 		nr_migrate = cc->nr_migratepages;
- 		err = migrate_pages(&cc->migratepages, compaction_alloc,
--			(unsigned long)cc, false,
-+			(unsigned long)&cc->freepages, false,
- 			(cc->mode == COMPACT_SYNC) ? MIGRATE_SYNC_LIGHT
- 						      : MIGRATE_ASYNC);
- 		update_nr_listpages(cc);
++/*
++ * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
++ */
++static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
++				    pgoff_t index, pgoff_t end, int origin)
++{
++	struct page *page;
++	struct pagevec pvec;
++	pgoff_t indices[PAGEVEC_SIZE];
++	bool done = false;
++	int i;
++
++	pagevec_init(&pvec, 0);
++	pvec.nr = 1;		/* start small: we may be there already */
++	while (!done) {
++		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
++					pvec.nr, pvec.pages, indices);
++		if (!pvec.nr) {
++			if (origin == SEEK_DATA)
++				index = end;
++			break;
++		}
++		for (i = 0; i < pvec.nr; i++, index++) {
++			if (index < indices[i]) {
++				if (origin == SEEK_HOLE) {
++					done = true;
++					break;
++				}
++				index = indices[i];
++			}
++			page = pvec.pages[i];
++			if (page && !radix_tree_exceptional_entry(page)) {
++				if (!PageUptodate(page))
++					page = NULL;
++			}
++			if (index >= end ||
++			    (page && origin == SEEK_DATA) ||
++			    (!page && origin == SEEK_HOLE)) {
++				done = true;
++				break;
++			}
++		}
++		shmem_deswap_pagevec(&pvec);
++		pagevec_release(&pvec);
++		pvec.nr = PAGEVEC_SIZE;
++		cond_resched();
++	}
++	return index;
++}
++
+ static loff_t shmem_file_llseek(struct file *file, loff_t offset, int origin)
+ {
+ 	struct address_space *mapping;
 _
 
-Patches currently in -mm which might be from b.zolnierkie@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+origin.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
+tmpfs-support-seek_data-and-seek_hole.patch
+mm-page_allocc-cleanups.patch
+mm-fix-slab-page-flags-corruption-fix.patch
+mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup-fix.patch
+mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
+memcg-always-free-struct-memcg-through-schedule_work-fix.patch
+memcg-decrement-static-keys-at-real-destroy-time-v6-fix.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
+backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
+backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
+backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-omap1-use-pr_info-instead-of-printk-fix.patch
+backlight-progear-use-pr_err-instead-of-printk-fix.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
 
