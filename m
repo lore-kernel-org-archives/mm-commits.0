@@ -1,56 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded] backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:51:55 -0700
-Message-ID: <20120529215156.226E7A037F@akpm.mtv.corp.google.com>
+Subject: [folded] backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:52:13 -0700
+Message-ID: <20120529215213.E9893A037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:40825 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605Ab2E2Vv6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:51:58 -0400
-Received: by bkty5 with SMTP id y5so263943bkt.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:51:57 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:55008 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752908Ab2E2VwP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:52:15 -0400
+Received: by qabg24 with SMTP id g24so295815qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:52:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, kristoffer.ericson@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-generic_bl-use-pr_info-instead-of-printk-fix
+     Subject: backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
+     backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
 
-This patch was dropped because it was folded into backlight-generic_bl-use-pr_info-instead-of-printk.patch
+This patch was dropped because it was folded into backlight-jornada720-use-pr_err-pr_info-instead-of-printk.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-generic_bl-use-pr_info-instead-of-printk-fix
+Subject: backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix
 
 use KBUILD_MODNAME, per Joe
 
 Cc: Jingoo Han <jg1.han@samsung.com>
 Cc: Joe Perches <joe@perches.com>
+Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/generic_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/jornada720_bl.c  |    2 +-
+ drivers/video/backlight/jornada720_lcd.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-pr_info-instead-of-printk-fix drivers/video/backlight/generic_bl.c
---- a/drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-pr_info-instead-of-printk-fix
-+++ a/drivers/video/backlight/generic_bl.c
+diff -puN drivers/video/backlight/jornada720_bl.c~backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix drivers/video/backlight/jornada720_bl.c
+--- a/drivers/video/backlight/jornada720_bl.c~backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix
++++ a/drivers/video/backlight/jornada720_bl.c
 @@ -9,7 +9,7 @@
   *
   */
  
--#define pr_fmt(fmt) "generic_bl: " fmt
+-#define pr_fmt(fmt) "jornada720_bl: " fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- #include <linux/module.h>
- #include <linux/kernel.h>
+ #include <linux/backlight.h>
+ #include <linux/device.h>
+diff -puN drivers/video/backlight/jornada720_lcd.c~backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix drivers/video/backlight/jornada720_lcd.c
+--- a/drivers/video/backlight/jornada720_lcd.c~backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix
++++ a/drivers/video/backlight/jornada720_lcd.c
+@@ -9,7 +9,7 @@
+  *
+  */
+ 
+-#define pr_fmt(fmt) "jornada720_lcd: " fmt
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/device.h>
+ #include <linux/fb.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +91,7 @@ backlight-use-pr_warn-and-pr_debug-instead-of-printk.patch
 backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
 backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
 backlight-generic_bl-use-pr_info-instead-of-printk.patch
-backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-jornada720-use-pr_err-pr_info-instead-of-printk.patch
 backlight-omap1-use-pr_info-instead-of-printk-fix.patch
 backlight-progear-use-pr_err-instead-of-printk-fix.patch
 leds-led-module-for-da9052-53-pmic-v2-fix.patch
