@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [folded] backlight-progear-use-pr_err-instead-of-printk-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:52:48 -0700
-Message-ID: <20120529215248.67E50A0308@akpm.mtv.corp.google.com>
+Subject: [folded] backlight-omap1-use-pr_info-instead-of-printk-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:52:30 -0700
+Message-ID: <20120529215231.104DEA037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:36238 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752728Ab2E2Vwt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:52:49 -0400
-Received: by yhgm50 with SMTP id m50so517774yhg.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:52:48 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:33433 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753270Ab2E2Vwd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:52:33 -0400
+Received: by eeit10 with SMTP id t10so269144eei.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:52:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, openembedded@haerwu.biz, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balrogg@gmail.com, jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-progear-use-pr_err-instead-of-printk-fix
+     Subject: backlight-omap1-use-pr_info-instead-of-printk-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-progear-use-pr_err-instead-of-printk-fix.patch
+     backlight-omap1-use-pr_info-instead-of-printk-fix.patch
 
-This patch was dropped because it was folded into backlight-progear-use-pr_err-instead-of-printk.patch
+This patch was dropped because it was folded into backlight-omap1-use-pr_info-instead-of-printk.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-progear-use-pr_err-instead-of-printk-fix
+Subject: backlight-omap1-use-pr_info-instead-of-printk-fix
 
 use KBUILD_MODNAME, per Joe
 
+Cc: Andrzej Zaborowski <balrogg@gmail.com>
 Cc: Jingoo Han <jg1.han@samsung.com>
 Cc: Joe Perches <joe@perches.com>
-Cc: Marcin Juszkiewicz <openembedded@haerwu.biz>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/progear_bl.c |    2 +-
+ drivers/video/backlight/omap1_bl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/progear_bl.c~backlight-progear-use-pr_err-instead-of-printk-fix drivers/video/backlight/progear_bl.c
---- a/drivers/video/backlight/progear_bl.c~backlight-progear-use-pr_err-instead-of-printk-fix
-+++ a/drivers/video/backlight/progear_bl.c
-@@ -15,7 +15,7 @@
-  *
+diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-use-pr_info-instead-of-printk-fix drivers/video/backlight/omap1_bl.c
+--- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-use-pr_info-instead-of-printk-fix
++++ a/drivers/video/backlight/omap1_bl.c
+@@ -18,7 +18,7 @@
+  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   */
  
--#define pr_fmt(fmt) "progear_bl: " fmt
+-#define pr_fmt(fmt) "omap1_bl: " fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
  #include <linux/module.h>
@@ -80,7 +80,7 @@ backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
 backlight-generic_bl-use-pr_info-instead-of-printk.patch
 backlight-jornada720-use-pr_err-pr_info-instead-of-printk.patch
 backlight-omap1-use-pr_info-instead-of-printk.patch
-backlight-progear-use-pr_err-instead-of-printk.patch
+backlight-progear-use-pr_err-instead-of-printk-fix.patch
 leds-led-module-for-da9052-53-pmic-v2-fix.patch
 leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
 drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
