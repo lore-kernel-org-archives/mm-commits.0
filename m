@@ -1,58 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:55:32 -0700
-Message-ID: <20120529215532.85454A0308@akpm.mtv.corp.google.com>
+Subject: [folded] rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:55:57 -0700
+Message-ID: <20120529215557.539A2A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:43031 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511Ab2E2Vzd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:55:33 -0400
-Received: by qabg24 with SMTP id g24so296176qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:55:33 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:39578 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752511Ab2E2Vz7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:55:59 -0400
+Received: by bkty5 with SMTP id y5so264056bkt.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:55:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, alexander.stein@systec-electronic.com, jesper.nilsson@axis.com, starvik@axis.com, wfg@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, fabio.estevam@freescale.com, festevam@gmail.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix
+     Subject: rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch
+     rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
 
-This patch was dropped because it was folded into drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch
+This patch was dropped because it was folded into rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix
+Subject: rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix
 
-fix sparse warning
-
-Reported-by: Wu Fengguang <wfg@linux.intel.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Alexander Stein <alexander.stein@systec-electronic.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <starvik@axis.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Fabio Estevam <festevam@gmail.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |    2 +-
+ arch/arm/configs/imx_v6_v7_defconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -187,7 +187,7 @@ static int pcf8563_rtc_ioctl(struct devi
- 		if (pcf8563->voltage_low)
- 			dev_info(dev, "low voltage detected, date/time is not reliable.\n");
- 
--		if (copy_to_user((int *) arg, &pcf8563->voltage_low,
-+		if (copy_to_user((void __user *)arg, &pcf8563->voltage_low,
- 					sizeof(int)))
- 			return -EFAULT;
- 		return 0;
+diff -puN arch/arm/configs/imx_v6_v7_defconfig~rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix arch/arm/configs/imx_v6_v7_defconfig
+--- a/arch/arm/configs/imx_v6_v7_defconfig~rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix
++++ a/arch/arm/configs/imx_v6_v7_defconfig
+@@ -178,7 +178,7 @@ CONFIG_NEW_LEDS=y
+ CONFIG_LEDS_CLASS=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_INTF_DEV_UIE_EMUL=y
+-CONFIG_RTC_MXC=y
++CONFIG_RTC_DRV_MXC=y
+ CONFIG_DMADEVICES=y
+ CONFIG_IMX_SDMA=y
+ CONFIG_EXT2_FS=y
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,5 +85,5 @@ drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-severa
 lib-string_helpersc-make-arrays-static.patch
 lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
 drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc.patch
 
