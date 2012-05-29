@@ -1,106 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch added to -mm tree
-Date: Tue, 29 May 2012 11:26:52 -0700
-Message-ID: <20120529182652.6830FA0358@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 12:03:02 -0700
+Message-ID: <20120529190302.64BA9A022F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:36670 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996Ab2E2S0y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 14:26:54 -0400
-Received: by qcsp5 with SMTP id p5so434861qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 11:26:53 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:64977 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751380Ab2E2TDE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 29 May 2012 15:03:04 -0400
+Received: by lagr15 with SMTP id r15so258361lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 12:03:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
+To: akpm@linux-foundation.org, ebiederm@xmission.com, efault@gmx.de, gorcunov@openvz.org, louis.rilling@kerlabs.com, oleg@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix
-has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
+     Subject: pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix
+has been removed from the -mm tree.  Its filename was
+     pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
+tweak a few things, might be wrong, also insufficient!
+
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Louis Rilling <louis.rilling@kerlabs.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c          |    5 +++--
+ kernel/pid_namespace.c |    1 +
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix
-+++ a/mm/hugetlb.c
-@@ -1871,7 +1871,7 @@ static int __init hugetlb_init(void)
- 		if (!size_to_hstate(default_hstate_size))
- 			hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
- 	}
--	default_hstate_idx = size_to_hstate(default_hstate_size) - hstates;
-+	default_hstate_idx = hstate_index(size_to_hstate(default_hstate_size));
- 	if (default_hstate_max_huge_pages)
- 		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
+diff -puN kernel/exit.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix kernel/exit.c
+--- a/kernel/exit.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix
++++ a/kernel/exit.c
+@@ -74,8 +74,9 @@ static void __unhash_process(struct task
+ 		list_del_init(&p->sibling);
+ 		__this_cpu_dec(process_counts);
  
+-		/* If we are the last child process in a pid namespace
+-		 * to be reaped notify the child_reaper.
++		/*
++		 * If we are the last child process in a pid namespace to be
++		 * reaped, notify the child_reaper.
+ 		 */
+ 		parent = p->real_parent;
+ 		if ((task_active_pid_ns(p)->child_reaper == parent) &&
+diff -puN kernel/pid_namespace.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped-v2-fix
++++ a/kernel/pid_namespace.c
+@@ -199,6 +199,7 @@ void zap_pid_ns_processes(struct pid_nam
+ 		read_lock(&tasklist_lock);
+ 	}
+ 	read_unlock(&tasklist_lock);
++	set_current_state(TASK_RUNNING);
+ 
+ 	if (pid_ns->reboot)
+ 		current->signal->group_exit_code = pid_ns->reboot;
 _
-Subject: Subject: hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-linux-next.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-hugetlb-simplify-migrate_huge_page-fix.patch
-memcg-add-hugetlb-extension.patch
-memcg-add-hugetlb-extension-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix-2.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-rescounters-add-res_counter_uncharge_until.patch
-memcg-use-res_counter_uncharge_until-in-move_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
-memcg-dont-uncharge-in-mem_cgroup_move_account.patch
-remove-__must_check-for-res_counter_charge_nofail.patch
-lib-string_helpersc-make-arrays-static.patch
+origin.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check-fix.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node-fix.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy-fix.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage-fix.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator-fix.patch
+mm-page_allocc-cleanups.patch
+mm-fix-slab-page-flags-corruption-fix.patch
 
