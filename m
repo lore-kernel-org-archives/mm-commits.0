@@ -1,93 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-fix-slab-page-flags-corruption-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:45:08 -0700
-Message-ID: <20120529214508.EEF6BA021B@akpm.mtv.corp.google.com>
+Subject: [folded] mm-push-lru-index-into-shrink_active_list-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:45:37 -0700
+Message-ID: <20120529214538.15590A021B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:36460 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084Ab2E2VpL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:45:11 -0400
-Received: by bkty5 with SMTP id y5so263715bkt.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:45:10 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:36240 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751558Ab2E2Vpp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:45:45 -0400
+Received: by were53 with SMTP id e53so266134wer.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:45:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, abhide@nicira.com, cl@linux.com, penberg@cs.helsinki.fi, pshelar@nicira.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-slab-page-flags-corruption-fix
+     Subject: mm-push-lru-index-into-shrink_active_list-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-slab-page-flags-corruption-fix.patch
+     mm-push-lru-index-into-shrink_active_list-fix.patch
 
-This patch was dropped because it was folded into mm-fix-slab-page-flags-corruption.patch
+This patch was dropped because it was folded into mm-push-lru-index-into-shrink_active_list.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-slab-page-flags-corruption-fix
+Subject: mm-push-lru-index-into-shrink_active_list-fix
 
-tweak comment text, fix comment layout, fix label indenting
+fix kerneldoc, per Minchan
 
-Cc: Amey Bhide <abhide@nicira.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Pravin B Shelar <pshelar@nicira.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-fix-slab-page-flags-corruption-fix mm/swap.c
---- a/mm/swap.c~mm-fix-slab-page-flags-corruption-fix
-+++ a/mm/swap.c
-@@ -83,13 +83,14 @@ static void put_compound_page(struct pag
- 			   get_page_unless_zero(page_head))) {
- 			unsigned long flags;
- 
--			/* THP can not break up slab pages, avoid taking
--			 * compound_lock(). Slab prefer non atomic bit ops
--			 * on page->flags for better performance. In particular
--			 * slab_unlock() in slub used to be a hot path
--			 * item. It is still hot on arches that do not support
--			 * this_cpu_cmpxchg_double. */
--
-+			/*
-+			 * THP can not break up slab pages so avoid taking
-+			 * compound_lock().  Slab performs non-atomic bit ops
-+			 * on page->flags for better performance.  In particular
-+			 * slab_unlock() in slub used to be a hot path.  It is
-+			 * still hot on arches that do not support
-+			 * this_cpu_cmpxchg_double().
-+			 */
- 			if (PageSlab(page_head)) {
- 				if (PageTail(page)) {
- 					if (put_page_testzero(page_head))
-@@ -110,10 +111,10 @@ static void put_compound_page(struct pag
- 			if (unlikely(!PageTail(page))) {
- 				/* __split_huge_page_refcount run before us */
- 				compound_unlock_irqrestore(page_head, flags);
--			skip_lock:
-+skip_lock:
- 				if (put_page_testzero(page_head))
- 					__put_single_page(page_head);
--			out_put_single:
-+out_put_single:
- 				if (put_page_testzero(page))
- 					__put_single_page(page);
- 				return;
-@@ -134,7 +135,7 @@ static void put_compound_page(struct pag
- 			VM_BUG_ON(atomic_read(&page->_count) != 0);
- 			compound_unlock_irqrestore(page_head, flags);
- 
--			skip_lock_tail:
-+skip_lock_tail:
- 			if (put_page_testzero(page_head)) {
- 				if (PageHead(page_head))
- 					__put_compound_page(page_head);
+diff -puN mm/vmscan.c~mm-push-lru-index-into-shrink_active_list-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-push-lru-index-into-shrink_active_list-fix
++++ a/mm/vmscan.c
+@@ -1044,7 +1044,7 @@ int __isolate_lru_page(struct page *page
+  * @nr_scanned:	The number of pages that were scanned.
+  * @sc:		The scan_control struct for this reclaim session
+  * @mode:	One of the LRU isolation modes
+- * @lru		LRU list id for isolating
++ * @lru:	LRU list id for isolating
+  *
+  * returns how many pages were moved onto *@dst.
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,7 +70,7 @@ mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
 tmpfs-support-seek_data-and-seek_hole.patch
 mm-page_allocc-cleanups.patch
 mm-fix-slab-page-flags-corruption.patch
-mm-push-lru-index-into-shrink_active_list-fix.patch
+mm-push-lru-index-into-shrink_active_list.patch
 mm-memcg-use-vm_swappiness-from-target-memory-cgroup-fix.patch
 mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
 memcg-always-free-struct-memcg-through-schedule_work-fix.patch
