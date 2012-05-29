@@ -1,57 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded] backlight-omap1-use-pr_info-instead-of-printk-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:52:30 -0700
-Message-ID: <20120529215231.104DEA037F@akpm.mtv.corp.google.com>
+Subject: [folded] leds-led-module-for-da9052-53-pmic-v2-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:53:17 -0700
+Message-ID: <20120529215318.0BF8CA0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:33433 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753270Ab2E2Vwd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:52:33 -0400
-Received: by eeit10 with SMTP id t10so269144eei.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:52:31 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42193 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752367Ab2E2VxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:53:18 -0400
+Received: by mail-qa0-f74.google.com with SMTP id g24so295889qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:53:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balrogg@gmail.com, jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ashish.jangam@kpitcummins.com, dchen@diasemi.com, lars@metafoo.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-omap1-use-pr_info-instead-of-printk-fix
+     Subject: leds-led-module-for-da9052-53-pmic-v2-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-omap1-use-pr_info-instead-of-printk-fix.patch
+     leds-led-module-for-da9052-53-pmic-v2-fix.patch
 
-This patch was dropped because it was folded into backlight-omap1-use-pr_info-instead-of-printk.patch
+This patch was dropped because it was folded into leds-led-module-for-da9052-53-pmic-v2.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-omap1-use-pr_info-instead-of-printk-fix
+Subject: leds-led-module-for-da9052-53-pmic-v2-fix
 
-use KBUILD_MODNAME, per Joe
-
-Cc: Andrzej Zaborowski <balrogg@gmail.com>
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Cc: David Dajun Chen <dchen@diasemi.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/omap1_bl.c |    2 +-
+ drivers/leds/leds-da9052.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-use-pr_info-instead-of-printk-fix drivers/video/backlight/omap1_bl.c
---- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-use-pr_info-instead-of-printk-fix
-+++ a/drivers/video/backlight/omap1_bl.c
-@@ -18,7 +18,7 @@
-  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  */
+diff -puN drivers/leds/leds-da9052.c~leds-led-module-for-da9052-53-pmic-v2-fix drivers/leds/leds-da9052.c
+--- a/drivers/leds/leds-da9052.c~leds-led-module-for-da9052-53-pmic-v2-fix
++++ a/drivers/leds/leds-da9052.c
+@@ -40,7 +40,7 @@ struct da9052_led {
+ 	int brightness;
+ };
  
--#define pr_fmt(fmt) "omap1_bl: " fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/module.h>
- #include <linux/kernel.h>
+-unsigned char led_reg[] = {
++static unsigned char led_reg[] = {
+ 	DA9052_LED_CONT_4_REG,
+ 	DA9052_LED_CONT_5_REG,
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,8 +78,8 @@ backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
 backlight-generic_bl-use-pr_info-instead-of-printk.patch
 backlight-jornada720-use-pr_err-pr_info-instead-of-printk.patch
 backlight-omap1-use-pr_info-instead-of-printk.patch
-backlight-progear-use-pr_err-instead-of-printk-fix.patch
-leds-led-module-for-da9052-53-pmic-v2-fix.patch
+backlight-progear-use-pr_err-instead-of-printk.patch
+leds-led-module-for-da9052-53-pmic-v2.patch
 leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
 drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
 lib-string_helpersc-make-arrays-static.patch
