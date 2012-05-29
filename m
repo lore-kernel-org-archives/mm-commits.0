@@ -1,213 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-decrement-static-keys-at-real-destroy-time-v6.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:48:06 -0700
-Message-ID: <20120529214806.71A67A037F@akpm.mtv.corp.google.com>
+Subject: [folded] memcg-decrement-static-keys-at-real-destroy-time-v6-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:48:08 -0700
+Message-ID: <20120529214808.DF9A4A037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:33517 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751774Ab2E2VsJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:48:09 -0400
-Received: by wibhn6 with SMTP id hn6so199207wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:48:07 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:38595 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751774Ab2E2VsM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:48:12 -0400
+Received: by lbbgp10 with SMTP id gp10so245513lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:48:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: decrement static keys on real destroy time
+     Subject: memcg-decrement-static-keys-at-real-destroy-time-v6-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-decrement-static-keys-at-real-destroy-time-v6.patch
+     memcg-decrement-static-keys-at-real-destroy-time-v6-fix.patch
 
 This patch was dropped because it was folded into memcg-decrement-static-keys-at-real-destroy-time.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@parallels.com>
-Subject: decrement static keys on real destroy time
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-decrement-static-keys-at-real-destroy-time-v6-fix
 
-[v6: changed active and activated to a flags field, as suggested by akpm ]
+- move enum sock_flag_bits into sock.h
 
-Signed-off-by: Glauber Costa <glommer@parallels.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+- document enum sock_flag_bits
+
+- convert memcg_proto_active() and memcg_proto_activated() to test_bit()
+
+- redo tcp_update_limit() comment to 80 cols
+
+Cc: Glauber Costa <glommer@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizefan@huawei.com>
 Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 +++++
- include/net/sock.h         |   20 +++++++++++---------
- mm/memcontrol.c            |   27 +++++++++++++++------------
- net/ipv4/tcp_memcontrol.c  |   14 ++++++++------
- 4 files changed, 39 insertions(+), 27 deletions(-)
+ include/linux/memcontrol.h |    5 -----
+ include/net/sock.h         |   15 +++++++++++++--
+ net/ipv4/tcp_memcontrol.c  |   30 +++++++++++++++---------------
+ 3 files changed, 28 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-decrement-static-keys-at-real-destroy-time-v6 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-decrement-static-keys-at-real-destroy-time-v6
+diff -puN include/linux/memcontrol.h~memcg-decrement-static-keys-at-real-destroy-time-v6-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-decrement-static-keys-at-real-destroy-time-v6-fix
 +++ a/include/linux/memcontrol.h
-@@ -405,6 +405,11 @@ enum {
+@@ -405,11 +405,6 @@ enum {
  	OVER_LIMIT,
  };
  
-+enum sock_flag_bits {
-+	MEMCG_SOCK_ACTIVE,
-+	MEMCG_SOCK_ACTIVATED,
-+};
-+
+-enum sock_flag_bits {
+-	MEMCG_SOCK_ACTIVE,
+-	MEMCG_SOCK_ACTIVATED,
+-};
+-
  struct sock;
  #ifdef CONFIG_CGROUP_MEM_RES_CTLR_KMEM
  void sock_update_memcg(struct sock *sk);
-diff -puN include/net/sock.h~memcg-decrement-static-keys-at-real-destroy-time-v6 include/net/sock.h
---- a/include/net/sock.h~memcg-decrement-static-keys-at-real-destroy-time-v6
+diff -puN include/net/sock.h~memcg-decrement-static-keys-at-real-destroy-time-v6-fix include/net/sock.h
+--- a/include/net/sock.h~memcg-decrement-static-keys-at-real-destroy-time-v6-fix
 +++ a/include/net/sock.h
-@@ -927,15 +927,7 @@ struct cg_proto {
- 	struct percpu_counter	*sockets_allocated;	/* Current number of sockets. */
- 	int			*memory_pressure;
- 	long			*sysctl_mem;
--	/*
--	 * active means it is currently active, and new sockets should
--	 * be assigned to cgroups.
--	 *
--	 * activated means it was ever activated, and we need to
--	 * disarm the static keys on destruction
--	 */
--	bool			activated;
--	bool			active;
-+	unsigned long		flags;
- 	/*
- 	 * memcg field is used to find which memcg we belong directly
- 	 * Each memcg struct can hold more than one cg_proto, so container_of
-@@ -951,6 +943,16 @@ struct cg_proto {
- extern int proto_register(struct proto *prot, int alloc_slab);
- extern void proto_unregister(struct proto *prot);
+@@ -46,6 +46,7 @@
+ #include <linux/list_nulls.h>
+ #include <linux/timer.h>
+ #include <linux/cache.h>
++#include <linux/bitops.h>
+ #include <linux/lockdep.h>
+ #include <linux/netdevice.h>
+ #include <linux/skbuff.h>	/* struct sk_buff */
+@@ -921,6 +922,16 @@ struct proto {
+ #endif
+ };
  
-+static inline bool memcg_proto_active(struct cg_proto *cg_proto)
-+{
-+	return cg_proto->flags & (1 << MEMCG_SOCK_ACTIVE);
-+}
++/*
++ * Bits in struct cg_proto.flags
++ */
++enum sock_flag_bits {
++	/* Currently active and new sockets should be assigned to cgroups */
++	MEMCG_SOCK_ACTIVE,
++	/* It was ever activated; we must disarm static keys on destruction */
++	MEMCG_SOCK_ACTIVATED,
++};
 +
-+static inline bool memcg_proto_activated(struct cg_proto *cg_proto)
-+{
-+	return cg_proto->flags & (1 << MEMCG_SOCK_ACTIVATED);
-+}
-+
+ struct cg_proto {
+ 	void			(*enter_memory_pressure)(struct sock *sk);
+ 	struct res_counter	*memory_allocated;	/* Current allocated memory. */
+@@ -945,12 +956,12 @@ extern void proto_unregister(struct prot
+ 
+ static inline bool memcg_proto_active(struct cg_proto *cg_proto)
+ {
+-	return cg_proto->flags & (1 << MEMCG_SOCK_ACTIVE);
++	return test_bit(MEMCG_SOCK_ACTIVE, &cg_proto->flags);
+ }
+ 
+ static inline bool memcg_proto_activated(struct cg_proto *cg_proto)
+ {
+-	return cg_proto->flags & (1 << MEMCG_SOCK_ACTIVATED);
++	return test_bit(MEMCG_SOCK_ACTIVATED, &cg_proto->flags);
+ }
+ 
  #ifdef SOCK_REFCNT_DEBUG
- static inline void sk_refcnt_debug_inc(struct sock *sk)
- {
-diff -puN mm/memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-v6 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-v6
-+++ a/mm/memcontrol.c
-@@ -457,7 +457,7 @@ void sock_update_memcg(struct sock *sk)
- 		rcu_read_lock();
- 		memcg = mem_cgroup_from_task(current);
- 		cg_proto = sk->sk_prot->proto_cgroup(memcg);
--		if (!mem_cgroup_is_root(memcg) && cg_proto->active) {
-+		if (!mem_cgroup_is_root(memcg) && memcg_proto_active(cg_proto)) {
- 			mem_cgroup_get(memcg);
- 			sk->sk_cgrp = cg_proto;
- 		}
-@@ -476,14 +476,6 @@ void sock_release_memcg(struct sock *sk)
- 	}
- }
- 
--static void disarm_static_keys(struct mem_cgroup *memcg)
--{
--#ifdef CONFIG_INET
--	if (memcg->tcp_mem.cg_proto.activated)
--		static_key_slow_dec(&memcg_socket_limit_enabled);
--#endif
--}
--
- #ifdef CONFIG_INET
- struct cg_proto *tcp_proto_cgroup(struct mem_cgroup *memcg)
- {
-@@ -493,14 +485,25 @@ struct cg_proto *tcp_proto_cgroup(struct
- 	return &memcg->tcp_mem.cg_proto;
- }
- EXPORT_SYMBOL(tcp_proto_cgroup);
--#endif /* CONFIG_INET */
-+
-+static void disarm_sock_keys(struct mem_cgroup *memcg)
-+{
-+	if (!memcg_proto_activated(&memcg->tcp_mem.cg_proto))
-+		return;
-+	static_key_slow_dec(&memcg_socket_limit_enabled);
-+}
- #else
--static inline void disarm_static_keys(struct mem_cgroup *memcg)
-+static void disarm_sock_keys(struct mem_cgroup *memcg)
- {
- }
--
-+#endif /* CONFIG_INET */
- #endif /* CONFIG_CGROUP_MEM_RES_CTLR_KMEM */
- 
-+static void disarm_static_keys(struct mem_cgroup *memcg)
-+{
-+	disarm_sock_keys(memcg);
-+}
-+
- static void drain_all_stock_async(struct mem_cgroup *memcg);
- 
- static struct mem_cgroup_per_zone *
-diff -puN net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-v6 net/ipv4/tcp_memcontrol.c
---- a/net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-v6
+diff -puN net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-v6-fix net/ipv4/tcp_memcontrol.c
+--- a/net/ipv4/tcp_memcontrol.c~memcg-decrement-static-keys-at-real-destroy-time-v6-fix
 +++ a/net/ipv4/tcp_memcontrol.c
-@@ -105,10 +105,10 @@ static int tcp_update_limit(struct mem_c
- 					     net->ipv4.sysctl_tcp_mem[i]);
- 
- 	if (val == RESOURCE_MAX)
--		cg_proto->active = false;
-+		clear_bit(MEMCG_SOCK_ACTIVE, &cg_proto->flags);
+@@ -108,24 +108,24 @@ static int tcp_update_limit(struct mem_c
+ 		clear_bit(MEMCG_SOCK_ACTIVE, &cg_proto->flags);
  	else if (val != RESOURCE_MAX) {
  		/*
--		 * ->activated needs to be written after the static_key update.
-+		 *  The active bit needs to be written after the static_key update.
- 		 *  This is what guarantees that the socket activation function
- 		 *  is the last one to run. See sock_update_memcg() for details,
- 		 *  and note that we don't mark any socket as belonging to this
-@@ -122,12 +122,14 @@ static int tcp_update_limit(struct mem_c
- 		 *  We never race with the readers in sock_update_memcg(), because
- 		 *  when this value change, the code to process it is not patched in
- 		 *  yet.
-+		 *
-+		 *  The activated bit is used to guarantee that no two writers will
-+		 *  do the update in the same memcg. Without that, we can't properly
-+		 *  shutdown the static key.
+-		 *  The active bit needs to be written after the static_key update.
+-		 *  This is what guarantees that the socket activation function
+-		 *  is the last one to run. See sock_update_memcg() for details,
+-		 *  and note that we don't mark any socket as belonging to this
+-		 *  memcg until that flag is up.
++		 * The active bit needs to be written after the static_key
++		 * update.  This is what guarantees that the socket activation
++		 * function is the last one to run.  See sock_update_memcg() for
++		 * details, and note that we don't mark any socket as belonging
++		 * to this memcg until that flag is up.
+ 		 *
+-		 *  We need to do this, because static_keys will span multiple
+-		 *  sites, but we can't control their order. If we mark a socket
+-		 *  as accounted, but the accounting functions are not patched in
+-		 *  yet, we'll lose accounting.
++		 * We need to do this, because static_keys will span multiple
++		 * sites, but we can't control their order.  If we mark a socket
++		 * as accounted, but the accounting functions are not patched in
++		 * yet, we'll lose accounting.
+ 		 *
+-		 *  We never race with the readers in sock_update_memcg(), because
+-		 *  when this value change, the code to process it is not patched in
+-		 *  yet.
++		 * We never race with the readers in sock_update_memcg(),
++		 * because when this value change, the code to process it is not
++		 * patched in yet.
+ 		 *
+-		 *  The activated bit is used to guarantee that no two writers will
+-		 *  do the update in the same memcg. Without that, we can't properly
+-		 *  shutdown the static key.
++		 * The activated bit is used to guarantee that no two writers
++		 * will do the update in the same memcg. Without that, we can't
++		 * properly shutdown the static key.
  		 */
--		if (!cg_proto->activated) {
-+		if (!test_and_set_bit(MEMCG_SOCK_ACTIVATED, &cg_proto->flags))
+ 		if (!test_and_set_bit(MEMCG_SOCK_ACTIVATED, &cg_proto->flags))
  			static_key_slow_inc(&memcg_socket_limit_enabled);
--			cg_proto->activated = true;
--		}
--		cg_proto->active = true;
-+		set_bit(MEMCG_SOCK_ACTIVE, &cg_proto->flags);
- 	}
- 
- 	return 0;
 _
 
-Patches currently in -mm which might be from glommer@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memcg-fix-change-behavior-of-shared-anon-at-moving-task.patch
-mm-memcg-scanning_global_lru-means-mem_cgroup_disabled.patch
-mm-memcg-move-reclaim_stat-into-lruvec.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
+tmpfs-support-seek_data-and-seek_hole.patch
+mm-page_allocc-cleanups.patch
+mm-fix-slab-page-flags-corruption.patch
 mm-push-lru-index-into-shrink_active_list.patch
-mm-mark-mm-inline-functions-as-__always_inline.patch
-mm-remove-lru-type-checks-from-__isolate_lru_page.patch
-mm-memcg-kill-mem_cgroup_lru_del.patch
 mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-rescounters-add-res_counter_uncharge_until.patch
-memcg-use-res_counter_uncharge_until-in-move_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0.patch
-memcg-dont-uncharge-in-mem_cgroup_move_account.patch
-remove-__must_check-for-res_counter_charge_nofail.patch
+mm-memcg-print-statistics-from-live-counters.patch
 memcg-always-free-struct-memcg-through-schedule_work.patch
 memcg-decrement-static-keys-at-real-destroy-time.patch
-memcg-decrement-static-keys-at-real-destroy-time-v6-fix.patch
-memcg-decrement-static-keys-at-real-destroy-time-v7.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes-fix.patch
+backlight-add-lm3533-backlight-driver-fix.patch
+backlight-add-lm3533-backlight-driver-fix-fix.patch
+backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
+backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
+backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
+backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-omap1-use-pr_info-instead-of-printk-fix.patch
+backlight-progear-use-pr_err-instead-of-printk-fix.patch
+leds-led-module-for-da9052-53-pmic-v2-fix.patch
+leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
 
