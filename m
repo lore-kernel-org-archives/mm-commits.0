@@ -1,53 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [folded] backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:51:14 -0700
-Message-ID: <20120529215114.C9ED3A037F@akpm.mtv.corp.google.com>
+Subject: [folded] backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:51:37 -0700
+Message-ID: <20120529215137.BF30AA037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:62056 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605Ab2E2VvP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:51:15 -0400
-Received: by yenl3 with SMTP id l3so393313yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:51:15 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:54570 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab2E2Vvi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:51:38 -0400
+Received: by vbnl22 with SMTP id l22so457046vbn.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:51:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, mjg@redhat.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
+     Subject: backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
+     backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
 
-This patch was dropped because it was folded into backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
+This patch was dropped because it was folded into backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
+Subject: backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix
 
 use KBUILD_MODNAME, per Joe
 
 Cc: Jingoo Han <jg1.han@samsung.com>
 Cc: Joe Perches <joe@perches.com>
-Cc: Matthew Garrett <mjg@redhat.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/apple_bl.c |    2 +-
+ drivers/video/backlight/cr_bllcd.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/apple_bl.c~backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix drivers/video/backlight/apple_bl.c
---- a/drivers/video/backlight/apple_bl.c~backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
-+++ a/drivers/video/backlight/apple_bl.c
-@@ -16,7 +16,7 @@
-  *  get at the firmware code in order to figure out what it's actually doing.
+diff -puN drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix drivers/video/backlight/cr_bllcd.c
+--- a/drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix
++++ a/drivers/video/backlight/cr_bllcd.c
+@@ -27,7 +27,7 @@
+  *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
   */
  
--#define pr_fmt(fmt) "apple_backlight: " fmt
+-#define pr_fmt(fmt) "cr_backlight: " fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
  #include <linux/module.h>
@@ -76,7 +75,7 @@ drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes.
 backlight-add-lm3533-backlight-driver.patch
 backlight-use-pr_warn-and-pr_debug-instead-of-printk.patch
 backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
-backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
+backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
 backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
 backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
 backlight-omap1-use-pr_info-instead-of-printk-fix.patch
