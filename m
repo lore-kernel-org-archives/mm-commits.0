@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded] backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:51:37 -0700
-Message-ID: <20120529215137.BF30AA037F@akpm.mtv.corp.google.com>
+Subject: [folded] backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:51:55 -0700
+Message-ID: <20120529215156.226E7A037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:54570 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605Ab2E2Vvi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:51:38 -0400
-Received: by vbnl22 with SMTP id l22so457046vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:51:38 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:40825 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab2E2Vv6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:51:58 -0400
+Received: by bkty5 with SMTP id y5so263943bkt.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:51:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix
+     Subject: backlight-generic_bl-use-pr_info-instead-of-printk-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
+     backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
 
-This patch was dropped because it was folded into backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
+This patch was dropped because it was folded into backlight-generic_bl-use-pr_info-instead-of-printk.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix
+Subject: backlight-generic_bl-use-pr_info-instead-of-printk-fix
 
 use KBUILD_MODNAME, per Joe
 
@@ -36,17 +36,17 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/cr_bllcd.c |    2 +-
+ drivers/video/backlight/generic_bl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix drivers/video/backlight/cr_bllcd.c
---- a/drivers/video/backlight/cr_bllcd.c~backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix
-+++ a/drivers/video/backlight/cr_bllcd.c
-@@ -27,7 +27,7 @@
-  *   Alan Hourihane <alanh-at-tungstengraphics-dot-com>
+diff -puN drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-pr_info-instead-of-printk-fix drivers/video/backlight/generic_bl.c
+--- a/drivers/video/backlight/generic_bl.c~backlight-generic_bl-use-pr_info-instead-of-printk-fix
++++ a/drivers/video/backlight/generic_bl.c
+@@ -9,7 +9,7 @@
+  *
   */
  
--#define pr_fmt(fmt) "cr_backlight: " fmt
+-#define pr_fmt(fmt) "generic_bl: " fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
  #include <linux/module.h>
@@ -76,7 +76,7 @@ backlight-add-lm3533-backlight-driver.patch
 backlight-use-pr_warn-and-pr_debug-instead-of-printk.patch
 backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
 backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
-backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
+backlight-generic_bl-use-pr_info-instead-of-printk.patch
 backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
 backlight-omap1-use-pr_info-instead-of-printk-fix.patch
 backlight-progear-use-pr_err-instead-of-printk-fix.patch
