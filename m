@@ -1,258 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:55:06 -0700
-Message-ID: <20120529215506.9F08AA0308@akpm.mtv.corp.google.com>
+Subject: [folded] drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:55:32 -0700
+Message-ID: <20120529215532.85454A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:51191 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511Ab2E2VzJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:55:09 -0400
-Received: by faaa25 with SMTP id a25so263300faa.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:55:07 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:43031 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752511Ab2E2Vzd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:55:33 -0400
+Received: by qabg24 with SMTP id g24so296176qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:55:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jhovold@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, alexander.stein@systec-electronic.com, jesper.nilsson@axis.com, starvik@axis.com, wfg@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds: lm3533: replace als attribute with als_channel and als_en
+     Subject: drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix
 has been removed from the -mm tree.  Its filename was
-     leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en.patch
+     drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch
 
-This patch was dropped because it was folded into leds-add-lm3533-led-driver.patch
+This patch was dropped because it was folded into drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Johan Hovold <jhovold@gmail.com>
-Subject: leds: lm3533: replace als attribute with als_channel and als_en
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix
 
-Replace the als attribute with two separate attributes for selecting ALS
-channel and enabling ALS-current-control mode.
+fix sparse warning
 
-This change is needed to reflect changes made to the ALS sub-driver
-which now uses 0-indexed current output channels (rather than 1-indexed
-ALS-mapper target sets).
-
-Signed-off-by: Johan Hovold <jhovold@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Reported-by: Wu Fengguang <wfg@linux.intel.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexander Stein <alexander.stein@systec-electronic.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-led-driver-lm3533 |   19 +
- drivers/leds/leds-lm3533.c                              |   98 +++++++---
- 2 files changed, 87 insertions(+), 30 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/ABI/testing/sysfs-class-led-driver-lm3533~leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en Documentation/ABI/testing/sysfs-class-led-driver-lm3533
---- a/Documentation/ABI/testing/sysfs-class-led-driver-lm3533~leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en
-+++ a/Documentation/ABI/testing/sysfs-class-led-driver-lm3533
-@@ -1,13 +1,20 @@
--What:		/sys/class/leds/<led>/als
--Date:		April 2012
-+What:		/sys/class/leds/<led>/als_channel
-+Date:		May 2012
- KernelVersion:	3.5
- Contact:	Johan Hovold <jhovold@gmail.com>
- Description:
--		Set the ALS-control mode (0, 2, 3), where
-+		Set the ALS output channel to use as input in
-+		ALS-current-control mode (1, 2), where
-+
-+		1 - out_current1
-+		2 - out_current2
+diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -187,7 +187,7 @@ static int pcf8563_rtc_ioctl(struct devi
+ 		if (pcf8563->voltage_low)
+ 			dev_info(dev, "low voltage detected, date/time is not reliable.\n");
  
--		0 - disabled
--		2 - ALS-mapper 2
--		3 - ALS-mapper 3
-+What:		/sys/class/leds/<led>/als_en
-+Date:		May 2012
-+KernelVersion:	3.5
-+Contact:	Johan Hovold <jhovold@gmail.com>
-+Description:
-+		Enable ALS-current-control mode (0, 1).
- 
- What:		/sys/class/leds/<led>/falltime
- What:		/sys/class/leds/<led>/risetime
-diff -puN drivers/leds/leds-lm3533.c~leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en drivers/leds/leds-lm3533.c
---- a/drivers/leds/leds-lm3533.c~leds-add-lm3533-led-driver-replace-als-attribute-with-als_channel-and-als_en
-+++ a/drivers/leds/leds-lm3533.c
-@@ -27,8 +27,8 @@
- #define LM3533_LVCTRLBANK_MAX		5
- #define LM3533_LVCTRLBANK_COUNT		4
- #define LM3533_RISEFALLTIME_MAX		7
--#define LM3533_ALS_LV_MIN		2
--#define LM3533_ALS_LV_MAX		3
-+#define LM3533_ALS_CHANNEL_LV_MIN	1
-+#define LM3533_ALS_CHANNEL_LV_MAX	2
- 
- #define LM3533_REG_CTRLBANK_BCONF_BASE		0x1b
- #define LM3533_REG_PATTERN_ENABLE		0x28
-@@ -39,8 +39,9 @@
- 
- #define LM3533_REG_PATTERN_STEP			0x10
- 
--#define LM3533_REG_CTRLBANK_BCONF_MAPPING_MASK	0x04
--#define LM3533_REG_CTRLBANK_BCONF_ALS_MASK	0x03
-+#define LM3533_REG_CTRLBANK_BCONF_MAPPING_MASK		0x04
-+#define LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK		0x02
-+#define LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK	0x01
- 
- #define LM3533_LED_FLAG_PATTERN_ENABLE		1
- 
-@@ -416,21 +417,14 @@ static ssize_t store_falltime(struct dev
- 					LM3533_REG_PATTERN_FALLTIME_BASE);
- }
- 
--/*
-- * ALS-control setting:
-- *
-- *   0 - ALS disabled
-- *   2 - ALS-mapper 2
-- *   3 - ALS-mapper 3
-- */
--static ssize_t show_als(struct device *dev,
-+static ssize_t show_als_channel(struct device *dev,
- 				struct device_attribute *attr, char *buf)
- {
- 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
- 	struct lm3533_led *led = to_lm3533_led(led_cdev);
-+	unsigned channel;
- 	u8 reg;
- 	u8 val;
--	int als;
- 	int ret;
- 
- 	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
-@@ -438,32 +432,85 @@ static ssize_t show_als(struct device *d
- 	if (ret)
- 		return ret;
- 
--	als = val & LM3533_REG_CTRLBANK_BCONF_ALS_MASK;
-+	channel = (val & LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK) + 1;
- 
--	return scnprintf(buf, PAGE_SIZE, "%d\n", als);
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", channel);
- }
- 
--static ssize_t store_als(struct device *dev,
-+static ssize_t store_als_channel(struct device *dev,
- 					struct device_attribute *attr,
- 					const char *buf, size_t len)
- {
- 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
- 	struct lm3533_led *led = to_lm3533_led(led_cdev);
--	u8 als;
-+	unsigned channel;
- 	u8 reg;
-+	u8 val;
- 	u8 mask;
- 	int ret;
- 
--	if (kstrtou8(buf, 0, &als))
-+	if (kstrtouint(buf, 0, &channel))
- 		return -EINVAL;
- 
--	if (als != 0 && (als < LM3533_ALS_LV_MIN || als > LM3533_ALS_LV_MAX))
-+	if (channel < LM3533_ALS_CHANNEL_LV_MIN ||
-+					channel > LM3533_ALS_CHANNEL_LV_MAX)
- 		return -EINVAL;
- 
- 	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
--	mask = LM3533_REG_CTRLBANK_BCONF_ALS_MASK;
-+	mask = LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK;
-+	val = channel - 1;
-+
-+	ret = lm3533_update(led->lm3533, reg, val, mask);
-+	if (ret)
-+		return ret;
-+
-+	return len;
-+}
-+
-+static ssize_t show_als_en(struct device *dev,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct lm3533_led *led = to_lm3533_led(led_cdev);
-+	bool enable;
-+	u8 reg;
-+	u8 val;
-+	int ret;
-+
-+	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
-+	ret = lm3533_read(led->lm3533, reg, &val);
-+	if (ret)
-+		return ret;
- 
--	ret = lm3533_update(led->lm3533, reg, als, mask);
-+	enable = val & LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK;
-+
-+	return scnprintf(buf, PAGE_SIZE, "%d\n", enable);
-+}
-+
-+static ssize_t store_als_en(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t len)
-+{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct lm3533_led *led = to_lm3533_led(led_cdev);
-+	unsigned enable;
-+	u8 reg;
-+	u8 mask;
-+	u8 val;
-+	int ret;
-+
-+	if (kstrtouint(buf, 0, &enable))
-+		return -EINVAL;
-+
-+	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
-+	mask = LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK;
-+
-+	if (enable)
-+		val = mask;
-+	else
-+		val = 0;
-+
-+	ret = lm3533_update(led->lm3533, reg, val, mask);
- 	if (ret)
- 		return ret;
- 
-@@ -558,7 +605,8 @@ static ssize_t store_pwm(struct device *
- 	return len;
- }
- 
--static LM3533_ATTR_RW(als);
-+static LM3533_ATTR_RW(als_channel);
-+static LM3533_ATTR_RW(als_en);
- static LM3533_ATTR_RW(falltime);
- static LM3533_ATTR_RO(id);
- static LM3533_ATTR_RW(linear);
-@@ -566,7 +614,8 @@ static LM3533_ATTR_RW(pwm);
- static LM3533_ATTR_RW(risetime);
- 
- static struct attribute *lm3533_led_attributes[] = {
--	&dev_attr_als.attr,
-+	&dev_attr_als_channel.attr,
-+	&dev_attr_als_en.attr,
- 	&dev_attr_falltime.attr,
- 	&dev_attr_id.attr,
- 	&dev_attr_linear.attr,
-@@ -583,7 +632,8 @@ static umode_t lm3533_led_attr_is_visibl
- 	struct lm3533_led *led = to_lm3533_led(led_cdev);
- 	umode_t mode = attr->mode;
- 
--	if (attr == &dev_attr_als.attr) {
-+	if (attr == &dev_attr_als_channel.attr ||
-+					attr == &dev_attr_als_en.attr) {
- 		if (!led->lm3533->have_als)
- 			mode = 0;
- 	}
+-		if (copy_to_user((int *) arg, &pcf8563->voltage_low,
++		if (copy_to_user((void __user *)arg, &pcf8563->voltage_low,
+ 					sizeof(int)))
+ 			return -EFAULT;
+ 		return 0;
 _
 
-Patches currently in -mm which might be from jhovold@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
+mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
+mm-do_migrate_pages-rename-arguments.patch
+mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
+mm-rename-is_mlocked_vma-to-mlocked_vma_newpage.patch
+mm-page_allocc-remove-pageblock_default_order.patch
+mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
+tmpfs-support-seek_data-and-seek_hole.patch
+mm-page_allocc-cleanups.patch
+mm-fix-slab-page-flags-corruption.patch
+mm-push-lru-index-into-shrink_active_list.patch
+mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
+mm-memcg-print-statistics-from-live-counters.patch
+memcg-always-free-struct-memcg-through-schedule_work.patch
+memcg-decrement-static-keys-at-real-destroy-time.patch
+drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes.patch
 backlight-add-lm3533-backlight-driver.patch
-leds-add-lm3533-led-driver.patch
+backlight-use-pr_warn-and-pr_debug-instead-of-printk.patch
+backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
+backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
+backlight-generic_bl-use-pr_info-instead-of-printk.patch
+backlight-jornada720-use-pr_err-pr_info-instead-of-printk.patch
+backlight-omap1-use-pr_info-instead-of-printk.patch
+backlight-progear-use-pr_err-instead-of-printk.patch
+leds-led-module-for-da9052-53-pmic-v2.patch
+leds-heartbeat-stop-on-shutdown.patch
+drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds.patch
+lib-string_helpersc-make-arrays-static.patch
+lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
+drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch
+rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
 
