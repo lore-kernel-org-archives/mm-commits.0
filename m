@@ -1,69 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded] backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:50:52 -0700
-Message-ID: <20120529215053.15194A037F@akpm.mtv.corp.google.com>
+Subject: [folded] backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:51:14 -0700
+Message-ID: <20120529215114.C9ED3A037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:36518 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605Ab2E2Vu7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:50:59 -0400
-Received: by qcsp5 with SMTP id p5so460391qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:50:58 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:62056 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab2E2VvP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:51:15 -0400
+Received: by yenl3 with SMTP id l3so393313yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:51:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jg1.han@samsung.com, joe@perches.com, mjg@redhat.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
+     Subject: backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
 has been removed from the -mm tree.  Its filename was
-     backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix.patch
+     backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
 
-This patch was dropped because it was folded into backlight-use-pr_warn-and-pr_debug-instead-of-printk.patch
+This patch was dropped because it was folded into backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
+Subject: backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
 
 use KBUILD_MODNAME, per Joe
 
 Cc: Jingoo Han <jg1.han@samsung.com>
 Cc: Joe Perches <joe@perches.com>
+Cc: Matthew Garrett <mjg@redhat.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |    2 +-
- drivers/video/backlight/lcd.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/apple_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
-+++ a/drivers/video/backlight/backlight.c
-@@ -5,7 +5,7 @@
-  *
+diff -puN drivers/video/backlight/apple_bl.c~backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix drivers/video/backlight/apple_bl.c
+--- a/drivers/video/backlight/apple_bl.c~backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix
++++ a/drivers/video/backlight/apple_bl.c
+@@ -16,7 +16,7 @@
+  *  get at the firmware code in order to figure out what it's actually doing.
   */
  
--#define pr_fmt(fmt) "backlight: " fmt
+-#define pr_fmt(fmt) "apple_backlight: " fmt
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
  #include <linux/module.h>
- #include <linux/init.h>
-diff -puN drivers/video/backlight/lcd.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c~backlight-use-pr_warn-and-pr_debug-instead-of-printk-fix
-+++ a/drivers/video/backlight/lcd.c
-@@ -5,7 +5,7 @@
-  *
-  */
- 
--#define pr_fmt(fmt) "lcd: " fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/module.h>
- #include <linux/init.h>
+ #include <linux/kernel.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +75,7 @@ memcg-decrement-static-keys-at-real-destroy-time.patch
 drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes.patch
 backlight-add-lm3533-backlight-driver.patch
 backlight-use-pr_warn-and-pr_debug-instead-of-printk.patch
-backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk-fix.patch
+backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
 backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk-fix.patch
 backlight-generic_bl-use-pr_info-instead-of-printk-fix.patch
 backlight-jornada720-use-pr_err-pr_info-instead-of-printk-fix.patch
