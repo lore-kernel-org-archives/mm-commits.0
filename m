@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thermal-add-generic-cpufreq-cooling-implementation-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 11:17:30 -0700
-Message-ID: <20120529181730.B7B60A022F@akpm.mtv.corp.google.com>
+Subject: [folded] thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 11:17:57 -0700
+Message-ID: <20120529181757.3EA67A022F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:50398 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755033Ab2E2SRd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 14:17:33 -0400
-Received: by ghbz15 with SMTP id z15so314499ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 11:17:33 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:40902 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754847Ab2E2SR6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 14:17:58 -0400
+Received: by ggeh3 with SMTP id h3so430636gge.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 11:17:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, amit.kachhap@linaro.org, dg77.kim@samsung.com, durgadoss.r@intel.com, guenter.roeck@ericsson.com, khali@linux-fr.org, lenb@kernel.org, sw.ju@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thermal-add-generic-cpufreq-cooling-implementation-fix
+     Subject: thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
 has been removed from the -mm tree.  Its filename was
-     thermal-add-generic-cpufreq-cooling-implementation-fix.patch
+     thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
 
-This patch was dropped because it was folded into thermal-add-generic-cpufreq-cooling-implementation.patch
+This patch was dropped because it was folded into thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thermal-add-generic-cpufreq-cooling-implementation-fix
+Subject: thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
 
 fix comment layout
 
@@ -40,142 +40,48 @@ Cc: SangWook Ju <sw.ju@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/cpu_cooling.c |   32 ++++++++++++++++----------------
- include/linux/cpu_cooling.h   |    4 ++--
- 2 files changed, 18 insertions(+), 18 deletions(-)
+ drivers/thermal/exynos_thermal.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/thermal/cpu_cooling.c~thermal-add-generic-cpufreq-cooling-implementation-fix drivers/thermal/cpu_cooling.c
---- a/drivers/thermal/cpu_cooling.c~thermal-add-generic-cpufreq-cooling-implementation-fix
-+++ a/drivers/thermal/cpu_cooling.c
-@@ -62,14 +62,14 @@ static LIST_HEAD(cooling_cpufreq_list);
- static DEFINE_MUTEX(cooling_cpufreq_lock);
- static DEFINE_IDR(cpufreq_idr);
+diff -puN drivers/thermal/exynos_thermal.c~thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix drivers/thermal/exynos_thermal.c
+--- a/drivers/thermal/exynos_thermal.c~thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
++++ a/drivers/thermal/exynos_thermal.c
+@@ -39,7 +39,7 @@
  
--/*per cpu variable to store the previous max frequency allowed*/
-+/* per cpu variable to store the previous max frequency allowed */
- static DEFINE_PER_CPU(unsigned int, max_policy_freq);
+ #include <plat/cpu.h>
  
--/*notify_table passes value to the CPUFREQ_ADJUST callback function.*/
-+/* notify_table passes value to the CPUFREQ_ADJUST callback function. */
- #define NOTIFY_INVALID NULL
- static struct freq_clip_table *notify_table;
+-/*Exynos generic registers*/
++/* Exynos generic registers */
+ #define EXYNOS_TMU_REG_TRIMINFO		0x0
+ #define EXYNOS_TMU_REG_CONTROL		0x20
+ #define EXYNOS_TMU_REG_STATUS		0x28
+@@ -55,7 +55,7 @@
+ #define EXYNOS_TMU_CORE_OFF		2
+ #define EXYNOS_TMU_DEF_CODE_TO_TEMP_OFFSET	50
  
--/*Head of the blocking notifier chain to inform about frequency clamping*/
-+/* Head of the blocking notifier chain to inform about frequency clamping */
- static BLOCKING_NOTIFIER_HEAD(cputherm_state_notifier_list);
+-/*Exynos4 specific registers*/
++/* Exynos4 specific registers */
+ #define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
+ #define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
+ #define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
+@@ -72,7 +72,7 @@
+ #define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
+ #define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
  
- /**
-@@ -160,7 +160,7 @@ int cputherm_unregister_notifier(struct 
- }
- EXPORT_SYMBOL(cputherm_unregister_notifier);
+-/*Exynos5 specific registers*/
++/* Exynos5 specific registers */
+ #define EXYNOS5_TMU_TRIMINFO_CON	0x14
+ #define EXYNOS5_THD_TEMP_RISE		0x50
+ #define EXYNOS5_THD_TEMP_FALL		0x54
+@@ -88,7 +88,7 @@
+ #define EFUSE_MIN_VALUE 40
+ #define EFUSE_MAX_VALUE 100
  
--/*Below codes defines functions to be used for cpufreq as cooling device*/
-+/* Below code defines functions to be used for cpufreq as cooling device */
- 
- /**
-  * is_cpufreq_valid - function to check if a cpu has frequency transition policy.
-@@ -189,11 +189,11 @@ static int cpufreq_apply_cooling(struct 
- 	if (cooling_state > cpufreq_device->tab_size)
- 		return -EINVAL;
- 
--	/*Check if the old cooling action is same as new cooling action*/
-+	/* Check if the old cooling action is same as new cooling action */
- 	if (cpufreq_device->cpufreq_state == cooling_state)
- 		return 0;
- 
--	/*pass cooling table info to the cpufreq_thermal_notifier callback*/
-+	/* pass cooling table info to the cpufreq_thermal_notifier callback */
- 	notify_table = NOTIFY_INVALID;
- 
- 	if (cooling_state > 0) {
-@@ -201,7 +201,7 @@ static int cpufreq_apply_cooling(struct 
- 		notify_table = th_table;
- 	}
- 
--	/*check if any lower clip frequency active in other cpufreq_device's*/
-+	/* check if any lower clip frequency active in other cpufreq_device's */
- 	list_for_each_entry(cpufreq_ptr, &cooling_cpufreq_list, node) {
- 
- 		state = cpufreq_ptr->cpufreq_state;
-@@ -356,14 +356,14 @@ static int cpufreq_set_cur_state(struct 
- 	return ret;
- }
- 
--/*Bind cpufreq callbacks to thermal cooling device ops*/
-+/* Bind cpufreq callbacks to thermal cooling device ops */
- static struct thermal_cooling_device_ops const cpufreq_cooling_ops = {
- 	.get_max_state = cpufreq_get_max_state,
- 	.get_cur_state = cpufreq_get_cur_state,
- 	.set_cur_state = cpufreq_set_cur_state,
- };
- 
--/*Notifier for cpufreq policy change*/
-+/* Notifier for cpufreq policy change */
- static struct notifier_block thermal_cpufreq_notifier_block = {
- 	.notifier_call = cpufreq_thermal_notifier,
- };
-@@ -396,7 +396,7 @@ struct thermal_cooling_device *cpufreq_c
- 	if (!cpufreq_dev)
- 		return ERR_PTR(-ENOMEM);
- 
--	/*Verify that all the entries of freq_clip_table are present*/
-+	/* Verify that all the entries of freq_clip_table are present */
- 	for (i = 0; i < tab_size; i++) {
- 		clip_tab = ((struct freq_clip_table *)&tab_ptr[i]);
- 		if (!clip_tab->freq_clip_max || !clip_tab->mask_val
-@@ -405,10 +405,10 @@ struct thermal_cooling_device *cpufreq_c
- 			return ERR_PTR(-EINVAL);
- 		}
- 		/*
--		 *Consolidate all the cpumask for all the individual entries
--		 *of the trip table. This is useful in resetting all the
--		 *clipped frequencies to the normal level for each cpufreq
--		 *cooling device.
-+		 * Consolidate all the cpumask for all the individual entries
-+		 * of the trip table. This is useful in resetting all the
-+		 * clipped frequencies to the normal level for each cpufreq
-+		 * cooling device.
- 		 */
- 		cpumask_or(&cpufreq_dev->allowed_cpus,
- 			&cpufreq_dev->allowed_cpus, clip_tab->mask_val);
-@@ -437,7 +437,7 @@ struct thermal_cooling_device *cpufreq_c
- 	mutex_lock(&cooling_cpufreq_lock);
- 	list_add_tail(&cpufreq_dev->node, &cooling_cpufreq_list);
- 
--	/*Register the notifier for first cpufreq cooling device*/
-+	/* Register the notifier for first cpufreq cooling device */
- 	if (cpufreq_dev_count == 0)
- 		cpufreq_register_notifier(&thermal_cpufreq_notifier_block,
- 						CPUFREQ_POLICY_NOTIFIER);
-@@ -470,7 +470,7 @@ void cpufreq_cooling_unregister(struct t
- 
- 	list_del(&cpufreq_dev->node);
- 
--	/*Unregister the notifier for the last cpufreq cooling device*/
-+	/* Unregister the notifier for the last cpufreq cooling device */
- 	if (cpufreq_dev_count == 1) {
- 		cpufreq_unregister_notifier(&thermal_cpufreq_notifier_block,
- 					CPUFREQ_POLICY_NOTIFIER);
-diff -puN include/linux/cpu_cooling.h~thermal-add-generic-cpufreq-cooling-implementation-fix include/linux/cpu_cooling.h
---- a/include/linux/cpu_cooling.h~thermal-add-generic-cpufreq-cooling-implementation-fix
-+++ a/include/linux/cpu_cooling.h
-@@ -83,7 +83,7 @@ struct thermal_cooling_device *cpufreq_c
-  * @cdev: thermal cooling device pointer.
-  */
- void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
--#else /*!CONFIG_CPU_FREQ*/
-+#else /* !CONFIG_CPU_FREQ */
- static inline struct thermal_cooling_device *cpufreq_cooling_register(
- 	struct freq_clip_table *tab_ptr, unsigned int tab_size);
- {
-@@ -94,6 +94,6 @@ static inline void cpufreq_cooling_unreg
- {
- 	return;
- }
--#endif	/*CONFIG_CPU_FREQ*/
-+#endif	/* CONFIG_CPU_FREQ */
- 
- #endif /* __CPU_COOLING_H__ */
+-/*In-kernel thermal framework related macros & definations*/
++/* In-kernel thermal framework related macros & definations */
+ #define SENSOR_NAME_LEN	16
+ #define MAX_TRIP_COUNT	8
+ #define MAX_COOLING_DEVICE 4
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -188,7 +94,7 @@ drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
 thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
 fs-symlink-restrictions-on-sticky-directories.patch
 fs-hardlink-creation-restrictions.patch
