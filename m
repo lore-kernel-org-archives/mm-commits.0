@@ -1,89 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded] leds-led-module-for-da9052-53-pmic-v2-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:53:17 -0700
-Message-ID: <20120529215318.0BF8CA0308@akpm.mtv.corp.google.com>
+Subject: [folded] leds-heartbeat-stop-on-shutdown-v5.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:53:58 -0700
+Message-ID: <20120529215358.66C63A0308@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:42193 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752367Ab2E2VxS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:53:18 -0400
-Received: by mail-qa0-f74.google.com with SMTP id g24so295889qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:53:18 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:37986 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab2E2VyA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:54:00 -0400
+Received: by eaao13 with SMTP id o13so266319eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:53:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ashish.jangam@kpitcummins.com, dchen@diasemi.com, lars@metafoo.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: holler@ahsoftware.de, rpurdie@rpsys.net, shuahkhan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds-led-module-for-da9052-53-pmic-v2-fix
+     Subject: leds-heartbeat-stop-on-shutdown-v5
 has been removed from the -mm tree.  Its filename was
-     leds-led-module-for-da9052-53-pmic-v2-fix.patch
+     leds-heartbeat-stop-on-shutdown-v5.patch
 
-This patch was dropped because it was folded into leds-led-module-for-da9052-53-pmic-v2.patch
+This patch was dropped because it was folded into leds-heartbeat-stop-on-shutdown.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: leds-led-module-for-da9052-53-pmic-v2-fix
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: leds-heartbeat-stop-on-shutdown-v5
 
-Cc: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Cc: David Dajun Chen <dchen@diasemi.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Alexander Holler <holler@ahsoftware.de>
+Cc: Shuah Khan <shuahkhan@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-da9052.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/leds/ledtrig-heartbeat.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-da9052.c~leds-led-module-for-da9052-53-pmic-v2-fix drivers/leds/leds-da9052.c
---- a/drivers/leds/leds-da9052.c~leds-led-module-for-da9052-53-pmic-v2-fix
-+++ a/drivers/leds/leds-da9052.c
-@@ -40,7 +40,7 @@ struct da9052_led {
- 	int brightness;
+diff -puN drivers/leds/ledtrig-heartbeat.c~leds-heartbeat-stop-on-shutdown-v5 drivers/leds/ledtrig-heartbeat.c
+--- a/drivers/leds/ledtrig-heartbeat.c~leds-heartbeat-stop-on-shutdown-v5
++++ a/drivers/leds/ledtrig-heartbeat.c
+@@ -115,17 +115,26 @@ static struct notifier_block heartbeat_r
+ 	.notifier_call = heartbeat_reboot_notifier,
  };
  
--unsigned char led_reg[] = {
-+static unsigned char led_reg[] = {
- 	DA9052_LED_CONT_4_REG,
- 	DA9052_LED_CONT_5_REG,
- };
++static struct notifier_block heartbeat_panic_nb = {
++	.notifier_call = heartbeat_reboot_notifier,
++};
++
+ static int __init heartbeat_trig_init(void)
+ {
+ 	int rc = led_trigger_register(&heartbeat_led_trigger);
+-	if( ! rc )
++	if (!rc) {
++		atomic_notifier_chain_register(&panic_notifier_list,
++					       &heartbeat_panic_nb);
+ 		register_reboot_notifier(&heartbeat_reboot_nb);
++	}
+ 	return rc;
+ }
+ 
+ static void __exit heartbeat_trig_exit(void)
+ {
+ 	unregister_reboot_notifier(&heartbeat_reboot_nb);
++	atomic_notifier_chain_unregister(&panic_notifier_list,
++					 &heartbeat_panic_nb);
+ 	led_trigger_unregister(&heartbeat_led_trigger);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from holler@ahsoftware.de are
 
-origin.patch
-mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
-mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
-mm-do_migrate_pages-rename-arguments.patch
-mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
-mm-rename-is_mlocked_vma-to-mlocked_vma_newpage.patch
-mm-page_allocc-remove-pageblock_default_order.patch
-mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
-tmpfs-support-seek_data-and-seek_hole.patch
-mm-page_allocc-cleanups.patch
-mm-fix-slab-page-flags-corruption.patch
-mm-push-lru-index-into-shrink_active_list.patch
-mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
-mm-memcg-print-statistics-from-live-counters.patch
-memcg-always-free-struct-memcg-through-schedule_work.patch
-memcg-decrement-static-keys-at-real-destroy-time.patch
-drivers-video-backlight-apple_blc-include-header-for-exported-symbol-prototypes.patch
-backlight-add-lm3533-backlight-driver.patch
-backlight-use-pr_warn-and-pr_debug-instead-of-printk.patch
-backlight-apple_bl-use-pr_debug-pr_err-instead-of-printk.patch
-backlight-cr_bllcd-use-pr_err-pr_info-instead-of-printk.patch
-backlight-generic_bl-use-pr_info-instead-of-printk.patch
-backlight-jornada720-use-pr_err-pr_info-instead-of-printk.patch
-backlight-omap1-use-pr_info-instead-of-printk.patch
-backlight-progear-use-pr_err-instead-of-printk.patch
-leds-led-module-for-da9052-53-pmic-v2.patch
+leds-heartbeat-stop-on-shutdown.patch
 leds-heartbeat-stop-on-shutdown-checkpatch-fixes.patch
-drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds-fix.patch
-lib-string_helpersc-make-arrays-static.patch
-lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
-drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature-fix.patch
-rtc-rename-config_rtc_mxc-to-config_rtc_drv_mxc-fix.patch
 
