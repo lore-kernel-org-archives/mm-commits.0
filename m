@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded] thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 11:17:57 -0700
-Message-ID: <20120529181757.3EA67A022F@akpm.mtv.corp.google.com>
+Subject: [folded] thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 11:18:18 -0700
+Message-ID: <20120529181818.7D1B0A022F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:40902 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754847Ab2E2SR6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 14:17:58 -0400
-Received: by ggeh3 with SMTP id h3so430636gge.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 11:17:57 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:65007 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754871Ab2E2SSU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 14:18:20 -0400
+Received: by were53 with SMTP id e53so258929wer.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 11:18:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, amit.kachhap@linaro.org, dg77.kim@samsung.com, durgadoss.r@intel.com, guenter.roeck@ericsson.com, khali@linux-fr.org, lenb@kernel.org, sw.ju@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
+     Subject: thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix
 has been removed from the -mm tree.  Its filename was
-     thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix.patch
+     thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
 
-This patch was dropped because it was folded into thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+This patch was dropped because it was folded into thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
+Subject: thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix
 
 fix comment layout
 
@@ -40,48 +40,39 @@ Cc: SangWook Ju <sw.ju@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/exynos_thermal.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/thermal/exynos_thermal.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/thermal/exynos_thermal.c~thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix drivers/thermal/exynos_thermal.c
---- a/drivers/thermal/exynos_thermal.c~thermal-exynos5-add-exynos5-thermal-sensor-driver-support-fix
+diff -puN drivers/thermal/exynos_thermal.c~thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix drivers/thermal/exynos_thermal.c
+--- a/drivers/thermal/exynos_thermal.c~thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix
 +++ a/drivers/thermal/exynos_thermal.c
-@@ -39,7 +39,7 @@
+@@ -276,7 +276,7 @@ static int exynos_bind(struct thermal_zo
+ 		if (cdev == th_zone->cool_dev[i])
+ 			break;
  
- #include <plat/cpu.h>
+-	/*No matching cooling device*/
++	/* No matching cooling device */
+ 	if (i == th_zone->cool_dev_size)
+ 		return 0;
  
--/*Exynos generic registers*/
-+/* Exynos generic registers */
- #define EXYNOS_TMU_REG_TRIMINFO		0x0
- #define EXYNOS_TMU_REG_CONTROL		0x20
- #define EXYNOS_TMU_REG_STATUS		0x28
-@@ -55,7 +55,7 @@
- #define EXYNOS_TMU_CORE_OFF		2
- #define EXYNOS_TMU_DEF_CODE_TO_TEMP_OFFSET	50
+@@ -306,7 +306,7 @@ static int exynos_unbind(struct thermal_
+ 		if (cdev == th_zone->cool_dev[i])
+ 			break;
  
--/*Exynos4 specific registers*/
-+/* Exynos4 specific registers */
- #define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
- #define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
- #define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
-@@ -72,7 +72,7 @@
- #define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
- #define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
+-	/*No matching cooling device*/
++	/* No matching cooling device */
+ 	if (i == th_zone->cool_dev_size)
+ 		return 0;
  
--/*Exynos5 specific registers*/
-+/* Exynos5 specific registers */
- #define EXYNOS5_TMU_TRIMINFO_CON	0x14
- #define EXYNOS5_THD_TEMP_RISE		0x50
- #define EXYNOS5_THD_TEMP_FALL		0x54
-@@ -88,7 +88,7 @@
- #define EFUSE_MIN_VALUE 40
- #define EFUSE_MAX_VALUE 100
+@@ -746,7 +746,7 @@ static int __devinit exynos_tmu_probe(st
  
--/*In-kernel thermal framework related macros & definations*/
-+/* In-kernel thermal framework related macros & definations */
- #define SENSOR_NAME_LEN	16
- #define MAX_TRIP_COUNT	8
- #define MAX_COOLING_DEVICE 4
+ 	exynos_tmu_control(pdev, true);
+ 
+-	/*Register the sensor with thermal management interface*/
++	/* Register the sensor with thermal management interface */
+ 	(&exynos_sensor_conf)->private_data = data;
+ 	exynos_sensor_conf.trip_data.trip_count = pdata->trigger_level0_en +
+ 			pdata->trigger_level1_en + pdata->trigger_level2_en +
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,7 +86,7 @@ drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 thermal-add-generic-cpufreq-cooling-implementation.patch
 thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer-fix.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
 fs-symlink-restrictions-on-sticky-directories.patch
 fs-hardlink-creation-restrictions.patch
 mm.patch
