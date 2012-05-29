@@ -1,161 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [folded] tmpfs-support-seek_data-and-seek_hole-fix.patch removed from -mm tree
-Date: Tue, 29 May 2012 14:44:37 -0700
-Message-ID: <20120529214437.AD912A021B@akpm.mtv.corp.google.com>
+Subject: [folded] mm-fix-slab-page-flags-corruption-fix.patch removed from -mm tree
+Date: Tue, 29 May 2012 14:45:08 -0700
+Message-ID: <20120529214508.EEF6BA021B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:56088 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084Ab2E2Voj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:44:39 -0400
-Received: by were53 with SMTP id e53so266105wer.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:44:38 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:36460 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751084Ab2E2VpL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 May 2012 17:45:11 -0400
+Received: by bkty5 with SMTP id y5so263715bkt.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 May 2012 14:45:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, abhide@nicira.com, cl@linux.com, penberg@cs.helsinki.fi, pshelar@nicira.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs-support-seek_data-and-seek_hole-fix
+     Subject: mm-fix-slab-page-flags-corruption-fix
 has been removed from the -mm tree.  Its filename was
-     tmpfs-support-seek_data-and-seek_hole-fix.patch
+     mm-fix-slab-page-flags-corruption-fix.patch
 
-This patch was dropped because it was folded into tmpfs-support-seek_data-and-seek_hole.patch
+This patch was dropped because it was folded into mm-fix-slab-page-flags-corruption.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tmpfs-support-seek_data-and-seek_hole-fix
+Subject: mm-fix-slab-page-flags-corruption-fix
 
-fix warning with CONFIG_TMPFS=n
+tweak comment text, fix comment layout, fix label indenting
 
-mm/shmem.c:444: warning: 'shmem_seek_hole_data' defined but not used
-
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Amey Bhide <abhide@nicira.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Pravin B Shelar <pshelar@nicira.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  100 +++++++++++++++++++++++++--------------------------
- 1 file changed, 50 insertions(+), 50 deletions(-)
+ mm/swap.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-fix mm/shmem.c
---- a/mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-fix
-+++ a/mm/shmem.c
-@@ -439,56 +439,6 @@ void shmem_unlock_mapping(struct address
- }
+diff -puN mm/swap.c~mm-fix-slab-page-flags-corruption-fix mm/swap.c
+--- a/mm/swap.c~mm-fix-slab-page-flags-corruption-fix
++++ a/mm/swap.c
+@@ -83,13 +83,14 @@ static void put_compound_page(struct pag
+ 			   get_page_unless_zero(page_head))) {
+ 			unsigned long flags;
  
- /*
-- * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
-- */
--static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
--				    pgoff_t index, pgoff_t end, int origin)
--{
--	struct page *page;
--	struct pagevec pvec;
--	pgoff_t indices[PAGEVEC_SIZE];
--	bool done = false;
--	int i;
+-			/* THP can not break up slab pages, avoid taking
+-			 * compound_lock(). Slab prefer non atomic bit ops
+-			 * on page->flags for better performance. In particular
+-			 * slab_unlock() in slub used to be a hot path
+-			 * item. It is still hot on arches that do not support
+-			 * this_cpu_cmpxchg_double. */
 -
--	pagevec_init(&pvec, 0);
--	pvec.nr = 1;		/* start small: we may be there already */
--	while (!done) {
--		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
--					pvec.nr, pvec.pages, indices);
--		if (!pvec.nr) {
--			if (origin == SEEK_DATA)
--				index = end;
--			break;
--		}
--		for (i = 0; i < pvec.nr; i++, index++) {
--			if (index < indices[i]) {
--				if (origin == SEEK_HOLE) {
--					done = true;
--					break;
--				}
--				index = indices[i];
--			}
--			page = pvec.pages[i];
--			if (page && !radix_tree_exceptional_entry(page)) {
--				if (!PageUptodate(page))
--					page = NULL;
--			}
--			if (index >= end ||
--			    (page && origin == SEEK_DATA) ||
--			    (!page && origin == SEEK_HOLE)) {
--				done = true;
--				break;
--			}
--		}
--		shmem_deswap_pagevec(&pvec);
--		pagevec_release(&pvec);
--		pvec.nr = PAGEVEC_SIZE;
--		cond_resched();
--	}
--	return index;
--}
--
--/*
-  * Remove range of pages and swap entries from radix tree, and free them.
-  * If !unfalloc, truncate or punch hole; if unfalloc, undo failed fallocate.
-  */
-@@ -1724,6 +1674,56 @@ static ssize_t shmem_file_splice_read(st
- 	return error;
- }
++			/*
++			 * THP can not break up slab pages so avoid taking
++			 * compound_lock().  Slab performs non-atomic bit ops
++			 * on page->flags for better performance.  In particular
++			 * slab_unlock() in slub used to be a hot path.  It is
++			 * still hot on arches that do not support
++			 * this_cpu_cmpxchg_double().
++			 */
+ 			if (PageSlab(page_head)) {
+ 				if (PageTail(page)) {
+ 					if (put_page_testzero(page_head))
+@@ -110,10 +111,10 @@ static void put_compound_page(struct pag
+ 			if (unlikely(!PageTail(page))) {
+ 				/* __split_huge_page_refcount run before us */
+ 				compound_unlock_irqrestore(page_head, flags);
+-			skip_lock:
++skip_lock:
+ 				if (put_page_testzero(page_head))
+ 					__put_single_page(page_head);
+-			out_put_single:
++out_put_single:
+ 				if (put_page_testzero(page))
+ 					__put_single_page(page);
+ 				return;
+@@ -134,7 +135,7 @@ static void put_compound_page(struct pag
+ 			VM_BUG_ON(atomic_read(&page->_count) != 0);
+ 			compound_unlock_irqrestore(page_head, flags);
  
-+/*
-+ * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
-+ */
-+static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
-+				    pgoff_t index, pgoff_t end, int origin)
-+{
-+	struct page *page;
-+	struct pagevec pvec;
-+	pgoff_t indices[PAGEVEC_SIZE];
-+	bool done = false;
-+	int i;
-+
-+	pagevec_init(&pvec, 0);
-+	pvec.nr = 1;		/* start small: we may be there already */
-+	while (!done) {
-+		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
-+					pvec.nr, pvec.pages, indices);
-+		if (!pvec.nr) {
-+			if (origin == SEEK_DATA)
-+				index = end;
-+			break;
-+		}
-+		for (i = 0; i < pvec.nr; i++, index++) {
-+			if (index < indices[i]) {
-+				if (origin == SEEK_HOLE) {
-+					done = true;
-+					break;
-+				}
-+				index = indices[i];
-+			}
-+			page = pvec.pages[i];
-+			if (page && !radix_tree_exceptional_entry(page)) {
-+				if (!PageUptodate(page))
-+					page = NULL;
-+			}
-+			if (index >= end ||
-+			    (page && origin == SEEK_DATA) ||
-+			    (!page && origin == SEEK_HOLE)) {
-+				done = true;
-+				break;
-+			}
-+		}
-+		shmem_deswap_pagevec(&pvec);
-+		pagevec_release(&pvec);
-+		pvec.nr = PAGEVEC_SIZE;
-+		cond_resched();
-+	}
-+	return index;
-+}
-+
- static loff_t shmem_file_llseek(struct file *file, loff_t offset, int origin)
- {
- 	struct address_space *mapping;
+-			skip_lock_tail:
++skip_lock_tail:
+ 			if (put_page_testzero(page_head)) {
+ 				if (PageHead(page_head))
+ 					__put_compound_page(page_head);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,7 +102,7 @@ mm-page_allocc-remove-pageblock_default_order.patch
 mm-remove-sparsemem-allocation-details-from-the-bootmem-allocator.patch
 tmpfs-support-seek_data-and-seek_hole.patch
 mm-page_allocc-cleanups.patch
-mm-fix-slab-page-flags-corruption-fix.patch
+mm-fix-slab-page-flags-corruption.patch
 mm-push-lru-index-into-shrink_active_list-fix.patch
 mm-memcg-use-vm_swappiness-from-target-memory-cgroup-fix.patch
 mm-memcg-print-statistics-from-live-counters-checkpatch-fixes.patch
