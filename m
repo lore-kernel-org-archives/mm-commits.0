@@ -1,78 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-linux-leds-mail-list-address-and-git-url.patch added to -mm tree
-Date: Thu, 31 May 2012 11:43:15 -0700
-Message-ID: <20120531184316.80855A03DB@akpm.mtv.corp.google.com>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:12:24 -0700
+Message-ID: <20120531191225.77098A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:63327 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758222Ab2EaSnU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 14:43:20 -0400
-Received: by wibhn6 with SMTP id hn6so75651wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 11:43:19 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:44446 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757321Ab2EaTM2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:12:28 -0400
+Received: by bkty5 with SMTP id y5so75266bkt.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:12:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bryan.wu@canonical.com, rpurdie@rpsys.net
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add linux-leds mail list address and git URL
-has been added to the -mm tree.  Its filename is
-     maintainers-add-linux-leds-mail-list-address-and-git-url.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: MAINTAINERS: add linux-leds mail list address and git URL
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-Signed-off-by: Bryan Wu <bryan.wu@canonical.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/kernel/e820.c              |    1 +
+ drivers/platform/x86/toshiba_acpi.c |   16 ++--------------
+ mm/Makefile                         |    1 +
+ 3 files changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-linux-leds-mail-list-address-and-git-url MAINTAINERS
---- a/MAINTAINERS~maintainers-add-linux-leds-mail-list-address-and-git-url
-+++ a/MAINTAINERS
-@@ -4038,6 +4038,8 @@ F:	drivers/scsi/53c700*
- LED SUBSYSTEM
- M:	Bryan Wu <bryan.wu@canonical.com>
- M:	Richard Purdie <rpurdie@rpsys.net>
-+L:	linux-leds@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cooloney/linux-leds.git
- S:	Maintained
- F:	drivers/leds/
- F:	include/linux/leds.h
+diff -puN arch/x86/kernel/e820.c~linux-next-rejects arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~linux-next-rejects
++++ a/arch/x86/kernel/e820.c
+@@ -138,6 +138,7 @@ static void __init e820_print_type(u32 t
+ 		printk(KERN_CONT "usable");
+ 		break;
+ 	case E820_RESERVED:
++	case E820_RESERVED_EFI:
+ 		printk(KERN_CONT "reserved");
+ 		break;
+ 	case E820_ACPI:
+diff -puN drivers/platform/x86/toshiba_acpi.c~linux-next-rejects drivers/platform/x86/toshiba_acpi.c
+--- a/drivers/platform/x86/toshiba_acpi.c~linux-next-rejects
++++ a/drivers/platform/x86/toshiba_acpi.c
+@@ -1201,21 +1201,9 @@ static int __devinit toshiba_acpi_add(st
+ 	mutex_init(&dev->mutex);
+ 
+ 	memset(&props, 0, sizeof(props));
+-	props.type = BACKLIGHT_PLATFORM;
+-	props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
+-	dev->backlight_dev = backlight_device_register("toshiba",
+-						       &acpi_dev->dev,
+-						       dev,
+-						       &toshiba_backlight_data,
+-						       &props);
+-	if (IS_ERR(dev->backlight_dev)) {
+-		ret = PTR_ERR(dev->backlight_dev);
+-
+-		pr_err("Could not register toshiba backlight device\n");
+-		dev->backlight_dev = NULL;
++	ret = toshiba_acpi_setup_backlight(dev);
++	if (ret)
+ 		goto error;
+-	}
+-	dev->backlight_dev->props.brightness = get_lcd(dev->backlight_dev);
+ 
+ 	/* Register rfkill switch for Bluetooth */
+ 	if (hci_get_bt_present(dev, &bt_present) == HCI_SUCCESS && bt_present) {
+diff -puN mm/Makefile~linux-next-rejects mm/Makefile
+--- a/mm/Makefile~linux-next-rejects
++++ a/mm/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_HAVE_MEMBLOCK) += memblock.
+ 
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+ obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o
++obj-$(CONFIG_FRONTSWAP)	+= frontswap.o
+ obj-$(CONFIG_HAS_DMA)	+= dmapool.o
+ obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
+ obj-$(CONFIG_NUMA) 	+= mempolicy.o
 _
-Subject: Subject: MAINTAINERS: add linux-leds mail list address and git URL
 
-Patches currently in -mm which might be from bryan.wu@canonical.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-leds-leds-lp5521c-fix-lp5521_read-error-handling.patch
-leds-led-module-for-da9052-53-pmic-v2.patch
-leds-simple_strtoul-cleanup.patch
-leds-use-kcalloc-instead-of-kzalloc-to-allocate-array.patch
-leds-add-new-field-to-led_classdev-struct-to-save-activation-state.patch
-leds-change-existing-triggers-to-use-activated-flag.patch
-leds-change-ledtrig-timer-to-use-activated-flag.patch
-include-linux-led-lm3530h-comment-correction-about-the-range-of-brightness.patch
-leds-lm3530-simplify-als-configuration-on-initialization.patch
-leds-heartbeat-stop-on-shutdown.patch
-leds-add-new-transient-trigger-for-one-shot-timer-activation.patch
-drivers-leds-leds-pca955xc-fix-race-condition-while-setting-brightness-on-several-leds.patch
-leds-add-lm3533-led-driver.patch
-maintainers-add-linux-leds-mail-list-address-and-git-url.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+fs-nls-add-apple-nls-fix.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
