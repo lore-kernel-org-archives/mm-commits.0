@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-group-swapped-out-statistics-counter-logically.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:18:03 -0700
-Message-ID: <20120531191803.632DDA0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-memcg-keep-ratelimit-counter-separate-from-event-counters.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:18:00 -0700
+Message-ID: <20120531191800.6B0EDA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:37901 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933002Ab2EaTSE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:18:04 -0400
-Received: by vcbfl13 with SMTP id fl13so135131vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:18:04 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56583 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933002Ab2EaTSC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:18:02 -0400
+Received: by mail-ee0-f74.google.com with SMTP id t10so76371eei.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:18:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, tj@kernel.org, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: group swapped-out statistics counter logically
+     Subject: mm: memcg: keep ratelimit counter separate from event counters
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-group-swapped-out-statistics-counter-logically.patch
+     mm-memcg-keep-ratelimit-counter-separate-from-event-counters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,14 +26,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: group swapped-out statistics counter logically
+Subject: mm: memcg: keep ratelimit counter separate from event counters
 
-The counter of currently swapped out pages in a memcg (hierarchy) is
-sitting amidst ever-increasing event counters.  Move this item to the
-other counters that reflect current state rather than history.
-
-This technically breaks the kernel ABI, but hopefully nobody relies on the
-order of items in memory.stat.
+All events except the ratelimit counter are statistics exported to
+userspace.  Keep this internal value out of the event count array.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -43,34 +39,46 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-group-swapped-out-statistics-counter-logically mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-group-swapped-out-statistics-counter-logically
+diff -puN mm/memcontrol.c~mm-memcg-keep-ratelimit-counter-separate-from-event-counters mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-keep-ratelimit-counter-separate-from-event-counters
 +++ a/mm/memcontrol.c
-@@ -4043,9 +4043,9 @@ enum {
- 	MCS_CACHE,
- 	MCS_RSS,
- 	MCS_FILE_MAPPED,
-+	MCS_SWAP,
- 	MCS_PGPGIN,
- 	MCS_PGPGOUT,
--	MCS_SWAP,
- 	MCS_PGFAULT,
- 	MCS_PGMAJFAULT,
- 	MCS_INACTIVE_ANON,
-@@ -4064,9 +4064,9 @@ static const char *memcg_stat_strings[NR
- 	"cache",
- 	"rss",
- 	"mapped_file",
-+	"swap",
- 	"pgpgin",
- 	"pgpgout",
--	"swap",
- 	"pgfault",
- 	"pgmajfault",
- 	"inactive_anon",
+@@ -94,7 +94,6 @@ enum mem_cgroup_stat_index {
+ enum mem_cgroup_events_index {
+ 	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
+ 	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
+-	MEM_CGROUP_EVENTS_COUNT,	/* # of pages paged in/out */
+ 	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
+ 	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
+ 	MEM_CGROUP_EVENTS_NSTATS,
+@@ -118,6 +117,7 @@ enum mem_cgroup_events_target {
+ struct mem_cgroup_stat_cpu {
+ 	long count[MEM_CGROUP_STAT_NSTATS];
+ 	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
++	unsigned long nr_page_events;
+ 	unsigned long targets[MEM_CGROUP_NTARGETS];
+ };
+ 
+@@ -716,7 +716,7 @@ static void mem_cgroup_charge_statistics
+ 		nr_pages = -nr_pages; /* for event */
+ 	}
+ 
+-	__this_cpu_add(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT], nr_pages);
++	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
+ 
+ 	preempt_enable();
+ }
+@@ -777,7 +777,7 @@ static bool mem_cgroup_event_ratelimit(s
+ {
+ 	unsigned long val, next;
+ 
+-	val = __this_cpu_read(memcg->stat->events[MEM_CGROUP_EVENTS_COUNT]);
++	val = __this_cpu_read(memcg->stat->nr_page_events);
+ 	next = __this_cpu_read(memcg->stat->targets[target]);
+ 	/* from time_after() in jiffies.h */
+ 	if ((long)next - (long)val < 0) {
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
