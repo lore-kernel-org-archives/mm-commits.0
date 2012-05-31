@@ -1,90 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-avoid-swapping-out-with-swappiness==0.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:16:20 -0700
-Message-ID: <20120531191620.72435A0203@akpm.mtv.corp.google.com>
+Subject: [merged] hugetlb-fix-resv_map-leak-in-error-path.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:16:17 -0700
+Message-ID: <20120531191617.84405A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:33169 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932949Ab2EaTQV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:21 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so134565ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:20 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:37109 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932952Ab2EaTQT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:19 -0400
+Received: by wibhn6 with SMTP id hn6so76973wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satoru.moriya@hds.com, jmarchan@redhat.com, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: dave@linux.vnet.ibm.com, aarcange@redhat.com, cl@linux.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid swapping out with swappiness==0
+     Subject: hugetlb: fix resv_map leak in error path
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-swapping-out-with-swappiness==0.patch
+     hugetlb-fix-resv_map-leak-in-error-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Satoru Moriya <satoru.moriya@hds.com>
-Subject: mm: avoid swapping out with swappiness==0
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: hugetlb: fix resv_map leak in error path
 
-Sometimes we'd like to avoid swapping out anonymous memory in particular,
-avoid swapping out pages of important process or process groups while
-there is a reasonable amount of pagecache on RAM so that we can satisfy
-our customers' requirements.
+When called for anonymous (non-shared) mappings, hugetlb_reserve_pages()
+does a resv_map_alloc().  It depends on code in hugetlbfs's
+vm_ops->close() to release that allocation.
 
-OTOH, we can control how aggressive the kernel will swap memory pages with
-/proc/sys/vm/swappiness for global and
-/sys/fs/cgroup/memory/memory.swappiness for each memcg.
+However, in the mmap() failure path, we do a plain unmap_region() without
+the remove_vma() which actually calls vm_ops->close().
 
-But with current reclaim implementation, the kernel may swap out even if
-we set swappiness=0 and there is pagecache in RAM.
+This is a decent fix.  This leak could get reintroduced if new code (say,
+after hugetlb_reserve_pages() in hugetlbfs_file_mmap()) decides to return
+an error.  But, I think it would have to unroll the reservation anyway.
 
-This patch changes the behavior with swappiness==0.  If we set
-swappiness==0, the kernel does not swap out completely (for global reclaim
-until the amount of free pages and filebacked pages in a zone has been
-reduced to something very very small (nr_free + nr_filebacked < high
-watermark)).
+Christoph's test case:
 
-Signed-off-by: Satoru Moriya <satoru.moriya@hds.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
+	http://marc.info/?l=linux-mm&m=133728900729735
+
+This patch applies to 3.4 and later.  A version for earlier kernels is at
+https://lkml.org/lkml/2012/5/22/418.
+
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reported-by: Christoph Lameter <cl@linux.com>
+Tested-by: Christoph Lameter <cl@linux.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>	[2.6.32+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~mm-avoid-swapping-out-with-swappiness==0 mm/vmscan.c
---- a/mm/vmscan.c~mm-avoid-swapping-out-with-swappiness==0
-+++ a/mm/vmscan.c
-@@ -1761,10 +1761,10 @@ static void get_scan_count(struct mem_cg
- 	 * proportional to the fraction of recently scanned pages on
- 	 * each list that were recently referenced and in active use.
- 	 */
--	ap = (anon_prio + 1) * (reclaim_stat->recent_scanned[0] + 1);
-+	ap = anon_prio * (reclaim_stat->recent_scanned[0] + 1);
- 	ap /= reclaim_stat->recent_rotated[0] + 1;
+diff -puN mm/hugetlb.c~hugetlb-fix-resv_map-leak-in-error-path mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-resv_map-leak-in-error-path
++++ a/mm/hugetlb.c
+@@ -2157,6 +2157,15 @@ static void hugetlb_vm_op_open(struct vm
+ 		kref_get(&reservations->refs);
+ }
  
--	fp = (file_prio + 1) * (reclaim_stat->recent_scanned[1] + 1);
-+	fp = file_prio * (reclaim_stat->recent_scanned[1] + 1);
- 	fp /= reclaim_stat->recent_rotated[1] + 1;
- 	spin_unlock_irq(&mz->zone->lru_lock);
++static void resv_map_put(struct vm_area_struct *vma)
++{
++	struct resv_map *reservations = vma_resv_map(vma);
++
++	if (!reservations)
++		return;
++	kref_put(&reservations->refs, resv_map_release);
++}
++
+ static void hugetlb_vm_op_close(struct vm_area_struct *vma)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+@@ -2173,7 +2182,7 @@ static void hugetlb_vm_op_close(struct v
+ 		reserve = (end - start) -
+ 			region_count(&reservations->regions, start, end);
  
-@@ -1777,7 +1777,7 @@ out:
- 		unsigned long scan;
+-		kref_put(&reservations->refs, resv_map_release);
++		resv_map_put(vma);
  
- 		scan = zone_nr_lru_pages(mz, lru);
--		if (priority || noswap) {
-+		if (priority || noswap || !vmscan_swappiness(mz, sc)) {
- 			scan >>= priority;
- 			if (!scan && force_scan)
- 				scan = SWAP_CLUSTER_MAX;
+ 		if (reserve) {
+ 			hugetlb_acct_memory(h, -reserve);
+@@ -2991,12 +3000,16 @@ int hugetlb_reserve_pages(struct inode *
+ 		set_vma_resv_flags(vma, HPAGE_RESV_OWNER);
+ 	}
+ 
+-	if (chg < 0)
+-		return chg;
++	if (chg < 0) {
++		ret = chg;
++		goto out_err;
++	}
+ 
+ 	/* There must be enough pages in the subpool for the mapping */
+-	if (hugepage_subpool_get_pages(spool, chg))
+-		return -ENOSPC;
++	if (hugepage_subpool_get_pages(spool, chg)) {
++		ret = -ENOSPC;
++		goto out_err;
++	}
+ 
+ 	/*
+ 	 * Check enough hugepages are available for the reservation.
+@@ -3005,7 +3018,7 @@ int hugetlb_reserve_pages(struct inode *
+ 	ret = hugetlb_acct_memory(h, chg);
+ 	if (ret < 0) {
+ 		hugepage_subpool_put_pages(spool, chg);
+-		return ret;
++		goto out_err;
+ 	}
+ 
+ 	/*
+@@ -3022,6 +3035,9 @@ int hugetlb_reserve_pages(struct inode *
+ 	if (!vma || vma->vm_flags & VM_MAYSHARE)
+ 		region_add(&inode->i_mapping->private_list, from, to);
+ 	return 0;
++out_err:
++	resv_map_put(vma);
++	return ret;
+ }
+ 
+ void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed)
 _
 
-Patches currently in -mm which might be from satoru.moriya@hds.com are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
 origin.patch
-linux-next.patch
 
