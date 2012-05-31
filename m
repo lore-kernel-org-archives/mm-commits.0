@@ -1,151 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:14:26 -0700
-Message-ID: <20120531191426.745EEA0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-do_migrate_pages-rename-arguments.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:14:23 -0700
+Message-ID: <20120531191423.66C01A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:33996 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932847Ab2EaTO3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:29 -0400
-Received: by lbbgp10 with SMTP id gp10so85745lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:27 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:58058 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932862Ab2EaTOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:25 -0400
+Received: by eeit10 with SMTP id t10so76254eei.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, lizf@cn.fujitsu.com, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, lwoodman@redhat.com, mel@csn.ul.ie, mkosaki@redhat.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: cgroup: push rcu read locking from css_is_ancestor() to callsite
+     Subject: mm: do_migrate_pages(): rename arguments
 has been removed from the -mm tree.  Its filename was
-     kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite.patch
+     mm-do_migrate_pages-rename-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: kernel: cgroup: push rcu read locking from css_is_ancestor() to callsite
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: do_migrate_pages(): rename arguments
 
-Library functions should not grab locks when the callsites can do it, even
-if the lock nests like the rcu read-side lock does.
+s/from_nodes/from and s/to_nodes/to/.  The "_nodes" is redundant - it
+duplicates the argument's type.
 
-Push the rcu_read_lock() from css_is_ancestor() to its single user,
-mem_cgroup_same_or_subtree() in preparation for another user that may
-already hold the rcu read-side lock.
+Done in a fit of irritation over 80-col issues :(
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <mkosaki@redhat.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   20 ++++++++++----------
- mm/memcontrol.c |   14 +++++++++-----
- 2 files changed, 19 insertions(+), 15 deletions(-)
+ include/linux/mempolicy.h |    9 ++++-----
+ mm/mempolicy.c            |   18 +++++++++---------
+ 2 files changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN kernel/cgroup.c~kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite kernel/cgroup.c
---- a/kernel/cgroup.c~kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite
-+++ a/kernel/cgroup.c
-@@ -5132,7 +5132,7 @@ EXPORT_SYMBOL_GPL(css_depth);
-  * @root: the css supporsed to be an ancestor of the child.
+diff -puN include/linux/mempolicy.h~mm-do_migrate_pages-rename-arguments include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-do_migrate_pages-rename-arguments
++++ a/include/linux/mempolicy.h
+@@ -225,8 +225,8 @@ static inline void check_highest_zone(en
+ 		policy_zone = k;
+ }
+ 
+-int do_migrate_pages(struct mm_struct *mm,
+-	const nodemask_t *from_nodes, const nodemask_t *to_nodes, int flags);
++int do_migrate_pages(struct mm_struct *mm, const nodemask_t *from,
++		     const nodemask_t *to, int flags);
+ 
+ 
+ #ifdef CONFIG_TMPFS
+@@ -354,9 +354,8 @@ static inline bool mempolicy_nodemask_in
+ 	return false;
+ }
+ 
+-static inline int do_migrate_pages(struct mm_struct *mm,
+-			const nodemask_t *from_nodes,
+-			const nodemask_t *to_nodes, int flags)
++static inline int do_migrate_pages(struct mm_struct *mm, const nodemask_t *from,
++				   const nodemask_t *to, int flags)
+ {
+ 	return 0;
+ }
+diff -puN mm/mempolicy.c~mm-do_migrate_pages-rename-arguments mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-do_migrate_pages-rename-arguments
++++ a/mm/mempolicy.c
+@@ -950,8 +950,8 @@ static int migrate_to_node(struct mm_str
   *
-  * Returns true if "root" is an ancestor of "child" in its hierarchy. Because
-- * this function reads css->id, this use rcu_dereference() and rcu_read_lock().
-+ * this function reads css->id, the caller must hold rcu_read_lock().
-  * But, considering usual usage, the csses should be valid objects after test.
-  * Assuming that the caller will do some action to the child if this returns
-  * returns true, the caller must take "child";s reference count.
-@@ -5144,18 +5144,18 @@ bool css_is_ancestor(struct cgroup_subsy
+  * Returns the number of page that could not be moved.
+  */
+-int do_migrate_pages(struct mm_struct *mm,
+-	const nodemask_t *from_nodes, const nodemask_t *to_nodes, int flags)
++int do_migrate_pages(struct mm_struct *mm, const nodemask_t *from,
++		     const nodemask_t *to, int flags)
  {
- 	struct css_id *child_id;
- 	struct css_id *root_id;
--	bool ret = true;
+ 	int busy = 0;
+ 	int err;
+@@ -963,7 +963,7 @@ int do_migrate_pages(struct mm_struct *m
  
--	rcu_read_lock();
- 	child_id  = rcu_dereference(child->id);
-+	if (!child_id)
-+		return false;
- 	root_id = rcu_dereference(root->id);
--	if (!child_id
--	    || !root_id
--	    || (child_id->depth < root_id->depth)
--	    || (child_id->stack[root_id->depth] != root_id->id))
--		ret = false;
--	rcu_read_unlock();
--	return ret;
-+	if (!root_id)
-+		return false;
-+	if (child_id->depth < root_id->depth)
-+		return false;
-+	if (child_id->stack[root_id->depth] != root_id->id)
-+		return false;
-+	return true;
+ 	down_read(&mm->mmap_sem);
+ 
+-	err = migrate_vmas(mm, from_nodes, to_nodes, flags);
++	err = migrate_vmas(mm, from, to, flags);
+ 	if (err)
+ 		goto out;
+ 
+@@ -998,7 +998,7 @@ int do_migrate_pages(struct mm_struct *m
+ 	 * moved to an empty node, then there is nothing left worth migrating.
+ 	 */
+ 
+-	tmp = *from_nodes;
++	tmp = *from;
+ 	while (!nodes_empty(tmp)) {
+ 		int s,d;
+ 		int source = -1;
+@@ -1021,11 +1021,11 @@ int do_migrate_pages(struct mm_struct *m
+ 			 *          [0-7] - > [3,4,5] moves only 0,1,2,6,7.
+ 			 */
+ 
+-			if ((nodes_weight(*from_nodes) != nodes_weight(*to_nodes)) &&
+-						(node_isset(s, *to_nodes)))
++			if ((nodes_weight(*from) != nodes_weight(*to)) &&
++						(node_isset(s, *to)))
+ 				continue;
+ 
+-			d = node_remap(s, *from_nodes, *to_nodes);
++			d = node_remap(s, *from, *to);
+ 			if (s == d)
+ 				continue;
+ 
+@@ -1085,8 +1085,8 @@ static void migrate_page_add(struct page
+ {
  }
  
- void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css)
-diff -puN mm/memcontrol.c~kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite mm/memcontrol.c
---- a/mm/memcontrol.c~kernel-cgroup-push-rcu-read-locking-from-css_is_ancestor-to-callsite
-+++ a/mm/memcontrol.c
-@@ -1152,12 +1152,16 @@ struct lruvec *mem_cgroup_lru_move_lists
- static bool mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
- 		struct mem_cgroup *memcg)
+-int do_migrate_pages(struct mm_struct *mm,
+-	const nodemask_t *from_nodes, const nodemask_t *to_nodes, int flags)
++int do_migrate_pages(struct mm_struct *mm, const nodemask_t *from,
++		     const nodemask_t *to, int flags)
  {
--	if (root_memcg != memcg) {
--		return (root_memcg->use_hierarchy &&
--			css_is_ancestor(&memcg->css, &root_memcg->css));
--	}
-+	bool ret;
- 
--	return true;
-+	if (root_memcg == memcg)
-+		return true;
-+	if (!root_memcg->use_hierarchy)
-+		return false;
-+	rcu_read_lock();
-+	ret = css_is_ancestor(&memcg->css, &root_memcg->css);
-+	rcu_read_unlock();
-+	return ret;
+ 	return -ENOSYS;
  }
- 
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-mm-slab-remove-duplicate-check.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-hugetlb-simplify-migrate_huge_page-fix.patch
-memcg-add-hugetlb-extension.patch
-memcg-add-hugetlb-extension-fix.patch
 memcg-add-hugetlb-extension-fix-fix.patch
-hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
-memcg-track-resource-index-in-cftype-private.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
-memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0-in-mem_cgroup_move_hugetlb_parent.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+fs-nls-add-apple-nls-fix.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
