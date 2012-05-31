@@ -1,127 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:20:25 -0700
-Message-ID: <20120531192025.79F23A0203@akpm.mtv.corp.google.com>
+Subject: [merged] rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:20:27 -0700
+Message-ID: <20120531192027.7A751A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:60590 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933081Ab2EaTU2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:28 -0400
-Received: by lbbgp10 with SMTP id gp10so86026lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:26 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:49749 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933123Ab2EaTU3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:29 -0400
+Received: by faaa25 with SMTP id a25so75487faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.stein@systec-electronic.com, a.zummo@towertech.it, jesper.nilsson@axis.com, starvik@axis.com, wfg@linux.intel.com, mm-commits@vger.kernel.org
+To: festevam@gmail.com, a.zummo@towertech.it, fabio.estevam@freescale.com, w.sang@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: add RTC_VL_READ/RTC_VL_CLR ioctl feature
+     Subject: drivers/rtc/Kconfig: place RTC_DRV_IMXDI and RTC_MXC under "on-CPU RTC drivers"
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch
+     rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Alexander Stein <alexander.stein@systec-electronic.com>
-Subject: drivers/rtc/rtc-pcf8563.c: add RTC_VL_READ/RTC_VL_CLR ioctl feature
+From: Fabio Estevam <festevam@gmail.com>
+Subject: drivers/rtc/Kconfig: place RTC_DRV_IMXDI and RTC_MXC under "on-CPU RTC drivers"
 
-Changes are based on arch/cris/arch-v10/drivers/pcf8563.c
+RTC_DRV_IMXDI and RTC_MXC are on-chip RTC modules, so move them under
+"on-CPU RTC drivers" selection menu.
 
-[akpm@linux-foundation.org: fix sparse warning]
-Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
+While at it change the dependency of RTC_DRV_IMXDI from ARCH_MX25 to
+SOC_IMX25.
+
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Acked-by: Wolfram Sang <w.sang@pengutronix.de>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mikael Starvik <starvik@axis.com>
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Wu Fengguang <wfg@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |   44 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+ drivers/rtc/Kconfig |   42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -64,6 +64,7 @@ struct pcf8563 {
- 	 * 1970...2069.
- 	 */
- 	int c_polarity;	/* 0: MO_C=1 means 19xx, otherwise MO_C=1 means 20xx */
-+	int voltage_low; /* incicates if a low_voltage was detected */
- };
+diff -puN drivers/rtc/Kconfig~rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-kconfig-place-rtc_drv_imxdi-and-rtc_mxc-under-on-cpu-rtc-drivers
++++ a/drivers/rtc/Kconfig
+@@ -620,27 +620,6 @@ config RTC_DRV_MSM6242
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-msm6242.
  
- /*
-@@ -86,9 +87,11 @@ static int pcf8563_get_datetime(struct i
- 		return -EIO;
- 	}
+-config RTC_DRV_IMXDI
+-	tristate "Freescale IMX DryIce Real Time Clock"
+-	depends on ARCH_MX25
+-	depends on RTC_CLASS
+-	help
+-	   Support for Freescale IMX DryIce RTC
+-
+-	   This driver can also be built as a module, if so, the module
+-	   will be called "rtc-imxdi".
+-
+-config RTC_MXC
+-	tristate "Freescale MXC Real Time Clock"
+-	depends on ARCH_MXC
+-	depends on RTC_CLASS
+-	help
+-	   If you say yes here you get support for the Freescale MXC
+-	   RTC module.
+-
+-	   This driver can also be built as a module, if so, the module
+-	   will be called "rtc-mxc".
+-
+ config RTC_DRV_BQ4802
+ 	tristate "TI BQ4802"
+ 	help
+@@ -738,6 +717,16 @@ config RTC_DRV_DAVINCI
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-davinci.
  
--	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV)
-+	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV) {
-+		pcf8563->voltage_low = 1;
- 		dev_info(&client->dev,
- 			"low voltage detected, date/time is not reliable.\n");
-+	}
++config RTC_DRV_IMXDI
++	tristate "Freescale IMX DryIce Real Time Clock"
++	depends on SOC_IMX25
++	depends on RTC_CLASS
++	help
++	   Support for Freescale IMX DryIce RTC
++
++	   This driver can also be built as a module, if so, the module
++	   will be called "rtc-imxdi".
++
+ config RTC_DRV_OMAP
+ 	tristate "TI OMAP1"
+ 	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX
+@@ -1087,4 +1076,15 @@ config RTC_DRV_LOONGSON1
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ls1x.
  
- 	dev_dbg(&client->dev,
- 		"%s: raw data is st1=%02x, st2=%02x, sec=%02x, min=%02x, hr=%02x, "
-@@ -173,6 +176,44 @@ static int pcf8563_set_datetime(struct i
- 	return 0;
- }
- 
-+#ifdef CONFIG_RTC_INTF_DEV
-+static int pcf8563_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
-+{
-+	struct pcf8563 *pcf8563 = i2c_get_clientdata(to_i2c_client(dev));
-+	struct rtc_time tm;
++config RTC_MXC
++	tristate "Freescale MXC Real Time Clock"
++	depends on ARCH_MXC
++	depends on RTC_CLASS
++	help
++	   If you say yes here you get support for the Freescale MXC
++	   RTC module.
 +
-+	switch (cmd) {
-+	case RTC_VL_READ:
-+		if (pcf8563->voltage_low)
-+			dev_info(dev, "low voltage detected, date/time is not reliable.\n");
++	   This driver can also be built as a module, if so, the module
++	   will be called "rtc-mxc".
 +
-+		if (copy_to_user((void __user *)arg, &pcf8563->voltage_low,
-+					sizeof(int)))
-+			return -EFAULT;
-+		return 0;
-+	case RTC_VL_CLR:
-+		/*
-+		 * Clear the VL bit in the seconds register in case
-+		 * the time has not been set already (which would
-+		 * have cleared it). This does not really matter
-+		 * because of the cached voltage_low value but do it
-+		 * anyway for consistency.
-+		 */
-+		if (pcf8563_get_datetime(to_i2c_client(dev), &tm))
-+			pcf8563_set_datetime(to_i2c_client(dev), &tm);
-+
-+		/* Clear the cached value. */
-+		pcf8563->voltage_low = 0;
-+
-+		return 0;
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+}
-+#else
-+#define pcf8563_rtc_ioctl NULL
-+#endif
-+
- static int pcf8563_rtc_read_time(struct device *dev, struct rtc_time *tm)
- {
- 	return pcf8563_get_datetime(to_i2c_client(dev), tm);
-@@ -184,6 +225,7 @@ static int pcf8563_rtc_set_time(struct d
- }
- 
- static const struct rtc_class_ops pcf8563_rtc_ops = {
-+	.ioctl		= pcf8563_rtc_ioctl,
- 	.read_time	= pcf8563_rtc_read_time,
- 	.set_time	= pcf8563_rtc_set_time,
- };
+ endif # RTC_CLASS
 _
 
-Patches currently in -mm which might be from alexander.stein@systec-electronic.com are
+Patches currently in -mm which might be from festevam@gmail.com are
 
 origin.patch
 linux-next.patch
