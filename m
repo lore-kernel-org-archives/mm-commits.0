@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fs-remove-truncate_range.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:15:42 -0700
-Message-ID: <20120531191542.66F59A0203@akpm.mtv.corp.google.com>
+Subject: [merged] tmpfs-support-seek_data-and-seek_hole.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:15:53 -0700
+Message-ID: <20120531191553.842B7A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:33169 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932941Ab2EaTPn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:43 -0400
-Received: by ghbz15 with SMTP id z15so134565ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:42 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:39916 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932743Ab2EaTPy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:54 -0400
+Received: by mail-yx0-f202.google.com with SMTP id l3so137962yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, amwang@redhat.com, hch@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hughd@google.com, adilger@dilger.ca, andi@firstfloor.org, chris.mason@oracle.com, david@fromorbit.com, hch@infradead.org, jeff.liu@oracle.com, josef@redhat.com, marco.stornelli@gmail.com, sunil.mushran@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/fs: remove truncate_range
+     Subject: tmpfs: support SEEK_DATA and SEEK_HOLE
 has been removed from the -mm tree.  Its filename was
-     mm-fs-remove-truncate_range.patch
+     tmpfs-support-seek_data-and-seek_hole.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,188 +26,157 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/fs: remove truncate_range
+Subject: tmpfs: support SEEK_DATA and SEEK_HOLE
 
-Remove vmtruncate_range(), and remove the truncate_range method from
-struct inode_operations: only tmpfs ever supported it, and tmpfs has now
-converted over to using the fallocate method of file_operations.
+It's quite easy for tmpfs to scan the radix_tree to support llseek's new
+SEEK_DATA and SEEK_HOLE options: so add them while the minutiae are still
+on my mind (in particular, the !PageUptodate-ness of pages fallocated but
+still unwritten).
 
-Update Documentation accordingly, adding (setlease and) fallocate lines. 
-And while we're in mm.h, remove duplicate declarations of shmem_lock() and
-shmem_file_setup(): everyone is now using the ones in shmem_fs.h.
+But I don't know who actually uses SEEK_DATA or SEEK_HOLE, and whether it
+would be of any use to them on tmpfs.  This code adds 92 lines and 752
+bytes on x86_64 - is that bloat or worthwhile?
 
-Based-on-patch-by: Cong Wang <amwang@redhat.com>
+[akpm@linux-foundation.org: fix warning with CONFIG_TMPFS=n]
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Cong Wang <amwang@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Josef Bacik <josef@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andreas Dilger <adilger@dilger.ca>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Marco Stornelli <marco.stornelli@gmail.com>
+Cc: Jeff liu <jeff.liu@oracle.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Sunil Mushran <sunil.mushran@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/Locking |    2 --
- Documentation/filesystems/vfs.txt |   13 ++++++++-----
- fs/bad_inode.c                    |    1 -
- include/linux/fs.h                |    1 -
- include/linux/mm.h                |    4 ----
- mm/shmem.c                        |    1 -
- mm/truncate.c                     |   25 -------------------------
- 7 files changed, 8 insertions(+), 39 deletions(-)
+ mm/shmem.c |   94 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 93 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/Locking~mm-fs-remove-truncate_range Documentation/filesystems/Locking
---- a/Documentation/filesystems/Locking~mm-fs-remove-truncate_range
-+++ a/Documentation/filesystems/Locking
-@@ -60,7 +60,6 @@ ata *);
- 	ssize_t (*getxattr) (struct dentry *, const char *, void *, size_t);
- 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
- 	int (*removexattr) (struct dentry *, const char *);
--	void (*truncate_range)(struct inode *, loff_t, loff_t);
- 	int (*fiemap)(struct inode *, struct fiemap_extent_info *, u64 start, u64 len);
- 
- locking rules:
-@@ -87,7 +86,6 @@ setxattr:	yes
- getxattr:	no
- listxattr:	no
- removexattr:	yes
--truncate_range:	yes
- fiemap:		no
- 	Additionally, ->rmdir(), ->unlink() and ->rename() have ->i_mutex on
- victim.
-diff -puN Documentation/filesystems/vfs.txt~mm-fs-remove-truncate_range Documentation/filesystems/vfs.txt
---- a/Documentation/filesystems/vfs.txt~mm-fs-remove-truncate_range
-+++ a/Documentation/filesystems/vfs.txt
-@@ -363,7 +363,6 @@ struct inode_operations {
- 	ssize_t (*getxattr) (struct dentry *, const char *, void *, size_t);
- 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
- 	int (*removexattr) (struct dentry *, const char *);
--	void (*truncate_range)(struct inode *, loff_t, loff_t);
- };
- 
- Again, all methods are called without any locks being held, unless
-@@ -472,9 +471,6 @@ otherwise noted.
-   removexattr: called by the VFS to remove an extended attribute from
-   	a file. This method is called by removexattr(2) system call.
- 
--  truncate_range: a method provided by the underlying filesystem to truncate a
--  	range of blocks , i.e. punch a hole somewhere in a file.
--
- 
- The Address Space Object
- ========================
-@@ -760,7 +756,7 @@ struct file_operations
- ----------------------
- 
- This describes how the VFS can manipulate an open file. As of kernel
--2.6.22, the following members are defined:
-+3.5, the following members are defined:
- 
- struct file_operations {
- 	struct module *owner;
-@@ -790,6 +786,8 @@ struct file_operations {
- 	int (*flock) (struct file *, int, struct file_lock *);
- 	ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, size_t, unsigned int);
- 	ssize_t (*splice_read)(struct file *, struct pipe_inode_info *, size_t, unsigned int);
-+	int (*setlease)(struct file *, long arg, struct file_lock **);
-+	long (*fallocate)(struct file *, int mode, loff_t offset, loff_t len);
- };
- 
- Again, all methods are called without any locks being held, unless
-@@ -858,6 +856,11 @@ otherwise noted.
-   splice_read: called by the VFS to splice data from file to a pipe. This
- 	       method is used by the splice(2) system call
- 
-+  setlease: called by the VFS to set or release a file lock lease.
-+	    setlease has the file_lock_lock held and must not sleep.
-+
-+  fallocate: called by the VFS to preallocate blocks or punch a hole.
-+
- Note that the file operations are implemented by the specific
- filesystem in which the inode resides. When opening a device node
- (character or block special) most filesystems will call special
-diff -puN fs/bad_inode.c~mm-fs-remove-truncate_range fs/bad_inode.c
---- a/fs/bad_inode.c~mm-fs-remove-truncate_range
-+++ a/fs/bad_inode.c
-@@ -292,7 +292,6 @@ static const struct inode_operations bad
- 	.getxattr	= bad_inode_getxattr,
- 	.listxattr	= bad_inode_listxattr,
- 	.removexattr	= bad_inode_removexattr,
--	/* truncate_range returns void */
- };
- 
- 
-diff -puN include/linux/fs.h~mm-fs-remove-truncate_range include/linux/fs.h
---- a/include/linux/fs.h~mm-fs-remove-truncate_range
-+++ a/include/linux/fs.h
-@@ -1681,7 +1681,6 @@ struct inode_operations {
- 	ssize_t (*getxattr) (struct dentry *, const char *, void *, size_t);
- 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
- 	int (*removexattr) (struct dentry *, const char *);
--	void (*truncate_range)(struct inode *, loff_t, loff_t);
- 	int (*fiemap)(struct inode *, struct fiemap_extent_info *, u64 start,
- 		      u64 len);
- } ____cacheline_aligned;
-diff -puN include/linux/mm.h~mm-fs-remove-truncate_range include/linux/mm.h
---- a/include/linux/mm.h~mm-fs-remove-truncate_range
-+++ a/include/linux/mm.h
-@@ -871,8 +871,6 @@ extern void pagefault_out_of_memory(void
- extern void show_free_areas(unsigned int flags);
- extern bool skip_free_areas_node(unsigned int flags, int nid);
- 
--int shmem_lock(struct file *file, int lock, struct user_struct *user);
--struct file *shmem_file_setup(const char *name, loff_t size, unsigned long flags);
- int shmem_zero_setup(struct vm_area_struct *);
- 
- extern int can_do_mlock(void);
-@@ -951,11 +949,9 @@ static inline void unmap_shared_mapping_
- extern void truncate_pagecache(struct inode *inode, loff_t old, loff_t new);
- extern void truncate_setsize(struct inode *inode, loff_t newsize);
- extern int vmtruncate(struct inode *inode, loff_t offset);
--extern int vmtruncate_range(struct inode *inode, loff_t offset, loff_t end);
- void truncate_pagecache_range(struct inode *inode, loff_t offset, loff_t end);
- int truncate_inode_page(struct address_space *mapping, struct page *page);
- int generic_error_remove_page(struct address_space *mapping, struct page *page);
--
- int invalidate_inode_page(struct page *page);
- 
- #ifdef CONFIG_MMU
-diff -puN mm/shmem.c~mm-fs-remove-truncate_range mm/shmem.c
---- a/mm/shmem.c~mm-fs-remove-truncate_range
+diff -puN mm/shmem.c~tmpfs-support-seek_data-and-seek_hole mm/shmem.c
+--- a/mm/shmem.c~tmpfs-support-seek_data-and-seek_hole
 +++ a/mm/shmem.c
-@@ -2541,7 +2541,6 @@ static const struct file_operations shme
- 
- static const struct inode_operations shmem_inode_operations = {
- 	.setattr	= shmem_setattr,
--	.truncate_range	= shmem_truncate_range,
- #ifdef CONFIG_TMPFS_XATTR
- 	.setxattr	= shmem_setxattr,
- 	.getxattr	= shmem_getxattr,
-diff -puN mm/truncate.c~mm-fs-remove-truncate_range mm/truncate.c
---- a/mm/truncate.c~mm-fs-remove-truncate_range
-+++ a/mm/truncate.c
-@@ -602,31 +602,6 @@ int vmtruncate(struct inode *inode, loff
+@@ -1674,6 +1674,98 @@ static ssize_t shmem_file_splice_read(st
+ 	return error;
  }
- EXPORT_SYMBOL(vmtruncate);
  
--int vmtruncate_range(struct inode *inode, loff_t lstart, loff_t lend)
--{
--	struct address_space *mapping = inode->i_mapping;
--	loff_t holebegin = round_up(lstart, PAGE_SIZE);
--	loff_t holelen = 1 + lend - holebegin;
--
--	/*
--	 * If the underlying filesystem is not going to provide
--	 * a way to truncate a range of blocks (punch a hole) -
--	 * we should return failure right now.
--	 */
--	if (!inode->i_op->truncate_range)
--		return -ENOSYS;
--
--	mutex_lock(&inode->i_mutex);
--	inode_dio_wait(inode);
--	unmap_mapping_range(mapping, holebegin, holelen, 1);
--	inode->i_op->truncate_range(inode, lstart, lend);
--	/* unmap again to remove racily COWed private pages */
--	unmap_mapping_range(mapping, holebegin, holelen, 1);
--	mutex_unlock(&inode->i_mutex);
--
--	return 0;
--}
++/*
++ * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
++ */
++static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
++				    pgoff_t index, pgoff_t end, int origin)
++{
++	struct page *page;
++	struct pagevec pvec;
++	pgoff_t indices[PAGEVEC_SIZE];
++	bool done = false;
++	int i;
++
++	pagevec_init(&pvec, 0);
++	pvec.nr = 1;		/* start small: we may be there already */
++	while (!done) {
++		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
++					pvec.nr, pvec.pages, indices);
++		if (!pvec.nr) {
++			if (origin == SEEK_DATA)
++				index = end;
++			break;
++		}
++		for (i = 0; i < pvec.nr; i++, index++) {
++			if (index < indices[i]) {
++				if (origin == SEEK_HOLE) {
++					done = true;
++					break;
++				}
++				index = indices[i];
++			}
++			page = pvec.pages[i];
++			if (page && !radix_tree_exceptional_entry(page)) {
++				if (!PageUptodate(page))
++					page = NULL;
++			}
++			if (index >= end ||
++			    (page && origin == SEEK_DATA) ||
++			    (!page && origin == SEEK_HOLE)) {
++				done = true;
++				break;
++			}
++		}
++		shmem_deswap_pagevec(&pvec);
++		pagevec_release(&pvec);
++		pvec.nr = PAGEVEC_SIZE;
++		cond_resched();
++	}
++	return index;
++}
++
++static loff_t shmem_file_llseek(struct file *file, loff_t offset, int origin)
++{
++	struct address_space *mapping;
++	struct inode *inode;
++	pgoff_t start, end;
++	loff_t new_offset;
++
++	if (origin != SEEK_DATA && origin != SEEK_HOLE)
++		return generic_file_llseek_size(file, offset, origin,
++							MAX_LFS_FILESIZE);
++	mapping = file->f_mapping;
++	inode = mapping->host;
++	mutex_lock(&inode->i_mutex);
++	/* We're holding i_mutex so we can access i_size directly */
++
++	if (offset < 0)
++		offset = -EINVAL;
++	else if (offset >= inode->i_size)
++		offset = -ENXIO;
++	else {
++		start = offset >> PAGE_CACHE_SHIFT;
++		end = (inode->i_size + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++		new_offset = shmem_seek_hole_data(mapping, start, end, origin);
++		new_offset <<= PAGE_CACHE_SHIFT;
++		if (new_offset > offset) {
++			if (new_offset < inode->i_size)
++				offset = new_offset;
++			else if (origin == SEEK_DATA)
++				offset = -ENXIO;
++			else
++				offset = inode->i_size;
++		}
++	}
++
++	if (offset >= 0 && offset != file->f_pos) {
++		file->f_pos = offset;
++		file->f_version = 0;
++	}
++	mutex_unlock(&inode->i_mutex);
++	return offset;
++}
++
+ static long shmem_fallocate(struct file *file, int mode, loff_t offset,
+ 							 loff_t len)
+ {
+@@ -2679,7 +2771,7 @@ static const struct address_space_operat
+ static const struct file_operations shmem_file_operations = {
+ 	.mmap		= shmem_mmap,
+ #ifdef CONFIG_TMPFS
+-	.llseek		= generic_file_llseek,
++	.llseek		= shmem_file_llseek,
+ 	.read		= do_sync_read,
+ 	.write		= do_sync_write,
+ 	.aio_read	= shmem_file_aio_read,
+_
+
+Patches currently in -mm which might be from hughd@google.com are
+
+origin.patch
+linux-next.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+proc-clean-up-proc-pid-environ-handling.patch
+proc-remove-mm_for_maps.patch
+proc-use-mm_access-instead-of-ptrace_may_access.patch
+proc-report-file-anon-bit-in-proc-pid-pagemap.patch
+proc-use-is_err_or_null.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+prio_tree-debugging-patch.patch
+
