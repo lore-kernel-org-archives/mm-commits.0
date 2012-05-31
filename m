@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-support-fallocate-preallocation.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:15:44 -0700
-Message-ID: <20120531191544.7E141A0203@akpm.mtv.corp.google.com>
+Subject: [merged] tmpfs-quit-when-fallocate-fills-memory.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:15:50 -0700
+Message-ID: <20120531191550.64A49A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:45678 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932941Ab2EaTPp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:45 -0400
-Received: by vcbfl13 with SMTP id fl13so134952vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:45 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:33169 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932941Ab2EaTPv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:51 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so134565ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, amwang@redhat.com, hch@infradead.org, kay@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: support fallocate preallocation
+     Subject: tmpfs: quit when fallocate fills memory
 has been removed from the -mm tree.  Its filename was
-     tmpfs-support-fallocate-preallocation.patch
+     tmpfs-quit-when-fallocate-fills-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,44 +26,33 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: support fallocate preallocation
+Subject: tmpfs: quit when fallocate fills memory
 
-The systemd plumbers expressed a wish that tmpfs support preallocation. 
-Cong Wang wrote a patch, but several kernel guys expressed scepticism:
-https://lkml.org/lkml/2011/11/18/137
+As it stands, a large fallocate() on tmpfs is liable to fill memory with
+pages, freed on failure except when they run into swap, at which point
+they become fixed into the file despite the failure.  That feels quite
+wrong, to be consuming resources precisely when they're in short supply.
 
-Christoph Hellwig: What for exactly?  Please explain why preallocating on
-tmpfs would make any sense.
+Go the other way instead: shmem_fallocate() indicate the range it has
+fallocated to shmem_writepage(), keeping count of pages it's allocating;
+shmem_writepage() reactivate instead of swapping out pages fallocated by
+this syscall (but happily swap out those from earlier occasions), keeping
+count; shmem_fallocate() compare counts and give up once the reactivated
+pages have started to coming back to writepage (approximately: some zones
+would in fact recycle faster than others).
 
-Kay Sievers: To be able to safely use mmap(), regarding SIGBUS, on files
-on the /dev/shm filesystem.  The glibc fallback loop for -ENOSYS [or
--EOPNOTSUPP] on fallocate is just ugly.
+This is a little unusual, but works well: although we could consider the
+failure to swap as a bug, and fix it later with SWAP_MAP_FALLOC handling
+added in swapfile.c and memcontrol.c, I doubt that we shall ever want to.
 
-Hugh Dickins: If tmpfs is going to support
-fallocate(FALLOC_FL_PUNCH_HOLE), it would seem perverse to permit the
-deallocation but fail the allocation.  Christoph Hellwig: Agreed.
+(If there's no swap, an over-large fallocate() on tmpfs is limited in the
+same way as writing: stopped by rlimit, or by tmpfs mount size if that was
+set sensibly, or by __vm_enough_memory() heuristics if OVERCOMMIT_GUESS or
+OVERCOMMIT_NEVER.  If OVERCOMMIT_ALWAYS, then it is liable to OOM-kill
+others as writing would, but stops and frees if interrupted.)
 
-Now that we do have shmem_fallocate() for hole-punching, plumb in basic
-support for preallocation mode too.  It's fairly straightforward (though
-quite a few details needed attention), except for when it fails part way
-through.  What a pity that fallocate(2) was not specified to return the
-length allocated, permitting short fallocations!
+Now that everything is freed on failure, we can then skip updating ctime.
 
-As it is, when it fails part way through, we ought to free what has just
-been allocated by this system call; but must be very sure not to free any
-allocated earlier, or any allocated by racing accesses (not all excluded
-by i_mutex).
-
-But we cannot distinguish them: so in this patch simply leak allocations
-on partial failure (they will be freed later if the file is removed).
-
-An attractive alternative approach would have been for fallocate() not to
-allocate pages at all, but note reservations by entries in the radix-tree.
- But that would give less assurance, and, critically, would be hard to fit
-with mem cgroups (who owns the reservations?): allocating pages lets
-fallocate() behave in just the same way as write().
-
-Based-on-patch-by: Cong Wang <amwang@redhat.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Cong Wang <amwang@redhat.com>
@@ -71,89 +60,125 @@ Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   61 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 60 insertions(+), 1 deletion(-)
+ mm/shmem.c |   58 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 56 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-support-fallocate-preallocation mm/shmem.c
---- a/mm/shmem.c~tmpfs-support-fallocate-preallocation
+diff -puN mm/shmem.c~tmpfs-quit-when-fallocate-fills-memory mm/shmem.c
+--- a/mm/shmem.c~tmpfs-quit-when-fallocate-fills-memory
 +++ a/mm/shmem.c
-@@ -1602,7 +1602,9 @@ static long shmem_fallocate(struct file 
- 							 loff_t len)
+@@ -84,6 +84,18 @@ struct shmem_xattr {
+ 	char value[0];
+ };
+ 
++/*
++ * shmem_fallocate and shmem_writepage communicate via inode->i_private
++ * (with i_mutex making sure that it has only one user at a time):
++ * we would prefer not to enlarge the shmem inode just for that.
++ */
++struct shmem_falloc {
++	pgoff_t start;		/* start of range currently being fallocated */
++	pgoff_t next;		/* the next page offset to be fallocated */
++	pgoff_t nr_falloced;	/* how many new pages have been fallocated */
++	pgoff_t nr_unswapped;	/* how often writepage refused to swap out */
++};
++
+ /* Flag allocation requirements to shmem_getpage */
+ enum sgp_type {
+ 	SGP_READ,	/* don't exceed i_size, don't allocate page */
+@@ -791,8 +803,28 @@ static int shmem_writepage(struct page *
+ 	 * This is somewhat ridiculous, but without plumbing a SWAP_MAP_FALLOC
+ 	 * value into swapfile.c, the only way we can correctly account for a
+ 	 * fallocated page arriving here is now to initialize it and write it.
++	 *
++	 * That's okay for a page already fallocated earlier, but if we have
++	 * not yet completed the fallocation, then (a) we want to keep track
++	 * of this page in case we have to undo it, and (b) it may not be a
++	 * good idea to continue anyway, once we're pushing into swap.  So
++	 * reactivate the page, and let shmem_fallocate() quit when too many.
+ 	 */
+ 	if (!PageUptodate(page)) {
++		if (inode->i_private) {
++			struct shmem_falloc *shmem_falloc;
++			spin_lock(&inode->i_lock);
++			shmem_falloc = inode->i_private;
++			if (shmem_falloc &&
++			    index >= shmem_falloc->start &&
++			    index < shmem_falloc->next)
++				shmem_falloc->nr_unswapped++;
++			else
++				shmem_falloc = NULL;
++			spin_unlock(&inode->i_lock);
++			if (shmem_falloc)
++				goto redirty;
++		}
+ 		clear_highpage(page);
+ 		flush_dcache_page(page);
+ 		SetPageUptodate(page);
+@@ -1647,6 +1679,7 @@ static long shmem_fallocate(struct file 
  {
  	struct inode *inode = file->f_path.dentry->d_inode;
--	int error = -EOPNOTSUPP;
-+	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+	pgoff_t start, index, end;
-+	int error;
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++	struct shmem_falloc shmem_falloc;
+ 	pgoff_t start, index, end;
+ 	int error;
  
- 	mutex_lock(&inode->i_mutex);
- 
-@@ -1617,8 +1619,65 @@ static long shmem_fallocate(struct file 
- 		shmem_truncate_range(inode, offset, offset + len - 1);
- 		/* No need to unmap again: hole-punching leaves COWed pages */
- 		error = 0;
-+		goto out;
-+	}
-+
-+	/* We need to check rlimit even when FALLOC_FL_KEEP_SIZE */
-+	error = inode_newsize_ok(inode, offset + len);
-+	if (error)
-+		goto out;
-+
-+	start = offset >> PAGE_CACHE_SHIFT;
-+	end = (offset + len + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-+	/* Try to avoid a swapstorm if len is impossible to satisfy */
-+	if (sbinfo->max_blocks && end - start > sbinfo->max_blocks) {
-+		error = -ENOSPC;
-+		goto out;
-+	}
-+
-+	for (index = start; index < end; index++) {
-+		struct page *page;
-+
-+		/*
-+		 * Good, the fallocate(2) manpage permits EINTR: we may have
-+		 * been interrupted because we are using up too much memory.
-+		 */
-+		if (signal_pending(current))
-+			error = -EINTR;
-+		else
-+			error = shmem_getpage(inode, index, &page, SGP_WRITE,
-+									NULL);
-+		if (error) {
-+			/*
-+			 * We really ought to free what we allocated so far,
-+			 * but it would be wrong to free pages allocated
-+			 * earlier, or already now in use: i_mutex does not
-+			 * exclude all cases.  We do not know what to free.
-+			 */
-+			goto ctime;
-+		}
-+
-+		if (!PageUptodate(page)) {
-+			clear_highpage(page);
-+			flush_dcache_page(page);
-+			SetPageUptodate(page);
-+		}
-+		/*
-+		 * set_page_dirty so that memory pressure will swap rather
-+		 * than free the pages we are allocating (and SGP_CACHE pages
-+		 * might still be clean: we now need to mark those dirty too).
-+		 */
-+		set_page_dirty(page);
-+		unlock_page(page);
-+		page_cache_release(page);
-+		cond_resched();
+@@ -1679,6 +1712,14 @@ static long shmem_fallocate(struct file 
+ 		goto out;
  	}
  
-+	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
-+		i_size_write(inode, offset + len);
-+ctime:
-+	inode->i_ctime = CURRENT_TIME;
-+out:
++	shmem_falloc.start = start;
++	shmem_falloc.next  = start;
++	shmem_falloc.nr_falloced = 0;
++	shmem_falloc.nr_unswapped = 0;
++	spin_lock(&inode->i_lock);
++	inode->i_private = &shmem_falloc;
++	spin_unlock(&inode->i_lock);
++
+ 	for (index = start; index < end; index++) {
+ 		struct page *page;
+ 
+@@ -1688,6 +1729,8 @@ static long shmem_fallocate(struct file 
+ 		 */
+ 		if (signal_pending(current))
+ 			error = -EINTR;
++		else if (shmem_falloc.nr_unswapped > shmem_falloc.nr_falloced)
++			error = -ENOMEM;
+ 		else
+ 			error = shmem_getpage(inode, index, &page, SGP_FALLOC,
+ 									NULL);
+@@ -1696,10 +1739,18 @@ static long shmem_fallocate(struct file 
+ 			shmem_undo_range(inode,
+ 				(loff_t)start << PAGE_CACHE_SHIFT,
+ 				(loff_t)index << PAGE_CACHE_SHIFT, true);
+-			goto ctime;
++			goto undone;
+ 		}
+ 
+ 		/*
++		 * Inform shmem_writepage() how far we have reached.
++		 * No need for lock or barrier: we have the page lock.
++		 */
++		shmem_falloc.next++;
++		if (!PageUptodate(page))
++			shmem_falloc.nr_falloced++;
++
++		/*
+ 		 * If !PageUptodate, leave it that way so that freeable pages
+ 		 * can be recognized if we need to rollback on error later.
+ 		 * But set_page_dirty so that memory pressure will swap rather
+@@ -1714,8 +1765,11 @@ static long shmem_fallocate(struct file 
+ 
+ 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
+ 		i_size_write(inode, offset + len);
+-ctime:
+ 	inode->i_ctime = CURRENT_TIME;
++undone:
++	spin_lock(&inode->i_lock);
++	inode->i_private = NULL;
++	spin_unlock(&inode->i_lock);
+ out:
  	mutex_unlock(&inode->i_mutex);
  	return error;
- }
 _
 
 Patches currently in -mm which might be from hughd@google.com are
