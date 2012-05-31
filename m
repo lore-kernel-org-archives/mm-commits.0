@@ -1,64 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-kcalloc-instead-of-kzalloc-to-allocate-array.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:14:03 -0700
-Message-ID: <20120531191403.6878BA0203@akpm.mtv.corp.google.com>
+Subject: [merged] swiotlb-print-physical-addresses-consistently-with-other-parts-of-kernel.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:14:48 -0700
+Message-ID: <20120531191448.78D8FA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:51543 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932781Ab2EaTOE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:04 -0400
-Received: by mail-fa0-f74.google.com with SMTP id a25so75194faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:04 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:41965 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932892Ab2EaTOt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:49 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so134384ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thomas@m3y3r.de, mm-commits@vger.kernel.org
+To: bhelgaas@google.com, hpa@zytor.com, konrad.wilk@oracle.com, mingo@elte.hu, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use kcalloc() instead of kzalloc() to allocate array
+     Subject: swiotlb: print physical addresses consistently with other parts of kernel
 has been removed from the -mm tree.  Its filename was
-     mm-use-kcalloc-instead-of-kzalloc-to-allocate-array.patch
+     swiotlb-print-physical-addresses-consistently-with-other-parts-of-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Thomas Meyer <thomas@m3y3r.de>
-Subject: mm: use kcalloc() instead of kzalloc() to allocate array
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: swiotlb: print physical addresses consistently with other parts of kernel
 
-The advantage of kcalloc is, that will prevent integer overflows which
-could result from the multiplication of number of elements and size and it
-is also a bit nicer to read.
+Print swiotlb info in a style consistent with the %pR style used elsewhere
+in the kernel.  For example:
 
-The semantic patch that makes this change is available
-in https://lkml.org/lkml/2011/11/25/107
+    -Placing 64MB software IO TLB between ffff88007a662000 - ffff88007e662000
+    -software IO TLB at phys 0x7a662000 - 0x7e662000
+    +software IO TLB [mem 0x7a662000-0x7e661fff] (64MB) mapped at [ffff88007a662000-ffff88007e661fff]
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/swiotlb.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-use-kcalloc-instead-of-kzalloc-to-allocate-array mm/vmalloc.c
---- a/mm/vmalloc.c~mm-use-kcalloc-instead-of-kzalloc-to-allocate-array
-+++ a/mm/vmalloc.c
-@@ -2375,8 +2375,8 @@ struct vm_struct **pcpu_get_vm_areas(con
- 		return NULL;
- 	}
+diff -puN lib/swiotlb.c~swiotlb-print-physical-addresses-consistently-with-other-parts-of-kernel lib/swiotlb.c
+--- a/lib/swiotlb.c~swiotlb-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/lib/swiotlb.c
+@@ -130,11 +130,9 @@ void swiotlb_print_info(void)
+ 	pstart = virt_to_phys(io_tlb_start);
+ 	pend = virt_to_phys(io_tlb_end);
  
--	vms = kzalloc(sizeof(vms[0]) * nr_vms, GFP_KERNEL);
--	vas = kzalloc(sizeof(vas[0]) * nr_vms, GFP_KERNEL);
-+	vms = kcalloc(nr_vms, sizeof(vms[0]), GFP_KERNEL);
-+	vas = kcalloc(nr_vms, sizeof(vas[0]), GFP_KERNEL);
- 	if (!vas || !vms)
- 		goto err_free2;
+-	printk(KERN_INFO "Placing %luMB software IO TLB between %p - %p\n",
+-	       bytes >> 20, io_tlb_start, io_tlb_end);
+-	printk(KERN_INFO "software IO TLB at phys %#llx - %#llx\n",
+-	       (unsigned long long)pstart,
+-	       (unsigned long long)pend);
++	printk(KERN_INFO "software IO TLB [mem %#010llx-%#010llx] (%luMB) mapped at [%p-%p]\n",
++	       (unsigned long long)pstart, (unsigned long long)pend - 1,
++	       bytes >> 20, io_tlb_start, io_tlb_end - 1);
+ }
  
+ void __init swiotlb_init_with_tbl(char *tlb, unsigned long nslabs, int verbose)
 _
 
-Patches currently in -mm which might be from thomas@m3y3r.de are
+Patches currently in -mm which might be from bhelgaas@google.com are
 
 origin.patch
 
