@@ -1,63 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-bootmemc-cleanup-on-addition-to-bootmem-data-list.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:16:14 -0700
-Message-ID: <20120531191614.62289A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-avoid-swapping-out-with-swappiness==0.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:16:20 -0700
+Message-ID: <20120531191620.72435A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:63870 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932949Ab2EaTQQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:16 -0400
-Received: by mail-fa0-f74.google.com with SMTP id a25so75263faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:15 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:33169 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932949Ab2EaTQV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:21 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so134565ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: satoru.moriya@hds.com, jmarchan@redhat.com, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/bootmem.c: cleanup on addition to bootmem data list
+     Subject: mm: avoid swapping out with swappiness==0
 has been removed from the -mm tree.  Its filename was
-     mm-bootmemc-cleanup-on-addition-to-bootmem-data-list.patch
+     mm-avoid-swapping-out-with-swappiness==0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/bootmem.c: cleanup on addition to bootmem data list
+From: Satoru Moriya <satoru.moriya@hds.com>
+Subject: mm: avoid swapping out with swappiness==0
 
-The objects of "struct bootmem_data_t" are linked together to form
-double-linked list sequentially based on its minimal page frame number. 
+Sometimes we'd like to avoid swapping out anonymous memory in particular,
+avoid swapping out pages of important process or process groups while
+there is a reasonable amount of pagecache on RAM so that we can satisfy
+our customers' requirements.
 
-The current implementation implicitly supports the following cases, which
-means the inserting point for current bootmem data depends on how
-"list_for_each" works.  That makes the code a little hard to read. 
-Besides, "list_for_each" and "list_entry" can be replaced with
-"list_for_each_entry".
+OTOH, we can control how aggressive the kernel will swap memory pages with
+/proc/sys/vm/swappiness for global and
+/sys/fs/cgroup/memory/memory.swappiness for each memcg.
 
-        - The linked list is empty.
-        - There has no entry in the linked list, whose minimal page
-          frame number is bigger than current one.
+But with current reclaim implementation, the kernel may swap out even if
+we set swappiness=0 and there is pagecache in RAM.
 
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+This patch changes the behavior with swappiness==0.  If we set
+swappiness==0, the kernel does not swap out completely (for global reclaim
+until the amount of free pages and filebacked pages in a zone has been
+reduced to something very very small (nr_free + nr_filebacked < high
+watermark)).
+
+Signed-off-by: Satoru Moriya <satoru.moriya@hds.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/bootmem.c~mm-bootmemc-cleanup-on-addition-to-bootmem-data-list mm/bootmem.c
---- a/mm/bootmem.c~mm-bootmemc-cleanup-on-addition-to-bootmem-data-list
-+++ a/mm/bootmem.c
-@@ -77,16 +77,16 @@ unsigned long __init bootmem_bootmap_pag
-  */
- static void __init link_bootmem(bootmem_data_t *bdata)
- {
--	struct list_head *iter;
-+	bootmem_data_t *ent;
+diff -puN mm/vmscan.c~mm-avoid-swapping-out-with-swappiness==0 mm/vmscan.c
+--- a/mm/vmscan.c~mm-avoid-swapping-out-with-swappiness==0
++++ a/mm/vmscan.c
+@@ -1761,10 +1761,10 @@ static void get_scan_count(struct mem_cg
+ 	 * proportional to the fraction of recently scanned pages on
+ 	 * each list that were recently referenced and in active use.
+ 	 */
+-	ap = (anon_prio + 1) * (reclaim_stat->recent_scanned[0] + 1);
++	ap = anon_prio * (reclaim_stat->recent_scanned[0] + 1);
+ 	ap /= reclaim_stat->recent_rotated[0] + 1;
  
--	list_for_each(iter, &bdata_list) {
--		bootmem_data_t *ent;
+-	fp = (file_prio + 1) * (reclaim_stat->recent_scanned[1] + 1);
++	fp = file_prio * (reclaim_stat->recent_scanned[1] + 1);
+ 	fp /= reclaim_stat->recent_rotated[1] + 1;
+ 	spin_unlock_irq(&mz->zone->lru_lock);
+ 
+@@ -1777,7 +1777,7 @@ out:
+ 		unsigned long scan;
+ 
+ 		scan = zone_nr_lru_pages(mz, lru);
+-		if (priority || noswap) {
++		if (priority || noswap || !vmscan_swappiness(mz, sc)) {
+ 			scan >>= priority;
+ 			if (!scan && force_scan)
+ 				scan = SWAP_CLUSTER_MAX;
+_
+
+Patches currently in -mm which might be from satoru.moriya@hds.com are
+
+origin.patch
+linux-next.patch
+
