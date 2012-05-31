@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-string_helpersc-make-arrays-static.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:20:01 -0700
-Message-ID: <20120531192001.58B7FA0203@akpm.mtv.corp.google.com>
+Subject: [merged] lib-bitmapc-fix-documentation-for-scnprintf-functions.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:20:04 -0700
+Message-ID: <20120531192004.79DCEA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:58177 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933104Ab2EaTUC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:02 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fl13so135276vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:02 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:46966 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933094Ab2EaTUG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:06 -0400
+Received: by mail-we0-f202.google.com with SMTP id e53so76004wer.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ozaki.ryota@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string_helpers.c: make arrays static
+     Subject: lib/bitmap.c: fix documentation for scnprintf() functions
 has been removed from the -mm tree.  Its filename was
-     lib-string_helpersc-make-arrays-static.patch
+     lib-bitmapc-fix-documentation-for-scnprintf-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,45 +26,56 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/string_helpers.c: make arrays static
+Subject: lib/bitmap.c: fix documentation for scnprintf() functions
 
-Moving these arrays into static storage shrinks the kernel a bit:
+The code comments for bscnl_emit() and bitmap_scnlistprintf() are
+describing snprintf() return semantics, but these functions use
+scnprintf() return semantics.  Fix that, and document the
+bitmap_scnprintf() return value as well.
 
-   text    data     bss     dec     hex filename
-    723     112      64     899     383 lib/string_helpers.o
-    516     272      64     852     354 lib/string_helpers.o
-
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Ryota Ozaki <ozaki.ryota@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string_helpers.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/bitmap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN lib/string_helpers.c~lib-string_helpersc-make-arrays-static lib/string_helpers.c
---- a/lib/string_helpers.c~lib-string_helpersc-make-arrays-static
-+++ a/lib/string_helpers.c
-@@ -23,15 +23,15 @@
- int string_get_size(u64 size, const enum string_size_units units,
- 		    char *buf, int len)
+diff -puN lib/bitmap.c~lib-bitmapc-fix-documentation-for-scnprintf-functions lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmapc-fix-documentation-for-scnprintf-functions
++++ a/lib/bitmap.c
+@@ -369,7 +369,8 @@ EXPORT_SYMBOL(bitmap_find_next_zero_area
+  * @nmaskbits: size of bitmap, in bits
+  *
+  * Exactly @nmaskbits bits are displayed.  Hex digits are grouped into
+- * comma-separated sets of eight digits per set.
++ * comma-separated sets of eight digits per set.  Returns the number of
++ * characters which were written to *buf, excluding the trailing \0.
+  */
+ int bitmap_scnprintf(char *buf, unsigned int buflen,
+ 	const unsigned long *maskp, int nmaskbits)
+@@ -517,8 +518,8 @@ EXPORT_SYMBOL(bitmap_parse_user);
+  *
+  * Helper routine for bitmap_scnlistprintf().  Write decimal number
+  * or range to buf, suppressing output past buf+buflen, with optional
+- * comma-prefix.  Return len of what would be written to buf, if it
+- * all fit.
++ * comma-prefix.  Return len of what was written to *buf, excluding the
++ * trailing \0.
+  */
+ static inline int bscnl_emit(char *buf, int buflen, int rbot, int rtop, int len)
  {
--	const char *units_10[] = { "B", "kB", "MB", "GB", "TB", "PB",
-+	static const char *units_10[] = { "B", "kB", "MB", "GB", "TB", "PB",
- 				   "EB", "ZB", "YB", NULL};
--	const char *units_2[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB",
-+	static const char *units_2[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB",
- 				 "EiB", "ZiB", "YiB", NULL };
--	const char **units_str[] = {
-+	static const char **units_str[] = {
- 		[STRING_UNITS_10] =  units_10,
- 		[STRING_UNITS_2] = units_2,
- 	};
--	const unsigned int divisor[] = {
-+	static const unsigned int divisor[] = {
- 		[STRING_UNITS_10] = 1000,
- 		[STRING_UNITS_2] = 1024,
- 	};
+@@ -544,9 +545,8 @@ static inline int bscnl_emit(char *buf, 
+  * the range.  Output format is compatible with the format
+  * accepted as input by bitmap_parselist().
+  *
+- * The return value is the number of characters which would be
+- * generated for the given input, excluding the trailing '\0', as
+- * per ISO C99.
++ * The return value is the number of characters which were written to *buf
++ * excluding the trailing '\0', as per ISO C99's scnprintf.
+  */
+ int bitmap_scnlistprintf(char *buf, unsigned int buflen,
+ 	const unsigned long *maskp, int nmaskbits)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
