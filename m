@@ -1,141 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:16:08 -0700
-Message-ID: <20120531191608.77B85A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-page_allocc-cleanups.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:16:05 -0700
+Message-ID: <20120531191605.5CFBFA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:51888 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932737Ab2EaTQJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:09 -0400
-Received: by vbnl22 with SMTP id l22so134268vbn.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:09 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:39916 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932737Ab2EaTQG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:06 -0400
+Received: by mail-yx0-f202.google.com with SMTP id l3so137962yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, shangw@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+     Subject: mm/page_alloc.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages.patch
+     mm-page_allocc-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: document the meminfo and vmstat fields of relevance to transparent hugepages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/page_alloc.c: cleanups
 
-Update Documentation/vm/transhuge.txt and
-Documentation/filesystems/proc.txt with some information on monitoring
-transparent huge page usage and the associated overhead.
+- make pageflag_names[] const
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+- remove null termination of pageflag_names[]
+
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 
- Documentation/vm/transhuge.txt     |   62 +++++++++++++++++++++++++++
- 2 files changed, 64 insertions(+)
+ mm/page_alloc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages
-+++ a/Documentation/filesystems/proc.txt
-@@ -743,6 +743,7 @@ Committed_AS:   100056 kB
- VmallocTotal:   112216 kB
- VmallocUsed:       428 kB
- VmallocChunk:   111088 kB
-+AnonHugePages:   49152 kB
+diff -puN mm/page_alloc.c~mm-page_allocc-cleanups mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-cleanups
++++ a/mm/page_alloc.c
+@@ -5938,7 +5938,7 @@ bool is_free_buddy_page(struct page *pag
+ }
+ #endif
  
-     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
-               bits and the kernel binary code)
-@@ -776,6 +777,7 @@ VmallocChunk:   111088 kB
-        Dirty: Memory which is waiting to get written back to the disk
-    Writeback: Memory which is actively being written back to the disk
-    AnonPages: Non-file backed pages mapped into userspace page tables
-+AnonHugePages: Non-file backed huge pages mapped into userspace page tables
-       Mapped: files which have been mmaped, such as libraries
-         Slab: in-kernel data structures cache
- SReclaimable: Part of Slab, that might be reclaimed, such as caches
-diff -puN Documentation/vm/transhuge.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~mm-document-the-meminfo-and-vmstat-fields-of-relevance-to-transparent-hugepages
-+++ a/Documentation/vm/transhuge.txt
-@@ -166,6 +166,68 @@ behavior. So to make them effective you 
- application that could have been using hugepages. This also applies to
- the regions registered in khugepaged.
+-static struct trace_print_flags pageflag_names[] = {
++static const struct trace_print_flags pageflag_names[] = {
+ 	{1UL << PG_locked,		"locked"	},
+ 	{1UL << PG_error,		"error"		},
+ 	{1UL << PG_referenced,		"referenced"	},
+@@ -5976,7 +5976,6 @@ static struct trace_print_flags pageflag
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	{1UL << PG_compound_lock,	"compound_lock"	},
+ #endif
+-	{-1UL,				NULL		},
+ };
  
-+== Monitoring usage ==
-+
-+The number of transparent huge pages currently used by the system is
-+available by reading the AnonHugePages field in /proc/meminfo. To
-+identify what applications are using transparent huge pages, it is
-+necessary to read /proc/PID/smaps and count the AnonHugePages fields
-+for each mapping. Note that reading the smaps file is expensive and
-+reading it frequently will incur overhead.
-+
-+There are a number of counters in /proc/vmstat that may be used to
-+monitor how successfully the system is providing huge pages for use.
-+
-+thp_fault_alloc is incremented every time a huge page is successfully
-+	allocated to handle a page fault. This applies to both the
-+	first time a page is faulted and for COW faults.
-+
-+thp_collapse_alloc is incremented by khugepaged when it has found
-+	a range of pages to collapse into one huge page and has
-+	successfully allocated a new huge page to store the data.
-+
-+thp_fault_fallback is incremented if a page fault fails to allocate
-+	a huge page and instead falls back to using small pages.
-+
-+thp_collapse_alloc_failed is incremented if khugepaged found a range
-+	of pages that should be collapsed into one huge page but failed
-+	the allocation.
-+
-+thp_split is incremented every time a huge page is split into base
-+	pages. This can happen for a variety of reasons but a common
-+	reason is that a huge page is old and is being reclaimed.
-+
-+As the system ages, allocating huge pages may be expensive as the
-+system uses memory compaction to copy data around memory to free a
-+huge page for use. There are some counters in /proc/vmstat to help
-+monitor this overhead.
-+
-+compact_stall is incremented every time a process stalls to run
-+	memory compaction so that a huge page is free for use.
-+
-+compact_success is incremented if the system compacted memory and
-+	freed a huge page for use.
-+
-+compact_fail is incremented if the system tries to compact memory
-+	but failed.
-+
-+compact_pages_moved is incremented each time a page is moved. If
-+	this value is increasing rapidly, it implies that the system
-+	is copying a lot of data to satisfy the huge page allocation.
-+	It is possible that the cost of copying exceeds any savings
-+	from reduced TLB misses.
-+
-+compact_pagemigrate_failed is incremented when the underlying mechanism
-+	for moving a page failed.
-+
-+compact_blocks_moved is incremented each time memory compaction examines
-+	a huge page aligned range of pages.
-+
-+It is possible to establish how long the stalls were using the function
-+tracer to record how long was spent in __alloc_pages_nodemask and
-+using the mm_page_alloc tracepoint to identify which allocations were
-+for huge pages.
-+
- == get_user_pages and follow_page ==
+ static void dump_page_flags(unsigned long flags)
+@@ -5985,14 +5984,14 @@ static void dump_page_flags(unsigned lon
+ 	unsigned long mask;
+ 	int i;
  
- get_user_pages and follow_page if run on a hugepage, will return the
+-	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) - 1 != __NR_PAGEFLAGS);
++	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS);
+ 
+ 	printk(KERN_ALERT "page flags: %#lx(", flags);
+ 
+ 	/* remove zone id */
+ 	flags &= (1UL << NR_PAGEFLAGS) - 1;
+ 
+-	for (i = 0; pageflag_names[i].name && flags; i++) {
++	for (i = 0; i < ARRAY_SIZE(pageflag_names) && flags; i++) {
+ 
+ 		mask = pageflag_names[i].mask;
+ 		if ((flags & mask) != mask)
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+isdn-add-missing-kern_cont-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
+kmod-avoid-deadlock-by-recursive-kmod-call.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+fs-nls-add-apple-nls-fix.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
