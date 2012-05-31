@@ -1,127 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:14:06 -0700
-Message-ID: <20120531191406.A63F6A0203@akpm.mtv.corp.google.com>
+Subject: [merged] thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:14:16 -0700
+Message-ID: <20120531191416.8044CA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:45989 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932808Ab2EaTOJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:09 -0400
-Received: by were53 with SMTP id e53so75800wer.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:07 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:65415 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932849Ab2EaTOS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Thu, 31 May 2012 15:14:18 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id r15so75614lag.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rajman.mekaco@gmail.com, consul.kautuk@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, aarcange@redhat.com, jweiner@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: find_vma(): remove unnecessary if(mm) check
+     Subject: thp, memcg: split hugepage for memcg oom on cow
 has been removed from the -mm tree.  Its filename was
-     mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
+     thp-memcg-split-hugepage-for-memcg-oom-on-cow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Rajman Mekaco <rajman.mekaco@gmail.com>
-Subject: mm/mmap.c: find_vma(): remove unnecessary if(mm) check
+From: David Rientjes <rientjes@google.com>
+Subject: thp, memcg: split hugepage for memcg oom on cow
 
-The if(mm) check is not required in find_vma, as the kernel code calls
-find_vma only when it is absolutely sure that the mm_struct arg to it is
-non-NULL.
+On COW, a new hugepage is allocated and charged to the memcg.  If the
+system is oom or the charge to the memcg fails, however, the fault handler
+will return VM_FAULT_OOM which results in an oom kill.
 
-Remove the if(mm) check and adding the a WARN_ONCE(!mm) for now.  This
-will serve the purpose of mandating that the execution
-context(user-mode/kernel-mode) be known before find_vma is called.  Also
-fixed 2 checkpatch.pl errors in the declaration of the rb_node and vma_tmp
-local variables.
+Instead, it's possible to fallback to splitting the hugepage so that the
+COW results only in an order-0 page being allocated and charged to the
+memcg which has a higher liklihood to succeed.  This is expensive because
+the hugepage must be split in the page fault handler, but it is much
+better than unnecessarily oom killing a process.
 
-I was browsing through the internet and read a discussion at
-https://lkml.org/lkml/2012/3/27/342 which discusses removal of the
-validation check within find_vma.  Since no-one responded, I decided to
-send this patch with Andrew's suggestions.
-
-[akpm@linux-foundation.org: add remove-me comment]
-Signed-off-by: Rajman Mekaco <rajman.mekaco@gmail.com>
-Cc: Kautuk Consul <consul.kautuk@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   53 ++++++++++++++++++++++++++--------------------------
- 1 file changed, 27 insertions(+), 26 deletions(-)
+ mm/huge_memory.c |    3 +++
+ mm/memory.c      |   18 +++++++++++++++---
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmapc-find_vma-remove-unnecessary-ifmm-check mm/mmap.c
---- a/mm/mmap.c~mm-mmapc-find_vma-remove-unnecessary-ifmm-check
-+++ a/mm/mmap.c
-@@ -1639,33 +1639,34 @@ struct vm_area_struct *find_vma(struct m
- {
- 	struct vm_area_struct *vma = NULL;
- 
--	if (mm) {
--		/* Check the cache first. */
--		/* (Cache hit rate is typically around 35%.) */
--		vma = mm->mmap_cache;
--		if (!(vma && vma->vm_end > addr && vma->vm_start <= addr)) {
--			struct rb_node * rb_node;
--
--			rb_node = mm->mm_rb.rb_node;
--			vma = NULL;
--
--			while (rb_node) {
--				struct vm_area_struct * vma_tmp;
--
--				vma_tmp = rb_entry(rb_node,
--						struct vm_area_struct, vm_rb);
--
--				if (vma_tmp->vm_end > addr) {
--					vma = vma_tmp;
--					if (vma_tmp->vm_start <= addr)
--						break;
--					rb_node = rb_node->rb_left;
--				} else
--					rb_node = rb_node->rb_right;
--			}
--			if (vma)
--				mm->mmap_cache = vma;
-+	if (WARN_ON_ONCE(!mm))		/* Remove this in linux-3.6 */
-+		return NULL;
-+
-+	/* Check the cache first. */
-+	/* (Cache hit rate is typically around 35%.) */
-+	vma = mm->mmap_cache;
-+	if (!(vma && vma->vm_end > addr && vma->vm_start <= addr)) {
-+		struct rb_node *rb_node;
-+
-+		rb_node = mm->mm_rb.rb_node;
-+		vma = NULL;
-+
-+		while (rb_node) {
-+			struct vm_area_struct *vma_tmp;
-+
-+			vma_tmp = rb_entry(rb_node,
-+					   struct vm_area_struct, vm_rb);
-+
-+			if (vma_tmp->vm_end > addr) {
-+				vma = vma_tmp;
-+				if (vma_tmp->vm_start <= addr)
-+					break;
-+				rb_node = rb_node->rb_left;
-+			} else
-+				rb_node = rb_node->rb_right;
- 		}
-+		if (vma)
-+			mm->mmap_cache = vma;
+diff -puN mm/huge_memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow
++++ a/mm/huge_memory.c
+@@ -952,6 +952,8 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		ret = do_huge_pmd_wp_page_fallback(mm, vma, address,
+ 						   pmd, orig_pmd, page, haddr);
++		if (ret & VM_FAULT_OOM)
++			split_huge_page(page);
+ 		put_page(page);
+ 		goto out;
  	}
- 	return vma;
- }
+@@ -959,6 +961,7 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 
+ 	if (unlikely(mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))) {
+ 		put_page(new_page);
++		split_huge_page(page);
+ 		put_page(page);
+ 		ret |= VM_FAULT_OOM;
+ 		goto out;
+diff -puN mm/memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow mm/memory.c
+--- a/mm/memory.c~thp-memcg-split-hugepage-for-memcg-oom-on-cow
++++ a/mm/memory.c
+@@ -3486,6 +3486,7 @@ int handle_mm_fault(struct mm_struct *mm
+ 	if (unlikely(is_vm_hugetlb_page(vma)))
+ 		return hugetlb_fault(mm, vma, address, flags);
+ 
++retry:
+ 	pgd = pgd_offset(mm, address);
+ 	pud = pud_alloc(mm, pgd, address);
+ 	if (!pud)
+@@ -3499,13 +3500,24 @@ int handle_mm_fault(struct mm_struct *mm
+ 							  pmd, flags);
+ 	} else {
+ 		pmd_t orig_pmd = *pmd;
++		int ret;
++
+ 		barrier();
+ 		if (pmd_trans_huge(orig_pmd)) {
+ 			if (flags & FAULT_FLAG_WRITE &&
+ 			    !pmd_write(orig_pmd) &&
+-			    !pmd_trans_splitting(orig_pmd))
+-				return do_huge_pmd_wp_page(mm, vma, address,
+-							   pmd, orig_pmd);
++			    !pmd_trans_splitting(orig_pmd)) {
++				ret = do_huge_pmd_wp_page(mm, vma, address, pmd,
++							  orig_pmd);
++				/*
++				 * If COW results in an oom, the huge pmd will
++				 * have been split, so retry the fault on the
++				 * pte for a smaller charge.
++				 */
++				if (unlikely(ret & VM_FAULT_OOM))
++					goto retry;
++				return ret;
++			}
+ 			return 0;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from rajman.mekaco@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+linux-next.patch
+slab-move-full-state-transition-to-an-initcall.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-simplify-migrate_huge_page-fix.patch
+memcg-add-hugetlb-extension-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
 
