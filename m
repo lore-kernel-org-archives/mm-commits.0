@@ -1,300 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-led-module-for-da9052-53-pmic-v2.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:19:29 -0700
-Message-ID: <20120531191929.683FDA0203@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-leds-leds-lp5521c-fix-lp5521_read-error-handling.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:19:27 -0700
+Message-ID: <20120531191927.5E3A9A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:51829 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933018Ab2EaTTb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2012 15:19:31 -0400
-Received: by mail-lpp01m010-f74.google.com with SMTP id r15so75811lag.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:19:30 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:58177 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933018Ab2EaTT2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:19:28 -0400
+Received: by vcbfl13 with SMTP id fl13so135276vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:19:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dchen@diasemi.com, ashish.jangam@kpitcummins.com, bryan.wu@canonical.com, lars@metafoo.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, Milo.Kim@ti.com, bryan.wu@canonical.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds: driver for DA9052/53 PMIC v2
+     Subject: drivers/leds/leds-lp5521.c: fix lp5521_read() error handling
 has been removed from the -mm tree.  Its filename was
-     leds-led-module-for-da9052-53-pmic-v2.patch
+     drivers-leds-leds-lp5521c-fix-lp5521_read-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: David Dajun Chen <dchen@diasemi.com>
-Subject: leds: driver for DA9052/53 PMIC v2
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/leds/leds-lp5521.c: fix lp5521_read() error handling
 
-LED Driver for Dialog Semiconductor DA9052/53 PMICs.
+Gcc 4.6.2 complains that:
+drivers/leds/leds-lp5521.c: In function `lp5521_load_program':
+drivers/leds/leds-lp5521.c:214:21: warning: `mode' may be used uninitialized in this function [-Wuninitialized]
+drivers/leds/leds-lp5521.c: In function `lp5521_probe':
+drivers/leds/leds-lp5521.c:788:5: warning: `buf' may be used uninitialized in this function [-Wuninitialized]
+drivers/leds/leds-lp5521.c:740:6: warning: `ret' may be used uninitialized in this function [-Wuninitialized]
 
-[akpm@linux-foundation.org: make led_reg static]
-Signed-off-by: David Dajun Chen <dchen@diasemi.com>
-Signed-off-by: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Reviewed-by: Lars-Peter Clausen <lars@metafoo.de>
+These are real problems if lp5521_read() returns an error.  When that
+happens we should handle it, instead of ignoring it or doing a bitwise OR
+with all the other error codes and continuing.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Milo <Milo.Kim@ti.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Cc: Bryan Wu <bryan.wu@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/Kconfig       |    8 +
- drivers/leds/Makefile      |    1 
- drivers/leds/leds-da9052.c |  214 +++++++++++++++++++++++++++++++++++
- 3 files changed, 223 insertions(+)
+ drivers/leds/leds-lp5521.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/leds/Kconfig~leds-led-module-for-da9052-53-pmic-v2 drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-led-module-for-da9052-53-pmic-v2
-+++ a/drivers/leds/Kconfig
-@@ -259,6 +259,14 @@ config LEDS_DA903X
- 	  This option enables support for on-chip LED drivers found
- 	  on Dialog Semiconductor DA9030/DA9034 PMICs.
+diff -puN drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-lp5521_read-error-handling drivers/leds/leds-lp5521.c
+--- a/drivers/leds/leds-lp5521.c~drivers-leds-leds-lp5521c-fix-lp5521_read-error-handling
++++ a/drivers/leds/leds-lp5521.c
+@@ -193,9 +193,14 @@ static int lp5521_load_program(struct lp
  
-+config LEDS_DA9052
-+	tristate "Dialog DA9052/DA9053 LEDS"
-+	depends on LEDS_CLASS
-+	depends on PMIC_DA9052
-+	help
-+	  This option enables support for on-chip LED drivers found
-+	  on Dialog Semiconductor DA9052-BC and DA9053-AA/Bx PMICs.
+ 	/* move current engine to direct mode and remember the state */
+ 	ret = lp5521_set_engine_mode(eng, LP5521_CMD_DIRECT);
++	if (ret)
++		return ret;
 +
- config LEDS_DAC124S085
- 	tristate "LED Support for DAC124S085 SPI DAC"
- 	depends on LEDS_CLASS
-diff -puN drivers/leds/Makefile~leds-led-module-for-da9052-53-pmic-v2 drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-led-module-for-da9052-53-pmic-v2
-+++ a/drivers/leds/Makefile
-@@ -31,6 +31,7 @@ obj-$(CONFIG_LEDS_FSG)			+= leds-fsg.o
- obj-$(CONFIG_LEDS_PCA955X)		+= leds-pca955x.o
- obj-$(CONFIG_LEDS_PCA9633)		+= leds-pca9633.o
- obj-$(CONFIG_LEDS_DA903X)		+= leds-da903x.o
-+obj-$(CONFIG_LEDS_DA9052)		+= leds-da9052.o
- obj-$(CONFIG_LEDS_WM831X_STATUS)	+= leds-wm831x-status.o
- obj-$(CONFIG_LEDS_WM8350)		+= leds-wm8350.o
- obj-$(CONFIG_LEDS_PWM)			+= leds-pwm.o
-diff -puN /dev/null drivers/leds/leds-da9052.c
---- /dev/null
-+++ a/drivers/leds/leds-da9052.c
-@@ -0,0 +1,214 @@
-+/*
-+ * LED Driver for Dialog DA9052 PMICs.
-+ *
-+ * Copyright(c) 2012 Dialog Semiconductor Ltd.
-+ *
-+ * Author: David Dajun Chen <dchen@diasemi.com>
-+ *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/leds.h>
-+#include <linux/workqueue.h>
-+#include <linux/slab.h>
-+
-+#include <linux/mfd/da9052/reg.h>
-+#include <linux/mfd/da9052/da9052.h>
-+#include <linux/mfd/da9052/pdata.h>
-+
-+#define DA9052_OPENDRAIN_OUTPUT	2
-+#define DA9052_SET_HIGH_LVL_OUTPUT	(1 << 3)
-+#define DA9052_MASK_UPPER_NIBBLE	0xF0
-+#define DA9052_MASK_LOWER_NIBBLE	0x0F
-+#define DA9052_NIBBLE_SHIFT		4
-+#define DA9052_MAX_BRIGHTNESS		0x5f
-+
-+struct da9052_led {
-+	struct led_classdev cdev;
-+	struct work_struct work;
-+	struct da9052 *da9052;
-+	unsigned char led_index;
-+	unsigned char id;
-+	int brightness;
-+};
-+
-+static unsigned char led_reg[] = {
-+	DA9052_LED_CONT_4_REG,
-+	DA9052_LED_CONT_5_REG,
-+};
-+
-+static int da9052_set_led_brightness(struct da9052_led *led)
-+{
-+	u8 val;
-+	int error;
-+
-+	val = (led->brightness & 0x7f) | DA9052_LED_CONT_DIM;
-+
-+	error = da9052_reg_write(led->da9052, led_reg[led->led_index], val);
-+	if (error < 0)
-+		dev_err(led->da9052->dev, "Failed to set led brightness, %d\n",
-+			error);
-+	return error;
-+}
-+
-+static void da9052_led_work(struct work_struct *work)
-+{
-+	struct da9052_led *led = container_of(work, struct da9052_led, work);
-+
-+	da9052_set_led_brightness(led);
-+}
-+
-+static void da9052_led_set(struct led_classdev *led_cdev,
-+			   enum led_brightness value)
-+{
-+	struct da9052_led *led;
-+
-+	led = container_of(led_cdev, struct da9052_led, cdev);
-+	led->brightness = value;
-+	schedule_work(&led->work);
-+}
-+
-+static int da9052_configure_leds(struct da9052 *da9052)
-+{
-+	int error;
-+	unsigned char register_value = DA9052_OPENDRAIN_OUTPUT
-+				       | DA9052_SET_HIGH_LVL_OUTPUT;
-+
-+	error = da9052_reg_update(da9052, DA9052_GPIO_14_15_REG,
-+				  DA9052_MASK_LOWER_NIBBLE,
-+				  register_value);
-+
-+	if (error < 0) {
-+		dev_err(da9052->dev, "Failed to write GPIO 14-15 reg, %d\n",
-+			error);
-+		return error;
-+	}
-+
-+	error = da9052_reg_update(da9052, DA9052_GPIO_14_15_REG,
-+				  DA9052_MASK_UPPER_NIBBLE,
-+				  register_value << DA9052_NIBBLE_SHIFT);
-+	if (error < 0)
-+		dev_err(da9052->dev, "Failed to write GPIO 14-15 reg, %d\n",
-+			error);
-+
-+	return error;
-+}
-+
-+static int __devinit da9052_led_probe(struct platform_device *pdev)
-+{
-+	struct da9052_pdata *pdata;
-+	struct da9052 *da9052;
-+	struct led_platform_data *pled;
-+	struct da9052_led *led = NULL;
-+	int error = -ENODEV;
-+	int i;
-+
-+	da9052 = dev_get_drvdata(pdev->dev.parent);
-+	pdata = da9052->dev->platform_data;
-+	if (pdata == NULL) {
-+		dev_err(&pdev->dev, "No platform data\n");
-+		goto err;
-+	}
-+
-+	pled = pdata->pled;
-+	if (pled == NULL) {
-+		dev_err(&pdev->dev, "No platform data for LED\n");
-+		goto err;
-+	}
-+
-+	led = devm_kzalloc(&pdev->dev,
-+			   sizeof(struct da9052_led) * pled->num_leds,
-+			   GFP_KERNEL);
-+	if (led == NULL) {
-+		dev_err(&pdev->dev, "Failed to alloc memory\n");
-+		error = -ENOMEM;
-+		goto err;
-+	}
-+
-+	for (i = 0; i < pled->num_leds; i++) {
-+		led[i].cdev.name = pled->leds[i].name;
-+		led[i].cdev.brightness_set = da9052_led_set;
-+		led[i].cdev.brightness = LED_OFF;
-+		led[i].cdev.max_brightness = DA9052_MAX_BRIGHTNESS;
-+		led[i].brightness = LED_OFF;
-+		led[i].led_index = pled->leds[i].flags;
-+		led[i].da9052 = dev_get_drvdata(pdev->dev.parent);
-+		INIT_WORK(&led[i].work, da9052_led_work);
-+
-+		error = led_classdev_register(pdev->dev.parent, &led[i].cdev);
-+		if (error) {
-+			dev_err(&pdev->dev, "Failed to register led %d\n",
-+				led[i].led_index);
-+			goto err_register;
-+		}
-+
-+		error = da9052_set_led_brightness(&led[i]);
-+		if (error) {
-+			dev_err(&pdev->dev, "Unable to init led %d\n",
-+				led[i].led_index);
-+			continue;
-+		}
-+	}
-+	error = da9052_configure_leds(led->da9052);
-+	if (error) {
-+		dev_err(&pdev->dev, "Failed to configure GPIO LED%d\n", error);
-+		goto err_register;
-+	}
-+
-+	platform_set_drvdata(pdev, led);
-+
-+	return 0;
-+
-+err_register:
-+	for (i = i - 1; i >= 0; i--) {
-+		led_classdev_unregister(&led[i].cdev);
-+		cancel_work_sync(&led[i].work);
-+	}
-+err:
-+	return error;
-+}
-+
-+static int __devexit da9052_led_remove(struct platform_device *pdev)
-+{
-+	struct da9052_led *led = platform_get_drvdata(pdev);
-+	struct da9052_pdata *pdata;
-+	struct da9052 *da9052;
-+	struct led_platform_data *pled;
-+	int i;
-+
-+	da9052 = dev_get_drvdata(pdev->dev.parent);
-+	pdata = da9052->dev->platform_data;
-+	pled = pdata->pled;
-+
-+	for (i = 0; i < pled->num_leds; i++) {
-+		led[i].brightness = 0;
-+		da9052_set_led_brightness(&led[i]);
-+		led_classdev_unregister(&led[i].cdev);
-+		cancel_work_sync(&led[i].work);
-+	}
-+
-+	return 0;
-+}
-+
-+static struct platform_driver da9052_led_driver = {
-+	.driver		= {
-+		.name	= "da9052-leds",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= da9052_led_probe,
-+	.remove		= __devexit_p(da9052_led_remove),
-+};
-+
-+module_platform_driver(da9052_led_driver);
-+
-+MODULE_AUTHOR("Dialog Semiconductor Ltd <dchen@diasemi.com>");
-+MODULE_DESCRIPTION("LED driver for Dialog DA9052 PMIC");
-+MODULE_LICENSE("GPL");
+ 	/* Mode change requires min 500 us delay. 1 - 2 ms  with margin */
+ 	usleep_range(1000, 2000);
+-	ret |= lp5521_read(client, LP5521_REG_OP_MODE, &mode);
++	ret = lp5521_read(client, LP5521_REG_OP_MODE, &mode);
++	if (ret)
++		return ret;
+ 
+ 	/* For loading, all the engines to load mode */
+ 	lp5521_write(client, LP5521_REG_OP_MODE, LP5521_CMD_DIRECT);
+@@ -211,8 +216,7 @@ static int lp5521_load_program(struct lp
+ 				LP5521_PROG_MEM_SIZE,
+ 				pattern);
+ 
+-	ret |= lp5521_write(client, LP5521_REG_OP_MODE, mode);
+-	return ret;
++	return lp5521_write(client, LP5521_REG_OP_MODE, mode);
+ }
+ 
+ static int lp5521_set_led_current(struct lp5521_chip *chip, int led, u8 curr)
+@@ -785,7 +789,7 @@ static int __devinit lp5521_probe(struct
+ 	 * LP5521_REG_ENABLE register will not have any effect - strange!
+ 	 */
+ 	ret = lp5521_read(client, LP5521_REG_R_CURRENT, &buf);
+-	if (buf != LP5521_REG_R_CURR_DEFAULT) {
++	if (ret || buf != LP5521_REG_R_CURR_DEFAULT) {
+ 		dev_err(&client->dev, "error in resetting chip\n");
+ 		goto fail2;
+ 	}
 _
 
-Patches currently in -mm which might be from dchen@diasemi.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
+linux-next.patch
+drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
+fsnotify-remove-unused-parameter-from-send_to_group.patch
+hpfs-remove-printk-macro.patch
 
