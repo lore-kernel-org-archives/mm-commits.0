@@ -1,122 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-optimize-clearing-when-writing.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:15:34 -0700
-Message-ID: <20120531191534.8EAF8A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:15:12 -0700
+Message-ID: <20120531191512.845DCA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:60314 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932752Ab2EaTPf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:35 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so136095qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:35 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:40770 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932932Ab2EaTPN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:13 -0400
+Received: by mail-vb0-f74.google.com with SMTP id l22so134118vbn.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hch@infradead.org, npiggin@gmail.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, davem@davemloft.net, shangw@linux.vnet.ibm.com, tj@kernel.org, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: optimize clearing when writing
+     Subject: mm: bootmem: allocate in order node+goal, goal, node, anywhere
 has been removed from the -mm tree.  Its filename was
-     tmpfs-optimize-clearing-when-writing.patch
+     mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: optimize clearing when writing
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: bootmem: allocate in order node+goal, goal, node, anywhere
 
-Nick proposed years ago that tmpfs should avoid clearing its pages where
-write will overwrite them with new data, as ramfs has long done.  But I
-messed it up and just got bad data.  Tried again recently, it works fine.
+Match the nobootmem version of __alloc_bootmem_node.  Try to satisfy both
+the node and the goal, then just the goal, then just the node, then
+allocate anywhere before panicking.
 
-Here's time output for writing 4GiB 16 times on this Core i5 laptop:
-
-before: real	0m21.169s user	0m0.028s sys	0m21.057s
-        real	0m21.382s user	0m0.016s sys	0m21.289s
-        real	0m21.311s user	0m0.020s sys	0m21.217s
-
-after:  real	0m18.273s user	0m0.032s sys	0m18.165s
-        real	0m18.354s user	0m0.020s sys	0m18.265s
-        real	0m18.440s user	0m0.032s sys	0m18.337s
-
-ramfs:  real	0m16.860s user	0m0.028s sys	0m16.765s
-        real	0m17.382s user	0m0.040s sys	0m17.273s
-        real	0m17.133s user	0m0.044s sys	0m17.021s
-
-Yes, I have done perf reports, but they need more explanation than they
-deserve: in summary, clear_page vanishes, its cache loading shifts into
-copy_user_generic_unrolled; shmem_getpage_gfp goes down, and surprisingly
-mark_page_accessed goes way up - I think because they are respectively
-where the cache gets to be reloaded after being purged by clear or copy.
-
-Suggested-by: Nick Piggin <npiggin@gmail.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ mm/bootmem.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~tmpfs-optimize-clearing-when-writing mm/shmem.c
---- a/mm/shmem.c~tmpfs-optimize-clearing-when-writing
-+++ a/mm/shmem.c
-@@ -1095,9 +1095,14 @@ repeat:
- 		shmem_recalc_inode(inode);
- 		spin_unlock(&info->lock);
+diff -puN mm/bootmem.c~mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmem-allocate-in-order-nodegoal-goal-node-anywhere
++++ a/mm/bootmem.c
+@@ -704,6 +704,7 @@ static void * __init ___alloc_bootmem_no
+ {
+ 	void *ptr;
  
--		clear_highpage(page);
--		flush_dcache_page(page);
--		SetPageUptodate(page);
-+		/*
-+		 * Let SGP_WRITE caller clear ends if write does not fill page
-+		 */
-+		if (sgp != SGP_WRITE) {
-+			clear_highpage(page);
-+			flush_dcache_page(page);
-+			SetPageUptodate(page);
-+		}
- 		if (sgp == SGP_DIRTY)
- 			set_page_dirty(page);
- 	}
-@@ -1307,6 +1312,14 @@ shmem_write_end(struct file *file, struc
- 	if (pos + copied > inode->i_size)
- 		i_size_write(inode, pos + copied);
++again:
+ 	ptr = alloc_arch_preferred_bootmem(bdata, size, align, goal, limit);
+ 	if (ptr)
+ 		return ptr;
+@@ -712,7 +713,18 @@ static void * __init ___alloc_bootmem_no
+ 	if (ptr)
+ 		return ptr;
  
-+	if (!PageUptodate(page)) {
-+		if (copied < PAGE_CACHE_SIZE) {
-+			unsigned from = pos & (PAGE_CACHE_SIZE - 1);
-+			zero_user_segments(page, 0, from,
-+					from + copied, PAGE_CACHE_SIZE);
-+		}
-+		SetPageUptodate(page);
+-	return ___alloc_bootmem(size, align, goal, limit);
++	ptr = alloc_bootmem_core(size, align, goal, limit);
++	if (ptr)
++		return ptr;
++
++	if (goal) {
++		goal = 0;
++		goto again;
 +	}
- 	set_page_dirty(page);
- 	unlock_page(page);
- 	page_cache_release(page);
-@@ -1768,6 +1781,7 @@ static int shmem_symlink(struct inode *d
- 		kaddr = kmap_atomic(page);
- 		memcpy(kaddr, symname, len);
- 		kunmap_atomic(kaddr);
-+		SetPageUptodate(page);
- 		set_page_dirty(page);
- 		unlock_page(page);
- 		page_cache_release(page);
++
++	printk(KERN_ALERT "bootmem alloc of %lu bytes failed!\n", size);
++	panic("Out of memory");
++	return NULL;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 linux-next.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-proc-clean-up-proc-pid-environ-handling.patch
-proc-remove-mm_for_maps.patch
-proc-use-mm_access-instead-of-ptrace_may_access.patch
-proc-report-file-anon-bit-in-proc-pid-pagemap.patch
-proc-use-is_err_or_null.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-prio_tree-debugging-patch.patch
+mm-slab-remove-duplicate-check.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-simplify-migrate_huge_page-fix.patch
+memcg-add-hugetlb-extension.patch
+memcg-add-hugetlb-extension-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
+memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent.patch
+memcg-move-charges-to-root-cgroup-if-use_hierarchy=0-in-mem_cgroup_move_hugetlb_parent.patch
 
