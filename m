@@ -1,25 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-get_lru_size-not-get_lruvec_size.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:18:07 -0700
-Message-ID: <20120531191807.6D24DA0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-trivial-cleanups-in-vmscanc.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:18:09 -0700
+Message-ID: <20120531191809.6ABF0A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:40976 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933002Ab2EaTSK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2012 15:18:10 -0400
-Received: by lagr15 with SMTP id r15so75779lag.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:18:08 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:57611 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933011Ab2EaTSK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:18:10 -0400
+Received: by ghbz15 with SMTP id z15so134752ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:18:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: get_lru_size not get_lruvec_size
+     Subject: mm: trivial cleanups in vmscan.c
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-get_lru_size-not-get_lruvec_size.patch
+     mm-trivial-cleanups-in-vmscanc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -27,136 +26,112 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/memcg: get_lru_size not get_lruvec_size
+Subject: mm: trivial cleanups in vmscan.c
 
-Konstantin just introduced mem_cgroup_get_lruvec_size() and
-get_lruvec_size(), I'm about to add mem_cgroup_update_lru_size(): but
-we're dealing with the same thing, lru_size[lru].  We ought to agree on
-the naming, and I do think lru_size is the more correct: so rename his
-ones to get_lru_size().
+Utter trivia in mm/vmscan.c, mostly just reducing the linecount slightly;
+most exciting change being get_scan_count() calling vmscan_swappiness()
+once instead of twice.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/memcontrol.c            |   10 +++++-----
- mm/vmscan.c                |   19 +++++++++----------
- 3 files changed, 16 insertions(+), 17 deletions(-)
+ mm/vmscan.c |   31 ++++++++++---------------------
+ 1 file changed, 10 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-get_lru_size-not-get_lruvec_size include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-get_lru_size-not-get_lruvec_size
-+++ a/include/linux/memcontrol.h
-@@ -121,7 +121,7 @@ void mem_cgroup_iter_break(struct mem_cg
- int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec);
- int mem_cgroup_inactive_file_is_low(struct lruvec *lruvec);
- int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
--unsigned long mem_cgroup_get_lruvec_size(struct lruvec *lruvec, enum lru_list);
-+unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list);
- struct zone_reclaim_stat*
- mem_cgroup_get_reclaim_stat_from_page(struct page *page);
- extern void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
-@@ -340,7 +340,7 @@ mem_cgroup_inactive_file_is_low(struct l
- }
- 
- static inline unsigned long
--mem_cgroup_get_lruvec_size(struct lruvec *lruvec, enum lru_list lru)
-+mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
- {
- 	return 0;
- }
-diff -puN mm/memcontrol.c~mm-memcg-get_lru_size-not-get_lruvec_size mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-get_lru_size-not-get_lruvec_size
-+++ a/mm/memcontrol.c
-@@ -737,7 +737,7 @@ static void mem_cgroup_charge_statistics
- }
- 
- unsigned long
--mem_cgroup_get_lruvec_size(struct lruvec *lruvec, enum lru_list lru)
-+mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
- {
- 	struct mem_cgroup_per_zone *mz;
- 
-@@ -1229,8 +1229,8 @@ int mem_cgroup_inactive_anon_is_low(stru
- 	unsigned long active;
- 	unsigned long gb;
- 
--	inactive = mem_cgroup_get_lruvec_size(lruvec, LRU_INACTIVE_ANON);
--	active = mem_cgroup_get_lruvec_size(lruvec, LRU_ACTIVE_ANON);
-+	inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_ANON);
-+	active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_ANON);
- 
- 	gb = (inactive + active) >> (30 - PAGE_SHIFT);
- 	if (gb)
-@@ -1246,8 +1246,8 @@ int mem_cgroup_inactive_file_is_low(stru
- 	unsigned long active;
- 	unsigned long inactive;
- 
--	inactive = mem_cgroup_get_lruvec_size(lruvec, LRU_INACTIVE_FILE);
--	active = mem_cgroup_get_lruvec_size(lruvec, LRU_ACTIVE_FILE);
-+	inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_FILE);
-+	active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_FILE);
- 
- 	return (active > inactive);
- }
-diff -puN mm/vmscan.c~mm-memcg-get_lru_size-not-get_lruvec_size mm/vmscan.c
---- a/mm/vmscan.c~mm-memcg-get_lru_size-not-get_lruvec_size
+diff -puN mm/vmscan.c~mm-trivial-cleanups-in-vmscanc mm/vmscan.c
+--- a/mm/vmscan.c~mm-trivial-cleanups-in-vmscanc
 +++ a/mm/vmscan.c
-@@ -145,10 +145,10 @@ static bool global_reclaim(struct scan_c
- }
- #endif
- 
--static unsigned long get_lruvec_size(struct lruvec *lruvec, enum lru_list lru)
-+static unsigned long get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+@@ -1025,12 +1025,9 @@ static unsigned long isolate_lru_pages(u
+ 		unsigned long *nr_scanned, struct scan_control *sc,
+ 		isolate_mode_t mode, enum lru_list lru)
  {
- 	if (!mem_cgroup_disabled())
--		return mem_cgroup_get_lruvec_size(lruvec, lru);
-+		return mem_cgroup_get_lru_size(lruvec, lru);
+-	struct list_head *src;
++	struct list_head *src = &lruvec->lists[lru];
+ 	unsigned long nr_taken = 0;
+ 	unsigned long scan;
+-	int file = is_file_lru(lru);
+-
+-	src = &lruvec->lists[lru];
  
- 	return zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru);
- }
-@@ -1608,10 +1608,10 @@ static void get_scan_count(struct lruvec
- 		goto out;
+ 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
+ 		struct page *page;
+@@ -1058,11 +1055,8 @@ static unsigned long isolate_lru_pages(u
  	}
  
--	anon  = get_lruvec_size(lruvec, LRU_ACTIVE_ANON) +
--		get_lruvec_size(lruvec, LRU_INACTIVE_ANON);
--	file  = get_lruvec_size(lruvec, LRU_ACTIVE_FILE) +
--		get_lruvec_size(lruvec, LRU_INACTIVE_FILE);
-+	anon  = get_lru_size(lruvec, LRU_ACTIVE_ANON) +
-+		get_lru_size(lruvec, LRU_INACTIVE_ANON);
-+	file  = get_lru_size(lruvec, LRU_ACTIVE_FILE) +
-+		get_lru_size(lruvec, LRU_INACTIVE_FILE);
+ 	*nr_scanned = scan;
+-
+-	trace_mm_vmscan_lru_isolate(sc->order,
+-			nr_to_scan, scan,
+-			nr_taken,
+-			mode, file);
++	trace_mm_vmscan_lru_isolate(sc->order, nr_to_scan, scan,
++				    nr_taken, mode, is_file_lru(lru));
+ 	return nr_taken;
+ }
  
+@@ -1140,8 +1134,7 @@ static int too_many_isolated(struct zone
+ }
+ 
+ static noinline_for_stack void
+-putback_inactive_pages(struct lruvec *lruvec,
+-		       struct list_head *page_list)
++putback_inactive_pages(struct lruvec *lruvec, struct list_head *page_list)
+ {
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ 	struct zone *zone = lruvec_zone(lruvec);
+@@ -1235,11 +1228,9 @@ shrink_inactive_list(unsigned long nr_to
  	if (global_reclaim(sc)) {
- 		free  = zone_page_state(zone, NR_FREE_PAGES);
-@@ -1674,7 +1674,7 @@ out:
- 		int file = is_file_lru(lru);
- 		unsigned long scan;
+ 		zone->pages_scanned += nr_scanned;
+ 		if (current_is_kswapd())
+-			__count_zone_vm_events(PGSCAN_KSWAPD, zone,
+-					       nr_scanned);
++			__count_zone_vm_events(PGSCAN_KSWAPD, zone, nr_scanned);
+ 		else
+-			__count_zone_vm_events(PGSCAN_DIRECT, zone,
+-					       nr_scanned);
++			__count_zone_vm_events(PGSCAN_DIRECT, zone, nr_scanned);
+ 	}
+ 	spin_unlock_irq(&zone->lru_lock);
  
--		scan = get_lruvec_size(lruvec, lru);
-+		scan = get_lru_size(lruvec, lru);
- 		if (sc->priority || noswap || !vmscan_swappiness(sc)) {
- 			scan >>= sc->priority;
- 			if (!scan && force_scan)
-@@ -1743,10 +1743,9 @@ static inline bool should_continue_recla
- 	 * inactive lists are large enough, continue reclaiming
+@@ -1534,9 +1525,9 @@ static int inactive_file_is_low(struct l
+ 	return inactive_file_is_low_global(lruvec_zone(lruvec));
+ }
+ 
+-static int inactive_list_is_low(struct lruvec *lruvec, int file)
++static int inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
+ {
+-	if (file)
++	if (is_file_lru(lru))
+ 		return inactive_file_is_low(lruvec);
+ 	else
+ 		return inactive_anon_is_low(lruvec);
+@@ -1545,10 +1536,8 @@ static int inactive_list_is_low(struct l
+ static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
+ 				 struct lruvec *lruvec, struct scan_control *sc)
+ {
+-	int file = is_file_lru(lru);
+-
+ 	if (is_active_lru(lru)) {
+-		if (inactive_list_is_low(lruvec, file))
++		if (inactive_list_is_low(lruvec, lru))
+ 			shrink_active_list(nr_to_scan, lruvec, sc, lru);
+ 		return 0;
+ 	}
+@@ -1630,7 +1619,7 @@ static void get_scan_count(struct lruvec
+ 	 * This scanning priority is essentially the inverse of IO cost.
  	 */
- 	pages_for_compaction = (2UL << sc->order);
--	inactive_lru_pages = get_lruvec_size(lruvec, LRU_INACTIVE_FILE);
-+	inactive_lru_pages = get_lru_size(lruvec, LRU_INACTIVE_FILE);
- 	if (nr_swap_pages > 0)
--		inactive_lru_pages += get_lruvec_size(lruvec,
--						      LRU_INACTIVE_ANON);
-+		inactive_lru_pages += get_lru_size(lruvec, LRU_INACTIVE_ANON);
- 	if (sc->nr_reclaimed < pages_for_compaction &&
- 			inactive_lru_pages > pages_for_compaction)
- 		return true;
+ 	anon_prio = vmscan_swappiness(sc);
+-	file_prio = 200 - vmscan_swappiness(sc);
++	file_prio = 200 - anon_prio;
+ 
+ 	/*
+ 	 * OK, so we have swap space and a fair amount of page cache
 _
 
 Patches currently in -mm which might be from hughd@google.com are
