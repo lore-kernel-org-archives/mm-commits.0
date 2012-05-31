@@ -1,116 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:20:36 -0700
-Message-ID: <20120531192036.6EF90A0203@akpm.mtv.corp.google.com>
+Subject: [merged] vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:20:07 -0700
+Message-ID: <20120531192007.78B53A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:54968 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933125Ab2EaTUj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:39 -0400
-Received: by bkty5 with SMTP id y5so75606bkt.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:37 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:44534 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933104Ab2EaTUJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:09 -0400
+Received: by eeit10 with SMTP id t10so76485eei.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n.voss@weinmann.de, a.zummo@towertech.it, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: sboyd@codeaurora.org, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset M41T93_FLAG_OF
+     Subject: vsprintf: fix %ps on non symbols when using kallsyms
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch
+     vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Nikolaus Voss <n.voss@weinmann.de>
-Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset M41T93_FLAG_OF
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: vsprintf: fix %ps on non symbols when using kallsyms
 
-If the rtc reports the time might be invalid due to oscillator failure,
-M41T93_FLAG_OF flag must not be reset by get_time() as the read operation
-doesn't make the time valid.
+Using %ps in a printk format will sometimes fail silently and print the
+empty string if the address passed in does not match a symbol that
+kallsyms knows about.  But using %pS will fall back to printing the full
+address if kallsyms can't find the symbol.  Make %ps act the same as %pS
+by falling back to printing the address.
 
-Without this patch, only the first get_time() reported an invalid time,
-the second get_time() reported a valid time althought the reported time is
-probably wrong due to oscillator failure.
+While we're here also make %ps print the module that a symbol comes from
+so that it matches what %pS already does.  Take this simple function for
+example (in a module):
 
-Instead of resetting in get_time(), with this patch M41T93_FLAG_OF is
-reset in set_time() when a valid time is to be written.
+	static void test_printk(void)
+	{
+		int test;
+		pr_info("with pS: %pS\n", &test);
+		pr_info("with ps: %ps\n", &test);
+	}
 
-Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Before this patch:
+
+ with pS: 0xdff7df44
+ with ps:
+
+After this patch:
+
+ with pS: 0xdff7df44
+ with ps: 0xdff7df44
+
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t93.c |   46 +++++++++++++++++++++----------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ include/linux/kallsyms.h |    7 +++++++
+ kernel/kallsyms.c        |   32 ++++++++++++++++++++++++--------
+ lib/vsprintf.c           |    2 +-
+ 3 files changed, 32 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state drivers/rtc/rtc-m41t93.c
---- a/drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state
-+++ a/drivers/rtc/rtc-m41t93.c
-@@ -48,6 +48,7 @@ static inline int m41t93_set_reg(struct 
- static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
+diff -puN include/linux/kallsyms.h~vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms include/linux/kallsyms.h
+--- a/include/linux/kallsyms.h~vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms
++++ a/include/linux/kallsyms.h
+@@ -36,6 +36,7 @@ const char *kallsyms_lookup(unsigned lon
+ 
+ /* Look up a kernel symbol and return it in a text buffer. */
+ extern int sprint_symbol(char *buffer, unsigned long address);
++extern int sprint_symbol_no_offset(char *buffer, unsigned long address);
+ extern int sprint_backtrace(char *buffer, unsigned long address);
+ 
+ /* Look up a kernel symbol and print it to the kernel messages. */
+@@ -80,6 +81,12 @@ static inline int sprint_symbol(char *bu
+ 	return 0;
+ }
+ 
++static inline int sprint_symbol_no_offset(char *buffer, unsigned long addr)
++{
++	*buffer = '\0';
++	return 0;
++}
++
+ static inline int sprint_backtrace(char *buffer, unsigned long addr)
  {
- 	struct spi_device *spi = to_spi_device(dev);
-+	int tmp;
- 	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
- 	u8 * const data = &buf[1]; /* ptr to first data byte */
+ 	*buffer = '\0';
+diff -puN kernel/kallsyms.c~vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms kernel/kallsyms.c
+--- a/kernel/kallsyms.c~vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms
++++ a/kernel/kallsyms.c
+@@ -343,7 +343,7 @@ int lookup_symbol_attrs(unsigned long ad
  
-@@ -62,6 +63,30 @@ static int m41t93_set_time(struct device
- 		return -EINVAL;
- 	}
+ /* Look up a kernel symbol and return it in a text buffer. */
+ static int __sprint_symbol(char *buffer, unsigned long address,
+-			   int symbol_offset)
++			   int symbol_offset, int add_offset)
+ {
+ 	char *modname;
+ 	const char *name;
+@@ -358,13 +358,13 @@ static int __sprint_symbol(char *buffer,
+ 	if (name != buffer)
+ 		strcpy(buffer, name);
+ 	len = strlen(buffer);
+-	buffer += len;
+ 	offset -= symbol_offset;
  
-+	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-+	if (tmp < 0)
-+		return tmp;
++	if (add_offset)
++		len += sprintf(buffer + len, "+%#lx/%#lx", offset, size);
 +
-+	if (tmp & M41T93_FLAG_OF) {
-+		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
-+		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
-+
-+		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
-+		if (tmp < 0) {
-+			return tmp;
-+		} else if (tmp & M41T93_FLAG_OF) {
-+			/* OF cannot be immediately reset: oscillator has to be
-+			 * restarted. */
-+			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
-+
-+			dev_warn(&spi->dev,
-+				 "OF bit is still set, kickstarting clock.\n");
-+			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
-+			reset_osc &= ~M41T93_FLAG_ST;
-+			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
-+		}
-+	}
-+
- 	data[M41T93_REG_SSEC]		= 0;
- 	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
- 	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
-@@ -89,10 +114,7 @@ static int m41t93_get_time(struct device
- 	   1. halt bit (HT) is set: the clock is running but update of readout
- 	      registers has been disabled due to power failure. This is normal
- 	      case after poweron. Time is valid after resetting HT bit.
--	   2. oscillator fail bit (OF) is set. Oscillator has be stopped and
--	      time is invalid:
--	      a) OF can be immeditely reset.
--	      b) OF cannot be immediately reset: oscillator has to be restarted.
-+	   2. oscillator fail bit (OF) is set: time is invalid.
- 	*/
- 	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
- 	if (tmp < 0)
-@@ -110,21 +132,7 @@ static int m41t93_get_time(struct device
+ 	if (modname)
+-		len += sprintf(buffer, "+%#lx/%#lx [%s]", offset, size, modname);
+-	else
+-		len += sprintf(buffer, "+%#lx/%#lx", offset, size);
++		len += sprintf(buffer + len, " [%s]", modname);
  
- 	if (tmp & M41T93_FLAG_OF) {
- 		ret = -EINVAL;
--		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
--		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
+ 	return len;
+ }
+@@ -382,12 +382,28 @@ static int __sprint_symbol(char *buffer,
+  */
+ int sprint_symbol(char *buffer, unsigned long address)
+ {
+-	return __sprint_symbol(buffer, address, 0);
++	return __sprint_symbol(buffer, address, 0, 1);
+ }
 -
--		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
--		if (tmp < 0)
--			return tmp;
--		else if (tmp & M41T93_FLAG_OF) {
--			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
+ EXPORT_SYMBOL_GPL(sprint_symbol);
+ 
+ /**
++ * sprint_symbol_no_offset - Look up a kernel symbol and return it in a text buffer
++ * @buffer: buffer to be stored
++ * @address: address to lookup
++ *
++ * This function looks up a kernel symbol with @address and stores its name
++ * and module name to @buffer if possible. If no symbol was found, just saves
++ * its @address as is.
++ *
++ * This function returns the number of bytes stored in @buffer.
++ */
++int sprint_symbol_no_offset(char *buffer, unsigned long address)
++{
++	return __sprint_symbol(buffer, address, 0, 0);
++}
++EXPORT_SYMBOL_GPL(sprint_symbol_no_offset);
++
++/**
+  * sprint_backtrace - Look up a backtrace symbol and return it in a text buffer
+  * @buffer: buffer to be stored
+  * @address: address to lookup
+@@ -403,7 +419,7 @@ EXPORT_SYMBOL_GPL(sprint_symbol);
+  */
+ int sprint_backtrace(char *buffer, unsigned long address)
+ {
+-	return __sprint_symbol(buffer, address, -1);
++	return __sprint_symbol(buffer, address, -1, 1);
+ }
+ 
+ /* Look up a kernel symbol and print it to the kernel messages. */
+diff -puN lib/vsprintf.c~vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-fix-%ps-on-non-symbols-when-using-kallsyms
++++ a/lib/vsprintf.c
+@@ -436,7 +436,7 @@ char *symbol_string(char *buf, char *end
+ 	else if (ext != 'f' && ext != 's')
+ 		sprint_symbol(sym, value);
+ 	else
+-		kallsyms_lookup(value, NULL, NULL, NULL, sym);
++		sprint_symbol_no_offset(sym, value);
+ 
+ 	return string(buf, end, sym, spec);
+ #else
+_
+
+Patches currently in -mm which might be from sboyd@codeaurora.org are
+
+origin.patch
+
