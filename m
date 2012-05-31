@@ -1,77 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-implement-numa-node-interleaving-fix.patch added to -mm tree
-Date: Thu, 31 May 2012 13:25:54 -0700
-Message-ID: <20120531202554.A24B2A03DB@akpm.mtv.corp.google.com>
+Subject: [folded] c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch removed from -mm tree
+Date: Thu, 31 May 2012 14:01:05 -0700
+Message-ID: <20120531210105.6B52FA03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:52244 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758403Ab2EaUZ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 16:25:56 -0400
-Received: by wgbdt11 with SMTP id dt11so78647wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 13:25:55 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:48453 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751308Ab2EaVBH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 17:01:07 -0400
+Received: by wibhn6 with SMTP id hn6so80719wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 14:01:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux.com, hughd@google.com, lee.schermerhorn@hp.com, npiggin@gmail.com, nzimmer@sgi.com, riel@redhat.com
+To: akpm@linux-foundation.org, gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs-implement-numa-node-interleaving-fix
-has been added to the -mm tree.  Its filename is
-     tmpfs-implement-numa-node-interleaving-fix.patch
+     Subject: c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix
+has been removed from the -mm tree.  Its filename was
+     c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tmpfs-implement-numa-node-interleaving-fix
+Subject: c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix
 
-add comment
+restore lost initialization of `error'
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Nathan T Zimmer <nzimmer@sgi.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Nick Piggin <npiggin@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/sys.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/shmem_fs.h~tmpfs-implement-numa-node-interleaving-fix include/linux/shmem_fs.h
-diff -puN mm/shmem.c~tmpfs-implement-numa-node-interleaving-fix mm/shmem.c
---- a/mm/shmem.c~tmpfs-implement-numa-node-interleaving-fix
-+++ a/mm/shmem.c
-@@ -927,9 +927,12 @@ static struct page *shmem_alloc_page(gfp
- 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
+diff -puN kernel/sys.c~c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix kernel/sys.c
+--- a/kernel/sys.c~c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix
++++ a/kernel/sys.c
+@@ -1727,6 +1727,8 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (addr >= TASK_SIZE)
+ 		return -EINVAL;
  
- 	/*
--	 * alloc_page_vma() will drop the shared policy reference
-+	 * alloc_page_vma() will drop the shared policy reference.
-+	 *
-+	 * To avoid allocating all tmpfs pages on node 0, we fake up a virtual
-+	 * address based on this file's predetermined preferred node.
- 	 */
--	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT );
-+	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT);
- }
- #else /* !CONFIG_NUMA */
- #ifdef CONFIG_TMPFS
++	error = -EINVAL;
++
+ 	down_read(&mm->mmap_sem);
+ 	vma = find_vma(mm, addr);
+ 
 _
-Subject: Subject: tmpfs-implement-numa-node-interleaving-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -92,4 +75,8 @@ ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
 pidns-make-killed-children-autoreap-checkpatch-fixes.patch
 fs-nls-add-apple-nls-fix.patch
 eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
 
