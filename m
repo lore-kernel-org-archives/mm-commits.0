@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-link-from-struct-lruvec-to-struct-zone.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:17:17 -0700
-Message-ID: <20120531191717.663BDA0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:17:13 -0700
+Message-ID: <20120531191713.6AA25A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:42805 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932980Ab2EaTRS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:18 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so134652ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:17 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:34813 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932979Ab2EaTRP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:15 -0400
+Received: by wibhn6 with SMTP id hn6so77010wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujtisu.com, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add link from struct lruvec to struct zone
+     Subject: mm/memcg: use vm_swappiness from target memory cgroup
 has been removed from the -mm tree.  Its filename was
-     mm-add-link-from-struct-lruvec-to-struct-zone.patch
+     mm-memcg-use-vm_swappiness-from-target-memory-cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,124 +26,63 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: add link from struct lruvec to struct zone
+Subject: mm/memcg: use vm_swappiness from target memory cgroup
 
-This is the first stage of struct mem_cgroup_zone removal.  Further
-patches replace struct mem_cgroup_zone with a pointer to struct lruvec.
+Use vm_swappiness from memory cgroup which is triggered this memory
+reclaim.  This is more reasonable and allows to kill one argument.
 
-If CONFIG_CGROUP_MEM_RES_CTLR=n lruvec_zone() is just container_of().
-
+[akpm@linux-foundation.org: fix build (patch skew)]
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   14 ++++++++++++++
- mm/memcontrol.c        |    4 +---
- mm/mmzone.c            |   14 ++++++++++++++
- mm/page_alloc.c        |    8 +-------
- 4 files changed, 30 insertions(+), 10 deletions(-)
+ mm/vmscan.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-add-link-from-struct-lruvec-to-struct-zone include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-add-link-from-struct-lruvec-to-struct-zone
-+++ a/include/linux/mmzone.h
-@@ -201,6 +201,9 @@ struct zone_reclaim_stat {
- struct lruvec {
- 	struct list_head lists[NR_LRU_LISTS];
- 	struct zone_reclaim_stat reclaim_stat;
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+	struct zone *zone;
-+#endif
- };
- 
- /* Mask used at gathering information at once (see memcontrol.c) */
-@@ -729,6 +732,17 @@ extern int init_currently_empty_zone(str
- 				     unsigned long size,
- 				     enum memmap_context context);
- 
-+extern void lruvec_init(struct lruvec *lruvec, struct zone *zone);
-+
-+static inline struct zone *lruvec_zone(struct lruvec *lruvec)
-+{
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+	return lruvec->zone;
-+#else
-+	return container_of(lruvec, struct zone, lruvec);
-+#endif
-+}
-+
- #ifdef CONFIG_HAVE_MEMORY_PRESENT
- void memory_present(int nid, unsigned long start, unsigned long end);
- #else
-diff -puN mm/memcontrol.c~mm-add-link-from-struct-lruvec-to-struct-zone mm/memcontrol.c
---- a/mm/memcontrol.c~mm-add-link-from-struct-lruvec-to-struct-zone
-+++ a/mm/memcontrol.c
-@@ -4738,7 +4738,6 @@ static int alloc_mem_cgroup_per_zone_inf
- {
- 	struct mem_cgroup_per_node *pn;
- 	struct mem_cgroup_per_zone *mz;
--	enum lru_list lru;
- 	int zone, tmp = node;
- 	/*
- 	 * This routine is called against possible nodes.
-@@ -4756,8 +4755,7 @@ static int alloc_mem_cgroup_per_zone_inf
- 
- 	for (zone = 0; zone < MAX_NR_ZONES; zone++) {
- 		mz = &pn->zoneinfo[zone];
--		for_each_lru(lru)
--			INIT_LIST_HEAD(&mz->lruvec.lists[lru]);
-+		lruvec_init(&mz->lruvec, &NODE_DATA(node)->node_zones[zone]);
- 		mz->usage_in_excess = 0;
- 		mz->on_tree = false;
- 		mz->memcg = memcg;
-diff -puN mm/mmzone.c~mm-add-link-from-struct-lruvec-to-struct-zone mm/mmzone.c
---- a/mm/mmzone.c~mm-add-link-from-struct-lruvec-to-struct-zone
-+++ a/mm/mmzone.c
-@@ -86,3 +86,17 @@ int memmap_valid_within(unsigned long pf
- 	return 1;
+diff -puN mm/vmscan.c~mm-memcg-use-vm_swappiness-from-target-memory-cgroup mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcg-use-vm_swappiness-from-target-memory-cgroup
++++ a/mm/vmscan.c
+@@ -1622,12 +1622,11 @@ static unsigned long shrink_list(enum lr
+ 	return shrink_inactive_list(nr_to_scan, mz, sc, priority, lru);
  }
- #endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
-+
-+void lruvec_init(struct lruvec *lruvec, struct zone *zone)
-+{
-+	enum lru_list lru;
-+
-+	memset(lruvec, 0, sizeof(struct lruvec));
-+
-+	for_each_lru(lru)
-+		INIT_LIST_HEAD(&lruvec->lists[lru]);
-+
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
-+	lruvec->zone = zone;
-+#endif
-+}
-diff -puN mm/page_alloc.c~mm-add-link-from-struct-lruvec-to-struct-zone mm/page_alloc.c
---- a/mm/page_alloc.c~mm-add-link-from-struct-lruvec-to-struct-zone
-+++ a/mm/page_alloc.c
-@@ -4358,7 +4358,6 @@ static void __paginginit free_area_init_
- 	for (j = 0; j < MAX_NR_ZONES; j++) {
- 		struct zone *zone = pgdat->node_zones + j;
- 		unsigned long size, realsize, memmap_pages;
--		enum lru_list lru;
  
- 		size = zone_spanned_pages_in_node(nid, j, zones_size);
- 		realsize = size - zone_absent_pages_in_node(nid, j,
-@@ -4408,12 +4407,7 @@ static void __paginginit free_area_init_
- 		zone->zone_pgdat = pgdat;
+-static int vmscan_swappiness(struct mem_cgroup_zone *mz,
+-			     struct scan_control *sc)
++static int vmscan_swappiness(struct scan_control *sc)
+ {
+ 	if (global_reclaim(sc))
+ 		return vm_swappiness;
+-	return mem_cgroup_swappiness(mz->mem_cgroup);
++	return mem_cgroup_swappiness(sc->target_mem_cgroup);
+ }
  
- 		zone_pcp_init(zone);
--		for_each_lru(lru)
--			INIT_LIST_HEAD(&zone->lruvec.lists[lru]);
--		zone->lruvec.reclaim_stat.recent_rotated[0] = 0;
--		zone->lruvec.reclaim_stat.recent_rotated[1] = 0;
--		zone->lruvec.reclaim_stat.recent_scanned[0] = 0;
--		zone->lruvec.reclaim_stat.recent_scanned[1] = 0;
-+		lruvec_init(&zone->lruvec, zone);
- 		zap_zone_vm_stats(zone);
- 		zone->flags = 0;
- 		if (!size)
+ /*
+@@ -1695,8 +1694,8 @@ static void get_scan_count(struct mem_cg
+ 	 * With swappiness at 100, anonymous and file have the same priority.
+ 	 * This scanning priority is essentially the inverse of IO cost.
+ 	 */
+-	anon_prio = vmscan_swappiness(mz, sc);
+-	file_prio = 200 - vmscan_swappiness(mz, sc);
++	anon_prio = vmscan_swappiness(sc);
++	file_prio = 200 - vmscan_swappiness(sc);
+ 
+ 	/*
+ 	 * OK, so we have swap space and a fair amount of page cache
+@@ -1741,7 +1740,7 @@ out:
+ 		unsigned long scan;
+ 
+ 		scan = zone_nr_lru_pages(mz, lru);
+-		if (priority || noswap || !vmscan_swappiness(mz, sc)) {
++		if (priority || noswap || !vmscan_swappiness(sc)) {
+ 			scan >>= priority;
+ 			if (!scan && force_scan)
+ 				scan = SWAP_CLUSTER_MAX;
 _
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
