@@ -1,502 +1,953 @@
 From: akpm@linux-foundation.org
-Subject: [merged] leds-add-new-transient-trigger-for-one-shot-timer-activation.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:19:50 -0700
-Message-ID: <20120531191950.7FB4CA0203@akpm.mtv.corp.google.com>
+Subject: [merged] leds-add-lm3533-led-driver.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:19:54 -0700
+Message-ID: <20120531191954.83E4FA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:46966 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933093Ab2EaTTx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:19:53 -0400
-Received: by were53 with SMTP id e53so76004wer.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:19:51 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:38235 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933093Ab2EaTTz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:19:55 -0400
+Received: by yenl3 with SMTP id l3so138431yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:19:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuahkhan@gmail.com, bryan.wu@canonical.com, jonas@southpole.se, neilb@suse.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jhovold@gmail.com, FlorianSchandinat@gmx.de, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, bryan.wu@canonical.com, gregkh@linuxfoundation.org, jic23@cam.ac.uk, rob@landley.net, rpurdie@rpsys.net, sameo@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: leds: add new transient trigger for one shot timer activation
+     Subject: leds: add LM3533 LED driver
 has been removed from the -mm tree.  Its filename was
-     leds-add-new-transient-trigger-for-one-shot-timer-activation.patch
+     leds-add-lm3533-led-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Shuah Khan <shuahkhan@gmail.com>
-Subject: leds: add new transient trigger for one shot timer activation
+From: Johan Hovold <jhovold@gmail.com>
+Subject: leds: add LM3533 LED driver
 
-The leds timer trigger does not currently have an interface to activate a
-one shot timer.  The current support allows for setting two timers, one
-for specifying how long a state to be on, and the second for how long the
-state to be off.  The delay_on value specifies the time period an LED
-should stay in on state, followed by a delay_off value that specifies how
-long the LED should stay in off state.  The on and off cycle repeats until
-the trigger gets deactivated.  There is no provision for one time
-activation to implement features that require an on or off state to be
-held just once and then stay in the original state forever.
+Add sub-driver for the LEDs on National Semiconductor / TI LM3533 lighting
+power chips.
 
-Without one shot timer interface, user space can still use timer trigger
-to set a timer to hold a state, however when user space application
-crashes or goes away without deactivating the timer, the hardware will be
-left in that state permanently.
+The chip provides 256 brightness levels, hardware accelerated blinking as
+well as ambient-light-sensor and pwm input control.
 
-As a specific example of this use-case, let's look at vibrate feature on
-phones.  Vibrate function on phones is implemented using PWM pins on SoC
-or PMIC.  There is a need to activate one shot timer to control the
-vibrate feature, to prevent user space crashes leaving the phone in
-vibrate mode permanently causing the battery to drain.
-
-This trigger exports three properties, activate, state, and duration When
-transient trigger is activated these properties are set to default values.
-
-- duration allows setting timer value in msecs. The initial value is 0.
-- activate allows activating and deactivating the timer specified by
-  duration as needed. The initial and default value is 0.  This will allow
-  duration to be set after trigger activation.
-- state allows user to specify a transient state to be held for the specified
-  duration.
-
-Signed-off-by: Shuah Khan <shuahkhan@gmail.com>
-Cc: Jonas Bonn <jonas@southpole.se>
+Signed-off-by: Johan Hovold <jhovold@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: NeilBrown <neilb@suse.de>
+Cc: Rob Landley <rob@landley.net>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Bryan Wu <bryan.wu@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/leds/ledtrig-transient.txt |  152 +++++++++++++
- drivers/leds/Kconfig                     |    8 
- drivers/leds/Makefile                    |    1 
- drivers/leds/ledtrig-transient.c         |  237 +++++++++++++++++++++
- 4 files changed, 398 insertions(+)
+ Documentation/ABI/testing/sysfs-class-led-driver-lm3533 |   65 
+ drivers/leds/Kconfig                                    |   13 
+ drivers/leds/Makefile                                   |    1 
+ drivers/leds/leds-lm3533.c                              |  785 ++++++++++
+ 4 files changed, 864 insertions(+)
 
-diff -puN /dev/null Documentation/leds/ledtrig-transient.txt
+diff -puN /dev/null Documentation/ABI/testing/sysfs-class-led-driver-lm3533
 --- /dev/null
-+++ a/Documentation/leds/ledtrig-transient.txt
-@@ -0,0 +1,152 @@
-+LED Transient Trigger
-+=====================
++++ a/Documentation/ABI/testing/sysfs-class-led-driver-lm3533
+@@ -0,0 +1,65 @@
++What:		/sys/class/leds/<led>/als_channel
++Date:		May 2012
++KernelVersion:	3.5
++Contact:	Johan Hovold <jhovold@gmail.com>
++Description:
++		Set the ALS output channel to use as input in
++		ALS-current-control mode (1, 2), where
 +
-+The leds timer trigger does not currently have an interface to activate
-+a one shot timer. The current support allows for setting two timers, one for
-+specifying how long a state to be on, and the second for how long the state
-+to be off. The delay_on value specifies the time period an LED should stay
-+in on state, followed by a delay_off value that specifies how long the LED
-+should stay in off state. The on and off cycle repeats until the trigger
-+gets deactivated. There is no provision for one time activation to implement
-+features that require an on or off state to be held just once and then stay in
-+the original state forever.
++		1 - out_current1
++		2 - out_current2
 +
-+Without one shot timer interface, user space can still use timer trigger to
-+set a timer to hold a state, however when user space application crashes or
-+goes away without deactivating the timer, the hardware will be left in that
-+state permanently.
++What:		/sys/class/leds/<led>/als_en
++Date:		May 2012
++KernelVersion:	3.5
++Contact:	Johan Hovold <jhovold@gmail.com>
++Description:
++		Enable ALS-current-control mode (0, 1).
 +
-+As a specific example of this use-case, let's look at vibrate feature on
-+phones. Vibrate function on phones is implemented using PWM pins on SoC or
-+PMIC. There is a need to activate one shot timer to control the vibrate
-+feature, to prevent user space crashes leaving the phone in vibrate mode
-+permanently causing the battery to drain.
++What:		/sys/class/leds/<led>/falltime
++What:		/sys/class/leds/<led>/risetime
++Date:		April 2012
++KernelVersion:	3.5
++Contact:	Johan Hovold <jhovold@gmail.com>
++Description:
++		Set the pattern generator fall and rise times (0..7), where
 +
-+Transient trigger addresses the need for one shot timer activation. The
-+transient trigger can be enabled and disabled just like the other leds
-+triggers.
++		0 - 2048 us
++		1 - 262 ms
++		2 - 524 ms
++		3 - 1.049 s
++		4 - 2.097 s
++		5 - 4.194 s
++		6 - 8.389 s
++		7 - 16.78 s
 +
-+When an led class device driver registers itself, it can specify all leds
-+triggers it supports and a default trigger. During registration, activation
-+routine for the default trigger gets called. During registration of an led
-+class device, the LED state does not change.
++What:		/sys/class/leds/<led>/id
++Date:		April 2012
++KernelVersion:	3.5
++Contact:	Johan Hovold <jhovold@gmail.com>
++Description:
++		Get the id of this led (0..3).
 +
-+When the driver unregisters, deactivation routine for the currently active
-+trigger will be called, and LED state is changed to LED_OFF.
++What:		/sys/class/leds/<led>/linear
++Date:		April 2012
++KernelVersion:	3.5
++Contact:	Johan Hovold <jhovold@gmail.com>
++Description:
++		Set the brightness-mapping mode (0, 1), where
 +
-+Driver suspend changes the LED state to LED_OFF and resume doesn't change
-+the state. Please note that there is no explicit interaction between the
-+suspend and resume actions and the currently enabled trigger. LED state
-+changes are suspended while the driver is in suspend state. Any timers
-+that are active at the time driver gets suspended, continue to run, without
-+being able to actually change the LED state. Once driver is resumed, triggers
-+start functioning again.
++		0 - exponential mode
++		1 - linear mode
 +
-+LED state changes are controlled using brightness which is a common led
-+class device property. When brightness is set to 0 from user space via
-+echo 0 > brightness, it will result in deactivating the current trigger.
++What:		/sys/class/leds/<led>/pwm
++Date:		April 2012
++KernelVersion:	3.5
++Contact:	Johan Hovold <jhovold@gmail.com>
++Description:
++		Set the PWM-input control mask (5 bits), where
 +
-+Transient trigger uses standard register and unregister interfaces. During
-+trigger registration, for each led class device that specifies this trigger
-+as its default trigger, trigger activation routine will get called. During
-+registration, the LED state does not change, unless there is another trigger
-+active, in which case LED state changes to LED_OFF.
-+
-+During trigger unregistration, LED state gets changed to LED_OFF.
-+
-+Transient trigger activation routine doesn't change the LED state. It
-+creates its properties and does its initialization. Transient trigger
-+deactivation routine, will cancel any timer that is active before it cleans
-+up and removes the properties it created. It will restore the LED state to
-+non-transient state. When driver gets suspended, irrespective of the transient
-+state, the LED state changes to LED_OFF.
-+
-+Transient trigger can be enabled and disabled from user space on led class
-+devices, that support this trigger as shown below:
-+
-+echo transient > trigger
-+echo none > trigger
-+
-+NOTE: Add a new property trigger state to control the state.
-+
-+This trigger exports three properties, activate, state, and duration. When
-+transient trigger is activated these properties are set to default values.
-+
-+- duration allows setting timer value in msecs. The initial value is 0.
-+- activate allows activating and deactivating the timer specified by
-+  duration as needed. The initial and default value is 0.  This will allow
-+  duration to be set after trigger activation.
-+- state allows user to specify a transient state to be held for the specified
-+  duration.
-+
-+	activate - one shot timer activate mechanism.
-+		1 when activated, 0 when deactivated.
-+		default value is zero when transient trigger is enabled,
-+		to allow duration to be set.
-+
-+		activate state indicates a timer with a value of specified
-+		duration running.
-+		deactivated state indicates that there is no active timer
-+		running.
-+
-+	duration - one shot timer value. When activate is set, duration value
-+		is used to start a timer that runs once. This value doesn't
-+		get changed by the trigger unless user does a set via
-+		echo new_value > duration
-+
-+	state - transient state to be held. It has two values 0 or 1. 0 maps
-+		to LED_OFF and 1 maps to LED_FULL. The specified state is
-+		held for the duration of the one shot timer and then the
-+		state gets changed to the non-transient state which is the
-+		inverse of transient state.
-+		If state = LED_FULL, when the timer runs out the state will
-+		go back to LED_OFF.
-+		If state = LED_OFF, when the timer runs out the state will
-+		go back to LED_FULL.
-+		Please note that current LED state is not checked prior to
-+		changing the state to the specified state.
-+		Driver could map these values to inverted depending on the
-+		default states it defines for the LED in its brightness_set()
-+		interface which is called from the led brightness_set()
-+		interfaces to control the LED state.
-+
-+When timer expires activate goes back to deactivated state, duration is left
-+at the set value to be used when activate is set at a future time. This will
-+allow user app to set the time once and activate it to run it once for the
-+specified value as needed. When timer expires, state is restored to the
-+non-transient state which is the inverse of the transient state.
-+
-+	echo 1 > activate - starts timer = duration when duration is not 0.
-+	echo 0 > activate - cancels currently running timer.
-+	echo n > duration - stores timer value to be used upon next
-+                            activate. Currently active timer if
-+                            any, continues to run for the specified time.
-+	echo 0 > duration - stores timer value to be used upon next
-+                            activate. Currently active timer if any,
-+                            continues to run for the specified time.
-+	echo 1 > state    - stores desired transient state LED_FULL to be
-+			    held for the specified duration.
-+	echo 0 > state    - stores desired transient state LED_OFF to be
-+			    held for the specified duration.
-+
-+What is not supported:
-+======================
-+- Timer activation is one shot and extending and/or shortening the timer
-+  is not supported.
-+
-+Example use-case 1:
-+	echo transient > trigger
-+	echo n > duration
-+	echo 1 > state
-+repeat the following step as needed:
-+	echo 1 > activate - start timer = duration to run once
-+	echo 1 > activate - start timer = duration to run once
-+	echo none > trigger
-+
-+This trigger is intended to be used for for the following example use cases:
-+ - Control of vibrate (phones, tablets etc.) hardware by user space app.
-+ - Use of LED by user space app as activity indicator.
-+ - Use of LED by user space app as a kind of watchdog indicator -- as
-+       long as the app is alive, it can keep the LED illuminated, if it dies
-+       the LED will be extinguished automatically.
-+ - Use by any user space app that needs a transient GPIO output.
-diff -puN drivers/leds/Kconfig~leds-add-new-transient-trigger-for-one-shot-timer-activation drivers/leds/Kconfig
---- a/drivers/leds/Kconfig~leds-add-new-transient-trigger-for-one-shot-timer-activation
++		bit 5 - PWM-input enabled in Zone 4
++		bit 4 - PWM-input enabled in Zone 3
++		bit 3 - PWM-input enabled in Zone 2
++		bit 2 - PWM-input enabled in Zone 1
++		bit 1 - PWM-input enabled in Zone 0
++		bit 0 - PWM-input enabled
+diff -puN drivers/leds/Kconfig~leds-add-lm3533-led-driver drivers/leds/Kconfig
+--- a/drivers/leds/Kconfig~leds-add-lm3533-led-driver
 +++ a/drivers/leds/Kconfig
-@@ -479,4 +479,12 @@ config LEDS_TRIGGER_DEFAULT_ON
- comment "iptables trigger is under Netfilter config (LED target)"
- 	depends on LEDS_TRIGGERS
+@@ -50,6 +50,19 @@ config LEDS_LM3530
+ 	  controlled manually or using PWM input or using ambient
+ 	  light automatically.
  
-+config LEDS_TRIGGER_TRANSIENT
-+	tristate "LED Transient Trigger"
-+	depends on LEDS_TRIGGERS
++config LEDS_LM3533
++	tristate "LED support for LM3533"
++	depends on LEDS_CLASS
++	depends on MFD_LM3533
 +	help
-+	  This allows one time activation of a transient state on
-+	  GPIO/PWM based hadrware.
-+	  If unsure, say Y.
++	  This option enables support for the LEDs on National Semiconductor /
++	  TI LM3533 Lighting Power chips.
 +
- endif # NEW_LEDS
-diff -puN drivers/leds/Makefile~leds-add-new-transient-trigger-for-one-shot-timer-activation drivers/leds/Makefile
---- a/drivers/leds/Makefile~leds-add-new-transient-trigger-for-one-shot-timer-activation
++	  The LEDs can be controlled directly, through PWM input, or by the
++	  ambient-light-sensor interface. The chip supports
++	  hardware-accelerated blinking with maximum on and off periods of 9.8
++	  and 77 seconds respectively.
++
+ config LEDS_LOCOMO
+ 	tristate "LED Support for Locomo device"
+ 	depends on LEDS_CLASS
+diff -puN drivers/leds/Makefile~leds-add-lm3533-led-driver drivers/leds/Makefile
+--- a/drivers/leds/Makefile~leds-add-lm3533-led-driver
 +++ a/drivers/leds/Makefile
-@@ -57,3 +57,4 @@ obj-$(CONFIG_LEDS_TRIGGER_HEARTBEAT)	+= 
- obj-$(CONFIG_LEDS_TRIGGER_BACKLIGHT)	+= ledtrig-backlight.o
- obj-$(CONFIG_LEDS_TRIGGER_GPIO)		+= ledtrig-gpio.o
- obj-$(CONFIG_LEDS_TRIGGER_DEFAULT_ON)	+= ledtrig-default-on.o
-+obj-$(CONFIG_LEDS_TRIGGER_TRANSIENT)	+= ledtrig-transient.o
-diff -puN /dev/null drivers/leds/ledtrig-transient.c
+@@ -10,6 +10,7 @@ obj-$(CONFIG_LEDS_ATMEL_PWM)		+= leds-at
+ obj-$(CONFIG_LEDS_BD2802)		+= leds-bd2802.o
+ obj-$(CONFIG_LEDS_LOCOMO)		+= leds-locomo.o
+ obj-$(CONFIG_LEDS_LM3530)		+= leds-lm3530.o
++obj-$(CONFIG_LEDS_LM3533)		+= leds-lm3533.o
+ obj-$(CONFIG_LEDS_MIKROTIK_RB532)	+= leds-rb532.o
+ obj-$(CONFIG_LEDS_S3C24XX)		+= leds-s3c24xx.o
+ obj-$(CONFIG_LEDS_NET48XX)		+= leds-net48xx.o
+diff -puN /dev/null drivers/leds/leds-lm3533.c
 --- /dev/null
-+++ a/drivers/leds/ledtrig-transient.c
-@@ -0,0 +1,237 @@
++++ a/drivers/leds/leds-lm3533.c
+@@ -0,0 +1,785 @@
 +/*
-+ * LED Kernel Transient Trigger
++ * leds-lm3533.c -- LM3533 LED driver
 + *
-+ * Copyright (C) 2012 Shuah Khan <shuahkhan@gmail.com>
++ * Copyright (C) 2011-2012 Texas Instruments
 + *
-+ * Based on Richard Purdie's ledtrig-timer.c and Atsushi Nemoto's
-+ * ledtrig-heartbeat.c
-+ * Design and use-case input from Jonas Bonn <jonas@southpole.se> and
-+ * Neil Brown <neilb@suse.de>
++ * Author: Johan Hovold <jhovold@gmail.com>
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under  the terms of the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the License, or (at your
++ * option) any later version.
 + */
-+/*
-+ * Transient trigger allows one shot timer activation. Please refer to
-+ * Documentation/leds/ledtrig-transient.txt for details
-+*/
 +
 +#include <linux/module.h>
-+#include <linux/kernel.h>
 +#include <linux/init.h>
-+#include <linux/device.h>
-+#include <linux/slab.h>
-+#include <linux/timer.h>
 +#include <linux/leds.h>
-+#include "leds.h"
++#include <linux/mfd/core.h>
++#include <linux/mutex.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/workqueue.h>
 +
-+struct transient_trig_data {
-+	int activate;
-+	int state;
-+	int restore_state;
-+	unsigned long duration;
-+	struct timer_list timer;
++#include <linux/mfd/lm3533.h>
++
++
++#define LM3533_LVCTRLBANK_MIN		2
++#define LM3533_LVCTRLBANK_MAX		5
++#define LM3533_LVCTRLBANK_COUNT		4
++#define LM3533_RISEFALLTIME_MAX		7
++#define LM3533_ALS_CHANNEL_LV_MIN	1
++#define LM3533_ALS_CHANNEL_LV_MAX	2
++
++#define LM3533_REG_CTRLBANK_BCONF_BASE		0x1b
++#define LM3533_REG_PATTERN_ENABLE		0x28
++#define LM3533_REG_PATTERN_LOW_TIME_BASE	0x71
++#define LM3533_REG_PATTERN_HIGH_TIME_BASE	0x72
++#define LM3533_REG_PATTERN_RISETIME_BASE	0x74
++#define LM3533_REG_PATTERN_FALLTIME_BASE	0x75
++
++#define LM3533_REG_PATTERN_STEP			0x10
++
++#define LM3533_REG_CTRLBANK_BCONF_MAPPING_MASK		0x04
++#define LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK		0x02
++#define LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK	0x01
++
++#define LM3533_LED_FLAG_PATTERN_ENABLE		1
++
++
++struct lm3533_led {
++	struct lm3533 *lm3533;
++	struct lm3533_ctrlbank cb;
++	struct led_classdev cdev;
++	int id;
++
++	struct mutex mutex;
++	unsigned long flags;
++
++	struct work_struct work;
++	u8 new_brightness;
 +};
 +
-+static void transient_timer_function(unsigned long data)
-+{
-+	struct led_classdev *led_cdev = (struct led_classdev *) data;
-+	struct transient_trig_data *transient_data = led_cdev->trigger_data;
 +
-+	transient_data->activate = 0;
-+	led_set_brightness(led_cdev, transient_data->restore_state);
++static inline struct lm3533_led *to_lm3533_led(struct led_classdev *cdev)
++{
++	return container_of(cdev, struct lm3533_led, cdev);
 +}
 +
-+static ssize_t transient_activate_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
++static inline int lm3533_led_get_ctrlbank_id(struct lm3533_led *led)
 +{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct transient_trig_data *transient_data = led_cdev->trigger_data;
-+
-+	return sprintf(buf, "%d\n", transient_data->activate);
++	return led->id + 2;
 +}
 +
-+static ssize_t transient_activate_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
++static inline u8 lm3533_led_get_lv_reg(struct lm3533_led *led, u8 base)
 +{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct transient_trig_data *transient_data = led_cdev->trigger_data;
-+	unsigned long state;
-+	ssize_t ret;
-+
-+	ret = kstrtoul(buf, 10, &state);
-+	if (ret)
-+		return ret;
-+
-+	if (state != 1 && state != 0)
-+		return -EINVAL;
-+
-+	/* cancel the running timer */
-+	if (state == 0 && transient_data->activate == 1) {
-+		del_timer(&transient_data->timer);
-+		transient_data->activate = state;
-+		led_set_brightness(led_cdev, transient_data->restore_state);
-+		return size;
-+	}
-+
-+	/* start timer if there is no active timer */
-+	if (state == 1 && transient_data->activate == 0 &&
-+	    transient_data->duration != 0) {
-+		transient_data->activate = state;
-+		led_set_brightness(led_cdev, transient_data->state);
-+		transient_data->restore_state =
-+		    (transient_data->state == LED_FULL) ? LED_OFF : LED_FULL;
-+		mod_timer(&transient_data->timer,
-+			  jiffies + transient_data->duration);
-+	}
-+
-+	/* state == 0 && transient_data->activate == 0
-+		timer is not active - just return */
-+	/* state == 1 && transient_data->activate == 1
-+		timer is already active - just return */
-+
-+	return size;
++	return base + led->id;
 +}
 +
-+static ssize_t transient_duration_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
++static inline u8 lm3533_led_get_pattern(struct lm3533_led *led)
 +{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct transient_trig_data *transient_data = led_cdev->trigger_data;
-+
-+	return sprintf(buf, "%lu\n", transient_data->duration);
++	return led->id;
 +}
 +
-+static ssize_t transient_duration_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
++static inline u8 lm3533_led_get_pattern_reg(struct lm3533_led *led,
++								u8 base)
 +{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct transient_trig_data *transient_data = led_cdev->trigger_data;
-+	unsigned long state;
-+	ssize_t ret;
-+
-+	ret = kstrtoul(buf, 10, &state);
-+	if (ret)
-+		return ret;
-+
-+	transient_data->duration = state;
-+	return size;
++	return base + lm3533_led_get_pattern(led) * LM3533_REG_PATTERN_STEP;
 +}
 +
-+static ssize_t transient_state_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
++static int lm3533_led_pattern_enable(struct lm3533_led *led, int enable)
 +{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct transient_trig_data *transient_data = led_cdev->trigger_data;
++	u8 mask;
++	u8 val;
++	int pattern;
 +	int state;
++	int ret = 0;
 +
-+	state = (transient_data->state == LED_FULL) ? 1 : 0;
-+	return sprintf(buf, "%d\n", state);
++	dev_dbg(led->cdev.dev, "%s - %d\n", __func__, enable);
++
++	mutex_lock(&led->mutex);
++
++	state = test_bit(LM3533_LED_FLAG_PATTERN_ENABLE, &led->flags);
++	if ((enable && state) || (!enable && !state))
++		goto out;
++
++	pattern = lm3533_led_get_pattern(led);
++	mask = 1 << (2 * pattern);
++
++	if (enable)
++		val = mask;
++	else
++		val = 0;
++
++	ret = lm3533_update(led->lm3533, LM3533_REG_PATTERN_ENABLE, val, mask);
++	if (ret) {
++		dev_err(led->cdev.dev, "failed to enable pattern %d (%d)\n",
++							pattern, enable);
++		goto out;
++	}
++
++	__change_bit(LM3533_LED_FLAG_PATTERN_ENABLE, &led->flags);
++out:
++	mutex_unlock(&led->mutex);
++
++	return ret;
 +}
 +
-+static ssize_t transient_state_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
++static void lm3533_led_work(struct work_struct *work)
 +{
-+	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-+	struct transient_trig_data *transient_data = led_cdev->trigger_data;
-+	unsigned long state;
-+	ssize_t ret;
++	struct lm3533_led *led = container_of(work, struct lm3533_led, work);
 +
-+	ret = kstrtoul(buf, 10, &state);
++	dev_dbg(led->cdev.dev, "%s - %u\n", __func__, led->new_brightness);
++
++	if (led->new_brightness == 0)
++		lm3533_led_pattern_enable(led, 0);	/* disable blink */
++
++	lm3533_ctrlbank_set_brightness(&led->cb, led->new_brightness);
++}
++
++static void lm3533_led_set(struct led_classdev *cdev,
++						enum led_brightness value)
++{
++	struct lm3533_led *led = to_lm3533_led(cdev);
++
++	dev_dbg(led->cdev.dev, "%s - %d\n", __func__, value);
++
++	led->new_brightness = value;
++	schedule_work(&led->work);
++}
++
++static enum led_brightness lm3533_led_get(struct led_classdev *cdev)
++{
++	struct lm3533_led *led = to_lm3533_led(cdev);
++	u8 val;
++	int ret;
++
++	ret = lm3533_ctrlbank_get_brightness(&led->cb, &val);
 +	if (ret)
 +		return ret;
 +
-+	if (state != 1 && state != 0)
++	dev_dbg(led->cdev.dev, "%s - %u\n", __func__, val);
++
++	return val;
++}
++
++/* Pattern generator defines (delays in us). */
++#define LM3533_LED_DELAY1_VMIN	0x00
++#define LM3533_LED_DELAY2_VMIN	0x3d
++#define LM3533_LED_DELAY3_VMIN	0x80
++
++#define LM3533_LED_DELAY1_VMAX	(LM3533_LED_DELAY2_VMIN - 1)
++#define LM3533_LED_DELAY2_VMAX	(LM3533_LED_DELAY3_VMIN - 1)
++#define LM3533_LED_DELAY3_VMAX	0xff
++
++#define LM3533_LED_DELAY1_TMIN	16384U
++#define LM3533_LED_DELAY2_TMIN	1130496U
++#define LM3533_LED_DELAY3_TMIN	10305536U
++
++#define LM3533_LED_DELAY1_TMAX	999424U
++#define LM3533_LED_DELAY2_TMAX	9781248U
++#define LM3533_LED_DELAY3_TMAX	76890112U
++
++/* t_step = (t_max - t_min) / (v_max - v_min) */
++#define LM3533_LED_DELAY1_TSTEP	16384
++#define LM3533_LED_DELAY2_TSTEP	131072
++#define LM3533_LED_DELAY3_TSTEP	524288
++
++/* Delay limits for hardware accelerated blinking (in ms). */
++#define LM3533_LED_DELAY_ON_MAX \
++	((LM3533_LED_DELAY2_TMAX + LM3533_LED_DELAY2_TSTEP / 2) / 1000)
++#define LM3533_LED_DELAY_OFF_MAX \
++	((LM3533_LED_DELAY3_TMAX + LM3533_LED_DELAY3_TSTEP / 2) / 1000)
++
++/*
++ * Returns linear map of *t from [t_min,t_max] to [v_min,v_max] with a step
++ * size of t_step, where
++ *
++ *	t_step = (t_max - t_min) / (v_max - v_min)
++ *
++ * and updates *t to reflect the mapped value.
++ */
++static u8 time_to_val(unsigned *t, unsigned t_min, unsigned t_step,
++							u8 v_min, u8 v_max)
++{
++	unsigned val;
++
++	val = (*t + t_step / 2 - t_min) / t_step + v_min;
++
++	*t = t_step * (val - v_min) + t_min;
++
++	return (u8)val;
++}
++
++/*
++ * Returns time code corresponding to *delay (in ms) and updates *delay to
++ * reflect actual hardware delay.
++ *
++ * Hardware supports 256 discrete delay times, divided into three groups with
++ * the following ranges and step-sizes:
++ *
++ *	[   16,   999]	[0x00, 0x3e]	step  16 ms
++ *	[ 1130,  9781]	[0x3d, 0x7f]	step 131 ms
++ *	[10306, 76890]	[0x80, 0xff]	step 524 ms
++ *
++ * Note that delay group 3 is only available for delay_off.
++ */
++static u8 lm3533_led_get_hw_delay(unsigned *delay)
++{
++	unsigned t;
++	u8 val;
++
++	t = *delay * 1000;
++
++	if (t >= (LM3533_LED_DELAY2_TMAX + LM3533_LED_DELAY3_TMIN) / 2) {
++		t = clamp(t, LM3533_LED_DELAY3_TMIN, LM3533_LED_DELAY3_TMAX);
++		val = time_to_val(&t,	LM3533_LED_DELAY3_TMIN,
++					LM3533_LED_DELAY3_TSTEP,
++					LM3533_LED_DELAY3_VMIN,
++					LM3533_LED_DELAY3_VMAX);
++	} else if (t >= (LM3533_LED_DELAY1_TMAX + LM3533_LED_DELAY2_TMIN) / 2) {
++		t = clamp(t, LM3533_LED_DELAY2_TMIN, LM3533_LED_DELAY2_TMAX);
++		val = time_to_val(&t,	LM3533_LED_DELAY2_TMIN,
++					LM3533_LED_DELAY2_TSTEP,
++					LM3533_LED_DELAY2_VMIN,
++					LM3533_LED_DELAY2_VMAX);
++	} else {
++		t = clamp(t, LM3533_LED_DELAY1_TMIN, LM3533_LED_DELAY1_TMAX);
++		val = time_to_val(&t,	LM3533_LED_DELAY1_TMIN,
++					LM3533_LED_DELAY1_TSTEP,
++					LM3533_LED_DELAY1_VMIN,
++					LM3533_LED_DELAY1_VMAX);
++	}
++
++	*delay = (t + 500) / 1000;
++
++	return val;
++}
++
++/*
++ * Set delay register base to *delay (in ms) and update *delay to reflect
++ * actual hardware delay used.
++ */
++static u8 lm3533_led_delay_set(struct lm3533_led *led, u8 base,
++							unsigned long *delay)
++{
++	unsigned t;
++	u8 val;
++	u8 reg;
++	int ret;
++
++	t = (unsigned)*delay;
++
++	/* Delay group 3 is only available for low time (delay off). */
++	if (base != LM3533_REG_PATTERN_LOW_TIME_BASE)
++		t = min(t, LM3533_LED_DELAY2_TMAX / 1000);
++
++	val = lm3533_led_get_hw_delay(&t);
++
++	dev_dbg(led->cdev.dev, "%s - %lu: %u (0x%02x)\n", __func__,
++							*delay, t, val);
++	reg = lm3533_led_get_pattern_reg(led, base);
++	ret = lm3533_write(led->lm3533, reg, val);
++	if (ret)
++		dev_err(led->cdev.dev, "failed to set delay (%02x)\n", reg);
++
++	*delay = t;
++
++	return ret;
++}
++
++static int lm3533_led_delay_on_set(struct lm3533_led *led, unsigned long *t)
++{
++	return lm3533_led_delay_set(led, LM3533_REG_PATTERN_HIGH_TIME_BASE, t);
++}
++
++static int lm3533_led_delay_off_set(struct lm3533_led *led, unsigned long *t)
++{
++	return lm3533_led_delay_set(led, LM3533_REG_PATTERN_LOW_TIME_BASE, t);
++}
++
++static int lm3533_led_blink_set(struct led_classdev *cdev,
++				unsigned long *delay_on,
++				unsigned long *delay_off)
++{
++	struct lm3533_led *led = to_lm3533_led(cdev);
++	int ret;
++
++	dev_dbg(led->cdev.dev, "%s - on = %lu, off = %lu\n", __func__,
++							*delay_on, *delay_off);
++
++	if (*delay_on > LM3533_LED_DELAY_ON_MAX ||
++					*delay_off > LM3533_LED_DELAY_OFF_MAX)
 +		return -EINVAL;
 +
-+	transient_data->state = (state == 1) ? LED_FULL : LED_OFF;
-+	return size;
-+}
-+
-+static DEVICE_ATTR(activate, 0644, transient_activate_show,
-+		   transient_activate_store);
-+static DEVICE_ATTR(duration, 0644, transient_duration_show,
-+		   transient_duration_store);
-+static DEVICE_ATTR(state, 0644, transient_state_show, transient_state_store);
-+
-+static void transient_trig_activate(struct led_classdev *led_cdev)
-+{
-+	int rc;
-+	struct transient_trig_data *tdata;
-+
-+	tdata = kzalloc(sizeof(struct transient_trig_data), GFP_KERNEL);
-+	if (!tdata) {
-+		dev_err(led_cdev->dev,
-+			"unable to allocate transient trigger\n");
-+		return;
++	if (*delay_on == 0 && *delay_off == 0) {
++		*delay_on = 500;
++		*delay_off = 500;
 +	}
-+	led_cdev->trigger_data = tdata;
 +
-+	rc = device_create_file(led_cdev->dev, &dev_attr_activate);
-+	if (rc)
-+		goto err_out;
++	ret = lm3533_led_delay_on_set(led, delay_on);
++	if (ret)
++		return ret;
 +
-+	rc = device_create_file(led_cdev->dev, &dev_attr_duration);
-+	if (rc)
-+		goto err_out_duration;
++	ret = lm3533_led_delay_off_set(led, delay_off);
++	if (ret)
++		return ret;
 +
-+	rc = device_create_file(led_cdev->dev, &dev_attr_state);
-+	if (rc)
-+		goto err_out_state;
-+
-+	setup_timer(&tdata->timer, transient_timer_function,
-+		    (unsigned long) led_cdev);
-+	led_cdev->activated = true;
-+
-+	return;
-+
-+err_out_state:
-+	device_remove_file(led_cdev->dev, &dev_attr_duration);
-+err_out_duration:
-+	device_remove_file(led_cdev->dev, &dev_attr_activate);
-+err_out:
-+	dev_err(led_cdev->dev, "unable to register transient trigger\n");
-+	led_cdev->trigger_data = NULL;
-+	kfree(tdata);
++	return lm3533_led_pattern_enable(led, 1);
 +}
 +
-+static void transient_trig_deactivate(struct led_classdev *led_cdev)
++static ssize_t show_id(struct device *dev,
++				struct device_attribute *attr, char *buf)
 +{
-+	struct transient_trig_data *transient_data = led_cdev->trigger_data;
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
 +
-+	if (led_cdev->activated) {
-+		del_timer_sync(&transient_data->timer);
-+		led_set_brightness(led_cdev, transient_data->restore_state);
-+		device_remove_file(led_cdev->dev, &dev_attr_activate);
-+		device_remove_file(led_cdev->dev, &dev_attr_duration);
-+		device_remove_file(led_cdev->dev, &dev_attr_state);
-+		led_cdev->trigger_data = NULL;
-+		led_cdev->activated = false;
-+		kfree(transient_data);
-+	}
++	return scnprintf(buf, PAGE_SIZE, "%d\n", led->id);
 +}
 +
-+static struct led_trigger transient_trigger = {
-+	.name     = "transient",
-+	.activate = transient_trig_activate,
-+	.deactivate = transient_trig_deactivate,
++/*
++ * Pattern generator rise/fall times:
++ *
++ *   0 - 2048 us (default)
++ *   1 - 262 ms
++ *   2 - 524 ms
++ *   3 - 1.049 s
++ *   4 - 2.097 s
++ *   5 - 4.194 s
++ *   6 - 8.389 s
++ *   7 - 16.78 s
++ */
++static ssize_t show_risefalltime(struct device *dev,
++					struct device_attribute *attr,
++					char *buf, u8 base)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	ssize_t ret;
++	u8 reg;
++	u8 val;
++
++	reg = lm3533_led_get_pattern_reg(led, base);
++	ret = lm3533_read(led->lm3533, reg, &val);
++	if (ret)
++		return ret;
++
++	return scnprintf(buf, PAGE_SIZE, "%x\n", val);
++}
++
++static ssize_t show_risetime(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	return show_risefalltime(dev, attr, buf,
++					LM3533_REG_PATTERN_RISETIME_BASE);
++}
++
++static ssize_t show_falltime(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	return show_risefalltime(dev, attr, buf,
++					LM3533_REG_PATTERN_FALLTIME_BASE);
++}
++
++static ssize_t store_risefalltime(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len, u8 base)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	u8 val;
++	u8 reg;
++	int ret;
++
++	if (kstrtou8(buf, 0, &val) || val > LM3533_RISEFALLTIME_MAX)
++		return -EINVAL;
++
++	reg = lm3533_led_get_pattern_reg(led, base);
++	ret = lm3533_write(led->lm3533, reg, val);
++	if (ret)
++		return ret;
++
++	return len;
++}
++
++static ssize_t store_risetime(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len)
++{
++	return store_risefalltime(dev, attr, buf, len,
++					LM3533_REG_PATTERN_RISETIME_BASE);
++}
++
++static ssize_t store_falltime(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len)
++{
++	return store_risefalltime(dev, attr, buf, len,
++					LM3533_REG_PATTERN_FALLTIME_BASE);
++}
++
++static ssize_t show_als_channel(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	unsigned channel;
++	u8 reg;
++	u8 val;
++	int ret;
++
++	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
++	ret = lm3533_read(led->lm3533, reg, &val);
++	if (ret)
++		return ret;
++
++	channel = (val & LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK) + 1;
++
++	return scnprintf(buf, PAGE_SIZE, "%u\n", channel);
++}
++
++static ssize_t store_als_channel(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	unsigned channel;
++	u8 reg;
++	u8 val;
++	u8 mask;
++	int ret;
++
++	if (kstrtouint(buf, 0, &channel))
++		return -EINVAL;
++
++	if (channel < LM3533_ALS_CHANNEL_LV_MIN ||
++					channel > LM3533_ALS_CHANNEL_LV_MAX)
++		return -EINVAL;
++
++	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
++	mask = LM3533_REG_CTRLBANK_BCONF_ALS_CHANNEL_MASK;
++	val = channel - 1;
++
++	ret = lm3533_update(led->lm3533, reg, val, mask);
++	if (ret)
++		return ret;
++
++	return len;
++}
++
++static ssize_t show_als_en(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	bool enable;
++	u8 reg;
++	u8 val;
++	int ret;
++
++	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
++	ret = lm3533_read(led->lm3533, reg, &val);
++	if (ret)
++		return ret;
++
++	enable = val & LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK;
++
++	return scnprintf(buf, PAGE_SIZE, "%d\n", enable);
++}
++
++static ssize_t store_als_en(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	unsigned enable;
++	u8 reg;
++	u8 mask;
++	u8 val;
++	int ret;
++
++	if (kstrtouint(buf, 0, &enable))
++		return -EINVAL;
++
++	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
++	mask = LM3533_REG_CTRLBANK_BCONF_ALS_EN_MASK;
++
++	if (enable)
++		val = mask;
++	else
++		val = 0;
++
++	ret = lm3533_update(led->lm3533, reg, val, mask);
++	if (ret)
++		return ret;
++
++	return len;
++}
++
++static ssize_t show_linear(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	u8 reg;
++	u8 val;
++	int linear;
++	int ret;
++
++	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
++	ret = lm3533_read(led->lm3533, reg, &val);
++	if (ret)
++		return ret;
++
++	if (val & LM3533_REG_CTRLBANK_BCONF_MAPPING_MASK)
++		linear = 1;
++	else
++		linear = 0;
++
++	return scnprintf(buf, PAGE_SIZE, "%x\n", linear);
++}
++
++static ssize_t store_linear(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	unsigned long linear;
++	u8 reg;
++	u8 mask;
++	u8 val;
++	int ret;
++
++	if (kstrtoul(buf, 0, &linear))
++		return -EINVAL;
++
++	reg = lm3533_led_get_lv_reg(led, LM3533_REG_CTRLBANK_BCONF_BASE);
++	mask = LM3533_REG_CTRLBANK_BCONF_MAPPING_MASK;
++
++	if (linear)
++		val = mask;
++	else
++		val = 0;
++
++	ret = lm3533_update(led->lm3533, reg, val, mask);
++	if (ret)
++		return ret;
++
++	return len;
++}
++
++static ssize_t show_pwm(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	u8 val;
++	int ret;
++
++	ret = lm3533_ctrlbank_get_pwm(&led->cb, &val);
++	if (ret)
++		return ret;
++
++	return scnprintf(buf, PAGE_SIZE, "%u\n", val);
++}
++
++static ssize_t store_pwm(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len)
++{
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	u8 val;
++	int ret;
++
++	if (kstrtou8(buf, 0, &val))
++		return -EINVAL;
++
++	ret = lm3533_ctrlbank_set_pwm(&led->cb, val);
++	if (ret)
++		return ret;
++
++	return len;
++}
++
++static LM3533_ATTR_RW(als_channel);
++static LM3533_ATTR_RW(als_en);
++static LM3533_ATTR_RW(falltime);
++static LM3533_ATTR_RO(id);
++static LM3533_ATTR_RW(linear);
++static LM3533_ATTR_RW(pwm);
++static LM3533_ATTR_RW(risetime);
++
++static struct attribute *lm3533_led_attributes[] = {
++	&dev_attr_als_channel.attr,
++	&dev_attr_als_en.attr,
++	&dev_attr_falltime.attr,
++	&dev_attr_id.attr,
++	&dev_attr_linear.attr,
++	&dev_attr_pwm.attr,
++	&dev_attr_risetime.attr,
++	NULL,
 +};
 +
-+static int __init transient_trig_init(void)
++static umode_t lm3533_led_attr_is_visible(struct kobject *kobj,
++					     struct attribute *attr, int n)
 +{
-+	return led_trigger_register(&transient_trigger);
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct led_classdev *led_cdev = dev_get_drvdata(dev);
++	struct lm3533_led *led = to_lm3533_led(led_cdev);
++	umode_t mode = attr->mode;
++
++	if (attr == &dev_attr_als_channel.attr ||
++					attr == &dev_attr_als_en.attr) {
++		if (!led->lm3533->have_als)
++			mode = 0;
++	}
++
++	return mode;
++};
++
++static struct attribute_group lm3533_led_attribute_group = {
++	.is_visible	= lm3533_led_attr_is_visible,
++	.attrs		= lm3533_led_attributes
++};
++
++static int __devinit lm3533_led_setup(struct lm3533_led *led,
++					struct lm3533_led_platform_data *pdata)
++{
++	int ret;
++
++	ret = lm3533_ctrlbank_set_max_current(&led->cb, pdata->max_current);
++	if (ret)
++		return ret;
++
++	return lm3533_ctrlbank_set_pwm(&led->cb, pdata->pwm);
 +}
 +
-+static void __exit transient_trig_exit(void)
++static int __devinit lm3533_led_probe(struct platform_device *pdev)
 +{
-+	led_trigger_unregister(&transient_trigger);
++	struct lm3533 *lm3533;
++	struct lm3533_led_platform_data *pdata;
++	struct lm3533_led *led;
++	int ret;
++
++	dev_dbg(&pdev->dev, "%s\n", __func__);
++
++	lm3533 = dev_get_drvdata(pdev->dev.parent);
++	if (!lm3533)
++		return -EINVAL;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata) {
++		dev_err(&pdev->dev, "no platform data\n");
++		return -EINVAL;
++	}
++
++	if (pdev->id < 0 || pdev->id >= LM3533_LVCTRLBANK_COUNT) {
++		dev_err(&pdev->dev, "illegal LED id %d\n", pdev->id);
++		return -EINVAL;
++	}
++
++	led = devm_kzalloc(&pdev->dev, sizeof(*led), GFP_KERNEL);
++	if (!led)
++		return -ENOMEM;
++
++	led->lm3533 = lm3533;
++	led->cdev.name = pdata->name;
++	led->cdev.default_trigger = pdata->default_trigger;
++	led->cdev.brightness_set = lm3533_led_set;
++	led->cdev.brightness_get = lm3533_led_get;
++	led->cdev.blink_set = lm3533_led_blink_set;
++	led->cdev.brightness = LED_OFF;
++	led->id = pdev->id;
++
++	mutex_init(&led->mutex);
++	INIT_WORK(&led->work, lm3533_led_work);
++
++	/* The class framework makes a callback to get brightness during
++	 * registration so use parent device (for error reporting) until
++	 * registered.
++	 */
++	led->cb.lm3533 = lm3533;
++	led->cb.id = lm3533_led_get_ctrlbank_id(led);
++	led->cb.dev = lm3533->dev;
++
++	platform_set_drvdata(pdev, led);
++
++	ret = led_classdev_register(pdev->dev.parent, &led->cdev);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to register LED %d\n", pdev->id);
++		return ret;
++	}
++
++	led->cb.dev = led->cdev.dev;
++
++	ret = sysfs_create_group(&led->cdev.dev->kobj,
++						&lm3533_led_attribute_group);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "failed to create sysfs attributes\n");
++		goto err_unregister;
++	}
++
++	ret = lm3533_led_setup(led, pdata);
++	if (ret)
++		goto err_sysfs_remove;
++
++	ret = lm3533_ctrlbank_enable(&led->cb);
++	if (ret)
++		goto err_sysfs_remove;
++
++	return 0;
++
++err_sysfs_remove:
++	sysfs_remove_group(&led->cdev.dev->kobj, &lm3533_led_attribute_group);
++err_unregister:
++	led_classdev_unregister(&led->cdev);
++	flush_work_sync(&led->work);
++
++	return ret;
 +}
 +
-+module_init(transient_trig_init);
-+module_exit(transient_trig_exit);
++static int __devexit lm3533_led_remove(struct platform_device *pdev)
++{
++	struct lm3533_led *led = platform_get_drvdata(pdev);
 +
-+MODULE_AUTHOR("Shuah Khan <shuahkhan@gmail.com>");
-+MODULE_DESCRIPTION("Transient LED trigger");
++	dev_dbg(&pdev->dev, "%s\n", __func__);
++
++	lm3533_ctrlbank_disable(&led->cb);
++	sysfs_remove_group(&led->cdev.dev->kobj, &lm3533_led_attribute_group);
++	led_classdev_unregister(&led->cdev);
++	flush_work_sync(&led->work);
++
++	return 0;
++}
++
++static void lm3533_led_shutdown(struct platform_device *pdev)
++{
++
++	struct lm3533_led *led = platform_get_drvdata(pdev);
++
++	dev_dbg(&pdev->dev, "%s\n", __func__);
++
++	lm3533_ctrlbank_disable(&led->cb);
++	lm3533_led_set(&led->cdev, LED_OFF);		/* disable blink */
++	flush_work_sync(&led->work);
++}
++
++static struct platform_driver lm3533_led_driver = {
++	.driver = {
++		.name = "lm3533-leds",
++		.owner = THIS_MODULE,
++	},
++	.probe		= lm3533_led_probe,
++	.remove		= __devexit_p(lm3533_led_remove),
++	.shutdown	= lm3533_led_shutdown,
++};
++module_platform_driver(lm3533_led_driver);
++
++MODULE_AUTHOR("Johan Hovold <jhovold@gmail.com>");
++MODULE_DESCRIPTION("LM3533 LED driver");
 +MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:lm3533-leds");
 _
 
-Patches currently in -mm which might be from shuahkhan@gmail.com are
+Patches currently in -mm which might be from jhovold@gmail.com are
 
 origin.patch
 
