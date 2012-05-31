@@ -1,396 +1,490 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-replace-page-if-mapping-excludes-its-zone.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:15:28 -0700
-Message-ID: <20120531191528.85F5AA0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:15:25 -0700
+Message-ID: <20120531191525.A3E74A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:62879 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932937Ab2EaTP3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:29 -0400
-Received: by mail-gg0-f202.google.com with SMTP id h3so135414gge.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:29 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42243 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932750Ab2EaTP2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:28 -0400
+Received: by qabg24 with SMTP id g24so154247qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, airlied@gmail.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, daniel@ffwll.ch, hch@infradead.org, kamezawa.hiroyu@jp.fujitsu.com, marcheu@chromium.org, rob.clark@linaro.org, mm-commits@vger.kernel.org
+To: b.zolnierkie@samsung.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: replace page if mapping excludes its zone
+     Subject: mm: compaction: handle incorrect MIGRATE_UNMOVABLE type pageblocks
 has been removed from the -mm tree.  Its filename was
-     shmem-replace-page-if-mapping-excludes-its-zone.patch
+     mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: shmem: replace page if mapping excludes its zone
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: mm: compaction: handle incorrect MIGRATE_UNMOVABLE type pageblocks
 
-The GMA500 GPU driver uses GEM shmem objects, but with a new twist: the
-backing RAM has to be below 4GB.  Not a problem while the boards supported
-only 4GB: but now Intel's D2700MUD boards support 8GB, and their GMA3600
-is managed by the GMA500 driver.
+When MIGRATE_UNMOVABLE pages are freed from MIGRATE_UNMOVABLE type
+pageblock (and some MIGRATE_MOVABLE pages are left in it) waiting until an
+allocation takes ownership of the block may take too long.  The type of
+the pageblock remains unchanged so the pageblock cannot be used as a
+migration target during compaction.
 
-shmem/tmpfs has never pretended to support hardware restrictions on the
-backing memory, but it might have appeared to do so before v3.1, and even
-now it works fine until a page is swapped out then back in.  When
-read_cache_page_gfp() supplied a freshly allocated page for copy, that
-compensated for whatever choice might have been made by earlier swapin
-readahead; but swapoff was likely to destroy the illusion.
+Fix it by:
 
-We'd like to continue to support GMA500, so now add a new
-shmem_should_replace_page() check on the zone when about to move a page
-from swapcache to filecache (in swapin and swapoff cases), with
-shmem_replace_page() to allocate and substitute a suitable page (given
-gma500/gem.c's mapping_set_gfp_mask GFP_KERNEL | __GFP_DMA32).
+* Adding enum compact_mode (COMPACT_ASYNC_[MOVABLE,UNMOVABLE], and
+  COMPACT_SYNC) and then converting sync field in struct compact_control
+  to use it.
 
-This does involve a minor extension to mem_cgroup_replace_page_cache()
-(the page may or may not have already been charged); and I've removed a
-comment and call to mem_cgroup_uncharge_cache_page(), which in fact is
-always a no-op while PageSwapCache.
+* Adding nr_pageblocks_skipped field to struct compact_control and
+  tracking how many destination pageblocks were of MIGRATE_UNMOVABLE type.
+   If COMPACT_ASYNC_MOVABLE mode compaction ran fully in
+  try_to_compact_pages() (COMPACT_COMPLETE) it implies that there is not a
+  suitable page for allocation.  In this case then check how if there were
+  enough MIGRATE_UNMOVABLE pageblocks to try a second pass in
+  COMPACT_ASYNC_UNMOVABLE mode.
 
-Also removed optimization of an unlikely path in shmem_getpage_gfp(), now
-that we need to check PageSwapCache more carefully (a racing caller might
-already have made the copy).  And at one point shmem_unuse_inode() needs
-to use the hitherto private page_swapcount(), to guard against racing with
-inode eviction.
+* Scanning the MIGRATE_UNMOVABLE pageblocks (during COMPACT_SYNC and
+  COMPACT_ASYNC_UNMOVABLE compaction modes) and building a count based on
+  finding PageBuddy pages, page_count(page) == 0 or PageLRU pages.  If all
+  pages within the MIGRATE_UNMOVABLE pageblock are in one of those three
+  sets change the whole pageblock type to MIGRATE_MOVABLE.
 
-It would make sense to extend shmem_should_replace_page(), to cover cpuset
-and NUMA mempolicy restrictions too, but set that aside for now: needs a
-cleanup of shmem mempolicy handling, and more testing, and ought to handle
-swap faults in do_swap_page() as well as shmem.
+My particular test case (on a ARM EXYNOS4 device with 512 MiB, which means
+131072 standard 4KiB pages in 'Normal' zone) is to:
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Stephane Marchesin <marcheu@chromium.org>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Rob Clark <rob.clark@linaro.org>
+- allocate 120000 pages for kernel's usage
+- free every second page (60000 pages) of memory just allocated
+- allocate and use 60000 pages from user space
+- free remaining 60000 pages of kernel memory
+  (now we have fragmented memory occupied mostly by user space pages)
+- try to allocate 100 order-9 (2048 KiB) pages for kernel's usage
+
+The results:
+- with compaction disabled I get 11 successful allocations
+- with compaction enabled - 14 successful allocations
+- with this patch I'm able to get all 100 successful allocations
+
+NOTE: If we can make kswapd aware of order-0 request during compaction, we
+can enhance kswapd with changing mode to COMPACT_ASYNC_FULL
+(COMPACT_ASYNC_MOVABLE + COMPACT_ASYNC_UNMOVABLE).  Please see the
+following thread:
+
+	http://marc.info/?l=linux-mm&m=133552069417068&w=2
+
+[minchan@kernel.org: minor cleanups]
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 +
- mm/memcontrol.c      |   17 +++-
- mm/shmem.c           |  141 +++++++++++++++++++++++++++++++++++------
- mm/swapfile.c        |    2 
- 4 files changed, 142 insertions(+), 24 deletions(-)
+ include/linux/compaction.h |   19 ++++
+ mm/compaction.c            |  142 +++++++++++++++++++++++++++++------
+ mm/internal.h              |    9 +-
+ mm/page_alloc.c            |    8 -
+ 4 files changed, 150 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/swap.h~shmem-replace-page-if-mapping-excludes-its-zone include/linux/swap.h
---- a/include/linux/swap.h~shmem-replace-page-if-mapping-excludes-its-zone
-+++ a/include/linux/swap.h
-@@ -351,6 +351,7 @@ extern int swap_type_of(dev_t, sector_t,
- extern unsigned int count_swap_pages(int, int);
- extern sector_t map_swap_page(struct page *, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
-+extern int page_swapcount(struct page *);
- extern int reuse_swap_page(struct page *);
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
-@@ -445,6 +446,11 @@ static inline void delete_from_swap_cach
- {
- }
+diff -puN include/linux/compaction.h~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks
++++ a/include/linux/compaction.h
+@@ -1,6 +1,8 @@
+ #ifndef _LINUX_COMPACTION_H
+ #define _LINUX_COMPACTION_H
  
-+static inline int page_swapcount(struct page *page)
-+{
-+	return 0;
-+}
++#include <linux/node.h>
 +
- #define reuse_swap_page(page)	(page_mapcount(page) == 1)
+ /* Return values for compact_zone() and try_to_compact_pages() */
+ /* compaction didn't start as it was not possible or direct reclaim was more suitable */
+ #define COMPACT_SKIPPED		0
+@@ -11,6 +13,23 @@
+ /* The full zone was compacted */
+ #define COMPACT_COMPLETE	3
  
- static inline int try_to_free_swap(struct page *page)
-diff -puN mm/memcontrol.c~shmem-replace-page-if-mapping-excludes-its-zone mm/memcontrol.c
---- a/mm/memcontrol.c~shmem-replace-page-if-mapping-excludes-its-zone
-+++ a/mm/memcontrol.c
-@@ -3373,7 +3373,7 @@ void mem_cgroup_end_migration(struct mem
- void mem_cgroup_replace_page_cache(struct page *oldpage,
- 				  struct page *newpage)
- {
--	struct mem_cgroup *memcg;
-+	struct mem_cgroup *memcg = NULL;
- 	struct page_cgroup *pc;
- 	enum charge_type type = MEM_CGROUP_CHARGE_TYPE_CACHE;
- 
-@@ -3383,11 +3383,20 @@ void mem_cgroup_replace_page_cache(struc
- 	pc = lookup_page_cgroup(oldpage);
- 	/* fix accounting on old pages */
- 	lock_page_cgroup(pc);
--	memcg = pc->mem_cgroup;
--	mem_cgroup_charge_statistics(memcg, false, -1);
--	ClearPageCgroupUsed(pc);
-+	if (PageCgroupUsed(pc)) {
-+		memcg = pc->mem_cgroup;
-+		mem_cgroup_charge_statistics(memcg, false, -1);
-+		ClearPageCgroupUsed(pc);
-+	}
- 	unlock_page_cgroup(pc);
- 
-+	/*
-+	 * When called from shmem_replace_page(), in some cases the
-+	 * oldpage has already been charged, and in some cases not.
-+	 */
-+	if (!memcg)
-+		return;
-+
- 	if (PageSwapBacked(oldpage))
- 		type = MEM_CGROUP_CHARGE_TYPE_SHMEM;
- 
-diff -puN mm/shmem.c~shmem-replace-page-if-mapping-excludes-its-zone mm/shmem.c
---- a/mm/shmem.c~shmem-replace-page-if-mapping-excludes-its-zone
-+++ a/mm/shmem.c
-@@ -103,6 +103,9 @@ static unsigned long shmem_default_max_i
- }
- #endif
- 
-+static bool shmem_should_replace_page(struct page *page, gfp_t gfp);
-+static int shmem_replace_page(struct page **pagep, gfp_t gfp,
-+				struct shmem_inode_info *info, pgoff_t index);
- static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
- 	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type);
- 
-@@ -604,12 +607,13 @@ static void shmem_evict_inode(struct ino
-  * If swap found in inode, free it and move page from swapcache to filecache.
-  */
- static int shmem_unuse_inode(struct shmem_inode_info *info,
--			     swp_entry_t swap, struct page *page)
-+			     swp_entry_t swap, struct page **pagep)
- {
- 	struct address_space *mapping = info->vfs_inode.i_mapping;
- 	void *radswap;
- 	pgoff_t index;
--	int error;
-+	gfp_t gfp;
-+	int error = 0;
- 
- 	radswap = swp_to_radix_entry(swap);
- 	index = radix_tree_locate_item(&mapping->page_tree, radswap);
-@@ -625,22 +629,37 @@ static int shmem_unuse_inode(struct shme
- 	if (shmem_swaplist.next != &info->swaplist)
- 		list_move_tail(&shmem_swaplist, &info->swaplist);
- 
-+	gfp = mapping_gfp_mask(mapping);
-+	if (shmem_should_replace_page(*pagep, gfp)) {
-+		mutex_unlock(&shmem_swaplist_mutex);
-+		error = shmem_replace_page(pagep, gfp, info, index);
-+		mutex_lock(&shmem_swaplist_mutex);
-+		/*
-+		 * We needed to drop mutex to make that restrictive page
-+		 * allocation; but the inode might already be freed by now,
-+		 * and we cannot refer to inode or mapping or info to check.
-+		 * However, we do hold page lock on the PageSwapCache page,
-+		 * so can check if that still has our reference remaining.
-+		 */
-+		if (!page_swapcount(*pagep))
-+			error = -ENOENT;
-+	}
-+
- 	/*
- 	 * We rely on shmem_swaplist_mutex, not only to protect the swaplist,
- 	 * but also to hold up shmem_evict_inode(): so inode cannot be freed
- 	 * beneath us (pagelock doesn't help until the page is in pagecache).
- 	 */
--	error = shmem_add_to_page_cache(page, mapping, index,
-+	if (!error)
-+		error = shmem_add_to_page_cache(*pagep, mapping, index,
- 						GFP_NOWAIT, radswap);
--	/* which does mem_cgroup_uncharge_cache_page on error */
--
- 	if (error != -ENOMEM) {
- 		/*
- 		 * Truncation and eviction use free_swap_and_cache(), which
- 		 * only does trylock page: if we raced, best clean up here.
- 		 */
--		delete_from_swap_cache(page);
--		set_page_dirty(page);
-+		delete_from_swap_cache(*pagep);
-+		set_page_dirty(*pagep);
- 		if (!error) {
- 			spin_lock(&info->lock);
- 			info->swapped--;
-@@ -660,7 +679,14 @@ int shmem_unuse(swp_entry_t swap, struct
- 	struct list_head *this, *next;
- 	struct shmem_inode_info *info;
- 	int found = 0;
--	int error;
-+	int error = 0;
-+
-+	/*
-+	 * There's a faint possibility that swap page was replaced before
-+	 * caller locked it: it will come back later with the right page.
-+	 */
-+	if (unlikely(!PageSwapCache(page)))
-+		goto out;
- 
- 	/*
- 	 * Charge page using GFP_KERNEL while we can wait, before taking
-@@ -676,7 +702,7 @@ int shmem_unuse(swp_entry_t swap, struct
- 	list_for_each_safe(this, next, &shmem_swaplist) {
- 		info = list_entry(this, struct shmem_inode_info, swaplist);
- 		if (info->swapped)
--			found = shmem_unuse_inode(info, swap, page);
-+			found = shmem_unuse_inode(info, swap, &page);
- 		else
- 			list_del_init(&info->swaplist);
- 		cond_resched();
-@@ -685,8 +711,6 @@ int shmem_unuse(swp_entry_t swap, struct
- 	}
- 	mutex_unlock(&shmem_swaplist_mutex);
- 
--	if (!found)
--		mem_cgroup_uncharge_cache_page(page);
- 	if (found < 0)
- 		error = found;
- out:
-@@ -856,6 +880,84 @@ static inline struct mempolicy *shmem_ge
- #endif
- 
- /*
-+ * When a page is moved from swapcache to shmem filecache (either by the
-+ * usual swapin of shmem_getpage_gfp(), or by the less common swapoff of
-+ * shmem_unuse_inode()), it may have been read in earlier from swap, in
-+ * ignorance of the mapping it belongs to.  If that mapping has special
-+ * constraints (like the gma500 GEM driver, which requires RAM below 4GB),
-+ * we may need to copy to a suitable page before moving to filecache.
++/*
++ * compaction supports three modes
 + *
-+ * In a future release, this may well be extended to respect cpuset and
-+ * NUMA mempolicy, and applied also to anonymous pages in do_swap_page();
-+ * but for now it is a simple matter of zone.
++ * COMPACT_ASYNC_MOVABLE uses asynchronous migration and only scans
++ *    MIGRATE_MOVABLE pageblocks as migration sources and targets.
++ * COMPACT_ASYNC_UNMOVABLE uses asynchronous migration and only scans
++ *    MIGRATE_MOVABLE pageblocks as migration sources.
++ *    MIGRATE_UNMOVABLE pageblocks are scanned as potential migration
++ *    targets and convers them to MIGRATE_MOVABLE if possible
++ * COMPACT_SYNC uses synchronous migration and scans all pageblocks
 + */
-+static bool shmem_should_replace_page(struct page *page, gfp_t gfp)
++enum compact_mode {
++	COMPACT_ASYNC_MOVABLE,
++	COMPACT_ASYNC_UNMOVABLE,
++	COMPACT_SYNC,
++};
++
+ #ifdef CONFIG_COMPACTION
+ extern int sysctl_compact_memory;
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+diff -puN mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks
++++ a/mm/compaction.c
+@@ -235,7 +235,7 @@ isolate_migratepages_range(struct zone *
+ 	 */
+ 	while (unlikely(too_many_isolated(zone))) {
+ 		/* async migration should just abort */
+-		if (!cc->sync)
++		if (cc->mode != COMPACT_SYNC)
+ 			return 0;
+ 
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+@@ -303,7 +303,8 @@ isolate_migratepages_range(struct zone *
+ 		 * satisfies the allocation
+ 		 */
+ 		pageblock_nr = low_pfn >> pageblock_order;
+-		if (!cc->sync && last_pageblock_nr != pageblock_nr &&
++		if (cc->mode != COMPACT_SYNC &&
++		    last_pageblock_nr != pageblock_nr &&
+ 		    !migrate_async_suitable(get_pageblock_migratetype(page))) {
+ 			low_pfn += pageblock_nr_pages;
+ 			low_pfn = ALIGN(low_pfn, pageblock_nr_pages) - 1;
+@@ -324,7 +325,7 @@ isolate_migratepages_range(struct zone *
+ 			continue;
+ 		}
+ 
+-		if (!cc->sync)
++		if (cc->mode != COMPACT_SYNC)
+ 			mode |= ISOLATE_ASYNC_MIGRATE;
+ 
+ 		/* Try isolate the page */
+@@ -357,27 +358,90 @@ isolate_migratepages_range(struct zone *
+ 
+ #endif /* CONFIG_COMPACTION || CONFIG_CMA */
+ #ifdef CONFIG_COMPACTION
++/*
++ * Returns true if MIGRATE_UNMOVABLE pageblock was successfully
++ * converted to MIGRATE_MOVABLE type, false otherwise.
++ */
++static bool rescue_unmovable_pageblock(struct page *page)
 +{
-+	return page_zonenum(page) > gfp_zone(gfp);
++	unsigned long pfn, start_pfn, end_pfn;
++	struct page *start_page, *end_page;
++
++	pfn = page_to_pfn(page);
++	start_pfn = pfn & ~(pageblock_nr_pages - 1);
++	end_pfn = start_pfn + pageblock_nr_pages;
++
++	start_page = pfn_to_page(start_pfn);
++	end_page = pfn_to_page(end_pfn);
++
++	/* Do not deal with pageblocks that overlap zones */
++	if (page_zone(start_page) != page_zone(end_page))
++		return false;
++
++	for (page = start_page, pfn = start_pfn; page < end_page; pfn++,
++								  page++) {
++		if (!pfn_valid_within(pfn))
++			continue;
+ 
+-/* Returns true if the page is within a block suitable for migration to */
+-static bool suitable_migration_target(struct page *page)
++		if (PageBuddy(page)) {
++			int order = page_order(page);
++
++			pfn += (1 << order) - 1;
++			page += (1 << order) - 1;
++
++			continue;
++		} else if (page_count(page) == 0 || PageLRU(page))
++			continue;
++
++		return false;
++	}
++
++	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++	move_freepages_block(page_zone(page), page, MIGRATE_MOVABLE);
++	return true;
 +}
 +
-+static int shmem_replace_page(struct page **pagep, gfp_t gfp,
-+				struct shmem_inode_info *info, pgoff_t index)
-+{
-+	struct page *oldpage, *newpage;
-+	struct address_space *swap_mapping;
-+	pgoff_t swap_index;
-+	int error;
-+
-+	oldpage = *pagep;
-+	swap_index = page_private(oldpage);
-+	swap_mapping = page_mapping(oldpage);
-+
-+	/*
-+	 * We have arrived here because our zones are constrained, so don't
-+	 * limit chance of success by further cpuset and node constraints.
-+	 */
-+	gfp &= ~GFP_CONSTRAINT_MASK;
-+	newpage = shmem_alloc_page(gfp, info, index);
-+	if (!newpage)
-+		return -ENOMEM;
-+	VM_BUG_ON(shmem_should_replace_page(newpage, gfp));
-+
-+	*pagep = newpage;
-+	page_cache_get(newpage);
-+	copy_highpage(newpage, oldpage);
-+
-+	VM_BUG_ON(!PageLocked(oldpage));
-+	__set_page_locked(newpage);
-+	VM_BUG_ON(!PageUptodate(oldpage));
-+	SetPageUptodate(newpage);
-+	VM_BUG_ON(!PageSwapBacked(oldpage));
-+	SetPageSwapBacked(newpage);
-+	VM_BUG_ON(!swap_index);
-+	set_page_private(newpage, swap_index);
-+	VM_BUG_ON(!PageSwapCache(oldpage));
-+	SetPageSwapCache(newpage);
-+
-+	/*
-+	 * Our caller will very soon move newpage out of swapcache, but it's
-+	 * a nice clean interface for us to replace oldpage by newpage there.
-+	 */
-+	spin_lock_irq(&swap_mapping->tree_lock);
-+	error = shmem_radix_tree_replace(swap_mapping, swap_index, oldpage,
-+								   newpage);
-+	__inc_zone_page_state(newpage, NR_FILE_PAGES);
-+	__dec_zone_page_state(oldpage, NR_FILE_PAGES);
-+	spin_unlock_irq(&swap_mapping->tree_lock);
-+	BUG_ON(error);
-+
-+	mem_cgroup_replace_page_cache(oldpage, newpage);
-+	lru_cache_add_anon(newpage);
-+
-+	ClearPageSwapCache(oldpage);
-+	set_page_private(oldpage, 0);
-+
-+	unlock_page(oldpage);
-+	page_cache_release(oldpage);
-+	page_cache_release(oldpage);
-+	return 0;
-+}
++enum smt_result {
++	GOOD_AS_MIGRATION_TARGET,
++	FAIL_UNMOVABLE_TARGET,
++	FAIL_BAD_TARGET,
++};
 +
 +/*
-  * shmem_getpage_gfp - find page in cache, or get from swap, or allocate
-  *
-  * If we allocate a new one we do not mark it dirty. That's up to the
-@@ -923,19 +1025,20 @@ repeat:
- 
- 		/* We have to do this with page locked to prevent races */
- 		lock_page(page);
-+		if (!PageSwapCache(page) || page->mapping) {
-+			error = -EEXIST;	/* try again */
-+			goto failed;
-+		}
- 		if (!PageUptodate(page)) {
- 			error = -EIO;
- 			goto failed;
- 		}
- 		wait_on_page_writeback(page);
- 
--		/* Someone may have already done it for us */
--		if (page->mapping) {
--			if (page->mapping == mapping &&
--			    page->index == index)
--				goto done;
--			error = -EEXIST;
--			goto failed;
-+		if (shmem_should_replace_page(page, gfp)) {
-+			error = shmem_replace_page(&page, gfp, info, index);
-+			if (error)
-+				goto failed;
- 		}
- 
- 		error = mem_cgroup_cache_charge(page, current->mm,
-@@ -998,7 +1101,7 @@ repeat:
- 		if (sgp == SGP_DIRTY)
- 			set_page_dirty(page);
- 	}
--done:
-+
- 	/* Perhaps the file has been truncated since we checked */
- 	if (sgp != SGP_WRITE &&
- 	    ((loff_t)index << PAGE_CACHE_SHIFT) >= i_size_read(inode)) {
-diff -puN mm/swapfile.c~shmem-replace-page-if-mapping-excludes-its-zone mm/swapfile.c
---- a/mm/swapfile.c~shmem-replace-page-if-mapping-excludes-its-zone
-+++ a/mm/swapfile.c
-@@ -601,7 +601,7 @@ void swapcache_free(swp_entry_t entry, s
-  * This does not give an exact answer when swap count is continued,
-  * but does include the high COUNT_CONTINUED flag to allow for that.
-  */
--static inline int page_swapcount(struct page *page)
-+int page_swapcount(struct page *page)
++ * Returns GOOD_AS_MIGRATION_TARGET if the page is within a block
++ * suitable for migration to, FAIL_UNMOVABLE_TARGET if the page
++ * is within a MIGRATE_UNMOVABLE block, FAIL_BAD_TARGET otherwise.
++ */
++static enum smt_result suitable_migration_target(struct page *page,
++				      struct compact_control *cc)
  {
- 	int count = 0;
- 	struct swap_info_struct *p;
+ 
+ 	int migratetype = get_pageblock_migratetype(page);
+ 
+ 	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
+ 	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
+-		return false;
++		return FAIL_BAD_TARGET;
+ 
+ 	/* If the page is a large free page, then allow migration */
+ 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
+-		return true;
++		return GOOD_AS_MIGRATION_TARGET;
+ 
+ 	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
+-	if (migrate_async_suitable(migratetype))
+-		return true;
++	if (cc->mode != COMPACT_ASYNC_UNMOVABLE &&
++	    migrate_async_suitable(migratetype))
++		return GOOD_AS_MIGRATION_TARGET;
++
++	if (cc->mode == COMPACT_ASYNC_MOVABLE &&
++	    migratetype == MIGRATE_UNMOVABLE)
++		return FAIL_UNMOVABLE_TARGET;
++
++	if (cc->mode != COMPACT_ASYNC_MOVABLE &&
++	    migratetype == MIGRATE_UNMOVABLE &&
++	    rescue_unmovable_pageblock(page))
++		return GOOD_AS_MIGRATION_TARGET;
+ 
+ 	/* Otherwise skip the block */
+-	return false;
++	return FAIL_BAD_TARGET;
+ }
+ 
+ /*
+@@ -411,6 +475,13 @@ static void isolate_freepages(struct zon
+ 	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+ 
+ 	/*
++	 * isolate_freepages() may be called more than once during
++	 * compact_zone_order() run and we want only the most recent
++	 * count.
++	 */
++	cc->nr_pageblocks_skipped = 0;
++
++	/*
+ 	 * Isolate free pages until enough are available to migrate the
+ 	 * pages on cc->migratepages. We stop searching if the migrate
+ 	 * and free page scanners meet or enough free pages are isolated.
+@@ -418,6 +489,7 @@ static void isolate_freepages(struct zon
+ 	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
+ 					pfn -= pageblock_nr_pages) {
+ 		unsigned long isolated;
++		enum smt_result ret;
+ 
+ 		if (!pfn_valid(pfn))
+ 			continue;
+@@ -434,9 +506,12 @@ static void isolate_freepages(struct zon
+ 			continue;
+ 
+ 		/* Check the block is suitable for migration */
+-		if (!suitable_migration_target(page))
++		ret = suitable_migration_target(page, cc);
++		if (ret != GOOD_AS_MIGRATION_TARGET) {
++			if (ret == FAIL_UNMOVABLE_TARGET)
++				cc->nr_pageblocks_skipped++;
+ 			continue;
+-
++		}
+ 		/*
+ 		 * Found a block suitable for isolating free pages from. Now
+ 		 * we disabled interrupts, double check things are ok and
+@@ -445,12 +520,14 @@ static void isolate_freepages(struct zon
+ 		 */
+ 		isolated = 0;
+ 		spin_lock_irqsave(&zone->lock, flags);
+-		if (suitable_migration_target(page)) {
++		ret = suitable_migration_target(page, cc);
++		if (ret == GOOD_AS_MIGRATION_TARGET) {
+ 			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
+ 			isolated = isolate_freepages_block(pfn, end_pfn,
+ 							   freelist, false);
+ 			nr_freepages += isolated;
+-		}
++		} else if (ret == FAIL_UNMOVABLE_TARGET)
++			cc->nr_pageblocks_skipped++;
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 
+ 		/*
+@@ -682,8 +759,9 @@ static int compact_zone(struct zone *zon
+ 
+ 		nr_migrate = cc->nr_migratepages;
+ 		err = migrate_pages(&cc->migratepages, compaction_alloc,
+-				(unsigned long)cc, false,
+-				cc->sync ? MIGRATE_SYNC_LIGHT : MIGRATE_ASYNC);
++			(unsigned long)&cc->freepages, false,
++			(cc->mode == COMPACT_SYNC) ? MIGRATE_SYNC_LIGHT
++						      : MIGRATE_ASYNC);
+ 		update_nr_listpages(cc);
+ 		nr_remaining = cc->nr_migratepages;
+ 
+@@ -712,7 +790,8 @@ out:
+ 
+ static unsigned long compact_zone_order(struct zone *zone,
+ 				 int order, gfp_t gfp_mask,
+-				 bool sync)
++				 enum compact_mode mode,
++				 unsigned long *nr_pageblocks_skipped)
+ {
+ 	struct compact_control cc = {
+ 		.nr_freepages = 0,
+@@ -720,12 +799,17 @@ static unsigned long compact_zone_order(
+ 		.order = order,
+ 		.migratetype = allocflags_to_migratetype(gfp_mask),
+ 		.zone = zone,
+-		.sync = sync,
++		.mode = mode,
+ 	};
++	unsigned long rc;
++
+ 	INIT_LIST_HEAD(&cc.freepages);
+ 	INIT_LIST_HEAD(&cc.migratepages);
+ 
+-	return compact_zone(zone, &cc);
++	rc = compact_zone(zone, &cc);
++	*nr_pageblocks_skipped = cc.nr_pageblocks_skipped;
++
++	return rc;
+ }
+ 
+ int sysctl_extfrag_threshold = 500;
+@@ -750,6 +834,8 @@ unsigned long try_to_compact_pages(struc
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	int rc = COMPACT_SKIPPED;
++	unsigned long nr_pageblocks_skipped;
++	enum compact_mode mode;
+ 
+ 	/*
+ 	 * Check whether it is worth even starting compaction. The order check is
+@@ -766,12 +852,22 @@ unsigned long try_to_compact_pages(struc
+ 								nodemask) {
+ 		int status;
+ 
+-		status = compact_zone_order(zone, order, gfp_mask, sync);
++		mode = sync ? COMPACT_SYNC : COMPACT_ASYNC_MOVABLE;
++retry:
++		status = compact_zone_order(zone, order, gfp_mask, mode,
++						&nr_pageblocks_skipped);
+ 		rc = max(status, rc);
+ 
+ 		/* If a normal allocation would succeed, stop compacting */
+ 		if (zone_watermark_ok(zone, order, low_wmark_pages(zone), 0, 0))
+ 			break;
++
++		if (rc == COMPACT_COMPLETE && mode == COMPACT_ASYNC_MOVABLE) {
++			if (nr_pageblocks_skipped) {
++				mode = COMPACT_ASYNC_UNMOVABLE;
++				goto retry;
++			}
++		}
+ 	}
+ 
+ 	return rc;
+@@ -805,7 +901,7 @@ static int __compact_pgdat(pg_data_t *pg
+ 			if (ok && cc->order > zone->compact_order_failed)
+ 				zone->compact_order_failed = cc->order + 1;
+ 			/* Currently async compaction is never deferred. */
+-			else if (!ok && cc->sync)
++			else if (!ok && cc->mode == COMPACT_SYNC)
+ 				defer_compaction(zone, cc->order);
+ 		}
+ 
+@@ -820,7 +916,7 @@ int compact_pgdat(pg_data_t *pgdat, int 
+ {
+ 	struct compact_control cc = {
+ 		.order = order,
+-		.sync = false,
++		.mode = COMPACT_ASYNC_MOVABLE,
+ 	};
+ 
+ 	return __compact_pgdat(pgdat, &cc);
+@@ -830,7 +926,7 @@ static int compact_node(int nid)
+ {
+ 	struct compact_control cc = {
+ 		.order = -1,
+-		.sync = true,
++		.mode = COMPACT_SYNC,
+ 	};
+ 
+ 	return __compact_pgdat(NODE_DATA(nid), &cc);
+diff -puN mm/internal.h~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks mm/internal.h
+--- a/mm/internal.h~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks
++++ a/mm/internal.h
+@@ -94,6 +94,9 @@ extern void putback_lru_page(struct page
+ /*
+  * in mm/page_alloc.c
+  */
++extern void set_pageblock_migratetype(struct page *page, int migratetype);
++extern int move_freepages_block(struct zone *zone, struct page *page,
++				int migratetype);
+ extern void __free_pages_bootmem(struct page *page, unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
+ #ifdef CONFIG_MEMORY_FAILURE
+@@ -101,6 +104,7 @@ extern bool is_free_buddy_page(struct pa
+ #endif
+ 
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
++#include <linux/compaction.h>
+ 
+ /*
+  * in mm/compaction.c
+@@ -119,11 +123,14 @@ struct compact_control {
+ 	unsigned long nr_migratepages;	/* Number of pages to migrate */
+ 	unsigned long free_pfn;		/* isolate_freepages search base */
+ 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
+-	bool sync;			/* Synchronous migration */
++	enum compact_mode mode;		/* Compaction mode */
+ 
+ 	int order;			/* order a direct compactor needs */
+ 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
+ 	struct zone *zone;
++
++	/* Number of UNMOVABLE destination pageblocks skipped during scan */
++	unsigned long nr_pageblocks_skipped;
+ };
+ 
+ unsigned long
+diff -puN mm/page_alloc.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks
++++ a/mm/page_alloc.c
+@@ -219,7 +219,7 @@ EXPORT_SYMBOL(nr_online_nodes);
+ 
+ int page_group_by_mobility_disabled __read_mostly;
+ 
+-static void set_pageblock_migratetype(struct page *page, int migratetype)
++void set_pageblock_migratetype(struct page *page, int migratetype)
+ {
+ 
+ 	if (unlikely(page_group_by_mobility_disabled))
+@@ -954,8 +954,8 @@ static int move_freepages(struct zone *z
+ 	return pages_moved;
+ }
+ 
+-static int move_freepages_block(struct zone *zone, struct page *page,
+-				int migratetype)
++int move_freepages_block(struct zone *zone, struct page *page,
++			 int migratetype)
+ {
+ 	unsigned long start_pfn, end_pfn;
+ 	struct page *start_page, *end_page;
+@@ -5657,7 +5657,7 @@ static int __alloc_contig_migrate_range(
+ 		.nr_migratepages = 0,
+ 		.order = -1,
+ 		.zone = page_zone(pfn_to_page(start)),
+-		.sync = true,
++		.mode = COMPACT_SYNC,
+ 	};
+ 	INIT_LIST_HEAD(&cc.migratepages);
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from b.zolnierkie@samsung.com are
 
 origin.patch
-linux-next.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-proc-clean-up-proc-pid-environ-handling.patch
-proc-remove-mm_for_maps.patch
-proc-use-mm_access-instead-of-ptrace_may_access.patch
-proc-report-file-anon-bit-in-proc-pid-pagemap.patch
-proc-use-is_err_or_null.patch
-fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
-prio_tree-debugging-patch.patch
 
