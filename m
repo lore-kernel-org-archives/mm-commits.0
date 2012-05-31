@@ -1,130 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-implement-numa-node-interleaving-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 31 May 2012 12:42:19 -0700
-Message-ID: <20120531194219.9AA53A0444@akpm.mtv.corp.google.com>
+Subject: [nacked] proc-smaps-show-amount-of-hwpoison-pages.patch removed from -mm tree
+Date: Thu, 31 May 2012 13:12:38 -0700
+Message-ID: <20120531201238.8E61CA03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:41685 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933202Ab2EaTmX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2012 15:42:23 -0400
-Received: by lagr15 with SMTP id r15so76675lag.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:42:21 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:63787 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933258Ab2EaUMk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 16:12:40 -0400
+Received: by faaa25 with SMTP id a25so77334faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 13:12:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nzimmer@sgi.com
+To: khlebnikov@openvz.org, adobriyan@gmail.com, ak@linux.intel.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs-implement-numa-node-interleaving-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     tmpfs-implement-numa-node-interleaving-checkpatch-fixes.patch
+     Subject: proc/smaps: show amount of hwpoison pages
+has been removed from the -mm tree.  Its filename was
+     proc-smaps-show-amount-of-hwpoison-pages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was nacked
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tmpfs-implement-numa-node-interleaving-checkpatch-fixes
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: proc/smaps: show amount of hwpoison pages
 
-ERROR: space prohibited before that close parenthesis ')'
-#46: FILE: mm/shmem.c:932:
-+	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT );
+Add the line "HWPoinson: <size> kB" into /proc/pid/smaps if
+CONFIG_MEMORY_FAILURE=y and some HWPoison pages were found.  This may be
+useful for searching applications which use a broken memory.
 
-total: 1 errors, 0 warnings, 22 lines checked
-
-./patches/tmpfs-implement-numa-node-interleaving.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Nathan T Zimmer <nzimmer@sgi.com>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/linux/shmem_fs.h~tmpfs-implement-numa-node-interleaving-checkpatch-fixes include/linux/shmem_fs.h
-diff -puN mm/shmem.c~tmpfs-implement-numa-node-interleaving-checkpatch-fixes mm/shmem.c
---- a/mm/shmem.c~tmpfs-implement-numa-node-interleaving-checkpatch-fixes
-+++ a/mm/shmem.c
-@@ -929,7 +929,7 @@ static struct page *shmem_alloc_page(gfp
- 	/*
- 	 * alloc_page_vma() will drop the shared policy reference
- 	 */
--	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT );
-+	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT);
- }
- #else /* !CONFIG_NUMA */
- #ifdef CONFIG_TMPFS
+diff -puN fs/proc/task_mmu.c~proc-smaps-show-amount-of-hwpoison-pages fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-smaps-show-amount-of-hwpoison-pages
++++ a/fs/proc/task_mmu.c
+@@ -394,6 +394,7 @@ struct mem_size_stats {
+ 	unsigned long anonymous_thp;
+ 	unsigned long swap;
+ 	unsigned long nonlinear;
++	unsigned long hwpoison;
+ 	u64 pss;
+ };
+ 
+@@ -416,6 +417,8 @@ static void smaps_pte_entry(pte_t ptent,
+ 			mss->swap += ptent_size;
+ 		else if (is_migration_entry(swpent))
+ 			page = migration_entry_to_page(swpent);
++		else if (is_hwpoison_entry(swpent))
++			mss->hwpoison += ptent_size;
+ 	} else if (pte_file(ptent)) {
+ 		if (pte_to_pgoff(ptent) != pgoff)
+ 			mss->nonlinear += ptent_size;
+@@ -430,6 +433,9 @@ static void smaps_pte_entry(pte_t ptent,
+ 	if (page->index != pgoff)
+ 		mss->nonlinear += ptent_size;
+ 
++	if (PageHWPoison(page))
++		mss->hwpoison += ptent_size;
++
+ 	mss->resident += ptent_size;
+ 	/* Accumulate the size in pages that have been accessed. */
+ 	if (pte_young(ptent) || PageReferenced(page))
+@@ -535,6 +541,10 @@ static int show_smap(struct seq_file *m,
+ 		seq_printf(m, "Nonlinear:      %8lu kB\n",
+ 				mss.nonlinear >> 10);
+ 
++	if (IS_ENABLED(CONFIG_MEMORY_FAILURE) && mss.hwpoison)
++		seq_printf(m, "HWPoison:       %8lu kB\n",
++				mss.hwpoison >> 10);
++
+ 	if (m->count < m->size)  /* vma is copied successfully */
+ 		m->version = (vma != get_gate_vma(task->mm))
+ 			? vma->vm_start : 0;
 _
-Subject: Subject: tmpfs-implement-numa-node-interleaving-checkpatch-fixes
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-tmpfs-implement-numa-node-interleaving-checkpatch-fixes.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-isdn-add-missing-kern_cont-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
-kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
-ipc-mqueue-improve-performance-of-send-recv-fix.patch
-ipc-mqueue-correct-mq_attr_ok-test-fix.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
-tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
-ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
-pidns-make-killed-children-autoreap-checkpatch-fixes.patch
-fs-nls-add-apple-nls-fix.patch
-eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+proc-report-file-anon-bit-in-proc-pid-pagemap.patch
+proc-smaps-carefully-handle-migration-entries.patch
+proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch
 
