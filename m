@@ -1,111 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-make-threshold-index-in-the-right-position.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:17:11 -0700
-Message-ID: <20120531191711.52E81A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:17:19 -0700
+Message-ID: <20120531191719.5F587A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:49752 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932981Ab2EaTRN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:13 -0400
-Received: by were53 with SMTP id e53so75912wer.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:12 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:35579 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932980Ab2EaTRU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:20 -0400
+Received: by ggeh3 with SMTP id h3so135653gge.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: handai.szj@taobao.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: make threshold index in the right position
+     Subject: mm/vmscan: push lruvec pointer into isolate_lru_pages()
 has been removed from the -mm tree.  Its filename was
-     memcg-make-threshold-index-in-the-right-position.patch
+     mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Sha Zhengju <handai.szj@taobao.com>
-Subject: memcg: make threshold index in the right position
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm/vmscan: push lruvec pointer into isolate_lru_pages()
 
-Index current_threshold may point to threshold that just equal to usage
-after last call of __mem_cgroup_threshold.  But after registering a new
-event, it will change (pointing to threshold just below usage).  So make
-it consistent here.
+Move the mem_cgroup_zone_lruvec() call from isolate_lru_pages() into
+shrink_[in]active_list().  Further patches push it to shrink_zone() step
+by step.
 
-For example:
-now:
-	threshold array:  3  [5]  7  9   (usage = 6, [index] = 5)
-
-next turn (after calling __mem_cgroup_threshold):
-	threshold array:  3   5  [7]  9   (usage = 7, [index] = 7)
-
-after registering a new event (threshold = 10):
-	threshold array:  3  [5]  7  9  10 (usage = 7, [index] = 5)
-
-Signed-off-by: Sha Zhengju <handai.szj@taobao.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-make-threshold-index-in-the-right-position mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-threshold-index-in-the-right-position
-+++ a/mm/memcontrol.c
-@@ -181,7 +181,7 @@ struct mem_cgroup_threshold {
+diff -puN mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-isolate_lru_pages
++++ a/mm/vmscan.c
+@@ -1027,7 +1027,7 @@ int __isolate_lru_page(struct page *page
+  * Appropriate locks must be held before calling this function.
+  *
+  * @nr_to_scan:	The number of pages to look through on the list.
+- * @mz:		The mem_cgroup_zone to pull pages from.
++ * @lruvec:	The LRU vector to pull pages from.
+  * @dst:	The temp list to put pages on to.
+  * @nr_scanned:	The number of pages that were scanned.
+  * @sc:		The scan_control struct for this reclaim session
+@@ -1037,17 +1037,15 @@ int __isolate_lru_page(struct page *page
+  * returns how many pages were moved onto *@dst.
+  */
+ static unsigned long isolate_lru_pages(unsigned long nr_to_scan,
+-		struct mem_cgroup_zone *mz, struct list_head *dst,
++		struct lruvec *lruvec, struct list_head *dst,
+ 		unsigned long *nr_scanned, struct scan_control *sc,
+ 		isolate_mode_t mode, enum lru_list lru)
+ {
+-	struct lruvec *lruvec;
+ 	struct list_head *src;
+ 	unsigned long nr_taken = 0;
+ 	unsigned long scan;
+ 	int file = is_file_lru(lru);
  
- /* For threshold */
- struct mem_cgroup_threshold_ary {
--	/* An array index points to threshold just below usage. */
-+	/* An array index points to threshold just below or equal to usage. */
- 	int current_threshold;
- 	/* Size of entries[] */
- 	unsigned int size;
-@@ -4280,7 +4280,7 @@ static void __mem_cgroup_threshold(struc
- 	usage = mem_cgroup_usage(memcg, swap);
+-	lruvec = mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup);
+ 	src = &lruvec->lists[lru];
  
- 	/*
--	 * current_threshold points to threshold just below usage.
-+	 * current_threshold points to threshold just below or equal to usage.
- 	 * If it's not true, a threshold was crossed after last
- 	 * call of __mem_cgroup_threshold().
- 	 */
-@@ -4406,14 +4406,15 @@ static int mem_cgroup_usage_register_eve
- 	/* Find current threshold */
- 	new->current_threshold = -1;
- 	for (i = 0; i < size; i++) {
--		if (new->entries[i].threshold < usage) {
-+		if (new->entries[i].threshold <= usage) {
- 			/*
- 			 * new->current_threshold will not be used until
- 			 * rcu_assign_pointer(), so it's safe to increment
- 			 * it here.
- 			 */
- 			++new->current_threshold;
--		}
-+		} else
-+			break;
- 	}
+ 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
+@@ -1274,6 +1272,7 @@ shrink_inactive_list(unsigned long nr_to
+ 	int file = is_file_lru(lru);
+ 	struct zone *zone = mz->zone;
+ 	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
++	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, mz->mem_cgroup);
  
- 	/* Free old spare buffer and save old primary buffer as spare */
-@@ -4482,7 +4483,7 @@ static void mem_cgroup_usage_unregister_
- 			continue;
+ 	while (unlikely(too_many_isolated(zone, file, sc))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+@@ -1292,8 +1291,8 @@ shrink_inactive_list(unsigned long nr_to
  
- 		new->entries[j] = thresholds->primary->entries[i];
--		if (new->entries[j].threshold < usage) {
-+		if (new->entries[j].threshold <= usage) {
- 			/*
- 			 * new->current_threshold will not be used
- 			 * until rcu_assign_pointer(), so it's safe to increment
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+-	nr_taken = isolate_lru_pages(nr_to_scan, mz, &page_list, &nr_scanned,
+-				     sc, isolate_mode, lru);
++	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &page_list,
++				     &nr_scanned, sc, isolate_mode, lru);
+ 	if (global_reclaim(sc)) {
+ 		zone->pages_scanned += nr_scanned;
+ 		if (current_is_kswapd())
+@@ -1444,6 +1443,7 @@ static void shrink_active_list(unsigned 
+ 	isolate_mode_t isolate_mode = 0;
+ 	int file = is_file_lru(lru);
+ 	struct zone *zone = mz->zone;
++	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, mz->mem_cgroup);
+ 
+ 	lru_add_drain();
+ 
+@@ -1454,8 +1454,8 @@ static void shrink_active_list(unsigned 
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+-	nr_taken = isolate_lru_pages(nr_to_scan, mz, &l_hold, &nr_scanned, sc,
+-				     isolate_mode, lru);
++	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &l_hold,
++				     &nr_scanned, sc, isolate_mode, lru);
+ 	if (global_reclaim(sc))
+ 		zone->pages_scanned += nr_scanned;
+ 
 _
 
-Patches currently in -mm which might be from handai.szj@taobao.com are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 origin.patch
-eventfd-change-int-to-__u64-in-eventfd_signal.patch
-eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
+linux-next.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+proc-report-file-anon-bit-in-proc-pid-pagemap.patch
+proc-smaps-carefully-handle-migration-entries.patch
+proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch
+proc-smaps-show-amount-of-hwpoison-pages.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
 
