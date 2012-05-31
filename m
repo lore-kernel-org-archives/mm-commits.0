@@ -1,259 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-move-reclaim_stat-into-lruvec.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:16:51 -0700
-Message-ID: <20120531191651.74AA4A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-mark-mm-inline-functions-as-__always_inline.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:16:55 -0700
+Message-ID: <20120531191655.77540A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:42805 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932967Ab2EaTQw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:52 -0400
-Received: by ghbz15 with SMTP id z15so134652ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:51 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:47005 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932967Ab2EaTQ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:57 -0400
+Received: by mail-bk0-f74.google.com with SMTP id y5so75419bkt.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, glommer@parallels.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: move reclaim_stat into lruvec
+     Subject: mm: mark mm-inline functions as __always_inline
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-move-reclaim_stat-into-lruvec.patch
+     mm-mark-mm-inline-functions-as-__always_inline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/memcg: move reclaim_stat into lruvec
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm: mark mm-inline functions as __always_inline
 
-With mem_cgroup_disabled() now explicit, it becomes clear that the
-zone_reclaim_stat structure actually belongs in lruvec, per-zone when
-memcg is disabled but per-memcg per-zone when it's enabled.
+GCC sometimes ignores "inline" directives even for small and simple functions.
+This supposed to be fixed in gcc 4.7, but it was released only yesterday.
 
-We can delete mem_cgroup_get_reclaim_stat(), and change
-update_page_reclaim_stat() to update just the one set of stats, the one
-which get_scan_count() will actually use.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Glauber Costa <glommer@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    9 ---------
- include/linux/mmzone.h     |   29 ++++++++++++++---------------
- mm/memcontrol.c            |   27 +++++++--------------------
- mm/page_alloc.c            |    8 ++++----
- mm/swap.c                  |   14 ++++----------
- mm/vmscan.c                |    5 +----
- 6 files changed, 30 insertions(+), 62 deletions(-)
+ include/linux/mm_inline.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-move-reclaim_stat-into-lruvec include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-move-reclaim_stat-into-lruvec
-+++ a/include/linux/memcontrol.h
-@@ -126,8 +126,6 @@ int mem_cgroup_inactive_file_is_low(stru
- int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
- unsigned long mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg,
- 					int nid, int zid, unsigned int lrumask);
--struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
--						      struct zone *zone);
- struct zone_reclaim_stat*
- mem_cgroup_get_reclaim_stat_from_page(struct page *page);
- extern void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
-@@ -356,13 +354,6 @@ mem_cgroup_zone_nr_lru_pages(struct mem_
- 	return 0;
+diff -puN include/linux/mm_inline.h~mm-mark-mm-inline-functions-as-__always_inline include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-mark-mm-inline-functions-as-__always_inline
++++ a/include/linux/mm_inline.h
+@@ -21,7 +21,7 @@ static inline int page_is_file_cache(str
+ 	return !PageSwapBacked(page);
  }
  
--
--static inline struct zone_reclaim_stat*
--mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg, struct zone *zone)
--{
--	return NULL;
--}
--
- static inline struct zone_reclaim_stat*
- mem_cgroup_get_reclaim_stat_from_page(struct page *page)
+-static inline void
++static __always_inline void
+ add_page_to_lru_list(struct zone *zone, struct page *page, enum lru_list lru)
  {
-diff -puN include/linux/mmzone.h~mm-memcg-move-reclaim_stat-into-lruvec include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-memcg-move-reclaim_stat-into-lruvec
-+++ a/include/linux/mmzone.h
-@@ -185,8 +185,22 @@ static inline int is_unevictable_lru(enu
- 	return (lru == LRU_UNEVICTABLE);
+ 	struct lruvec *lruvec;
+@@ -31,7 +31,7 @@ add_page_to_lru_list(struct zone *zone, 
+ 	__mod_zone_page_state(zone, NR_LRU_BASE + lru, hpage_nr_pages(page));
  }
  
-+struct zone_reclaim_stat {
-+	/*
-+	 * The pageout code in vmscan.c keeps track of how many of the
-+	 * mem/swap backed and file backed pages are refeferenced.
-+	 * The higher the rotated/scanned ratio, the more valuable
-+	 * that cache is.
-+	 *
-+	 * The anon LRU stats live in [0], file LRU stats in [1]
-+	 */
-+	unsigned long		recent_rotated[2];
-+	unsigned long		recent_scanned[2];
-+};
-+
- struct lruvec {
- 	struct list_head lists[NR_LRU_LISTS];
-+	struct zone_reclaim_stat reclaim_stat;
- };
- 
- /* Mask used at gathering information at once (see memcontrol.c) */
-@@ -313,19 +327,6 @@ enum zone_type {
- #error ZONES_SHIFT -- too many zones configured adjust calculation
- #endif
- 
--struct zone_reclaim_stat {
--	/*
--	 * The pageout code in vmscan.c keeps track of how many of the
--	 * mem/swap backed and file backed pages are refeferenced.
--	 * The higher the rotated/scanned ratio, the more valuable
--	 * that cache is.
--	 *
--	 * The anon LRU stats live in [0], file LRU stats in [1]
--	 */
--	unsigned long		recent_rotated[2];
--	unsigned long		recent_scanned[2];
--};
--
- struct zone {
- 	/* Fields commonly accessed by the page allocator */
- 
-@@ -407,8 +408,6 @@ struct zone {
- 	spinlock_t		lru_lock;
- 	struct lruvec		lruvec;
- 
--	struct zone_reclaim_stat reclaim_stat;
--
- 	unsigned long		pages_scanned;	   /* since last reclaim */
- 	unsigned long		flags;		   /* zone flags, see below */
- 
-diff -puN mm/memcontrol.c~mm-memcg-move-reclaim_stat-into-lruvec mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-move-reclaim_stat-into-lruvec
-+++ a/mm/memcontrol.c
-@@ -138,7 +138,6 @@ struct mem_cgroup_per_zone {
- 
- 	struct mem_cgroup_reclaim_iter reclaim_iter[DEF_PRIORITY + 1];
- 
--	struct zone_reclaim_stat reclaim_stat;
- 	struct rb_node		tree_node;	/* RB tree node */
- 	unsigned long long	usage_in_excess;/* Set to the value by which */
- 						/* the soft limit is exceeded*/
-@@ -1243,16 +1242,6 @@ int mem_cgroup_inactive_file_is_low(stru
- 	return (active > inactive);
- }
- 
--struct zone_reclaim_stat *mem_cgroup_get_reclaim_stat(struct mem_cgroup *memcg,
--						      struct zone *zone)
--{
--	int nid = zone_to_nid(zone);
--	int zid = zone_idx(zone);
--	struct mem_cgroup_per_zone *mz = mem_cgroup_zoneinfo(memcg, nid, zid);
--
--	return &mz->reclaim_stat;
--}
--
- struct zone_reclaim_stat *
- mem_cgroup_get_reclaim_stat_from_page(struct page *page)
+-static inline void
++static __always_inline void
+ del_page_from_lru_list(struct zone *zone, struct page *page, enum lru_list lru)
  {
-@@ -1268,7 +1257,7 @@ mem_cgroup_get_reclaim_stat_from_page(st
- 	/* Ensure pc->mem_cgroup is visible after reading PCG_USED. */
- 	smp_rmb();
- 	mz = page_cgroup_zoneinfo(pc->mem_cgroup, page);
--	return &mz->reclaim_stat;
-+	return &mz->lruvec.reclaim_stat;
- }
- 
- #define mem_cgroup_from_res_counter(counter, member)	\
-@@ -4216,21 +4205,19 @@ static int mem_control_stat_show(struct 
- 	{
- 		int nid, zid;
- 		struct mem_cgroup_per_zone *mz;
-+		struct zone_reclaim_stat *rstat;
- 		unsigned long recent_rotated[2] = {0, 0};
- 		unsigned long recent_scanned[2] = {0, 0};
- 
- 		for_each_online_node(nid)
- 			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
- 				mz = mem_cgroup_zoneinfo(memcg, nid, zid);
-+				rstat = &mz->lruvec.reclaim_stat;
- 
--				recent_rotated[0] +=
--					mz->reclaim_stat.recent_rotated[0];
--				recent_rotated[1] +=
--					mz->reclaim_stat.recent_rotated[1];
--				recent_scanned[0] +=
--					mz->reclaim_stat.recent_scanned[0];
--				recent_scanned[1] +=
--					mz->reclaim_stat.recent_scanned[1];
-+				recent_rotated[0] += rstat->recent_rotated[0];
-+				recent_rotated[1] += rstat->recent_rotated[1];
-+				recent_scanned[0] += rstat->recent_scanned[0];
-+				recent_scanned[1] += rstat->recent_scanned[1];
- 			}
- 		cb->fill(cb, "recent_rotated_anon", recent_rotated[0]);
- 		cb->fill(cb, "recent_rotated_file", recent_rotated[1]);
-diff -puN mm/page_alloc.c~mm-memcg-move-reclaim_stat-into-lruvec mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memcg-move-reclaim_stat-into-lruvec
-+++ a/mm/page_alloc.c
-@@ -4410,10 +4410,10 @@ static void __paginginit free_area_init_
- 		zone_pcp_init(zone);
- 		for_each_lru(lru)
- 			INIT_LIST_HEAD(&zone->lruvec.lists[lru]);
--		zone->reclaim_stat.recent_rotated[0] = 0;
--		zone->reclaim_stat.recent_rotated[1] = 0;
--		zone->reclaim_stat.recent_scanned[0] = 0;
--		zone->reclaim_stat.recent_scanned[1] = 0;
-+		zone->lruvec.reclaim_stat.recent_rotated[0] = 0;
-+		zone->lruvec.reclaim_stat.recent_rotated[1] = 0;
-+		zone->lruvec.reclaim_stat.recent_scanned[0] = 0;
-+		zone->lruvec.reclaim_stat.recent_scanned[1] = 0;
- 		zap_zone_vm_stats(zone);
- 		zone->flags = 0;
- 		if (!size)
-diff -puN mm/swap.c~mm-memcg-move-reclaim_stat-into-lruvec mm/swap.c
---- a/mm/swap.c~mm-memcg-move-reclaim_stat-into-lruvec
-+++ a/mm/swap.c
-@@ -312,21 +312,15 @@ void rotate_reclaimable_page(struct page
- static void update_page_reclaim_stat(struct zone *zone, struct page *page,
- 				     int file, int rotated)
+ 	mem_cgroup_lru_del_list(page, lru);
+@@ -61,7 +61,7 @@ static inline enum lru_list page_lru_bas
+  * Returns the LRU list a page was on, as an index into the array of LRU
+  * lists; and clears its Unevictable or Active flags, ready for freeing.
+  */
+-static inline enum lru_list page_off_lru(struct page *page)
++static __always_inline enum lru_list page_off_lru(struct page *page)
  {
--	struct zone_reclaim_stat *reclaim_stat = &zone->reclaim_stat;
--	struct zone_reclaim_stat *memcg_reclaim_stat;
-+	struct zone_reclaim_stat *reclaim_stat;
+ 	enum lru_list lru;
  
--	memcg_reclaim_stat = mem_cgroup_get_reclaim_stat_from_page(page);
-+	reclaim_stat = mem_cgroup_get_reclaim_stat_from_page(page);
-+	if (!reclaim_stat)
-+		reclaim_stat = &zone->lruvec.reclaim_stat;
- 
- 	reclaim_stat->recent_scanned[file]++;
- 	if (rotated)
- 		reclaim_stat->recent_rotated[file]++;
--
--	if (!memcg_reclaim_stat)
--		return;
--
--	memcg_reclaim_stat->recent_scanned[file]++;
--	if (rotated)
--		memcg_reclaim_stat->recent_rotated[file]++;
- }
- 
- static void __activate_page(struct page *page, void *arg)
-diff -puN mm/vmscan.c~mm-memcg-move-reclaim_stat-into-lruvec mm/vmscan.c
---- a/mm/vmscan.c~mm-memcg-move-reclaim_stat-into-lruvec
-+++ a/mm/vmscan.c
-@@ -149,10 +149,7 @@ static bool global_reclaim(struct scan_c
- 
- static struct zone_reclaim_stat *get_reclaim_stat(struct mem_cgroup_zone *mz)
+@@ -85,7 +85,7 @@ static inline enum lru_list page_off_lru
+  * Returns the LRU list a page should be on, as an index
+  * into the array of LRU lists.
+  */
+-static inline enum lru_list page_lru(struct page *page)
++static __always_inline enum lru_list page_lru(struct page *page)
  {
--	if (!mem_cgroup_disabled())
--		return mem_cgroup_get_reclaim_stat(mz->mem_cgroup, mz->zone);
+ 	enum lru_list lru;
+ 
+_
+
+Patches currently in -mm which might be from khlebnikov@openvz.org are
+
+origin.patch
+linux-next.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+proc-report-file-anon-bit-in-proc-pid-pagemap.patch
+proc-smaps-carefully-handle-migration-entries.patch
+proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch
+proc-smaps-show-amount-of-hwpoison-pages.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+
