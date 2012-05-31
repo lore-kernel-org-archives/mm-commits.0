@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-nobootmem-unify-allocation-policy-of-non-panicking-node-allocations.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:15:19 -0700
-Message-ID: <20120531191519.77278A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:15:05 -0700
+Message-ID: <20120531191505.6E293A060B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:54101 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932901Ab2EaTPV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:21 -0400
-Received: by mail-we0-f202.google.com with SMTP id e53so75842wer.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:20 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:62879 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932774Ab2EaTPG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:06 -0400
+Received: by mail-gg0-f202.google.com with SMTP id h3so135414gge.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, davem@davemloft.net, shangw@linux.vnet.ibm.com, tj@kernel.org, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: nobootmem: unify allocation policy of (non-)panicking node allocations
+     Subject: mm: bootmem: rename alloc_bootmem_core to alloc_bootmem_bdata
 has been removed from the -mm tree.  Its filename was
-     mm-nobootmem-unify-allocation-policy-of-non-panicking-node-allocations.patch
+     mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,168 +26,88 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: nobootmem: unify allocation policy of (non-)panicking node allocations
+Subject: mm: bootmem: rename alloc_bootmem_core to alloc_bootmem_bdata
 
-While the panicking node-specific allocation function tries to satisfy
-node+goal, goal, node, anywhere, the non-panicking function still does
-node+goal, goal, anywhere.
-
-Make it simpler: define the panicking version in terms of the non-panicking
-one, like the node-agnostic interface, so they always behave the same way
-apart from how to deal with allocation failure.
+Callsites need to provide a bootmem_data_t *, make the naming more
+descriptive.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Yinghai Lu <yinghai@kernel.org>
 Acked-by: Tejun Heo <tj@kernel.org>
 Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nobootmem.c |  106 +++++++++++++++++++++++------------------------
- 1 file changed, 54 insertions(+), 52 deletions(-)
+ mm/bootmem.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/nobootmem.c~mm-nobootmem-unify-allocation-policy-of-non-panicking-node-allocations mm/nobootmem.c
---- a/mm/nobootmem.c~mm-nobootmem-unify-allocation-policy-of-non-panicking-node-allocations
-+++ a/mm/nobootmem.c
-@@ -274,6 +274,57 @@ void * __init __alloc_bootmem(unsigned l
- 	return ___alloc_bootmem(size, align, goal, limit);
+diff -puN mm/bootmem.c~mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmem-rename-alloc_bootmem_core-to-alloc_bootmem_bdata
++++ a/mm/bootmem.c
+@@ -468,7 +468,7 @@ static unsigned long __init align_off(st
+ 	return ALIGN(base + off, align) - base;
  }
  
-+static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+						   unsigned long size,
-+						   unsigned long align,
-+						   unsigned long goal,
-+						   unsigned long limit)
-+{
-+	void *ptr;
-+
-+again:
-+	ptr = __alloc_memory_core_early(pgdat->node_id, size, align,
-+					goal, limit);
-+	if (ptr)
-+		return ptr;
-+
-+	ptr = __alloc_memory_core_early(MAX_NUMNODES, size, align,
-+					goal, limit);
-+	if (ptr)
-+		return ptr;
-+
-+	if (goal) {
-+		goal = 0;
-+		goto again;
-+	}
-+
-+	return NULL;
-+}
-+
-+void * __init __alloc_bootmem_node_nopanic(pg_data_t *pgdat, unsigned long size,
-+				   unsigned long align, unsigned long goal)
-+{
-+	if (WARN_ON_ONCE(slab_is_available()))
-+		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
-+
-+	return ___alloc_bootmem_node_nopanic(pgdat, size, align, goal, 0);
-+}
-+
-+void * __init ___alloc_bootmem_node(pg_data_t *pgdat, unsigned long size,
-+				    unsigned long align, unsigned long goal,
-+				    unsigned long limit)
-+{
-+	void *ptr;
-+
-+	ptr = ___alloc_bootmem_node_nopanic(pgdat, size, align, goal, limit);
-+	if (ptr)
-+		return ptr;
-+
-+	printk(KERN_ALERT "bootmem alloc of %lu bytes failed!\n", size);
-+	panic("Out of memory");
-+	return NULL;
-+}
-+
- /**
-  * __alloc_bootmem_node - allocate boot memory from a specific node
-  * @pgdat: node to allocate from
-@@ -292,30 +343,10 @@ void * __init __alloc_bootmem(unsigned l
- void * __init __alloc_bootmem_node(pg_data_t *pgdat, unsigned long size,
- 				   unsigned long align, unsigned long goal)
+-static void * __init alloc_bootmem_core(struct bootmem_data *bdata,
++static void * __init alloc_bootmem_bdata(struct bootmem_data *bdata,
+ 					unsigned long size, unsigned long align,
+ 					unsigned long goal, unsigned long limit)
  {
--	void *ptr;
--
- 	if (WARN_ON_ONCE(slab_is_available()))
- 		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
+@@ -589,7 +589,7 @@ static void * __init alloc_arch_preferre
+ 		p_bdata = bootmem_arch_preferred_node(bdata, size, align,
+ 							goal, limit);
+ 		if (p_bdata)
+-			return alloc_bootmem_core(p_bdata, size, align,
++			return alloc_bootmem_bdata(p_bdata, size, align,
+ 							goal, limit);
+ 	}
+ #endif
+@@ -615,7 +615,7 @@ restart:
+ 		if (limit && bdata->node_min_pfn >= PFN_DOWN(limit))
+ 			break;
  
--again:
--	ptr = __alloc_memory_core_early(pgdat->node_id, size, align,
--					 goal, -1ULL);
--	if (ptr)
--		return ptr;
--
--	ptr = __alloc_memory_core_early(MAX_NUMNODES, size, align,
--					goal, -1ULL);
--	if (ptr)
--		return ptr;
--
--	if (goal) {
--		goal = 0;
--		goto again;
--	}
--
--	printk(KERN_ALERT "bootmem alloc of %lu bytes failed!\n", size);
--	panic("Out of memory");
--	return NULL;
-+	return ___alloc_bootmem_node(pgdat, size, align, goal, 0);
- }
+-		region = alloc_bootmem_core(bdata, size, align, goal, limit);
++		region = alloc_bootmem_bdata(bdata, size, align, goal, limit);
+ 		if (region)
+ 			return region;
+ 	}
+@@ -695,7 +695,7 @@ static void * __init ___alloc_bootmem_no
+ 	if (ptr)
+ 		return ptr;
  
- void * __init __alloc_bootmem_node_high(pg_data_t *pgdat, unsigned long size,
-@@ -346,22 +377,6 @@ void * __init alloc_bootmem_section(unsi
+-	ptr = alloc_bootmem_core(bdata, size, align, goal, limit);
++	ptr = alloc_bootmem_bdata(bdata, size, align, goal, limit);
+ 	if (ptr)
+ 		return ptr;
+ 
+@@ -744,7 +744,7 @@ void * __init __alloc_bootmem_node_high(
+ 		unsigned long new_goal;
+ 
+ 		new_goal = MAX_DMA32_PFN << PAGE_SHIFT;
+-		ptr = alloc_bootmem_core(pgdat->bdata, size, align,
++		ptr = alloc_bootmem_bdata(pgdat->bdata, size, align,
+ 						 new_goal, 0);
+ 		if (ptr)
+ 			return ptr;
+@@ -773,7 +773,7 @@ void * __init alloc_bootmem_section(unsi
+ 	goal = pfn << PAGE_SHIFT;
+ 	bdata = &bootmem_node_data[early_pfn_to_nid(pfn)];
+ 
+-	return alloc_bootmem_core(bdata, size, SMP_CACHE_BYTES, goal, 0);
++	return alloc_bootmem_bdata(bdata, size, SMP_CACHE_BYTES, goal, 0);
  }
  #endif
  
--void * __init __alloc_bootmem_node_nopanic(pg_data_t *pgdat, unsigned long size,
--				   unsigned long align, unsigned long goal)
--{
--	void *ptr;
--
--	if (WARN_ON_ONCE(slab_is_available()))
--		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
--
--	ptr =  __alloc_memory_core_early(pgdat->node_id, size, align,
--						 goal, -1ULL);
--	if (ptr)
--		return ptr;
--
--	return __alloc_bootmem_nopanic(size, align, goal);
--}
--
- #ifndef ARCH_LOW_ADDRESS_LIMIT
- #define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
- #endif
-@@ -403,22 +418,9 @@ void * __init __alloc_bootmem_low(unsign
- void * __init __alloc_bootmem_low_node(pg_data_t *pgdat, unsigned long size,
- 				       unsigned long align, unsigned long goal)
- {
--	void *ptr;
--
- 	if (WARN_ON_ONCE(slab_is_available()))
- 		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
+@@ -789,7 +789,7 @@ void * __init __alloc_bootmem_node_nopan
+ 	if (ptr)
+ 		return ptr;
  
--	ptr = __alloc_memory_core_early(pgdat->node_id, size, align,
--				goal, ARCH_LOW_ADDRESS_LIMIT);
--	if (ptr)
--		return ptr;
--
--	ptr = __alloc_memory_core_early(MAX_NUMNODES, size, align,
--					goal, ARCH_LOW_ADDRESS_LIMIT);
--	if (ptr)
--		return ptr;
--
--	printk(KERN_ALERT "bootmem alloc of %lu bytes failed!\n", size);
--	panic("Out of memory");
--	return NULL;
-+	return ___alloc_bootmem_node(pgdat, size, align, goal,
-+				     ARCH_LOW_ADDRESS_LIMIT);
- }
+-	ptr = alloc_bootmem_core(pgdat->bdata, size, align, goal, 0);
++	ptr = alloc_bootmem_bdata(pgdat->bdata, size, align, goal, 0);
+ 	if (ptr)
+ 		return ptr;
+ 
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
