@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:14:44 -0700
-Message-ID: <20120531191444.6D5E9A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-print-physical-addresses-consistently-with-other-parts-of-kernel.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:14:50 -0700
+Message-ID: <20120531191450.7AF49A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:58058 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932808Ab2EaTOq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:46 -0400
-Received: by mail-ee0-f74.google.com with SMTP id t10so76254eei.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:45 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:58593 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932923Ab2EaTOw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:52 -0400
+Received: by bkty5 with SMTP id y5so75347bkt.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bhelgaas@google.com, hpa@zytor.com, konrad.wilk@oracle.com, mingo@elte.hu, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: print e820 physical addresses consistently with other parts of kernel
+     Subject: mm: print physical addresses consistently with other parts of kernel
 has been removed from the -mm tree.  Its filename was
-     x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch
+     mm-print-physical-addresses-consistently-with-other-parts-of-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,19 +26,17 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: x86: print e820 physical addresses consistently with other parts of kernel
+Subject: mm: print physical addresses consistently with other parts of kernel
 
 Print physical address info in a style consistent with the %pR style used
 elsewhere in the kernel.  For example:
 
-    -BIOS-provided physical RAM map:
-    +e820: BIOS-provided physical RAM map:
-    - BIOS-e820: 0000000000000100 - 000000000009e000 (usable)
-    +BIOS-e820: [mem 0x0000000000000100-0x000000000009dfff] usable
-    -Allocating PCI resources starting at 90000000 (gap: 90000000:6ed1c000)
-    +e820: [mem 0x90000000-0xfed1bfff] available for PCI devices
-    -reserve RAM buffer: 000000000009e000 - 000000000009ffff
-    +e820: reserve RAM buffer [mem 0x0009e000-0x0009ffff]
+    -Zone PFN ranges:
+    +Zone ranges:
+    -  DMA32    0x00000010 -> 0x00100000
+    +  DMA32    [mem 0x00010000-0xffffffff]
+    -  Normal   0x00100000 -> 0x01080000
+    +  Normal   [mem 0x100000000-0x107fffffff]
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 Cc: Yinghai Lu <yinghai@kernel.org>
@@ -49,173 +47,93 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c |   53 +++++++++++++++++++--------------------
- 1 file changed, 27 insertions(+), 26 deletions(-)
+ mm/memory_hotplug.c |   14 ++++++++------
+ mm/page_alloc.c     |   19 +++++++++++--------
+ 2 files changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/kernel/e820.c~x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel
-+++ a/arch/x86/kernel/e820.c
-@@ -113,7 +113,9 @@ static void __init __e820_add_region(str
- 	int x = e820x->nr_map;
- 
- 	if (x >= ARRAY_SIZE(e820x->map)) {
--		printk(KERN_ERR "Ooops! Too many entries in the memory map!\n");
-+		printk(KERN_ERR "e820: too many entries; ignoring [mem %#010llx-%#010llx]\n",
-+		       (unsigned long long) start,
-+		       (unsigned long long) (start + size - 1));
- 		return;
+diff -puN mm/memory_hotplug.c~mm-print-physical-addresses-consistently-with-other-parts-of-kernel mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/mm/memory_hotplug.c
+@@ -74,8 +74,7 @@ static struct resource *register_memory_
+ 	res->end = start + size - 1;
+ 	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	if (request_resource(&iomem_resource, res) < 0) {
+-		printk("System RAM resource %llx - %llx cannot be added\n",
+-		(unsigned long long)res->start, (unsigned long long)res->end);
++		printk("System RAM resource %pR cannot be added\n", res);
+ 		kfree(res);
+ 		res = NULL;
  	}
+@@ -502,8 +501,10 @@ int __ref online_pages(unsigned long pfn
+ 		online_pages_range);
+ 	if (ret) {
+ 		mutex_unlock(&zonelists_mutex);
+-		printk(KERN_DEBUG "online_pages %lx at %lx failed\n",
+-			nr_pages, pfn);
++		printk(KERN_DEBUG "online_pages [mem %#010llx-%#010llx] failed\n",
++		       (unsigned long long) pfn << PAGE_SHIFT,
++		       (((unsigned long long) pfn + nr_pages)
++			    << PAGE_SHIFT) - 1);
+ 		memory_notify(MEM_CANCEL_ONLINE, &arg);
+ 		unlock_memory_hotplug();
+ 		return ret;
+@@ -977,8 +978,9 @@ repeat:
+ 	return 0;
  
-@@ -133,19 +135,19 @@ static void __init e820_print_type(u32 t
- 	switch (type) {
- 	case E820_RAM:
- 	case E820_RESERVED_KERN:
--		printk(KERN_CONT "(usable)");
-+		printk(KERN_CONT "usable");
- 		break;
- 	case E820_RESERVED:
--		printk(KERN_CONT "(reserved)");
-+		printk(KERN_CONT "reserved");
- 		break;
- 	case E820_ACPI:
--		printk(KERN_CONT "(ACPI data)");
-+		printk(KERN_CONT "ACPI data");
- 		break;
- 	case E820_NVS:
--		printk(KERN_CONT "(ACPI NVS)");
-+		printk(KERN_CONT "ACPI NVS");
- 		break;
- 	case E820_UNUSABLE:
--		printk(KERN_CONT "(unusable)");
-+		printk(KERN_CONT "unusable");
- 		break;
- 	default:
- 		printk(KERN_CONT "type %u", type);
-@@ -158,10 +160,10 @@ void __init e820_print_map(char *who)
- 	int i;
+ failed_removal:
+-	printk(KERN_INFO "memory offlining %lx to %lx failed\n",
+-		start_pfn, end_pfn);
++	printk(KERN_INFO "memory offlining [mem %#010llx-%#010llx] failed\n",
++	       (unsigned long long) start_pfn << PAGE_SHIFT,
++	       ((unsigned long long) end_pfn << PAGE_SHIFT) - 1);
+ 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
+ 	/* pushback to free area */
+ 	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+diff -puN mm/page_alloc.c~mm-print-physical-addresses-consistently-with-other-parts-of-kernel mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-print-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/mm/page_alloc.c
+@@ -4815,7 +4815,7 @@ void __init free_area_init_nodes(unsigne
+ 	find_zone_movable_pfns_for_nodes();
  
- 	for (i = 0; i < e820.nr_map; i++) {
--		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
-+		printk(KERN_INFO "%s: [mem %#018Lx-%#018Lx] ", who,
- 		       (unsigned long long) e820.map[i].addr,
- 		       (unsigned long long)
--		       (e820.map[i].addr + e820.map[i].size));
-+		       (e820.map[i].addr + e820.map[i].size - 1));
- 		e820_print_type(e820.map[i].type);
- 		printk(KERN_CONT "\n");
- 	}
-@@ -428,9 +430,8 @@ static u64 __init __e820_update_range(st
- 		size = ULLONG_MAX - start;
- 
- 	end = start + size;
--	printk(KERN_DEBUG "e820 update range: %016Lx - %016Lx ",
--		       (unsigned long long) start,
--		       (unsigned long long) end);
-+	printk(KERN_DEBUG "e820: update [mem %#010Lx-%#010Lx] ",
-+	       (unsigned long long) start, (unsigned long long) (end - 1));
- 	e820_print_type(old_type);
- 	printk(KERN_CONT " ==> ");
- 	e820_print_type(new_type);
-@@ -509,9 +510,8 @@ u64 __init e820_remove_range(u64 start, 
- 		size = ULLONG_MAX - start;
- 
- 	end = start + size;
--	printk(KERN_DEBUG "e820 remove range: %016Lx - %016Lx ",
--		       (unsigned long long) start,
--		       (unsigned long long) end);
-+	printk(KERN_DEBUG "e820: remove [mem %#010Lx-%#010Lx] ",
-+	       (unsigned long long) start, (unsigned long long) (end - 1));
- 	if (checktype)
- 		e820_print_type(old_type);
- 	printk(KERN_CONT "\n");
-@@ -567,7 +567,7 @@ void __init update_e820(void)
- 	if (sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &nr_map))
- 		return;
- 	e820.nr_map = nr_map;
--	printk(KERN_INFO "modified physical RAM map:\n");
-+	printk(KERN_INFO "e820: modified physical RAM map:\n");
- 	e820_print_map("modified");
- }
- static void __init update_e820_saved(void)
-@@ -637,8 +637,8 @@ __init void e820_setup_gap(void)
- 	if (!found) {
- 		gapstart = (max_pfn << PAGE_SHIFT) + 1024*1024;
- 		printk(KERN_ERR
--	"PCI: Warning: Cannot find a gap in the 32bit address range\n"
--	"PCI: Unassigned devices with 32bit resource registers may break!\n");
-+	"e820: cannot find a gap in the 32bit address range\n"
-+	"e820: PCI devices with unassigned 32bit BARs may break!\n");
- 	}
- #endif
- 
-@@ -648,8 +648,8 @@ __init void e820_setup_gap(void)
- 	pci_mem_start = gapstart;
- 
- 	printk(KERN_INFO
--	       "Allocating PCI resources starting at %lx (gap: %lx:%lx)\n",
--	       pci_mem_start, gapstart, gapsize);
-+	       "e820: [mem %#010lx-%#010lx] available for PCI devices\n",
-+	       gapstart, gapstart + gapsize - 1);
- }
- 
- /**
-@@ -667,7 +667,7 @@ void __init parse_e820_ext(struct setup_
- 	extmap = (struct e820entry *)(sdata->data);
- 	__append_e820_map(extmap, entries);
- 	sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &e820.nr_map);
--	printk(KERN_INFO "extended physical RAM map:\n");
-+	printk(KERN_INFO "e820: extended physical RAM map:\n");
- 	e820_print_map("extended");
- }
- 
-@@ -734,7 +734,7 @@ u64 __init early_reserve_e820(u64 size, 
- 	addr = __memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ACCESSIBLE);
- 	if (addr) {
- 		e820_update_range_saved(addr, size, E820_RAM, E820_RESERVED);
--		printk(KERN_INFO "update e820_saved for early_reserve_e820\n");
-+		printk(KERN_INFO "e820: update e820_saved for early_reserve_e820\n");
- 		update_e820_saved();
- 	}
- 
-@@ -784,7 +784,7 @@ static unsigned long __init e820_end_pfn
- 	if (last_pfn > max_arch_pfn)
- 		last_pfn = max_arch_pfn;
- 
--	printk(KERN_INFO "last_pfn = %#lx max_arch_pfn = %#lx\n",
-+	printk(KERN_INFO "e820: last_pfn = %#lx max_arch_pfn = %#lx\n",
- 			 last_pfn, max_arch_pfn);
- 	return last_pfn;
- }
-@@ -888,7 +888,7 @@ void __init finish_e820_parsing(void)
- 			early_panic("Invalid user supplied memory map");
- 		e820.nr_map = nr;
- 
--		printk(KERN_INFO "user-defined physical RAM map:\n");
-+		printk(KERN_INFO "e820: user-defined physical RAM map:\n");
- 		e820_print_map("user");
- 	}
- }
-@@ -996,8 +996,9 @@ void __init e820_reserve_resources_late(
- 			end = MAX_RESOURCE_SIZE;
- 		if (start >= end)
+ 	/* Print out the zone ranges */
+-	printk("Zone PFN ranges:\n");
++	printk("Zone ranges:\n");
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+ 		if (i == ZONE_MOVABLE)
  			continue;
--		printk(KERN_DEBUG "reserve RAM buffer: %016llx - %016llx ",
--			       start, end);
-+		printk(KERN_DEBUG
-+		       "e820: reserve RAM buffer [mem %#010llx-%#010llx]\n",
-+		       start, end);
- 		reserve_region_with_split(&iomem_resource, start, end,
- 					  "RAM buffer");
+@@ -4824,22 +4824,25 @@ void __init free_area_init_nodes(unsigne
+ 				arch_zone_highest_possible_pfn[i])
+ 			printk(KERN_CONT "empty\n");
+ 		else
+-			printk(KERN_CONT "%0#10lx -> %0#10lx\n",
+-				arch_zone_lowest_possible_pfn[i],
+-				arch_zone_highest_possible_pfn[i]);
++			printk(KERN_CONT "[mem %0#10lx-%0#10lx]\n",
++				arch_zone_lowest_possible_pfn[i] << PAGE_SHIFT,
++				(arch_zone_highest_possible_pfn[i]
++					<< PAGE_SHIFT) - 1);
  	}
-@@ -1047,7 +1048,7 @@ void __init setup_memory_map(void)
  
- 	who = x86_init.resources.memory_setup();
- 	memcpy(&e820_saved, &e820, sizeof(struct e820map));
--	printk(KERN_INFO "BIOS-provided physical RAM map:\n");
-+	printk(KERN_INFO "e820: BIOS-provided physical RAM map:\n");
- 	e820_print_map(who);
- }
+ 	/* Print out the PFNs ZONE_MOVABLE begins at in each node */
+-	printk("Movable zone start PFN for each node\n");
++	printk("Movable zone start for each node\n");
+ 	for (i = 0; i < MAX_NUMNODES; i++) {
+ 		if (zone_movable_pfn[i])
+-			printk("  Node %d: %lu\n", i, zone_movable_pfn[i]);
++			printk("  Node %d: %#010lx\n", i,
++			       zone_movable_pfn[i] << PAGE_SHIFT);
+ 	}
  
+ 	/* Print out the early_node_map[] */
+-	printk("Early memory PFN ranges\n");
++	printk("Early memory node ranges\n");
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
+-		printk("  %3d: %0#10lx -> %0#10lx\n", nid, start_pfn, end_pfn);
++		printk("  node %3d: [mem %#010lx-%#010lx]\n", nid,
++		       start_pfn << PAGE_SHIFT, (end_pfn << PAGE_SHIFT) - 1);
+ 
+ 	/* Initialise every node */
+ 	mminit_verify_pageflags_layout();
 _
 
 Patches currently in -mm which might be from bhelgaas@google.com are
