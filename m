@@ -1,144 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-ds1307-add-trickle-charger-support.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:20:34 -0700
-Message-ID: <20120531192034.5F087A0203@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:20:36 -0700
+Message-ID: <20120531192036.6EF90A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:46086 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933116Ab2EaTUg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:36 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so76227wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:35 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:54968 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933125Ab2EaTUj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:39 -0400
+Received: by bkty5 with SMTP id y5so75606bkt.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: w.sang@pengutronix.de, alessandro.zummo@towertech.it, mm-commits@vger.kernel.org
+To: n.voss@weinmann.de, a.zummo@towertech.it, grant.likely@secretlab.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: ds1307: add trickle charger support
+     Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset M41T93_FLAG_OF
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1307-add-trickle-charger-support.patch
+     drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: rtc: ds1307: add trickle charger support
+From: Nikolaus Voss <n.voss@weinmann.de>
+Subject: drivers/rtc/rtc-m41t93.c: don't let get_time() reset M41T93_FLAG_OF
 
-Some DS13XX devices have "trickle chargers".  Its configuration register
-is at different locations, the setup is the same, though.  Since the
-configuration is board specific, introduce a platform_data to this driver.
-Tested with a DS1339 on a custom board.
+If the rtc reports the time might be invalid due to oscillator failure,
+M41T93_FLAG_OF flag must not be reset by get_time() as the read operation
+doesn't make the time valid.
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Without this patch, only the first get_time() reported an invalid time,
+the second get_time() reported a valid time althought the reported time is
+probably wrong due to oscillator failure.
+
+Instead of resetting in get_time(), with this patch M41T93_FLAG_OF is
+reset in set_time() when a valid time is to be written.
+
+Signed-off-by: Nikolaus Voss <n.voss@weinmann.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c   |   19 ++++++++++++++++---
- include/linux/rtc/ds1307.h |   22 ++++++++++++++++++++++
- 2 files changed, 38 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-m41t93.c |   46 +++++++++++++++++++++----------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-add-trickle-charger-support drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-add-trickle-charger-support
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -17,8 +17,7 @@
- #include <linux/string.h>
- #include <linux/rtc.h>
- #include <linux/bcd.h>
+diff -puN drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state drivers/rtc/rtc-m41t93.c
+--- a/drivers/rtc/rtc-m41t93.c~drivers-rtc-rtc-m41t93c-dont-let-get_time-reset-error-state
++++ a/drivers/rtc/rtc-m41t93.c
+@@ -48,6 +48,7 @@ static inline int m41t93_set_reg(struct 
+ static int m41t93_set_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	struct spi_device *spi = to_spi_device(dev);
++	int tmp;
+ 	u8 buf[9] = {0x80};        /* write cmd + 8 data bytes */
+ 	u8 * const data = &buf[1]; /* ptr to first data byte */
+ 
+@@ -62,6 +63,30 @@ static int m41t93_set_time(struct device
+ 		return -EINVAL;
+ 	}
+ 
++	tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
++	if (tmp < 0)
++		return tmp;
++
++	if (tmp & M41T93_FLAG_OF) {
++		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
++		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
++
++		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
++		if (tmp < 0) {
++			return tmp;
++		} else if (tmp & M41T93_FLAG_OF) {
++			/* OF cannot be immediately reset: oscillator has to be
++			 * restarted. */
++			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
++
++			dev_warn(&spi->dev,
++				 "OF bit is still set, kickstarting clock.\n");
++			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++			reset_osc &= ~M41T93_FLAG_ST;
++			m41t93_set_reg(spi, M41T93_REG_ST_SEC, reset_osc);
++		}
++	}
++
+ 	data[M41T93_REG_SSEC]		= 0;
+ 	data[M41T93_REG_ST_SEC]		= bin2bcd(tm->tm_sec);
+ 	data[M41T93_REG_MIN]		= bin2bcd(tm->tm_min);
+@@ -89,10 +114,7 @@ static int m41t93_get_time(struct device
+ 	   1. halt bit (HT) is set: the clock is running but update of readout
+ 	      registers has been disabled due to power failure. This is normal
+ 	      case after poweron. Time is valid after resetting HT bit.
+-	   2. oscillator fail bit (OF) is set. Oscillator has be stopped and
+-	      time is invalid:
+-	      a) OF can be immeditely reset.
+-	      b) OF cannot be immediately reset: oscillator has to be restarted.
++	   2. oscillator fail bit (OF) is set: time is invalid.
+ 	*/
+ 	tmp = spi_w8r8(spi, M41T93_REG_ALM_HOUR_HT);
+ 	if (tmp < 0)
+@@ -110,21 +132,7 @@ static int m41t93_get_time(struct device
+ 
+ 	if (tmp & M41T93_FLAG_OF) {
+ 		ret = -EINVAL;
+-		dev_warn(&spi->dev, "OF bit is set, resetting.\n");
+-		m41t93_set_reg(spi, M41T93_REG_FLAGS, tmp & ~M41T93_FLAG_OF);
 -
--
-+#include <linux/rtc/ds1307.h>
- 
- /*
-  * We can't determine type by probing, but if we expect pre-Linux code
-@@ -92,7 +91,8 @@ enum ds_type {
- #	define DS1337_BIT_A2I		0x02
- #	define DS1337_BIT_A1I		0x01
- #define DS1339_REG_ALARM1_SECS	0x07
--#define DS1339_REG_TRICKLE	0x10
-+
-+#define DS13XX_TRICKLE_CHARGER_MAGIC	0xa0
- 
- #define RX8025_REG_CTRL1	0x0e
- #	define RX8025_BIT_2412		0x20
-@@ -124,6 +124,7 @@ struct chip_desc {
- 	unsigned		alarm:1;
- 	u16			nvram_offset;
- 	u16			nvram_size;
-+	u16			trickle_charger_reg;
- };
- 
- static const struct chip_desc chips[last_ds_type] = {
-@@ -140,6 +141,13 @@ static const struct chip_desc chips[last
- 	},
- 	[ds_1339] = {
- 		.alarm		= 1,
-+		.trickle_charger_reg = 0x10,
-+	},
-+	[ds_1340] = {
-+		.trickle_charger_reg = 0x08,
-+	},
-+	[ds_1388] = {
-+		.trickle_charger_reg = 0x0a,
- 	},
- 	[ds_3231] = {
- 		.alarm		= 1,
-@@ -619,6 +627,7 @@ static int __devinit ds1307_probe(struct
- 	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
- 	int			want_irq = false;
- 	unsigned char		*buf;
-+	struct ds1307_platform_data *pdata = client->dev.platform_data;
- 	static const int	bbsqi_bitpos[] = {
- 		[ds_1337] = 0,
- 		[ds_1339] = DS1339_BIT_BBSQI,
-@@ -638,6 +647,10 @@ static int __devinit ds1307_probe(struct
- 	ds1307->client	= client;
- 	ds1307->type	= id->driver_data;
- 
-+	if (pdata && pdata->trickle_charger_setup && chip->trickle_charger_reg)
-+		i2c_smbus_write_byte_data(client, chip->trickle_charger_reg,
-+			DS13XX_TRICKLE_CHARGER_MAGIC | pdata->trickle_charger_setup);
-+
- 	buf = ds1307->regs;
- 	if (i2c_check_functionality(adapter, I2C_FUNC_SMBUS_I2C_BLOCK)) {
- 		ds1307->read_block_data = i2c_smbus_read_i2c_block_data;
-diff -puN /dev/null include/linux/rtc/ds1307.h
---- /dev/null
-+++ a/include/linux/rtc/ds1307.h
-@@ -0,0 +1,22 @@
-+/*
-+ * ds1307.h - platform_data for the ds1307 (and variants) rtc driver
-+ * (C) Copyright 2012 by Wolfram Sang, Pengutronix e.K.
-+ * same license as the driver
-+ */
-+
-+#ifndef _LINUX_DS1307_H
-+#define _LINUX_DS1307_H
-+
-+#include <linux/types.h>
-+
-+#define DS1307_TRICKLE_CHARGER_250_OHM	0x01
-+#define DS1307_TRICKLE_CHARGER_2K_OHM	0x02
-+#define DS1307_TRICKLE_CHARGER_4K_OHM	0x03
-+#define DS1307_TRICKLE_CHARGER_NO_DIODE	0x04
-+#define DS1307_TRICKLE_CHARGER_DIODE	0x08
-+
-+struct ds1307_platform_data {
-+	u8 trickle_charger_setup;
-+};
-+
-+#endif /* _LINUX_DS1307_H */
-_
-
-Patches currently in -mm which might be from w.sang@pengutronix.de are
-
-origin.patch
-linux-next.patch
-clk-add-non-config_have_clk-routines.patch
-clk-remove-redundant-depends-on-from-drivers-kconfig.patch
-i2c-i2c-pxa-remove-conditional-compilation-of-clk-code.patch
-
+-		tmp = spi_w8r8(spi, M41T93_REG_FLAGS);
+-		if (tmp < 0)
+-			return tmp;
+-		else if (tmp & M41T93_FLAG_OF) {
+-			u8 reset_osc = buf[M41T93_REG_ST_SEC] | M41T93_FLAG_ST;
