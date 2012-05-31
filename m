@@ -1,68 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-buddy-dump-pg_compound_lock-page-flag.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:15:59 -0700
-Message-ID: <20120531191559.5B2BDA0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-move-readahead-syscall-to-mm-readaheadc.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:15:56 -0700
+Message-ID: <20120531191556.64F3AA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:60314 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932944Ab2EaTQA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:00 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so136095qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:00 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42243 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932743Ab2EaTP5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:57 -0400
+Received: by mail-qa0-f74.google.com with SMTP id g24so154247qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, fengguang.wu@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/buddy: dump PG_compound_lock page flag
+     Subject: mm: move readahead syscall to mm/readahead.c
 has been removed from the -mm tree.  Its filename was
-     mm-buddy-dump-pg_compound_lock-page-flag.patch
+     mm-move-readahead-syscall-to-mm-readaheadc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/buddy: dump PG_compound_lock page flag
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: mm: move readahead syscall to mm/readahead.c
 
-The array pageflag_names[] does conversion from page flags into their
-corresponding names so that a meaningful representation of the
-corresponding page flag can be printed.  This mechanism is used while
-dumping page frames.  However, the array missed PG_compound_lock.  So the
-PG_compound_lock page flag would be printed as a digital number instead of
-a meaningful string.
+It is better to define readahead(2) in mm/readahead.c than in
+mm/filemap.c.
 
-The patch fixes that and prints "compound_lock" for the PG_compound_lock
-page flag.
-
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/filemap.c   |   39 ---------------------------------------
+ mm/readahead.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 39 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-buddy-dump-pg_compound_lock-page-flag mm/page_alloc.c
---- a/mm/page_alloc.c~mm-buddy-dump-pg_compound_lock-page-flag
-+++ a/mm/page_alloc.c
-@@ -5973,6 +5973,9 @@ static struct trace_print_flags pageflag
- #ifdef CONFIG_MEMORY_FAILURE
- 	{1UL << PG_hwpoison,		"hwpoison"	},
- #endif
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	{1UL << PG_compound_lock,	"compound_lock"	},
-+#endif
- 	{-1UL,				NULL		},
- };
+diff -puN mm/filemap.c~mm-move-readahead-syscall-to-mm-readaheadc mm/filemap.c
+--- a/mm/filemap.c~mm-move-readahead-syscall-to-mm-readaheadc
++++ a/mm/filemap.c
+@@ -29,7 +29,6 @@
+ #include <linux/pagevec.h>
+ #include <linux/blkdev.h>
+ #include <linux/security.h>
+-#include <linux/syscalls.h>
+ #include <linux/cpuset.h>
+ #include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
+ #include <linux/memcontrol.h>
+@@ -1478,44 +1477,6 @@ out:
+ }
+ EXPORT_SYMBOL(generic_file_aio_read);
  
+-static ssize_t
+-do_readahead(struct address_space *mapping, struct file *filp,
+-	     pgoff_t index, unsigned long nr)
+-{
+-	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
+-		return -EINVAL;
+-
+-	force_page_cache_readahead(mapping, filp, index, nr);
+-	return 0;
+-}
+-
+-SYSCALL_DEFINE(readahead)(int fd, loff_t offset, size_t count)
+-{
+-	ssize_t ret;
+-	struct file *file;
+-
+-	ret = -EBADF;
+-	file = fget(fd);
+-	if (file) {
+-		if (file->f_mode & FMODE_READ) {
+-			struct address_space *mapping = file->f_mapping;
+-			pgoff_t start = offset >> PAGE_CACHE_SHIFT;
+-			pgoff_t end = (offset + count - 1) >> PAGE_CACHE_SHIFT;
+-			unsigned long len = end - start + 1;
+-			ret = do_readahead(mapping, file, start, len);
+-		}
+-		fput(file);
+-	}
+-	return ret;
+-}
+-#ifdef CONFIG_HAVE_SYSCALL_WRAPPERS
+-asmlinkage long SyS_readahead(long fd, loff_t offset, long count)
+-{
+-	return SYSC_readahead((int) fd, offset, (size_t) count);
+-}
+-SYSCALL_ALIAS(sys_readahead, SyS_readahead);
+-#endif
+-
+ #ifdef CONFIG_MMU
+ /**
+  * page_cache_read - adds requested page to the page cache if not already there
+diff -puN mm/readahead.c~mm-move-readahead-syscall-to-mm-readaheadc mm/readahead.c
+--- a/mm/readahead.c~mm-move-readahead-syscall-to-mm-readaheadc
++++ a/mm/readahead.c
+@@ -17,6 +17,8 @@
+ #include <linux/task_io_accounting_ops.h>
+ #include <linux/pagevec.h>
+ #include <linux/pagemap.h>
++#include <linux/syscalls.h>
++#include <linux/file.h>
+ 
+ /*
+  * Initialise a struct file's readahead state.  Assumes that the caller has
+@@ -562,3 +564,41 @@ page_cache_async_readahead(struct addres
+ 	ondemand_readahead(mapping, ra, filp, true, offset, req_size);
+ }
+ EXPORT_SYMBOL_GPL(page_cache_async_readahead);
++
++static ssize_t
++do_readahead(struct address_space *mapping, struct file *filp,
++	     pgoff_t index, unsigned long nr)
++{
++	if (!mapping || !mapping->a_ops || !mapping->a_ops->readpage)
++		return -EINVAL;
++
++	force_page_cache_readahead(mapping, filp, index, nr);
++	return 0;
++}
++
++SYSCALL_DEFINE(readahead)(int fd, loff_t offset, size_t count)
++{
++	ssize_t ret;
++	struct file *file;
++
++	ret = -EBADF;
++	file = fget(fd);
++	if (file) {
++		if (file->f_mode & FMODE_READ) {
++			struct address_space *mapping = file->f_mapping;
++			pgoff_t start = offset >> PAGE_CACHE_SHIFT;
++			pgoff_t end = (offset + count - 1) >> PAGE_CACHE_SHIFT;
++			unsigned long len = end - start + 1;
++			ret = do_readahead(mapping, file, start, len);
++		}
++		fput(file);
++	}
++	return ret;
++}
++#ifdef CONFIG_HAVE_SYSCALL_WRAPPERS
++asmlinkage long SyS_readahead(long fd, loff_t offset, long count)
++{
++	return SYSC_readahead((int) fd, offset, (size_t) count);
++}
++SYSCALL_ALIAS(sys_readahead, SyS_readahead);
++#endif
 _
 
-Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-mm-slab-remove-duplicate-check.patch
+fs-move-file_remove_suid-to-fs-inodec.patch
+proc-clean-up-proc-pid-environ-handling.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+proc-remove-mm_for_maps.patch
+proc-use-mm_access-instead-of-ptrace_may_access.patch
+proc-use-is_err_or_null.patch
 
