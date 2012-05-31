@@ -1,230 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-remove-reclaim_mode_t.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:13:57 -0700
-Message-ID: <20120531191357.6C5C6A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:14:06 -0700
+Message-ID: <20120531191406.A63F6A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:59082 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932712Ab2EaTN6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:13:58 -0400
-Received: by ghbz15 with SMTP id z15so134388ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:13:57 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:45989 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932808Ab2EaTOJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:09 -0400
+Received: by were53 with SMTP id e53so75800wer.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, apw@shadowen.org, hughd@google.com, khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: rajman.mekaco@gmail.com, consul.kautuk@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: remove reclaim_mode_t
+     Subject: mm/mmap.c: find_vma(): remove unnecessary if(mm) check
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-reclaim_mode_t.patch
+     mm-mmapc-find_vma-remove-unnecessary-ifmm-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: vmscan: remove reclaim_mode_t
+From: Rajman Mekaco <rajman.mekaco@gmail.com>
+Subject: mm/mmap.c: find_vma(): remove unnecessary if(mm) check
 
-There is little motiviation for reclaim_mode_t once RECLAIM_MODE_[A]SYNC
-and lumpy reclaim have been removed.  This patch gets rid of
-reclaim_mode_t as well and improves the documentation about what
-reclaim/compaction is and when it is triggered.
+The if(mm) check is not required in find_vma, as the kernel code calls
+find_vma only when it is absolutely sure that the mm_struct arg to it is
+non-NULL.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Remove the if(mm) check and adding the a WARN_ONCE(!mm) for now.  This
+will serve the purpose of mandating that the execution
+context(user-mode/kernel-mode) be known before find_vma is called.  Also
+fixed 2 checkpatch.pl errors in the declaration of the rb_node and vma_tmp
+local variables.
+
+I was browsing through the internet and read a discussion at
+https://lkml.org/lkml/2012/3/27/342 which discusses removal of the
+validation check within find_vma.  Since no-one responded, I decided to
+send this patch with Andrew's suggestions.
+
+[akpm@linux-foundation.org: add remove-me comment]
+Signed-off-by: Rajman Mekaco <rajman.mekaco@gmail.com>
+Cc: Kautuk Consul <consul.kautuk@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |    4 -
- mm/vmscan.c                   |   72 +++++++++-----------------------
- 2 files changed, 24 insertions(+), 52 deletions(-)
+ mm/mmap.c |   53 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 27 insertions(+), 26 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-vmscan-remove-reclaim_mode_t include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-vmscan-remove-reclaim_mode_t
-+++ a/include/trace/events/vmscan.h
-@@ -25,12 +25,12 @@
- 		{RECLAIM_WB_ASYNC,	"RECLAIM_WB_ASYNC"}	\
- 		) : "RECLAIM_WB_NONE"
- 
--#define trace_reclaim_flags(page, sync) ( \
-+#define trace_reclaim_flags(page) ( \
- 	(page_is_file_cache(page) ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
- 	(RECLAIM_WB_ASYNC) \
- 	)
- 
--#define trace_shrink_flags(file, sync) \
-+#define trace_shrink_flags(file) \
- 	( \
- 		(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
- 		(RECLAIM_WB_ASYNC) \
-diff -puN mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-remove-reclaim_mode_t
-+++ a/mm/vmscan.c
-@@ -53,16 +53,6 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/vmscan.h>
- 
--/*
-- * reclaim_mode determines how the inactive list is shrunk
-- * RECLAIM_MODE_SINGLE: Reclaim only order-0 pages
-- * RECLAIM_MODE_COMPACTION: For high-order allocations, reclaim a number of
-- *			order-0 pages and then compact the zone
-- */
--typedef unsigned __bitwise__ reclaim_mode_t;
--#define RECLAIM_MODE_SINGLE		((__force reclaim_mode_t)0x01u)
--#define RECLAIM_MODE_COMPACTION		((__force reclaim_mode_t)0x10u)
--
- struct scan_control {
- 	/* Incremented by the number of inactive pages that were scanned */
- 	unsigned long nr_scanned;
-@@ -89,12 +79,6 @@ struct scan_control {
- 	int order;
- 
- 	/*
--	 * Intend to reclaim enough continuous memory rather than reclaim
--	 * enough amount of memory. i.e, mode for high order allocation.
--	 */
--	reclaim_mode_t reclaim_mode;
--
--	/*
- 	 * The memory cgroup that hit its limit and as a result is the
- 	 * primary target of this reclaim invocation.
- 	 */
-@@ -356,25 +340,6 @@ out:
- 	return ret;
- }
- 
--static void set_reclaim_mode(int priority, struct scan_control *sc)
--{
--	/*
--	 * Restrict reclaim/compaction to costly allocations or when
--	 * under memory pressure
--	 */
--	if (COMPACTION_BUILD && sc->order &&
--			(sc->order > PAGE_ALLOC_COSTLY_ORDER ||
--			 priority < DEF_PRIORITY - 2))
--		sc->reclaim_mode = RECLAIM_MODE_COMPACTION;
--	else
--		sc->reclaim_mode = RECLAIM_MODE_SINGLE;
--}
--
--static void reset_reclaim_mode(struct scan_control *sc)
--{
--	sc->reclaim_mode = RECLAIM_MODE_SINGLE;
--}
--
- static inline int is_page_cache_freeable(struct page *page)
+diff -puN mm/mmap.c~mm-mmapc-find_vma-remove-unnecessary-ifmm-check mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-find_vma-remove-unnecessary-ifmm-check
++++ a/mm/mmap.c
+@@ -1639,33 +1639,34 @@ struct vm_area_struct *find_vma(struct m
  {
- 	/*
-@@ -497,8 +462,7 @@ static pageout_t pageout(struct page *pa
- 			/* synchronous write or broken a_ops? */
- 			ClearPageReclaim(page);
+ 	struct vm_area_struct *vma = NULL;
+ 
+-	if (mm) {
+-		/* Check the cache first. */
+-		/* (Cache hit rate is typically around 35%.) */
+-		vma = mm->mmap_cache;
+-		if (!(vma && vma->vm_end > addr && vma->vm_start <= addr)) {
+-			struct rb_node * rb_node;
+-
+-			rb_node = mm->mm_rb.rb_node;
+-			vma = NULL;
+-
+-			while (rb_node) {
+-				struct vm_area_struct * vma_tmp;
+-
+-				vma_tmp = rb_entry(rb_node,
+-						struct vm_area_struct, vm_rb);
+-
+-				if (vma_tmp->vm_end > addr) {
+-					vma = vma_tmp;
+-					if (vma_tmp->vm_start <= addr)
+-						break;
+-					rb_node = rb_node->rb_left;
+-				} else
+-					rb_node = rb_node->rb_right;
+-			}
+-			if (vma)
+-				mm->mmap_cache = vma;
++	if (WARN_ON_ONCE(!mm))		/* Remove this in linux-3.6 */
++		return NULL;
++
++	/* Check the cache first. */
++	/* (Cache hit rate is typically around 35%.) */
++	vma = mm->mmap_cache;
++	if (!(vma && vma->vm_end > addr && vma->vm_start <= addr)) {
++		struct rb_node *rb_node;
++
++		rb_node = mm->mm_rb.rb_node;
++		vma = NULL;
++
++		while (rb_node) {
++			struct vm_area_struct *vma_tmp;
++
++			vma_tmp = rb_entry(rb_node,
++					   struct vm_area_struct, vm_rb);
++
++			if (vma_tmp->vm_end > addr) {
++				vma = vma_tmp;
++				if (vma_tmp->vm_start <= addr)
++					break;
++				rb_node = rb_node->rb_left;
++			} else
++				rb_node = rb_node->rb_right;
  		}
--		trace_mm_vmscan_writepage(page,
--			trace_reclaim_flags(page, sc->reclaim_mode));
-+		trace_mm_vmscan_writepage(page, trace_reclaim_flags(page));
- 		inc_zone_page_state(page, NR_VMSCAN_WRITE);
- 		return PAGE_SUCCESS;
++		if (vma)
++			mm->mmap_cache = vma;
  	}
-@@ -953,7 +917,6 @@ cull_mlocked:
- 			try_to_free_swap(page);
- 		unlock_page(page);
- 		putback_lru_page(page);
--		reset_reclaim_mode(sc);
- 		continue;
- 
- activate_locked:
-@@ -1348,8 +1311,6 @@ shrink_inactive_list(unsigned long nr_to
- 			return SWAP_CLUSTER_MAX;
- 	}
- 
--	set_reclaim_mode(priority, sc);
--
- 	lru_add_drain();
- 
- 	if (!sc->may_unmap)
-@@ -1433,7 +1394,7 @@ shrink_inactive_list(unsigned long nr_to
- 		zone_idx(zone),
- 		nr_scanned, nr_reclaimed,
- 		priority,
--		trace_shrink_flags(file, sc->reclaim_mode));
-+		trace_shrink_flags(file));
- 	return nr_reclaimed;
+ 	return vma;
  }
- 
-@@ -1512,8 +1473,6 @@ static void shrink_active_list(unsigned 
- 
- 	lru_add_drain();
- 
--	reset_reclaim_mode(sc);
--
- 	if (!sc->may_unmap)
- 		isolate_mode |= ISOLATE_UNMAPPED;
- 	if (!sc->may_writepage)
-@@ -1826,23 +1785,35 @@ out:
- 	}
- }
- 
-+/* Use reclaim/compaction for costly allocs or under memory pressure */
-+static bool in_reclaim_compaction(int priority, struct scan_control *sc)
-+{
-+	if (COMPACTION_BUILD && sc->order &&
-+			(sc->order > PAGE_ALLOC_COSTLY_ORDER ||
-+			 priority < DEF_PRIORITY - 2))
-+		return true;
-+
-+	return false;
-+}
-+
- /*
-- * Reclaim/compaction depends on a number of pages being freed. To avoid
-- * disruption to the system, a small number of order-0 pages continue to be
-- * rotated and reclaimed in the normal fashion. However, by the time we get
-- * back to the allocator and call try_to_compact_zone(), we ensure that
-- * there are enough free pages for it to be likely successful
-+ * Reclaim/compaction is used for high-order allocation requests. It reclaims
-+ * order-0 pages before compacting the zone. should_continue_reclaim() returns
-+ * true if more pages should be reclaimed such that when the page allocator
-+ * calls try_to_compact_zone() that it will have enough free pages to succeed.
-+ * It will give up earlier than that if there is difficulty reclaiming pages.
-  */
- static inline bool should_continue_reclaim(struct mem_cgroup_zone *mz,
- 					unsigned long nr_reclaimed,
- 					unsigned long nr_scanned,
-+					int priority,
- 					struct scan_control *sc)
- {
- 	unsigned long pages_for_compaction;
- 	unsigned long inactive_lru_pages;
- 
- 	/* If not in reclaim/compaction mode, stop */
--	if (!(sc->reclaim_mode & RECLAIM_MODE_COMPACTION))
-+	if (!in_reclaim_compaction(priority, sc))
- 		return false;
- 
- 	/* Consider stopping depending on scan and reclaim activity */
-@@ -1944,7 +1915,8 @@ restart:
- 
- 	/* reclaim/compaction might need reclaim to continue */
- 	if (should_continue_reclaim(mz, nr_reclaimed,
--					sc->nr_scanned - nr_scanned, sc))
-+					sc->nr_scanned - nr_scanned,
-+					priority, sc))
- 		goto restart;
- 
- 	throttle_vm_writeout(sc->gfp_mask);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from rajman.mekaco@gmail.com are
 
 origin.patch
-linux-next.patch
 
