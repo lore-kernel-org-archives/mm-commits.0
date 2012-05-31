@@ -1,63 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-add-ioctl-to-get-clear-battery-low-voltage-status.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:20:22 -0700
-Message-ID: <20120531192022.60E92A0203@akpm.mtv.corp.google.com>
+Subject: [merged] lib-vsprintfc-%o0-becomes-0-instead-of-00.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:20:14 -0700
+Message-ID: <20120531192014.75070A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-wg0-f74.google.com ([74.125.82.74]:46086 "EHLO
 	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757596Ab2EaTUX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:23 -0400
+	with ESMTP id S1757596Ab2EaTUP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:15 -0400
 Received: by mail-wg0-f74.google.com with SMTP id dt11so76227wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:23 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.stein@systec-electronic.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: pierre@spotify.com, joe@perches.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: add ioctl to get/clear battery low voltage status
+     Subject: lib/vsprintf.c: "%#o",0 becomes '0' instead of '00'
 has been removed from the -mm tree.  Its filename was
-     rtc-add-ioctl-to-get-clear-battery-low-voltage-status.patch
+     lib-vsprintfc-%o0-becomes-0-instead-of-00.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Alexander Stein <alexander.stein@systec-electronic.com>
-Subject: rtc: add ioctl to get/clear battery low voltage status
+From: Pierre Carrier <pierre@spotify.com>
+Subject: lib/vsprintf.c: "%#o",0 becomes '0' instead of '00'
 
-Currently there is no generic way to get the RTC battery status within an
-application.  So add an ioctl to read the status bit.  The idea is that
-the bit is set once a low voltage is detected.  It stays there until it is
-reset using the RTC_VL_CLR ioctl.
+number()'s behaviour is slighly changed: 0 becomes "0" instead of "00"
+when using the flag SPECIAL and base 8.
 
-Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Before:
+Number\Format  %o    %#o  %x    %#x
+            0     0   00    0   0x0
+            1     1   01    1   0x1
+           16    20  020   10  0x10
+
+After:
+Number\Format  %o    %#o  %x    %#x
+            0     0    0    0   0x0
+            1     1   01    1   0x1
+           16    20  020   10  0x10
+
+Signed-off-by: Pierre Carrier <pierre@spotify.com>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rtc.h |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/vsprintf.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/rtc.h~rtc-add-ioctl-to-get-clear-battery-low-voltage-status include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-add-ioctl-to-get-clear-battery-low-voltage-status
-+++ a/include/linux/rtc.h
-@@ -91,6 +91,9 @@ struct rtc_pll_info {
- #define RTC_PLL_GET	_IOR('p', 0x11, struct rtc_pll_info)  /* Get PLL correction */
- #define RTC_PLL_SET	_IOW('p', 0x12, struct rtc_pll_info)  /* Set PLL correction */
+diff -puN lib/vsprintf.c~lib-vsprintfc-%o0-becomes-0-instead-of-00 lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-%o0-becomes-0-instead-of-00
++++ a/lib/vsprintf.c
+@@ -284,6 +284,7 @@ char *number(char *buf, char *end, unsig
+ 	char locase;
+ 	int need_pfx = ((spec.flags & SPECIAL) && spec.base != 10);
+ 	int i;
++	bool is_zero = num == 0LL;
  
-+#define RTC_VL_READ	_IOR('p', 0x13, int)	/* Voltage low detector */
-+#define RTC_VL_CLR	_IO('p', 0x14)		/* Clear voltage low information */
-+
- /* interrupt flags */
- #define RTC_IRQF 0x80	/* Any of the following is active */
- #define RTC_PF 0x40	/* Periodic interrupt */
+ 	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
+ 	 * produces same digits or (maybe lowercased) letters */
+@@ -305,8 +306,9 @@ char *number(char *buf, char *end, unsig
+ 		}
+ 	}
+ 	if (need_pfx) {
+-		spec.field_width--;
+ 		if (spec.base == 16)
++			spec.field_width -= 2;
++		else if (!is_zero)
+ 			spec.field_width--;
+ 	}
+ 
+@@ -353,9 +355,11 @@ char *number(char *buf, char *end, unsig
+ 	}
+ 	/* "0x" / "0" prefix */
+ 	if (need_pfx) {
+-		if (buf < end)
+-			*buf = '0';
+-		++buf;
++		if (spec.base == 16 || !is_zero) {
++			if (buf < end)
++				*buf = '0';
++			++buf;
++		}
+ 		if (spec.base == 16) {
+ 			if (buf < end)
+ 				*buf = ('X' | locase);
 _
 
-Patches currently in -mm which might be from alexander.stein@systec-electronic.com are
+Patches currently in -mm which might be from pierre@spotify.com are
 
 origin.patch
-linux-next.patch
 
