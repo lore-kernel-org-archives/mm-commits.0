@@ -1,255 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:14:20 -0700
-Message-ID: <20120531191420.CD9CEA0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:14:28 -0700
+Message-ID: <20120531191428.98A24A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:41965 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932853Ab2EaTOV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:21 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so134384ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:21 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:60314 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932851Ab2EaTOa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:30 -0400
+Received: by qcsp5 with SMTP id p5so136095qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lwoodman@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, lizf@cn.fujitsu.com, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do_migrate_pages() calls migrate_to_node() even if task is already on a correct node
+     Subject: mm: memcg: count pte references from every member of the reclaimed hierarchy
 has been removed from the -mm tree.  Its filename was
-     mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node.patch
+     mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Larry Woodman <lwoodman@redhat.com>
-Subject: mm: do_migrate_pages() calls migrate_to_node() even if task is already on a correct node
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: count pte references from every member of the reclaimed hierarchy
 
-While running an application that moves tasks from one cpuset to another I
-noticed that it takes much longer and moves many more pages than expected.
- The reason for this is do_migrate_pages() does its best to preserve the
-relative node differential from the first node of the cpuset because the
-application may have been written with that in mind.  If memory was
-interleaved on the nodes of the source cpuset by an application
-do_migrate_pages() will try its best to maintain that interleaving on the
-nodes of the destination cpuset.  This means copying the memory from all
-source nodes to the destination nodes even if the source and destination
-nodes overlap.
+The rmap walker checking page table references has historically
+ignored references from VMAs that were not part of the memcg that was
+being reclaimed during memcg hard limit reclaim.
 
-This is a problem for userspace NUMA placement tools.  The amount of time
-spent doing extra memory moves cancels out some of the NUMA performance
-improvements.  Furthermore, if the number of source and destination nodes
-are to maintain the previous interleaving layout anyway.
+When transitioning global reclaim to memcg hierarchy reclaim, I missed
+that bit and now references from outside a memcg are ignored even
+during global reclaim.
 
-This patch changes do_migrate_pages() to only preserve the relative layout
-inside the program if the number of NUMA nodes in the source and
-destination mask are the same.  If the number is different, we do a much
-more efficient migration by not touching memory that is in an allowed
-node.
+Reverting back to traditional behaviour - count all references during
+global reclaim and only mind references of the memcg being reclaimed
+during limit reclaim would be one option.
 
-This preserves the old behaviour for programs that want it, while allowing
-a userspace NUMA placement tool to use the new, faster migration.  This
-improves performance in our tests by up to a factor of 7.
+However, the more generic idea is to ignore references exactly then
+when they are outside the hierarchy that is currently under reclaim;
+because only then will their reclamation be of any use to help the
+pressure situation.  It makes no sense to ignore references from a
+sibling memcg and then evict a page that will be immediately refaulted
+by that sibling which contributes to the same usage of the common
+ancestor under reclaim.
 
-Without this change migrating tasks from a cpuset containing nodes 0-7 to
-a cpuset containing nodes 3-4, we migrate from ALL the nodes even if they
-are in the both the source and destination nodesets:
+The solution: make the rmap walker ignore references from VMAs that
+are not part of the hierarchy that is being reclaimed.
 
-   Migrating 7 to 4
-   Migrating 6 to 3
-   Migrating 5 to 4
-   Migrating 4 to 3
-   Migrating 1 to 4
-   Migrating 3 to 4
-   Migrating 0 to 3
-   Migrating 2 to 3
+Flat limit reclaim will stay the same, hierarchical limit reclaim will
+mind the references only to pages that the hierarchy owns.  Global
+reclaim, since it reclaims from all memcgs, will be fixed to regard
+all references.
 
-With this change we only migrate from nodes that are not in the
-destination nodesets:
-
-   Migrating 7 to 4
-   Migrating 6 to 3
-   Migrating 5 to 4
-   Migrating 2 to 3
-   Migrating 1 to 4
-   Migrating 0 to 3
-
-Yet if we move from a cpuset containing nodes 2,3,4 to a cpuset
-containing 3,4,5 we still
-do move everything so that we preserve the desired NUMA offsets:
-
-Migrating 4 to 5
-Migrating 3 to 4
-Migrating 2 to 3
-
-As far as performance is concerned this simple patch improves the time it
-takes to move 14, 20 and 26 large tasks from a cpuset containing nodes 0-7
-to a cpuset containing nodes 1 & 3 by up to a factor of 7.  Here are the
-timings with and without the patch:
-
-BEFORE PATCH -- Move times: 59, 140, 651 seconds
-============
-
-Moving 14 tasks from nodes (0-7) to nodes (1,3)
-numad(8780) do_migrate_pages (mm=0xffff88081d414400
-from_nodes=0xffff880818c81d28 to_nodes=0xffff880818c81ce8 flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x7 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x6 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x5 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x4 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x2 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x1 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d414400 source=0x0 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 14 tasks...)
-PID 8890 moved to node(s) 1,3 in 59.2 seconds
-
-Moving 20 tasks from nodes (0-7) to nodes (1,4-5)
-numad(8780) do_migrate_pages (mm=0xffff88081d88c700
-from_nodes=0xffff880818c81d28 to_nodes=0xffff880818c81ce8 flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x7 dest=0x4
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x6 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x3 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x2 dest=0x5
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x1 dest=0x4
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d88c700 source=0x0 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 20 tasks...)
-PID 8962 moved to node(s) 1,4-5 in 139.88 seconds
-
-Moving 26 tasks from nodes (0-7) to nodes (1-3,5)
-numad(8780) do_migrate_pages (mm=0xffff88081d5bc740
-from_nodes=0xffff880818c81d28 to_nodes=0xffff880818c81ce8 flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x7 dest=0x5
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x6 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x5 dest=0x2
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x3 dest=0x5
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x2 dest=0x3
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x1 dest=0x2
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x0 dest=0x1
-flags=0x4)
-numad(8780) migrate_to_node (mm=0xffff88081d5bc740 source=0x4 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 26 tasks...)
-PID 9058 moved to node(s) 1-3,5 in 651.45 seconds
-
-AFTER PATCH -- Move times: 42, 56, 93 seconds
-===========
-
-Moving 14 tasks from nodes (0-7) to nodes (5,7)
-numad(33209) do_migrate_pages (mm=0xffff88101d5ff140
-from_nodes=0xffff88101e7b5d28 to_nodes=0xffff88101e7b5ce8 flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x6 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x4 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x3 dest=0x7
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x2 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x1 dest=0x7
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d5ff140 source=0x0 dest=0x5
-flags=0x4)
-(Above moves repeated for each of the 14 tasks...)
-PID 33221 moved to node(s) 5,7 in 41.67 seconds
-
-Moving 20 tasks from nodes (0-7) to nodes (1,3,5)
-numad(33209) do_migrate_pages (mm=0xffff88101d6c37c0
-from_nodes=0xffff88101e7b5d28 to_nodes=0xffff88101e7b5ce8 flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x7 dest=0x3
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x6 dest=0x1
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x4 dest=0x3
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x2 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d6c37c0 source=0x0 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 20 tasks...)
-PID 33289 moved to node(s) 1,3,5 in 56.3 seconds
-
-Moving 26 tasks from nodes (0-7) to nodes (1,3,5,7)
-numad(33209) do_migrate_pages (mm=0xffff88101d924400
-from_nodes=0xffff88101e7b5d28 to_nodes=0xffff88101e7b5ce8 flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d924400 source=0x6 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d924400 source=0x4 dest=0x1
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d924400 source=0x2 dest=0x5
-flags=0x4)
-numad(33209) migrate_to_node (mm=0xffff88101d924400 source=0x0 dest=0x1
-flags=0x4)
-(Above moves repeated for each of the 26 tasks...)
-PID 33372 moved to node(s) 1,3,5,7 in 92.67 seconds
-
-[akpm@linux-foundation.org: clean up comment layout]
-Signed-off-by: Larry Woodman <lwoodman@redhat.com>
+[akpm@linux-foundation.org: name the args in the declaration]
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: Konstantin Khlebnikov<khlebnikov@openvz.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ include/linux/memcontrol.h |    7 ++++++-
+ mm/memcontrol.c            |   16 +++++++++++-----
+ mm/vmscan.c                |    6 ++++--
+ 3 files changed, 21 insertions(+), 8 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node mm/mempolicy.c
---- a/mm/mempolicy.c~mm-do_migrate_pages-calls-migrate_to_node-even-if-task-is-already-on-a-correct-node
-+++ a/mm/mempolicy.c
-@@ -1005,6 +1005,26 @@ int do_migrate_pages(struct mm_struct *m
- 		int dest = 0;
+diff -puN include/linux/memcontrol.h~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy
++++ a/include/linux/memcontrol.h
+@@ -79,6 +79,8 @@ extern void mem_cgroup_uncharge_cache_pa
  
- 		for_each_node_mask(s, tmp) {
+ extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+ 				     int order);
++bool __mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
++				  struct mem_cgroup *memcg);
+ int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *memcg);
+ 
+ extern struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page);
+@@ -92,10 +94,13 @@ static inline
+ int mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *cgroup)
+ {
+ 	struct mem_cgroup *memcg;
++	int match;
 +
-+			/*
-+			 * do_migrate_pages() tries to maintain the relative
-+			 * node relationship of the pages established between
-+			 * threads and memory areas.
-+                         *
-+			 * However if the number of source nodes is not equal to
-+			 * the number of destination nodes we can not preserve
-+			 * this node relative relationship.  In that case, skip
-+			 * copying memory from a node that is in the destination
-+			 * mask.
-+			 *
-+			 * Example: [2,3,4] -> [3,4,5] moves everything.
-+			 *          [0-7] - > [3,4,5] moves only 0,1,2,6,7.
-+			 */
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_task(rcu_dereference((mm)->owner));
++	match = __mem_cgroup_same_or_subtree(cgroup, memcg);
+ 	rcu_read_unlock();
+-	return cgroup == memcg;
++	return match;
+ }
+ 
+ extern struct cgroup_subsys_state *mem_cgroup_css(struct mem_cgroup *memcg);
+diff -puN mm/memcontrol.c~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy
++++ a/mm/memcontrol.c
+@@ -1149,17 +1149,23 @@ struct lruvec *mem_cgroup_lru_move_lists
+  * Checks whether given mem is same or in the root_mem_cgroup's
+  * hierarchy subtree
+  */
+-static bool mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
+-		struct mem_cgroup *memcg)
++bool __mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
++				  struct mem_cgroup *memcg)
+ {
+-	bool ret;
+-
+ 	if (root_memcg == memcg)
+ 		return true;
+ 	if (!root_memcg->use_hierarchy)
+ 		return false;
++	return css_is_ancestor(&memcg->css, &root_memcg->css);
++}
 +
-+			if ((nodes_weight(*from_nodes) != nodes_weight(*to_nodes)) &&
-+						(node_isset(s, *to_nodes)))
-+				continue;
++static bool mem_cgroup_same_or_subtree(const struct mem_cgroup *root_memcg,
++				       struct mem_cgroup *memcg)
++{
++	bool ret;
 +
- 			d = node_remap(s, *from_nodes, *to_nodes);
- 			if (s == d)
- 				continue;
+ 	rcu_read_lock();
+-	ret = css_is_ancestor(&memcg->css, &root_memcg->css);
++	ret = __mem_cgroup_same_or_subtree(root_memcg, memcg);
+ 	rcu_read_unlock();
+ 	return ret;
+ }
+diff -puN mm/vmscan.c~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcg-count-pte-references-from-every-member-of-the-reclaimed-hierarchy
++++ a/mm/vmscan.c
+@@ -645,7 +645,8 @@ static enum page_references page_check_r
+ 	int referenced_ptes, referenced_page;
+ 	unsigned long vm_flags;
+ 
+-	referenced_ptes = page_referenced(page, 1, mz->mem_cgroup, &vm_flags);
++	referenced_ptes = page_referenced(page, 1, sc->target_mem_cgroup,
++					  &vm_flags);
+ 	referenced_page = TestClearPageReferenced(page);
+ 
+ 	/*
+@@ -1513,7 +1514,8 @@ static void shrink_active_list(unsigned 
+ 			}
+ 		}
+ 
+-		if (page_referenced(page, 0, mz->mem_cgroup, &vm_flags)) {
++		if (page_referenced(page, 0, sc->target_mem_cgroup,
++				    &vm_flags)) {
+ 			nr_rotated += hpage_nr_pages(page);
+ 			/*
+ 			 * Identify referenced, file-backed active pages and
 _
 
-Patches currently in -mm which might be from lwoodman@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 linux-next.patch
+mm-slab-remove-duplicate-check.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-simplify-migrate_huge_page-fix.patch
+memcg-add-hugetlb-extension.patch
+memcg-add-hugetlb-extension-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
+memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent.patch
+memcg-move-charges-to-root-cgroup-if-use_hierarchy=0-in-mem_cgroup_move_hugetlb_parent.patch
 
