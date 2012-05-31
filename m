@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:17:30 -0700
-Message-ID: <20120531191730.61AC6A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:17:27 -0700
+Message-ID: <20120531191727.5F3F3A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:60521 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932980Ab2EaTRb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:31 -0400
-Received: by yenl3 with SMTP id l3so138104yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:30 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:45514 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932980Ab2EaTR2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:28 -0400
+Received: by mail-fa0-f74.google.com with SMTP id a25so75299faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: replace zone_nr_lru_pages() with get_lruvec_size()
+     Subject: mm/vmscan: push lruvec pointer into putback_inactive_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size.patch
+     mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,11 +26,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/vmscan: replace zone_nr_lru_pages() with get_lruvec_size()
+Subject: mm/vmscan: push lruvec pointer into putback_inactive_pages()
 
-If memory cgroup is enabled we always use lruvecs which are embedded into
-struct mem_cgroup_per_zone, so we can reach lru_size counters via
-container_of().
+As zone_reclaim_stat is now located in the lruvec, we can reach it
+directly.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -39,136 +38,36 @@ Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ++----
- mm/memcontrol.c            |    9 +++++++++
- mm/vmscan.c                |   31 ++++++++++++++++---------------
- 3 files changed, 27 insertions(+), 19 deletions(-)
+ mm/vmscan.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size
-+++ a/include/linux/memcontrol.h
-@@ -123,8 +123,7 @@ int mem_cgroup_inactive_anon_is_low(stru
- int mem_cgroup_inactive_file_is_low(struct mem_cgroup *memcg,
- 				    struct zone *zone);
- int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
--unsigned long mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg,
--					int nid, int zid, unsigned int lrumask);
-+unsigned long mem_cgroup_get_lruvec_size(struct lruvec *lruvec, enum lru_list);
- struct zone_reclaim_stat*
- mem_cgroup_get_reclaim_stat_from_page(struct page *page);
- extern void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
-@@ -343,8 +342,7 @@ mem_cgroup_inactive_file_is_low(struct m
- }
- 
- static inline unsigned long
--mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, int nid, int zid,
--				unsigned int lru_mask)
-+mem_cgroup_get_lruvec_size(struct lruvec *lruvec, enum lru_list lru)
- {
- 	return 0;
- }
-diff -puN mm/memcontrol.c~mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size mm/memcontrol.c
---- a/mm/memcontrol.c~mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size
-+++ a/mm/memcontrol.c
-@@ -723,6 +723,15 @@ static void mem_cgroup_charge_statistics
- }
- 
- unsigned long
-+mem_cgroup_get_lruvec_size(struct lruvec *lruvec, enum lru_list lru)
-+{
-+	struct mem_cgroup_per_zone *mz;
-+
-+	mz = container_of(lruvec, struct mem_cgroup_per_zone, lruvec);
-+	return mz->lru_size[lru];
-+}
-+
-+static unsigned long
- mem_cgroup_zone_nr_lru_pages(struct mem_cgroup *memcg, int nid, int zid,
- 			unsigned int lru_mask)
- {
-diff -puN mm/vmscan.c~mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-replace-zone_nr_lru_pages-with-get_lruvec_size
+diff -puN mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-push-lruvec-pointer-into-putback_inactive_pages
 +++ a/mm/vmscan.c
-@@ -155,19 +155,14 @@ static struct zone_reclaim_stat *get_rec
- 	return &mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup)->reclaim_stat;
+@@ -1155,11 +1155,11 @@ static int too_many_isolated(struct zone
  }
  
--static unsigned long zone_nr_lru_pages(struct mem_cgroup_zone *mz,
--				       enum lru_list lru)
-+static unsigned long get_lruvec_size(struct lruvec *lruvec, enum lru_list lru)
+ static noinline_for_stack void
+-putback_inactive_pages(struct mem_cgroup_zone *mz,
++putback_inactive_pages(struct lruvec *lruvec,
+ 		       struct list_head *page_list)
  {
- 	if (!mem_cgroup_disabled())
--		return mem_cgroup_zone_nr_lru_pages(mz->mem_cgroup,
--						    zone_to_nid(mz->zone),
--						    zone_idx(mz->zone),
--						    BIT(lru));
-+		return mem_cgroup_get_lruvec_size(lruvec, lru);
- 
--	return zone_page_state(mz->zone, NR_LRU_BASE + lru);
-+	return zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru);
- }
- 
--
- /*
-  * Add a shrinker callback to be called from the vm
-  */
-@@ -1603,6 +1598,9 @@ static void get_scan_count(struct mem_cg
- 	enum lru_list lru;
- 	int noswap = 0;
- 	bool force_scan = false;
-+	struct lruvec *lruvec;
-+
-+	lruvec = mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup);
+-	struct zone_reclaim_stat *reclaim_stat = get_reclaim_stat(mz);
+-	struct zone *zone = mz->zone;
++	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
++	struct zone *zone = lruvec_zone(lruvec);
+ 	LIST_HEAD(pages_to_free);
  
  	/*
- 	 * If the zone or memcg is small, nr[l] can be 0.  This
-@@ -1628,10 +1626,10 @@ static void get_scan_count(struct mem_cg
- 		goto out;
+@@ -1278,7 +1278,7 @@ shrink_inactive_list(unsigned long nr_to
+ 					       nr_reclaimed);
  	}
  
--	anon  = zone_nr_lru_pages(mz, LRU_ACTIVE_ANON) +
--		zone_nr_lru_pages(mz, LRU_INACTIVE_ANON);
--	file  = zone_nr_lru_pages(mz, LRU_ACTIVE_FILE) +
--		zone_nr_lru_pages(mz, LRU_INACTIVE_FILE);
-+	anon  = get_lruvec_size(lruvec, LRU_ACTIVE_ANON) +
-+		get_lruvec_size(lruvec, LRU_INACTIVE_ANON);
-+	file  = get_lruvec_size(lruvec, LRU_ACTIVE_FILE) +
-+		get_lruvec_size(lruvec, LRU_INACTIVE_FILE);
+-	putback_inactive_pages(mz, &page_list);
++	putback_inactive_pages(lruvec, &page_list);
  
- 	if (global_reclaim(sc)) {
- 		free  = zone_page_state(mz->zone, NR_FREE_PAGES);
-@@ -1694,7 +1692,7 @@ out:
- 		int file = is_file_lru(lru);
- 		unsigned long scan;
+ 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
  
--		scan = zone_nr_lru_pages(mz, lru);
-+		scan = get_lruvec_size(lruvec, lru);
- 		if (sc->priority || noswap || !vmscan_swappiness(sc)) {
- 			scan >>= sc->priority;
- 			if (!scan && force_scan)
-@@ -1730,6 +1728,7 @@ static inline bool should_continue_recla
- {
- 	unsigned long pages_for_compaction;
- 	unsigned long inactive_lru_pages;
-+	struct lruvec *lruvec;
- 
- 	/* If not in reclaim/compaction mode, stop */
- 	if (!in_reclaim_compaction(sc))
-@@ -1762,10 +1761,12 @@ static inline bool should_continue_recla
- 	 * If we have not reclaimed enough pages for compaction and the
- 	 * inactive lists are large enough, continue reclaiming
- 	 */
-+	lruvec = mem_cgroup_zone_lruvec(mz->zone, mz->mem_cgroup);
- 	pages_for_compaction = (2UL << sc->order);
--	inactive_lru_pages = zone_nr_lru_pages(mz, LRU_INACTIVE_FILE);
-+	inactive_lru_pages = get_lruvec_size(lruvec, LRU_INACTIVE_FILE);
- 	if (nr_swap_pages > 0)
--		inactive_lru_pages += zone_nr_lru_pages(mz, LRU_INACTIVE_ANON);
-+		inactive_lru_pages += get_lruvec_size(lruvec,
-+						      LRU_INACTIVE_ANON);
- 	if (sc->nr_reclaimed < pages_for_compaction &&
- 			inactive_lru_pages > pages_for_compaction)
- 		return true;
 _
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
