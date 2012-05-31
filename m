@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-ili9320-use-devm_-functions.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:19:08 -0700
-Message-ID: <20120531191908.551A3A0203@akpm.mtv.corp.google.com>
+Subject: [merged] backlight-ld9040-use-devm_-functions.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:19:12 -0700
+Message-ID: <20120531191912.4156FA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:59318 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933019Ab2EaTTK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:19:10 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gp10so85912lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:19:09 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:46438 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933056Ab2EaTTN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:19:13 -0400
+Received: by mail-we0-f202.google.com with SMTP id e53so75955wer.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:19:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, ben-linux@fluff.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, dh09.lee@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: ili9320: use devm_ functions
+     Subject: backlight: ld9040: use devm_ functions
 has been removed from the -mm tree.  Its filename was
-     backlight-ili9320-use-devm_-functions.patch
+     backlight-ld9040-use-devm_-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,45 +26,90 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ili9320: use devm_ functions
+Subject: backlight: ld9040: use devm_ functions
 
 The devm_ functions allocate memory that is released when a driver
 detaches.  This patch uses devm_kzalloc of these functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Donghwa Lee <dh09.lee@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ili9320.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/video/backlight/ld9040.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/backlight/ili9320.c~backlight-ili9320-use-devm_-functions drivers/video/backlight/ili9320.c
---- a/drivers/video/backlight/ili9320.c~backlight-ili9320-use-devm_-functions
-+++ a/drivers/video/backlight/ili9320.c
-@@ -220,7 +220,7 @@ int __devinit ili9320_probe_spi(struct s
+diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040-use-devm_-functions drivers/video/backlight/ld9040.c
+--- a/drivers/video/backlight/ld9040.c~backlight-ld9040-use-devm_-functions
++++ a/drivers/video/backlight/ld9040.c
+@@ -707,7 +707,7 @@ static int ld9040_probe(struct spi_devic
+ 	struct backlight_device *bd = NULL;
+ 	struct backlight_properties props;
  
- 	/* allocate and initialse our state */
- 
--	ili = kzalloc(sizeof(struct ili9320), GFP_KERNEL);
-+	ili = devm_kzalloc(&spi->dev, sizeof(struct ili9320), GFP_KERNEL);
- 	if (ili == NULL) {
- 		dev_err(dev, "no memory for device\n");
+-	lcd = kzalloc(sizeof(struct ld9040), GFP_KERNEL);
++	lcd = devm_kzalloc(&spi->dev, sizeof(struct ld9040), GFP_KERNEL);
+ 	if (!lcd)
  		return -ENOMEM;
-@@ -240,8 +240,7 @@ int __devinit ili9320_probe_spi(struct s
- 	lcd = lcd_device_register("ili9320", dev, ili, &ili9320_ops);
- 	if (IS_ERR(lcd)) {
- 		dev_err(dev, "failed to register lcd device\n");
--		ret = PTR_ERR(lcd);
--		goto err_free;
-+		return PTR_ERR(lcd);
+ 
+@@ -717,7 +717,7 @@ static int ld9040_probe(struct spi_devic
+ 	ret = spi_setup(spi);
+ 	if (ret < 0) {
+ 		dev_err(&spi->dev, "spi setup failed.\n");
+-		goto out_free_lcd;
++		return ret;
  	}
  
- 	ili->lcd = lcd;
-@@ -259,9 +258,6 @@ int __devinit ili9320_probe_spi(struct s
-  err_unregister:
- 	lcd_device_unregister(lcd);
+ 	lcd->spi = spi;
+@@ -726,7 +726,7 @@ static int ld9040_probe(struct spi_devic
+ 	lcd->lcd_pd = spi->dev.platform_data;
+ 	if (!lcd->lcd_pd) {
+ 		dev_err(&spi->dev, "platform data is NULL.\n");
+-		goto out_free_lcd;
++		return -EFAULT;
+ 	}
  
-- err_free:
--	kfree(ili);
+ 	mutex_init(&lcd->lock);
+@@ -734,13 +734,13 @@ static int ld9040_probe(struct spi_devic
+ 	ret = regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
+ 	if (ret) {
+ 		dev_err(lcd->dev, "Failed to get regulators: %d\n", ret);
+-		goto out_free_lcd;
++		return ret;
+ 	}
+ 
+ 	ld = lcd_device_register("ld9040", &spi->dev, lcd, &ld9040_lcd_ops);
+ 	if (IS_ERR(ld)) {
+ 		ret = PTR_ERR(ld);
+-		goto out_free_lcd;
++		goto out_free_regulator;
+ 	}
+ 
+ 	lcd->ld = ld;
+@@ -782,10 +782,9 @@ static int ld9040_probe(struct spi_devic
+ 
+ out_unregister_lcd:
+ 	lcd_device_unregister(lcd->ld);
+-out_free_lcd:
++out_free_regulator:
+ 	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
+ 
+-	kfree(lcd);
+ 	return ret;
+ }
+ 
+@@ -797,7 +796,6 @@ static int __devexit ld9040_remove(struc
+ 	backlight_device_unregister(lcd->bd);
+ 	lcd_device_unregister(lcd->ld);
+ 	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
+-	kfree(lcd);
+ 
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+origin.patch
+linux-next.patch
+
