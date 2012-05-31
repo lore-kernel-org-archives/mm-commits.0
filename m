@@ -1,143 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:12:24 -0700
-Message-ID: <20120531191225.77098A0203@akpm.mtv.corp.google.com>
+Subject: [merged] pagemaph-fix-warning-about-possibly-used-before-init-var.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:13:29 -0700
+Message-ID: <20120531191329.8A30FA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:44446 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757321Ab2EaTM2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:12:28 -0400
-Received: by bkty5 with SMTP id y5so75266bkt.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:12:26 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:63035 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757321Ab2EaTNc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:13:32 -0400
+Received: by wgbdt11 with SMTP id dt11so76006wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:13:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: paul.gortmaker@windriver.com, daniel.vetter@ffwll.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: pagemap.h: fix warning about possibly used before init var
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     pagemaph-fix-warning-about-possibly-used-before-init-var.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: pagemap.h: fix warning about possibly used before init var
 
+Commit f56f821feb7b36223f309e0ec05986bb137ce418 (linux-next)
+
+    "mm: extend prefault helpers to fault in more than PAGE_SIZE"
+
+added in the new functions:
+
+	fault_in_multipages_writeable
+	fault_in_multipages_readable
+
+However, we currently see:
+
+  include/linux/pagemap.h:492: warning: 'ret' may be used uninitialized in this function
+  include/linux/pagemap.h:492: note: 'ret' was declared here
+
+Unlike a lot of gcc nags, this one appears somewhat legit.  i.e.  passing
+in an invalid negative value of "size" does make it look like all the
+conditionals in there would be bypassed and the uninitialized value would
+be returned.
+
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c              |    1 +
- drivers/platform/x86/toshiba_acpi.c |   16 ++--------------
- mm/Makefile                         |    1 +
- 3 files changed, 4 insertions(+), 14 deletions(-)
+ include/linux/pagemap.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/e820.c~linux-next-rejects arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~linux-next-rejects
-+++ a/arch/x86/kernel/e820.c
-@@ -138,6 +138,7 @@ static void __init e820_print_type(u32 t
- 		printk(KERN_CONT "usable");
- 		break;
- 	case E820_RESERVED:
-+	case E820_RESERVED_EFI:
- 		printk(KERN_CONT "reserved");
- 		break;
- 	case E820_ACPI:
-diff -puN drivers/platform/x86/toshiba_acpi.c~linux-next-rejects drivers/platform/x86/toshiba_acpi.c
---- a/drivers/platform/x86/toshiba_acpi.c~linux-next-rejects
-+++ a/drivers/platform/x86/toshiba_acpi.c
-@@ -1201,21 +1201,9 @@ static int __devinit toshiba_acpi_add(st
- 	mutex_init(&dev->mutex);
+diff -puN include/linux/pagemap.h~pagemaph-fix-warning-about-possibly-used-before-init-var include/linux/pagemap.h
+--- a/include/linux/pagemap.h~pagemaph-fix-warning-about-possibly-used-before-init-var
++++ a/include/linux/pagemap.h
+@@ -460,11 +460,11 @@ static inline int fault_in_pages_readabl
+  */
+ static inline int fault_in_multipages_writeable(char __user *uaddr, int size)
+ {
+-	int ret;
++	int ret = 0;
+ 	char __user *end = uaddr + size - 1;
  
- 	memset(&props, 0, sizeof(props));
--	props.type = BACKLIGHT_PLATFORM;
--	props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
--	dev->backlight_dev = backlight_device_register("toshiba",
--						       &acpi_dev->dev,
--						       dev,
--						       &toshiba_backlight_data,
--						       &props);
--	if (IS_ERR(dev->backlight_dev)) {
--		ret = PTR_ERR(dev->backlight_dev);
--
--		pr_err("Could not register toshiba backlight device\n");
--		dev->backlight_dev = NULL;
-+	ret = toshiba_acpi_setup_backlight(dev);
-+	if (ret)
- 		goto error;
--	}
--	dev->backlight_dev->props.brightness = get_lcd(dev->backlight_dev);
+ 	if (unlikely(size == 0))
+-		return 0;
++		return ret;
  
- 	/* Register rfkill switch for Bluetooth */
- 	if (hci_get_bt_present(dev, &bt_present) == HCI_SUCCESS && bt_present) {
-diff -puN mm/Makefile~linux-next-rejects mm/Makefile
---- a/mm/Makefile~linux-next-rejects
-+++ a/mm/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_HAVE_MEMBLOCK) += memblock.
+ 	/*
+ 	 * Writing zeroes into userspace here is OK, because we know that if
+@@ -489,11 +489,11 @@ static inline int fault_in_multipages_re
+ 					       int size)
+ {
+ 	volatile char c;
+-	int ret;
++	int ret = 0;
+ 	const char __user *end = uaddr + size - 1;
  
- obj-$(CONFIG_BOUNCE)	+= bounce.o
- obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o
-+obj-$(CONFIG_FRONTSWAP)	+= frontswap.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
- obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
- obj-$(CONFIG_NUMA) 	+= mempolicy.o
+ 	if (unlikely(size == 0))
+-		return 0;
++		return ret;
+ 
+ 	while (uaddr <= end) {
+ 		ret = __get_user(c, uaddr);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paul.gortmaker@windriver.com are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-isdn-add-missing-kern_cont-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
-kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
-vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
-kmod-avoid-deadlock-by-recursive-kmod-call.patch
-proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
-ipc-mqueue-improve-performance-of-send-recv-fix.patch
-ipc-mqueue-correct-mq_attr_ok-test-fix.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
-tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
-ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
-pidns-make-killed-children-autoreap-checkpatch-fixes.patch
-fs-nls-add-apple-nls-fix.patch
-eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
-c-r-prctl-simplify-pr_set_mm-on-mm-code-data-assignment-fix.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+time-dont-inline-export_symbol-functions.patch
+locking-add-kern_cont-when-needed-to-self-test.patch
+sethostname-setdomainname-notify-userspace-when-there-is-a-change-in-uts_kern_table.patch
+rapidio-add-dma-engine-support-for-rio-data-transfers.patch
+rapidio-tsi721-add-dma-engine-support.patch
 
