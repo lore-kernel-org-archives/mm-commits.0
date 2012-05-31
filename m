@@ -1,94 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] proc-smaps-show-amount-of-hwpoison-pages.patch removed from -mm tree
-Date: Thu, 31 May 2012 13:12:38 -0700
-Message-ID: <20120531201238.8E61CA03CD@akpm.mtv.corp.google.com>
+Subject: [nacked] proc-use-is_err_or_null.patch removed from -mm tree
+Date: Thu, 31 May 2012 13:13:30 -0700
+Message-ID: <20120531201330.D2088A03CD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:63787 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933258Ab2EaUMk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 16:12:40 -0400
-Received: by faaa25 with SMTP id a25so77334faa.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 13:12:39 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:40261 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933260Ab2EaUNb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 16:13:31 -0400
+Received: by qcsp5 with SMTP id p5so143030qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 13:13:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@openvz.org, adobriyan@gmail.com, ak@linux.intel.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, adobriyan@gmail.com, hughd@google.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/smaps: show amount of hwpoison pages
+     Subject: proc: use IS_ERR_OR_NULL()
 has been removed from the -mm tree.  Its filename was
-     proc-smaps-show-amount-of-hwpoison-pages.patch
+     proc-use-is_err_or_null.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: proc/smaps: show amount of hwpoison pages
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: proc: use IS_ERR_OR_NULL()
 
-Add the line "HWPoinson: <size> kB" into /proc/pid/smaps if
-CONFIG_MEMORY_FAILURE=y and some HWPoison pages were found.  This may be
-useful for searching applications which use a broken memory.
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: Andi Kleen <ak@linux.intel.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/proc/base.c       |    2 +-
+ fs/proc/task_mmu.c   |    4 ++--
+ fs/proc/task_nommu.c |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~proc-smaps-show-amount-of-hwpoison-pages fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-smaps-show-amount-of-hwpoison-pages
+diff -puN fs/proc/base.c~proc-use-is_err_or_null fs/proc/base.c
+--- a/fs/proc/base.c~proc-use-is_err_or_null
++++ a/fs/proc/base.c
+@@ -239,7 +239,7 @@ static int proc_pid_auxv(struct task_str
+ {
+ 	struct mm_struct *mm = mm_access(task, PTRACE_MODE_READ);
+ 	int res = PTR_ERR(mm);
+-	if (mm && !IS_ERR(mm)) {
++	if (!IS_ERR_OR_NULL(mm)) {
+ 		unsigned int nwords = 0;
+ 		do {
+ 			nwords += 2;
+diff -puN fs/proc/task_mmu.c~proc-use-is_err_or_null fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~proc-use-is_err_or_null
 +++ a/fs/proc/task_mmu.c
-@@ -394,6 +394,7 @@ struct mem_size_stats {
- 	unsigned long anonymous_thp;
- 	unsigned long swap;
- 	unsigned long nonlinear;
-+	unsigned long hwpoison;
- 	u64 pss;
- };
+@@ -126,7 +126,7 @@ static void *m_start(struct seq_file *m,
+ 		return ERR_PTR(-ESRCH);
  
-@@ -416,6 +417,8 @@ static void smaps_pte_entry(pte_t ptent,
- 			mss->swap += ptent_size;
- 		else if (is_migration_entry(swpent))
- 			page = migration_entry_to_page(swpent);
-+		else if (is_hwpoison_entry(swpent))
-+			mss->hwpoison += ptent_size;
- 	} else if (pte_file(ptent)) {
- 		if (pte_to_pgoff(ptent) != pgoff)
- 			mss->nonlinear += ptent_size;
-@@ -430,6 +433,9 @@ static void smaps_pte_entry(pte_t ptent,
- 	if (page->index != pgoff)
- 		mss->nonlinear += ptent_size;
+ 	mm = mm_access(priv->task, PTRACE_MODE_READ);
+-	if (!mm || IS_ERR(mm))
++	if (IS_ERR_OR_NULL(mm))
+ 		return mm;
+ 	down_read(&mm->mmap_sem);
  
-+	if (PageHWPoison(page))
-+		mss->hwpoison += ptent_size;
-+
- 	mss->resident += ptent_size;
- 	/* Accumulate the size in pages that have been accessed. */
- 	if (pte_young(ptent) || PageReferenced(page))
-@@ -535,6 +541,10 @@ static int show_smap(struct seq_file *m,
- 		seq_printf(m, "Nonlinear:      %8lu kB\n",
- 				mss.nonlinear >> 10);
+@@ -957,7 +957,7 @@ static ssize_t pagemap_read(struct file 
  
-+	if (IS_ENABLED(CONFIG_MEMORY_FAILURE) && mss.hwpoison)
-+		seq_printf(m, "HWPoison:       %8lu kB\n",
-+				mss.hwpoison >> 10);
-+
- 	if (m->count < m->size)  /* vma is copied successfully */
- 		m->version = (vma != get_gate_vma(task->mm))
- 			? vma->vm_start : 0;
+ 	mm = mm_access(task, PTRACE_MODE_READ);
+ 	ret = PTR_ERR(mm);
+-	if (!mm || IS_ERR(mm))
++	if (IS_ERR_OR_NULL(mm))
+ 		goto out_free;
+ 
+ 	pagemap_walk.pmd_entry = pagemap_pte_range;
+diff -puN fs/proc/task_nommu.c~proc-use-is_err_or_null fs/proc/task_nommu.c
+--- a/fs/proc/task_nommu.c~proc-use-is_err_or_null
++++ a/fs/proc/task_nommu.c
+@@ -224,7 +224,7 @@ static void *m_start(struct seq_file *m,
+ 		return ERR_PTR(-ESRCH);
+ 
+ 	mm = mm_access(priv->task, PTRACE_MODE_READ);
+-	if (!mm || IS_ERR(mm)) {
++	if (IS_ERR_OR_NULL(mm)) {
+ 		put_task_struct(priv->task);
+ 		priv->task = NULL;
+ 		return mm;
 _
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-proc-report-file-anon-bit-in-proc-pid-pagemap.patch
-proc-smaps-carefully-handle-migration-entries.patch
-proc-smaps-show-amount-of-nonlinear-ptes-in-vma.patch
+proc-clean-up-proc-pid-environ-handling.patch
+proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
+proc-remove-mm_for_maps.patch
+proc-use-mm_access-instead-of-ptrace_may_access.patch
 
