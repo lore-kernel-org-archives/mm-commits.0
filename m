@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fs-route-madv_remove-to-falloc_fl_punch_hole.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:15:39 -0700
-Message-ID: <20120531191539.9B074A0203@akpm.mtv.corp.google.com>
+Subject: [merged] tmpfs-support-fallocate-falloc_fl_punch_hole.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:15:37 -0700
+Message-ID: <20120531191537.67AFEA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:42243 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932941Ab2EaTPk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:40 -0400
-Received: by mail-qa0-f74.google.com with SMTP id g24so154247qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:40 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:35330 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932750Ab2EaTPi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:15:38 -0400
+Received: by mail-ee0-f74.google.com with SMTP id t10so76273eei.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:15:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, adilger@dilger.ca, amwang@redhat.com, bpm@sgi.com, ccross@android.com, david@fromorbit.com, gregkh@linux-foundation.org, hch@infradead.org, jlbec@evilplan.org, john.stultz@linaro.org, mfasheh@suse.de, mtk.manpages@gmail.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: hughd@google.com, amwang@redhat.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/fs: route MADV_REMOVE to FALLOC_FL_PUNCH_HOLE
+     Subject: tmpfs: support fallocate FALLOC_FL_PUNCH_HOLE
 has been removed from the -mm tree.  Its filename was
-     mm-fs-route-madv_remove-to-falloc_fl_punch_hole.patch
+     tmpfs-support-fallocate-falloc_fl_punch_hole.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,110 +26,177 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/fs: route MADV_REMOVE to FALLOC_FL_PUNCH_HOLE
+Subject: tmpfs: support fallocate FALLOC_FL_PUNCH_HOLE
 
-Now tmpfs supports hole-punching via fallocate(), switch madvise_remove()
-to use do_fallocate() instead of vmtruncate_range(): which extends
-madvise(,,MADV_REMOVE) support from tmpfs to ext4, ocfs2 and xfs.
+tmpfs has supported hole-punching since 2.6.16, via
+madvise(,,MADV_REMOVE).  But nowadays
+fallocate(,FALLOC_FL_PUNCH_HOLE|FALLOC_FL_KEEP_SIZE,,) is the agreed way
+to punch holes.
 
-There is one more user of vmtruncate_range() in our tree,
-staging/android's ashmem_shrink(): convert it to use do_fallocate() too
-(but if its unpinned areas are already unmapped - I don't know - then it
-would do better to use shmem_truncate_range() directly).
+So add shmem_fallocate() to support that, and tweak shmem_truncate_range()
+to support partial pages at both the beginning and end of range (never
+needed for madvise, which demands rounded addr and rounds up length).
 
 Based-on-patch-by: Cong Wang <amwang@redhat.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Colin Cross <ccross@android.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Greg Kroah-Hartman <gregkh@linux-foundation.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger@dilger.ca>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ben Myers <bpm@sgi.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Cong Wang <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/android/ashmem.c |    8 +++++---
- mm/madvise.c                     |   15 +++++++--------
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ mm/shmem.c |   68 ++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 57 insertions(+), 11 deletions(-)
 
-diff -puN drivers/staging/android/ashmem.c~mm-fs-route-madv_remove-to-falloc_fl_punch_hole drivers/staging/android/ashmem.c
---- a/drivers/staging/android/ashmem.c~mm-fs-route-madv_remove-to-falloc_fl_punch_hole
-+++ a/drivers/staging/android/ashmem.c
-@@ -19,6 +19,7 @@
- #include <linux/module.h>
- #include <linux/file.h>
- #include <linux/fs.h>
+diff -puN mm/shmem.c~tmpfs-support-fallocate-falloc_fl_punch_hole mm/shmem.c
+--- a/mm/shmem.c~tmpfs-support-fallocate-falloc_fl_punch_hole
++++ a/mm/shmem.c
+@@ -53,6 +53,7 @@ static struct vfsmount *shm_mnt;
+ #include <linux/blkdev.h>
+ #include <linux/pagevec.h>
+ #include <linux/percpu_counter.h>
 +#include <linux/falloc.h>
- #include <linux/miscdevice.h>
+ #include <linux/splice.h>
  #include <linux/security.h>
- #include <linux/mm.h>
-@@ -363,11 +364,12 @@ static int ashmem_shrink(struct shrinker
+ #include <linux/swapops.h>
+@@ -432,21 +433,23 @@ void shmem_truncate_range(struct inode *
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	pgoff_t start = (lstart + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
+-	unsigned partial = lstart & (PAGE_CACHE_SIZE - 1);
+-	pgoff_t end = (lend >> PAGE_CACHE_SHIFT);
++	pgoff_t end = (lend + 1) >> PAGE_CACHE_SHIFT;
++	unsigned int partial_start = lstart & (PAGE_CACHE_SIZE - 1);
++	unsigned int partial_end = (lend + 1) & (PAGE_CACHE_SIZE - 1);
+ 	struct pagevec pvec;
+ 	pgoff_t indices[PAGEVEC_SIZE];
+ 	long nr_swaps_freed = 0;
+ 	pgoff_t index;
+ 	int i;
  
- 	mutex_lock(&ashmem_mutex);
- 	list_for_each_entry_safe(range, next, &ashmem_lru_list, lru) {
--		struct inode *inode = range->asma->file->f_dentry->d_inode;
- 		loff_t start = range->pgstart * PAGE_SIZE;
--		loff_t end = (range->pgend + 1) * PAGE_SIZE - 1;
-+		loff_t end = (range->pgend + 1) * PAGE_SIZE;
+-	BUG_ON((lend & (PAGE_CACHE_SIZE - 1)) != (PAGE_CACHE_SIZE - 1));
++	if (lend == -1)
++		end = -1;	/* unsigned, so actually very big */
  
--		vmtruncate_range(inode, start, end);
-+		do_fallocate(range->asma->file,
-+				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-+				start, end - start);
- 		range->purged = ASHMEM_WAS_PURGED;
- 		lru_del(range);
+ 	pagevec_init(&pvec, 0);
+ 	index = start;
+-	while (index <= end) {
++	while (index < end) {
+ 		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
+-			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
++				min(end - index, (pgoff_t)PAGEVEC_SIZE),
+ 							pvec.pages, indices);
+ 		if (!pvec.nr)
+ 			break;
+@@ -455,7 +458,7 @@ void shmem_truncate_range(struct inode *
+ 			struct page *page = pvec.pages[i];
  
-diff -puN mm/madvise.c~mm-fs-route-madv_remove-to-falloc_fl_punch_hole mm/madvise.c
---- a/mm/madvise.c~mm-fs-route-madv_remove-to-falloc_fl_punch_hole
-+++ a/mm/madvise.c
-@@ -11,8 +11,10 @@
- #include <linux/mempolicy.h>
- #include <linux/page-isolation.h>
- #include <linux/hugetlb.h>
-+#include <linux/falloc.h>
- #include <linux/sched.h>
- #include <linux/ksm.h>
-+#include <linux/fs.h>
+ 			index = indices[i];
+-			if (index > end)
++			if (index >= end)
+ 				break;
  
- /*
-  * Any behaviour which results in changes to the vma->vm_flags needs to
-@@ -200,8 +202,7 @@ static long madvise_remove(struct vm_are
- 				struct vm_area_struct **prev,
- 				unsigned long start, unsigned long end)
- {
--	struct address_space *mapping;
--	loff_t offset, endoff;
-+	loff_t offset;
- 	int error;
+ 			if (radix_tree_exceptional_entry(page)) {
+@@ -479,22 +482,39 @@ void shmem_truncate_range(struct inode *
+ 		index++;
+ 	}
  
- 	*prev = NULL;	/* tell sys_madvise we drop mmap_sem */
-@@ -217,16 +218,14 @@ static long madvise_remove(struct vm_are
- 	if ((vma->vm_flags & (VM_SHARED|VM_WRITE)) != (VM_SHARED|VM_WRITE))
- 		return -EACCES;
+-	if (partial) {
++	if (partial_start) {
+ 		struct page *page = NULL;
+ 		shmem_getpage(inode, start - 1, &page, SGP_READ, NULL);
+ 		if (page) {
+-			zero_user_segment(page, partial, PAGE_CACHE_SIZE);
++			unsigned int top = PAGE_CACHE_SIZE;
++			if (start > end) {
++				top = partial_end;
++				partial_end = 0;
++			}
++			zero_user_segment(page, partial_start, top);
+ 			set_page_dirty(page);
+ 			unlock_page(page);
+ 			page_cache_release(page);
+ 		}
+ 	}
++	if (partial_end) {
++		struct page *page = NULL;
++		shmem_getpage(inode, end, &page, SGP_READ, NULL);
++		if (page) {
++			zero_user_segment(page, 0, partial_end);
++			set_page_dirty(page);
++			unlock_page(page);
++			page_cache_release(page);
++		}
++	}
++	if (start >= end)
++		return;
  
--	mapping = vma->vm_file->f_mapping;
--
- 	offset = (loff_t)(start - vma->vm_start)
- 			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
--	endoff = (loff_t)(end - vma->vm_start - 1)
--			+ ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
+ 	index = start;
+ 	for ( ; ; ) {
+ 		cond_resched();
+ 		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
+-			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
++				min(end - index, (pgoff_t)PAGEVEC_SIZE),
+ 							pvec.pages, indices);
+ 		if (!pvec.nr) {
+ 			if (index == start)
+@@ -502,7 +522,7 @@ void shmem_truncate_range(struct inode *
+ 			index = start;
+ 			continue;
+ 		}
+-		if (index == start && indices[0] > end) {
++		if (index == start && indices[0] >= end) {
+ 			shmem_deswap_pagevec(&pvec);
+ 			pagevec_release(&pvec);
+ 			break;
+@@ -512,7 +532,7 @@ void shmem_truncate_range(struct inode *
+ 			struct page *page = pvec.pages[i];
  
--	/* vmtruncate_range needs to take i_mutex */
-+	/* filesystem's fallocate may need to take i_mutex */
- 	up_read(&current->mm->mmap_sem);
--	error = vmtruncate_range(mapping->host, offset, endoff);
-+	error = do_fallocate(vma->vm_file,
-+				FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-+				offset, end - start);
- 	down_read(&current->mm->mmap_sem);
+ 			index = indices[i];
+-			if (index > end)
++			if (index >= end)
+ 				break;
+ 
+ 			if (radix_tree_exceptional_entry(page)) {
+@@ -1578,6 +1598,31 @@ static ssize_t shmem_file_splice_read(st
  	return error;
  }
+ 
++static long shmem_fallocate(struct file *file, int mode, loff_t offset,
++							 loff_t len)
++{
++	struct inode *inode = file->f_path.dentry->d_inode;
++	int error = -EOPNOTSUPP;
++
++	mutex_lock(&inode->i_mutex);
++
++	if (mode & FALLOC_FL_PUNCH_HOLE) {
++		struct address_space *mapping = file->f_mapping;
++		loff_t unmap_start = round_up(offset, PAGE_SIZE);
++		loff_t unmap_end = round_down(offset + len, PAGE_SIZE) - 1;
++
++		if ((u64)unmap_end > (u64)unmap_start)
++			unmap_mapping_range(mapping, unmap_start,
++					    1 + unmap_end - unmap_start, 0);
++		shmem_truncate_range(inode, offset, offset + len - 1);
++		/* No need to unmap again: hole-punching leaves COWed pages */
++		error = 0;
++	}
++
++	mutex_unlock(&inode->i_mutex);
++	return error;
++}
++
+ static int shmem_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(dentry->d_sb);
+@@ -2490,6 +2535,7 @@ static const struct file_operations shme
+ 	.fsync		= noop_fsync,
+ 	.splice_read	= shmem_file_splice_read,
+ 	.splice_write	= generic_file_splice_write,
++	.fallocate	= shmem_fallocate,
+ #endif
+ };
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
